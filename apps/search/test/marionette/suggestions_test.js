@@ -20,7 +20,7 @@ marionette('Search - Suggestions Test', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -45,7 +45,7 @@ marionette('Search - Suggestions Test', function() {
   test('Test suggestions', function() {
 
     home.waitForLaunch();
-    home.focusRocketBar();
+    rocketbar.homescreenFocus();
 
     search.triggerFirstRun(rocketbar);
     rocketbar.enterText('sometext');

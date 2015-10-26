@@ -16,6 +16,16 @@
 
   // set hour12 and emit the locale change event if value changed
   var _setMozHour12 = function(result) {
+    if (result === null) {
+      // locale.hour12 may be true, false, `undefined` or `null`.
+      // We can't write to mozSettings with `undefined`, but we want to cast
+      // null to be undefined because then we can easily assign
+      // Intl hour12: navigator.mozHour12 which is a paradigm we want to use.
+      //
+      // if you set hour12 to undefined it uses automatic value, but it doesn't
+      // work if you set it to `null`, so we cast here to `undefined`.
+      result = undefined;
+    }
     if (window.navigator.mozHour12 !== result) {
       window.navigator.mozHour12 = result;
       // emit the locale change event

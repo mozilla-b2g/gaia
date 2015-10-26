@@ -178,6 +178,13 @@
 }
 
 /**
+ * switch-toggle-disabled
+ */
+.controls.switch-toggle-disabled .mode-switch {
+  pointer-events: none;
+}
+
+/**
  * switch-disabled,
  * recording
  */

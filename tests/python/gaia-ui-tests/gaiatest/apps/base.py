@@ -4,55 +4,26 @@
 
 import time
 
-from marionette_driver import By, Wait
-from marionette_driver.errors import (NoSuchElementException,
-                                      StaleElementException)
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import NoSuchElementException
 
 from gaiatest import GaiaApps
 from gaiatest import Accessibility
 
 
 class Base(object):
+    DEFAULT_APP_HOSTNAME = '.gaiamobile.org'
+    DEFAULT_PROTOCOL = 'app://'
 
     def __init__(self, marionette):
         self.marionette = marionette
         self.apps = GaiaApps(self.marionette)
         self.accessibility = Accessibility(self.marionette)
         self.frame = None
-        self.manifest_url = hasattr(self, 'manifest_url') and self.manifest_url or None
         self.entry_point = hasattr(self, 'entry_point') and self.entry_point or None
 
     def launch(self, launch_timeout=None):
         self.app = self.apps.launch(self.name, self.manifest_url, self.entry_point, launch_timeout=launch_timeout)
-
-    def wait_for_element_present(self, by, locator, timeout=None):
-        return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(
-            lambda m: m.find_element(by, locator))
-
-    def wait_for_element_not_present(self, by, locator, timeout=None):
-        self.marionette.set_search_timeout(0)
-        try:
-            return Wait(self.marionette, timeout).until(
-                lambda m: not m.find_element(by, locator))
-        except NoSuchElementException:
-            pass
-        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
-    def wait_for_element_displayed(self, by, locator, timeout=None):
-        Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
-            lambda m: m.find_element(by, locator).is_displayed())
-
-    def wait_for_element_not_displayed(self, by, locator, timeout=None):
-        self.marionette.set_search_timeout(0)
-        try:
-            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
-                lambda m: not m.find_element(by, locator).is_displayed())
-        except NoSuchElementException:
-            pass
-        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
-    def wait_for_condition(self, method, timeout=None, message=None):
-        Wait(self.marionette, timeout).until(method, message=message)
 
     def is_element_present(self, by, locator):
         self.marionette.set_search_timeout(0)
@@ -73,13 +44,6 @@ class Base(object):
         finally:
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
-    def is_custom_element_checked(self, element):
-        return self.marionette.execute_script("return arguments[0].wrappedJSObject.checked", [element])
-
-    # TODO: Remove me once bug 1113742 is fixed
-    def wait_for_custom_element_checked_state(self, element, checked=True):
-        Wait(self.marionette).until(lambda m: self.is_custom_element_checked(element) is checked)
-
     def find_select_item(self, match_string):
         _list_item_locator = (
             By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" %
@@ -90,7 +54,7 @@ class Base(object):
         # fast against desktop builds causing intermittent failures
         time.sleep(0.2)
 
-        li = self.wait_for_element_present(*_list_item_locator)
+        li = Wait(self.marionette).until(expected.element_present(*_list_item_locator))
         # We need to keep this because the Ok button may hang over the element and stop
         # Marionette from scrolling the element entirely into view
         self.marionette.execute_script(
@@ -98,7 +62,7 @@ class Base(object):
         return li
 
     def wait_for_select_closed(self, by, locator):
-        self.wait_for_element_not_displayed(by, locator)
+        Wait(self.marionette).until(expected.element_not_displayed(by, locator))
 
         # now back to app
         self.apps.switch_to_displayed_app()
@@ -133,22 +97,39 @@ class Base(object):
         self.accessibility.click(self.marionette.find_element(*_close_button_locator))
         self.wait_for_select_closed(*_close_button_locator)
 
-    def tap_element_from_system_app(self, element=None, add_statusbar_height=False):
+    def tap_element_from_system_app(self, element=None, add_statusbar_height=False, x=None, y=None):
         # Workaround for bug 1109213, where tapping on the button inside the app itself
-        # makes Marionette spew out NoSuchWindowException errors
-        x = element.rect['x'] + element.rect['width']//2
-        y = element.rect['y'] + element.rect['height']//2
+        # makes Marionette spew out NoSuchWindowException errors, see bug 1164078
+        cx = element.rect['x']
+        cy = element.rect['y']
+        cx += element.rect['width']//2 if x is None else x
+        cy += element.rect['height']//2 if y is None else y
+
         from gaiatest.apps.system.app import System
         system = System(self.marionette)
         if add_statusbar_height:
-          y = y + system.status_bar.height
-        system.tap(x, y)
+          cy = cy + system.status_bar.height
+        system.tap(cx, cy)
 
     @property
     def keyboard(self):
         from gaiatest.apps.keyboard.app import Keyboard
         return Keyboard(self.marionette)
 
+    @property
+    def manifest_url(self):
+        return '{}{}{}/manifest.webapp'.format(self.DEFAULT_PROTOCOL, self.__class__.__name__.lower(), self.DEFAULT_APP_HOSTNAME)
+
+    @property
+    def is_displayed(self):
+        return (self.apps.displayed_app.manifest_url == self.manifest_url and
+               self.apps.displayed_app.entry_point == self.entry_point)
+
+    def wait_to_be_displayed(self):
+        Wait(self.marionette).until(lambda m: self.is_displayed == True)
+
+    def wait_to_not_be_displayed(self):
+        Wait(self.marionette).until(lambda m: self.is_displayed == False)
 
 class PageRegion(Base):
     def __init__(self, marionette, element):

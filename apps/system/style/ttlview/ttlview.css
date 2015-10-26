@@ -1,7 +1,7 @@
 #debug-ttl {
   position: absolute;
   top: 0;
-  right: 0;
+  offset-inline-end: 0;
   display: block;
   height: 2.2rem;
   width: 6rem;
@@ -9,8 +9,8 @@
   pointer-events: none;
   font-size: 1.5rem;
   line-height: 2rem;
-  text-align: right;
+  text-align: end;
   font-weight: bold;
   overflow: hidden;
-  padding-right: 0.3rem;
+  padding-inline-end: 0.3rem;
 }

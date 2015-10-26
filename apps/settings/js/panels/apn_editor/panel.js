@@ -97,7 +97,7 @@ define(function(require) {
                 return _showChangeApnWarning();
               }
             }).then(function(result) {
-              if (result && result.type === 'submit') {
+              if (!result || (result && result.type === 'submit')) {
                 _editorSession.commit().then(_back);
                 _editorSession = null;
               }

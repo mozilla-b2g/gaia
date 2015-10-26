@@ -51,7 +51,7 @@ suite('system/BrowserSettings', function() {
       function() {
         this.sinon.spy(MockService, 'request');
         navigator.mozSettings.createLock().set({'clear.browser.history': true});
-        assert.isTrue(MockService.request.calledWith('Places:clear'),
+        assert.isTrue(MockService.request.calledWith('Places:clearHistory'),
                       'Places database clear should be requested');
       }
     );

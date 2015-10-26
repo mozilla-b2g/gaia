@@ -36,7 +36,7 @@ class TestMusic(GaiaTestCase):
 
         # select play
         # This wait is timing out because of bug 862156
-        player_view = sublist_view.tap_play()
+        player_view = sublist_view.tap_first_song()
 
         # play for a short duration
         play_time = time.strptime('00:03', '%M:%S')

@@ -1,5 +1,5 @@
 'use strict';
-/* global KeyEvent */
+/* global KeyEvent, mozIntl, IntlHelper */
 define(function(require) {
 var Alarm = require('alarm');
 var ClockView = require('panels/alarm/clock_view');
@@ -7,11 +7,13 @@ var AudioManager = require('audio_manager');
 var FormButton = require('form_button');
 var Sounds = require('sounds');
 var Utils = require('utils');
-var mozL10n = require('l10n');
 var Panel = require('panel');
-var _ = mozL10n.get;
 var html = require('text!panels/alarm_edit/panel.html');
 var constants = require('constants');
+
+IntlHelper.define('weekday-long', 'datetime', {
+  weekday: 'long'
+});
 
 var AlarmEdit = function() {
   Panel.apply(this, arguments);
@@ -56,15 +58,12 @@ var AlarmEdit = function() {
       var splitValue = value.split(':');
       date.setHours(splitValue[0]);
       date.setMinutes(splitValue[1]);
-      return Utils.getLocalizedTimeText(date);
+      return { raw: Utils.getLocalizedTimeText(date) };
     }.bind(this)
   });
   this.buttons.repeat = new FormButton(this.selects.repeat, {
-    selectOptions: constants.DAYS_STARTING_MONDAY,
     id: 'repeat-menu',
-    formatLabel: function(daysOfWeek) {
-      return Utils.summarizeDaysOfWeek(daysOfWeek);
-    }.bind(this)
+    formatLabel: Utils.summarizeDaysOfWeek
   });
   this.buttons.sound = new FormButton(this.selects.sound, {
     id: 'sound-menu',
@@ -73,12 +72,16 @@ var AlarmEdit = function() {
   this.buttons.snooze = new FormButton(this.selects.snooze, {
     id: 'snooze-menu',
     formatLabel: function(snooze) {
-      return _('nMinutes', {n: snooze});
+      var numFormatter = IntlHelper.get('digit-nopadding');
+      return { 
+        id: 'alarmMinutes',
+        args: {minutes: numFormatter.format(parseInt(snooze))} 
+      };
     }
   });
 
   this.scrollList = this.element.querySelector('#edit-alarm');
-  this.sundayListItem = this.element.querySelector('#repeat-select-sunday');
+  this.repeatSelect = this.element.querySelector('#repeat-select');
 
   // When the system pops up the ValueSelector, it inadvertently
   // messes with the scrollTop of the current panel. This is a
@@ -88,9 +91,9 @@ var AlarmEdit = function() {
     this.element.scrollTop = 0;
   }.bind(this));
 
-  // When the language changes, the value of 'weekStartsOnMonday'
-  // might change.
-  mozL10n.ready(this.updateL10n.bind(this));
+  // When the language changes, the value of 'firstDayOfTheWeek'
+  // might change and we need to update translations of weekdays
+  navigator.mozL10n.ready(this.updateL10n.bind(this));
 
   this.headers.header.addEventListener('action', handleDomEvent);
   this.buttons.done.addEventListener('click', handleDomEvent);
@@ -133,17 +136,39 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   updateL10n: function() {
-    // Move the weekdays around to properly account for whether the
-    // week starts on Sunday or Monday.
-    var weekStartsOnMonday = parseInt(_('weekStartsOnMonday'), 10);
-    var parent = this.sundayListItem.parentElement;
-    if (weekStartsOnMonday) {
-      // Sunday gets moved to the end.
-      parent.appendChild(this.sundayListItem);
-    } else {
-      // Sunday goes first.
-      parent.insertBefore(this.sundayListItem, parent.firstChild);
-    }
+    // Move the weekdays around to properly account for the firstDay.
+    mozIntl.calendarInfo('firstDayOfTheWeek').then(firstDay => {
+      var formatter = IntlHelper.get('weekday-long');
+
+      var options = [...this.repeatSelect.querySelectorAll('option')];
+      var optionsByDay = {};
+
+      options.forEach(option => {
+        var value = option.getAttribute('value');
+        optionsByDay[value] = option;
+        this.repeatSelect.removeChild(option);
+      });
+
+      for (var i = 0; i < 7; i++) {
+        var day = (i + firstDay) % options.length;
+        var option = optionsByDay[day.toString()];
+
+        var dayDate = new Date(constants.KNOWN_SUNDAY); 
+        dayDate.setDate(constants.KNOWN_SUNDAY.getDate() + firstDay + i);
+
+        option.textContent = formatter.format(dayDate);
+        this.repeatSelect.appendChild(option);
+      }
+    });
+
+    var numFormatter = IntlHelper.get('digit-nopadding');
+    var elements = [...document.querySelectorAll('#snooze-select > option')];
+
+    elements.forEach(element => {
+      var value = parseInt(element.value);
+      element.setAttribute('data-l10n-args',
+        JSON.stringify({minutes: numFormatter.format(value)}));
+    });
   },
 
   // The name `handleEvent` is already defined by the Panel class, so this

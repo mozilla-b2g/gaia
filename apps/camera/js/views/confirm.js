@@ -24,12 +24,7 @@ module.exports = View.extend({
   },
 
   render: function() {
-    var l10n = navigator.mozL10n;
-
-    this.el.innerHTML = this.template({
-      retake: l10n.get('retake-button'),
-      select: l10n.get('select-button')
-    });
+    this.el.innerHTML = this.template();
 
     // Get elements
     this.els.mediaFrame = this.find('.js-media-frame');
@@ -116,21 +111,19 @@ module.exports = View.extend({
     this.mediaFrame.displayVideo(
       video.blob,
       video.poster.blob,
-      video.poster.width,
-      video.poster.height,
+      video.poster.width / video.poster.height,
       video.rotation);
     return this;
   },
 
-  template: function(data) {
+  template: function() {
     /*jshint maxlen:false*/
     return '<div class="confirm-media-frame js-media-frame"></div>' +
     '<footer id="confirm-controls" class="confirm-controls">' +
-      '<button class="retake-button js-retake" name="retake">' +
-      data.retake + '</button>' +
-      '<button class="select-button test-confirm-select js-select" name="select">' +
-      data.select + '</button>' +
-    '</footer>';
+      '<button class="retake-button js-retake" data-l10n-id="retake-button" ' +
+      'name="retake"></button>' +
+      '<button class="select-button test-confirm-select js-select" ' +
+      'data-l10n-id="select-button" name="select"></button></footer>';
   },
 
   onButtonClick: function(event) {

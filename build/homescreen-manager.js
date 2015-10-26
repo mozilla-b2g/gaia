@@ -183,8 +183,9 @@ function customizeHomescreen(config, homescreen) {
         var output = [];
         for (var i = 0; i < applist.length; i++) {
           if (applist[i] !== null) {
-            output.push(getAppMetadata(config, applist[i][0],
-                                       applist[i][1], applist[i][2]));
+            var meta = getAppMetadata(config, applist[i][0],
+                                      applist[i][1], applist[i][2]);
+            meta && output.push(meta);
           }
         }
         return output;
@@ -212,8 +213,9 @@ function getCollections(config, homescreen) {
   return { collections: collections };
 }
 
-function loadHomescreen(config) {
-  var defaultConfig = utils.getFile(config.GAIA_DIR, 'apps', 'verticalhome',
+function loadHomescreen(config, homescreen) {
+  homescreen = homescreen || 'verticalhome';
+  var defaultConfig = utils.getFile(config.GAIA_DIR, 'apps', homescreen,
     'build', 'default-homescreens.json');
   var customize = utils.getJSON(defaultConfig);
 
@@ -255,15 +257,15 @@ function configure(config) {
   config.displayHeight = config.GAIA_DEV_DISPLAY_HEIGHT;
 }
 
-exports.getHomescreen = function(config) {
+exports.getHomescreen = function(config, homescreen) {
   configure(config);
-  var rawHomescreen = loadHomescreen(config);
+  var rawHomescreen = loadHomescreen(config, homescreen);
   return customizeHomescreen(config, rawHomescreen);
 };
 
-exports.getCollections = function(config) {
+exports.getCollections = function(config, homescreen) {
   configure(config);
-  var rawHomescreen = loadHomescreen(config);
+  var rawHomescreen = loadHomescreen(config, homescreen);
   return getCollections(config, rawHomescreen);
 };
 

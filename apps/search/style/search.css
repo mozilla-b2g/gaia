@@ -12,6 +12,9 @@
   -moz-user-select: none;
 }
 
+html[dir="ltr"] { text-align: left; }
+html[dir="rtl"] { text-align: right; }
+
 [contenteditable="true"] {
   -moz-user-select: text;
 }
@@ -29,7 +32,7 @@ body, a {
   font-size: 1.4rem;
   font-style: italic;
   margin: 0;
-  -moz-margin-end: 1rem;
+  margin-inline-end: 1rem;
   height: 4.2rem;
   padding-bottom: 1.3rem;
   text-align: center;
@@ -43,7 +46,7 @@ body, a {
   width: 1.4rem;
   height: 1.4rem;
   margin-top: -0.1rem;
-  -moz-padding-end: 0.8rem;
+  padding-inline-end: 0.8rem;
 }
 
 #search-results {
@@ -62,34 +65,40 @@ body, a {
   color: #00aac5;
   position: relative;
   padding: 0;
-  -moz-padding-end: 2rem;
-  -moz-padding-start: 1rem;
+  padding-inline-end: 2rem;
+  padding-inline-start: 1rem;
 }
 
 #suggestions-provider-dropdown {
   content: ' ';
   position: absolute;
   top: -.4rem;
-  -moz-margin-start: -1.4rem;
+  margin-inline-start: -1.4rem;
   width: 0;
   height: 0;
   background: none;
   padding: 0;
   border-style: solid;
-  border-width: 0 0 .8rem .8rem;
   border-color: transparent transparent #00aac5 transparent;
 }
+html[dir="ltr"] #suggestions-provider-dropdown {
+  border-width: 0 0 .8rem .8rem;
+}
+html[dir="rtl"] #suggestions-provider-dropdown {
+  border-width: 0 .8rem .8rem 0;
+}
+
 
 #suggestions {
   font-size: 1.6rem;
   overflow-x: hidden;
-  -moz-margin-end: 1.6rem;
+  margin-inline-end: 1.6rem;
 }
 
 #suggestions ul {
   list-style: none;
   white-space: nowrap;
-  -moz-padding-start: 0;
+  padding-inline-start: 0;
 }
 
 #suggestions li {
@@ -97,13 +106,14 @@ body, a {
   line-height: 6rem;
   margin: 0;
   border-bottom: 0.1rem solid rgba(255, 255, 255, 0.05);
-  background-image: url(/style/icons/search.png);
-  background-repeat: no-repeat;
-  background-position: left 0.8rem center;
+  background: url(/style/icons/search.png) no-repeat;
   background-size: 3rem;
-  text-indent: 4.5rem;
+  padding-inline-start: 4.5rem;
   width: 100%;
+  unicode-bidi: -moz-plaintext;
 }
+html[dir="ltr"] #suggestions li { background-position: left 0.8rem center; }
+html[dir="rtl"] #suggestions li { background-position: right 0.8rem center; }
 
 section .result * {
   pointer-events: none;
@@ -117,8 +127,8 @@ h2 {
   color: #858585;
   margin-top: 0.9rem;
   margin-bottom: -0.9rem;
-  -moz-margin-start: 0.5rem;
-  -moz-margin-end: 0.6rem;
+  margin-inline-start: 0.5rem;
+  margin-inline-end: 0.6rem;
 }
 
 /* The select box is hidden behind search provider label since we
@@ -175,7 +185,7 @@ h2 span, h2 label {
 .local .icon {
   margin: 0;
   margin-top: 0.4rem;
-  -moz-margin-end: 1.6rem;
+  margin-inline-end: 1.6rem;
   display: block;
   flex: 0 0 32px;
   width: 32px;
@@ -235,6 +245,7 @@ gaia-grid {
   display: block;
   height: 100%;
   width: 100%;
+  text-align: left; /* workaround the fact gaia-grid has a direction: 'ltr' */
 }
 
 .hidden {
@@ -246,7 +257,7 @@ gaia-grid {
   z-index: 100;
   border-radius: 2px;
   position: absolute;
-  margin: 1rem 1.5rem 0 1.5rem;
+  margin: 1rem 1.5rem 0;
 }
 
 #suggestions-notice-wrapper p {
@@ -278,10 +289,10 @@ gaia-grid {
   width: 0;
   position: absolute;
   border-style: solid;
-  border-width: 0 1rem 1rem 1rem;
+  border-width: 0 1rem 1rem;
   border-color: transparent transparent rgba(45, 45, 45, 0.94) transparent;
   top: -1rem;
-  -moz-margin-start: calc(50% - 1rem);
+  margin-inline-start: calc(50% - 1rem);
   z-index: -1;
 }
 
@@ -303,22 +314,8 @@ gaia-grid {
   display: block;
 }
 
-html[dir="rtl"] #suggestions-provider {
-  padding: 0 1rem 0 2rem;
-}
-
-html[dir="rtl"] #suggestions li {
-  background-position: right 0.8rem center;
-}
-
-html[dir="rtl"] #suggestions-provider-dropdown {
-  transform: scaleX(-1);
-}
-
-html[dir="rtl"] #places .description {
-  text-align: right;
-}
-
-html[dir="rtl"] #places .meta {
+#places .meta {
   direction: ltr;
 }
+html[dir="ltr"] #places .meta { text-align: left; }
+html[dir="ltr"] #places .meta { text-align: right; }

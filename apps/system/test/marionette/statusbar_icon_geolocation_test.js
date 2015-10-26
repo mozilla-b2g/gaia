@@ -46,7 +46,7 @@ marionette('Status Bar icons - Geolocation', function() {
   test('should be visible in minimised status bar', function() {
     launchApp();
 
-    icon = statusBar.minimised.geolocation.waitForIconToAppear();
+    icon = statusBar.geolocation.waitForIconToAppear();
     // Make sure the icon is completely opaque.
     assert.equal('true', icon.getAttribute('data-active'));
   });
@@ -55,11 +55,11 @@ marionette('Status Bar icons - Geolocation', function() {
   'minimised status bar', function() {
     launchApp();
 
-    statusBar.minimised.geolocation.waitForIconToAppear();
+    statusBar.geolocation.waitForIconToAppear();
     statusBar.dispatchMozChromeEvent('geolocation-status', {active: false});
 
     // First, the icon is deactivated...
-    icon = statusBar.minimised.geolocation.icon; // Refresh the element.
+    icon = statusBar.geolocation.icon; // Refresh the element.
     assert.equal('false', icon.getAttribute('data-active'));
 
     // ... then it disappears after a little while

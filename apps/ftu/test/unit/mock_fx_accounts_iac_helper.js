@@ -3,15 +3,15 @@
 'use strict';
 
 var MockFxAccountsIACHelper = {
-  getAccountsNoCallback: false,
+  getAccountNoCallback: false,
   logoutNoCallback: false,
-  getAccountsError: null,
+  getAccountError: null,
   account: null,
 
   reset: function() {
     this.account = null;
-    this.getAccountsError = null;
-    this.getAccountsNoCallback = null;
+    this.getAccountError = null;
+    this.getAccountNoCallback = null;
     this.logoutNoCallback = null;
   },
 
@@ -19,13 +19,13 @@ var MockFxAccountsIACHelper = {
 
   openFlow: function() {},
 
-  getAccounts: function(successCb, errorCb) {
-    if (this.getAccountsNoCallback) {
+  getAccount: function(successCb, errorCb) {
+    if (this.getAccountNoCallback) {
       return;
     }
 
-    if (this.getAccountsError) {
-      errorCb(this.getAccountsError);
+    if (this.getAccountError) {
+      errorCb(this.getAccountError);
       return;
     }
 

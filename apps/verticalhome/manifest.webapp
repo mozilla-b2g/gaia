@@ -1,6 +1,6 @@
 {
-  "name": "Default Home Screen",
-  "description": "Gaia Homescreen",
+  "name": "Legacy Home Screen",
+  "description": "Gaia Home Screen.",
   "launch_path": "/index.html",
   "type": "certified",
   "role": "homescreen",
@@ -19,21 +19,9 @@
   },
   "default_locale": "en-US",
   "locales": {
-    "ar": {
-      "name": "الشاشة الرئيسية",
-      "description": "Gaia الشاشة الرئيسية"
-    },
     "en-US": {
-      "name": "Default Home Screen",
-      "description": "Gaia Homescreen"
-    },
-    "fr": {
-      "name": "Écran d’accueil",
-      "description": "Écran d’accueil Gaia"
-    },
-    "zh-TW": {
-      "name": "主畫面",
-      "description": "Gaia 主畫面"
+      "name": "Legacy Home Screen",
+      "description": "Gaia Home Screen."
     }
   },
   "icons": {
@@ -58,6 +46,19 @@
     "vertical_preferences_store": {
       "access": "readwrite",
       "description": "Stores preferences"
+    },
+    "verticalhome_items_migration": {
+      "access": "readwrite",
+      "description": "Stores grid item configuration"
+    }
+  },
+  "connections": {
+    "verticalhome-migrate": {
+      "handler_path": "/index.html",
+      "description": "Exports settings and switches home screen",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   }
 }

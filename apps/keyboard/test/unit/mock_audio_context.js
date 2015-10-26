@@ -64,9 +64,12 @@ MockAudioListener.prototype.setVelocity = function() {
   throw 'MockAudioListener: Unimplemented. Stub me?';
 };
 
-var MockAudioContext = function() {
+var MockAudioContext = function(type) {
   this.destination = new MockAudioDestinationNode(this);
   this.listener = new MockAudioListener();
+  if (type) {
+    this.mozAudioChannelType = type;
+  }
 };
 
 MockAudioContext.prototype = Object.create(MockEventTarget.prototype);

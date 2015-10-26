@@ -233,9 +233,11 @@
       this._pendingMessages[TYPE.ALERT].push(msg);
       this.hideNotification(this._activeType, this._activeMessage);
     } else {
-      var timeout = this.getAutoHideTimeout(type, msg.buttons &&
-                                                  msg.buttons.length > 0);
-
+      var timeout = msg.timeout;
+      if (!timeout) {
+        timeout = this.getAutoHideTimeout(type, msg.buttons &&
+                                                msg.buttons.length > 0);
+      }
       this._activeType = type;
       this._activeMessage = msg;
       this._updateNotificationUI(type, msg);

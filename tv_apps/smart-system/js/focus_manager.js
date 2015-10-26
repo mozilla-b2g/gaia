@@ -145,8 +145,8 @@
                this._isUnderDOMTree(item.getElement()) &&
                this.isElementVisible(item.getElement());
       }.bind(this));
+      var topMost = null;
       if (visible.length > 0) {
-        var topMost = null;
         // find the top most UI.
         visible.forEach(function(item) {
           if (!topMost) {
@@ -180,12 +180,16 @@
             }
           }
         }.bind(this));
-        // focus top-most system UI
-        topMost.focus();
       } else if (AppWindowManager.getActiveApp()){
         // no system UI, we set focus back to top-most AppWindow
-        AppWindowManager.getActiveApp().focus();
+        topMost = AppWindowManager.getActiveApp();
         // We will always have active app, except booting.
+      }
+      if (topMost) {
+        // focus top-most system UI
+        topMost.focus();
+        window.dispatchEvent(
+          new CustomEvent('focuschanged', {detail: { topMost: topMost }}));
       }
     }.bind(this));
   };

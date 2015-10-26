@@ -119,7 +119,6 @@
      * @param {Map} activeAudioChannels
      * Active audio channels playing noew.
      * @param {Object} [options] Options.
-     * @param {Boolean} [options.isNewAudioChannelInBackground]
      * Is the new audio channel in background.
      */
     applyPolicy: function(newAudioChannel, activeAudioChannels, options) {
@@ -177,11 +176,6 @@
             (activeAudioChannelName, newAudioChannelName)
         );
       });
-      // Normal channel could not play in background.
-      if (newAudioChannelName === 'normal' &&
-          options && options.isNewAudioChannelInBackground) {
-        isAllowedToPlayForNewAudioChannel.push(false);
-      }
       // Deconflict the policies.
       isAllowedToPlayForNewAudioChannel =
         isAllowedToPlayForNewAudioChannel.every(isAllowed => isAllowed);

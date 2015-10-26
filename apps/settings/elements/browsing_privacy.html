@@ -8,32 +8,50 @@
     <div>
       <ul>
         <li>
-          <button class="clear-history-button"
-                  data-l10n-id="clear-browsing-history">
-            Clear browsing history
-          </button>
+          <gaia-switch name="browser.private.default">
+            <label data-l10n-id="privateBrowsing"></label>
+            <details data-l10n-id="privateBrowsingDetails"></details>
+            <a href="https://support.mozilla.org/kb/private-browsing-firefox-os" data-l10n-id="learn-more"></a>
+          </gaia-switch>
         </li>
         <li>
-          <button class="clear-private-data-button"
-                  data-l10n-id="clear-cookies-and-stored-data">
-            Clear cookies and stored data
+          <gaia-switch name="privacy.trackingprotection.enabled">
+            <label data-l10n-id="trackingProtection"></label>
+            <details data-l10n-id="trackingProtectionDetails"></details>
+            <a data-l10n-id="learn-more"
+                 href="https://support.mozilla.org/kb/tracking-protection-firefox-os"></a>
+          </gaia-switch>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="browser-privacy-history-header"></h2>
+      </header>
+      <ul>
+        <li class="description">
+          <p data-l10n-id="browser-privacy-history-desc"></p>
+        </li>
+        <li>
+          <button class="clear-history-button"
+                  data-l10n-id="browser-privacy-history-button">
           </button>
         </li>
       </ul>
-
+      <header>
+        <h2 data-l10n-id="browser-privacy-cookies-cache-header"></h2>
+      </header>
+      <ul>
+        <li class="description">
+          <p data-l10n-id="browser-privacy-cookies-cache-desc"></p>
+        </li>
+        <li>
+          <button class="clear-private-data-button"
+                  data-l10n-id="browser-privacy-cookies-cache-button">
+          </button>
+        </li>
+      </ul>
     </div>
 
-    <form data-type="confirm" role="dialog" class="clear-dialog" hidden>
-      <section>
-        <h1 data-l10n-id="confirm-clear-title">Confirmation</h1>
-        <p class="clear-dialog-message"></p>
-      </section>
-      <menu>
-        <button class="clear-dialog-cancel" data-l10n-id="cancel">Cancel</button>
-        <button class="clear-dialog-ok danger" data-l10n-id="clear">Clear</button>
-      </menu>
-    </form>
-
     <panel data-path="panels/browsing_privacy/panel"></panel>
+
   </template>
 </element>

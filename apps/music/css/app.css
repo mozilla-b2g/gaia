@@ -1,0 +1,74 @@
+[hidden] {
+  display: none;
+}
+
+html {
+  background: var(--background);
+  color: #fff;
+  font-size: 10px;
+  font-family: 'FiraSans';
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+a {
+  display: block;
+  font-size: 2rem;
+  padding: 1rem;
+}
+
+music-scan-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+#tab-bar {
+  transform: translate(0, 0);
+  visibility: visible;
+  transition: transform 0.2s linear, visibility 0s linear;
+}
+
+#view-stack {
+  position: absolute;
+  top: 5rem;
+  bottom: 4.6rem;
+  left: 0;
+  width: 100%;
+  height: auto;
+  transition: bottom 0s linear 0.2s;
+}
+
+#player-button[hidden],
+body[data-search="true"] #player-button {
+  display: flex !important;
+  visibility: hidden;
+}
+
+body[data-search="true"] #header,
+body[data-search="true"] #tab-bar {
+  display: none !important;
+}
+
+body[data-search="true"] #view-stack {
+  top: 0;
+  bottom: 0;
+  transition: none;
+}
+
+body[data-active-view-url="/views/player/index.html"] #tab-bar {
+  transform: translate(0, 4.6rem);
+  visibility: hidden;
+  transition-delay: 0s, 0.2s;
+}
+
+body:not([data-active-view-url]) #view-stack,
+body[data-active-view-url="/views/player/index.html"] #view-stack {
+  bottom: 0;
+  transition-delay: 0s;
+}

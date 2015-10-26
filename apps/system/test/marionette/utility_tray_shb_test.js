@@ -24,12 +24,7 @@ marionette('Utility Tray with SHB', function() {
   test('Swiping up', function() {
     utilityTray.open();
     utilityTray.waitForOpened();
-    var element = utilityTray.visible;
-    var screenHeight = element.size().height;
-
-    actions.flick(element, 50, screenHeight, 50, -(screenHeight / 2), 100)
-      .perform();
-
+    utilityTray.swipeUp();
     utilityTray.waitForClosed();
   });
 });

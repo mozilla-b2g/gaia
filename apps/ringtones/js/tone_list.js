@@ -93,7 +93,12 @@ var ToneList = (function() {
       var item = domify(Templates.soundItem(templateArgs));
       item.dataset.id = tone.id;
 
-      if (tone.subtitle) {
+      var detailNode = item.querySelector('details');
+      if (detailNode && tone.subtitle) {
+        detailNode.textContent = tone.subtitle;
+      } else if (detailNode) {
+        detailNode.parentNode.hideDetails();
+      } else if (tone.subtitle) {
         var subtitle = document.createElement('p');
         subtitle.classList.add('subtitle');
         var bdi = document.createElement('bdi');

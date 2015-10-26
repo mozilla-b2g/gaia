@@ -1,10 +1,11 @@
 /* global BaseModule, MockService, MockFtuLauncher,
           Service, MockLazyLoader,
-          MocksHelper, TimeIcon */
+          MocksHelper, TimeIcon, MockMozIntl */
 'use strict';
 
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
@@ -19,7 +20,7 @@ var mocksForTimeCore = new MocksHelper([
 ]).init();
 
 suite('system/TimeCore', function() {
-  var subject, realHidden;
+  var subject, realHidden, realMozIntl;
   mocksForTimeCore.attachTestHelpers();
 
   setup(function() {
@@ -31,10 +32,13 @@ suite('system/TimeCore', function() {
     this.sinon.stub(document, 'getElementById').returns(
       document.createElement('div'));
     subject = BaseModule.instantiate('TimeCore');
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
   });
 
   teardown(function() {
     subject.stop();
+    window.mozIntl = realMozIntl;
   });
 
   test('Ftu step is ready', function(done) {

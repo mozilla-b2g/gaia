@@ -5,10 +5,7 @@
 import json
 import os
 
-from marionette import (BaseMarionetteOptions,
-                        HTMLReportingOptionsMixin,
-                        HTMLReportingTestRunnerMixin,
-                        HTMLReportingTestResultMixin,
+from marionette import (BaseMarionetteArguments,
                         MarionetteTextTestRunner,
                         MarionetteTestResult,
                         BaseMarionetteTestRunner)
@@ -18,30 +15,25 @@ import mozlog
 from gaiatest import __name__
 
 from gaiatest import (GaiaTestCase,
-                      GaiaOptionsMixin,
+                      GaiaArguments,
                       GaiaTestRunnerMixin,
-                      TreeherderOptionsMixin,
+                      TreeherderArguments,
                       TreeherderTestRunnerMixin,
-                      GaiaImageCompareOptionsMixin)
+                      GaiaImageCompareArguments)
 from version import __version__
 
 
-class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin, HTMLReportingOptionsMixin,
-                      TreeherderOptionsMixin, GaiaImageCompareOptionsMixin):
+class GaiaTestArguments(BaseMarionetteArguments):
 
     def __init__(self, **kwargs):
-        BaseMarionetteOptions.__init__(self, **kwargs)
-        GaiaOptionsMixin.__init__(self, **kwargs)
-        HTMLReportingOptionsMixin.__init__(self, **kwargs)
-        TreeherderOptionsMixin.__init__(self, **kwargs)
-        GaiaImageCompareOptionsMixin.__init__(self, **kwargs)
+        BaseMarionetteArguments.__init__(self, **kwargs)
+        self.register_argument_container(GaiaArguments())
+        self.register_argument_container(TreeherderArguments())
+        self.register_argument_container(GaiaImageCompareArguments())
 
 
-class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
-
-    def __init__(self, *args, **kwargs):
-        MarionetteTestResult.__init__(self, *args, **kwargs)
-        HTMLReportingTestResultMixin.__init__(self, *args, **kwargs)
+class GaiaTestResult(MarionetteTestResult):
+    pass
 
 
 class GaiaTextTestRunner(MarionetteTextTestRunner):
@@ -49,8 +41,7 @@ class GaiaTextTestRunner(MarionetteTextTestRunner):
     resultclass = GaiaTestResult
 
 
-class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
-                     HTMLReportingTestRunnerMixin, TreeherderTestRunnerMixin):
+class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin, TreeherderTestRunnerMixin):
 
     textrunnerclass = GaiaTextTestRunner
 
@@ -84,8 +75,6 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
 
         BaseMarionetteTestRunner.__init__(self, result_callbacks=[gather_debug], **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
-        HTMLReportingTestRunnerMixin.__init__(self, name=__name__,
-                                              version=__version__, **kwargs)
         TreeherderTestRunnerMixin.__init__(self, **kwargs)
         self.test_handlers = [GaiaTestCase]
 
@@ -106,4 +95,4 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
 
 
 def main():
-    cli(runner_class=GaiaTestRunner, parser_class=GaiaTestOptions)
+    cli(runner_class=GaiaTestRunner, parser_class=GaiaTestArguments)

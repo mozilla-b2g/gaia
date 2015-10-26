@@ -114,7 +114,8 @@
               </p>
             </div>
             <menu>
-              <button class="modal-dialog-alert-ok confirm affirmative"
+              <button type="submit"
+              class="modal-dialog-alert-ok confirm affirmative"
               data-l10n-id="ok"></button>
             </menu>
           </form>
@@ -127,9 +128,10 @@
               </p>
             </div>
             <menu data-items="2">
-              <button class="modal-dialog-confirm-cancel cancel"
+              <button type="button" class="modal-dialog-confirm-cancel cancel"
               data-l10n-id="cancel"></button>
-              <button class="modal-dialog-confirm-ok confirm affirmative"
+              <button type="submit"
+              class="modal-dialog-confirm-ok confirm affirmative"
               data-l10n-id="ok"></button>
             </menu>
           </form>
@@ -143,9 +145,10 @@
               </p>
             </div>
             <menu data-items="2">
-              <button class="modal-dialog-prompt-cancel cancel"
+              <button type="button" class="modal-dialog-prompt-cancel cancel"
                data-l10n-id="cancel"></button>
-              <button class="modal-dialog-prompt-ok confirm affirmative"
+              <button type="submit"
+              class="modal-dialog-prompt-ok confirm affirmative"
               data-l10n-id="ok"></button>
             </menu>
           </form>
@@ -156,7 +159,8 @@
               <ul class="modal-dialog-select-one-menu"></ul>
             </div>
             <menu>
-              <button class="modal-dialog-select-one-cancel cancel"
+              <button type="submit"
+              class="modal-dialog-select-one-cancel cancel"
               data-l10n-id="cancel"></button>
             </menu>
           </form>
@@ -165,11 +169,9 @@
             <div class="modal-dialog-message-container inner">
               <h3 class="modal-dialog-custom-prompt-title"></h3>
               <p class="modal-dialog-custom-prompt-message"></p>
-              <label class="pack-checkbox">
-                <input class="modal-dialog-custom-prompt-checkbox"
-                type="checkbox"/>
-                <span></span>
-              </label>
+              <gaia-checkbox class="modal-dialog-custom-prompt-checkbox">
+                <label></label>
+              </gaia-checkbox>
             </div>
             <menu class="modal-dialog-custom-prompt-buttons"></menu>
           </form>
@@ -274,12 +276,12 @@
         var checkbox = elements.customPromptCheckbox;
         if (customPrompt.showCheckbox) {
           if (customPrompt.checkboxCheckedByDefault) {
-            checkbox.setAttribute('checked', 'true');
+            checkbox.checked = true;
           } else {
-            checkbox.removeAttribute('checked');
+            checkbox.checked = false;
           }
           // We assume that checkbox custom message is already translated
-          checkbox.nextElementSibling.textContent =
+          checkbox.querySelector('label').textContent =
             customPrompt.checkboxMessage;
         } else {
           checkbox.parentNode.classList.add('hidden');

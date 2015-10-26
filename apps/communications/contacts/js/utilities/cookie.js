@@ -44,7 +44,17 @@
       return null;
     }
 
-    return JSON.parse(decodeURIComponent(cookieVal));
+    // Setup default value for cookie with version that will trigger update
+    var result = {
+      version: -1
+    };
+    try {
+      result = JSON.parse(decodeURIComponent(cookieVal));
+    } catch (error) {
+      console.warn('Could not parse current cookie, rebuilding it');
+    }
+
+    return result;
   }
 
   // Load and return the cookie config if present.  Returns null if the
@@ -105,6 +115,9 @@
   }
 
   utils.cookie.getDefault = function(prop) {
-    return COOKIE_DEFAULTS(prop);
+    return COOKIE_DEFAULTS[prop];
   };
+
+  utils.cookie.COOKIE_DEFAULTS = COOKIE_DEFAULTS;
+  utils.cookie.COOKIE_VERSION = COOKIE_VERSION;
 })();

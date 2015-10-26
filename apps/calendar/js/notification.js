@@ -3,39 +3,49 @@ define(function(require, exports, module) {
 'use strict';
 
 var NotificationHelper = require('shared/notification_helper');
+var co = require('ext/co');
 var debug = require('common/debug')('notification');
 var performance = require('performance');
 var router = require('router');
 
 var cachedSelf;
 
-exports.sendNotification = function(title, body, url) {
-  return getSelf().then(app => {
-    if (!app) {
-      // This is perhaps a test environment?
-      debug('mozApps.getSelf gave us lemons!');
-      return Promise.resolve();
-    }
+exports.sendNotification = co.wrap(function *(title, body, url, data) {
+  data = data || {};
 
-    var icon = NotificationHelper.getIconURI(app);
-    icon += '?';
-    icon += url;
-    var notification = new Notification(title, {
-      body: body,
-      icon: icon,
-      // we use the URL as the ID so we display a single notification for each
-      // busytime (it will override previous notifications)
-      tag: url
-    });
-    return new Promise((resolve, reject) => {
-      notification.onshow = resolve;
-      notification.onerror = reject;
-      notification.onclick = function() {
-        launch(url);
-      };
-    });
+  var app = yield getSelf();
+  if (!app) {
+    // This is perhaps a test environment?
+    debug('mozApps.getSelf fail');
+    return;
+  }
+
+  var icon = `${NotificationHelper.getIconURI(app)}?${url}`;
+  var notification = new Notification(title, {
+    body: body,
+    icon: icon,
+    // we use the URL as the ID so we display a single notification for each
+    // busytime (it will override previous notifications)
+    tag: url,
+    data: data
   });
-};
+
+  return new Promise((resolve, reject) => {
+    notification.onshow = resolve;
+    notification.onerror = reject;
+    notification.onclick = () => launch(url);
+  });
+});
+
+exports.revokeNotificationsForEvent = co.wrap(function *(event) {
+  var id = event.remote.id;
+  var notifications = yield Notification.get();
+  notifications.forEach(notification => {
+    if (notification.data.id === id) {
+      notification.close();
+    }
+  });
+});
 
 /**
  * Bug 987458 - Multipe requests to mozApps.getSelf will fail if fired

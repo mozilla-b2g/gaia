@@ -1,4 +1,4 @@
-/* global DeviceInteraction, MockDriver, assert, exampleCmds, helper */
+/* global DeviceInteraction, MockDriver, assert, exampleCmds, helper, setup */
 'use strict';
 suite('marionette/client', function() {
 
@@ -289,17 +289,17 @@ suite('marionette/client', function() {
   suite('protocol 1 .send', function() {
     suite('when session: is present', function() {
       var result;
-      
+
       setup(function() {
         subject.sessionId = 'session';
         subject.actor = 'actor';
         result = subject.send({name: 'newSession'});
       });
-      
+
       test('should be chainable', function() {
         assert.strictEqual(result, subject);
       });
-      
+
       test('should add session to cmd', function() {
         assert.deepEqual(driver.sent[0], {
           to: subject.actor,
@@ -308,14 +308,14 @@ suite('marionette/client', function() {
         });
       });
     });
-    
+
     suite('when to: is not given', function() {
       suite('with an actor', function() {
         setup(function() {
           subject.actor = 'foo';
           subject.send({name: '_getActorId'}, cb);
         });
-        
+
         test('should add to:', function() {
           assert.deepEqual(driver.sent[0], {
             to: 'foo',
@@ -323,12 +323,12 @@ suite('marionette/client', function() {
           });
         });
       });
-      
+
       suite('without an actor', function() {
         setup(function() {
           subject.send({name: '_getActorId'}, cb);
         });
-        
+
         test('should add to', function() {
           assert.deepEqual(driver.sent[0], {
             to: 'root',
@@ -401,35 +401,35 @@ suite('marionette/client', function() {
   suite('.startSession protocol version 1', function() {
     var result;
     var desiredCapabilities = {desiredCapability: true};
-    
+
     setup(function(done) {
       var firesHook = false;
-      
+
       subject.addHook('startSession', function(complete) {
         firesHook = true;
         complete();
       });
-      
+
       result = subject.startSession(function() {
         assert.ok(firesHook);
         done();
       }, desiredCapabilities);
-      
+
       device.shouldSend({parameters: {capabilities: desiredCapabilities}});
-      
+
       driver.respond(exampleCmds.getMarionetteIDResponse());
       driver.respond(exampleCmds.newSessionResponseProto1());
     });
-    
+
     test('should be chainable', function() {
       assert.strictEqual(result, subject);
     });
-    
+
     test('should have an actor property', function() {
       assert.property(subject, 'actor');
       assert.isNotNull(subject.actor);
     });
-    
+
     test('should have a sessionId property', function() {
       assert.property(subject, 'sessionId');
       assert.isNotNull(subject.sessionId);
@@ -508,7 +508,7 @@ suite('marionette/client', function() {
       .shouldSend({name: 'getMarionetteID'})
       .serverResponds('getMarionetteIDResponse')
       .callbackReceives('id');
-    
+
     test('should save actor ID', function() {
       var resp = exampleCmds.getMarionetteIDResponse();
       assert.strictEqual(subject.actor, resp.id);
@@ -939,6 +939,48 @@ suite('marionette/client', function() {
             element: 'foo',
             focus: true,
             testOption: 'hi'
+          }
+        }).
+        serverResponds('ok').
+        callbackReceives();
+    });
+  });
+
+  suite('.switchToShadowRoot', function() {
+    suite('when given nothing', function() {
+      device.
+        issues('switchToShadowRoot').
+        shouldSend({ name: 'switchToShadowRoot' }).
+        serverResponds('ok').
+        callbackReceives();
+    });
+
+    suite('when given a callback', function() {
+      setup(function() {
+        subject.switchToShadowRoot(commandCallback);
+      });
+
+      device.
+        shouldSend({
+          name: 'switchToShadowRoot'
+        }).
+        serverResponds('ok').
+        callbackReceives();
+    });
+
+    suite('when given an element', function() {
+      var el;
+
+      setup(function() {
+        el = new Element('78', subject);
+        subject.switchToShadowRoot(el, commandCallback);
+      });
+
+      device.
+        shouldSend({
+          name: 'switchToShadowRoot',
+          parameters: {
+            id: '78'
           }
         }).
         serverResponds('ok').

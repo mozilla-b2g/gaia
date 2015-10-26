@@ -29,7 +29,8 @@
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
     app.element.addEventListener('_closed', this);
-    app.element.addEventListener('_inputmethod-contextchange', this);
+    app.element.addEventListener('_inputfocus', this);
+    app.element.addEventListener('_inputblur', this);
     app.element.addEventListener('_localized', this);
     LazyLoader.load(['shared/js/input_parser.js']);
     window.addEventListener('timeformatchange', this);
@@ -100,24 +101,17 @@
           this._timePicker = null;
         }
         break;
-      case '_inputmethod-contextchange':
-        var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
-          'datetime', 'datetime-local', 'blur'];
-        // handle the <select> element and inputs with type of date/time
-        // in system app for now
-        if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
-          return;
-        }
-
+      case '_inputfocus':
         this._currentDatetimeValue = evt.detail.value;
         this._currentInputType = evt.detail.inputType;
 
-        if (this._currentInputType === 'blur') {
-          this.hide();
-          return;
-        }
-
         this.show(evt.detail);
+        break;
+      case '_inputblur':
+        this._currentDatetimeValue = undefined;
+        this._currentInputType = undefined;
+
+        this.hide();
         break;
       case 'transitionend':
         this.element.classList.remove('transitioning');
@@ -127,7 +121,8 @@
 
   ValueSelector.prototype.render = function vs_render(callback) {
     this.publish('willrender');
-    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+    this.containerElement.insertAdjacentHTML('beforeend',
+          Sanitizer.unwrapSafeHTML(this.view()));
     this._fetchElements();
     this._registerEvents();
     this._injected = true;
@@ -155,14 +150,15 @@
   ValueSelector.prototype.view = function vs_view() {
     /* jshint maxlen: false */
     var id = this.CLASS_NAME + this.instanceID;
-    return Sanitizer.escapeHTML `<div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
+    return Sanitizer.createSafeHTML `
+    <div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
       <form class="value-selector-select-option-popup" role="dialog" data-type="value-selector" hidden>
         <section class="value-selector-container">
           <h1 class="value-selector-options-title" data-l10n-id="choose-option"></h1>
           <ol class="value-selector-options-container" role="listbox"></ol>
         </section>
         <menu class="value-selector-select-options-buttons value-selector-buttons">
-          <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok"></button>
+          <button class="value-option-confirm full" data-type="ok" data-l10n-id="ok"></button>
         </menu>
       </form>
       <div class="value-selector-time-picker-popup" role="dialog" data-type="time-selector" hidden>
@@ -219,7 +215,8 @@
 
   ValueSelector.prototype.optionView = function(
     {index, checked, labelFor,text}) {
-    return Sanitizer.escapeHTML `<li role="option" data-option-index="${index}"
+    return Sanitizer.createSafeHTML `
+      <li role="option" data-option-index="${index}"
         aria-selected="${checked}" dir="auto">
         <label role="presentation" for="${labelFor}">
           <span>${text}</span>
@@ -228,7 +225,8 @@
   };
 
   ValueSelector.prototype.groupView = function({text}) {
-    return Sanitizer.escapeHTML `<li role="subheader" dir="auto">
+    return Sanitizer.createSafeHTML `
+    <li role="subheader" dir="auto">
         <label role="presentation">
           <span>${text}</span>
         </label>
@@ -288,10 +286,6 @@
     this.publish('shown');
     var min = detail.min;
     var max = detail.max;
-
-    if (detail.choices) {
-      detail.choices = JSON.parse(detail.choices);
-    }
 
     this.app._setVisibleForScreenReader(false);
     if (this.element.hidden) {
@@ -495,17 +489,17 @@
     options.forEach(function(option) {
       if (option.group) {
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          this.groupView({
+          Sanitizer.unwrapSafeHTML(this.groupView({
             text: option.text
-          }));
+          })));
       } else {
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          this.optionView({
+          Sanitizer.unwrapSafeHTML(this.optionView({
             index: option.optionIndex.toString(10),
             checked: option.selected.toString(),
             labelFor: 'gaia-option-' + option.optionIndex,
             text: option.text
-          }));
+          })));
       }
     }, this);
 
@@ -599,9 +593,11 @@
     this.element = element;
     this._fetchElements();
     var _ = navigator.mozL10n.get;
-    var is12hFormat = navigator.mozHour12;
-    var localeTimeFormat = is12hFormat ?
-      _('shortTimeFormat12') : _('shortTimeFormat24');
+    var formatter = Intl.DateTimeFormat(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric'
+    });
+    var is12hFormat = formatter.resolvedOptions().hour12;
     var startHour = is12hFormat ? 1 : 0;
     var endHour = is12hFormat ? (startHour + 12) : (startHour + 12 * 2);
     var unitClassName = 'picker-unit';
@@ -627,12 +623,8 @@
       });
     }
 
-    var separator = ':';
-    var minutesPosition = localeTimeFormat.indexOf('%M');
-    if (minutesPosition > 0) {
-      separator = localeTimeFormat.substr(minutesPosition - 1, 1);
-    }
-    this.elements.hoursMinutesSeparator.textContent = separator;
+    this.elements.hoursMinutesSeparator.setAttribute('data-l10n-id',
+      'hourMinutesSeparator');
     this.setTimePickerStyle();
 
     this._registerEvents();
@@ -691,15 +683,16 @@
 
     setTimePickerStyle: function tp_setTimePickerStyle() {
       var style = 'format24h';
+
       if (this.is12hFormat) {
-        var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat12');
+        var timePickerOrder = navigator.mozL10n.get('timePickerOrder');
         // handle revert appearance
         var reversedPeriod =
-          (localeTimeFormat.indexOf('%p') < localeTimeFormat.indexOf('%M'));
+          (timePickerOrder.indexOf('p') < timePickerOrder.indexOf('M'));
         style = (reversedPeriod) ? 'format12hrev' : 'format12h';
 
         if ('format12h' === style) {
-          this.element.classList.remove('format12hhrev');
+          this.element.classList.remove('format12hrev');
           this.element.classList.remove('format24h');
           if (!this.element.classList.contains(style)) {
             this.element.classList.add(style);
@@ -713,7 +706,7 @@
         }
       }
 
-      if('format24h' === style) {
+      if ('format24h' === style) {
         this.element.classList.remove('format12h');
         this.element.classList.remove('format12hrev');
         if (!this.element.classList.contains(style)) {

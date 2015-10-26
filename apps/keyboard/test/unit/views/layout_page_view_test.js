@@ -338,6 +338,75 @@ suite('Views > LayoutPageView', function() {
     });
   });
 
+  suite('> getHeight()', function() {
+    var layout;
+    var pageView  = null;
+    var viewManager = {
+      registerView: sinon.stub(),
+      getRemToPx: sinon.stub(),
+      screenInPortraitMode: sinon.stub()
+    };
+
+    var rootElement;
+
+    setup(function() {
+      rootElement = document.createElement('div');
+      document.body.appendChild(rootElement);
+
+      layout = {
+        width: 2,
+        keys: [
+          [{ value: 'a' }, { value: 'b' }],
+          [{ value: 'c' }, { value: 'd' }],
+          [{ value: 'e' }, { value: 'f' }],
+          [{ value: 'g' }, { value: 'h' }]
+        ]
+      };
+    });
+
+    teardown(function() {
+      document.body.removeChild(rootElement);
+    });
+
+    test('w/ 4 rows, portrait', function() {
+      viewManager.getRemToPx.returns(10);
+      viewManager.screenInPortraitMode.returns(true);
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+      assert.equal(pageView.getHeight(), 4 * ((4.5 + 0.8) * 10));
+    });
+
+    test('w/ 4 rows, landscape', function() {
+      viewManager.getRemToPx.returns(10);
+      viewManager.screenInPortraitMode.returns(false);
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+      assert.equal(pageView.getHeight(), 4 * ((3.8 + 0.8) * 10));
+    });
+
+    test('w/ 5 rows, portrait', function() {
+      layout.keys.push([{ value: 'i' }, { value: 'j' }]);
+      viewManager.getRemToPx.returns(10);
+      viewManager.screenInPortraitMode.returns(true);
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+      assert.equal(pageView.getHeight(), 5 * ((3.4 + 0.8) * 10));
+    });
+
+    test('w/ 5 rows, landscape', function() {
+      layout.keys.push([{ value: 'i' }, { value: 'j' }]);
+      viewManager.getRemToPx.returns(10);
+      viewManager.screenInPortraitMode.returns(false);
+
+      pageView = new LayoutPageView(layout, {}, viewManager);
+      pageView.render();
+      assert.equal(pageView.getHeight(), 5 * ((2.85 + 0.8) * 10));
+    });
+  });
+
   suite(' > getVisualData()', function() {
     var layout = {
       width: 2,

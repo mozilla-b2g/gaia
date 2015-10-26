@@ -1873,6 +1873,12 @@
   // match the opening angle bracket (<) in HTML tags, and HTML entities like
   // &amp;, &#0038;, &#x0026;.
   var reOverlay = /<|&#?\w+;/;
+  var reHtml = /[&<>]/g;
+  var htmlEntities = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+  };
 
   function translateDocument() {
     document.documentElement.lang = this.language.code;
@@ -1923,6 +1929,10 @@
       .replace(/^-/, '');
   }
 
+  function escapeL10nArgs(match) {
+    return htmlEntities[match];
+  }
+
   function translateElement(element) {
     if (!this.ctx.isReady) {
       if (!pendingElements) {
@@ -1932,25 +1942,22 @@
       return;
     }
 
-    var l10n = getL10nAttributes(element);
+    var l10nId = element.getAttribute('data-l10n-id');
 
-    if (!l10n.id) {
+    if (!l10nId) {
       return false;
     }
 
-    var entity = this.ctx.getEntity(l10n.id, l10n.args);
+    var l10nArgs = element.getAttribute('data-l10n-args');
 
-    var value;
-    if (entity.attrs && entity.attrs.innerHTML) {
-      // XXX innerHTML is treated as value (https://bugzil.la/1142526)
-      value = entity.attrs.innerHTML;
-      console.warn(
-        'L10n Deprecation Warning: using innerHTML in translations is unsafe ' +
-        'and will not be supported in future versions of l10n.js. ' +
-        'See https://bugzil.la/1027117');
-    } else {
-      value = entity.value;
-    }
+    var entity = this.ctx.getEntity(
+      l10nId,
+      l10nArgs ?
+        JSON.parse(l10nArgs.replace(reHtml, escapeL10nArgs)) :
+        undefined
+    );
+
+    var value = entity.value;
 
     if (typeof value === 'string') {
       if (!reOverlay.test(value)) {
@@ -2009,7 +2016,7 @@
       }
 
       if (isElementAllowed(childElement)) {
-        const sanitizedChild = childElement.ownerDocument.createElement(
+        var sanitizedChild = childElement.ownerDocument.createElement(
           childElement.nodeName);
         overlayElement(sanitizedChild, childElement);
         result.appendChild(sanitizedChild);
@@ -2130,5 +2137,69 @@
     var forcePretranslate = !navigator.mozL10n._config.isPretranslated;
     whenInteractive(init.bind(navigator.mozL10n, forcePretranslate));
   }
+
+  document.l10n = {
+    setAttributes: navigator.mozL10n.setAttributes,
+    getAttributes: navigator.mozL10n.getAttributes,
+    formatValue: function(id, args) {
+      return navigator.mozL10n.formatValue(id, args);
+    },
+    translateFragment: function (frag) {
+      return Promise.resolve(navigator.mozL10n.translateFragment(frag));
+    },
+    ready: new Promise(function(resolve) {
+      navigator.mozL10n.once(resolve);
+    }),
+    formatValues: function() {
+      var keys = arguments;
+      var resp = keys.map(function(key) {
+        if (Array.isArray(key)) {
+          return navigator.mozL10n.formatValue(key[0], key[1]);
+        }
+        return navigator.mozL10n.formatValue(key);
+      });
+
+      return Promise.all(resp);
+    },
+    requestLanguages: function(langs) {
+      // XXX real l20n returns a promise
+      navigator.mozL10n.ctx.requestLocales.apply(
+        navigator.mozL10n.ctx, langs);
+    },
+    pseudo: {
+      'qps-ploc': {
+        getName: function() {
+          return Promise.resolve(navigator.mozL10n.qps['qps-ploc'].name);
+        },
+        processString: function(s) {
+          return Promise.resolve(
+            navigator.mozL10n.qps['qps-ploc'].translate(s));
+        }
+      },
+      'qps-plocm': {
+        getName: function() {
+          return Promise.resolve(navigator.mozL10n.qps['qps-plocm'].name);
+        },
+        processString: function(s) {
+          return Promise.resolve(
+            navigator.mozL10n.qps['qps-plocm'].translate(s));
+        }
+      }
+    },
+  };
+
+  navigator.mozL10n.ready(function() {
+    document.documentElement.setAttribute(
+      'langs', navigator.mozL10n.ctx.supportedLocales.join(' '));
+  });
+
+  navigator.mozL10n.once(function() {
+    window.addEventListener('localized', function() {
+      document.dispatchEvent(new CustomEvent('DOMRetranslated', {
+        bubbles: false,
+        cancelable: false
+      }));
+    });
+  });
 
 })(this);

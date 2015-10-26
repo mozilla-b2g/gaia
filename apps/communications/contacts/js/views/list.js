@@ -207,16 +207,6 @@ contacts.List = (function() {
       resetDom();
     }
 
-    window.addEventListener('list-shown', function() {
-      if (!loading) {
-        return;
-      }
-      
-      ContactsService.resume(function isRendered(contact) {
-        return !!loadedContacts[contact.id];
-      });
-    });
-
     createPhotoTemplate();
 
     Cache.oneviction = onCacheEvicted;
@@ -341,6 +331,10 @@ contacts.List = (function() {
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     };
+
+    if (forceReset) {
+      needImgLoaderReload = true;
+    }
 
     var complete = function complete() {
       initConfiguration(function onInitConfiguration() {
@@ -1123,9 +1117,14 @@ contacts.List = (function() {
     }
 
     if (img) {
-      delete img.dataset.group;
-      img.style.backgroundPosition = img.dataset.backgroundPosition || '';
-      setImageURL(img, photo, asClone);
+      // Update only if we are reusing the row for a different user, or
+      // the image has been collected
+      if (link.dataset.uuid !== id || !link.dataset.src) {
+        delete img.dataset.group;
+        img.style.backgroundPosition = img.dataset.backgroundPosition || '';
+        setImageURL(img, photo, asClone);  
+      }
+      
       return;
     }
 
@@ -1256,14 +1255,14 @@ contacts.List = (function() {
   }
 
   var addOrgMarkup = function addOrgMarkup(link, content) {
-    var span = document.createElement('span');
-    span.className = 'org';
+    var bdi = document.createElement('bdi');
+    bdi.className = 'org ellipsis-dir-fix';
     if (content) {
-      span.textContent = content;
+      bdi.textContent = content;
     }
     var meta = document.createElement('p');
     meta.classList.add('contact-text');
-    meta.appendChild(span);
+    meta.appendChild(bdi);
     link.appendChild(meta);
     return meta;
   };
@@ -1603,9 +1602,14 @@ contacts.List = (function() {
       return;
     }
 
-
-    ContactsService.get(idOrContact, function(contact) {
-      refreshContact(contact, null, callback);
+    // Passed an ID, so look up contact
+    LazyLoader.load([
+     '/contacts/js/fb/fb_init.js',
+     '/contacts/js/fb_loader.js'
+    ], () => {
+      ContactsService.get(idOrContact, function(contact) {
+        refreshContact(contact, null, callback);
+      });
     });
   };
 

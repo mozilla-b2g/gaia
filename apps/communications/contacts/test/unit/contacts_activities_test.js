@@ -205,7 +205,6 @@ suite('Test Activities', function() {
         assert.equal(response.blob.type, 'text/vcard');
 
         stub.restore();
-
         done();
       };
 

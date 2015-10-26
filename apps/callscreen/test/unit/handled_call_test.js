@@ -6,7 +6,6 @@
 
 'use strict';
 
-require('/shared/test/unit/l10n_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
@@ -497,7 +496,7 @@ suite('dialer/handled_call', function() {
         sinon.assert.calledWithMatch(
           MockCallScreen.showStatusMessage, {
             id: 'caller-left-call',
-            args: { caller: 'test name' }
+            args: { caller: ['test name'] }
           }
         );
       });
@@ -564,8 +563,8 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('outgoing'));
-        assert.isTrue(subject.node.hasAttribute('aria-label'));
-        assert.equal(subject.node.getAttribute('aria-label'), 'outgoing');
+        assert.isTrue(subject.node.hasAttribute('data-l10n-id'));
+        l10nAssert(subject.node, 'outgoing_screen_reader');
       });
     });
 
@@ -582,8 +581,8 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('incoming'));
-        assert.isTrue(subject.node.hasAttribute('aria-label'));
-        assert.equal(subject.node.getAttribute('aria-label'), 'incoming');
+        assert.isTrue(subject.node.hasAttribute('data-l10n-id'));
+        l10nAssert(subject.node, 'incoming_screen_reader');
       });
     });
   });
@@ -647,7 +646,7 @@ suite('dialer/handled_call', function() {
 
   suite('additional information', function() {
     test('check additional info updated', function() {
-      this.sinon.stub(MockUtils, 'getLocalizedPhoneNumberAdditionalInfo')
+      this.sinon.stub(MockUtils, 'getPhoneNumberAdditionalInfo')
                 .returns({
         id: 'phone_type_custom_and_carrier',
         args: { type: 'type', carrier: 'carrier' }

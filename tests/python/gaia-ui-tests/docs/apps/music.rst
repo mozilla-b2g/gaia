@@ -1,7 +1,7 @@
 Music
 =====
 
-.. automodule:: gaiatest.apps.music.app
+.. automodule:: gaiatest.apps.music_oga.app
    :members:
    :show-inheritance:
    :undoc-members:

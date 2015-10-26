@@ -1,7 +1,7 @@
 /**
  * The apn editor session module
  */
-define(function() {
+define(function(require) {
   'use strict';
 
   var ApnSettingsManager = require('modules/apn/apn_settings_manager');
@@ -41,9 +41,12 @@ define(function() {
       var promises = [];
       var newApnSetting = this._exportApnSetting(this._inputElements);
       newApnSetting.types.slice().forEach(function(type) {
-        newApnSetting.types = [type];
+        // Clone new settings to make sure the promises do not all
+        // point to the very last one
+        var settingClone = ApnUtils.clone(newApnSetting);
+        settingClone.types = [type];
         promises.push(
-          ApnSettingsManager.addApn(this._serviceId, newApnSetting));
+          ApnSettingsManager.addApn(this._serviceId, settingClone));
       }, this);
       return Promise.all(promises);
     },

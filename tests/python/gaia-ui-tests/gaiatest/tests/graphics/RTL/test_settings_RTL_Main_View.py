@@ -7,7 +7,7 @@ from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.settings.app import Settings
 
 
-class TestSettingsRTL(GaiaImageCompareTestCase):
+class TestSettingsRTLMainView(GaiaImageCompareTestCase):
     def test_settings_app(self):
 
         settings = Settings(self.marionette)

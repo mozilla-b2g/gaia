@@ -120,11 +120,7 @@ function ThumbnailItem(videoData) {
     _this.htmlNode.addEventListener('click', dispatchClick);
 
     // Insert the video size with a localized version of "KB" or "MB".
-    // If the l10n is not ready, then do nothing now, and we'll be localized
-    // when the db is ready or when the locale changes
-    if (navigator.mozL10n.readyState === 'complete') {
-      _this.localize();
-    }
+    _this.localize();
   }
 
   function dispatchClick() {
@@ -213,6 +209,8 @@ ThumbnailItem.prototype.updateTitleText = function() {
 
 ThumbnailItem.prototype.localize = function() {
   if (this.sizeNode && isFinite(this.data.size)) {
-    this.sizeNode.textContent = MediaUtils.formatSize(this.data.size);
+    MediaUtils.getLocalizedSizeTokens(this.data.size).then((args) => {
+      navigator.mozL10n.setAttributes(this.sizeNode, 'fileSize', args);
+    });
   }
 };

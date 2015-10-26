@@ -18,8 +18,6 @@ class TestUtilityTraySettingsAccessibility(GaiaTestCase):
         self.system.wait_for_status_bar_displayed()
 
         utility_tray = self.system.open_utility_tray()
-        utility_tray.wait_for_notification_container_displayed()
-
         settings = utility_tray.a11y_click_quick_settings_full_app()
 
         # Make sure that Settings is the currently displayed app.

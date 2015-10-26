@@ -41,6 +41,7 @@
      */
     start: function pm_start() {
       // Div over in which the permission UI resides.
+      this.screen = document.getElementById('screen');
       this.overlay = document.getElementById('permission-screen');
       this.dialog = document.getElementById('permission-dialog');
       this.title = document.getElementById('permission-title');
@@ -99,7 +100,7 @@
      * @memberof PermissionManager.prototype
      */
     deviceOptionView: function({id, checked, label}) {
-      return Sanitizer.escapeHTML `<label class="device-list deviceEnable">
+      return Sanitizer.createSafeHTML `<label class="device-list deviceEnable">
           <input class="input-enable" id="${id}" type="checkbox" ${checked}>
           <span></span>
         </label>
@@ -380,13 +381,6 @@
       this.overlay.dataset.type = this.permissionType;
 
       if (this.isAudio || this.isVideo) {
-        if (!detail.isApp) {
-          // Not show remember my choice option in website
-          this.rememberSection.style.display = 'none';
-        } else {
-          this.rememberSection.style.display = 'block';
-        }
-
         // Set default options
         this.currentPermissions = detail.permissions;
         for (var permission2 in detail.permissions) {
@@ -479,6 +473,7 @@
      * @memberof PermissionManager.prototype
      */
     hidePermissionPrompt: function pm_hidePermissionPrompt() {
+      this.screen.classList.remove('permission-prompt');
       this.overlay.classList.remove('visible');
       this.devices.removeEventListener('click', this);
       this.devices.classList.remove('visible');
@@ -582,11 +577,11 @@
 
         var item_li = document.createElement('li');
         item_li.className = 'device-cell';
-        item_li.innerHTML = this.deviceOptionView({
+        item_li.innerHTML = Sanitizer.unwrapSafeHTML(this.deviceOptionView({
                               id: option,
                               checked: checked,
                               label: 'device-' + option
-                            });
+                            }));
         this.devices.appendChild(item_li);
       });
       this.devices.addEventListener('click',
@@ -641,6 +636,14 @@
       this.no.addEventListener('click', this.noHandler);
       this.no.callback = nocallback;
 
+      if (detail.isApp) {
+        this.rememberSection.style.display = 'block';
+      } else {
+        // Not show remember my choice option in website
+        // Should be changed in bug 1217852
+        this.rememberSection.style.display = 'none';
+      }
+
       // customize camera selector dialog
       if (this.isCamSelector) {
         this.message.classList.add('hidden');
@@ -650,6 +653,7 @@
         this.yes.setAttribute('data-l10n-id', 'ok');
       }
       // Make the screen visible
+      this.screen.classList.add('permission-prompt');
       this.overlay.classList.add('visible');
     },
 

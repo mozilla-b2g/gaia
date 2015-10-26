@@ -18,7 +18,7 @@ button,
   height: 4rem;
   margin: 0 0 1rem;
   padding: 0 1.2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;
@@ -71,7 +71,7 @@ button[data-icon]:before,
   position: absolute;
   top: 50%;
   margin-top: -1.5rem;
-  right: 1.5rem;
+  offset-inline-end: 1.5rem;
   line-height: 3rem;
 }
 
@@ -178,7 +178,7 @@ li .button[aria-disabled="true"] {
 li button.icon,
 li .bb-button.icon,
 li .button.icon {
-  -moz-padding-end: 4rem;
+  padding-inline-end: 4rem;
 }
 
 li button.icon:before,
@@ -189,30 +189,22 @@ li .button.icon:before {
   height: 3rem;
   position: absolute;
   top: 50%;
-  right: 0.5rem;
+  offset-inline-end: 0.5rem;
   margin-top: -1.5rem;
   background: transparent no-repeat center center / 100% auto;
   pointer-events: none;
+}
+
+li button[data-icon]:before,
+li .bb-button[data-icon]:before,
+li .button[data-icon]:before {
+  offset-inline-end: 1rem;
 }
 
 li button.icon-view:active,
 li .bb-button.icon-view:active,
 li .button.icon-view:active {
   background-color: #b2f2ff;
-}
-
-li button.icon-view:before,
-li .bb-button.icon-view:before,
-li .button.icon-view:before {
-  background-image: url(buttons/images/forward-light.svg);
-  background-size: 3rem;
-  right: 0;
-}
-
-li button[data-icon]:before,
-li .bb-button[data-icon]:before,
-li .button[data-icon]:before {
-  right: 1rem;
 }
 
 li button[data-icon="expand"]:before,
@@ -239,7 +231,7 @@ li .button[data-icon="forward"]:before {
 li button.icon-dialog,
 li .bb-button.icon-dialog,
 li .button.icon-dialog {
-  -moz-padding-end: 3rem;
+  padding-inline-end: 3rem;
 }
 
 li button.icon-dialog:before,
@@ -248,19 +240,28 @@ li .button.icon-dialog:before {
   width: 0;
   height: 0;
   top: auto;
-  right: 0.8rem;
+  offset-inline-end: 0.8rem;
   bottom: 0.5rem;
   border-top: 0.7rem solid transparent;
   border-bottom: 0.7rem solid transparent;
-  border-left: 0.7rem solid #00aac5;
-  transform: rotate(45deg);
+  border-inline-start: 0.7rem solid #00aac5;
   z-index: 1;
+}
+html[dir="ltr"] li button.icon-dialog:before,
+html[dir="ltr"] li .bb-button.icon-dialog:before,
+html[dir="ltr"] li .button.icon-dialog:before {
+  transform: rotate(45deg);
+}
+html[dir="rtl"] li button.icon-dialog:before,
+html[dir="rtl"] li .bb-button.icon-dialog:before,
+html[dir="rtl"] li .button.icon-dialog:before {
+  transform: rotate(-45deg);
 }
 
 li button.icon-dialog:disabled:before,
 li .bb-button[aria-disabled="true"].icon-dialog:before,
 li .button[aria-disabled="true"].icon-dialog:before {
-  border-left: 0.7rem solid #a9a9a9;
+  border-inline-start: 0.7rem solid #a9a9a9;
 }
 
 /* ----------------------------------
@@ -291,7 +292,7 @@ li .button[aria-disabled="true"].icon-dialog:before {
 .skin-dark li button.icon-dialog:active:before,
 .skin-dark li .bb-button.icon-dialog:active:before,
 .skin-dark li .button.icon-dialog:active:before {
-  border-left: 0.7rem solid #b2f2ff;
+  border-inline-start: 0.7rem solid #b2f2ff;
 }
 
 .skin-dark li button:disabled,
@@ -312,14 +313,14 @@ body[role="application"] .button input {
 /* select */
 select {
   width: 100%;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
   font-size: 1.6rem;
   color: #333;
   margin: 0 0 1rem;
   padding: 0;
-  -moz-padding-start: 1.1rem;
+  padding-inline-start: 1.1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -351,23 +352,38 @@ select:-moz-focusring {
 .button[data-icon] select {
   position: absolute;
   top: -0.6rem;
-  left: 0;
+  offset-inline-start: 0;
   width: calc(100% + 3rem);
   height: 100%;
   margin: 0;
   padding: 0;
-  -moz-padding-end: 5rem;
+  padding-inline-end: 5rem;
   text-indent: 0;
   font-weight: 400;
   font-size: 1.7rem;
-  /*
-    The select element uses the text color to determine the color of the outline.
-    We put a text shadow with needed offset and no blur, so that replaces the text.
-  */
   color: rgba(0,0,0,0);
-  text-shadow: 1rem 0.5rem 0 #333;
   border: none;
   background: none;
+}
+/**
+ * The select element uses the text color to determine the color of the outline.
+ * We put a text shadow with needed offset and no blur, so that replaces the text.
+ */
+html[dir="ltr"] .bb-button.icon select,
+html[dir="ltr"] .button.icon select,
+html[dir="ltr"] .bb-button[data-icon] select,
+html[dir="ltr"] .button[data-icon] select,
+html[dir="ltr"] .bb-button.icon-dialog select,
+html[dir="ltr"] .button.icon-dialog select {
+  text-shadow: 1rem 0.5rem 0 #333;
+}
+html[dir="rtl"] .bb-button.icon select,
+html[dir="rtl"] .button.icon select,
+html[dir="rtl"] .bb-button[data-icon] select,
+html[dir="rtl"] .button[data-icon] select,
+html[dir="rtl"] .bb-button.icon-dialog select,
+html[dir="rtl"] .button.icon-dialog select {
+  text-shadow: -1rem 0.5rem 0 #333;
 }
 
 .bb-button.icon select option,
@@ -385,85 +401,19 @@ select:-moz-focusring {
   overflow: hidden;
 }
 
-.skin-dark .bb-button.icon select,
-.skin-dark .button.icon select,
-.skin-dark .bb-button[data-icon] select,
-.skin-dark .button[data-icon] select {
+html[dir="ltr"] .skin-dark .bb-button.icon select,
+html[dir="ltr"] .skin-dark .button.icon select,
+html[dir="ltr"] .skin-dark .bb-button[data-icon] select,
+html[dir="ltr"] .skin-dark .button[data-icon] select,
+html[dir="ltr"] .skin-dark .bb-button.icon-dialog select,
+html[dir="ltr"] .skin-dark .button.icon-dialog select {
   text-shadow: 1rem 0.5rem 0 #fff;
 }
-
-/******************************************************************************
- * Right-To-Left layout
- */
-
-html[dir="rtl"] button[data-icon]:before,
-html[dir="rtl"] .bb-button[data-icon]:before,
-html[dir="rtl"] .button[data-icon]:before {
-  left: 1.5rem;
-  right: unset;
-}
-
-html[dir="rtl"] button.mirrored[data-icon]:before,
-html[dir="rtl"] .bb-button.mirrored[data-icon]:before,
-html[dir="rtl"] .button.mirrored[data-icon]:before {
-  transform: scale(-1, 1);
-}
-
-html[dir="rtl"] li button.icon-view:before,
-html[dir="rtl"] li .bb-button.icon-view:before,
-html[dir="rtl"] li .button.icon-view:before {
-  left: 0;
-  right: unset;
-  transform: rotate(180deg);
-}
-
-html[dir="rtl"] li button[data-icon]:before,
-html[dir="rtl"] li .bb-button[data-icon]:before,
-html[dir="rtl"] li .button[data-icon]:before {
-  left: 1rem;
-  right: unset;
-}
-
-
-html[dir="rtl"] li button.icon:before,
-html[dir="rtl"] li .bb-button.icon:before,
-html[dir="rtl"] li .button.icon:before {
-  left: 0.5rem;
-  right: unset;
-}
-
-
-html[dir="rtl"] li button.icon-dialog:before,
-html[dir="rtl"] li .bb-button.icon-dialog:before,
-html[dir="rtl"] li .button.icon-dialog:before {
-  left: 0.8rem;
-  right: unset;
-  transform: rotate(315deg);
-  border-left: unset;
-  border-right: 0.7rem solid #00aac5;
-}
-
-html[dir="rtl"] li button.icon-dialog:disabled:before,
-html[dir="rtl"] li .bb-button[aria-disabled="true"].icon-dialog:before,
-html[dir="rtl"] li .button[aria-disabled="true"].icon-dialog:before {
-  border-left: unset;
-  border-right: 0.7rem solid #a9a9a9;
-}
-
-html[dir="rtl"] .skin-dark li button.icon-dialog:active:before,
-html[dir="rtl"] .skin-dark li .bb-button.icon-dialog:active:before,
-html[dir="rtl"] .skin-dark li .button.icon-dialog:active:before {
-  border-left: unset;
-  border-right: 0.7rem solid #b2f2ff;
-}
-
-
-/* Hides dropdown arrow until bug #649849 is fixed */
-html[dir="rtl"] .bb-button.icon-dialog select,
-html[dir="rtl"] .button.icon-dialog select,
-html[dir="rtl"] .bb-button[data-icon] select,
-html[dir="rtl"] .button[data-icon] select {
-  left: unset;
-  right: 0.3rem; /* .3rem space because of italic */
-  text-indent: 1rem;
+html[dir="rtl"] .skin-dark .bb-button.icon select,
+html[dir="rtl"] .skin-dark .button.icon select,
+html[dir="rtl"] .skin-dark .bb-button[data-icon] select,
+html[dir="rtl"] .skin-dark .button[data-icon] select,
+html[dir="rtl"] .skin-dark .bb-button.icon-dialog select,
+html[dir="rtl"] .skin-dark .button.icon-dialog select {
+  text-shadow: -1rem 0.5rem 0 #fff;
 }

@@ -73,6 +73,17 @@ suite('bluetooth helper', function() {
       assert.isTrue(MockBTAdapter.toggleCalls.calledOnce);
     });
 
+    test('should get connected devices by profile', function() {
+      var stubDOMReq = {result: ['profiles']};
+      sandbox.stub(MockBTAdapter, 'getConnectedDevices').returns(stubDOMReq);
+      var cb = sinon.stub();
+      subject.getConnectedDevicesByProfile('stubProfileId', cb);
+
+      stubDOMReq.onsuccess();
+      sinon.assert.calledOnce(cb);
+      sinon.assert.calledWithExactly(cb, stubDOMReq.result);
+    });
+
     test('should connect to sco', function() {
       var stubDOMReq = {};
       sandbox.stub(MockBTAdapter, 'connectSco').returns(stubDOMReq);

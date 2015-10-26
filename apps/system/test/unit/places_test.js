@@ -286,6 +286,90 @@ suite('system/Places', function() {
       this.sinon.clock.tick(10000);
     });
 
+    suite('isPinned', function() {
+      setup(function() {
+        MockDatastore.put({
+          url: 'http://example.com/index.html',
+          tile: 'a tile',
+          frecency: 1
+        }, 'http://example.com/index.html');
+
+        MockDatastore.put({
+          url: 'http://example.org',
+          tile: 'a tile',
+          frecency: 1,
+          pinned: true,
+          pinTime: 1444829881365
+        }, 'http://example.org');
+      });
+
+      teardown(function() {
+      });
+
+      test('should return false for unpinned pages', function(done) {
+        subject.isPinned('http://example.com/index.html')
+          .then((isPinned) => {
+            assert.isFalse(isPinned);
+            done();
+          });
+      });
+
+      test('should return true for pinned pages', function(done) {
+        subject.isPinned('http://example.org')
+          .then((isPinned) => {
+            assert.isTrue(isPinned);
+            done();
+          });
+      });
+
+    });
+
+    suite('Clear history', function() {
+      var syncSpy;
+
+      setup(function() {
+        syncSpy = this.sinon.spy(MockDatastore, 'sync');
+      });
+
+      teardown(function() {
+        syncSpy.restore();
+      });
+
+      test('should escape prematurely when empty', function(done) {
+        subject.clearHistory()
+          .then(() => {
+            assert.isFalse(syncSpy.called);
+            done();
+          });
+      });
+
+      test('should not remove pinned pages', function(done) {
+        var url = 'http://example.org';
+
+        MockDatastore.put({
+          url: 'http://example.com/index.html',
+          tile: 'a tile',
+          frecency: 1
+        }, url);
+
+        MockDatastore.put({
+          url: url,
+          tile: 'a tile',
+          frecency: 1,
+          pinned: true,
+          pinTime: 1444829881365
+        }, url);
+
+        subject.clearHistory()
+          .then(() => {
+            assert.isObject(MockDatastore._records[url]);
+            assert.isTrue(syncSpy.called);
+            done();
+          });
+      });
+
+    });
+
   });
 
 });

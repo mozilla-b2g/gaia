@@ -1,0 +1,13 @@
+.view-source {
+  --header-background: white;
+
+  position: absolute;
+  top: var(--statusbar-height);
+  width: 100%;
+  height: calc(100% - var(--statusbar-height));
+  background: var(--header-background);
+}
+
+.view-source iframe {
+  width: 100%;
+}

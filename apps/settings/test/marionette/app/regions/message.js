@@ -22,9 +22,9 @@ MessagePanel.Selectors = {
   'wapPushMenuItem': '#menuItem-wapPush',
   'wapPushCheckbox': '#menuItem-wapPush input[type="checkbox"]',
   'cellBroadcastMenuItem': '#menuItem-cellBroadcast',
-  'cellBroadcastCheckbox': '#menuItem-cellBroadcast input[type="checkbox"]',
+  'cellBroadcastCheckbox': '#menuItem-cellBroadcast gaia-checkbox',
   'emergencyAlertMenuItem': '#menuItem-emergencyAlert',
-  'emergencyAlertCheckbox': '#menuItem-emergencyAlert input[type="checkbox"]',
+  'emergencyAlertCheckbox': '#menuItem-emergencyAlert gaia-checkbox',
   'retrieveSelect': 'select[name="ril.mms.retrieval_mode"]',
   'messageContentDiv': '#messaging > div'
 };
@@ -128,6 +128,17 @@ MessagePanel.prototype = {
 
   isChecked: function(elementName) {
     return !!this.findElement(elementName).getAttribute('checked');
+  },
+
+  /**
+   * Returns the checked status of a web component.
+   * We need to execute script because the custom attribute does not
+   * work in marionette.
+   */
+  isComponentChecked: function(elementName) {
+    return !!this.findElement(elementName).scriptWith(function(el) {
+      return el.wrappedJSObject.checked;
+    });
   },
 
   _resetSelect: function() {

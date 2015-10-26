@@ -91,10 +91,20 @@ define(function(require) {
 
       // Show connection status
       icon.classList.add('wifi-signal');
-      if (WifiHelper.isConnected(network)) {
-        small.setAttribute('data-l10n-id', 'shortStatus-connected');
-        icon.classList.add('connected');
+
+      var networkStatus = WifiHelper.getNetworkStatus(network);
+      var kActiveStatuses = ['associated', 'connecting', 'connected'];
+
+      if (-1 !== kActiveStatuses.indexOf(networkStatus)) {
         li.classList.add('active');
+
+        if ('connected' === networkStatus) {
+          icon.classList.add('connected');
+        } else {
+          icon.classList.add('connecting');
+        }
+
+        small.setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
       }
 
       // bind connection callback
@@ -164,7 +174,6 @@ define(function(require) {
      * @param {Object} network
      */
     initializeAuthFields: function(panel, network) {
-      var key = WifiHelper.getKeyManagement(network);
       var ssid = panel.querySelector('input[name=ssid]');
       var identity = panel.querySelector('input[name=identity]');
       var password = panel.querySelector('input[name=password]');
@@ -187,20 +196,17 @@ define(function(require) {
       };
 
       var checkPassword = function() {
-        var isSSIDInvalid = function() {
-          if (ssid) {
-            return (ssid.value.length === 0);
-          } else {
-            return false;
-          }
-        };
-
-        submitButton.disabled =
-          !WifiHelper.isValidInput(key, password.value, identity.value,
-            eap.value) || isSSIDInvalid();
+        var key = WifiHelper.getKeyManagement(network);
+        var isDisabled = !WifiHelper.isValidInput(
+          key, password.value, identity.value, eap.value);
+        if (ssid) {
+          isDisabled = isDisabled || !WifiHelper.isSSIDValid(ssid.value);
+        }
+        submitButton.disabled = isDisabled;
       };
 
       eap.onchange = function() {
+        var key = WifiHelper.getKeyManagement(network);
         checkPassword();
         WifiUtils.changeDisplay(panel, key);
       };
@@ -323,7 +329,7 @@ define(function(require) {
         listItemDOM.classList.add('active');
         listItemDOM.querySelector('small').
           setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
-        if (networkStatus === 'connecting') {
+        if (networkStatus === 'connecting' || networkStatus === 'associated') {
           listItemDOM.querySelector('aside').classList.remove('connected');
           listItemDOM.querySelector('aside').classList.add('connecting');
         } else if (networkStatus === 'connected') {

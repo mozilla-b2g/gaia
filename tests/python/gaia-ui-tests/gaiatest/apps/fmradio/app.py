@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import re
+
 from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
 
@@ -11,6 +13,7 @@ from gaiatest.apps.base import PageRegion
 
 class FmRadio(Base):
     name = 'FM Radio'
+    manifest_url = '{}fm{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     _power_button_locator = (By.ID, 'power-switch')
     _favorite_list_locator = (By.CSS_SELECTOR, 'div.fav-list-item')
@@ -21,6 +24,7 @@ class FmRadio(Base):
     _prev_button_locator = (By.ID, 'frequency-op-seekdown')
     _airplane_mode_title_locator = (By.CSS_SELECTOR, 'div[data-l10n-id="airplaneModeHeader"]')
     _airplane_mode_text_locator = (By.CSS_SELECTOR, 'div[data-l10n-id="airplaneModeMsg"]')
+
 
     def launch(self, airplane_mode=False):
         Base.launch(self)
@@ -79,7 +83,14 @@ class FmRadio(Base):
 
     @property
     def frequency(self):
-        return float(self.marionette.find_element(*self._frequency_display_locator).text)
+        raw_frequency = self.marionette.find_element(*self._frequency_display_locator).text
+        return float(self._crop_trailing_mhz_and_invisible_characters(raw_frequency))
+
+    @staticmethod
+    def _crop_trailing_mhz_and_invisible_characters(raw_frequency):
+        match = re.search(r'\d+\.\d', raw_frequency)
+        frequency = match.group()
+        return frequency
 
     @property
     def favorite_channels(self):

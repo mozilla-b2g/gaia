@@ -36,7 +36,15 @@
     _currentFromStack: function sm_currentInStack() {
       return this._stack[this.position].getActiveWindow();
     },
+
+    /**
+     * Return true if the current window is not located in the stack.
+     * See `.getCurrent()`; this may be removable when bug 967405 lands.
+     */
     outOfStack: function sm_outOfStack() {
+      if (this.position === -1) {
+        return true;
+      }
       return (this._currentFromStack() !== this.getCurrent());
     },
 
@@ -164,9 +172,10 @@
     _current: -1,
 
     handleEvent: function sm_handleEvent(e) {
+      var app, root, idx;
       switch (e.type) {
         case 'appcreated':
-          var app = e.detail;
+          app = e.detail;
           // Multiple apps use role=system to opt out of being part of
           // the the card view.
           // XXX: This code will be removed when bug 967405 lands.
@@ -197,7 +206,7 @@
           if (!config.stayBackground) {
             this._moveToTop(this.position);
 
-            var idx = this._indexOfURL(config.url);
+            idx = this._indexOfURL(config.url);
             if (idx !== undefined) {
               this._moveToTop(idx);
             }
@@ -205,8 +214,8 @@
           break;
         case 'appopening':
         case 'appopened':
-          var app = e.detail; // jshint ignore: line
-          var root = app.getRootWindow();
+          app = e.detail;
+          root = app.getRootWindow();
 
           var id = this._indexOfInstanceID(root.instanceID);
           if (id !== undefined && id !== this._current) {
@@ -227,8 +236,14 @@
           this._remove(instanceID);
           break;
         case 'cardviewclosed':
-          if (e.detail && e.detail.newStackPosition) {
-            this.position = e.detail.newStackPosition;
+          app = e.detail;
+          root = app.getRootWindow();
+          // If the selected app is part of the stack,
+          // move that app to the top of the stack.
+          idx = this._indexOfInstanceID(root.instanceID);
+          if (idx !== undefined) {
+            this._moveToTop(idx);
+            this.position = this._stack.length - 1;
           }
           break;
       }
@@ -393,4 +408,3 @@
   };
   exports.StackManager = StackManager;
 }(window));
-

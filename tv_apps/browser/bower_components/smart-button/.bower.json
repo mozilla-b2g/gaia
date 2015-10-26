@@ -1,0 +1,25 @@
+{
+  "name": "smart-button",
+  "homepage": "https://github.com/gaia-components/smart-button",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "_release": "a13686c562",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "a13686c5620b996e254764eb9b6993c9555da862"
+  },
+  "_source": "git://github.com/gaia-components/smart-button.git",
+  "_target": "*",
+  "_originalSource": "gaia-components/smart-button"
+}

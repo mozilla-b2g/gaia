@@ -1,9 +1,9 @@
+/* globals define */
 ;(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Dependencies
  */
-
 var component = require('gaia-component');
 var fontFit = require('font-fit');
 
@@ -56,11 +56,11 @@ const MINIMUM_FONT_SIZE_CENTERED = 20;
  * This is the minimum font size that we can take
  * when the header title is not centered in the window.
  */
-const MINIMUM_FONT_SIZE_UNCENTERED = 18;
+const MINIMUM_FONT_SIZE_UNCENTERED = 16;
 
 /**
- * This is the maximum font size that we can use for
- * the heade title.
+ * This is the maximum font-size
+ * for the header title.
  */
 const MAXIMUM_FONT_SIZE = 23;
 
@@ -70,6 +70,8 @@ const MAXIMUM_FONT_SIZE = 23;
  * @return {Element} constructor
  */
 module.exports = component.register('gaia-header', {
+  extensible: false, // discards some strings
+  dirObserver: true, // triggers a workaround for bug 1100912 in gaia-component
 
   /**
    * Called when the element is first created.
@@ -86,15 +88,16 @@ module.exports = component.register('gaia-header', {
     // Elements
     this.els = {
       actionButton: this.shadowRoot.querySelector('.action-button'),
-      buttons: this.querySelectorAll('button, a'),
-      titles: this.querySelectorAll('h1')
+      titles: this.getElementsByTagName('h1')
     };
 
     // Events
-    this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
+    this.els.actionButton.addEventListener('click',
+      e => this.onActionButtonClick(e));
     this.observer = new MutationObserver(this.onMutation.bind(this));
 
     // Properties
+    this.ignoreDir = this.hasAttribute('ignore-dir');
     this.titleEnd = this.getAttribute('title-end');
     this.titleStart = this.getAttribute('title-start');
     this.noFontFit = this.getAttribute('no-font-fit');
@@ -209,7 +212,7 @@ module.exports = component.register('gaia-header', {
    *
    * @param  {HTMLH1Element} el
    * @param  {Number} space
-   * @return {Object} {fontSize, marginStart, overflowing, id}
+   * @return {Object} {id, fontSize, marginStart, overflowing, padding}
    * @private
    */
   getTitleStyle: function(el, space) {
@@ -256,7 +259,7 @@ module.exports = component.register('gaia-header', {
   },
 
   /**
-   * Set's styles on the title elements.
+   * Sets styles on the title elements.
    *
    * If there is already an unresolved Promise
    * we return it instead of scheduling another.
@@ -276,7 +279,8 @@ module.exports = component.register('gaia-header', {
 
     // Return existing unresolved
     // promise, or make a new one
-    return this.unresolved[key] = this.unresolved[key] || new Promise((resolve) => {
+    if (this.unresolved[key]) { return this.unresolved[key]; }
+    this.unresolved[key] = new Promise((resolve) => {
       this.pending[key] = this.nextTick(() => {
         var styles = this._titleStyles;
         var els = this.els.titles;
@@ -297,25 +301,24 @@ module.exports = component.register('gaia-header', {
   },
 
   /**
-   * Fit text and center a title between
-   * the buttons before and after.
+   * Fit text and center a title between the buttons before and after.
    *
-   * Right now, because gaia-header is not
-   * fully rtl-compatible (due to Gaia),
-   * we're using `marginLeft` etc. These
-   * will be changed to `marginStart` etc
-   * when we become fully RTL.
-   *
-   * @param  {HTMLH1Element} title
-   * @param  {Number} space
+   * @param  {HTMLH1Element} el
+   * @param  {Object} style
    * @private
    */
   setTitleStyle: function(el, style) {
     debug('set title style', style);
     this.observerStop();
-    el.style.marginLeft = style.marginStart + 'px';
-    el.style.paddingLeft = style.padding.start + 'px';
-    el.style.paddingRight = style.padding.end + 'px';
+    if (this.ignoreDir) {
+      el.style.marginLeft = style.marginStart + 'px';
+      el.style.paddingLeft = style.padding.start + 'px';
+      el.style.paddingRight = style.padding.end + 'px';
+    } else {
+      el.style.marginInlineStart = style.marginStart + 'px';
+      el.style.paddingInlineStart = style.padding.start + 'px';
+      el.style.paddingInlineEnd = style.padding.end + 'px';
+    }
     el.style.fontSize = style.fontSize + 'px';
     setStyleId(el, style.id);
     this.observerStart();
@@ -324,7 +327,7 @@ module.exports = component.register('gaia-header', {
   /**
    * Run font-fit on a title with
    * the given amount of content space.
-
+   *
    * @param {String} text
    * @param {Number} space
    * @param {Object} optional {[min]}
@@ -453,9 +456,8 @@ module.exports = component.register('gaia-header', {
    * @private
    */
   getWidth: function() {
-    var value = this.notFlush
-      ? this.clientWidth
-      : window.innerWidth;
+    var value = this.notFlush ?
+      this.clientWidth : window.innerWidth;
 
     debug('get width', value);
     return value;
@@ -596,7 +598,7 @@ module.exports = component.register('gaia-header', {
         if (action === this._action) { return; }
         this.setAttr('action', action);
         this._action = action;
-      },
+      }
     },
 
     titleStart: {
@@ -648,12 +650,29 @@ module.exports = component.register('gaia-header', {
         if (value) { this.setAttr('no-font-fit', ''); }
         else { this.removeAttr('no-font-fit'); }
       }
+    },
+
+    // The [ignore-dir] attribute can be used to force the older behavior of
+    // gaia-header, where the whole header is always displayed in LTR mode.
+    ignoreDir: {
+      get: function() { return this._ignoreDir || false; },
+      set: function(value) {
+        debug('set ignore-dir', value);
+        value = !!(value || value === '');
+
+        if (value === this.ignoreDir) { return; }
+        this._ignoreDir = value;
+        this.dirObserver = !value;
+
+        if (value) { this.setAttr('ignore-dir', ''); }
+        else { this.removeAttr('ignore-dir'); }
+      }
     }
   },
 
   template: `<div class="inner">
     <button class="action-button">
-      <content select=".l10n-action"></content>
+      <content select="[l10n-action]"></content>
     </button>
     <content></content>
   </div>
@@ -690,7 +709,6 @@ module.exports = component.register('gaia-header', {
   .inner {
     display: flex;
     min-height: 50px;
-    direction: ltr;
     -moz-user-select: none;
 
     background:
@@ -761,8 +779,10 @@ module.exports = component.register('gaia-header', {
   }
 
   [action=close] .action-button:before { content: 'close' }
-  [action=back] .action-button:before { content: 'back' }
   [action=menu] .action-button:before { content: 'menu' }
+
+  [action=back]:-moz-dir(ltr) .action-button:before { content: 'left' }
+  [action=back]:-moz-dir(rtl) .action-button:before { content: 'right' }
 
   /** Action Button Icon
    ---------------------------------------------------------*/
@@ -788,12 +808,12 @@ module.exports = component.register('gaia-header', {
    * Example:
    *
    *   <gaia-header action="back">
-   *     <span class="l10n-action" aria-label="Back">Localized text</span>
+   *     <span l10n-action aria-label="Back">Localized text</span>
    *     <h1>title</h1>
    *   </gaia-header>
    */
 
-  ::content .l10n-action {
+  ::content [l10n-action] {
     position: absolute;
     left: 0;
     top: 0;
@@ -834,18 +854,23 @@ module.exports = component.register('gaia-header', {
   }
 
   /**
-   * [dir=rtl]
+   * [ignore-dir]
    *
-   * When the document is in RTL mode we still
-   * want the <h1> text to be reversed to that
-   * strings like '1 selected' become 'selected 1'.
+   * When the <gaia-header> component has an [ignore-dir] attribute, header
+   * direction is forced to LTR but we still want the <h1> text to be reversed
+   * so that strings like '1 selected' become 'selected 1'.
    *
-   * When we're happy for gaia-header to be fully
-   * RTL responsive we won't need this rule anymore,
-   * but this depends on all Gaia apps being ready.
+   * When we're happy for <gaia-header> to be fully RTL responsive we won't need
+   * these rules anymore, but this depends on all Gaia apps being ready.
+   *
+   * This should be safe to remove when bug 1179459 lands.
    */
 
-  :host-context([dir=rtl]) ::content h1 {
+  :host[ignore-dir] {
+    direction: ltr;
+  }
+
+  :host[ignore-dir]:-moz-dir(rtl) h1 {
     direction: rtl;
   }
 
@@ -967,10 +992,16 @@ module.exports = component.register('gaia-header', {
  * Determines whether passed element
  * contributes to the layout in gaia-header.
  *
+ * Children with `[l10n-action]` get distributed
+ * inside the action-button so don't occupy
+ * space before the `<h1>`.
+ *
  * @param  {Element}  el
  * @return {Boolean}
  */
-function contributesToLayout(el) { return el.tagName !== 'STYLE'; }
+function contributesToLayout(el) {
+  return el.localName !== 'style' && !el.hasAttribute('l10n-action');
+}
 
 /**
  * Set a 'style id' property that

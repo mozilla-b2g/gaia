@@ -51,7 +51,7 @@ suite('Languages > ', function() {
       // mock SettingsCache
       that.MockSettingsCache = MockSettingsCache;
       MockSettingsCache.mockSettings({
-        'deviceinfo.os': OSVersion
+        'langpack.channel': OSVersion
       });
 
       languages = Languages();

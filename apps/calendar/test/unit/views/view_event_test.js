@@ -1,12 +1,15 @@
-/* global suiteTemplate */
+/* global suiteTemplate, MockMozIntl */
 define(function(require) {
 'use strict';
+
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 var EventBase = require('views/event_base');
 var View = require('view');
 var ViewEvent = require('views/view_event');
 var core = require('core');
 var router = require('router');
+var intl = require('intl');
 
 require('dom!show_event');
 
@@ -24,6 +27,7 @@ suite('Views.ViewEvent', function() {
   var eventStore;
   var calendarStore;
   var accountStore;
+  var realMozIntl;
 
   function getEl(name) {
     return subject.getEl(name);
@@ -36,8 +40,15 @@ suite('Views.ViewEvent', function() {
 
   var triggerEvent;
   suiteSetup(function() {
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
+    intl.init();
     testSupport.calendar.core();
     triggerEvent = testSupport.calendar.triggerEvent;
+  });
+
+  suiteTeardown(function() {
+    window.mozIntl = realMozIntl;
   });
 
 

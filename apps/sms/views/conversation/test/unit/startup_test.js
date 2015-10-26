@@ -1,15 +1,18 @@
-/*global ConversationView,
+/*global App,
+         ConversationView,
          Information,
          InterInstanceEventDispatcher,
          LazyLoader,
          LocalizationHelper,
          MessageManager,
          MessagingClient,
+         MozMobileConnectionsClient,
          MocksHelper,
          Navigation,
          Settings,
          Startup,
-         TimeHeaders
+         TimeHeaders,
+         Utils
 */
 
 'use strict';
@@ -21,8 +24,11 @@ require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
 require('/views/shared/test/unit/mock_conversation.js');
 require('/views/shared/test/unit/mock_information.js');
 require('/views/shared/test/unit/mock_localization_helper.js');
+require('/views/shared/test/unit/mock_app.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/services/test/unit/messaging/mock_messaging_client.js');
+require('/services/test/unit/moz_mobile_connections/' +
+  'mock_moz_mobile_connections_client.js');
 require('/services/test/unit/mock_message_manager.js');
 require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
@@ -30,6 +36,7 @@ require('/views/shared/test/unit/mock_utils.js');
 require('/views/conversation/js/startup.js');
 
 var MocksHelperForInboxStartup = new MocksHelper([
+  'App',
   'ConversationView',
   'Information',
   'InterInstanceEventDispatcher',
@@ -37,6 +44,7 @@ var MocksHelperForInboxStartup = new MocksHelper([
   'LocalizationHelper',
   'MessageManager',
   'MessagingClient',
+  'MozMobileConnectionsClient',
   'Navigation',
   'TimeHeaders',
   'Settings',
@@ -61,6 +69,8 @@ suite('ConversationView Startup,', function() {
     this.sinon.stub(MessageManager, 'getThreads');
     this.sinon.stub(Navigation, 'isDefaultPanel');
     this.sinon.spy(MessagingClient, 'init');
+    this.sinon.spy(MozMobileConnectionsClient, 'init');
+    this.sinon.spy(Utils, 'initializeShimHost');
   });
 
   suite('In default panel,', function() {
@@ -71,6 +81,7 @@ suite('ConversationView Startup,', function() {
     });
 
     test('correctly initializes dependencies', function(done) {
+      sinon.assert.calledWith(Utils.initializeShimHost, App.instanceId);
       sinon.assert.calledOnce(MessageManager.init);
       sinon.assert.calledOnce(ConversationView.init);
 
@@ -113,6 +124,7 @@ suite('ConversationView Startup,', function() {
     });
 
     test('correctly initializes dependencies', function(done) {
+      sinon.assert.calledWith(Utils.initializeShimHost, App.instanceId);
       sinon.assert.calledOnce(MessageManager.init);
       sinon.assert.calledOnce(ConversationView.init);
 

@@ -32,6 +32,8 @@ window.GaiaContainer = (function(exports) {
     var shadow = this.createShadowRoot();
     shadow.appendChild(this._template);
 
+    this._frozen = false;
+    this._pendingStateChanges = [];
     this._children = [];
     this._dnd = {
       // Whether drag-and-drop is enabled
@@ -326,7 +328,21 @@ window.GaiaContainer = (function(exports) {
    * next frame.
    */
   proto.changeState = function(child, state, callback) {
+    // Check that the child is still attached to this parent (can happen if
+    // the child is removed while frozen).
+    if (child.container.parentNode !== this) {
+      return;
+    }
+
+    // Check for a redundant state change.
     if (child.container.classList.contains(state)) {
+      return;
+    }
+
+    // Queue up state change if we're frozen.
+    if (this._frozen) {
+      this._pendingStateChanges.push(
+        this.changeState.bind(this, child, state, callback));
       return;
     }
 
@@ -347,7 +363,6 @@ window.GaiaContainer = (function(exports) {
         if (callback) {
           callback();
         }
-        self.synchronise();
       });
     };
 
@@ -361,7 +376,6 @@ window.GaiaContainer = (function(exports) {
       if (callback) {
         callback();
       }
-      this.synchronise();
     }, STATE_CHANGE_TIMEOUT);
   };
 
@@ -481,7 +495,7 @@ window.GaiaContainer = (function(exports) {
     }
   };
 
-  proto.endDrag = function() {
+  proto.endDrag = function(event) {
     if (this._dnd.active) {
       var dropTarget = this.getChildFromPoint(this._dnd.last.clientX,
                                               this._dnd.last.clientY);
@@ -536,9 +550,13 @@ window.GaiaContainer = (function(exports) {
           }
         }
       }
-    } else if (this._dnd.timeout) {
-      this.dispatchEvent(new CustomEvent('activate',
-        { detail: { target: this._dnd.child.element } }));
+    } else if (this._dnd.timeout !== null) {
+      var handled = !this.dispatchEvent(new CustomEvent('activate',
+        { cancelable : true, detail: { target: this._dnd.child.element } }));
+      if (handled) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+      }
     }
 
     this.cancelDrag();
@@ -639,7 +657,7 @@ window.GaiaContainer = (function(exports) {
           event.preventDefault();
           event.stopImmediatePropagation();
         }
-        this.endDrag();
+        this.endDrag(event);
         break;
 
       case 'click':
@@ -660,6 +678,29 @@ window.GaiaContainer = (function(exports) {
   };
 
   /**
+   * Temporarily disables element position synchronisation. Useful when adding
+   * multiple elements to the container at the same time, or in quick
+   * succession.
+   */
+  proto.freeze = function() {
+    this._frozen = true;
+  };
+
+  /**
+   * Enables element position synchronisation after freeze() has been called.
+   */
+  proto.thaw = function() {
+    if (this._frozen) {
+      this._frozen = false;
+      for (var callback of this._pendingStateChanges) {
+        callback();
+      }
+      this._pendingStateChanges = [];
+      this.synchronise();
+    }
+  };
+
+  /**
    * Synchronise positions between the managed container and all children.
    * This is called automatically when adding/inserting or removing children,
    * but must be called manually if the managed container is manipulated
@@ -667,6 +708,10 @@ window.GaiaContainer = (function(exports) {
    * if it's resized).
    */
   proto.synchronise = function() {
+    if (this._frozen) {
+      return;
+    }
+
     var child;
     for (child of this._children) {
       if (!this._dnd.active || child !== this._dnd.child) {
@@ -689,11 +734,7 @@ window.GaiaContainer = (function(exports) {
 
   function GaiaContainerChild(element) {
     this._element = element;
-    this._lastElementWidth = 0;
-    this._lastElementHeight = 0;
-    this._lastElementDisplay = 0;
-    this._lastMasterTop = 0;
-    this._lastMasterLeft = 0;
+    this.markDirty();
   }
 
   GaiaContainerChild.prototype = {
@@ -742,6 +783,7 @@ window.GaiaContainer = (function(exports) {
       this._lastElementWidth = null;
       this._lastElementHeight = null;
       this._lastElementDisplay = null;
+      this._lastElementOrder = null;
       this._lastMasterTop = null;
       this._lastMasterLeft = null;
     },
@@ -753,19 +795,24 @@ window.GaiaContainer = (function(exports) {
       var master = this.master;
       var element = this.element;
 
-      var display = window.getComputedStyle(element).display;
+      var style = window.getComputedStyle(element);
+      var display = style.display;
+      var order = style.order;
       var width = element.offsetWidth;
       var height = element.offsetHeight;
       if (this._lastElementWidth !== width ||
           this._lastElementHeight !== height ||
-          this._lastElementDisplay !== display) {
+          this._lastElementDisplay !== display ||
+          this._lastElementOrder !== order) {
         this._lastElementWidth = width;
         this._lastElementHeight = height;
         this._lastElementDisplay = display;
+        this._lastElementOrder = order;
 
         master.style.width = width + 'px';
         master.style.height = height + 'px';
         master.style.display = display;
+        master.style.order = order;
       }
     },
 

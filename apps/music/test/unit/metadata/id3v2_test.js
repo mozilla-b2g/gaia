@@ -1,5 +1,6 @@
 /* global ID3v2Metadata, fetchBlobView, fetchBuffer, makeBlobView,
-   MockLazyLoader, readBlob, readPicSlice, assertBuffersEqual, pass, fail */
+          MockLazyLoader, readBlob, readPicSlice, assertBuffersEqual,
+          pass, fail, suite, setup, teardown, test, assert */
 'use strict';
 
 require('/test/unit/metadata/utils.js');
@@ -320,6 +321,26 @@ suite('id3v2 tags', function() {
             })
             .then(pass(done), fail(done));
         });
+
+        if (version === 4) {
+          test('invalid utf8', function(done) {
+            var filename = '/test-data/id3v2.4-invalid-utf8.mp3';
+            fetchBlobView(filename)
+              .then(ID3v2Metadata.parse)
+              .then(function(metadata) {
+                assert.strictEqual(metadata.tag_format, 'id3v2.4.0');
+                assert.strictEqual(metadata.artist, 'AC/DC\uFFFD');
+                assert.strictEqual(metadata.album,
+                                   'Dirty Deeds Done Dirt Cheap');
+                assert.strictEqual(metadata.title, 'Problem Child');
+                assert.strictEqual(metadata.tracknum, 5);
+                assert.strictEqual(metadata.trackcount, 9);
+                assert.strictEqual(metadata.discnum, undefined);
+                assert.strictEqual(metadata.disccount, undefined);
+              })
+              .then(pass(done), fail(done));
+          });
+        }
       });
     });
 

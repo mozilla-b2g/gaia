@@ -69,9 +69,12 @@
 
   ActionMenu.prototype.hide = function() {
     eventSafety(this.form, 'transitionend', function doHide(e) {
+      this.form.style.position = '';
       SystemDialog.prototype.hide.apply(this);
-    }.bind(this), 250);
+    }.bind(this), 350);
 
+    // See bug 1077474
+    this.form.style.position = 'fixed';
     this.form.classList.remove('visible');
     this.active = false;
   };
@@ -144,7 +147,11 @@
       this.hide();
       this.oncancel();
     }.bind(this));
-    this.menu.appendChild(button);
+
+    var lastButtonWrapper = document.createElement('span');
+    lastButtonWrapper.className = 'last-button-container';
+    this.menu.appendChild(lastButtonWrapper);
+    lastButtonWrapper.appendChild(button);
   };
 
   exports.ActionMenu = ActionMenu;

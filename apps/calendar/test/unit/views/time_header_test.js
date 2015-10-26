@@ -2,6 +2,7 @@ define(function(require) {
 'use strict';
 
 requireCommon('test/synthetic_gestures.js');
+var intl = require('intl');
 
 var TimeHeader = require('views/time_header');
 var View = require('view');
@@ -11,12 +12,10 @@ suite('Views.TimeHeader', function() {
   var subject;
   var controller;
   var date = new Date(2012, 0, 1);
-  var localeFormat;
   var monthTitle;
 
   suiteSetup(function() {
-    var fmt = navigator.mozL10n.DateTimeFormat();
-    localeFormat = fmt.localeFormat;
+    intl.init();
   });
 
   teardown(function() {
@@ -29,7 +28,7 @@ suite('Views.TimeHeader', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="wrapper"></div>',
-      '<gaia-header id="time-header" action="menu">',
+      '<gaia-header ignore-dir id="time-header" action="menu">',
         '<h1></h1>',
       '</gaia-header>'
     ].join('');
@@ -41,10 +40,8 @@ suite('Views.TimeHeader', function() {
     subject = new TimeHeader();
 
     controller.move(date);
-    monthTitle = localeFormat(
-      date,
-      '%b %Y'
-    );
+    monthTitle = window.IntlHelper.get('multi-month-view-header-format').
+      format(date);
   });
 
   test('initialization', function() {
@@ -69,7 +66,8 @@ suite('Views.TimeHeader', function() {
 
   test('#getScale for day', function() {
     controller.move(new Date(2012, 0, 30));
-    var compare = localeFormat(new Date(2012, 0, 30), '%b %e, %A');
+    var compare = window.IntlHelper.get('day-view-header-format').
+      format(new Date(2012, 0, 30));
     var out = subject.getScale('day');
     assert.equal(out, compare);
     // 20 chars seems to be the maximum with current layout (see bug 951423)
@@ -80,7 +78,8 @@ suite('Views.TimeHeader', function() {
   test('#getScale for week', function() {
     controller.move(new Date(2012, 0, 15));
     var out = subject.getScale('week');
-    var compare = localeFormat(new Date(2012, 0, 30), '%b %Y');
+    var compare = window.IntlHelper.get('multi-month-view-header-format').
+      format(new Date(2012, 0, 30));
     assert.equal(out, compare);
   });
 
@@ -88,24 +87,20 @@ suite('Views.TimeHeader', function() {
   test('#getScale for week - multiple months', function() {
     controller.move(new Date(2012, 0, 30));
     var out = subject.getScale('week');
-    var compare = localeFormat(
-      new Date(2012, 0, 30),
-      '%b %Y'
-    );
-    compare += ' ' + localeFormat(
-      new Date(2012, 1, 4),
-      '%b %Y'
-    );
+    var formatter = window.IntlHelper.get('multi-month-view-header-format');
+    var compare = formatter.format(new Date(2012, 0, 30));
+    compare += ' ' + formatter.format(new Date(2012, 1, 4));
     assert.equal(out, compare);
   });
 
   test('#getScale for week - month ending on Wednesday', function() {
     controller.move(new Date(2013, 6, 30));
     var out = subject.getScale('week');
+    var formatter = window.IntlHelper.get('multi-month-view-header-format');
     assert.equal(
       out,
-      localeFormat(new Date(2013, 6, 28), '%b %Y') + ' ' +
-      localeFormat(new Date(2013, 7, 3), '%b %Y')
+      formatter.format(new Date(2013, 6, 28)) + ' ' +
+      formatter.format(new Date(2013, 7, 3))
     );
   });
 

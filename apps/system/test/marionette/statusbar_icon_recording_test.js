@@ -48,7 +48,7 @@ marionette('Status Bar icons - Recording', function() {
   test('should be visible in minimised status bar', function() {
     launchApp();
 
-    icon = statusBar.minimised.recording.waitForIconToAppear();
+    icon = statusBar.recording.waitForIconToAppear();
     // Make sure the icon is completely opaque.
     assert.equal('true', icon.getAttribute('data-active'));
   });
@@ -57,11 +57,11 @@ marionette('Status Bar icons - Recording', function() {
   'minimised status bar', function() {
     launchApp();
 
-    statusBar.minimised.recording.waitForIconToAppear();
+    statusBar.recording.waitForIconToAppear();
     statusBar.dispatchMozChromeEvent('recording-status',
       {active: false, requestURL: 'app://fake.recorder.org'});
     // First, the icon is deactivated...
-    icon = statusBar.minimised.recording.icon; // Refresh the element.
+    icon = statusBar.recording.icon; // Refresh the element.
     assert.equal('false', icon.getAttribute('data-active'));
 
     // ... then it disappears after a little while

@@ -8,7 +8,7 @@
 
 .media-recording-status > .title-container {
   padding-top: 1rem;
-  margin-left: 3.7rem;
+  margin-inline-start: 3.7rem;
   display: flex;
 }
 
@@ -17,13 +17,13 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  margin-right: .5rem;
+  margin-inline-end: .5rem;
 }
 
 .media-recording-status > .title-container .timestamp {
   flex: initial;
   top: -.2rem;
-  right: 1.5rem;
+  offset-inline-end: 1.5rem;
   padding: 0;
   max-width: 7.5rem;
   font-size: 1.4rem;
@@ -35,5 +35,5 @@
 }
 
 .media-recording-status > .message {
-  margin-left: 3.7rem;
+  margin-inline-start: 3.7rem;
 }

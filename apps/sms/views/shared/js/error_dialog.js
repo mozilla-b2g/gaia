@@ -43,7 +43,7 @@
     if (errorDescription.showRecipient) {
       var fragment = document.createDocumentFragment();
       var mainText = document.createElement('span');
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         mainText, bodyL10nId,
         { n: options.recipients.length }
       );

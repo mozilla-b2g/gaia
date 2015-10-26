@@ -1,3 +1,5 @@
+/* global define */
+
 ;(function(define){'use strict';define((require,exports,module) => {
 
 /**
@@ -41,6 +43,12 @@ module.exports = component.register('gaia-dialog', {
     };
 
     this.shadowRoot.addEventListener('click', e => this.onClick(e));
+
+    setTimeout(() => this.makeAccessible());
+  },
+
+  makeAccessible() {
+    this.setAttribute('role', 'dialog');
   },
 
   onClick(e) {
@@ -56,7 +64,7 @@ module.exports = component.register('gaia-dialog', {
     debug('open dialog');
     this.isOpen = true;
 
-    this.show()
+    return this.show()
       .then(() => this.animateBackgroundIn(options))
       .then(() => this.animateWindowIn())
       .then(() => this.dispatch('opened'));
@@ -67,7 +75,7 @@ module.exports = component.register('gaia-dialog', {
     debug('close dialog');
     this.isOpen = false;
 
-    this.animateWindowOut()
+    return this.animateWindowOut()
       .then(() => this.animateBackgroundOut())
       .then(() => this.hide())
       .then(() => this.dispatch('closed'));

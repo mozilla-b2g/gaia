@@ -240,7 +240,7 @@ instead of the context menu.
 }
 
 .group .header .gripper {
-  left: 11.8rem;
+  left: calc(50% - 4.2rem);
   width: 8.4rem;
   background-image: url('images/move_gripper.png');
   opacity: 0;

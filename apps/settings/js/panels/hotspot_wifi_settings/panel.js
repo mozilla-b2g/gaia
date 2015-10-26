@@ -65,7 +65,7 @@ define(function(require) {
         types.forEach((type) => {
           var option = document.createElement('option');
           option.value = type;
-          option.setAttribute('data-l10n-id', 'hotspot-' + type);
+          option.setAttribute('data-l10n-id', 'hotspot-security-' + type);
           elements.securityTypeSelector.appendChild(option);
         });
       },

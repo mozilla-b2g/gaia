@@ -1,12 +1,11 @@
-/* global require, marionette, setup, suite, test, __dirname */
+/* global require, marionette, setup, suite, test, __dirname,
+          marionetteScriptFinished */
 'use strict';
 
 var assert = require('assert');
 var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
 var FakeControls = require('./lib/fakecontrols.js');
-var PlaylistHelper = require('./lib/playlisthelper.js');
-/*var Statusbar = require('./lib/statusbar.js');*/
 
 marionette('Music player playlist', function() {
   var apps = {};
@@ -46,15 +45,86 @@ marionette('Music player playlist', function() {
 
     test('Check name with >, <, ~, &, markup and some Unicode. ' +
          'moztrap:2346,2347,8499,8491', function() {
+      try {
+        music.launch();
+        music.waitForFirstTile();
+        music.switchToSongsView();
+
+        // this will wait on the first song as well.
+        var songs = music.songs;
+        assert.equal(songs.length, 1);
+        assert.equal(songs[0].title,
+                     'dump 2>&1 < ~/® <b>&amp; Injection Vulnerablity</b>');
+      } catch(e) {
+        assert.ok(false, 'Exception ' + e.stack);
+      }
+    });
+  });
+
+  suite('Test empty metadata', function () {
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        {
+          type: 'music',
+          filePath:
+          'test_media/samples/Music/treasure_island_01-02_stevenson.ogg'
+        },
+        {
+          type: 'music',
+          filePath:
+          'test_media/samples/Music/Salt_Creek.ogg'
+        }
+      ]);
+
       music.launch();
       music.waitForFirstTile();
-      music.switchToSongsView();
-
-      // this will wait on the first song as well.
-      var song = music.firstSong;
-      assert.equal(PlaylistHelper.mainTitle(song),
-                   'dump 2>&1 < ~/® <b>&amp; Injection Vulnerablity</b>');
     });
+
+    // Test for bug 1209798
+    test('Check the lack of track index', function() {
+      music.switchToAlbumsView();
+
+      music.selectAlbum('Treasure Island');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 1;
+      });
+
+      var songs = music.songs;
+
+      assert.equal(songs[0].index, '');
+      assert.equal(songs[0].title,
+                   '01 At the Admiral Benbow - ' +
+                   '02 Black Dog Appears and Disappears');
+    });
+
+    test('Check the lack of artist or album', function() {
+      music.switchToAlbumsView();
+
+      var results = music.albumsListItemsData;
+      var unknownAlbumStr = client.executeAsyncScript(function () {
+        window.wrappedJSObject.document.l10n.formatValue('unknownAlbum').
+          then(function(str) {
+            marionetteScriptFinished(str);
+          });
+      });
+      assert.equal(results[0].title, unknownAlbumStr);
+
+
+      music.switchToArtistsView();
+
+      results = music.artistsListItemsData;
+      var unknownArtistStr = client.executeAsyncScript(function () {
+        window.wrappedJSObject.document.l10n.formatValue('unknownArtist').
+          then(function(str) {
+            marionetteScriptFinished(str);
+          });
+      });
+
+      assert.equal(results[0].title, unknownArtistStr);
+    });
+
   });
 
   suite('Single disc tests', function () {
@@ -72,13 +142,14 @@ marionette('Music player playlist', function() {
         {
           type: 'music',
           filePath: 'apps/music/test-data/playlists/03.ogg'
-        }
+        },
       ]);
+
+      music.launch();
+      music.waitForFirstTile();
     });
 
     test('Check the sort order', function() {
-      music.launch();
-      music.waitForFirstTile();
       music.switchToAlbumsView();
 
       music.selectAlbum('Where is Julian Assange?');
@@ -91,27 +162,21 @@ marionette('Music player playlist', function() {
 
       assert.equal(songs.length, 3);
 
-      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
-      assert.equal(PlaylistHelper.songTitle(songs[0]),
-                   'Australian citizen is a US traitor');
+      assert.equal(songs[0].index, '1');
+      assert.equal(songs[0].title, 'Australian citizen is a US traitor');
 
-      assert.equal(PlaylistHelper.songIndex(songs[1]), '4');
-      assert.equal(PlaylistHelper.songTitle(songs[1]),
-                   'Ich bin ein Berliner');
+      assert.equal(songs[1].index, '4');
+      assert.equal(songs[1].title, 'Ich bin ein Berliner');
 
-      assert.equal(PlaylistHelper.songIndex(songs[2]), '8');
-      assert.equal(PlaylistHelper.songTitle(songs[2]),
-                   'The Ecuadorian Embassy');
+      assert.equal(songs[2].index, '8');
+      assert.equal(songs[2].title, 'The Ecuadorian Embassy');
     });
 
     test('Check the playlist indexes', function() {
       // this test will check that the index value of each song is the index
       // and not the track number.
       // See bug 1129708
-      music.launch();
-      music.waitForFirstTile();
       music.switchToPlaylistsView();
-      music.waitForListView();
 
       music.selectPlaylist('Recently added');
 
@@ -122,9 +187,9 @@ marionette('Music player playlist', function() {
       var songs = music.songs;
 
       assert.equal(songs.length, 3);
-      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
-      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
-      assert.equal(PlaylistHelper.songIndex(songs[2]), '3');
+      assert.equal(songs[0].index, '1');
+      assert.equal(songs[1].index, '2');
+      assert.equal(songs[2].index, '3');
     });
 
   });
@@ -175,14 +240,14 @@ marionette('Music player playlist', function() {
 
       assert.equal(songs.length, 6);
 
-      assert.equal(PlaylistHelper.songIndex(songs[0]), '1.01');
-      assert.equal(PlaylistHelper.songTitle(songs[0]), 'Yield to thread');
+      assert.equal(songs[0].index, '1.01');
+      assert.equal(songs[0].title, 'Yield to thread');
 
-      assert.equal(PlaylistHelper.songIndex(songs[2]), '1.03');
-      assert.equal(PlaylistHelper.songTitle(songs[2]), 'Windows BSOD');
+      assert.equal(songs[2].index, '1.03');
+      assert.equal(songs[2].title, 'Windows BSOD');
 
-      assert.equal(PlaylistHelper.songIndex(songs[3]), '2.01');
-      assert.equal(PlaylistHelper.songTitle(songs[3]), 'Crash');
+      assert.equal(songs[3].index, '2.01');
+      assert.equal(songs[3].title, 'Crash');
     });
   });
 
@@ -224,44 +289,55 @@ marionette('Music player playlist', function() {
     });
 
     test('Highest rated playlist sort order. moztrap:3674', function() {
-      music.launch();
-      music.waitForFirstTile();
+      try {
+        music.launch();
+        music.waitForFirstTile();
 
-      music.switchToAlbumsView();
+        music.switchToAlbumsView();
 
-      music.selectAlbum('We crash computers');
+        music.selectAlbum('We crash computers');
 
-      music.waitForSongs(function(songs) {
-        return songs.length >= 6;
-      });
+        music.waitForSongs(function(songs) {
+          return songs.length >= 6;
+        });
 
-      var songs = music.songs;
-      assert.equal(songs.length, 6);
+        var songs = music.songs;
+        assert.equal(songs.length, 6);
 
-      client.executeScript(function() {
-        var w = window.wrappedJSObject;
-        var songData = w.SubListView.dataSource[3];
-        w.Database.setSongRating(songData, 4);
+        var title1 = songs[1].title;
+        var title3 = songs[3].title;
 
-        songData = w.SubListView.dataSource[1];
-        w.Database.setSongRating(songData, 5);
-      });
+        client.switchToFrame(music.activeViewFrame);
+        client.executeScript(function(songs) {
+          var w = window.wrappedJSObject;
+          w.view.fetch('/api/songs/rating/4/' + songs[3].filePath).
+            catch(function(error) {
+              throw error;
+            });
+          w.view.fetch('/api/songs/rating/5/' + songs[1].filePath).
+            catch(function(error) {
+              throw error;
+            });
+        }, [songs]);
+        music.switchToMe();
 
-      music.switchToPlaylistsView();
-      music.waitForListView();
+        music.switchToPlaylistsView();
 
-      music.selectPlaylist('Highest rated');
+        music.selectPlaylist('Highest rated');
 
-      music.waitForSongs(function(songs) {
-        return songs.length >= 6;
-      });
-      songs = music.songs;
+        music.waitForSongs(function(songs) {
+          return songs.length >= 6;
+        });
+        songs = music.songs;
 
-      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
-      assert.equal(PlaylistHelper.songTitle(songs[0]), 'XOXO');
+        assert.equal(songs[0].index, '1');
+        assert.equal(songs[0].title, title1);
 
-      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
-      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
+        assert.equal(songs[1].index, '2');
+        assert.equal(songs[1].title, title3);
+      } catch(e) {
+        assert.ok(false, 'Exception ' + e.stack);
+      }
     });
 
     test('Recently added playlist sort order. moztrap:3675', function() {
@@ -288,7 +364,6 @@ marionette('Music player playlist', function() {
       music.waitForFirstTile();
       music.waitFinishedScanning();
       music.switchToPlaylistsView();
-      music.waitForListView();
 
       music.selectPlaylist('Recently added');
 
@@ -297,154 +372,109 @@ marionette('Music player playlist', function() {
       });
       var songs = music.songs;
 
-      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
-      assert.equal(PlaylistHelper.songTitle(songs[0]),
+      assert.equal(songs[0].index, '1');
+      assert.equal(songs[0].title,
                    'The Ecuadorian Embassy');
     });
 
+    // XXX fixme we can't set the playcount properly it seems....
     test('Most played playlist sort order. moztrap:3676,3677', function() {
-      music.launch();
-      music.waitForFirstTile();
+      function incrementPlayCount(filePath, value) {
 
-      music.switchToAlbumsView();
+        var result = client.executeAsyncScript(function(filePath, value) {
 
-      music.selectAlbum('We crash computers');
+          var w = window.wrappedJSObject;
 
-      music.waitForSongs(function(songs) {
-        return songs.length >= 6;
-      });
+          w.Database.getFileInfo(filePath).
+            then(function(song) {
+              var p = [];
+              for (var i = 0; i < value; i++) {
+                p.push(w.Database.incrementPlayCount(song));
+              }
+              Promise.all(p).
+                then(function() {
+                  marionetteScriptFinished(null);
+                }).
+                catch(function (r) {
+                  marionetteScriptFinished('increment-fail ' + r);
+                });
+            }).catch(function (r) {
+              marionetteScriptFinished('get-file-info-fail ' + r);
+            });
 
-      var songs = music.songs;
-      assert.equal(songs.length, 6);
+        }, [filePath, value]);
+        assert.ok(!result);
+      }
 
-      // we set the playcount.
-      client.executeScript(function() {
-        function incrementPlayCount(filename, value) {
-          for (var i = 0; i < value; i++) {
-            w.Database.incrementPlayCount(filename);
+      try {
+        music.launch();
+        music.waitForFirstTile();
+
+        music.switchToAlbumsView();
+
+        music.selectAlbum('We crash computers');
+
+        var songs = music.songs;
+        assert.equal(songs.length, 6);
+
+        var playCounts = {
+          'XOXO': 5,
+          'Crash': 4,
+
+          'Break': 3,
+          'Windows BSOD': 2,
+
+          'Yield to thread': 1,
+          'Abort': 0
+        };
+
+        music.switchToMe();
+        // we set the playcount.
+        songs.forEach(function (e) {
+          var c = playCounts[e.title];
+          if (c) {
+            incrementPlayCount(e.filePath, c);
           }
-        }
+        });
 
-        var w = window.wrappedJSObject;
+        music.switchToPlaylistsView();
 
-        // 'XOXO'
-        var songData = w.SubListView.dataSource[1];
-        incrementPlayCount(songData, 5);
+        // Most played
+        music.selectPlaylist('Most played');
+        music.waitForPlaylistDetailView();
 
-        // 'Crash'
-        songData = w.SubListView.dataSource[3];
-        incrementPlayCount(songData, 4);
+        music.waitForSongs(function(songs) {
+          return songs.length >= 6;
+        });
+        songs = music.songs;
 
-        songData = w.SubListView.dataSource[2];
-        incrementPlayCount(songData, 3);
+        assert.equal(songs[0].index, '1');
+        assert.equal(songs[0].title, 'XOXO');
 
-        songData = w.SubListView.dataSource[4];
-        incrementPlayCount(songData, 2);
+        assert.equal(songs[1].index, '2');
+        assert.equal(songs[1].title, 'Crash');
 
-        // 'Yield to Thread'
-        songData = w.SubListView.dataSource[0];
-        incrementPlayCount(songData, 1);
 
-        // 'Abort'
-        // Play count is 0 for that song.
-      });
-
-      music.switchToPlaylistsView();
-      music.waitForListView();
-
-      music.selectPlaylist('Most played');
-
-      music.waitForSongs(function(songs) {
-        return songs.length >= 6;
-      });
-      songs = music.songs;
-
-      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
-      assert.equal(PlaylistHelper.songTitle(songs[0]), 'XOXO');
-
-      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
-      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
-
-      // Trick to go back to the playlistview.
-      // Alternative is to tap the back button.
-      music.switchToAlbumsView();
-      music.switchToPlaylistsView();
-      music.waitForListView();
-
-      // Least played
-      music.selectPlaylist('Least played');
-
-      music.waitForSongs(function(songs) {
-        return songs.length >= 6;
-      });
-      songs = music.songs;
-
-      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
-      assert.equal(PlaylistHelper.songTitle(songs[0]), 'Abort');
-
-      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
-      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Yield to thread');
-    });
-
-    test('Shuffle all sort order. moztrap:2357', function() {
-      music.launch();
-      music.waitForFirstTile();
-
-      music.switchToPlaylistsView();
-      music.waitForListView();
-
-      var notrandom = 0;
-      var lastTitle = '';
-      var loopCount = 10;
-      for (var i = 0; i < loopCount; i++) {
-
-        // selecting the playlist will put us into the player.
-        music.selectPlaylist('Shuffle all');
-
-        // wait for the player.
-        music.waitForPlayerView();
-
-        var title = music.title.text();
-        if (title === lastTitle) {
-          notrandom++;
-        }
-        lastTitle = title;
-        // tap back
         music.tapHeaderActionButton();
+        music.waitForPlaylistsView();
+
+        // Least played
+        music.selectPlaylist('Least played');
+        music.waitForPlaylistDetailView();
+
+        music.waitForSongs(function(songs) {
+          return songs.length >= 6;
+        });
+        songs = music.songs;
+
+        assert.equal(songs[0].index, '1');
+        assert.equal(songs[0].title, 'Abort');
+
+        assert.equal(songs[1].index, '2');
+        assert.equal(songs[1].title, 'Yield to thread');
+      } catch(e) {
+        assert.ok(false, 'Exception ' + e.stack);
       }
-      // the first loop will never be "notrandom".
-      assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
-    });
-
-    test('Shuffle playlist order. moztrap:2357', function() {
-      music.launch();
-      music.waitForFirstTile();
-
-      music.switchToPlaylistsView();
-      music.waitForListView();
-
-      music.selectPlaylist('Least played');
-
-      var notrandom = 0;
-      var lastTitle = '';
-      var loopCount = 10;
-      for (var i = 0; i < loopCount; i++) {
-
-        // tapping shuffle will put us into the player.
-        music.sublistShuffleButton.tap();
-
-        // wait for the player.
-        music.waitForPlayerView();
-
-        var title = music.title.text();
-        if (title === lastTitle) {
-          notrandom++;
-        }
-        lastTitle = title;
-        // tap back
-        music.tapHeaderActionButton();
-      }
-      assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
     });
 
   });

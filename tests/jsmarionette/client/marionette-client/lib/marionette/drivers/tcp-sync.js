@@ -57,7 +57,7 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
 
   options = options || {};
   var interval = options.interval || 100;
-  var timeout = options.timeout || 30000;
+  var timeout = options.timeout || 300000;
   var socketTimeout = 1000;
 
   var sockit = new sockittome.Sockit();
@@ -72,7 +72,6 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
 
   function probeSocket() {
     try {
-      debug('probing socket');
       sockit.connect(socketConfig);
 
       var s = sockit.read(16).toString();
@@ -103,6 +102,7 @@ TcpSync.prototype.waitForSocket = function(options, callback) {
     setTimeout(probeSocket.bind(self), interval);
   }
 
+  debug('probing socket');
   probeSocket();
 };
 

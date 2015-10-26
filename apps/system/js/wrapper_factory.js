@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, Service, AppWindow */
+/*global applications, Service, AppWindow, Browser */
 
 (function(window) {
   /**
@@ -98,7 +98,7 @@
       var origin = null;
       switch (name) {
         case '_samescope':
-          var scope = features.scope || new URL(url).hostname;
+          var scope = features.scope || new URL(url).origin;
           features.pinned = true;
           app = Service.query('AppWindowManager.getAppInScope', scope);
           if (app) {
@@ -110,7 +110,12 @@
           // If we already have a browser and we receive an open request,
           // display it in the current browser frame.
           var activeApp = Service.query('AppWindowManager.getActiveWindow');
+          var isManuallyRegular = activeApp && activeApp.url &&
+            activeApp.url.includes('private=0');
           if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
+            activeApp.isPrivate = activeApp.hasOwnProperty('isPrivate') ?
+              activeApp.isPrivate :
+              (Browser.privateByDefault && !isManuallyRegular);
             activeApp.navigate(url);
             return;
           }
@@ -147,6 +152,7 @@
       browser_config.url = url;
       browser_config.origin = origin;
       browser_config.windowName = name;
+      browser_config.isPrivate = Browser.privateByDefault;
       if (!browser_config.title) {
         browser_config.title = url;
       }
@@ -165,8 +171,6 @@
         config.chrome.scrollable = true;
         this.forgetLastLaunchingWindow();
         this.trackLauchingWindow(config);
-      } else {
-        app.updateName(config.title);
       }
 
       this.publish('launchapp', { origin: config.origin });

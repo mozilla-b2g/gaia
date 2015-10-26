@@ -11,6 +11,12 @@ define(function() {
     _addons: MockObservableArray(),
     get addons() {
       return this._addons;
+    },
+    getAddonTargets: function() {
+      return Promise.resolve();
+    },
+    canDelete: function(addon) {
+      return addon.instance.removable === true;
     }
   };
 

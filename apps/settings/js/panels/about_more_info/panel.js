@@ -30,7 +30,7 @@ define(function(require) {
 
         hardwareInfo.init({
           deviceInfoMac: panel.querySelector('[data-name="deviceinfo.mac"]'),
-          fields: panel.querySelectorAll('[data-name="deviceinfo.bt_address"]')
+          btAddr: panel.querySelector('[data-name="deviceinfo.bt_address"]')
         });
       }
     });

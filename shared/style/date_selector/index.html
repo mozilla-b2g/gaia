@@ -1,24 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
   <head>
     <meta charset="utf-8">
-    
     <title>Date selector</title>
-    
     <link rel="stylesheet" href="../date_selector.css">
+
     <!--
-      This <style> and <link> is only used for the example code, is no needed for the real case use
-    -->
+      - These <style> and <script> elements are only used for the example code:
+      - they are not needed for the real use case.
+      -->
     <style type="text/css">
       html, body { font-size: 10px; margin: 0; padding: 0; }
+      html[dir="rtl"] [dir] { text-align: right; }
+      h1 + p { padding: 1rem 3rem; }
     </style>
-    
+    <script>
+      var formatIndex = 0;
+      var formatList = [ 'DMY', 'YMD', 'MDY' ];
+      window.onkeypress = event => {
+        switch (event.key) {
+          case 'j':
+          case 'ArrowDown':
+            formatIndex--;
+            break;
+          case 'k':
+          case 'ArrowUp':
+            formatIndex++;
+            break;
+          default:
+            var dir = document.documentElement.dir;
+            document.documentElement.dir = (dir === 'ltr') ? 'rtl' : 'ltr';
+        }
+        formatIndex = (formatIndex + formatList.length) % formatList.length;
+        document.querySelector('.picker-container').className =
+          'picker-container ' + formatList[formatIndex]
+        document.querySelector('h1').textContent =
+          'Select day (' + formatList[formatIndex] + ')';
+      };
+    </script>
+
   </head>
-  
+
   <body>
     <form role="dialog" data-type="date-selector">
-      <h1>Select day</h1>
-      <div class="picker-container MDY">
+      <h1 dir="ltr">Select Day (DMY)</h1>
+      <p dir="ltr">Use the arrow keys to change the direction and format.</p>
+
+      <div class="picker-container DMY">
         <div class="picker-bar-background"></div>
         <div class="value-picker-date-wrapper">
           <div style="transform: translateY(-392px);" class="value-picker-date animation-on">
@@ -276,6 +304,7 @@
         </div>
         <div class="value-indicator"></div>
       </div>
+
       <menu>
         <button>Cancel</button>
         <button class="affirmative">OK</button>

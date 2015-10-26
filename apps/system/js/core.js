@@ -92,7 +92,7 @@
         // which has no navigator.mozMobileConnections.
         'CpuManager',
         'HomeGesture',
-        'SourceView',
+        'ViewSource',
         'TtlView',
         'MediaRecording',
         'QuickSettings',
@@ -108,7 +108,11 @@
         'CustomDialogService',
         'CarrierInfoNotifier',
         'AboutServiceWorkersProxy',
-        'MultiScreenController'
+        'MultiScreenController',
+        'PinsManager',
+        //IFDEF_FIREFOX_SYNC
+        'SyncManager'
+        //ENDIF_FIREFOX_SYNC
         // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
         // but integration tests running on desktop without mobileConnection
         // is testing this.

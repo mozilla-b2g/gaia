@@ -169,6 +169,18 @@ var DownloadStore = (function() {
           .then((value) => {lastRevisionId = value;})
         ]);
     }).then(function() {
+      readyState = 'initialized';
+
+      // Remove the legacy index element, if it exists. See Bug 1180250.
+      const LEGACY_INDEX_ID = 1;
+      if (downloadList && downloadList.includes(LEGACY_INDEX_ID)) {
+        return promisify(get(LEGACY_INDEX_ID)).then((download) => {
+          if ('byTimestamp' in download) {
+            downloadList.splice(downloadList.indexOf(LEGACY_INDEX_ID), 1);
+          }
+        });
+      }
+    }).then(function() {
       notifyOpenSuccess(success);
     }).catch(function(e) {
       console.error('Error while opening the Download Store: ', e.message);
@@ -210,7 +222,6 @@ var DownloadStore = (function() {
   }
 
   function notifyOpenSuccess(cb) {
-    readyState = 'initialized';
     window.setTimeout(cb, 0);
     document.dispatchEvent(new CustomEvent('ds-initialized'));
   }

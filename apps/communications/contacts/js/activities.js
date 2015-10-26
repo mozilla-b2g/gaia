@@ -197,9 +197,11 @@ var ActivityHandler = {
                        '/shared/js/setImmediate.js'
                       ], function lvcard() {
         ContactToVcardBlob([theContact], function blobReady(vcardBlob) {
-          self.postPickSuccess({
-            name: VcardFilename(theContact),
-            blob: vcardBlob
+          VcardFilename(theContact).then(filename => {
+            self.postPickSuccess({
+              name: filename,
+              blob: vcardBlob
+            });
           });
         }, {
           // Some MMS gateways prefer this MIME type for vcards

@@ -10,7 +10,6 @@ var NotificationView = require('views/notification');
 var LoadingView = require('views/loading-screen');
 var orientation = require('lib/orientation');
 var bindAll = require('lib/bind-all');
-var AllDone = require('lib/all-done');
 var debug = require('debug')('app');
 var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
@@ -42,6 +41,7 @@ function App(options) {
   debug('initialize');
   bindAll(this);
   this.views = {};
+  this.dynamicLazy = {};
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
@@ -110,7 +110,25 @@ App.prototype.runControllers = function() {
   this.controllers.viewfinder(this);
   this.controllers.hud(this);
   this.controllers.controls(this);
+  this.controllers.storage(this);
   debug('controllers run');
+};
+
+/**
+ * Load an extra lazy controller. Used for
+ * controllers only needed based on configuration.
+ *
+ * @param {String} controller
+ */
+App.prototype.loadLazyController = function(controller) {
+  if (!this.criticalPathDone) {
+    this.controllers.lazy.push(controller);
+    return;
+  }
+  if (!this.dynamicLazy[controller]) {
+    this.dynamicLazy[controller] = this.loadLazyControllers([controller]);
+  }
+  return this.dynamicLazy[controller];
 };
 
 /**
@@ -118,13 +136,16 @@ App.prototype.runControllers = function() {
  *
  * @param  {Function} done
  */
-App.prototype.loadLazyControllers = function(done) {
+App.prototype.loadLazyControllers = function(controllers) {
   debug('load lazy controllers');
   var self = this;
-  this.require(this.controllers.lazy, function() {
-    [].forEach.call(arguments, function(controller) { controller(self); });
-    debug('controllers loaded');
-    done();
+  return new Promise(function(resolve, reject) {
+    self.require(controllers, function() {
+      [].forEach.call(arguments, function(controller) { controller(self); });
+      debug('controllers loaded');
+      self.emit('lazyloaded');
+      resolve();
+    });
   });
 };
 
@@ -162,12 +183,23 @@ App.prototype.bindEvents = function() {
   this.once('storage:checked:healthy', this.geolocationWatch);
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('camera:error', this.onCriticalPathDone);
+  this.once('activity', this.onActivity);
+  this.once('newthumbnail', this.onNewThumbnail);
+  this.once('preview', this.onPreview);
+  this.once('camera:willchange', this.onWillChange);
   this.on('camera:willchange', this.firer('busy'));
   this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
   this.on('reboot', this.onReboot);
   this.on('busy', this.onBusy);
+
+  // Settings
+  if (this.settings.countdown.selected('key') !== 'off') {
+    this.onCountdown();
+  } else {
+    this.settings.countdown.once('change:selected', this.onCountdown);
+  }
 
   // Pinch
   this.pinch.on('changed', this.firer('pinch:changed'));
@@ -261,17 +293,47 @@ App.prototype.onCriticalPathDone = function() {
   this.emit('criticalpathdone');
 };
 
+/**
+ * Lazy load activity dependencies.
+ *
+ * @private
+ */
+App.prototype.onActivity = function() {
+  this.loadLazyController('controllers/confirm');
+};
+
+App.prototype.onCountdown = function() {
+  this.loadLazyController('controllers/countdown');
+};
+
+App.prototype.onNewThumbnail = function() {
+  this.loadLazyController('controllers/preview-gallery');
+};
+
+App.prototype.onPreview = function() {
+  var self = this;
+  this.emit('busy', 'lazyLoading');
+  this.loadLazyController('controllers/preview-gallery').then(function() {
+    self.emit('preview');
+    self.emit('ready');
+  });
+};
+
+App.prototype.onWillChange = function() {
+  this.loadLazyController('controllers/recording-timer');
+};
+
 App.prototype.loadLazyModules = function() {
   debug('load lazy modules');
-  var done = AllDone();
   var self = this;
 
-  this.loadL10n(done());
-  this.loadLazyControllers(done());
-  this.once('storage:checked', done());
+  var load = this.loadLazyControllers(this.controllers.lazy);
+  var storage = new Promise(function(resolve, reject) {
+    self.once('storage:checked', resolve);
+  });
 
   // All done
-  done(function() {
+  Promise.all([load, storage]).then(function() {
     debug('app fully loaded');
 
     // PERFORMANCE MARKER (4): contentInteractive
@@ -280,23 +342,22 @@ App.prototype.loadLazyModules = function() {
     // "above-the-fold" content.
     window.performance.mark('contentInteractive');
 
+    self.loaded = true;
+    self.emit('loaded');
+    self.perf.loaded = Date.now();
+    self.logPerf();
+
     // PERFORMANCE MARKER (5): fullyLoaded
     // Designates that the app is *completely* loaded and all relevant
     // "below-the-fold" content exists in the DOM, is marked visible,
     // has its events bound and is ready for user interaction. All
     // required startup background processing should be complete.
     window.performance.mark('fullyLoaded');
-    self.perf.loaded = Date.now();
-    self.loaded = true;
-    self.emit('loaded');
-    self.logPerf();
   });
 };
 
 App.prototype.logPerf =function() {
   var timing = window.performance.timing;
-  console.log('domloaded: %s',
-    timing.domComplete - timing.domLoading + 'ms');
   console.log('first module: %s',
     this.perf.firstModule - this.perf.jsStarted + 'ms');
   console.log('critical-path: %s',
@@ -345,21 +406,6 @@ App.prototype.onBeforeUnload = function() {
 };
 
 /**
- * Initialize l10n 'localized' listener.
- *
- * Sometimes it may have completed
- * before we reach this point, meaning
- * we will have missed the 'localized'
- * event. In this case, we emit the
- * 'localized' event manually.
- *
- * @private
- */
-App.prototype.loadL10n = function(done) {
-  this.require(['l10n'], done);
-};
-
-/**
  * States whether localization
  * has completed or not.
  *
@@ -372,23 +418,6 @@ App.prototype.localized = function() {
 };
 
 /**
- * Central place to localize a string.
- *
- * @param  {String} key
- * @public
- */
-App.prototype.l10nGet = function(key) {
-  var l10n = navigator.mozL10n;
-  if (l10n) {
-    return l10n.get(key);
-  }
-
-  // in case we don't have mozL10n loaded yet, we want to
-  // return the key. See bug 999132
-  return key;
-};
-
-/**
  * Shows the loading screen after the
  * number of ms defined in config.js
  *
@@ -397,6 +426,7 @@ App.prototype.l10nGet = function(key) {
  */
 App.prototype.showSpinner = function(key) {
   debug('show loading type: %s', key);
+  this.busy = true;
 
   var view = this.views.loading;
   if (view) {
@@ -422,6 +452,7 @@ App.prototype.showSpinner = function(key) {
  */
 App.prototype.clearSpinner = function() {
   debug('clear loading');
+  this.busy = false;
   var view = this.views.loading;
   clearTimeout(this.spinnerTimeout);
   if (!view) { return; }
@@ -441,23 +472,9 @@ App.prototype.clearSpinner = function() {
  */
 App.prototype.onBusy = function(type) {
   debug('camera busy, type: %s', type);
+  this.busy = true;
   var delay = this.settings.spinnerTimeouts.get(type);
   if (delay) { this.showSpinner(type); }
-};
-
-/**
- * Clears the loadings screen, or
- * any pending loading screen.
- *
- * @private
- */
-App.prototype.onReady = function() {
-  debug('ready');
-  var view = this.views.loading;
-  clearTimeout(this.spinnerTimeout);
-  if (!view) { return; }
-  view.hide(view.destroy);
-  this.views.loading = null;
 };
 
 /**

@@ -1,12 +1,23 @@
-/* global BlobView */
-/* exported fetchBlobView, fetchBuffer, readPicSlice, assertBuffersEqual */
+/* global BlobView, assert */
+/* exported fetchBlobView, fetchBuffer, readPicSlice, assertBuffersEqual, pass,
+   fail */
 
 'use strict';
 
 require('/shared/js/blobview.js');
 require('/js/metadata/formats.js');
 require('/test/unit/mock_lazy_loader.js');
-require('/test/unit/utils.js');
+
+function pass(done) {
+  return function() { done(); };
+}
+
+function fail(done, desc) {
+  if (!desc) {
+    desc = 'unknown error';
+  }
+  return function(err) { done(err || new Error(desc)); };
+}
 
 function fetchBuffer(url) {
   return new Promise(function(resolve, reject) {

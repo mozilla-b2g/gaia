@@ -66,6 +66,7 @@ Rocketbar.prototype = {
     // Only verticalhome has a search bar built in, so check to see if the
     // app one is visible first and use that.
     var title;
+    this.client.switchToFrame();
     try {
       title = this.client.scope({ searchTimeout: 100 }).
         findElement(this.selectors.appTitle);
@@ -88,6 +89,10 @@ Rocketbar.prototype = {
   appTitleFocus: function() {
     var title = this.client.findElement(this.selectors.appTitle);
     title.click();
+  },
+
+  waitForInputToBecomeVisible: function() {
+    this.client.helper.waitForElement(this.selectors.input);
   },
 
   /**

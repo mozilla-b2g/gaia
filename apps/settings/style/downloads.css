@@ -76,6 +76,7 @@
 
 #downloads.edit #downloadList li {
   pointer-events: all;
+  margin: 0 1.5rem;
 }
 
 /* End of the styles while editing*/
@@ -92,20 +93,17 @@
 
 /* Text */
 .fileName {
-  padding-top: 1rem;
-  -moz-padding-end: 6rem;
-  padding-bottom: 1rem;
-  -moz-padding-start: 3.5rem;
-  -moz-box-sizing: border-box;
+  padding: 1rem 6rem;
+  box-sizing: border-box;
 }
+html[dir="ltr"] .fileName { padding-left: 3.5rem; }
+html[dir="rtl"] .fileName { padding-right: 3.5rem; }
 
 .info {
   font-size: 1.2rem;
-  padding-top: 0;
-  -moz-padding-end: 6rem;
-  padding-bottom: 0;
-  -moz-padding-start: 3.5rem;
-  -moz-box-sizing: border-box;
+  padding: 0 6rem;
+  padding-inline-start: 3.5rem;
+  box-sizing: border-box;
 }
 
 /* List items */
@@ -136,7 +134,7 @@
   width: 3rem;
   height: 100%;
   text-align: center;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   padding-top: 1rem;
 }
 
@@ -144,7 +142,7 @@
   padding: 1.4rem;
   margin: 0;
   pointer-events: all;
-  right: 0;
+  offset-inline-end: 0;
 }
 
 /* Progress */
@@ -195,7 +193,7 @@
   width: 3rem;
   height: 3rem;
   background: url('images/download_exclamation.png') no-repeat center center;
-  left: 0.2rem;
+  offset-inline-start: 0.2rem;
 }
 
 /* Progress Bar */
@@ -211,40 +209,33 @@
   padding: 0;
   margin: 1.2rem;
   pointer-events: all;
-  right: 0;
+  offset-inline-end: 0;
 }
 
 #downloadList ul > li[data-state="downloading"] .pack-end {
   background-image: url('images/download_close.png');
   background-repeat: no-repeat;
-  background-position: left center;
   background-size: 2.2rem;
-}
-
-#downloadList ul > li[data-state="succeeded"] .pack-end {
-  display: none;
 }
 
 #downloadList ul > li[data-state="stopped"] .pack-end,
 #downloadList ul > li[data-state="failed"] .pack-end {
   background-image: url('images/download_refresh.png');
   background-repeat: no-repeat;
-  background-position: left center;
   background-size: 2.5rem 2.2rem;
 }
 
-/* RTL rules */
-html:-moz-dir(rtl) #downloadList aside.download-status {
-  margin: 1.75rem 0 0 0.5rem;
-  right: 0.2rem;
-  left: unset;
+html[dir="ltr"] #downloadList ul > li[data-state="downloading"] .pack-end,
+html[dir="ltr"] #downloadList ul > li[data-state="stopped"] .pack-end,
+html[dir="ltr"] #downloadList ul > li[data-state="failed"] .pack-end {
+  background-position: left center;
+}
+html[dir="rtl"] #downloadList ul > li[data-state="downloading"] .pack-end,
+html[dir="rtl"] #downloadList ul > li[data-state="stopped"] .pack-end,
+html[dir="rtl"] #downloadList ul > li[data-state="failed"] .pack-end {
+  background-position: right center;
 }
 
-html:-moz-dir(rtl) #downloadList aside.pack-end {
-  right: unset;
-  left: 0;
-}
-
-html:-moz-dir(rtl) #downloads-edit-button::before {
-  transform: initial;
+#downloadList ul > li[data-state="succeeded"] .pack-end {
+  display: none;
 }

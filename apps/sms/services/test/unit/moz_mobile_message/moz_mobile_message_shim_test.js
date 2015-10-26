@@ -1,5 +1,6 @@
 /*global bridge,
          BroadcastChannel,
+         DOMError,
          MockNavigatormozMobileMessage,
          MocksHelper,
          MozMobileMessageShim,
@@ -148,20 +149,34 @@ suite('MozMobileMessageShim >', function() {
         args = [1];
       });
 
-      test('success', function() {
+      test('success', function(done) {
         MockNavigatormozMobileMessage.retrieveMMS.returns(Promise.resolve({
           id: 'fake message'
         }));
-        MozMobileMessageShim.retrieveMMS(...args).then((result) => {
-          assert.isTrue(result);
+        MozMobileMessageShim.retrieveMMS(...args).then(() => {
           sinon.assert.calledWith(
             MockNavigatormozMobileMessage.retrieveMMS,
             ...args
           );
-        });
+        }).then(done, done);
       });
 
-      test('error', function() {
+      test('DOMError', function(done) {
+        var error = new DOMError('fakeError');
+        MockNavigatormozMobileMessage.retrieveMMS.returns(
+          Promise.reject(error)
+        );
+        MozMobileMessageShim.retrieveMMS(...args).catch((err) => {
+          assert.notInstanceOf(err, DOMError);
+          assert.deepEqual(err, { name: error.name });
+          sinon.assert.calledWith(
+            MockNavigatormozMobileMessage.retrieveMMS,
+            ...args
+          );
+        }).then(done, done);
+      });
+
+      test('other error', function(done) {
         var error = 'fakeError';
         MockNavigatormozMobileMessage.retrieveMMS.returns(
           Promise.reject(error)
@@ -172,7 +187,7 @@ suite('MozMobileMessageShim >', function() {
             MockNavigatormozMobileMessage.retrieveMMS,
             ...args
           );
-        });
+        }).then(done, done);
       });
     });
 

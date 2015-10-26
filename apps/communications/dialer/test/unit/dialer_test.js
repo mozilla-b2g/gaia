@@ -4,8 +4,8 @@
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
    NavbarManager, NotificationHelper, MockKeypadManager, MockVoicemail,
    MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MockMmiManager,
-   LazyLoader, AccessibilityHelper, MockSimSettingsHelper, MockTelephonyHelper,
-   MockSettingsListener, CustomElementsHelper, Navigation  */
+   MockSimSettingsHelper, MockTelephonyHelper, MockSettingsListener,
+   CustomElementsHelper, MockNavigation */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -65,10 +65,6 @@ var customElementsForNavbarManager = new CustomElementsHelper([
 ]);
 
 suite('navigation bar', function() {
-  var domContactsIframe;
-  var domOptionRecents;
-  var domOptionContacts;
-  var domOptionKeypad;
   var domViews;
 
   var realMozApps;
@@ -105,25 +101,6 @@ suite('navigation bar', function() {
     domViews = document.createElement('section');
     domViews.id = 'views';
 
-    domOptionRecents = document.createElement('a');
-    domOptionRecents.id = 'option-recents';
-    domOptionRecents.dataset.destination = 'recents';
-    domViews.appendChild(domOptionRecents);
-
-    domOptionContacts = document.createElement('a');
-    domOptionContacts.id = 'option-contacts';
-    domOptionContacts.dataset.destination = 'contacts';
-    domViews.appendChild(domOptionContacts);
-
-    domOptionKeypad = document.createElement('a');
-    domOptionKeypad.id = 'option-keypad';
-    domOptionKeypad.dataset.destination = 'keypad';
-    domViews.appendChild(domOptionKeypad);
-
-    domContactsIframe = document.createElement('iframe');
-    domContactsIframe.id = 'iframe-contacts';
-    domOptionContacts.appendChild(domContactsIframe);
-
     document.body.appendChild(domViews);
 
     CallHandler.init();
@@ -133,8 +110,6 @@ suite('navigation bar', function() {
   });
 
   teardown(function() {
-    window.removeEventListener('hashchange', NavbarManager.update);
-
     MockNavigatorMozIccManager.mTeardown();
     navigator.mozIccManager = realMozIccManager;
 
@@ -148,6 +123,14 @@ suite('navigation bar', function() {
     navigator.requestWakeLock = realWakeLock;
 
     document.body.removeChild(domViews);
+  });
+
+  suite('Initialization', function() {
+    test('the keypad should be shown', function() {
+      this.sinon.spy(MockNavigation, 'show');
+      NavbarManager.init();
+      sinon.assert.calledWith(MockNavigation.show, 'keypad');
+    });
   });
 
   suite('CallHandler', function() {
@@ -576,13 +559,14 @@ suite('navigation bar', function() {
         spy = this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
       });
 
-      test('display the number back properly if the call errors', function() {
-        /*Callback the error function if this phone-call errors */
-        this.sinon.stub(MockTelephonyHelper, 'call').callsArg(5);
-
+      test('display the number back properly if the call errors',
+      function(done) {
+        MockTelephonyHelper.mCallPromise = Promise.reject();
         CallHandler.call(number, 0);
 
-        sinon.assert.calledWithMatch(spy, number, 'begin', false);
+        MockTelephonyHelper.mCallPromise.then(function() {
+          sinon.assert.calledWithMatch(spy, number, 'begin', false);
+        }).then(done, done);
       });
     });
 
@@ -718,7 +702,7 @@ suite('navigation bar', function() {
       }
 
       setup(function() {
-        Navigation.showCalllog();
+        MockNavigation.showCalllog();
         originalHash = window.location.hash;
 
         activity = {
@@ -741,7 +725,7 @@ suite('navigation bar', function() {
 
         test('should show the keypad view', function() {
           triggerActivity(activity);
-          assert.equal(Navigation.currentView, 'keypad');
+          assert.equal(MockNavigation.currentView, 'keypad');
         });
       });
 
@@ -752,13 +736,7 @@ suite('navigation bar', function() {
         });
 
         test('should show the contacts view', function() {
-          assert.equal(Navigation.currentView, 'contacts');
-        });
-
-        test('should go to home of contacts', function() {
-          assert.isTrue(
-            domContactsIframe.src.includes('/contacts/index.html#home')
-          );
+          assert.equal(MockNavigation.currentView, 'contacts');
         });
       });
     });
@@ -776,34 +754,6 @@ suite('navigation bar', function() {
         NavbarManager.show();
 
         assert.isFalse(domViews.classList.contains('hide-toolbar'));
-      });
-    });
-
-    suite('Second tap on contacts tab', function() {
-      test('Listens to click events', function() {
-        NavbarManager.init();
-        this.sinon.spy(Navigation, 'show');
-
-        domOptionContacts.click();
-
-        sinon.assert.called(Navigation.show);
-      });
-
-      suite('contactsTabTap', function() {
-        test('only works when it is a second tap', function() {
-          NavbarManager.contactsTabTap();
-          assert.isFalse(
-            domContactsIframe.src.includes('/contacts/index.html#home')
-          );
-        });
-
-        test('goes to home list', function() {
-          Navigation.showCalllog();
-          NavbarManager.contactsTabTap();
-          assert.isTrue(
-            domContactsIframe.src.includes('/contacts/index.html#home')
-          );
-        });
       });
     });
   });
@@ -834,43 +784,6 @@ suite('navigation bar', function() {
       this.sinon.stub(NavbarManager, 'show');
       window.onresize();
       sinon.assert.called(NavbarManager.show);
-    });
-  });
-
-  suite('accessibility helper', function() {
-    var loadSpy;
-  
-    setup(function() {
-      loadSpy = this.sinon.spy(LazyLoader, 'load');
-      this.sinon.spy(AccessibilityHelper, 'setAriaSelected');
-      NavbarManager.resourcesLoaded = false;
-    });
-
-    test('should load accessibility helper before using it in view contacts',
-      function() {
-      domOptionContacts.click();
-      assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
-        '/shared/js/accessibility_helper.js') !== -1);
-      sinon.assert.callOrder(
-        loadSpy, AccessibilityHelper.setAriaSelected);
-    });
-
-    test('should load accessibility helper before using it in view calllog',
-      function() {
-      domOptionRecents.click();
-      assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
-        '/shared/js/accessibility_helper.js') !== -1);
-      sinon.assert.callOrder(
-        loadSpy, AccessibilityHelper.setAriaSelected);
-    });
-
-    test('should load accessibility helper before using it in view keyboard',
-      function() {
-      domOptionKeypad.click();
-      assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
-        '/shared/js/accessibility_helper.js') !== -1);
-      sinon.assert.callOrder(
-        loadSpy, AccessibilityHelper.setAriaSelected);
     });
   });
 });

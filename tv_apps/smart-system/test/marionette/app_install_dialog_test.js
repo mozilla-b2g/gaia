@@ -10,7 +10,9 @@ var assert = require('chai').assert;
 var AppInstaller = require('./lib/app_install');
 var Server = require('../../../../shared/test/integration/server');
 
-marionette('app install manager tests', function() {
+// Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
+// We should investigate the issue and re-enable the test later.
+marionette.skip('app install manager tests', function() {
 
   var opts = {
     apps: {},

@@ -15,9 +15,9 @@ class ConfirmInstall(Base):
 
         def tap_confirm(self):
             # TODO add a good wait here when Bug 1008961 is resolved
-            time.sleep(1)
             self.marionette.switch_to_frame()
             confirm = Wait(self.marionette).until(expected.element_present(
                 *self._confirm_install_button_locator))
             Wait(self.marionette).until(expected.element_displayed(confirm))
             confirm.tap()
+            self.apps.switch_to_displayed_app()

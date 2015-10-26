@@ -60,7 +60,8 @@
     // Then look for an icon in the Firefox manifest.
     if (!iconUrl && siteObj.manifest) {
       iconUrl = getBestIconFromWebManifest({
-        icons: _convertToWebManifestIcons(siteObj.manifest)
+        icons: _convertToWebManifestIcons(siteObj.manifest,
+          siteObj.origin || siteObj.manifest.origin)
       }, iconTargetSize);
       if (DEBUG && iconUrl) {
         console.log('Icon from Firefox App Manifest');
@@ -91,7 +92,6 @@
     });
   }
 
-
   /**
    * Same as above except the promise resolves as an object containing the blob
    * of the icon and its size in pixels.
@@ -120,7 +120,7 @@
                       onLoad: function(blob) {
                         var iconObj = {
                           blob: blob,
-                          originalUrl: iconUrl,
+                          originalUrl: iconUrl.toString(),
                           timestamp: Date.now()
                         };
                         // We resolve here to avoid I/O blocking on
@@ -150,6 +150,32 @@
     });
   }
 
+  /**
+   * Same as above but set the image as the icon property of a gaia-app-icon
+   * element.
+   *
+   * @param icon {Object?}
+   * @param targetSize {number}
+   * @returns {Promise}
+   */
+  function setElementIcon(icon, targetSize) {
+    getIconBlob(icon.bookmark.url, targetSize, icon.bookmark, icon.bookmark)
+      .then(iconObj => {
+        if (iconObj.blob) {
+          icon.icon = iconObj.blob;
+        } else if (icon.bookmark.icon) {
+          // We fallback to the bookmark.icon property if no icons were found.
+          fetchIconBlob(icon.bookmark.icon)
+            .then(iconBlob => {
+              icon.icon = iconBlob;
+            });
+        }
+      })
+      .catch((e) => {
+        console.error('The icon image could not be set to the element.', e);
+      });
+  }
+
   function getBestIconFromWebManifest(webManifest, iconSize) {
     var icons = webManifest.icons;
     if (!icons) {
@@ -175,14 +201,14 @@
         bestSize = nearestSize;
       }
     });
-    return iconURL ? iconURL.href : null;
+    return iconURL ? iconURL : null;
   }
 
-  function _convertToWebManifestIcons(manifest) {
+  function _convertToWebManifestIcons(manifest, origin) {
     return Object.keys(manifest.icons).map(function(size) {
       var url = manifest.icons[size];
-      var sizes = new Set().add(size + 'x' + size);
-      url = url.indexOf('http') > -1 ? url : manifest.origin + url;
+      var sizes = [size + 'x' + size];
+      url = url.indexOf('http') > -1 ? url : origin + url;
 
       return {
         src: new URL(url),
@@ -384,6 +410,8 @@
   exports.IconsHelper = {
     getIcon: getIcon,
     getIconBlob: getIconBlob,
+
+    setElementIcon: setElementIcon,
 
     getBestIconFromWebManifest: getBestIconFromWebManifest,
     getBestIconFromMetaTags: getBestIconFromMetaTags,

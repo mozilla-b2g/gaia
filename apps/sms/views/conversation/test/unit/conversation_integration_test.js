@@ -8,7 +8,7 @@ if (typeof GestureDetector === 'undefined') {
 }
 require('/shared/js/event_dispatcher.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 require('/views/shared/test/unit/mock_contact.js');
 require('/services/test/unit/mock_message_manager.js');
@@ -53,8 +53,8 @@ suite('ConversationView Integration', function() {
   }
 
   suiteSetup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
     loadBodyHTML('/index.html');
     Navigation.init();
@@ -62,7 +62,7 @@ suite('ConversationView Integration', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
   });
 
   setup(function() {

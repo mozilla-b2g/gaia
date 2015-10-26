@@ -1,5 +1,5 @@
 /* global PermissionManager, Applications, MocksHelper, MockL10n,
-          MockApplications, MockAppWindow, MockService */
+          MockApplications, MockAppWindow, MockService, applications */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
@@ -7,9 +7,9 @@ require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
-requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+require('/test/unit/mock_applications.js');
+require('/test/unit/mock_app_window.js');
+require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
 // to emulate permission events
 function sendChromeEvent(evt_type, evt_permission, remember) {
@@ -30,7 +30,7 @@ function createMediaEvent(evt_type, evt_permissions, isApp, isGranted) {
     'isApp': isApp || false,
     'remember': true,
     'isGranted': isGranted || false,
-    'manifestURL': 'app://uitest.gaiamobile.org/manifest.webapp',
+    'manifestURL': isApp ? 'app://uitest.gaiamobile.org/manifest.webapp' : null,
     'id': 'perm1'
   };
 }
@@ -90,6 +90,41 @@ suite('system/permission manager', function() {
     });
     permissionManager.hidePermissionPrompt();
     assert.isTrue(dispatched);
+  });
+
+  test('.permission-promt class added and removed from screen', function() {
+    assert(!permissionManager.screen.classList.contains('permission-prompt'),
+      'screen starts with no permission-prompt class');
+    sendChromeEvent('permission-prompt', 'test');
+    assert(permissionManager.screen.classList.contains('permission-prompt'),
+      'showing permission prompt adds appropriate css class');
+    permissionManager.hidePermissionPrompt();
+    assert(!permissionManager.screen.classList.contains('permission-prompt'),
+      'hiding permission prompt removes css class');
+  });
+
+  suite('`Remember my choice`', function() {
+    test('`Remember my choice` is hidden for non-app content', function() {
+      var rememberSection =
+        document.getElementById('permission-remember-section');
+      sendChromeEvent('permission-prompt', 'geolocation');
+      assert.equal(rememberSection.style.display, 'none');
+    });
+
+    test('`Remember my choice` is displayed for app content', function() {
+      this.sinon.stub(applications, 'getByManifestURL').returns(
+        { name: 'UITest' }
+      );
+
+      var rememberSection =
+        document.getElementById('permission-remember-section');
+
+      sendMediaEvent(
+        'permission-prompt', {'geolocation': [''] },/* isapp */  true
+      );
+
+      assert.equal(rememberSection.style.display, 'block');
+    });
   });
 
   suite('default value', function() {

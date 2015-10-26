@@ -10,7 +10,7 @@
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/fm.{locale}.properties">
-    <script type="application/javascript;version=1.8" defer src="shared/js/l20n.js"></script>
+    <script type="application/javascript;version=1.8" defer src="shared/js/intl/l20n.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/airplane_mode_helper.js"></script>
 
@@ -23,7 +23,9 @@
       <div id="frequency-bar">
         <div id="frequency-display">
           <a id="speaker-switch" href="#speaker" data-speaker-on="false" data-l10n-id="speaker-switch" role="button" aria-pressed="false"></a>
-          <div id="frequency" role="status">0</div>
+          <div id="frequency" role="status" data-l10n-id="frequency-MHz" data-l10n-args='{"value": "87.5"}'>
+            <small></small>
+          </div>
           <a id="bookmark-button" href="#bookmark" data-bookmarked="false" data-l10n-id="bookmark-button" role="button"></a>
         </div>
       </div>

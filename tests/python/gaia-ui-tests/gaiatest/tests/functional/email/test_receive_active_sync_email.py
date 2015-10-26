@@ -50,17 +50,15 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
         system.wait_for_notification_toaster_displayed(timeout=60)
         system.wait_for_notification_toaster_not_displayed()
 
-        # Expand the notification bar
         system.wait_for_status_bar_displayed()
         utility_tray = system.open_utility_tray()
-        utility_tray.wait_for_notification_container_displayed()
 
         # Assert there is one notification is listed in notifications-container
         notifications = utility_tray.notifications
         self.assertEqual(1, len(notifications), 'Expected one notification.')
         email = notifications[0].tap_notification()
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == "E-Mail")
+        email.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
 
         # check if the sender's email address is fine

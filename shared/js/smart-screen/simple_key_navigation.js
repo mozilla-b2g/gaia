@@ -10,6 +10,7 @@
    * start it. If we don't need it, we should stop it.
   **/
   function SimpleKeyNavigation() {
+    this._paused = true;
   }
 
   var proto = SimpleKeyNavigation.prototype = new evt();
@@ -20,6 +21,7 @@
   });
 
   proto.start = function skn_start(list, direction, options) {
+    this._paused = false;
     this.direction = direction;
     this.updateList(list);
     this.isChild = options ? !!options.isChild : false;
@@ -33,6 +35,32 @@
     this.target.removeEventListener('keydown', this);
   };
 
+  proto.pause = function skn_pause() {
+    if (this._paused) {
+      return;
+    }
+
+    this._paused = true;
+    this._List.forEach((elem) => { // For nested case
+      if (elem instanceof SimpleKeyNavigation) {
+        elem.pause();
+      }
+    });
+  };
+
+  proto.resume = function skn_resume() {
+    if (!this._paused) {
+      return;
+    }
+
+    this._paused = false;
+    this._List.forEach((elem) => { // For nested case
+      if (elem instanceof SimpleKeyNavigation) {
+        elem.resume();
+      }
+    });
+  };
+
   proto.updateList = function skn_updateList(list) {
     this._List = list;
     this._focusedIndex = -1;
@@ -40,6 +68,16 @@
       this._focusedIndex = 0;
       this.focus();
     }
+  };
+
+  proto.getFocusedElement = function skn_getFocusedElement() {
+    var elem = this._List[this._focusedIndex];
+    if (!elem) {
+      elem = null;
+    } else if (elem instanceof SimpleKeyNavigation) {
+      elem = elem.getFocusedElement();
+    }
+    return elem;
   };
 
   proto.focus = function skn_focus() {
@@ -78,7 +116,6 @@
     if (this._focusedIndex < 1) {
       return;
     }
-
     this._focusedIndex--;
     this.focus();
   };
@@ -92,6 +129,10 @@
   };
 
   proto.handleKeyMove = function skn_handleKeyMove(e, pre, next) {
+    if (this._paused) {
+      return;
+    }
+
     if (e.keyCode === pre) {
       this.movePrevious();
     } else if (e.keyCode === next) {
@@ -100,6 +141,10 @@
   };
 
   proto.propagateKeyMove = function skn_propagateKeyMove(e, pre, next) {
+    if (this._paused) {
+      return;
+    }
+
     if (this._List[this._focusedIndex] instanceof SimpleKeyNavigation &&
       (e.keyCode === pre || e.keyCode === next)) {
       this._List[this._focusedIndex].handleEvent(e);
@@ -107,6 +152,10 @@
   };
 
   proto.handleEvent = function skn_handleEvent(e) {
+    if (this._paused) {
+      return;
+    }
+
     if (this.direction === SimpleKeyNavigation.DIRECTION.HORIZONTAL) {
       this.handleKeyMove(e, KeyEvent.DOM_VK_LEFT, KeyEvent.DOM_VK_RIGHT);
       this.propagateKeyMove(e, KeyEvent.DOM_VK_UP, KeyEvent.DOM_VK_DOWN);

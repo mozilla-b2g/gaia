@@ -23,16 +23,16 @@
   line-height: 4.8rem;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
-  background: rgba(0 ,0, 0, .2);
+  background-color: rgba(0, 0, 0, .2);
   margin: 0;
   padding: 0 3rem 1rem;
   height: 4.8rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 /* Date picker */
 [role="dialog"][data-type="date-selector"] .picker-container {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: relative;
   width: calc(100% - 5rem);
   height: 22.5rem;
@@ -74,7 +74,7 @@
 [role="dialog"][data-type="date-selector"] .picker-bar-background {
   position: absolute;
   top: 0;
-  right: 0;
+  offset-inline-end: 0;
   width: 27%;
   height: 100%;
   background: #4d4d4d;
@@ -83,65 +83,72 @@
 [role="dialog"][data-type="date-selector"] .value-picker-date-wrapper,
 [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper,
 [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: absolute;
   top: 0;
-  left: 0;
-  width: 21%;
   height: 100%;
   padding-top: 8.3rem;
+  /**
+   * BiDi-proof:
+   * the edge shadow is always on the right edge of the two first columns.
+   */
   border-right: solid 0.2rem;
   -moz-border-right-colors: #1d1d1d #4a4a4a;
 }
 
+/* BiDi-proof: the right-most column has no border. */
+html[dir="ltr"] [role="dialog"][data-type="date-selector"] .DMY .value-picker-year-wrapper,
+html[dir="ltr"] [role="dialog"][data-type="date-selector"] .MDY .value-picker-year-wrapper,
+html[dir="ltr"] [role="dialog"][data-type="date-selector"] .YMD .value-picker-date-wrapper,
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .DMY .value-picker-date-wrapper,
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper,
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .YMD .value-picker-year-wrapper {
+  border-right: none;
+}
+
+/* DMY (default) */
+[role="dialog"][data-type="date-selector"] .value-picker-date-wrapper {
+  width: 21%;
+  offset-inline-start: 0;
+}
+
 [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
-  left: 21%;
   width: 52%;
+  offset-inline-start: 21%;
 }
 
 [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
-  left: auto;
-  right: 0;
   width: 27%;
-}
-
-/* DMY */
-[role="dialog"][data-type="date-selector"] .DMY .value-picker-year-wrapper {
-  border: none;
+  offset-inline-end: 0;
 }
 
 /* YMD */
 [role="dialog"][data-type="date-selector"] .YMD .value-picker-year-wrapper {
-  left: 0;
-  right: auto;
+  offset-inline-start: 0;
+  offset-inline-end: unset;
 }
 
 [role="dialog"][data-type="date-selector"] .YMD .value-picker-month-wrapper {
-  left: 27%;
+  offset-inline-start: 27%;
 }
 
 [role="dialog"][data-type="date-selector"] .YMD .value-picker-date-wrapper {
-  left: auto;
-  right: 0;
-  border: none;
+  offset-inline-start: unset;
+  offset-inline-end: 0;
 }
 
-
-[role="dialog"][data-type="date-selector"]  .YMD .picker-bar-background {
-  width: 21%;
+[role="dialog"][data-type="date-selector"] .YMD .picker-bar-background {
+  offset-inline-start: 0;
+  offset-inline-end: unset;
 }
 
 /* MDY */
 [role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper {
-  left: 0;
+  offset-inline-start: 0;
 }
 
 [role="dialog"][data-type="date-selector"] .MDY .value-picker-date-wrapper {
-  left: 52%;
-}
-
-[role="dialog"][data-type="date-selector"] .MDY .value-picker-year-wrapper {
-  border: none;
+  offset-inline-start: 52%;
 }
 
 [role="dialog"][data-type="date-selector"] .value-picker-date,
@@ -173,7 +180,7 @@
   transition: transform var(--transition-duration) cubic-bezier(0, 0, 0.4, 1);
 }
 
-[role="dialog"][data-type="date-selector"]  .picker-unit {
+[role="dialog"][data-type="date-selector"] .picker-unit {
   position: relative;
   font: 2.2rem/5.6rem sans-serif;
   color: #fff;
@@ -186,7 +193,7 @@
   transform: scale(0.8);
 }
 
-[role="dialog"][data-type="date-selector"]  .picker-unit.selected {
+[role="dialog"][data-type="date-selector"] .picker-unit.selected {
   opacity: 1;
   transform: scale(1);
 }
@@ -203,6 +210,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+  font-size: 0; /* collapse the whitespaces around menu buttons */
 }
 
 [role="dialog"][data-type="date-selector"] menu button::-moz-focus-inner {
@@ -217,7 +225,7 @@
   height: 4rem;
   margin: 0 0 1rem;
   padding: 0 1.2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;
@@ -265,7 +273,7 @@ button[disabled]::-moz-selection {
 }
 
 [role="dialog"][data-type="date-selector"] menu button:last-child {
-  margin-left: 1rem;
+  margin-inline-start: 1rem;
 }
 
 [role="dialog"][data-type="date-selector"] menu button,
@@ -277,52 +285,3 @@ button[disabled]::-moz-selection {
   width: 100%;
 }
 
-/* Right-To-Left layout */
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .picker-bar-background {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-date-wrapper,
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper,
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
-  left: unset;
-  right: 0;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
-  left: unset;
-  right: 21%;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
-  left: 0;
-  right: auto;
-}
-
-/* YMD */
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .YMD .value-picker-year-wrapper {
-  left: auto;
-  right: 0;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .YMD .value-picker-month-wrapper  {
-  left: unset;
-  right: 27%;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .YMD .value-picker-date-wrapper {
-  left: 0;
-  right: auto;
-}
-
-/* MDY */
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper {
-  left: unset;
-  right: 0;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="date-selector"] .MDY .value-picker-date-wrapper {
-  left: unset;
-  right: 52%;
-}

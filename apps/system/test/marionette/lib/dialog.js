@@ -12,6 +12,7 @@ Dialog.Selector = {
   visibleDialog: '.generic-dialog.visible',
   okButton: '.generic-dialog.visible .affirmative',
   messageContainer: '.generic-dialog.visible .inner',
+  promptInput: '.generic-dialog.visible .modal-dialog-prompt-input',
   menu: '.generic-dialog.visible menu',
   title: '.generic-dialog.visible .inner h3'
 };
@@ -59,5 +60,9 @@ Dialog.prototype = {
 
   get messageContainer() {
     return this.client.findElement(Dialog.Selector.messageContainer);
+  },
+
+  get promptInput() {
+    return this.client.findElement(Dialog.Selector.promptInput);
   }
 };

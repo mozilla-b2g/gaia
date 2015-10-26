@@ -1,0 +1,32 @@
+<element name="homescreen-details" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#homescreens-list">
+      <h1 class="detail-title"></h1>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li>
+          <label class="addon-details-info developer-infos">
+            <img class="addon-details-icon">
+            <span class="addon-details-title title"></span>
+            <small class="addon-details-name name"></small>
+          </label>
+          <p class="version"></p>
+          <p class="description"></p>
+          <p class="url"><small><a href="#" target="_blank"></a></small></p>
+        </li>
+      </ul>
+
+      <ul class="uninstall-homescreen-container">
+        <li>
+          <button class="danger uninstall-homescreen" data-l10n-id="delete-home-screen-button"></button>
+        </li>
+      </ul>
+    </div>
+
+    <panel data-path="panels/homescreen_details/panel"></panel>
+
+  </template>
+</element>

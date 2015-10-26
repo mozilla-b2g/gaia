@@ -16,7 +16,6 @@ function DisplayPanel(client) {
 module.exports = DisplayPanel;
 
 DisplayPanel.Selectors = {
-  'wallpaper': '.wallpaper',
   'lockOrientationCheckbox':
     '#display gaia-switch[name="screen.orientation.lock"]',
   'autoBrightnessItem': '.brightness-auto',
@@ -69,10 +68,6 @@ DisplayPanel.prototype = {
 
   tapLockOrientationCheckbox: function() {
     this.waitForElement('lockOrientationCheckbox').tap();
-  },
-
-  tapWallpaper: function() {
-    this.waitForElement('wallpaper').tap();
   },
 
   tapAutoBrightnessCheckbox: function() {

@@ -37,7 +37,7 @@ suite('InputMethodDatabaseConfig', function() {
             'preloaded': true,
             'dictFilename': 'en_us.dict',
             'dictFilePath': 'dictionaries/en_us.dict',
-            'dictFileSize': 1451390,
+            'dictFileSize': 1451400,
             'types': ['email', 'password', 'text',  'url']
           },
           {
@@ -96,7 +96,7 @@ suite('InputMethodDatabaseConfig', function() {
             'preloaded': true,
             'dictFilename': 'en_us.dict',
             'dictFilePath': 'dictionaries/en_us.dict',
-            'dictFileSize': 1451390,
+            'dictFileSize': 1451400,
             'types': ['email', 'password', 'text',  'url']
           },
           {
@@ -217,7 +217,7 @@ suite('InputMethodDatabaseLoader', function() {
 
     test('load data from package', function(done) {
       loader.load('latin', 'dictionaries/en_us.dict').then(function(data) {
-        assert.equal(data && data.byteLength, 1451390, 'Got data');
+        assert.equal(data && data.byteLength, 1451400, 'Got data');
       }, function(e) {
         if (e) { throw e; }
         throw 'Should not reject';
@@ -261,7 +261,7 @@ suite('InputMethodDatabaseLoader', function() {
             'preloaded': true,
             'dictFilename': 'en_us.dict',
             'dictFilePath': 'dictionaries/en_us.dict',
-            'dictFileSize': 1451390,
+            'dictFileSize': 1451400,
             'types': ['email', 'password', 'text',  'url']
           },
           {
@@ -292,7 +292,7 @@ suite('InputMethodDatabaseLoader', function() {
 
       test('load data from package', function(done) {
         loader.load('latin', 'dictionaries/en_us.dict').then(function(data) {
-          assert.equal(data && data.byteLength, 1451390, 'Got data');
+          assert.equal(data && data.byteLength, 1451400, 'Got data');
         }, function(e) {
           if (e) { throw e; }
           throw 'Should not reject';
@@ -325,7 +325,7 @@ suite('InputMethodDatabaseLoader', function() {
             'preloaded': true,
             'dictFilename': 'en_us.dict',
             'dictFilePath': 'dictionaries/en_us.dict',
-            'dictFileSize': 1451390,
+            'dictFileSize': 1451400,
             'types': ['email', 'password', 'text',  'url']
           },
           {
@@ -355,7 +355,7 @@ suite('InputMethodDatabaseLoader', function() {
 
       test('load data from package', function(done) {
         loader.load('latin', 'dictionaries/en_us.dict').then(function(data) {
-          assert.equal(data && data.byteLength, 1451390, 'Got data');
+          assert.equal(data && data.byteLength, 1451400, 'Got data');
         }, function(e) {
           if (e) { throw e; }
           throw 'Should not reject';

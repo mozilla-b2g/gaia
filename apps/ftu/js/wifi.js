@@ -1,8 +1,18 @@
 /* global utils, UIManager, WifiHelper, WifiUI:true */
 /* exported WifiManager, WifiUI */
+(function(exports) {
 'use strict';
 
+const WIFI_STATUS = {
+  connecting: 'connecting',
+  associated: 'associated',
+  connected: 'connected',
+  connectingfailed: 'connectingfailed',
+  disconnected: 'disconnected'
+};
+
 var WifiManager = {
+  STATUS: Object.freeze(WIFI_STATUS),
   init: function wn_init() {
     this.api = WifiHelper.getWifiManager();
     this.changeStatus();
@@ -146,7 +156,7 @@ var WifiManager = {
     var self = this;
     if (WifiManager.api) {
       WifiManager.api.onstatuschange = function(event) {
-        if (event.status === 'disconnected' && self.onScan) {
+        if (event.status === WifiManager.STATUS.disconnected && self.onScan) {
           self.scan(self.onScan);
         } else {
           WifiUI.updateNetworkStatus(event.network.ssid, event.status);
@@ -193,35 +203,43 @@ var WifiUI = {
     window.history.back();
   },
 
-  connect: function wui_connect(ssid, password, user) {
-    // First we check if there is a previous selected network
-    // and we remove their status
-    var networkSelected = document.querySelector('li[data-wifi-selected]');
-    if (networkSelected) {
-      var icon = networkSelected.querySelector('aside');
-      networkSelected.removeAttribute('data-wifi-selected');
-      networkSelected.classList.remove('connected');
+  _selectNetworkItem: function(ssid, isSelected=true) {
+    var elem = document.getElementById(ssid);
+    if (!elem) {
+      return;
+    }
+    if (isSelected) {
+      // We should update the state to 'connecting' in here to show the change
+      // to the user, instead of waiting for the api (takes longer).
+      // But currently
+      // there's no feedback from the api when connecting to a hidden wifi fails
+      // so we skip the visual changes
+      // see https://bugzilla.mozilla.org/show_bug.cgi?id=1107431#c25
+      elem.setAttribute('data-wifi-selected', true);
+    } else {
+      var icon = elem.querySelector('aside');
+      elem.removeAttribute('data-wifi-selected');
+      elem.classList.remove('connected');
       icon.classList.remove('connecting');
       icon.classList.remove('connected');
 
-      var security = networkSelected.dataset.security;
-      var securityLevelDOM =
-        networkSelected.querySelectorAll('p[data-security-level]')[0];
-      if (!security || security === '') {
-        securityLevelDOM.setAttribute('data-l10n-id', 'securityOpen');
-      } else {
-        securityLevelDOM.setAttribute('data-l10n-id', security);
-      }
+      var security = elem.dataset.security;
+      var securityLevelDOM = elem.querySelector('p[data-security-level]');
+      securityLevelDOM.setAttribute('data-l10n-id',
+        security ? security : 'securityOpen');
     }
+  },
 
+  connect: function wui_connect(ssid, password, user) {
+    // First we check if there is a previous selected network
+    // and we remove their status
     // And then end we update the selected network
     var newWifi = document.getElementById(ssid);
-    // We should update the state to 'connecting' in here to show the change
-    // to the user, instead of waiting for the api (takes longer). But currently
-    // there's no feedback from the api when connecting to a hidden wifi fails
-    // so we skip the visual changes
-    // see https://bugzilla.mozilla.org/show_bug.cgi?id=1107431#c25
-    newWifi.setAttribute('data-wifi-selected', true);
+    Array.from(document.querySelectorAll('li[data-wifi-selected]'))
+    .forEach((networkSelected) => {
+      this._selectNetworkItem(networkSelected,
+                              networkSelected === newWifi);
+    });
 
     // Finally we try to connect to the network
     WifiManager.connect(ssid, password, user);
@@ -377,7 +395,11 @@ var WifiUI = {
           }
           // Show connection status
           icon.classList.add('wifi-signal');
-          if (WifiHelper.isConnected(network)) {
+          var connectionStatus = WifiHelper.getNetworkStatus(network) ||
+                                WifiManager.STATUS.disconnected;
+          li.dataset.status = connectionStatus;
+
+          if (connectionStatus === WifiManager.STATUS.connected) {
             small.setAttribute('data-l10n-id', 'shortStatus-connected');
             small.removeAttribute('aria-label');
             icon.classList.add('connected');
@@ -385,7 +407,7 @@ var WifiUI = {
             li.dataset.wifiSelected = true;
           }
 
-          // Update list of shown netwoks
+          // Update list of shown networks
           networksShown.push(network.ssid);
           // Append the elements to li
           li.setAttribute('id', network.ssid);
@@ -415,8 +437,14 @@ var WifiUI = {
     if (!element) {
       return;
     }
+    if (status === WifiManager.STATUS.connecting && ssid !== WifiManager.ssid) {
+      // bogus event, see bug 1179703/1216221
+      return;
+    }
+
     // Update the element
-    if (status !== 'disconnected') {
+    element.dataset.status = status;
+    if (status !== WifiManager.STATUS.disconnected) {
       element.querySelector('p[data-security-level]').setAttribute(
                           'data-l10n-id', 'shortStatus-' + status);
     } else {
@@ -430,17 +458,28 @@ var WifiUI = {
     // Animate icon if connecting, stop animation if
     // failed/connected/disconnected
     var icon = element.querySelector('aside');
-    if (status === 'connecting' || status === 'associated') {
-      icon.classList.add('connecting');
-    } else {
-      icon.classList.remove('connecting');
-      if (status === 'connected') {
+    switch (status) {
+      case WifiManager.STATUS.connecting:
+      case WifiManager.STATUS.associated:
+        icon.classList.add('connecting');
+        break;
+      case WifiManager.STATUS.connected:
+        icon.classList.remove('connecting');
         var networksList = document.getElementById('networks-list');
         icon.classList.add('connected');
         element.classList.add('connected');
         networksList.removeChild(element);
         networksList.insertBefore(element, networksList.firstChild);
-      }
+        break;
+      default:
+        icon.classList.remove('connecting');
+        icon.classList.remove('connected');
+        break;
     }
   }
 };
+
+exports.WifiManager = WifiManager;
+exports.WifiUI = WifiUI;
+
+})(window);

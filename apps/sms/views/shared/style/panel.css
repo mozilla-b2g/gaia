@@ -5,33 +5,26 @@
   top: 0;
   bottom: 0;
 
-  transform: translate(100%);
-
   overflow: auto;
 
   background: white;
 
   animation: .2s both linear;
 }
+html[dir="ltr"] .panel { transform: translate(100%); }
+html[dir="rtl"] .panel { transform: translate(-100%); }
 
-.panel-active {
+/**
+ * adding html[dir] to make the specificity of this rule high enough to
+ * overwrite the default translation for element with class panel just above,
+ * without needing to put a !important
+ */
+html[dir] .panel-active {
   transform: translate(0);
 }
 
-.panel-will-activate {
-  animation-name: new-slide-left;
-}
-
-.panel-will-activate.panel-animation-reverse {
-  animation-name: new-slide-right;
-}
-
-.panel-will-deactivate {
-  animation-name: old-slide-left;
-}
-
-.panel-will-deactivate.panel-animation-reverse {
-  animation-name: old-slide-right;
+.panel-hidden {
+  display: none;
 }
 
 @keyframes new-slide-left {

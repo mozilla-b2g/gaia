@@ -10,12 +10,9 @@
 /* global Loader */
 /* global TAG_OPTIONS */
 /* global utils */
-/* global GaiaHeader */
-/* global GaiaSubheader */
 /* global HeaderUI */
 /* global Search */
 /* global ContactsService */
-/* global ParamUtils */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -44,7 +41,8 @@ var Contacts = (function() {
   var detailsReady = false;
   var formReady = false;
 
-  var currentContact = {};
+  var currentContact = {},
+      currentFbContact;
 
   var contactsList;
   var contactsDetails;
@@ -142,9 +140,12 @@ var Contacts = (function() {
         break;
       case 'add-parameters':
         initContactsList();
-        if (ActivityHandler.currentlyHandling) {
-          selectList(params, true);
-        }
+        initForm(function onInitForm() {
+          MainNavigation.home();
+          if (ActivityHandler.currentlyHandling) {
+            selectList(params, true);
+          }
+        });
         break;
       case 'multiple-select-view':
         Loader.view('multiple_select', () => {
@@ -239,22 +240,26 @@ var Contacts = (function() {
   };
 
   var contactListClickHandler = function originalHandler(id) {
+    initDetails(function onDetailsReady() {
+      ContactsService.get(id, function findCb(contact, fbContact) {
 
-    if (!ActivityHandler.currentlyHandling) {
-      window.location.href = ParamUtils.generateUrl('detail', {contact:id});
-      return;
-    }
+        currentContact = contact;
+        currentFbContact = fbContact;
 
-    ContactsService.get(id, function findCb(contact) {
-      currentContact = contact;
-      if (ActivityHandler.currentActivityIsNot(['import'])) {
-        if (ActivityHandler.currentActivityIs(['pick'])) {
-          ActivityHandler.dataPickHandler(currentContact);
+        if (ActivityHandler.currentActivityIsNot(['import'])) {
+          if (ActivityHandler.currentActivityIs(['pick'])) {
+            ActivityHandler.dataPickHandler(currentFbContact || currentContact);
+          }
+          return;
         }
-        return;
-      }
 
-      window.location.href = ParamUtils.generateUrl('detail', {contact:id});
+        contactsDetails.render(currentContact, currentFbContact);
+        if (window.Search && Search.isInSearchMode()) {
+          MainNavigation.go('view-contact-details', 'go-deeper-search');
+        } else {
+          MainNavigation.go('view-contact-details', 'go-deeper');
+        }
+      });
     });
   };
 
@@ -269,31 +274,28 @@ var Contacts = (function() {
     HeaderUI.hideAddButton();
     contactsList.clearClickHandlers();
     contactsList.handleClick(function addToContactHandler(id) {
-
-      var optionalParams;
-
+      var data = {};
       if (params.hasOwnProperty('tel')) {
-        optionalParams = {
-          action: 'update',
-          contact: id,
-          isActivity: true,
-          tel: params.tel
-        };
+        var phoneNumber = params.tel;
+        data.tel = [{
+          'value': phoneNumber,
+          'carrier': null,
+          'type': [TAG_OPTIONS['phone-type'][0].type]
+        }];
       }
-
       if (params.hasOwnProperty('email')) {
-        optionalParams = {
-          action: 'update',
-          contact: id,
-          isActivity: true,
-          email: params.email
-        };
+        var email = params.email;
+        data.email = [{
+          'value': email,
+          'type': [TAG_OPTIONS['email-type'][0].type]
+        }];
       }
-
-      window.location.href = ParamUtils.generateUrl(
-        'form',
-        optionalParams
-      );
+      var hash = '#view-contact-form?extras=' +
+        encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
+      if (fromUpdateActivity) {
+        hash += '&fromUpdateActivity=1';
+      }
+      window.location.hash = hash;
     });
   };
 
@@ -318,7 +320,7 @@ var Contacts = (function() {
   };
 
   var showAddContact = function showAddContact() {
-    window.location.href = ParamUtils.generateUrl('form',{action: 'new'});
+    showForm();
   };
 
   var loadFacebook = function loadFacebook(callback) {
@@ -374,7 +376,8 @@ var Contacts = (function() {
           '/contacts/js/utilities/icc_handler.js',
           '/shared/js/contacts/import/utilities/sdcard.js',
           '/shared/elements/gaia_switch/script.js',
-          '/shared/js/date_time_helper.js'], function() {
+          '/shared/js/date_time_helper.js',
+          '/shared/js/contacts/import/import_status_data.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
           callback();
@@ -393,7 +396,8 @@ var Contacts = (function() {
            '/dialer/js/telephony_helper.js',
            '/shared/js/contacts/sms_integration.js',
            '/shared/js/contacts/contacts_buttons.js',
-           '/contacts/js/match_service.js'],
+           '/contacts/js/match_service.js',
+           '/contacts/js/utilities/mozContact.js'],
         function() {
           detailsReady = true;
           contactsDetails = contacts.Details;
@@ -482,12 +486,6 @@ var Contacts = (function() {
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
-      '#contacts-list-header': [
-        {
-          event: 'action',
-          handler: handleCancel // Activity (any) cancellation
-        }
-      ],
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
       '#search-start': [
@@ -623,10 +621,6 @@ var Contacts = (function() {
         checkPendingChanges(event.contactID);
         notifyContactChanged(event.contactID, event.reason);
         break;
-      case 'merged':
-        contactsList.remove(event.contactID);
-        notifyContactChanged(event.contactID, 'remove');
-        break;
     }
   };
 
@@ -657,6 +651,7 @@ var Contacts = (function() {
 
   var initContacts = function initContacts(evt) {
     initEventListeners();
+    HeaderUI.setNormalHeader();
     utils.PerformanceHelper.contentInteractive();
     utils.PerformanceHelper.chromeInteractive();
     window.setTimeout(Contacts && Contacts.onLocalized);
@@ -694,49 +689,11 @@ var Contacts = (function() {
     window.removeEventListener('DOMContentLoaded', onLoad);
   });
 
-  sessionStorage.setItem('contactChanges', null);
-  window.addEventListener('pageshow', function onPageshow() {
-
-    window.dispatchEvent(new CustomEvent('list-shown'));
-
-    // XXX: Workaround until the platform will be fixed
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1184953
-    document.registerElement(
-      'gaia-header',
-      { prototype: GaiaHeader.prototype }
-    );
-    document.registerElement(
-      'gaia-subheader',
-      { prototype: GaiaSubheader.prototype }
-    );
-
-    // XXX: As well we need to get back the theme color
-    // due to the bug with back&forward cache mentioned before
-    var meta = document.querySelector('meta[name="theme-color"]');
-    document.head.removeChild(meta);
-    meta = document.createElement('meta');
-    meta.content = 'var(--header-background)';
-    meta.name = 'theme-color';
-    document.head.appendChild(meta);
-
-    // #new handling
-    var eventsStringified = sessionStorage.getItem('contactChanges');
-    if (!eventsStringified || eventsStringified === 'null') {
-      return;
-    }
-    
-    var changeEvents = JSON.parse(eventsStringified);
-    for (var i = 0; i < changeEvents.length; i++) {
-      performOnContactChange(changeEvents[i]);
-    }
-    sessionStorage.setItem('contactChanges', null);
-  });
-
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
-    'setCurrent': setCurrent,
     'showForm': showForm,
+    'setCurrent': setCurrent,
     'onLocalized': onLocalized,
     'init': init,
     'showOverlay': showOverlay,

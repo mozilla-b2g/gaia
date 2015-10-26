@@ -1,21 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
   <head>
     <meta charset="utf-8">
 
-    <title>Value selector</title>
+    <title>Value Selector (LTR)</title>
     <link rel="stylesheet" href="../value_selector.css">
 
     <!--
-      This <style> and <link> is only used for the example code, is no needed for the real case use
-    -->
+      - These <style> and <script> elements are only used for the example code:
+      - they are not needed for the real case use.
+      -->
     <style type="text/css">
       html, body { font-size: 10px; margin: 0; padding: 0; }
     </style>
+    <script>
+      window.onkeypress = () => {
+        var newDir = document.documentElement.dir === 'ltr' ? 'rtl' : 'ltr';
+        document.title = `Value Selector (${ newDir.toUpperCase() })`;
+        document.documentElement.dir = newDir;
+      };
+    </script>
 
   </head>
 
-  <body>
+  <body class="value-selector">
 
   <form role="dialog" data-type="value-selector">
     <section class="scrollable">
@@ -23,6 +31,7 @@
       <ol role="listbox">
         <li role="option"><label role="presentation"> <span>None</span></label></li>
         <li role="option"><label role="presentation"> <span>At time of event</span></label></li>
+        <li role="option"><label role="presentation" dir="auto"> <span>Why do you ask?</span></label></li>
         <li role="subheader"><label role="presentation"> <span>Subheader</span></label></li>
         <li role="option"><label role="presentation"> <span>5 minutes before</span></label></li>
         <li role="option"><label role="presentation"> <span>15 minutes before</span></label></li>
@@ -32,7 +41,7 @@
         <li role="option"><label role="presentation"> <span>1 day before</span></label></li>
       </ol>
     </section>
-    <menu>
+    <menu class="value-selector-buttons">
       <button class="affirmative full">OK</button>
     </menu>
   </form>

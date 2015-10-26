@@ -12,6 +12,7 @@ function Router() {
   var len = COPY_METHODS.length;
 
   this.page = page;
+  this.page({ hashbang: true });
   this._activeObjects = [];
 
   for (; i < len; i++) {

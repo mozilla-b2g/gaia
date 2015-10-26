@@ -29,11 +29,11 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 .view-contacts-list .block-list {
-  padding-right: 1rem;
+  padding-inline-end: 1rem;
 }
 
 .view-contacts-list .view-body-inner {
-  padding-left: 0;
+  padding-inline-start: 0;
 }
 
 /* Contact detail main section */
@@ -92,7 +92,7 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
   overflow: visible;
   width: 100%;
   min-height: calc(100% - 8rem);
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   transform: translateY(0);
 }
 
@@ -200,7 +200,7 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 
 #contact-form div.with-overflow button[type="reset"] {
   width: 5rem;     /* The affordance is increased by 1 rem */
-  right: calc(-0.5rem + -0.3rem);
+  offset-inline-end: calc(-0.5rem + -0.3rem);
 }
 
 #contact-form div.with-overflow input {
@@ -209,6 +209,12 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 
 #contact-form div.with-overflow input[name="org"] {
   width: 30rem;
+}
+
+#contact-form input::-moz-placeholder,
+#contact-form textarea::-moz-placeholder {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* this is needed because it overflows the photo container */
@@ -257,7 +263,7 @@ div.with-overflow > p.input-container > input {
 }
 
 .two_fields > :first-child {
-  -moz-margin-end: 1rem;
+  margin-inline-end: 1rem;
   width: 12rem;
 }
 
@@ -306,7 +312,7 @@ form p textarea + button[type="reset"].hide {
 .importContacts {
   font-size: 1.6rem;
   margin-top: 5rem;
-  margin-left: 1.5rem;
+  margin-left: 1.5rem;      /* BiDi-proof */
   width: calc(100% - 6rem); /* 4.5rem = view-jumper width */
 }
 
@@ -317,10 +323,10 @@ form p textarea + button[type="reset"].hide {
   font-size: 1.4rem;
 }
 
-.importContacts span, .importContacts small {
+.importContacts span,
+.importContacts small {
   display: block;
 }
-
 
 /* Social network markers */
 .icon-social {
@@ -333,7 +339,7 @@ form p textarea + button[type="reset"].hide {
   height: 1.5rem;
   margin: 0;
   margin-top: -0.2rem;
-  -moz-margin-end: 1rem;
+  margin-inline-end: 1rem;
 }
 
 .icon-social.icon-fb,
@@ -363,10 +369,12 @@ form p textarea + button[type="reset"].hide {
 }
 
 .facebook fieldset {
-  -moz-margin-start: 4rem;
+  margin-inline-start: 4rem;
 }
 
-.facebook fieldset, .facebook legend, .facebook input {
+.facebook fieldset,
+.facebook legend,
+.facebook input {
   background-color: transparent;
   color: #ccc;
   pointer-events: none;
@@ -403,12 +411,10 @@ form p textarea + button[type="reset"].hide {
 }
 
 /**
- * 1. Hide label text. !important required
- *    to override high specificity of scoped
- *    stylesheets. When `::content` selector
- *    lands, we won't need this any more.
+ * 1. Hide label text.
+ *    !important required to override high specificity of scoped stylesheets.
+ *    When `::content` selector lands, we won't need this any more.
  */
-
 gaia-header [data-icon] {
   font-size: 0 !important; /* 1 */
 }
@@ -428,6 +434,7 @@ gaia-header [data-icon] {
 #ice-settings .view-body-inner {
   background: #f4f4f4;
 }
+
 #view-contact-form #thumbnail-photo {
   background-color: transparent;
   border-radius: 7rem;
@@ -452,7 +459,7 @@ gaia-header [data-icon] {
 }
 
 #view-settings [data-type="list"] .fb-item p {
-  -moz-padding-start: 4.2rem;
+  padding-inline-start: 4.2rem;
   font-size: 1.4rem;
 }
 
@@ -462,12 +469,12 @@ gaia-header [data-icon] {
 }
 
 #view-settings [data-type="list"] .fb-item {
-  background: url(/contacts/style/images/f_logo.png) no-repeat 0 calc(50% + 0.5rem) / 3rem;
+  background-image: url(/contacts/style/images/f_logo.png);
+  background-repeat: no-repeat;
+  background-size: 3rem;
 }
-
-html[dir=rtl] #view-settings [data-type="list"] .fb-item {
-  background: url(/contacts/style/images/f_logo.png) no-repeat scroll 100% calc(50% + 0.5rem) / 3rem auto;
-}
+html[dir="ltr"] #view-settings [data-type="list"] .fb-item { background-position: 0 calc(50% + 0.5rem); }
+html[dir="rtl"] #view-settings [data-type="list"] .fb-item { background-position: 100% calc(50% + 0.5rem); }
 
 #view-settings [data-type="list"] .fb-item p:first-of-type {
   height: 3rem;
@@ -482,26 +489,12 @@ html[dir=rtl] #view-settings [data-type="list"] .fb-item {
   pointer-events: none;
   position: absolute;
   top: 1rem;
-}
-
-html[dir=rtl] #view-settings [data-type="list"] .fb-item aside {
-  left: 0;
-}
-
-html[dir=ltr] #view-settings [data-type="list"] .fb-item aside {
-  right: 0;
+  offset-inline-end: 0;
 }
 
 #view-settings [data-type="list"] .fb-item aside label {
   position: absolute;
-}
-
-html[dir=rtl] #view-settings [data-type="list"] .fb-item aside label {
-  left: 0;
-}
-
-html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
-  right: 0;
+  offset-inline-end: 0;
 }
 
 #view-settings [data-type="list"] .fb-item[aria-disabled="true"] {
@@ -563,15 +556,13 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 
 /* Extending BB buttons Icons at left side*/
 #view-settings [data-type="list"] li button.icon {
-  padding-top: 1.2rem;
-  padding-bottom: 1.2rem;
-  -moz-padding-end: 1.3rem;
-  -moz-padding-start: 4rem;
+  padding: 1.2rem 1.3rem;
+  padding-inline-start: 4rem;
 }
 
 #view-settings [data-type="list"] li button.icon:before {
-  right: auto;
-  left: 0.5rem;
+  offset-inline-start: 0.5rem;
+  offset-inline-end: auto;
 }
 
 #view-settings [data-type="list"] li button.icon[disabled="disabled"]:before {
@@ -579,15 +570,13 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 }
 
 #import-settings [data-type="list"] li button.icon {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  -moz-padding-end: 1.3rem;
-  -moz-padding-start: 4rem;
+  padding: 1rem 1.3rem;
+  padding-inline-start: 4rem;
 }
 
 #import-settings [data-type="list"] li button.icon:before {
-  right: auto;
-  left: 0.5rem;
+  offset-inline-start: 0.5rem;
+  offset-inline-end: auto;
 }
 
 #import-settings [data-type="list"] li button.icon[disabled="disabled"]:before {
@@ -605,9 +594,11 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 #import-settings [data-type="list"] li button.icon:before {
   background-size: 3rem;
 }
+
 #import-settings [data-type="list"] li button.icon-sim:before {
   background-image: url(/contacts/style/images/import_SIM.png);
 }
+
 #import-settings [data-type="list"] li button.icon-sd:before {
   background-image: url(/contacts/style/images/import_sd.png);
 }
@@ -683,6 +674,7 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   display: inline-block;
   margin: 0 0 0 0.5rem;
 }
+
 /* Error message */
 #view-settings .view-body-inner .fb-error {
   color: #D1323F;
@@ -731,13 +723,13 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 
 #statusMsg {
   position: fixed;
-  -moz-transition: -moz-transform .5s ease;
-  -moz-transform: translateY(8rem);
+  transition: transform .5s ease;
+  transform: translateY(8rem);
   pointer-events: none;
 }
 
 #statusMsg.visible {
-  -moz-transform: translateY(0);
+  transform: translateY(0);
   z-index: 1001;
 }
 
@@ -769,17 +761,13 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   background-color: #fff;
 }
 
-.group-section {
-  -moz-padding-start: 1.5rem;
-}
-
 .datetime {
   /* pass the events from <span> to <input> */
   pointer-events: none;
   position: absolute;
   top: 0;
-  left: 1.5rem;
-  right: 2rem;
+  offset-inline-start: 1.5rem;
+  offset-inline-end: 2rem;
   line-height: 4rem;
   font-size: 1.6rem;
   font-weight: normal;
@@ -824,7 +812,7 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
   transform: translateY(0);
 }
 
-[data-type='list'] .contact-item > aside > span:before {
+[data-type="list"] .contact-item > aside > span:before {
   content: attr(data-group);
   position: absolute;
   top: 0;
@@ -857,6 +845,18 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
   image-rendering: auto;
 }
 
+/* BiDi note: the scrollbar is always on the right edge */
+html[dir] nav[data-type="scrollbar"] {
+  direction: ltr;
+  offset-inline-end: unset;
+  right: 0;
+}
+
+html[dir] nav[data-type="scrollbar"] p {
+  offset-inline-end: unset;
+  right: 10rem;
+}
+
 nav[data-type="scrollbar"] li .pack-icon-ice {
   width: 1.2rem;
   height: 1.2rem;
@@ -879,10 +879,11 @@ form[role="combobox"] span[data-field="type"] {
 
 .field-template {
   display: flex;
-  border-radius: 15px 0 0;
   background-color: #fff;
   border: 1px solid #e7e7e7;
 }
+html[dir="ltr"] .field-template { border-radius: 15px 0 0; }
+html[dir="rtl"] .field-template { border-radius: 0 15px 0 0; }
 
 /* Add separation between templates */
 .field-template + .field-template {
@@ -891,15 +892,19 @@ form[role="combobox"] span[data-field="type"] {
 
 .img-delete-button {
   padding: 0;
-  margin: 0.2rem 0 2rem;
-  -moz-margin-start: 0.2rem;
-  -moz-margin-end: 1rem;
+  margin: 0.2rem 1rem 2rem;
+  margin-inline-start: 0.2rem;
   width: 2.8rem;
   color: #fff;
-  background: url('images/icon_remove.png') no-repeat scroll 0 0 / 3rem auto transparent;
+  background: url('images/icon_remove.png');
+  background-repeat: no-repeat;
+  background-size: 3rem auto;
+  background-color: transparent;
   border: 0;
   -moz-user-select: none;
 }
+html[dir="ltr"] .img-delete-button { background-position: left top; }
+html[dir="rtl"] .img-delete-button { background-position: right top; }
 
 .img-delete-button:active {
   background: url('images/icon_remove.png') no-repeat scroll 0 0 / 3rem auto transparent;
@@ -922,7 +927,7 @@ form[role="combobox"] span[data-field="type"] {
   color: #5f5f5f;
   height: 5rem;
   vertical-align: middle;
-  -moz-padding-start: 4rem;
+  padding-inline-start: 4rem;
   margin: 0;
 }
 
@@ -1014,7 +1019,7 @@ li button[data-field-type]:active {
 }
 
 /* Ellipsis fix for contact lists */
-/*we hijack the overflow and text-overflow
+/* we hijack the overflow and text-overflow
  * of the shared style to make the ellipsis display always at the end
  * (ie right for LTR string and left for RTL string)
  * while keeping alignment of the current system-wide language */
@@ -1026,67 +1031,6 @@ li button.icon-email bdi {
   max-width: 100%;
 }
 
-/* RTL View */
-
-html[dir="rtl"] .field-template {
-  border-radius: 0 15px 0 0;
-}
-
-html[dir="rtl"] #no-contacts .icon {
-  padding-right: 3.5rem;
-  padding-left: 0;
-}
-
-html[dir="rtl"] #no-contacts .create.icon,
-html[dir="rtl"] #no-contacts .import.icon {
-  background-position: 100% 50%;
-}
-
-html[dir="rtl"] #contact-form div.with-overflow button[type="reset"] {
-  left: calc(-0.5rem + -0.3rem);
-  right: unset;
-}
-
-html[dir="rtl"] #view-settings [data-type="list"] .fb-item aside {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] #view-settings [data-type="list"] .fb-item {
-  background-position: 100% calc(50% + 0.5rem);
-}
-
-html[dir="rtl"] #view-settings [data-type="list"] .fb-item aside label {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] #view-settings [data-type="list"] li button.icon:before {
-  left: auto;
-  right: 0.5rem;
-}
-
-html[dir="rtl"] .img-delete-button {
-  background-position: 100% 0;
-}
-
-html[dir="rtl"] #import-settings [data-type="list"] li button.icon:before {
-  left: auto;
-  right: 0.5rem;
-}
-
-/* RTL View */
-html[dir="rtl"] nav[data-type="scrollbar"] {
-  direction: ltr;
-  right: 0;
-  left: unset;
-}
-
-html[dir="rtl"] nav[data-type="scrollbar"] p {
-  left: unset;
-  right: 10rem;
-}
-
 /* TODO: Remove this workaround once bug 883884 fixed */
 .ellipsis-dir-fix {
   display: block;
@@ -1096,12 +1040,7 @@ html[dir="rtl"] nav[data-type="scrollbar"] p {
 
 /* Overwrite input-areas bb */
 #custom-tag-reset {
-  right: 1rem;
-}
-
-html[dir="rtl"] #custom-tag-reset {
-  left: 1rem;
-  right: unset;
+  offset-inline-end: 1rem;
 }
 
 #multiple-select-view aside {
@@ -1110,11 +1049,7 @@ html[dir="rtl"] #custom-tag-reset {
   padding-right: 1.5rem;
 }
 
-/* Force align with system because dir="auto" will ignore text-align: start*/
-.force-align[dir="auto"] {
-  text-align: left;
-}
+/* Force align with system because dir="auto" will ignore text-align: start */
+html[dir="ltr"] .force-align[dir="auto"] { text-align: left; }
+html[dir="rtl"] .force-align[dir="auto"] { text-align: right; }
 
-html[dir="rtl"] .force-align[dir="auto"] {
-  text-align: right;
-}

@@ -143,19 +143,6 @@ function hc_computeCallEndedFontSizeRules() {
     '}';
   this.callEndedStyleSheet.insertRule(rule,
     this.callEndedStyleSheet.cssRules.length);
-
-  // Compute the size of the font for displaying the string in the statusbar
-  info = FontSizeUtils.getMaxFontSizeInfo(
-    this.durationChildNode.textContent, allowedSizes, fontFamily, 160);
-  rule =
-    '@media (max-height: 4.5em) {' +
-    '  .handled-call.ended .duration > span,' +
-    '  .handled-call.ended .total-duration {' +
-    '    font-size: ' + (info.fontSize / 10.0) + 'rem;' +
-    '  }' +
-    '}';
-  this.callEndedStyleSheet.insertRule(rule,
-    this.callEndedStyleSheet.cssRules.length);
 };
 
 /**
@@ -257,12 +244,12 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     if (contact) {
       var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
       if (primaryInfo) {
-        self.replacePhoneNumber({ raw: primaryInfo[0] }, 'end');
+        self.replacePhoneNumber({ raw: primaryInfo }, 'end');
       } else {
         self.replacePhoneNumber('withheld-number');
       }
       self.replaceAdditionalContactInfo({ raw: matchingTel.value },
-        Utils.getLocalizedPhoneNumberAdditionalInfo(matchingTel));
+        Utils.getPhoneNumberAdditionalInfo(matchingTel));
 
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
@@ -299,14 +286,9 @@ HandledCall.prototype.replaceAdditionalContactInfo =
     }
 
     if (additionalTelType) {
-      if (typeof(additionalTelType) === 'string') {
-        navigator.mozL10n.setAttributes(this.additionalTelTypeNode,
-                                        additionalTelType);
-      } else if (additionalTelType.id) {
-        navigator.mozL10n.setAttributes(this.additionalTelTypeNode,
-                                        additionalTelType.id,
-                                        additionalTelType.args);
-      }
+      navigator.mozL10n.setAttributes(this.additionalTelTypeNode,
+                                      additionalTelType.id,
+                                      additionalTelType.args);
     }
 
     this.node.classList.add('additionalInfo');
@@ -378,12 +360,10 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
   var classList = this.node.classList;
   if (this._initialState === 'incoming') {
     classList.add('incoming');
-    // XXX: This should be replaced with mozL10n.setAttribute whenever possible
-    this.node.setAttribute('aria-label', 'incoming');
+    this.node.setAttribute('data-l10n-id', 'incoming_screen_reader');
   } else {
     classList.add('outgoing');
-    // XXX: This should be replaced with mozL10n.setAttribute whenever possible
-    this.node.setAttribute('aria-label', 'outgoing');
+    this.node.setAttribute('data-l10n-id', 'outgoing_screen_reader');
   }
 
   if (this.call.state === 'connected') {

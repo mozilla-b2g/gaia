@@ -14,7 +14,7 @@ window.GaiaMenu = (function(win) {
 
     this._template = template.content.cloneNode(true);
 
-    var cancelButton = this._template.querySelector('.gaia-menu-cancel');
+    var cancelButton = this._template.querySelector('.gaia-menu-cancel button');
 
     cancelButton.addEventListener('click', function () {
       this.hide();
@@ -48,7 +48,9 @@ window.GaiaMenu = (function(win) {
       <content select="header"></content>
       <menu>
         <content select="button"></content>
-        <button class="gaia-menu-cancel">Cancel</button>
+        <span class="gaia-menu-cancel">
+          <button>Cancel</button>
+        </span>
       </menu>
     </form>`;
 

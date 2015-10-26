@@ -117,12 +117,17 @@ suite('system/DeviceStorageWatcher >', function() {
     });
 
     test('should show system banner', function() {
-
       assert.equal(1, MockSystemBanner.mShowCount);
       assert.deepEqual(['low-device-storage', {
         id: 'free-space',
         args: { value: 0, unit: 'byteUnit-B'}
       }], MockSystemBanner.mMessage);
+    });
+
+    test('should show system banner at every app launch', function() {
+      assert.equal(1, MockSystemBanner.mShowCount);
+      window.dispatchEvent(new CustomEvent('appopening'));
+      assert.equal(2, MockSystemBanner.mShowCount);
     });
 
     test('should display the notification', function() {
@@ -243,6 +248,11 @@ suite('system/DeviceStorageWatcher >', function() {
 
     test('should hide notification', function() {
       assert.isTrue(!fakeNotif.classList.contains('displayed'));
+    });
+
+    test('should not show system banner at every app launch', function() {
+      window.dispatchEvent(new CustomEvent('appopening'));
+      assert.equal(0, MockSystemBanner.mShowCount);
     });
   });
 

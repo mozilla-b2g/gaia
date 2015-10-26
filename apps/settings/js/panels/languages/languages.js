@@ -56,7 +56,7 @@ define(function(require) {
     },
     showMoreLanguages: function() {
       SettingsCache.getSettings(function(result) {
-        var version = result['deviceinfo.os'];
+        var version = result['langpack.channel'];
         /* jshint nonew: false */
         new window.MozActivity({
           name: 'marketplace-category',

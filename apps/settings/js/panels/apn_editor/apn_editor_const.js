@@ -16,7 +16,8 @@ define(function(require) {
     'authtype': 'notDefined',
     'types': ['default'],
     'protocol': 'notDefined',
-    'roaming_protocol': 'notDefined'
+    'roaming_protocol': 'notDefined',
+    'mtu' : ''
   };
 
   var APN_PROPERTIES = Object.keys(APN_PROPERTY_DEFAULTS);

@@ -151,17 +151,16 @@ class Calendar(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._day_view_locator))))
 
-    def displayed_events_in_month_view(self, date_time):
+    def displayed_events_in_month_view(self):
         return self.marionette.find_element(*self._get_events_locator_in_month_view()).text
 
-    def displayed_events_in_week_view(self, date_time):
-        return self.marionette.find_element(*self._get_events_locator_in_week_view(date_time)).text
+    def displayed_events_in_week_view(self, data_date):
+        return self.marionette.find_element(*self._get_events_locator_in_week_view(data_date)).text
 
-    def displayed_events_in_day_view(self, date_time):
-        return self.marionette.find_element(*self._get_events_locator_in_day_view(date_time)).text
+    def displayed_events_in_day_view(self, data_date):
+        return self.marionette.find_element(*self._get_events_locator_in_day_view(data_date)).text
 
-    def _get_events_locator_in_day_view(self, date_time):
-        data_date = self._get_data_date(date_time)
+    def _get_events_locator_in_day_view(self, data_date):
         return (By.CSS_SELECTOR,
                 "#day-view .md__day[data-date*='%s'] .md__event" % data_date)
 
@@ -169,18 +168,9 @@ class Calendar(Base):
         return (By.CSS_SELECTOR,
                 '#event-list .event')
 
-    def _get_events_locator_in_week_view(self, date_time):
-        data_date = self._get_data_date(date_time)
+    def _get_events_locator_in_week_view(self, data_date):
         return (By.CSS_SELECTOR,
                 "#week-view .md__day[data-date*='%s'] .md__event" % data_date)
-
-    @staticmethod
-    def _get_data_date(date_time):
-        return date_time.strftime("%b %d")
-
-    @staticmethod
-    def _get_data_hour(date_time):
-        return date_time.hour
 
     def a11y_click_other_day(self, next, previous):
         try:

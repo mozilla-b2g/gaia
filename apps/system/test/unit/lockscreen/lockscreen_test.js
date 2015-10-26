@@ -568,11 +568,48 @@ suite('system/LockScreen >', function() {
     assert.equal(subject.message.hidden, true);
   });
 
-  test('Lock when asked via lock-immediately setting', function() {
-    window.MockNavigatorSettings.mTriggerObservers(
-      'lockscreen.lock-immediately', {settingValue: true});
-    assert.isTrue(subject.locked,
-      'it didn\'t lock after the lock-immediately setting got changed');
+  suite('lockscreen.lock-immediately settings observer >', function() {
+
+    setup(function() {
+      subject.init();  // to register observers
+    });
+
+    test('Locks when lock-immediately setting is set to true', function () {
+      var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+      subject.enabled = true;
+      subject.unlock();  // or lock screen is already enabled
+      window.MockSettingsListener.mTriggerCallback(
+        'lockscreen.lock-immediately', true);
+      assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
+          function(e) {
+            return e.type === 'lockscreen-request-lock';
+          })),
+        'does not request lock after lock-immediately setting is changed');
+      stubDispatch.restore();
+    });
+
+    test('resets lock/unlock timestamps', function () {
+      subject.enabled = true;
+      subject.passCodeEnabled = true;
+      var spy = this.sinon.spy(subject, 'resetTimeoutForcibly');
+      window.MockSettingsListener.mTriggerCallback(
+        'lockscreen.lock-immediately', true);
+      assert.isTrue(spy.called,
+        'lock-immediately does not reset timestamps');
+    });
+  });
+
+  test('resetTimeoutForcibly triggers password check after lock', function () {
+    subject.enabled = true;
+    subject.passCodeEnabled = true;
+    subject.passCodeRequestTimeout = 60 * 1000;  // 60 seconds
+    subject.unlock();  // or .lock() won't update timestamps
+    subject.lock();
+    assert.isFalse(subject.checkPassCodeTimeout(subject.passCodeRequestTimeout),
+      'pass code timeout check triggers right after lock');
+    subject.resetTimeoutForcibly();
+    assert.isTrue(subject.checkPassCodeTimeout(subject.passCodeRequestTimeout),
+      'resetTimeoutForcibly does not trigger pass code after lock');
   });
 
   test('Locks the screen: the overlay would be set as locked', function() {

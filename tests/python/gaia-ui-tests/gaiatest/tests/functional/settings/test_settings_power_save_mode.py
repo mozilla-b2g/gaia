@@ -22,7 +22,7 @@ class TestPowerSaveMode(GaiaTestCase):
 
         # Tap on Battery menu item.
         battery_settings = settings.open_battery()
-        battery_settings.toggle_power_save_mode()
+        battery_settings.enable_power_save_mode()
 
         # Wait for Cell Data to be disabled.
         self.wait_for_condition(lambda m: not self.data_layer.is_cell_data_connected)

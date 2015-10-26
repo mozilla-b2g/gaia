@@ -15,11 +15,11 @@ var MockSheetsTransition = {
     }
   },
 
-  snapBack: function st_snapBack() {
+  snapLeft: function st_snapLeft() {
   },
   snapInPlace: function st_snapInPlace() {
   },
-  snapForward: function st_snapForward() {
+  snapRight: function st_snapRight() {
   },
 
   mTeardown: function st_mTeardown() {

@@ -14,12 +14,18 @@
          EventDispatcher,
          SelectionHandler,
          TaskRunner,
-         MessagingClient
+         MessagingClient,
+         MozMobileConnectionsClient
 */
 /*exported ConversationView */
 
 (function(exports) {
 'use strict';
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const MONTH = 30 * DAY;
 
 var attachmentMap = new WeakMap();
 
@@ -72,6 +78,19 @@ var ConversationView = {
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
 
+  THROTTLE_DELAY: 300,
+  THROTTLE_OPTS: {
+    preventFirstCall: true,
+    preventLastCall: false
+  },
+
+  LATE_NOTICE_LOWER_LIMITS: {
+    NO_NOTICE: 5 * MINUTE,
+    IN_HOURS: 1 * HOUR,
+    IN_DAYS: 1 * DAY,
+    IN_MONTHS: 1 * MONTH
+  },
+
   draft: null,
   recipients: null,
   // Set to |true| when in edit mode
@@ -98,6 +117,7 @@ var ConversationView = {
       'message',
       'message-sim-information',
       'message-status',
+      'late-arrival-notice',
       'not-downloaded',
       'recipient',
       'date-group',
@@ -129,15 +149,30 @@ var ConversationView = {
                               this.onVisibilityChange);
 
     this.toField.addEventListener(
-      'keypress', this.toFieldKeypress.bind(this), true
+      'keypress',
+      Utils.throttle(
+        this.toFieldKeypress.bind(this),
+        this.THROTTLE_DELAY,
+        this.THROTTLE_OPTS),
+      true
     );
 
     this.toField.addEventListener(
-      'input', this.toFieldInput.bind(this), true
+      'input',
+      Utils.throttle(
+        this.toFieldInput.bind(this),
+        this.THROTTLE_DELAY,
+        this.THROTTLE_OPTS),
+      true
     );
 
     this.toField.addEventListener(
-      'focus', this.toFieldInput.bind(this), true
+      'focus',
+      Utils.throttle(
+        this.toFieldInput.bind(this),
+        this.THROTTLE_DELAY,
+        this.THROTTLE_OPTS),
+      true
     );
 
     this.sendButton.addEventListener(
@@ -157,7 +192,7 @@ var ConversationView = {
     );
 
     this.header.addEventListener(
-      'action', this.onHeaderAction.bind(this)
+      'action', this.backOrClose.bind(this)
     );
 
     this.optionsButton.addEventListener(
@@ -280,34 +315,16 @@ var ConversationView = {
     return this._isReady;
   },
 
-  onVisibilityChange: function conv_onVisibilityChange(e) {
-    // If we leave the app and are in a thread or compose window
-    // save a message draft if necessary
-    if (document.hidden) {
-      // Auto-save draft if the user has entered anything
-      // in the composer or into To field (for composer panel only).
-      var isAutoSaveRequired = false;
+  onVisibilityChange: function conv_onVisibilityChange() {
+    // If we leave the app and are in a thread or compose window update a
+    // message draft if necessary.
+    var isDraftUpdateNeeded = document.hidden &&
+      (Navigation.isCurrentPanel('composer') ||
+      Navigation.isCurrentPanel('thread'));
 
-      if (Navigation.isCurrentPanel('composer')) {
-        isAutoSaveRequired = !Compose.isEmpty() ||
-          !!ConversationView.recipients.length;
-      } else if (Navigation.isCurrentPanel('thread')) {
-        isAutoSaveRequired = !Compose.isEmpty();
-      }
-
-      if (isAutoSaveRequired) {
-        ConversationView.saveDraft(true /* preserveDraft */);
-      }
+    if (isDraftUpdateNeeded) {
+      this.updateDraft();
     }
-  },
-
-  /**
-   * Executes when the header 'action' button is tapped.
-   *
-   * @private
-   */
-  onHeaderAction: function conv_onHeaderAction() {
-    this.backOrClose();
   },
 
   /**
@@ -317,11 +334,25 @@ var ConversationView = {
    * @private
    */
   backOrClose: function conv_backOrClose() {
-    var inActivity = ActivityClient.hasPendingRequest();
-    var isComposer = Navigation.isCurrentPanel('composer');
-    var isThread = Navigation.isCurrentPanel('thread');
-    var action = inActivity && (isComposer || isThread) ? 'close' : 'back';
-    this[action]();
+    this.stopRendering();
+
+    var backOrClosePromise;
+    if (ActivityClient.hasPendingRequest()) {
+      backOrClosePromise = this.updateDraft().then(
+        () => ActivityClient.postResult()
+      );
+    } else {
+      // We're waiting for the keyboard to disappear before animating back.
+      backOrClosePromise = this._ensureKeyboardIsHidden().then(
+        () => Navigation.toPanel('thread-list')
+      );
+    }
+
+    return backOrClosePromise.catch((e) => {
+      console.error('Unexpected error while navigating back: ', e);
+
+      return Promise.reject(e);
+    });
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -495,7 +526,7 @@ var ConversationView = {
   },
 
   showMaxLengthNotice: function conv_showMaxLengthNotice(opts) {
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       this.maxLengthNotice.querySelector('p'), opts.l10nId, opts.l10nArgs
     );
     this.maxLengthNotice.classList.remove('hide');
@@ -534,11 +565,12 @@ var ConversationView = {
 
     // This is useful only the first time it's called. Then it's a no-op.
     this.header.removeAttribute('no-font-fit');
-    this.editHeader.removeAttribute('no-font-fit');
 
     if (!this.multiSimActionButton) {
       // handles the various actions on the send button and encapsulates the
       // DSDS specific behavior
+      var gaiaSimPicker = document.getElementById('sim-picker');
+      gaiaSimPicker.classList.remove('hide');
       this.multiSimActionButton =
         new MultiSimActionButton(
           this.sendButton,
@@ -649,10 +681,10 @@ var ConversationView = {
         this.draft = Threads.get(threadId).getDraft();
 
         if (this.draft) {
-          this.draft.isEdited = false;
-
           Compose.fromDraft(this.draft);
           Compose.focus();
+
+          this.draft.isEdited = false;
         }
       });
     }
@@ -699,13 +731,25 @@ var ConversationView = {
       Array.from(nodes).forEach((node) => {
         window.URL.revokeObjectURL(node.dataset.thumbnail);
       });
+
+      // If we're leaving conversation view, ensure that the thread object's
+      // unreadCount value is current (set = 0).
+      this.activeThread.unreadCount = 0;
     }
 
+    this.updateDraft();
+
     // TODO move most of back() here: Bug 1010223
-    if (this.activeThread &&
+    // We don't want to clean fields, reset active conversation reference or
+    // current draft if user going to report or group view in the scope of the
+    // current conversation.
+    if (!this.activeThread ||
         !this.isConversationPanel(this.activeThread.id, nextPanel)) {
-      // Clean fields when moving out of a conversation.
+
+      this.draft = null;
       this.activeThread = null;
+
+      // Clean fields when moving out of a conversation.
       this.cleanFields();
     }
   },
@@ -763,15 +807,16 @@ var ConversationView = {
           }
 
           this.recipients.add(recipient);
+
+          // Since recipient is added from draft, we should not consider it as
+          // edit operation.
+          this.draft.isEdited = false;
         }.bind(this));
       }, this);
 
       // Render draft contents into the composer input area.
       Compose.fromDraft(this.draft);
       this.draft.isEdited = false;
-
-      // Discard this draft object and update the backing store
-      return Drafts.delete(this.draft).store();
     });
   },
 
@@ -1134,31 +1179,6 @@ var ConversationView = {
     this.newMessageNotice.classList.add('hide');
   },
 
-  close: function conv_close() {
-    return this._onNavigatingBack().then(() => {
-      this.cleanFields();
-      return ActivityClient.postResult();
-    }).catch(function(e) {
-      // If we don't have any error that means that action was rejected
-      // intentionally and there is nothing critical to report about.
-      e && console.error('Unexpected error while closing the activity: ', e);
-
-      return Promise.reject(e);
-    });
-  },
-
-  back: function conv_back() {
-    return this._onNavigatingBack().then(function(isDraftSaved) {
-      Navigation.toPanel('thread-list', {
-        notifyAboutSavedDraft: isDraftSaved
-      });
-    }.bind(this)).catch(function(e) {
-      e && console.error('Unexpected error while navigating back: ', e);
-
-      return Promise.reject(e);
-    });
-  },
-
   /**
    * Navigates user to Composer or Thread panel with custom parameters.
    * @param {Object} parameters Navigation parameters. `number` and `messageId`
@@ -1192,78 +1212,16 @@ var ConversationView = {
       );
     };
 
+    var threadExistingPromise = parameters && parameters.number ?
+      // A rejected promise will be returned in case we can't find thread
+      // for the specified number.
+      MessageManager.findThreadFromNumber(parameters.number) :
+      Promise.reject();
 
-    var draftDiscardPromise;
-
-    // We should check if draft is not saved instead, to be fixed in bug 1153940
-    if (Compose.isEmpty()) {
-      draftDiscardPromise = Promise.resolve();
-    } else {
-      draftDiscardPromise = Utils.confirm(
-        'unsent-message-text',
-        'unsent-message-title',
-        { text: 'unsent-message-option-discard', className: 'danger' }
-      ).then(() => this.discardDraft());
-    }
-
-    return draftDiscardPromise.then(() => {
-      var threadExistingPromise = parameters && parameters.number ?
-        // A rejected promise will be returned in case we can't find thread
-        // for the specified number.
-        MessageManager.findThreadFromNumber(parameters.number) :
-        Promise.reject();
-
-      return threadExistingPromise.then(
-        (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
-        navigateToComposer
-      );
-    });
-  },
-
-  _onNavigatingBack: function() {
-    this.stopRendering();
-
-    // We're waiting for the keyboard to disappear before animating back
-    return this._ensureKeyboardIsHidden().then(function() {
-      var inConversation = Navigation.isCurrentPanel('thread');
-      // Need to assimilate recipients in order to check if any entered
-      this.assimilateRecipients();
-
-      // If we're leaving a thread's message view,
-      // ensure that the thread object's unreadCount
-      // value is current (set = 0)
-      if (inConversation) {
-        // TODO: Will need to replace with Conversation service method.
-        this.activeThread.unreadCount = 0;
-      }
-
-      // If the composer is empty and we are either
-      // in an active thread or there are no recipients
-      // do not prompt to save a draft and remove saved drafts
-      // as the user deleted them manually
-      if (Compose.isEmpty() &&
-        (inConversation || this.recipients.length === 0)) {
-        this.discardDraft();
-        return;
-      }
-
-      // If there is a draft and the content and recipients
-      // never got edited, re-save if threadless,
-      // then leave without prompting to replace
-      if (this.draft && !this.draft.isEdited) {
-        // Thread-less drafts are orphaned at this point
-        // so they need to be resaved for persistence
-        // Otherwise, clear the draft directly before leaving
-        if (!inConversation) {
-          this.saveDraft();
-        } else {
-          this.draft = null;
-        }
-        return;
-      }
-
-      return this._showMessageSaveOrDiscardPrompt();
-    }.bind(this));
+    return threadExistingPromise.then(
+      (id) => Navigation.toPanel('thread', { id: id, focusComposer: true }),
+      navigateToComposer
+    );
   },
 
   isKeyboardDisplayed: function conv_isKeyboardDisplayed() {
@@ -1288,37 +1246,6 @@ var ConversationView = {
     return Promise.resolve();
   },
 
-  _showMessageSaveOrDiscardPrompt: function() {
-    var deferred = Utils.Promise.defer();
-
-    var options = {
-      items: [
-        {
-          l10nId: this.draft ? 'replace-draft' : 'save-as-draft',
-          method: () => {
-            this.saveDraft();
-            deferred.resolve(true /* isDraftSaved */);
-          }
-        },
-        {
-          l10nId: 'delete-draft',
-          method: () => {
-            this.discardDraft();
-            deferred.resolve();
-          }
-        },
-        {
-          l10nId: 'cancel',
-          method: deferred.reject
-        }
-      ]
-    };
-
-    new OptionMenu(options).show();
-
-    return deferred.promise;
-  },
-
   onSegmentInfoChange: function conv_onSegmentInfoChange() {
     var currentSegment = Compose.segmentInfo.segments;
 
@@ -1331,7 +1258,7 @@ var ConversationView = {
         !isStartingFirstSegment) {
       this.previousSegment = currentSegment;
 
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.smsCounterNotice.querySelector('p'),
         'sms-counter-notice-label',
         { number: currentSegment }
@@ -1485,9 +1412,10 @@ var ConversationView = {
   /**
    * Updates header content since it's used for different panels and should be
    * carefully handled for every case. In Thread panel header contains HTML
-   * markup to support bidirectional content, but other panels still use it with
-   * mozL10n.setAttributes as it would contain only localizable text. We should
-   * get rid of this method once bug 961572 and bug 1011085 are landed.
+   * markup to support bidirectional content, but other panels still use it
+   * with document.l10n.setAttributes as it would contain only localizable
+   * text. We should get rid of this method once bug 961572 and bug 1011085 are
+   * landed.
    * @param {string|{ html: string }|{id: string, args: Object }} contentL10n
    * Should be either safe HTML string or l10n properties.
    * @public
@@ -1501,7 +1429,7 @@ var ConversationView = {
       // Remove rich HTML content before we set l10n attributes as l10n lib
       // fails in this case
       this.headerText.firstElementChild && (this.headerText.textContent = '');
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.headerText, contentL10n.id, contentL10n.args
       );
       return;
@@ -1572,16 +1500,12 @@ var ConversationView = {
   },
 
   // Method for rendering the list of messages using infinite scroll
-  renderMessages: function conv_renderMessages(threadId, callback) {
+  renderMessages: function conv_renderMessages(threadId) {
     // Use taskRunner to make sure message appended in proper order
     var taskQueue = new TaskRunner();
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         taskQueue.push(this.showFirstChunk.bind(this));
-      }
-
-      if (callback) {
-        callback();
       }
     }).bind(this);
 
@@ -1640,10 +1564,12 @@ var ConversationView = {
     var dateTimeOptions = {
       weekday: 'long',
       month: 'short',
-      day: '2-digit',
+      day: '2-digit'
     };
-    var formatter = 
-      new Intl.DateTimeFormat(navigator.languages, dateTimeOptions);
+
+    var formatter = new Intl.DateTimeFormat(
+      navigator.languages, dateTimeOptions
+    );
     var expireFormatted = formatter.format(new Date(+message.expiryDate));
 
     var expired = +message.expiryDate < Date.now();
@@ -1768,6 +1694,7 @@ var ConversationView = {
     var simServiceId = Settings.getServiceIdByIccId(message.iccId);
     var showSimInformation = Settings.hasSeveralSim() && simServiceId !== null;
     var simInformationHTML = '';
+
     if (showSimInformation) {
       simInformationHTML = this.tmpl.messageSimInformation.interpolate({
         simNumberL10nArgs: JSON.stringify({ id: simServiceId + 1 })
@@ -1790,6 +1717,22 @@ var ConversationView = {
     var pElement = messageDOM.querySelector('p');
     if (invalidEmptyContent) {
       pElement.setAttribute('data-l10n-id', 'no-attachment-text');
+    }
+
+    var lateArrivalInfos = this.computeLateArrivalInfos(message, messageStatus);
+    if (lateArrivalInfos) {
+      var lateArrivalNoticeDOM = this.tmpl.lateArrivalNotice.prepare({})
+        .toDocumentFragment();
+
+      document.l10n.setAttributes(
+        lateArrivalNoticeDOM.querySelector('.late-arrival-notice'), 
+        lateArrivalInfos.l10nId, 
+        lateArrivalInfos.l10nArgs
+      );
+
+      messageDOM
+        .querySelector('.message-details')
+        .appendChild(lateArrivalNoticeDOM);
     }
 
     var result;
@@ -1816,6 +1759,44 @@ var ConversationView = {
       this.tmpl.messageStatus.prepare({
         statusL10nId: 'message-delivery-status-' + status
       }) : '';
+  },
+
+  /**
+   * @param  {Object} A SMS/MMS message
+   * @param  {String} The status of the message
+   * @return {Object|null} An object containing the l10n late notice infos 
+   *  of the message or null if a notice is not required.
+   *  - l10nId : the id of the localized message
+   *  - l10nArgs : the value of the lateness
+   */
+  computeLateArrivalInfos: function(message, messageStatus) {
+    var limits = this.LATE_NOTICE_LOWER_LIMITS;
+    var sent = message.sentTimestamp;
+    var received = message.timestamp;
+    var lateness = received - sent;
+    var doNotDisplayNotice = !sent || !received ||
+      messageStatus === 'error' ||
+      lateness < limits.NO_NOTICE;
+
+    if (doNotDisplayNotice) {
+      return null;
+    }
+    
+    var unit = MONTH;
+    var noticeL10nIds = {
+      [MONTH]:  'late-arrival-notice-in-months',
+      [DAY]:    'late-arrival-notice-in-days',
+      [HOUR]:   'late-arrival-notice-in-hours',
+      [MINUTE]: 'late-arrival-notice-in-minutes'
+    };
+
+    if (lateness < limits.IN_HOURS)       { unit = MINUTE; } 
+    else if (lateness < limits.IN_DAYS)   { unit = HOUR; } 
+    else if (lateness < limits.IN_MONTHS) { unit = DAY; }
+    
+    lateness = Math.floor(lateness / unit);
+    
+    return { l10nId : noticeL10nIds[unit], l10nArgs: { lateness }};
   },
 
   appendMessage: function conv_appendMessage(message, hidden) {
@@ -1933,8 +1914,17 @@ var ConversationView = {
       this.mainWrapper.classList.toggle('edit');
     }
 
+    this.editHeader.removeAttribute('no-font-fit');
+
     if (!this.selectionHandler) {
-      LazyLoader.load('/views/shared/js/selection_handler.js', () => {
+      LazyLoader.load([
+        '/views/shared/js/selection_handler.js',
+        '/shared/style/edit_mode.css',
+        '/shared/style/switches.css',
+        '/shared/style/tabs.css',
+        '/views/shared/style/edit-mode.css',
+        '/views/conversation/style/edit-mode.css'
+        ], () => {
         this.selectionHandler = new SelectionHandler({
           // Elements
           container: this.container,
@@ -1944,6 +1934,7 @@ var ConversationView = {
           getIdIterator: this.getIdIterator.bind(this),
           isInEditMode: this.isInEditMode.bind(this)
         });
+        this.editForm.classList.remove('hide');
         editModeSetup.call(this);
       });
     } else {
@@ -1955,67 +1946,40 @@ var ConversationView = {
     return this.inEditMode;
   },
 
-  deleteUIMessages: function conv_deleteUIMessages(list, callback) {
-    // Strategy:
-    // - Delete message/s from the DOM
-    // - Update the thread in inbox without re-rendering
-    // the entire list
-    // - move to thread list if needed
+  /**
+   * Removes selected messages from DB and view (DOM), updates conversation in
+   * inbox without re-rendering and moves to the inbox in case all messages were
+   * removed.
+   * @param {Array.<Number>} messageIdList List of message ids to remove.
+   * @returns {Promise}
+   */
+  deleteMessages: function conv_deleteMessages(messageIdList) {
+    return MessageManager.deleteMessages(messageIdList).then(() => {
+      // Removing from DOM all messages to delete
+      messageIdList.forEach((messageId) => {
+        Threads.unregisterMessage(messageId);
+        this.removeMessageDOM(document.getElementById('message-' + messageId));
+      });
 
-    if (!Array.isArray(list)) {
-      list = [list];
-    }
+      // Did we remove all messages of the conversation?
+      if (!this.activeThread.messages.size) {
+        return this.backOrClose();
+      }
 
-    // Removing from DOM all messages to delete
-    for (var i = 0, l = list.length; i < l; i++) {
-      Threads.unregisterMessage(list[i]);
-      ConversationView.removeMessageDOM(
-        document.getElementById('message-' + list[i])
+      // Retrieve latest message in the UI.
+      var lastDateGroup = this.container.lastElementChild;
+      var lastMessageNode = lastDateGroup.querySelector('li:last-child');
+
+      // We need to make inbox to show the same info.
+      return MessageManager.getMessage(+lastMessageNode.dataset.messageId).then(
+        (lastMessage) => InboxView.updateThread(lastMessage, { deleted: true })
       );
-    }
-
-    callback = typeof callback === 'function' ? callback : function() {};
-
-    // Do we remove all messages of the Thread?
-    if (!ConversationView.container.firstElementChild) {
-      callback();
-      this.backOrClose();
-    } else {
-      // Retrieve latest message in the UI
-      var lastDateGroup = ConversationView.container.lastElementChild;
-      var lastMessage = lastDateGroup.querySelector('li:last-child');
-      // We need to make thread-list to show the same info
-      var request = MessageManager.getMessage(+lastMessage.dataset.messageId);
-      request.onsuccess = function() {
-        callback();
-        InboxView.updateThread(request.result, { deleted: true });
-      };
-      request.onerror = function() {
-        console.error('Error when updating the list of threads');
-        callback();
-      };
-    }
+    }).catch(
+      (e) => console.error('Error when updating the list of threads', e)
+    );
   },
 
   delete: function conv_delete() {
-    function performDeletion() {
-      /* jshint validthis: true */
-
-      WaitingScreen.show();
-      var items = this.selectionHandler.selectedList;
-      var delNumList = items.map(item => +item);
-
-      // Complete deletion in DB and in UI
-      MessageManager.deleteMessages(delNumList,
-        function onDeletionDone() {
-          ConversationView.deleteUIMessages(delNumList, function() {
-            ConversationView.cancelEdit();
-            WaitingScreen.hide();
-          });
-        }
-      );
-    }
-
     return Utils.confirm(
       {
         id: 'deleteMessages-confirmation-message',
@@ -2026,7 +1990,18 @@ var ConversationView = {
         text: 'delete',
         className: 'danger'
       }
-    ).then(performDeletion.bind(this));
+    ).then(() => {
+      WaitingScreen.show();
+
+      var messageIdsToDelete = this.selectionHandler.selectedList.map(
+        (item) => +item
+      );
+
+      return this.deleteMessages(messageIdsToDelete);
+    }).then(() => {
+      ConversationView.cancelEdit();
+      WaitingScreen.hide();
+    });
   },
 
   cancelEdit: function conv_cancelEdit() {
@@ -2048,11 +2023,11 @@ var ConversationView = {
 
     if (selected > 0) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected-messages',
+      document.l10n.setAttributes(this.editMode, 'selected-messages',
         {n: selected});
     } else {
       this.deleteButton.disabled = true;
-      navigator.mozL10n.setAttributes(this.editMode, 'deleteMessages-title');
+      document.l10n.setAttributes(this.editMode, 'deleteMessages-title');
     }
   },
 
@@ -2114,6 +2089,9 @@ var ConversationView = {
     var bubble;
 
     do {
+      // A Text node does not have a classList property see Bug 1214238
+      if (!node.classList) { continue; }
+
       if (node.classList.contains('bubble')) {
         bubble = node;
       }
@@ -2203,15 +2181,11 @@ var ConversationView = {
           },
           {
             l10nId: 'delete',
-            method: function deleteMessage(messageId) {
+            method: (messageId) => {
               Utils.confirm(
                 'deleteMessage-confirmation', null,
                 { text: 'delete', className: 'danger' }
-              ).then(() => {
-                MessageManager.deleteMessages(
-                  messageId, () => ConversationView.deleteUIMessages(messageId)
-                );
-              });
+              ).then(() => this.deleteMessages([messageId]));
             },
             params: [messageId]
           }
@@ -2307,10 +2281,7 @@ var ConversationView = {
     this.enableConvertNoticeBanners();
 
     // If there was a draft, it just got sent so delete it.
-    if (this.draft) {
-      Drafts.delete(this.draft).store();
-      this.draft = null;
-    }
+    this.updateDraft();
 
     this.updateHeaderData();
 
@@ -2351,7 +2322,8 @@ var ConversationView = {
         this.shouldChangePanelNextEvent = false;
         Navigation.toPanel('thread-list');
         if (ActivityClient.hasPendingRequest()) {
-          setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
+          // When app is run as activity, "backOrClose" always closes app.
+          setTimeout(this.backOrClose.bind(this), this.LEAVE_ACTIVITY_DELAY);
         }
 
         // Early return to prevent compose focused for multi-recipients sms case
@@ -2398,7 +2370,6 @@ var ConversationView = {
 
   onMessageFailed: function conv_onMessageFailed(e) {
     var message = e.message;
-    var serviceId = Settings.getServiceIdByIccId(message.iccId);
 
     // When this is the first message in a thread, we haven't displayed
     // the new thread yet. The error flag will be shown when the thread
@@ -2414,9 +2385,9 @@ var ConversationView = {
             // Update messageDOM state to 'sending' while sim switching
             this.setMessageStatus(message.id, 'sending');
 
-            Settings.switchMmsSimHandler(serviceId).then(
-              this.resendMessage.bind(this, message.id))
-            .catch(function(err) {
+            MozMobileConnectionsClient.switchMmsSimHandler(message.iccId).then(
+              this.resendMessage.bind(this, message.id)
+            ).catch(function(err) {
                 err && console.error(
                   'Unexpected error while resending the MMS message', err);
             });
@@ -2512,16 +2483,22 @@ var ConversationView = {
     var id = +messageDOM.dataset.messageId;
     var iccId = messageDOM.dataset.iccId;
     var button = messageDOM.querySelector('button');
+    var setMessageStatus = this.setMessageStatus.bind(this);
 
-    this.setMessageStatus(id, 'pending');
-    button.setAttribute('data-l10n-id', 'downloading-attachment');
+    function setMessageButtonStatus(status) {
+      var btnL10n = status === 'pending' ?
+        'downloading-attachment' : 'download-attachment';
 
+      setMessageStatus(id, status);
+      button.setAttribute('data-l10n-id', btnL10n);
+    }
+
+    setMessageButtonStatus('pending');
     MessagingClient.retrieveMMS(id).then(() => {
       Threads.unregisterMessage(id);
       this.removeMessageDOM(messageDOM);
     }, (error) => {
-      this.setMessageStatus(id, 'error');
-      button.setAttribute('data-l10n-id', 'download-attachment');
+      setMessageButtonStatus('error');
 
       // Show NonActiveSimCard/Other error dialog while retrieving MMS
       var errorCode = error && error.name || null;
@@ -2538,26 +2515,28 @@ var ConversationView = {
 
       if (errorCode) {
         this.showMessageError(errorCode, {
-          confirmHandler: function stateResetAndRetry() {
-            var serviceId = Settings.getServiceIdByIccId(iccId);
-            if (serviceId === null) {
-              // TODO Bug 981077 should change this error message
-              this.showMessageError('NoSimCardError');
-              return;
-            }
-
+          confirmHandler: () => {
             // TODO move this before trying to call retrieveMMS in Bug 981077
             // Avoid user to click the download button while sim state is not
             // ready yet.
-            this.setMessageStatus(id, 'pending');
-            button.setAttribute('data-l10n-id', 'downloading-attachment');
-            Settings.switchMmsSimHandler(serviceId).then(
-              this.retrieveMMS.bind(this, messageDOM))
-            .catch(function(err) {
-                err && console.error(
-                  'Unexpected error while retrieving the MMS message', err);
+            setMessageButtonStatus('pending');
+            return MozMobileConnectionsClient.switchMmsSimHandler(iccId).then(
+              this.retrieveMMS.bind(this, messageDOM)
+            ).catch((err) => {
+              setMessageButtonStatus('error');
+
+              if (err === 'NoSimCardError') {
+                // TODO Bug 981077 should change this error message
+                this.showMessageError(err);
+                return;
+              }
+
+              console.error(
+                'Unexpected error while retrieving the MMS message',
+                err || 'UnknownError'
+              );
             });
-          }.bind(this)
+          }
         });
       }
     });
@@ -2973,52 +2952,58 @@ var ConversationView = {
     return defer.promise;
   },
 
-  discardDraft: function conv_discardDraft() {
-    // If we were tracking a draft properly, update the Drafts object entry.
-    if (!this.draft) {
-      return;
-    }
+  updateDraft() {
+    var conversation = this.activeThread;
 
-    Drafts.delete(this.draft).store();
+    // Need to assimilate recipients in order to check if any entered.
+    this.assimilateRecipients();
 
-    this.draft = null;
-  },
+    // If message content is not empty and/or we have _valid_ recipients in
+    // NewMessage view.
+    var hasDraftToSave = !Compose.isEmpty() ||
+      (!conversation && this.recipients.numbers.length);
 
-  /**
-   * Saves currently unsent message content and/or recipients into a Draft
-   * object. Preserves currently active draft if specified. Draft preservation
-   * is intended to keep this.draft populated with the currently active draft
-   * when app is hidden, so that when app becomes visible again, it knows there
-   * is a draft to continue to keep track of.
-   *
-   * @param {boolean?} preserveDraft Optional boolean parameter that indicates
-   * whether or not we should preserve draft.
-   */
-  saveDraft: function conv_saveDraft(preserveDraft) {
-    var thread = this.activeThread;
+    // Check if conversation has been just removed, can happen when user selects
+    // all messages in Conversation view and removes all of them, in this case
+    // we delete the conversation-bound draft and create a "new message" draft
+    // instead.
+    var isConversationRemoved = conversation && !conversation.messages.size;
 
-    // Do we need to save participants for thread draft?
-    var recipients = thread ? thread.participants : this.recipients.numbers;
+    // If we're going to remove or add drafts, we should take care about storing
+    // updated draft collection to a persistent storage.
+    var shouldStoreDrafts = false;
 
-    var draft = new Draft({
-      id: this.draft && this.draft.id,
-      threadId: thread && thread.id,
-      recipients: recipients,
-      content: Compose.getContent(),
-      subject: Compose.getSubject(),
-      type: Compose.type
-    });
+    // If we have active draft, but user cleared it up or removed conversation
+    // this draft belonged to, we should discard it.
+    if (this.draft && (!hasDraftToSave || isConversationRemoved)) {
+      Drafts.delete(this.draft);
 
-    Drafts.add(draft).store();
-
-    // Set draft property if it is not already set and meant to be preserved.
-    if (preserveDraft && !this.draft) {
-      this.draft = draft;
-    } else if (!preserveDraft) {
-      // Clear draft property if not explicitly asked to be preserved by draft
-      // replacement case.
       this.draft = null;
+
+      shouldStoreDrafts = true;
     }
+
+    // We should save a new draft in case composer is not empty and it has not
+    // been saved before.
+    if (hasDraftToSave && (!this.draft || this.draft.isEdited)) {
+      // Otherwise we should save new draft.
+      this.draft = new Draft({
+        id: this.draft && this.draft.id,
+        threadId: !isConversationRemoved ?
+          conversation && conversation.id : null,
+        recipients: conversation ?
+          conversation.participants : this.recipients.numbers,
+        content: Compose.getContent(),
+        subject: Compose.getSubject(),
+        type: Compose.type
+      });
+
+      Drafts.add(this.draft);
+
+      shouldStoreDrafts = true;
+    }
+
+    return shouldStoreDrafts ? Drafts.store() : Promise.resolve();
   },
 
   /**
@@ -3037,17 +3022,19 @@ var ConversationView = {
       contentPromise = Promise.resolve([message.body]);
     } else {
       contentPromise = SMIL.parse(message).then(
-        (elements) => elements.map((element) => {
+        (elements) => elements.reduce((result, element) => {
           if (element.blob) {
-            return new Attachment(element.blob, {
+            result.push(new Attachment(element.blob, {
               name: element.name,
               isDraft: true
-            });
+            }));
           }
           if (element.text) {
-            return element.text;
+            result.push(element.text);
           }
-        })
+
+          return result;
+        }, [])
       );
     }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8" />
   <title>GaiaButtons Demo</title>
@@ -13,13 +13,28 @@
       background-color: #fff;
     }
   </style>
+  <script>
+    window.onload = function() {
+      var dirInput = document.getElementById('dir');
+      dirInput.checked = false;
+      dirInput.onchange= function() {
+        document.documentElement.dir = this.checked ? "rtl" : "ltr";
+      }
+    };
+  </script>
   <script>window.GaiaButtonsBaseurl = '../';</script>
   <script src="../../../js/component_utils.js"></script>
   <script src="../script.js" type="text/javascript"></script>
 </head>
 <body role="application">
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox"> RTL mode
+    </label>
+  </p>
+
   <gaia-buttons class="inline">
-    <button class="full">With class="inline"</button>
+    <button class="full" dir="auto">With class="inline"</button>
   </gaia-buttons>
   <gaia-buttons skin="dark">
     <button class="recommend icon icon-previous">Button 1</button>

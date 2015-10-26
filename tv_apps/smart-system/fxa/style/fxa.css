@@ -1,0 +1,636 @@
+/*
+ * Basic and shared styles of the structure
+ * */
+html, body {
+  font-size: 62.5%;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  color: #000;
+  background: #f4f4f4;
+}
+
+html, body * {
+  -moz-user-select: none;
+}
+
+input {
+  -moz-user-select: text;
+}
+
+.vertical {
+  width: 100%;
+}
+
+section[role="region"] {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding-left: 36rem;
+  padding-right: 40.5rem;
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 1;
+}
+
+body {
+  background: url(bg_light.png);
+}
+
+h3:-moz-dir(rtl) {
+  text-align: right;
+}
+
+label {
+  width:100%;
+  display:block;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+ * Gaia header
+ * * * * * * * * * * * * * * * * * * * * * * * */
+
+gaia-header {
+  position: absolute;
+  top: -5rem;
+  opacity: 0;
+  visibility: none;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+ * Navigation bar based on a flex model
+ * * * * * * * * * * * * * * * * * * * * * * * */
+
+.navigation {
+  box-sizing: border-box;
+  margin: 0;
+  overflow: hidden;
+  display: block;
+}
+
+/* Overwrite this property from Building Blocks */
+.navigation button{
+  font-size: 2.4rem;
+  margin-left: 0.5rem;
+}
+
+.navigation button.left {
+  margin-left: 0.5rem;
+}
+
+.navigation button.left {
+  width: calc((100% / 2) - 0.5rem);
+  float: left;
+  position: relative;
+}
+
+.navigation button.right {
+  width: calc((100% / 2) - 0.5rem);
+  float: right;
+  position: relative;
+}
+
+/* When there is only one option, we remove the margin */
+
+.navigation-single-button button.left {
+  display: none;
+}
+
+.navigation.navigation-single-button button.right {
+  margin: 0;
+  width: 100%;
+  float: right;
+}
+
+.navigation #fxa-module-back {
+  display: none;
+}
+
+.navigation #fxa-module-next {
+  width: 23.7rem;
+  height: 8rem;
+  background-color: #5f6368;
+  border-radius: 4rem;
+}
+
+.navigation-back-only button {
+  margin: 0;
+  font-size: 2.4rem;
+  border-radius: 4rem;
+}
+
+.navigation-back-only button.right {
+  display: none;
+}
+
+.navigation-done #fxa-module-back,
+.navigation-done #fxa-module-next {
+  display: none;
+}
+
+.navigation #fxa-module-next:focus {
+  background-color: #00caf2
+}
+
+#fxa-module-done {
+  display: none;
+}
+
+.navigation-done #fxa-module-done {
+  display: block;
+  width: 23.7rem;
+  height: 8rem;
+  background-color: #5f6368;
+  border-radius: 4rem;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+ * Steps & Container
+ *   All steps are contained in several views inside
+ * 'step-container'. We will use HTML 'import' polyfill
+ * and lazy load of the views. A view is a set of steps.
+ * * * * * * * * * * * * * * * * * * * * * * * */
+
+.bb-steps {
+  display: none;
+}
+
+/* Mirror progress bar in RTL */
+.bb-steps:-moz-dir(rtl) {
+  transform: scaleX(-1);
+}
+
+
+#step-container {
+  overflow: hidden;
+}
+
+.ff_account,
+.screen {
+  font-family: Fira Sans;
+  font-size: 2.8rem;
+  line-height:2.8rem;
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+  display: none;
+  box-sizing: border-box;
+  text-align: center;
+  color: #4d4d4d;
+  overflow: hidden;
+}
+
+.screen .fxa-title {
+  font-size: 4.6rem;
+  line-height: 4.6rem;
+  margin-top: 7rem;
+  margin-bottom: 2.5rem;
+  text-align: start;
+  font-weight: 200;
+  font-style: italic;
+}
+
+.screen .fxa-title .fax-title-separator {
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
+
+.screen p {
+  text-align: start;
+  line-height: 2.8rem;
+  font-size: 2.8rem;
+  font-weight: 100;
+  font-style: italic;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.screen p:-moz-dir(rtl) {
+  text-align: right;
+}
+
+.screen p a {
+  color: #4d4d4d;
+  text-decoration: none;
+}
+
+
+.screen input[type="text"],
+.screen input[type="password"],
+.screen input[type="email"] {
+  height: 5rem;
+  padding: 0.5rem 0;
+  font-family: Fira Sans;
+  font-variant: 3.8rem;
+  color: #000000;
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  border-bottom: 0.4rem solid rgb(199, 199, 199);
+  background-color: transparent;
+  font-size: 3.8rem;
+  line-height: 3.8rem;
+  text-align: center;
+  box-sizing: content-box;
+}
+
+.screen input:focus {
+  color: #000000;
+  box-shadow: unset;
+  border-bottom-color: rgb(0, 202, 242);
+}
+
+.screen input[type="email"]:invalid {
+  color: rgb(185, 0, 0);
+}
+
+.screen input[type="email"]:invalid:focus {
+  box-shadow: unset;
+  border-bottom-color: rgb(130, 0, 0);
+}
+
+.current {
+  display: block;
+}
+
+/**
+ * Email screen styles
+ */
+
+#fxa-email {
+  height: 80rem;
+}
+
+#fxa-email-input-wrapper {
+  position: relative;
+}
+
+#fxa-email-input {
+  width: 110.8rem;
+  margin-top: 19.2rem;
+  margin-left: 4.5rem;
+  margin-bottom: 4.5rem;
+}
+
+#fxa-email-clean-btn {
+  position: absolute;
+  top: 1.4rem;
+  right: 1rem;
+  display: none;
+  width: 3rem;
+  height: 3rem;
+  margin: 0;
+  padding: 0;
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#fxa-email-clean-btn:focus {
+  transform: scale(1.3);
+  transform-origin: 50% 50%;
+}
+
+#fxa-email-clean-btn.show {
+  display: block;
+}
+
+#fxa-email-clean-btn:before {
+  offset-inline-end: 0;
+}
+
+#fxa-email-input ~ #fxa-notice {
+  margin-left: 4.5rem;
+  white-space: nowrap;
+}
+
+#fxa-notice #fxa-terms,
+#fxa-notice #fxa-privacy {
+  text-decoration: none;
+  color: inherit;
+  cursor: unset;
+  pointer-events: none;
+}
+
+/*
+ * Intro screen styles
+ */
+
+#fxa-hello-user {
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#fxa-user-email,
+#fxa-user-set-email {
+  white-space: nowrap;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+/*
+* Verification Screen Styles
+*/
+
+ul.fxa-verification-wrapper {
+  margin: 0;
+  padding: 0;
+}
+
+ul.fxa-verification-wrapper li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Password screen styles
+ */
+
+#fxa-enter-password {
+  height: 80rem;
+}
+
+#fxa-pw-input {
+  width: 110.8rem;
+  margin-top: 19.2rem;
+  margin-left: 4.5rem;
+  margin-bottom: 4.5rem;
+}
+
+#fxa-pw-option-container {
+  display: flex;
+  margin-left: 4.5rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#show-pw-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+#show-pw-wrapper p {
+  float: left;
+  display: block;
+  margin: 1.5rem 0;
+}
+
+#show-pw-wrapper > label {
+  float: left;
+}
+
+#show-pw-wrapper p:-moz-dir(rtl) {
+  float: right;
+}
+
+#show-pw-wrapper > label:-moz-dir(rtl) {
+  float: right;
+}
+
+/* Animate next screen */
+.currentToLeft {
+  display:block;
+  animation: currentToLeft var(--transition-duration) forwards;
+}
+@keyframes currentToLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+.rightToCurrent {
+  display:block;
+  animation: rightToCurrent var(--transition-duration) forwards;
+}
+@keyframes rightToCurrent {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+/* Animate prev screen */
+.leftToCurrent {
+  display: block;
+  animation: leftToCurrent var(--transition-duration) forwards;
+}
+@keyframes leftToCurrent {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
+.currentToRight {
+  display: block;
+  animation: currentToRight var(--transition-duration) forwards;
+}
+@keyframes currentToRight {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+.current {
+  display: block;
+}
+
+.screen a {
+  text-decoration: underline;
+  color: #000;
+}
+
+.fxa-logo {
+  display: none;
+  background-image: url('fxa_logo.png');
+  background-size: 14rem auto;
+  background-repeat: no-repeat;
+  margin: 0 auto;
+  width: 14rem;
+  height: 15rem;
+}
+
+p.fxa-envelope {
+  background-image: url('fxa_envelope.png');
+  background-repeat: no-repeat;
+  background-size: 7rem;
+  -moz-padding-start: 8rem;
+  padding-top: 1rem;
+  line-height: 2rem;
+  min-height: 6.4rem;
+  max-width:100%;
+  overflow: hidden; /* short email addresses will only take up one line*/
+  text-overflow: ellipsis;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+ * Overlay:
+ *   IMPORTANT: Avoid to use 'visibility' or 'opacity' due
+ * to performance issues. For hiding, use 'display:none;''
+ * * * * * * * * * * * * * * * * * * * * * * * */
+
+#fxa-overlay {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  font-size: 2rem;
+  background-color: rgba(200,200,200,0.9);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#fxa-overlay.show {
+  display: flex;
+}
+
+form[role=dialog] {
+  display: none;
+}
+
+form[role=dialog].show {
+  display: block;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+ * Error overlay
+ * * * * * * * * * * * * * * * * * * * * * * * */
+
+#fxa-error-overlay {
+  padding-bottom: 0;
+  opacity: 0.9;
+  z-index: 10;
+}
+
+#fxa-error-overlay:before {
+  display: none;
+}
+
+#fxa-error-overlay .fxa-error-msg-container {
+  margin-top: 35rem;
+  padding: 0;
+  text-align: center;
+  border-top: none;
+  font-family: Fira Sans;
+  font-style: italic;
+  font-weight: 100;
+}
+
+#fxa-error-overlay .fxa-error-msg-container #fxa-error-title,
+#fxa-error-overlay .fxa-error-msg-container #fxa-error-msg {
+  display: inline-block;
+  font-size: 3.8rem;
+  line-height: 3.8rem;
+  color: #f9f9f9;
+}
+
+#fxa-error-overlay menu {
+  height: 26rem;
+  bottom: 32.5rem;
+  padding: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+}
+
+#fxa-error-overlay #fxa-error-ok:hover,
+#fxa-error-overlay #fxa-error-ok:focus {
+    transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1) 0s, background-color 0.42s cubic-bezier(0.25, 0, 0, 1) 0s, color 0.42s cubic-bezier(0.25, 0, 0, 1) 0s;
+    color: rgb(255, 255, 255);
+    outline: medium none;
+    transform: scale(1.2);
+}
+
+#fxa-error-overlay #fxa-error-ok {
+    width: 21rem;
+    height: 21rem;
+    background-image: none;
+    font-style: italic;
+    color: rgb(255, 255, 255);
+    background-color: rgb(0, 151, 182);
+    float: left;
+    border: medium none;
+    border-radius: 50%;
+    font-size: 2.4rem;
+    transform: scale(1);
+    transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, background-color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
+    pointer-events: auto;
+}
+
+/*
+ * Classes to ensure functionality
+ */
+
+a.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  text-decoration: none;
+}
+
+.button.icon-dialog select {
+  border: none;
+  background: transparent;
+  font-size: 1.7rem;
+}
+
+/* RTL View */
+
+html[dir="rtl"] .navigation button.left,
+html[dir="rtl"] .navigation button.right,
+html[dir="rtl"] #show-pw-wrapper p,
+html[dir="rtl"] #show-pw-wrapper > label {
+  float: right;
+}
+
+html[dir="rtl"] p.fxa-envelope {
+  background-position: 100% 0;
+}
+
+/* checkbox */
+
+input[type="checkbox"].settings-list-checkbox {
+  position: relative;
+  left: 3rem;
+}
+
+input[type="checkbox"].settings-list-checkbox + label {
+  width: 5rem;
+  height: 5rem;
+  border: 0.4rem solid #5f6368;
+  border-radius: 50%;
+  margin-right: 2rem;
+  line-height: 5rem;
+  text-align: center;
+  background-color: rgb(244,244,244);
+  transition: transform 0.2s;
+}
+
+input[type="checkbox"].settings-list-checkbox:disabled + label,
+input[type="checkbox"].settings-list-checkbox:disabled ~ span {
+  opacity: 0.5;
+}
+
+input[type="checkbox"].settings-list-checkbox:focus + label {
+  transform: scale(1.2);
+  transform-origin: 50% 50%;
+}
+
+input[type="checkbox"].settings-list-checkbox:checked + label::after {
+  font-family: "gaia-icons";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 3rem;
+  text-rendering: optimizelegibility;
+  content: "tick";
+  color: #00caf2;
+}
+
+input[type="checkbox"].settings-list-checkbox ~ span {
+  line-height: normal;
+  font-size: 3rem;
+}

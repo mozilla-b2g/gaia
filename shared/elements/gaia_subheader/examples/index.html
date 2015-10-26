@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8" />
   <title>GaiaSubheader Demo</title>
@@ -16,8 +16,22 @@
   <script src="../../../js/component_utils.js"></script>
   <script>window.GaiaSubheaderBaseurl = '../';</script>
   <script src="../script.js" type="text/javascript"></script>
+  <script>
+    window.onload = function() {
+      var dirInput = document.getElementById('dir');
+      dirInput.checked = false;
+      dirInput.onchange = function() {
+        document.documentElement.dir = this.checked ? 'rtl' : 'ltr';
+      };
+    };
+  </script>
 </head>
 <body role="application">
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox"> RTL mode
+    </label>
+  </p>
   <gaia-subheader>
     <span>Default</span>
   </gaia-subheader>

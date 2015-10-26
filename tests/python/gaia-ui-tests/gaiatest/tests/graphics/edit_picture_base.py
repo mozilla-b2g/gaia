@@ -4,7 +4,7 @@
 
 import time
 
-from marionette_driver import By
+from marionette_driver import By, expected, Wait
 from marionette_driver.marionette import Actions
 
 from gaiatest.apps.gallery.app import Gallery
@@ -59,7 +59,7 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
         self.marionette.find_element(*self._edit_crop_button).tap()
         self.take_screenshot()
         self.change_orientation('portrait-primary')
-        self.wait_for_element_displayed(*self._crop_aspect_square_button)
+        Wait(self.marionette).until(expected.element_displayed(*self._crop_aspect_square_button))
         self.marionette.find_element(*self._crop_aspect_portrait_button).tap()
         self.take_screenshot()
         self.change_orientation('landscape-primary')
@@ -89,7 +89,8 @@ class GalleryEditPhotoBase(GaiaImageCompareTestCase):
         edit_image.tap_edit_tool_apply_button()
 
         # save the resulting picture
-        filelist = edit_image.tap_edit_save_button()
+        image = edit_image.tap_edit_save_button()
+        filelist = image.go_back()
         filelist.wait_for_files_to_load(2)
         time.sleep(3)
         self.take_screenshot()

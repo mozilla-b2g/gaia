@@ -17,8 +17,9 @@ form[role="dialog"][data-type="confirm"] {
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
-  text-align: left;
 }
+html[dir="ltr"] form[role="dialog"][data-type="confirm"] { text-align: left; }
+html[dir="rtl"] form[role="dialog"][data-type="confirm"] { text-align: right; }
 
 form[role="dialog"][data-type="confirm"]:before {
   content: "";
@@ -26,7 +27,7 @@ form[role="dialog"][data-type="confirm"]:before {
   vertical-align: middle;
   width: 0.1rem;
   height: 100%;
-  margin-left: -0.1rem;
+  margin-inline-start: -0.1rem;
 }
 
 form[role="dialog"][data-type="confirm"] > section {
@@ -34,7 +35,7 @@ form[role="dialog"][data-type="confirm"] > section {
   font-size: 2.2rem;
   color: #FAFAFA;
   padding: 0 1.5rem;
-  -moz-box-sizing: padding-box;
+  box-sizing: padding-box;
   width: 100%;
   display: inline-block;
   overflow-y: scroll;
@@ -80,7 +81,7 @@ form[role="dialog"][data-type="confirm"] menu button {
   height: 4rem;
   margin: 0 0 1rem;
   padding: 0 0.2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;
@@ -138,11 +139,11 @@ button[disabled]::-moz-selection {
 
 form[role="dialog"][data-type="confirm"] menu button {
   margin: 0;
-  -moz-margin-end: 1rem;
+  margin-inline-end: 1rem;
 }
 
 form[role="dialog"][data-type="confirm"] menu button:last-child {
-  -moz-margin-end: 0;
+  margin-inline-end: 0;
 }
 
 /*
@@ -150,9 +151,14 @@ form[role="dialog"][data-type="confirm"] menu button:last-child {
 **
 ** 1. Text in confirm dialog should not be selectable.
  */
+form[role="dialog"][data-type="confirm"] p:nth-child(2) {
+  margin: 1rem 0 0;
+  overflow: hidden;
+}
+
 form[role="dialog"][data-type="confirm"] p {
   word-wrap: break-word;
-  margin: 1rem 0 0;
+  margin: 0;
   padding: 1rem 1.5rem;
   border-top: 0.1rem solid #686868;
   line-height: 3rem;
@@ -167,11 +173,14 @@ form[role="dialog"][data-type="confirm"] p > span {
 }
 
 form[role="dialog"][data-type="confirm"] p img {
-  left: 2rem;
-  right: auto;
+  margin-inline-end: 2rem;
 }
+html[dir="ltr"] form[role="dialog"][data-type="confirm"] p img { float: left; }
+html[dir="rtl"] form[role="dialog"][data-type="confirm"] p img { float: right; }
 
 form[role="dialog"][data-type="confirm"] p strong {
+  display: block;
+  margin-top: 0.2rem;
   font-weight: 300;
 }
 
@@ -193,15 +202,16 @@ form[role="dialog"][data-type="confirm"] dl {
 
 form[role="dialog"][data-type="confirm"] dl > dt {
   clear: both;
-  float: left;
   width: 7rem;
-  padding-left: 1.5rem;
+  padding-inline-start: 1.5rem;
   font-weight: 500;
   text-align: left;
 }
+html[dir="ltr"] form[role="dialog"][data-type="confirm"] dl > dt { float: left; }
+html[dir="rtl"] form[role="dialog"][data-type="confirm"] dl > dt { float: right; }
 
 form[role="dialog"][data-type="confirm"] dl > dd {
-  padding-right: 1.5rem;
+  padding-inline-end: 1.5rem;
   font-weight: 300;
   text-overflow: ellipsis;
   vertical-align: top;
@@ -220,7 +230,7 @@ form[role="dialog"][data-type="confirm"] figure {
 }
 
 form[role="dialog"][data-type="confirm"] figure img {
-  padding-right: 1.5rem;
+  padding-inline-end: 1.5rem;
   flex-shrink: 0;
 }
 
@@ -253,39 +263,3 @@ form[role="dialog"][data-type="confirm"] ul li ul {
   margin: 0;
   padding: 0;
 }
-
-/*
- * Right to left View
- */
-
-html[dir="rtl"] form[role="dialog"][data-type="confirm"] {
-  text-align: right;
-}
-
-html[dir="rtl"] form[role="dialog"][data-type="confirm"]:before {
-  margin-left: auto;
-  margin-right: -0.1rem;
-}
-
-html[dir="rtl"] form[role="dialog"][data-type="confirm"] p img {
-  right: 2rem;
-  left: auto;
-}
-
-html[dir="rtl"] form[role="dialog"][data-type="confirm"] dl > dt {
-  float: right;
-  padding-left: inherit;
-  padding-right: 1.5rem;
-  text-align: right;
-}
-
-html[dir="rtl"] form[role="dialog"][data-type="confirm"] dl > dd {
-  padding-left: 1.5rem;
-  padding-right: inherit;
-}
-
-html[dir="rtl"] form[role="dialog"][data-type="confirm"] figure img {
-  padding-left: 1.5rem;
-  padding-right: inherit;
-}
-

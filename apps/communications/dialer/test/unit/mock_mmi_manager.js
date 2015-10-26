@@ -17,7 +17,8 @@ var MockMmiManager = {
   },
   handleEvent: function(evt) {},
   isImei: function() { return false; },
-  showImei: function() {}
+  showImei: function() {},
+  cancel: function(){},
 };
 
 window.MockMmiManager = MockMmiManager;

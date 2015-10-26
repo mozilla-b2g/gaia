@@ -21,6 +21,7 @@ var getTestLoader = require('/js/ext/alameda.js').then(() => {
       'ext/ical': { exports: 'ICAL' },
       'shared/gesture_detector': { exports: 'GestureDetector' },
       'shared/notification_helper': { exports: 'NotificationHelper' },
+      'shared/intl_helper': { exports: 'IntlHelper' },
       'sharedtest/mocks/mock_l10n': { exports: 'MockL10n' }
     }
   });

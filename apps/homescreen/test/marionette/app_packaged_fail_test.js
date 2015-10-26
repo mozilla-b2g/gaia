@@ -38,6 +38,7 @@ marionette('Homescreen - Packaged App Failed Download', function() {
 
     server.fail(server.applicationZipUri);
     appInstall.installPackage(server.packageManifestURL);
+    appInstall.dismissToast();
 
     client.switchToFrame(system.getHomescreenIframe());
 

@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.mocks.mock_contact import MockContact
 from gaiatest.apps.phone.app import Phone
@@ -43,9 +45,8 @@ class TestDialerFindContact(GaiaTestCase):
 
         # Wait for the state to get to at least 'dialing'
         active_states = ('dialing', 'alerting', 'connecting', 'connected')
-        call_screen.wait_for_condition(
-            lambda m: self.data_layer.active_telephony_state in active_states,
-            timeout=30)
+        Wait(self.marionette, timeout=30).until(
+            lambda m: self.data_layer.active_telephony_state in active_states)
 
         if len(number_to_verify) <= call_screen.MAX_NUMBER_OF_DISPLAYED_DIGITS:
             # Check the number displayed is the one we dialed

@@ -8,10 +8,6 @@ from gaiatest.apps.music.app import Music
 
 class TestMusicEmpty(GaiaImageCompareTestCase):
 
-    # Note: Text will need to be updated if/when Bug 834475 is fixed
-    expected_title = 'Add songs to get started'
-    expected_text = 'Load songs on to the memory card.'
-
     def test_music_empty(self):
         """https://moztrap.mozilla.org/manage/case/3668/"""
 
@@ -21,7 +17,3 @@ class TestMusicEmpty(GaiaImageCompareTestCase):
 
         music_app.wait_for_empty_message_to_load()
         self.take_screenshot()
-
-        # Verify title & text when no music present
-        self.assertEqual(music_app.empty_music_title, self.expected_title)
-        self.assertEqual(music_app.empty_music_text, self.expected_text)

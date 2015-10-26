@@ -276,7 +276,7 @@ suite('Distribution mechanism', function() {
 
   function validateHomescreen() {
     var appZip = new AdmZip(path.join(process.cwd(), 'profile',
-      'webapps', 'verticalhome.gaiamobile.org', 'application.zip'));
+      'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
     var config = JSON.parse(appZip.readAsText(appZip.getEntry('js/init.json')));
 
     assert.equal(config.grid[0][0].name, 'Camera');

@@ -4,9 +4,11 @@
 }
 
 #bluetooth-transfer-status .title-container {
-  margin: 1.4rem 0 0 3.7rem;
+  margin: 1.4rem 0 0;
   line-height: 3rem;
 }
+html[dir="ltr"] #bluetooth-transfer-status .title-container { margin-left: 3.7rem; }
+html[dir="rtl"] #bluetooth-transfer-status .title-container { margin-right: 3.7rem; }
 
 #bluetooth-transfer-status progress {
   position: absolute;
@@ -23,7 +25,7 @@
 #bluetooth-transfer-status progress::-moz-progress-bar {
   background-color: #00caf2;
   transform: skew(-45deg);
-  margin-left: -1rem;
+  margin-inline-start: -1rem;
 }
 
 /* In use? */

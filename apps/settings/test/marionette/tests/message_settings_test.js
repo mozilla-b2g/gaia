@@ -31,8 +31,10 @@ marionette('message settings', function() {
       assert.equal(messagePanel.isChecked('deliveryReportCheckbox'), true);
       assert.equal(messagePanel.isChecked('readReportCheckbox'), true);
       assert.equal(messagePanel.isChecked('wapPushCheckbox'), true);
-      assert.equal(messagePanel.isChecked('cellBroadcastCheckbox'), true);
-      assert.equal(messagePanel.isChecked('emergencyAlertCheckbox'), true);
+      assert.equal(messagePanel.isComponentChecked('cellBroadcastCheckbox'),
+        true);
+      assert.equal(messagePanel.isComponentChecked('emergencyAlertCheckbox'),
+        true);
       assert.equal(
         client.settings.get('ril.sms.requestStatusReport.enabled'), true);
       assert.equal(

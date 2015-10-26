@@ -51,6 +51,7 @@ suite('FormController', function() {
 
   teardown(function() {
     stubLazyLoader = null;
+    stubLazyLoader = null;
     stubContactServiceSave = null;
     testContact = null;
   });

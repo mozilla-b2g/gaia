@@ -41,11 +41,11 @@ define(function(require) {
         this._enabled = value;
       }
       if (value) { //observe
-        AppStorage.storage.observe('freeSize', this._boundUpdateAppFreeSpace);
+        AppStorage.observe('freeSize', this._boundUpdateAppFreeSpace);
         this._updateAppFreeSpace();
         window.addEventListener('localized', this);
       } else { //unobserve
-        AppStorage.storage.unobserve('freeSize', this._boundUpdateAppFreeSpace);
+        AppStorage.unobserve('freeSize', this._boundUpdateAppFreeSpace);
         window.removeEventListener('localized', this);
       }
     },
@@ -53,7 +53,7 @@ define(function(require) {
     // Application Storage
     _updateAppFreeSpace: function storage_updateAppFreeSpace() {
       DeviceStorageHelper.showFormatedSize(this._element,
-        'availableSize', AppStorage.storage.freeSize);
+        'availableSize', AppStorage.freeSize);
     },
 
     handleEvent: function storage_handleEvent(evt) {

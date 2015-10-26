@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.calendar.app import Calendar
 
@@ -22,9 +24,10 @@ class TestCalendarDayViewAccessibility(GaiaTestCase):
         self.calendar.a11y_click_day_display_button()
 
         # Click on the all day section to create an event.
-        self.wait_for_element_displayed(*self.calendar._day_view_all_day_button)
-        self.accessibility.click(self.marionette.find_element(
-            *self.calendar._day_view_all_day_button))
+        element = Wait(self.marionette).until(
+                       expected.element_present(*self.calendar._day_view_all_day_button))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        self.accessibility.click(element)
 
         # wait for new event
         new_event = self.calendar.wait_for_new_event()

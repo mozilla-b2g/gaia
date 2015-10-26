@@ -89,14 +89,7 @@ marionette('Contacts > Form', function() {
   });
 
   suite('> Edit Contact', function() {
-    // Disabling these tests by now due to we need a way to wait until
-    // the location changes, so 'waitForElement' will work properly.
-    // More info in [1].
-    // These test must be recovered once this bug will be landed.
-
-    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
-
-    test.skip('Simple edition of contact details. ORG field', function() {
+    test('Simple edition of contact details. ORG field', function() {
       contactsData.createMozContact(contactData);
 
       editFirstContact();
@@ -115,14 +108,7 @@ marionette('Contacts > Form', function() {
       assert.ok(orgFieldValue.trim() === 'v2EDM');
     });
 
-    // Disabling these tests by now due to we need a way to wait until
-    // the location changes, so 'waitForElement' will work properly.
-    // More info in [1].
-    // These test must be recovered once this bug will be landed.
-
-    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
-
-    test.skip('Can create custom label', function() {
+    test('Can create custom label', function() {
       contactsData.createMozContact(contactData);
       editFirstContact();
 
@@ -174,14 +160,7 @@ marionette('Contacts > Form', function() {
         }, ['#value-menu button']);
       }
 
-      // Disabling these tests by now due to we need a way to wait until
-      // the location changes, so 'waitForElement' will work properly.
-      // More info in [1].
-      // These test must be recovered once this bug will be landed.
-
-      // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
-
-      test.skip('Edit regular Contact with image', function() {
+      test('Edit regular Contact with image', function() {
         editContactPhoto();
 
         client.helper.waitForElement(selectors.actionMenu);
@@ -192,14 +171,7 @@ marionette('Contacts > Form', function() {
     });
 
     suite('> Adding and removing', function() {
-      // Disabling these tests by now due to we need a way to wait until
-      // the location changes, so 'waitForElement' will work properly.
-      // More info in [1].
-      // These test must be recovered once this bug will be landed.
-
-      // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
-
-      test.skip('Template ids unique', function() {
+      test('Template ids unique', function() {
         var data = {
           givenName: ['John'],
           familyName: ['Doe'],
@@ -308,6 +280,84 @@ marionette('Contacts > Form', function() {
     */
   });
 
+  suite('> Facebook contacts', function() {
+    var fbContactData;
+
+    setup(function() {
+      fbContactData = contactsData.createFbContact();
+    });
+
+    function isGalleryButtonPresent() {
+      return client.executeScript(function(selector) {
+        var buttons = document.querySelectorAll(selector);
+        var out = false;
+        for(var j = 0; j < buttons.length; j++) {
+          if (buttons[j].textContent === 'Gallery') {
+            out = true;
+          }
+        }
+        return out;
+      }, [selectors.buttonActivityChooser]);
+    }
+
+    test('Add phone number from Dialer to existing Facebook contact',
+      function() {
+        client.apps.close(Contacts.URL, 'contacts');
+
+        dialerSubject.launch();
+
+        var one = client.findElement(dialerSelectors.one),
+            two = client.findElement(dialerSelectors.two),
+            three = client.findElement(dialerSelectors.three);
+        for (var i = 0; i < 3; i++) {
+          one.tap();
+          two.tap();
+          three.tap();
+        }
+        var phoneNumber = dialerSubject.client.findElement(
+          dialerSelectors.phoneNumber);
+        client.waitFor(function() {
+          return (phoneNumber.getAttribute('value').length === 9);
+        });
+
+        var addContact = dialerSubject.client.findElement(
+          dialerSelectors.keypadCallBarAddContact);
+        addContact.tap();
+
+        var addToExistingContact = dialerSubject.client.helper.waitForElement(
+                                  dialerSelectors.addToExistingContactMenuItem);
+        addToExistingContact.tap();
+
+        client.switchToFrame();
+        client.apps.switchToApp(Contacts.URL, 'contacts');
+
+        client.findElement(selectors.listContactFirst).tap();
+
+        subject.waitForFormShown();
+
+        var formTelNumberSecond = client.helper.waitForElement(
+          selectors.formTelNumberSecond);
+        var formEmailFirst = client.helper.waitForElement(
+          selectors.formEmailFirst);
+
+        assert.equal(formTelNumberSecond.getAttribute('value'),
+               fbContactData.tel[0].value);
+        assert.equal(formEmailFirst.getAttribute('value'),
+               fbContactData.email[0].value);
+    });
+
+    test('Contact Photo cannot be removed', function() {
+      editContactPhoto();
+
+      // As it is a Facebook contact it should appear the activity window
+      // to choose the source for the image
+      client.switchToFrame();
+      client.helper.waitForElement(selectors.activityChooser);
+
+      assert.ok(isGalleryButtonPresent());
+    });
+  }); // Facebook Contacts
+
   suite('> Input buttons', function() {
     function assertClear(inputSelector) {
       var input = client.helper.waitForElement(inputSelector);
@@ -317,14 +367,7 @@ marionette('Contacts > Form', function() {
       assert.strictEqual(input.getAttribute('value'), '');
     }
 
-    // Disabling these tests by now due to we need a way to wait until
-    // the location changes, so 'waitForElement' will work properly.
-    // More info in [1].
-    // These test must be recovered once this bug will be landed.
-
-    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
-
-    test.skip('Clear buttons work as expected', function() {
+    test('Clear buttons work as expected', function() {
       contactsData.createMozContact(contactData);
       editFirstContact();
 

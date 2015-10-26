@@ -11,8 +11,8 @@
 
 #quick-settings > ul {
   display: flex;
-  padding: 0 1.5rem;
   margin: 0;
+  padding: 0;
 }
 
 #quick-settings li {
@@ -20,6 +20,7 @@
   padding: 0;
   margin: 0;
   list-style: none;
+  text-align: center;
 }
 
 #quick-settings.non-mobile li {
@@ -92,6 +93,7 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled #quick-setting-data-enabled-dialog {
     bottom: 0;
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     right: var(--software-home-button-height);
   }
 }

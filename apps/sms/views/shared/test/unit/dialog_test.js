@@ -5,17 +5,17 @@
 */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 require('/views/shared/js/dialog.js');
 
 suite('Dialog', function() {
-  var nativeMozL10n = navigator.mozL10n;
+  var nativeMozL10n = document.l10n;
   var params = null;
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     params = {
       title: {
         raw: 'Foo Title'
@@ -34,7 +34,7 @@ suite('Dialog', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
+    document.l10n = nativeMozL10n;
     params = null;
   });
 
@@ -195,7 +195,7 @@ suite('Dialog', function() {
     params.options.confirm = {
       text: { id: 'l10n keyConfirm', args: { n: 1 } }
     };
-    var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+    var l10nSpy = this.sinon.spy(document.l10n, 'setAttributes');
     // Now we create the new element
     var dialog = new Dialog(params);
     // We append the element to the DOM

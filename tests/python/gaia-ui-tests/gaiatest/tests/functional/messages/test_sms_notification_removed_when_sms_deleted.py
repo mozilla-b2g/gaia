@@ -20,29 +20,24 @@ class TestSmsNotificationRemovedWhenSMSDeleted(GaiaTestCase):
 
         _text_message_content = "Automated Test %s" % str(time.time())
 
-        # launch messages app
         messages = Messages(self.marionette)
         messages.launch()
 
-        # Send a SMS to the device
         self.data_layer.send_sms(self.environment.phone_numbers[0], _text_message_content, skip_verification=True)
 
         system = System(self.marionette)
 
         # We will wait upto 300 seconds for the SMS to arrive due to network latency
-        system.wait_for_notification_toaster_displayed(timeout=300,
-                    message="Notification did not appear. SMS database dump: %s " % self.data_layer.get_all_sms())
+        system.wait_for_notification_toaster_displayed(timeout=300)
         system.wait_for_notification_toaster_not_displayed()
 
         self.apps.switch_to_displayed_app()
 
-        # Tap on the latest received SMS
         message_thread = messages.tap_first_received_message()
         Wait(self.marionette).until(lambda m: len(message_thread.received_messages) > 0)
         messages_number = len(message_thread.all_messages)
         last_received_message = message_thread.received_messages[-1]
 
-        # Delete latest received SMS
         activities = last_received_message.long_press_message()
         activities.tap_delete_message()
         activities.confirm_delete_message()
@@ -51,6 +46,5 @@ class TestSmsNotificationRemovedWhenSMSDeleted(GaiaTestCase):
 
         self.marionette.switch_to_frame()
 
-        # Check that SMS notification no longer appears in utility tray
         utility_tray = system.open_utility_tray()
         self.assertEqual(0, len(utility_tray.notifications))

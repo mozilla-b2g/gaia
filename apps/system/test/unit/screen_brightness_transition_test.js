@@ -37,7 +37,8 @@ suite('ScreenBrightnessTransition', function() {
 
   test('transitionTo(1)', function() {
     var transition = new ScreenBrightnessTransition();
-    transition.onsuccess = this.sinon.stub();
+    transition.ontransitionbegin = this.sinon.stub();
+    transition.ontransitionend = this.sinon.stub();
 
     transition.transitionTo(1);
     for (var i = 0; i < 50; i++) {
@@ -49,17 +50,20 @@ suite('ScreenBrightnessTransition', function() {
     }
     assert.isFalse(transition.isRunning);
     assert.equal(navigator.mozPower.screenBrightness, 1);
-    assert.isTrue(transition.onsuccess.calledOnce);
+    assert.isTrue(transition.ontransitionbegin.calledOnce);
+    assert.isTrue(transition.ontransitionend.calledOnce);
 
     // Make sure no other things happens after more ticks
     fakeTimer.tick(transition.STEP_INTERVAL_MS * 10);
     assert.equal(navigator.mozPower.screenBrightness, 1);
-    assert.isTrue(transition.onsuccess.calledOnce);
+    assert.isTrue(transition.ontransitionbegin.calledOnce);
+    assert.isTrue(transition.ontransitionend.calledOnce);
   });
 
   test('transitionTo(0)', function() {
     var transition = new ScreenBrightnessTransition();
-    transition.onsuccess = this.sinon.stub();
+    transition.ontransitionbegin = this.sinon.stub();
+    transition.ontransitionend = this.sinon.stub();
 
     transition.transitionTo(0);
 
@@ -72,17 +76,20 @@ suite('ScreenBrightnessTransition', function() {
     }
     assert.isFalse(transition.isRunning);
     assert.equal(navigator.mozPower.screenBrightness, 0);
-    assert.isTrue(transition.onsuccess.calledOnce);
+    assert.isTrue(transition.ontransitionbegin.calledOnce);
+    assert.isTrue(transition.ontransitionend.calledOnce);
 
     // Make sure no other things happens after more ticks
     fakeTimer.tick(transition.STEP_INTERVAL_MS * 10);
     assert.equal(navigator.mozPower.screenBrightness, 0);
-    assert.isTrue(transition.onsuccess.calledOnce);
+    assert.isTrue(transition.ontransitionbegin.calledOnce);
+    assert.isTrue(transition.ontransitionend.calledOnce);
   });
 
   test('abort()', function() {
     var transition = new ScreenBrightnessTransition();
-    transition.onsuccess = this.sinon.stub();
+    transition.ontransitionbegin = this.sinon.stub();
+    transition.ontransitionend = this.sinon.stub();
 
     transition.transitionTo(1);
 
@@ -100,6 +107,7 @@ suite('ScreenBrightnessTransition', function() {
     // Ignore floating error.
     assert.isTrue(
       navigator.mozPower.screenBrightness - (0.5 + 0.01 * 25) < 1E-15);
-    assert.isFalse(transition.onsuccess.calledOnce);
+    assert.isTrue(transition.ontransitionbegin.calledOnce);
+    assert.isFalse(transition.ontransitionend.calledOnce);
   });
 });

@@ -88,6 +88,7 @@ define(function(require) {
      * @param  {Object} tone     tone element
      * @param  {Object} result     web activity result
      * @param  {String} secret   sound is playable
+     * @return {Promise} A promise that resolves once the tone has been rendered
      */
     _renderTone: function tm_renderTone(tone, result, secret) {
       var oldRingtoneName = null;
@@ -97,20 +98,30 @@ define(function(require) {
         oldRingtoneName = tone.desc.textContent;
       }
       tone.desc.setAttribute('data-l10n-id', 'saving-tone');
-      var promise;
-      var self = this;
-      // If we got a locked ringtone, we have to unlock it first
+
+      var getBlob;
       if (result.blob.type.split('/')[1] === ForwardLock.mimeSubtype) {
-        ForwardLock.unlockBlob(secret, result.blob, function(unlocked) {
-          promise = self._isPlayableTone(unlocked);
+        // If we got a locked ringtone, we have to unlock it first.
+        getBlob = new Promise((resolve, reject) => {
+          ForwardLock.unlockBlob(secret, result.blob, (unlocked) => {
+            resolve(unlocked);
+          });
         });
-      } else {  // Otherwise we can just use the blob directly.
-        promise = self._isPlayableTone(result.blob);
+      } else {
+        // Otherwise we can just use the blob directly.
+        getBlob = Promise.resolve(result.blob);
       }
-      promise.then(function(isPlayable) {
+
+      var getIsPlayable = getBlob.then((blob) => {
+        return this._isPlayableTone(blob);
+      });
+
+      return Promise.all(
+        [getBlob, getIsPlayable]
+      ).then(([blob, isPlayable]) => {
         if (isPlayable) {
-          self._setRingtone(tone.settingsKey, result.l10nID,
-            result.name, result.blob, result.id);
+          this._setRingtone(tone.settingsKey, result.l10nID,
+            result.name, blob, result.id);
         } else {
           if (l10nId) {
             tone.desc.setAttribute('data-l10n-id', l10nId);

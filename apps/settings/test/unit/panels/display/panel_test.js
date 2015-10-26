@@ -12,7 +12,6 @@ suite('DisplayPanel', function() {
     '*': {
       'modules/settings_panel': 'MockSettingsPanel',
       'panels/display/display': 'MockDisplay',
-      'panels/display/wallpaper': 'MockWallpaper',
       'shared/lazy_loader': 'shared_mocks/mock_lazy_loader'
     }
   };
@@ -47,20 +46,6 @@ suite('DisplayPanel', function() {
       };
     });
 
-    // Define MockWallpaper
-    this.mockWallpaperSrc = 'mockSrc';
-    this.mockWallpaper = {
-      wallpaperSrc: this.mockWallpaperSrc,
-      selectWallpaper: function() {},
-      observe: function() {},
-      unobserve: function() {}
-    };
-    define('MockWallpaper', function() {
-      return function() {
-        return that.mockWallpaper;
-      };
-    });
-
     requireCtx(modules, function(DisplayPanel, MockLazyLoader) {
       that.panel = DisplayPanel();
       that.mockLazyLoader = MockLazyLoader;
@@ -82,25 +67,5 @@ suite('DisplayPanel', function() {
       assert.ok(
         this.mockDisplay.init.calledWith(sinon.match.any, mockSensorData));
     }.bind(this)).then(done, done);
-  });
-
-  test('observe wallpaperSrc when onBeforeShow', function() {
-    this.panel.init(document.body);
-    this.sinon.stub(this.mockWallpaper, 'observe');
-    this.panel.beforeShow(document.body);
-    assert.ok(this.mockWallpaper.observe.calledWith('wallpaperSrc'));
-
-    var location = document.location;
-    assert.equal(
-      document.querySelector('.wallpaper-preview').src,
-        location.protocol + '//' + location.host +
-        location.pathname.replace('_sandbox.html', this.mockWallpaperSrc));
-  });
-
-  test('unobserve appStorage when onHide', function() {
-    this.panel.init(document.body);
-    this.sinon.stub(this.mockWallpaper, 'unobserve');
-    this.panel.beforeHide();
-    assert.ok(this.mockWallpaper.unobserve.calledWith('wallpaperSrc'));
   });
 });

@@ -14,7 +14,7 @@ marionette('Private Browser - option menu', function() {
     }
   });
 
-  var home, rocketbar, server, system;
+  var home, rocketbar, search, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -28,10 +28,12 @@ marionette('Private Browser - option menu', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
+    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
+    home.waitForLaunch();
   });
 
   test('Open option menu from app chrome bar of private browsers', function() {
@@ -43,13 +45,16 @@ marionette('Private Browser - option menu', function() {
     client.switchToFrame();
     system.appChromeContextLink.tap();
     system.appChromeContextNewPrivate.tap();
-    system.gotoBrowser('app://system.gaiamobile.org/private_browser.html');
+    system.gotoBrowser(search.privateBrowserUrl);
 
     client.switchToFrame();
+    system.appUrlbar.tap();
+    rocketbar.enterText(url, true);
+
     client.findElement('.active.private .menu-button').click();
 
     var selectorCancel = '.active.private #ctx-cancel-button';
-    // // Cancel the context menu
+    // Cancel the context menu
     var cancel = client.helper.waitForElement(selectorCancel);
 
     assert.isTrue(client.findElement('#windows').scriptWith(function(el) {

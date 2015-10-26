@@ -4,11 +4,11 @@ Keyboards.hi = {
   imEngine: 'india',
   menuLabel: 'हिन्दी',
   secondLayout: true,
+  specificCssRule: true,
   alternateLayoutKey: '?१२३',
   basicLayoutKey: 'कखग',
   types: ['text', 'url', 'email'],
   width: 11,
-  keyClassName: 'hindi',
   lang: 'hi',
   alt: {
     'र': 'ॠऋ',

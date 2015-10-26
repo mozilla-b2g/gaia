@@ -1,3 +1,7 @@
+/**
+ * BiDi note: the software home button should not be mirrored for RTL.
+ */
+
 #software-buttons,
 #software-buttons-fullscreen-layout {
   display: flex;
@@ -26,7 +30,8 @@
   transition: none;
 }
 
-#screen:not(.locked) #software-buttons.visible,
+#screen:not(.locked):not(:-moz-full-screen-ancestor) #software-buttons.visible,
+#screen:not(.locked).permission-prompt:-moz-full-screen-ancestor #software-buttons.visible,
 #screen.locked.attention #software-buttons.visible,
 #screen.locked.secure-app #software-buttons.visible {
   visibility: visible;
@@ -121,8 +126,8 @@
   visibility: hidden;
 }
 
-#screen.software-button-enabled:not(.fullscreen-layout-app):not(.locked):-moz-full-screen-ancestor #fullscreen-software-home-button,
-#screen.software-button-enabled.locked.secure-app:not(.fullscreen-layout-app):-moz-full-screen-ancestor #fullscreen-software-home-button {
+#screen.software-button-enabled:not(.fullscreen-layout-app):not(.locked):not(.permission-prompt):-moz-full-screen-ancestor #fullscreen-software-home-button,
+#screen.software-button-enabled.locked.secure-app:not(.fullscreen-layout-app):not(.permission-prompt):-moz-full-screen-ancestor #fullscreen-software-home-button {
   visibility: visible;
 }
 
@@ -138,6 +143,7 @@
     right: 0.5rem;
     bottom: calc(50% - var(--button-width) / 2);
   }
+
   #software-buttons-dead-space {
     height: 100%;
     width: 1rem;

@@ -85,6 +85,14 @@ var TelephonyMessages = {
     );
   },
 
+  handleDisconnect: function(reason, number, emergencyOptions) {
+    if (reason === 'NormalCallClearing') {
+      return;
+    }
+
+    this.handleError(reason + 'Error', number, emergencyOptions);
+  },
+
   handleError: function(errorName, number, emergencyOptions) {
     // We ignore this error because some networks generate this with
     // STK CallControl when calling Voicemail pilots (e.g. TMobile)

@@ -168,6 +168,14 @@ module.exports = View.extend({
     this.emit('click:' + name, e);
   },
 
+  suspendModeSwitch: function(suspended) {
+    if (suspended) {
+      this.set('switch-toggle-disabled');
+    } else {
+      this.unset('switch-toggle-disabled');
+    }
+  },
+
   setMode: function(mode) {
     debug('set mode: %s', mode);
     this.set('mode', mode);

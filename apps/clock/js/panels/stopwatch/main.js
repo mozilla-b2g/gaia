@@ -1,11 +1,10 @@
 define(function(require) {
   'use strict';
+  /* global IntlHelper */
 
   var Panel = require('panel');
   var Stopwatch = require('stopwatch');
-  var Utils = require('utils');
   var Template = require('template');
-  var mozL10n = require('l10n');
   var html = require('text!panels/stopwatch/panel.html');
   var lapHtml = require('text!panels/stopwatch/list_item.html');
   var priv = new WeakMap();
@@ -14,6 +13,16 @@ define(function(require) {
   // because you're super bored, and small enough that phones won't
   // puke when displaying this many rows in the lap list.
   var MAX_STOPWATCH_LAPS = 1000;
+
+  IntlHelper.define('timer-msS', 'mozduration', {
+    minUnit: 'millisecond',
+    maxUnit: 'minute'
+  });
+
+  IntlHelper.define('lap-number', 'number', {
+    style: 'decimal',
+    useGrouping: false
+  });
 
   /**
    * Stopwatch.Panel
@@ -63,20 +72,50 @@ define(function(require) {
     element.addEventListener(
       'panel-visibilitychange', this.onvisibilitychange.bind(this));
 
+    IntlHelper.observe('timer-msS', this.updateTimeStrings.bind(this));
+
     this.setStopwatch(new Stopwatch());
 
   };
 
   Stopwatch.Panel.prototype = Object.create(Panel.prototype);
 
+  Stopwatch.Panel.prototype.updateTimeStrings = function() {
+    IntlHelper.get('timer-msS').then(formatter => {
+      var stopwatch = priv.get(this).stopwatch;
+      var e = stopwatch.getElapsedTime();
+
+      var time = formatter.format(e);
+      this.nodes.time.textContent = time;
+
+      var node = this.nodes.laps;
+      var laps = stopwatch.getLaps();
+      laps.push(stopwatch.nextLap());
+      var lapnodes = node.querySelectorAll('li.lap-cell');
+
+      var lapFormatter = IntlHelper.get('lap-number');
+
+      for (var i = 0; i < laps.length; i++) {
+        var lapnum = laps.length - 1 - i;
+        lapnodes[i].querySelector('.lap-duration').textContent =
+          formatter.format(laps[lapnum].duration);
+        lapnodes[i].querySelector('.lap-name').setAttribute('data-l10n-args',
+            JSON.stringify({ n: lapFormatter.format(lapnum + 1) }));
+      }
+    });
+  };
 
   Stopwatch.Panel.prototype.update = function() {
     var swp = priv.get(this);
     var e = swp.stopwatch.getElapsedTime();
-    var time = Utils.format.durationMs(e);
-    this.nodes.time.textContent = time;
-    this.nodes.time.classList.toggle('over-100-minutes', e >= 1000 * 60 * 100);
-    this.activeLap(false);
+    
+    return IntlHelper.get('timer-msS').then(formatter => {
+      var time = formatter.format(e);
+      this.nodes.time.textContent = time;
+      this.nodes.time.classList.toggle(
+        'over-100-minutes', e >= 1000 * 60 * 100);
+      this.activeLap(false);
+    });
   };
 
   Stopwatch.Panel.prototype.showButtons = function() {
@@ -105,7 +144,7 @@ define(function(require) {
         this.onreset();
         break;
     }
-    this.update();
+    return this.update();
   };
 
   Stopwatch.Panel.prototype.setStopwatch = function(stopwatch) {
@@ -113,7 +152,6 @@ define(function(require) {
       stopwatch: stopwatch
     });
 
-    this.setState(stopwatch.getState());
 
     //Clear any existing lap indicators and make new ones
     var lapsUl = this.nodes.laps;
@@ -123,6 +161,8 @@ define(function(require) {
       this.onlap(laps[i]);
     }
     this.checkLapButton();
+
+    return this.setState(stopwatch.getState());
   };
 
   Stopwatch.Panel.prototype.onvisibilitychange = function(evt) {
@@ -213,25 +253,28 @@ define(function(require) {
     /* jshint validthis:true */
     var li = document.createElement('li');
     li.setAttribute('class', 'lap-cell');
-    var html = this.lapTemplate.interpolate({
-      time: Utils.format.durationMs(time)
+    li.innerHTML = this.lapTemplate.interpolate();
+    IntlHelper.get('timer-msS').then(formatter => {
+      li.querySelector('.lap-duration').textContent = formatter.format(time);
     });
-    li.innerHTML = html;
-    mozL10n.setAttributes(
+    var lapFormatter = IntlHelper.get('lap-number');
+    navigator.mozL10n.setAttributes(
       li.querySelector('.lap-name'),
       'lap-number',
-      { n: num }
+      { n: lapFormatter.format(num) }
     );
     return li;
   }
 
   function updateLapDom(num, time, li) {
-    li.querySelector('.lap-duration').textContent =
-      Utils.format.durationMs(time);
-    mozL10n.setAttributes(
+    IntlHelper.get('timer-msS').then(formatter => {
+      li.querySelector('.lap-duration').textContent = formatter.format(time);
+    });
+    var lapFormatter = IntlHelper.get('lap-number');
+    navigator.mozL10n.setAttributes(
       li.querySelector('.lap-name'),
       'lap-number',
-      { n: num }
+      { n: lapFormatter.format(num) }
     );
     return li;
   }

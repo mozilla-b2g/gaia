@@ -1,0 +1,208 @@
+.smart-list {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index : 310;
+  display : none;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.smart-list.show {
+  display: block;
+}
+
+.smart-list-container {
+  width: 149rem;
+  margin: 0px auto;
+  margin-top: 7rem;
+  pointer-events : none;
+}
+
+.smart-list-title {
+  width: 132rem;
+  height: 5rem;
+  margin: 0 auto;
+  font-family: Fira Sans;
+  font-size: 4.2rem;
+  font-style: italic;
+  font-weight: normal;
+  color: #FFF;
+}
+
+.smart-list-wrap {
+  position: relative;
+  height: 90rem;
+  margin-top: 6rem;
+  overflow: hidden;
+}
+
+
+.smart-list-view {
+  position: relative;
+  width: 132rem;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.smart-list-view .list-item {
+  display: flex;
+  position: absolute;
+  height: 12rem;
+  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
+  pointer-events: auto;
+  transform: translateY(-12rem);
+}
+
+.smart-list-view .list-item:focus {
+  background-color: rgba(255,255,255,0.2);
+}
+
+.smart-list-view .list-item .icon-box {
+  display: inline-flex;
+  align-items: center;
+}
+
+.smart-list-view .list-item .icon-box-left {
+  width: 12rem;
+  height: 100%;
+  padding: 2rem;
+}
+
+.smart-list-view .list-item .text-box {
+  display: inline-flex;
+  width: 111.5rem;
+  height: 100%;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  font-family: Fira Sans;
+}
+
+.smart-list-view .list-item .text-box .title {
+  display: inline-block;
+  width: 100%;
+  font-size: 4rem;
+  line-height: 4rem;
+  color: #fff;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.smart-list-view .list-item .icon-box-right {
+  width: 8.5rem;
+  height: 100%;
+  padding: 1rem;
+}
+
+.smart-list-view .list-item .icon-box-right .icon {
+  width: 6rem;
+  height: 6rem;
+}
+
+.smart-list-view .list-item .icon-box-right .icon:before {
+  font-size: 6rem;
+  line-height: 6rem;
+  color: #fff;
+  opacity: 0.5;
+}
+
+.smart-list-view .list-item[data-type="folder"] .icon-box-left {
+  padding: 0;
+}
+
+.smart-list-view .list-item[data-type="folder"] .icon-box-left .icon {
+  color: #57d1ef;
+}
+
+.smart-list-view .list-item[data-type="folder"] .icon-box-left .icon:before {
+  font-size: 12rem;
+  line-height: 12rem;
+}
+
+.smart-list-view .list-item[data-type="folder"] .text-box {
+  align-items: center;
+}
+
+.smart-list-view .list-item[data-type="folder"] .uri {
+  display: none;
+}
+
+.smart-list-view .list-item[data-type="bookmark"] .icon-box-left .icon {
+  width: 100%;
+  height: 100%;
+  background-color: #858585;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-size: 3rem 3rem;
+}
+
+.smart-list-view .list-item[data-type="bookmark"] .icon-box-left .icon:before {
+  font-size: 8rem;
+  line-height: 8rem;
+}
+
+.smart-list-view .list-item[data-type="bookmark"] .text-box {
+  width: 120rem;
+  flex-direction: column;
+}
+
+.smart-list-view .list-item[data-type="bookmark"] .title {
+  height: 55%;
+}
+
+.smart-list-view .list-item[data-type="bookmark"] .uri {
+  display: inline-block;
+  width: 100%;
+  height: 45%;
+  font-size: 3rem;
+  color: #9A9A9A;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.smart-list-view .list-item[data-type="bookmark"] .icon-box-right {
+  display: none;
+}
+
+.smart-list-view .list-item[data-type="button"] .icon-box-left {
+  padding: 0;
+}
+
+.smart-list-view .list-item[data-type="button"] .icon-box-left .icon {
+  color: #57d1ef;
+}
+
+.smart-list-view .list-item[data-type="button"] .icon-box-left .icon:before {
+  font-size: 12rem;
+  line-height: 12rem;
+}
+
+.smart-list-view .list-item[data-type="button"] .text-box {
+  width: 120rem;
+  align-items: center;
+}
+
+.smart-list-view .list-item[data-type="button"] .uri {
+  display: none;
+}
+
+.smart-list-view .list-item[data-type="button"] .icon-box-right {
+  position: absolute;
+  top: 0;
+  left: -8.5rem;
+}
+
+.smart-list-mask {
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  width: 132rem;
+  height: 6rem;
+  margin: 0 auto;
+  background: transparent linear-gradient(to bottom, transparent, rgb(64, 65, 65)) repeat scroll 0% 0%;
+}

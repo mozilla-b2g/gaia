@@ -12,6 +12,8 @@ from gaiatest.apps.base import PageRegion
 class Contacts(Base):
 
     name = "Contacts"
+    entry_point = "contacts"
+    manifest_url = '{}communications{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     _new_contact_button_locator = (By.ID, 'add-contact-button')
     _settings_button_locator = (By.ID, 'settings-button')
@@ -31,8 +33,12 @@ class Contacts(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._settings_button_locator))))
 
+        # Workaround for bug 1201211
+        import time
+        time.sleep(1)
+
     def switch_to_contacts_frame(self):
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
+        self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
 
     @property
@@ -135,8 +141,12 @@ class Contacts(Base):
 
         def tap(self, return_class='ContactDetails'):
             self.marionette.execute_script('arguments[0].scrollIntoView(false);', [self.root_element])
-            self.tap_element_from_system_app(
-                self.root_element.find_element(*self._name_locator), add_statusbar_height=True)
+            if return_class == None:
+                self.tap_element_from_system_app(
+                    self.root_element.find_element(*self._name_locator), add_statusbar_height=True)
+            else:
+                self.root_element.find_element(*self._name_locator).tap()
+
             return self._return_class_from_tap(return_class)
 
         def a11y_click(self, return_class='ContactDetails'):
@@ -150,7 +160,7 @@ class Contacts(Base):
                 return ContactDetails(self.marionette)
             elif return_class == 'EditContact':
                 # This may seem superfluous but we can enter EditContact from Contacts, or from ActivityPicker
-                Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Contacts.name)
+                Contacts(self.marionette).wait_to_be_displayed() 
                 self.apps.switch_to_displayed_app()
                 from gaiatest.apps.contacts.regions.contact_form import EditContact
                 return EditContact(self.marionette)
@@ -158,5 +168,5 @@ class Contacts(Base):
                 return None
             else:
                 # We are using contacts picker in activity - after choosing, fall back to open app
-                Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != Contacts.name)
+                Contacts(self.marionette).wait_to_not_be_displayed()
                 self.apps.switch_to_displayed_app()

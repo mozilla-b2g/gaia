@@ -1,14 +1,14 @@
 Keyboards.te = {
   label: 'Telugu',
-  shortLabel: 'te',
+  shortLabel: 'Te',
   imEngine: 'india',
   menuLabel: 'తెలుగు',
   secondLayout: true,
+  specificCssRule: true,
   alternateLayoutKey: '?౧౨౩',
   basicLayoutKey: 'అఆఇ',
   types: ['text', 'url', 'email'],
   width: 11,
-  keyClassName: 'telugu',
   lang: 'te',
   upperCase: {
     'ౌ':'ఔ',
@@ -80,7 +80,7 @@ Keyboards.te = {
       '!': '¡',
       '₹': '$ € £ ¥ ৳'
     },
-   
+
     keys: [
       [
         { value: '१' }, { value: '२' }, { value: '३' }, { value: '४' },

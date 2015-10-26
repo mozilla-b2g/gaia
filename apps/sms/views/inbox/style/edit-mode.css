@@ -17,24 +17,20 @@
   height: calc(100% - 10rem);
 }
 
-.edit [data-type="list"] li > a > aside.icon-unread {
+html[dir="ltr"] .edit [data-type="list"] li > a > aside.icon-unread {
   transform: translateX(5rem);
 }
-
-.edit #threads-container aside.pack-end {
-  -moz-margin-start: 4rem;
-}
-
-.edit #threads-container[data-type="list"] aside.pack-end span {
-  transform: translateX(1.5rem);
-}
-
-
-/* RTL View */
 html[dir="rtl"] .edit [data-type="list"] li > a > aside.icon-unread {
   transform: translateX(-5rem);
 }
 
+.edit #threads-container aside.pack-end {
+  margin-inline-start: 4rem;
+}
+
+html[dir="ltr"] .edit #threads-container[data-type="list"] aside.pack-end span {
+  transform: translateX(1.5rem);
+}
 html[dir="rtl"] .edit #threads-container[data-type="list"] aside.pack-end span {
   transform: translateX(-1.5rem);
 }

@@ -28,11 +28,12 @@ marionette('App Authentication Dialog',
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
+    home.waitForLaunch();
   });
 
   test('cancel button works', function() {

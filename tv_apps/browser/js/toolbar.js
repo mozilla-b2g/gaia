@@ -1,4 +1,14 @@
-/* global _, Browser, BrowserDB, MozActivity */
+/* global _ */
+/* global Awesomescreen */
+/* global Browser */
+/* global BrowserDB */
+/* global BrowserDialog */
+/* global LazyLoader */
+/* global SearchResult */
+/* global SearchUtil */
+/* global Settings */
+/* global Tooltip*/
+/* global UrlHelper */
 
 'use strict';
 
@@ -107,6 +117,8 @@ var Toolbar = {
         this.clickMenuButtonBlock.bind(this));
     this.historyBlock.addEventListener('mouseup',
         Awesomescreen.selectHistoryTab.bind(Awesomescreen));
+    this.pocketBlock.addEventListener('mouseup',
+      this.clickPocketListBlock.bind(this));
     this.privateWindowBlock.addEventListener('mouseup',
         Browser.handlePrivateBrowsing.bind(Browser));
     this.settingsBlock.addEventListener('mouseup',
@@ -128,6 +140,8 @@ var Toolbar = {
     // li = 73px * 3(list) + 20px(hover) + 10px(padding)
     this.menuBlock.style.height = 73 * 3 + 20 + 10 + 'px';
     Tooltip.init();
+
+    LazyLoader.load('js/sync/toolbar.js');
   },
 
   /**
@@ -152,7 +166,8 @@ var Toolbar = {
     engineName = engineName.charAt(0).toUpperCase() + engineName.slice(1);
     this.searchInput.placeholder = engineName;
     // tooltip
-    this.searchInput.dataset.tips = engineName + ' ' + _('WB_LT_TIPS_SEARCH_BAR');
+    this.searchInput.dataset.tips =
+      engineName + ' ' + _('WB_LT_TIPS_SEARCH_BAR');
   },
 
   /**
@@ -187,7 +202,8 @@ var Toolbar = {
       'new-tab-button-block', 'new-tab-button',
       'menu-button-block', 'menu-button',
       'menu-block',
-      'history-block', 'private-window-block', 'settings-block',
+      'history-block', 'private-window-block',
+      'settings-block',
       'history-tab', 'private-window-tab', 'settings-tab',
       'mode-button-block',
       'mode-button-title', 'pan-cursor-button', 'pan-cursor-button-block',
@@ -196,6 +212,7 @@ var Toolbar = {
       'loading-icon',
       //'tooltip-block',
       'bookmark-button-anime', 'show-bookmarks-button-anime',
+      'pocket-block', 'pocket-tab'
     ];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
@@ -249,7 +266,8 @@ var Toolbar = {
     if(!Browser.currentInfo || !Browser.currentInfo.url) {
       return false;
     }
-    var end_pos1 = Browser.currentInfo.url.indexOf('https://www.youtube.com', 0);
+    var end_pos1 =
+      Browser.currentInfo.url.indexOf('https://www.youtube.com', 0);
     var end_pos2 = Browser.currentInfo.url.indexOf('http://www.youtube.com', 0);
     if(end_pos1 < 0 && end_pos2 < 0) {
       return false;
@@ -452,13 +470,17 @@ var Toolbar = {
   },
 
   clickSearchClearButton: function toolbar_clickSearchClearButton(ev) {
-    if( ev ) ev.preventDefault();
+    if( ev ) {
+      ev.preventDefault();
+    }
     this.searchInput.value = '';
     SearchResult.resultUpdate(this.searchInput.value);
   },
 
   clickSearchCloseButton: function toolbar_clickSearchCloseButton(ev) {
-    if( ev ) ev.preventDefault();
+    if( ev ) {
+      ev.preventDefault();
+    }
     SearchResult.hide();
   },
 
@@ -483,8 +505,10 @@ var Toolbar = {
 
   handleSearchInputKeypress: function toolbar_handleSearchInputKeypress(evt) {
     if( this.getSearchBarStyle() == 'false' ) {
-      if( evt ) evt.preventDefault();
-      if( Toolbar.searchInput.value != '' ) {
+      if( evt ) {
+        evt.preventDefault();
+      }
+      if(Toolbar.searchInput.value) {
         Tooltip.hide();
         this.setSearchBarStyle('true');
         SearchResult.show();
@@ -499,7 +523,7 @@ var Toolbar = {
    */
   clickHomeButtonBlock: function toolbar_clickHomeButtonBlock(ev) {
     Settings.getHomepage((function(result) {
-      if(( result != null ) && ( result != "" )) {
+      if(result) {
         Browser.navigate(result);
       }
     }).bind(this));
@@ -556,7 +580,7 @@ var Toolbar = {
     clearTimeout(this.showZoomBannerTimeoutID);
 
     this.zoomScale = Browser.currentInfo.zoom;
-    if(this.zoomScale == 0) {
+    if(this.zoomScale === 0) {
       return;
     }
 
@@ -586,7 +610,7 @@ var Toolbar = {
       this.toolbarPanel.dataset.menu = 'hide';
     } else {
       this.toolbarPanel.dataset.menu = 'show';
-      if(this.menuBlock.style.minWidth == '') {
+      if(!this.menuBlock.style.minWidth) {
         var ar = [];
         // rate 1.25
         ar.push(432); // default 432(540 / 1.25)
@@ -594,7 +618,8 @@ var Toolbar = {
         ar.push(this.privateWindowTab.offsetWidth);
 
         ar.push(this.settingsTab.offsetWidth);
-        this.menuBlock.style.minWidth = (Math.max.apply(null, ar) * 1.25) + 'px';
+        this.menuBlock.style.minWidth =
+          (Math.max.apply(null, ar) * 1.25) + 'px';
       }
     }
   },
@@ -697,6 +722,25 @@ var Toolbar = {
   getToolbarMode: function toolbar_getToolbarMode() {
     return this.toolbarPanel.dataset.mode;
   },
+
+  /**
+   * Open Pocket List
+   */
+  clickPocketListBlock: function toolbar_clickPocketListBlock() {
+    var pocketHomePageUri = 'https://getpocket.com/';
+    if (Browser.currentInfo.url &&
+      UrlHelper.isURL(Browser.currentInfo.url)) {
+      var ev = {
+        detail: {
+          url: pocketHomePageUri,
+          frameElement: null
+        }
+      };
+      Awesomescreen.openNewTab(ev);
+    } else {
+      Browser.navigate(pocketHomePageUri);
+    }
+  }
 
 };
 

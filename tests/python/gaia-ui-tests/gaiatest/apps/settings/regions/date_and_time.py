@@ -7,11 +7,14 @@ from datetime import datetime
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class DateAndTime(Base):
+
     _page_locator = (By.ID, 'dateTime')
-    _24h_selector_locator = (By.CSS_SELECTOR, 'select.time-format-time')
+    _use_default_switch_locator = (By.CSS_SELECTOR, '#dateTime .time-format-auto gaia-switch')
+    _24h_selector_locator = (By.CSS_SELECTOR, '.timeformat .button')
     _autotime_enabled_locator = (By.CSS_SELECTOR, '.time-auto')
     _autotime_enabled_switch_locator = (By.CSS_SELECTOR, '.time-auto label')
     _time_value = (By.CSS_SELECTOR, '.clock-time')
@@ -22,18 +25,29 @@ class DateAndTime(Base):
     _timezone_confirm_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
     _time_format_confirm_button_locator = (By.CLASS_NAME, "value-option-confirm")
 
-
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(
                 expected.element_present(*self._24h_selector_locator))))
 
+    @property
+    def _default_format_switch(self):
+        return GaiaBinaryControl(self.marionette, self._use_default_switch_locator)
+
+    def enable_default_format(self):
+        self._default_format_switch.enable()
+
+    def disable_default_format(self):
+        self._default_format_switch.disable()
+        Wait(self.marionette).until(
+            expected.element_enabled(self.marionette.find_element(*self._24h_selector_locator)))
+
     def open_time_format(self):
         self.marionette.find_element(*self._24h_selector_locator).tap()
         self.marionette.switch_to_frame()
-        Wait(self.marionette).until(expected.element_present(*self._time_format_confirm_button_locator))
+        Wait(self.marionette).until(
+            expected.element_enabled(self.marionette.find_element(*self._time_format_confirm_button_locator)))
 
     def close_time_format(self):
         self.marionette.find_element(*self._time_format_confirm_button_locator).tap()
@@ -53,13 +67,13 @@ class DateAndTime(Base):
 
         self.marionette.find_element(*self._autotime_enabled_switch_locator).tap()
 
-        self.wait_for_condition(lambda m: self.is_autotime_enabled != old_state)
+        Wait(self.marionette).until(lambda m: self.is_autotime_enabled != old_state)
 
     def set_region(self, region):
 
         self.marionette.find_element(*self._timezone_region_locator).tap()
         self.marionette.switch_to_frame()
-        self.wait_for_condition(
+        Wait(self.marionette).until(
             lambda m: len(self.marionette.find_elements(*self._timezone_selection_locator)) > 0)
 
         options = self.marionette.find_elements(*self._timezone_selection_locator)
@@ -78,7 +92,8 @@ class DateAndTime(Base):
 
     @property
     def is_autotime_enabled(self):
-        return self.marionette.find_element(*self._autotime_enabled_locator).get_attribute('data-state') == 'auto'
+        return self.marionette.find_element(
+            *self._autotime_enabled_locator).get_attribute('data-state') == 'auto'
 
     @property
     def get_current_time_text(self):

@@ -108,7 +108,7 @@ suite('Sound > SliderHandler', function() {
     });
   });
 
-  suite('_playTone', function() {
+  suite('_setupTone', function() {
     var fakeBlob;
 
     setup(function() {
@@ -121,31 +121,30 @@ suite('Sound > SliderHandler', function() {
       };
     });
 
-    suite('_playTone with channelType: content', function() {
+    suite('_setupTone with channelType: content', function() {
       setup(function() {
         sliderHandler._channelType = 'content';
       });
 
       test('we would call player operations', function() {
-        sliderHandler._playTone(fakeBlob);
+        sliderHandler._setupTone(fakeBlob);
         assert.ok(URL.createObjectURL.calledWith(fakeBlob));
         assert.ok(sliderHandler._player.load.called);
-        assert.ok(sliderHandler._player.play.called);
         assert.equal(sliderHandler._player.loop, true);
       });
 
       test('we would not change play mozAudioChannelType', function() {
         var originalChannelType = sliderHandler._player.mozAudioChannelType;
-        sliderHandler._playTone(fakeBlob);
+        sliderHandler._setupTone(fakeBlob);
         assert.equal(sliderHandler._player.mozAudioChannelType,
           originalChannelType);
       });
     });
 
-    suite('_playTone with channelType: alarm', function() {
+    suite('_setupTone with channelType: alarm', function() {
       setup(function() {
         sliderHandler._channelType = 'alarm';
-        sliderHandler._playTone(fakeBlob);
+        sliderHandler._setupTone(fakeBlob);
       });
 
       test('we would change play mozAudioChannelType when ' +
@@ -181,6 +180,28 @@ suite('Sound > SliderHandler', function() {
     test('we would call _getToneBlob', function() {
       assert.ok(sliderHandler._getToneBlob.called);
     });
+  });
+
+  suite('_setVolume', function() {
+    setup(function() {
+      sliderHandler.init(dom, 'content');
+      this.sinon.stub(sliderHandler._player, 'play');
+    });
+
+    test('we would not play tone if no volume change', function() {
+      sliderHandler._element.value = 5;
+      sliderHandler._previous = 5;
+      sliderHandler._setVolume();
+      assert.isFalse(sliderHandler._player.play.called);
+    });
+
+    test('we would play tone if volume is changed', function() {
+      sliderHandler._element.value = 5;
+      sliderHandler._previous = 4;
+      sliderHandler._setVolume();
+      assert.ok(sliderHandler._player.play.called);
+    });
+
   });
 
   suite('_inputHandler', function() {

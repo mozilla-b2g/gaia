@@ -1,14 +1,8 @@
-#top-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2rem;
-}
-
-#screen.rocketbar-focused #left-panel,
-#screen.rocketbar-focused #right-panel {
-  pointer-events: none;
+/* In both fullscreen modes, accept pointer events to trigger the status bar
+   unless the utility tray is showing. */
+#screen.fullscreen-app:not(.utility-tray) #top-panel,
+#screen:not(.utility-tray):-moz-full-screen-ancestor > #top-panel {
+  pointer-events: all;
 }
 
 #statusbar {
@@ -16,115 +10,38 @@
   width: 100%;
   height: var(--statusbar-height);
   top: 0;
-  left: 0;
+  right: 0;
   pointer-events: none;
   transform: translateY(0);
-}
-
-.statusbar > div,
-.statusbar > img {
-  pointer-events: auto;
-}
-
-
-/* Hide the statusbar out of the viewport in order
-to be available for moz-elements */
-#statusbar.hidden,
-#screen:not(.attention).utility-tray-in-transition > #statusbar {
-  transform: translateY(-100%);
-}
-
-#statusbar-minimized-wrapper {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#screen:not(.cards-view) #statusbar.maximized:not(.fullscreen):not(.fullscreen-layout) #statusbar-maximized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
-#screen:not(.cards-view) #statusbar:not(.maximized):not(.fullscreen):not(.fullscreen-layout) #statusbar-minimized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen,
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen-layout,
-#screen.locked.secure-app:not(.attention).fullscreen-app #statusbar,
-#screen.locked.secure-app:not(.attention).fullscreen-layout-app #statusbar {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#screen.locked #statusbar,
-#screen:not(.locked).utility-tray #statusbar {
-  visibility: visible;
-  filter: none;
-}
-
-#screen.locked #statusbar-maximized-wrapper,
-#screen:not(.locked).minimized-tray #statusbar-minimized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
-#screen:not(.locked).utility-tray #statusbar-minimized-wrapper {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#screen.cards-view #statusbar {
-  opacity: 0;
-  visibility: hidden;
-}
-
-/* Hide the minimized statusbar in the utility-tray */
-#screen:not(.utility-tray-in-transition) #statusbar:not(.maximized) #statusbar-maximized-wrapper,
-#screen.utility-tray-in-transition #statusbar-minimized-wrapper,
-#screen #statusbar.maximized  #statusbar-minimized-wrapper {
-  visibility: hidden;
-}
-
-@media (orientation: landscape) {
-  #screen.software-button-enabled #statusbar {
-    width: calc(100% - var(--software-home-button-height));
-  }
-}
-
-#screen.attention #statusbar {
-  top: 0;
-  background-color: black;
-}
-
-#screen.utility-tray #statusbar {
-  background-color: transparent;
-}
-
-body #statusbar {
   transition: none;
 }
 
-/* Hiding the black background while the homescreen is in foreground but not
- * utility tray or attention screen */
-#screen.lockscreen-camera > #statusbar {
-  transform: scaleY(0);
-  transform-origin: left top;
+/* We need a wrapper for being able to translateY the parent div
+without affecting the -moz-elements pointing to it while transitioning */
+#statusbar-wrapper {
+  position: absolute;
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  height: var(--statusbar-height);
+  transform: translateY(0);
 }
 
-#screen.locked:not(.attention) #statusbar {
-  background-color: transparent;
-  display: block;
-  transform: scaleY(1);
+/* This is the remaining space left by the collapsed rocketbar */
+#statusbar #statusbar-icons {
+  width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
 }
 
-#screen.attention.locked #statusbar-time {
-  display: block;
+#statusbar:not(.hidden).maximized  #statusbar-icons {
+  width: 100%;
 }
 
 .statusbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap-reverse;
+  flex-direction: row-reverse;
   position: absolute;
   width: 100%;
   height: var(--statusbar-height);
@@ -137,17 +54,66 @@ body #statusbar {
   box-sizing: border-box;
 }
 
-#statusbar-minimized {
-  width: 100%;
-  padding-top: 0;
-  padding-bottom: 0;
-  -moz-padding-start: 0;
-  -moz-padding-end: 0.3rem;
-  box-sizing: border-box;
+.statusbar > div,
+.statusbar > img {
+  pointer-events: auto;
+}
+
+/* Hide the statusbar out of the viewport in order
+to be available for moz-elements */
+#statusbar.hidden,
+#screen:not(.attention).utility-tray-in-transition > #statusbar,
+#screen.utility-tray-in-transition > #statusbar,
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen,
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen-layout,
+#screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
+#screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar {
+  transform: translateY(-100%);
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #statusbar {
+    width: calc(100% - var(--software-home-button-height));
+    left: 0;
+  }
+}
+
+#screen.attention #statusbar {
+  top: 0;
+  background-color: black;
+}
+
+/* AppChrome would normally provide the theme color for the statusbar.
+   However, when in native full-screen mode, AppChrome isn't visible; just
+   use black for now, as we do with #screen.attention. */
+#screen:-moz-full-screen-ancestor #statusbar {
+  background-color: black;
+}
+
+#screen.utility-tray #statusbar {
+  background-color: transparent;
+}
+
+/* Hiding the black background while the homescreen is in foreground but not
+ * utility tray or attention screen */
+#screen.lockscreen-camera > #statusbar {
+  transform: scaleY(0);
+}
+html[dir="ltr"] #screen.lockscreen-camera > #statusbar { transform-origin: left top; }
+html[dir="rtl"] #screen.lockscreen-camera > #statusbar { transform-origin: right top; }
+
+#screen.locked:not(.attention) #statusbar {
+  background-color: transparent;
+  display: block;
+  transform: scaleY(1);
+}
+
+#screen.attention.locked #statusbar-time {
+  display: block;
 }
 
 .statusbar > * {
-  margin: 0.6rem 0.2rem 0.6rem 0.2rem;
+  margin: 0.6rem 0.2rem;
 }
 
 #screen.rocketbar-focused:not(.locked) .statusbar {
@@ -161,13 +127,15 @@ body #statusbar {
   transform: translateY(var(--statusbar-height));
 }
 
+/* Icons */
+
 body .utility-tray .statusbar > .sb-start {
   visibility: hidden;
   transform: translateY(var(--statusbar-height));
 }
 
 #statusbar-operator {
-  -moz-margin-start: 0.8rem;
+  margin-inline-start: 0.8rem;
   color: #ffffff;
   font-size: 1.5rem;
   font-weight: 400;
@@ -195,17 +163,18 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-mobile-connection > * {
-  float: left;
   pointer-events: none;
   margin: 0.6rem 0.2rem;
 }
+html[dir="ltr"] #statusbar-mobile-connection > * { float: left; }
+html[dir="rtl"] #statusbar-mobile-connection > * { float: right; }
 
 #statusbar-mobile-connection .sb-icon-roaming {
   margin: 0;
   top: 0.6rem;
   position: relative;
   width: 1rem;
-  left: 0;
+  offset-inline-start: 0;
 }
 
 #statusbar-mobile-connection .statusbar-data:not(.sb-icon-data-circle) {
@@ -225,14 +194,14 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal {
-  margin-left: 0.8rem;
+  margin-inline-start: 0.8rem;
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal::before {
   position: absolute;
   font-size: 1rem;
   bottom: -.2rem;
-  left: -0.6rem;
+  offset-inline-start: -0.6rem;
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal[data-index="0"]::before {
@@ -252,29 +221,34 @@ body .utility-tray .statusbar > .sb-start {
   position: relative;
   margin: 0;
   font-size: 1rem;
-  text-align: right;
+  text-align: end;
   top: -.5rem;
-  left: -.7rem;
+  offset-inline-start: -.7rem;
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal .statusbar-data {
-  left: -.7rem;
-  text-align: left;
   top: -.5rem;
+  offset-inline-start: -.7rem;
+  text-align: start;
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
   top: -0.3rem;
-  left: -0.8rem;
+  offset-inline-start: -0.8rem;
 }
 
 #statusbar-mobile-connection .statusbar-data.sb-icon-data-circle {
   top: -.1rem;
-  left: .1rem;
+  offset-inline-start: -0.1rem;
   width: 0.8rem;
   height: 0.8rem;
   background-size: 16.8rem 4.8rem;
-  background-position: -5.8rem -4rem;
+}
+html[dir="ltr"] #statusbar-mobile-connection .statusbar-data.sb-icon-data-circle {
+  background-position: left -5.8rem top -4rem;
+}
+html[dir="rtl"] #statusbar-mobile-connection .statusbar-data.sb-icon-data-circle {
+  background-position: right -5.8rem top -4rem;
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-data[hidden] {
@@ -290,10 +264,11 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-call-forwardings > * {
-  float: left;
   pointer-events: none;
   margin: 0.4rem 0.6rem;
 }
+html[dir="ltr"] #statusbar-call-forwardings > * { float: left; }
+html[dir="rtl"] #statusbar-call-forwardings > * { float: right; }
 
 #statusbar-call-forwardings .sb-icon-call-forwarding {
   position: relative;
@@ -559,7 +534,7 @@ body .utility-tray .statusbar > .sb-start {
   position: absolute;
   color: #000;
   top: 0.4rem;
-  left: 0;
+  offset-inline-start: 0;
   width: 100%;
   text-align: center;
   font-size: 1.15rem; /*5pt  was 0.8rem */
@@ -630,45 +605,4 @@ body .utility-tray .statusbar > .sb-start {
 /* Using visibility for operator so that the element width is known at all time. */
 .utility-tray .sb-hide-operator .statusbar > .sb-icon-operator {
   visibility: hidden;
-}
-
-/* RTL View */
-html[dir="rtl"] #screen.lockscreen-camera > #statusbar {
-  transform-origin: right top;
-}
-
-html[dir="rtl"] .statusbar {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal::before {
-  left: -0.6rem;
-  right: unset;
-}
-
-html[dir="rtl"] #statusbar-mobile-connection .statusbar-signal .statusbar-data {
-  text-align: left;
-  left: unset;
-  right: -.7rem;
-}
-
-html[dir="rtl"] #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal .statusbar-data {
-  left: unset;
-  right: .7rem;
-  text-align: right;
-}
-
-html[dir="rtl"] #statusbar-mobile-connection[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
-  left: unset;
-  right: 0.2rem;
-}
-
-html[dir="rtl"] #statusbar-call-forwardings > * {
-  float: right;
-}
-
-html[dir="rtl"] #statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding::before {
-  left: unset;
-  right: -0.6rem;
 }

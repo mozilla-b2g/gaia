@@ -1,0 +1,39 @@
+{
+  "name": "gaia-site-icon",
+  "version": "0.0.1",
+  "description": "A web component to show an icon for an application or site.",
+  "author": [
+    {
+      "name": "Chris Lord",
+      "email": "chrislord.net@gmail.com"
+    }
+  ],
+  "main": "script.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:gaia-components/gaia-site-icon.git"
+  },
+  "devDependencies": {
+    "karma": "^0.12.37",
+    "karma-firefox-launcher": "^0.1.6",
+    "karma-mocha": "^0.2.0",
+    "karma-sinon-chai": "^1.0.0",
+    "mocha": "^2.2.5",
+    "mozilla-download": "^1.1.1"
+  },
+  "keywords": [
+    "app",
+    "icon",
+    "homescreen",
+    "B2G",
+    "Firefox OS"
+  ],
+  "license": "MIT"
+}

@@ -1,6 +1,6 @@
 .fake-notification {
   height: 6rem;
-  padding: 0 1.5rem;
+  padding: 0 1.2rem;
   font: 1.53rem/1.8rem auto;
   color: #e7e7e7;
   overflow: hidden;
@@ -8,11 +8,12 @@
 }
 
 .fake-notification [data-icon] {
-  float: left;
   width: 3rem;
   height: 3rem;
   margin: 1.5rem 0;
 }
+html[dir="ltr"] .fake-notification [data-icon] { float: left; }
+html[dir="rtl"] .fake-notification [data-icon] { float: right; }
 
 /* alert icon: white on red background */
 [data-icon].alert {
@@ -51,8 +52,3 @@
   background-color: rgba(0, 202, 242, 0.3);
 }
 
-/* RTL View */
-
-html[dir="rtl"] .fake-notification [data-icon] {
-  float: right;
-}

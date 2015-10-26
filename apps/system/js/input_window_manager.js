@@ -238,6 +238,11 @@
       case 'notification-clicked':
       case 'applicationsetupdialogshow':
         this.hideInputWindowImmediately();
+
+        // Ensure the actual focus is lost too in case the dispatcher of
+        // these events didn't remove the focus.
+        navigator.mozInputMethod.removeFocus();
+
         break;
       case 'lockscreen-appopened':
       case 'sheets-gesture-begin':

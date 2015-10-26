@@ -1,20 +1,16 @@
 'use strict';
 define(function(require) {
-  var mozL10n = require('l10n!'),
+  var date = require('date'),
+      mozL10n = require('l10n!'),
       base = require('./base');
 
   // Set up the global time updates for all nodes.
   (function() {
-    var formatter = new mozL10n.DateTimeFormat();
     var updatePrettyDate = function updatePrettyDate() {
-      var labels = document.querySelectorAll('[data-time]');
-      var i = labels.length;
-      while (i--) {
-        labels[i].textContent = formatter.fromNow(
-          labels[i].dataset.time,
-          // the presence of the attribute is our indicator; not its value
-          'compactFormat' in labels[i].dataset);
-      }
+      var labels = [...document.querySelectorAll('[data-time]')];
+      labels.forEach(label => {
+        date.relativeDateElement(label, label.dataset.time);
+      });
     };
     var timer = setInterval(updatePrettyDate, 60 * 1000);
 

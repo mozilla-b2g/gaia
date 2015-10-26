@@ -382,21 +382,18 @@ var MessageManager = {
     };
   },
 
-  deleteMessages: function mm_deleteMessages(id, callback) {
-    var req = this._mozMobileMessage.delete(id);
-    req.onsuccess = function onsuccess() {
-      callback && callback(this.result);
-    };
+  deleteMessages: function mm_deleteMessages(id) {
+    // As DOMRequest doesn't have "catch" method we should use "then" with
+    // "null" for the success callback to handle reject case only.
+    return this._mozMobileMessage.delete(id).then(null, (e) => {
+      // TODO: If the messages could not be deleted completely, conversation
+      // view will also update without notification currently. May need more
+      // information for user that the messages were not removed completely.
+      // See bug #1045666 for details.
+      console.error(`Deleting in the database. [${e.name}] ${e.message || ''}`);
 
-    // TODO: If the messages could not be deleted completely, conversation list
-    // page will also update without notification currently. May need more
-    // information for user that the messages were not removed completely.
-    // See bug #1045666 for details.
-    req.onerror = function onerror() {
-      var msg = 'Deleting in the database. Error: ' + req.error.name;
-      console.log(msg);
-      callback && callback(null);
-    };
+      return null;
+    });
   },
 
   markThreadRead: function mm_markThreadRead(threadId, isRead = true) {

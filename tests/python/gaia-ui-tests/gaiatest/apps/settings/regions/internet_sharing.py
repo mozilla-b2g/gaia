@@ -5,21 +5,31 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
-
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 class InternetSharing(Base):
 
     _page_locator = (By.ID, 'hotspot')
     _hotspot_settings_locator = (By.ID, "hotspot-settings-section")
+    _hotspot_switch_locator = (By.CSS_SELECTOR, '#hotspot gaia-switch')
 
     @property
     def screen_element(self):
         return self.marionette.find_element(*self._page_locator)
 
+    @property
+    def _hotspot_switch(self):
+        return GaiaBinaryControl(self.marionette, self._hotspot_switch_locator)
+
     def tap_hotspot_settings(self):
         self.marionette.find_element(*self._hotspot_settings_locator).tap()
         return self.HotspotSettings(self.marionette)
 
+    def enable_hotspot(self):
+        self._hotspot_switch.enable()
+
+    def disable_hotspot(self):
+        self._hotspot_switch.disable()
 
     class HotspotSettings(Base):
 
@@ -47,4 +57,3 @@ class InternetSharing(Base):
             self.apps.switch_to_displayed_app()
             Wait(self.marionette).until(
                 expected.element_displayed(*self._security_selector_locator))
-

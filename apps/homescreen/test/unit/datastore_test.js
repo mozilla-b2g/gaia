@@ -349,6 +349,16 @@ suite('Datastore', () => {
             done();
           });
       });
+
+      test('should accept a filtering function as argument', done => {
+        attachDBTransaction(bookmarks.storeName);
+        bookmarks.getAll(entry => entry.id.includes('def/'))
+          .then(results => {
+            assert.equal(results.length, 1);
+            assert.deepEqual(results[0], { id: 'def/', data: {} });
+            done();
+          });
+      });
     });
   });
 

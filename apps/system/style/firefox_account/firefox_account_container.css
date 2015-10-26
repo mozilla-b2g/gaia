@@ -6,6 +6,10 @@
   border: 0;
 }
 
+#fxa-dialog:before {
+  display: none;
+}
+
 #fxa-dialog.fxa-dialog {
   animation: show-fx-acct .5s;
 }

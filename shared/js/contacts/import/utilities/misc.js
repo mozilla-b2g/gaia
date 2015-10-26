@@ -28,25 +28,25 @@ if (!utils.misc) {
   const FLAG_YEAR_IGNORED = 9996;
   utils.misc.FLAG_YEAR_IGNORED = FLAG_YEAR_IGNORED;
 
-  utils.misc.formatDate = function(date) {
-    var _ = navigator.mozL10n.get;
-
-    var dateFormat = _('dateFormat') || '%B %e';
-    var f = new navigator.mozL10n.DateTimeFormat();
+  utils.misc.formatDate = function(date, customFormat) {
     var dateString = null;
+
     try {
+      var format = customFormat || {
+        month: 'short',
+        day: 'numeric'
+      };
+
       var offset = date.getTimezoneOffset() * 60 * 1000;
       var normalizedDate = new Date(date.getTime() + offset);
 
       var year = normalizedDate.getFullYear();
-      if (year === FLAG_YEAR_IGNORED) {
-        year = '';
+      if (year !== FLAG_YEAR_IGNORED) {
+        format.year = 'numeric';
       }
-      var dayMonthString = f.localeFormat(normalizedDate, dateFormat);
-      dateString = _('dateOutput', {
-        dayMonthFormatted: dayMonthString,
-        year: year
-      });
+      var f = new Intl.DateTimeFormat(navigator.languages, format);
+
+      dateString = f.format(date);
     } catch (err) {
       console.error('Error parsing date: ', err);
       throw err;
@@ -180,14 +180,12 @@ if (!utils.misc) {
   };
 
   utils.misc.setTimestamp = function(type, callback) {
-    window.ImportStatusData &&
-      ImportStatusData.put(type + LAST_IMPORT_TIMESTAMP_SUFFIX, Date.now())
+    ImportStatusData.put(type + LAST_IMPORT_TIMESTAMP_SUFFIX, Date.now())
         .then(callback);
   };
 
   utils.misc.getTimestamp = function(type, callback) {
-    window.ImportStatusData &&
-      ImportStatusData.get(type + LAST_IMPORT_TIMESTAMP_SUFFIX)
+    ImportStatusData.get(type + LAST_IMPORT_TIMESTAMP_SUFFIX)
         .then(callback);
   };
 }

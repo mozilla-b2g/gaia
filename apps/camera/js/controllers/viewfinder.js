@@ -137,6 +137,9 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.grid.on('change:selected',
     this.views.viewfinder.setter('grid'));
 
+  // Battery
+  this.app.on('battery:powersave', this.onPowerSave);
+
   // App
   this.app.on('pinch:changed', this.onPinchChanged);
   this.app.on('hidden', this.stopStream);
@@ -180,7 +183,7 @@ ViewfinderController.prototype.onCameraConfigured = function() {
 ViewfinderController.prototype.show = function() {
   debug('show');
   if (!this.app.criticalPathDone) {
-    this.views.viewfinder.fadeIn(1);
+    this.views.viewfinder.fadeIn(0);
     return;
   }
 
@@ -210,9 +213,6 @@ ViewfinderController.prototype.onFocusConfigured = function(config) {
   this.views.focus.setFocusMode(config.mode);
   this.touchFocusEnabled = config.touchFocus;
   this.views.faces.clear();
-  if (config.maxDetectedFaces > 0) {
-    this.views.faces.configure(config.maxDetectedFaces);
-  }
 };
 
 ViewfinderController.prototype.onFacesDetected = function(faces) {
@@ -277,6 +277,18 @@ ViewfinderController.prototype.loadStream = function() {
 ViewfinderController.prototype.stopStream = function() {
   this.views.viewfinder.stopStream();
   debug('stream stopped');
+};
+
+/**
+ * Power save state changed. If entering power
+ * save mode, release the screen wake lock to
+ * allow it to timeout without user interaction,
+ * otherwise acquire the wake lock.
+ *
+ * @private
+ */
+ViewfinderController.prototype.onPowerSave = function(powerSave) {
+  this.views.viewfinder.els.video.mozUseScreenWakeLock = !powerSave;
 };
 
 /**

@@ -7,6 +7,7 @@
   favoritesList,
   frequencyDialer,
   historyList,
+  MockL10n,
   mozFMRadio,
   updateEnablingState,
   updateFreqUI,
@@ -15,6 +16,7 @@
 requireApp('shared/js/airplane_mode_helper.js');
 requireApp('fm/js/fm.js');
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('FM', function() {
   function setFrequency(frequency) {
@@ -57,6 +59,7 @@ suite('FM', function() {
   }
 
   suite('frequency dialer', function() {
+    var nativeL10n = document.l10n;
 
     suiteSetup(function() {
       sinon.stub(favoritesList, '_save').returns(true);
@@ -64,10 +67,12 @@ suite('FM', function() {
       sinon.stub(historyList, '_save').returns(true);
 
       loadBodyHTML('/index.html');
+      document.l10n = MockL10n;
       frequencyDialer.init();
     });
 
     suiteTeardown(function() {
+      document.l10n = nativeL10n;
       document.body.innerHTML = '';
     });
 
@@ -88,7 +93,9 @@ suite('FM', function() {
     });
 
     test('updated #frequency dom display digits', function() {
-      assert.equal($('frequency').textContent, 87.5);
+      assert.deepEqual(
+        document.l10n.getAttributes($('frequency')),
+        { id: 'frequency-MHz', args: { value: '87.5' } });
     });
 
     test('compare new set frequency with aria-valuenow', function() {
@@ -135,9 +142,10 @@ suite('FM', function() {
     //   assert.notEqual(frequencyDialer._translateX, prevX);
     // });
 
-    test('#frequency display percision to one decimal point', function() {
-        assert.ok($('frequency').textContent.indexOf('.') > -1);
-      });
+    test('#frequency display precision to one decimal point', function() {
+      var freq = document.l10n.getAttributes($('frequency')).args.value;
+      assert.ok(freq.indexOf('.') > -1);
+    });
 
   });
 
@@ -160,12 +168,16 @@ suite('FM', function() {
   });
 
   suite('favorite list', function() {
+    var nativeL10n = document.l10n;
+
 
     suiteSetup(function() {
       loadBodyHTML('/index.html');
+      document.l10n = MockL10n;
     });
 
     suiteTeardown(function() {
+      document.l10n = nativeL10n;
       document.body.innerHTML = '';
     });
 
@@ -234,14 +246,18 @@ suite('FM', function() {
   });
 
   suite('update display states', function() {
+    var nativeL10n = document.l10n;
+
     suiteSetup(function() {
       mozFMRadio.enabled = true;
       mozFMRadio.antennaAvailable = true;
       loadBodyHTML('/index.html');
+      document.l10n = MockL10n;
       updateEnablingState(true);
     });
 
     suiteTeardown(function() {
+      document.l10n = nativeL10n;
       document.body.innerHTML = '';
     });
 
@@ -274,11 +290,15 @@ suite('FM', function() {
   });
 
   suite('update UI based on the airplane mode status', function() {
+    var nativeL10n = document.l10n;
+
     suiteSetup(function() {
       loadBodyHTML('/index.html');
+      document.l10n = MockL10n;
     });
 
     suiteTeardown(function() {
+      document.l10n = nativeL10n;
       document.body.innerHTML = '';
     });
 
@@ -329,11 +349,15 @@ suite('FM', function() {
   });
 
   suite('update UI based on the antenna status', function() {
+    var nativeL10n = document.l10n;
+
     suiteSetup(function() {
       loadBodyHTML('/index.html');
+      document.l10n = MockL10n;
     });
 
     suiteTeardown(function() {
+      document.l10n = nativeL10n;
       document.body.innerHTML = '';
     });
 

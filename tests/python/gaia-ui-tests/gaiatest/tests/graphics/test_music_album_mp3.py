@@ -5,14 +5,12 @@
 import time
 
 from marionette_driver import By, Wait
-from marionette_driver.marionette import Actions
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.music.app import Music
 
 
 class TestMusic(GaiaImageCompareTestCase):
-    _player_controls_previous_locator = (By.ID, 'player-controls-previous')
     _player_controls_next_locator = (By.ID, 'player-controls-next')
 
     def setUp(self):
@@ -33,24 +31,22 @@ class TestMusic(GaiaImageCompareTestCase):
 
         # switch to albums view
         list_view = music_app.tap_albums_tab()
-        self.take_screenshot()
 
         # check that albums (at least one) are available
         albums = list_view.media
         self.assertGreater(len(albums), 0, 'The mp3 file could not be found')
+        self.take_screenshot()
 
         # select an album
         sublist_view = albums[0].tap_first_album()
         self.take_screenshot()
         # select play
         # This wait is timing out because of bug 862156
-        player_view = sublist_view.tap_play()
+        player_view = sublist_view.tap_first_song()
         # play for a short duration
         play_time = time.strptime('00:03', '%M:%S')
         Wait(self.marionette).until(
             lambda m: player_view.player_elapsed_time >= play_time,
             message='Mp3 sample did not start playing')
-
-        ff_button = self.marionette.find_element(*self._player_controls_next_locator)
-        Actions(self.marionette).tap(ff_button).perform()
+        player_view.tap_forward()
         self.take_screenshot()

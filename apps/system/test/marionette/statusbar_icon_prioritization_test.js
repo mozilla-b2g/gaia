@@ -32,17 +32,25 @@ marionette('Status Bar icons - Prioritization', function() {
     system.request('NetworkActivityIcon:hide');
     system.request('NetworkActivityIcon:show');
     statusBar.Icons.forEach(function(iconName) {
-      console.log(iconName);
-      if (iconName === 'operator') {
+      if (iconName === 'operator' || iconName === 'network-activity') {
         // Label is a special case, so ignoring for now.
+        // As we don't pause the statusbar anymore, we need to
+        // ignore the network activity changes
         return;
       }
-      var iconElement = statusBar.minimised[iconName].icon;
+
+      var iconElement = statusBar[iconName].icon;
+
+      if (!iconElement) {
+        return;
+      }
+
       // The icon is not running.
       if (iconElement.getAttribute('class').indexOf('active') < 0) {
         return;
       }
-      var hidden = (iconElement.cssProperty('display') === 'none');
+
+      var hidden = iconElement.location().y < 0;
 
       if (hasHiddenIcon) {
         assert.equal(hidden, true, 'The `' + iconName +

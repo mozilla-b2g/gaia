@@ -17,8 +17,8 @@ define(function(require) {
         addButton.addEventListener('click', function() {
           // The addons list panel will update itself if new addon is installed.
           var activity = new window.MozActivity({
-            name: 'install',
-            data: { type: 'addons' }
+            name: 'marketplace-category',
+            data: { slug: 'addons' }
           });
           // For workaround jshint.
           activity.onsuccess = function() {};

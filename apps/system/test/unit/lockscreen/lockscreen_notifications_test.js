@@ -124,14 +124,28 @@ suite('system/LockScreenNotifications', function() {
 
     lockScreenNotifications.hideColoredMaskBG();
 
-    assert.equal(
-      MockLockScreen.maskedBackground.style.backgroundColor,
-      'transparent',
-      'BGColor colors mismatch'
-    );
-
     assert.isTrue(
       MockLockScreen.maskedBackground.classList.add.calledWith('blank')
+    );
+  });
+
+  test('Test Hide Colored Masked Background - will NOT add "transparent"',
+  function() {
+    MockLockScreen.maskedBackground = {
+      style: {
+        backgroundColor: null
+      },
+      classList: {
+        add: this.sinon.spy()
+      }
+    };
+    lockScreenNotifications._lockScreen = MockLockScreen;
+    lockScreenNotifications.hideColoredMaskBG();
+    assert.notEqual(
+      MockLockScreen.maskedBackground.style.backgroundColor,
+      'transparent',
+      'BGColor should not be transparent, or when it is with a white' +
+      'background, the words on screen locker will be unreadable.'
     );
   });
 

@@ -37,7 +37,6 @@
 
   <!-- Shared code -->
   <script type="text/javascript" src="shared/js/l10n.js"></script>
-  <script type="text/javascript" src="shared/js/l10n_date.js"></script>
   <script type="text/javascript" defer src="shared/js/format.js"></script>
   <script type="text/javascript" src="shared/js/async_storage.js"></script>
   <script type="text/javascript" src="shared/js/settings_listener.js"></script>
@@ -63,7 +62,7 @@
 
    <!-- Global Step 1 -->
     <section role="region" class="view step" data-viewport="" id="step-1">
-      <gaia-header>
+      <gaia-header ignore-dir>
         <h1 data-l10n-id="fte-welcome-title"></h1>
       </gaia-header>
       <section class="content vbox">
@@ -85,7 +84,7 @@
 
     <!-- Step 2 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="step-2">
-      <gaia-header>
+      <gaia-header ignore-dir>
         <h1 data-l10n-id="fte-plantype-title"></h1>
       </gaia-header>
       <ul class="content choices">
@@ -113,7 +112,7 @@
 
     <!-- Prepaid step 2 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="prepaid-step-2">
-      <gaia-header>
+      <gaia-header ignore-dir>
         <h1 data-l10n-id="fte-prepaid2-title"></h1>
       </gaia-header>
       <section class="content">
@@ -145,7 +144,7 @@
 
     <!-- Prepaid step 3 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="prepaid-step-3">
-      <gaia-header>
+      <gaia-header ignore-dir>
         <h1 data-l10n-id="fte-prepaid3-title"></h1>
       </gaia-header>
       <section class="content">
@@ -238,7 +237,7 @@
 
     <!-- Postpaid step 2 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="postpaid-step-2">
-      <gaia-header>
+      <gaia-header ignore-dir>
         <h1 data-l10n-id="fte-postpaid2-title"></h1>
       </gaia-header>
        <ul class="content settings">
@@ -318,7 +317,7 @@
 
     <!-- Postpaid step 3 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="postpaid-step-3">
-      <gaia-header>
+      <gaia-header ignore-dir>
         <h1 data-l10n-id="fte-postpaid3-title"></h1>
       </gaia-header>
       <section class="content">
@@ -349,7 +348,7 @@
 
     <!-- Non VIVO step 2 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="non-vivo-step-1">
-      <gaia-header>
+      <gaia-header ignore-dir>
         <h1 data-l10n-id="fte-onlydata2-title"></h1>
       </gaia-header>
       <ul class="content settings">
@@ -429,7 +428,7 @@
 
     <!-- Non VIVO step 3 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="non-vivo-step-2">
-      <gaia-header>
+      <gaia-header ignore-dir>
         <h1 data-l10n-id="fte-onlydata3-title"></h1>
       </gaia-header>
       <ul class="content settings">
@@ -459,7 +458,7 @@
 
   <!-- Data usage limits -->
   <section aria-labelledby="limit-dialog-heading" id="data-limit-dialog" role="dialog" class="view" data-viewport="bottom">
-    <gaia-header id="limit-dialog-header" action="close">
+    <gaia-header ignore-dir id="limit-dialog-header" action="close">
       <h1 id="limit-dialog-heading" data-l10n-id="data-limit-header"></h1>
       <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
     </gaia-header>

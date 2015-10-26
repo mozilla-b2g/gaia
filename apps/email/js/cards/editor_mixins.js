@@ -6,7 +6,21 @@ define(function(require) {
 
     _bindEditor: function(textNode) {
       this._editorNode = textNode;
+
+      // Prevent pastes of rich HTML, since it has encoding, security and
+      // sanitation issues.
+      textNode.addEventListener('paste', function(event) {
+        event.preventDefault();
+        var text = event.clipboardData.getData('text/plain');
+
+        // Only insert if text. If no text, the execCommand fails with an
+        // error.
+        if (text) {
+          document.execCommand('insertText', false, text);
+        }
+      });
     },
+
     /**
      * Inserts an email into the contenteditable element
      */

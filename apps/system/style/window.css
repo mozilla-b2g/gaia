@@ -76,8 +76,18 @@
 }
 
 .appWindow.from-cardview {
-  animation: openAppFromCardView var(--transition-duration) forwards
-             cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: openAppFromCardView 300ms forwards cubic-bezier(.35,.9,.6,1);
+}
+
+@keyframes openAppFromNewCard {
+  0% { transform: scale(0.5) translateY(200%); }
+  20% { transform: scale(0.5) translateY(200%); }
+  65% { transform: scale(0.5) translateY(0); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+.appWindow.from-new-card {
+  animation: openAppFromNewCard 1200ms forwards ease-in-out;
 }
 
 /* Opacity increases start up time then we don't use it anymore for opening */
@@ -102,24 +112,36 @@
   100% { transform: scale(1.0); }
 }
 
-.appWindow.invoked {
-  animation: invokedApp var(--transition-duration) forwards linear;
-}
-
-.appWindow.invoking {
-  animation: invokingApp var(--transition-duration) forwards linear;
-}
-
 /* Invoking app moves out */
-@keyframes invokingApp {
+html[dir="ltr"] .appWindow.invoking {
+  animation: invokingApp_ltr var(--transition-duration) forwards linear;
+}
+html[dir="rtl"] .appWindow.invoking {
+  animation: invokingApp_rtl var(--transition-duration) forwards linear;
+}
+@keyframes invokingApp_ltr {
   0%   { transform: translateX(0) }
   100% { transform: translateX(calc(-100% - 20px)); }
 }
+@keyframes invokingApp_rtl {
+  0%   { transform: translateX(0) }
+  100% { transform: translateX(calc(100% + 20px)); }
+}
 
 /* Invoked app moves in */
-@keyframes invokedApp {
+html[dir="ltr"] .appWindow.invoked {
+  animation: invokedApp_ltr var(--transition-duration) forwards linear;
+}
+html[dir="rtl"] .appWindow.invoked {
+  animation: invokedApp_rtl var(--transition-duration) forwards linear;
+}
+@keyframes invokedApp_ltr {
   0%   { transform: translateX(calc(100% + 20px)); }
-  100%  { transform: translateX(0); }
+  100% { transform: translateX(0); }
+}
+@keyframes invokedApp_rtl {
+  0%   { transform: translateX(calc(-100% - 20px)); }
+  100% { transform: translateX(0); }
 }
 
 .appWindow.fade-in {
@@ -190,8 +212,7 @@
 }
 
 .appWindow.to-cardview {
-  animation: closeAppTowardsCardView var(--transition-duration) forwards
-             cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: closeAppTowardsCardView 300ms forwards cubic-bezier(.35,.9,.6,1);
 }
 
 @keyframes closeApp {
@@ -234,6 +255,10 @@
 
 .appWindow iframe {
   visibility: visible;
+}
+
+.appWindow[transition-state="closed"]:not(.toaster-mode) > div.browser-container > iframe {
+  visibility: hidden;
 }
 
 .appWindow > .fade-overlay {
@@ -303,7 +328,7 @@
   width: 100%;
   color: white;
   background: none;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   margin-bottom: 1.5rem; /* not overlap by menu while keyboard pop */
 }
 
@@ -364,7 +389,7 @@
   opacity: 1;
 }
 
-.appWindow.in-task-manager.overlay.no-screenshot > .identification-overlay {
+#screen.cards-view .appWindow.in-task-manager.overlay.no-screenshot > .identification-overlay {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.2s ease-in, visibility 0.2s;
@@ -388,7 +413,7 @@
 .identification-overlay > div {
   position: absolute;
   top: calc(50% - 4.65rem);
-  left: 1.5rem;
+  offset-inline-start: 1.5rem;
   width: calc(100% - 3rem);
   height: 9.3rem;
 }
@@ -396,7 +421,7 @@
 .identification-overlay > div .icon {
   position: absolute;
   top: 0;
-  left: calc(50% - 3rem);
+  offset-inline-start: calc(50% - 3rem);
   width: 6rem;
   height: 6rem;
   background: no-repeat center / contain;
@@ -566,6 +591,18 @@
   100% { transform: translateY(calc(-100%)); }
 }
 
+/*
+  When a mozbrowser iframe requests fullscreen with SHB enabled,
+  Gecko will make that element fixed and take up the entire viewport.
+  However, due to bug 879443 the transform property will make fixed
+  relative to this ancestor rather than the viewport, so we unset
+  the transform for this case.
+  See: https://bugzilla.mozilla.org/show_bug.cgi?id=1212960
+*/
+#screen:-moz-full-screen-ancestor > #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).active {
+  transform: unset;
+}
+
 /* Edges */
 #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow) {
   /* not in the viewport */
@@ -613,6 +650,7 @@
 
 @media (orientation: landscape) {
   #screen.software-button-enabled:not(.fullscreen-layout-app) #windows > .appWindow.outside-edges-right {
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     transform: translateX(calc(100% + var(--software-home-button-height)));
   }
 }
