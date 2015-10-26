@@ -3,6 +3,11 @@
 'use strict';
 
 (function(exports){
+  /**
+   * Root folder name.
+   * @type {Number}
+   */
+  const ROOT_FOLDER = '/';
 
   /**
    * Max number of list item visible when scroll.
@@ -65,7 +70,7 @@
      * Current navigation folder.
      * @type {String}
      */
-    this.navState = null;
+    this.navState = '';
 
     /**
      * Save user browser history.
@@ -97,11 +102,11 @@
       var eventDetail = {
         startAt: 0,
         number: MAX_VISIBLE_ITEM*2,
-        folderId: null,
+        folderId: ROOT_FOLDER,
         callback: (function(bookmarks) {
           var event = new Event('open'),
               focusEl = null;
-
+          this.navHistory.push(ROOT_FOLDER);
           this.render(bookmarks);
           this.el.classList.add('show');
           focusEl = this.listItemMap[0];
@@ -122,7 +127,6 @@
      */
     close: function() {
       var event = new Event('close');
-      this.navState = null;
       this.navHistory = [];
       this.el.classList.remove('show');
       this.el.dispatchEvent(event);
@@ -140,6 +144,7 @@
       this.listVisibleStartAt = 0;
       this.listIndexStartAt = 0;
       this.listIndexEndAt = 0;
+      this.navState = '';
 
       for(key in this.listItemMap) {
         if(this.listItemMap.hasOwnProperty(key)) {
@@ -158,6 +163,15 @@
       var itemEl = null,
           i = 0,
           length = bookmarks.length;
+
+      this.navState = this.getCurNavHistory();
+      /*
+       *  if current render folder is not ROOT_FOLDER,
+       *  render back button element first
+       */
+      if(this.navState !== ROOT_FOLDER) {
+        bookmarks.unshift(this.generateBackButtonData());
+      }
 
       for(; i < length; i++) {
         /*
@@ -515,54 +529,45 @@
 
     /**
      * Preload the item before and after the view item.
-     * @param  {Number} focusIndex - current focus index.
+     * @param  {Number} index - current focus index.
      */
-    loadItemBuffer: function(focusIndex) {
-      var listIndex = 0,
-          dataIndex = 0;
+    loadItemBuffer: function(index) {
+      var bufferIndex = 0;
 
       // preload the item before current focus item
-      listIndex = focusIndex - MAX_VISIBLE_ITEM;
-      if(listIndex >= 0 && listIndex < this.listIndexStartAt) {
-        if(this.navState) {
-          if(listIndex === 0) {
-            var data = this.generateBackButtonData(this.navState.folderTitle);
+      bufferIndex = index - MAX_VISIBLE_ITEM;
+      if(bufferIndex >= 0 && bufferIndex < this.listIndexStartAt) {
+        if(this.navState !== ROOT_FOLDER) {
+          if(bufferIndex === 0) {
+            var data = this.generateBackButtonData();
             this.addItem(0, data);
           } else {
-            dataIndex = listIndex - 1;
             this.dispatchLoadDataByIndex(
-              listIndex,
-              dataIndex,
-              this.navState.folderId
+              bufferIndex,
+              bufferIndex - 1,
+              this.navState
             );
           }
         } else {
-          dataIndex = listIndex;
           this.dispatchLoadDataByIndex(
-            listIndex,
-            dataIndex,
-            null
+            bufferIndex,
+            bufferIndex,
+            this.navState
           );
         }
       }
 
       // preload the item after current focus item
-      listIndex = focusIndex + MAX_VISIBLE_ITEM;
-      if(listIndex > this.listIndexEndAt) {
-        if(this.navState) {
-          dataIndex = listIndex - 1;
+      bufferIndex = index + MAX_VISIBLE_ITEM;
+      if(bufferIndex > this.listIndexEndAt) {
+        if(this.navState !== ROOT_FOLDER) {
           this.dispatchLoadDataByIndex(
-            listIndex,
-            dataIndex,
-            this.navState.folderId
+            bufferIndex,
+            bufferIndex - 1,
+            this.navState
           );
         } else {
-          dataIndex = listIndex;
-          this.dispatchLoadDataByIndex(
-            listIndex,
-            dataIndex,
-            null
-          );
+          this.dispatchLoadDataByIndex(bufferIndex, bufferIndex, this.navState);
         }
       }
     },
@@ -605,22 +610,10 @@
 
       if(targetEl) {
         targetEl.querySelector('.title').textContent = title;
-        this.focusItem(targetEl);
         var event = new Event('itemUpdated');
         this.el.dispatchEvent(event);
+        this.focusItem(targetEl);
       }
-    },
-
-    /**
-     * Add folder id and folder title
-     * @param  {[type]} folderId    [description]
-     * @param  {[type]} folderTitle [description]
-     */
-    addNavHistory: function(folderId, folderTitle) {
-      this.navHistory.push({
-        folderId: folderId,
-        folderTitle: folderTitle
-      });
     },
 
     /**
@@ -640,10 +633,10 @@
      * Generate back button data.
      * @return {Object} - back button data
      */
-    generateBackButtonData: function(title) {
+    generateBackButtonData: function() {
       return {
         type: 'button',
-        title: 'Back to ' + title
+        title: 'Back to ' + this.navState
       };
     },
 
@@ -758,19 +751,13 @@
 
       switch(type) {
         case 'folder':
-          var folderId = targetEl.getAttribute('data-folder'),
-              folderTitle = targetEl.querySelector('.title').textContent;
-
-          this.addNavHistory(folderId, folderTitle);
-          this.navState = this.getCurNavHistory();
+          var folderId = targetEl.getAttribute('data-folder');
           eventDetail = {
             startAt: 0,
-            number: MAX_VISIBLE_ITEM*2,
+            number: MAX_VISIBLE_ITEM + 6,
             folderId: folderId,
             callback: (function(bookmarks) {
-              bookmarks
-                .unshift(
-                  this.generateBackButtonData(this.navState.folderTitle));
+              this.navHistory.push(folderId);
               this.render(bookmarks);
               if(this.listIndexEndAt !== -1) {
                 var focusEl = this.listItemMap[0];
@@ -800,14 +787,9 @@
           this.navState = this.getCurNavHistory();
           eventDetail = {
             startAt: 0,
-            number: MAX_VISIBLE_ITEM*2,
-            folderId: this.navState ? this.navState.folderId : null,
+            number: MAX_VISIBLE_ITEM + 6,
+            folderId: this.navState,
             callback: (function(bookmarks) {
-              if(this.navState) {
-                bookmarks
-                  .unshift(
-                    this.generateBackButtonData(this.navState.folderTitle));
-              }
               this.render(bookmarks);
               if(this.listIndexEndAt !== -1) {
                 var focusEl = this.listItemMap[0];
@@ -832,12 +814,8 @@
 
     handleKeySubmenu: function(e) {
       var targetEl = e.currentTarget;
-      if(targetEl.getAttribute('data-type') === 'bookmark') {
-        var event = new CustomEvent('showSubMenu', {
-          detail: {
-            readOnly: targetEl.getAttribute('readOnly')
-          }
-        });
+      if(targetEl.getAttribute('readOnly') !== 'true') {
+        var event = new Event('showSubMenu');
         this.el.dispatchEvent(event);
       }
     },
@@ -855,7 +833,7 @@
           folderId: navState
         }});
       this.el.dispatchEvent(event);
-    }
+    },
   };
 
   exports.BookmarkList = BookmarkList;
