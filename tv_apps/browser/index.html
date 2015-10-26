@@ -18,7 +18,7 @@
     <link rel="stylesheet" type="text/css" href="style/tooltip.css">
     <link rel="stylesheet" type="text/css" href="style/search_result.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
-    <link rel="stylesheet" type="text/css" href="style/bookmarkList.css">
+    <link rel="stylesheet" type="text/css" href="style/smartList.css">
 
     <!-- Resources -->
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_336.png">
@@ -54,7 +54,7 @@
     <script defer src="js/search_result.js"></script>
     <script defer src="js/settings.js"></script>
     <script defer src="js/connection_handler.js"></script>
-    <script defer src="js/bookmarkList.js"></script>
+    <script defer src="js/smartList.js"></script>
     <script defer src="js/bookmarkStore.js"></script>
 
     <!-- IAC Handler (put here because it starts sending event immediately) -->
@@ -544,15 +544,7 @@
           </div>
         </section>
         <!-- awesomescreen bookamrk,history-->
-        <section id="bookmark">
-          <div class="bookmark-container">
-            <h2 class="bookmark-title" data-l10n-id="bookmark"></h2>
-            <div class="bookmark-list-wrap">
-              <ul class="bookmark-list"></ul>
-              <div class="bookmatk-list-mask"></div>
-            </div>
-          </div>
-        </section>
+        <section id="bookmark"></section>
         <div id="list-dialog">
           <section id="history"></section>
         </div>

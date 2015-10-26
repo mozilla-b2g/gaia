@@ -1,4 +1,4 @@
-#bookmark {
+.smart-list {
   position: fixed;
   top: 0;
   left: 0;
@@ -9,18 +9,18 @@
   background-color: rgba(0, 0, 0, 0.75);
 }
 
-#bookmark.show {
+.smart-list.show {
   display: block;
 }
 
-.bookmark-container {
+.smart-list-container {
   width: 149rem;
   margin: 0px auto;
   margin-top: 7rem;
   pointer-events : none;
 }
 
-.bookmark-title {
+.smart-list-title {
   width: 132rem;
   height: 5rem;
   margin: 0 auto;
@@ -31,7 +31,7 @@
   color: #FFF;
 }
 
-.bookmark-list-wrap {
+.smart-list-wrap {
   position: relative;
   height: 90rem;
   margin-top: 6rem;
@@ -39,14 +39,14 @@
 }
 
 
-.bookmark-list {
+.smart-list-view {
   position: relative;
   width: 132rem;
   height: 100%;
   margin: 0 auto;
 }
 
-.bookmark-list .list-item {
+.smart-list-view .list-item {
   display: flex;
   position: absolute;
   height: 12rem;
@@ -55,22 +55,22 @@
   transform: translateY(-12rem);
 }
 
-.bookmark-list .list-item:focus {
+.smart-list-view .list-item:focus {
   background-color: rgba(255,255,255,0.2);
 }
 
-.bookmark-list .list-item .icon-box {
+.smart-list-view .list-item .icon-box {
   display: inline-flex;
   align-items: center;
 }
 
-.bookmark-list .list-item .icon-box-left {
+.smart-list-view .list-item .icon-box-left {
   width: 12rem;
   height: 100%;
   padding: 2rem;
 }
 
-.bookmark-list .list-item .text-box {
+.smart-list-view .list-item .text-box {
   display: inline-flex;
   width: 111.5rem;
   height: 100%;
@@ -79,7 +79,7 @@
   font-family: Fira Sans;
 }
 
-.bookmark-list .list-item .text-box .title {
+.smart-list-view .list-item .text-box .title {
   display: inline-block;
   width: 100%;
   font-size: 4rem;
@@ -90,46 +90,46 @@
   text-overflow: ellipsis;
 }
 
-.bookmark-list .list-item .icon-box-right {
+.smart-list-view .list-item .icon-box-right {
   width: 8.5rem;
   height: 100%;
   padding: 1rem;
 }
 
-.bookmark-list .list-item .icon-box-right .icon {
+.smart-list-view .list-item .icon-box-right .icon {
   width: 6rem;
   height: 6rem;
 }
 
-.bookmark-list .list-item .icon-box-right .icon:before {
+.smart-list-view .list-item .icon-box-right .icon:before {
   font-size: 6rem;
   line-height: 6rem;
   color: #fff;
   opacity: 0.5;
 }
 
-.bookmark-list .list-item[data-type="folder"] .icon-box-left {
+.smart-list-view .list-item[data-type="folder"] .icon-box-left {
   padding: 0;
 }
 
-.bookmark-list .list-item[data-type="folder"] .icon-box-left .icon {
+.smart-list-view .list-item[data-type="folder"] .icon-box-left .icon {
   color: #57d1ef;
 }
 
-.bookmark-list .list-item[data-type="folder"] .icon-box-left .icon:before {
+.smart-list-view .list-item[data-type="folder"] .icon-box-left .icon:before {
   font-size: 12rem;
   line-height: 12rem;
 }
 
-.bookmark-list .list-item[data-type="folder"] .text-box {
+.smart-list-view .list-item[data-type="folder"] .text-box {
   align-items: center;
 }
 
-.bookmark-list .list-item[data-type="folder"] .uri {
+.smart-list-view .list-item[data-type="folder"] .uri {
   display: none;
 }
 
-.bookmark-list .list-item[data-type="bookmark"] .icon-box-left .icon {
+.smart-list-view .list-item[data-type="bookmark"] .icon-box-left .icon {
   width: 100%;
   height: 100%;
   background-color: #858585;
@@ -139,21 +139,21 @@
   background-size: 3rem 3rem;
 }
 
-.bookmark-list .list-item[data-type="bookmark"] .icon-box-left .icon:before {
+.smart-list-view .list-item[data-type="bookmark"] .icon-box-left .icon:before {
   font-size: 8rem;
   line-height: 8rem;
 }
 
-.bookmark-list .list-item[data-type="bookmark"] .text-box {
+.smart-list-view .list-item[data-type="bookmark"] .text-box {
   width: 120rem;
   flex-direction: column;
 }
 
-.bookmark-list .list-item[data-type="bookmark"] .title {
+.smart-list-view .list-item[data-type="bookmark"] .title {
   height: 55%;
 }
 
-.bookmark-list .list-item[data-type="bookmark"] .uri {
+.smart-list-view .list-item[data-type="bookmark"] .uri {
   display: inline-block;
   width: 100%;
   height: 45%;
@@ -164,39 +164,39 @@
   text-overflow: ellipsis;
 }
 
-.bookmark-list .list-item[data-type="bookmark"] .icon-box-right {
+.smart-list-view .list-item[data-type="bookmark"] .icon-box-right {
   display: none;
 }
 
-.bookmark-list .list-item[data-type="button"] .icon-box-left {
+.smart-list-view .list-item[data-type="button"] .icon-box-left {
   padding: 0;
 }
 
-.bookmark-list .list-item[data-type="button"] .icon-box-left .icon {
+.smart-list-view .list-item[data-type="button"] .icon-box-left .icon {
   color: #57d1ef;
 }
 
-.bookmark-list .list-item[data-type="button"] .icon-box-left .icon:before {
+.smart-list-view .list-item[data-type="button"] .icon-box-left .icon:before {
   font-size: 12rem;
   line-height: 12rem;
 }
 
-.bookmark-list .list-item[data-type="button"] .text-box {
+.smart-list-view .list-item[data-type="button"] .text-box {
   width: 120rem;
   align-items: center;
 }
 
-.bookmark-list .list-item[data-type="button"] .uri {
+.smart-list-view .list-item[data-type="button"] .uri {
   display: none;
 }
 
-.bookmark-list .list-item[data-type="button"] .icon-box-right {
+.smart-list-view .list-item[data-type="button"] .icon-box-right {
   position: absolute;
   top: 0;
   left: -8.5rem;
 }
 
-.bookmatk-list-mask {
+.smart-list-mask {
   position: absolute;
   right: 0;
   left: 0;

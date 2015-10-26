@@ -1,5 +1,5 @@
 /* globals _, Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
-/* globals BrowserDialog, BookmarkList, BookmarkStore*/
+/* globals BrowserDialog, SmartList, BookmarkStore*/
 
 
 /* exported Awesomescreen */
@@ -144,7 +144,7 @@ var Awesomescreen = {
         this.hidePrivateBrowsingBlock.bind(this));
 
     //init bookmark list
-    this.bookmarkList = new BookmarkList(this.bookmark);
+    this.bookmarkList = new SmartList(this.bookmark, 'LT_NET_BOOKMARK');
 
     this.bookmark.addEventListener('open',
       this.showAwesomescreen.bind(this)
