@@ -108,6 +108,27 @@ var loadingChecker =
   new VideoLoadingChecker(dom.player, dom.inUseOverlay, dom.inUseOverlayTitle,
                           dom.inUseOverlayText);
 
+var lastPlayTime = 0;
+
+// Workaround to fix issue reported in Bug 1214157
+// We would like to pause video playback when interrupted by competing audio.
+// Audio Channel API throws interruptbegin event after play event (Bug 1192748)
+// If performance.now() - lastPlayTime is small number we ignore interruptbegin
+// and pause video playback only when interrupted by competing audio.
+// This workaround should be removed with the fix of Bug 1206581
+dom.player.addEventListener('play', function() {
+  lastPlayTime = window.performance.now();
+});
+
+dom.player.addEventListener('mozinterruptbegin', function() {
+  // Ignore mozinterruptbegin event if it immediately follows play event
+  if ((window.performance.now() - lastPlayTime) > 50) {
+    // Pause video when interrupted by competing audio.
+    pause();
+    lastPlayTime = 0;
+  }
+});
+
 // Pause on visibility change
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
