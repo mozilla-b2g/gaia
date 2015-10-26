@@ -276,6 +276,7 @@ window.GaiaAppIcon = (function(exports) {
     } else {
       var features = {
         name: this.bookmark.name,
+        scope: this.bookmark.scope,
         remote: true
       };
 
