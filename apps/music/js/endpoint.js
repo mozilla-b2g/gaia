@@ -3,6 +3,13 @@
           onSearchClose */
 'use strict';
 
+const MEDIA_ERROR_CODES = {
+  ABORTED:           1,
+  NETWORK:           2,
+  DECODE:            3,
+  SRC_NOT_SUPPORTED: 4
+};
+
 var audio           = null;
 var queueSettings   = null;
 var remote          = null;
@@ -54,8 +61,8 @@ var service = bridge.service('music-service')
   .method('getSongThumbnailURL', getSongThumbnailURL)
 
   .method('share', share)
-  .method('openExternalFile', openExternalFile)
   .method('enableNFC', enableNFC)
+  .method('openExternalFile', openExternalFile)
 
   .method('getDatabaseStatus', getDatabaseStatus)
 
@@ -68,6 +75,15 @@ var service = bridge.service('music-service')
 
 document.addEventListener('DOMContentLoaded', function() {
   audio = document.getElementById('audio');
+
+  audio.addEventListener('error', function(evt) {
+    var code = audio.error && audio.error.code;
+    console.log('An error occurred during audio playback', code);
+
+    if (code === MEDIA_ERROR_CODES.DECODE) {
+      nextSong();
+    }
+  });
 
   audio.addEventListener('loadeddata', function() {
     URL.revokeObjectURL(audio.src);
@@ -510,6 +526,17 @@ function share(filePath) {
   });
 }
 
+function enableNFC(enabled) {
+  // This function is a no-op until we enable NFC once.
+  if (!nfcShare && !enabled) {
+    return;
+  }
+
+  loadNFCShare().then(() => {
+    NFCShare.enabled = enabled;
+  });
+}
+
 function openExternalFile(file) {
   var scripts = [
     '/js/metadata/metadata_scripts.js',
@@ -533,17 +560,6 @@ function openExternalFile(file) {
         });
       });
     });
-  });
-}
-
-function enableNFC(enabled) {
-  // This function is a no-op until we enable NFC once.
-  if (!nfcShare && !enabled) {
-    return;
-  }
-
-  loadNFCShare().then(() => {
-    NFCShare.enabled = enabled;
   });
 }
 
