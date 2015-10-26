@@ -99,4 +99,4 @@ class BuiltInKeyBoard(Base):
         GaiaHeader(self.marionette, self._user_dict_header_locator).go_back()
 
     def tap_exit(self):
-        GaiaHeader(self.marionette, self._header_locator).go_back_and_exit(app=self)
+        GaiaHeader(self.marionette, self._header_locator).go_back(app=self, exit_app=True, statusbar=True)

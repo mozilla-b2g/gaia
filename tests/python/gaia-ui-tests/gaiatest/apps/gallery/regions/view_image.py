@@ -37,9 +37,7 @@ class ViewImage(Base):
         return element.text
 
     def tap_back_button(self):
-        GaiaHeader(self.marionette, self._header_locator).go_back_and_exit(
-            app=self, add_statusbar_height=False)
-        self.apps.switch_to_displayed_app()
+        GaiaHeader(self.marionette, self._header_locator).go_back(exit_app=True, app=self)
 
     def tap_save_image(self):
         self.marionette.find_element(*self._save_image_button_locator).tap()

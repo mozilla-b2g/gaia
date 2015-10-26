@@ -11,22 +11,24 @@ class GaiaHeader(Widget):
     _back_button_locator = (By.CSS_SELECTOR, 'button.action-button')
     _close_button_locator = (By.CSS_SELECTOR, 'button[type="reset"]')
 
-    def go_back(self):
+    def go_back(self,app=None, exit_app=False, statusbar=False):
         Wait(self.marionette).until(expected.element_enabled(self.root_element) and
                                     expected.element_displayed(self.root_element))
         self.marionette.switch_to_shadow_root(self.root_element)
         element = self.marionette.find_element(*self._back_button_locator)
-        if element.is_displayed():
-            element.tap()
-            self.marionette.switch_to_shadow_root()
-        else: # This header has a close button instead of a back button
-            self.marionette.switch_to_shadow_root()
-            self.root_element.find_element(*self._close_button_locator).tap()
-        Wait(self.marionette).until(expected.element_not_displayed(self.root_element))
+        _back_button_present = True
 
-    def go_back_and_exit(self, app=None, add_statusbar_height=True):
-        Wait(self.marionette).until(expected.element_enabled(self.root_element) and
-                                    expected.element_displayed(self.root_element))
-        self.tap_element_from_system_app(self.root_element, add_statusbar_height=add_statusbar_height, x=20)
-        app.wait_to_not_be_displayed()
-        self.apps.switch_to_displayed_app()
+        if not element.is_displayed(): # This header has a close button instead of a back button
+            self.marionette.switch_to_shadow_root()
+            element = self.root_element.find_element(*self._close_button_locator)
+            _back_button_present = False
+
+        if exit_app:
+            self.tap_element_from_system_app(element, statusbar)
+            app.wait_to_not_be_displayed()
+            self.apps.switch_to_displayed_app()
+        else:
+            element.tap()
+            if _back_button_present:
+                self.marionette.switch_to_shadow_root()
+            Wait(self.marionette).until(expected.element_not_displayed(self.root_element))
