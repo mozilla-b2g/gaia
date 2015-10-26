@@ -314,4 +314,192 @@ marionette('Conversation Panel Tests', function() {
       assert.equal(downloadedMessage.content.trim(), 'Attachment');
     });
   });
+
+  suite('Edit Mode', function() {
+    var thread, conversationView;
+    setup(function() {
+      thread = ThreadGenerator.generate({
+        numberOfMessages: 4
+      });
+
+      messagesApp.launch();
+      storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
+      storage.setContactsStorage();
+
+      var inboxView = new InboxView(client);
+      conversationView = inboxView.goToConversation(thread.id);
+    });
+    
+    test('User can enter and exit edit mode', function () {
+      conversationView.enterEditMode();
+
+      conversationView.messages.forEach(function(message) {
+        assert.isTrue(message.isInEditMode);
+      });
+
+      conversationView.exitEditMode();
+
+      conversationView.messages.forEach(function(message) {
+        assert.isFalse(message.isInEditMode);
+      });
+    });
+
+    suite('Toggle selection button behavior', function() {
+      setup(function() {
+        conversationView.enterEditMode();
+      });
+
+      test('User can select/deselect all messages at once', function () {
+        // Selecting all messages
+        conversationView.toggleMessagesSelection();
+
+        conversationView.messages.forEach(function(message) {
+          assert.isTrue(message.isSelected);
+        });
+        assert.equal(
+          conversationView.toggleSelectionButtonTitle,
+          'Deselect all',
+          'Select / Deselect all button should display correct text'
+        );      
+        assert.equal(
+          conversationView.editHeaderTitle,
+          '4 selected',
+          'Edit mode header should show correct number of messages'
+        );
+
+        // Deselecting all messages
+        conversationView.toggleMessagesSelection();
+
+        conversationView.messages.forEach(function(message) {
+          assert.isFalse(message.isSelected);
+        });
+        assert.equal(
+          conversationView.toggleSelectionButtonTitle,
+          'Select all',
+          'Select / Deselect all button should display correct text'
+        );      
+        assert.equal(
+          conversationView.editHeaderTitle,
+          'Delete messages',
+          'Edit mode header should not indicate that any message is selected'
+        );
+      }); 
+
+      test('User selects a few and then selects/deselects all', function() {
+        // Selecting the 1st and 3rd message
+        var messageIndicesToSelect = [2, 0];
+
+        var messages = conversationView.messages;
+
+        messageIndicesToSelect.forEach(function(messageIndex) {
+          conversationView.tapOnMessage(messages[messageIndex].id);
+        });
+
+        conversationView.messages.forEach(function(message, index) {
+          if (messageIndicesToSelect.indexOf(index) >= 0) {
+            assert.isTrue(message.isSelected);
+          } else {
+            assert.isFalse(message.isSelected);
+          }
+        });
+        assert.equal(
+          conversationView.editHeaderTitle,
+          '2 selected',
+          'Edit mode header should show correct number of messages'
+        ); 
+
+        // Selecting all messages
+        conversationView.toggleMessagesSelection();
+
+        conversationView.messages.forEach(function(message) {
+          assert.isTrue(message.isSelected);
+        });
+        assert.equal(
+          conversationView.toggleSelectionButtonTitle,
+          'Deselect all',
+          'Select / Deselect all button should display correct text'
+        );     
+        assert.equal(
+          conversationView.editHeaderTitle,
+          '4 selected',
+          'Edit mode header should show correct number of messages'
+        );
+
+        // Deselecting all messages
+        conversationView.toggleMessagesSelection();
+
+        conversationView.messages.forEach(function(message) {
+          assert.isFalse(message.isSelected);
+        });
+        assert.equal(
+          conversationView.toggleSelectionButtonTitle,
+          'Select all',
+          'Select / Deselect all button should display correct text'
+        );      
+        assert.equal(
+          conversationView.editHeaderTitle,
+          'Delete messages',
+          'Edit mode header should not indicate that any message is selected'
+        );
+      });
+
+      test('User selects all, deselects some, selects all', function() {
+        // Selecting all messages
+        conversationView.toggleMessagesSelection();
+
+        conversationView.messages.forEach(function(message) {
+          assert.isTrue(message.isSelected);
+        });
+        assert.equal(
+          conversationView.toggleSelectionButtonTitle,
+          'Deselect all',
+          'Select / Deselect all button should display correct text'
+        );     
+        assert.equal(
+          conversationView.editHeaderTitle,
+          '4 selected',
+          'Edit mode header should show correct number of messages'
+        );
+
+        // Deselecting 1st and 3rd message
+        var messageIndicesToDeselect = [2, 0];
+
+        var messages = conversationView.messages;
+
+        messageIndicesToDeselect.forEach(function(messageIndex) {
+          conversationView.tapOnMessage(messages[messageIndex].id);
+        });
+
+        conversationView.messages.forEach(function(message, index) {
+          if (messageIndicesToDeselect.indexOf(index) >= 0) {
+            assert.isFalse(message.isSelected);
+          } else {
+            assert.isTrue(message.isSelected);
+          }
+        });
+        assert.equal(
+          conversationView.editHeaderTitle,
+          '2 selected',
+          'Edit mode header should show correct number of messages'
+        );
+
+        // Selecting all messages
+        conversationView.toggleMessagesSelection();
+
+        conversationView.messages.forEach(function(message) {
+          assert.isTrue(message.isSelected);
+        });
+        assert.equal(
+          conversationView.toggleSelectionButtonTitle,
+          'Deselect all',
+          'Select / Deselect all button should display correct text'
+        );     
+        assert.equal(
+          conversationView.editHeaderTitle,
+          '4 selected',
+          'Edit mode header should show correct number of messages'
+        );                       
+      });    
+    });
+  });
 });
