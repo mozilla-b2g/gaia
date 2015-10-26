@@ -1,7 +1,7 @@
 <element name="wifi" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#network">
       <h1 data-l10n-id="wifi-header"></h1>
     </gaia-header>
 
@@ -12,6 +12,7 @@
             <input type="checkbox" data-ignore>
             <span data-l10n-id="wifi"></span>
           </label>
+           <small id="explanation" class="explanations" data-l10n-id="wifi-disabled"></small>
         </li>
         <li hidden>
           <label class="pack-checkbox">
@@ -28,16 +29,16 @@
         </li>
       </ul>
 
-      <header>
+      <header class="wifiAvailableNetworks">
         <h2 data-l10n-id="availableNetworks"></h2>
       </header>
       <ul class="wifi-availableNetworks" data-state="off">
-        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled"></li>
         <li data-state="on">
-          <progress></progress><span data-l10n-id="scanning"></span>
+          <a>
+            <span data-l10n-id="availableNetworks"></span>
+          </a>
         </li>
         <li data-state="ready">
-          <button data-l10n-id="scanNetworks"></button>
         </li>
       </ul>
 
@@ -55,11 +56,6 @@
         <li>
           <a class="menu-item" href="#wifi-manageNetworks">
             <span data-l10n-id="manageNetworks"></span>
-          </a>
-        </li>
-        <li>
-          <a class="menu-item" href="#wifi-manageCertificates">
-            <span data-l10n-id="manageCertificates"></span>
           </a>
         </li>
       </ul>

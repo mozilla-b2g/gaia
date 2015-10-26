@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
@@ -123,8 +123,6 @@
     <link rel="import" href="/elements/wifi_join_hidden.html">
     <link rel="import" href="/elements/wifi_wps.html">
     <link rel="import" href="/elements/wifi_manage_networks.html">
-    <link rel="import" href="/elements/wifi_manage_certificates.html">
-    <link rel="import" href="/elements/wifi_select_certificate_file.html">
     <link rel="import" href="/elements/wifi_enter_certificate_nickname.html">
     <link rel="import" href="/elements/wifi.html">
 
@@ -142,6 +140,7 @@
     <link rel="import" href="/elements/call_voice_mail_settings.html">
     <link rel="import" href="/elements/call_pin2_dialog.html">
     <link rel="import" href="/elements/call_fdn_list_add.html">
+    <link rel="import" href="/elements/call_setting_fdn_description.html">
     <link rel="import" href="/elements/call_fdn_list.html">
     <link rel="import" href="/elements/call_fdn_settings.html">
     <link rel="import" href="/elements/call_iccs.html">
@@ -149,8 +148,15 @@
     <link rel="import" href="/elements/messaging.html">
     <link rel="import" href="/elements/messaging_details.html">
     <link rel="import" href="/elements/apn_settings.html">
+    <link rel="import" href="/elements/data_settings.html">
+    <link rel="import" href="/elements/message_settings.html">
+    <link rel="import" href="/elements/a_gps_settings.html">
+    <link rel="import" href="/elements/tethering_settings.html">
+    <link rel="import" href="/elements/ims_settings.html">
     <link rel="import" href="/elements/apn_list.html">
     <link rel="import" href="/elements/apn_editor.html">
+    <link rel="import" href="/elements/carrier_ims_profile.html">
+    <link rel="import" href="/elements/carrier_ims_settings.html">
     <link rel="import" href="/elements/carrier_operator_settings.html">
     <link rel="import" href="/elements/carrier_detail.html">
     <link rel="import" href="/elements/carrier.html">
@@ -179,6 +185,9 @@
     <link rel="import" href="/elements/app_permissions_details.html">
     <link rel="import" href="/elements/app_permissions.html">
     <link rel="import" href="/elements/do_not_track.html">
+    <!-- Adding do not track more info html, UX: 6.4.4 -->
+    <link rel="import" href="/elements/do_not_track_more_info.html">
+
     <link rel="import" href="/elements/browsing_privacy.html">
     <link rel="import" href="/elements/about_more_info.html">
     <link rel="import" href="/elements/about_your_rights.html">
@@ -187,10 +196,18 @@
     <link rel="import" href="/elements/about_source_code.html">
     <link rel="import" href="/elements/about_legal.html">
     <link rel="import" href="/elements/about.html">
+    <link rel="import" href="/elements/about_firefox_os.html">
+    <link rel="import" href="/elements/about_firefox_os_description.html">
+    <link rel="import" href="/elements/about_crash_reports.html">
+    <link rel="import" href="/elements/about_power_saver_mode.html">
     <link rel="import" href="/elements/battery.html">
+    <link rel="import" href="/elements/device_section.html">
     <link rel="import" href="/elements/usb_storage.html">
+    <link rel="import" href="/elements/usb_storage_list.html">
     <link rel="import" href="/elements/application_storage.html">
+    <link rel="import" href="/elements/about_application_storage.html">
     <link rel="import" href="/elements/media_storage.html">
+    <link rel="import" href="/elements/about_media_storage.html">
     <link rel="import" href="/elements/accessibility.html">
     <link rel="import" href="/elements/accessibility_screenreader.html">
     <link rel="import" href="/elements/accessibility_colors.html">
@@ -200,17 +217,28 @@
     <link rel="import" href="/elements/improve_browser_os_send_feedback.html">
     <link rel="import" href="/elements/improve_browser_os_choose_feedback.html">
     <link rel="import" href="/elements/improve_browser_os.html">
+    <link rel="import" href="/elements/help_to_improve_firefox_os.html">
     <link rel="import" href="/elements/help.html">
     <link rel="import" href="/elements/icc.html">
     <link rel="import" href="/elements/downloads.html">
+    <link rel="import" href="/elements/account.html">
     <link rel="import" href="/elements/firefox_accounts.html">
     <link rel="import" href="/elements/findmydevice.html">
     <link rel="import" href="/elements/frame.html">
     <link rel="import" href="/elements/templates/messaging.html">
     <link rel="import" href="/elements/root.html">
+    <link rel="import" href="/elements/network.html">
+    <link rel="import" href="/elements/personalization.html">
+    <link rel="import" href="/elements/privacy_security.html">
+    <link rel="import" href="/elements/operator_services.html">
+    <link rel="import" href="/elements/operator_service_list.html">
+    <link rel="import" href="/elements/storage.html">
+    <link rel="import" href="/elements/send_reports.html">
     <link rel="import" href="/elements/settings_alert_dialog.html">
     <link rel="import" href="/elements/settings_confirm_dialog.html">
     <link rel="import" href="/elements/settings_prompt_dialog.html">
+    <link rel="import" href="/elements/wifi_knowNetworks.html">
+    <link rel="import" href="/elements/other_sound.html">
   </head>
   <body class="skin-organic uninit theme-settings">
     <!--
@@ -247,11 +275,9 @@
     <section is="wifi-wps" role="region" id="wifi-wps" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi :: Saved Networks -->
     <section is="wifi-manageNetworks" role="region" id="wifi-manageNetworks"></section>
+    <!-- Connectivity :: Wi-Fi :: Know Networks -->
+    <section is="wifi-knowNetworks" role="region" id="wifi-knowNetworks"></section>
     <!-- Connectivity :: Wi-Fi :: Manage Certificates -->
-    <section is="wifi-manageCertificates" role="region" id="wifi-manageCertificates"></section>
-    <!-- Connectivity :: Wi-Fi :: Select Certificate File -->
-    <section is="wifi-selectCertificateFile" role="region" id="wifi-selectCertificateFile"></section>
-    <!-- Connectivity :: Wi-Fi :: Enter Certificate Nickname -->
     <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname" class="dialog"></section>
     <!-- Connectivity :: Wi-Fi -->
     <section is="wifi" role="region" id="wifi"></section>
@@ -273,6 +299,8 @@
     <section is="call-fdnList-add" role="region" id="call-fdnList-add" class="dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
     <section is="call-fdnList" role="region" id="call-fdnList" data-require-sub-panels="true"></section>
+    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: description -->
+    <section is="call-fdn-description" role="region" id="call-fdn-description" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: SIM PIN2 Input -->
     <section is="call-pin2-dialog" role="region" id="call-pin2-dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) -->
@@ -291,10 +319,24 @@
     <section is="carrier-operatorSettings" role="region" id="carrier-operatorSettings"></section>
     <!-- Connectivity :: Cellular & Data :: APN Settings -->
     <section is="apn-settings" role="region" id="apn-settings"></section>
+    <!-- Connectivity :: Cellular & Data :: Data Settings -->
+    <section is="data-settings" role="region" id="data-settings"></section>
+    <!-- Connectivity :: Cellular & Data :: Message Settings -->
+    <section is="message-settings" role="region" id="message-settings"></section>
+    <!-- Connectivity :: Cellular & Data :: A-GPS Settings -->
+    <section is="a-gps-settings" role="region" id="a-gps-settings"></section>
+    <!-- Connectivity :: Cellular & Data :: Tethering Settings -->
+    <section is="tethering-settings" role="region" id="tethering-settings"></section>
+    <!-- Connectivity :: Cellular & Data :: IMS Settings -->
+    <section is="ims-settings" role="region" id="ims-settings"></section>
     <!-- Connectivity :: Cellular & Data :: APN List -->
     <section is="apn-list" role="region" id="apn-list"></section>
     <!-- Connectivity :: Cellular & Data :: APN Editor -->
     <section is="apn-editor" role="region" id="apn-editor"></section>
+    <!-- Connectivity :: Cellular & Data :: IMS Calling Profile -->
+    <section is="carrier-ims-profile" role="region" id="carrier-ims-profile"></section>
+    <!-- Connectivity :: Cellular & Data :: IMS Settings -->
+    <section is="carrier-ims-settings" role="region" id="carrier-ims-settings"></section>
     <!-- Connectivity :: Cellular & Data :: Detail -->
     <section is="carrier-detail" role="region" id="carrier-detail"></section>
     <!-- Connectivity :: Cellular & Data -->
@@ -310,8 +352,13 @@
 
     <!-- Personalization :: Sound -->
     <section is="sound" role="region" id="sound"></section>
+    <!-- Operator Services :: Information -->
+    <section is="operator" role="region" id="operator"></section>
+    <section is="operatorlist" role="region" id="operatorlist"></section>
     <!-- Personalization :: Display -->
     <section is="display" role="region" id="display"></section>
+    <!-- Personalization :: Display -->
+    <section is="other-sound" role="region" id="other-sound"></section>
     <!-- Personalization :: Homescreen -->
     <section is="homescreen" role="region" id="homescreen"></section>
     <!-- Personalization :: Search -->
@@ -339,6 +386,8 @@
     <!-- Personalization :: Themes -->
     <section is="themes" role="region" id="themes"></section>
 
+    <!-- Accounts :: Account Management -->
+    <section is="account" role="region" id="account"></section>
     <!-- Accounts :: Find My Device -->
     <section is="findmydevice" role="region" id="findmydevice"></section>
 
@@ -356,9 +405,12 @@
     <section is="appPermissions" role="region" id="appPermissions"></section>
     <!-- Security :: Do Not Track -->
     <section is="doNotTrack" role="region" id="doNotTrack"></section>
+    <!-- Security :: Do Not Track More Info-->
+    <section role="region" is="do-not-track-more-info" id="do-not-track-more-info"></section>
     <!-- Security :: Browser -->
     <section is="browsingPrivacy" role="region" id="browsingPrivacy"></section>
-
+    <!-- Device :: List Of Device Section-->
+    <section is="device-section" role="region" id="device-section"></section>
     <!-- Device :: Information :: More Information -->
     <section is="about-moreInfo" role="region" id="about-moreInfo"></section>
     <!-- Device :: Information :: Your Rights -->
@@ -377,10 +429,18 @@
     <section is="downloads" role="region" id="downloads"></section>
     <!-- Device :: Battery -->
     <section is="battery" role="region" id="battery"></section>
+    <!-- Storage ::Storage Main Page -->
+    <section is="storage" role="region" id="storage"></section>
+    <!-- Storage :: USB Storage List -->
+    <section is="usbStorageList" role="region" id="usbStorageList"></section>
     <!-- Storage :: USB Transfer Protocol -->
     <section is="usbStorage" role="region" id="usbStorage"></section>
     <!-- Storage :: Device Storage -->
     <section is="applicationStorage" role="region" id="applicationStorage"></section>
+    <!-- Storage :: About Application Storage -->
+    <section is="aboutApplicationStorage" role="region" id="aboutApplicationStorage"></section>
+    <!-- Storage :: About Media Storage -->
+    <section is="aboutMediaStorage" role="region" id="aboutMediaStorage"></section>
     <!-- Storage :: Media Storage -->
     <section is="mediaStorage" role="region" id="mediaStorage"></section>
     <!-- Device :: Accessibility :: Color Filter -->
@@ -395,6 +455,8 @@
     <section is="developer" role="region" id="developer"></section>
     <!-- Device :: Improve Browser OS :: Crash Reports-->
     <section is="crashReports" role="region" id="crashReports"></section>
+    <!-- Device :: Improve Firefox OS :: Help to Improve Firefox OS-->
+    <section is="help-to-improve-firefox-os" role="region" id="help-to-improve-firefox-os"></section>
     <!-- Device :: Send Feedback -->
     <section is="improveBrowserOS-sendFeedback" role="region" id="improveBrowserOS-sendFeedback"></section>
     <!-- Device :: Send Feedback -->
@@ -419,15 +481,36 @@
     <!-- templates -->
     <!-- templates :: Messaging -->
     <section is="template-messaging" role="region" id="template-messaging"></section>
+    <!-- templates :: Network And Connectivity -->
+    <section is="network" role="region" id="network"></section>
+    <!-- templates :: Personalization -->
+    <section is="personalization" role="region" id="personalization"></section>
 
+    <!-- templates :: Privacy and Security -->
+    <section is="privacy-security" role="region" id="privacy-security"></section>
+    <!-- templates :: Device Section -->
+    <section is="device-section" role="region" id="device-section"></section>
+    <!-- templates :: About Firefox OS -->
+    <section is="about-firefox-os" role="region" id="about-firefox-os"></section>
+    <!-- templates :: About Crash Report -->
+    <section is="about-crash-report" role="region" id="about-crash-report"></section>
+    <!-- templates :: Help To Improve Firefox OS -->
+    <section is="help-to-improve-firefox-os" role="region" id="help-to-improve-firefox-os"></section>
+    <!-- templates :: About Power Save Mode -->
+    <section is="about-power-save-mode" role="region" id="about-power-save-mode"></section>
+    <!-- templates :: About Firefox OS Description-->
+    <section is="about-firefox-os-description" role="region" id="about-firefox-os-description"></section>
+    <!-- templates :: Send Reports-->
+    <section is="send-reports" role="region" id="send-reports"></section>
     <!-- Main List -->
     <section is="root" role="region" id="root"></section>
 
     <!-- Warning Dialog :: Incompatible Settings :: USB Storage & USB Tethering & Wifi Tethering -->
     <form data-type="confirm" role="dialog" class="incompatible-settings-dialog" hidden>
-      <section>
+      <section id="is-warning-head-dialog">
         <h1 class="is-warning-head"></h1>
         <p class="is-warning-message"></p>
+        <span id="is-warning-message-desc">Do you want to enable USB tethering?</span>
       </section>
       <menu>
         <button class="incompatible-settings-cancel-btn" data-l10n-id="cancel">Cancel</button>
@@ -447,7 +530,7 @@
         <button data-l10n-id="ok" class="ums-confirm-option recommend">OK</button>
       </menu>
     </form>
-
+    <section is="status-message" id="statusMsg" role="status" class="hidden"></section>
     <div class="settings-dialog-overlay" hidden></div>
 
     <script src="js/startup.js"></script>

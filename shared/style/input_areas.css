@@ -214,7 +214,6 @@ textarea:invalid,
   color: #b90000;
 }
 
-input:focus,
 textarea:focus,
 .skin-dark input:focus,
 .skin-dark textarea:focus {

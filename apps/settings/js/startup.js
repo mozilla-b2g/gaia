@@ -126,7 +126,7 @@
      * @access private
      * @memberOf InitialPanelHandler.prototype
      * @param {HTMLInputElement} input
-     * @param {Event} event                    
+     * @param {Event} event
      */
     _onSettingChange: function uph_onSettingChange(input, event) {
       this._updateInput(input, event.settingValue);
@@ -137,7 +137,7 @@
      *
      * @access private
      * @memberOf InitialPanelHandler.prototype
-     * @param {Event} event                    
+     * @param {Event} event
      */
     _onInputChange: function uph_onInputChange(event) {
       var input = event.target;
@@ -191,7 +191,7 @@
      * @access private
      * @memberOf InitialPanelHandler.prototype
      * @param {HTMLInputElement} input
-     * @param {Object} value                  
+     * @param {Object} value
      */
     _updateInput: function uph_updateInput(input, value) {
       var i;
@@ -226,7 +226,7 @@
      * Add listeners for click and input changes.
      *
      * @access private
-     * @memberOf InitialPanelHandler.prototype              
+     * @memberOf InitialPanelHandler.prototype
      */
     _init: function iph_init() {
       this._addClickListeners();
@@ -237,7 +237,7 @@
      * Release the control from the handler to the panel.
      *
      * @access public
-     * @memberOf InitialPanelHandler.prototype              
+     * @memberOf InitialPanelHandler.prototype
      */
     release: function iph_release() {
       this._removeClickListeners();
@@ -253,7 +253,7 @@
 
 
 /**
- * RootPanelHandler updates UI elements in the root panel. 
+ * RootPanelHandler updates UI elements in the root panel.
  *
  * @module RootPanelHandler
  */
@@ -273,30 +273,9 @@
 
   RootPanelHandler.prototype = {
     /**
-     * Update the sim related items based on mozMobileConnections.
-     *
+     
      * @access private
      * @memberOf RootPanelHandler.prototype
-     */
-    _updateSimItems: function rph_refrehsSimItems() {
-      if (navigator.mozMobileConnections) {
-        if (navigator.mozMobileConnections.length === 1) { // single sim
-          document.getElementById('simCardManager-settings').hidden = true;
-        } else { // dsds
-          document.getElementById('simSecurity-settings').hidden = true;
-        }
-      } else {
-        // hide telephony panels
-        var elements = ['call-settings',
-                        'data-connectivity',
-                        'messaging-settings',
-                        'simSecurity-settings',
-                        'simCardManager-settings'];
-        elements.forEach(function(el) {
-          document.getElementById(el).hidden = true;
-        });
-      }
-    },
 
     /**
      * Update the developer menu item based on the preference.
@@ -324,16 +303,10 @@
      * Process all UI elements here.
      *
      * @access private
-     * @memberOf RootPanelHandler.prototype              
+     * @memberOf RootPanelHandler.prototype
      */
     _init: function rph_init() {
-      var nfcItem = this._rootElement.querySelector('.nfc-settings');
-      nfcItem.hidden = !navigator.mozNfc;
-
-      // Show proper SIM items.
-      this._updateSimItems();
-
-      // Show developer menu when necessary.
+    // Show developer menu when necessary.
       this._updateDeveloperMenuItem();
     }
   };

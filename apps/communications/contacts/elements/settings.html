@@ -2,13 +2,13 @@
   <template>
     <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom theme-settings">
       <gaia-header>
-        <h1 data-l10n-id="settings"></h1>
+        <h1 data-l10n-id="contacts-settings"></h1>
         <button id="settings-close" data-l10n-id="done">Done</button>
       </gaia-header>
 
       <article class="view-body" id="settings-article">
         <section role="region" class="view-body-inner">
-          <ul data-type="list" role="presentation">
+          <ul data-type="list" role="presentation" id="order-by-lastname">
             <li id="settingsOrder" role="checkbox">
               <p data-l10n-id="contactsOrderBy">Order by last name</p>
               <aside class="pack-end" aria-hidden="true">
@@ -41,7 +41,7 @@
             <li class="fb-item" role="checkbox">
               <p data-l10n-id="facebookSwitchMsg">Sync friends</p>
               <p id="fb-totals"></p>
-              <aside class="pack-end" aria-hidden="true">
+              <aside class="pack-end" aria-hidden="true" id="fb-aside">
                 <label class="pack-switch">
                   <input type="checkbox" name="fb.imported">
                   <span id="span-check-fb"></span>
@@ -124,12 +124,17 @@
       </gaia-header>
       <article class="view-body">
         <section role="region" class="view-body-inner">
-          <p class="description" data-l10n-id="ICEDescription">
-            Add two contacts for making “In Case of Emergency” calls.
-          </p>
-          <ul data-type="list" role="listbox" aria-multiselectable="true">
+           <li role="presentation">
+             <button role="option" id="about-ice-contacts" class="action" data-l10n-id="AboutIceContacts">
+               About ICE Contacts
+             </button>
+           </li>
+          <gaia-subheader skin="organic" id="ice-contact1-header">
+            <span data-l10n-id="IceContact1Title">ICE Contact 1</span>
+          </gaia-subheader>
+          <ul data-type="list" role="listbox" aria-multiselectable="true" id="ice-main-list">
             <li role="option" id="ice-contacts-1-switch" class="ice-contacts-switch">
-              <p data-l10n-id="ICEContact1">ICE Contact 1</p>
+              <p class="ice-select" data-l10n-id="ICEContact1">ICE Contact 1</p>
               <aside class="pack-end" aria-hidden="true">
                 <label class="pack-switch">
                   <input type="checkbox" name="ice-contact-1-enabled" />
@@ -137,13 +142,18 @@
                 </label>
               </aside>
             </li>
-            <li role="presentation">
+            <li role="presentation" id="ice-contact-1">
               <button role="option" id="select-ice-contact-1" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
                 Select a contact
               </button>
             </li>
+          </ul>
+              <gaia-subheader skin="organic" id="ice-contact2-header">
+                <span data-l10n-id="IceContact2Title">ICE Contact 2</span>
+              </gaia-subheader>
+          <ul data-type="list" role="listbox" aria-multiselectable="true" id="ice-main-list">
             <li role="option" id="ice-contacts-2-switch" class="ice-contacts-switch">
-              <p data-l10n-id="ICEContact2">ICE Contact 2</p>
+              <p class="ice-select" data-l10n-id="ICEContact2">ICE Contact 2</p>
               <aside class="pack-end" aria-hidden="true">
                 <label class="pack-switch">
                   <input type="checkbox" name="ice-contact-2-enabled" />
@@ -151,13 +161,23 @@
                 </label>
               </aside>
             </li>
-            <li role="presentation">
+            <li role="presentation" id="ice-contact-2">
               <button role="option" id="select-ice-contact-2" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
                 Select a contact
               </button>
             </li>
           </ul>
         </section>
+      </article>
+    </section>
+    <section data-theme="organic"  is="about-ice-view" role="region" id="about-ice-view" class="skin-organic view view-right theme-settings">
+      <gaia-header id="about-ice-contacts-header" action="back">
+        <h1 data-l10n-id="AboutIceContacts">About ICE Contacts</h1>
+      </gaia-header>
+       <article class="view-body">
+         <p class="description" data-l10n-id="ICEDescription" id="ice-description">
+         Add two contacts for making "In Case of Emergency" calls.
+        </p>
       </article>
     </section>
   </template>

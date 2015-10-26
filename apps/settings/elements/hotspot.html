@@ -1,7 +1,7 @@
 <element name="hotspot" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#network">
       <h1 data-l10n-id="internetSharing-header"></h1>
     </gaia-header>
 
@@ -15,21 +15,16 @@
             <input type="checkbox" id="tethering-wifi-enabled" class="uninit">
             <span data-l10n-id="wifi-hotspot"></span>
           </label>
-        </li>
-        <li class="description">
-          <p data-l10n-id="internetSharing-wifi-desc"></p>
-        </li>
+           <p data-l10n-id="internetSharing-wifi-desc" id="internet-sharing-wifi-desc"></p>
         <li>
           <a class="info-item">
             <span data-l10n-id="wifi-name" class="info-item-title"></span>
-            <span class="info-item-space"></span>
             <span class="hotspotSSID info-item-content"></span>
           </a>
         </li>
         <li>
           <a class="info-item">
             <span data-l10n-id="wifi-security" class="info-item-title"></span>
-            <span class="info-item-space"></span>
             <span id="wifi-security-type" class="info-item-content"></span>
           </a>
         </li>
@@ -49,9 +44,10 @@
             <input type="checkbox" id="tethering-usb-enabled" class="uninit">
             <span data-l10n-id="usb-tethering"></span>
           </label>
-        </li>
-        <li class="description">
+
+           <a id="internetSharing-usb-desc1">
           <p data-l10n-id="internetSharing-usb-desc"></p>
+         </a>
         </li>
       </ul>
     </div>

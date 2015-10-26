@@ -1,0 +1,39 @@
+<element name="storage" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="storage"></h1>
+       <a href="#" id="settings-forwd"><span class="icon icon-forwd"></span></a>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li class="pack-split usb-item storage-items">
+          <label class="pack-switch storage-switch">
+            <input class="usb-switch" data-ignore type="checkbox" disabled>
+            <span></span>
+          </label>
+          <label id="menuItem-enableStorage" class="name">
+            <span class="menu-item" data-icon="usb" data-l10n-id="enableUSBStorage1">USB storage</span>
+            <small class="usb-desc menu-item-desc">Disabled</small>
+          </label>
+        </li>
+        <li class="media-storage-section">
+          <a class="menuItem-mediaStorage menu-item" data-icon="media-storage" href="#mediaStorage">
+            <span data-l10n-id="mediaStorage">Media Storage</span>
+            <small class="media-storage-desc menu-item-desc"></small>
+          </a>
+        </li>
+        <li class="about-app-storage">
+          <a class="menuItem-applicationStorage menu-item" data-icon="storage" href="#applicationStorage">
+            <span data-l10n-id="appStorage">About Application Storage</span>
+            <small class="application-storage-desc menu-item-desc"></small>
+          </a>
+        </li>
+      </ul>
+</div>
+
+    <panel data-path="panels/root/storage_list"><panel>
+
+  </template>
+</element>

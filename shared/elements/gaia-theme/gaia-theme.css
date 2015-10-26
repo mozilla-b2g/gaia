@@ -17,6 +17,8 @@ Gaia theme variables
   --color-eta: #c7c7c7;
   --color-theta: #e7e7e7;
   --color-iota: #f4f4f4;
+  --color-rs: #666666;
+  --color-rst: #ffffff;
 
 /** Brand Colors
  ---------------------------------------------------------*/
@@ -97,7 +99,7 @@ Gaia theme variables
   /** Brand Color
    ---------------------------------------------------------*/
 
-  --highlight-color: var(--color-turquoise);
+  --highlight-color: var(--color-rs);
 
   /** Links
    ---------------------------------------------------------*/
@@ -118,7 +120,7 @@ Gaia theme variables
   /** Background
    ---------------------------------------------------------*/
 
-  --background: var(--color-iota);
+  --background: var(--color-rs);
   --background-plus: var(--color-beta);
   --background-minus: var(--color-epsilon);
   --background-minus-minus: var(--color-zeta);
@@ -136,7 +138,7 @@ Gaia theme variables
   /** Titles
    ---------------------------------------------------------*/
 
-  --title-color: var(--background-minus);
+  --title-color: var(--color-rst);
 
   /** Buttons
    ---------------------------------------------------------*/
@@ -173,7 +175,7 @@ Gaia theme variables
   /** Background
    ---------------------------------------------------------*/
 
-  --background: var(--color-alpha);
+  --background: var(--color-rs);
   --background-plus: var(--color-gamma);
   --background-minus: #2B2B2B;
   --background-minus-minus: #1a1a1a;

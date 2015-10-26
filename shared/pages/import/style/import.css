@@ -28,6 +28,7 @@ form[role="dialog"].no-overlay button {
   top: -3.7rem;
   background: #fff;
   z-index: 2;
+  display: none;
 }
 
 /* Force having always checkboxes */
@@ -61,6 +62,7 @@ form[role="dialog"].no-overlay button {
 #groups-list.import-list li,
 .import #search-list[data-type="list"] li {
   -moz-padding-start: 3.5rem;
+   border-bottom: 0.1rem solid #999999;
 }
 
 #groups-list.active li:not(:active):after,
@@ -94,13 +96,15 @@ form[role="dialog"].no-overlay button {
   z-index: 1;
   border-bottom: 0.1rem solid #E6E6E6;
   padding: 0.4rem 0;
+  background: #999999;
+  color: #ffffff;
 }
 
 p#friends-msg {
   font-size: 1.3rem;
   font-weight: 600;
   line-height: 1.8rem;
-  margin: 0 3rem;
+  margin: 0 1rem;
   text-align: start;
 }
 
@@ -119,7 +123,7 @@ p#friends-msg {
   color: #333;
   text-align: start;
   height: calc(100% - 6.9rem);
-  padding-top: 3.7rem; /* Equal to search form height */
+  padding-top: 2.7rem; /* Equal to search form height */
   position: relative;
 }
 
@@ -153,6 +157,7 @@ abbr, acronym {
 nav[data-type="scrollbar"] {
   z-index:100;
   bottom: 4.2rem;
+  display: none;
 }
 
 nav[data-type="scrollbar"] li {
@@ -212,4 +217,46 @@ html[dir="rtl"] .block-item {
   text-overflow: ellipsis;
   display: inline-block;
   max-width: 100%;
+  margin-top: 0.8rem;
+  font-style: italic;
+}
+
+#search-abc {
+  font-size: 1.5rem;
+  color: #cdd5e2;
+  font-style: italic;
+  line-height: 3rem;
+}
+
+#search-image {
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDMwIDMwIj48cGF0aCBmaWxsPSIjYWFhIiBkPSJNMjMuMzg1IDIxLjQ5NGMuMjY2LjI2Ni4wNTcuOTAzLS40NjUgMS40MjZzLTEuMTYuNzI5LTEuNDI2LjQ2NWwtNC4wNDEtNC4wMzljLTEuMDEuNjU2LTIuMjEgMS4wNDctMy41MDUgMS4wNDctMy41NjEgMC02LjQ0OC0yLjg4NS02LjQ0OC02LjQ0NiAwLTMuNTYgMi44ODctNi40NDYgNi40NDgtNi40NDYgMy41NjIgMCA2LjQ0OSAyLjg4NyA2LjQ0OSA2LjQ0NiAwIDEuMjk3LS4zOTMgMi40OTktMS4wNTEgMy41MDlsNC4wNDEgNC4wMzloLS4wMDJ2LS4wMDF6bS05LjQzNy0xMi40NTljLTIuNzEyIDAtNC45MTQgMi4xOTgtNC45MTQgNC45MTJzMi4yMDIgNC45MTMgNC45MTQgNC45MTNjMi43MTQgMCA0LjkxNC0yLjE5OSA0LjkxNC00LjkxMy0uMDAxLTIuNzE0LTIuMi00LjkxMi00LjkxNC00LjkxMnoiLz48L3N2Zz4=);
+  display: block;
+  width: 4rem;
+  transform: scaleX(-1);
+  margin-left: 0.8rem;
+}
+
+#search-container {
+  background: #ffffff;
+  border-bottom: 0.1rem solid #e7e7e7;
+  height: 3rem;
+}
+
+#search-container:after {
+  content: "";
+  position: absolute;
+  left: 3.5rem;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 0.1rem;
+  background: #c7c7c7 none repeat scroll 0% 0%;
+  line-height: 1.8rem;
+}
+
+#search-container > p {
+  padding: 0;
+}
+
+#search-start {
+  height: 3rem;
 }

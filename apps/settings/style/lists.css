@@ -14,20 +14,37 @@ ul li {
   -moz-box-sizing: border-box;
   position: relative;
   margin: 0 1.5rem;
-  border-bottom: 0.1rem solid #e6e6e3;
+  border-bottom: 0.1rem solid #999;
   color: #000;
+}
+
+ul li.description {
+  border-bottom: none;
 }
 
 ul+ul li:first-child {
   border-top: 0.1rem solid #e6e6e3;
 }
 
-ul li:last-child {
+ul.border-last-child li:last-child {
   border-bottom: none;
+
+}
+
+ul li:last-child {
+  border-bottom: 0.1rem solid #999;
+}
+
+ul li.fxaButton,ul li.about-app-storage,ul li.findmyDevice {
+  border-bottom: 0.1rem solid #999;
 }
 
 ul li.sound-setting {
   min-height: 7.9rem;
+}
+
+ul li.search-suggestions {
+  border-bottom: 0 none;
 }
 
 ul li label:not([for]) {
@@ -43,11 +60,29 @@ ul li > label > small {
   outline: 0;
   color: #000;
   -moz-box-sizing: border-box;
-  font-size: 1.9rem;
-  padding: 0 3rem;
+  font-size: 1.5rem;
+  padding: 0 1.7rem;
   margin: 0 -1.5rem;
+  font-style: italic;
 }
 
+#enabled-fmd {
+  font-size: 2rem;
+}
+
+#fmd {
+  display: none;
+}
+
+#menuItem-ttyMode,
+#menuItem-answerCall {
+  min-height: 7rem;
+}
+
+ul li > a.list-label{
+  min-height: auto;
+  padding-bottom: 0;
+}
 ul li,
 ul li > a,
 ul li > label {
@@ -55,7 +90,9 @@ ul li > label {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  border-bottom-color: #999999;
 }
+
 
 ul li > a,
 ul li > label {
@@ -109,14 +146,15 @@ ul > li > progress + span {
 /* description + value on the same line */
 ul li .info-item {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
+
+  font-style: italic;
   justify-content: center;
 }
 
 ul li .info-item .info-item-title {
   order: 1;
+  width: 100%
+  float: left;
   flex: 1 0 auto;
 }
 
@@ -128,20 +166,19 @@ ul li .info-item .info-item-space {
 ul li .info-item .info-item-content {
   order: 3;
   flex: 1 1 auto;
-  color: #505859;
-  text-align: right;
+  color: #999999;
+  font-size: 1.5rem;
+  margin-top: 0.5rem;
 }
 
 /* backward compatible */
 ul li > a:not(.info-item) span:nth-of-type(2):not(.button) {
   position: absolute;
-  right: 1.5rem;
   color: #505859;
-  line-height: 6rem;
+  line-height: 10rem;
   height: 6rem;
   top: 0;
 }
-
 /* text ellipsis */
 ul li > *,
 ul li > label > *,
@@ -149,7 +186,7 @@ ul li > a > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 /* sublines */
@@ -255,10 +292,26 @@ ul li > label.pack-checkbox > .memory-item:before {
 
 ul li button {
   display: inline-block;
-  margin: 1rem 0;
+  margin: 0;/*1rem 0 to 0, UX 6.6.2*/
   white-space: normal;
 }
 
+#rename-device {
+  background: transparent;
+  border: none;
+  font-size: 1.6rem;
+  color: #000000;
+  margin-left: -1rem;
+  opacity: 1;
+}
+
+#bluetooth-rename {
+  height: 3.2rem;
+}
+
+#wifi-security p {
+  margin-left: -2rem;
+}
 /******************************************************************************
  * Boolean inputs
  */
@@ -266,6 +319,7 @@ ul li button {
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
 ul li label {
   text-transform: none;
+  font-style: italic;
 }
 
 ul li > label:not([for]),
@@ -296,6 +350,11 @@ ul li > label.pack-radio > span:after,
 ul li > label.pack-switch > input ~ span:after {
   left: auto;
   right: 1.5rem;
+}
+
+ul li.storage-items::after,
+ul li > label.storage-switch{
+  visibility: hidden;
 }
 
 ul li > label.pack-checkbox > span {
@@ -357,11 +416,51 @@ ul li.pack-split > label.pack-switch {
  */
 
 ul li p {
-  font-size: 1.9rem;
+  font-size: 1.4rem;
   line-height: 1.9rem;
   font-weight: 400;
-  margin: 0;
+  margin: 0 -1.5rem;
+  padding: 0 1.7rem;
   padding: 1.5rem 1.5rem 1rem;
+  font-style: italic;
+  color: #000;
+}
+
+#findmydevice-tracking {
+  color: #000;
+  font-size: 1.4rem;
+}
+
+#wifi-security {
+   color: #999999;
+   margin: 0 -1.4rem;
+}
+
+#internet-sharing-wifi-desc, #internet-sharing-usb-desc1 {
+   white-space: normal;
+   color: #999999;
+   padding: 0.1rem 1.6rem 1rem;
+   font-style: italic;
+   font-size: 1.5rem;
+   margin-top: -2rem;
+}
+
+#internet-sharing-usb-desc1 {
+   margin-left: -1.5rem;
+}
+
+ul li label.show > span:after{
+   left: 0rem;
+   padding-right: 2.2rem;
+}
+
+#show-password-display {
+   margin-left: 2rem;
+   margin-top: -1.8rem;
+}
+
+#internetSharing-usb-desc1 p{
+   margin-top: -2rem;
 }
 
 ul li p + label:not([for]) {
@@ -469,6 +568,15 @@ dl dd {
   border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
 }
 
+#dataConnection-expl {
+  border-bottom: 0.1rem solid #999999;
+}
+
+#menuItem-enableDataCall,
+#menuItem-enableDataRoaming {
+  border-bottom: none;
+}
+
 /******************************************************************************
  * Right-To-Left layout
  */
@@ -508,4 +616,23 @@ html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
 
 html[dir="rtl"] ul li .info-item .info-item-content {
   text-align: left;
+}
+
+ul li > label.pack-switch > input ~ span.carrier-ims-switch:after {
+  top: 0.5rem;
+}
+/*firefox Account Management CSS */
+
+#fxa-logout {
+  font-size: 1.5rem;
+}
+
+#findmydevice-login-btn {
+  font-size: 1.9rem;
+  padding: 0;
+}
+
+#fxa-cancel-confirmation {
+  line-height: 5rem;
+  text-align: center;
 }

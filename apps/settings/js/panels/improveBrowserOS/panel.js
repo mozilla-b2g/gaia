@@ -7,7 +7,12 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         var appUsage = panel.querySelector('#appUsageByRegion');
+        var addingText = document.getElementById('sendReport-desc');
         appUsage.addEventListener('click', this._openAppUsage.bind(this));
+        SettingsListener.observe('app.reportCrashes', 'ask',
+            function handleCrashSetting(value) {
+              addingText.setAttribute('data-l10n-id', value.concat('SendReport'));
+        });
       },
 
       _openAppUsage: function() {

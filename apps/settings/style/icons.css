@@ -11,16 +11,6 @@
   -moz-padding-start: 5.5rem;
 }
 
-a.menu-item:after {
-  font-family: "gaia-icons";
-  content: "forward-light";
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 25px;
-  line-height: 6rem;
-  color: #a5acae;
-}
 
 a.menu-item:active:after {
   color: #91aab0;
@@ -44,6 +34,10 @@ label > .menu-item + small {
   margin: 0;
   -moz-margin-start: 4rem;
   padding: 0;
+}
+
+label > small.usb-status{
+  -moz-margin-start: 0;
 }
 
 .menu-item-desc {

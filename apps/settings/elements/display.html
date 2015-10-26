@@ -1,42 +1,37 @@
 <element name="display" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#personalization">
       <h1 data-l10n-id="display-header"></h1>
     </gaia-header>
 
     <div>
-      <ul>
-        <li>
-          <label class="pack-switch">
-            <input type="checkbox" name="screen.orientation.lock" class="uninit">
-            <span data-l10n-id="lock-orientation">Lock screen orientation</span>
-          </label>
-        </li>
-      </ul>
-
       <header id="wallpaper-header">
         <h2 data-l10n-id="wallpaper">Wallpaper</h2>
       </header>
-      <div class="wallpaper">
+      <div class="wallpaper" id="wallpaper-section">
         <img class="wallpaper-preview" alt="wallpaper preview"/>
-        <button class="wallpaper-button"><span data-icon="change-wallpaper"></span></button>
+        <div class="wallpaper-button">
+          <span data-l10n-id="changewallpaper" id="wallpaper-text">Change Wallpaper</span>
+        </div>
       </div>
       <header>
         <h2 id="brightness-heading" data-l10n-id="brightness">Brightness</h2>
       </header>
       <ul>
         <li class="brightness-auto">
-          <label class="pack-checkbox">
+          <label class="pack-switch">
             <input type="checkbox" name="screen.automatic-brightness">
-            <span data-l10n-id="brightness-autoAdjust">Adjust Automatically</span>
+            <span data-l10n-id="brightness-autoAdjust">Brightness Auto-adjust</span>
+            <small data-l10n-id="automatically-autoAdjust">Automatically adjust brightness</small>
           </label>
         </li>
-        <li class="brightness-manual">
+        <li class="brightness-manual" id="brightness">
           <label class="range-icons brightness">
-            <span data-icon="moon"></span>
+            <p data-l10n-id="brightness">Brightness</p>
+            <span data-icon="moon" class="moon1_icons"></span>
             <input aria-labelledby="brightness-heading" type="range" name="screen.brightness" step="0.01" min="0.1" value="0.5" max="1" />
-            <span data-icon="brightness"></span>
+            <span data-icon="brightness" class="moon1_icons"></span>
           </label>
         </li>
         <li id="screen-timeout">

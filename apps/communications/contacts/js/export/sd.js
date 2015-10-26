@@ -16,7 +16,7 @@ var ContactsSDExport = function ContactsSDExport() {
   };
 
   var hasDeterminativeProgress = function hasDeterminativeProgress() {
-    return false;
+    return true;
   };
 
   var setProgressStep = function setProgressStep(p) {

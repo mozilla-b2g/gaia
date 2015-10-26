@@ -248,6 +248,7 @@ li button.activity > b em {
 html[dir="ltr"] [data-type="list"] li aside.pack-end {
   margin: 0;
   margin-right: 2rem;
+  float: left;
 }
 
 /* Selection tag extended from shared/style/buttons.css */
@@ -513,6 +514,7 @@ li button.icon-find-and-merge:before {
 
 nav[data-type="scrollbar"] {
   z-index: 6;
+  display: none;
 }
 
 nav[data-type="scrollbar"].selecting {
@@ -550,7 +552,7 @@ nav[data-type="scrollbar"] ol > li > * {
 
 #groups-list.selecting .group-section li,
 #search-list.selecting li {
-  -moz-padding-start: 2rem;  
+  -moz-padding-start: 3rem;
 }
 
 form[role="dialog"].no-overlay {
@@ -572,8 +574,10 @@ form[role="dialog"].no-overlay button {
 }
 
 #import-settings button {
-  margin: 1.5rem;
-  width: calc(100% - 3rem);
+  margin: 0;
+  border: none;
+  background: none;
+  width: 100%;
 }
 
 #contact-list-ice {
@@ -606,7 +610,9 @@ form[role="dialog"].no-overlay button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 24rem;
+  float: right;
+  width: 74%;
+  line-height: 5rem;
 }
 
 #contacts-form-notes textarea {
@@ -661,4 +667,3 @@ html[dir="rtl"] #view-contacts-list [data-type="list"] {
   padding-left: 4.5rem; /* extending +2rem for RTL consistency */
   padding-right: unset;
 }
-

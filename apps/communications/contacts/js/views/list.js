@@ -12,7 +12,6 @@
 /* global monitorTagVisibility */
 /* global Normalizer */
 /* global utils */
-
 var contacts = window.contacts || {};
 contacts.List = (function() {
   var _,
@@ -527,6 +526,11 @@ contacts.List = (function() {
     // name, social marks and org
     var display = getDisplayName(contact);
     var nameElement = getHighlightedName(display);
+    if (isFavorite(contact)) {
+      var bookmark = document.createElement("span");
+      bookmark.id = "fav-bookmark";
+      container.appendChild(bookmark);
+    }
     container.appendChild(nameElement);
     renderOrg(contact, container, true);
 
@@ -753,9 +757,6 @@ contacts.List = (function() {
     updatePhoto(contact);
     var ph = createPlaceholder(contact);
     var groups = [ph.dataset.group];
-    if (isFavorite(contact)) {
-      groups.push('favorites');
-    }
 
     var nodes = [];
 
@@ -1411,10 +1412,6 @@ contacts.List = (function() {
     if (isFavorite(contact)) {
       list = getGroupList('favorites');
       loadedContacts[contact.id].favorites = contact;
-      var cloned = renderedNode.cloneNode(true);
-      cloned.dataset.group = 'favorites';
-      renderPhoto(cloned, contact.id, false, 'favorites');
-      addToGroup(cloned, list);
     }
     toggleNoContactsScreen(false);
 
@@ -1675,10 +1672,49 @@ contacts.List = (function() {
     var parentDataset = target.parentNode ?
                           (target.parentNode.dataset || {}) : {};
     var uuid = dataset.uuid || parentDataset.uuid;
+    var loadContacts = true;
+    if (loadedContacts != null) {
+      var ice = document.querySelector("#contacts-list-header[action='close']");
+      if (ice) {
+        var listItem = loadedContacts[uuid];
+        var selectItem = listItem[dataset.group];
+        var OptionMenu;
+        if (selectItem.tel && selectItem.tel.length > 1) {
+          var params = {
+                          header: {
+                            l10nId: 'selectNumber'
+                          },
+                          items:[]
+                       };
+          for (var i=0; i<selectItem.tel.length; i++) {
+            params.items.push ({
+                                name: selectItem.tel[i].value ,
+                                method: function selectNumber() {
+                                  if (uuid) {
+                                    callbacks.forEach(function(callback) {
+                                      callback(uuid);
+                                    });
+                                  }
+                                }
+                              });
+        }
+        params.items.push ({l10nId: 'back',
+                            incomplete: true});
+        loadContacts = false;
+        LazyLoader.load([
+          '/shared/js/option_menu.js'
+        ], () => {
+          new window.OptionMenu(params).show();
+        });
+      }
+    }
+  }
+  if(loadContacts) {
     if (uuid) {
       callbacks.forEach(function(callback) {
         callback(uuid);
       });
+    }
     }
     evt.preventDefault();
   }

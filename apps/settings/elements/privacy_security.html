@@ -1,0 +1,45 @@
+<element name="privacy-security" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="privacyAndSecurity"></h1>
+      <a href="#" id="settings-forwd"><span class="icon icon-forwd"></span></a>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li>
+          <a id="menuItem-screenLock" class="menu-item" data-icon="lock" href="#screenLock" data-l10n-id="screenLockSection" aria-describedby="screenLock-desc">
+            <span data-l10n-id="screenLock"></span>
+            <small id="screenLock-desc" class="screenLock-desc menu-item-desc"></small>
+          </a>
+        </li>
+        <li id="simSecurity-settings">
+          <a id="menuItem-simSecurity" class="menu-item" data-icon="sim" href="#simpin" data-l10n-id="simSecuritySection" aria-describedby="simCardLock-desc">
+            <span data-l10n-id="simSecurity"></span>
+            <small id="simCardLock-desc" class="menu-item-desc simCardLock-desc"></small>
+          </a>
+        </li>
+        <li>
+          <a id="menuItem-appPermissions" class="menu-item" data-icon="tick-circle" href="#appPermissions" data-l10n-id="appPermissions"></a>
+        </li>
+        <li>
+          <a id="menuItem-doNotTrack" class="menu-item" data-icon="do-not-track" href="#doNotTrack" data-l10n-id="doNotTrackSection" aria-describedby="doNotTrack-desc">
+            <span data-l10n-id="doNotTrack"></span>
+            <small id="doNotTrack-desc" class="menu-item-desc"></small>
+          </a>
+        </li>
+        <li>
+          <small id="browsingPrivacy-desc" class="menu-item-desc" aria-hidden="true"></small>
+          <a id="menuItem-browsingPrivacy" class="menu-item" data-icon="browsing" href="#browsingPrivacy" data-l10n-id="browsingPrivacy" aria-describiedby="browsingPrivacy-desc"></a>
+        </li>
+        <li class="privacy-panel-item" hidden>
+          <a id="menuItem-privacyPanel" class="menu-item" data-icon="developer" href="#privacyPanel" data-l10n-id="privacySection" aria-describedby="privacyPanel-desc">
+            <span data-l10n-id="privacy-controls"></span>
+            <small id="privacyPanel-desc" class="menu-item-desc"></small>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>

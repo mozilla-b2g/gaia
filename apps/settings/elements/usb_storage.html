@@ -1,26 +1,32 @@
 <element name="usbStorage" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="transferProtocol-header"></h1>
+    <gaia-header action="back" data-href="#storage">
+      <h1 data-l10n-id="enableUSBStorage1"></h1>
     </gaia-header>
 
     <ul>
-      <li class="description">
-        <label class="pack-radio">
-          <input type="radio" name="usb.transfer" value="1">
-          <span data-l10n-id="protocol-mtp">Media transfer protocol (MTP)</span>
+      <li class="pack-split usb-item">
+        <label class="pack-switch">
+          <input class="usb-switch" data-ignore type="checkbox" disabled>
+          <span></span>
+        </label>
+        <label id="menuItem-enableStorage" class="name">
+          <span class="menu-item"  data-l10n-id="enableUSBStorage1">USB storage</span>
+          <small class="usb-desc menu-item-desc usb-status">Disabled</small>
         </label>
       </li>
-      <li class="description">
-        <label class="pack-radio">
-          <input type="radio" name="usb.transfer" value="0">
-          <span data-l10n-id="protocol-ums">USB mass Storage (UMS)</span>
-        </label>
-      </li>
-    </ul>
 
-    <panel data-path="panels/usb_storage/panel"></panel>
+      <li class="media-storage-section">
+        <a class="menuItem-mediaStorage menu-item"  href="#usbStorageList">
+          <span data-l10n-id="transferProtocol-header">Transfer Protocol</span>
+          <small class="protocol-mtp" data-l10n-id="protocol-mtp"></small>
+        </a>
+      </li>
+
+    </ul>
+    <panel data-path="panels/root/storage_list"></panel>
+
 
   </template>
 </element>

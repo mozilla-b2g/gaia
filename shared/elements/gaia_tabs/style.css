@@ -8,14 +8,14 @@
 
 gaia-tabs {
   display: flex;
-  position: absolute;
   bottom: 0;
   width: 100%;
   margin: 0;
   padding: 0;
   z-index: 0;
-  background: #fff;
+  background: #aeaeae;
   border-top: 0.1rem solid #e7e7e7;
+  float: left;
 }
 
 /**
@@ -167,4 +167,16 @@ gaia-tabs[underline="child"] > .selected > * {
   position: relative;
   display: inline-block;
   height: 100%;
+}
+
+gaia-tabs:before, gaia-tabs:after{
+  color: #fff;
+}
+
+gaia-tabs:before{
+  content: "<";
+}
+
+gaia-tabs:after{
+  content: ">";
 }

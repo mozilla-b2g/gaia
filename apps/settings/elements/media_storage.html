@@ -1,7 +1,7 @@
 <element name="mediaStorage" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#storage">
       <h1 data-l10n-id="mediaStorage-header"></h1>
     </gaia-header>
 
@@ -19,8 +19,10 @@
             </select>
           </span>
         </li>
-        <li data-l10n-id="default-media-location-msg" class="explanation">
-          Choose where photos, videos, music and downloads are stored by default.
+        <li class="about-app-storage">
+          <a class="menu-item"  href="#aboutMediaStorage">
+            <span data-l10n-id="about-media-storage"></span>
+          </a>
         </li>
       </ul>
     </div>
@@ -35,8 +37,9 @@
     </form>
     <form data-type="confirm" role="dialog" id="format-sdcard-dialog" hidden>
       <section>
-        <h1 data-l10n-id="format-sdcard-title">Format SD card</h1>
+        <h1 data-l10n-id="format-sdcard-title">Format SD card?</h1>
         <p data-l10n-id="format-sdcard-message">This will erase all data stored on your SD card, such as music and photos.</p>
+        <p class="format-sdcard" data-l10n-id="format-sdcard-message-dialog">Would you like to format SD card></p>
       </section>
       <menu>
         <button id="format-sdcard-cancel-btn" data-l10n-id="cancel">Cancel</button>

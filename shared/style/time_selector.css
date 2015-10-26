@@ -4,7 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="time-selector"] {
-  background: #2d2d2d;
+  background: #fff;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -23,7 +23,7 @@
   line-height: 4.8rem;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
-  background: rgba(0 ,0, 0, .2);
+  background: rgba(0 ,0, 0, .6);
   margin: 0;
   padding: 0 3rem 1rem;
   height: 4.8rem;
@@ -34,12 +34,12 @@
 [role="dialog"][data-type="time-selector"] .picker-container {
   -moz-box-sizing: border-box;
   position: relative;
-  width: calc(100% - 5rem);
-  height: 22.5rem;
-  margin: 5.4rem auto 0;
+  width: calc(100% - 2rem);
+  height: 35.5rem;
+  margin: 2.4rem auto 0;
   padding-top: 8.8rem;
-  border-left:  0.1rem solid #111;
-  border-right: 0.1rem solid #111;
+  border-left:  0.1rem solid rgba(0, 0, 0, 0.5);
+  border-right: 0.1rem solid rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 
@@ -49,7 +49,7 @@
   top: 0;
   right: 0;
   left: 0;
-  border-top: solid 0.7rem;
+  border-top: solid 0.1rem;
   -moz-border-top-colors:
     rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
     rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
@@ -63,7 +63,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  border-bottom: solid 0.7rem;
+  border-bottom: solid 0.1rem;
   -moz-border-bottom-colors:
     rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
     rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
@@ -77,7 +77,7 @@
   right: 0;
   width: calc(100% / 3);
   height: 100%;
-  background: #4d4d4d;
+  background: #fff;
 }
 
 [role="dialog"][data-type="time-selector"] .format12hrev .picker-bar-background {
@@ -99,8 +99,9 @@
   width: calc(100% / 3);
   height: 100%;
   padding-top: 8.3rem;
-  border-right: solid 0.2rem;
-  -moz-border-right-colors: #1d1d1d #4a4a4a;
+  border-right: solid 0.1rem;
+  -moz-border-right-colors: rgba(0, 0, 0, 0.5);
+  z-index: 1;
 }
 
 [role="dialog"][data-type="time-selector"] .format12h .value-picker-minutes-wrapper {
@@ -159,9 +160,9 @@
 [role="dialog"][data-type="time-selector"] .value-indicator {
   position: absolute;
   width: 100%;
-  height: 4.6rem;
-  background-color: #00A5C5;
-  box-shadow: 0 0 0.7rem rgba(0,0,0, .4);
+  height: 3.6rem;
+  background-color: #F2F2F2;
+  border: 3px solid #999999;
   opacity: .99;
   pointer-events: none;
 }
@@ -172,7 +173,7 @@
   height: 100%;
   font: 2.2rem/4.4rem Sans-serif;
   text-align: center;
-  background-color: #00A5C5;
+  background-color: #F2F2F2;
   pointer-events: none;
 }
 
@@ -191,13 +192,13 @@
 [role="dialog"][data-type="time-selector"]  .picker-unit {
   position: relative;
   font: 2.2rem/5.6rem Sans-serif;
-  color: #fff;
+  color: #000;
   text-align: center;
   vertical-align: middle;
   width: 100%;
   height: 5.6rem;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.9;
   transform: scale(0.8);
 }
 

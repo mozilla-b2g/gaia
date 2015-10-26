@@ -8,17 +8,20 @@
     </gaia-header>
 
     <div>
-      <ul id="cf-unconditional-advanced">
-        <li>
-          <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
-          <input type="tel" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number"/>
-        </li>
+      <ul id="cf-unconditional-advanced" class="border-last-child">
         <li>
           <label class="pack-switch">
             <input type="checkbox" data-setting="ril.cf.unconditional.enabled">
             <span data-l10n-id="callForwardingForward">Forward</span>
             <small data-l10n-id="callForwardingUnconditionalShort">Always</small>
           </label>
+        </li>
+        <li>
+          <p class="cf-text-style" data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
+          <div>
+            <input placeholder="Enter Phone Number" class="input-area-text-padding cf-placeholder" data-l10n-id="cf-alwaysUseThisNumber" type="tel" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" />
+            <span class="cf-default-text-span">123</span>
+          </div>
         </li>
       </ul>
     </div>

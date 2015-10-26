@@ -7,15 +7,12 @@
 
     <div>
       <ul>
-        <li class="description">
-          <p>
-            <span data-l10n-id="fdn-explanation1">
-              Restrict which numbers can be dialed from this phone.
+        <li>
+          <a class="" href="#call-fdn-description">
+            <span data-l10n-id="fdnSettingsAboutDescription">
+              About Fixed Dialing Numbers
             </span>
-            <small data-l10n-id="fdn-explanation2">
-              (Emergency numbers will always be dialable)
-            </small>
-          </p>
+          </a>
         </li>
         <li id="fdn-enabled">
           <label class="pack-switch">
@@ -25,7 +22,7 @@
           </label>
         </li>
         <li>
-          <a class="menu-item" href="#call-fdnList">
+          <a href="#call-fdnList">
             <span data-l10n-id="fdn-authorizedNumbers">
               Authorized numbers
             </span>
@@ -39,6 +36,19 @@
         </li>
       </ul>
     </div>
+    <form role="dialog" data-type="confirm" hidden class="fdn-sim-pin2">
+      <section class="fdn-dialog-section">
+        <h1 class="fdn-sim-pin-dialog" data-l10n-id="enablefdn"></h1>
+        <div class="fdn-dialog-parent">
+          <input type="tel" class="sim-pin2-number">
+          <span class="fdn-dialog-placeholder">123</span>
+        </div>
+      </section>
+      <menu>
+        <button class="fdn-dialog-cancel" data-l10n-id="cancel">Cancel</button>
+        <button class="fdn-dialog-set recommend" data-l10n-id="set">Set</button>
+      </menu>
+    </form>
 
     <script src="js/simcard_dialog.js"></script>
     <script src="js/simcard_fdn_list.js"></script>

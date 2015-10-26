@@ -8,17 +8,20 @@
     </gaia-header>
 
     <div>
-      <ul id="cf-noreply-advanced">
-        <li>
-          <p data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
-          <input type="tel" id="cf-noreply-number" data-setting="ril.cf.noreply.number"/>
-        </li>
+      <ul id="cf-noreply-advanced" class="border-last-child">
         <li>
           <label class="pack-switch">
             <input type="checkbox" data-setting="ril.cf.noreply.enabled">
             <span data-l10n-id="callForwardingForward">Forward</span>
             <small data-l10n-id="callForwardingNoReplyShort">When unanswered</small>
           </label>
+        </li>
+        <li>
+          <p class="cf-text-style" data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
+          <div>
+            <input placeholder="Enter Phone Number" class="input-area-text-padding cf-placeholder" type="tel" id="cf-noreply-number" data-setting="ril.cf.noreply.number" />
+            <span class="cf-default-text-span">123</span>
+          </div>
         </li>
       </ul>
     </div>

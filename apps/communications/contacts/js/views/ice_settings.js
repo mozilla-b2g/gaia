@@ -14,11 +14,15 @@
 var contacts = window.contacts || {};
 
 contacts.ICE = (function() {
-  var iceSettingsPanel,
+  var navigationHandler,
+    aboutICEcontacts,
+    aboutICEHeader,
+    iceSettingsPanel,
     iceSettingsHeader,
     iceContactItems = [],
     iceContactCheckboxes = [],
     iceContactButtons = [],
+    iceContactList = [],
     iceScreenInitialized = false,
     currentICETarget;
 
@@ -29,12 +33,14 @@ contacts.ICE = (function() {
    * frame ui.
    */
   var init = function ice_init() {
+    navigationHandler = new navigationStack('ice-settings');
     if (iceScreenInitialized) {
       return;
     }
     // ICE DOM elements
     iceSettingsPanel = document.getElementById('ice-settings');
     iceSettingsHeader = document.getElementById('ice-settings-header');
+    aboutICEHeader = document.getElementById('about-ice-contacts-header');
 
     iceContactItems.push(document.getElementById('ice-contacts-1-switch'));
     iceContactItems.push(document.getElementById('ice-contacts-2-switch'));
@@ -46,12 +52,19 @@ contacts.ICE = (function() {
     iceContactButtons.push(document.getElementById('select-ice-contact-1'));
     iceContactButtons.push(document.getElementById('select-ice-contact-2'));
 
+    iceContactList.push(document.getElementById('ice-contact-1'));
+    iceContactList.push(document.getElementById('ice-contact-2'));
     iceContactButtons[0].dataset.contactId = '';
     iceContactButtons[1].dataset.contactId = '';
 
     // ICE Events handlers
     iceSettingsHeader.addEventListener('action', function(){
       contacts.Settings.navigation.back();
+    });
+    aboutICEcontacts = document.getElementById('about-ice-contacts');
+    aboutICEcontacts.addEventListener('click', aboutICEHandler);
+    aboutICEHeader.addEventListener('action', function(){
+      navigationHandler.back();
     });
 
     // All the controls do the same, just modifications on the
@@ -71,6 +84,7 @@ contacts.ICE = (function() {
             }
           }
           else {
+            iceContactList[i].classList.remove('ice-hide-contact');
             iceContactButtons[i].disabled = false;
           }
         };
@@ -157,7 +171,7 @@ contacts.ICE = (function() {
         }
       }
 
-      buildIceContactUI(index, iceLabel, iceContact.id,
+      buildIceContactUI(index, iceLabel, iceContact.id, iceContact.photo,
                         iceContactData.active);
     }
     else {
@@ -165,7 +179,7 @@ contacts.ICE = (function() {
     }
   }
 
-  function buildIceContactUI(index, label, contactId, active) {
+  function buildIceContactUI(index, label, contactId, photo, active) {
     iceContactCheckboxes[index].checked = active;
     iceContactButtons[index].disabled = !active;
 
@@ -175,11 +189,23 @@ contacts.ICE = (function() {
     iceContactButtons[index].innerHTML = '';
     iceContactButtons[index].appendChild(bdi);
     iceContactButtons[index].dataset.contactId = contactId;
+    var iceImage = document.createElement('span');
+    var firstChar = label.charAt(0);
+    iceImage.classList.add('ice-image');
+    if (!photo || !photo.length) {
+      iceImage.classList.add('ice-default-image');
+      iceImage.setAttribute('data-type', 'img');
+      iceImage.setAttribute('data-group', firstChar);
+    }
+    else {
+      iceImage.style.backgroundImage = "url('" + URL.createObjectURL(photo[1])+ "')";
+    }
+      iceContactButtons[index].appendChild(iceImage);
   }
 
   function resetIceGroupState(index) {
     iceContactCheckboxes[index].checked = false;
-
+    iceContactList[index].classList.add('ice-hide-contact');
     iceContactButtons[index].disabled = true;
     iceContactButtons[index].innerHTML = '';
     iceContactButtons[index].dataset.contactId = '';
@@ -339,12 +365,20 @@ contacts.ICE = (function() {
     });
   }
 
+  function aboutICEHandler() {
+     navigationHandler.go('about-ice-view', 'right-left');
+   }
   function reset() {
     iceScreenInitialized = false;
     iceContactItems = [];
     iceContactCheckboxes = [];
     iceContactButtons = [];
     currentICETarget = null;
+    navigationHandler = null;
+    if(aboutICEcontacts) {
+      aboutICEcontacts.removeEventListener('click');
+      aboutICEcontacts = null;
+    }
   }
 
   return {

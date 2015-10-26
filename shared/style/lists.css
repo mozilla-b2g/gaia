@@ -199,8 +199,8 @@ li a:active {
 [data-type="list"] li > .pack-switch input ~ span:after {
   /* because width is set in switches.css, the conflict between left/right will
    * be resolved in favor of "left" in LTR and "right" in RTL */
-  left: 0;
-  right: 0;
+   left: 0;
+   right: 0;
   -moz-margin-start: 0;
 }
 
@@ -243,4 +243,3 @@ html[dir="rtl"] [data-type="list"] aside {
 html[dir="rtl"] [data-type="list"] aside.pack-end {
   float: left;
 }
-

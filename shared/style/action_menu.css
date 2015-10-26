@@ -214,7 +214,7 @@
 }
 
 [role="dialog"][data-type="action"] > menu > button {
-  width: calc(100% - 3rem);
+  width: calc(100% - 0.8rem);
   height: 4rem;
   -moz-box-sizing: border-box;
   vertical-align: middle;
@@ -229,7 +229,6 @@
   text-align: start;
   padding: 0 1.2rem;
   -moz-padding-end: 0.2rem;
-  margin: 0 1.5rem 1rem 1.5rem;
   background: rgba(87, 87, 87, 0.8);
   border: none;
   border-radius: 0;
@@ -237,6 +236,16 @@
   color: #fff;
   font-family: sans-serif;
   font-style: italic;
+  margin-left: 0.35rem;
+}
+
+[role="dialog"][data-type="action"] > menu > button:before{
+  content: "";
+  position: absolute;
+  left: 8%;
+  bottom: 0;
+  width: 80%;
+  border-bottom: 0.1rem solid #616262;
 }
 
 [role="dialog"][data-type="action"] > menu > button:last-child {

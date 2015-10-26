@@ -1,7 +1,7 @@
 <element name="findmydevice" extends="section">
   <template>
 
-    <gaia-header action="back" data-href="#root">
+    <gaia-header action="back" data-href="#account">
       <h1 data-l10n-id="findmydevice"></h1>
     </gaia-header>
 
@@ -30,7 +30,8 @@
           <li id="findmydevice-enabled">
             <label class="pack-switch">
               <input type="checkbox" data-ignore>
-              <span data-l10n-id="findmydevice-enable">Enable Find My Device</span>
+              <span data-l10n-id="findmydevice-enable" id="enabled-fmd">Enable Find My Device</span>
+              <small class="fmd-desc menu-item-desc fmd-status" id="fmd"></small>
             </label>
           </li>
         </ul>

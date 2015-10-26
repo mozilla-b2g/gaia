@@ -1,11 +1,27 @@
 <element name="wifi-manageNetworks" extends="section">
   <template>
-
     <gaia-header action="back" data-href="#wifi">
       <h1 data-l10n-id="manageNetworks-header"></h1>
     </gaia-header>
-
     <div>
+      <ul>
+        <li>
+          <a class="menu-item" href="#wifi-knowNetworks">
+            <span data-l10n-id="knownNetworks"></span>
+
+          </a>
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <a class="menu-item joinHidden" href="#wifi-joinHidden">
+            <span data-l10n-id="joinHiddenNetwork"></span>
+          </a>
+        </li>
+       </ul>
+       <header>
+        <h2 data-l10n-id="macAddress"></h2>
+      </header>
       <ul>
         <li>
           <a>
@@ -14,37 +30,7 @@
           </a>
         </li>
       </ul>
-
-      <header>
-        <h2 data-l10n-id="knownNetworks"></h2>
-      </header>
-      <ul class="wifi-knownNetworks" data-state="ready">
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="hiddenNetworks"></h2>
-      </header>
-      <ul>
-        <li>
-          <a class="menu-item joinHidden" href="#">
-            <span data-l10n-id="joinHiddenNetwork"></span>
-          </a>
-        </li>
-      </ul>
     </div>
-
-    <form role="dialog" data-type="confirm" hidden>
-      <section>
-        <h1 data-l10n-id="forgetNetwork-confirmation"></h1>
-        <p data-l10n-id="forgetNetwork-dialog"></p>
-      </section>
-      <menu>
-        <button data-l10n-id="cancel" type="reset"></button>
-        <button data-l10n-id="device-option-confirm" id="confirm-option" class="danger"></button>
-      </menu>
-    </form>
-
     <panel data-path="panels/wifi_manage_networks/panel"></panel>
-
   </template>
 </element>

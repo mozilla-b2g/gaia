@@ -1,0 +1,84 @@
+<element name="network" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="networkAndConnectivity"></h1>
+      <a href="#" id="settings-forwd"><span class="icon icon-forwd"></span></a>
+    </gaia-header>
+
+    <div>
+
+      <ul>
+
+        <li data-category="connectivity">
+          <label class="pack-switch">
+            <input class="airplaneMode-input uninit" type="checkbox" disabled>
+            <span id="menuItem-airplaneMode" class="menu-item" data-icon="airplane" data-l10n-id="airplaneMode"></span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-switch">
+            <input name="geolocation.enabled" class="uninit" type="checkbox">
+            <span id="menuItem-gps" class="menu-item" data-icon="location" data-l10n-id="geolocation"></span>
+          </label>
+        </li>
+
+        <li data-category="connectivity">
+          <a id="menuItem-wifi" class="menu-item" data-icon="wifi-4" href="#wifi" data-l10n-id="wifiSection" aria-describedby="wifi-desc">
+            <span data-l10n-id="wifi">Wi-Fi</span>
+            <small id="wifi-desc" class="menu-item-desc">Disabled</small>
+          </a>
+        </li>
+
+        <li id="call-settings">
+          <a id="menuItem-callSettings" class="menu-item" data-icon="call" href="#call" data-l10n-id="callSettingsSection" aria-describedby="call-desc">
+            <span data-l10n-id="callSettings">Call Settings</span>
+            <small id="call-desc" class="menu-item-desc"></small>
+          </a>
+        </li>
+
+        <li id="messaging-settings">
+          <a id="menuItem-messagingSettings" class="menu-item" data-icon="messages" href="#messaging" data-l10n-id="messagingSettingsSection" aria-describedby="messaging-desc">
+            <span data-l10n-id="messagingSettings">Messaging Settings</span>
+            <small id="messaging-desc" class="menu-item-desc"></small>
+          </a>
+        </li>
+
+        <li id="data-connectivity" data-category="connectivity">
+          <a id="menuItem-cellularAndData" class="menu-item" data-icon="signal-5" href="#carrier" data-l10n-id="cellularAndDataSection" aria-describedby="data-desc">
+            <span data-l10n-id="cellularAndData"></span>
+            <small id="data-desc" class="menu-item-desc"></small>
+          </a>
+        </li>
+        <li>
+          <a class="menuItem-bluetooth menu-item" data-icon="bluetooth" href="#bluetooth" data-l10n-id="bluetoothSection" aria-describedby="bluetooth-desc">
+            <span data-l10n-id="bluetooth"></span>
+            <small class="bluetooth-desc menu-item-desc"></small>
+          </a>
+        </li>
+        <li class="nfc-settings" hidden>
+          <label class="pack-switch">
+            <input id="nfc-input" name="nfc.enabled" class="uninit" type="checkbox">
+            <span id="menuItem-nfc" class="menu-item" data-icon="nfc" data-l10n-id="nfc"></span>
+          </label>
+        </li>
+
+        <li>
+          <a id="menuItem-internetSharing" class="menu-item" data-icon="tethering" href="#hotspot" data-l10n-id="internetSharingSection" aria-describedby="internetSharing-desc">
+            <span data-l10n-id="internetSharing"></span>
+            <small id="internetSharing-desc" class="menu-item-desc"></small>
+          </a>
+        </li>
+
+
+      </ul>
+
+      <ul id="icc-entries">
+      </ul>
+    </div>
+    <panel data-path="panels/root/panel">
+      <panel>
+
+
+  </template>
+</element>
