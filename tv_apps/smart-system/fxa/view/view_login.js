@@ -14,6 +14,6 @@
  */
 
 var View = {
-  length: 3,
+  length: 2,
   start: FxaModuleStates.ENTER_EMAIL
 };

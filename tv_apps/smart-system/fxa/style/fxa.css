@@ -139,6 +139,10 @@ gaia-header {
 
 .navigation-done #fxa-module-done {
   display: block;
+  width: 23.7rem;
+  height: 8rem;
+  background-color: #5f6368;
+  border-radius: 4rem;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * *

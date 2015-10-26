@@ -117,6 +117,7 @@ shared/js/tz_select.js
 tv_apps/browser/js/index.js
 tv_apps/smart-home/js/edit.js
 tv_apps/smart-home/js/home.js
+tv_apps/smart-system/fxa/js/screens/fxam_enter_password.js
 tv_apps/smart-system/js/accessibility.js
 tv_apps/smart-system/js/app_install_manager.js
 tv_apps/smart-system/js/app_modal_dialog.js
