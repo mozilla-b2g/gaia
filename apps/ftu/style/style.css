@@ -483,8 +483,7 @@ aside.connecting {
 }
 
 #hidden-wifi-authentication form label,
-#configure_network_params form label,
-#welcome_browser #form_share_statistics label {
+#configure_network_params form label {
   font-size: 1.5rem;
 }
 
@@ -848,6 +847,9 @@ html[dir="rtl"] .change {
   clear: both;
 }
 
+/**
+ * TODO: The following styles should be removed in favor of default gaia-list styles.
+ */
 #form_share_statistics ul {
   margin: 0;
   padding: 0;
@@ -860,20 +862,6 @@ html[dir="rtl"] .change {
   padding: 0;
   position: relative;
   border-bottom: 0.1rem solid #e6e6e3;
-  color: #000;
-  font-weight: 500;
-}
-
-#form_share_statistics ul li label{
-  color: #000;
-  font-weight: 500;
-}
-
-#form_share_statistics ul li p{
-  color: #949494;
-  font-weight: 300;
-  margin: 0;
-  padding: 0;
 }
 
 #form_share_statistics ul+ul li:first-child {
