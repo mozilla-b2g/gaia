@@ -3,6 +3,12 @@
 
 (function(exports){
 
+  /**
+   * The root folder id of synced bookmark data.
+   * @type {String}
+   */
+  const SYNC_BOOKMARK_ROOT_FOLDER_ID = 'places';
+
   // TODO: for the live time bookmark data loading task.
   var BookmarkStore = {
     isSynced: false,
@@ -80,13 +86,20 @@
             // SyncBrowserDB.getBookmark and BrowserDB.getBookmarks.
             // But now the implementation of these function are not
             // return Promise.
-            SyncBrowserDB.getBookmark('places', bookmark => {
-              // make sure if firefox synced data saved in indexdDB
-              if(bookmark) {
+            SyncBrowserDB.getBookmark({
+              parentid: SYNC_BOOKMARK_ROOT_FOLDER_ID
+            }, syncBookmark => {
+              // We query remote bookmarks by parentid with
+              // SYNC_BOOKMARK_ROOT_FOLDER_ID for checking if the indexedDB has
+              // remote bookmark data. If there is any remote data, we create a
+              // folder item to show the synced bookmark.
+              if(syncBookmark.length > 0) {
                 this.cache.push({
-                  id: bookmark.id,
-                  title: bookmark.title ? bookmark.title : 'Synced Bookmarks',
-                  type: bookmark.type,
+                  id: SYNC_BOOKMARK_ROOT_FOLDER_ID,
+                  // XXX we need UX's suggestion to have a folder name for root
+                  // folder and don't forget to handle l10n case.
+                  title: 'Synced Bookmarks',
+                  type: 'folder',
                   readOnly: true
                 });
               }
