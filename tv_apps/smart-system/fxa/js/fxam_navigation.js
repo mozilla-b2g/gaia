@@ -39,6 +39,9 @@ var FxaModuleNavigation = {
 
     var panel = document.querySelector(location.hash);
     if (!panel || !panel.classList.contains('screen')) {
+      // After a user presses backspace key at the first step of the flow,
+      // the panel will be null and we should close the dialog.
+      FxaModuleManager.close('DIALOG_CLOSED_BY_USER');
       return;
     }
 
