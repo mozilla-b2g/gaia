@@ -187,6 +187,7 @@ uld be a Function`);
     this._controlCollections = {};
     this._fswc = new FxSyncWebCrypto();
     this._kinto = null;
+    this._xClientState = null;
     this._haveUnsyncedConflicts = {};
     this._ready = false;
   };
@@ -312,6 +313,7 @@ ting to fetch resource.`) {
            assertion: this._assertion,
            xClientState
          });
+         this._xClientState = xClientState;
       }).then(() => {
         return this._syncCollection('meta');
       }).then(() => {
@@ -376,8 +378,8 @@ rse crypto/keys payload as JSON`));
       return this._ensureReady().then(() => {
         var promises = [];
         for (var collectionName in collectionOptions) {
+          collectionOptions[collectionName].userid = this._xClientState;
           promises.push(this._updateCollection(collectionName,
-               //TODO: actually use this, see bug 1209934
                collectionOptions[collectionName]));
         }
         return Promise.all(promises);
