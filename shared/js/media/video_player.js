@@ -96,7 +96,6 @@ function VideoPlayer(container) {
   var self = this;
   var controlsHidden = false;
   var dragging = false;
-  var pausedBeforeDragging = false;
   var endedTimer;
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
@@ -492,10 +491,6 @@ function VideoPlayer(container) {
 
     if (!dragging) {  // Do this stuff on the first pan event only
       dragging = true;
-      pausedBeforeDragging = player.paused;
-      if (!pausedBeforeDragging) {
-        player.pause();
-      }
     }
 
     var rect = backgroundBar.getBoundingClientRect();
@@ -515,8 +510,6 @@ function VideoPlayer(container) {
     dragging = false;
     if (player.currentTime >= player.duration) {
       self.pause();
-    } else if (!pausedBeforeDragging) {
-      player.play();
     }
   });
 

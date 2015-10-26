@@ -8,7 +8,8 @@
   getUnusedFilename,
   MediaUtils,
   VideoLoadingChecker,
-  MediaError
+  MediaError,
+  Seeker
 */
 
 /*
@@ -22,6 +23,7 @@
  */
 (function init() {
   var dom = {};            // document elements
+  var seeker;
   var playing = false;
   var controlShowing = false;
   var controlFadeTimeout = null;
@@ -37,7 +39,6 @@
   // touch start id is the identifier of touch event. we only need to process
   // events related to this id.
   var touchStartID = null;
-  var isPausedWhileDragging;
   var sliderRect;
   window.pause = pause;
 
@@ -168,6 +169,8 @@
       });
     }
 
+    seeker = new Seeker(dom.player);
+
     dom.player.mozAudioChannelType = 'content';
 
     // handling the dragging of slider
@@ -205,7 +208,8 @@
     // handle slider keypress, emitted by the screen reader
     dom.timeSlider.addEventListener('keypress', handleSliderKeypress);
 
-    ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
+    ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward,
+                                 seeker);
   }
 
   function checkFilename() {
@@ -256,7 +260,6 @@
     }
     touchStartID = event.changedTouches[0].identifier;
 
-    isPausedWhileDragging = dom.player.paused;
     dragging = true;
     // calculate the slider wrapper size for slider dragging.
     sliderRect = dom.sliderWrapper.getBoundingClientRect();
@@ -264,10 +267,6 @@
     // We can't do anything if we don't know our duration
     if (dom.player.duration === Infinity) {
       return;
-    }
-
-    if (!isPausedWhileDragging) {
-      dom.player.pause();
     }
 
     handleSliderTouchMove(event);
@@ -497,10 +496,12 @@
 
     dom.playHead.classList.remove('active');
 
+    // We didn't move the play head while the user's finger was on it
+    // so now it may be in the wrong place.
+    updateSlider();
+
     if (dom.player.currentTime === dom.player.duration) {
       pause();
-    } else if (!isPausedWhileDragging) {
-      dom.player.play();
     }
   }
 
@@ -534,7 +535,7 @@
     dom.playHead.classList.add('active');
     movePlayHead(percent);
     dom.elapsedTime.style.width = percent;
-    dom.player.fastSeek(dom.player.duration * pos);
+    seeker.seekTo(dom.player.duration * pos);
   }
 
   function handleSliderKeypress(event) {
@@ -547,9 +548,9 @@
     // seconds.
     var step = Math.max(dom.player.duration / 20, 2);
     if (event.keyCode === event.DOM_VK_DOWN) {
-      dom.player.fastSeek(dom.player.currentTime - step);
+      seeker.seekTo(dom.player.currentTime - step);
     } else if (event.keyCode === event.DOM_VK_UP) {
-      dom.player.fastSeek(dom.player.currentTime + step);
+      seeker.seekTo(dom.player.currentTime + step);
     }
   }
 

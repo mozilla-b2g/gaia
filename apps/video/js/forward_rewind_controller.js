@@ -21,11 +21,13 @@ var ForwardRewindController = (function() {
   var backwardButton;
   var videoToolbar;
   var player;
+  var seekHelper;
 
-  function init(video, forward, backward) {
+  function init(video, forward, backward, seeker) {
     forwardButton = forward;
     backwardButton = backward;
     player = video;
+    seekHelper = seeker;
 
     videoToolbar = forward.parentElement;
     videoToolbar.addEventListener('click', handleButtonClick);
@@ -108,7 +110,12 @@ var ForwardRewindController = (function() {
       }
     }
 
-    player.fastSeek(seekTime);
+    if (seekHelper) {
+      seekHelper.seekTo(seekTime);
+    }
+    else {
+      player.fastSeek(seekTime);
+    }
   }
 
   return {

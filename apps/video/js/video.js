@@ -2,7 +2,7 @@
   ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
   ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
   MozActivity,MediaDB,metadataQueue,processingQueue,LazyLoader,Dialogs,
-  captureFrame,VideoStats,noMoreWorkCallback:true,IntlHelper */
+  captureFrame,VideoStats,noMoreWorkCallback:true,IntlHelper,Seeker */
 /* exported resetCurrentVideo,updateLoadingSpinner,thumbnailClickHandler,
   showThrobber,hideThrobber,$ */
 'use strict';
@@ -44,6 +44,8 @@ dom.player.mozAudioChannelType = 'content';
 
 function $(id) { return document.getElementById(id); }
 
+var seeker = new Seeker(dom.player);
+
 var playing = false;
 
 // if this is true then the video tag is showing
@@ -78,7 +80,6 @@ var dragging = false;
 // touch start id is the identifier of touch event. we only need to process
 // events related to this id.
 var touchStartID = null;
-var isPausedWhileDragging;
 var sliderRect;
 var thumbnailList;
 
@@ -221,7 +222,8 @@ function init() {
       initPlayerControls();
     });
 
-    ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
+    ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward,
+                                 seeker);
 
     // the overlay action button may be used in both normal mode and activity
     // mode, we need to wire its event handler here.
@@ -981,7 +983,6 @@ function handleSliderTouchStart(event) {
   }
   touchStartID = event.changedTouches[0].identifier;
 
-  isPausedWhileDragging = dom.player.paused;
   dragging = true;
   // calculate the slider wrapper size for slider dragging.
   sliderRect = dom.sliderWrapper.getBoundingClientRect();
@@ -989,10 +990,6 @@ function handleSliderTouchStart(event) {
   // We can't do anything if we don't know our duration
   if (dom.player.duration === Infinity) {
     return;
-  }
-
-  if (!isPausedWhileDragging) {
-    dom.player.pause();
   }
 
   handleSliderTouchMove(event);
@@ -1313,10 +1310,12 @@ function handleSliderTouchEnd(event) {
 
   dom.playHead.classList.remove('active');
 
+  // We didn't move the play head while the user's finger was on it
+  // so now it may be in the wrong place.
+  updateVideoControlSlider();
+
   if (dom.player.currentTime === dom.player.duration) {
     pause();
-  } else if (!isPausedWhileDragging) {
-    dom.player.play();
   }
 }
 
@@ -1350,7 +1349,7 @@ function handleSliderTouchMove(event) {
   dom.playHead.classList.add('active');
   movePlayHead(percent);
   dom.elapsedTime.style.width = percent;
-  dom.player.fastSeek(dom.player.duration * pos);
+  seeker.seekTo(dom.player.duration * pos);
 }
 
 function handleSliderKeypress(event) {
@@ -1363,9 +1362,9 @@ function handleSliderKeypress(event) {
   // seconds.
   var step = Math.max(dom.player.duration / 20, 2);
   if (event.keyCode === event.DOM_VK_DOWN) {
-    dom.player.fastSeek(dom.player.currentTime - step);
+    seeker.seekTo(dom.player.currentTime - step);
   } else if (event.keyCode === event.DOM_VK_UP) {
-    dom.player.fastSeek(dom.player.currentTime + step);
+    seeker.seekTo(dom.player.currentTime + step);
   }
 }
 
