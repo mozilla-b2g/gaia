@@ -78,10 +78,10 @@ marionette('Statusbar colors', function() {
   test('statusbar icons keep color after add homescreen', function() {
     waitVisible();
     helper.unlockScreen(client);
-    waitForLightColor();
+    waitForDarkColor();
     var url = server.url('sample.html');
     bookmark.openAndSave(url);
-    waitForLightColor();
+    waitForDarkColor();
   });
 
   test('statusbar icons keep color after activity', function() {
@@ -174,7 +174,7 @@ marionette('Statusbar colors', function() {
 
   function waitForColor(light) {
     client.waitFor(function() {
-      var filter = system.statusbarShadow.scriptWith(function(element) {
+      var filter = system.statusbar.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       var index = filter.indexOf('none');

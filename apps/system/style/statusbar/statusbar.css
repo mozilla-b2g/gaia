@@ -1,13 +1,3 @@
-#top-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2rem;
-  /* #top-panel will only receive pointer events when in a fullscreen app. */
-  pointer-events: none;
-}
-
 /* In both fullscreen modes, accept pointer events to trigger the status bar
    unless the utility tray is showing. */
 #screen.fullscreen-app:not(.utility-tray) #top-panel,
@@ -15,20 +5,53 @@
   pointer-events: all;
 }
 
-
-#screen.rocketbar-focused #left-panel,
-#screen.rocketbar-focused #right-panel {
-  pointer-events: none;
-}
-
 #statusbar {
   position: fixed;
   width: 100%;
   height: var(--statusbar-height);
   top: 0;
-  left: 0;
+  right: 0;
   pointer-events: none;
   transform: translateY(0);
+  transition: none;
+}
+
+/* We need a wrapper for being able to translateY the parent div
+without affecting the -moz-elements pointing to it while transitioning */
+#statusbar-wrapper {
+  position: absolute;
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  height: var(--statusbar-height);
+  transform: translateY(0);
+}
+
+/* This is the remaining space left by the collapsed rocketbar */
+#statusbar #statusbar-icons {
+  width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
+}
+
+#statusbar:not(.hidden).maximized  #statusbar-icons {
+  width: 100%;
+}
+
+.statusbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap-reverse;
+  flex-direction: row-reverse;
+  position: absolute;
+  width: 100%;
+  height: var(--statusbar-height);
+  margin: 0;
+  top: 0;
+  right: 0;
+  padding: 0 0.3rem;
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .statusbar > div,
@@ -36,69 +59,22 @@
   pointer-events: auto;
 }
 
-
 /* Hide the statusbar out of the viewport in order
 to be available for moz-elements */
 #statusbar.hidden,
-#screen:not(.attention).utility-tray-in-transition > #statusbar {
-  transform: translateY(-100%);
-}
-
-#statusbar-minimized-wrapper {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#screen:not(.cards-view) #statusbar.maximized:not(.fullscreen):not(.fullscreen-layout) #statusbar-maximized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
-#screen:not(.cards-view) #statusbar:not(.maximized):not(.fullscreen):not(.fullscreen-layout) #statusbar-minimized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
+#screen:not(.attention).utility-tray-in-transition > #statusbar,
+#screen.utility-tray-in-transition > #statusbar,
 #screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen,
 #screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray) #statusbar.fullscreen-layout,
-#screen.locked.secure-app:not(.attention).fullscreen-app #statusbar,
-#screen.locked.secure-app:not(.attention).fullscreen-layout-app #statusbar {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#screen.locked #statusbar,
-#screen:not(.locked).utility-tray #statusbar {
-  visibility: visible;
-  filter: none;
-}
-
-#screen.locked #statusbar-maximized-wrapper,
-#screen:not(.locked).minimized-tray #statusbar-minimized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
-#screen:not(.locked).utility-tray #statusbar-minimized-wrapper {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#screen.cards-view #statusbar {
-  opacity: 0;
-  visibility: hidden;
-}
-
-/* Hide the minimized statusbar in the utility-tray */
-#screen:not(.utility-tray-in-transition) #statusbar:not(.maximized) #statusbar-maximized-wrapper,
-#screen.utility-tray-in-transition #statusbar-minimized-wrapper,
-#screen #statusbar.maximized  #statusbar-minimized-wrapper {
-  visibility: hidden;
+#screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar,
+#screen.locked.secure-app:not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-layout-app #statusbar {
+  transform: translateY(-100%);
 }
 
 @media (orientation: landscape) {
   #screen.software-button-enabled #statusbar {
     width: calc(100% - var(--software-home-button-height));
+    left: 0;
   }
 }
 
@@ -116,10 +92,6 @@ to be available for moz-elements */
 
 #screen.utility-tray #statusbar {
   background-color: transparent;
-}
-
-body #statusbar {
-  transition: none;
 }
 
 /* Hiding the black background while the homescreen is in foreground but not
@@ -140,30 +112,6 @@ html[dir="rtl"] #screen.lockscreen-camera > #statusbar { transform-origin: right
   display: block;
 }
 
-.statusbar {
-  display: flex;
-  justify-content: flex-end;
-  position: absolute;
-  width: 100%;
-  height: var(--statusbar-height);
-  margin: 0;
-  top: 0;
-  offset-inline-end: 0;
-  padding: 0 0.3rem;
-  overflow: hidden;
-  white-space: nowrap;
-  box-sizing: border-box;
-}
-
-#statusbar-minimized {
-  width: 100%;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-inline-start: 0;
-  padding-inline-end: 0.3rem;
-  box-sizing: border-box;
-}
-
 .statusbar > * {
   margin: 0.6rem 0.2rem;
 }
@@ -178,6 +126,8 @@ html[dir="rtl"] #screen.lockscreen-camera > #statusbar { transform-origin: right
   visibility: visible;
   transform: translateY(var(--statusbar-height));
 }
+
+/* Icons */
 
 body .utility-tray .statusbar > .sb-start {
   visibility: hidden;

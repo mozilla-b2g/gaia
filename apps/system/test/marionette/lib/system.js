@@ -62,8 +62,7 @@ System.Selector = Object.freeze({
   statusbarShadow: '.appWindow.active > .titlebar .statusbar-shadow',
   statusbarShadowTray: '#statusbar-tray',
   statusbarShadowActivity: '.activityWindow.active .statusbar-shadow',
-  statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
-  statusbarMinimizedWrapper: '#statusbar-minimized-wrapper',
+  statusbarIcons: '#statusbar-icons',
   statusbarOperator: '.statusbar-operator',
   systemBanner: 'gaia-toast.banner',
   topPanel: '#top-panel',
@@ -268,12 +267,8 @@ System.prototype = {
     return this.client.findElement(System.Selector.statusbar);
   },
 
-  get statusbarMaximizedWrapper() {
-    return this.client.findElement(System.Selector.statusbarMaximizedWrapper);
-  },
-
-  get statusbarMinimizedWrapper() {
-    return this.client.findElement(System.Selector.statusbarMinimizedWrapper);
+  get statusbarIcons() {
+    return this.client.helper.waitForElement(System.Selector.statusbarIcons);
   },
 
   get statusbarOperator() {
@@ -491,13 +486,6 @@ System.prototype = {
     });
     client.waitFor(function() {
       return !clock.displayed();
-    });
-  },
-
-  stopStatusbar: function() {
-    this.client.executeScript(function() {
-      window.wrappedJSObject.Service.request('Statusbar:pauseUpdate',
-        'marionette');
     });
   },
 

@@ -18,7 +18,6 @@
     this.amendProperty();
     this.manager = manager;
     this.publish('created');
-    Service.request('Statusbar:onIconCreated', this);
   };
   BaseIcon.prototype = Object.create(BaseUI.prototype);
   BaseIcon.prototype.constructor = BaseIcon;
@@ -31,7 +30,7 @@
   };
 
   BaseIcon.prototype.setOrder = function(priority) {
-    this.element.style.order = priority * -1;
+    this.element.style.order = priority;
   };
 
   BaseIcon.prototype.camelToDash = function(strings) {
