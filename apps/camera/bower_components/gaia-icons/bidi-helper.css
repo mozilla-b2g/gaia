@@ -1,0 +1,67 @@
+/* Some BiDi-proof icons 
+ * In the future, we might handle this at the font level, see 
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=1214127 
+ */
+
+[data-icon="back"]:-moz-dir(ltr):before {
+  content: 'left';
+}
+[data-icon="back"]:-moz-dir(rtl):before {
+  content: 'right';
+}
+
+[data-icon="forward"]:-moz-dir(ltr):before {
+  content: 'right';
+}
+[data-icon="forward"]:-moz-dir(rtl):before {
+  content: 'left';
+}
+
+[data-icon="back-light"]:-moz-dir(ltr):before {
+  content: 'left-light';
+}
+[data-icon="back-light"]:-moz-dir(rtl):before {
+  content: 'right-light';
+}
+
+[data-icon="forward-light"]:-moz-dir(ltr):before {
+  content: 'right-light';
+}
+[data-icon="forward-light"]:-moz-dir(rtl):before {
+  content: 'left-light';
+}
+
+[data-icon="arrow-back"]:-moz-dir(ltr):before {
+  content: 'arrow-left';
+}
+[data-icon="arrow-back"]:-moz-dir(rtl):before {
+  content: 'arrow-right';
+}
+
+[data-icon="arrow-forward"]:-moz-dir(ltr):before {
+  content: 'arrow-right';
+}
+[data-icon="arrow-forward"]:-moz-dir(rtl):before {
+  content: 'arrow-left';
+}
+
+[data-icon="clear-input"]:-moz-dir(ltr):before {
+  content: 'clear-input-left';
+}
+[data-icon="clear-input"]:-moz-dir(rtl):before {
+  content: 'clear-input-right';
+}
+
+[data-icon="expand"]:-moz-dir(ltr):before {
+  content: 'expand-left';
+}
+[data-icon="expand"]:-moz-dir(rtl):before {
+  content: 'expand-right';
+}
+
+[data-icon="send"]:-moz-dir(ltr):before {
+  content: 'send-right';
+}
+[data-icon="send"]:-moz-dir(rtl):before {
+  content: 'send-left';
+}

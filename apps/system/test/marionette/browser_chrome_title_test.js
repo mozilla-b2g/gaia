@@ -1,5 +1,7 @@
 'use strict';
 
+var assert = require('assert');
+
 var urlUtility = require('url');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
@@ -30,7 +32,7 @@ marionette('Browser Chrome - Title content', function() {
 
   setup(function() {
     actions = client.loader.getActions();
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
@@ -42,7 +44,7 @@ marionette('Browser Chrome - Title content', function() {
     var expectedTitle = 'Calendar';
     var appOrigin = 'app://calendar.gaiamobile.org';
     client.apps.launch(appOrigin);
-
+    assert(!system.pinDialog.displayed(), 'Pin dialog is invisible');
     client.waitFor(function(){
       return system.appUrlbar.text() === expectedTitle;
     });
@@ -53,7 +55,7 @@ marionette('Browser Chrome - Title content', function() {
     var expectedTitle = 'Fake Chrome Navigation';
     var appOrigin = 'app://fakechromenavapp.gaiamobile.org';
     client.apps.launch(appOrigin);
-
+    assert(!system.pinDialog.displayed(), 'Pin dialog is invisible');
     client.waitFor(function(){
       return system.appUrlbar.text() === expectedTitle;
     });
@@ -61,6 +63,7 @@ marionette('Browser Chrome - Title content', function() {
 
   test('website without app name should use hostname', function() {
     // Use the home-screen search box to open up the system browser
+    home.waitForLaunch();
     var url = server.url('sample.html');
     var hostname = urlUtility.parse(url).hostname;
     rocketbar.homescreenFocus();
@@ -74,8 +77,8 @@ marionette('Browser Chrome - Title content', function() {
   });
 
   test('Dont persist application-name', function() {
-
     // Use the home-screen search box to open up the system browser
+    home.waitForLaunch();
     var customAppUrl = server.url('app-name.html');
     var sampleUrl = server.url('sample.html');
     var sampleHostname = urlUtility.parse(sampleUrl).hostname;

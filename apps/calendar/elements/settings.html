@@ -1,6 +1,6 @@
 <element name="settings" extends="section">
   <template>
-    <gaia-header id="settings-header" action="menu">
+    <gaia-header ignore-dir id="settings-header" action="menu">
       <h1></h1>
     </gaia-header>
 
@@ -11,17 +11,17 @@
         <ol class="calendars" role="listbox" aria-multiselectable="true" data-l10n-id="calendars">
         </ol>
 
-        <div role="toolbar" dir="ltr">
-          <button class="settings toolbar-item">
+        <ul role="tablist" class="bb-tablist" dir="ltr">
+          <li class="settings">
             <span class="icon"
                   data-l10n-id="advanced-settings-short-icon-button"></span>
-          </button>
-          <button class="sync update toolbar-item">
+          </li>
+          <li class="sync update">
             <span class="icon"
                   data-l10n-id="drawer-sync-icon-button"></span>
             <span class="sync-progress" role="progressbar"></span>
-          </button>
-        </div>
+          </li>
+        </ul>
       </div>
     </div>
   </template>

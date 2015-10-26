@@ -1,4 +1,10 @@
 html {
+  /**
+   * font-size is to be overwritten by JavaScript here.
+   * We are abusing CSS unit "rem" as a grid to describe the size of our elements.
+   * JavaScript will set 1 rem to 1/32 of the screen width when the screen is vertical,
+   * and 1/64 of the screen width when the screen is landscape.
+   */
   font-size: 10px;
   pointer-events: none;
 }
@@ -13,31 +19,18 @@ button::-moz-focus-inner {
   border: 0;
 }
 
-.cache {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  z-index: -1;
-  opacity: 0;
-  overflow: hidden;
-  width: 0;
-  height: 0;
-  display: none;
-}
-
 /* Keyboard */
 #keyboard {
   position: absolute;
   bottom: 0;
   z-index: 15;
   width: 100%;
-  border-top: 0.1rem solid #a1a5a8;
-  background-color: #606b6e;
+  background-color: red; /* User should not see this */
   pointer-events: auto;
   visibility: visible;
 }
 
-/* To show/hide the layout page view */
+/* Show/hide the layout page view */
 .keyboard-type-container:not([data-active]) {
   display: none;
 }
@@ -47,6 +40,9 @@ button::-moz-focus-inner {
   text-align: center;
   font-size: 0;
   display: flex;
+}
+.row0 {
+  background-color: #606b6e;
 }
 .row1 {
   background-color: #5b6668;
@@ -76,7 +72,31 @@ button::-moz-focus-inner {
   border-right-color: #434b4d;
 }
 
-#keyboard.full-candidate-panel button.keyboard-key {
+.rows-5 > .row0 {
+  background-color: #636e71;
+}
+
+.rows-5 > .row1 {
+  background-color: #5e696c;
+}
+
+.rows-5 > .row2 {
+  background-color: #5b6668;
+}
+
+.rows-5 > .row3 {
+  background-color: #566063;
+}
+
+.rows-5 > .row4 {
+  background-color: #525b5e;
+}
+
+.rows-5 > .row4 > .keyboard-key > .visual-wrapper > .key-element {
+  border-right-color: #434b4d;
+}
+
+#keyboard.full-candidate-panel .keyboard-key {
   visibility: hidden;
 }
 
@@ -97,12 +117,28 @@ button::-moz-focus-inner {
   flex: auto;
 }
 
+.keyboard-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
+  --key-height: 4.5rem;
+}
+
+.rows-5 .keyboard-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
+  --key-height: 3.4rem;
+}
+
+.landscape .keyboard-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
+  --key-height: 3.8rem;
+}
+
+.landscape .rows-5 .keyboard-key { /* remove this line from build/csslint/xfail.list after csslint understand CSS variables */
+  --key-height: 2.85rem;
+}
+
 /* Visible keys */
 .keyboard-key > .visual-wrapper {
   display: inline-block;
   position: relative;
   width: 100%;
-  height: 4.3rem;
+  height: var(--key-height);
   margin: 0.4rem 0;
 
   /* Events must originate from .keyboard-key, not its children elements */
@@ -118,7 +154,7 @@ button::-moz-focus-inner {
   right: 0;
   color: #fff;
   font-size: 2.4rem;
-  line-height: 4.3rem;
+  line-height: var(--key-height);
   font-weight: normal;
   text-align: center;
   border-right: 0.1rem solid #525b5e;
@@ -192,7 +228,7 @@ button::-moz-focus-inner {
   bottom: 0;
   left: 0;
   color: #abb0b1;
-  font: 500 1.5rem/4.3rem 'Keyboard Symbols', sans-serif;
+  font: 500 1.5rem/var(--key-height) 'Keyboard Symbols', sans-serif;
 }
 
 /* Highlight for special keys */
@@ -428,26 +464,26 @@ bubble above the key when you tap and hold. */
  * generally, the key in alternatives char menu would have the same width as a
  * normal key.
  */
-#keyboard.landscape #keyboard-accent-char-menu {
+.landscape #keyboard-accent-char-menu {
   margin-left: 0;
 }
 
-#keyboard.landscape #keyboard-accent-char-menu.kbr-menu-left {
+.landscape #keyboard-accent-char-menu.kbr-menu-left {
   /* Shift 1 pixel to align with the key row. */
   margin-right: 0.1rem;
 }
 
 #keyboard.full-candidate-panel {
-  padding-top: 3.4rem;
+  /* Occupy the space for the absolute-positioned full panel
+     = height of the panel + top border + bottom border */
+  padding-top: 3.2rem;
 }
 
 .keyboard-candidate-panel {
   background: #252220;
   padding: 0;
-  margin: 0.2rem 0 0.2rem 0;
-  border: none;
-  border-top: 0.1rem solid #000000;
-  border-bottom: 0.1rem solid #000000;
+  border-top: 0.2rem solid #606b6e;
+  border-bottom: 0.2rem solid #606b6e;
   height: 2.8rem;
   width: 100%;
   overflow: hidden;
@@ -456,19 +492,19 @@ bubble above the key when you tap and hold. */
 
 #keyboard.full-candidate-panel .keyboard-candidate-panel {
   position: absolute;
-  top: 0.1rem;
-  height: -moz-calc(100% - 0.4rem);
+  top: 0;
+  height: -moz-calc(100% - 0.2rem);
+  border-bottom: none;
   z-index: 1;
-  margin: 0.1rem 0 0.2rem 0;
 }
 
 .keyboard-candidate-panel-toggle-button {
   z-index: 1;
   position: absolute;
+  top: 0.2rem; /* width of the candidate panel border */
   right: 0;
-  top: 0.25rem;
   font-size: 0;
-  height: 2.8rem;
+  height: 2.6rem; /* height of the candidate panel */
   background: #252220 url('images/icon_extend.png') center center no-repeat;
   background-size: 2.4rem;
   min-width: 4rem;
@@ -541,8 +577,7 @@ bubble above the key when you tap and hold. */
   height: 3rem;
   width: 100%;
   background: #333;
-  margin: -0.6rem 0 0 0; /* I don't know why we need the top margin */
-  border: none;
+  border-top: none;
   border-bottom: 0.1rem solid #a0a6a8;
   overflow: hidden;
 }
@@ -637,28 +672,23 @@ bubble above the key when you tap and hold. */
   text-align: left;
 }
 
-#keyboard.landscape .keyboard-key > .visual-wrapper > .key-element {
-  font-size: 2.8rem
+.landscape .keyboard-key.special-key > .visual-wrapper > .key-element {
+  font: 500 2.1rem/var(--key-height) 'Keyboard Symbols', sans-serif;
 }
 
-#keyboard.landscape .keyboard-key.special-key > .visual-wrapper > .key-element {
-  font: 500 2.1rem/4.3rem 'Keyboard Symbols', sans-serif;
-}
-
-#keyboard.landscape .keyboard-key.highlighted > .visual-wrapper > .popup {
+.landscape .keyboard-key.highlighted > .visual-wrapper > .popup {
     top: -7rem;
     left: calc(50% - 3.5rem);
     width: 7rem;
     height: 7rem;
     line-height: 7rem;
-    font-size: 3.5rem
+    font-size: 3.5rem;
 }
 
 /*
  * Styles for the dismiss suggestions button in the candidate panel
  */
 .keyboard-candidate-panel.latin > .dismiss-suggestions-button {
-  display:inline-block;
   height: 100%;
   /*
    * the icon is 2.4rem wide but the visual space only takes up 1.4rem
@@ -696,6 +726,11 @@ bubble above the key when you tap and hold. */
   flex: 1;
 }
 
+.handwriting-pad {
+  background-color: #ebeced;
+  margin: -1px;
+  float: left;
+}
 
 /* Indicator for keyboard hiding action */
 .keyboard-key[data-keycode="32"] {
@@ -719,98 +754,6 @@ bubble above the key when you tap and hold. */
 .keyboard-key.search-icon > .visual-wrapper > .key-element,
 .keyboard-key.search-icon.highlighted > .visual-wrapper > .key-element {
   color: transparent;
-}
-
-/*
- * Specific layout rules; When a layoutX.js has specificCssRule set to true
- * you can use layout name (Example: ar for Arabic) as a class name.
- * This is useful is cases where characters are outlining their containers.
- */
-
-/* Arabic */
-.ar .keyboard-key > .visual-wrapper > .key-element {
-  font-size: 1.8rem;
-}
-
-.keyboard-key > .visual-wrapper > span[data-label="ض"],
-.keyboard-key > .visual-wrapper > span[data-label="ش"]{
-  margin-left:-.5rem;
-}
-
-.keyboard-key > .visual-wrapper > span[data-label="س"]{
-  margin-left:-.2rem;
-}
-
-.keyboard-key > .visual-wrapper > span[data-label="ص"]{
-  margin-left:-.1rem;
-}
-
-/* Bangla Probhat */
-.keyboard-key > .visual-wrapper > span[data-label="ো"] {
-  font-size: 1.6rem;
-}
-
-.keyboard-key > .visual-wrapper > span[data-label="া"] {
-  font-size: 1.7rem;
-}
-
-/* Handwriting */
-.handwriting-pad {
-  background-color: #ebeced;
-  margin: -1px;
-  float: left;
-}
-
-/* Hindi */
-.keyboard-key.hindi > .visual-wrapper > span[data-label="औ"],
-.keyboard-key.hindi > .visual-wrapper > span[data-label="आ"],
-.keyboard-key.hindi > .visual-wrapper > span[data-label="ओ"],
-.keyboard-key.hindi > .visual-wrapper > span[data-label="ऑ"] {
-  font-size: 2rem;
-}
-
-/* Tamil */
-.keyboard-key.tamil > .visual-wrapper > .popup {
-  width: auto;
-  min-width: 4.4rem;
-  padding-left: 0.6rem;
-  padding-right: 0.6rem;
-  border-radius: 2.8rem;
-}
-
-.keyboard-row button:last-child.tamil.highlighted >
-  .visual-wrapper > .popup {
-  left: auto;
-  right: 0;
-}
-
-/* Zhuyin */
-.zh-Hant-Zhuyin .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
-  font-size: 2rem;
-}
-
-.zh-Hant-Zhuyin .keyboard-row.row0 {
-  background-color: #636e71;
-}
-
-.zh-Hant-Zhuyin .keyboard-row.row1 {
-  background-color: #5e696c;
-}
-
-.zh-Hant-Zhuyin .keyboard-row.row2 {
-  background-color: #5b6668;
-}
-
-.zh-Hant-Zhuyin .keyboard-row.row3 {
-  background-color: #566063;
-}
-
-.zh-Hant-Zhuyin .keyboard-row.row4 {
-  background-color: #525b5e;
-}
-
-.zh-Hant-Zhuyin .keyboard-row.row4 > .keyboard-key > .visual-wrapper > .key-element {
-  border-right-color: #434b4d;
 }
 
 /* With symbols on the bottom */
@@ -881,41 +824,6 @@ bubble above the key when you tap and hold. */
 /* Based on UI spec, alt-note '+' is set bigger. */
 .keyboard-key.bottom-symbol[data-keycode="48"] > .visual-wrapper > .alt-note {
   font-size: 1.8rem;
-}
-
-@media (orientation:portrait) {
-  .special-key > .visual-wrapper > .key-element[data-label="அஆஇ"] {
-    font-size: 1.1rem;
-  }
-
-  .keyboard-key.tamil > .visual-wrapper > .key-element {
-    font-size: 2rem;
-  }
-
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ஹ"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ஊ"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ா"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ூ"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ே"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ெ"] {
-    font-size: 1.7rem;
-  }
-
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ௗ"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ை"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ண"] {
-    font-size: 1.4rem;
-  }
-
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ஔ"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ொ"],
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ோ"] {
-    font-size: 1.2rem;
-  }
-
-  .keyboard-key.tamil > .visual-wrapper > span[data-label="ௌ"] {
-    font-size: 1.1rem;
-  }
 }
 
 .emoji {
@@ -1074,41 +982,154 @@ bubble above the key when you tap and hold. */
   background-color: #3e4446;
 }
 
-@media (orientation:landscape) {
-  #keyboard.landscape .special-key > .visual-wrapper >
-    .key-element[data-label="அஆஇ"] {
-    font-size: 1.7rem;
-  }
+/*
+ * Specific layout rules; When a layoutX.js has specificCssRule set to true
+ * you can use layout id (Example: ar for Arabic) as a class name.
+ * This is useful is cases where characters are outlining their containers.
+ */
 
-  #keyboard.landscape .keyboard-key.tamil.highlighted >
-    .visual-wrapper > .popup {
-    top: -7rem;
-    left: calc(50% - 3.5rem);
-    width: auto;
-    min-width: 5.6rem;
-    height: 7rem;
-    line-height: 7rem;
-    font-size: 3.5rem;
-    border-radius: 3.5rem;
-    padding-left: 0.7rem;
-    padding-right: 0.7rem;
-  }
+/* Arabic */
+.ar .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 1.8rem;
+}
 
-  #keyboard.landscape .keyboard-row button:last-child.tamil.highlighted >
-    .visual-wrapper > .popup {
-    left: auto;
-    right: 0;
-  }
+.ar .keyboard-key > .visual-wrapper > .key-element[data-label="ض"],
+.ar .keyboard-key > .visual-wrapper > .key-element[data-label="ش"] {
+  margin-left:-.5rem;
+}
 
-  #keyboard.landscape .keyboard-key.tamil >
-    .visual-wrapper > span[data-label="ஔ"],
-  #keyboard.landscape .keyboard-key.tamil >
-    .visual-wrapper > span[data-label="ொ"] {
-    font-size: 2.5rem;
-  }
+.ar .keyboard-key > .visual-wrapper > .key-element[data-label="س"] {
+  margin-left:-.2rem;
+}
 
-  #keyboard.landscape .keyboard-key.tamil >
-    .visual-wrapper > span[data-label="ௌ"] {
-    font-size: 2rem;
-  }
+.ar .keyboard-key > .visual-wrapper > .key-element[data-label="ص"] {
+  margin-left:-.1rem;
+}
+
+/* Bangla Probhat */
+.bn-Probhat .keyboard-key:not(.special-key) > .visual-wrapper > .key-element[data-label="ো"] {
+  font-size: 1.6rem;
+}
+
+.bn-Probhat .keyboard-key:not(.special-key) > .visual-wrapper > .key-element[data-label="া"] {
+  font-size: 1.7rem;
+}
+
+/* Dzongkha */
+.dz-BT .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 2rem;
+}
+.dz-BT .keyboard-key > .visual-wrapper > .key-element[data-label="༃"],
+.dz-BT .keyboard-key > .visual-wrapper > .key-element[data-label="༼"],
+.dz-BT .keyboard-key > .visual-wrapper > .key-element[data-label="༽"] {
+  font-size: 1.6rem;
+}
+
+/* Hindi */
+.hi .keyboard-key > .visual-wrapper > .key-element[data-label="औ"],
+.hi .keyboard-key > .visual-wrapper > .key-element[data-label="आ"],
+.hi .keyboard-key > .visual-wrapper > .key-element[data-label="ओ"],
+.hi .keyboard-key > .visual-wrapper > .key-element[data-label="ऑ"] {
+  font-size: 2rem;
+}
+
+/* Myanmar */
+.my .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 2.2rem;
+}
+.landscape .my .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 2rem;
+}
+
+/* Tamil */
+.ta .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 2.2rem;
+}
+
+.ta .keyboard-key > .visual-wrapper > .popup {
+  width: auto;
+  min-width: 4.4rem;
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+  border-radius: 2.8rem;
+}
+
+.ta .keyboard-row button:last-child.highlighted > .visual-wrapper > .popup {
+  left: auto;
+  right: 0;
+}
+
+.ta .special-key > .visual-wrapper > .key-element[data-label="அஆஇ"] {
+  font-size: 1.1rem;
+}
+
+.landscape .ta .special-key > .visual-wrapper > .key-element[data-label="அஆஇ"] {
+  font-size: 1.7rem;
+}
+
+.landscape .ta .keyboard-key.highlighted > .visual-wrapper > .popup {
+  top: -7rem;
+  left: calc(50% - 3.5rem);
+  width: auto;
+  min-width: 5.6rem;
+  height: 7rem;
+  line-height: 7rem;
+  font-size: 3.5rem;
+  border-radius: 3.5rem;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+}
+
+.landscape .ta .keyboard-row button:last-child.highlighted > .visual-wrapper > .popup {
+  left: auto;
+  right: 0;
+}
+
+.landscape .ta .keyboard-key > .visual-wrapper > .key-element[data-label="ஔ"],
+.landscape .ta .keyboard-key > .visual-wrapper > .key-element[data-label="ொ"] {
+  font-size: 2.5rem;
+}
+.landscape .ta .keyboard-key > .visual-wrapper > .key-element[data-label="ௌ"] {
+  font-size: 2rem;
+}
+
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ஹ"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ஊ"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ா"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ூ"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ே"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ெ"] {
+  font-size: 1.7rem;
+}
+
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ௗ"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ை"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ண"] {
+  font-size: 1.4rem;
+}
+
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ஔ"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ொ"],
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ோ"] {
+  font-size: 1.2rem;
+}
+
+.ta .keyboard-key > .visual-wrapper > .key-element[data-label="ௌ"] {
+  font-size: 1.1rem;
+}
+
+/* Telugu */
+.te .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 2rem;
+}
+.portrait .te .keyboard-key > .visual-wrapper > .key-element[data-label="ీఊ"] {
+  font-size: 1.4rem;
+}
+.portrait .te .keyboard-key > .visual-wrapper > .key-element[data-label="ఋ"] {
+  font-size: 1.6rem;
+}
+
+/* Chinese Zhuyin */
+.zh-Hant-Zhuyin .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 2rem;
 }

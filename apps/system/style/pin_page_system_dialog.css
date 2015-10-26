@@ -1,0 +1,181 @@
+#pin-page-dialog section.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-align: center;
+  background-color: #f4f4f4;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+  pointer-events: all;
+}
+
+#pin-page-dialog .container {
+  position: relative;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: hidden;
+}
+
+#pin-page-dialog #pin-page-container {
+  height: 54%;
+}
+
+#pin-page-dialog #pin-site-container {
+  height: 42%;
+  top: -2.5rem;
+}
+
+#pin-page-dialog .divider {
+  border-top: 0.2rem solid rgba(0, 0, 0, 0.1);
+  color: var(--results-header-color);
+  text-align: center;
+  height: 1rem;
+  top: -3.5rem;
+  position: relative;
+  overflow: visible;
+}
+
+.divider span {
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  position: relative;
+  background-color: #f4f4f4;
+  padding: 0 .66rem;
+  top: -1rem;
+  font-weight: 500;
+  color: #a6a6a6;
+}
+
+#pin-page-dialog section h1 {
+  text-align: center;
+  line-height: 5rem;
+  font-weight: 300;
+  font-style: italic;
+  font-size: 2.4rem;
+  color: #858585;
+}
+
+#pin-page-dialog section {
+  overflow: hidden;
+  height: 100%;
+  top: 0;
+  pointer-events: none;
+}
+
+#pin-page-dialog button,
+#pin-page-dialog a {
+  pointer-events: all;
+}
+
+#pin-page-dialog section .container > .page-title {
+  text-overflow: ellipsis;
+  width: calc(100% - 8rem);
+  margin: 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  padding: 0;
+}
+
+.page-title,
+.site-name {
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #5f5f5f;
+}
+
+#pin-card-container {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  height: 10rem;
+  margin: 1.13rem auto 2.4rem;
+}
+
+gaia-pin-card {
+  display: block;
+  width: 13.33rem;
+  height: 15rem;
+  transform: scale(.65) translateY(-4rem);
+  margin: 0 auto;
+}
+
+button.pin-button {
+  position: relative;
+  margin: 2rem auto;
+  width: -moz-fit-content;
+  background-color: white;
+  display: block;
+  float: none;
+  font-size: 1.6rem;
+  font-style: italic;
+  padding-inline-start: 4rem;
+  padding-inline-end: 2rem;
+}
+
+button.pin-button::before {
+  content: "";
+  width: 1.6rem;
+  height: 1.6rem;
+  position: absolute;
+  top: 1.2rem;
+  offset-inline-start: 2rem;
+  background-size: 1.6rem 1.6rem;
+  background-image: url("chrome/images/pin.png");
+}
+
+#pin-page-dialog p {
+  font-size: 1.6rem;
+  font-weight: normal;
+  font-style: italic;
+  color: #5f5f5f;
+  padding: 0;
+}
+
+#pin-site-container gaia-app-icon {
+  width: 5.6rem;
+  height: 5.6rem;
+  margin: 8% auto 7%;
+  display: block;
+  outline: 0 none;
+  transition: transform ease .3s, opacity ease .3s;
+  background-image: url('chrome/images/loading_icon_dark.svg');
+}
+
+#pin-page-dialog gaia-toast {
+  pointer-events: none;
+}
+
+@media (orientation: landscape) {
+
+  #pin-page-dialog #pin-page-container,
+  #pin-page-dialog #pin-site-container {
+    width: 49%;
+    height: 100%;
+    float: left;
+  }
+
+  #pin-page-dialog .divider {
+    border-top: none;
+    border-left: 2px solid rgba(0, 0, 0, 0.1);
+    height: 68%;
+    width: 1%;
+    float: left;
+    margin-top: 3.5rem;
+    left: 1%;
+  }
+
+  #pin-page-dialog .divider span {
+    top: 9rem;
+    left: -1.5rem;
+  }
+
+  #pin-site-container {
+    float: left;
+  }
+
+  #pin-site-container gaia-app-icon {
+    margin: 5.8rem auto 4.5rem;
+  }
+}

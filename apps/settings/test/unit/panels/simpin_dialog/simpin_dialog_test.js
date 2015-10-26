@@ -42,7 +42,11 @@ suite('SimPinDialog > ', function() {
           pukInput: createInput(),
           newPinInput: createInput(),
           confirmPinInput: createInput(),
-          dialogDone: createButton()
+          dialogDone: createButton(),
+          triesLeftMsg: createDiv(),
+          errorMsg: createDiv(),
+          errorMsgHeader: createDiv(),
+          errorMsgBody: createDiv()
         });
         done();
     });
@@ -199,6 +203,22 @@ suite('SimPinDialog > ', function() {
     });
   });
 
+  suite('_clean > ', function() {
+    test('make sure all states would be cleaned', function() {
+      simPinDialog.clear();
+
+      assert.isTrue(simPinDialog._elements.errorMsg.hidden);
+      assert.isTrue(simPinDialog._elements.triesLeftMsg.hidden);
+      assert.equal(simPinDialog._elements.errorMsgHeader.textContent, '');
+      assert.equal(simPinDialog._elements.errorMsgBody.textContent, '');
+      assert.equal(simPinDialog._elements.triesLeftMsg.textContent, '');
+      assert.equal(simPinDialog._elements.pinInput.value, '');
+      assert.equal(simPinDialog._elements.pukInput.value, '');
+      assert.equal(simPinDialog._elements.newPinInput.value, '');
+      assert.equal(simPinDialog._elements.confirmPinInput.value, '');
+    });
+  });
+
   function createInput() {
     var input = document.createElement('input');
     input.type = 'text';
@@ -208,5 +228,9 @@ suite('SimPinDialog > ', function() {
   function createButton() {
     var button = document.createElement('button');
     return button;
+  }
+
+  function createDiv() {
+    return document.createElement('div');
   }
 });

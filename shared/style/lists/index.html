@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8">
   <title>Lists</title>
@@ -8,12 +8,14 @@
   <link rel="stylesheet" href="../lists.css">
 
   <!--
-    This <style> and <link> is only used for the example code, is no needed for the real case use
-  -->
+    - These <style>, <script> and <link> elements are only used for the example
+    - code, they are not needed for the real case.
+    -->
   <link rel="stylesheet" href="../../style/headers.css">
   <link rel="stylesheet" href="../../style/switches.css">
   <link rel="stylesheet" href="../../style/buttons.css">
   <link rel="stylesheet" href="../../elements/gaia-icons/gaia-icons-embedded.css">
+  <link rel="stylesheet" href="../../elements/gaia-icons/bidi-helper.css">
   <style>
     html, body {
       margin: 0;
@@ -60,12 +62,24 @@
     #settings-list button { max-width: 8rem; margin: 1rem 1rem 0 0; }
     #settings-list aside label { margin: 0 1rem 0 0; height: 100%; }
     #settings-list > header h2 { margin: 0 1.5rem; }
-
   </style>
+  <script>
+    window.onload = function() {
+      var dirInput = document.getElementById('dir');
+      dirInput.checked = false;
+      dirInput.onchange = function() {
+        document.documentElement.dir = this.checked ? "rtl" : "ltr";
+      };
+    };
+  </script>
 </head>
 
 <body role="application">
-
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox"> RTL mode
+    </label>
+  </p>
   <section data-type="list">
     <header>Title</header>
     <ul>
@@ -74,7 +88,7 @@
       </li>
       <li>
         <a href="#">
-          <aside class="pack-end" data-icon="forward" aria-label="forward"></aside>
+          <aside class="pack-end" data-icon="forward" data-l10n-id="" aria-label="forward"></aside>
           <p>Margherita Clickable <strong>Gomez</strong></p>
         </a>
       </li>
@@ -103,10 +117,10 @@
       <li>
         <aside class="pack-end icon icon-nopic"></aside>
         <a href="#">
-          <aside data-icon="call-outgoing" aria-label="outgoing call">
+          <aside data-icon="call-outgoing" data-l10n-id="" aria-label="outgoing call">
             asidecall
           </aside>
-          <p>
+          <p dir="auto">
             Margherita <strong>Gomez</strong>
             <em>(2)</em>
           </p>
@@ -141,8 +155,8 @@
           <span></span>
         </label>
         <a href="#">
-          <aside data-icon="call-outgoing" aria-label="outgoing call"></aside>
-          <p>
+          <aside data-icon="call-outgoing" data-l10n-id="" aria-label="outgoing call"></aside>
+          <p dir="auto">
             Margherita <strong>Gomez</strong>
             <em>(2)</em>
           </p>
@@ -160,7 +174,7 @@
       <ul>
       <li>
         <a href="#">
-          <aside data-icon="call-outgoing" aria-label="outgoing call"></aside>
+          <aside data-icon="call-outgoing" data-l10n-id="" aria-label="outgoing call"></aside>
           <p>Phone lock</p>
         </a>
       </li>

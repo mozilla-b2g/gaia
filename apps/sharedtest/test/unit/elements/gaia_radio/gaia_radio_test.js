@@ -71,4 +71,11 @@ suite('GaiaRadio', function() {
     simulateClick(inputs[0]);
   });
 
+  test('Clicking when checked does not change state', function() {
+    var input = inputs[0];
+    input.checked = true;
+    simulateClick(input);
+    assert.isTrue(input.checked);
+  });
+
 });

@@ -21,8 +21,7 @@
   AppStatusbar.prototype.view = function() {
     var content = `<div class="titlebar">
              <div class="notifications-shadow"></div>
-             <div class="statusbar-shadow titlebar-maximized"></div>
-             <div class="statusbar-shadow titlebar-minimized"></div>
+             <div class="statusbar-shadow titlebar-icons"></div>
            </div>`;
     return content;
   };
@@ -55,8 +54,8 @@
     if (this._dontStopEvent) {
       return;
     }
-    // If system is at fullscreen mode, let utility tray to handle the event.
-    if (!this.app || !this.app.isFullScreen()) {
+
+    if (!this.app || !(this.app.isFullScreen() || document.mozFullScreen)) {
       return;
     }
     this.app.debug('processing touch event...', evt.type);
@@ -77,6 +76,9 @@
         this.titleBar.style.transition = 'transform';
 
         this.chromeBar.classList.add('dragging');
+
+        // The status bar might show, so ensure it knows we're fullscreen.
+        this.publish('-fullscreen-statusbar-set-appearance');
         break;
 
       case 'touchmove':
@@ -128,16 +130,18 @@
           this._releaseBar();
         } else {
           this._dontStopEvent = true;
+          this.publish('-fullscreen-statusbar-show');
           this._touchForwarder.forward(evt);
           this._releaseAfterTimeout();
         }
         break;
       }
-  }; 
+  };
 
   AppStatusbar.prototype._releaseBar = function() {
     this.app.debug('releasing statusbar');
     this._dontStopEvent = false;
+    this.publish('-fullscreen-statusbar-hide');
     var titleBar = this.titleBar;
     var chromeBar = this.chromeBar;
 
@@ -172,20 +176,25 @@
     chromeBar.classList.add('dragged');
     chromeBar.classList.remove('dragging');
 
-    self._releaseTimeout = setTimeout(function() {
-      self._releaseBar();
+    function releaseFn() {
       window.removeEventListener('touchstart', closeOnTap);
-    }, this.RELEASE_TIMEOUT);
+      window.removeEventListener('utilitytraywillshow', releaseFn);
+      clearTimeout(self._releaseTimeout);
+      self._releaseBar();
+    }
+
+    window.addEventListener('touchstart', closeOnTap);
+    window.addEventListener('utilitytraywillshow', releaseFn);
+
+    self._releaseTimeout = setTimeout(releaseFn, this.RELEASE_TIMEOUT);
 
     function closeOnTap(evt) {
       if (evt.target != self._touchForwarder.destination) {
         return;
       }
-      window.removeEventListener('touchstart', closeOnTap);
       self.app.debug('user interaction, will release statusbar.');
-      self._releaseBar(titleBar);
+      releaseFn();
     }
-    window.addEventListener('touchstart', closeOnTap);
   };
   exports.AppStatusbar = AppStatusbar;
 }(window));

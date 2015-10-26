@@ -387,7 +387,7 @@ input::-moz-focus-inner {
   border: 0px;
   border-radius: 0px;
   Font-family: Fira Sans;
-  Font-size: 1.6rem;
+  Font-size: 3.2rem;
   Font-style: Regular;
   color: #818181;
   background-color: transparent;
@@ -461,7 +461,7 @@ input::-moz-focus-inner {
   padding: 0px;
   background-color: #ffffff;
   border: 0px;
-  border-radius: 3rem;
+  border-radius: 6rem;
   z-index: 80;
 }
 
@@ -508,7 +508,7 @@ input::-moz-focus-inner {
   border: 0px;
   border-radius: 0px;
   Font-family: Fira Sans;
-  Font-size: 1.6rem;
+  Font-size: 3.2rem;
   Font-style: Italic;
   color: #818181;
   /* None shadow */
@@ -846,7 +846,7 @@ input::-moz-focus-inner {
   text-overflow: ellipsis;
   text-align: center;
   font-style: Italic;
-  font-size: 1rem;
+  font-size: 2rem;
   color: #ffffff;
   pointer-events: none;
 }
@@ -886,7 +886,7 @@ input::-moz-focus-inner {
   padding-top: 20px;
   padding-bottom: 20px;
   font-family: Fira Sans;
-  font-size: 1.4rem;
+  font-size: 2.8rem;
   font-style: Italic;
   color: #ffffff;
 }
@@ -922,7 +922,7 @@ input::-moz-focus-inner {
   display: table-cell;
   word-wrap: break-word;
   font-family: Fira Sans;
-  font-size: 2.4rem;
+  font-size: 4.8rem;
   font-style: Regular;
   color: #ffffff;
   vertical-align: middle;

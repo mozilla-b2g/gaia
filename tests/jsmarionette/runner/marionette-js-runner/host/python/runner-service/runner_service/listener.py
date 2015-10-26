@@ -128,11 +128,13 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         handler = runner_handlers[options['buildapp']](**handler_args)
         handler.start_runner(binary, options)
 
+        print "Started runner with id = {0}".format(start_id)
         self.REQUESTS[start_id] = handler
 
         return { 'id': start_id }
 
     def do_stop_runner(self, payload):
+        print "Stopping runner with id = {0}".format(payload['id'])
         payload_id = payload['id']
         if not payload_id in self.REQUESTS:
             if payload_id in self.INACTIVE:

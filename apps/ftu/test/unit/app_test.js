@@ -3,6 +3,7 @@
 
 'use strict';
 
+require('/shared/js/event_safety.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_l10n.js');

@@ -13,6 +13,7 @@ gaia-confirm {
   bottom: 0;
   padding-bottom: 7rem;
   font-size: 0;
+  text-align: start;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
@@ -27,14 +28,6 @@ gaia-confirm {
   z-index: 2147483646;
 }
 
-html[dir="ltr"] gaia-confirm {
-  text-align: left;
-}
-
-html[dir="rtl"] gaia-confirm {
-  text-align: right;
-}
-
 gaia-confirm[hidden] {
   transform: translateY(100%);
   visibility: hidden;
@@ -47,7 +40,7 @@ gaia-confirm[hidden] {
   font-size: 2.2rem;
   color: #FAFAFA;
   padding: 0 1.5rem;
-  -moz-box-sizing: padding-box;
+  box-sizing: padding-box;
   width: 100%;
   display: inline-block;
   max-height: 100%;
@@ -77,9 +70,10 @@ p {
 }
 
 p img {
-  float: left;
-  margin-right: 2rem;
+  margin-inline-end: 2rem;
 }
+p img:-moz-dir(ltr) { float: left; }
+p img:-moz-dir(rtl) { float: right; }
 
 p strong {
   font-weight: 300;
@@ -103,15 +97,16 @@ dl {
 
 dl > dt {
   clear: both;
-  float: left;
   width: 7rem;
-  padding-left: 1.5rem;
+  padding-inline-start: 1.5rem;
   font-weight: 500;
-  text-align: left;
+  text-align: start;
 }
+dl > dt:-moz-dir(ltr) { float: left; }
+dl > dt:-moz-dir(rtl) { float: right; }
 
 dl > dd {
-  padding-right: 1.5rem;
+  padding-inline-end: 1.5rem;
   font-weight: 300;
   text-overflow: ellipsis;
   vertical-align: top;
@@ -125,7 +120,7 @@ figure {
 }
 
 figure img {
-  padding-right: 1.5rem;
+  padding-inline-end: 1.5rem;
   flex-shrink: 0;
 }
 
@@ -158,40 +153,3 @@ ul li ul {
   margin: 0;
   padding: 0;
 }
-
-/*
- * Right to left View
- */
-
-*[dir="rtl"] gaia-confirm {
-  text-align: right;
-}
-
-*[dir="rtl"] gaia-confirm:before {
-  margin-left: auto;
-  margin-right: -0.1rem;
-}
-
-*[dir="rtl"] p img {
-  float: right;
-  margin-left: 2rem;
-  margin-right: auto;
-}
-
-*[dir="rtl"] dl > dt {
-  float: right;
-  padding-left: inherit;
-  padding-right: 1.5rem;
-  text-align: right;
-}
-
-*[dir="rtl"] dl > dd {
-  padding-left: 1.5rem;
-  padding-right: inherit;
-}
-
-*[dir="rtl"] figure img {
-  padding-left: 1.5rem;
-  padding-right: inherit;
-}
-

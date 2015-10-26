@@ -15,6 +15,8 @@ var mocksForWrapperFactory = new MocksHelper([
 suite('system/WrapperFactory', function() {
   mocksForWrapperFactory.attachTestHelpers();
   setup(function(done) {
+    require('/shared/js/settings_listener.js');
+    require('/js/browser.js');
     requireApp('system/js/wrapper_factory.js', done);
   });
 
@@ -83,6 +85,16 @@ suite('system/WrapperFactory', function() {
         window.dispatchEvent(new CustomEvent('mozbrowseropenwindow', config));
         assert(mockApp.requestOpen.called);
         assert.isFalse(WrapperFactory.publish.calledWith('launchapp'));
+      });
+
+      test('Launching a wrapper that happens to also be pinned and opened',
+      function() {
+        mockApp.windowName = '_samescope';
+        config.detail.name = '_blank';
+        MockService.mockQueryWith('AppWindowManager.getApp', mockApp);
+
+        window.dispatchEvent(new CustomEvent('mozbrowseropenwindow', config));
+        assert(WrapperFactory.publish.calledWith('launchapp'));
       });
 
       test('uses the scope if passed in features', function() {

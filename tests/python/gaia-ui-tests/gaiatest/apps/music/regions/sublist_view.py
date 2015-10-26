@@ -3,7 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import expected, By, Wait
-from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.music.regions.player_view import PlayerView
@@ -11,17 +10,40 @@ from gaiatest.apps.music.regions.player_view import PlayerView
 
 class SublistView(Base):
 
-    _song_number_locator = (By.CSS_SELECTOR, 'bdi.list-song-index')
-    _play_control_locator = (By.ID, 'views-sublist-controls-play')
+    _list_locator = (By.ID, 'list')
+    _first_song_locator = (By.CLASS_NAME, 'gfl-item first')
 
+    def _set_active_view(self, type):
+        self._active_view_locator = (By.CSS_SELECTOR, 'iframe.active[src*="/views/{}-detail/index.html"]'.format(type))
+
+    def switch_to_active_view(self):
+        Wait(self.marionette).until(expected.element_displayed(*self._active_view_locator))
+        self.marionette.switch_to_frame(self.marionette.find_element(*self._active_view_locator))
+
+    def wait_sublist_view_draw(self):
+        self.switch_to_active_view()
+        element = self.marionette.find_element(*self._list_locator)
+        Wait(self.marionette).until(lambda m: element.rect['x'] == 0 and element.is_displayed())
+        self.apps.switch_to_displayed_app()
+
+    def tap_first_song(self):
+        self.switch_to_active_view()
+        song = Wait(self.marionette).until(
+            expected.element_present(*self._first_song_locator))
+        song.tap()
+        self.apps.switch_to_displayed_app()
+        return PlayerView(self.marionette)
+
+
+class AlbumSublistView(SublistView):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        element = self.marionette.find_element(*self._song_number_locator)
-        Wait(self.marionette).until(lambda m: element.location['x'] == 0)
+        self._set_active_view('album')
+        self.wait_sublist_view_draw()
 
-    def tap_play(self):
-        play = Wait(self.marionette).until(
-            expected.element_present(*self._play_control_locator))
-        # TODO: Change this to a simple tap when bug 862156 is fixed
-        Actions(self.marionette).tap(play).perform()
-        return PlayerView(self.marionette)
+
+class ArtistSublistView(SublistView):
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        self._set_active_view('artist')
+        self.wait_sublist_view_draw()

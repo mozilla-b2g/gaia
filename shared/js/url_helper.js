@@ -60,5 +60,37 @@ var UrlHelper = {
     }
     this.urlValidate.setAttribute('value', str);
     return !this.urlValidate.validity.valid;
+  },
+
+  /**
+   * Resolve a URL against a base URL.
+   *
+   * @param url String URL to resolve.
+   * @param baseURL String Base URL to resolve against.
+   * @returns String resolved URL or null.
+   */
+  resolveUrl: function urlHelper_resolveURL(url, baseUrl) {
+    if (!url) {
+      return null;
+    }
+    try {
+      return new URL(url, baseUrl).href;
+    } catch(e) {
+      return null;
+    }
+  },
+
+  /**
+   * Get the hostname from a URL.
+   *
+   * @param String URL to process.
+   * @returns String hostname of URL.
+   */
+  getHostname: function urlHelper_getHostname(url) {
+    try {
+      return new URL(url).hostname;
+    } catch(e) {
+      return null;
+    }
   }
 };

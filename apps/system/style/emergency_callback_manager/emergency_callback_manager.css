@@ -17,27 +17,30 @@
 }
 
 #emergency-callback-notification > .title-container {
-  margin: 1rem 0 0 3.7rem;
+  margin: 1rem 0 0;
+  margin-inline-start: 3.7rem;
 }
 
 #emergency-callback-notification > .timer {
-  margin: 0 0 0 3.7rem;
+  margin: 0;
+  margin-inline-start: 3.7rem;
 }
 
 /* Toaster */
 #emergency-callback-toaster > .icon {
   background-image: url('images/emergency-callback-icon.png');
   background-size: 2.4rem;
-  float: left;
   display: block;
   width: 2.4rem;
   height: 2.4rem;
   margin: 1.3rem;
 }
+html[dir="ltr"] #emergency-callback-toaster > .icon { float: left; }
+html[dir="rtl"] #emergency-callback-toaster > .icon { float: right; }
 
 #emergency-callback-toaster > .message {
   position: absolute;
-  left: 5rem;
+  offset-inline-start: 5rem;
   top: 1rem;
   width: calc(100% - 9.5rem);
   line-height: 2.8rem;
@@ -45,7 +48,7 @@
 
 #emergency-callback-toaster > .timer {
   position: absolute;
-  right: 0;
+  offset-inline-end: 0;
   top: 1rem;
   width: 4rem;
   line-height: 2.8rem;
@@ -64,7 +67,7 @@
   background-image: url('images/grey-noise-bg.png');
   background-repeat: repeat-x;
   background-size: auto 100%;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   border-bottom: 0.1rem #2c2c2c solid;
   transform: translateY(-5rem);
   transition: transform .3s ease-in-out;
@@ -101,12 +104,12 @@
 
 #emergency-callback-dialog-wrapper > :not(img) {
   display: block;
-  -moz-margin-start: 8rem;
+  margin-inline-start: 8rem;
 }
 
 #emergency-callback-icon {
   background-image: url('images/emergency-callback-icon.png');
   width: 6.4rem;
   height: 6.4rem;
-  margin-left: -0.5rem;
+  margin-inline-start: -0.5rem;
 }

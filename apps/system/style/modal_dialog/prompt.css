@@ -9,7 +9,7 @@
   font-weight: 300;
   font-size: 2.2rem;
   color: #FAFAFA;
-  margin: 1rem 0 0 0;
+  margin: 1rem 0 0;
   padding: 1rem 1.5rem;
 }
 
@@ -25,13 +25,14 @@
   color: #fff;
   border-bottom: 0.1rem solid #777;
   margin: 0;
-  padding: 2.5rem 0 2rem 0;
+  padding: 2.5rem 0 2rem;
 }
 
 [role="dialog"] .content img {
-  float: left;
-  margin-right: 2rem;
+  margin-inline-end: 2rem;
 }
+html[dir="ltr"] [role="dialog"] .content img { float: left; }
+html[dir="rtl"] [role="dialog"] .content img { float: right; }
 
 [role="dialog"] .content strong {
   font-weight: 300;

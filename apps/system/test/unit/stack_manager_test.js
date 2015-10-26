@@ -216,6 +216,12 @@ suite('system/StackManager >', function() {
         assert.isTrue(StackManager.outOfStack());
       });
 
+      test('outOfStack should not throw if this.position === -1',
+      function() {
+        StackManager.position = -1;
+        assert.isTrue(StackManager.outOfStack());
+      });
+
       suite('but to prevent undefined swiping behaviors', function() {
         test('getPrev should return undefined', function() {
           assert.isUndefined(StackManager.getPrev());
@@ -247,12 +253,13 @@ suite('system/StackManager >', function() {
     });
 
     test('stack position updates on cardviewclosed', function() {
-      assert.equal(StackManager.position, 2, 'wrong starting position');
+      StackManager.position = 0;
+      assert.equal(StackManager.position, 0, 'wrong starting position');
       var cardClosedEvent =
-        new CustomEvent('cardviewclosed',
-                        { 'detail': { 'newStackPosition': 1 }});
+        new CustomEvent('cardviewclosed', { 'detail': dialer });
       StackManager.handleEvent(cardClosedEvent);
-      assert.equal(StackManager.position, 1, 'new position is wrong');
+      assert.equal(StackManager.position, 2, 'new position is end of stack');
+      assert.equal(StackManager.getCurrent(), dialer, 'app is at top of stack');
     });
 
     test('and does not cause the position to stringify', function() {

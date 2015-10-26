@@ -2,13 +2,15 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ActivityWindowManager, HomescreenLauncher, HomescreenWindowManager,
-         FtuLauncher, ScreenManager, Activities,
+         FtuLauncher, ScreenManager, Activities, AppUsageMetrics, RemoteControl,
          DeveloperHUD, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage,
          SuspendingAppPriorityManager, TTLView,
-         MediaRecording, AppWindowFactory,
+         MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, LayoutManager, PermissionManager, Accessibility,
-         SleepMenu, InteractiveNotifications, ExternalStorageMonitor */
+         SleepMenu, InteractiveNotifications, ExternalStorageMonitor,
+         BaseModule */
+
 'use strict';
 
 
@@ -24,6 +26,10 @@ window.addEventListener('load', function startup() {
     if (window.SuspendingAppPriorityManager) {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
+
+    /** @global */
+    window.systemDialogManager = window.systemDialogManager ||
+      new SystemDialogManager();
 
     window.AppWindowManager.init();
   }
@@ -122,6 +128,13 @@ window.addEventListener('load', function startup() {
   }
   window.interactiveNotifications = new InteractiveNotifications();
   window.interactiveNotifications.start();
+
+  window.appUsageMetrics = new AppUsageMetrics();
+  window.appUsageMetrics.start();
+
+  window.remoteControl = new RemoteControl();
+  window.remoteControl.start();
+
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.
@@ -136,6 +149,9 @@ window.addEventListener('load', function startup() {
       { bubbles: true, cancelable: false,
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
+
+  window.core = BaseModule.instantiate('Core');
+  window.core && window.core.start();
 });
 
 window.usbStorage = new UsbStorage();

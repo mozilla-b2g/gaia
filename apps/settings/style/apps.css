@@ -2,30 +2,33 @@
  * Application Permissions
  */
 #appPermissions ul li img,
-#homescreens ul li img {
+.my-home-screens li img {
   position: absolute;
   width: 3rem;
   height: 3rem;
-  left: 1.6rem;
+  offset-inline-start: 1.6rem;
   top: 1.5rem;
 }
 
+.my-home-screens li img {
+  offset-inline-start: 3rem;
+}
+
 #addon-detail-toggle,
-#appPermissions ul li > a,
-#homescreens ul li > a  {
-  -moz-padding-start: 7.4rem;
+#appPermissions ul li > a {
+  padding-inline-start: 7.4rem;
 }
 
 #addons ul li img {
   position: absolute;
   width: 5rem;
   height: 5rem;
-  left: 0.6rem;
+  offset-inline-start: 0.6rem;
   top: 0.5rem;
 }
 
 #addons ul li > a {
-  -moz-padding-start: 8.4rem;
+  padding-inline-start: 8.4rem;
 }
 
 /**
@@ -67,10 +70,8 @@
   font-size: 1.7rem;
   line-height: 2.3rem;
   font-weight: 400;
-  -moz-padding-start: 1.5rem;
-  -moz-padding-end: 1rem;
-  padding-top: 0.5rem;
-  padding-bottom: 1.5rem;
+  padding: 0.5rem 1rem 1.5rem;
+  padding-inline-start: 1.5rem;
   white-space: unset;
 }
 
@@ -80,8 +81,8 @@
 
 /* For overriding the style from building block */
 ul li > label:not([for]).addon-details-info {
-  -moz-padding-start: 8.1rem;
-  -moz-padding-end: 5.9rem;
+  padding-inline-start: 8.1rem;
+  padding-inline-end: 5.9rem;
   padding-top: 1rem;
   width: calc(100% - 12.5rem);
   display: block;
@@ -91,7 +92,7 @@ ul li > label:not([for]).addon-details-info {
   position: absolute;
   width: 5rem;
   height: 5rem;
-  left: 1.4rem;
+  offset-inline-start: 1.4rem;
 }
 
 .addon-rename {
@@ -99,7 +100,7 @@ ul li > label:not([for]).addon-details-info {
   border: none;
   position: absolute;
   top: 0.7rem;
-  right: 0;
+  offset-inline-end: 0;
   width: auto;
   color: #00aac5;
   font-style: italic;
@@ -124,13 +125,20 @@ ul li > label:not([for]).addon-details-info {
   display: none;
 }
 
-/******************************************************************************
- * Right-To-Left layout
- */
-html:-moz-dir(rtl) #addons ul li img,
-html:-moz-dir(rtl) #appPermissions ul li img,
-html:-moz-dir(rtl) #homescreens ul li img,
-html:-moz-dir(rtl) .addon-details-icon {
-  left: unset;
-  right: 1.6rem;
+.addon-obsolete {
+  background-color: #F0AD4E;
+  color: #FFF;
+  flex-flow: row nowrap;
+  align-items: center;
+  margin: 0;
+}
+
+.addon-obsolete-icon {
+  padding-inline-start: 1.5rem;
+}
+
+.addon-obsolete-info {
+  font-size: 1.6rem;
+  white-space: normal;
+  padding: 1.5rem;
 }

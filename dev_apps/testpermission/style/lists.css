@@ -108,8 +108,7 @@ ul li > label:not([for]) {
   height: 100%;
 }
 
-ul li > label:not([for]) > span,
-ul li > label.pack-switch:not([for]) > input + span {
+ul li > label:not([for]) > span {
   left: auto;
   right: 2rem;
 }
@@ -244,8 +243,7 @@ html[dir="rtl"] ul li a.bb-button {
   right: 2rem;
 }
 
-html[dir="rtl"] ul li > label:not([for]) > span,
-html[dir="rtl"] ul li > label.pack-switch:not([for]) > input + span {
+html[dir="rtl"] ul li > label:not([for]) > span {
   left: 4rem; /* XXX we use "right: 2rem" for LTR layouts... */
   right: inherit;
 }

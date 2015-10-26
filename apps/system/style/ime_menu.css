@@ -5,6 +5,7 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled .ime-menu {
     bottom: 0;
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     right: var(--software-home-button-height);
   }
 }
@@ -24,12 +25,14 @@
 /* To override the styling in building block */
 .ime-menu[role="dialog"][data-type="value-selector"] [role="listbox"] .item-label {
   line-height: normal;
-  padding: 0.9rem 2.6rem 0 1.5rem;
+  padding: 0.9rem 2.6rem 0;
+  padding-inline-start: 1.5rem;
 }
 
 .ime-menu[role="dialog"][data-type="value-selector"] [role="listbox"] .item-note {
   line-height: normal;
-  padding: 0.3rem 2.6rem 0.9rem 1.5rem;
+  padding: 0.3rem 2.6rem 0.9rem;
+  padding-inline-start: 1.5rem;
 }
 
 /* For IME Menu buttons */

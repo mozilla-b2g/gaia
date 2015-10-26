@@ -60,7 +60,7 @@ section[role="region"].new > gaia-header h1 {
 #messages-contact-pick-button .icon-user {
   position: absolute;
   top: 0.6rem;
-  right: 1rem;
+  offset-inline-end: 1rem;
 
   display: block;
   width: 2.8rem;
@@ -131,10 +131,4 @@ section[role="region"].new .subheader {
 
 #messages-recipient-suggestions li {
   pointer-events: auto;
-}
-
-/* RTL modifications */
-html[dir="rtl"] #messages-contact-pick-button .icon-user {
-  left: 1rem;
-  right: unset;
 }

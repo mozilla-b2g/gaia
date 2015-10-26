@@ -31,8 +31,11 @@ var MockUtils = {
   closeNotificationsForThread: () => Promise.resolve(),
   imageToDataUrl: Utils.imageToDataUrl,
   debounce: Utils.debounce,
+  throttle: Utils.throttle,
   alert: Utils.alert,
   confirm: Utils.confirm,
   Promise: Utils.Promise,
-  getSimNameByIccId: Utils.getSimNameByIccId
+  getSimNameByIccId: Utils.getSimNameByIccId,
+  initializeShimHost: () => Promise.resolve(),
+  onceDocumentIsVisible: Utils.onceDocumentIsVisible
 };

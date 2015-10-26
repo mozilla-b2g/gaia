@@ -1,4 +1,4 @@
-/* global ID3v1Metadata, fetchBlobView, pass, fail */
+/* global ID3v1Metadata, fetchBlobView, pass, fail, suite, test, assert */
 'use strict';
 
 require('/test/unit/metadata/utils.js');

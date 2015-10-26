@@ -48,6 +48,7 @@
 
 @media (orientation: landscape) {
   #screen.software-button-enabled #keyboards {
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     right: var(--software-home-button-height);
     bottom: 0;
     left: 0;
@@ -105,11 +106,12 @@
 }
 
 #keyboard-show-ime-list > .fake-notification > .title-container {
-  margin: 1.4rem 0 0 3.7rem;
+  margin: 1.4rem 0 0;
+  margin-inline-start: 3.7rem;
 }
 
 #keyboard-show-ime-list > .fake-notification > .detail {
-  margin-left: 3.7rem;
+  margin-inline-start: 3.7rem;
 }
 
 .lockScreenInputWindow.slide-from-bottom {

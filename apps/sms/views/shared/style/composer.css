@@ -28,10 +28,10 @@ form[role="search"] button[type="submit"] + p > textarea {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  -moz-padding-end: 0.5rem;
+  padding-inline-end: 0.5rem;
 
   color: #474747;
-  -moz-border-end: 0.1rem solid #ccc;
+  border-inline-end: 0.1rem solid #ccc;
 
   font-size: 1.7rem;
   line-height: 2.1rem;
@@ -44,7 +44,7 @@ form[role="search"] button[type="submit"] + p > textarea {
 }
 
 #messages-input:after {
-  content: attr(data-placeholder);
+  content: attr(title);
   position: absolute;
 
   top: 0;
@@ -130,7 +130,7 @@ form[role="search"] button[type="submit"]:after {
   min-height: 2.2rem;
   padding: 0;
   padding-bottom: 0.1rem;
-  -moz-padding-start: 1.5rem;
+  padding-inline-start: 1.5rem;
 
   color: #008787;
 
@@ -186,15 +186,20 @@ form[role="search"] button[type="submit"]:after {
 #messages-send-button {
   height: 4rem;
   overflow: visible;
-  background: #fff url(images/icons/actionicon_sms_send_30x30.png)
-              no-repeat center center / 3rem;
+  background: #fff no-repeat center center / 3rem;
 
   align-self: flex-end;
-
+}
+html[dir="ltr"] #messages-send-button {
+  background-image: url(images/icons/actionicon_sms_send_30x30.png);
   /* When we put the icon at the center, an optical illusion makes it look to be
    * slightly to the left, so we offset the button by 2px to the right to
    * counteract this illusion */
   transform: translate(.2rem);
+}
+html[dir="rtl"] #messages-send-button {
+  background-image: url(images/icons/actionicon_sms_send_30x30_rtl.png);
+  transform: translate(-.2rem);
 }
 
 #messages-send-button:after {
@@ -214,8 +219,8 @@ form[role="search"] button[type="submit"]:after {
   width: 3rem;
   margin: 0;
   padding: 0;
-  -moz-padding-start: 0.5rem;
-  -moz-padding-end: 1rem;
+  padding-inline-start: 0.5rem;
+  padding-inline-end: 1rem;
 
   background: transparent
               url('images/icons/actionicon_sms_add_attachment_30x30.png')
@@ -233,7 +238,7 @@ form[role="search"] button[type="submit"]:after {
 
 .sim-indication {
   position: absolute;
-  right: 1.8rem;
+  offset-inline-end: 1.8rem;
   bottom: 0.4rem;
 
   display: none;
@@ -246,7 +251,8 @@ form[role="search"] button[type="submit"]:after {
 
 .sim-indication:before {
   position: absolute;
-  right: .8rem; /* 2.6rem from the right; means .8rem from .sim-indication */
+  /* 2.6rem from the end; means .8rem from .sim-indication */
+  offset-inline-end: .8rem;
   bottom: -0.1rem;
 
   content: '...';
@@ -269,21 +275,4 @@ button[disabled] .sim-indication {
  */
 form.bottom[role="search"] {
   z-index: 3;
-}
-
-/* RTL modifications */
-/* No translation by 2px because I don't see the illusion when it's on the left */
-html[dir=rtl] #messages-send-button {
-  transform: scaleX(-1);
-}
-
-/* The sim-indication is mirrored twice so that it's back at the right place */
-html[dir=rtl] .sim-indication {
-  transform: scaleX(-1);
-  right: 1.9rem;
-}
-
-html[dir=rtl] .sim-indication:before {
-  right: unset;
-  left: .8rem;
 }

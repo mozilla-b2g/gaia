@@ -27,9 +27,67 @@ Services.obs.addObserver(function(document) {
 
     if (handlers) {
       handlers.forEach(function(handler) {
-        handler.call(null, parameters);
+        window.setTimeout(() => handler.call(null, parameters), 0);
       });
     }
+  }
+
+  function generateCanvas(width, height) {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+
+    canvas.width = width;
+    canvas.height = height;
+
+    var linearGradient = context.createLinearGradient(0, 0, width, height);
+    linearGradient.addColorStop(0, 'blue');
+    linearGradient.addColorStop(1, 'red');
+
+    context.fillStyle = linearGradient;
+    context.fillRect (0, 0, width, height);
+
+    return canvas;
+  }
+
+  function generateImageBlob(width, height, type, quality) {
+    var canvas = generateCanvas(width, height);
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        canvas.width = canvas.height = 0;
+        canvas = null;
+
+        resolve(blob);
+      }, type, quality);
+    });
+  }
+
+  function rehydrateAttachments(messages) {
+    var attachmentPromises = [];
+
+    messages.forEach((message) => {
+      message.attachments && message.attachments.forEach((attachment, i) => {
+        var blobPromise;
+
+        if (attachment.type.startsWith('image/')) {
+          blobPromise = generateImageBlob(
+            attachment.width, attachment.height, attachment.type
+          );
+        } else {
+          blobPromise = Promise.resolve(
+            new window.Blob([attachment.content], { type: attachment.type })
+          );
+        }
+
+        attachmentPromises.push(
+          blobPromise.then((blob) => {
+            message.attachments[i] = Cu.cloneInto({ content: blob }, window);
+          })
+        );
+      });
+    });
+
+    return Promise.all(attachmentPromises);
   }
 
   var storagePromise = null;
@@ -43,12 +101,17 @@ Services.obs.addObserver(function(document) {
         storagePromise = appWindow.TestStorages.getStorage('messagesDB');
       }
 
-      storagePromise = storagePromise.then(function(storage) {
-        return storage || {
-          threads: new Map(),
-          recipientToThreadId: new Map(),
-          uniqueMessageIdCounter: 0
-        };
+      storagePromise = storagePromise.then((storage) => {
+        if (!storage) {
+          return {
+            threads: new Map(),
+            messages: new Map(),
+            recipientToThreadId: new Map(),
+            uniqueMessageIdCounter: 0
+          };
+        }
+
+        return rehydrateAttachments(storage.messages).then(() => storage);
       });
     }
 
@@ -60,7 +123,7 @@ Services.obs.addObserver(function(document) {
 
     if (!threadId) {
       threadId = storage.recipientToThreadId.size + 1;
-      storage.threads.set(threadId, { id: threadId, messages: [] });
+      storage.threads.set(threadId, { id: threadId, messages: new Set() });
       storage.recipientToThreadId.set(recipient, threadId);
     }
 
@@ -97,7 +160,9 @@ Services.obs.addObserver(function(document) {
         read: true
       };
 
-      thread.messages.push(message);
+      storage.messages.set(message.id, message);
+
+      thread.messages.add(message.id);
 
       return message;
     });
@@ -121,28 +186,24 @@ Services.obs.addObserver(function(document) {
     return numbers;
   }
 
-  function getMessagesWithFilter(threads, filter) {
+  function getMessagesWithFilter(storage, filter) {
     var messages = [];
 
     if (filter.threadId) {
-      var threadByFilter = threads.get(filter.threadId);
+      var threadByFilter = storage.threads.get(filter.threadId);
       if (threadByFilter) {
-        messages = threadByFilter.messages;
+        messages = Array.from(threadByFilter.messages).map(
+          (messageId) => storage.messages.get(messageId)
+        );
       }
     } else if (filter.numbers && filter.numbers.length) {
-      for (var thread of threads.values()) {
-        for (var message of thread.messages) {
-          // It's very simplified number matching logic, in real code matching
-          // strategy is more complex and based on PhoneNumberUtils.
-          var isRequestedMessage = getMessageParticipants(message).some(
-            (number) => filter.numbers.indexOf(number) >= 0
-          );
-
-          if (isRequestedMessage) {
-            messages.push(message);
-          }
-        }
-      }
+      messages = Array.from(storage.messages.values()).filter((message) => {
+        // It's very simplified number matching logic, in real code matching
+        // strategy is more complex and based on PhoneNumberUtils.
+        return getMessageParticipants(message).some(
+          (number) => filter.numbers.indexOf(number) >= 0
+        );
+      });
     }
 
     return new Set(messages).values();
@@ -266,8 +327,8 @@ Services.obs.addObserver(function(document) {
       var cursor = Services.DOMRequest.createCursor(window, handleCursor);
 
        if (filter) {
-        getStorage().then(function(storage) {
-          messages = getMessagesWithFilter(storage.threads, filter);
+        getStorage().then((storage) => {
+          messages = getMessagesWithFilter(storage, filter);
           handleCursor();
         });
       } else {
@@ -281,22 +342,60 @@ Services.obs.addObserver(function(document) {
       var request = Services.DOMRequest.createRequest(window);
 
       getStorage().then(function(storage) {
-        var isRequestedMessage = (message) => message.id === id;
-
-        var requestedMessage;
-        for (var thread of storage.threads.values()) {
-          if ((requestedMessage = thread.messages.find(isRequestedMessage))) {
-            break;
-          }
-        }
-
-        if (requestedMessage) {
+        if (storage.messages.has(id)) {
           // See description at the top of the file about "cloneInto" necessity.
           Services.DOMRequest.fireSuccessAsync(
-            request, Cu.cloneInto(requestedMessage, window)
+            request, Cu.cloneInto(storage.messages.get(id), window)
           );
         } else {
           Services.DOMRequest.fireErrorAsync(request, 'No message found!');
+        }
+      });
+
+      return request;
+    },
+
+    delete: function(id) {
+      var request = Services.DOMRequest.createRequest(window);
+      var messageToDeleteIds = Array.isArray(id) ? id : [id];
+
+      getStorage().then((storage) => {
+        var deletedThreadIds = [];
+        var deletedMessageIds = messageToDeleteIds.filter((messageId) => {
+          var message = storage.messages.get(messageId);
+          if (!message) {
+            return false;
+          }
+
+          // Delete message from global messages map.
+          storage.messages.delete(messageId);
+
+          // Delete message from thread message id list.
+          var thread = storage.threads.get(message.threadId);
+          thread.messages.delete(messageId);
+
+          // If thread doesn't contain any messages, delete thread as well.
+          if (!thread.messages.size) {
+            storage.threads.delete(thread.id);
+            deletedThreadIds.push(thread.id);
+          }
+
+          return true;
+        });
+
+        if (deletedMessageIds.length) {
+          // See description at the top of the file about "cloneInto" necessity.
+          Services.DOMRequest.fireSuccess(request, null);
+
+          callEventHandlers(
+            'deleted',
+            Cu.cloneInto({
+              deletedMessageIds: deletedMessageIds,
+              deletedThreadIds: deletedThreadIds
+            }, window)
+          );
+        } else {
+          Services.DOMRequest.fireError(request, 'No message found!');
         }
       });
 
@@ -311,6 +410,29 @@ Services.obs.addObserver(function(document) {
       return request;
     },
 
+    retrieveMMS: function(messageId) {
+      var request = Services.DOMRequest.createRequest(window);
+
+      getStorage().then((storage) => {
+        var notDownloadedMMS = storage.messages.get(messageId);
+        if (notDownloadedMMS && notDownloadedMMS.type === 'mms' &&
+            notDownloadedMMS.delivery === 'not-downloaded') {
+          Services.DOMRequest.fireSuccess(request, null);
+
+          notDownloadedMMS.delivery = 'received';
+          callEventHandlers(
+            'received', Cu.cloneInto({ message: notDownloadedMMS }, window)
+          );
+        } else {
+          Services.DOMRequest.fireError(
+            request, 'No message to download found!'
+          );
+        }
+      });
+
+      return request;
+    },
+
     addEventListener: function(event, handler) {
       var listeners = eventHandlers.get(event) || [];
       listeners.push(handler);
@@ -318,9 +440,12 @@ Services.obs.addObserver(function(document) {
     }
   };
 
-  Object.defineProperty(window.wrappedJSObject.navigator, 'mozMobileMessage', {
+  var appWindow = window.wrappedJSObject;
+  Object.defineProperty(appWindow.navigator, 'mozMobileMessage', {
     configurable: false,
-    writable: true,
-    value: Cu.cloneInto(MobileMessage, window, {cloneFunctions: true})
+    // If we're in iframe we should use parent's mozMobileMessage instead.
+    value: appWindow.parent !== appWindow ?
+      appWindow.parent.navigator.mozMobileMessage :
+      Cu.cloneInto(MobileMessage, window, { cloneFunctions: true })
   });
 }, 'document-element-inserted', false);

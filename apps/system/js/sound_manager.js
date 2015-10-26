@@ -409,7 +409,10 @@
    * @param {Number} offset the offset which will be added to volume value.
    */
   SoundManager.prototype.handleVolumeKey = function sm_handleVolumeKey(offset) {
-    if (!Service.query('screenEnabled') && this.currentChannel === 'none') {
+    // Revert this changeset after landing the bug1129882.
+    if (!Service.query('screenEnabled') &&
+        this.currentChannel === 'none' &&
+        !this.isOnCall()) {
       return;
     }
 
@@ -686,10 +689,6 @@
    * @memberOf SoundManager.prototype
    */
   SoundManager.prototype.isOnCall = function sm_isOnCall() {
-    if (this.currentChannel == 'telephony') {
-      return true;
-    }
-
     // XXX: This work should be removed
     // once we could get telephony channel change event
     // https://bugzilla.mozilla.org/show_bug.cgi?id=819858

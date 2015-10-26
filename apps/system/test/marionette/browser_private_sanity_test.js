@@ -8,7 +8,7 @@ marionette('Private Browser - Basic Sanity Test', function() {
 
   var client = marionette.client();
 
-  var home, rocketbar, server, system;
+  var home, rocketbar, search, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -22,10 +22,12 @@ marionette('Private Browser - Basic Sanity Test', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
+    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
+    home.waitForLaunch();
   });
 
   var STORAGE_KEY = 'foo';
@@ -62,7 +64,7 @@ marionette('Private Browser - Basic Sanity Test', function() {
     client.switchToFrame();
     system.appChromeContextLink.tap();
     system.appChromeContextNewPrivate.tap();
-    system.gotoBrowser('app://system.gaiamobile.org/private_browser.html');
+    system.gotoBrowser(search.privateBrowserUrl);
 
     client.switchToFrame();
     system.appUrlbar.tap();

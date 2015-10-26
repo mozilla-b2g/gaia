@@ -31,10 +31,10 @@ window.addEventListener('load', function() {
 
 function pickRingtone(activity) {
   var selectedRingtone;
+  var selectedRingtoneID;
   var player = new Audio(); // for previewing sounds
   var currentRingtoneName;
   var numRingtones = 0;
-  var template = $('ringtone-template');
   var container = $('ringtones');
   var header = $('header');
   container.hidden = false;
@@ -59,7 +59,8 @@ function pickRingtone(activity) {
                            function(lockedBlob) {
                              activity.postResult({
                                blob: lockedBlob,
-                               name: selectedRingtone.descriptor.name
+                               name: selectedRingtone.descriptor.name,
+                               id: selectedRingtoneID
                              });
                            });
     });
@@ -85,7 +86,7 @@ function pickRingtone(activity) {
       var cursor = ringtoneStore.openCursor();
       cursor.onsuccess = function() {
         if (cursor.result) {
-          addRingtone(cursor.result.value);
+          addRingtone(cursor.result.value, 'forwardlock:' + cursor.result.key);
           cursor.result.continue();
         }
         else { // we reached the end of the enumeration
@@ -97,26 +98,34 @@ function pickRingtone(activity) {
     });
   }
 
-  function addRingtone(ringtone) {
+  function addRingtone(ringtone, id) {
     numRingtones++;
     var name = ringtone.descriptor.name;
-    var dom = template.content.cloneNode(true);
-    var input = dom.querySelector('input');
-    dom.querySelector('a').textContent = name;
+    var listItem = document.createElement('li');
+
+    var radio = document.createElement('gaia-radio');
+    radio.name = 'ringtone';
+
+    var label = document.createElement('label');
+    label.textContent = name;
+    radio.appendChild(label);
 
     if (name === currentRingtoneName) {
       selectedRingtone = ringtone;
-      input.checked = true;
+      selectedRingtoneID = id;
+      radio.checked = true;
     }
 
-    input.onchange = function() {
-      if (input.checked) {
+    radio.addEventListener('change', function() {
+      if (radio.checked) {
         selectedRingtone = ringtone;
+        selectedRingtoneID = id;
         play(ringtone);
       }
-    };
+    });
 
-    container.appendChild(dom);
+    listItem.appendChild(radio);
+    container.appendChild(listItem);
   }
 
   function play(ringtone) {

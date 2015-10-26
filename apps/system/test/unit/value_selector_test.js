@@ -1,6 +1,7 @@
 'use strict';
 
-/* global loadBodyHTML, MocksHelper, MockL10n, AppWindow, ValueSelector */
+/* global loadBodyHTML, MocksHelper, MockL10n, AppWindow, ValueSelector,
+ Sanitizer */
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -24,19 +25,19 @@ suite('value selector/value selector', function() {
     name: 'Fake Application'
   };
   var fakeTimeInputMethodContextChangeEvent = {
-    type: '_inputmethod-contextchange',
+    type: '_inputfocus',
     detail: {
       inputType: 'time'
     }
   };
   var fakeDateInputMethodContextChangeEvent = {
-    type: '_inputmethod-contextchange',
+    type: '_inputfocus',
     detail: {
       inputType: 'date'
     }
   };
   var fakeBlurInputMethodContextChangeEvent = {
-    type: '_inputmethod-contextchange',
+    type: '_inputblur',
     detail: {
       inputType: 'blur'
     }
@@ -71,7 +72,7 @@ suite('value selector/value selector', function() {
       vs = new ValueSelector(app);
 
       fragment = document.createElement('div');
-      fragment.innerHTML = vs.view();
+      fragment.innerHTML = Sanitizer.unwrapSafeHTML(vs.view());
       document.body.appendChild(fragment);
 
       done();
@@ -122,8 +123,8 @@ suite('value selector/value selector', function() {
     assert.isFalse(vs.elements.timePickerPopup.hidden);
     assert.isTrue(vs._timePicker.is12hFormat);
     assert.equal('time', vs._currentPickerType);
-    assert.equal(':',
-      vs._timePicker.elements.hoursMinutesSeparator.textContent);
+    assert.equal(vs._timePicker.elements.hoursMinutesSeparator.
+      getAttribute('data-l10n-id'), 'hourMinutesSeparator');
     assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
   });
 
@@ -135,8 +136,8 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
 
     assert.isFalse(vs._timePicker.is12hFormat);
-    assert.equal('h',
-      vs._timePicker.elements.hoursMinutesSeparator.textContent);
+    assert.equal(vs._timePicker.elements.hoursMinutesSeparator.
+      getAttribute('data-l10n-id'), 'hourMinutesSeparator');
     assert.ok(vs.elements.timePickerContainer.classList.contains('format24h'));
   });
 
@@ -148,8 +149,8 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
 
     assert.isTrue(vs._timePicker.is12hFormat);
-    assert.equal(':',
-      vs._timePicker.elements.hoursMinutesSeparator.textContent);
+    assert.equal(vs._timePicker.elements.hoursMinutesSeparator.
+      getAttribute('data-l10n-id'), 'hourMinutesSeparator');
     assert.ok(vs.elements.timePickerContainer.classList.contains(
       'format12hrev'));
   });

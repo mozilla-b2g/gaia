@@ -3,7 +3,11 @@
   top: 4rem;
   position: absolute;
 }
-
-.settings-group {
-  margin-left: 1.6rem;
+#header-buttons > smart-button {
+  margin-right: 1.8rem;
+}
+smart-button[type="text-and-icon"] {
+  min-width: 15rem;
+  text-align: center;
+  box-sizing: border-box;
 }

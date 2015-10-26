@@ -12,12 +12,12 @@ class System(Base):
 
     # status bar
     _status_bar_locator = (By.ID, 'statusbar')
-    _titlebar_locator = (By.CSS_SELECTOR, '.appWindow.active > .titlebar')
+    _gripper_locator = (By.ID, 'tray-invisible-gripper')
     _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
 
-    _system_banner_locator = (By.CSS_SELECTOR, '.banner.generic-dialog')
+    _system_banner_locator = (By.CSS_SELECTOR, '#screen > gaia-toast.banner')
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
@@ -25,6 +25,8 @@ class System(Base):
 
     _software_buttons_locator = (By.ID, 'software-buttons')
     _screen_locator = (By.ID, 'screen')
+
+    _search_bar_locator = (By.CSS_SELECTOR, '[data-l10n-id="search-or-enter-address"]')
 
     @property
     def status_bar(self):
@@ -65,13 +67,16 @@ class System(Base):
 
     def open_utility_tray(self):
         body = self.marionette.find_element(By.TAG_NAME, 'body')
-        statusbar = self.marionette.find_element(*self._titlebar_locator)
-        statusbar_x = int(statusbar.size['width']/2)
-        statusbar_y_end = int(body.size['height'])
-        Actions(self.marionette).press(statusbar).move_by_offset(statusbar_x, statusbar_y_end).release().perform()
+        gripper = self.marionette.find_element(*self._gripper_locator)
+        gripper_x = int(gripper.rect['width']/2)
+        gripper_y = int(gripper.rect['y'])
+        gripper_y_end = int(body.rect['height'])
+        Actions(self.marionette).flick(gripper, gripper_x, gripper_y, gripper_x, gripper_y_end).perform()
 
         from gaiatest.apps.system.regions.utility_tray import UtilityTray
-        return UtilityTray(self.marionette)
+        utility_tray = UtilityTray(self.marionette)
+        utility_tray.wait_for_dropped_down()
+        return utility_tray
 
     def tap(self, x=None, y=None):
         self.marionette.switch_to_frame()
@@ -104,3 +109,16 @@ class System(Base):
             return self.marionette.find_element(*self._software_buttons_locator).size['height']
         else:
             return 0
+
+    @property
+    def wallpaper_properties(self):
+        # The wallpaper returns a blob url and a gradient
+        screen = self.marionette.find_element(*self._screen_locator)
+        return screen.value_of_css_property('background-image')
+
+    def tap_search_bar(self):
+        self.marionette.switch_to_frame()
+        self.marionette.find_element(*self._search_bar_locator).tap()
+
+        from gaiatest.apps.system.regions.search_panel import SearchPanel
+        return SearchPanel(self.marionette)

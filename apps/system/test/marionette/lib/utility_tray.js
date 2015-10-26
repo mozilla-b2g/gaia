@@ -13,6 +13,8 @@
       return window.innerHeight;
     });
     this.halfHeight = height / 2;
+
+    this.waitForLoaded();
   };
 
   UtilityTray.prototype = {
@@ -22,11 +24,43 @@
       notifContainer: '#desktop-notifications-container',
       notification: '#desktop-notifications-container .notification',
       grippy: '#utility-tray-grippy',
-      quickSettings: '#quick-settings-full-app'
+      invisibleGrippy: '#tray-invisible-gripper',
+      quickSettings: '#quick-settings-full-app',
+    },
+
+    waitForLoaded: function() {
+      return this.client.waitFor(function() {
+        return this.client.executeScript(function() {
+          var win = window.wrappedJSObject;
+          return !!(win.UtilityTray &&
+                    win.UtilityTray.motion.el.scrollTopMax > 0);
+        });
+      }.bind(this));
     },
 
     get visible() {
+      return !!this.screenElement;
+    },
+
+    get screenElement() {
       return this.client.findElement(this.Selectors.screen);
+    },
+
+    get _motionState() {
+      return this.client.executeScript(function() {
+        return window.wrappedJSObject.UtilityTray.motion.state;
+      });
+    },
+
+    get shown() {
+      return this.client.executeScript(function() {
+        return window.wrappedJSObject.UtilityTray.shown;
+      });
+    },
+
+    get isAriaHidden() {
+      return this.client.findElement(this.Selectors.element)
+        .getAttribute('aria-hidden') === 'true';
     },
 
     get quickSettings() {
@@ -44,7 +78,7 @@
           return el.getBoundingClientRect();
         });
         var expectedTop = 0;
-        return (rect.top === expectedTop);
+        return (rect.top === expectedTop) && this._motionState === 'open';
       }.bind(this));
     },
 
@@ -54,8 +88,8 @@
         var rect = element.scriptWith(function(el) {
           return el.getBoundingClientRect();
         });
-        var expectedTop = -(rect.height - 2);
-        return (rect.top === expectedTop);
+        var expectedTop = -rect.height;
+        return (rect.top === expectedTop) && this._motionState === 'closed';
       }.bind(this));
     },
 
@@ -81,26 +115,23 @@
       });
     },
 
-    swipeDown: function swipeDown(element) {
+    swipeDown: function swipeDown() {
+      var element = this.client.findElement(this.Selectors.invisibleGrippy);
       this.client.waitFor(function() {
         return element.displayed;
       });
-
-      // Works better than actions.flick().
       this.actions
-        .press(element)
-        .moveByOffset(0, this.halfHeight)
-        .release()
+        .flick(element, 10, 10, 10, 400, 500)
         .perform();
     },
 
-    swipeUp: function swipeUp(element) {
-      var halfWidth = this.halfWidth;
+    swipeUp: function swipeUp() {
+      var element = this.client.findElement(this.Selectors.grippy);
       this.client.waitFor(function() {
         return element.displayed;
       });
       this.actions
-        .flick(element, halfWidth, 10, halfWidth, -this.halfHeight, 100)
+        .flick(element, 10, 10, 10, -400, 500)
         .perform();
     }
 

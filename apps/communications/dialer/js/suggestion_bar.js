@@ -1,5 +1,5 @@
 /* globals CallHandler, Contacts, fb, KeypadManager, LazyLoader,
-           SimplePhoneMatcher, SimSettingsHelper, Sanitizer, Utils */
+           SimplePhoneMatcher, SimSettingsHelper, Utils */
 
 // Suggestion_bar.js will be loaded on init of KeypadManager through
 // lazy loader. So we call its init() directly at the end of file.
@@ -257,13 +257,20 @@ var SuggestionBar = {
     var typeTag = node.querySelector('.js-tel-type');
     var telTag = node.querySelector('.js-tel');
     var nameTag = node.querySelector('.js-name');
+
+    // Set the contact name
     nameTag.textContent = name ? name : null;
-    if (tel) {
-      telTag.innerHTML = Sanitizer.unwrapSafeHTML(tel);
-    } else {
-      telTag.innerHTML = '';
+
+    // Set the number with the highlighted match
+    while (telTag.firstChild) {
+      telTag.removeChild(telTag.firstChild);
     }
 
+    if (tel) {
+      telTag.appendChild(tel);
+    }
+
+    // Set the phone type
     if (type) {
       if (Utils.isPhoneType(type)) {
         navigator.mozL10n.setAttributes(typeTag, type);
@@ -296,10 +303,12 @@ var SuggestionBar = {
   },
 
   _markMatched: function sb_markMatched(str, substr) {
+    var fragment = document.createDocumentFragment();
     var sanitized = SimplePhoneMatcher.sanitizedNumber(str);
     var digitBeforeMatch = sanitized.indexOf(substr);
     if (digitBeforeMatch == -1) {
-      return str;
+      fragment.appendChild(document.createTextNode(str));
+      return fragment;
     }
 
     // Highlight matched number. We need to count formatting character in.
@@ -323,8 +332,18 @@ var SuggestionBar = {
     var startStr = str.substr(0, start);
     var middleStr = str.substr(start, end - start + 1);
     var endStr = str.substr(end + 1);
-    return Sanitizer.createSafeHTML(`${startStr}<mark class="ci__mark"
-      >${middleStr}</mark>${endStr}`);
+
+    var startNode = document.createTextNode(startStr);
+    var middleNode = document.createElement('mark');
+    middleNode.textContent = middleStr;
+    middleNode.classList.add('ci__mark');
+    var endNode = document.createTextNode(endStr);
+
+    fragment.appendChild(startNode);
+    fragment.appendChild(middleNode);
+    fragment.appendChild(endNode);
+
+    return fragment;
   },
 
   _initOverlay: function() {

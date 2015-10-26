@@ -1,5 +1,6 @@
 define(function(require) {
 'use strict';
+/* global IntlHelper */
 
 var Panel = require('panel');
 var Picker = require('picker/picker');
@@ -11,6 +12,7 @@ var Sounds = require('sounds');
 var FormButton = require('form_button');
 var html = require('text!panels/timer/panel.html');
 var AudioManager = require('audio_manager');
+var asyncStorage = require('shared/js/async_storage');
 
 var priv = new WeakMap();
 
@@ -23,6 +25,11 @@ function timeFromPicker(value) {
        });
   return ms;
 }
+
+IntlHelper.define('timer-hms', 'mozduration', {
+  minUnit: 'second',
+  maxUnit: 'hour'
+});
 
 /**
  * Timer.Panel
@@ -44,12 +51,12 @@ Timer.Panel = function(element) {
     pickers: {
       hours: {
         range: [0, 23],
-        valueText: 'nSpinnerHours'
+        l10nId: 'nSpinnerHours'
       },
       minutes: {
         range: [0, 59],
         isPadded: true,
-        valueText: 'nSpinnerMinutes'
+        l10nId: 'nSpinnerMinutes'
       }
     }
   });
@@ -103,17 +110,27 @@ Timer.Panel = function(element) {
   var create = this.nodes.create;
   var picker = this.picker;
 
-  var enableButton = function() {
+  var enableButton = () => {
     if(timeFromPicker(picker.value) === 0) {
       create.setAttribute('disabled', 'true');
     } else {
       create.removeAttribute('disabled');
     }
+    this.saveCurrentSettingsAsDefaults();
   };
 
   // The start button is enable if the value of the timer is not 00:00
   picker.nodes.minutes.addEventListener('transitionend', enableButton);
   picker.nodes.hours.addEventListener('transitionend', enableButton);
+
+  this.restoreDefaults().then(() => {
+    enableButton(); // Update the enabled state to match the new defaults.
+  });
+
+  this.nodes.vibrate.addEventListener(
+    'change', (e) => this.saveCurrentSettingsAsDefaults());
+  this.nodes.sound.addEventListener(
+    'change', (e) => this.saveCurrentSettingsAsDefaults());
 
   Timer.singleton(function(err, timer) {
     this.timer = timer;
@@ -122,6 +139,7 @@ Timer.Panel = function(element) {
     window.addEventListener('timer-pause', onTimerEvent);
     window.addEventListener('timer-tick', onTimerEvent);
     window.addEventListener('timer-end', onTimerEvent);
+    IntlHelper.observe('timer-hms', this.update.bind(this));
     if (this.visible) {
       // If the timer panel already became visible before we fetched
       // the timer, we must update the display to show the proper
@@ -132,6 +150,32 @@ Timer.Panel = function(element) {
 };
 
 Timer.Panel.prototype = Object.create(Panel.prototype);
+
+Timer.Panel.prototype.restoreDefaults = function() {
+  return new Promise((resolve) => {
+    asyncStorage.getItem('timer-defaults', (values) => {
+      values = values || {};
+      if (values.sound != null) {
+        this.soundButton.value = values.sound;
+      }
+      if (values.time != null) {
+        this.picker.value = values.time;
+      }
+      if (values.vibrate != null) {
+        this.nodes.vibrate.checked = values.vibrate;
+      }
+      resolve();
+    });
+  });
+};
+
+Timer.Panel.prototype.saveCurrentSettingsAsDefaults = function() {
+  asyncStorage.setItem('timer-defaults', {
+    sound: this.soundButton.value,
+    time: this.picker.value,
+    vibrate: this.nodes.vibrate.checked
+  });
+};
 
 Timer.Panel.prototype.onvisibilitychange = function(evt) {
   var isVisible = evt.detail.isVisible;
@@ -191,13 +235,14 @@ Timer.Panel.prototype.onTimerEvent = function(event) {
  * countdown.
  */
 Timer.Panel.prototype.update = function() {
-  var remaining = this.timer.remaining;
-  var newText = Utils.format.hms(Math.round(remaining / 1000), 'hh:mm:ss');
-  // Use localized caching here to prevent unnecessary DOM repaints.
-  if (this._cachedTimerText !== newText) {
-    this.nodes.time.textContent = this._cachedTimerText = newText;
-  }
-  return this;
+  return IntlHelper.get('timer-hms').then(formatter => {
+    var remaining = this.timer.remaining;
+    var newText = formatter.format(remaining);
+    // Use localized caching here to prevent unnecessary DOM repaints.
+    if (this._cachedTimerText !== newText) {
+      this.nodes.time.textContent = this._cachedTimerText = newText;
+    }
+  });
 };
 
 Timer.Panel.prototype.toggleButtons = function() {

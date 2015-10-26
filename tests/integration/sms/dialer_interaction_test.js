@@ -46,7 +46,7 @@ marionette('Dialer', function() {
 
     test('should go to dialer with the correct phone number', function() {
       var inbox = new InboxView(client);
-      var conversation = inbox.goToFirstThread();
+      var conversation = inbox.goToConversation(thread.id);
       var dialer = conversation.callContact();
       assert.equal(dialer.phoneNumber, thread.participants[0]);
     });

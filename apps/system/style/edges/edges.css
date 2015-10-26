@@ -5,6 +5,19 @@
   visibility: hidden;
 }
 
+#top-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2rem;
+}
+
+#screen.rocketbar-focused #left-panel,
+#screen.rocketbar-focused #right-panel {
+  pointer-events: none;
+}
+
 #left-panel {
   position: absolute;
   height: calc(100% - 10rem);

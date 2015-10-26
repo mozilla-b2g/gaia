@@ -1,3 +1,6 @@
+html[dir="ltr"] [dir] { text-align: left; }
+html[dir="rtl"] [dir] { text-align: right; }
+
 #messages-to-field {
   position: relative;
   /* To be above .article-list's with z-index = 5 */
@@ -6,7 +9,6 @@
   display: none;
   min-height: 5.5rem;
 
-  text-align: start;
   color: black;
   font-size: 1.465rem;
   background-color: #f2f2f2;
@@ -31,8 +33,8 @@ section[role="region"].new #messages-to-field.multiline {
   flex-shrink: 0;
 
   height: 4rem;
-  -moz-padding-start: 1.5rem;
-  -moz-padding-end: 0.7rem;
+  padding-inline-start: 1.5rem;
+  padding-inline-end: 0.7rem;
 
   line-height: 4rem;
   font-weight: 200;
@@ -52,9 +54,9 @@ section[role="region"].new #messages-to-field.multiline {
   box-sizing: border-box;
   min-height: 4rem;
   padding-top: 0;
-  -moz-padding-end: 0.6rem;
+  padding-inline-end: 0.6rem;
   padding-bottom: 0.6rem;
-  -moz-padding-start: 0;
+  padding-inline-start: 0;
 
   display: flex;
   align-items: center;
@@ -79,16 +81,16 @@ Do not remove.
   overflow-y: scroll;
 }
 
+/**
+ * BiDi note: all [contenteditable] blocks must carry a `dir="auto"` attribute,
+ * so we cannot use *-inline-{start,end} properties on them, because the
+ * direction of a dir="auto" element (and therefore the position of start/end)
+ * depends on its content. We want our margin/padding to depend on the document
+ * direction, not element's content.
+ */
 .recipient[contenteditable] {
   overflow: hidden;
-  /**
-   * We don't use -moz-margin-end\-start here because margin location shouldn't
-   * depend on text direction of recipient element content itself. For LTR mode
-   * both LTR and RTL recipient elements should have right margin, for RTL mode
-   * it should have left margin, so to align it correctly we should override
-   * margin depending on text direction of parent element.
-   */
-  margin: 0.6rem 0.6rem 0 0;
+  margin: 0.6rem 0 0;
 
   display: block;
 
@@ -96,19 +98,21 @@ Do not remove.
   height: auto;
   width: auto;
 }
+html[dir="ltr"] .recipient[contenteditable] { margin-right: 0.6rem; }
+html[dir="rtl"] .recipient[contenteditable] { margin-left: 0.6rem; }
 
 .recipient[contenteditable].email {
-  /**
-   * We don't use -moz-padding-start here because padding location shouldn't
-   * depend on text direction of recipient element content itself. For LTR mode
-   * both LTR and RTL email recipient elements should have left padding to
-   * accommodate email icon, for RTL mode it should be on the right side, so to
-   * align it correctly we should override padding depending on text direction
-   * of parent element.
-   */
+  background: #fff url(images/icons/icon_sms_compose_email.png) no-repeat;
+  background-size: 1.7rem;
+}
+/* see BiDi note above */
+html[dir="ltr"] .recipient[contenteditable].email {
   padding-left: 3.8rem;
-  background: #fff url(images/icons/icon_sms_compose_email.png) left 1.5rem
-              center / 1.7rem no-repeat;
+  background-position: left 1.5rem center;
+}
+html[dir="rtl"] .recipient[contenteditable].email {
+  padding-right: 3.8rem;
+  background-position: right 1.5rem center;
 }
 
 #messages-recipients-list > .recipient[contenteditable=true] {
@@ -138,61 +142,39 @@ Do not remove.
   display: none;
 }
 
-/* Disable padding and give negative margin-end on empty contenteditable
+/**
+ * Disable padding and give negative margin-end on empty contenteditable
  * recipients when they do not have focus. This allows the Recipients List
  * to intelligently collapse when the final row contains no "assimilated"
  * (i.e. non-contenteditable) recipients. */
 .recipient[contenteditable=true]:empty {
-  /**
-   * We don't use -moz-margin-end here because of the bug 1103011, as currently
-   * directionality of empty contenteditable isn't inherited from parent, but
-   * always LTR, so -moz-margin-end equals to margin-right in both LTR and RTL
-   * modes. So to align it correctly we should override margin depending on text
-   * direction of parent element manually.
-   */
-  margin-right: -0.5rem;
   padding: 0;
 }
-
-.recipient[contenteditable=true]:focus,
-.recipient[contenteditable=true]:hover,
-.recipient[contenteditable=true]:empty:focus {
-  -moz-margin-end: 0.5rem;
-  -moz-padding-end: 0.3rem;
+/**
+ * We don't use margin-inline-end here because of the bug 1103011, as currently
+ * directionality of empty contenteditable isn't inherited from parent, but
+ * always LTR, so margin-inline-end equals to margin-right in both LTR and RTL
+ * modes. So to align it correctly we should override margin depending on text
+ * direction of parent element manually.
+ */
+html[dir="ltr"] .recipient[contenteditable=true]:empty {
+  margin-right: -0.5rem;
 }
-
-/* RTL for recipient panel */
-:-moz-dir(rtl) > .recipient[contenteditable] {
-  margin-left: 0.6rem;
-  margin-right: 0;
-
-  /**
-   * We need "text-align: right" only for the cases when currently editable
-   * recipient looses focus but not yet assimilated: case №1 - when we tap on
-   * thread-container - maybe fixed soon, case №2 - when we use screen reader,
-   * eg. single touch on message input steals focus from currently editable
-   * recipient, but doesn't yet give it to the message input. As the result
-   * flex-grow (see workaround for bug 1103011) returns and because of dir=auto
-   * LTR\RTL name would be always left\right aligned in both LTR and RTL modes.
-   */
-  text-align: right;
-}
-
-:-moz-dir(rtl) > .recipient[contenteditable].email {
-  /**
-   * See LTR ".recipient[contenteditable].email" rule above for the explanation
-   * why we don't use -moz-padding-start/-end here.
-   */
-  padding: 0 3.8rem 0 1.5rem;
-
-  background-position: right 1.5rem center;
-}
-
-:-moz-dir(rtl) > .recipient[contenteditable=true]:empty {
-  /**
-   * See LTR ".recipient[contenteditable=true]:empty" rule above for the
-   * explanation why we don't use -moz-margin-start/-end here.
-   */
+html[dir="rtl"] .recipient[contenteditable=true]:empty {
   margin-left: -0.5rem;
-  margin-right: 0;
 }
+
+/* see BiDi note above */
+html[dir="ltr"] .recipient[contenteditable=true]:focus,
+html[dir="ltr"] .recipient[contenteditable=true]:hover,
+html[dir="ltr"] .recipient[contenteditable=true]:empty:focus {
+  margin-right: 0.5rem;
+  padding-right: 0.3rem;
+}
+html[dir="rtl"] .recipient[contenteditable=true]:focus,
+html[dir="rtl"] .recipient[contenteditable=true]:hover,
+html[dir="rtl"] .recipient[contenteditable=true]:empty:focus {
+  margin-left: 0.5rem;
+  padding-left: 0.3rem;
+}
+

@@ -4,6 +4,7 @@
 
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class SettingsForm(Base):
@@ -26,7 +27,6 @@ class SettingsForm(Base):
     _gmail_import_option_locator = (By.ID, 'import-gmail-option')
     _import_settings_locator = (By.ID, 'import-settings')
     _select_contacts_locator = (By.ID, 'selectable-form')
-    _sync_friends_locator = (By.ID, 'settingsFb')
     _import_error_message_locator = (By.CSS_SELECTOR, '#import-live-option > p.error-message')
     _outlook_import_option_locator = (By.ID, 'import-live-option')
     _import_from_outlook_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
@@ -34,19 +34,17 @@ class SettingsForm(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         view = self.marionette.find_element(*self._settings_view_locator)
-        Wait(self.marionette).until(lambda m: view.location['y'] == 0)
+        Wait(self.marionette).until(lambda m: view.rect['y'] == 0)
 
-    def tap_order_by_last_name(self):
-        last_name = Wait(self.marionette).until(
-            expected.element_present(*self._order_by_last_name_switch_locator))
-        Wait(self.marionette).until(expected.element_displayed(last_name))
-        initial_state = self.is_custom_element_checked(last_name)
-        last_name.tap()
-        self.wait_for_custom_element_checked_state(last_name, checked=not(initial_state))
+    def enable_order_by_last_name(self):
+        self._order_by_last_name_switch.enable()
+
+    def disable_order_by_last_name(self):
+        self._order_by_last_name_switch.disable()
 
     @property
-    def order_by_last_name(self):
-        return self.marionette.find_element(*self._order_by_last_name_switch_locator).is_selected()
+    def _order_by_last_name_switch(self):
+        return GaiaBinaryControl(self.marionette, self._order_by_last_name_switch_locator)
 
     def tap_import_contacts(self):
         import_contacts = Wait(self.marionette).until(
@@ -94,16 +92,6 @@ class SettingsForm(Base):
         import_from_gmail.tap()
         from gaiatest.apps.contacts.regions.gmail import GmailLogin
         return GmailLogin(self.marionette)
-
-    def tap_sync_friends(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(*self._sync_friends_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
-        Wait(self.marionette).until(
-            lambda m: m.find_element(*self._sync_friends_locator).location['x'] == 0)
-        from gaiatest.apps.system.regions.facebook import FacebookLogin
-        return FacebookLogin(self.marionette)
 
     def tap_import_from_sdcard(self):
         import_from_sdcard = Wait(self.marionette).until(

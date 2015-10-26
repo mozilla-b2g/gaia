@@ -45,7 +45,7 @@ suite('message_list', function() {
 
   function testMessageState(message, state) {
     message.sendStatus.state = state;
-    subject.updateMessageDom(true, message);
+    subject.updateMessageDom(message);
     var syncingNode = message.element
                       .querySelector('.msg-header-syncing-section');
     if (state) {
@@ -229,7 +229,7 @@ suite('message_list', function() {
     var element;
     setup(function() {
       var message = Object.create(mockMessage);
-      subject.updateMessageDom(true, message);
+      subject.updateMessageDom(message);
       element = message.element;
       assert.isNull(element.getAttribute('aria-selected'));
       subject.msgVScroll.appendChild(element);
@@ -252,19 +252,19 @@ suite('message_list', function() {
 
     test('not edit mode', function() {
       subject.editMode = false;
-      subject.updateMessageDom(true, message);
+      subject.updateMessageDom(message);
       testSelectedMessage(element, false);
     });
 
     test('message selected', function() {
       subject.selectedMessages.push(message);
-      subject.updateMessageDom(true, message);
+      subject.updateMessageDom(message);
       testSelectedMessage(element, true, true);
     });
 
     test('message not selected', function() {
       subject.selectedMessages.pop(message);
-      subject.updateMessageDom(true, message);
+      subject.updateMessageDom(message);
       testSelectedMessage(element, true, false);
     });
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8" />
   <title>GaiaCheckbox Demo</title>
@@ -18,12 +18,26 @@
       border-bottom: 1px solid #000;
     }
   </style>
+  <script>
+    window.onload = function() {
+      var dirInput = document.getElementById('dir');
+      dirInput.checked = false;
+      dirInput.onchange= function() {
+        document.documentElement.dir = this.checked ? 'rtl' : 'ltr';
+      }
+    };
+  </script>
   <script src="../../../js/component_utils.js"></script>
   <script>window.GaiaCheckboxBaseurl = '../';</script>
   <script src="../script.js"></script>
   <script defer src="example.js"></script>
 </head>
 <body role="application">
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox"> RTL mode
+    </label>
+  </p>
   <section>
     <gaia-checkbox></gaia-checkbox>
   </section>

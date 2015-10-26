@@ -46,6 +46,7 @@
   <script src="/shared/js/l10n.js"></script>
   <script src="/shared/js/l10n_date.js"></script>
   <script src="/shared/js/tz_select.js"></script>
+  <script defer src="/shared/js/sanitizer.js"></script>
   <script defer src="/shared/js/input_mgmt/input_app_list.js"></script>
   <script defer src="/shared/js/keyboard_helper.js"></script>
   <script defer src="/shared/js/language_list.js"></script>
@@ -68,7 +69,6 @@
   <script defer src="/shared/js/screen_layout.js"></script>
   <script defer src="/shared/js/text_normalizer.js"></script>
   <script defer src="/shared/js/lazy_loader.js"></script>
-  <script defer src="/shared/js/font_size_utils.js"></script>
   <script defer src="/shared/js/basket_client.js"></script>
   <script defer src="js/services_launcher.js"></script>
   <script defer src="/shared/js/contacts/import/import_status_data.js"></script>
@@ -107,6 +107,11 @@
   <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
   <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
 
+  <!-- Late Customization -->
+  <script defer src="/shared/js/icons_helper.js"></script>
+  <script defer src="js/late_customization.js"></script>
+  <link rel="stylesheet" href="style/late_customization.css">
+
   <!--
     <link href="/shared/pages/import/import.html">
     <link href="/shared/pages/import/curtain.html">
@@ -129,7 +134,7 @@
   </section>
 
   <section id="unlock-sim-screen" role="region" class="skin-organic">
-    <gaia-header id="unlock-sim-action" action="back">
+    <gaia-header ignore-dir id="unlock-sim-action" action="back">
       <h1 id="unlock-sim-header"></h1>
     </gaia-header>
     <article role="main">
@@ -195,7 +200,7 @@
   </section>
 
   <section id="sim-info-screen" role="region" class="skin-organic">
-    <gaia-header>
+    <gaia-header ignore-dir>
       <h1 id="sim-info-header" data-l10n-id="simManager"></h1>
     </gaia-header>
     <article role="main">
@@ -239,7 +244,7 @@
   </section>
 
   <section id="activation-screen" role="region" class="skin-organic no-options">
-    <gaia-header>
+    <gaia-header ignore-dir>
       <h1 id="main-title"></h1>
       <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
     </gaia-header>
@@ -561,16 +566,33 @@
         <section id="browser_logo_horizontal">
           <img src="/shared/resources/branding/logosmall.png" role="presentation">
         </section>
-        <p data-l10n-id="htmlWelcome2">
-          <a href="#about-your-rights"></a>
-        </p>
-        <p data-l10n-id="helpImprove2">
+        <p data-l10n-id="helpImprove3">
           <a href="https://www.mozilla.org/privacy/firefox-os" class="external"></a>
         </p>
+        <p data-l10n-id="learn-more-privacy3">
+          <a href="http://www.mozilla.org/privacy/firefox-os" class="external"></a>
+        </p>
         <section id="form_share_statistics">
-          <gaia-checkbox class="inline" id="share-performance" name="debug.performance_data.shared">
-            <label data-l10n-id="sharePerformanceAndUsageData2"></label>
-          </gaia-checkbox>
+          <ul>
+            <li id="menuItem-basicmetrics">
+              <gaia-radio name="metricsGroup" id="metrics-basic" value="Basic">
+                <label data-l10n-id="basicMetricsRadio"></label>
+                <details data-l10n-id="basicMetricsExplain"></details>
+              </gaia-radio>
+            </li>
+            <li id="menuItem-enhancedMetrics">
+              <gaia-radio name="metricsGroup" id="metrics-enhanced" value="Enhanced">
+                <label data-l10n-id="enhancedMetricsRadio"></label>
+                <details data-l10n-id="enhancedMetricsExplain"></details>
+              </gaia-radio>
+            </li>
+            <li id="menuItem-noneMetrics">
+              <gaia-radio name="metricsGroup" id="metrics-none" value="None">
+                <label data-l10n-id="noneMetricsRadio"></label>
+                <details data-l10n-id="noneMetricsExplain"></details>
+              </gaia-radio>
+            </li>
+          </ul>
         </section>
       </section>
     </article>

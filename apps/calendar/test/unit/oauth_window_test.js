@@ -26,7 +26,7 @@ suite('OAuthWindow', function() {
     element = document.createElement('section');
     element.innerHTML = [
       '<section role="region">',
-        '<gaia-header id="oauth-header" action="cancel">',
+        '<gaia-header ignore-dir id="oauth-header" action="cancel">',
           '<h1 class="oauth-browser-title"></h1>',
         '</gaia-header>',
         '<div class="browser-container"></div>',

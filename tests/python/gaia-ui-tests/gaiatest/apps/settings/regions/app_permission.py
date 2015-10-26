@@ -11,7 +11,7 @@ class AppPermission(Base):
 
     _page_locator = (By.ID, 'appPermissions')
     _permission_detail_locator = (By.ID, 'appPermissions-details')
-    _first_item_locator = (By.CSS_SELECTOR, '.app-list > li:nth-child(1) > a:nth-child(1)')
+    _camera_app_locator = (By.CSS_SELECTOR, '[class="menu-item"] img[src^="app://camera.gaiamobile.org"] + span')
     _geolocation_selector_locator = (By.CSS_SELECTOR, '[data-l10n-id="perm-geolocation"]')
     _geolocation_ok_button_locator = (By.CLASS_NAME, 'value-option-confirm')
 
@@ -24,8 +24,12 @@ class AppPermission(Base):
     def screen_element(self):
         return self.marionette.find_element(*self._page_locator)
 
-    def tap_first_item(self):
-        self.marionette.find_element(*self._first_item_locator).tap()
+    @property
+    def details_screen_element(self):
+        return self.marionette.find_element(*self._permission_detail_locator)
+
+    def tap_camera_app(self):
+        self.marionette.find_element(*self._camera_app_locator).tap()
         Wait(self.marionette).until(expected.element_displayed(
             self.marionette.find_element(*self._permission_detail_locator)))
 

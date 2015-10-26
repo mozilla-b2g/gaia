@@ -3,8 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import expected, By, Wait
-
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class Keyboard(Base):
@@ -46,7 +47,6 @@ class Keyboard(Base):
 
 
 class KeyboardAddMoreKeyboards(Base):
-
     _section_locator = (By.ID, 'keyboard-selection-addMore')
     _select_language_locator = (
         By.XPATH,
@@ -59,24 +59,24 @@ class KeyboardAddMoreKeyboards(Base):
         section = self.marionette.find_element(*self._section_locator)
         Wait(self.marionette).until(lambda m: section.location['x'] == 0)
 
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._section_locator)
+
     def select_language(self, language):
         language_locator = (
             self._select_language_locator[0],
             self._select_language_locator[1] % language
         )
-        element = Wait(self.marionette).until(
-            expected.element_present(*language_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
-
-        self.wait_for_custom_element_checked_state(element)
+        GaiaBinaryControl(self.marionette, language_locator).enable()
 
     def go_back(self):
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        self.marionette.find_element(*self._header_locator).tap(25, 25)
+        GaiaHeader(self.marionette, self._header_locator).go_back()
 
 
 class BuiltInKeyBoard(Base):
+    manifest_url = '{}keyboard{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
+
     _section_locator = (By.ID, 'general-container')
     _header_locator = (By.ID, 'general-header')
 
@@ -96,9 +96,7 @@ class BuiltInKeyBoard(Base):
         Wait(self.marionette).until(expected.element_displayed(dictionary))
 
     def tap_user_dict_exit(self):
-        self.marionette.find_element(*self._user_dict_header_locator).tap(25, 25)
-        self.wait_for_element_not_displayed(*self._user_dict_locator)
+        GaiaHeader(self.marionette, self._user_dict_header_locator).go_back()
 
     def tap_exit(self):
-        self.marionette.find_element(*self._header_locator).tap(25, 25)
-        self.apps.switch_to_displayed_app()
+        GaiaHeader(self.marionette, self._header_locator).go_back(app=self, exit_app=True, statusbar=True)

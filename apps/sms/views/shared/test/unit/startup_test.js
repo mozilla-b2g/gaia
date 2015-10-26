@@ -1,9 +1,10 @@
-/*global MessageManager,
+/*global App,
+         InboxView,
+         LazyLoader,
+         MessageManager,
          MocksHelper,
          Navigation,
-         LazyLoader,
-         InboxView,
-         App
+         Utils
 */
 
 'use strict';
@@ -13,6 +14,8 @@ require('/views/shared/js/app.js');
 require('/services/test/unit/mock_message_manager.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_inbox.js');
+require('/views/shared/js/utils.js');
+require('/views/shared/test/unit/mock_utils.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
@@ -20,7 +23,8 @@ var mocksHelper = new MocksHelper([
   'MessageManager',
   'LazyLoader',
   'Navigation',
-  'InboxView'
+  'InboxView',
+  'Utils'
 ]).init();
 
 suite('Startup >', function() {
@@ -54,6 +58,7 @@ suite('Startup >', function() {
     this.sinon.stub(Navigation, 'once');
     this.sinon.stub(Navigation, 'isDefaultPanel');
     this.sinon.stub(App, 'setReady');
+    this.sinon.spy(Utils, 'initializeShimHost');
   });
 
   test('if target panel is default one', function() {
@@ -61,8 +66,11 @@ suite('Startup >', function() {
 
     window.addEventListener.withArgs('DOMContentLoaded').yield();
 
+    sinon.assert.calledWith(Utils.initializeShimHost, App.instanceId);
+
     // Navigate to Inbox immediately.
     sinon.assert.callOrder(
+      Utils.initializeShimHost,
       MessageManager.init,
       InboxView.init,
       Navigation.init,
@@ -82,7 +90,10 @@ suite('Startup >', function() {
 
     window.addEventListener.withArgs('DOMContentLoaded').yield();
 
+    sinon.assert.calledWith(Utils.initializeShimHost, App.instanceId);
+
     sinon.assert.callOrder(
+      Utils.initializeShimHost,
       MessageManager.init,
       InboxView.init,
       Navigation.init,
@@ -113,7 +124,10 @@ suite('Startup >', function() {
 
       window.addEventListener.withArgs('DOMContentLoaded').yield();
 
+      sinon.assert.calledWith(Utils.initializeShimHost, App.instanceId);
+
       sinon.assert.callOrder(
+        Utils.initializeShimHost,
         MessageManager.init,
         InboxView.init,
         Navigation.init,

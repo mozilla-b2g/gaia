@@ -110,6 +110,23 @@ suite('Icons Helper', () => {
         });
     });
 
+    test('Works with overridden siteObj.origin', done => {
+      var origin = 'http://origin.com';
+      var path = '/test.png';
+      siteObj.webManifest = null;
+      siteObj.manifest = {
+        origin: origin,
+        icons: {
+          '32': path
+        }
+      };
+      siteObj.origin = 'https://realorigin.com';
+      IconsHelper.getIcon('http://example.com', 32, placeObj, siteObj)
+        .then(iconUrl => {
+          assert.equal((new URL(iconUrl)).href, siteObj.origin + path);
+          done();
+        });
+    });
 
     test('Works with external icons', done => {
       var origin = 'http://origin.com';

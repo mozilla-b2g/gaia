@@ -681,7 +681,7 @@ suite('dialer/keypad', function() {
         var fakeVoicemail2 = '666';
         var simPicker;
 
-        setup(function() {
+        setup(function(done) {
           navigator.mozIccManager.iccIds[0] = 0;
           navigator.mozIccManager.iccIds[1] = 1;
 
@@ -694,6 +694,10 @@ suite('dialer/keypad', function() {
           doLongPress('1');
 
           MockNavigatorSettings.mReplyToRequests();
+          
+          // Artificially delay setup because getOrPick gets called in
+          // l10n.formatValue which is a Promise
+          Promise.resolve().then(done, done);
         });
 
         test('should show the SIM picker for favorite SIM', function() {
@@ -844,6 +848,17 @@ suite('dialer/keypad', function() {
           p.then(function(number) {
             sinon.assert.calledOnce(simPicker.getOrPick);
             assert.equal(number, numbers[0]);
+          }).then(done, done);
+        });
+
+        test('An error message is shown when no SIM card is present',
+        function(done) {
+          this.sinon.stub(MockIccManager.prototype, 'getIccById').returns(null);
+
+          subject._getSpeedDialNumber(speedDialIndex).then(function() {
+            assert.isTrue(false, 'The promise should not be resolved');
+          }, function(error) {
+            assert.equal(error, 'noSimCardToLoadContactsFrom');
           }).then(done, done);
         });
       });

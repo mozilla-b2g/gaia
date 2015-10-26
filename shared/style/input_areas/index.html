@@ -5,11 +5,13 @@
 
   <title>Input areas</title>
   <link rel="stylesheet" href="../input_areas.css">
+  <link rel="stylesheet" href="../../elements/gaia-icons/gaia-icons-embedded.css">
+  <link rel="stylesheet" href="../../elements/gaia-icons/bidi-helper.css">
 
   <!--
-    This <style>, <script> and <link> is only used for the example code,
-    is no needed for the real case use
-  -->
+    - These <style> and <script> elements are only used for the example code,
+    - they are not needed for the real use case.
+    -->
   <style>
     html, body {
       margin: 0;
@@ -60,7 +62,7 @@
     /**
      *  .icon-email:before
      *  Define the background-image with custom icon for App.
-     *  Atention, well need the pseudo-element for compatibility with Building Blocks.
+     *  Attention, the pseudo-element is required for compatibility with Building Blocks.
      *
      *  Example:
      *  .icon-mms:before { background-image: url(...); }
@@ -69,13 +71,9 @@
       background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAABaCAYAAACv+ebYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAASRJREFUeNrsl8ENgjAUhqlhAEfxQDyzgXdOjoCT0ClYg54Nu+gGtcRiAlJ5fQ9CDP+XFJOW+hlo6/uTBADw76hfg9ba0n0cBd//VErp6FlO3FgZDevn9pO50u4iEXPkn/ul4hj54L4lxBT51/hS4odrVUA62b+UOCSvfP+q4rE8KF1DTF5w3JPLio9Gx1T/Yauzen/idGb8Jv13QgEAAAAAyNJi27bitJhlmeYUAhfXcoHYuKY5pU/uJ3OluaTm4sjN3JOiFnsxckN5PTFVJkVuqGsitrw9hRaL7ycvxFhxt7WuE3Lt+1ct6MfyXhq131PmVukkpX+n5RYRhn24IC0iLQIAAABIi2/uRSFOi+e6RlpEWkRaRFpEWkRaRFoEYG+8BBgAvaeWTjgXDaoAAAAASUVORK5CYII=);
     }
 
-    .icon-send {
-      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAABH0lEQVR42uXXPUtCURjAcTVx09ZsEhx0dInALyCUuTX7Bn4CHR2ckqDJ1SUiCESkbxDRV9BJBxGhIXoZQkHs8T84iV3uuYdz7uDwm/9c7j3neW5ARHxxwOFAv2+DY/gBBQRth1sQDFFGxFY4iT/I1hx1xMyGgTfIjm+0ETcZrkH+sUQXKRPhYywgDtYYIKsb3vUEcekVeQShHb6AKBqiiIhOOIx3iAcz1BFVDwN3EA1fuMGJavgME3xiDfFoiUvnsLM4znGNBjp4xtRFvKcSzmCMD6xsPvGtH+/4CHM/vuqcx3Nc0j3Hj4o31xW0b64Yfv24qysuplPaxHR62RP8QRunpuZxYs8G0rCxgTQhGKFqc+e6RwEhW1umDQf8C7MBVhE+F1rOxMAAAAAASUVORK5CYII=);
-    }
-
   </style>
   <script>
-    window.onload = function(){
+    window.onload = function() {
       document.getElementById('dir').checked = false;
     };
   </script>
@@ -92,7 +90,7 @@
   <h2 class="bb-docs">Default inputs</h2>
   <form>
     <p>
-      <input type="text" placeholder="Placeholder">
+      <input dir="auto" type="text" placeholder="Placeholder">
       <button type="reset">Clear</button>
     </p>
 
@@ -101,18 +99,18 @@
     </p>
 
     <p>
-      <input type="text" placeholder="Placeholder" value="Some written text" required>
+      <input dir="auto" type="text" placeholder="Placeholder" value="Some written text" required>
       <button type="reset">Clear</button>
     </p>
 
     <p>
-      <input type="text" placeholder="Disabled" disabled required>
+      <input dir="auto" type="text" placeholder="Disabled" disabled required>
       <button type="reset">Clear</button>
     </p>
 
     <div class="skin-dark margins">
       <p>
-        <input type="text" placeholder="Placeholder" value="Some written text">
+        <input dir="auto" type="text" placeholder="Placeholder" value="Some written text">
         <button type="reset">Clear</button>
       </p>
     </div>
@@ -121,7 +119,7 @@
   <h2 class="bb-docs">Required inputs</h2>
   <form>
     <p>
-      <input type="text" placeholder="Placeholder" required>
+      <input dir="auto" type="text" placeholder="Placeholder" required>
       <button type="reset">Clear</button>
     </p>
 
@@ -133,11 +131,11 @@
   <h2 class="bb-docs">Date/time inputs</h2>
   <form>
     <p>
-      <input disabled type="date" placeholder="YYYY-MM-DD">
+      <input dir="auto" disabled type="date" placeholder="YYYY-MM-DD">
     </p>
 
     <p>
-      <input type="time" placeholder="hh:mm:ss">
+      <input dir="auto" type="time" placeholder="hh:mm:ss">
     </p>
   </form>
 
@@ -147,11 +145,11 @@
       <legend class="action">Mobile</legend>
       <section>
         <p>
-          <input type="tel" placeholder="Phone number">
+          <input dir="ltr" type="tel" placeholder="Phone number">
           <button type="reset">Clear</button>
         </p>
         <p>
-          <input type="text" placeholder="Name" value="Jessy James">
+          <input dir="auto" type="text" placeholder="Name" value="Jessy James">
           <button type="reset">Clear</button>
         </p>
       </section>
@@ -161,7 +159,7 @@
       <legend>Work</legend>
       <section>
         <p>
-          <input type="tel" placeholder="Email">
+          <input dir="ltr" type="tel" placeholder="Email">
           <button type="reset">Clear</button>
         </p>
       </section>
@@ -171,7 +169,7 @@
   <h2 class="bb-docs">Forms: Input text</h2>
   <form role="search">
     <p>
-      <input type="text" placeholder="Search...">
+      <input dir="auto" type="text" placeholder="Search…">
       <button type="reset">Clear</button>
     </p>
   </form>
@@ -179,7 +177,7 @@
   <form role="search">
     <button type="submit">Cancel</button>
     <p>
-      <input type="text" placeholder="Search..." value="Some text here">
+      <input dir="auto" type="text" placeholder="Search…" value="Some text here">
       <button type="reset">Clear</button>
     </p>
   </form>
@@ -188,7 +186,7 @@
   <h2 class="bb-docs">Skin dark</h2>
     <form role="search" class="skin-dark">
       <p>
-        <input type="text" placeholder="Search...">
+        <input dir="auto" type="text" placeholder="Search…">
         <button type="reset">Clear</button>
       </p>
     </form>
@@ -196,7 +194,7 @@
     <form role="search" class="skin-dark">
       <button type="submit">Cancel</button>
       <p>
-        <input type="text" placeholder="Search..." value="Some text here">
+        <input dir="auto" type="text" placeholder="Search…" value="Some text here">
         <button type="reset">Clear</button>
       </p>
     </form>
@@ -219,7 +217,7 @@
   </form>
 
   <form role="search" class="bottom">
-    <button type="submit" class="icon icon-send">Send</button>
+    <button type="submit" class="icon" data-icon="send" aria-hidden="true">Send</button>
     <p>
       <textarea>Some text here</textarea>
     </p>
@@ -227,11 +225,11 @@
 
   <h2 class="bb-docs">Content Editable</h2>
   <ul class="bb-editable">
-    <li contenteditable="false">Travis Gray Travis Gray</li>
-    <li class="invalid" contenteditable="false">Lucy B.</li>
-    <li class="icon icon-email" contenteditable="false">Mary</li>
-    <li class="invalid icon icon-email" contenteditable="false">Paul C.</li>
-    <li contenteditable="true">John</li>
+    <li dir="auto" contenteditable="false">Travis Gray Travis Gray</li>
+    <li dir="auto" contenteditable="false" class="invalid">Lucy B.</li>
+    <li dir="auto" contenteditable="false" class="icon icon-email">Mary</li>
+    <li dir="auto" contenteditable="false" class="invalid icon icon-email">Paul C.</li>
+    <li dir="auto" contenteditable="true">John</li>
   </ul>
 
 </body>

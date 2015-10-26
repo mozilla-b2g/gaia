@@ -63,11 +63,14 @@
                                '/shared/js/simple_phone_matcher.js',
                                '/shared/js/contacts/contacts_matcher.js'];
     LazyLoader.load(matcherDependencies, function loaded() {
-      parentWindow.ContactsService.get(cid, function success(mContact) {
-        // Master contact
-        contact = mContact;
-        Matcher.match(contact, 'active', callbacks);
-      }, abort);
+      // Give some time to see the searching for duplicates message
+      setTimeout(function() {
+        parentWindow.ContactsService.get(cid, function success(mContact) {
+          // Master contact
+          contact = mContact;
+          Matcher.match(contact, 'active', callbacks);
+        }, abort);
+      }, 1000);
     });
   }
 

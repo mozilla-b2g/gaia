@@ -38,6 +38,7 @@ marionette('Homescreen - App unrecoverable error', function() {
 
     server.serverError(server.applicationZipUri);
     appInstall.installPackage(server.packageManifestURL);
+    appInstall.dismissToast();
 
     client.switchToFrame(system.getHomescreenIframe());
 

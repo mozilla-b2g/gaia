@@ -47,7 +47,7 @@ class TestOnlyOneHeaderDisplayed(GaiaTestCase):
         self.assertFalse(cards_view.is_app_displayed(self.email.name),
                              '%s app should not be present in cards view' % self.email.name)
         self.assertEqual(len(cards_view.cards), 0, 'Should have no cards left to display')
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == Homescreen.name)
+        Homescreen(self.marionette).wait_to_be_displayed()
 
         self.email.launch()
         self.email.wait_for_emails_to_sync()

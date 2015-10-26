@@ -12,7 +12,7 @@
   position: absolute;
   width: 100%;
   height: 0.4rem;
-  left: 0;
+  offset-inline-start: 0;
   bottom: 0;
   border: none;
 }
@@ -28,8 +28,8 @@
 #update-manager-container > .title-container {
   margin-top: 1.4rem;
   margin-bottom: 0;
-  -moz-margin-start: 3.7rem;
-  -moz-margin-end: 0;
+  margin-inline-start: 3.7rem;
+  margin-inline-end: 0;
 }
 
 #update-manager-container > .title-container > span {
@@ -43,7 +43,6 @@
 
 /* Toaster */
 #update-manager-toaster > .icon {
-  float: left;
   display: block;
   width: 2.4rem;
   height: 2.4rem;
@@ -51,10 +50,12 @@
   background-image: url(images/iconindicator_download_24x24.png);
   background-size: 2.4rem;
 }
+html[dir="ltr"] #update-manager-toaster > .icon { float: left; }
+html[dir="rtl"] #update-manager-toaster > .icon { float: right; }
 
 #update-manager-toaster > .message {
   position: absolute;
-  left: 5rem;
+  offset-inline-start: 5rem;
   top: 1rem;
   width: calc(100% - 5.5rem);
   color: #52b8cc;
@@ -77,7 +78,7 @@
   background-image: url(images/grey-noise-bg.png);
   background-repeat: repeat-x;
   background-size: auto 100%;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   border-bottom: 0.1rem #2c2c2c solid;
   transform: translateY(-5rem);
   visibility: hidden;
@@ -105,6 +106,7 @@
   #screen.software-button-enabled #updates-viaDataConnection-dialog,
   #screen.software-button-enabled #updates-download-dialog {
     bottom: 0;
+    /* BiDi note: the software home button should not be mirrored in RTL. */
     right: var(--software-home-button-height);
   }
 }
@@ -118,7 +120,8 @@
 #updates-download-dialog ul {
   list-style: none;
   margin-top: 0.4rem;
-  -moz-padding-start: 0;
+  padding-inline-start: 0;
+  padding-inline-end: 0;
 }
 
 #updates-download-dialog li {
@@ -138,6 +141,22 @@
   color: #ebebeb;
   font-size: 1.4rem;
   line-height: 1.7rem;
+}
+
+#updates-download-dialog span.font-light {
+  font-weight: 300;
+}
+
+#updates-download-dialog a {
+  font-size: 1.4rem;
+  line-height: 1.7rem;
+  color: #00caf2;
+  display: block;
+  text-decoration: none;
+}
+
+#updates-download-dialog a:active {
+  color: #00aacc;
 }
 
 #updates-download-dialog li .name {
@@ -163,11 +182,17 @@
 
 #updates-download-dialog label.required {
   width: 10rem;
-  right: 0.5rem;
-  text-align: right;
   text-transform: uppercase;
   height: 3rem;
   line-height: 3.4rem;
+}
+html[dir="ltr"] #updates-download-dialog label.required {
+  right: 0.5rem;
+  text-align: right;
+}
+html[dir="rtl"] #updates-download-dialog label.required {
+  left: 0.5rem;
+  text-align: left;
 }
 
 #updates-download-dialog p {
@@ -200,6 +225,8 @@
 #system-update-splash
 {
   position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   background-color: #2d2d2d;
@@ -224,7 +251,7 @@
 #system-update-splash > #divider
 {
   top: 50%;
-  left: 1.5rem;
+  offset-inline-start: 1.5rem;
   width: calc(100% - 3rem);
   height: 0.05rem;
   background-color: #676767;
@@ -240,25 +267,4 @@
   background-size: 7.6rem;
   background-position: center;
   background-repeat: no-repeat;
-}
-
-/* RTL View */
-
-html[dir="rtl"] #update-manager-toaster > .icon {
-  float: right;
-}
-
-html[dir="rtl"] #update-manager-toaster > .message {
-  left: unset;
-  right: 5rem;
-}
-
-html[dir="rtl"] #updates-download-dialog label {
-  float: left;
-}
-
-html[dir="rtl"] #updates-download-dialog label.required {
-  left: 0.5rem;
-  right: unset;
-  text-align: left;
 }

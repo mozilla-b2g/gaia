@@ -76,6 +76,7 @@ suite('system/Activities', function() {
       var eventsToListen = [
         'mozChromeEvent',
         'appopened',
+        'lockscreen-appopened',
         'applicationinstall'
       ];
 
@@ -105,6 +106,20 @@ suite('system/Activities', function() {
       subject.actionMenu = new ActionMenu();
       subject.handleEvent({type: 'appopened'});
       assert.ok(ActionMenu.prototype.hide.calledOnce);
+    });
+
+    test('cancel choice when locked', function() {
+      subject._detail = {
+        id: 'foo',
+        name: 'testactivity',
+        activityType: 'testtype',
+        choices: [{
+          manifest: 'manifest'
+        }]
+      };
+      this.sinon.stub(subject, 'cancel');
+      subject.handleEvent({type: 'lockscreen-appopened'});
+      assert.ok(subject.cancel.calledOnce);
     });
   });
 

@@ -1,4 +1,4 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.GaiaHeader=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.GaiaHeader = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 ;(function(define){define(function(require,exports,module){
 'use strict';
 
@@ -133,14 +133,13 @@ c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('font-fit',this));
 
 },{}],2:[function(require,module,exports){
-;(function(define){define(function(require,exports,module){
-'use strict';
-
+/* globals define */
+;(function(define){'use strict';define(function(require,exports,module){
 /**
  * Locals
  */
-
-var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
+var textContent = Object.getOwnPropertyDescriptor(Node.prototype,
+    'textContent');
 var innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
 var removeAttribute = Element.prototype.removeAttribute;
 var setAttribute = Element.prototype.setAttribute;
@@ -156,13 +155,26 @@ var noop  = function() {};
  */
 exports.register = function(name, props) {
   var baseProto = getBaseProto(props.extends);
+  var template = props.template || baseProto.templateString;
+
+  // Components are extensible by default but can be declared
+  // as non extensible as an optimization to avoid
+  // storing the template strings
+  var extensible = props.extensible = props.hasOwnProperty('extensible')?
+    props.extensible : true;
 
   // Clean up
   delete props.extends;
 
   // Pull out CSS that needs to be in the light-dom
-  if (props.template) {
-    var output = processCss(props.template, name);
+  if (template) {
+    // Stores the string to be reprocessed when
+    // a new component extends this one
+    if (extensible && props.template) {
+      props.templateString = props.template;
+    }
+
+    var output = processCss(template, name);
 
     props.template = document.createElement('template');
     props.template.innerHTML = output.template;
@@ -179,7 +191,7 @@ exports.register = function(name, props) {
 
   // Merge base getter/setter attributes with the user's,
   // then define the property descriptors on the prototype.
-  var descriptors = Object.assign(props.attrs || {}, base.descriptors);
+  var descriptors = mixin(props.attrs || {}, base.descriptors);
 
   // Store the orginal descriptors somewhere
   // a little more private and delete the original
@@ -210,7 +222,7 @@ var base = {
     created: noop,
 
     createdCallback: function() {
-      if (this.rtl) { addDirObserver(); }
+      if (this.dirObserver) { addDirObserver(); }
       injectLightCss(this);
       this.created();
     },
@@ -240,8 +252,20 @@ var base = {
       this.attributeChanged(name, from, to);
     },
 
-    attachedCallback: function() { this.attached(); },
-    detachedCallback: function() { this.detached(); },
+    attachedCallback: function() {
+      if (this.dirObserver) {
+        this.setInnerDirAttributes = setInnerDirAttributes.bind(null, this);
+        document.addEventListener('dirchanged', this.setInnerDirAttributes);
+      }
+      this.attached();
+    },
+
+    detachedCallback: function() {
+      if (this.dirObserver) {
+        document.removeEventListener('dirchanged', this.setInnerDirAttributes);
+      }
+      this.detached();
+    },
 
     /**
      * A convenient method for setting up
@@ -253,6 +277,7 @@ var base = {
       if (!this.template) { return; }
       var node = document.importNode(this.template.content, true);
       this.createShadowRoot().appendChild(node);
+      if (this.dirObserver) { setInnerDirAttributes(this); }
       return this.shadowRoot;
     },
 
@@ -294,7 +319,9 @@ var base = {
         if (this.lightStyle) { this.appendChild(this.lightStyle); }
       },
 
-      get: textContent.get
+      get: function() {
+        return textContent.get();
+      }
     },
 
     innerHTML: {
@@ -320,34 +347,35 @@ var defaultPrototype = createProto(HTMLElement.prototype, base.properties);
  * Returns a suitable prototype based
  * on the object passed.
  *
+ * @private
  * @param  {HTMLElementPrototype|undefined} proto
  * @return {HTMLElementPrototype}
- * @private
  */
 function getBaseProto(proto) {
   if (!proto) { return defaultPrototype; }
   proto = proto.prototype || proto;
-  return !proto.GaiaComponent
-    ? createProto(proto, base.properties)
-    : proto;
+  return !proto.GaiaComponent ?
+    createProto(proto, base.properties) : proto;
 }
 
 /**
  * Extends the given proto and mixes
  * in the given properties.
  *
+ * @private
  * @param  {Object} proto
  * @param  {Object} props
  * @return {Object}
  */
 function createProto(proto, props) {
-  return Object.assign(Object.create(proto), props);
+  return mixin(Object.create(proto), props);
 }
 
 /**
  * Detects presence of shadow-dom
  * CSS selectors.
  *
+ * @private
  * @return {Boolean}
  */
 var hasShadowCSS = (function() {
@@ -375,6 +403,7 @@ var regex = {
  * them to work from the <style scoped>
  * injected at the root of the component.
  *
+ * @private
  * @return {String}
  */
 function processCss(template, name) {
@@ -416,14 +445,15 @@ function processCss(template, name) {
  * <style> in the head of the
  * document.
  *
+ * @private
  * @param  {String} css
  */
 function injectGlobalCss(css) {
-  if (!css) return;
+  if (!css) {return;}
   var style = document.createElement('style');
   style.innerHTML = css.trim();
-  headReady().then(() => {
-    document.head.appendChild(style)
+  headReady().then(function() {
+    document.head.appendChild(style);
   });
 }
 
@@ -434,7 +464,7 @@ function injectGlobalCss(css) {
  * @private
  */
 function headReady() {
-  return new Promise(resolve => {
+  return new Promise(function(resolve) {
     if (document.head) { return resolve(); }
     window.addEventListener('load', function fn() {
       window.removeEventListener('load', fn);
@@ -460,10 +490,16 @@ function headReady() {
  */
 function injectLightCss(el) {
   if (hasShadowCSS) { return; }
-  el.lightStyle = document.createElement('style');
-  el.lightStyle.setAttribute('scoped', '');
-  el.lightStyle.innerHTML = el.lightCss;
-  el.appendChild(el.lightStyle);
+  var stylesheet = el.querySelector('style');
+
+  if (!stylesheet) {
+    stylesheet = document.createElement('style');
+    stylesheet.setAttribute('scoped', '');
+    stylesheet.appendChild(document.createTextNode(el.lightCss));
+    el.appendChild(stylesheet);
+  }
+
+  el.lightStyle = stylesheet;
 }
 
 /**
@@ -474,7 +510,8 @@ function injectLightCss(el) {
  *
  *   toCamelCase('foo-bar'); //=> 'fooBar'
  *
- * @param  {Sring} string
+ * @private
+ * @param  {String} string
  * @return {String}
  */
 function toCamelCase(string) {
@@ -491,12 +528,33 @@ function toCamelCase(string) {
 var dirObserver;
 
 /**
- * Observes the document `dir` (direction)
- * attribute and dispatches a global event
- * when it changes.
+ * Workaround for bug 1100912: applies a `dir` attribute to all shadowRoot
+ * children so that :-moz-dir() selectors work on shadow DOM elements.
  *
- * Components can listen to this event and
- * make internal changes if need be.
+ * In order to keep decent performances, the `dir` is the component dir if
+ * defined, or the document dir otherwise. This won't work if the component's
+ * direction is defined by CSS or inherited from a parent container.
+ *
+ * This method should be removed when bug 1100912 is fixed.
+ *
+ * @private
+ * @param  {WebComponent}
+ */
+function setInnerDirAttributes(component) {
+  var dir = component.dir || document.dir;
+  Array.from(component.shadowRoot.children).forEach(element => {
+    if (element.nodeName !== 'STYLE') {
+      element.dir = dir;
+    }
+  });
+}
+
+/**
+ * Observes the document `dir` (direction) attribute and when it changes:
+ *  - dispatches a global `dirchanged` event;
+ *  - forces the `dir` attribute of all shadowRoot children.
+ *
+ * Components can listen to this event and make internal changes if needed.
  *
  * @private
  */
@@ -514,31 +572,53 @@ function addDirObserver() {
   }
 }
 
+/**
+ * Copy the values of all properties from
+ * source object `target` to a target object `source`.
+ * It will return the target object.
+ *
+ * @private
+ * @param   {Object} target
+ * @param   {Object} source
+ * @returns {Object}
+ */
+function mixin(target, source) {
+  for (var key in source) {
+    target[key] = source[key];
+  }
+  return target;
+}
+
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-component',this));
 
 },{}],3:[function(require,module,exports){
-(function(define){define(function(require,exports,module){
-/*jshint laxbreak:true*/
+/* global define */
+(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Exports
  */
 
-var base = window.GAIA_ICONS_BASE_URL
-  || window.COMPONENTS_BASE_URL
-  || 'bower_components/';
+var base = window.GAIA_ICONS_BASE_URL ||
+           window.COMPONENTS_BASE_URL ||
+           'bower_components/';
 
-// Load it if it's not already loaded
-if (!isLoaded()) { load(base + 'gaia-icons/gaia-icons.css'); }
+if (!document.documentElement) {
+  window.addEventListener('load', load);
+} else {
+  load();
+}
 
-function load(href) {
+function load() {
+  if (isLoaded()) { return; }
+
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.type = 'text/css';
-  link.href = href;
+  link.href = base + 'gaia-icons/gaia-icons.css';
   document.head.appendChild(link);
   exports.loaded = true;
 }
@@ -550,17 +630,17 @@ function isLoaded() {
 }
 
 });})(typeof define=='function'&&define.amd?define
-:(function(n,w){return typeof module=='object'?function(c){
+:(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-icons',this));
 
 },{}],4:[function(require,module,exports){
+/* globals define */
 ;(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Dependencies
  */
-
 var component = require('gaia-component');
 var fontFit = require('font-fit');
 
@@ -613,11 +693,11 @@ const MINIMUM_FONT_SIZE_CENTERED = 20;
  * This is the minimum font size that we can take
  * when the header title is not centered in the window.
  */
-const MINIMUM_FONT_SIZE_UNCENTERED = 18;
+const MINIMUM_FONT_SIZE_UNCENTERED = 16;
 
 /**
- * This is the maximum font size that we can use for
- * the heade title.
+ * This is the maximum font-size
+ * for the header title.
  */
 const MAXIMUM_FONT_SIZE = 23;
 
@@ -627,6 +707,8 @@ const MAXIMUM_FONT_SIZE = 23;
  * @return {Element} constructor
  */
 module.exports = component.register('gaia-header', {
+  extensible: false, // discards some strings
+  dirObserver: true, // triggers a workaround for bug 1100912 in gaia-component
 
   /**
    * Called when the element is first created.
@@ -643,15 +725,16 @@ module.exports = component.register('gaia-header', {
     // Elements
     this.els = {
       actionButton: this.shadowRoot.querySelector('.action-button'),
-      buttons: this.querySelectorAll('button, a'),
-      titles: this.querySelectorAll('h1')
+      titles: this.getElementsByTagName('h1')
     };
 
     // Events
-    this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
+    this.els.actionButton.addEventListener('click',
+      e => this.onActionButtonClick(e));
     this.observer = new MutationObserver(this.onMutation.bind(this));
 
     // Properties
+    this.ignoreDir = this.hasAttribute('ignore-dir');
     this.titleEnd = this.getAttribute('title-end');
     this.titleStart = this.getAttribute('title-start');
     this.noFontFit = this.getAttribute('no-font-fit');
@@ -766,7 +849,7 @@ module.exports = component.register('gaia-header', {
    *
    * @param  {HTMLH1Element} el
    * @param  {Number} space
-   * @return {Object} {fontSize, marginStart, overflowing, id}
+   * @return {Object} {id, fontSize, marginStart, overflowing, padding}
    * @private
    */
   getTitleStyle: function(el, space) {
@@ -813,7 +896,7 @@ module.exports = component.register('gaia-header', {
   },
 
   /**
-   * Set's styles on the title elements.
+   * Sets styles on the title elements.
    *
    * If there is already an unresolved Promise
    * we return it instead of scheduling another.
@@ -833,7 +916,8 @@ module.exports = component.register('gaia-header', {
 
     // Return existing unresolved
     // promise, or make a new one
-    return this.unresolved[key] = this.unresolved[key] || new Promise((resolve) => {
+    if (this.unresolved[key]) { return this.unresolved[key]; }
+    this.unresolved[key] = new Promise((resolve) => {
       this.pending[key] = this.nextTick(() => {
         var styles = this._titleStyles;
         var els = this.els.titles;
@@ -854,25 +938,24 @@ module.exports = component.register('gaia-header', {
   },
 
   /**
-   * Fit text and center a title between
-   * the buttons before and after.
+   * Fit text and center a title between the buttons before and after.
    *
-   * Right now, because gaia-header is not
-   * fully rtl-compatible (due to Gaia),
-   * we're using `marginLeft` etc. These
-   * will be changed to `marginStart` etc
-   * when we become fully RTL.
-   *
-   * @param  {HTMLH1Element} title
-   * @param  {Number} space
+   * @param  {HTMLH1Element} el
+   * @param  {Object} style
    * @private
    */
   setTitleStyle: function(el, style) {
     debug('set title style', style);
     this.observerStop();
-    el.style.marginLeft = style.marginStart + 'px';
-    el.style.paddingLeft = style.padding.start + 'px';
-    el.style.paddingRight = style.padding.end + 'px';
+    if (this.ignoreDir) {
+      el.style.marginLeft = style.marginStart + 'px';
+      el.style.paddingLeft = style.padding.start + 'px';
+      el.style.paddingRight = style.padding.end + 'px';
+    } else {
+      el.style.marginInlineStart = style.marginStart + 'px';
+      el.style.paddingInlineStart = style.padding.start + 'px';
+      el.style.paddingInlineEnd = style.padding.end + 'px';
+    }
     el.style.fontSize = style.fontSize + 'px';
     setStyleId(el, style.id);
     this.observerStart();
@@ -881,7 +964,7 @@ module.exports = component.register('gaia-header', {
   /**
    * Run font-fit on a title with
    * the given amount of content space.
-
+   *
    * @param {String} text
    * @param {Number} space
    * @param {Object} optional {[min]}
@@ -1010,9 +1093,8 @@ module.exports = component.register('gaia-header', {
    * @private
    */
   getWidth: function() {
-    var value = this.notFlush
-      ? this.clientWidth
-      : window.innerWidth;
+    var value = this.notFlush ?
+      this.clientWidth : window.innerWidth;
 
     debug('get width', value);
     return value;
@@ -1153,7 +1235,7 @@ module.exports = component.register('gaia-header', {
         if (action === this._action) { return; }
         this.setAttr('action', action);
         this._action = action;
-      },
+      }
     },
 
     titleStart: {
@@ -1205,12 +1287,29 @@ module.exports = component.register('gaia-header', {
         if (value) { this.setAttr('no-font-fit', ''); }
         else { this.removeAttr('no-font-fit'); }
       }
+    },
+
+    // The [ignore-dir] attribute can be used to force the older behavior of
+    // gaia-header, where the whole header is always displayed in LTR mode.
+    ignoreDir: {
+      get: function() { return this._ignoreDir || false; },
+      set: function(value) {
+        debug('set ignore-dir', value);
+        value = !!(value || value === '');
+
+        if (value === this.ignoreDir) { return; }
+        this._ignoreDir = value;
+        this.dirObserver = !value;
+
+        if (value) { this.setAttr('ignore-dir', ''); }
+        else { this.removeAttr('ignore-dir'); }
+      }
     }
   },
 
   template: `<div class="inner">
     <button class="action-button">
-      <content select=".l10n-action"></content>
+      <content select="[l10n-action]"></content>
     </button>
     <content></content>
   </div>
@@ -1247,7 +1346,6 @@ module.exports = component.register('gaia-header', {
   .inner {
     display: flex;
     min-height: 50px;
-    direction: ltr;
     -moz-user-select: none;
 
     background:
@@ -1318,8 +1416,10 @@ module.exports = component.register('gaia-header', {
   }
 
   [action=close] .action-button:before { content: 'close' }
-  [action=back] .action-button:before { content: 'back' }
   [action=menu] .action-button:before { content: 'menu' }
+
+  [action=back]:-moz-dir(ltr) .action-button:before { content: 'left' }
+  [action=back]:-moz-dir(rtl) .action-button:before { content: 'right' }
 
   /** Action Button Icon
    ---------------------------------------------------------*/
@@ -1345,12 +1445,12 @@ module.exports = component.register('gaia-header', {
    * Example:
    *
    *   <gaia-header action="back">
-   *     <span class="l10n-action" aria-label="Back">Localized text</span>
+   *     <span l10n-action aria-label="Back">Localized text</span>
    *     <h1>title</h1>
    *   </gaia-header>
    */
 
-  ::content .l10n-action {
+  ::content [l10n-action] {
     position: absolute;
     left: 0;
     top: 0;
@@ -1391,18 +1491,23 @@ module.exports = component.register('gaia-header', {
   }
 
   /**
-   * [dir=rtl]
+   * [ignore-dir]
    *
-   * When the document is in RTL mode we still
-   * want the <h1> text to be reversed to that
-   * strings like '1 selected' become 'selected 1'.
+   * When the <gaia-header> component has an [ignore-dir] attribute, header
+   * direction is forced to LTR but we still want the <h1> text to be reversed
+   * so that strings like '1 selected' become 'selected 1'.
    *
-   * When we're happy for gaia-header to be fully
-   * RTL responsive we won't need this rule anymore,
-   * but this depends on all Gaia apps being ready.
+   * When we're happy for <gaia-header> to be fully RTL responsive we won't need
+   * these rules anymore, but this depends on all Gaia apps being ready.
+   *
+   * This should be safe to remove when bug 1179459 lands.
    */
 
-  :host-context([dir=rtl]) ::content h1 {
+  :host[ignore-dir] {
+    direction: ltr;
+  }
+
+  :host[ignore-dir]:-moz-dir(rtl) h1 {
     direction: rtl;
   }
 
@@ -1524,10 +1629,16 @@ module.exports = component.register('gaia-header', {
  * Determines whether passed element
  * contributes to the layout in gaia-header.
  *
+ * Children with `[l10n-action]` get distributed
+ * inside the action-button so don't occupy
+ * space before the `<h1>`.
+ *
  * @param  {Element}  el
  * @return {Boolean}
  */
-function contributesToLayout(el) { return el.tagName !== 'STYLE'; }
+function contributesToLayout(el) {
+  return el.localName !== 'style' && !el.hasAttribute('l10n-action');
+}
 
 /**
  * Set a 'style id' property that

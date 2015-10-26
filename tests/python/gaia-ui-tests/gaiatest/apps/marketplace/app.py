@@ -7,6 +7,8 @@ from marionette_driver.keys import Keys
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
+from gaiatest.apps.system.app import System
 
 
 class Marketplace(Base):
@@ -17,6 +19,7 @@ class Marketplace(Base):
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
     _search_toggle_locator = (By.CSS_SELECTOR, '.header--search-toggle')
     name = 'Marketplace'
+    manifest_url = 'https://marketplace.firefox.com/packaged.webapp'
 
     def search(self, term):
         iframe = Wait(self.marionette).until(
@@ -46,6 +49,14 @@ class Marketplace(Base):
         search_box.send_keys(Keys.RETURN)
         return SearchResults(self.marionette)
 
+    def get_current_displayed_result(self):
+        iframe = Wait(self.marionette).until(
+            expected.element_present(*self._marketplace_iframe_locator))
+        Wait(self.marionette).until(expected.element_displayed(iframe))
+        self.marionette.switch_to_frame(iframe)
+
+        return SearchResults(self.marionette)
+
 class SearchResults(Base):
 
     _search_results_loading_locator = (By.CSS_SELECTOR, '.loading')
@@ -67,5 +78,66 @@ class Result(PageRegion):
         self.root_element.find_element(*self._install_button_locator).tap()
         self.marionette.switch_to_frame()
 
+    def tap_open_app_button(self, app_title, _app_locator):
+        button = self.root_element.find_element(*self._install_button_locator)
+        Wait(self.marionette).until(lambda m: button.text == 'Open app')
+        button.tap()
+        self.apps.switch_to_displayed_app()
+        Wait(self.marionette).until(lambda m: m.title == app_title)
+        app_element = self.marionette.find_element(*_app_locator)
+        Wait(self.marionette).until(lambda m: app_element.is_displayed())
+
     def get_app_name(self):
         return self.root_element.find_element(*self._name_locator).text
+
+class MarketplaceDev(Marketplace):
+
+    name = 'Dev'
+    manifest_url = 'https://marketplace.firefox.com/app/bee10fbb-7829-4d99-8a9f-a6d0a905138e/manifest.webapp'
+
+    _enable_addons_locator = (By.ID, 'enable-addons')
+
+    def _enable_addons(self):
+        enable_addon_button = Wait(self.marionette).until(
+            expected.element_present(*self._enable_addons_locator))
+        Wait(self.marionette).until(expected.element_displayed(enable_addon_button))
+        enable_addon_button.tap()
+
+    def _open_addon(self, addon_name):
+        selector = '//a[descendant::*[text()="%s"]]' % addon_name
+        addon_locator = (By.XPATH, selector)
+
+        addon_link = Wait(self.marionette, timeout=20, interval=1).until(
+            expected.element_present(*addon_locator))
+        Wait(self.marionette).until(expected.element_displayed(addon_link))
+        self.marionette.execute_script('arguments[0].scrollIntoView(true);', [addon_link])
+        addon_link.tap()
+        return AddonPage(self.marionette)
+
+    def install_addon(self, addon_name):
+        # Open debug page
+        self.search(':debug')
+
+        self._enable_addons()
+
+        addon_page = self._open_addon(addon_name)
+        addon_page.install_link()
+
+class AddonPage(Base):
+
+    _addon_install_locator = (By.CSS_SELECTOR, 'button.install')
+
+    def install_link(self):
+        element = Wait(self.marionette, timeout=20, interval=1).until(
+            expected.element_present(*self._addon_install_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+
+        confirm_install = ConfirmInstall(self.marionette)
+        confirm_install.tap_confirm()
+
+        system = System(self.marionette)
+        system.wait_for_system_banner_displayed()
+        system.wait_for_system_banner_not_displayed()
+
+        self.apps.switch_to_displayed_app()

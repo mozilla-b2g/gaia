@@ -20,10 +20,7 @@ class testDragDrop(GaiaImageCompareTestCase):
     def test_drag_drop(self):
 
         self.homescreen.wait_for_number_of_apps(1)
-
-        # Assert that we are not in edit mode.
-        self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
-
+        
         # Move first app to position 3 (index 2) and to position 4
         self.homescreen.move_app_to_position(0, 2)
         self.take_screenshot()
@@ -31,10 +28,5 @@ class testDragDrop(GaiaImageCompareTestCase):
         self.take_screenshot()
         self.homescreen.move_app_to_position(5, 4)
         self.take_screenshot()
-
-        # Assert that we are in edit mode.
-        self.assertTrue(self.homescreen.is_edit_mode_active, "Edit mode should be active")
-
-        # Exit edit mode
-        self.device.touch_home_button()
-        self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
+        self.homescreen.move_app_to_position(9, 0)
+        self.take_screenshot()

@@ -12,7 +12,7 @@
   // as during normal run time.
   var OPERATOR_VARIANT_FILE = '/shared/resources/apn.json';
 
-  var APN_TYPES = ['default', 'mms', 'supl', 'dun', 'ims'];
+  var APN_TYPES = ['default', 'mms', 'supl', 'dun', 'ims', 'fota'];
   var AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
   var DEFAULT_MMS_SIZE_LIMITATION = 300 * 1024;
 
@@ -270,7 +270,8 @@
           'ril.data.passwd': 'password',
           'ril.data.httpProxyHost': 'proxy',
           'ril.data.httpProxyPort': 'port',
-          'ril.data.authtype': 'authtype'
+          'ril.data.authtype': 'authtype',
+          'ril.data.mtu': 'mtu'
         },
         'supl': {
           'ril.supl.carrier': 'carrier',
@@ -279,7 +280,8 @@
           'ril.supl.passwd': 'password',
           'ril.supl.httpProxyHost': 'proxy',
           'ril.supl.httpProxyPort': 'port',
-          'ril.supl.authtype': 'authtype'
+          'ril.supl.authtype': 'authtype',
+          'ril.supl.mtu': 'mtu'
         },
         'mms': {
           'ril.mms.carrier': 'carrier',
@@ -291,7 +293,8 @@
           'ril.mms.mmsc': 'mmsc',
           'ril.mms.mmsproxy': 'mmsproxy',
           'ril.mms.mmsport': 'mmsport',
-          'ril.mms.authtype': 'authtype'
+          'ril.mms.authtype': 'authtype',
+          'ril.mms.mtu': 'mtu'
         },
         'dun': {
           'ril.dun.carrier': 'carrier',
@@ -300,7 +303,8 @@
           'ril.dun.passwd': 'password',
           'ril.dun.httpProxyHost': 'proxy',
           'ril.dun.httpProxyPort': 'port',
-          'ril.dun.authtype': 'authtype'
+          'ril.dun.authtype': 'authtype',
+          'ril.dun.mtu': 'mtu'
         },
         'ims': {
           'ril.ims.carrier': 'carrier',
@@ -309,7 +313,18 @@
           'ril.ims.passwd': 'password',
           'ril.ims.httpProxyHost': 'proxy',
           'ril.ims.httpProxyPort': 'port',
-          'ril.ims.authtype': 'authtype'
+          'ril.ims.authtype': 'authtype',
+          'ril.ims.mtu': 'mtu'
+        },
+        'fota': {
+          'ril.fota.carrier': 'carrier',
+          'ril.fota.apn': 'apn',
+          'ril.fota.user': 'user',
+          'ril.fota.passwd': 'password',
+          'ril.fota.httpProxyHost': 'proxy',
+          'ril.fota.httpProxyPort': 'port',
+          'ril.fota.authtype': 'authtype',
+          'ril.fota.mtu': 'mtu'
         },
         'operatorvariant': {
           'ril.iccInfo.mbdn': 'voicemail',

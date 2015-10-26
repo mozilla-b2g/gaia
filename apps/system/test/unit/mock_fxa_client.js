@@ -22,9 +22,18 @@ var MockFxAccountsClient = {
     successCb(this._successMsg);
   },
 
-  getAccounts: function(successCb, errorCb) {
-    this._call = 'getAccounts';
+  getAccount: function(successCb, errorCb) {
+    this._call = 'getAccount';
     this._triggerCallback(successCb, errorCb);
+  },
+
+  getAssertion: function(options, successCb, errorCb) {
+    this._call = 'getAssertion';
+    if (this._errorMsg) {
+      errorCb(this._errorMsg);
+      return;
+    }
+    successCb(Date.now() /* fake assertion */);
   },
 
   resendVerificationEmail: function(email, successCb, errorCb) {

@@ -2,11 +2,14 @@
   "name": "Browser",
   "description": "Browser",
   "launch_path": "/index.html",
-  "type": "privileged",
+  "type": "certified",
   "permissions": {
     "browser":{},
     "systemXHR":{},
-    "desktop-notification" : {}
+    "desktop-notification" : {},
+    "firefox-accounts": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "settings": { "access": "readwrite" }
   },
   "locales": {
     "ar": {
@@ -32,7 +35,7 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "284": "/shared/resources/branding/browser_284.png"
+    "336": "/shared/resources/branding/browser_336.png"
   },
   "activities": {
     "view": {
@@ -42,6 +45,22 @@
           "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
         }
       }
+    }
+  },
+  "datastores-access": {
+    "places": {
+      "readonly": false,
+      "description": "Read synced browsing history."
+    },
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Read synced browser bookmarks."
+    }
+  },
+  "connections": {
+    "webpage-open": {
+      "description": "connection for opening webpage",
+      "rules": {}
     }
   }
 }

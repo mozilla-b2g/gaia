@@ -26,7 +26,7 @@ class TestCardsView(GaiaTestCase):
         """
 
         cards_view = CardsView(self.marionette)
-        self.assertFalse(cards_view.is_cards_view_displayed, 'Cards view not expected to be visible')
+        self.assertFalse(cards_view.is_displayed, 'Cards view not expected to be visible')
 
         # Pull up the cards view
         self.device.hold_home_button()

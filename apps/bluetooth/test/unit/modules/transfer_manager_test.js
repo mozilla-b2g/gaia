@@ -379,6 +379,11 @@ suite('Bluetooth app > PairManager ', function() {
       this.sinon.stub(TurnBluetoothOnDialog, 'close');
     });
 
+    test('not function when passed value is undefined ', function() {
+      TransferManager._onBluetoothEnabledChanged(undefined);
+      assert.isFalse(TurnBluetoothOnDialog.close.called);
+    });
+
     suite('Bluetooth "enabled" state changed to be true > ', function() {
       setup(function() {
         mockEnabledState = true;

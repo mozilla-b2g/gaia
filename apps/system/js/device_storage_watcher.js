@@ -18,6 +18,7 @@
 
     start: function dsw_init() {
       this._lowDeviceStorage = false;
+      this._freeSpace = null;
 
       this._ = navigator.mozL10n.get;
 
@@ -29,6 +30,8 @@
 
       this._message = this._container.querySelector('.title-container');
       this._availableSpace = this._container.querySelector('.detail');
+
+      window.addEventListener('appopening', this);
     },
 
     containerClicked: function dsw_containerClicked() {
@@ -65,7 +68,7 @@
       }
     },
 
-    lowDiskSpaceNotification: function dsw_lowDiskSpaceNotification(space) {
+    displayBanner: function dsw_displayBanner(space) {
       var notification = ['low-device-storage'];
       if (space && typeof space.size !== 'undefined' && space.unit) {
         notification.push({
@@ -84,7 +87,10 @@
       }).catch((err) => {
         console.error(err);
       });
+    },
 
+    lowDiskSpaceNotification: function dsw_lowDiskSpaceNotification(space) {
+      this.displayBanner(space);
       this._message.setAttribute('data-l10n-id', 'low-device-storage');
       this.updateAvailableSpace(space);
       this.displayNotification();
@@ -130,6 +136,15 @@
     },
 
     handleEvent: function dsw_handleEvent(evt) {
+      // Display low storage banner every time an app opens with low storage.
+      if (evt.type === 'appopening') {
+        if (this._lowDeviceStorage) {
+          this.displayBanner(this._freeSpace);
+        }
+        return;
+      }
+
+      // Otherwise if event is not a storage change event we ignore it.
       if (evt.type !== 'change') {
         return;
       }
@@ -142,21 +157,19 @@
         // center, containing the remaining free space. Consecutive events with
         // a 'low-disk-space' reason will only update the remaining free space.
         case 'low-disk-space':
-          var self = this;
-          var req = self._appStorage.freeSpace();
-          req.onsuccess = function onsuccess() {
-            var free;
+          var req = this._appStorage.freeSpace();
+          req.onsuccess = () => {
             if (typeof req.result !== 'undefined') {
-              free = self.formatSize(req.result);
+              this._freeSpace = this.formatSize(req.result);
             }
-            if (self._lowDeviceStorage) {
-              self.updateAvailableSpace(free);
+            if (this._lowDeviceStorage) {
+              this.updateAvailableSpace(this._freeSpace);
               return;
             }
-            self.lowDiskSpaceNotification(free);
+            this.lowDiskSpaceNotification(this._freeSpace);
           };
-          req.onerror = function onerror() {
-            self.lowDiskSpaceNotification();
+          req.onerror = () => {
+            this.lowDiskSpaceNotification();
           };
           break;
 

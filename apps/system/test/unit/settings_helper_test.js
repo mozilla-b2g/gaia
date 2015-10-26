@@ -25,9 +25,9 @@ suite('SettingsHelper', function() {
     // All settings should be the same as the specified default value
     // when 'settings.key' is null.
     var defaultValue = 'default_value';
-    var settingsHepler = SettingsHelper(SETTINGS_KEY, defaultValue);
+    var settingsHelper = SettingsHelper(SETTINGS_KEY, defaultValue);
 
-    settingsHepler.get(function(value) {
+    settingsHelper.get(function(value) {
       assert.equal(value, defaultValue);
       done();
     });

@@ -55,7 +55,7 @@ if [[ -z "$(which virtualenv)" ]]; then
   if ! which pip; then
     if ! which easy_install; then
       echo "Neither pip nor easy_install is found in your path"
-      echo "Please install pip directly using: http://pip.readthedocs.org/en/latest/installing.html#install-or-upgrade-pip"
+      echo "Please install pip directly using: http://pip.readthedocs.org/en/latest/installing"
       exit 1
     fi
     notify_sudo
@@ -68,7 +68,18 @@ if [[ -z "$(which virtualenv)" ]]; then
   fi
 fi
 
+# Detect pip version. We consider by default that we will have to use
+# --trusted-host and we just disable it for release before 7.0.0
+PIP_VERSION=`pip --version | cut -d ' ' -f 2 | cut -d '.' -f 1`
+TRUSTED_HOST="--trusted-host=pypi.pub.build.mozilla.org"
+if [ $PIP_VERSION -lt 7 ]; then
+  TRUSTED_HOST=""
+fi;
+
 virtualenv --python=$USE_PYTHON --no-site-packages $PWD/venv
 source ./venv/bin/activate
 cd host/python/runner-service
+pip install \
+  --find-links=http://pypi.pub.build.mozilla.org/pub $TRUSTED_HOST \
+  -r gaia_runner_service.egg-info/requires.txt
 python setup.py develop

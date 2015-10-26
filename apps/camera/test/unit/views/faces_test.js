@@ -27,10 +27,12 @@ suite('views/faces', function() {
     });
   });
 
-  suite('FacesView#configure()', function() {
-    test('Should create Face Views for the max number of faces', function() {
-      this.view.configure(10);
+  suite('FacesView#createFaces()', function() {
+    test('Should create Face Views for the given number of faces', function() {
+      this.view.createFaces(10);
       assert.ok(this.view.faces.length === 10);
+      this.view.createFaces(5);
+      assert.ok(this.view.faces.length === 15);
     });
   });
 

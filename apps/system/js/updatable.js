@@ -26,6 +26,7 @@ function AppUpdatable(app) {
   var manifest = app.manifest ? app.manifest : app.updateManifest;
   this.name = new ManifestHelper(manifest).name;
   this.nameL10nId = '';
+  this.nameL10nArgs = null;
 
   this.size = app.downloadSize;
   this.progress = null;
@@ -139,8 +140,11 @@ AppUpdatable.prototype.progressCallBack = function() {
  *
  */
 function SystemUpdatable() {
-  this.nameL10nId = 'systemUpdate';
+  this.nameL10nId = 'systemUpdateWithVersion';
+  this.nameL10nArgs = null;
   this.size = 0;
+  this.buildID = null;
+  this.detailsURL = null;
   this.downloading = false;
   this.paused = false;
   this.showingApplyPrompt = false;
@@ -149,7 +153,13 @@ function SystemUpdatable() {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
   this.checkKnownUpdate(UpdateManager.checkForUpdates.bind(UpdateManager));
 
+  // We need to make sure that SystemUpdatable has an event listener ready
+  // to catch mozChromeEvent to be sure we can get "update-error" events.
+  // This was broken for the case of system updates error because of a race:
+  // Gecko was sending the |update-error| event before the |mozChromeEvent|
+  // could get installed.
   window.addEventListener('mozChromeEvent', this);
+  this._dispatchEvent('update-prompt-ready');
 }
 
 SystemUpdatable.KNOWN_UPDATE_FLAG = 'known-sysupdate';

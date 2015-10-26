@@ -13,7 +13,7 @@ class AlarmAlertScreen(Base):
     _alarm_label_locator = (By.ID, 'ring-label')
 
     def wait_for_alarm_to_trigger(self):
-        alarm_frame = Wait(self.marionette, timeout=60).until(
+        alarm_frame = Wait(self.marionette, timeout=60, interval=5).until(
             expected.element_present(*self._alarm_frame_locator))
         Wait(self.marionette).until(expected.element_displayed(alarm_frame))
         self.marionette.switch_to_frame(alarm_frame)

@@ -20,13 +20,15 @@
 
   Home.prototype = {
     navigableIds:
-        ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
+        ['search-button', 'search-input', 'edit-button', 'settings-button',
+            'filter-tab-group'],
 
-    topElementIds: ['search-button', 'search-input', 'settings-group',
-        'edit-button', 'settings-button'],
+    topElementIds: ['search-button', 'search-input', 'edit-button',
+            'settings-button'],
+
     bottomElementIds: ['filter-tab-group', 'filter-all-button',
-        'filter-tv-button', 'filter-dashboard-button', 'filter-device-button',
-        'filter-app-button'],
+        'filter-tv-button', 'filter-device-button', 'filter-app-button',
+        'filter-website-button'],
 
     isNavigable: true,
     navigableClasses: ['filter-tab', 'command-button'],
@@ -38,13 +40,12 @@
     _folderCard: undefined,
 
     filterElementIds: ['filter-all-button', 'filter-tv-button',
-        'filter-dashboard-button', 'filter-device-button', 'filter-app-button'],
+        'filter-device-button', 'filter-app-button', 'filter-website-button'],
 
     filterManager: undefined,
     cardListElem: document.getElementById('card-list'),
     folderListElem: document.getElementById('folder-list'),
     cardManager: undefined,
-    settingsGroup: document.getElementById('settings-group'),
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
     searchButton: document.getElementById('search-button'),
@@ -119,8 +120,6 @@
           }
         });
 
-        that.spatialNavigator.focus();
-
         that.edit = new Edit();
         that.edit.init(that.spatialNavigator, that.cardManager,
                        that.cardScrollable, that.folderScrollable);
@@ -164,6 +163,8 @@
                         that.onCardRemoved.bind(that, that.folderScrollable));
           }
         });
+
+        that.spatialNavigator.focus(that.cardScrollable);
       });
     },
 
@@ -462,7 +463,11 @@
         }
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
-        this._createWave(cardButton, card);
+        if (card.group === 'website') {
+          this._fillCardIcon(cardButton, card);
+        } else {
+          this._createWave(cardButton, card);
+        }
       } else if (card instanceof Folder) {
         cardButton.setAttribute('app-type', 'folder');
         cardButton.dataset.icon = 'folder';
@@ -607,12 +612,7 @@
       if (!this._focusedGroup) {
         return;
       }
-      // Settings group should appear opened after switching from edit state
-      // back to normal state. So we'd keep it opened while in edit and arrange
-      // mode.
-      if (this._focusedGroup === this.settingsGroup && this.edit.mode) {
-        return;
-      }
+
       // close the focused group when we move focus out of this group.
       if (!elem || !this._focusedGroup.contains(elem)) {
         this._focusedGroup.close();

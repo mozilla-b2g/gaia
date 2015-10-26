@@ -23,10 +23,12 @@ var utils = window.utils || {};
     progressElement.setAttribute('value', 0);
 
     function showMessage() {
+      var attributes = progressTextId == 'infiniteProgress' ?
+                       { n: counter }                       :
+                       { current: counter, total: total };
       navigator.mozL10n.setAttributes(progressMsg,
                                       progressTextId,
-                                      { current: counter, total: total }
-      );
+                                      attributes);
     }
 
     /**

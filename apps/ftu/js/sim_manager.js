@@ -140,7 +140,6 @@ var SimManager = (function() {
         UIManager.xckInput.value = '';
         UIManager.xckInput.classList.add('onerror');
         UIManager.xckError.classList.remove('hidden');
-        UIManager.xckInfo.classList.add('hidden');
         navigator.mozL10n.setAttributes(UIManager.xckRetriesLeft,
                                           'inputCodeRetriesLeft', l10nArgs);
         UIManager.xckRetriesLeft.classList.remove('hidden');

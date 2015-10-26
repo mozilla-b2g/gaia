@@ -3,16 +3,16 @@
 export GAIATEST_ACKNOWLEDGED_RISKS=true
 export GAIATEST_SKIP_WARNING=true
 
-# Get the b2g desktop binary...
-get_b2g_bin() {
-  local folder=$(find . -d 1 -name 'b2g' | cut -f 1 -d " ")
-  # Download b2g...
+# Get the mulet binary...
+get_mulet_bin() {
+  local folder=$(find . -d 1 -name 'mulet' | cut -f 1 -d " ")
+  # Download mulet ...
   if [ -z "$folder" ];
   then
     # Everything goes to stderr...
-    make b2g 1>&2
+    make mulet 1>&2
   fi
-  find $folder -follow -name "b2g-bin" | tail -n 1
+  find $folder -follow -name "firefox-bin" | tail -n 1
 }
 
 
@@ -28,12 +28,12 @@ get_profile() {
   echo $folder
 }
 
-b2g=$(get_b2g_bin)
+mulet=$(get_mulet_bin)
 root=tests/python/gaia-ui-tests/gaiatest
 profile=$(get_profile)
 gaiatest="$root/cli.py"
 
-echo "Using b2g: $b2g"
+echo "Using mulet: $mulet"
 
 # Enter the virtual env.
 source ./tests/ci/venv.sh &&
@@ -45,7 +45,7 @@ python setup.py develop && \
 cd $OLDPWD && \
 # Run the tests.
 python $gaiatest --app=b2gdesktop \
-          --binary=$b2g \
+          --binary=$mulet \
           --profile=$profile \
           --type=b2g \
           --timeout=10000 \

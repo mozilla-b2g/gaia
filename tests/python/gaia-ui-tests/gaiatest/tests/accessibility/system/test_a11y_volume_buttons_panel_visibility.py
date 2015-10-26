@@ -32,7 +32,7 @@ class TestVolumeButtonsAccessibility(GaiaTestCase):
         # Panel should not be visible by default
         self.assertFalse(self.data_layer.get_setting(
             'accessibility.screenreader-show-settings'))
-        self.assertFalse(self.is_element_displayed(
+        self.assertFalse(self.settings.is_element_displayed(
             *accessibility_settings._accessibility_screenreader_menu_item_locator))
         self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
             *accessibility_settings._accessibility_screenreader_menu_item_locator)))
@@ -42,7 +42,7 @@ class TestVolumeButtonsAccessibility(GaiaTestCase):
         # Panel should become visible after screen reader turned ON
         self.assertTrue(self.data_layer.get_setting(
             'accessibility.screenreader-show-settings'))
-        self.assertTrue(self.is_element_displayed(
+        self.assertTrue(self.settings.is_element_displayed(
             *accessibility_settings._accessibility_screenreader_menu_item_locator))
         self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *accessibility_settings._accessibility_screenreader_menu_item_locator)))
@@ -52,7 +52,7 @@ class TestVolumeButtonsAccessibility(GaiaTestCase):
         # Panel should still be visible
         self.assertTrue(self.data_layer.get_setting(
             'accessibility.screenreader-show-settings'))
-        self.assertTrue(self.is_element_displayed(
+        self.assertTrue(self.settings.is_element_displayed(
             *accessibility_settings._accessibility_screenreader_menu_item_locator))
         self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *accessibility_settings._accessibility_screenreader_menu_item_locator)))

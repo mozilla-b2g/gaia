@@ -1,0 +1,147 @@
+.ring {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  position: absolute;
+  background-color: transparent;
+  -webkit-animation-name: ani; 
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+  -webkit-animation-duration: 3s;
+  -webkit-animation-direction: normal;
+  animation-name: ani; 
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-duration: 3s;
+  animation-direction: normal;
+  border-top: 15px solid transparent;
+  border-left: 15px solid blue;
+  border-bottom: 15px solid transparent;
+
+}
+
+
+@-webkit-keyframes ani {
+0% {-webkit-transform: scale(0.01); opacity: 0} 
+1% {-webkit-transform: scale(0.01); opacity: 0.8} 
+95% {-webkit-transform: scale(1); opacity: 0.8;}
+100% {-webkit-transform: scale(1); opacity: 0;}
+}
+
+@keyframes ani {
+0% {transform: scale(0.01); opacity: 0} 
+1% {transform: scale(0.01); opacity: 0.8} 
+95% {transform: scale(1); opacity: 0.8;}
+100% {transform: scale(1); opacity: 0;}
+}
+
+#r2 { -webkit-animation-delay: -1s;animation-delay: -1s;}
+#r3 { -webkit-animation-delay: -2s;animation-delay: -2s;}
+#r4 { -webkit-animation-delay: -3s;animation-delay: -3s;}
+
+.ringr {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  position: absolute;
+  background-color: transparent;
+  -webkit-animation-name: anir; 
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+  -webkit-animation-duration: 3s;
+  -webkit-animation-direction: normal;
+  animation-name: anir; 
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-duration: 3s;
+  animation-direction: normal;
+  border-top: 15px solid transparent;
+  border-right: 15px solid blue;
+  border-bottom: 15px solid transparent;
+
+}
+
+.sbringr {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: absolute;
+  background-color: blue;
+  top:161px;
+  left:206px;
+  margin-left: -50px;
+}
+
+@-webkit-keyframes anir {
+  0% {-webkit-transform: scale(0.01); opacity: 0} 
+  1% {-webkit-transform: scale(0.01); opacity: 0.8} 
+  95% {-webkit-transform: scale(1); opacity: 0.8;}
+  100% {-webkit-transform: scale(1); opacity: 0;}
+}
+
+@keyframes anir {
+  0% {transform: scale(0.01); opacity: 0} 
+  1% {transform: scale(0.01); opacity: 0.8} 
+  95% {transform: scale(1); opacity: 0.8;}
+  100% {transform: scale(1); opacity: 0;}
+}
+
+#r2r { -webkit-animation-delay: -1s;animation-delay: -1s;}
+#r3r { -webkit-animation-delay: -2s;animation-delay: -2s;}
+#r4r { -webkit-animation-delay: -3s;animation-delay: -3s;}
+
+html{
+  overflow:hidden
+}
+
+body{
+  margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px;
+  padding: 0;
+  color: black; font-size: 10pt; font-family: "Trebuchet MS", sans-serif;
+  background-color: #E2E2E2;
+  overflow:hidden;
+}
+
+.maindiv {
+  text-align:center;
+  width:100vw;
+  height:100vh;   
+  position:relative;
+  display:none;
+}
+
+.speak {
+  position: absolute; 
+  bottom: 0;  
+  margin-left: -45px;
+}
+
+.optincard {
+  position: relative;
+  float: left;
+  margin-right: 10%;
+  width: 80%;
+  height: 50%;
+  margin-left: 10%;
+  border-radius: 10px;
+  margin-top: 10%;
+  background: #fff;
+  -webkit-box-shadow: 3px 3px 7px rgba(0,0,0,0.3);
+  box-shadow: 3px 3px 7px rgba(0,0,0,0.3);
+  padding: 10px;
+  font-size: medium;
+}
+
+.agreebtn {
+   border: 1px green;
+   background-color: lightGreen;
+   height:50px;
+   width:150px;
+   font-size: large;
+}
+
+#divsendbtn{
+  display: none;
+}
+
+

@@ -39,8 +39,14 @@ progress[value]::-moz-progress-bar {
 /* Progress bar */
 progress[value].pack-activity {
   background-size: 15rem;
-  background-image: repeating-linear-gradient( 135deg, #92F4FE, #92F4FE 5rem, #00CDF0 5rem, #00CDF0 10rem );
-  animation: move 1.5s steps(15) infinite;
+}
+html[dir="ltr"] progress[value].pack-activity {
+  animation: 1.5s move-right steps(15) infinite;
+  background-image: repeating-linear-gradient(135deg, #92F4FE, #92F4FE 5rem, #00CDF0 5rem, #00CDF0 10rem);
+}
+html[dir="rtl"] progress[value].pack-activity {
+  animation: 1.5s move-left steps(15) infinite;
+  background-image: repeating-linear-gradient(-135deg, #92F4FE, #92F4FE 5rem, #00CDF0 5rem, #00CDF0 10rem);
 }
 
 /* Labels */
@@ -53,7 +59,7 @@ p[role="status"] {
 }
 
 p[role="status"] progress:not([value]) {
-  margin-right: 0.5rem;
+  margin-inline-end: 0.5rem;
 }
 
 p[role="status"] progress:not([value]) + span {
@@ -71,6 +77,8 @@ p[role="status"] span {
   position: relative;
   height: 0.3rem;
 }
+html[dir="ltr"] .bb-steps { transform: scaleX(1); }
+html[dir="rtl"] .bb-steps { transform: scaleX(-1); }
 
 .bb-steps:before {
   position: absolute;
@@ -96,13 +104,18 @@ p[role="status"] span {
   background: none;
 }
 
-/* Animations */
+/* Animations */
 @keyframes rotate {
   from { transform: rotate(1deg); }
   to   { transform: rotate(360deg); }
 }
 
-@keyframes move {
+@keyframes move-right {
+  from { background-position: -15rem 0; }
+  to   { background-position: 0 0; }
+}
+
+@keyframes move-left {
   from { background-position: 0 0; }
   to   { background-position: -15rem 0; }
 }

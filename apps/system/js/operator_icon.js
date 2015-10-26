@@ -42,12 +42,13 @@
       return;
     }
     this.show();
-    var _ = navigator.mozL10n.get;
-    var f = new navigator.mozL10n.DateTimeFormat();
+
     now = now || new Date();
     var l10nArgs = JSON.parse(this.element.dataset.l10nArgs || '{}');
-    l10nArgs.date = f.localeFormat(now, _('statusbarDateFormat'));
-    this.element.dataset.l10nArgs = JSON.stringify(l10nArgs);
+    l10nArgs.date = now.toLocaleString(navigator.languages, {
+      month: 'short',
+      day: 'numeric'
+    });
     var conns = this.manager.mobileConnections;
     var conn;
 

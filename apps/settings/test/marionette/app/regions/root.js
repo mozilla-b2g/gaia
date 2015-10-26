@@ -32,11 +32,6 @@ RootPanel.Selectors = {
   'simSecurityItem': '#simSecurity-settings',
   'screenLockDesc': '.screenLock-desc',
   'wifiDesc': '#wifi-desc',
-  'usbStorageCheckbox': '.usb-switch',
-  'usbStorageSpan': '.usb-switch ~ span',
-  'usbStorageDesc': '.usb-desc',
-  'usbStorageConfirmDialog': '.turn-on-ums-dialog',
-  'usbStorageConfirmButton': '.ums-confirm-option',
   'nfcCheckbox': '#nfc-input'
 };
 
@@ -154,28 +149,6 @@ RootPanel.prototype = {
   // screen lock
   get screenLockDesc() {
     return this.waitForElement('screenLockDesc').text();
-  },
-
-  // usb storage
-  usbStorage: function(enabled) {
-    if (enabled !== this.usbStorageCheckboxChecked) {
-      this.waitForElement('usbStorageSpan').tap();
-      this.client.waitFor(function() {
-        return enabled === this.usbStorageCheckboxChecked;
-      }.bind(this));
-    }
-  },
-
-  tapUsbStorageConfirmButton: function() {
-    this.waitForElement('usbStorageConfirmButton').tap();
-  },
-
-  get usbStorageCheckboxChecked() {
-    return !!this.findElement('usbStorageCheckbox').getAttribute('checked');
-  },
-
-  get usbStorageDesc() {
-    return this.findElement('usbStorageDesc').text();
   },
 
   // wifi

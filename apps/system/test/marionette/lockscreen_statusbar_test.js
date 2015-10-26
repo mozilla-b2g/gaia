@@ -42,6 +42,5 @@ marionette('LockScreen status bar', function() {
     lockScreen.lock();
 
     assert(statusBar.maximizedStatusbar.displayed());
-    assert(!statusBar.minimizedStatusbar.displayed());
   });
 });

@@ -4,11 +4,12 @@
 
 var Utils = {
   prettyDate: function ut_prettyDate(time) {
-    var _ = navigator.mozL10n.get;
-    var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
-                                                  _('shortTimeFormat24');
-    var dtf = new navigator.mozL10n.DateTimeFormat();
-    return dtf.localeFormat(new Date(time), timeFormat);
+    var f = Intl.DateTimeFormat(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+    return f.format(new Date(time));
   },
 
   /**
@@ -52,31 +53,32 @@ var Utils = {
     navigator.mozL10n.setAttributes(node, l10nId, durationL10n);
   },
 
-  headerDate: function ut_headerDate(time) {
-    var _ = navigator.mozL10n.get;
-    var dtf = new navigator.mozL10n.DateTimeFormat();
+  setHeaderDate: function ut_setHeaderDate(elem, time) {
     var diff = (Date.now() - time) / 1000;
     var day_diff = Math.floor(diff / 86400);
     var formattedTime;
     if (isNaN(day_diff)) {
-      formattedTime = _('incorrectDate');
+      elem.setAttribute('data-l10n-id', 'incorrectDate');
+      return;
     } else if (day_diff === 0) {
-      formattedTime = _('today');
+      elem.setAttribute('data-l10n-id', 'today');
+      return;
     } else if (day_diff === 1) {
-      formattedTime = _('yesterday');
+      elem.setAttribute('data-l10n-id', 'yesterday');
+      return;
     } else if (day_diff < 6) {
-      formattedTime = dtf.localeFormat(new Date(time), '%A');
+      formattedTime = (new Date(time)).toLocaleString(navigator.languages, {
+        weekday: 'long',
+      });
     } else {
-      formattedTime = dtf.localeFormat(new Date(time), '%x');
+      formattedTime = (new Date(time)).toLocaleString(navigator.languages, {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit'
+      });
     }
-    return formattedTime;
-  },
-
-  getDayDate: function re_getDayDate(timestamp) {
-    var date = new Date(timestamp);
-    var startDate = new Date(date.getFullYear(),
-                             date.getMonth(), date.getDate());
-    return startDate.getTime();
+    elem.removeAttribute('data-l10n-id');
+    elem.textContent = formattedTime;
   },
 
   getPhoneNumberPrimaryInfo: function ut_getPhoneNumberPrimaryInfo(matchingTel,
@@ -100,21 +102,17 @@ var Utils = {
     });
   },
 
-  _getPhoneNumberType: function ut_getPhoneNumberType(matchingTel) {
-    // In case that there is no stored type for this number, we default to
-    // "Mobile".
-    var type = matchingTel.type;
-    if (Array.isArray(type)) {
-      type = type[0];
-    }
-
-    var _ = navigator.mozL10n.get;
-
-    var result = type ? _(type) : _('mobile');
-    result = result ? result : type; // no translation found for this type
-
-    return result;
+  _phoneTypesL10n: {
+    'mobile':    'phone_type_mobile',
+    'home':      'phone_type_home',
+    'work':      'phone_type_work',
+    'personal':  'phone_type_personal',
+    'faxHome':   'phone_type_fax_home',
+    'faxOffice': 'phone_type_fax_office',
+    'faxOther':  'phone_type_fax_other',
+    'other':     'phone_type_other'
   },
+
 
   /**
    * In case of a call linked to a contact, the additional information of the
@@ -130,36 +128,7 @@ var Utils = {
    * The type of the phone number will be localized if we have a matching key.
    */
   getPhoneNumberAdditionalInfo:
-    function ut_getPhoneNumberAdditionalInfo(matchingTel) {
-    var result = this._getPhoneNumberType(matchingTel);
-
-    var carrier = matchingTel.carrier;
-    if (carrier) {
-      result += ', ' + carrier;
-    }
-
-    return result;
-  },
-
-  _phoneTypesL10n: {
-    'mobile':    'phone_type_mobile',
-    'home':      'phone_type_home',
-    'work':      'phone_type_work',
-    'personal':  'phone_type_personal',
-    'faxHome':   'phone_type_fax_home',
-    'faxOffice': 'phone_type_fax_office',
-    'faxOther':  'phone_type_fax_other',
-    'other':     'phone_type_other'
-  },
-
-  /**
-   * This function works just like getPhoneNumberAdditionalInfo but returns
-   * either an l10n id or an object holding an l10n id & args couple.
-   * Eventually getPhoneNumberAdditionalInfo will be removed and entirely
-   * replaced by this function.
-   */
-  getLocalizedPhoneNumberAdditionalInfo:
-  function ut_getLocalizedPhoneNumberAdditionalInfo(matchingTel) {
+  function ut_getPhoneNumberAdditionalInfo(matchingTel) {
     // In case that there is no stored type for this number, we default to
     // "Mobile".
     var type = matchingTel.type || 'mobile';
@@ -185,14 +154,10 @@ var Utils = {
       args.carrier = carrier;
     }
 
-    if (Object.keys(args).length === 0) {
-      return id;
-    } else {
-      return {
-        id:   id,
-        args: args
-      };
-    }
+    return {
+      id:   id,
+      args: Object.keys(args).length ? args : null
+    };
   },
 
   /**

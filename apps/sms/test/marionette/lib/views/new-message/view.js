@@ -3,6 +3,8 @@
 /* global module */
 
 var NewMessageAccessor = require('./accessors');
+var ComposerAccessor = require('../shared/composer_accessors');
+var MenuAccessor = require('../shared/menu_accessors');
 
 var appRoot = require('app-root-path');
 // TODO Change the path once requireFromApp becomes its own module
@@ -11,11 +13,14 @@ var fromApp = require(appRoot +
 
 function NewMessageView(client) {
   this.client = client;
+
   this.accessors = new NewMessageAccessor(client);
+  this.composerAccessors = new ComposerAccessor(client);
+  this.menuAccessors = new MenuAccessor(client);
 }
 
 NewMessageView.prototype = {
-  // TODO Move these constants to marionette
+  // TODO Move these constants to marionette, see bug 1207516
   KEYS: {
     backspace: '\ue003',
     enter: '\ue007'
@@ -31,6 +36,18 @@ NewMessageView.prototype = {
     return this.accessors.recipients.map(function(recipient) {
       return recipient.getAttribute('data-number');
     });
+  },
+
+  get attachments() {
+    return this.composerAccessors.attachments;
+  },
+
+  get messageText() {
+    return this.composerAccessors.messageInput.text().trim();
+  },
+
+  get subject() {
+    return this.composerAccessors.subjectInput.text().trim();
   },
 
   addNewRecipient: function(recipient, separator) {
@@ -62,6 +79,14 @@ NewMessageView.prototype = {
     }
   },
 
+  clearMessage: function() {
+    var messageInput = this.composerAccessors.messageInput;
+    messageInput.tap();
+    while (messageInput.text() !== '') {
+      messageInput.sendKeys(this.KEYS.backspace);
+    }
+  },
+
   containsInvalidRecipients: function() {
     return this.accessors.recipients.some(function(recipient) {
       return recipient.getAttribute('class').indexOf('invalid') > -1;
@@ -72,16 +97,76 @@ NewMessageView.prototype = {
     this.accessors.pickContactButton.tap();
     var Contacts = fromApp('contacts').require('lib/contacts');
     var contacts = new Contacts(this.client);
-    contacts.switchTo();
+    contacts.switchToApp();
     return contacts;
   },
 
   typeMessage: function(message) {
-    this.accessors.messageInput.sendKeys(message);
+    this.composerAccessors.messageInput.sendKeys(message);
+  },
+
+  addAttachment: function() {
+    return this.composerAccessors.addAttachment();
+  },
+
+  typeSubject: function(subject) {
+    this.composerAccessors.subjectInput.sendKeys(subject);
+  },
+
+  showOptions: function() {
+    this.accessors.optionsButton.tap();
+  },
+
+  showSubject: function() {
+    this.showOptions();
+    this.menuAccessors.selectAppMenuOption('Add subject');
+    this.client.helper.waitForElement(this.composerAccessors.subjectInput);
+  },
+
+  hideSubject: function() {
+    this.showOptions();
+    this.menuAccessors.selectAppMenuOption('Remove subject');
+    this.client.helper.waitForElementToDisappear(
+      this.composerAccessors.subjectInput
+    );
+  },
+
+  send: function() {
+    this.composerAccessors.send();
+
+    var ConversationView = require('../conversation/view');
+    var conversationView = new ConversationView(this.client);
+    conversationView.accessors.waitToAppear();
+
+    return conversationView;
+  },
+
+  backToInbox: function() {
+    this.client.switchToShadowRoot(this.accessors.header);
+    this.accessors.headerActionButton.tap();
+    this.client.switchToShadowRoot();
+
+    var InboxView = require('../inbox/view');
+    var inboxView = new InboxView(this.client);
+    inboxView.accessors.waitToAppear();
+
+    return inboxView;
   },
 
   isSendButtonEnabled: function() {
-    return this.accessors.sendButton.getAttribute('disabled') !== 'true';
+    var sendButton = this.composerAccessors.sendButton;
+    return sendButton.getAttribute('disabled') !== 'true';
+  },
+
+  isSubjectVisible: function() {
+    var subjectInput = this.composerAccessors.subjectInput;
+    return subjectInput && this.composerAccessors.subjectInput.displayed();
+  },
+
+  isMessageInputFocused: function() {
+    return this.composerAccessors.messageInput.scriptWith(function(el) {
+      return document.activeElement === el;
+    });
   }
 };
 

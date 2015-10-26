@@ -1,8 +1,10 @@
 'use strict';
 
-/* global require, exports, dump */
+/* jshint node: true */
+/* global dump */
 var utils = require('utils');
 var jsmin = require('jsmin');
+var preprocessor = require('preprocessor');
 
 var jsSuffix = /\.js$/;
 
@@ -52,7 +54,8 @@ SettingsAppBuilder.prototype.writeDeviceFeaturesJSON = function(options) {
                            'device-features.json');
   var defaultContent = {
     ambientLight: true,
-    vibration: true
+    vibration: true,
+    usbHotProtocolSwitch: false
   };
   var content = utils.getDistributionFileContent('device-features',
                                                   defaultContent, distDir);
@@ -172,6 +175,26 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
   }
 };
 
+SettingsAppBuilder.prototype.enableDataSync = function(options) {
+  var fileList = {
+    process:[
+      ['elements', 'root.html'],
+      ['index.html']
+    ],
+    remove:[
+      ['elements', 'firefox_sync.html'],
+      ['js', 'panels', 'firefox_sync', 'firefox_sync.js'],
+      ['js', 'panels', 'firefox_sync', 'panel.js'],
+      ['js', 'modules', 'sync_manager_bridge.js'],
+      ['style', 'images', 'fxsync_error.png'],
+      ['style', 'images', 'fxsync_intro.png'],
+      ['test', 'unit', 'panels', 'firefox_sync', 'manager_bridge_test.js'],
+      ['test', 'unit', 'panels', 'firefox_sync', 'panel_test.js']
+    ]
+  };
+  preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
+};
+
 SettingsAppBuilder.prototype.execute = function(options) {
   this.writeGitCommit(options);
   this.writeDeviceFeaturesJSON(options);
@@ -180,6 +203,7 @@ SettingsAppBuilder.prototype.execute = function(options) {
   this.writeEuRoamingJSON(options);
 
   return this.executeRjs(options).then(function() {
+    this.enableDataSync(options);
     this.executeJsmin(options);
   }.bind(this));
 };

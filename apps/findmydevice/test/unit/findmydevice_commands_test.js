@@ -4,6 +4,7 @@
 /* global Commands */
 /* global FindMyDevice */
 /* global MockNavigatorSettings */
+/* global PasscodeHelper */
 
 'use strict';
 
@@ -478,6 +479,21 @@ suite('FindMyDevice (with real clock) >', function() {
 
       done();
     }]);
+  });
+
+  test('Bug 1201530 - check existing passcode override', function() {
+    var code = '2342', message = 'already locked!';
+    var stubPasscodeSet = sinon.stub(PasscodeHelper, 'set', function() {
+      return Promise.resolve(true);
+    });
+    // Simulate already-locked device.
+    MockSettingsListener.mTriggerCallback('lockscreen.enabled', true);
+    MockSettingsListener.mTriggerCallback('lockscreen.passcode-lock.enabled',
+      true);
+    subject.invokeCommand('lock', [message, code, function() {}]);
+    assert.isTrue(stubPasscodeSet.calledWith(code),
+      'existing passcode is not overridden');
+    stubPasscodeSet.restore();
   });
 
   teardown(function() {

@@ -8,12 +8,6 @@ define(function(require, exports, module) {
 var debug = require('debug')('geolocation');
 
 /**
- * Locals
- */
-
-var geolocation = navigator.geolocation;
-
-/**
  * Exports
  */
 
@@ -39,7 +33,7 @@ function GeoLocation() {
  */
 GeoLocation.prototype.watch = function() {
   if (!this.watcher) {
-    this.watcher = geolocation.watchPosition(this.setPosition);
+    this.watcher = navigator.geolocation.watchPosition(this.setPosition);
     debug('started watching');
   }
 };
@@ -51,7 +45,7 @@ GeoLocation.prototype.watch = function() {
  * @public
  */
 GeoLocation.prototype.stopWatching = function() {
-  geolocation.clearWatch(this.watcher);
+  navigator.geolocation.clearWatch(this.watcher);
   this.watcher = null;
   debug('stopped watching');
 };

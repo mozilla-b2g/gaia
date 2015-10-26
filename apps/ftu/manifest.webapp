@@ -64,6 +64,11 @@
     "Import_Status_Data": {
       "readonly": false,
       "description": "Import status data shared between FTU and Contacts"
+    },
+    "icons": {
+      "readonly": true,
+      "description": "Retrieve cached website icons."
     }
   }
+
 }

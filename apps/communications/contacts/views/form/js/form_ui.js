@@ -7,7 +7,6 @@
 /* global ActionMenu */
 /* global TagSelector */
 /* global PhotoPicker */
-/* global ConfirmDialog */
 
 
 /*
@@ -96,20 +95,6 @@
   const INVALID_CLASS = 'invalid';
   const DELETE_BUTTON_CLASS = 'img-delete-button';
 
-  function updateStrings(action) {
-    // Update strings properly based on action
-    switch(action) {
-      case 'new':
-        saveButton.setAttribute('data-l10n-id', 'done');
-        formTitle.setAttribute('data-l10n-id', 'addContact');
-        break;
-      case 'update':
-        saveButton.setAttribute('data-l10n-id', 'update');
-        formTitle.setAttribute('data-l10n-id', 'editContact');
-        break;
-    }
-  }
-
   function initContainers() {
     deleteContactButton = document.querySelector('#delete-contact');
     thumb = document.querySelector('#thumbnail-photo');
@@ -180,63 +165,12 @@
     window.dispatchEvent(customEvent);
   }
 
-  function loadConfirmPrompt() {
-    var confirmFiles = [
-      '/shared/js/confirm.js',
-      document.getElementById('confirmation-message')
-    ];
-
-    return LazyLoader.load(confirmFiles);
-  }
-
-  function showConfirmPrompt() {
-    return new Promise(function(resolve, reject) {
-      var shield = setTimeout(reject, 2000);
-      loadConfirmPrompt().then(function() {
-        clearTimeout(shield);
-
-        var yesObject = {
-          title: 'delete',
-          isDanger: true,
-          callback: function onAccept() {
-            ConfirmDialog.hide();
-            resolve();
-          }
-        };
-
-        var noObject = {
-          title: 'cancel',
-          callback: function onCancel() {
-            ConfirmDialog.hide();
-            reject();
-          }
-        };
-
-        ConfirmDialog.show(
-          null,
-          'deleteConfirmMsg',
-          noObject,
-          yesObject
-        );
-      });
-    });
-  }
-
   function addListeners() {
     thumbAction.querySelector('#photo-button').onclick = photoAction;
 
     document.addEventListener('input', function input(event) {
       checkDisableButton();
     });
-
-    deleteContactButton.addEventListener(
-      'click',
-      function() {
-        showConfirmPrompt().then(function() {
-          window.dispatchEvent(new CustomEvent('delete-contact'));
-        });
-      }
-    );
 
     contactForm.addEventListener(touchstart, function click(event) {
       // Filter any other 'hit' in the DOM
@@ -290,6 +224,7 @@
           }
 
           cachedInputs = null;
+          // textFieldsCache.clear();
           checkDisableButton();
           break;
       }
@@ -319,19 +254,15 @@
     contactForm.addEventListener('click', addFieldHandler);
   }
 
-  function init(action) {
+  function init() {
     // Cache l10n functionality
     _ = navigator.mozL10n.get;
     // Cache all DOM elements and reuse them
     initContainers();
     // Cache configuration for templates
     initConfigs();
-    // Udpate strings based on action
-    updateStrings(action);
     // Add listeners to DOM elements
     addListeners();
-    // Update 'save' button
-    checkDisableButton();
   }
 
    // Renders the birthday as per the locale
@@ -391,11 +322,13 @@
     utils.dom.updatePhoto(currentPhoto, thumb);
   }
 
-  function render(params, action, isActivity) {
+  function render(params) {
     formView.classList.remove('skin-organic');
     saveButton.setAttribute('disabled', 'disabled');
+    saveButton.setAttribute('data-l10n-id', 'done');
     deleteContactButton.parentNode.classList.add('hide');
-    
+    formTitle.setAttribute('data-l10n-id', 'addContact');
+
     params = params || {};
 
     givenName.value = extractValue(params.givenName);
@@ -410,20 +343,7 @@
       params[field] && renderTemplate(field, params[field]);
     });
 
-    if (action === 'update') {
-      if (isActivity) {
-        saveButton.removeAttribute('disabled');
-      } else {
-        saveButton.setAttribute('disabled', 'disabled');
-      }
-      deleteContactButton.parentNode.classList.remove('hide');
-      
-    } else {
-      deleteContactButton.parentNode.classList.add('hide');
-      checkDisableButton();
-    }
-
-    window.dispatchEvent(new CustomEvent('renderdone'));
+    checkDisableButton();
   }
 
  /**
@@ -461,6 +381,7 @@
         // Otherwise marked as invalid in order not to submit it
         carrierInput.classList.add(INVALID_CLASS);
         cachedInputs = null;
+        // textFieldsCache.clear();
       }
     }
     else {
@@ -607,15 +528,9 @@
   function selectTag(evt) {
     evt.preventDefault();
     var target = evt.currentTarget;
-    LazyLoader.load(
-      [
-        '/contacts/views/form/js/main_navigation.js',
-        '/contacts/js/utilities/tagSelector.js'
-      ],
-      function() {
-        TagSelector.show(target.children[0]);
-      }
-    );
+    LazyLoader.load('/contacts/js/utilities/tagSelector.js', function() {
+      TagSelector.show(target.children[0]);
+    });
     return false;
   }
 

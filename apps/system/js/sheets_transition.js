@@ -20,7 +20,7 @@
       var home = Service.query('getHomescreen');
       home && home.fadeOut();
       var currentApp = StackManager.getCurrent();
-      var newApp = (direction == 'ltr') ?
+      var newApp = (direction === document.documentElement.dir) ?
         StackManager.getPrev() : StackManager.getNext();
 
       newApp && newApp.broadcast('sheetdisplayed');
@@ -118,11 +118,11 @@
       this.end();
     },
 
-    snapBack: function st_snapBack(speed) {
+    snapLeft: function st_snapLeft(speed) {
       this._snapAway(speed, 'outside-edges-right');
     },
 
-    snapForward: function st_snapForward(speed) {
+    snapRight: function st_snapRight(speed) {
       this._snapAway(speed, 'outside-edges-left');
     },
 

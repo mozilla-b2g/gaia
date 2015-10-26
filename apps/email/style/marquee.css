@@ -6,6 +6,14 @@
   width: calc(100% - 3rem - 2rem);
 }
 
+/*
+action_menu.css will default the element to overflow hidden, with a text
+overflow of ellipsis. However for the scrolling marquee to work, the full text
+needs to be visible for length calcluations.
+*/
+#marquee-h-text {
+  overflow: visible;
+}
 
 /*
 Styles to align the text with the UI alignment. This element has dir="auto" set

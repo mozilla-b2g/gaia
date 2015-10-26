@@ -45,6 +45,11 @@ window.GaiaSwitch = (function(win) {
   };
 
   proto.handleClick = function(e) {
+    // If user clicked the (optional) link, do not toggle gaia-switch.
+    if (e && e.target.tagName === 'A') {
+      return;
+    }
+
     e && e.preventDefault();
     e && e.stopImmediatePropagation();
 
@@ -87,6 +92,22 @@ window.GaiaSwitch = (function(win) {
   });
 
   /**
+   * Disabled setter
+   */
+  Object.defineProperty( proto, 'disabled', {
+    get: function() {
+      return this.hasAttribute('disabled');
+    },
+    set: function(value) {
+      if (value) {
+        this.setAttribute('disabled', true);
+      } else {
+        this.removeAttribute('disabled');
+      }
+    }
+  });
+
+  /**
    * Proxy the name property to the input element.
    */
   Object.defineProperty( proto, 'name', {
@@ -122,6 +143,7 @@ window.GaiaSwitch = (function(win) {
       <input type="checkbox">
       <span><content select="label"></content></span>
       <div class="details"><content select="details"></content></div>
+      <content select="a"></content>
     </span>`;
 
   // Register and return the constructor

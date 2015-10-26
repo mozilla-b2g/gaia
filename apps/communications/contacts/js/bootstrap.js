@@ -15,7 +15,7 @@
      '/contacts/js/activities.js',
      '/shared/js/contacts/utilities/event_listeners.js',
      '/contacts/js/navigation.js',
-     '/contacts/js/param_utils.js',
+     '/contacts/js/main_navigation.js',
      '/contacts/js/views/list.js',
      '/contacts/js/header_ui.js'
     ];
@@ -35,7 +35,6 @@
        '/shared/js/contacts/import/utilities/config.js',
        '/contacts/js/utilities/extract_params.js',
        '/contacts/js/utilities/cookie.js',
-       '/contacts/js/main_navigation.js',
        '/shared/js/contact_photo_helper.js'].forEach((src) => {
         var scriptNode = document.createElement('script');
         scriptNode.src = src;
@@ -71,10 +70,20 @@
     utils.PerformanceHelper.domLoaded();
     window.removeEventListener('DOMContentLoaded', ondomloaded);
 
-    Cache.apply('firstChunk');
+    var firstPaintFired = false;
+
+    Cache.apply('firstChunk').then(() => {
+      // Once the first chunk is applied correctly, display the 
+      // list panel and fire the visually complete event.
+      document.getElementById('view-contacts-list').classList.add('current');
+      utils.PerformanceHelper.visuallyComplete();
+      firstPaintFired = true;
+    });
 
     window.onload = () => {
-      utils.PerformanceHelper.visuallyComplete();
+      if (!firstPaintFired) {
+        utils.PerformanceHelper.visuallyComplete();
+      }
       loadScripts();
     };
   });

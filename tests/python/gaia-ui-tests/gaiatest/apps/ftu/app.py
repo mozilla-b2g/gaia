@@ -6,9 +6,8 @@ import re
 import time
 
 from marionette_driver import expected, By, Wait
-from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
-
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Ftu(Base):
@@ -54,10 +53,14 @@ class Ftu(Base):
     # Step Firefox Accounts
     _section_firefox_accounts_locator = (By.ID, 'firefox_accounts')
 
+    # Section late customization
+    _section_late_customization_locator = (By.ID, 'late_customization')
+
     # Section Welcome Browser
     _section_welcome_browser_locator = (By.ID, 'welcome_browser')
-    _enable_statistic_checkbox_locator = (By.ID, 'form_share_statistics')
-    _statistic_checkbox_locator = (By.ID, 'share-performance')
+    _metrics_basic_locator = (By.ID, 'metrics-basic')
+    _metrics_enhanced_locator = (By.ID, 'metrics-enhanced')
+    _metrics_none_locator = (By.ID, 'metrics-none')
 
     # Section Privacy Choices
     _section_browser_privacy_locator = (By.ID, 'browser_privacy')
@@ -85,9 +88,7 @@ class Ftu(Base):
 
     def launch(self):
         Base.launch(self)
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_languages_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_languages_locator))
 
     @property
     def languages_list(self):
@@ -127,15 +128,11 @@ class Ftu(Base):
 
     def tap_next_to_cell_data_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_cell_data_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_cell_data_locator))
 
     def a11y_click_next_to_cell_data_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_cell_data_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_cell_data_locator))
 
     def enable_data(self):
         checkbox = Wait(self.marionette).until(
@@ -153,14 +150,13 @@ class Ftu(Base):
         progress = self.marionette.find_element(*self._loading_overlay_locator)
         self.tap_next()
         Wait(self.marionette).until(expected.element_not_displayed(progress))
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_wifi_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_wifi_locator))
 
     def a11y_click_next_to_wifi_section(self):
         self.a11y_click_next()
-        self.wait_for_element_not_displayed(*self._loading_overlay_locator)
-        self.wait_for_element_displayed(*self._section_wifi_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._loading_overlay_locator))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_wifi_locator))
 
     def wait_for_networks_available(self):
         Wait(self.marionette).until(lambda m: len(m.find_elements(
@@ -203,15 +199,11 @@ class Ftu(Base):
 
     def tap_next_to_timezone_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_date_time_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_date_time_locator))
 
     def a11y_click_next_to_timezone_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_date_time_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_date_time_locator))
 
     def set_timezone_continent(self, continent):
         element = Wait(self.marionette).until(
@@ -247,27 +239,22 @@ class Ftu(Base):
 
     def tap_next_to_geolocation_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_geolocation_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_geolocation_locator))
 
     def a11y_click_next_to_geolocation_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_geolocation_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_geolocation_locator))
 
-    def toggle_geolocation(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(*self._enable_geolocation_checkbox_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        # TODO: Remove y parameter when Bug 932804 is fixed
-        element.tap(y=30)
+    def disable_geolocation(self):
+        self._geolocation_switch.disable()
 
     @property
     def is_geolocation_enabled(self):
-        element = self.marionette.find_element(*self._enable_geolocation_checkbox_locator)
-        return self.is_custom_element_checked(element)
+        return self._geolocation_switch.is_checked
+
+    @property
+    def _geolocation_switch(self):
+        return GaiaBinaryControl(self.marionette, self._enable_geolocation_checkbox_locator)
 
     def a11y_disable_geolocation(self):
         element = Wait(self.marionette).until(
@@ -277,15 +264,11 @@ class Ftu(Base):
 
     def tap_next_to_import_contacts_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_import_contacts_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_import_contacts_locator))
 
     def a11y_click_next_to_import_contacts_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_import_contacts_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_import_contacts_locator))
 
     def tap_import_from_sim(self):
         self.marionette.find_element(*self._import_from_sim_locator).tap()
@@ -312,57 +295,71 @@ class Ftu(Base):
 
     def tap_next_to_firefox_accounts_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_firefox_accounts_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_firefox_accounts_locator))
 
     def a11y_click_next_to_firefox_accounts_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_firefox_accounts_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_firefox_accounts_locator))
+
+    def tap_next_to_late_customization_section(self):
+        self.tap_next()
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_late_customization_locator))
 
     def tap_next_to_welcome_browser_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_welcome_browser_locator))))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_welcome_browser_locator))
 
     def a11y_click_next_to_welcome_browser_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_welcome_browser_locator))))
-
-    def tap_statistics_checkbox(self):
-        self.marionette.find_element(*self._enable_statistic_checkbox_locator).tap()
-
-    def a11y_click_statistics_checkbox(self):
-        self.accessibility.click(self.marionette.find_element(*self._statistic_checkbox_locator))
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._section_welcome_browser_locator))
 
     @property
-    def is_share_data_enabled(self):
-        element = self.marionette.find_element(*self._statistic_checkbox_locator)
-        return self.is_custom_element_checked(element)
+    def is_metrics_basic_enabled(self):
+        return self._metrics_basic_radio.is_checked
 
-    def toggle_share_data(self):
-        # Use for functional operation vs. UI operation
-        initial_state = self.is_share_data_enabled
-        self.tap_statistics_checkbox()
-        Wait(self.marionette).until(
-            lambda m: self.is_share_data_enabled is not initial_state)
+    def enable_metrics_basic(self):
+        self._metrics_basic_radio.enable()
+
+    @property
+    def _metrics_basic_radio(self):
+        return GaiaBinaryControl(self.marionette, self._metrics_basic_locator)
+
+    @property
+    def is_metrics_enhanced_enabled(self):
+        return self._metrics_enhanced_radio.is_checked
+
+    def enable_metrics_enhanced(self):
+        self._metrics_enhanced_radio.enable()
+
+    @property
+    def _metrics_enhanced_radio(self):
+        return GaiaBinaryControl(self.marionette, self._metrics_enhanced_locator)
+
+    @property
+    def is_metrics_none_enabled(self):
+        return self._metrics_none_radio.is_checked
+
+    def enable_metrics_none(self):
+        self._metrics_none_radio.enable()
+
+    @property
+    def _metrics_none_radio(self):
+        return GaiaBinaryControl(self.marionette, self._metrics_none_locator)
 
     def tap_next_to_privacy_browser_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_browser_privacy_locator))))
+        Wait(self.marionette).until(
+          expected.element_displayed(*self._section_browser_privacy_locator))
 
     def a11y_click_next_to_privacy_browser_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_browser_privacy_locator))))
+        Wait(self.marionette).until(
+          expected.element_displayed(*self._section_browser_privacy_locator))
 
     def enter_email_address(self, email):
         # TODO assert that this is preserved in the system somewhere. Currently it is not used
@@ -373,15 +370,11 @@ class Ftu(Base):
 
     def tap_next_to_finish_section(self):
         self.tap_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_finish_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_finish_locator))
 
     def a11y_click_next_to_finish_section(self):
         self.a11y_click_next()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._section_finish_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._section_finish_locator))
 
     def tap_skip_tour(self):
         element = self.marionette.find_element(*self._skip_tour_button_locator)

@@ -6,9 +6,10 @@ Keyboards.my = {
   alternateLayoutKey: '\u1041\u1042\u1043', /*၁၂၃*/
   imEngine: 'myanmar',
   types: ['text', 'url', 'email'],
-  keyClassName: 'myanmar',
+  lang: 'my',
   pages: [ {
     secondLayout: true,
+    specificCssRule: true,
     width: 11,
     textLayoutOverwrite: {
       '.': '\u104A'/*၊*/

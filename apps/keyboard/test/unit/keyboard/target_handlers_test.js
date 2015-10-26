@@ -761,13 +761,26 @@ suite('target handlers', function() {
         'function not overwritten');
     });
 
-    test('commit', function() {
+    test('commit', function(done) {
+      var p = handler.commit();
+
+      assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+      assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+      p.then(function() {
+        for (var i = 0; i < 'lol'.length; i++) {
+          assert.isTrue(app.inputMethodManager.currentIMEngine.click
+            .getCall(i).calledWith('lol'.charCodeAt(i)));
+        }
+      }).then(done, done);
+    });
+
+    test('commit (with engine.handleKey)', function() {
+      app.inputMethodManager.currentIMEngine.handleKey = this.sinon.stub();
       handler.commit();
 
-      for (var i = 0; i < 'lol'.length; i++) {
-        assert.isTrue(app.inputMethodManager.currentIMEngine.click
-          .getCall(i).calledWith('lol'.charCodeAt(i)));
-      }
+      assert.isTrue(app.inputMethodManager.currentIMEngine.handleKey
+        .calledWith({ key: 'lol', printable: true }));
 
       assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
       assert.isTrue(app.visualHighlightManager.hide.calledOnce);

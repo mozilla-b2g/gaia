@@ -43,11 +43,12 @@ html {
 
 #net-error.framed #retry-icon {
   display: inline-block;
-  float: right;
   height: 3rem;
   width: 3rem;
   padding-top: 0.2rem;
 }
+html[dir="ltr"] #net-error.framed #retry-icon { float: right; }
+html[dir="rtl"] #net-error.framed #retry-icon { float: left; }
 
 #net-error.framed #retry-icon.still {
   background: url(net_error/iframe_reload_icon.png) center / 3rem no-repeat;
@@ -60,10 +61,11 @@ html {
 
 form[role="dialog"][data-type="action"] > menu > button.icon {
   background-repeat: no-repeat;
-  -moz-padding-start: 4rem;
+  padding-inline-start: 4rem;
   background-size: 3rem;
-  background-position: 0.5rem center;
 }
+html[dir="ltr"] form[role="dialog"][data-type="action"] > menu > button.icon { background-position: left 0.5rem center; }
+html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button.icon { background-position: right 0.5rem center; }
 
 form[role="dialog"][data-type="action"] > menu > button.icon-settings {
   background-image: url(net_error/settings.png);
@@ -106,29 +108,25 @@ form[role="dialog"][data-type="action"] > menu > button.icon-settings {
 }
 
 @media (max-height: 380px) and (orientation: landscape) {
-  #net-error.no-frame.netOffline form[role="dialog"] > section {
+  html[dir="ltr"] #net-error.no-frame.netOffline form[role="dialog"] > section {
     text-align: left;
+  }
+  html[dir="rtl"] #net-error.no-frame.netOffline form[role="dialog"] > section {
+    text-align: right;
   }
 
   #net-error.no-frame.netOffline .title {
     font-size: 2rem;
     line-height: 2.8rem;
-    margin-left: 6.8rem;
+    margin-inline-start: 6.8rem;
   }
 
   #failed-logo {
     position: absolute;
     top: 2rem;
-    left: 0;
+    offset-inline-start: 0;
     width: 5rem;
     height: 8.5rem;
   }
 }
 
-:-moz-dir(rtl) form[role="dialog"][data-type="action"] > menu > button.icon {
-  background-position: right 0.5rem center;
-}
-
-:-moz-dir(rtl) #net-error.framed #retry-icon {
-  float: left;
-}

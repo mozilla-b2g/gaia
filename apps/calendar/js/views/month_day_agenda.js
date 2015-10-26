@@ -1,10 +1,10 @@
 define(function(require, exports, module) {
 'use strict';
 
+var IntlHelper = require('shared/intl_helper');
 var Parent = require('view');
 var core = require('core');
 var createDay = require('common/calc').createDay;
-var dateFormat = require('date_format');
 var isAllDay = require('common/calc').isAllDay;
 var performance = require('performance');
 var template = require('templates/month_day_agenda');
@@ -73,10 +73,8 @@ MonthDayAgenda.prototype = {
     this._observer.listen(this._render);
 
     var formatId = 'months-day-view-header-format';
-    this.currentDate.textContent = dateFormat.localeFormat(
-      date,
-      navigator.mozL10n.get(formatId)
-    );
+    var formatter = IntlHelper.get(formatId);
+    this.currentDate.textContent = formatter.format(date);
     // we need to set the [data-date] and [data-l10n-date-format] because
     // locale might change while the app is still open
     this.currentDate.dataset.date = date;

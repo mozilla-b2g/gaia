@@ -1,0 +1,58 @@
+#homescreens section[data-type="list"] header:last-of-type {
+  margin-top: 0.5rem;
+}
+
+.current-homescreen {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  white-space: nowrap;
+}
+
+#homescreen-details .addon-details-info {
+  padding-bottom: 0;
+  padding-inline-end: 0;
+  width: calc(100% - 6.7rem);
+}
+
+#homescreen-details .url a {
+  pointer-events: auto;
+}
+
+#homescreen-details .title {
+  padding-top: 0.4rem;
+}
+
+#homescreen-details .name {
+  padding-top: 0;
+}
+
+#homescreen-details .version,
+#homescreen-details .description,
+#homescreen-details .url {
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  font-weight: 400;
+  padding-inline-start: 1.5rem;
+  padding-inline-end: 1rem;
+  white-space: unset;
+}
+
+#homescreen-details .description,
+#homescreen-details .url {
+  padding-top: 0;
+}
+
+#homescreen-details .url {
+  padding-bottom: 1.2rem;
+  line-height: unset;
+}
+
+.uninstall-homescreen-container {
+  border-top: 0.1rem solid #E6E6E3;
+  margin: 0.6rem 1.5rem 0;
+}
+
+.uninstall-homescreen-container li {
+  margin: 0;
+}

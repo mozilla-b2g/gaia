@@ -22,10 +22,6 @@ body {
   -moz-user-select: none; /* 1 */
 }
 
-body.no-background {
-  background-color: transparent;
-}
-
 /** Mini reset
  ---------------------------------------------------------*/
 

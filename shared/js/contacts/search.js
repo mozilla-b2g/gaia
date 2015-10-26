@@ -163,7 +163,7 @@
   var highlightNode = function(node) {
     function doHighlight(text) {
       if (text === '' || text === ' ') {
-        return text;
+        return document.createTextNode('');
       }
 
       return HtmlHelper.createHighlightHTML(text, currentSearchTerms);
@@ -186,20 +186,32 @@
     var text = textNode.innerHTML;
     var tagPos = locateHTMLTag(text);
     var beforeTag = text.substring(0,         tagPos[0]);
-    var openTag   = text.substring(tagPos[0], tagPos[1]);
     var inTag     = text.substring(tagPos[1], tagPos[2]);
-    var closeTag  = text.substring(tagPos[2], tagPos[3]);
     var afterTag  = text.substring(tagPos[3]);
     var realText = [beforeTag, inTag, afterTag];
 
     if (tagPos[0] == -1) {
-      textNode.innerHTML = doHighlight(Normalizer.unescapeHTML(text));
+      var content = doHighlight(Normalizer.unescapeHTML(text));
+
+      // clear the previous content (if any)
+      textNode.textContent = '';
+      textNode.appendChild(content);
     } else {
       for (var i = 0, len = realText.length; i < len; i++) {
         realText[i] = doHighlight(Normalizer.unescapeHTML(realText[i]));
       }
-      var result = [realText[0], openTag, realText[1], closeTag, realText[2]];
-      textNode.innerHTML = result.join('');
+
+      var fragment = document.createDocumentFragment();
+      var strongTag = document.createElement('strong');
+      strongTag.appendChild(realText[1]);
+
+      fragment.appendChild(realText[0]);
+      fragment.appendChild(strongTag);
+      fragment.appendChild(realText[2]);
+
+      // clear the previous content (if any)
+      textNode.textContent = '';
+      textNode.appendChild(fragment);
     }
   };
 

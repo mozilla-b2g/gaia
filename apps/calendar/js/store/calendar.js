@@ -276,7 +276,16 @@ Store.prototype = {
         return callback(err);
       }
 
-      callback(null, core.providerFactory.get(owners.account.providerType));
+      var provider;
+      try {
+        var account = owners.account;
+        var providerType = account.providerType;
+        provider = core.providerFactory.get(providerType);
+      } catch (error) {
+        return callback(error);
+      }
+
+      callback(null, provider);
     });
   },
 
@@ -302,8 +311,7 @@ Store.prototype = {
     }
 
     // case 2 given a calendar id or object
-
-    if (typeof(objectOrId) === 'object') {
+    if (typeof objectOrId === 'object') {
       objectOrId = objectOrId.calendarId;
     }
 

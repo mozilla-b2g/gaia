@@ -16,7 +16,9 @@ suite('views/setting-options', function() {
     this.view = new this.SettingOptionsView({
       model: { on: sinon.spy(), get: sinon.spy() },
       l10n: {
-        get: sinon.stub().returns('localized'), setAttributes: sinon.spy()
+        formatValue: function(id) {
+          return Promise.resolve(id); 
+        },
       }
     });
     this.view.els.ul = document.createElement('ul');
@@ -37,8 +39,7 @@ suite('views/setting-options', function() {
       var rendered = this.view.els.key;
 
       assert.equal(rendered.getAttribute('role'), 'option');
-      assert.isTrue(this.view.l10n.setAttributes.calledWith(rendered,
-        'setting-option', { value: 'localized' }));
+      assert.equal(rendered.getAttribute('data-l10n-id'), 'title');
       assert.isNull(rendered.getAttribute('aria-selected'));
     });
 
@@ -50,8 +51,7 @@ suite('views/setting-options', function() {
       var rendered = this.view.els.key;
 
       assert.equal(rendered.getAttribute('role'), 'option');
-      assert.isTrue(this.view.l10n.setAttributes.calledWith(rendered,
-        'setting-option', { value: 'title' }));
+      assert.equal(rendered.textContent, 'title');
       assert.equal(rendered.getAttribute('aria-selected'), 'true');
     });
   });

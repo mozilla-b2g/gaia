@@ -36,7 +36,7 @@ suite('SoundFeedbackPlayer', function() {
     audioBuffers.set(
       expectedRequests[1].response, { stub: 'specialClickerAudioBuffer' });
 
-    audioContextStub = new MockAudioContext();
+    audioContextStub = new MockAudioContext('system');
     this.sinon.stub(window, 'AudioContext').returns(audioContextStub);
 
     offlineAudioContextStub = new MockOfflineAudioContext();
@@ -77,6 +77,11 @@ suite('SoundFeedbackPlayer', function() {
       player.activate();
 
       assert.isTrue(window.AudioContext.calledOnce);
+    });
+
+    test('mozAudioChannelType is system', function() {
+      assert.isTrue(window.AudioContext.calledWith('system'));
+      assert.equal(player._audioCtx.mozAudioChannelType, 'system');
     });
 
     test('activate again', function() {

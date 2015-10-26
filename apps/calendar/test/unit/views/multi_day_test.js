@@ -60,6 +60,7 @@ suite('Views.MultiDay', function() {
     var sidebar;
 
     setup(function() {
+      navigator.mozHour12 = false;
       sidebar = subject.sidebar;
       subject._visibleRange = 123;
     });

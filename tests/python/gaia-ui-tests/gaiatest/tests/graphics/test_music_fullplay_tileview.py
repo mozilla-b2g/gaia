@@ -29,9 +29,8 @@ class TestFullPlayMusic(GaiaImageCompareTestCase):
         music_app.launch()
         music_app.wait_for_music_tiles_displayed()
         self.take_screenshot()
-
         songs = TileView(self.marionette)
-        main_song_player_view = songs.tap_main_song()
+        main_song_player_view = songs.tap_song("MUS_0001.3gp")
         play_time = time.strptime('00:20', '%M:%S')
         Wait(self.marionette, timeout=30).until(
             lambda m: main_song_player_view.player_elapsed_time >= play_time,
@@ -40,10 +39,10 @@ class TestFullPlayMusic(GaiaImageCompareTestCase):
         self.take_screenshot()
 
         # Once the song is done, it'll return to the tile view
-        sub_song_player_view = songs.tap_sub_song(0)
+        sub_song_player_view = songs.tap_song("MUS_0001.mp3")
         play_time = time.strptime('00:10', '%M:%S')
         Wait(self.marionette, timeout=20).until(
             lambda m: sub_song_player_view.player_elapsed_time >= play_time,
-            message = 'song did not reach the end')
+            message='song did not reach the end')
         music_app.wait_for_music_tiles_displayed()
         self.take_screenshot()

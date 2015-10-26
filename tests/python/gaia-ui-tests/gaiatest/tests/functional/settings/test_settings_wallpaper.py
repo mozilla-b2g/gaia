@@ -4,30 +4,26 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
+from gaiatest.apps.system.app import System
 
 
 class TestWallpaper(GaiaTestCase):
 
-    # default wallpaper
-    _default_wallpaper_settings = None
-    _new_wallpaper_settings = None
-
     def test_change_wallpaper(self):
         """https://moztrap.mozilla.org/manage/case/3449/"""
 
+        system = System(self.marionette)
+        default_wallpaper = system.wallpaper_properties
+
         settings = Settings(self.marionette)
         settings.launch()
-        display_settings = settings.open_display()
+        homescreen_settings = settings.open_homescreen()
 
-        self._default_wallpaper_settings = self.data_layer.get_setting('wallpaper.image')
-
-        # Open activities menu
-        activities_menu = display_settings.pick_wallpaper()
-
-        # choose the source as wallpaper app
+        activities_menu = homescreen_settings.pick_wallpaper()
         wallpaper = activities_menu.tap_wallpaper()
-        wallpaper.tap_wallpaper_by_index(3)
+        wallpaper.tap_wallpaper_by_index(1)
 
-        self._new_wallpaper_settings = self.data_layer.get_setting('wallpaper.image')
+        self.marionette.switch_to_frame()
+        new_wallpaper = system.wallpaper_properties
 
-        self.assertNotEqual(self._default_wallpaper_settings, self._new_wallpaper_settings)
+        self.assertNotEqual(default_wallpaper, new_wallpaper)

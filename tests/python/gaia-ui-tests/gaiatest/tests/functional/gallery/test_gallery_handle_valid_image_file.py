@@ -11,6 +11,14 @@ from gaiatest.apps.gallery.app import Gallery
 
 class TestGalleryHandleValidPhoto(GaiaTestCase):
 
+
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        # This test doesn't work in landscape mode,
+        # this is in case the phone is lied down horizontally
+        self.data_layer.set_setting("screen.orientation.lock", True)
+
+
     # the test files are copied from https://github.com/mozilla-b2g/gaia/tree/master/apps/gallery/test/images by djf
     @parameterized("load_jpg", 'image_formats/01.jpg', 800, 1200)
     @parameterized("load_png", 'image_formats/02.png', 800, 1200)
@@ -49,3 +57,6 @@ class TestGalleryHandleValidPhoto(GaiaTestCase):
         else:
             Wait(self.marionette).until(lambda m: image.current_image_size_width == 2 * initial_width)
             Wait(self.marionette).until(lambda m: image.current_image_size_height == 2 * initial_height)
+
+    def tearDown(self):
+        self.data_layer.set_setting("screen.orientation.lock", False)

@@ -1,13 +1,19 @@
-
 html, body {
   width: 1920px;
   height: 100%;
   padding: 0;
   margin: 0;
-  font-size: 20px;
   overflow: hidden;
   cursor: default;
   background-color : #e0e2e4;
+}
+
+html {
+  font-size: 10px;
+}
+
+body {
+  font-size: 20px;
 }
 
 a {

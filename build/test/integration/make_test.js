@@ -208,7 +208,7 @@ suite('Make and remake tests', function() {
         'Gallery config js is not expected');
 
       var musicMetadataScriptPath = path.join(process.cwd(), 'build_stage',
-        'music', 'js', 'metadata_scripts.js');
+        'music', 'js', 'metadata', 'metadata_scripts.js');
       assert.ok(fs.existsSync(musicMetadataScriptPath), 'metadata_scripts.js ' +
         'should exist');
       var galleryMetadataScriptPath = path.join(process.cwd(), 'build_stage',

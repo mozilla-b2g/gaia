@@ -8,6 +8,9 @@ var MockMimeMapper = {
   },
 
   ensureFilenameMatchesType: function(filename, mimetype) {
-    return filename;
+    if (filename.indexOf('.') !== -1) {
+      return filename;
+    }
+    return filename + '.' + 'jpg';
   }
 };

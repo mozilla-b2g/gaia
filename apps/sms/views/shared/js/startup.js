@@ -13,10 +13,13 @@
          LocalizationHelper,
          MessageManager,
          MessagingClient,
+         MozMobileConnectionsClient,
          Navigation,
          Settings,
          SilentSms,
-         TimeHeaders
+         SystemMessageHandler,
+         TimeHeaders,
+         Utils
 */
 
 (function(exports) {
@@ -66,28 +69,49 @@ var Startup = exports.Startup = {
     '/views/shared/js/smil.js',
     '/views/shared/js/notify.js',
     '/views/shared/js/activity_handler.js',
+    '/views/shared/js/system_message_handler.js',
     '/views/shared/js/localization_helper.js',
     '/lib/bridge/bridge.js',
     '/services/js/bridge_service_mixin.js',
     '/services/js/activity/activity_shim.js',
     '/services/js/activity/activity_client.js',
-    '/services/js/messaging/messaging_client.js'
+    '/services/js/messaging/messaging_client.js',
+    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js'
+  ],
+
+  _lazyLoadStyles: [
+    '/shared/style/confirm.css',
+    '/shared/style/status.css',
+    '/shared/style/input_areas.css',
+    '/shared/style/progress_activity.css',
+    '/views/shared/style/composer.css',
+    '/views/conversation/style/message.css',
+    '/views/conversation/style/report_view.css',
+    '/views/conversation/style/attachment.css',
+    '/views/conversation/style/conversation.css',
+    '/views/new_message/style/new_message.css',
+    '/views/new_message/style/recipients.css'
   ],
 
   _lazyLoadInit: function() {
-    var lazyLoadPromise = LazyLoader.load(this._lazyLoadScripts).then(() => {
+    var lazyLoadPromise = LazyLoader.load(
+      [...this._lazyLoadScripts, ...this._lazyLoadStyles]).then(() => {
+
       LocalizationHelper.init();
 
       InterInstanceEventDispatcher.connect();
 
       // dispatch contentInteractive when all the modules initialized
       SilentSms.init();
+
       ActivityHandler.init();
+      SystemMessageHandler.init();
 
       // Init UI Managers
       TimeHeaders.init();
       ConversationView.init();
-      MessagingClient.init();
+      MessagingClient.init(App.instanceId);
+      MozMobileConnectionsClient.init(App.instanceId);
       Information.initDefaultViews();
 
       Navigation.setReady();
@@ -113,6 +137,8 @@ var Startup = exports.Startup = {
       window.removeEventListener('DOMContentLoaded', loaded);
 
       window.performance.mark('navigationLoaded');
+
+      Utils.initializeShimHost(App.instanceId);
 
       MessageManager.init();
       InboxView.init();

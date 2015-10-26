@@ -18,6 +18,7 @@ AppInstall.Selector = Object.freeze({
   // General app install dialog
   installDialog: '#app-install-dialog',
   installButton: '#app-install-install-button',
+  installToast: 'gaia-toast.banner',
   // Setup dialog after installation
   setupDialog: '#setup-installed-app-dialog',
   setupButton: '#setup-confirm-button',
@@ -79,7 +80,7 @@ AppInstall.prototype = {
    * @param {boolean} [options.allowInstall=true] If true, allow the
    * installation directly.
    */
-  installPackage: function install(manifestURL, options) {
+  installPackage: function installPackage(manifestURL, options) {
     return this._install('installPackage', manifestURL, options);
   },
 
@@ -165,13 +166,26 @@ AppInstall.prototype = {
   },
 
   /**
+   * Dismiss the app install toast banner.
+   */
+  dismissToast: function() {
+    var toast = this.waitForToast();
+    toast.tap();
+    this.client.helper.waitForElementToDisappear(toast);
+  },
+
+  /**
+   * Wait for the app install toast banner.
+   */
+  waitForToast: function() {
+    return this.client.helper.waitForElement(AppInstall.Selector.installToast);
+  },
+
+  /**
    * Wait for the specified dialog to show up.
    * @param {Marionette.Element} element The dialog element to wait for.
    */
   waitForDialog: function waitForAppInstallDialog(element) {
-    this.client.waitFor(function() {
-      var dialogClass = element.getAttribute('class');
-      return dialogClass.indexOf('visible') != -1;
-    });
+    return this.client.helper.waitForElement(element);
   }
 };

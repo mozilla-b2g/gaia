@@ -29,9 +29,13 @@ Search.Selectors = {
   firstRunConfirm: '#suggestions-notice-confirm',
   privateWindow: '#private-window',
   topSites: '.top-site',
+  topSitesHeader: '#top-sites-header',
   historyResults: '#history .result',
   suggestions: '#suggestions li',
-  switchProviders: '#suggestions-select'
+  switchProviders: '#suggestions-select',
+  privateDialog: '#private-window-dialog',
+  privateDialogClose: '#private-window-hide-dialog',
+  privateDialogCheckbox: '#private-window-dialog gaia-checkbox'
 };
 
 Search.prototype = {
@@ -39,6 +43,9 @@ Search.prototype = {
   URL: Search.URL,
   NEW_TAB_URL: Search.URL + '/newtab.html',
   Selectors: Search.Selectors,
+
+  privateBrowserUrl: 'app://search.gaiamobile.org/newtab.html?private=1',
+  nonPrivateBrowserUrl: 'app://search.gaiamobile.org/newtab.html?private=0',
 
   /**
    * Navigates to the search results frame.

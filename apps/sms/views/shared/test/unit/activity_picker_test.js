@@ -2,7 +2,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 require('/views/shared/js/activity_picker.js');
 require('/views/shared/js/utils.js');
@@ -22,8 +22,8 @@ suite('ActivityPicker', function() {
   var realMozL10n, onsuccess, onerror;
 
   suiteSetup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
     mocksHelperAP.suiteSetup();
 
     onsuccess = function() {};
@@ -31,7 +31,7 @@ suite('ActivityPicker', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     mocksHelperAP.suiteTeardown();
   });
 

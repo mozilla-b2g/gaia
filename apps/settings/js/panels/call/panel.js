@@ -29,13 +29,13 @@ define(function(require) {
           fdnDesc: $('#fdnSettings-desc'),
           alertPanel: $('.cw-alert'),
           alertPanelSetButton: $('.cw-alert .cw-alert-set'),
-          alertPanelConfirmInput: $('.cw-alert .cw-alert-checkbox-label input'),
+          alertPanelConfirmInput: $('.cw-alert .cw-alert-checkbox'),
           alertPanelCancelButton: $('.cw-alert .cw-alert-cancel'),
-          alertLabel: $('#menuItem-callWaiting .alert-label'),
+          alertLabel: $('#menuItem-callWaiting .cw-alert-icon'),
           callFdnItem: $('#menuItem-callFdn'),
           callFdnAnchor: $('#menuItem-callFdn a'),
           callWaitingItem: $('#menuItem-callWaiting'),
-          callWaitingInput: $('#menuItem-callWaiting .checkbox-label input'),
+          callWaitingInput: $('#menuItem-callWaiting gaia-switch'),
           callForwardingItem: $('#menuItem-callForwarding'),
           callForwardingAnchor: $('#menuItem-callForwarding a'),
           callBarringItem: $('#menuItem-callBarring'),
@@ -43,7 +43,7 @@ define(function(require) {
           voiceMailItem: $('.menuItem-voicemail'),
           voiceMailDesc: $('#voiceMail-desc'),
           voicePrivacyItem: $('#menuItem-voicePrivacyMode'),
-          voicePrivacyInput: $('#menuItem-voicePrivacyMode input')
+          voicePrivacyInput: $('#menuItem-voicePrivacyMode gaia-switch')
         };
 
         // Set the navigation correctly when on a multi ICC card device.
@@ -152,14 +152,14 @@ define(function(require) {
         };
 
         // Bind call waiting setting to the input
-        this._elements.callWaitingInput.onchange = () => {
+        this._elements.callWaitingInput.addEventListener('change', () => {
           var checked = this._elements.callWaitingInput.checked;
           this._conn.setCallWaitingOption(checked).then(() => {
             this._updateCallWaitingItemState();
           }, () => {
             this._updateCallWaitingItemState();
           });
-        };
+        });
       },
 
       _initVoiceMailSettings: function() {
@@ -235,7 +235,7 @@ define(function(require) {
         var voicePrivacyHelper = SettingsHelper(
           'ril.voicePrivacy.enabled', defaultVoicePrivacySettings);
 
-        this._elements.voicePrivacyInput.onchange = () => {
+        this._elements.voicePrivacyInput.addEventListener('change', () => {
           var checked = this._elements.voicePrivacyInput.checked;
           voicePrivacyHelper.get((values) => {
             var originalValue = !checked;
@@ -247,7 +247,7 @@ define(function(require) {
               this._elements.voicePrivacyInput.checked = originalValue;
             });
           });
-        };
+        });
       },
 
       _initCallWaitingAlertCancelButtonClickEvent: function() {

@@ -102,10 +102,12 @@ class HTML5Player(PageRegion):
         Wait(self.marionette).until(lambda m: not self.is_playing)
 
     def tap_mute(self):
+        Wait(self.marionette).until(lambda m: not self.is_muted)
         self.tap_video_control('muteButton')
         Wait(self.marionette).until(lambda m: self.is_muted)
 
     def tap_unmute(self):
+        Wait(self.marionette).until(lambda m: self.is_muted)
         self.tap_video_control('muteButton')
         Wait(self.marionette).until(lambda m: not self.is_muted)
 

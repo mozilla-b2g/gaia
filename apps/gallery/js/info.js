@@ -33,18 +33,26 @@ function showFileInformation(fileinfo) {
   document.body.classList.add('showing-dialog');
 
   function populateMediaInfo(fileinfo) {
-    var data = {
-      //set the video filename using metadata
-      'info-name': getFileName(fileinfo.metadata.video || fileinfo.name),
-      'info-size': MediaUtils.formatSize(fileinfo.size),
-      'info-type': fileinfo.type,
-      'info-date': MediaUtils.formatDate(fileinfo.date),
-      'info-resolution':
-        fileinfo.metadata.width + 'x' + fileinfo.metadata.height
-    };
+    MediaUtils.getLocalizedSizeTokens(fileinfo.size).then((args) => {
+      var data = {
+        //set the video filename using metadata
+        'info-name': {
+          raw: getFileName(fileinfo.metadata.video || fileinfo.name)
+        },
+        'info-size': {
+          id: 'fileSize',
+          args: args
+        },
+        'info-type': {raw: fileinfo.type},
+        'info-date': {raw: MediaUtils.formatDate(fileinfo.date)},
+        'info-resolution': {
+          raw: fileinfo.metadata.width + 'x' + fileinfo.metadata.height
+        }
+      };
 
-    // Populate info overlay view
-    MediaUtils.populateMediaInfo(data);
+      // Populate info overlay view
+      MediaUtils.populateMediaInfo(data);
+    });
   }
 
   function getFileName(path) {

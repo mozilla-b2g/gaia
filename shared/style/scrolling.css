@@ -3,7 +3,7 @@
  * ---------------------------------- */
 nav[data-type="scrollbar"] {
   position: absolute;
-  right: 0;
+  offset-inline-end: 0;
   top: 0;
   bottom: 0;
 }
@@ -11,7 +11,7 @@ nav[data-type="scrollbar"] {
 /* Mirror */
 nav[data-type="scrollbar"] p {
   position: absolute;
-  right: 10rem;
+  offset-inline-end: 10rem;
   top: 9rem;
   margin: 0;
   width: 12rem;
@@ -31,7 +31,7 @@ nav[data-type="scrollbar"] p {
 nav[data-type="scrollbar"] p img {
   position: absolute;
   width: 4.8rem;
-  left: 3.5rem;
+  offset-inline-start: 3.5rem;
   top: 3.5rem;
 }
 
@@ -39,7 +39,7 @@ nav[data-type="scrollbar"] ol {
   padding: 0.3rem 0;
   margin: 0;
   height: 100%;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   border-radius: 4rem;
   opacity: 0.6;
   list-style: none;
@@ -91,18 +91,3 @@ nav[data-type="scrollbar"] li .pack-icon-favorites {
   background-color: rgba(80, 80, 80, 0.8);
 }
 
-/* RTL View */
-html[dir="rtl"] nav[data-type="scrollbar"] {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] nav[data-type="scrollbar"] p {
-  left: 10rem;
-  right: unset;
-}
-
-html[dir="rtl"] nav[data-type="scrollbar"] p img {
-  left: unset;
-  right: 3.5rem;
-}

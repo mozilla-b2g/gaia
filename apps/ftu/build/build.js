@@ -16,11 +16,19 @@ FtuAppBuilder.prototype.setOptions = function(options) {
   this.gaia = utils.gaia.getInstance(options);
   this.gaia.stageDir = this.stageDir;
   this.gaia.gaiaDir = options.GAIA_DIR;
+  this.raptorMode = options.RAPTOR === '1';
 };
 
 FtuAppBuilder.prototype.generateManifest = function() {
   var manifestObject = importBuild.generateManifest(this.webapp, this.gaia);
   var file = utils.getFile(this.stageDir.path, 'manifest.webapp');
+
+  // Remove role:system from FTU so it gets an icon on the homescreen.
+  // Used to launch the FTU from the homescreen for Raptor tests.
+  if (this.raptorMode) {
+    delete manifestObject.role;
+  }
+
   var args = DEBUG ? [manifestObject, undefined, 2] : [manifestObject];
   utils.writeContent(file, JSON.stringify.apply(JSON, args));
 };

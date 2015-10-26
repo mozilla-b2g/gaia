@@ -27,8 +27,8 @@ require('gaia-header');
 var SWIPE_DISTANCE_THRESHOLD = window.innerWidth / 3; // pixels
 var SWIPE_VELOCITY_THRESHOLD = 1.0;                   // pixels/ms
 
-var SWIPE_DURATION = 250;   // How long to animate the swipe
-var FADE_IN_DURATION = 500; // How long to animate the fade in after swipe
+var SWIPE_DURATION = 150;   // How long to animate the swipe
+var FADE_IN_DURATION = 450; // How long to animate the fade in after swipe
 
 /**
  * Locals
@@ -94,7 +94,7 @@ return View.extend({
 
   template: function() {
     return '<div class="preview-menu js-preview-menu">' +
-        '<gaia-header class="js-header" action="back">' +
+        '<gaia-header class="js-header" action="back" ignore-dir>' +
           '<h1 data-l10n-id="preview">Preview</h1>' +
           '<button class="preview-share-icon js-share"' +
             'name="share" data-icon="share" ' +
@@ -301,8 +301,7 @@ return View.extend({
     this.frame.displayVideo(
       video.blob,
       video.poster.blob,
-      video.poster.width,
-      video.poster.height,
+      video.poster.width / video.poster.height,
       video.rotation);
   },
 

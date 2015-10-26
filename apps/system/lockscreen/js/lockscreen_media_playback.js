@@ -45,6 +45,10 @@ function LockScreenMediaPlaybackWidget(container, options) {
       this.hidden = true;
     }
   }.bind(this));
+
+  // Requesting the current data (if any)
+  this.sendCommandEvent('updateplaystatus');
+  this.sendCommandEvent('updatemetadata');
 }
 
 LockScreenMediaPlaybackWidget.prototype = {

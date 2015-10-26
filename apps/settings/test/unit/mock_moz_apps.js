@@ -40,7 +40,8 @@ var MockMozApps = {
       app.enabled = enabled;
     },
     addEventListener: function() {},
-    removeEventListener: function() {}
+    removeEventListener: function() {},
+    getIcon: function() { return Promise.resolve(); }
   },
   getSelf: function() {
     return MockMozApps.mGetCurrentAppCallback;

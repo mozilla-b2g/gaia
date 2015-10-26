@@ -43,12 +43,23 @@ exports.observeCalendars = function() {
     // calendarStore.all() returns an object! we convert into an array since
     // that is easier to render/manipulate
     var calendars = yield calendarStore.all();
-    var data = yield object.map(calendars, co.wrap(function *(id, calendar) {
-      var provider = yield calendarStore.providerFor(calendar);
-      var caps = provider.calendarCapabilities(calendar);
-      return { calendar: calendar, capabilities: caps };
-    }));
-    stream.write(data);
+    var data = yield object.map(
+      calendars,
+      co.wrap(function *(id, calendar) {
+        var caps;
+        try {
+          var provider = yield calendarStore.providerFor(calendar);
+          caps = provider.calendarCapabilities(calendar);
+        } catch (error) {
+          console.error(error);
+          return false;
+        }
+
+        return { calendar: calendar, capabilities: caps };
+      })
+    );
+
+    stream.write(data.filter(element => !!element));
   });
 
   calendarStore.on('add', getAllAndWrite);

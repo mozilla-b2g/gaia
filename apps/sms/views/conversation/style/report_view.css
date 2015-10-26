@@ -7,9 +7,9 @@
 
 .report-view > .description {
   padding-top: 2rem;
-  -moz-padding-end: 1.5rem;
+  padding-inline-end: 1.5rem;
   padding-bottom: 3rem;
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
 }
 
 .report-view p,
@@ -38,18 +38,14 @@
   color: #000;
 }
 
-/* Default layout (sent message) */
-.report-view .received-block,
+/* Hiding some elements for some states */
 .report-view[data-delivery="error"] .sent-title,
-.report-view[data-delivery="sending"] .sent-timestamp {
+.report-view[data-delivery="sending"] .sent-timestamp,
+.outgoing-message .received-block,
+.outgoing-message .lateness-block {
   display: none;
 }
 
-/* Layout for received message */
-.report-view[data-delivery="received"] .received-block,
-.report-view[data-delivery="not-downloaded"] .received-block {
-  display: block;
-}
 
 /* Hide sent timestamp label if we don't have valid value to display */
 .report-view.no-valid-sent-timestamp .sent-block {
@@ -59,7 +55,7 @@
 .report-view .contact-title {
   color: #008787;
   font-size: 1.6rem;
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
 }
 
 .report-view > ul.contact-list {
@@ -76,8 +72,8 @@
   min-height: 9rem;
   padding-top: 0.7rem;
   padding-bottom: 1rem;
-  -moz-padding-end: 0;
-  -moz-padding-start: 1.5rem;
+  padding-inline-end: 0;
+  padding-inline-start: 1.5rem;
 
   border-top: solid 0.1rem #e7e7e7;
   border-bottom: medium none;
@@ -128,15 +124,15 @@
 }
 
 .report-view > .contact-list .icon {
-  float: left;
-
   width: 1.6rem;
   height: 1.6rem;
   margin: -0.1rem 0 0.1rem;
-  -moz-margin-end: 0.7rem;
+  margin-inline-end: 0.7rem;
 
   background: no-repeat center center / 1.6rem transparent;
 }
+html[dir="ltr"] .report-view > .contact-list .icon { float: left; }
+html[dir="rtl"] .report-view > .contact-list .icon { float: right; }
 
 .contact-list [data-delivery-status="delivered"] .icon {
   background-image: url('images/icons/deliveredtick.png');
@@ -172,9 +168,4 @@
 
 .report-view[data-delivery="error"] .resend-btn {
   display: block;
-}
-
-/* RTL modifications */
-.contact-list:-moz-dir(rtl) .icon {
-  float: right;
 }

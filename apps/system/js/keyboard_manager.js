@@ -9,18 +9,10 @@
  * https://wiki.mozilla.org/Gaia/System/InputManagement#Flow_Diagrams .
  */
 
-// If we get a inputmethod-contextchange chrome event for an element with
-// one of these types, we'll just ignore it.
-// XXX we won't skip these types in the future when we move value selector
-// to an app.
-const IGNORED_INPUT_TYPES = {
-  'select-one': true,
-  'select-multiple': true,
-  'date': true,
-  'time': true,
-  'datetime': true,
-  'datetime-local': true
-};
+// These input types are handled by the value selector for now.
+const VALUE_SELECTOR_INPUT_TYPES = [
+  'select-one', 'select-multiple', 'date',
+  'time', 'datetime', 'datetime-local'];
 
 const TYPE_GROUP_MAPPING = {
   // text
@@ -65,8 +57,12 @@ window.KeyboardManager = {
 
   start: function() {
     window.addEventListener('keyboardhide', this);
-    // To handle keyboard layout switching
-    window.addEventListener('mozChromeEvent', this);
+
+    navigator.mozInputMethod.mgmt.addEventListener('inputcontextfocus', this);
+    navigator.mozInputMethod.mgmt.addEventListener('inputcontextblur', this);
+    navigator.mozInputMethod.mgmt.addEventListener('showallrequest', this);
+    navigator.mozInputMethod.mgmt.addEventListener('nextrequest', this);
+
     return LazyLoader.load([
       'js/ime_switcher.js',
       'js/input_window_manager.js',
@@ -84,8 +80,8 @@ window.KeyboardManager = {
       this.imeSwitcher.start();
       // Defer the loading of DynamicInputRegistry only after
       // KeyboardHelper is present. Not that is possible we could miss some
-      // mozChromeEvent because of this but let's not deal with that kind of
-      // extreme case.
+      // add/removeinputrequest because of this but let's not deal with that
+      // kind of extreme case.
       this.dynamicInputRegistry = new DynamicInputRegistry();
       this.dynamicInputRegistry.start();
 
@@ -181,44 +177,53 @@ window.KeyboardManager = {
     }
   },
 
-  _inputFocusChange: function km_inputFocusChange(evt) {
-    var type = evt.detail.inputType;
+  _handleInputContextFocus: function km_handleInputContextFocus(evt) {
+    var inputType = evt.detail.inputType;
 
-    // Skip the <select> element and inputs with type of date/time,
-    // handled in system app for now
-    if (!type || type in IGNORED_INPUT_TYPES) {
+    if (VALUE_SELECTOR_INPUT_TYPES.indexOf(inputType) !== -1) {
+      // Hide the input window (if there is).
       inputWindowManager.hideInputWindow();
+
+      // boardcast in the System app scope for the value selector controlling
+      // logic to pick up and show the UI for this input.
+      window.dispatchEvent(new CustomEvent('inputfocus', {
+        detail: evt.detail
+      }));
       return;
     }
 
-    if ('blur' === type) {
-      this._debug('get blur event');
-      inputWindowManager.hideInputWindow();
-      this.imeSwitcher.hide();
-    } else {
-      // display the keyboard for that group decided by input type
-      // fallback to text for default if no group is found
-      var group = TYPE_GROUP_MAPPING[type];
-      this._debug('get focus event ' + type);
-      this._activateKeyboard(group);
-    }
+    // display the keyboard for that group decided by input type
+    // fallback to text for default if no group is found
+    var group = TYPE_GROUP_MAPPING[inputType];
+    this._debug('get focus event ' + inputType);
+    this._activateKeyboard(group);
   },
 
   handleEvent: function km_handleEvent(evt) {
     switch (evt.type) {
-      case 'mozChromeEvent':
-        switch (evt.detail.type) {
-          case 'inputmethod-showall':
-            this._showImeMenu();
-            break;
-          case 'inputmethod-next':
-            this._switchToNext();
-            break;
-          case 'inputmethod-contextchange':
-            this._inputFocusChange(evt);
-            break;
-        }
+      case 'showallrequest':
+        this._showImeMenu();
+        evt.preventDefault();
         break;
+
+      case 'nextrequest':
+        this._switchToNext();
+        evt.preventDefault();
+        break;
+
+      case 'inputcontextfocus':
+        this._handleInputContextFocus(evt);
+        evt.preventDefault();
+        break;
+
+      case 'inputcontextblur':
+        evt.preventDefault();
+        this._debug('get blur event');
+        inputWindowManager.hideInputWindow();
+        this.imeSwitcher.hide();
+        window.dispatchEvent(new CustomEvent('inputblur'));
+        break;
+
       case 'keyboardhide':
         this._showingInputGroup = null;
         break;

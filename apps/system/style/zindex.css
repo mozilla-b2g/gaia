@@ -33,6 +33,12 @@
   z-index: 2147483647;
 }
 
+/* Software home button should have higher z-index than system notification
+   banners to keep from being overlaid */
+#screen > [data-z-index-level="software-buttons"] {
+  z-index: 65537;
+}
+
 #screen > *[data-z-index-level="poweroff-splash"] {
   z-index: 65536;
 }
@@ -61,10 +67,8 @@
   z-index: 65536;
 }
 
-/* Software home button should have higher z-index than system notification
-   banners to keep from being overlaid */
-#screen > [data-z-index-level="software-buttons"] {
-  z-index: 65537;
+#screen > [data-z-index-level="fullscreen-dialog-overlay"] {
+  z-index: 65535;
 }
 
 /* Promote the transitioning appWindow to this level as the entry and exiting
@@ -118,6 +122,22 @@
    from the screenreader. */
 #screen.utility-tray > [data-z-index-level="statusbar"] {
   z-index: 16386;
+}
+
+/* When an app is fullscreen and the utility tray is closed,
+   a swipe-from-the-top must reveal the statusbar first. This is
+   triggered by #top-panel, therefore we must ensure it has an appropriate
+   z-index in fullscreen modes.
+   (The z-indexes differ depending on whether this is a .fullscreen-app or a
+   -moz-full-screen-ancestor; when -moz-full-screen, the z-index is assigned to
+   MAX_INT here in zindex.css) */
+#screen.fullscreen-app:not(.utility-tray) #top-panel {
+  z-index: 16386;
+}
+
+/* The View Source window has to go just below the utility tray. */
+#screen > [data-z-index-level="view-source"] {
+  z-index: 16384;
 }
 
 /* In landscape the software home button is on the right side of the screen
@@ -216,6 +236,7 @@
 }
 
 /* Keep system dialogs and toaster under lockscreen when locked */
+#screen.locked > [data-z-index-level="fullscreen-dialog-overlay"],
 #screen.locked > [data-z-index-level="system-dialog"],
 #screen.locked > [data-z-index-level="notification-toaster"] {
   z-index: 2045;
@@ -338,9 +359,11 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app-uninstall-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="software-buttons"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="utility-tray"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="global-overlays"] {
   z-index: 2147483647;
 }
@@ -350,6 +373,10 @@
 #screen.fullscreen-layout-app > [data-z-index-level="gesture-panel"],
 #screen.fullscreen-layout-app > [data-z-index-level="fullscreen-layout-software-home-button"] {
   z-index: 2147483647;
+}
+
+#screen:-moz-full-screen-ancestor > #statusbar:not(.fullscreen) {
+  display: none;
 }
 
 /**

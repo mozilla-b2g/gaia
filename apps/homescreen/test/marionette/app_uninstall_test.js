@@ -37,6 +37,7 @@ marionette('Homescreen - App Uninstall', function() {
     // install an app
     client.switchToFrame();
     appInstall.install(server.manifestURL);
+    appInstall.dismissToast();
 
     client.switchToFrame(system.getHomescreenIframe());
   });
@@ -53,7 +54,7 @@ marionette('Homescreen - App Uninstall', function() {
 
     // remove the icon
     actions.press(icon).wait(0.5).perform();
-    actions.move(home.uninstallTray).release().perform();
+    actions.move(home.removeTray).release().perform();
 
     // confirm the dialog to ensure it was removed.
     client.switchToFrame();

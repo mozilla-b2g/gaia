@@ -14,14 +14,14 @@
     right: 0;
     bottom: 0;
     left: 0;
-    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     background-color: rgba(0,0,0,0.6);
   }
 
   #sleep-menu-container {
     position: absolute;
     top: calc(50% - 24.5rem);
-    left: calc(50% - 34rem);
+    offset-inline-start: calc(50% - 34rem);
     width: 68rem;
     height: 49rem;
     padding: 0;
@@ -31,15 +31,6 @@
     border: 0.1rem solid #282828;
   }
 
-  #sleep-menu-container header {
-    height: 7rem;
-    margin: 0 6rem;
-  }
-
-  #sleep-menu-container h1 {
-    font-size: 2.2rem;
-  }
-
   #sleep-menu-container section {
     top: 7rem;
     bottom: 10rem;
@@ -47,13 +38,13 @@
   }
 
   #sleep-menu-container li {
-    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     border: 0.1rem #a8a8a8;
     height: 4.7rem;
     font-size: 2.3rem;
     line-height: 3rem;
     font-weight: 400;
-    margin: 0 1.5rem 2.4rem 1.5rem;
+    margin: 0 1.5rem 2.4rem;
     padding: 1rem 5rem;
   }
 
@@ -76,7 +67,12 @@
   #sleep-menu-container ul [data-value] {
     background-size: 4rem;
     background-repeat: no-repeat;
-    background-position: 0 center;
+  }
+  html[dir="ltr"] #sleep-menu-container ul [data-value] {
+    background-position: left center;
+  }
+  html[dir="rtl"] #sleep-menu-container ul [data-value] {
+    background-position: right center;
   }
 
   #sleep-menu-container ul [data-value="airplane"],

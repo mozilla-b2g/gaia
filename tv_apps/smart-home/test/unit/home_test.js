@@ -48,7 +48,6 @@ suite('home', function() {
   var realMozActivity = window.MozActivity;
   var searchButton, settingsButton, editButton, timeElem;
   var filterTabGroup, filterAllButton;
-  var settingsGroup;
   var subject;
   var fakeTimer;
 
@@ -83,13 +82,6 @@ suite('home', function() {
     filterAllButton.id = 'filter-all-button';
     filterTabGroup.appendChild(filterAllButton);
     document.body.appendChild(filterTabGroup);
-
-    settingsGroup = document.createElement('settings-group');
-    settingsGroup.once = function() {};
-    settingsGroup.open = function() {};
-    settingsGroup.close = function() {};
-    settingsGroup.id = 'settings-group';
-    document.body.appendChild(settingsGroup);
   });
 
   suiteTeardown(function() {
@@ -118,7 +110,6 @@ suite('home', function() {
     subject.settingsButton = settingsButton;
     subject.editButton = editButton;
     subject.searchButton = searchButton;
-    subject.settingsGroup = settingsGroup;
 
     fakeTimer = this.sinon.useFakeTimers();
     window.MozActivity = MockMozActivity;
@@ -343,21 +334,6 @@ suite('home', function() {
       var stub = this.sinon.stub(filterTabGroup, 'close');
       subject.checkFocusedGroup();
       assert.isTrue(stub.calledOnce);
-    });
-
-    test('should keep settings menu open when switching back from edit mode',
-    function() {
-      subject.handleFocusMenuGroup(settingsGroup);
-      var stub = this.sinon.stub(settingsGroup, 'close');
-      subject.edit.mode = 'edit';
-      subject.handleFocus(subject.cardScrollable);
-      subject.checkFocusedGroup(settingsGroup);
-      assert.isFalse(stub.called);
-
-      subject.edit.mode = '';
-      subject.handleFocus(settingsGroup);
-      subject.checkFocusedGroup(settingsGroup);
-      assert.isFalse(stub.called);
     });
   });
 

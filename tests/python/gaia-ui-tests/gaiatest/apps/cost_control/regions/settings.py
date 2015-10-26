@@ -4,6 +4,7 @@
 
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Settings(Base):
@@ -38,13 +39,12 @@ class Settings(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._settings_title_locator))))
 
-    def toggle_data_alert_switch(self):
-        self.marionette.find_element(*self._data_alert_switch_locator).tap()
+    def enable_data_alert_switch(self):
+        GaiaBinaryControl(self.marionette, self._data_alert_switch_locator).enable()
 
     @property
     def is_data_alert_switch_checked(self):
-        element = self.marionette.find_element(*self._data_alert_switch_locator)
-        return self.is_custom_element_checked(element)
+        return GaiaBinaryControl(self.marionette, self._data_alert_switch_locator).is_checked
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         when_use_is_above_button = self.marionette.find_element(*self._when_use_is_above_button_locator)

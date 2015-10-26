@@ -9,7 +9,7 @@ require('/views/conversation/js/attachment.js');
 require('/views/shared/js/utils.js');
 
 require('/views/shared/test/unit/mock_attachment_renderer.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/views/shared/test/unit/mock_utils.js');
 require('/views/shared/test/unit/mock_moz_activity.js');
 require('/views/shared/test/unit/mock_mime_mapper.js');
@@ -28,8 +28,8 @@ suite('attachment_test.js', function() {
 
   suiteSetup(function(done) {
     // this sometimes takes longer because we fetch 4 assets via XHR
-    this.realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    this.realMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
     AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then((blob) => {
       done(() => {
@@ -43,7 +43,7 @@ suite('attachment_test.js', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = this.realMozL10n;
+    document.l10n = this.realMozL10n;
   });
 
   test('Name property defaults to a string value', function() {
@@ -145,62 +145,84 @@ suite('attachment_test.js', function() {
       this.sinon.spy(MimeMapper, 'ensureFilenameMatchesType');
     });
 
-    test('Open normal image attachment', function() {
+    test('Open normal image attachment', function(done) {
       var fileName = 'jpeg_image.jpg';
       var attachment = new Attachment(testImageBlob, {
         name: fileName
       });
       var typeSpy = MimeMapper.guessTypeFromFileProperties;
       var matchSpy = MimeMapper.ensureFilenameMatchesType;
-      attachment.view();
-      assert.ok(typeSpy.calledWith(fileName, 'image/jpeg'));
-      assert.ok(matchSpy.calledWith(fileName, typeSpy.returnValues[0]));
-      assert.equal(MockMozActivity.calls.length, 1);
+      attachment.view().then(() => {
+        assert.ok(typeSpy.calledWith(fileName, 'image/jpeg'));
+        assert.ok(matchSpy.calledWith(fileName, typeSpy.returnValues[0]));
+        assert.equal(MockMozActivity.calls.length, 1);
+      }).then(done, done);
     });
 
-    test('Filename has no extension', function() {
-      var fileName = 'jpeg_image.jpg';
+    test('Filename has no extension', function(done) {
+      var fileName = 'jpeg_image';
       var attachment = new Attachment(testImageBlob, {
         name: fileName
       });
       var typeSpy = MimeMapper.guessTypeFromFileProperties;
       var matchSpy = MimeMapper.ensureFilenameMatchesType;
-      attachment.view();
-      assert.ok(typeSpy.calledWith(fileName, 'image/jpeg'));
-      assert.ok(matchSpy.calledWith(fileName, typeSpy.returnValues[0]));
-      assert.equal(MockMozActivity.calls.length, 1);
+      attachment.view().then(() => {
+        assert.ok(typeSpy.calledWith(fileName, 'image/jpeg'));
+        assert.ok(matchSpy.calledWith(fileName, typeSpy.returnValues[0]));
+        assert.equal(MockMozActivity.calls.length, 1);
+      }).then(done, done);
     });
 
-    test('Filename is overridden using single attachment folder', function() {
+    test('Filename is overridden using single attachment folder',
+      function(done) {
+
       var attachment1 = new Attachment(testImageBlob, {
         name: '/some_path/.hidden_folder/attachment1.jpg'
       });
 
-      attachment1.view();
+      attachment1.view().then(() => {
 
-      assert.equal(MockMozActivity.calls.length, 1);
-      assert.equal(
-        MockMozActivity.calls[0].data.filename,
-        'sms-attachments/attachment1.jpg'
-      );
+        assert.equal(MockMozActivity.calls.length, 1);
+        assert.equal(
+          MockMozActivity.calls[0].data.filename,
+          'sms-attachments/attachment1.jpg'
+        );
 
-      var attachment2 = new Attachment(testImageBlob, {
-        name: 'attachment2.jpg'
+        var attachment2 = new Attachment(testImageBlob, {
+          name: 'attachment2.jpg'
+        });
+
+        return attachment2.view();
+      }).then(() => {
+        assert.equal(MockMozActivity.calls.length, 2);
+        assert.equal(
+          MockMozActivity.calls[1].data.filename,
+          'sms-attachments/attachment2.jpg'
+        );
+      }).then(done, done);
+
+    });
+
+    test('Filename is undefined',
+      function(done) {
+
+      var attachment1 = new Attachment(testImageBlob, {
+        name: undefined
       });
 
-      attachment2.view();
-
-      assert.equal(MockMozActivity.calls.length, 2);
-      assert.equal(
-        MockMozActivity.calls[1].data.filename,
-        'sms-attachments/attachment2.jpg'
-      );
+      attachment1.view().then(() => {
+        assert.equal(MockMozActivity.calls.length, 1);
+        assert.equal(
+          MockMozActivity.calls[0].data.filename,
+          'sms-attachments/unnamed-attachment.jpg'
+        );
+      }).then(done, done);
 
     });
 
     suite('Activity errors >', function() {
       var activity;
-      setup(function() {
+      setup(function(done) {
         this.sinon.spy(window, 'MozActivity');
         this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
 
@@ -208,9 +230,9 @@ suite('attachment_test.js', function() {
           name: 'jpeg_image.jpg'
         });
 
-        attachment.view();
-
-        activity = window.MozActivity.firstCall.thisValue;
+        attachment.view().then(() => {
+          activity = window.MozActivity.firstCall.thisValue;
+        }).then(done, done);
       });
 
       test('No handler for this image', function() {

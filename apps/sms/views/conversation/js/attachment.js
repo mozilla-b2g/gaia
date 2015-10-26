@@ -69,36 +69,42 @@
     },
 
     view: function(options) {
-      // Make sure media is openable and savable even if:
-      //   - Blob mimetype is unsupported but file extension is valid.
-      //   - File extenion is missing or invalid but mimetype is supported.
+      // Make sure media is openable and savable even if
+      // file extenion is missing or invalid but mimetype is supported.
 
-      var mimetype =
-        MimeMapper.guessTypeFromFileProperties(
-          this.name,
-          this.blob.type.toLowerCase()
-        );
-      var filename = MimeMapper.ensureFilenameMatchesType(this.name, mimetype);
+      var l10nPromise = this.name ? Promise.resolve(this.name) :
+        document.l10n.formatValue('unnamed-attachment');
 
-      // Override filename, so that every attachment that is saved via "open"
-      // activity will be placed in the single location.
-      filename = ATTACHMENT_FOLDER_PATH + getBaseName(filename);
+      return l10nPromise.then(name => {
+        // Make sure media is openable and savable even if
+        // blob mimetype is unsupported but file extension is valid.
+        var mimetype =
+          MimeMapper.guessTypeFromFileProperties(
+            name,
+            this.blob.type.toLowerCase()
+          );
+        var filename = MimeMapper.ensureFilenameMatchesType(name, mimetype);
 
-      var activity = new MozActivity({
-        name: 'open',
-        data: {
-          type: mimetype,
-          filename: filename,
-          blob: this.blob,
-          allowSave: options && options.allowSave
-        }
+        // Override filename, so that every attachment that is saved via "open"
+        // activity will be placed in the single location.
+        filename = ATTACHMENT_FOLDER_PATH + getBaseName(filename);
+
+        var activity = new MozActivity({
+          name: 'open',
+          data: {
+            type: mimetype,
+            filename: filename,
+            blob: this.blob,
+            allowSave: options && options.allowSave
+          }
+        });
+        activity.onerror = function() {
+          console.error('error with open activity', this.error.name);
+          if (this.error.name === 'NO_PROVIDER') {
+            Utils.alert('attachmentOpenError');
+          }
+        };
       });
-      activity.onerror = function() {
-        console.error('error with open activity', this.error.name);
-        if (this.error.name === 'NO_PROVIDER') {
-          Utils.alert('attachmentOpenError');
-        }
-      };
     }
   };
 

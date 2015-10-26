@@ -2,9 +2,15 @@ define(function(require, exports, module) {
 'use strict';
 
 var Calc = require('common/calc');
+var IntlHelper = require('shared/intl_helper');
 var MultiDay = require('./multi_day');
 
 require('dom!week-view');
+
+IntlHelper.define('week-hour-format', 'mozdatetime', {
+  hour: 'numeric',
+  dayperiod: true,
+});
 
 function WeekView(opts) {
   MultiDay.apply(this, arguments);

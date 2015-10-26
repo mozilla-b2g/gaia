@@ -31,6 +31,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+html[dir="ltr"] [data-type="list"] header { text-align: left; }
+html[dir="rtl"] [data-type="list"] header { text-align: right; }
 
 /* List items */
 [data-type="list"] li {
@@ -88,12 +90,13 @@ li a:active {
 
 /* Graphic content */
 [data-type="list"] aside {
-  float: left;
   margin: 0;
-  -moz-margin-end: 0.5rem;
+  margin-inline-end: 0.5rem;
   height: 100%;
   position: relative;
 }
+html[dir="ltr"] [data-type="list"] aside { float: left; }
+html[dir="rtl"] [data-type="list"] aside { float: right; }
 
 [data-type="list"] li > a aside,
 [data-type="list"] li > a aside.icon {
@@ -101,19 +104,28 @@ li a:active {
 }
 
 [data-type="list"] aside.pack-end {
-  float: right;
   margin: 0;
-  -moz-margin-start: 0.5rem;
+  margin-inline-start: 0.5rem;
   text-align: end;
 }
+html[dir="ltr"] [data-type="list"] aside.pack-end { float: right; }
+html[dir="rtl"] [data-type="list"] aside.pack-end { float: left; }
 
 [data-type="list"] aside.icon {
   width: 3rem;
   height: 6rem;
-  background: #fff no-repeat left center / 100% auto;
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-size:  100% auto;
   font-size: 0;
   display: block;
   overflow: hidden;
+}
+html[dir="ltr"] [data-type="list"] aside.icon {
+  background-position: left center;
+}
+html[dir="rtl"] [data-type="list"] aside.icon {
+  background-position: right center;
 }
 
 [data-type="list"] aside span[data-type=img],
@@ -171,13 +183,12 @@ li a:active {
 }
 
 [data-type="list"] li p time {
-  -moz-margin-end: 0.3rem;
+  margin-inline-end: 0.3rem;
   text-transform: uppercase;
 }
 
 /* Checkable content */
 [data-type="list"] li > .pack-checkbox,
-[data-type="list"] li > .pack-radio,
 [data-type="list"] li > .pack-switch {
   pointer-events: none;
   position: absolute;
@@ -192,22 +203,20 @@ li a:active {
 }
 
 [data-type="list"] li > .pack-checkbox input ~ span:after,
-[data-type="list"] li > .pack-radio input ~ span:after,
 [data-type="list"] li > .pack-switch input ~ span:after {
   /* because width is set in switches.css, the conflict between left/right will
    * be resolved in favor of "left" in LTR and "right" in RTL */
   left: 0;
   right: 0;
-  -moz-margin-start: 0;
+  margin-inline-start: 0;
 }
 
 /* Edit mode */
 [data-type="list"] [data-type="edit"] li {
-  -moz-padding-start: 4rem;
+  padding-inline-start: 4rem;
 }
 
 [data-type="list"] [data-type="edit"] li > .pack-checkbox,
-[data-type="list"] [data-type="edit"] li > .pack-radio,
 [data-type="list"] [data-type="edit"] li > .pack-switch {
   pointer-events: auto;
   left: 0;
@@ -231,13 +240,3 @@ li a:active {
 .skin-comms [data-type="list"] header {
   color: #4997a7;
 }
-
-/* RTL View */
-html[dir="rtl"] [data-type="list"] aside {
-  float: right;
-}
-
-html[dir="rtl"] [data-type="list"] aside.pack-end {
-  float: left;
-}
-

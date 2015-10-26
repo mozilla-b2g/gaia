@@ -21,6 +21,7 @@
   },
   "permissions": {
     "systemXHR":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "presentation": {}
   }
 }

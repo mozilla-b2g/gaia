@@ -74,6 +74,7 @@
     }
     this.isCrashed = false;
     this.launchTime = Date.now();
+    this.metachangeDetails = [];
 
     return this;
   };
@@ -227,10 +228,10 @@
     if (!this.isBrowser()) {
       return false;
     }
-
-    var url = new URL(this.config.url);
-    var path = url.hostname + url.pathname;
-    return path.indexOf(scope) === 0;
+    // within-scope per http://www.w3.org/TR/appmanifest/#dfn-within-scope
+    // except we also support paths
+    var target = this.config.url;
+    return scope && target.startsWith(scope);
   };
 
   /**
@@ -270,6 +271,12 @@
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
         this._showFrame();
+
+        // Handle any pending scroll-area-changed (this is deferred when an
+        // app isn't visible).
+        if (this.appChrome) {
+          this.appChrome.handleScrollAreaChanged();
+        }
       } else {
         this._hideFrame();
       }
@@ -443,7 +450,7 @@
     this.inError = false;
     this.loading = false;
     this.loaded = false;
-    this.metachangeDetail = null;
+    this.metachangeDetails = [];
     this.suspended = true;
     this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
@@ -601,7 +608,7 @@
               <div class="identification-overlay">
                 <div>
                   <div class="icon"></div>
-                  <span class="title"></span>
+                  <span class="title" dir="auto"></span>
                 </div>
               </div>
               <div class="fade-overlay"></div>
@@ -769,7 +776,8 @@
       this.reConfig({
         url: url,
         title: url,
-        oop: true
+        oop: true,
+        isPrivate: this.isPrivate
       });
       this.appChrome && this.appChrome.reConfig();
       this.browserContainer.removeChild(this.browser.element);
@@ -866,10 +874,16 @@
         }
       }
 
-      // Need to wait for mozbrowserloadend to get allowedAudioChannels.
-      this.browser.element.addEventListener('mozbrowserloadend', () => {
-        this._registerAudioChannels();
-      });
+      // Need to wait for mozbrowserloadstart to get allowedAudioChannels.
+      this.browser.element.addEventListener(
+        'mozbrowserloadstart',
+        function onloadstart() {
+          this.browser.element.removeEventListener(
+            'mozbrowserloadstart', onloadstart
+          );
+          this._registerAudioChannels();
+        }.bind(this)
+      );
 
       if (this.isInputMethod) {
         return;
@@ -890,9 +904,12 @@
             that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
             that.appChrome.handleEvent({type: '_loading'});
           }
-          if (that.metachangeDetail) {
-            that.appChrome.handleEvent({type: 'mozbrowsermetachange',
-                                        detail: that.metachangeDetail});
+          if (that.metachangeDetails && that.metachangeDetails.length) {
+            that.metachangeDetails.forEach(function(detail) {
+              that.appChrome.handleEvent({type: 'mozbrowsermetachange',
+                                          detail: detail});
+            });
+            that.metachangeDetails = [];
           }
         });
       } else {
@@ -1155,24 +1172,13 @@
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
 
-      var detail = this.metachangeDetail = evt.detail;
+      var detail = evt.detail;
+      if (!this.appChrome) {
+        this.metachangeDetails = this.metachangeDetails || [];
+        this.metachangeDetails.push(detail);
+      }
 
       switch (detail.name) {
-        case 'theme-color':
-          if (!detail.type) {
-            return;
-          }
-          // If the theme-color meta is removed, let's reset the color.
-          var color = '';
-
-          // Otherwise, set it to the color that has been asked.
-          if (detail.type !== 'removed') {
-            color = detail.content;
-          }
-          this.themeColor = color;
-
-          this.publish('themecolorchange');
-          break;
         case 'theme-group':
           if (!detail.type) {
             return;
@@ -1189,16 +1195,17 @@
             }
           }
 
-          this.publish('themecolorchange');
           break;
 
         case 'application-name':
           // Apps have a compulsory name field in their manifest
           // which takes precedence.
-          if (this.manifestURL || this.webManifestURL) {
+          var name = detail.content || '';
+          var emptyString = !(name.trim());
+          if (this.manifestURL || this.webManifestURL || emptyString) {
             return;
           }
-          this.name = detail.content;
+          this.name = name;
           this.publish('namechanged');
           break;
       }
@@ -1839,7 +1846,7 @@
       } else {
         // origin might contain a pathname too, so need to parse it to find the
         // "real origin"
-        var url = this.config.origin.split('/');
+        var url = (this.config.origin || location.origin).split('/');
         var origin = url[0] + '//' + url[2];
         this._splash = origin + this._splash;
       }
@@ -2108,12 +2115,12 @@
 
   AppWindow.prototype._handle__closed = function aw_closed() {
     if (!this.loaded ||
-        (Service.query('isBusyLoading') &&
-          this.getBottomMostWindow().isHomescreen)) {
+        this.getBottomMostWindow().isHomescreen) {
       // We will eventually get screenshot when being requested from
       // task manager.
       return;
     }
+
     // Update screenshot blob here to avoid slowing down closing transitions.
     this.getScreenshot();
   };
@@ -2484,7 +2491,6 @@
     }
   };
 
-
   /**
    * Return a promise that resolves to an icon URL.
    *
@@ -2507,6 +2513,7 @@
       }
       siteObj.manifestUrl = this.manifestURL;
       siteObj.manifest = this.manifest;
+      siteObj.origin = new URL(this.origin).origin;
     }
 
     if (this.webManifestURL && !this.webManifest) {

@@ -64,15 +64,20 @@ module.exports = View.extend({
     var li = document.createElement('li');
     var isSelected = option.key === this.selectedKey;
 
-    li.textContent = localizable ? this.l10n.get(option.title) : option.title;
+    if (localizable) {
+      li.setAttribute('data-l10n-id', option.title);
+      this.l10n.formatValue(option.title).then((title) => {
+        li.setAttribute('aria-label', title);
+      });
+    } else {
+      li.textContent = option.title;
+      li.setAttribute('aria-label', option.title);
+    }
     li.setAttribute('data-key', option.key);
     // The settings options list is a listbox (list of actionable items) thus
     // each iteam must have an 'option' role.
     li.setAttribute('role', 'option');
     li.className = 'setting-option';
-    // The only way to exclude content from :before element (present in setting
-    // option item) is to override it with ARIA label.
-    this.l10n.setAttributes(li, 'setting-option', { value: li.textContent });
     li.dataset.icon = 'tick';
     this.els.ul.appendChild(li);
     this.els[option.key] = li;

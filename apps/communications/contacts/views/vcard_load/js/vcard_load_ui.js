@@ -56,7 +56,7 @@
 
       if (Array.isArray(contact.photo) && contact.photo[0] instanceof Blob) {
         var picture = clone.querySelector('aside span');
-        picture.style.background = 'url(' +
+        picture.style.backgroundImage = 'url(' +
                             window.URL.createObjectURL(contact.photo[0]) + ')';
       }
 
@@ -74,15 +74,18 @@
       return;
     }
 
+    var imported = evt.detail.importedContacts,
+        merged = evt.detail.numDups;
+
     utils.status.show({
       id: 'vCardContacts-imported',
       args: {
-        n: evt.detail.importedContacts
+        n: imported
       }
     }, {
       id: 'contactsMerged',
       args: {
-        numDups: evt.detail.numDupsMerged
+        numDups: merged
       }
     });
   }

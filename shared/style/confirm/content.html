@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8">
 
@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="../confirm.css">
 
   <!--
-    - This <style> element is only used for the example code;
-    - it is not required for the real use case.
+    - These <style> and <script> elements are only used for the example code;
+    - they are not required for the real use case.
     -->
   <style type="text/css">
     html, body {
@@ -23,17 +23,32 @@
     body {
       background: none;
     }
+    #dir {
+      position: relative;
+      z-index: 999;
+      display: block;
+      direction: ltr;
+      background-color: white;
+    }
+    #dir input {
+      vertical-align: middle;
+    }
   </style>
+  <script>
+    window.onload = function(){
+      var input = document.querySelector('#dir input');
+      input.checked = false;
+      input.onchange = function() {
+        document.documentElement.dir = this.checked ? 'rtl' : 'ltr';
+      };
+    };
+  </script>
 </head>
 
 <body role="application">
-  <p dir="ltr">
-    <label>
-      <input type="checkbox"
-        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
-      RTL mode
-    </label>
-  </p>
+  <label id="dir">
+    <input type="checkbox"> RTL mode
+  </label>
 
   <form role="dialog" data-type="confirm">
     <section>
@@ -53,4 +68,3 @@
 
 </body>
 </html>
-

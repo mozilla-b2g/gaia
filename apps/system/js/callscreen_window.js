@@ -129,7 +129,7 @@
     }
     this._terminated = true;
     this.publish('terminated');
-    if (this.isActive()) {
+    if (this.isActive() || this._requestedOpen) {
       var self = this;
       this.element.addEventListener('_closed', function onclosed() {
         // XXX: We will have trouble if the second call comes during closing.

@@ -186,15 +186,35 @@ function getMetadata(videofile, callback) {
   offscreenVideo.preload = 'metadata';
   offscreenVideo.src = url;
 
+  //
+  // There seems to have been a gecko regression, and error events are no
+  // longer being fired when we try to play some zero-length or truncated
+  // video files. To workaround this, we use a timeout to assume the
+  // video is unplayable if we nave not gotten any events within a reasonable
+  // amount of time.
+  //
+  // See bug 1198169
+  //
+  const METADATA_TIMEOUT = 3000;
+  var timeoutId = setTimeout(function() {
+    console.error('No loadedmetadata or error events seen yet.',
+                  'Assuming video file is corrupt:', videofile.name);
+    offscreenVideo.onerror();
+  }, METADATA_TIMEOUT);
+
   offscreenVideo.onerror = function(e) {
     // Something went wrong. Maybe the file was corrupt?
     console.error('Can\'t play video', videofile.name, e);
     metadata.isVideo = false;
+    clearTimeout(timeoutId);
     unload();
     callback(metadata);
   };
 
   offscreenVideo.onloadedmetadata = function() {
+    // We got metadata, so we don't need the timeout
+    clearTimeout(timeoutId);
+
     // If videoWidth is 0 then this is likely an audio file (ogg / mp4)
     // with an ambiguous filename extension that makes it look like a video.
     // This test only works correctly if we're using a new offscreen video

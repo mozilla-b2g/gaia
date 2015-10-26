@@ -76,7 +76,7 @@ return [
       }.bind(this));
 
       this.msgVScroll.on('messagesChange', function(message, index) {
-        this.updateMatchedMessageDom(false, message);
+        this.updateMatchedMessageDom(message);
       }.bind(this));
 
       this.msgVScroll.on('messagesComplete', function(newEmailCount) {
@@ -90,7 +90,7 @@ return [
       var vScrollBindData = (function bindSearch(model, node) {
         model.element = node;
         node.message = model.header;
-        this.updateMatchedMessageDom(true, model);
+        this.updateMatchedMessageDom(model);
       }).bind(this);
       this.msgVScroll.init(this.scrollContainer,
                            vScrollBindData,
@@ -217,7 +217,7 @@ return [
       }
     },
 
-    updateMatchedMessageDom: function(firstTime, matchedHeader) {
+    updateMatchedMessageDom: function(matchedHeader) {
       var msgNode = matchedHeader.element,
           matches = matchedHeader.matches,
           message = matchedHeader.header;
@@ -241,50 +241,49 @@ return [
       // some things only need to be done once
       var dateNode = msgNode.querySelector('.msg-header-date');
       var subjectNode = msgNode.querySelector('.msg-header-subject');
-      if (firstTime) {
-        // author
-        var authorNode = msgNode.querySelector('.msg-header-author');
-        if (matches.author) {
-          authorNode.textContent = '';
-          appendMatchItemTo(matches.author, authorNode);
-        }
-        else {
-          // we can only update the name if it wasn't matched on.
-          message.author.element = authorNode;
-          message.author.onchange = updatePeepDom;
-          message.author.onchange(message.author);
-        }
 
-        // date
-        dateNode.dataset.time = message.date.valueOf();
-        dateNode.textContent = date.prettyDate(message.date);
-
-        // subject
-        if (matches.subject) {
-          subjectNode.textContent = '';
-          appendMatchItemTo(matches.subject[0], subjectNode);
-        } else {
-          messageDisplay.subject(subjectNode, message);
-        }
-
-        // snippet
-        var snippetNode = msgNode.querySelector('.msg-header-snippet');
-        if (matches.body) {
-          snippetNode.textContent = '';
-          appendMatchItemTo(matches.body[0], snippetNode);
-        } else {
-          snippetNode.textContent = message.snippet;
-        }
-
-        // attachments (can't change within a message but can change between
-        // messages, and since we reuse DOM nodes...)
-        var attachmentsNode =
-          msgNode.querySelector('.msg-header-attachments');
-        attachmentsNode.classList.toggle('msg-header-attachments-yes',
-                                         message.hasAttachments);
-        // snippet needs to be shorter if icon is shown
-        snippetNode.classList.toggle('icon-short', message.hasAttachments);
+      // author
+      var authorNode = msgNode.querySelector('.msg-header-author');
+      if (matches.author) {
+        authorNode.textContent = '';
+        appendMatchItemTo(matches.author, authorNode);
       }
+      else {
+        // we can only update the name if it wasn't matched on.
+        message.author.element = authorNode;
+        message.author.onchange = updatePeepDom;
+        message.author.onchange(message.author);
+      }
+
+      // date
+      var dateTime = dateNode.dataset.time = message.date.valueOf();
+      date.relativeDateElement(dateNode, dateTime);
+
+      // subject
+      if (matches.subject) {
+        subjectNode.textContent = '';
+        appendMatchItemTo(matches.subject[0], subjectNode);
+      } else {
+        messageDisplay.subject(subjectNode, message);
+      }
+
+      // snippet
+      var snippetNode = msgNode.querySelector('.msg-header-snippet');
+      if (matches.body) {
+        snippetNode.textContent = '';
+        appendMatchItemTo(matches.body[0], snippetNode);
+      } else {
+        snippetNode.textContent = message.snippet;
+      }
+
+      // attachments (can't change within a message but can change between
+      // messages, and since we reuse DOM nodes...)
+      var attachmentsNode =
+        msgNode.querySelector('.msg-header-attachments');
+      attachmentsNode.classList.toggle('msg-header-attachments-yes',
+                                       message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
 
       // Set unread state.
       msgNode.classList.toggle('unread', !message.isRead);

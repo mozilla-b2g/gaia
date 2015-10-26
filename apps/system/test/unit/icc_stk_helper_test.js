@@ -82,39 +82,41 @@ suite('STK (stk_helper) >', function() {
   test('should use the text included in the message', function() {
     var testCmd = stkTestCommands.STK_CMD_NO_ICONS;
     var text = STKHelper.getMessageText(testCmd.command.options);
-    assert.equal(text, testCmd.command.options.text);
+    assert.deepEqual(text, { raw: testCmd.command.options.text });
   });
 
   test('should return an empty string', function() {
     var testCmd = stkTestCommands.STK_CMD_WITH_NO_TEXT;
     var text = STKHelper.getMessageText(testCmd.options);
-    assert.equal(text, '');
+    assert.deepEqual(text, { raw: '' });
   });
 
   test('should return the specific text', function() {
     var testCmd = stkTestCommands.STK_CMD_WITH_SPECIFIC_TEXT;
     var text = STKHelper.getMessageText(testCmd.command.options);
-    assert.equal(text, testCmd.command.options.text);
+    assert.deepEqual(text, { raw: testCmd.command.options.text });
   });
 
   test('should return an empty string', function() {
     var testCmd = stkTestCommands.STK_CMD_WITH_ICONS_SELF_EXPLANATORY;
     var text = STKHelper.getMessageText(testCmd.command.options);
-    assert.equal(text, '');
+    assert.deepEqual(text, { raw: '' });
   });
 
   test('should return the default text', function() {
     var testCmd = stkTestCommands.STK_CMD_WITH_NO_TEXT;
     var text = STKHelper.getMessageText(testCmd.command.options,
       'default-text');
-    assert.equal(text, 'default-text');
+    assert.deepEqual(text, { id: 'default-text', args: undefined });
   });
 
   test('should return the default text with args', function() {
     var testCmd = stkTestCommands.STK_CMD_WITH_NO_TEXT;
     var text = STKHelper.getMessageText(testCmd.command.options, 'default-text',
       {number: 111111});
-    assert.equal(text, 'default-text-args');
+    assert.deepEqual(text, { id: 'default-text', args: {
+      number: 111111
+    }});
   });
 
 });

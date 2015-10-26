@@ -1,8 +1,8 @@
 'use strict';
 
-/* global AppUpdatable, Service, UpdateManager,
+/* global AppUpdatable, Service, UpdateManager, l10nAssert,
           MockApp, MockAppUpdatable, MockAppsMgmt, MockChromeEvent,
-          MockCustomDialog, MocksHelper, MockL10n,
+          MockCustomDialog, MocksHelper, MockL10n, MockMozActivity,
           MockNavigatorMozMobileConnections, MockNavigatorSettings,
           MockNavigatorWakeLock, MockNotificationScreen,
           MockSettingsListener, MockSystemBanner, MockSystemUpdatable */
@@ -23,6 +23,7 @@ requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/service.js');
 requireApp('system/test/unit/mock_notification_screen.js');
+requireApp('system/shared/test/unit/mocks/mock_moz_activity.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require(
@@ -40,7 +41,8 @@ var mocksForUpdateManager = new MocksHelper([
   'AppUpdatable',
   'SettingsListener',
   'asyncStorage',
-  'LazyLoader'
+  'LazyLoader',
+  'MozActivity'
 ]).init();
 
 suite('system/UpdateManager', function() {
@@ -606,6 +608,15 @@ suite('system/UpdateManager', function() {
 
         assert.equal(l10nAttrs.id, 'updateAvailableInfo');
         assert.deepEqual(l10nAttrs.args, { n: 3 });
+      });
+
+      test('should show the system app available message if not downloading ' +
+           'and only a system update is present',
+      function() {
+        UpdateManager.updatesQueue = [new MockSystemUpdatable()];
+        UpdateManager.render();
+
+        l10nAssert(UpdateManager.message, 'systemUpdateAvailableInfo');
       });
     });
 
@@ -1198,9 +1209,17 @@ suite('system/UpdateManager', function() {
     });
 
     suite('download prompt', function() {
+      var systemUpdatable = null;
+      var mockBuildID = '20150929135540';
+      var mockDetailsURL = 'https://www.mozilla.org';
+      var mockDisplayVersion = '2.5';
+
       setup(function() {
-        var systemUpdatable = new MockSystemUpdatable();
+        systemUpdatable = new MockSystemUpdatable();
         systemUpdatable.size = 5296345;
+        systemUpdatable.buildID = mockBuildID;
+        systemUpdatable.detailsURL = mockDetailsURL;
+        systemUpdatable.displayVersion = mockDisplayVersion;
         var appUpdatable = new MockAppUpdatable(new MockApp());
         appUpdatable.name = 'Angry birds';
         appUpdatable.nameID = '';
@@ -1248,12 +1267,51 @@ suite('system/UpdateManager', function() {
           test('should render system update item first with required',
           function() {
             var item = UpdateManager.downloadDialogList.children[0];
-            assert.equal(
-              item.children[0].getAttribute('data-l10n-id'), 'required');
-            assert.equal(
-              item.children[1].getAttribute('data-l10n-id'), 'systemUpdate');
-            assert.equal(
-              item.children[2].textContent, '5.05 MB');
+            l10nAssert(item.children[0], 'required');
+            l10nAssert(item.children[1], 'systemUpdateWithVersion', {
+              version: mockDisplayVersion
+            });
+            assert.equal(item.children[2].textContent, '5.05 MB');
+            l10nAssert(item.children[3], 'build-id', { buildid: mockBuildID });
+            l10nAssert(item.children[4], 'view-release-notes');
+          });
+
+          test('should display the release notes when tapping on the link',
+          function() {
+            var item = UpdateManager.downloadDialogList.children[0];
+            var link = item.children[4];
+            var event = new MouseEvent('click', {
+              'view': window,
+              'bubbles': true,
+              'cancelable': true
+            });
+
+            var canceled = !link.dispatchEvent(event);
+            assert.isTrue(canceled); // preventDefault() was called
+            assert.equal(MockMozActivity.calls.length, 1);
+            assert.deepEqual(MockMozActivity.calls[0], {
+              name: 'view',
+              data: {
+                type: 'url',
+                url: mockDetailsURL
+              }
+            });
+          });
+
+          test('should not display the release notes if the URL is not ' +
+               'present or blank',
+          function() {
+            var item;
+
+            systemUpdatable.detailsURL = null;
+            UpdateManager.containerClicked();
+            item = UpdateManager.downloadDialogList.children[0];
+            assert.equal(item.children.length, 4);
+
+            systemUpdatable.detailsURL = 'about:blank';
+            UpdateManager.containerClicked();
+            item = UpdateManager.downloadDialogList.children[0];
+            assert.equal(item.children.length, 4);
           });
 
           test('should render packaged app items alphabetically with checkbox',

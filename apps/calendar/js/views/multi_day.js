@@ -4,6 +4,7 @@ define(function(require, exports, module) {
 var Calc = require('common/calc');
 var CurrentTime = require('./current_time');
 var HourDoubleTap = require('./hour_double_tap');
+var IntlHelper = require('shared/intl_helper');
 var Pan = require('./pan');
 var SingleDay = require('./single_day');
 var Timespan = require('common/timespan');
@@ -13,6 +14,10 @@ var core = require('core');
 var createDay = require('common/calc').createDay;
 var template = require('templates/multi_day');
 var throttle = require('utils/mout').throttle;
+
+IntlHelper.define('hour-format', 'datetime', {
+  hour: 'numeric'
+});
 
 function MultiDay(opts) {
   this.children = [];

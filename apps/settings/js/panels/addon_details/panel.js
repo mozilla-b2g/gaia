@@ -24,7 +24,9 @@ define(function(require) {
           targetsList: panel.querySelector('.addon-targets'),
           toggle: panel.querySelector('.addon-enabled'),
           deleteButton: panel.querySelector('.addon-delete'),
-          renameButton: panel.querySelector('.addon-rename')
+          renameButton: panel.querySelector('.addon-rename'),
+          obsoleteStatus: panel.querySelector('.addon-obsolete-status'),
+          obsoleteStatusInfo: panel.querySelector('.addon-obsolete-info')
         };
         this._details = AddonDetails(this._elements);
         this._boundOnAppEnabledChange = this._onAppEnabledChange.bind(this);

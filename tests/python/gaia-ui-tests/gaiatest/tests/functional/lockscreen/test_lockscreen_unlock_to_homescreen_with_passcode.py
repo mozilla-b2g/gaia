@@ -28,4 +28,4 @@ class TestLockScreen(PasscodeTestCase):
         lock_screen.switch_to_frame()
         homescreen = lock_screen.unlock_to_homescreen_using_passcode(self._input_passcode)
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
+        homescreen.wait_to_be_displayed()

@@ -271,6 +271,13 @@
       // and is ready to interact with.
       window.performance.mark('visuallyLoaded');
       window.performance.mark('contentInteractive');
+
+      // Remove the attribute to trigger gaia header font-fit logic, defer it
+      // til now to postpone the overhead.
+      var headers = document.querySelectorAll('gaia-header');
+      for (var i = 0; i < headers.length; ++i) {
+        headers[i].removeAttribute('no-font-fit');
+      }
     });
 
     // When all the thumbnails have been created, we can start a scan

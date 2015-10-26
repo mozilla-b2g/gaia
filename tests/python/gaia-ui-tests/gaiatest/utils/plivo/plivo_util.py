@@ -102,6 +102,16 @@ class PlivoUtil(object):
         if response[0] not in (204, 404):
             raise self.PlivoError('hangup_call', response)
 
+    def send_sms(self, to_number, message):
+        params = {
+            'src': self.from_number,
+            'dst': to_number,
+            'text': message
+        }
+        response = self.api.send_message(params)
+        if response[0] != 202:
+            raise self.PlivoError('send_message', response)
+
     class PlivoError(Exception):
         def __init__(self, method, response):
             message = 'Plivo API method %s failed with status: %s, details: %s' \

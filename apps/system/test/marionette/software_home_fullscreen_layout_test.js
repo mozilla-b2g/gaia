@@ -26,7 +26,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
   var home, system, actions, screenSize, shbSize;
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
     system.waitForFullyLoaded();
@@ -69,7 +69,6 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     var reflowHelper = new ReflowHelper(client);
     system.stopDevtools();
     system.stopClock();
-    system.stopStatusbar();
 
     assert.ok(system.softwareHomeFullscreenLayout.displayed());
 

@@ -17,6 +17,7 @@ var BrowserDialog = {
   focusElement: [],
   focusIndex: {x:0, y:0},
   defaultFocusIndex: {x:0, y:0},
+  deferredActions: new Map(),
 
   /** Get all elements when inited. */
   getAllElements: function dialog_getAllElements() {
@@ -89,6 +90,7 @@ var BrowserDialog = {
     this.dialogEvt = evt;
     this.browserDialogBase.style.display = 'block';
 
+    var promise;
     switch(type) {
       case 'del_cookie':
         opt = {
@@ -164,6 +166,22 @@ var BrowserDialog = {
         };
         break;
 
+      case 'signout_confirm':
+        opt = {
+          title: null,
+          msg: _('fxsync-confirm-disconnect'),
+          bt1: _('LT_CANCEL'),
+          bt2: _('fxsync-disconnect')
+        };
+        var deferred = {};
+        deferred.promise = new Promise(function(resolve, reject) {
+          deferred.resolve = resolve;
+          deferred.reject = reject;
+        });
+        promise = deferred.promise;
+        this.deferredActions.set('signout_confirm', deferred);
+        break;
+
       default:
         return;
     }
@@ -220,7 +238,7 @@ var BrowserDialog = {
       this.browserDialogInput.style.display = 'none';
     }
 
-    // initiarlize position
+    // initialize position
     countIndex = 0;
     if(opt.bt1 && opt.bt2) {
       this.defaultFocusIndex.x = 0;
@@ -238,6 +256,7 @@ var BrowserDialog = {
     }
     Awesomescreen.focusImgFunc(this.focusElement[this.focusIndex.x][this.focusIndex.y]);
     this.focusElement[this.focusIndex.x][this.focusIndex.y].focus();
+    return promise;
   },
 
   isDisplayed: function dialog_isDisplayed() {
@@ -266,9 +285,22 @@ var BrowserDialog = {
     }
   },
 
+  completeDeferredAction: function(type, resolution) {
+    if (!this.deferredActions.has(type)) {
+      return;
+    }
+    this.deferredActions.get(type)[resolution]();
+    this.deferredActions.delete(type);
+  },
+
   dialogButton1: function dialog_dialogButton1(evt) {
-    if( evt ) evt.preventDefault();
-    switch(this.browserDialogButton1.dataset.type) {
+    if (evt) {
+      evt.preventDefault();
+    }
+
+    var type = this.browserDialogButton1.dataset.type;
+
+    switch(type) {
       case 'del_cookie':
       case 'clear_history':
       case 'close_browser':
@@ -277,12 +309,15 @@ var BrowserDialog = {
       case 'alert':
       case 'prompt':
       case 'confirm':
+      case 'signout_confirm':
         this.dialogButton2End(evt.currentTarget);
         break;
 
       default:
-        break;
+        return;
     }
+
+    this.completeDeferredAction(type, 'reject');
   },
 
   dialogButton2End: function dialog_dialogButton2End(target) {
@@ -295,9 +330,13 @@ var BrowserDialog = {
   },
 
   dialogButton2: function dialog_dialogButton2(evt) {
-    if( evt ) evt.preventDefault();
+    if (evt) {
+      evt.preventDefault();
+    }
+
     this.argEvt = evt.currentTarget;
-    switch(this.browserDialogButton2.dataset.type) {
+    var type = this.browserDialogButton2.dataset.type;
+    switch (type) {
       case 'del_cookie':
         var request = navigator.mozApps.getSelf();
         request.onsuccess = function() {
@@ -348,7 +387,7 @@ var BrowserDialog = {
         break;
 
       case 'prompt':
-        if( this.dialogEvt != null ) {
+        if (this.dialogEvt != null) {
           this.dialogEvt.detail.returnValue = this.browserDialogInputArea.value;
           if (this.dialogEvt.detail.unblock) {
             this.dialogEvt.detail.unblock();
@@ -360,7 +399,7 @@ var BrowserDialog = {
         break;
 
       case 'confirm':
-        if( this.dialogEvt != null ) {
+        if (this.dialogEvt != null) {
           this.dialogEvt.detail.returnValue = true;
           if (this.dialogEvt.detail.unblock) {
             this.dialogEvt.detail.unblock();
@@ -371,9 +410,15 @@ var BrowserDialog = {
         this.dialogButton2End(this.argEvt);
         break;
 
+      case 'signout_confirm':
+        BrowserDialog.dialogButton2End(BrowserDialog.argEvt);
+        break;
+
       default:
         break;
     }
+
+    this.completeDeferredAction(type, 'resolve');
   },
 
   dialogInput: function dialog_dialogInput(evt) {

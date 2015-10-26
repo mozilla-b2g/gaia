@@ -1,19 +1,262 @@
 'use strict';
 
-/* global AdvancedTelemetry, MockasyncStorage, MockNavigatorSettings  */
+/* global AdvancedTelemetry, MockasyncStorage, MockNavigatorSettings, Gzip,
+   AdvancedTelemetryPing, MockLazyLoader */
 
 require('/shared/js/settings_listener.js');
 require('/shared/js/uuid.js');
 require('/shared/js/telemetry.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/js/gzip/gzip.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/js/advanced_telemetry.js');
 requireApp('system/js/app_usage_metrics.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 
 
 suite('AdvancedTelemetry:', function() {
   var realMozSettings, realOnLine, realPerformanceNow;
   var isOnLine = true;
+  var payloadOld = {
+    keyedHistograms: {
+      DEV_TOOLS_MEMORY: {
+        verticalhome: {
+          min: 1,
+          max: 1000,
+          histogram_type: 0,
+          sum: 58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        },
+        settings: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        }
+      },
+      DEV_TOOLS_STARTUP: {
+        verticalhome: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        },
+        settings: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        }
+      }
+    },
+    addonHistograms: {
+      COMM_SMS: {
+        min: 1,
+        max: 1000,
+        histogram_type:0,
+        sum:58,
+        log_sum: 10.935960054397583,
+        log_sum_squares: 29.95399808883667,
+        ranges: [0,1,2,5,12,29,70,170,412,1000],
+        counts:[0,0,0,0,4,0,0,0,0,0]
+      }
+    }
+  };
+
+  var payloadNew = {
+    keyedHistograms: {
+      DEV_TOOLS_MEMORY: {
+        verticalhome: {
+          min: 1,
+          max: 1000,
+          histogram_type: 0,
+          sum: 58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        },
+        settings: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        },
+        calendar: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        }
+      },
+      DEV_TOOLS_STARTUP: {
+        verticalhome: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        },
+        settings: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        }
+      },
+      DEV_TOOLS_JANK: {
+        verticalhome: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        },
+        settings: {
+          min: 1,
+          max: 1000,
+          histogram_type:0,
+          sum:58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]
+        }
+      }
+    },
+    addonHistograms: {
+      COMM_SMS: {
+        min: 1,
+        max: 1000,
+        histogram_type:0,
+        sum:58,
+        log_sum: 10.935960054397583,
+        log_sum_squares: 29.95399808883667,
+        ranges: [0,1,2,5,12,29,70,170,412,1000],
+        counts:[0,0,0,0,4,0,0,0,0,0]
+      },
+      COMM_DIALER: {
+        min: 1,
+        max: 1000,
+        histogram_type:0,
+        sum:58,
+        log_sum: 10.935960054397583,
+        log_sum_squares: 29.95399808883667,
+        ranges: [0,1,2,5,12,29,70,170,412,1000],
+        counts:[0,0,0,0,4,0,0,0,0,0]
+      }
+    }
+  };
+
+  var mergedPayload = {
+    keyedHistograms:{
+      DEV_TOOLS_MEMORY:{
+        verticalhome:{
+          min:1,max:1000,histogram_type:0,
+          sum:116,
+          log_sum:21.871920108795166,
+          log_sum_squares:59.90799617767334,
+          ranges:[0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,8,0,0,0,0,0]},
+        settings:{
+          min:1,max:1000,histogram_type:0,
+          sum:116,
+          log_sum:21.871920108795166,
+          log_sum_squares:59.90799617767334,
+          ranges:[0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,8,0,0,0,0,0]},
+        calendar:{
+          min:1,max:1000,histogram_type:0,
+          sum:58,
+          log_sum:10.935960054397583,
+          log_sum_squares:29.95399808883667,
+          ranges:[0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]}
+      },
+      DEV_TOOLS_STARTUP:{
+        verticalhome:{
+          min:1,max:1000,histogram_type:0,
+          sum:116,
+          log_sum:21.871920108795166,
+          log_sum_squares:59.90799617767334,
+          ranges:[0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,8,0,0,0,0,0]},
+        settings:{
+          min:1,max:1000,histogram_type:0,
+          sum:116,
+          log_sum:21.871920108795166,
+          log_sum_squares:59.90799617767334,
+          ranges:[0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,8,0,0,0,0,0]}
+      },
+      DEV_TOOLS_JANK:{
+        verticalhome:{
+          min:1,
+          max:1000,histogram_type:0,
+          sum:58,
+          log_sum:10.935960054397583,
+          log_sum_squares:29.95399808883667,
+          ranges:[0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]},
+        settings:{
+          min:1,max:1000,histogram_type:0,
+          sum:58,
+          log_sum:10.935960054397583,
+          log_sum_squares:29.95399808883667,
+          ranges:[0,1,2,5,12,29,70,170,412,1000],
+          counts:[0,0,0,0,4,0,0,0,0,0]}
+      }
+    },
+    addonHistograms:{
+      COMM_SMS:{
+        min:1,max:1000,histogram_type:0,
+        sum:116,
+        log_sum:21.871920108795166,
+        log_sum_squares:59.90799617767334,
+        ranges:[0,1,2,5,12,29,70,170,412,1000],
+        counts:[0,0,0,0,8,0,0,0,0,0]},
+      COMM_DIALER:{
+        min:1,max:1000,histogram_type:0,
+        sum:58,
+        log_sum:10.935960054397583,
+        log_sum_squares:29.95399808883667,
+        ranges:[0,1,2,5,12,29,70,170,412,1000],
+        counts:[0,0,0,0,4,0,0,0,0,0]}
+    }
+  };
 
   function navigatorOnLine() {
     return isOnLine;
@@ -27,6 +270,7 @@ suite('AdvancedTelemetry:', function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
+    window.LazyLoader = MockLazyLoader;
 
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
@@ -34,6 +278,12 @@ suite('AdvancedTelemetry:', function() {
       get: navigatorOnLine,
       set: setNavigatorOnLine
     });
+    navigator.addIdleObserver = function(o) {
+      setTimeout(function() {
+        o.onidle();
+      }, o.time * 1000);
+    };
+    navigator.removeIdleObserver = function() {};
 
     realPerformanceNow = window.performance.now;
     window.performance.now = function() { return Date.now(); };
@@ -53,13 +303,11 @@ suite('AdvancedTelemetry:', function() {
     window.performance.now = realPerformanceNow;
   });
 
-  teardown(function() {
-  });
-
   suite('Sending the Metrics:', function() {
     var at, clock, XHR, xhr, mockSettings;
     var transmitSpy;
     var wrapper;
+    var gzipCompressedData = new Uint8Array([1,2,3,4,5]);
 
     setup(function(done) {
       wrapper = {
@@ -114,6 +362,8 @@ suite('AdvancedTelemetry:', function() {
       clock = this.sinon.useFakeTimers();
       XHR = sinon.useFakeXMLHttpRequest();
       XHR.onCreate = function(instance) { xhr = instance; };
+      MockNavigatorSettings.mSetup();
+      MockNavigatorSettings.mSyncRepliesOnly = true;
       mockSettings = MockNavigatorSettings.mSettings;
       this.sinon.stub(window, 'uuid', function() {
         return 'uuid';
@@ -123,17 +373,21 @@ suite('AdvancedTelemetry:', function() {
       mockSettings['deviceinfo.platform_build_id'] = 'build';
       mockSettings['deviceinfo.platform_version'] = '43';
       mockSettings['app.update.channel'] = 'default';
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       at = new AdvancedTelemetry();
       at.start();
-      clock.tick();
+      at.startCollecting();
       done();
     });
 
     teardown(function() {
       transmitSpy.restore();
+      clock.restore();
+      window.uuid.restore();
       at.stop();
       XHR.restore();
+      MockasyncStorage.mTeardown();
+      MockNavigatorSettings.mTeardown();
     });
 
     function dispatch(detail) {
@@ -143,100 +397,227 @@ suite('AdvancedTelemetry:', function() {
     }
 
     test('advanced telemetry update should call transmit', function() {
-      dispatch({payload: wrapper.payload});
-      assert.equal(transmitSpy.callCount, 1);
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve(gzipCompressedData);
+      });
+      at.handleGeckoMessage(payloadNew.payload, function() {
+        MockNavigatorSettings.mReplyToRequests();
+        assert.equal(transmitSpy.callCount, 1);
+      });
     });
 
-    test('should not transmit if not online', function(done) {
+    test('should retry if not online', function(done) {
       isOnLine = false;
-
-      assert.equal(transmitSpy.callCount, 0);
-      dispatch({payload: wrapper.payload});
-      assert.equal(transmitSpy.callCount, 0);
-
-      done();
+      this.sinon.spy(AdvancedTelemetry.prototype, 'startRetryBatch');
+      this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
+      at.handleGeckoMessage(payloadNew.payload, function() {
+        MockNavigatorSettings.mReplyToRequests();
+        sinon.assert.calledOnce(AdvancedTelemetry.prototype.startRetryBatch);
+        sinon.assert.notCalled(AdvancedTelemetry.prototype.clearPayload);
+        done();
+      });
     });
 
     test('should create the XHR properly', function(done) {
-      dispatch({payload: wrapper.payload});
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve(gzipCompressedData);
+      });
 
-      assert.ok(xhr);
-      assert.equal(xhr.method, 'POST');
-      done();
+      isOnLine = true;
+      AdvancedTelemetryPing.prototype.send().then(function() {
+        MockNavigatorSettings.mReplyToRequests();
+        assert.ok(xhr);
+        assert.equal(xhr.method, 'POST');
+        done();
+      });
     });
 
     test('should format the URL properly', function(done) {
-      dispatch({payload: wrapper.payload});
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve(gzipCompressedData);
+      });
+      var deviceQuery = {
+        'deviceinfo.platform_version': '43',
+        'app.update.channel': 'default',
+        'deviceinfo.platform_build_id': '34'
+      };
 
-      // Check that the URL is properly formatted.
-      // URLformat:/id/reason/appName/appVersion/appUpdateChannel/appBuildID?v=4
-      var baseURL = AdvancedTelemetry.REPORT_URL;
-      assert.ok(xhr.url.indexOf(baseURL) === 0);
-
-      var path = xhr.url.substring(baseURL.length + 1).split('/');
-      assert.equal(path[0], 'uuid');
-      assert.equal(path[1], AdvancedTelemetry.REASON);
-      assert.equal(path[2], AdvancedTelemetry.TELEMETRY_APP_NAME);
-      assert.equal(path[3], '43');
-      assert.equal(path[4], 'default');
-      let version = path[5].split('?');
-      assert.equal(version[0], 'build');
-      assert.equal(version[1], 'v=4');
-      done();
+      var atp = new AdvancedTelemetryPing({id: '1234'}, deviceQuery);
+      atp.send().then(function() {
+        MockNavigatorSettings.mReplyToRequests();
+        // Check that the URL is properly formatted.
+        // URLformat:/id/reason/appName/appVersion/appUpdateChannel/appBuildID?v=4
+        var baseURL = AdvancedTelemetry.REPORT_URL;
+        assert.ok(xhr.url.indexOf(baseURL) === 0);
+        var path = xhr.url.substring(baseURL.length + 1).split('/');
+        assert.equal(path[0], '1234');
+        assert.equal(path[1], AdvancedTelemetry.REASON);
+        assert.equal(path[2], AdvancedTelemetry.TELEMETRY_APP_NAME);
+        assert.equal(path[3], '43');
+        assert.equal(path[4], 'default');
+        let version = path[5].split('?');
+        assert.equal(version[0], '34');
+        assert.equal(version[1], 'v=4');
+        done();
+      });
     });
 
     test('should format the body properly', function(done) {
-      dispatch({payload: wrapper.payload});
-      var req = JSON.parse(xhr.requestBody);
-      assert.ok(req);
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve(gzipCompressedData);
+      });
+      at.handleGeckoMessage(wrapper.payload, function() {
+        MockNavigatorSettings.mReplyToRequests();
+        var req = JSON.parse(at.request.data);
+        assert.ok(req);
 
-      assert.equal(req.type, wrapper.type);
-      assert.equal(req.id, wrapper.id);
-      assert.equal(req.creationDate, wrapper.creationDate);
-      assert.equal(req.version, wrapper.version);
-      assert.equal(req.clientId, wrapper.clientId);
+        assert.equal(req.type, wrapper.type);
+        assert.equal(req.id, wrapper.id);
+        assert.equal(req.creationDate, wrapper.creationDate);
+        assert.equal(req.version, wrapper.version);
+        assert.equal(req.clientId, wrapper.clientId);
 
-      // Verify the application object picked up the settings correctly.
-      assert.deepEqual(req.application, wrapper.application);
-      // Verify that the Histograms are intact.
-      assert.deepEqual(req.payload.payload, wrapper.payload);
-      done();
+        // Verify the application object picked up the settings correctly.
+        assert.deepEqual(req.application, wrapper.application);
+        // Verify that the Histograms are intact.
+        assert.deepEqual(req.payload, wrapper.payload);
+
+        done();
+      });
     });
 
-    test('should refresh the payload on a timeout retry', function(done) {
+    test('advanced telemetry should gzip compression payload', function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve(gzipCompressedData);
+      });
+
+      this.sinon.stub(AdvancedTelemetryPing.prototype, 'post', function() {
+        return Promise.resolve();
+      });
+
+      // Even though `getData` is being stubbed, since `gzip.compress` is
+      // stubbed to resolve compressed data, `post` should be called with
+      // the compressed data.
+      this.sinon.stub(AdvancedTelemetryPing.prototype, 'getData', function() {
+        return JSON.parse(JSON.stringify(wrapper.payload));
+      });
+
+      AdvancedTelemetryPing.prototype.send().then(function() {
+        MockNavigatorSettings.mReplyToRequests();
+        // `post` should be called with the compressed data
+        sinon.assert.calledOnce(AdvancedTelemetryPing.prototype.post);
+        sinon.deepEqual(
+          AdvancedTelemetryPing.prototype.post.getCall(0).args[1],
+          gzipCompressedData);
+        done();
+      });
+    });
+
+    test('advanced telemetry should handle gzip compression failure',
+      function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.reject('compress error');
+      });
+
+      this.sinon.stub(AdvancedTelemetryPing.prototype, 'post', function() {
+        return Promise.resolve();
+      });
+
+      // `gzip.compress` is stubbed to "reject" therefore `post` should be
+      // called with the original, uncompressed payload.
+      this.sinon.stub(AdvancedTelemetryPing.prototype, 'getData', function() {
+        return JSON.parse(JSON.stringify(wrapper.payload));
+      });
+
+      AdvancedTelemetryPing.prototype.send().then(function() {
+        MockNavigatorSettings.mReplyToRequests();
+        // `post` should be called with the uncompressed payload
+        sinon.assert.calledOnce(AdvancedTelemetryPing.prototype.post);
+        sinon.deepEqual(
+          AdvancedTelemetryPing.prototype.post.getCall(0).args[1],
+          wrapper.payload);
+        done();
+      });
+    });
+
+    test('should retry on a timeout error', function(done) {
+      var retryspy = this.sinon.spy(window, 'setTimeout');
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve(gzipCompressedData);
+      });
       this.sinon.stub(console, 'info').returns(0);
-      this.sinon.spy(AdvancedTelemetry.prototype, 'getPayload');
       dispatch({payload: wrapper.payload});
 
       // Simulate a timeout
-      sinon.assert.notCalled(AdvancedTelemetry.prototype.getPayload);
       xhr.ontimeout(new CustomEvent('timeout'));
-      sinon.assert.calledOnce(AdvancedTelemetry.prototype.getPayload);
+      assert.equal(retryspy.getCall(0).args[1],
+        AdvancedTelemetry.RETRY_INTERVAL);
       done();
     });
 
-    test('should refresh the payload after failed transmit', function(done) {
-      this.sinon.spy(AdvancedTelemetry.prototype, 'getPayload');
+    test('should retry interval after failed transmit', function(done) {
+      var retryspy = this.sinon.spy(window, 'setTimeout');
       this.sinon.stub(console, 'info').returns(0);
       dispatch({payload: wrapper.payload});
 
       // Simulate a timeout
-      sinon.assert.notCalled(AdvancedTelemetry.prototype.getPayload);
       xhr.ontimeout(new CustomEvent('error'));
-      sinon.assert.calledOnce(AdvancedTelemetry.prototype.getPayload);
+      assert.equal(retryspy.getCall(0).args[1],
+        AdvancedTelemetry.RETRY_INTERVAL);
       done();
     });
 
     test('should clear out the payload after a successful transmit',
     function(done) {
+      this.sinon.stub(Gzip, 'compress', function() {
+        return Promise.resolve(gzipCompressedData);
+      });
       this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
       this.sinon.stub(console, 'info').returns(0);
-      dispatch({payload: wrapper.payload});
+      at.handleGeckoMessage(wrapper.payload, function() {
+        // Simulate a successful send
+        xhr.onload(new CustomEvent('load'));
+        MockNavigatorSettings.mReplyToRequests();
+        sinon.assert.calledOnce(AdvancedTelemetry.prototype.clearPayload);
+        done();
+      });
+    });
 
-      // Simulate a successful send
-      xhr.onload(new CustomEvent('load'));
-      sinon.assert.calledOnce(AdvancedTelemetry.prototype.clearPayload);
-      done();
+    test('should clear out the payload after a successful merge',
+    function(done) {
+      this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
+      this.sinon.stub(console, 'info').returns(0);
+      at.merge = true;
+      at.handleGeckoMessage(wrapper.payload, function() {
+        sinon.assert.calledOnce(AdvancedTelemetry.prototype.clearPayload);
+        sinon.assert.calledWith(AdvancedTelemetry.prototype.clearPayload,
+          false);
+        done();
+      });
+    });
+
+    test('should NOT clear out the payload after a failed transmit',
+    function(done) {
+      this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
+      this.sinon.stub(console, 'info').returns(0);
+      at.handleGeckoMessage(wrapper.payload, function() {
+        // Simulate an error
+        xhr.ontimeout(new CustomEvent('error'));
+        sinon.assert.notCalled(AdvancedTelemetry.prototype.clearPayload);
+        done();
+      });
+    });
+
+    test('should NOT clear out the payload after a transmit timeout',
+    function(done) {
+      this.sinon.spy(AdvancedTelemetry.prototype, 'clearPayload');
+      this.sinon.stub(console, 'info').returns(0);
+      at.handleGeckoMessage(wrapper.payload, function() {
+        // Simulate a timeout
+        xhr.ontimeout(new CustomEvent('timeout'));
+        sinon.assert.notCalled(AdvancedTelemetry.prototype.clearPayload);
+        done();
+      });
     });
   });
 
@@ -244,6 +625,7 @@ suite('AdvancedTelemetry:', function() {
     var mockSettings, at, clock;
 
     setup(function() {
+      MockNavigatorSettings.mSetup();
       mockSettings = MockNavigatorSettings.mSettings;
       clock = this.sinon.useFakeTimers();
       this.sinon.spy(AdvancedTelemetry.prototype, 'startCollecting');
@@ -255,10 +637,11 @@ suite('AdvancedTelemetry:', function() {
     teardown(function() {
       at.stop();
       clock.tick();
+      MockNavigatorSettings.mTeardown();
     });
 
     test('starts immediately if enabled', function(done) {
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       at.start();
       clock.tick();
 
@@ -268,7 +651,7 @@ suite('AdvancedTelemetry:', function() {
     });
 
     test('does not start if not enabled', function(done) {
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'None';
       at.start();
       clock.tick();
 
@@ -278,22 +661,22 @@ suite('AdvancedTelemetry:', function() {
     });
 
     test('starts when enabled', function(done) {
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'None';
 
       at.start();
       clock.tick();
       sinon.assert.calledOnce(AdvancedTelemetry.prototype.stopCollecting);
       sinon.assert.notCalled(AdvancedTelemetry.prototype.startCollecting);
 
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: 'Enhanced' });
       clock.tick();
       sinon.assert.calledOnce(AdvancedTelemetry.prototype.startCollecting);
 
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'None';
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: false });
+        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: 'None' });
       clock.tick();
 
       done(sinon.assert.calledTwice(
@@ -301,21 +684,21 @@ suite('AdvancedTelemetry:', function() {
     });
 
     test('stops when disabled and starts again', function(done) {
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       at.start();
       clock.tick();
       sinon.assert.notCalled(AdvancedTelemetry.prototype.stopCollecting);
       sinon.assert.calledOnce(AdvancedTelemetry.prototype.startCollecting);
 
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'None';
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: false });
+        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: 'None' });
       clock.tick();
       sinon.assert.calledOnce(AdvancedTelemetry.prototype.stopCollecting);
 
-      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AdvancedTelemetry.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       MockNavigatorSettings.mTriggerObservers(
-        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: true });
+        AdvancedTelemetry.TELEMETRY_ENABLED_KEY, { settingValue: 'Enhanced' });
       clock.tick();
       sinon.assert.calledTwice(AdvancedTelemetry.prototype.startCollecting);
       done();
@@ -392,6 +775,52 @@ suite('AdvancedTelemetry:', function() {
         assert.equal(bt.getInterval(), AdvancedTelemetry.REPORT_INTERVAL);
         done();
       });
+    });
+  });
+
+  suite('Merging Metrics:', function() {
+    var mockSettings, at, clock;
+    // The old, and new payloads are setup to make sure that the merged
+    // payload properly reflects: 1) An item in the old that is not in the new,
+    // 2) An item in the new that is not in the old, and 3) the addition of the
+    // histogram elements is done correctly for sum, log_sum, and
+    // log_sum_squares.
+
+    setup(function() {
+      mockSettings = MockNavigatorSettings.mSettings;
+      clock = this.sinon.useFakeTimers();
+      this.sinon.spy(MockasyncStorage, 'setItem');
+      this.sinon.spy(AdvancedTelemetry.prototype, 'transmit');
+      at = new AdvancedTelemetry();
+      clock.tick();
+    });
+
+    teardown(function(done) {
+      at.stop();
+      clock.tick();
+      MockasyncStorage.mTeardown();
+      done();
+    });
+
+    test('should merge correctly with no previous metrics', function() {
+      at.mergeMetrics(payloadNew);
+      sinon.assert.calledOnce(MockasyncStorage.setItem);
+      // The calledWith does a deepEqual check on all the JSON elements.
+      sinon.assert.calledWith(MockasyncStorage.setItem,
+        AdvancedTelemetry.METRICS_KEY, payloadNew);
+    });
+
+    test('should merge correct with metrics with existing metrics', function() {
+      // Make a clone so we don't modify it for subsequent tests.
+      var cloneOldPayload = JSON.parse(JSON.stringify(payloadOld));
+
+      MockasyncStorage.setItem(AdvancedTelemetry.METRICS_KEY, cloneOldPayload);
+      at.mergeMetrics(payloadNew);
+      // Called once above for test setup.
+      sinon.assert.calledTwice(MockasyncStorage.setItem);
+      // The calledWith does a deepEqual check on all the JSON elements.
+      sinon.assert.calledWith(MockasyncStorage.setItem,
+        AdvancedTelemetry.METRICS_KEY, mergedPayload);
     });
   });
 });

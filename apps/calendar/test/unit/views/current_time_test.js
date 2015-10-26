@@ -1,5 +1,8 @@
+/* global MockMozIntl */
 define(function(require) {
 'use strict';
+
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 var CurrentTime = require('views/current_time');
 
@@ -7,6 +10,12 @@ suite('Views.CurrentTime', function() {
   var subject;
   var container;
   var timespan;
+  var realMozIntl;
+
+  suiteSetup(function() {
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
+  });
 
   setup(function() {
     var startOfDay = new Date();
@@ -30,6 +39,10 @@ suite('Views.CurrentTime', function() {
     };
 
     subject = new CurrentTime({ container: container, timespan: timespan });
+  });
+
+  suiteTeardown(function() {
+    window.mozIntl = realMozIntl;
   });
 
   suite('#_create', function() {
@@ -182,14 +195,14 @@ suite('Views.CurrentTime', function() {
       assert.deepEqual(
         subject.element,
         {
-          textContent: '05:15',
+          textContent: '5:15 AM',
           style: {
             top: '21.875%'
           },
           id: 'current-time-indicator',
           dataset: {
             date: date,
-            l10nDateFormat: 'current-time24'
+            l10nDateFormat: 'current-time'
           }
         }
       );

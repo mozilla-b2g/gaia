@@ -15,8 +15,8 @@
         "provisionerId": "aws-provisioner-v1",
         "workerType": "gaia-decision",
         "scopes": [
-          "docker-worker:cache:tc-vcs",
-          "docker-worker:cache:linux-cache",
+          "docker-worker:cache:gaia-tc-vcs",
+          "docker-worker:cache:gaia-linux-cache",
           "docker-worker:cache:gaia-misc-caches",
           "docker-worker:image:quay.io/mozilla/raptor-tester:latest",
           "queue:define-task:aws-provisioner/gaia",
@@ -25,10 +25,10 @@
         "payload": {
           "cache": {
             "gaia-misc-caches": "/home/worker/caches/",
-            "tc-vcs":"/home/worker/.tc-vcs",
-            "linux-cache":"/home/worker/.cache"
+            "gaia-tc-vcs":"/home/worker/.tc-vcs",
+            "gaia-linux-cache":"/home/worker/.cache"
           },
-          "image": "taskcluster/gaia-taskenv:1.2.0",
+          "image": "taskcluster/gaia-taskenv:1.2.1",
           "command": [
             "entrypoint",
             "echo 'what' && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"

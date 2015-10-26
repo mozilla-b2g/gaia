@@ -1,0 +1,177 @@
+html {
+  font-size: 10px;
+  /* We have Fira Sans as default font in real device. But it isn't default in
+   * browser. That's the main reason this line is here.*/
+  font-family: "Fira Sans";
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: #ccc;
+}
+
+section {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 4rem 6rem;
+}
+
+h1 {
+  margin: 0 0 1rem 0;
+  font-size: 4rem;
+  font-style: italic;
+}
+
+#settings-section {
+  background: #ccc;
+  display: none;
+}
+
+#settings-section.visible {
+  display: block;
+}
+
+#settings-icon {
+  position: absolute;
+  right: 6rem;
+  top: 4rem;
+  width: 5rem;
+  height: 5rem;
+  background-color: gray;
+  border-radius: 50%;
+  display: none;
+}
+
+#settings-icon.visible {
+  display: block;
+}
+
+#instruction p {
+  font-size: 2rem;
+  margin: 0.6rem 0;
+}
+
+#location {
+  margin-top: 20rem;
+  text-align: center;
+  display: none;
+}
+
+#location > div {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.error-message {
+  margin-top: 30rem;
+  font-size: 3rem;
+  display: none;
+}
+
+#location.visible, .error-message.visible {
+  display: block;
+}
+
+#ip {
+  font-size: 8rem;
+  margin-right: 20rem;
+}
+
+#qrcode {
+  background-color: white;
+  padding: 1.2rem;
+}
+
+#qrcode-image {
+  width: 256px;
+  height: 256px;
+}
+
+.focusable:focus {
+  outline: 0.8rem solid yellow;
+}
+
+#big-qrcode {
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: none;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+
+#big-qrcode.visible {
+  display: flex;
+}
+
+#big-qrcode-container {
+  padding: 1.8rem;
+  background-color: white;
+  display: inline-block;
+}
+
+#big-qrcode-image {
+  width: 700px;
+  height: 700px;
+  background-color: white;
+}
+
+#option-list {
+  font-size: 3rem;
+  margin: 12rem 0 0 35rem;
+}
+
+.option-item {
+  margin-bottom: 8rem;
+}
+
+.option-radio, .option-content {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.option-radio {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.option-radio.checked {
+  background-color: red;
+  border: 0.5rem solid white;
+}
+
+.option-content {
+  margin-left: 2rem;
+}
+
+.option-content .description {
+  margin-top: 1.5rem;
+  font-size: 2.2rem;
+}
+
+#clear-authorized-devices {
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  font-size: 2.2rem;
+}
+
+.lower-right-button {
+  position: absolute;
+  right: 6rem;
+  bottom: 4rem;
+  font-size: 3rem;
+  background-color: gray;
+  color: white;
+  padding: 1.5rem 10rem;
+}
