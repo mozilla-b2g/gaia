@@ -410,7 +410,7 @@ HTMLOptimizer.prototype.writeAggregatedContent = function(group, groupName, last
 
   var scriptElement = this.document.createElement('script');
 
-  scriptElement.setAttribute('type', 'text/javascript');
+  scriptElement.setAttribute('type', 'text/javascript;version=1.8');
   if (group.type) {
     scriptElement.setAttribute(group.type, group.type);
   }
