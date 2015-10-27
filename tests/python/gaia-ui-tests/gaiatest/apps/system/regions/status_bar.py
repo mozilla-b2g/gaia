@@ -16,11 +16,14 @@ class StatusBar(PageRegion):
 
     @property
     def height(self):
-        return self.root_element.rect['height']
+        if self.is_displayed:
+            return self.root_element.rect['height']
+        else:
+            return 0
 
     @property
     def is_displayed(self):
-        return self.root_element.is_displayed()
+        return self.root_element.is_displayed() and self.root_element.rect['y'] == 0
 
     @property
     def is_status_bar_maximized_wrapper_a11y_hidden(self):
