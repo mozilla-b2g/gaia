@@ -19,6 +19,7 @@
 /* global MockNavigatormozSetMessageHandler */
 /* global MockNavigatorSettings */
 /* global MockService */
+/* global SyncManager */
 /* global SyncRecoverableErrors */
 
 requireApp('system/js/service.js');
@@ -458,6 +459,7 @@ suite('system/SyncManager >', () => {
     var trySyncError;
     var getAccountStub;
     var addEventListenerSpy;
+    var saveDefaultSettingsStub;
 
     suiteSetup(() => {
       syncManager = BaseModule.instantiate('SyncManager');
@@ -491,6 +493,11 @@ suite('system/SyncManager >', () => {
       getAccountStub = this.sinon.stub(syncManager, 'getAccount', () => {
         return Promise.resolve();
       });
+      saveDefaultSettingsStub = this.sinon.stub(syncManager,
+                                                'saveDefaultSettings',
+                                                () => {
+        return Promise.resolve();
+      });
     });
 
     teardown(() => {
@@ -501,6 +508,7 @@ suite('system/SyncManager >', () => {
       getKeysStub.restore();
       trySyncStub.restore();
       getAccountStub.restore();
+      saveDefaultSettingsStub.restore();
     });
 
     test('onsyncenabling received - success', done => {
@@ -1475,6 +1483,98 @@ suite('system/SyncManager >', () => {
       });
       setTimeout(() => {
         assert.ok(requestStub.calledOnce);
+      });
+    });
+  });
+
+  suite('Default settings', () => {
+    var syncManager;
+    var successDeferred = {
+      fulfilled: false
+    };
+    successDeferred.promise = new Promise(resolve => {
+      successDeferred.resolve = () => {
+        successDeferred.fulfilled = true;
+        resolve();
+      };
+    });
+
+    var disableSuccessDeferred = {};
+    disableSuccessDeferred.promise = new Promise(resolve => {
+      disableSuccessDeferred.resolve = resolve;
+    });
+
+    var _defaults = {};
+
+    var promiseResolve = () => {
+      return Promise.resolve();
+    };
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+
+      this.sinon.stub(syncManager, 'updateState', () => {
+        syncManager.updateStateDeferred = Promise.resolve();
+      });
+
+      this.sinon.stub(syncManager, 'getAssertion', promiseResolve);
+      this.sinon.stub(syncManager, 'getKeys', promiseResolve);
+      this.sinon.stub(syncManager, 'trySync', promiseResolve);
+      this.sinon.stub(syncManager, 'getAccount', promiseResolve);
+      this.sinon.stub(MockService, 'request', (what) => {
+        if (what !== 'SyncStateMachine:success') {
+          return;
+        }
+        successDeferred.fulfilled ? disableSuccessDeferred.resolve()
+                                  : successDeferred.resolve();
+      });
+
+      SyncManager.SETTINGS.forEach(setting => {
+        _defaults[setting] = Date.now();
+        MockNavigatorSettings.mSettings[setting] = _defaults[setting];
+        syncManager._settings[setting] = _defaults[setting];
+      });
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+    });
+
+    test('should save and restore default settings on login/logout', done => {
+      window.dispatchEvent(new CustomEvent('onsyncenabling'));
+      successDeferred.promise.then(() => {
+        return Promise.all(SyncManager.SETTINGS.map(setting => {
+          return new Promise(resolve => {
+            asyncStorage.getItem(setting, value => {
+              expect(value).to.equal(_defaults[setting]);
+              resolve();
+            });
+          });
+        }));
+      }).then(() => {
+        return Promise.all(SyncManager.SETTINGS.map(setting => {
+          return new Promise(resolve => {
+            MockNavigatorSettings.mSettings[setting] = Date.now();
+            resolve();
+          });
+        }));
+      }).then(() => {
+        window.dispatchEvent(new CustomEvent('onsyncdisabling'));
+        return disableSuccessDeferred.promise;
+      }).then(() => {
+        return Promise.all(SyncManager.SETTINGS.map(setting => {
+          return new Promise(resolve => {
+            asyncStorage.getItem(setting, value => {
+              expect(value).to.equal(null);
+              expect(MockNavigatorSettings.mSettings[setting])
+                .to.equal(_defaults[setting]);
+              resolve();
+            });
+          });
+        }));
+      }).then(() => {
+        done();
       });
     });
   });

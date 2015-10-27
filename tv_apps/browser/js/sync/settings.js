@@ -101,6 +101,7 @@
           onchange: 'onhistorychange'
         }].forEach(setting => {
           SettingsListener.observe(setting.name, true, enabled => {
+            debug(setting.name + ' changed to ' + enabled);
             enabled ? this.collections.set(setting.name, enabled)
                     : this.collections.delete(setting.name);
             this[setting.onchange]();
@@ -122,6 +123,7 @@
     },
 
     refresh() {
+      debug('Refreshing');
       SyncManagerBridge.getInfo().then(this.onsyncchange.bind(this));
     },
 
@@ -224,14 +226,29 @@
     },
 
     onbookmarkschange() {
+      debug('onbookmarkschange');
+      var needsCleanup;
       if (!this.elements.collectionBookmarks) {
-        return;
+        // We may observe a setting change once we already disabled Sync
+        // because the Sync Manager is reverting user preference changes to
+        // the default ones. In that case, we need to create the object
+        // briefly, so we can update the DOM accordingly.
+        this.elements.collectionBookmarks = this.area.querySelector(
+          '#fxsync-collection-bookmarks'
+        );
+        needsCleanup = true;
       }
+
       this.elements.collectionBookmarks.checked =
         this.collections.has(BOOKMARKS_SETTING);
+
+      if (needsCleanup) {
+        this.elements.collectionBookmarks = null;
+      }
     },
 
     onbookmarkschecked() {
+      debug('onbookmarkschecked');
       var checked = this.elements.collectionBookmarks.checked;
       checked ? this.collections.set(BOOKMARKS_SETTING, true)
               : this.collections.delete(BOOKMARKS_SETTING);
@@ -241,14 +258,29 @@
     },
 
     onhistorychange() {
-      if (!this.elements.collectionBookmarks) {
-        return;
+      debug('onhistorychange');
+      var needsCleanup;
+      if (!this.elements.collectionHistory) {
+        // We may observe a setting change once we already disabled Sync
+        // because the Sync Manager is reverting user preference changes to
+        // the default ones. In that case, we need to create the object
+        // briefly, so we can update the DOM accordingly.
+        this.elements.collectionHistory = this.area.querySelector(
+          '#fxsync-collection-history'
+        );
+        needsCleanup = true;
       }
+
       this.elements.collectionHistory.checked =
         this.collections.has(HISTORY_SETTING);
+
+      if (needsCleanup) {
+        this.elements.collectionHistory = null;
+      }
     },
 
     onhistorychecked() {
+      debug('onhistorychecked');
       var checked = this.elements.collectionHistory.checked;
       if (!checked) {
         this.collections.delete(HISTORY_SETTING);
@@ -262,6 +294,13 @@
         navigator.mozId.watch({
           wantIssuer: 'firefox-accounts',
           onlogin: () => {
+            // This callback is fired every time a new account logs in,
+            // but we only want to enable the history setting when this
+            // callback is called because the refresh auth flow succeeded.
+            // This can happen only if Sync is already enabled.
+            if (this.state !== 'enabled') {
+              return;
+            }
             this.collections.set(HISTORY_SETTING, true);
             navigator.mozSettings.createLock().set({
               'sync.collections.history.enabled': checked
@@ -327,6 +366,11 @@
         if (!this.listeners.has(name)) {
           return;
         }
+
+        if (this.elements[name].checked) {
+          this.elements[name].checked = false;
+        }
+
         this.removeListener(this.elements[name],
                             element.event, this.listeners.get(name));
         this.listeners.delete(name);
@@ -365,6 +409,9 @@
     disableSyncNowAndCollections(disabled) {
       ['collectionBookmarks',
        'collectionHistory'].forEach(name => {
+        if (!this.elements[name]) {
+          return;
+        }
         this.elements[name].disabled = disabled;
       });
       disabled ? this.elements.syncNowButton.classList.add('disabled')
