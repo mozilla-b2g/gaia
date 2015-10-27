@@ -1,4 +1,4 @@
-/* global View, Sanitizer */
+/* global View, Sanitizer, LazyLoader */
 'use strict';
 
 var HomeView = View.extend(function HomeView() {
@@ -6,44 +6,63 @@ var HomeView = View.extend(function HomeView() {
 
   this.thumbnailCache = {};
 
-  this.searchBox = document.getElementById('search-box');
-  this.searchResults = document.getElementById('search-results');
   this.tiles = document.getElementById('tiles');
 
-  var loadTile = (tile) => {
-    if (tile.dataset.loaded) {
-      return;
+  this.tiles.addEventListener('click', (evt) => {
+    var link = evt.target.closest('a[data-file-path]');
+    if (link) {
+      this.queueAlbum(link.dataset.filePath);
     }
+  });
 
-    this.getThumbnail(tile.dataset.filePath).then((url) => {
-      var img = tile.querySelector('img');
-      img.src = url;
+  this.onScroll = debounce(this.loadVisibleImages.bind(this), 500);
+  window.addEventListener('scroll', () => this.onScroll());
+  this.client.on('databaseChange', () => this.update());
 
-      tile.dataset.loaded = true;
-    });
-  };
+  // Two phase setup prevents non-critical
+  // work blocking getting content on the screen
+  this.update()
+    .then(() => this.lazyLoadScripts());
+});
 
-  this.onScroll = debounce((scrollTop) => {
-    var scrollBottom = scrollTop + window.innerHeight;
+/**
+ * List of scripts that can be
+ * lazy-loaded after the critical
+ * path has completed.
+ *
+ * @type {Array}
+ */
+HomeView.prototype.nonCriticalScripts = [
+  '/components/dom-scheduler/lib/dom-scheduler.js',
+  '/components/fast-list/fast-list.js',
+  '/components/poplar/poplar.js',
+  '/components/gaia-component/gaia-component.js',
+  '/components/gaia-fast-list/gaia-fast-list.js',
+  '/components/gaia-sub-header/gaia-sub-header.js',
+  '/elements/music-search-box.js',
+  '/elements/music-search-results.js'
+];
 
-    var tiles = this.tiles.querySelectorAll('.tile');
-    var lastTileVisible = false;
-    var tile, tileOffset;
-    for (var i = 0, length = tiles.length; i < length; i++) {
-      tile = tiles[i];
-      tileOffset = tile.offsetTop;
+/**
+ * Setup everything that is not
+ * critical for first-paint.
+ *
+ * @return {Promise}
+ */
+HomeView.prototype.lazyLoadScripts = function() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      LazyLoader.load(this.nonCriticalScripts).then(() => {
+        this.setupSearch();
+        resolve();
+      });
+    }, 500);
+  });
+};
 
-      if (scrollTop <= tileOffset && tileOffset <= scrollBottom) {
-        lastTileVisible = true;
-
-        loadTile(tile);
-      }
-
-      else if (lastTileVisible) {
-        return;
-      }
-    }
-  }, 500);
+HomeView.prototype.setupSearch = function() {
+  this.searchBox = document.getElementById('search-box');
+  this.searchResults = document.getElementById('search-results');
 
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
@@ -69,28 +88,62 @@ var HomeView = View.extend(function HomeView() {
     }
   });
 
-  this.tiles.addEventListener('click', (evt) => {
-    var link = evt.target.closest('a[data-file-path]');
-    if (link) {
-      this.queueAlbum(link.dataset.filePath);
-    }
-  });
-
-  window.addEventListener('scroll', evt => this.onScroll(evt.pageY));
-
-  window.scrollTo(0, this.searchBox.HEIGHT);
-
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
-
-  this.client.on('databaseChange', () => this.update());
-
-  this.update();
-});
+  window.scrollTo(0, this.searchBox.HEIGHT);
+};
 
 HomeView.prototype.update = function() {
-  this.getAlbums().then((albums) => {
+  return this.getAlbums().then((albums) => {
     this.albums = albums;
-    this.render();
+    return this.render();
+  });
+};
+
+HomeView.prototype.loadVisibleImages = function() {
+  var scrollTop = window.scrollY;
+  var scrollBottom = scrollTop + window.innerHeight;
+  var promises = [];
+
+  var tiles = this.tiles.querySelectorAll('.tile');
+  var lastTileVisible = false;
+  var tile, tileOffset;
+
+  for (var i = 0, length = tiles.length; i < length; i++) {
+    tile = tiles[i];
+    tileOffset = tile.offsetTop;
+
+    if (scrollTop <= tileOffset && tileOffset <= scrollBottom) {
+      lastTileVisible = true;
+      promises.push(this.loadTile(tile));
+    }
+
+    else if (lastTileVisible) {
+      break;
+    }
+  }
+
+  return Promise.all(promises);
+};
+
+HomeView.prototype.loadTile = function(tile) {
+  return new Promise((resolve) => {
+    if (tile.dataset.loaded) {
+      return;
+    }
+
+    this.getThumbnail(tile.dataset.filePath).then((url) => {
+      var img = tile.querySelector('img');
+      img.src = url;
+      tile.dataset.loaded = true;
+      img.onload = () => {
+        setTimeout(() => {
+          requestAnimationFrame(() => {
+            img.classList.add('loaded');
+            resolve();
+          });
+        });
+      };
+    });
   });
 };
 
@@ -122,8 +175,7 @@ Sanitizer.createSafeHTML `<a class="tile"
     });
 
     this.tiles.innerHTML = Sanitizer.unwrapSafeHTML(...html);
-
-    this.onScroll(window.scrollY);
+    return this.loadVisibleImages();
   });
 };
 
