@@ -14,5 +14,6 @@ var MockNavigation = {
   setReady: () => {},
   on: () => {},
   off: () => {},
-  once: () => {}
+  once: () => {},
+  hasPendingInit: () => {}
 };

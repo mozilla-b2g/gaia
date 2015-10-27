@@ -270,11 +270,14 @@
 
         //Validate if message still exists before opening message thread
         //See issue https://bugzilla.mozilla.org/show_bug.cgi?id=837029
-        return Utils.onceDocumentIsVisible().then(
-          () => MessageManager.getMessage(id)
-        ).then(
+        return MessageManager.getMessage(id).then(
           (message) => Navigation.toPanel('thread', { id: message.threadId }),
-          () => Utils.alert('deleted-sms')
+          () => {
+            if (Navigation.hasPendingInit()) {
+              Navigation.init();
+            }
+            Utils.alert('deleted-sms');
+          }
         );
       });
     },
@@ -329,6 +332,13 @@
       // Conversation view to the user, we remove that notification from the
       // tray that causes the second system message with "clicked" set to false.
       if (!notification.clicked || !notification.data) {
+        // Force closing the window for notification removal case
+        // because navigation didn't init correctly if pending notification
+        // message existed.
+        if (Navigation.hasPendingInit()) {
+          window.close();
+          return Promise.reject(new Error('Notification has been dismissed.'));
+        }
         return Promise.resolve();
       }
 

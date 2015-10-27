@@ -60,6 +60,8 @@ marionette('Message notification tests', function() {
       // Switch to messages so that it's able to remove notification.
       messagesApp.switchTo();
       storage.setMessagesStorage(messagesStorage);
+      // Make sure we enter conversation view directly.
+      assert.equal(messagesApp.getActivePanelName(), 'ConversationView');
 
       // Verify that notification has been removed.
       client.switchToFrame();
