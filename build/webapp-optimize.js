@@ -12,6 +12,7 @@
 
 var utils = require('./utils');
 var jsmin = require('./jsmin');
+var UglifyJS = require('./uglify');
 
 // We need to be able to run in node 0.10, 0.12 and in XPC
 var CrossCompatPromise = typeof Promise === 'undefined' ?
@@ -35,6 +36,7 @@ var HTMLOptimizer = function(options) {
   this.document = utils.getDocument(utils.getFileContent(this.htmlFile));
   this.locales = options.locales;
   this.optimizeConfig = options.optimizeConfig;
+  this.resourceDependencies = options.resourceDependencies;
 
   this.l10n = l20n.getView(this);
 
@@ -51,19 +53,29 @@ HTMLOptimizer.prototype.dump = function(str) {
   utils.log(fileName, str);
 };
 
+HTMLOptimizer.prototype.collectResources = function() {
+  utils.log(this.htmlFile.path);
+  var doc = this.document;
+  var scripts = Array.prototype.slice.call(
+    doc.head.querySelectorAll('script[src]'));
+
+  scripts.forEach(script => {
+    var scriptFile = this.getFileByRelativePath(script.src);
+    this.resourceDependencies['js'][scriptFile.file.path].push(
+      this.htmlFile.path);
+  });
+};
+
 HTMLOptimizer.prototype.process = function() {
   var queue = CrossCompatPromise.resolve();
-
-  // only optimize files which are l10n-enabled
-  if (!this.l10n.isEnabled) {
-    return queue;
-  }
 
   this.embedHtmlImports();
   this.optimizeDeviceTypeCSS();
 
   var appName = this.webapp.sourceDirectoryName;
   var fileName = this.htmlFile.leafName;
+
+  this.collectResources();
 
   var jsAggregationBlacklist = this.optimizeConfig.JS_AGGREGATION_BLACKLIST;
   if (this.config.GAIA_OPTIMIZE === '1' &&
@@ -298,10 +310,11 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   var deferred = {
     fileType: 'script',
     content: '',
+    scripts: [],
     lastNode: null,
     name: gaia.aggregatePrefix + 'defer_' + baseName + '.js',
     specs: {
-      type: 'text/javascript',
+      type: 'text/javascript;version=1.8',
       defer: true,
       src: './' + gaia.aggregatePrefix + 'defer_' + baseName + '.js'
     }
@@ -309,10 +322,11 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   var normal = {
     fileType: 'script',
     content: '',
+    scripts: [],
     lastNode: null,
     name: gaia.aggregatePrefix + baseName + '.js',
     specs: {
-      type: 'text/javascript',
+      type: 'text/javascript;version=1.8',
       src: './' + gaia.aggregatePrefix + baseName + '.js'
     }
   };
@@ -322,64 +336,33 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   var doc = this.document;
   var scripts = Array.prototype.slice.call(
     doc.head.querySelectorAll('script[src]'));
-  scripts = scripts.filter(function(script, idx) {
+
+  scripts.forEach((script, idx) => {
     if ('skipOptimize' in script.dataset || script.hasAttribute('async')) {
       return false;
     }
-
-    var html = script.outerHTML;
-    // we inject the whole outerHTML into the comment for debugging so
-    // if there is something valuable in the html that effects the script
-    // that broke the app it should be fairly easy to tell what happened.
-    var content = '; /* "' + html + ' "*/\n\n';
-    // fetch the whole file append it to the comment.
     var scriptFile = this.getFileByRelativePath(script.src);
-    content += scriptFile.content;
 
-    // We store the unminified content for comparing.
-    var originalContent = content;
-    try {
-      content = jsmin(content).code;
-    } catch (e) {
-      utils.log('Failed to minify content: ' + e);
-    }
-
-    // When BUILD_DEBUG is true, we'll do AST comparing in build time.
-    if (this.config.BUILD_DEBUG &&
-        !utils.jsComparator(originalContent, content)) {
-      throw 'minified ' + script.src + ' has different AST with' +
-            ' unminified script.';
-    }
-
-    var scriptConfig = normal;
     if (script.defer) {
-      scriptConfig = deferred;
+      deferred.scripts.push(scriptFile.content);
+    } else {
+      normal.scripts.push(scriptFile.content);
     }
-
-    if (scriptFile.file && scriptFile.file.exists()) {
-      utils.writeContent(scriptFile.file, content);
+    try {
+      UglifyJS(scriptFile.content,{fromString: true});
+    } catch (e) {
+      utils.log(scriptFile.file.path);
+      //utils.log(e);
     }
+    script.outerHTML = '<!-- ' + script.outerHTML + ' -->';
+  });
 
-    scriptConfig.content += content;
-    scriptConfig.lastNode = script;
-    // some apps (email) use version in the script types
-    //  (text/javascript;version=x).
-    //
-    // If we don't have the same version in the aggregate the
-    //  app will not load correctly.
-    if (script.type.indexOf('version') !== -1) {
-      scriptConfig.specs.type = script.type;
-    }
-
-    return true;
-  }, this);
+  //deferred.content = UglifyJS(deferred.scripts,{fromString: true}).code; 
+  //normal.content = UglifyJS(normal.scripts,{fromString: true}).code; 
+  
 
   this.writeAggregatedContent(deferred);
   this.writeAggregatedContent(normal);
-
-  scripts.forEach(function commentScript(script) {
-    script.outerHTML = '<!-- ' + script.outerHTML + ' -->';
-  });
 };
 
 /**
@@ -551,7 +534,6 @@ var WebappOptimize = function() {
   this.config = null;
   this.webapp = null;
   this.locales = null;
-  this.numOfFiles = 0;
 };
 
 WebappOptimize.prototype.RE_HTML = /\.html$/;
@@ -559,6 +541,9 @@ WebappOptimize.prototype.RE_HTML = /\.html$/;
 WebappOptimize.prototype.setOptions = function(options) {
   this.config = options.config;
   this.webapp = options.webapp;
+  this.resourceDependencies = {
+    'js': {}
+  };
   this.locales = options.locales;
   this.optimizeConfig = options.optimizeConfig;
 };
@@ -569,13 +554,33 @@ WebappOptimize.prototype.processFile = function(file) {
     webapp: this.webapp,
     config: this.config,
     locales: this.locales,
-    optimizeConfig: this.optimizeConfig
+    optimizeConfig: this.optimizeConfig,
+    resourceDependencies: this.resourceDependencies
   });
   htmlOptimizer.process();
 
   // Don't quit xpcshell before all asynchronous code is done
   utils.processEvents(
     htmlOptimizer.l10n.checkError.bind(htmlOptimizer.l10n));
+};
+
+WebappOptimize.prototype.collectResources = function() {
+  var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
+  utils.ls(buildDirectoryFile, true).forEach(file => {
+    if (file.path.endsWith('.js')) {
+      this.resourceDependencies['js'][file.path] = [];
+    }
+  });
+};
+
+WebappOptimize.prototype.removeUnusedResources = function() {
+  for (var i in this.resourceDependencies['js']) {
+    if (this.resourceDependencies['js'][i].length === 0) {
+      utils.log('File unused: ' + i);
+      var file = utils.getFile(i);
+      file.remove(false);
+    }
+  }
 };
 
 WebappOptimize.prototype.execute = function(config) {
@@ -586,10 +591,13 @@ WebappOptimize.prototype.execute = function(config) {
     return;
   }
 
+  this.collectResources();
+
   // remove excluded condition /^(shared|tests?)$/)
   var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
   var buildDirectoryPath = buildDirectoryFile.path.replace(/\\/g, '/');
-  var excluded = new RegExp(buildDirectoryPath + '.*\/(shared|tests?)');
+  var excluded = new RegExp(buildDirectoryPath +
+      '.*\/(shared|tests?|examples|components)');
   var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
     return !(excluded.test(file.path.replace(/\\/g, '/')));
   });
@@ -604,8 +612,9 @@ WebappOptimize.prototype.execute = function(config) {
       return this.RE_HTML.test(file.leafName);
     }, this);
 
-  this.numOfFiles = files.length;
+
   files.forEach(this.processFile, this);
+  //this.removeUnusedResources();
 };
 
 function execute(options) {
