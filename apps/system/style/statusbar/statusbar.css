@@ -191,17 +191,14 @@ html[dir="rtl"] #statusbar-mobile-connection > * { float: right; }
 
 #statusbar-mobile-connection .statusbar-signal {
   position: relative;
-}
-
-#statusbar-mobile-connection[data-multiple="true"] .statusbar-signal {
-  margin-inline-start: 0.8rem;
+  margin-left: 0.8rem; /* BiDi-proof: sim number/data indicator on the left */
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal::before {
   position: absolute;
   font-size: 1rem;
   bottom: -.2rem;
-  offset-inline-start: -0.6rem;
+  left: -0.6rem;
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal[data-index="0"]::before {
@@ -221,20 +218,20 @@ html[dir="rtl"] #statusbar-mobile-connection > * { float: right; }
   position: relative;
   margin: 0;
   font-size: 1rem;
-  text-align: end;
+  text-align: left;
   top: -.5rem;
-  offset-inline-start: -.7rem;
+  left: -.7rem;
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-signal .statusbar-data {
   top: -.5rem;
-  offset-inline-start: -.7rem;
-  text-align: start;
+  left: -.7rem;
+  text-align: left;
 }
 
 #statusbar-mobile-connection[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
   top: -0.3rem;
-  offset-inline-start: -0.8rem;
+  left: -0.8rem;
 }
 
 #statusbar-mobile-connection .statusbar-data.sb-icon-data-circle {
