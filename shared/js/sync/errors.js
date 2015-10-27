@@ -35,6 +35,7 @@
     ERROR_SYNC_INVALID_REQUEST_OPTIONS: 'fxsync-error-invalid-request-options',
     // Cannot perform sync request.
     ERROR_SYNC_REQUEST: 'fxsync-error-request-failed',
+    ERROR_UNKNOWN: 'fxsync-error-unknown'
   };
 
   const recoverableErrors = {

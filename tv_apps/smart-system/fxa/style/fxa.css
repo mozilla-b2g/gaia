@@ -522,10 +522,11 @@ form[role=dialog].show {
 
 #fxa-error-overlay .fxa-error-msg-container #fxa-error-title,
 #fxa-error-overlay .fxa-error-msg-container #fxa-error-msg {
-  display: inline-block;
+  display: block;
   font-size: 3.8rem;
   line-height: 3.8rem;
   color: #f9f9f9;
+  padding-top: 3rem;
 }
 
 #fxa-error-overlay menu {

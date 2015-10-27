@@ -1,9 +1,19 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
-   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager, EntrySheet,
-   BrowserFrame, KeyEvent, FxaModuleKeyNavigation */
+/* global BrowserFrame */
+/* global EntrySheet */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global FxaModule */
+/* global FxaModuleKeyNavigation */
+/* global FxaModuleManager */
+/* global FxaModuleNavigation */
+/* global FxaModuleOverlay */
+/* global FxModuleServerRequest */
+/* global FxaModuleStates */
+/* global FxaModuleUI */
+/* global KeyEvent */
+
 /* exported FxaModuleEnterEmail */
 
 'use strict';
@@ -29,10 +39,6 @@ var FxaModuleEnterEmail = (function() {
 
   function _loadSignUp(done) {
     done(FxaModuleStates.SET_PASSWORD);
-  }
-
-  function _loadCoppa(done) {
-    done(FxaModuleStates.COPPA);
   }
 
   function _enableNext(emailEl) {
@@ -225,27 +231,29 @@ var FxaModuleEnterEmail = (function() {
 
     var email = this.fxaEmailInput.value;
 
-    FxModuleServerRequest.checkEmail(
-      email,
-      function onSuccess(response) {
-        FxaModuleOverlay.hide();
-        FxaModuleManager.setParam('email', email);
-        if (response && response.registered) {
-          _loadSignIn(gotoNextStepCallback);
-        } else if (this.isFTU) {
-          // XXX Skip COPPA verification during FTU: if a child has a mobile
-          // device, we assume a parent/guardian has given it to them, which
-          // implies parental consent. So, we skip to the next step in the
-          // signup flow, the set-password screen. See also bug 1010598.
-          _loadSignUp(gotoNextStepCallback);
-        } else {
-          _loadCoppa(gotoNextStepCallback);
-        }
-
-        FxaModuleKeyNavigation.remove(
-          ['#fxa-email-input', '#fxa-email-clean-btn', '#fxa-module-next']);
-      }.bind(this),
-      this.showErrorResponse);
+    FxModuleServerRequest.checkEmail(email, response => {
+      FxaModuleOverlay.hide();
+      FxaModuleManager.setParam('email', email);
+      if (response && response.registered) {
+        _loadSignIn(gotoNextStepCallback);
+      } else if (this.isFTU) {
+        // XXX Skip COPPA verification during FTU: if a child has a mobile
+        // device, we assume a parent/guardian has given it to them, which
+        // implies parental consent. So, we skip to the next step in the
+        // signup flow, the set-password screen. See also bug 1010598.
+        _loadSignUp(gotoNextStepCallback);
+      } else if (response && !response.registered) {
+        // XXX On the TV we don't allow the creation of new FxA users because
+        //     we only use FxA on Sync and we are unable to create new Sync
+        //     users. So we show an error to the user, asking her to go to
+        //     Desktop or Android to do the creation flow.
+        this.showErrorResponse({error: ERROR_INVALID_SYNC_ACCOUNT});
+      } else {
+        this.showErrorResponse({error: 'OFFLINE'});
+      }
+      FxaModuleKeyNavigation.remove(
+        ['#fxa-email-input', '#fxa-email-clean-btn', '#fxa-module-next']);
+    }, this.showErrorResponse);
   };
 
   Module.onBack = function onBack() {

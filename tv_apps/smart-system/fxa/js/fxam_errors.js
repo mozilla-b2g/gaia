@@ -4,6 +4,7 @@
 'use strict';
 /* global BrowserFrame */
 /* global EntrySheet */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
 
 (function(exports) {
   var Errors = {
@@ -39,6 +40,12 @@
       title: 'fxa-unknown-error-title',
       message: 'fxa-unknown-error-message'
     }
+  };
+
+  // Sync specific error
+  Errors[ERROR_INVALID_SYNC_ACCOUNT] = {
+    title: 'fxsync-error-invalid-account',
+    message: 'fxsync-error-invalid-account-explanation'
   };
 
   function _getError(error) {
@@ -126,7 +133,7 @@
   var FxaModuleErrors = {
     responseToParams: function fxame_responseToParams(response) {
       return response && response.error ?
-        _getError(response.error) : _getError('GENERIC_ERROR');
+             _getError(response.error) : _getError('GENERIC_ERROR');
     }
   };
 

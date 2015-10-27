@@ -133,6 +133,7 @@ suite('smart-system/SyncManager >', () => {
       SyncStateMachine.state = 'disabled';
       asyncStorage.setItem(syncState, nextState, () => {
         asyncStorage.setItem(syncError, nextError, () => {
+          nextError = null;
           syncManager = new SyncManager();
           updateStateSpy = this.sinon.spy(syncManager, 'updateState');
           registerSyncRequestStub = this.sinon.stub(syncManager,
@@ -143,6 +144,15 @@ suite('smart-system/SyncManager >', () => {
           unregisterSyncRequestStub = this.sinon.stub(syncManager,
                                                       'unregisterSyncRequest',
                                                       () => {});
+          this.sinon.stub(syncManager, 'updateStatePreference', () => {
+            return Promise.resolve();
+          });
+          this.sinon.stub(syncManager, 'getKeys', () => {
+            return Promise.resolve();
+          });
+          this.sinon.stub(syncManager, 'trySync', () => {
+            return Promise.resolve();
+          });
           syncManager.start().then(done);
         });
       });
@@ -464,12 +474,17 @@ suite('smart-system/SyncManager >', () => {
   suite('onenabling', () => {
     var syncManager;
 
-    var updateStateSpy;
+    var updateStateStub;
     var getAssertionStub;
     var getAssertionError;
     var addEventListenerSpy;
     var successSpy;
     var errorSpy;
+    var trySyncStub;
+    var trySyncError;
+    var getKeysStub;
+    var getKeysError;
+    var getAccountStub;
 
     suiteSetup(() => {
       syncManager = new SyncManager();
@@ -481,7 +496,9 @@ suite('smart-system/SyncManager >', () => {
     });
 
     setup(() => {
-      updateStateSpy = this.sinon.spy(syncManager, 'updateState');
+      updateStateStub = this.sinon.stub(syncManager, 'updateState', () => {
+        syncManager.updateStateDeferred = Promise.resolve();
+      });
       addEventListenerSpy = this.sinon.spy(window, 'addEventListener');
       getAssertionStub = this.sinon.stub(syncManager, 'getAssertion', () => {
         return getAssertionError ? Promise.reject(getAssertionError)
@@ -489,25 +506,37 @@ suite('smart-system/SyncManager >', () => {
       });
       successSpy = this.sinon.spy(SyncStateMachine, 'success');
       errorSpy = this.sinon.spy(SyncStateMachine, 'error');
+      getKeysStub = this.sinon.stub(syncManager, 'getKeys', () => {
+        return getKeysError ? Promise.reject(getKeysError)
+                            : Promise.resolve();
+      });
+      trySyncStub = this.sinon.stub(syncManager, 'trySync', () => {
+        return trySyncError ? Promise.reject(trySyncError)
+                            : Promise.resolve();
+      });
+      getAccountStub = this.sinon.stub(syncManager, 'getAccount', () => {
+        return Promise.resolve();
+      });
     });
 
     teardown(() => {
       addEventListenerSpy.restore();
-      updateStateSpy.restore();
+      updateStateStub.restore();
       getAssertionStub.restore();
       successSpy.restore();
       errorSpy.restore();
+      trySyncStub.restore();
+      getKeysStub.restore();
+      getAccountStub.restore();
     });
 
     test('onenabling received - success', done => {
       SyncStateMachine.onenabling();
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(getAssertionStub);
-        this.sinon.assert.calledTwice(addEventListenerSpy);
+        this.sinon.assert.calledOnce(addEventListenerSpy);
         assert.equal(addEventListenerSpy.getCall(0).args[0],
-                     'mozPrefChromeEvent');
-        assert.equal(addEventListenerSpy.getCall(1).args[0],
                      'mozFxAccountsUnsolChromeEvent');
         this.sinon.assert.calledOnce(successSpy);
         done();
@@ -522,14 +551,61 @@ suite('smart-system/SyncManager >', () => {
       getAssertionError = 'error';
       SyncStateMachine.onenabling();
       setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(updateStateStub);
         this.sinon.assert.calledOnce(getAssertionStub);
-        this.sinon.assert.calledTwice(addEventListenerSpy);
+        this.sinon.assert.notCalled(getKeysStub);
+        this.sinon.assert.notCalled(trySyncStub);
+        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(addEventListenerSpy);
         assert.equal(addEventListenerSpy.getCall(0).args[0],
-                     'mozPrefChromeEvent');
-        assert.equal(addEventListenerSpy.getCall(1).args[0],
                      'mozFxAccountsUnsolChromeEvent');
         this.sinon.assert.calledOnce(errorSpy);
+        done();
+      });
+    });
+
+    test('onenabling received - getKeys error', done => {
+      teardown(() => {
+        getKeysError = null;
+      });
+
+      getKeysError = Date.now();
+
+      SyncStateMachine.onenabling();
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(updateStateStub);
+        this.sinon.assert.calledOnce(getAssertionStub);
+        this.sinon.assert.calledOnce(getKeysStub);
+        this.sinon.assert.notCalled(trySyncStub);
+        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(addEventListenerSpy);
+        this.sinon.assert.calledWith(addEventListenerSpy,
+                                     'mozFxAccountsUnsolChromeEvent');
+        this.sinon.assert.calledOnce(errorSpy);
+        assert.equal(errorSpy.getCall(0).args[0], getKeysError);
+        done();
+      });
+    });
+
+    test('onsyncenabling received - trySync error', done => {
+      teardown(() => {
+        trySyncError = null;
+      });
+
+      trySyncError = Date.now();
+
+      SyncStateMachine.onenabling();
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(updateStateStub);
+        this.sinon.assert.calledOnce(getAssertionStub);
+        this.sinon.assert.calledOnce(getKeysStub);
+        this.sinon.assert.calledOnce(trySyncStub);
+        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(addEventListenerSpy);
+        this.sinon.assert.calledWith(addEventListenerSpy,
+                                     'mozFxAccountsUnsolChromeEvent');
+        this.sinon.assert.calledOnce(errorSpy);
+        assert.equal(errorSpy.getCall(0).args[0], trySyncError);
         done();
       });
     });
@@ -876,7 +952,7 @@ suite('smart-system/SyncManager >', () => {
         }
       }));
       setTimeout(() => {
-        assert.ok(enableStub.calledOnce);
+        assert.ok(enableStub.called);
         done();
       });
     });

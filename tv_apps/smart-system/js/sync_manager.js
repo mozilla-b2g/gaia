@@ -5,7 +5,6 @@
 'use strict';
 
 /* global asyncStorage */
-/* global ERROR_GET_FXA_ASSERTION */
 /* global ERROR_REQUEST_SYNC_REGISTRATION */
 /* global ERROR_SYNC_APP_GENERIC */
 /* global ERROR_SYNC_APP_KILLED */
@@ -15,8 +14,9 @@
 /* global IACHandler */
 /* global LazyLoader */
 /* global SettingsListener */
+/* global SyncErrors */
 /* global SyncStateMachine */
-/* global SyncUnrecoverableErrors */
+/* global SyncRecoverableErrors */
 /* global uuid */
 
 /**
@@ -331,7 +331,26 @@
       this.fxaEventHandler = this.onfxa.bind(this);
       window.addEventListener(FXA_EVENT, this.fxaEventHandler);
 
-      this.getAssertion().then(() => {
+      // We need to verify that we have everything that we need to start
+      // synchronizing data. This is: a valid FxA, the ability to obtain
+      // a valid assertion and encryption keys and the remote crypto/keys
+      // record.
+      var args = [];
+      this.updateStateDeferred.then(() =>{
+        return this.getAssertion();
+      }).then(assertion => {
+        args.push(assertion);
+        return this.getKeys();
+      }).then(keys => {
+        args.push(keys);
+        // We request a sync without any collection. This should fetch the
+        // crypto/keys object. If it is available, we will successfully
+        // continue the enabling process. If it is not available, that probably
+        // means that this FxA has never been used before with Sync.
+        // In that case, until we are able to create new Sync user, we need
+        // to disable Sync and let the user know about this situation.
+        return this.trySync.apply(this, args);
+      }).then(() => {
         return this.getAccount();
       }).then(() => {
         SyncStateMachine.success();
@@ -339,13 +358,23 @@
         // XXX Bug 1200284 - Normalize all Firefox Accounts error reporting.
         error = error.message || error.name || error.error || error;
         console.error('Could not enable sync', error);
+
+        /**
+         * XXX Until we have a way to create new Sync users, we won't progress
+         *     the UNVERIFIED_ACCOUNT error. Instead, we consider this error
+         *     as the INVALID_SYNC_USER one, so we can present a more sane UX
+         *     to the user.
+         *
         if (error == 'UNVERIFIED_ACCOUNT') {
           this.getAccount().then(() => {
             SyncStateMachine.error(ERROR_UNVERIFIED_ACCOUNT);
           });
           return;
-        }
-        SyncStateMachine.error(ERROR_GET_FXA_ASSERTION);
+        }*/
+
+        error = SyncErrors[error] || error;
+
+        SyncStateMachine.error(error);
       });
     },
 
@@ -362,7 +391,8 @@
       // We don't update the state until we set the error.
       this.updateState();
 
-      if (SyncUnrecoverableErrors.indexOf(error) > -1) {
+      // If the error is not recoverable, we disable Sync.
+      if (SyncRecoverableErrors.indexOf(error) <= -1) {
         this.debug('Unrecoverable error');
         SyncStateMachine.disable();
       }
@@ -630,6 +660,21 @@
         this.lastSync = Date.now();
 
         SyncStateMachine.success();
+      });
+    },
+
+    trySync: function(assertion, keys) {
+      return this.iacRequest({
+        name: 'sync',
+        URL: this.settings.get('sync.server.url'),
+        assertion: assertion,
+        keys: keys,
+        collections: {}
+      }).then(result => {
+        if (result && result.error) {
+          console.error('Error trying sync', result.error.message);
+          throw result.error.message;
+        }
       });
     },
 
