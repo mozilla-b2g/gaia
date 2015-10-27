@@ -166,11 +166,14 @@ suite('system/AudioChannelService', function() {
       });
 
       test('In foreground', function() {
+        var channel = { channel: 'content' };
         this.sinon.stub(subject, '_isAudioChannelInBackground', function() {
           return false;
         });
+        this.sinon.stub(subject, '_getTopPriorityAudioChannel', function() {
+          return channel.channel;
+        });
         subject._manageAudioChannels(audioChannel);
-        var channel = { channel: 'content' };
         assert.ok(subject.publish
           .withArgs('visibleaudiochannelchanged', channel).calledOnce);
         assert.ok(subject.publish
@@ -178,11 +181,14 @@ suite('system/AudioChannelService', function() {
       });
 
       test('In background', function() {
+        var channel = { channel: 'content' };
         this.sinon.stub(subject, '_isAudioChannelInBackground', function() {
           return true;
         });
+        this.sinon.stub(subject, '_getTopPriorityAudioChannel', function() {
+          return channel.channel;
+        });
         subject._manageAudioChannels(audioChannel);
-        var channel = { channel: 'content' };
         assert.ok(subject.publish
           .withArgs('visibleaudiochannelchanged', channel).notCalled);
         assert.ok(subject.publish
@@ -373,6 +379,40 @@ suite('system/AudioChannelService', function() {
       test('Top most window is not changed', function() {
         assert.equal(subject._isAudioChannelInBackground(audioChannel), true);
       });
+    });
+  });
+
+  suite('_getTopPriorityAudioChannel', function() {
+    test('No top priority audio channel', function() {
+      assert.equal(subject._getTopPriorityAudioChannel(), 'none');
+    });
+
+    test('Only one audio channel is active', function() {
+      var audioChannel = new MockAudioChannelController(
+        { instanceID: 'appID' }, { name: 'content' }
+      );
+      subject._activeAudioChannels.set(audioChannel.instanceID, audioChannel);
+      assert.equal(subject._getTopPriorityAudioChannel(), 'content');
+    });
+
+    test('Multiple audio channels are active', function() {
+      var audioChannels = [
+        new MockAudioChannelController(
+          { instanceID: 'appID' }, { name: 'content' }
+        ),
+        new MockAudioChannelController(
+          { instanceID: 'appID' }, { name: 'ringer' }
+        ),
+        new MockAudioChannelController(
+          { instanceID: 'appID' }, { name: 'notification' }
+        )
+      ];
+      audioChannels.forEach(function(audioChannel) {
+        subject._activeAudioChannels.set(
+          audioChannel.instanceID, audioChannel
+        );
+      });
+      assert.equal(subject._getTopPriorityAudioChannel(), 'notification');
     });
   });
 });
