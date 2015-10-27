@@ -418,12 +418,14 @@ var SyncBrowserDB = {
   },
 
   /**
-   * Get the latest 20 history entries.
+   * Get the latest history entries based on the maximum number of history.
+   * @param {Number} maxQuerySize The maximum number of history to get
    * @param {Function} callback Run with array of history entries
    */
-  getHistory: function browserDB_getHistory(callback) {
+  getHistory: function browserDB_getHistory(maxQuerySize, callback) {
     // Just get the most recent 20 for now
-    this.db.getHistory(Browser.MAX_HISTORY_LIST, callback);
+    var querySize = maxQuerySize ? maxQuerySize : Browser.MAX_HISTORY_LIST;
+    this.db.getHistory(querySize, callback);
   },
 
   /**
@@ -1390,6 +1392,34 @@ SyncBrowserDB.db = {
     };
     transaction.oncomplete = function db_historyTransactionComplete() {
       callback(history);
+    };
+  },
+
+  /**
+   * Get the previous timestamp of history range at (record.timestamp <= start)
+   * @param {Number} start Start timestamp
+   * @param {Function} callback Runs on complete with the previous timestamp of
+   *                            a history record.
+   */
+  getPreviousHistoryTimestamp:
+    function db_getPreviousHistoryTimestamp(start, callback) {
+    var db = this._db;
+    var lastestTimeStampInRange = null;
+
+    var transaction = db.transaction([DBOS_VISITS]);
+    var visitsStore = transaction.objectStore(DBOS_VISITS);
+    var visitsIndex = visitsStore.index('timestamp');
+    var keyRange = IDBKeyRange.upperBound(start);
+
+    visitsIndex.openCursor(keyRange, 'prev').onsuccess =
+      function onSuccess(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        lastestTimeStampInRange = cursor.key;
+      }
+    };
+    transaction.oncomplete = function db_historyTransactionComplete() {
+      callback(lastestTimeStampInRange);
     };
   },
 
