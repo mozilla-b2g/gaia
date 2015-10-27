@@ -104,7 +104,7 @@ not actually shown since the top header should be transparent.
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 2rem);
+  width: calc(100% - 2rem);
   height: 100%;
   /* !important needed to override component scoped style to match legacy styles */
   font-size: 1.7rem !important;
@@ -113,8 +113,16 @@ not actually shown since the top header should be transparent.
 }
 
 #settings .calendars .error label {
-  background: transparent url('icons/accountwarning.png') no-repeat 2.3rem center / 2rem auto;
-  -moz-padding-start: 4.5rem;
+  background: transparent url('icons/accountwarning.png') no-repeat;
+  background-size: 2rem auto;
+}
+html[dir="ltr"] #settings .calendars .error label {
+  background-position: left 2.3rem center;
+  padding-left: 4.5rem;
+}
+html[dir="rtl"] #settings .calendars .error label {
+  background-position: right 2.3rem center;
+  padding-right: 4.5rem;
 }
 
 #settings .calendars label {
@@ -136,7 +144,7 @@ not actually shown since the top header should be transparent.
 #settings .calendars .icon-calendar-dot:before {
   font-size: 5rem;
   line-height: 5rem;
-  -moz-margin-start: -1rem;
+  margin-inline-start: -1rem;
 }
 
 #settings > menu {
@@ -153,12 +161,12 @@ not actually shown since the top header should be transparent.
 }
 
 #settings [role="tablist"] li {
-  border-left: 0.1rem solid #e5e5e5;
+  border-inline-start: 0.1rem solid #e5e5e5;
   position: relative;
 }
 
 #settings [role="tablist"] li:first-child {
-  border-left: 0;
+  border-inline-start: 0;
 }
 
 #settings [role="tablist"].noaccount .settings {
@@ -247,28 +255,15 @@ not actually shown since the top header should be transparent.
 }
 
 #settings .calendars gaia-checkbox label:after {
-  left: auto;
   top: 0.7rem;
-  right: 1.3rem;
   background: none;
   margin: 0;
 }
-
-/* RTL View */
-html[dir="rtl"] #settings [role="tablist"] li {
-  border-left: unset;
+html[dir="ltr"] #settings .calendars gaia-checkbox label:after {
+  left: auto;
+  right: 1.3rem;
 }
-
-html[dir="rtl"] #settings [role="tablist"] li:first-child {
-  border-left: unset;
-  border-right: 0.1rem solid #e5e5e5;
-}
-
 html[dir="rtl"] #settings .calendars gaia-checkbox label:after {
   left: 1.3rem;
   right: auto;
-}
-
-html[dir="rtl"] #settings .calendars .icon-calendar-dot:before {
-  right: 0;
 }

@@ -34,7 +34,7 @@ suite('Views.EventBase', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="event-test">',
-        '<gaia-header ignore-dir id="event-test-header" action="cancel">',
+        '<gaia-header id="event-test-header" action="cancel">',
           '<button class="primary">primary</button>',
         '</gaia-header>',
       '</div>'

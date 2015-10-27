@@ -94,7 +94,7 @@ suite('Views.ModifyAccount', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="modify-account-view">',
-        '<gaia-header ignore-dir id="modify-account-header" action="back">',
+        '<gaia-header id="modify-account-header" action="back">',
           '<h1>Account</h1>',
           '<button class="save">Save</button>',
         '</gaia-header>',

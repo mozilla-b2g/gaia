@@ -39,7 +39,7 @@
   border-top: 0;
   width: 7rem;
   top: 0;
-  left: 0;
+  offset-inline-start: 0;
 }
 
 .md__day-name {
@@ -63,7 +63,7 @@
 }
 
 .md__allday-events {
-  border-left: 0.1rem solid #e2e2e2;
+  border-inline-start: 0.1rem solid #e2e2e2;
   border-top: 0.1rem solid #e2e2e2;
   height: 5rem;
   width: 100%;
@@ -142,7 +142,7 @@
 .md__alldays-wrapper {
   width: calc(100% - 3rem);
   position: absolute;
-  right: 0;
+  offset-inline-end: 0;
   top: 0;
   overflow: hidden;
 }
@@ -170,9 +170,16 @@
 
 .md__day,
 .md__allday {
-  float: left;
   position: relative;
   height: 100%;
+}
+html[dir="ltr"] .md__day,
+html[dir="ltr"] .md__allday {
+  float: left;
+}
+html[dir="rtl"] .md__day,
+html[dir="rtl"] .md__allday {
+  float: right;
 }
 
 .week-view .md__day,
@@ -186,7 +193,7 @@
 }
 
 .md__day {
-  border-left: 0.1rem solid #f8f8f8;
+  border-inline-start: 0.1rem solid #f8f8f8;
 }
 
 .md__event,
@@ -199,17 +206,11 @@
 .md__event {
   position: relative;
   display: block;
-  border-left-style: solid;
-  border-left-width: 0.4rem;
+  border-inline-start-style: solid;
+  border-inline-start-width: 0.4rem;
   width: 100%;
   overflow: hidden;
   padding: 0.5rem;
-}
-
-.md__event:active,
-.md__event:focus {
-  border-left-style: solid;
-  border-left-width: 0.4rem;
 }
 
 .day-view .md__event {
@@ -254,7 +255,7 @@
 .md__event .icon-calendar-alarm {
   position: absolute;
   top: 0.2rem;
-  right: 0;
+  offset-inline-end: 0;
   width: 3rem;
   height: 3rem;
 }
@@ -335,12 +336,7 @@
  * content we can't use -moz-margin-end */
 .md__event.is-partial-tiny .md__event-title + .md__event-location,
 .md__event.is-partial-small .md__event-title + .md__event-location {
-  margin-left: 0.85rem;
-}
-
-html[dir="rtl"] .md__event.is-partial-tiny .md__event-title + .md__event-location,
-html[dir="rtl"] .md__event.is-partial-small .md__event-title + .md__event-location {
-  margin-right: 0.85rem;
+  margin-inline-start: 0.85rem;
 }
 
 .md__event.is-partial-micro .md__event-title,
@@ -357,13 +353,13 @@ html[dir="rtl"] .md__event.is-partial-small .md__event-title + .md__event-locati
 
 .day-view .md__event.has-alarms {
   /* avoid text overlap with alarm icon */
-  -moz-padding-end: 2.6rem;
+  padding-inline-end: 2.6rem;
 }
 
 .day-view .md__event.is-partial-tiny,
 .day-view .md__event.is-partial-micro {
   /* these doesn't display alarm, so we can display more text */
-  -moz-padding-end: 0.3rem;
+  padding-inline-end: 0.3rem;
 }
 
 .md__event.is-partial-small .icon-calendar-alarm {
@@ -393,14 +389,14 @@ html[dir="rtl"] .md__event.is-partial-small .md__event-title + .md__event-locati
   content: '';
   display: block;
   position: absolute;
-  top: 0;
+  top: 0.25rem;
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 0.4rem 0 0.4rem 0.6rem;
-  border-color: transparent transparent transparent #008EAB;
-  /* scale is for smooth edges and translate for centering the line */
-  transform: scale(0.99) translateY(0.25rem);
+  border-width: 0.4rem 0 0.4rem;
+  border-inline-start-width: 0.6rem;
+  border-color: transparent;
+  border-inline-start-color: #008EAB;
   /* z-index here so that only the arrow goes above the events, we want the
    * line to be behind the event name and alarm icon */
   z-index: 15;
@@ -422,12 +418,12 @@ html[dir="rtl"] .md__event.is-partial-small .md__event-title + .md__event-locati
 }
 
 .week-view .md__current-time:before {
-  left: 3rem;
+  offset-inline-start: 3rem;
 }
 
 .week-view .md__current-time:after {
   width: calc(100% - 3rem);
-  left: 3rem;
+  offset-inline-start: 3rem;
 }
 
 .day-view .md__current-time {
@@ -435,12 +431,12 @@ html[dir="rtl"] .md__event.is-partial-small .md__event-title + .md__event-locati
 }
 
 .day-view .md__current-time:before {
-  left: 7rem;
+  offset-inline-start: 7rem;
 }
 
 .day-view .md__current-time:after {
   width: calc(100% - 7rem);
-  left: 7rem;
+  offset-inline-start: 7rem;
 }
 
 
@@ -472,77 +468,9 @@ html[dir="rtl"] .md__event.is-partial-small .md__event-title + .md__event-locati
 .md__add-event:before {
   color: #fff;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  offset-inline-start: 50%;
   /* reset text-indent to show the "+" icon */
   text-indent: 0;
 }
-
-/* RTL View */
-html[dir="rtl"] .day-view .md__all-day {
-  left: unset;
-  right: 0;
-}
-
-html[dir="rtl"] .md__allday-events {
-  border-left: unset;
-  border-right: 0.1rem solid #e2e2e2;
-}
-
-html[dir="rtl"] .md__days-wrapper,
-html[dir="rtl"] .md__alldays-wrapper {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] .md__day,
-html[dir="rtl"] .md__allday {
-  float: right;
-}
-
-html[dir="rtl"] .md__day {
-  border-left: unset;
-  border-right: 0.1rem solid #f8f8f8;
-}
-
-html[dir="rtl"] .md__event {
-  border-left-style: unset;
-  border-left-width: unset;
-  border-right-style: solid;
-  border-right-width: 0.4rem;
-}
-
-html[dir="rtl"] .md__event:active,
-html[dir="rtl"] .md__event:focus {
-  border-left-style: unset;
-  border-left-width: unset;
-  border-right-style: solid;
-  border-right-width: 0.4rem;
-}
-
-html[dir="rtl"] .md__event .icon-calendar-alarm {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] .md__current-time:before {
-  transform: scale(-0.99) translateY(-0.25rem);
-}
-
-html[dir="rtl"] .week-view .md__current-time:before,
-html[dir="rtl"] .week-view .md__current-time:after {
-  left: unset;
-  right: 3rem;
-}
-
-html[dir="rtl"] .day-view .md__current-time:before,
-html[dir="rtl"] .day-view .md__current-time:after {
-  left: unset;
-  right: 7rem;
-}
-
-html[dir="rtl"] .md__add-event:before {
-  left: unset;
-  right: 50%;
-  transform: translate(50%, -50%);
-}
+html[dir="ltr"] .md__add-event:before { transform: translate(-50%, -50%); }
+html[dir="rtl"] .md__add-event:before { transform: translate(50%, -50%); }

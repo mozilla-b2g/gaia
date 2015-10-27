@@ -71,22 +71,16 @@
 
 #event-view .alarms.multiple > .content > div {
   display: block;
-  -moz-padding-start: 1.4rem;
+  padding-inline-start: 1.4rem;
 }
 
 #event-view .current-calendar .icon-calendar-dot:before {
   position: absolute;
-  left: -2.2rem;
+  offset-inline-start: -2.2rem;
   line-height: 2.3rem;
   font-size: 5rem;
 }
 
 #event-view .current-calendar .content {
-  -moz-margin-start: 1.2rem;
-}
-
-/* RTL View */
-html[dir="rtl"] #event-view .current-calendar .icon-calendar-dot:before {
-  left: unset;
-  right: -2.2rem;
+  margin-inline-start: 1.2rem;
 }

@@ -20,10 +20,10 @@ var MonthDayAgenda = create({
     }
 
     var title = this.h('title');
-    var eventDetails = `<h5 role="presentation">${title}</h5>`;
+    var eventDetails = `<h5 role="presentation" dir="auto">${title}</h5>`;
     var location = this.h('location');
     if (location && location.length > 0) {
-      eventDetails += `<span class="details">
+      eventDetails += `<span class="details" dir="auto">
         <span class="location">${location}</span>
       </span>`;
     }
@@ -36,7 +36,7 @@ var MonthDayAgenda = create({
       <div class="gaia-icon icon-calendar-dot" style="color:${color}"
           aria-hidden="true"></div>
         <div class="event-time">${eventTime}</div>
-        <div class="event-details" dir="auto">${eventDetails}</div>
+        <div class="event-details">${eventDetails}</div>
         <div id="${busytimeId}-icon-calendar-alarm" aria-hidden="true"
           class="gaia-icon icon-calendar-alarm" style="color:${color}"
           data-l10n-id="icon-calendar-alarm"></div>
