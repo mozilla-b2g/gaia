@@ -2,8 +2,7 @@
 
 var restify = require('restify'),
     ecstatic = require('ecstatic'),
-    fs = require('fs'),
-    config = JSON.parse(fs.readFileSync(__dirname + '/config.json'));
+    config = require('./config.json');
 
 var server = restify.createServer({
   name: 'Mock Firefox Accounts Server'
@@ -13,6 +12,25 @@ server.hostname = process.argv[2];
 server.port = process.argv[3];
 server.version = process.argv[4];
 
+process.on('uncaughtException', gracefulShutdown);
+server.on('uncaughtException', gracefulShutdown);
+
+function shutdown(cb) {
+  try {
+    server.close(cb);
+  } catch (e) {
+    console.error(e.stack);
+    process.exit(1);
+  }
+}
+
+function gracefulShutdown(err) {
+  if (err) {
+    console.error(err.stack);
+  }
+  shutdown();
+}
+
 /**
  * authPW = 123456789
  * client accepts any hex Token the server kindly grants it
@@ -20,13 +38,13 @@ server.version = process.argv[4];
  */
 var account = {
     'new': {
-        'authPW': config.PASSWORD_HASH,
-        'uid': randomString(32),
-        'sessionToken': randomString(64),
-        'keyFetchToken': randomString(64),
-        'passwordChangeToken': randomString(64),
-        'verified':false,
-        'authAt':Date.now()
+      'authPW': config.PASSWORD_HASH,
+      'uid': randomString(32),
+      'sessionToken': randomString(64),
+      'keyFetchToken': randomString(64),
+      'passwordChangeToken': randomString(64),
+      'verified': false,
+      'authAt': Date.now()
     },
 
     'exists': {
@@ -36,8 +54,8 @@ var account = {
       'sessionToken': randomString(64),
       'keyFetchToken': randomString(64),
       'passwordChangeToken': randomString(64),
-      'verified':false,
-      'authAt':Date.now()
+      'verified': false,
+      'authAt': Date.now()
     }
 };
 
@@ -57,12 +75,12 @@ var account = {
 var Server = {
 
   //set to true for verbose logging
-  debug: config.DEBUG,
+  debug: config.DEBUG || false,
 
   // allows for terminating process directly when calling server standalone
   // when calling as child process, use child.kill() from parent
   stop: function() {
-    process.disconnect();
+    gracefulShutdown();
     console.log('SERVER STOPPED');
   },
 
@@ -71,7 +89,7 @@ var Server = {
     server.use(restify.queryParser());
     server.use(restify.bodyParser());
     server.use(ecstatic({ root: __dirname + '/' }));
-    server.get('/', ecstatic({ root:__dirname }));
+    server.get('/', ecstatic({ root: __dirname }));
     server.listen(server.port, function() {
       var debug = Server.debug || false;
       if (debug) {
@@ -318,17 +336,17 @@ function respondEmpty(req,res,next) {
 
 function getRespAccountLogin(accountSelected) {
   return {
-    'uid':accountSelected.uid,
-    'sessionToken':accountSelected.sessionToken,
-    'verified':accountSelected.verified,
-    'authAt':Date.now()
+    'uid': accountSelected.uid,
+    'sessionToken': accountSelected.sessionToken,
+    'verified': accountSelected.verified,
+    'authAt': Date.now()
   };
 }
 
 function getRespRecoveryEmail(accountSelected) {
   return {
-    'email':accountSelected.email,
-    'verified':accountSelected.verified
+    'email': accountSelected.email,
+    'verified': accountSelected.verified
   };
 }
 
@@ -370,34 +388,34 @@ function getError(errNum,accountSelected) {
   switch(errNum) {
     case 102:
       return {
-        'code':400,
-        'errno':errNum,
-        'error':'Bad Request',
-        'message':'Attempt to access an account that does not exist',
+        'code': 400,
+        'errno': errNum,
+        'error': 'Bad Request',
+        'message': 'Attempt to access an account that does not exist',
         'info': info,
         'email': accountSelected.email,
-        'log':[]
+        'log': []
       };
 
     case 103:
       return {
-        'code':400,
-        'errno':errNum,
-        'error':'Bad Request',
-        'message':'Incorrect password',
+        'code': 400,
+        'errno': errNum,
+        'error': 'Bad Request',
+        'message': 'Incorrect password',
         'info': info,
-        'email':accountSelected.email,
-        'log':[]
+        'email': accountSelected.email,
+        'log': []
       };
 
     case 999:
       return {
-        'code':errNum,
-        'errno':999,
-        'error':'Not Found',
-        'message':'Unspecified error',
-        'info':info,
-        'log':[]
+        'code': errNum,
+        'errno': 999,
+        'error': 'Not Found',
+        'message': 'Unspecified error',
+        'info': info,
+        'log': []
       };
   }
 }
@@ -414,5 +432,3 @@ function printLog(title,msg) {
     console.log('\n\n');
   }
 }
-
-
