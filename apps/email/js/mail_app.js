@@ -16,7 +16,7 @@ var mozL10n = require('l10n!'),
     htmlCache = require('html_cache'),
     waitingRawActivity, activityCallback;
 
-require('shared/js/font_size_utils');
+require('font_size_utils');
 require('metrics');
 require('wake_locks');
 

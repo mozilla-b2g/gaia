@@ -352,8 +352,8 @@ return [
     },
 
     /**
-     * A workaround for shared/js/font_size_utils not recognizing child node
-     * content changing, and if it did, it would be noisy/extra work if done
+     * A workaround for font_size_utils not recognizing child node content
+     * changing, and if it did, it would be noisy/extra work if done
      * generically. Using a rAF call to not slow down the rest of card updates,
      * it is something that can happen lazily on another turn.
      */
