@@ -50,6 +50,7 @@ Gaia theme variables
 
   --text-color: var(--color-gamma);
   --text-color-minus: var(--color-eta);
+  --label-color: #000;
 
   /** Button
    ---------------------------------------------------------*/
@@ -197,6 +198,7 @@ Gaia theme variables
    ---------------------------------------------------------*/
 
   --text-color: var(--color-beta);
+  --label-color: var(--color-beta);
 
   /** Button
    ---------------------------------------------------------*/
