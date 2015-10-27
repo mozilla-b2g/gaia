@@ -70,6 +70,8 @@ var FxaModuleNavigation = {
       onanimate: function() {
         this.backAnim = false;
         this.updatingStep = false;
+        this.currentModule.onAnimate &&
+          this.currentModule.onAnimate();
       }.bind(this)
     });
   },
