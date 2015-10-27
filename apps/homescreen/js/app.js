@@ -589,10 +589,18 @@
         var scrollHeight = this.scrollable.clientHeight;
         var rowsPerPage = Math.floor(scrollHeight / iconHeight);
         var pageHeight = rowsPerPage * iconHeight;
-        var gridHeight = (Math.ceil((iconHeight *
-          Math.ceil(visibleChildren /
-                    (this.settings.small ? 4 : 3))) / pageHeight) *
-          pageHeight) + (scrollHeight - pageHeight);
+        var gridHeight;
+
+        if (this.settings.scrollSnapping) {
+          gridHeight = (Math.ceil((iconHeight *
+            Math.ceil(visibleChildren /
+                      (this.settings.small ? 4 : 3))) / pageHeight) *
+            pageHeight) + (scrollHeight - pageHeight);
+        } else {
+          gridHeight =
+            (Math.ceil(visibleChildren / (this.settings.small ? 4 : 3)) + 1) *
+            iconHeight;
+        }
 
         this.pageHeight = pageHeight;
         this.pendingGridHeight = gridHeight;

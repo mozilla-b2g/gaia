@@ -536,6 +536,9 @@ suite('Homescreen app', () => {
       var getBoundingClientRectStub;
       setup(() => {
         app.icons.appendChild(getIcon('abc'));
+        app.icons.appendChild(getIcon('def'));
+        app.icons.appendChild(getIcon('ghi'));
+        app.icons.appendChild(getIcon('jkl'));
         getBoundingClientRectStub = sinon.stub(app.icons.firstElementChild,
           'getBoundingClientRect', () => {
             return { height: 100 };
@@ -565,6 +568,20 @@ suite('Homescreen app', () => {
         app.refreshGridSize();
         assert.equal(app.scrollable.style.scrollSnapPointsY, 'repeat(400px)');
         assert.equal(app.icons.style.backgroundSize, '100% 800px');
+      });
+
+      test('should size to always have a whole page visible', () => {
+        app.scrollable.clientHeight = 150;
+        app.settings.scrollSnapping = true;
+        app.refreshGridSize();
+        assert.equal(app.pendingGridHeight, 250);
+      });
+
+      test('should size to one extra row with snapping disabled', () => {
+        app.scrollable.clientHeight = 150;
+        app.settings.scrollSnapping = false;
+        app.refreshGridSize();
+        assert.equal(app.pendingGridHeight, 300);
       });
     });
   });
