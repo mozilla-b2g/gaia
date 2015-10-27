@@ -2003,8 +2003,7 @@ suite('thread_list_ui', function() {
       draft1.querySelector('label').click();
 
       sinon.assert.calledWith(
-        Navigation.toPanel,
-        'composer', { draftId: 101, focusComposer: true }
+        Navigation.toPanel, 'composer', { draftId: 101 }
       );
     });
   });

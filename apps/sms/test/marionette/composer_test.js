@@ -7,6 +7,7 @@ var Messages = require('./lib/messages.js');
 var InboxView = require('./lib/views/inbox/view');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
 var Storage = require('./lib/storage.js');
+var Tools = require('./lib/views/shared/tools.js');
 
 marionette('Messages Composer', function() {
   var apps = {};
@@ -32,12 +33,6 @@ marionette('Messages Composer', function() {
 
   function assertIsNotDisplayed(element) {
     assert.isFalse(element.displayed(), 'Element should not be displayed');
-  }
-
-  function assertIsFocused(element, message) {
-    assert.isTrue(element.scriptWith(function(el) {
-      return document.activeElement === el;
-    }), message);
   }
 
   var MOCKS = [
@@ -277,19 +272,23 @@ marionette('Messages Composer', function() {
 
       // Case #1: Add subject input, once added it should be focused
       messagesApp.showSubject();
-      assertIsFocused(composer.subjectInput, 'Subject input should be focused');
+      Tools.assertElementFocused(composer.subjectInput,
+                                 'Subject input should be focused');
 
       // Case #2: Hide subject field, focus should be moved to message field
       messagesApp.hideSubject();
-      assertIsFocused(composer.messageInput, 'Message input should be focused');
+      Tools.assertElementFocused(composer.messageInput,
+                                 'Message input should be focused');
 
       // Case #3: Focus should be moved to message input when subject is removed
       // by user with backspace key as well
       messagesApp.showSubject();
-      assertIsFocused(composer.subjectInput, 'Subject input should be focused');
+      Tools.assertElementFocused(composer.subjectInput,
+                                 'Subject input should be focused');
 
       composer.subjectInput.sendKeys(Messages.Chars.BACKSPACE);
-      assertIsFocused(composer.messageInput, 'Message input should be focused');
+      Tools.assertElementFocused(composer.messageInput,
+                                 'Message input should be focused');
     });
   });
 

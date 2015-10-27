@@ -143,7 +143,8 @@ suite('ActivityHandler', function() {
         sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
         sinon.assert.calledWith(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+          'composer',
+          { draftId: 'draftId', focus: sinon.match.falsy }
         );
       }).then(done, done);
     });
@@ -189,7 +190,8 @@ suite('ActivityHandler', function() {
         sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
         sinon.assert.calledWith(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+          'composer',
+          { draftId: 'draftId', focus: sinon.match.falsy }
         );
       }).then(done, done);
     });
@@ -213,7 +215,8 @@ suite('ActivityHandler', function() {
         sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
         sinon.assert.calledWith(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+          'composer',
+          { draftId: 'draftId', focus: sinon.match.falsy }
         );
       }).then(done, done);
     });
@@ -241,7 +244,8 @@ suite('ActivityHandler', function() {
         sinon.assert.callOrder(Drafts.request, Drafts.add, Drafts.store);
         sinon.assert.calledWith(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+          'composer',
+          { draftId: 'draftId', focus: sinon.match.falsy }
         );
       }).then(done, done);
     });
@@ -331,7 +335,8 @@ suite('ActivityHandler', function() {
         });
         sinon.assert.calledWith(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: true }
+          'composer',
+          { draftId: 'draftId', focus: 'composer' }
         );
       }).then(done,done);
     });
@@ -358,7 +363,7 @@ suite('ActivityHandler', function() {
 
         sinon.assert.calledWithMatch(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: true }
+          'composer', { draftId: 'draftId' }
         );
       }).then(done,done);
     });
@@ -378,7 +383,8 @@ suite('ActivityHandler', function() {
         });
         sinon.assert.calledWith(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+          'composer',
+          { draftId: 'draftId', focus: sinon.match.falsy }
         );
       }).then(done,done);
     });
@@ -400,7 +406,8 @@ suite('ActivityHandler', function() {
         });
         sinon.assert.calledWith(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: true }
+          'composer',
+          { draftId: 'draftId', focus: 'composer' }
         );
       }).then(done,done);
     });
@@ -423,7 +430,8 @@ suite('ActivityHandler', function() {
         });
         sinon.assert.calledWith(
           Navigation.toPanel,
-          'composer', { draftId: 'draftId', focusComposer: true }
+          'composer',
+          { draftId: 'draftId', focus: 'composer' }
         );
       }).then(done,done);
     });
@@ -439,7 +447,7 @@ suite('ActivityHandler', function() {
 
       onceNewActivityCompleted().then(function() {
         sinon.assert.calledWithMatch(
-          Navigation.toPanel, 'thread', { id: 42, focusComposer: true }
+          Navigation.toPanel, 'thread', { id: 42, focus: 'composer' }
         );
       }).then(done,done);
     });

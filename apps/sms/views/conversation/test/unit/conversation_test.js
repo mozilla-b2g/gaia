@@ -4865,8 +4865,7 @@ suite('conversation.js >', function() {
         Threads.Messages.get.withArgs(1).returns(MockMessages.sms());
         ConversationView.initiateNewMessage({ messageId: 1 }).then(() => {
           sinon.assert.calledWith(
-            Navigation.toPanel,
-            'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+            Navigation.toPanel, 'composer', { draftId: 'draftId' }
           );
           sinon.assert.calledWithMatch(
             Drafts.add, { content: ['body'], type: 'sms' }
@@ -4888,8 +4887,7 @@ suite('conversation.js >', function() {
 
         ConversationView.initiateNewMessage({ messageId: 1 }).then(() => {
           sinon.assert.calledWith(
-            Navigation.toPanel,
-            'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
+            Navigation.toPanel, 'composer', { draftId: 'draftId'}
           );
           sinon.assert.calledWithMatch(
             Drafts.add,
@@ -4910,8 +4908,7 @@ suite('conversation.js >', function() {
 
         ConversationView.initiateNewMessage({ number: '+123' }).then(() => {
           sinon.assert.calledWith(
-            Navigation.toPanel,
-            'composer', { draftId: 'draftId', focusComposer: true }
+            Navigation.toPanel, 'composer', { draftId: 'draftId' }
           );
           sinon.assert.calledWithMatch(
             Drafts.add, { recipients: ['+123'], type: 'sms' }
@@ -4928,7 +4925,7 @@ suite('conversation.js >', function() {
 
         ConversationView.initiateNewMessage({ number: '+123' }).then(() => {
           sinon.assert.calledWith(
-            Navigation.toPanel, 'thread', { id: 100, focusComposer: true }
+            Navigation.toPanel, 'thread', { id: 100, focus: 'composer' }
           );
         }).then(done, done);
       });
@@ -6859,6 +6856,7 @@ suite('conversation.js >', function() {
         ConversationView.initRecipients();
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
         this.sinon.stub(ConversationView.recipients, 'focus');
+        this.sinon.stub(Compose, 'focus');
 
         // we test these functions separately so it's fine to merely test
         // they're called
@@ -6875,7 +6873,29 @@ suite('conversation.js >', function() {
         }).then(done, done);
       });
 
-      test('focus the composer', function(done) {
+      test('focus the recipients when no valid recipients', function(done) {
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.called(ConversationView.recipients.focus);
+        }).then(done, done);
+      });
+
+      test('focus the composer if we force it', function(done) {
+        transitionArgs.focus = 'composer';
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.called(Compose.focus);
+        }).then(done, done);
+      });
+
+      test('focus the composer if there are valid recipients', function(done) {
+        ConversationView.recipients.add({ number: '999' });
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.called(Compose.focus);
+        }).then(done, done);
+      });
+
+      test('focus the recipients if we force it', function(done) {
+        ConversationView.recipients.add({ number: '999' });
+        transitionArgs.focus = 'recipients';
         ConversationView.afterEnter(transitionArgs).then(() => {
           sinon.assert.called(ConversationView.recipients.focus);
         }).then(done, done);
@@ -7071,7 +7091,7 @@ suite('conversation.js >', function() {
         sinon.assert.notCalled(Compose.focus);
 
         ConversationView.afterEnter(
-          Object.assign({ focusComposer: true }, transitionArgs)
+          Object.assign({ focus: 'composer' }, transitionArgs)
         );
 
         sinon.assert.calledOnce(Compose.focus);
