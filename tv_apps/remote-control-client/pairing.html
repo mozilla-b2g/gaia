@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>TV remote control</title>
+  <link rel="stylesheet" type="text/css" href="style/main.css">
+  <script src="js/main.js"></script>
+  <script src="js/pairing.js"></script>
+  <script src="bower_components/l20n/dist/webcompat/l20n.js"></script>
+  <!-- L10n properties -->
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="en-US">
+  <link rel="localization" href="locales/remote-control-client.{locale}.properties">
+</head>
+<body class="pairing">
+  <div id="pairing-container">
+    <h1 data-l10n-id="pairing-title"></h1>
+    <div id="pairing-information" data-l10n-id="pairing-information"></div>
+    <div id="pairing-code">
+      <input type="number" min="0" max="9">
+      <input type="number" min="0" max="9">
+      <input type="number" min="0" max="9">
+      <input type="number" min="0" max="9">
+    </div>
+    <div id="pairing-message"></div>
+    <div id="pairing-button-area">
+      <button id="connect" data-l10n-id="connect"></button>
+      <button id="restart-pairing" data-l10n-id="restart-pairing"></button>
+    </div>
+  </div>
+</body>
+</html>
