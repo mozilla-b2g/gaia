@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 18.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Layer_1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="Alert_Icon.svg"
+   x="0px"
+   y="0px"
+   width="30px"
+   height="30px"
+   viewBox="-9 11 30 30"
+   enable-background="new -9 11 30 30"
+   xml:space="preserve"><metadata
+     id="metadata3392"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+     id="defs3390" /><sodipodi:namedview
+     id="namedview3969"
+     inkscape:cy="15"
+     guidetolerance="10"
+     borderopacity="1"
+     inkscape:cx="15"
+     inkscape:zoom="7.8666667"
+     objecttolerance="10"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     showgrid="false"
+     gridtolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="967"
+     inkscape:window-height="764"
+     inkscape:window-x="114"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Layer_1" /><g
+     id="g3412"><g
+       id="g3414"><ellipse
+         id="ellipse3416"
+         fill="#B90000"
+         cx="6"
+         cy="26"
+         rx="12"
+         ry="12" /></g></g><path
+     id="path3426"
+     fill="#FFFFFF"
+     d="M4.9,32.8c0.3,0.3,0.7,0.5,1.1,0.5c0.5,0,0.9-0.2,1.2-0.5c0.3-0.3,0.5-0.7,0.5-1.1  c0-0.5-0.2-0.8-0.5-1.1C6.9,30.2,6.4,30,5.9,30s-0.8,0.2-1.1,0.5c-0.3,0.3-0.5,0.7-0.5,1.1C4.4,32.1,4.4,32.5,4.9,32.8z M7.1,28.1  l0.5-9.4H4.8l0.2,9.4H7.1z" /></svg>

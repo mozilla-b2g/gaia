@@ -1,5 +1,6 @@
-define(function(require) {
-  'use strict';
+'use strict';
+
+(function(exports) {
 
   /**
    * Match pattern is ported from
@@ -135,5 +136,6 @@ define(function(require) {
     },
   };
 
-  return MatchPattern;
-});
+  exports.MatchPattern = MatchPattern;
+
+})(window);

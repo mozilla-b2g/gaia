@@ -1,18 +1,10 @@
+/*global MatchPattern */
+
 'use strict';
 
+require('/shared/js/addons/match_pattern.js');
+
 suite('match pattern test > ', function() {
-
-  var MatchPattern;
-
-  suiteSetup(function(done) {
-    // Create a new requirejs context
-    var requireCtx = testRequire([], {}, function() {});
-
-    requireCtx(['modules/match_pattern'], (MP) => {
-      MatchPattern = MP;
-      done();
-    });
-  });
 
   var tests = {
     pass: [
