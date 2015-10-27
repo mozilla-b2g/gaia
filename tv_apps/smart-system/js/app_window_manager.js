@@ -313,7 +313,7 @@
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
-      window.addEventListener('orientationchange', this);
+      window.addEventListener('appwindow-orientationchange', this);
       window.addEventListener('sheets-gesture-begin', this);
       window.addEventListener('sheets-gesture-end', this);
       window.addEventListener('appopening', this);
@@ -383,7 +383,7 @@
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
-      window.removeEventListener('orientationchange', this);
+      window.removeEventListener('appwindow-orientationchange', this);
       window.removeEventListener('sheets-gesture-begin', this);
       window.removeEventListener('sheets-gesture-end', this);
       window.removeEventListener('appopening', this);
@@ -405,7 +405,7 @@
       var activeApp = this._activeApp;
       var detail = evt.detail;
       switch (evt.type) {
-        case 'orientationchange':
+        case 'appwindow-orientationchange':
           this.broadcastMessage(evt.type);
           break;
         case 'system-resize':

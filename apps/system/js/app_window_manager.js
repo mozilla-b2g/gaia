@@ -57,7 +57,7 @@
     'attentionopened',
     'homegesture-enabled',
     'homegesture-disabled',
-    'orientationchange',
+    'appwindow-orientationchange',
     'sheets-gesture-begin',
     'sheets-gesture-end',
       // XXX: PermissionDialog is shared so we need AppWindowManager
@@ -586,8 +586,8 @@
       this._activeApp && this._activeApp.broadcast('focus');
     },
 
-    _handle_orientationchange: function() {
-      this.broadcastMessage('orientationchange',
+    '_handle_appwindow-orientationchange': function() {
+      this.broadcastMessage('appwindow-orientationchange',
         this.service.query('getTopMostUI') === this);
     },
 

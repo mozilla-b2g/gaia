@@ -393,8 +393,9 @@ suite('system/AppWindowManager', function() {
       MockService.mockQueryWith('getTopMostUI', subject);
       var stubBroadcastMessage =
         this.sinon.stub(subject, 'broadcastMessage');
-      subject.handleEvent({ type: 'orientationchange' });
-      assert.isTrue(stubBroadcastMessage.calledWith('orientationchange', true));
+      subject.handleEvent({ type: 'appwindow-orientationchange' });
+      assert.isTrue(
+        stubBroadcastMessage.calledWith('appwindow-orientationchange', true));
     });
 
     test('Press home on home displayed', function() {
