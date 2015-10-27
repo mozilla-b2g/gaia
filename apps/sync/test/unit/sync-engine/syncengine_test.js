@@ -143,10 +143,10 @@ ld be a Function`);
       });
     });
 
-    test('sets xClientState as the dbPrefix', function(done) {
+    test('sets xClientState as the bucket id', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow({ history: {} }).then(function() {
-        expect(se._kinto.options.dbPrefix).to.equal(
+        expect(se._kinto.options.bucket).to.equal(
             SynctoServerFixture.xClientState);
         done();
       });
