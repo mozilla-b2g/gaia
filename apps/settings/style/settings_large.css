@@ -8,13 +8,6 @@
   }
 
   /**
-   * wallpaper
-   */
-  section[role="region"]#display .wallpaper-button {
-    background-position: 95% 24%;
-  }
-
-  /**
    * media storage
    */
   section[role="region"]#mediaStorage .color-music.stackedbar-item,
@@ -167,14 +160,18 @@
   /**
    * wallpaper
    */
-  section[role="region"]#display .wallpaper {
+  section[role="region"].wallpaper {
     height: 33.5rem;
   }
 
-  html[dir="ltr"] section[role="region"]#display .wallpaper-button {
+  section[role="region"].wallpaper .wallpaper-button {
+    background-position: 95% 24%;
+  }
+
+  html[dir="ltr"] section[role="region"].wallpaper .wallpaper-button {
     background-position: right 4rem top 2.5rem;
   }
-  html[dir="rtl"] section[role="region"]#display .wallpaper-button {
+  html[dir="rtl"] section[role="region"].wallpaper .wallpaper-button {
     background-position: left 4rem top 2.5rem;
   }
 
