@@ -79,10 +79,6 @@
   border-bottom: medium none;
 }
 
-.report-view > .contact-list a {
-  height: auto;
-}
-
 .report-view > .contact-list p,
 .report-view > .contact-list span {
   font-size: 1.4rem;
