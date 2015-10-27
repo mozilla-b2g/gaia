@@ -2,6 +2,7 @@
  * To provide a abstract LockScreen, thus we can change the implementation
  * to get closer with user's behavior (unlock via sliding; lock with button).
  */
+
 'use strict';
 (function(module) {
   var LockScreen = function() {};
@@ -79,6 +80,31 @@
         settings = null;
       };
     }, cb);
+  };
+
+  LockScreen.prototype.setPasscode =
+  function(_passcode, cb) {
+    this.ensure().settings();
+    this.client.executeAsyncScript(function(passcode) {
+      try {
+        window.wrappedJSObject.PasscodeHelper.set(passcode);
+      } catch(e) {
+        throw e;
+      }
+      var settings = window.wrappedJSObject.navigator.mozSettings;
+      var lock = settings.createLock();
+      var result = lock.set({
+        'lockscreen.passcode-lock.enabled': true
+      });
+      result.then(function() {
+        marionetteScriptFinished(result.result);
+        result = null;
+        lock = null;
+        settings = null;
+      }).catch(function() {
+        throw new Error('Cannot set LockScreen passcode enabled value');
+      });
+    }, [_passcode], cb);
   };
 
   LockScreen.prototype.disable =
