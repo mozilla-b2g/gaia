@@ -129,6 +129,9 @@
                         resolve(iconObj);
 
                         iconStore.add(iconObj, iconUrl);
+                      },
+                      onerror: function(e) {
+                        reject(`Failed to fetch icon ${iconUrl}`);
                       }
                     });
                   })
@@ -344,26 +347,30 @@
    */
   function fetchIcon(iconUrl) {
     return new Promise((resolve, reject) => {
-      fetchIconBlob(iconUrl).then((iconBlob) => {
-        var img = document.createElement('img');
+      fetchIconBlob(iconUrl)
+        .then((iconBlob) => {
+          var img = document.createElement('img');
 
-        img.src = URL.createObjectURL(iconBlob);
+          img.src = URL.createObjectURL(iconBlob);
 
-        img.onload = () => {
-          var iconSize = Math.max(img.naturalWidth, img.naturalHeight);
+          img.onload = () => {
+            var iconSize = Math.max(img.naturalWidth, img.naturalHeight);
 
-          resolve({
-            blob: iconBlob,
-            url: iconUrl,
-            size: iconSize,
-            timestamp: Date.now()
-          });
-        };
+            resolve({
+              blob: iconBlob,
+              url: iconUrl,
+              size: iconSize,
+              timestamp: Date.now()
+            });
+          };
 
-        img.onerror = () => {
-          reject(new Error(`Error while loading image.`));
-        };
-      });
+          img.onerror = () => {
+            reject(new Error(`Error while loading image.`));
+          };
+        })
+        .catch((e) => {
+          reject(new Error(`Error while loading image: ${e}`));
+        });
     });
   }
 

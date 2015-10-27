@@ -123,6 +123,12 @@
 
         URL.revokeObjectURL(img.src);
       };
+
+      img.onerror = () => {
+        if (options.onerror) {
+          options.onerror();
+        }
+      };
     }
   };
 

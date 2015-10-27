@@ -572,7 +572,7 @@ suite('Icons Helper', () => {
         .then((iconObject) => {
           assert.isTrue(createObjectURLStub.calledOnce);
           assert.isObject(iconObject);
-          assert.equal(iconObject.blob, 'abc');
+          assert.equal(iconObject.blob.content, 'abc');
           assert.equal(iconObject.size, '32');
           done();
         })
@@ -581,7 +581,9 @@ suite('Icons Helper', () => {
           done();
         });
       MockXMLHttpRequest.mSendReadyState();
-      MockXMLHttpRequest.mSendOnLoad({response: 'abc'});
+      MockXMLHttpRequest.mSendOnLoad({
+        response: { content: 'abc', type: 'image/png' }
+      });
     });
 
     test('Should return the largest side of the image', done => {
@@ -596,7 +598,9 @@ suite('Icons Helper', () => {
           done();
         });
       MockXMLHttpRequest.mSendReadyState();
-      MockXMLHttpRequest.mSendOnLoad({response: 'abc'});
+      MockXMLHttpRequest.mSendOnLoad({
+        response: { content: 'abc', type: 'image/png' }
+      });
     });
 
     test('getBestIconFromWebManifest', function() {
