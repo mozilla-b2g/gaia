@@ -1,8 +1,7 @@
+/* global loadBodyHTML, sinon */
 'use strict';
 
-/* global loadBodyHTML, sinon */
-
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('Browsing Privacy >', function() {
   var browsingPrivacyPanel;
@@ -80,4 +79,3 @@ suite('Browsing Privacy >', function() {
     };
   }
 });
-

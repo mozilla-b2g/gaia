@@ -11,7 +11,7 @@ suite('Languages Panel > ', function() {
     '*': {
       'panels/languages/languages': 'MockLanguages',
       'modules/settings_panel': 'MockSettingsPanel',
-      'settings': 'unit/mock_settings',
+      'settings': 'unit/mock_settings'
     }
   };
 

@@ -1,9 +1,8 @@
-/* global AppStarter, RootPanelHandler */
+/* global AppStarter */
 'use strict';
 
 mocha.globals([
   'InitialPanelHandler',
-  'RootPanelHandler',
   'LaunchContext',
   'ActivityHandler'
 ]);
@@ -51,10 +50,6 @@ suite('AppStarter', function() {
       this.sinon.stub(window, 'InitialPanelHandler', function() {
         return fakeInitialPanelHandler;
       });
-
-      this.sinon.stub(window, 'RootPanelHandler', function() {
-        return function() {};
-      });
     });
 
     test('should show correct initial panel', function(done) {
@@ -63,7 +58,7 @@ suite('AppStarter', function() {
           appStarter._showInitialPanel, fakeInitialPanelId);
       }, function() {
         // This function does not reject.
-        assert.isTrue(false);
+        assert.isTrue(false, 'panel does not called with the correct panel id');
       }).then(done, done);
     });
 
@@ -79,29 +74,8 @@ suite('AppStarter', function() {
         window.ActivityHandler = realActivityHandler;
       }, function() {
         // This function does not reject.
-        assert.isTrue(false);
+        assert.isTrue(false, 'launch context is not defined correctly');
       }).then(done, done);
-    });
-
-    test('should use RootPanelHandler if the initial panel id is root',
-      function(done) {
-        var fakePanel = {};
-
-        appStarter._getInitialPanelId.restore();
-        this.sinon.stub(appStarter, '_getInitialPanelId', function() {
-          return Promise.resolve('root');
-        });
-        this.sinon.stub(document, 'getElementById', function() {
-          return fakePanel;
-        });
-
-        appStarter.start().then(function() {
-          sinon.assert.calledWith(
-            window.InitialPanelHandler, fakePanel, RootPanelHandler);
-        }, function() {
-          // This function does not reject.
-          assert.isTrue(false);
-        }).then(done, done);
     });
 
     test('should load alameda', function(done) {
@@ -109,7 +83,7 @@ suite('AppStarter', function() {
         sinon.assert.called(appStarter._loadAlameda);
       }, function() {
         // This function does not reject.
-        assert.isTrue(false);
+        assert.isTrue(false, 'failed to load alameda');
       }).then(done, done);
     });
 

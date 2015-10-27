@@ -2,7 +2,7 @@
 
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_switch/script.js');
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('CallFdnSettings > ', function() {
   'use strict';

@@ -4,7 +4,7 @@
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_radio/script.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('Improve browser os panel > ', function() {
   var realMozSettings;

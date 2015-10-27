@@ -17,7 +17,7 @@
 
 'use strict';
 
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/sync/errors.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_l10n.js');

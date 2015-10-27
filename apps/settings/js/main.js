@@ -13,7 +13,6 @@ require(['config/require'], function() {
     var SettingsService = require('modules/settings_service');
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
-    var DsdsSettings = require('dsds_settings');
 
     function isInitialPanel(panel) {
       if (Settings.isTabletAndLandscape()) {
@@ -40,7 +39,7 @@ require(['config/require'], function() {
         var pendingTargetPanel = initialPanelHandler.pendingTargetPanel;
         // XXX: In bluetooth and call item,
         // we need special logic for navigating to specific panels.
-       
+
         switch (pendingTargetPanel) {
           case 'bluetooth':
             require(['modules/bluetooth/version_detector'],
@@ -56,7 +55,9 @@ require(['config/require'], function() {
             });
             break;
           case 'call':
-            if (DsdsSettings.getNumberOfIccSlots() > 1) {
+            var mozMobileConnections = navigator.mozMobileConnections;
+            // If DSDS phone, we have to let users choose simcard
+            if (mozMobileConnections && mozMobileConnections.length > 1) {
               // If the device support dsds,
               // then navigate to 'call-iccs' panel
               pendingTargetPanel = 'call-iccs';

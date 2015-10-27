@@ -1,8 +1,7 @@
+/* globals loadBodyHTML*/
 'use strict';
 
-/* globals loadBodyHTML*/
-
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('Addons Panel > ', function() {
 
