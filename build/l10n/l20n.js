@@ -86,12 +86,12 @@ function createGetter(id, name) {
     var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
 
     var charMaps = {
-      'en-x-psaccent': 'ȦƁƇḒḖƑƓĦĪĴĶĿḾȠǾƤɊŘŞŦŬṼẆẊẎẐ[\\]^_`ȧƀƈḓḗƒɠħīĵķŀḿƞǿƥɋřşŧŭṽẇẋẏẑ',
+      'fr-x-psaccent': 'ȦƁƇḒḖƑƓĦĪĴĶĿḾȠǾƤɊŘŞŦŬṼẆẊẎẐ[\\]^_`ȧƀƈḓḗƒɠħīĵķŀḿƞǿƥɋřşŧŭṽẇẋẏẑ',
       'ar-x-psbidi': '∀ԐↃpƎɟפHIſӼ˥WNOԀÒᴚS⊥∩ɅＭXʎZ[\\]ᵥ_,ɐqɔpǝɟƃɥıɾʞʅɯuodbɹsʇnʌʍxʎz'
     };
 
     var mods = {
-      'en-x-psaccent': function (val) {
+      'fr-x-psaccent': function (val) {
         return val.replace(reVowels, function (match) {
           return match + match.toLowerCase();
         });
@@ -139,9 +139,9 @@ function createGetter(id, name) {
 }
 
 var pseudo$1 = Object.defineProperties(Object.create(null), {
-  'en-x-psaccent': {
+  'fr-x-psaccent': {
     enumerable: true,
-    get: createGetter('en-x-psaccent', 'Runtime Accented')
+    get: createGetter('fr-x-psaccent', 'Runtime Accented')
   },
   'ar-x-psbidi': {
     enumerable: true,

@@ -1641,7 +1641,7 @@
    *
    * Currently, the following pseudolocales are supported:
    *
-   *   en-x-psaccent - Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ
+   *   fr-x-psaccent - Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ
    *
    *     In Accented English all English letters are replaced by accented
    *     Unicode counterparts which don't impair the readability of the content.
@@ -1681,7 +1681,7 @@
       const reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
 
       const charMaps = {
-        'en-x-psaccent':
+        'fr-x-psaccent':
           'ȦƁƇḒḖƑƓĦĪĴĶĿḾȠǾƤɊŘŞŦŬṼẆẊẎẐ[\\]^_`ȧƀƈḓḗƒɠħīĵķŀḿƞǿƥɋřşŧŭṽẇẋẏẑ',
         'ar-x-psbidi':
           // XXX Use pɟפ˥ʎ as replacements for ᗡℲ⅁⅂⅄. https://bugzil.la/1007340
@@ -1689,7 +1689,7 @@
       };
 
       const mods = {
-        'en-x-psaccent': val =>
+        'fr-x-psaccent': val =>
           val.replace(reVowels, match => match + match.toLowerCase()),
 
         // Surround each word with Unicode formatting codes, RLO and PDF:
@@ -1732,9 +1732,9 @@
   }
 
   const pseudo = Object.defineProperties(Object.create(null), {
-    'en-x-psaccent': {
+    'fr-x-psaccent': {
       enumerable: true,
-      get: createGetter('en-x-psaccent', 'Runtime Accented')
+      get: createGetter('fr-x-psaccent', 'Runtime Accented')
     },
     'ar-x-psbidi': {
       enumerable: true,

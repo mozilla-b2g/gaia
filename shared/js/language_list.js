@@ -51,15 +51,15 @@ exports.LanguageList = {
   _readFile: readFile,
   _readSetting: readSetting,
 
-  _extendPseudo: function(languages, currentLang, qpsEnabled) {
+  _extendPseudo: function(languages, currentLang, pseudoEnabled) {
     var lang;
     var isCurrent;
 
-    if (!qpsEnabled) {
+    if (!pseudoEnabled) {
       // remove buildtime pseudolocales
       for (lang in languages) {
         isCurrent = (lang === currentLang);
-        if (lang.indexOf('qps') === 0 && !isCurrent) {
+        if (lang.indexOf('-x-ps') > -1 && !isCurrent) {
           delete languages[lang];
         }
       }
@@ -72,7 +72,7 @@ exports.LanguageList = {
           continue;
         }
         isCurrent = (lang === currentLang);
-        if (isCurrent || qpsEnabled) {
+        if (isCurrent || pseudoEnabled) {
           languages[lang] = navigator.mozL10n.qps[lang].name;
         }
       }
@@ -122,13 +122,13 @@ exports.LanguageList = {
       this._languages || (this._languages = this._readFile(LOCALES_FILE)),
       this._readSetting('deviceinfo.os'),
       this._readSetting('language.current'),
-      this._readSetting('devtools.qps.enabled'),
+      this._readSetting('devtools.pseudolocalization.enabled'),
       this._readSetting('accessibility.screenreader'),
       navigator.mozApps.getAdditionalLanguages()
     ]).then(
-      function([langsFromFile, ver, current, qpsEnabled, srEnabled, addl]) {
+      function([langsFromFile, ver, current, pseudoEnabled, srEnabled, addl]) {
         var langs = this._copyObj(langsFromFile);
-        this._extendPseudo(langs, current, qpsEnabled);
+        this._extendPseudo(langs, current, pseudoEnabled);
         this._extendAdditional(langs, this._parseVersion(ver), addl);
         this._removeWithNoSpeech(langs, srEnabled);
         return [langs, current];
@@ -147,8 +147,8 @@ exports.LanguageList = {
   wrapBidi: function(langCode, langName) {
     // Right-to-Left (RTL) languages:
     // (http://www.w3.org/International/questions/qa-scripts)
-    // Arabic, Hebrew, Farsi, Pashto, Mirrored English (pseudo), Urdu
-    var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
+    // Arabic, Hebrew, Farsi, Pashto, Bidi English (pseudo), Urdu
+    var rtlList = ['ar', 'he', 'fa', 'ps', 'ar-x-psbidi', 'ur'];
     // Use script direction control-characters to wrap the text labels
     // since markup (i.e. <bdo>) does not work inside <option> tags
     // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup

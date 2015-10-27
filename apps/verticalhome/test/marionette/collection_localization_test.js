@@ -50,7 +50,7 @@ marionette('Vertical - Collection', function() {
         // this is a dynamicly generated locale from english which is perfect
         // for testing this kind of thing since as long as there is an english
         // locale this will work.
-        'language.current': 'qps-ploc'
+        'language.current': 'fr-x-psaccent'
       });
     });
 
@@ -58,7 +58,7 @@ marionette('Vertical - Collection', function() {
     // XXX: Loading this locale file seems to no longer work.
     // Hardcode the expected value for now.
     var expected = home.l10n(
-      '/locales-obj/index.qps-ploc.json',
+      '/locales-obj/index.fr-x-psaccent.json',
       // XXX: harcoded number 376 taken from the fixture
       'collection-categoryId-376'
     );

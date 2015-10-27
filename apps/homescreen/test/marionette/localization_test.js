@@ -26,13 +26,13 @@ marionette('Homescreen - Localization', function() {
     client.switchToFrame();
     client.executeScript(function() {
       navigator.mozSettings.createLock().set({
-        'language.current': 'qps-ploc'
+        'language.current': 'fr-x-psaccent'
       });
     });
     client.switchToFrame(system.getHomescreenIframe());
 
     // Localization can be async, wait for the content to update
-    var newIconName = home.localizedAppName('settings', 'qps-ploc');
+    var newIconName = home.localizedAppName('settings', 'fr-x-psaccent');
     client.waitFor(function() {
       return !!home.getIconByName(newIconName);
     });

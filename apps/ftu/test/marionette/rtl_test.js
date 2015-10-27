@@ -17,17 +17,17 @@ marionette('First Time Use >', function() {
     quickly.helper.client = quickly;
   });
 
-  test('Change language to mirrored english', function() {
-    quickly.settings.set('devtools.qps.enabled', true);
+  test('Change language to bidi english', function() {
+    quickly.settings.set('devtools.pseudolocalization.enabled', true);
     quickly.apps.switchToApp(Ftu.URL);
     quickly.helper.waitForElement('#languages');
     var header = quickly.helper.waitForElement(Ftu.Selectors.header);
-    ftu.selectLanguage('qps-plocm');
+    ftu.selectLanguage('ar-x-psbidi');
 
-    assert.equal(quickly.settings.get('language.current'), 'qps-plocm');
+    assert.equal(quickly.settings.get('language.current'), 'ar-x-psbidi');
     var translatedHeader = quickly.executeScript('' +
       'var qps = window.wrappedJSObject.navigator.mozL10n.qps;' +
-      'return qps["qps-plocm"].translate("Language");'
+      'return qps["ar-x-psbidi"].translate("Language");'
     );
     // sanity check expected translation
     var direction = quickly.helper.waitForElement('body')
@@ -39,10 +39,10 @@ marionette('First Time Use >', function() {
   });
 
   test('Correct nav button order under RTL', function() {
-    quickly.settings.set('devtools.qps.enabled', true);
+    quickly.settings.set('devtools.pseudolocalization.enabled', true);
     quickly.apps.switchToApp(Ftu.URL);
     quickly.helper.waitForElement('#languages');
-    ftu.selectLanguage('qps-plocm');
+    ftu.selectLanguage('ar-x-psbidi');
 
     var direction = quickly.helper.waitForElement('#nav-bar')
                     .scriptWith(function(el) {

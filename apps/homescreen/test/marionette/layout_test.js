@@ -41,12 +41,12 @@ marionette('Homescreen - Layout', function() {
 
   test('apps grid is RTL in RTL language', function() {
     client.switchToFrame();
-    client.settings.set('language.current', 'qps-plocm');
+    client.settings.set('language.current', 'ar-x-psbidi');
     client.switchToFrame(system.getHomescreenIframe());
 
     // Localization can be async, wait for the content to update
     var localizedPhoneName =
-      home.localizedAppName('communications', 'dialer', 'qps-plocm');
+      home.localizedAppName('communications', 'dialer', 'ar-x-psbidi');
     client.waitFor(function() {
       return !!home.getIconByName(localizedPhoneName);
     });

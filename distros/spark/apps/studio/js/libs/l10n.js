@@ -1153,7 +1153,7 @@
 
   var DEBUG = false;
   var isPretranslated = false;
-  var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
+  var rtlList = ['ar', 'he', 'fa', 'ps', 'ar-x-psbidi', 'ur'];
 
   // Public API
 

@@ -6,7 +6,7 @@ pref('b2g.system_startup_url', "app://system.gaiamobile.org/index.html");
 pref('network.http.max-connections-per-server', 15);
 pref('dom.mozInputMethod.enabled', true);
 pref('layout.css.sticky.enabled', true);
-pref('intl.uidirection.qps-plocm', "rtl");
+pref('intl.uidirection.ar-x-psbidi', "rtl");
 pref('dom.webcomponents.enabled', true);
 pref('ril.debugging.enabled', false);
 pref('dom.mms.version', 17);

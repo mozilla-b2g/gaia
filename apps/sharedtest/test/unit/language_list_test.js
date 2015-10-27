@@ -24,7 +24,7 @@ suite('Language List', function() {
             return Promise.resolve('2.2');
           case 'language.current':
             return Promise.resolve('en-US');
-          case 'devtools.qps.enabled':
+          case 'devtools.pseudolocalization.enabled':
             return Promise.resolve('false');
         }
       });
@@ -70,15 +70,15 @@ suite('Language List', function() {
 
   suite('wrap bidi', function() {
     test('wrap bidi', function() {
-      assert.equal(LanguageList.wrapBidi('qps-ploc', 'LTR'),
+      assert.equal(LanguageList.wrapBidi('fr-x-psaccent', 'LTR'),
                    '\u202aLTR\u202c');
-      assert.equal(LanguageList.wrapBidi('qps-plocm', 'RTL'),
+      assert.equal(LanguageList.wrapBidi('ar-x-psbidi', 'RTL'),
                    '\u202bRTL\u202c');
     });
   });
 
   suite('extend language list with pseudolanguages', function() {
-    test('regular current language, qps disabled', function() {
+    test('regular current language, pseudolocalization disabled', function() {
       var langs = {
         en: 'English'
       };
@@ -86,7 +86,7 @@ suite('Language List', function() {
       assert.isTrue('en' in langs, 'en is listed');
     });
 
-    test('regular current language, qps enabled', function() {
+    test('regular current language, pseudolocalization enabled', function() {
       var langs = {
         en: 'English'
       };
@@ -94,7 +94,8 @@ suite('Language List', function() {
       assert.isTrue('en' in langs, 'en is listed');
     });
 
-    test('regular non-current language, qps disabled', function() {
+    test('regular non-current language, pseudolocalization disabled',
+    function() {
       var langs = {
         en: 'English',
         pl: 'Polski'
@@ -104,7 +105,8 @@ suite('Language List', function() {
       assert.isTrue('pl' in langs, 'pl is listed');
     });
 
-    test('regular non-current language, qps enabled', function() {
+    test('regular non-current language, pseudolocalization enabled',
+    function() {
       var langs = {
         en: 'English',
         pl: 'Polski'
@@ -114,82 +116,84 @@ suite('Language List', function() {
       assert.isTrue('pl' in langs, 'pl is listed');
     });
 
-    test('pseudo current language, qps disabled', function() {
+    test('pseudo current language, pseudolocalization disabled', function() {
       var langs = {
         en: 'English'
       };
-      LanguageList._extendPseudo(langs, 'qps-ploc', false);
+      LanguageList._extendPseudo(langs, 'fr-x-psaccent', false);
       assert.isTrue('en' in langs, 'en is listed');
-      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+      assert.isTrue('fr-x-psaccent' in langs, 'fr-x-psaccent is listed');
     });
 
-    test('pseudo current language, qps enabled', function() {
+    test('pseudo current language, pseudolocalization enabled', function() {
       var langs = {
         en: 'English'
       };
-      LanguageList._extendPseudo(langs, 'qps-ploc', true);
+      LanguageList._extendPseudo(langs, 'fr-x-psaccent', true);
       assert.isTrue('en' in langs, 'en is listed');
-      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+      assert.isTrue('fr-x-psaccent' in langs, 'fr-x-psaccent is listed');
     });
 
-    test('pseudo non-current language, qps disabled', function() {
+    test('pseudo non-current language, pseudolocalization disabled',
+    function() {
       var langs = {
         en: 'English'
       };
       LanguageList._extendPseudo(langs, 'en', false);
       assert.isTrue('en' in langs, 'en is listed');
-      assert.isFalse('qps-ploc' in langs, 'qps-ploc is not listed');
+      assert.isFalse('fr-x-psaccent' in langs, 'fr-x-psaccent is not listed');
     });
 
-    test('pseudo non-current language, qps enabled', function() {
+    test('pseudo non-current language, pseudolocalization enabled',
+    function() {
       var langs = {
         en: 'English'
       };
       LanguageList._extendPseudo(langs, 'en', true);
       assert.isTrue('en' in langs, 'en is listed');
-      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+      assert.isTrue('fr-x-psaccent' in langs, 'fr-x-psaccent is listed');
     });
   });
 
   suite('remove buildtime pseudolanguages', function() {
-    test('regular current language, qps enabled', function() {
+    test('regular current language, pseudolocalization enabled', function() {
       var langs = {
         en: 'English',
-        'qps-ploc': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
+        'fr-x-psaccent': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
       };
       LanguageList._extendPseudo(langs, 'en', true);
       assert.isTrue('en' in langs, 'en is listed');
-      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+      assert.isTrue('fr-x-psaccent' in langs, 'fr-x-psaccent is listed');
     });
 
-    test('regular current language, qps disabled', function() {
+    test('regular current language, pseudolocalization disabled', function() {
       var langs = {
         en: 'English',
-        'qps-ploc': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
+        'fr-x-psaccent': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
       };
       LanguageList._extendPseudo(langs, 'en', false);
       assert.isTrue('en' in langs, 'en is listed');
-      assert.isFalse('qps-ploc' in langs, 'qps-ploc is not listed');
+      assert.isFalse('fr-x-psaccent' in langs, 'fr-x-psaccent is not listed');
     });
 
-    test('pseudo current language, qps enabled', function() {
+    test('pseudo current language, pseudolocalization enabled', function() {
       var langs = {
         en: 'English',
-        'qps-ploc': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
+        'fr-x-psaccent': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
       };
-      LanguageList._extendPseudo(langs, 'qps-ploc', true);
+      LanguageList._extendPseudo(langs, 'fr-x-psaccent', true);
       assert.isTrue('en' in langs, 'en is listed');
-      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+      assert.isTrue('fr-x-psaccent' in langs, 'fr-x-psaccent is listed');
     });
 
-    test('pseudo current language, qps disabled', function() {
+    test('pseudo current language, pseudolocalization disabled', function() {
       var langs = {
         en: 'English',
-        'qps-ploc': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
+        'fr-x-psaccent': 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
       };
-      LanguageList._extendPseudo(langs, 'qps-ploc', false);
+      LanguageList._extendPseudo(langs, 'fr-x-psaccent', false);
       assert.isTrue('en' in langs, 'en is listed');
-      assert.isTrue('qps-ploc' in langs, 'qps-ploc is listed');
+      assert.isTrue('fr-x-psaccent' in langs, 'fr-x-psaccent is listed');
     });
   });
 

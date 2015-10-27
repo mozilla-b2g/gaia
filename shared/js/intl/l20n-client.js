@@ -339,7 +339,7 @@
     constructor(client, doc) {
       this._doc = doc;
       this.pseudo = {
-        'en-x-psaccent': createPseudo(this, 'en-x-psaccent'),
+        'fr-x-psaccent': createPseudo(this, 'fr-x-psaccent'),
         'ar-x-psbidi': createPseudo(this, 'ar-x-psbidi')
       };
 

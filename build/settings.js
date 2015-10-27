@@ -279,7 +279,7 @@ function execute(config) {
   if (config.PRODUCTION === '0') {
     settings['dom.mozApps.signed_apps_installable_from'] =
       'https://marketplace.firefox.com,https://marketplace.allizom.org';
-    settings['devtools.qps.enabled'] = true;
+    settings['devtools.pseudolocalization.enabled'] = true;
   }
 
   if (config.DOGFOOD === '1') {

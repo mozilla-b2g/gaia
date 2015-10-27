@@ -61,8 +61,8 @@
     },
 
     qps: {
-      'qps-ploc': {
-        id: 'qps-ploc',
+      'fr-x-psaccent': {
+        id: 'fr-x-psaccent',
         name: 'Pseudo English',
         translate: stringify
       }

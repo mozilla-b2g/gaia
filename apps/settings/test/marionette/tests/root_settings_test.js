@@ -25,14 +25,14 @@ marionette('check root panel settings', function() {
       client.contentScript.inject(__dirname +
         '/../mocks/mock_navigator_moz_bluetooth.js');
 
-      client.settings.set('devtools.qps.enabled', true);
+      client.settings.set('devtools.pseudolocalization.enabled', true);
 
       settingsApp.launch();
       rootPanel = settingsApp.rootPanel;
     });
 
     teardown(function() {
-      client.settings.set('devtools.qps.enabled', false);
+      client.settings.set('devtools.pseudolocalization.enabled', false);
     });
 
     test('check static item descriptions', function() {
@@ -68,15 +68,15 @@ marionette('check root panel settings', function() {
         rootPanel.isLanguageDescTranslated('accented'),
         'language desc was not localized into Accented English');
 
-      settingsApp.currentLanguage = 'mirrored';
+      settingsApp.currentLanguage = 'bidi';
       assert.ok(
-        rootPanel.isLanguageDescTranslated('mirrored'),
-        'language desc was not localized into Mirrored English');
+        rootPanel.isLanguageDescTranslated('bidi'),
+        'language desc was not localized into Bidi English');
 
       settingsApp.currentLanguage = 'english';
       assert.ok(
         rootPanel.isLanguageDescTranslated('english'),
-        'language desc was not localized into Mirrored English');
+        'language desc was not localized into English');
     });
 
     suite('airplane mode', function() {

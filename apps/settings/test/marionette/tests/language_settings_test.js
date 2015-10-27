@@ -18,21 +18,21 @@ marionette('manipulate language settings', function() {
     var languagePanel;
 
     setup(function() {
-      client.settings.set('devtools.qps.enabled', true);
+      client.settings.set('devtools.pseudolocalization.enabled', true);
       languagePanel = settingsApp.languagePanel;
       languagePanel.setupDefaultLanguage();
     });
 
     teardown(function() {
-      client.settings.set('devtools.qps.enabled', false);
+      client.settings.set('devtools.pseudolocalization.enabled', false);
     });
 
     test('label in the panel is translated.', function() {
       languagePanel.currentLanguage = 'accented';
       assert.equal(languagePanel.currentLanguage, 'accented');
 
-      languagePanel.currentLanguage = 'mirrored';
-      assert.equal(languagePanel.currentLanguage, 'mirrored');
+      languagePanel.currentLanguage = 'bidi';
+      assert.equal(languagePanel.currentLanguage, 'bidi');
 
       languagePanel.currentLanguage = 'english';
       assert.equal(languagePanel.currentLanguage, 'english');
@@ -41,11 +41,11 @@ marionette('manipulate language settings', function() {
     test('mozSettings value is correct', function() {
       languagePanel.currentLanguage = 'accented';
       assert.equal(languagePanel.currentLanguageFromMozSettings,
-                   'qps-ploc');
+                   'fr-x-psaccent');
 
-      languagePanel.currentLanguage = 'mirrored';
+      languagePanel.currentLanguage = 'bidi';
       assert.equal(languagePanel.currentLanguageFromMozSettings,
-                   'qps-plocm');
+                   'ar-x-psbidi');
 
       languagePanel.currentLanguage = 'english';
       assert.equal(languagePanel.currentLanguageFromMozSettings,
@@ -56,8 +56,8 @@ marionette('manipulate language settings', function() {
       languagePanel.currentLanguage = 'accented';
       assert.ok(languagePanel.isSampleFormatTranslated('accented'));
 
-      languagePanel.currentLanguage = 'mirrored';
-      assert.ok(languagePanel.isSampleFormatTranslated('mirrored'));
+      languagePanel.currentLanguage = 'bidi';
+      assert.ok(languagePanel.isSampleFormatTranslated('bidi'));
 
       languagePanel.currentLanguage = 'english';
       assert.ok(languagePanel.isSampleFormatTranslated('english'));
@@ -79,35 +79,35 @@ marionette('manipulate language settings', function() {
     });
 
     test('the setting is off', function() {
-      quickly.settings.set('devtools.qps.enabled', false);
+      quickly.settings.set('devtools.pseudolocalization.enabled', false);
       languagePanel = settingsApp.languagePanel;
 
       quickly.helper.waitForElement('option[value="en-US"]');
-      quickly.helper.waitForElementToDisappear('option[value="qps-ploc"]');
-      assert.ok(true, 'qps-ploc is not listed');
+      quickly.helper.waitForElementToDisappear('option[value="fr-x-psaccent"]');
+      assert.ok(true, 'fr-x-psaccent is not listed');
     });
 
     test('turning the setting on and off', function() {
       // 1. turn the setting on
-      quickly.settings.set('devtools.qps.enabled', true);
+      quickly.settings.set('devtools.pseudolocalization.enabled', true);
       languagePanel = settingsApp.languagePanel;
 
-      quickly.helper.waitForElement('option[value="qps-ploc"]');
-      assert.ok(true, 'qps-ploc is listed');
-      quickly.helper.waitForElement('option[value="qps-plocm"]');
-      assert.ok(true, 'qps-plocm is listed');
+      quickly.helper.waitForElement('option[value="fr-x-psaccent"]');
+      assert.ok(true, 'fr-x-psaccent is listed');
+      quickly.helper.waitForElement('option[value="ar-x-psbidi"]');
+      assert.ok(true, 'ar-x-psbidi is listed');
 
       languagePanel.currentLanguage = 'accented';
       languagePanel.back();
 
       // 2. turn the setting off
-      quickly.settings.set('devtools.qps.enabled', false);
+      quickly.settings.set('devtools.pseudolocalization.enabled', false);
 
       languagePanel = settingsApp.languagePanel;
-      quickly.helper.waitForElement('option[value="qps-ploc"]');
-      assert.ok(true, 'qps-ploc is listed');
-      quickly.helper.waitForElementToDisappear('option[value="qps-plocm"]');
-      assert.ok(true, 'qps-plocm is not listed');
+      quickly.helper.waitForElement('option[value="fr-x-psaccent"]');
+      assert.ok(true, 'fr-x-psaccent is listed');
+      quickly.helper.waitForElementToDisappear('option[value="ar-x-psbidi"]');
+      assert.ok(true, 'ar-x-psbidi is not listed');
 
       languagePanel.currentLanguage = 'english';
 
@@ -128,15 +128,15 @@ marionette('manipulate language settings', function() {
         selectEl.dispatchEvent(evt);
       });
 
-      quickly.helper.waitForElementToDisappear('option[value="qps-ploc"]');
-      assert.ok(true, 'qps-ploc is not listed');
+      quickly.helper.waitForElementToDisappear('option[value="fr-x-psaccent"]');
+      assert.ok(true, 'fr-x-psaccent is not listed');
 
       languagePanel.back();
 
       // 4. reopen the panel
       languagePanel = settingsApp.languagePanel;
-      quickly.helper.waitForElementToDisappear('option[value="qps-ploc"]');
-      assert.ok(true, 'qps-ploc is not listed');
+      quickly.helper.waitForElementToDisappear('option[value="fr-x-psaccent"]');
+      assert.ok(true, 'fr-x-psaccent is not listed');
     });
   });
 });

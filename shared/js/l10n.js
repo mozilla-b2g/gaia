@@ -1031,7 +1031,7 @@
    *
    * Currently, the following pseudolocales are supported:
    *
-   *   qps-ploc - Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ
+   *   fr-x-psaccent - Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ
    *
    *     In Accented English all English letters are replaced by accented
    *     Unicode counterparts which don't impair the readability of the content.
@@ -1040,9 +1040,9 @@
    *     heuristics are used to make certain words longer to better simulate the
    *     experience of international users.
    *
-   *   qps-plocm - ɥsıʅƃuƎ pǝɹoɹɹıW
+   *   ar-x-psbidi - ɥsıʅƃuƎ ıpıԐ
    *
-   *     Mirrored English is a fake RTL locale.  All words are surrounded by
+   *     Bidi English is a fake RTL locale.  All words are surrounded by
    *     Unicode formatting marks forcing the RTL directionality of characters.
    *     In addition, to make the reversed text easier to read, individual
    *     letters are flipped.
@@ -1129,9 +1129,9 @@
   }
 
   var PSEUDO = {
-    'qps-ploc': new Pseudo('qps-ploc', 'Runtime Accented',
+    'fr-x-psaccent': new Pseudo('fr-x-psaccent', 'Runtime Accented',
                            ACCENTED_MAP, makeLonger),
-    'qps-plocm': new Pseudo('qps-plocm', 'Runtime Mirrored',
+    'ar-x-psbidi': new Pseudo('ar-x-psbidi', 'Runtime Bidi',
                             FLIPPED_MAP, makeRTL)
   };
 
@@ -1549,7 +1549,7 @@
 
 
 
-  var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
+  var rtlList = ['ar', 'he', 'fa', 'ps', 'ar-x-psbidi', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
 
@@ -2167,22 +2167,22 @@
         navigator.mozL10n.ctx, langs);
     },
     pseudo: {
-      'qps-ploc': {
+      'fr-x-psaccent': {
         getName: function() {
-          return Promise.resolve(navigator.mozL10n.qps['qps-ploc'].name);
+          return Promise.resolve(navigator.mozL10n.qps['fr-x-psaccent'].name);
         },
         processString: function(s) {
           return Promise.resolve(
-            navigator.mozL10n.qps['qps-ploc'].translate(s));
+            navigator.mozL10n.qps['fr-x-psaccent'].translate(s));
         }
       },
-      'qps-plocm': {
+      'ar-x-psbidi': {
         getName: function() {
-          return Promise.resolve(navigator.mozL10n.qps['qps-plocm'].name);
+          return Promise.resolve(navigator.mozL10n.qps['ar-x-psbidi'].name);
         },
         processString: function(s) {
           return Promise.resolve(
-            navigator.mozL10n.qps['qps-plocm'].translate(s));
+            navigator.mozL10n.qps['ar-x-psbidi'].translate(s));
         }
       }
     },
