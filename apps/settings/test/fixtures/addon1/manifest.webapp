@@ -5,5 +5,10 @@
   "description": "A test add-on that doesn't actually do anything",
   "developer": {
     "name": "The Gaia Team"
-  }
+  },
+  "content_scripts": [{
+    "matches": "<all_urls>",
+    "js": [],
+    "css": []
+  }]
 }
