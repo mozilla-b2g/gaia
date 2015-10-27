@@ -195,10 +195,12 @@ uld be a Function`);
   SyncEngine.prototype = {
     _createKinto: function(kintoCredentials) {
       var kinto = new Kinto({
-        bucket: kintoCredentials.xClientState,
+        bucket: 'syncto',
+        dbPrefix: kintoCredentials.xClientState,
         remote: kintoCredentials.URL,
         headers: {
-          'Authorization': 'BrowserID ' + kintoCredentials.assertion
+          'Authorization': 'BrowserID ' + kintoCredentials.assertion,
+          'X-Client-State': kintoCredentials.xClientState
         }
       });
       var addControlCollection = (collectionName, keyName) => {
