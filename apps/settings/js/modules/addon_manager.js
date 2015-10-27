@@ -43,10 +43,17 @@ define(function(require) {
      * @memberOf AddonManager.prototype
      */
     _bindEvents: function() {
-      AppsCache.addEventListener('oninstall', this._updateAddons.bind(this));
-      AppsCache.addEventListener('onuninstall', this._updateAddons.bind(this));
-      mozApps.mgmt.addEventListener('enabledstatechange',
-        this._updateAddons.bind(this));
+      var _boundUpdateAddons = this._updateAddons.bind(this);
+      // Bug 1215546 & 1218298
+      // The 'oninstall' event is fired when user started installing the
+      // app, but manifest is not available yet. In order to get the
+      // manifest, we need to listen to 'downloadsuccess' on the app
+      // (not mozApps.mgmt), and that's when manifest will be ready.
+      AppsCache.addEventListener('oninstall', (evt) => {
+        evt.application.addEventListener('downloadsuccess', _boundUpdateAddons);
+      });
+      AppsCache.addEventListener('onuninstall', _boundUpdateAddons);
+      mozApps.mgmt.addEventListener('enabledstatechange', _boundUpdateAddons);
     },
 
     /**
@@ -62,7 +69,7 @@ define(function(require) {
       var index;
 
       if (this._isAddon(app)) {
-        if (type === 'install' && !this._alreadyExists(app)) {
+        if (type === 'downloadsuccess' && !this._alreadyExists(app)) {
           this._addons.push(App(app));
         } else if (type === 'uninstall') {
           index = this._findAddonIndex(app);

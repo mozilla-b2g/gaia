@@ -272,24 +272,38 @@ suite('addons manager test > ', function() {
           name: 'newAddon'
         },
         manifestURL: 'newAddonManifestURL',
-        origin: 'app://newAddonManifestURL'
+        origin: 'app://newAddonManifestURL',
+        addEventListener: function(evt, cb) {
+          cb({
+            type: evt,
+            application: this
+          });
+        }
       };
 
       assert.isFalse(containsAddon(AddonManager.addons.array, newAddon));
       // Trigger an install event
-      mockAppsCache.addEventListener.args[0][1]({
-        application: newAddon,
-        type: 'install'
+      mockAppsCache.addEventListener.args.forEach(listener => {
+        if (listener[0] === 'oninstall') {
+          listener[1]({
+            application: newAddon,
+            type: 'downloadsuccess'
+          });
+        }
       });
       assert.isTrue(containsAddon(AddonManager.addons.array, newAddon));
     });
 
-    test('remove the addon from addons when "oninstall', function() {
+    test('remove the addon from addons when "uninstall', function() {
       assert.isTrue(containsAddon(AddonManager.addons.array, addon1));
       // Trigger an uninstall event.
-      mockAppsCache.addEventListener.args[0][1]({
-        application: addon1,
-        type: 'uninstall'
+      mockAppsCache.addEventListener.args.forEach(listener => {
+        if (listener[0] === 'onuninstall') {
+          listener[1]({
+            application: addon1,
+            type: 'uninstall'
+          });
+        }
       });
       assert.isFalse(containsAddon(AddonManager.addons.array, addon1));
     });
