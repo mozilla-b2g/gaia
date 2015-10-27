@@ -14,6 +14,7 @@
     "tests"
   ],
   "dependencies": {
-    "evt": "gaia-components/evt#~0.4.0"
+    "evt": "gaia-components/evt#~0.4.0",
+    "qrcodejs": "davidshimjs/qrcodejs"
   }
 }
