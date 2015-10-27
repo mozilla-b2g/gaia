@@ -87,7 +87,7 @@ marionette('Messages Composer', function() {
     test('Message input is preserved when navigating to and from ' +
     'message-report', function() {
       var reportView = conversationView.openReport(
-        conversationView.messages[0].id
+        conversationView.messages()[0].id
       );
 
       reportView.back();
