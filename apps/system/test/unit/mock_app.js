@@ -70,6 +70,15 @@ MockApp.prototype.mTriggerDownloadError = function(error) {
     });
   }
 };
+MockApp.prototype.addEventListener = function(evt, callback) {
+  callback();
+};
+
+MockApp.prototype.removeEventListener = function(evt, callback) {
+};
+
+MockApp.prototype.dispatchEvent = function(evt) {
+};
 
 MockApp.prototype.mTriggerDownloadProgress = function(progress) {
   this.progress = progress;
