@@ -70,8 +70,19 @@ define(function(require) {
       var self = this;
 
       mozAppsMgmt.oninstall = function(evt) {
-        var installedApp = evt.application;
-        self._apps.push(installedApp);
+        var newApp = evt.application;
+        var existing = false;
+        self._apps.some((app, i) => {
+          if (app.manifestURL === newApp.manifestURL) {
+            self._apps[i] = newApp;
+            existing = true;
+            return true;
+          }
+        });
+
+        if (!existing) {
+          self._apps.push(newApp);
+        }
         self._eventHandlers.oninstall.forEach(function(eventHandler) {
           eventHandler(evt);
         });
