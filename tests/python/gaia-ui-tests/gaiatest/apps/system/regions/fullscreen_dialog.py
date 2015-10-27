@@ -9,21 +9,6 @@ from gaiatest.apps.base import PageRegion
 from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 from gaiatest.apps.search.regions.browser import Browser
 
-class FullScreenDialog(PageRegion):
-
-    _fullscreen_dialog_locator = (By.ID, 'fullscreen-dialog-overlay')
-
-    def __init__(self, marionette):
-        Base.__init__(self, marionette)
-        self.marionette.switch_to_frame()
-        self.root_element = Wait(self.marionette).until(
-            expected.element_present(*self._fullscreen_dialog_locator))
-
-    @property
-    def is_empty(self):
-        return self.marionette.execute_script("""
-            return arguments[0].innerHTML.length == 0
-            """, [self.root_element])
 
 class TrackingDialog(PageRegion):
 
@@ -33,16 +18,21 @@ class TrackingDialog(PageRegion):
     _tracking_notice_confirm_locator = (By.ID, 'tracking-notice-confirm')
 
     def __init__(self, marionette):
-        Base.__init__(self, marionette)
-        self.marionette.switch_to_frame()
-        self.root_element = Wait(self.marionette).until(
+        marionette.switch_to_frame()
+        root = Wait(marionette).until(
             expected.element_present(*self._tracking_notice_locator))
-        Wait(self.marionette).until(
-            expected.element_displayed(self.root_element))
+        Wait(marionette).until(expected.element_displayed(root))
+        PageRegion.__init__(self, marionette, root)
 
     @property
     def is_displayed(self):
         return self.root_element.is_displayed()
+
+    @property
+    def is_present(self):
+        self.marionette.switch_to_frame()
+        from gaiatest.apps.system.app import System
+        return System(self.marionette).is_element_present(*self._tracking_notice_locator)
 
     def open_learn_more(self):
         self.root_element.find_element(*self._tracking_notice_learn_more_locator).tap()

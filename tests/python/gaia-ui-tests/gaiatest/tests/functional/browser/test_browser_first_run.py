@@ -6,7 +6,7 @@ from marionette_driver import By, Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
-from gaiatest.apps.system.regions.fullscreen_dialog import TrackingDialog, FullScreenDialog
+from gaiatest.apps.system.regions.fullscreen_dialog import TrackingDialog
 
 
 class TestBrowserNavigation(GaiaTestCase):
@@ -29,16 +29,11 @@ class TestBrowserNavigation(GaiaTestCase):
         self.assertTrue(tracking_dialog.is_displayed)
 
         browser = tracking_dialog.open_learn_more()
-        # It takes a short while before the page is starting to load
-        import time
-        time.sleep(1)
         browser.wait_for_page_to_load()
         self.assertFalse(tracking_dialog.is_displayed)
 
         browser.go_to_url(self.test_url)
 
-        self.assertTrue(tracking_dialog.is_displayed)
-        self.assertFalse(tracking_dialog.is_tracking_protection_enabled)
         tracking_dialog.enable_tracking_protection()
         tracking_dialog.close_tracking_protection_dialog()
 
@@ -49,6 +44,4 @@ class TestBrowserNavigation(GaiaTestCase):
         Wait(self.marionette).until(lambda m: element.text == 'You have successfully enabled tracking protection. Please continue!')
 
         # Check that no tracking protection dialog appears anymore
-        browser.switch_to_chrome()
-        tracking_dialog = FullScreenDialog(self.marionette)
-        self.assertTrue(tracking_dialog.is_empty)
+        self.assertFalse(tracking_dialog.is_present)

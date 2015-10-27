@@ -40,6 +40,7 @@ class Browser(Base):
         return self._root_element.get_attribute('loading-state') == "true"
 
     def wait_for_page_to_load(self, timeout=30):
+        Wait(self.marionette, timeout).until(lambda m: self.is_page_loading)
         Wait(self.marionette, timeout).until(lambda m: not self.is_page_loading)
 
     def tap_menu_button(self):
