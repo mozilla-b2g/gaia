@@ -134,7 +134,9 @@ var Settings = {
     this.settingsDialogSearchOk.addEventListener('keyup',
       this.handleDialogSearchOk.bind(this));
 
+//IFDEF_FIREFOX_SYNC
     LazyLoader.load('js/sync/settings.js');
+//ENDIF_FIREFOX_SYNC
   },
 
   getDefaultHomepage: function settings_getDefaultHomepage(cb) {

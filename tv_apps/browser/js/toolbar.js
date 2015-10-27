@@ -141,7 +141,9 @@ var Toolbar = {
     this.menuBlock.style.height = 73 * 3 + 20 + 10 + 'px';
     Tooltip.init();
 
+//IFDEF_FIREFOX_SYNC
     LazyLoader.load('js/sync/toolbar.js');
+//ENDIF_FIREFOX_SYNC
   },
 
   /**
