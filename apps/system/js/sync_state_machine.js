@@ -14,19 +14,29 @@
        |   +-Disable--+Errored+-----------+   |
        |   |          +--+----+           |   |
      Enable|             ^   ^         Enable |
-       |   |             |   |            |   |
+       |   v             |   |            |   |
+       | +---------+     |   |            |   |
+       | |Disabling|     |   |            |   |
+       | +-+-------+     |   |            |   |
        |   |             |   |            v   v
   +----+---v-+           |   +--------+--------+
   | Disabled |         Error +------->+Enabled +---+
-  +----^-----+           |   |        +---+----+   |
-       |   ^             |   |            |        |
+  +----------+           |   |        +---+----+   |
+       ^   ^             |   |            |        |
        |   |             | Success       Sync      |
+       |   |             |   |            |        |
+  +----+---+--+          |   |            |        |
+  | Disabling |          |   |            |        |
+  +-----------+          |   |            |        |
+       ^   ^             |   |            |        |
+       |   |             |   |            |        |
        | Disable         |   |            |        |
        |   |         +---+---+            |        |
-       |   +--------+|Syncing<------------+        |
+       |   +--------+|Syncing|<-----------+        |
        |             +-------+                     |
        |                                           |
        +--------------Disable  --------------------+
+
 */
 
 'use strict';
@@ -49,26 +59,29 @@
       'errored': 'enabled'
     },
     disable: {
-      'enabled': 'disabled',
-      'errored': 'disabled',
-      'syncing': 'disabled'
+      'enabled': 'disabling',
+      'errored': 'disabling',
+      'syncing': 'disabling'
     },
     sync: {'enabled': 'syncing'},
     success: {
-      'enabling': 'enabled',
-      'syncing' : 'enabled'
+      'disabling': 'disabled',
+      'enabling' : 'enabled',
+      'syncing'  : 'enabled'
     },
     error: {
-      'enabled' : 'errored',
-      'enabling': 'errored',
-      'syncing' : 'errored'
+      'disabling': 'errored',
+      'enabled'  : 'errored',
+      'enabling' : 'errored',
+      'syncing'  : 'errored'
     }
   };
 
   var SyncStateMachine = function() {};
 
   SyncStateMachine.STATES = [
-    'state' // can be: disabled, enabling, enabled, syncing or errored.
+    'state' // can be: disabled, enabling, enabled, syncing, disabling or
+            // errored.
   ];
 
   SyncStateMachine.SERVICES = [
@@ -123,7 +136,7 @@
       return (...args) => {
         // Checks if the transition is valid in the current state.
         if (!transitions[name][this._state]) {
-          throw new Error('Event ' + name + ' invalid for the current state');
+          throw new Error(`Transition ${name} invalid for the current state`);
         }
 
         var from = this._state;

@@ -44,10 +44,10 @@ suite('system/SyncStateMachine >', () => {
     });
   });
 
-  suite('Events invalid for state', () => {
+  suite('Transitions invalid for state', () => {
     [{
       from: 'disabled',
-      invalidEvents: [
+      invalidTransitions: [
         'disable',
         'sync',
         'error',
@@ -56,7 +56,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'enable'
     }, {
       from: 'enabling',
-      invalidEvents: [
+      invalidTransitions: [
         'enable',
         'disable',
         'sync'
@@ -64,35 +64,43 @@ suite('system/SyncStateMachine >', () => {
       transition: 'success'
     }, {
       from: 'enabled',
-      invalidEvents: [
+      invalidTransitions: [
         'enable',
         'success'
       ],
       transition: 'sync'
     }, {
       from: 'syncing',
-      invalidEvents: [
+      invalidTransitions: [
         'enable',
         'sync'
       ],
       transition: 'error'
     }, {
       from: 'errored',
-      invalidEvents: [
+      invalidTransitions: [
         'sync',
         'success',
         'error'
       ],
       transition: 'disable'
+    }, {
+      from: 'disabling',
+      invalidTransitions: [
+        'enable',
+        'disable',
+        'sync'
+      ],
+      transition: 'success'
     }].forEach(config => {
-      test(config.from + ' - invalid events', (done) => {
-        config.invalidEvents.forEach(event => {
+      test(config.from + ' - invalid transitions', done => {
+        config.invalidTransitions.forEach(transition => {
           try {
-            Service.request('SyncStateMachine:'+ event);
+            Service.request('SyncStateMachine:'+ transition);
             assert.ok(false, 'Should have thrown exception');
           } catch(e) {
             assert.ok(true, 'Expected exception');
-            assert.equal(e.message, 'Event ' + event +
+            assert.equal(e.message, 'Transition ' + transition +
                          ' invalid for the current state');
             assert.equal(Service.query('SyncStateMachine.state'),
                          config.from);
@@ -112,6 +120,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'enable',
       expectedEvent: 'enabling',
       unexpectedEvents: [
+        'disabling',
         'enabled',
         'errored',
         'disabled',
@@ -123,6 +132,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'error',
       expectedEvent: 'errored',
       unexpectedEvents: [
+        'disabling',
         'enabled',
         'disabled',
         'enabling',
@@ -130,13 +140,26 @@ suite('system/SyncStateMachine >', () => {
       ]
     }, {
       from: 'errored',
-      to: 'disabled',
+      to: 'disabling',
       transition: 'disable',
+      expectedEvent: 'disabling',
+      unexpectedEvents: [
+        'disabled',
+        'enabled',
+        'enabling',
+        'errored',
+        'syncing'
+      ]
+    }, {
+      from: 'disabling',
+      to: 'disabled',
+      transition: 'success',
       expectedEvent: 'disabled',
       unexpectedEvents: [
         'enabled',
         'enabling',
         'errored',
+        'disabling',
         'syncing'
       ]
     }, {
@@ -145,6 +168,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'enable',
       expectedEvent: 'enabling',
       unexpectedEvents: [
+        'disabling',
         'enabled',
         'errored',
         'disabled',
@@ -156,6 +180,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'success',
       expectedEvent: 'enabled',
       unexpectedEvents: [
+        'disabling',
         'enabling',
         'errored',
         'disabled',
@@ -167,6 +192,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'sync',
       expectedEvent: 'syncing',
       unexpectedEvents: [
+        'disabling',
         'enabled',
         'enabling',
         'disabled',
@@ -178,6 +204,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'success',
       expectedEvent: 'enabled',
       unexpectedEvents: [
+        'disabling',
         'disabled',
         'enabling',
         'errored',
@@ -189,6 +216,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'sync',
       expectedEvent: 'syncing',
       unexpectedEvents: [
+        'disabling',
         'enabled',
         'enabling',
         'disabled',
@@ -196,13 +224,26 @@ suite('system/SyncStateMachine >', () => {
       ]
     }, {
       from: 'syncing',
-      to: 'disabled',
+      to: 'disabling',
       transition: 'disable',
-      expectedEvent: 'disabled',
+      expectedEvent: 'disabling',
       unexpectedEvents: [
+        'disabled',
         'enabled',
         'errored',
         'enabling',
+        'syncing'
+      ]
+    }, {
+      from: 'disabling',
+      to: 'disabled',
+      transition: 'success',
+      expectedEvent: 'disabled',
+      unexpectedEvents: [
+        'enabled',
+        'enabling',
+        'errored',
+        'disabling',
         'syncing'
       ]
     }, {
@@ -211,6 +252,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'enable',
       expectedEvent: 'enabling',
       unexpectedEvents: [
+        'disabling',
         'disabled',
         'errored',
         'enabled',
@@ -222,6 +264,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'success',
       expectedEvent: 'enabled',
       unexpectedEvents: [
+        'disabling',
         'enabling',
         'errored',
         'disabled',
@@ -233,6 +276,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'sync',
       expectedEvent: 'syncing',
       unexpectedEvents: [
+        'disabling',
         'enabled',
         'enabling',
         'disabled',
@@ -244,6 +288,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'error',
       expectedEvent: 'errored',
       unexpectedEvents: [
+        'disabling',
         'enabled',
         'disabled',
         'enabling',
@@ -256,6 +301,7 @@ suite('system/SyncStateMachine >', () => {
       transition: 'enable',
       expectedEvent: 'enabled',
       unexpectedEvents: [
+        'disabling',
         'disabled',
         'enabling',
         'syncing',
@@ -263,13 +309,26 @@ suite('system/SyncStateMachine >', () => {
       ]
     }, {
       from: 'enabled',
-      to: 'disabled',
+      to: 'disabling',
       transition: 'disable',
+      expectedEvent: 'disabling',
+      unexpectedEvents: [
+        'disabled',
+        'enabled',
+        'enabling',
+        'errored',
+        'syncing'
+      ]
+    }, {
+      from: 'disabling',
+      to: 'disabled',
+      transition: 'success',
       expectedEvent: 'disabled',
       unexpectedEvents: [
         'enabled',
         'enabling',
         'errored',
+        'disabling',
         'syncing'
       ]
     }].forEach(config => {
