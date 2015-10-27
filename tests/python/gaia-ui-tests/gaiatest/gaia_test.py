@@ -762,18 +762,11 @@ class GaiaDevice(object):
             homescreen.wait_to_be_displayed()
             apps.switch_to_displayed_app()
         else:
-            apps.switch_to_displayed_app()
-            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('class')
             self._dispatch_home_button_event()
             apps.switch_to_displayed_app()
-            if 'edit-mode' in mode:
-                # touching home button will exit edit mode
-                Wait(self.marionette).until(lambda m: m.find_element(
-                    By.TAG_NAME, 'body').get_attribute('class') != mode)
-            else:
-                # touching home button inside homescreen will scroll it to the top
-                Wait(self.marionette).until(lambda m: m.execute_script(
-                    "return window.wrappedJSObject.scrollY") == 0)
+
+            # touching home button inside homescreen will scroll it to the top
+            Wait(self.marionette).until(homescreen.is_at_topmost_position)
 
     def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()

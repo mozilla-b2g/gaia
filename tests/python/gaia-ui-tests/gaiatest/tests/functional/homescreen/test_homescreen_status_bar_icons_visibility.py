@@ -6,27 +6,27 @@ from marionette_driver import By
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestHomescreenStatusBarIconsVisibility(GaiaTestCase):
 
-    homescreen_frame_locator = (By.CSS_SELECTOR, '#homescreen iframe')
-    homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
-
-    def setUp(self):
-        GaiaTestCase.setUp(self)
-
     def test_homescreen_status_bar_icons_visibility(self):
+        self._assert_every_icon_is_present()
+        self.apps.switch_to_displayed_app()
+        homescreen = Homescreen(self.marionette)
+        self.assertTrue(homescreen.is_at_topmost_position)
+
         # scroll last icon into homescreen view
-        self.marionette.switch_to_frame(
-            self.marionette.find_element(*self.homescreen_frame_locator))
-        homescreen_last_icon = self.marionette.find_elements(
-            *self.homescreen_all_icons_locator)[-1]
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(false);', [homescreen_last_icon])
-        self.assertGreater(self.marionette.execute_script(
-            "return window.scrollY"), 0)
-        # Check that statusbar and battery icon are displayed
+        last_icon = len(homescreen.visible_apps) - 1
+        homescreen.scroll_to_icon(icon_position=last_icon)
+
+        self.assertFalse(homescreen.is_at_topmost_position)
+        self._assert_every_icon_is_present()
+
+    def _assert_every_icon_is_present(self):
         status_bar = System(self.marionette).status_bar
         self.assertTrue(status_bar.is_displayed)
-        self.assertTrue(status_bar.maximized.is_battery_displayed)
+        self.assertTrue(status_bar.is_mobile_connection_displayed)
+        self.assertTrue(status_bar.is_battery_displayed)
+        self.assertTrue(status_bar.is_time_displayed)

@@ -32,6 +32,8 @@ class Homescreen(Base):
     _app_icon_locator = (By.CSS_SELECTOR, 'gaia-app-icon[data-identifier="%s"]')
     _remove_locator = (By.ID, 'remove')
 
+    _scollable_div_locator = (By.CSS_SELECTOR, '#apps-panel div.scrollable')
+
     def wait_for_app_icon_present(self, app_manifest):
         Wait(self.marionette, timeout=30).until(lambda m: self.installed_app(app_manifest))
 
@@ -51,6 +53,18 @@ class Homescreen(Base):
     def is_app_installed(self, app_manifest):
         """Checks whether app is installed"""
         return self.installed_app(app_manifest) is not None
+
+    @property
+    def is_at_topmost_position(self):
+        position = self.marionette.execute_script("""
+          return {x:arguments[0].scrollLeft, y: arguments[0].scrollTop}
+        """, [self.marionette.find_element(*self._scollable_div_locator)])
+        return (position['x'] == 0 and position['y'] == 0)
+
+    def scroll_to_icon(self, icon_position=0):
+        app_icon = self.visible_apps[icon_position]
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(true);', [app_icon.root_element])
 
     def move_app_to_position(self, app_position, to_position):
         app = self.app_elements[app_position]
