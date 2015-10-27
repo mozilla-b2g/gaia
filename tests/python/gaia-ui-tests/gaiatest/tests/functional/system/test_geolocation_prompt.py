@@ -4,7 +4,7 @@
 
 import time
 
-from marionette_driver import By
+from marionette_driver import expected, Wait, By
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.regions.permission_dialog import PermissionDialog
@@ -22,9 +22,10 @@ class TestGeolocationPrompt(GaiaTestCase):
 
         self.app = self.apps.launch('Geoloc')
 
-        # Quick fix to resolve intermittency - TODO remove this with bug 952292
-        time.sleep(2)
-        self.marionette.find_element(*self._geoloc_start_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._geoloc_start_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
         permission = PermissionDialog(self.marionette)
         self.marionette.switch_to_default_content()
@@ -37,4 +38,4 @@ class TestGeolocationPrompt(GaiaTestCase):
 
         current_permission = self.apps.get_permission('Geoloc', 'geolocation')
         self.assertEqual(current_permission, 'allow')
-        system_app.wait_for_geolocation_icon_displayed()
+        system_app.status_bar.wait_for_geolocation_icon_displayed()
