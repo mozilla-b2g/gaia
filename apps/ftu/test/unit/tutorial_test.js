@@ -12,6 +12,7 @@ requireApp('ftu/test/unit/mock_finish_screen.js');
 
 requireApp('ftu/js/finish_screen.js');
 requireApp('ftu/js/utils.js');
+requireApp('ftu/js/tutorial_utils.js');
 
 suite('Tutorial >', function() {
   var mocksHelperForFTU = new MocksHelper([
