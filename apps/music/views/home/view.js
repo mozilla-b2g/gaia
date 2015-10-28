@@ -52,7 +52,7 @@ HomeView.prototype.nonCriticalScripts = [
 HomeView.prototype.lazyLoadScripts = function() {
   return new Promise((resolve) => {
     setTimeout(() => {
-      LazyLoader.load2('nonCritical').then(() => {
+      LazyLoader.loadNGA('nonCritical').then(() => {
         this.setupSearch();
         resolve();
       });

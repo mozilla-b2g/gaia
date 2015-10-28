@@ -99,31 +99,30 @@ var LazyLoader = (function() {
       });
     },
 
-    load2: function(name, callback) {
-      var deferred = {};
-      deferred.promise = new Promise(resolve => {
-        deferred.resolve = resolve;
-      });
+    loadNGA: function(name, callback) {
+      var scriptElem =
+        document.head.querySelector('script[data-group="'+name+'"]');
 
+      if (!scriptElem) {
+        var elem2 = document.head.querySelector('link[data-group="'+name+'"]');
 
-      var elem = document.head.querySelector('script[data-group="'+name+'"]');
-
-      if (elem) {
-        deferred.resolve();
+        scriptElem = document.createElement('script');
+        scriptElem.type = 'text/javascript';
+        scriptElem.async = true;
+        var deferred = {};
+        scriptElem.ready = new Promise(resolve => {
+          deferred.resolve = resolve;
+        });
+        scriptElem.src = elem2.getAttribute('data-lazy-src');
+        scriptElem.addEventListener('load', () => {
+          deferred.resolve();
+        });
+        scriptElem.setAttribute('data-group', name);
+        document.head.appendChild(scriptElem);
+        elem2.parentNode.removeChild(elem2);
       }
 
-      var elem2 = document.head.querySelector('link[data-group="'+name+'"]');
-
-      var scriptElem = document.createElement('script');
-      scriptElem.type = 'text/javascript';
-      scriptElem.async = true;
-      scriptElem.src = elem2.getAttribute('data-lazy-src');
-      scriptElem.addEventListener('load', () => {
-        deferred.resolve();
-      });
-      document.head.appendChild(scriptElem);
-
-      return deferred.promise;
+      return scriptElem.ready;
     },
 
     load: function(files, callback) {

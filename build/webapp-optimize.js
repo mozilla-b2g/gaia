@@ -12,7 +12,6 @@
 
 var utils = require('./utils');
 var jsmin = require('./jsmin');
-var UglifyJS = require('./uglify');
 
 // We need to be able to run in node 0.10, 0.12 and in XPC
 var CrossCompatPromise = typeof Promise === 'undefined' ?
