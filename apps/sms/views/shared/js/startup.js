@@ -6,6 +6,7 @@
 /*global ActivityHandler,
          App,
          ConversationView,
+         DeviceStorageClient,
          InboxView,
          Information,
          InterInstanceEventDispatcher,
@@ -112,6 +113,9 @@ var Startup = exports.Startup = {
       ConversationView.init();
       MessagingClient.init(App.instanceId);
       MozMobileConnectionsClient.init(App.instanceId);
+      DeviceStorageClient.init(App.instanceId);
+      InboxView.initLowStorageHandling();
+      ConversationView.initLowStorageHandling();
       Information.initDefaultViews();
 
       Navigation.setReady();

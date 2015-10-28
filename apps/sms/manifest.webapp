@@ -17,7 +17,9 @@
     "audio-channel-notification":{},
     "desktop-notification":{},
     "phonenumberservice": {},
-    "moz-extremely-unstable-and-will-change-webcomponents":{}
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "device-storage:apps":{ "access": "readonly" },
+    "webapps-manage":{}
   },
   "locales": {
     "ar": {

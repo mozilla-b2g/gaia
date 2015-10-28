@@ -9,7 +9,8 @@
          SelectionHandler,
          Settings,
          LazyLoader,
-         EventDispatcher
+         EventDispatcher,
+         DeviceStorageClient
 */
 /*exported InboxView */
 (function(exports) {
@@ -65,7 +66,7 @@ var InboxView = {
 
     // TODO this should probably move to a "WrapperView" class
     this.composerLink.addEventListener(
-      'click', this.launchComposer.bind(this)
+      'click', this.onComposerClick.bind(this)
     );
 
     this.readUnreadButton.addEventListener('click', () => {
@@ -350,10 +351,15 @@ var InboxView = {
     }
   },
 
-  launchComposer: function inbox_launchComposer(e) {
+  onComposerClick: function(e) {
     // prevent following the link, see also bug 1014219
     e.preventDefault();
-    Navigation.toPanel('composer');
+
+    if (DeviceStorageClient.lowDiskSpace) {
+      // TODO: show low storage dialog
+    } else {
+      Navigation.toPanel('composer');
+    }
   },
 
   updateSelectionStatus: function inbox_updateSelectionStatus() {
@@ -1025,6 +1031,35 @@ var InboxView = {
       () => this.draftSavedBanner.classList.add('hide'),
       this.DRAFT_SAVED_DURATION
     );
+  },
+
+  initLowStorageHandling: function() {
+    DeviceStorageClient.on('change', this.onStorageChanged);
+
+    if (DeviceStorageClient.lowDiskSpace) {
+      this.lowStorageHandler();
+    } else {
+      this.availableStorageHandler();
+    }
+  },
+
+  onStorageChanged: function(evt) {
+    switch (evt.reason) {
+      case 'low-disk-space':
+        this.lowStorageHandler();
+        break;
+      case 'available-disk-space':
+        this.availableStorageHandler();
+        break;
+    }
+  },
+
+  lowStorageHandler: function() {
+    this.composerLink.classList.add('low-storage-disabled');
+  },
+
+  availableStorageHandler: function() {
+    this.composerLink.classList.remove('low-storage-disabled');
   }
 };
 
