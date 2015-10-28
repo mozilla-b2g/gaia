@@ -219,8 +219,19 @@ Camera.prototype.requestCamera = function(camera, config) {
 
     // If the camera was configured in the
     // `mozCamera.getCamera()` call, we can
-    // fire the 'configured' event now.
-    if (self.configured) { self.emit('configured'); }
+    // fire the 'configured' event now. We
+    // can also start the preview because
+    // gecko ensures that configuration only
+    // completes after the preview has been
+    // started. While we will get a preview
+    // started event after this, we can often
+    // save ourselves getting delayed by an
+    // extra refresh by configuring the
+    // viewfinder now.
+    if (self.configured) {
+      self.emit('configured');
+      self.onPreviewStateChange({newState: 'started'});
+    }
 
     self.ready();
   }
@@ -1087,6 +1098,7 @@ Camera.prototype.onClosed = function(e) {
 Camera.prototype.onPreviewStateChange = function(e) {
   var state = e.newState;
   debug('preview state change: %s', state);
+  if (state === this.previewState) { return; }
   this.previewState = state;
   this.emit('preview:' + state);
 };
