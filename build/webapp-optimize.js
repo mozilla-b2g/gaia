@@ -56,7 +56,7 @@ HTMLOptimizer.prototype.dump = function(str) {
 HTMLOptimizer.prototype.collectResources = function() {
   var doc = this.document;
   var scripts = Array.prototype.slice.call(
-    doc.head.querySelectorAll('script[src], script[data-lazy-src]'));
+    doc.head.querySelectorAll('script[src], link[data-lazy-src]'));
 
   scripts.forEach(script => {
     var src = script.getAttribute('src') || script.getAttribute('data-lazy-src');
@@ -317,10 +317,15 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
 
   var doc = this.document;
   var scripts = Array.prototype.slice.call(
-    doc.head.querySelectorAll('script[src], script[data-lazy-src]'));
+    doc.head.querySelectorAll('script[src], link[data-lazy-src]'));
 
   scripts.forEach(script => {
     var groupName = script.dataset.group;
+
+    if (!groupName && script.hasAttribute('data-lazy-src')) {
+      //XXX: for now, skip lazy loaded scripts until we improve lazy loader
+      return;
+    }
 
     if (!groupName) {
       groupName = script.defer ? 'unnamed_defer' : 'unnamed';
@@ -408,7 +413,7 @@ HTMLOptimizer.prototype.writeAggregatedContent = function(group, groupName, last
   // write the contents of the aggregated script
   utils.writeContent(file, jsmin(group.content).code);
 
-  var scriptElement = this.document.createElement('script');
+  var scriptElement = this.document.createElement(group.lazy ? 'link' : 'script');
 
   scriptElement.setAttribute('type', 'text/javascript;version=1.8');
   if (group.type) {
@@ -617,6 +622,11 @@ WebappOptimize.prototype.removeUnusedResources = function() {
       }
       var file = utils.getFile(key);
       file.remove(false);
+    } else if(key.indexOf('js-opt') === -1) {
+      utils.log('Optimizing script: ' + key);
+      var file = utils.getFile(key);
+      var content = utils.getFileContent(file);
+      utils.writeContent(file, jsmin(content).code);
     }
   });
 };

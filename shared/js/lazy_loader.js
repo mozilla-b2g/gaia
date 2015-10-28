@@ -99,6 +99,33 @@ var LazyLoader = (function() {
       });
     },
 
+    load2: function(name, callback) {
+      var deferred = {};
+      deferred.promise = new Promise(resolve => {
+        deferred.resolve = resolve;
+      });
+
+
+      var elem = document.head.querySelector('script[data-group="'+name+'"]');
+
+      if (elem) {
+        deferred.resolve();
+      }
+
+      var elem2 = document.head.querySelector('link[data-group="'+name+'"]');
+
+      var scriptElem = document.createElement('script');
+      scriptElem.type = 'text/javascript';
+      scriptElem.async = true;
+      scriptElem.src = elem2.getAttribute('data-lazy-src');
+      scriptElem.addEventListener('load', () => {
+        deferred.resolve();
+      });
+      document.head.appendChild(scriptElem);
+
+      return deferred.promise;
+    },
+
     load: function(files, callback) {
       var deferred = {};
       deferred.promise = new Promise(resolve => {

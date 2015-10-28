@@ -409,7 +409,7 @@ function getSongFile(filePath) {
 }
 
 function getSongArtwork(filePath) {
-  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+  return LazyLoader.loadNGA('albumArtCache').then(() => {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getFullSizeBlob(song);
     });
@@ -417,7 +417,7 @@ function getSongArtwork(filePath) {
 }
 
 function getSongThumbnail(filePath) {
-  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+  return LazyLoader.load('albumArtCache').then(() => {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getThumbnailBlob(song);
     });
@@ -425,7 +425,7 @@ function getSongThumbnail(filePath) {
 }
 
 function getSongArtworkURL(filePath) {
-  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+  return LazyLoader.load('albumArtCache').then(() => {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getFullSizeURL(song);
     });
@@ -433,7 +433,7 @@ function getSongArtworkURL(filePath) {
 }
 
 function getSongThumbnailURL(filePath) {
-  return LazyLoader.load('/js/metadata/album_art_cache.js').then(() => {
+  return LazyLoader.load('albumArtCache').then(() => {
     return getSong(filePath).then((song) => {
       return AlbumArtCache.getThumbnailURL(song);
     });
