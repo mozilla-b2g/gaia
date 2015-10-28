@@ -12,24 +12,24 @@ class TestChangeLanguage(GaiaTestCase):
 
     def test_change_language_settings(self):
         lang_name = self.marionette.execute_script("""
-            var qps = window.wrappedJSObject.navigator.mozL10n.qps;
-            return qps['qps-ploc'].translate('Packaged Accented');
+            var  = window.wrappedJSObject.navigator.mozL10n.;
+            return ['fr-x-psaccent'].translate('Packaged Accented');
         """)
         header = self.marionette.execute_script("""
-            var qps = window.wrappedJSObject.navigator.mozL10n.qps;
-            return qps['qps-ploc'].translate('Settings');
+            var  = window.wrappedJSObject.navigator.mozL10n.;
+            return ['fr-x-psaccent'].translate('Settings');
         """)
 
-        self.data_layer.set_setting('devtools.qps.enabled', True)
+        self.data_layer.set_setting('devtools.pseudolocalization.enabled', True)
         settings = Settings(self.marionette)
         settings.launch()
 
         language_settings = settings.open_language()
         language_settings.select_language(lang_name)
         Wait(self.marionette).until(
-            lambda m: language_settings.current_language == 'qps-ploc')
+            lambda m: language_settings.current_language == 'fr-x-psaccent')
         language_settings.go_back()
 
         # Verify that language has changed
         Wait(self.marionette).until(lambda m: settings.header_text == header)
-        self.assertEqual(self.data_layer.get_setting('language.current'), "qps-ploc")
+        self.assertEqual(self.data_layer.get_setting('language.current'), "fr-x-psaccent")

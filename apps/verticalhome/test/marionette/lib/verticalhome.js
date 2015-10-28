@@ -301,7 +301,7 @@ VerticalHome.prototype = {
       return false;
     }
 
-    if (locale.indexOf('qps') === 0) {
+    if (locale.indexOf('-x-ps') > -1) {
       return this.client.executeScript(function(locale, name) {
         var mozL10n = window.wrappedJSObject.navigator.mozL10n;
         return mozL10n.qps[locale].translate(name);

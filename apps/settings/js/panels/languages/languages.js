@@ -41,15 +41,6 @@ define(function(require) {
           hour: 'numeric',
           minute: 'numeric'
         });
-
-        if (navigator.language in navigator.mozL10n.qps) {
-          timeString =
-            navigator.mozL10n.qps[navigator.language].translate(timeString);
-          dateString =
-            navigator.mozL10n.qps[navigator.language].translate(dateString);
-        }
-
-
         this.panel.querySelector('#region-date').textContent = dateString;
         this.panel.querySelector('#region-time').textContent = timeString;
       }

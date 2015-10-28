@@ -1,6 +1,6 @@
 module.exports = {
   settings: {
-    'devtools.qps.enabled': false,
+    'devtools.pseudolocalization.enabled': false,
     'language.current': 'en-US',
     'homescreen.manifestURL':
       'app://verticalhome.gaiamobile.org/manifest.webapp'

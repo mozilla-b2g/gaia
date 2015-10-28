@@ -194,10 +194,10 @@
     "pt-PT": [
         {"layoutId": "pt-PT", "app": ["apps", "keyboard"]}
     ],
-    "qps-ploc": [
+    "fr-x-psaccent": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
-    "qps-plocm": [
+    "ar-x-psbidi": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ro": [

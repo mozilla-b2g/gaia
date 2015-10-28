@@ -12,24 +12,24 @@ class TestChangeLanguageRTL(GaiaTestCase):
 
     def test_change_language_settings_rtl(self):
         lang_name = self.marionette.execute_script("""
-            var qps = window.wrappedJSObject.navigator.mozL10n.qps;
-            return qps['qps-plocm'].translate('Packaged Mirrored');
+            var  = window.wrappedJSObject.navigator.mozL10n.;
+            return ['ar-x-psbidi'].translate('Packaged Bidi');
         """)
         header = self.marionette.execute_script("""
-            var qps = window.wrappedJSObject.navigator.mozL10n.qps;
-            return qps['qps-plocm'].translate('Settings');
+            var  = window.wrappedJSObject.navigator.mozL10n.;
+            return ['ar-x-psbidi'].translate('Settings');
         """)
 
-        self.data_layer.set_setting('devtools.qps.enabled', True)
+        self.data_layer.set_setting('devtools.pseudolocalization.enabled', True)
         settings = Settings(self.marionette)
         settings.launch()
 
         language_settings = settings.open_language()
         language_settings.select_language(lang_name)
 
-        self.wait_for_condition(lambda m: language_settings.current_language == 'qps-plocm')
+        self.wait_for_condition(lambda m: language_settings.current_language == 'ar-x-psbidi')
         language_settings.go_back()
 
         # Verify that language has changed
         self.wait_for_condition(lambda m: settings.header_text == header)
-        self.assertEqual(self.data_layer.get_setting('language.current'), 'qps-plocm')
+        self.assertEqual(self.data_layer.get_setting('language.current'), 'ar-x-psbidi')

@@ -19,14 +19,14 @@ suite('buildtime pseudolocalizations', function() {
         'system.gaiamobile.org', 'application.zip');
       var zip = new AdmZip(zipPath);
       var enUSFileInZip = zip.getEntry('locales-obj/index.en-US.json');
-      var qpsPlocPathInZip = 'locales-obj/index.qps-ploc.json';
-      var qpsPlocFileInZip = zip.getEntry(qpsPlocPathInZip);
+      var psaccentPathInZip = 'locales-obj/index.fr-x-psaccent.json';
+      var psaccentFileInZip = zip.getEntry(psaccentPathInZip);
 
       assert.isNotNull(
-        qpsPlocFileInZip,
-        'Accented English file ' + qpsPlocPathInZip + ' should exist');
+        psaccentFileInZip,
+        'Accented English file ' + psaccentPathInZip + ' should exist');
       assert.notDeepEqual(
-        JSON.parse(zip.readAsText(qpsPlocFileInZip)),
+        JSON.parse(zip.readAsText(psaccentFileInZip)),
         JSON.parse(zip.readAsText(enUSFileInZip)),
         'Accented English file should not be identical to regular English');
       done();
