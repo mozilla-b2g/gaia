@@ -130,7 +130,7 @@
       if (this.preventDef) {
         e.preventDefault();
       }
-      
+
       function preVerticalNavigation () {
         if (this.middleElem) {
           document.querySelector('.middle').classList.remove('middle');
@@ -159,7 +159,7 @@
         case 'ArrowUp':
 
           preVerticalNavigation.call(this);
-          document.getElementById('clock').style.opacity = 0;
+          document.getElementById('clock').classList.add('not-visible');
 
           if (this.elemList.dataset.scrollup) {
             this.elemList.style.top = this.elemList.dataset.scrollup;
@@ -211,7 +211,7 @@
         case 'ArrowDown':
 
           preVerticalNavigation.call(this);
-          document.getElementById('clock').style.opacity = 0;
+          document.getElementById('clock').classList.add('not-visible');
 
           this.elements[this.selectedElemIndex].classList.remove('selected');
           if (this.selectedElemIndex == (this.elements.length - 3)) {

@@ -105,7 +105,7 @@ body.edit-group {
 
 
 #clock {
-  width: 16rem;
+  width: 20rem;
   margin: 0 auto;
   text-align: center;
   color: #ffffff;
@@ -126,4 +126,8 @@ body.edit-group {
   font-size: 1.4rem;
   font-family: "Fira Sans";
   font-weight: 300;
+}
+
+.not-visible{
+  opacity: 0 !important;
 }

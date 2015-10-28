@@ -36,27 +36,105 @@ function Clock() {
   this.timerID = null;
 
   /**
-   * Start the timer used to refresh the clock, will call the specified
-   * callback at every timer tick to refresh the UI. The callback used to
-   * refresh the UI will also be called immediately to ensure the UI is
-   * consistent.
+   * Contains time format (12 Hour or 24 Hour)
    *
-   * @param {Function} refresh Function used to refresh the UI at every timer
-   *        tick, should accept a date object as its only argument.
+   * @memberOf Clock
+   * @type {string from localization}
+   */
+  this.timeFormat = null;
+
+  /**
+   * Dom Object that contains time
+   *
+   * @memberOf Clock
+   * @type {Dom element}
+   */
+  this.clockTime = document.getElementById('clock-time');
+
+  /**
+   * This dom object contains date information
+   *
+   * @memberOf Clock
+   * @type {date}
+   */
+  this.date = document.getElementById('date');
+
+  window.addEventListener('timeformatchange', this);
+
+  /**
+   * Handle the event which fires when time format is chaned
+   *
+   * @memberOf Clock
+   * @param  {object} e [Event object]
+   */
+  this.handleEvent = function cl_handleEvents(e){
+
+    switch(e.type) {
+      case 'timeformatchange':
+        if (!this.l10nready) {
+          return;
+        }
+
+        this.timeFormat = window.navigator.mozHour12 ?
+          navigator.mozL10n.get('shortTimeFormat12') :
+          navigator.mozL10n.get('shortTimeFormat24');
+        this.refreshClock(new Date());
+
+        break;
+    };
+
+  };
+
+  /**
+   * We need to do some refreshing thing after l10n is ready.
+   *
+   * @memberOf Clock
+   * @return {none}
+   */
+  this.l10nInit = function cl_l10nInit() {
+    this.l10nready = true;
+    this.timeFormat = window.navigator.mozHour12 ?
+      navigator.mozL10n.get('shortTimeFormat12') :
+      navigator.mozL10n.get('shortTimeFormat24');
+    this.refreshClock(new Date());
+
+  };
+
+  /**
+   * Refresh clock and refresh localization
+   *
+   * @memberOf Clock
+   * @param  {Date} now [Takes current date]
+   * @return {[none]}
+   */
+  this.refreshClock = function cl_refreshClock(now) {
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var _ = navigator.mozL10n.get;
+
+    var timeFormat = this.timeFormat.replace('%p', '<span>%p</span>');
+    var dateFormat = _('longDateFormat');
+    this.clockTime.innerHTML = f.localeFormat(now, timeFormat);
+    this.date.textContent = f.localeFormat(now, dateFormat);
+  };
+
+  /**
+   * Start the timer used to refresh the clock, will call the function
+   * at every timer tick to refresh the UI.
+   *
    * @memberOf Clock
    */
-  this.start = function cl_start(refresh) {
+  this.start = function cl_start() {
     var date = new Date();
     var self = this;
 
-    refresh(date);
+    this.refreshClock(date);
 
     if (this.timeoutID == null) {
       this.timeoutID = window.setTimeout(function cl_setClockInterval() {
 
         if (self.timerID == null) {
           self.timerID = window.setInterval(function cl_clockInterval() {
-            refresh(new Date());
+            self.refreshClock(new Date());
           }, 60000);
         }
       }, (60 - date.getSeconds()) * 1000);
@@ -78,6 +156,9 @@ function Clock() {
       this.timerID = null;
     }
   };
+
+  navigator.mozL10n.ready(this.l10nInit.bind(this));
+
 }
 
 /** @exports Clock */

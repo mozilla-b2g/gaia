@@ -15,8 +15,6 @@
   function App() {
     window.performance.mark('navigationLoaded');
     window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-    this.clockTime = document.getElementById('clock-time');
-    this.date = document.getElementById('date');
     this.grid = document.getElementById('icons');
 
     this.grid.addEventListener('iconblobdecorated', this);
@@ -134,10 +132,9 @@
       }.bind(this));
 
       this.pinManager = new PinAppManager();
-      navigator.mozL10n.ready(this.l10nInit.bind(this));
       window.addEventListener('pin-app-loaded', function(e) {
         this.pinManager.init();
-
+        this.clock.start();
         this.pinNavigation = new PinAppNavigation(document.getElementById('pin-apps-list'));
         this.pinNavigation.points_selector = '#pin-apps-list .pin-app-item';
       }.bind(this));
@@ -202,34 +199,6 @@
         item.updateTitle();
       });
       this.renderGrid();
-    },
-
-
-    /**
-     * We need to do some refreshing thing after l10n is ready.
-     *
-     * @memberof LockScreen
-     * @this {LockScreen}
-     */
-    l10nInit: function ls_l10nInit() {
-      this.l10nready = true;
-      // The default one is 12 hour.
-      this.timeFormat = window.navigator.mozHour12 ?
-        navigator.mozL10n.get('shortTimeFormat12') :
-        navigator.mozL10n.get('shortTimeFormat24');
-      this.refreshClock(new Date());
-
-    },
-
-
-    refreshClock: function ls_refreshClock(now) {
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var _ = navigator.mozL10n.get;
-
-      var timeFormat = this.timeFormat.replace('%p', '<span>%p</span>');
-      var dateFormat = _('longDateFormat');
-      this.clockTime.innerHTML = f.localeFormat(now, timeFormat);
-      this.date.textContent = f.localeFormat(now, dateFormat);
     },
 
 
@@ -403,33 +372,12 @@
         // A hashchange event means that the home button was pressed.
         // The system app changes the hash of the homescreen iframe when it
         // receives a home button press.
-        case 'timeformatchange':
-          if (!this.l10nready) {
-            return;
-          }
-
-          this.timeFormat = window.navigator.mozHour12 ?
-            navigator.mozL10n.get('shortTimeFormat12') :
-            navigator.mozL10n.get('shortTimeFormat24');
-          this.refreshClock(new Date());
-
-          break;
         case 'hashchange':
+
           this.backToMainScreen();
           this.pinNavigation.reset();
-          this.clockTime.parentNode.style.opacity = 1;
-          this.clock.start(this.refreshClock.bind(this));
-
-
-          if (!this.l10nready) {
-            return;
-          }
-
-          this.timeFormat = window.navigator.mozHour12 ?
-            navigator.mozL10n.get('shortTimeFormat12') :
-            navigator.mozL10n.get('shortTimeFormat24');
-          this.refreshClock(new Date());
-
+          this.clock.clockTime.parentNode.classList.remove('not-visible');
+          this.clock.start();
 
 
           // The group editor UI will be hidden by itself so returning...
