@@ -11,7 +11,7 @@ from gaiatest.apps.system.app import System
 
 
 class StatusBarAddon(PageRegion):
-    _root_locator = (By.CSS_SELECTOR, '#statusbar-maximized [id="statusbar-m"]')
+    _root_locator = (By.CSS_SELECTOR, '#statusbar [id="statusbar-m"]')
 
     def __init__(self, marionette):
         marionette.switch_to_frame()
@@ -43,6 +43,7 @@ class StatusBarAddon(PageRegion):
 class TestSearchMarketplaceAndInstallAddon(GaiaTestCase):
 
     addon_name_to_install = "'M' in Status Bar"
+    addon_url = 'm-in-status-bar'
     pref_certs = 'dom.mozApps.use_reviewer_certs'
     pref_install = 'dom.mozApps.signed_apps_installable_from'
     _status_bar_m_locator = (By.CSS_SELECTOR, '#statusbar-maximized [id="statusbar-m"]')
@@ -59,7 +60,7 @@ class TestSearchMarketplaceAndInstallAddon(GaiaTestCase):
         marketplace = MarketplaceDev(self.marionette)
         marketplace.launch()
 
-        results = marketplace.install_addon(self.addon_name_to_install)
+        marketplace.install_addon(self.addon_url)
 
         settings = Settings(self.marionette)
         settings.launch()
