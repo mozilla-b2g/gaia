@@ -47,10 +47,6 @@
 
     var moreAppsButton = document.getElementById('moreAppsButton');
     moreAppsButton.addEventListener('click', this.showMoreApps);
-
-    //temp button to back in main screen
-    var backToMainScreen = document.getElementById('backToMainScreen');
-    backToMainScreen.addEventListener('click', this.backToMainScreen);
   }
 
   App.prototype = {
@@ -177,6 +173,7 @@
       console.log("inMoreApps is : " + this.inMoreApps);
       document.getElementById("main-screen").setAttribute("hidden","");
       document.getElementById("more-apps-screen").removeAttribute("hidden");
+      MoreAppsNavigation.init();
       window.scrollTo(0,0);
     },
 
@@ -358,8 +355,8 @@
           // Only inline-style can get higher specificity than a scoped style,
           // so the property is written as inline way.
           //
-          // 'transform 0.25s' is from the original property in gaia-grid.
-          // ( shared/elements/gaia_grid/style.css )
+          // 'transform 0.25s' is from the original property in gaia-grid-rs.
+          // ( shared/elements/gaia_grid_rs/style.css )
           //
           // 'height 0s 0.5s' is to apply collapsing animation in edit mode.
           this.grid.style.transition = this.EDIT_MODE_TRANSITION_STYLE;
@@ -374,7 +371,7 @@
         // The system app changes the hash of the homescreen iframe when it
         // receives a home button press.
         case 'hashchange':
-
+          this.backToMainScreen();
           this.pinNavigation.reset();
 
           // The group editor UI will be hidden by itself so returning...

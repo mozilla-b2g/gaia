@@ -7,7 +7,7 @@
 (function(exports) {
 
   function AppManager() {
-    var grid = document.querySelector('gaia-grid');
+    var grid = document.querySelector('gaia-grid-rs');
     var self = this;
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       self.app = evt.target.result;

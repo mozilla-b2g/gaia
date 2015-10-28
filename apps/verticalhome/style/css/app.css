@@ -13,13 +13,43 @@ body {
   overflow-x: hidden;
 }
 
-gaia-grid {
+#more-apps-screen .more-apps-header {
+  height: 50px;
+  line-height: 50px;
+  color: white;
+  text-align: center;
+  font-size: 16pt;
+}
+
+gaia-grid-rs {
   display: block;
-  /* Minus the bottom margin and the search-box height */
-  min-height: calc(100% - 5rem - 5rem);
-  width: 100%;
+  height: 20rem !important;
+  overflow-y: auto;
+  position: fixed;
   padding-bottom: 5rem;
   transition: height 0s 0.5s;
+}
+
+gaia-grid-rs .icon {
+  background-position: center !important;
+  background-size: 50px !important;
+  transition: all 0.5s ease 0s !important;
+}
+
+gaia-grid-rs .icon.selected {
+  background-position: top !important;
+  background-size: 75px !important;
+  transition: all 0.5s ease 0s !important;
+}
+
+gaia-grid-rs .icon p {
+  visibility: hidden;
+  margin-top: 75px !important;
+}
+
+gaia-grid-rs .icon.selected p {
+  visibility: visible;
+  margin-top: 75px !important;
 }
 
 #curtain {

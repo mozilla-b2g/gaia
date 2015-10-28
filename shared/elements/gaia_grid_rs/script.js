@@ -14,7 +14,7 @@ window.GaiaGrid = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaGridBaseurl ||
-    '/shared/elements/gaia_grid/';
+    '/shared/elements/gaia_grid_rs/';
 
   /* Configuration from the grid is picked up by attributes on the element.
    * The following attributes are valid:
@@ -250,5 +250,5 @@ window.GaiaGrid = (function(win) {
     <content></content>`;
 
   // Register and return the constructor
-  return document.registerElement('gaia-grid', { prototype: proto });
+  return document.registerElement('gaia-grid-rs', { prototype: proto });
 })(window);

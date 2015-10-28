@@ -1,3 +1,8 @@
+gaia-grid-rs {
+  margin: auto 2rem;
+  width: 100%;
+}
+
 .icon[data-app-state="loading"]:after {
   content: "";
   background: no-repeat top center url('images/app_install_spinner.png');
@@ -82,16 +87,13 @@
   transition: opacity 0.5s;
 }
 
-/* We allow more space for text in the search app by hooking into the text-rows attribute on gaia-grid. */
+/* We allow more space for text in the search app by hooking into the text-rows attribute on gaia-grid-rs. */
 [text-rows="3"] .icon .title {
   height: 5.8rem;
 }
 
-[cols="4"] .icon .title {
-  /* Font size is the same independent on grid configuration */
-  font-size: calc(1.2rem * 1.333);
-  margin-top: 0.5rem;
-  line-height: 1.94rem;
+[cols="2"] .icon .title {
+  font-size: 15px;
 }
 
 .edit-mode .icon.collapsed {
@@ -404,6 +406,6 @@ instead of the context menu.
 }
 
 /* RTL fixes being tracked in bug 1008013 */
-:-moz-dir(rtl) gaia-grid {
+:-moz-dir(rtl) gaia-grid-rs {
   direction: ltr;
 }
