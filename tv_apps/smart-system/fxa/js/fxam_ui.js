@@ -63,9 +63,7 @@ var FxaModuleUI = {
     });
 
     window.addEventListener('keypress', function onkeypress(e) {
-      if (e.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-        // BACK_SPACE key on TV doesn't work for text input elements,
-        // there's a backspace button to delete text.
+      if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
         FxaModuleNavigation.back();
       }
     });
