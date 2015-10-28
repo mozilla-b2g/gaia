@@ -9,7 +9,7 @@ from gaiatest.apps.search.app import Search
 from gaiatest.apps.system.regions.fullscreen_dialog import TrackingDialog
 
 
-class TestBrowserNavigation(GaiaTestCase):
+class TestBrowserFirstRun(GaiaTestCase):
 
     def modify_settings(self, settings):
         settings['privacy.trackingprotection.shown'] = False
@@ -21,7 +21,7 @@ class TestBrowserNavigation(GaiaTestCase):
         self.test_url = self.marionette.absolute_url('mozilla.html')
         self.test_url2 = 'https://people.mozilla.org/~fmarier/tracking-test/'
 
-    def test_browser_back_button(self):
+    def test_browser_first_run(self):
         search = Search(self.marionette)
         search.launch()
 
@@ -29,6 +29,7 @@ class TestBrowserNavigation(GaiaTestCase):
         self.assertTrue(tracking_dialog.is_displayed)
 
         browser = tracking_dialog.open_learn_more()
+        browser.wait_for_page_to_start_loading()
         browser.wait_for_page_to_load()
         self.assertFalse(tracking_dialog.is_displayed)
 
