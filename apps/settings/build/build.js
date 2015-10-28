@@ -195,6 +195,29 @@ SettingsAppBuilder.prototype.enableDataSync = function(options) {
   preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
 };
 
+SettingsAppBuilder.prototype.disableLockScreen = function(options) {
+  var fileList = {
+    process: [
+      ['elements', 'root.html'],
+      ['elements', 'notifications.html'],
+      ['elements', 'sound.html'],
+      ['index.html']
+    ],
+    remove: [
+      ['elements', 'screen_lock.html'],
+      ['elements', 'screen_lock_passcode.html'],
+      ['js', 'panels', 'screen_lock', 'panel.js'],
+      ['js', 'panels', 'screen_lock', 'screen_lock.js'],
+      ['js', 'panels', 'screen_lock_passcode', 'panel.js'],
+      ['style', 'screen_lock.css'],
+      ['test', 'unit', 'panels', 'screen_lock', 'screen_lock_test.js'],
+      ['test', 'unit', 'panels', 'screen_lock_passcode', 'panel_test.js']
+    ]
+  };
+
+  preprocessor.execute(options, "NO_LOCK_SCREEN", fileList, /* removeFilesIfEnabled */ true);
+};
+
 SettingsAppBuilder.prototype.execute = function(options) {
   this.writeGitCommit(options);
   this.writeDeviceFeaturesJSON(options);
@@ -204,6 +227,8 @@ SettingsAppBuilder.prototype.execute = function(options) {
 
   return this.executeRjs(options).then(function() {
     this.enableDataSync(options);
+    this.disableLockScreen(options);
+
     this.executeJsmin(options);
   }.bind(this));
 };
