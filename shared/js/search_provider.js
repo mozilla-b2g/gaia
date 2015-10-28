@@ -124,6 +124,42 @@
     updatedFun = cb;
   };
 
+  SearchProvider.addProvider = function(key, obj) {
+    if (key in providers) {
+      return false;
+    } else {
+      // validate key is valid and obj attributes exist
+      if (key && obj.title && obj.searchUrl && obj.suggestUrl) {
+        providers[key] = obj;
+        return true;
+      } else {
+        console.warn('key or obj are not valid');
+        return false;
+      }
+    }
+  };
+
+  SearchProvider.removeProvider = function(key) {
+    if (key in providers) {
+      if (key !== provider) {
+        if (Object.keys(providers).length === 1) {
+          console.warn('can not delete when only one provider left');
+          return false;
+        } else {
+          delete providers[key];
+          return true;
+        }
+      } else {
+        console.warn('can not delete default provider');
+        return false;
+      }
+    } else {
+      console.warn('the provider does not exist');
+      return false;
+    }
+  };
+
+  /* Set the default provider */
   SearchProvider.setProvider = function(value) {
     if (!(value in providers)) {
       return false;
