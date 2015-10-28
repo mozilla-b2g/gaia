@@ -6,6 +6,7 @@
 /*global ActivityHandler,
          App,
          ConversationView,
+         Drafts,
          InboxView,
          Information,
          InterInstanceEventDispatcher,
@@ -141,6 +142,7 @@ var Startup = exports.Startup = {
       Utils.initializeShimHost(App.instanceId);
 
       MessageManager.init();
+      Drafts.init();
       InboxView.init();
       Navigation.init();
 

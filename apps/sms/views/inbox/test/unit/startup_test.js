@@ -1,5 +1,6 @@
 /*global App,
          ConversationClient,
+         Drafts,
          InboxView,
          InterInstanceEventDispatcher,
          LazyLoader,
@@ -24,6 +25,7 @@ require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/services/test/unit/mock_message_manager.js');
+require('/services/test/unit/mock_drafts.js');
 require('/services/test/unit/conversation/mock_conversation_client.js');
 
 require('/views/inbox/js/startup.js');
@@ -31,6 +33,7 @@ require('/views/inbox/js/startup.js');
 var MocksHelperForInboxStartup = new MocksHelper([
   'App',
   'ConversationClient',
+  'Drafts',
   'InboxView',
   'InterInstanceEventDispatcher',
   'LazyLoader',
@@ -57,6 +60,7 @@ suite('InboxView Startup', function() {
     this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
     this.sinon.stub(ConversationClient, 'init');
     this.sinon.spy(Utils, 'initializeShimHost');
+    this.sinon.stub(Drafts, 'init');
 
     Startup.init();
   });
@@ -66,6 +70,7 @@ suite('InboxView Startup', function() {
     sinon.assert.calledWith(ConversationClient.init, App.instanceId);
     sinon.assert.calledOnce(MessageManager.init);
     sinon.assert.calledOnce(Navigation.init);
+    sinon.assert.calledOnce(Drafts.init);
     sinon.assert.calledOnce(InboxView.init);
     sinon.assert.calledOnce(InboxView.renderThreads);
   });

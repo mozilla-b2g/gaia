@@ -1734,8 +1734,8 @@ var ConversationView = {
         .toDocumentFragment();
 
       document.l10n.setAttributes(
-        lateArrivalNoticeDOM.querySelector('.late-arrival-notice'), 
-        lateArrivalInfos.l10nId, 
+        lateArrivalNoticeDOM.querySelector('.late-arrival-notice'),
+        lateArrivalInfos.l10nId,
         lateArrivalInfos.l10nArgs
       );
 
@@ -1773,7 +1773,7 @@ var ConversationView = {
   /**
    * @param  {Object} A SMS/MMS message
    * @param  {String} The status of the message
-   * @return {Object|null} An object containing the l10n late notice infos 
+   * @return {Object|null} An object containing the l10n late notice infos
    *  of the message or null if a notice is not required.
    *  - l10nId : the id of the localized message
    *  - l10nArgs : the value of the lateness
@@ -1790,7 +1790,7 @@ var ConversationView = {
     if (doNotDisplayNotice) {
       return null;
     }
-    
+
     var unit = MONTH;
     var noticeL10nIds = {
       [MONTH]:  'late-arrival-notice-in-months',
@@ -1799,12 +1799,12 @@ var ConversationView = {
       [MINUTE]: 'late-arrival-notice-in-minutes'
     };
 
-    if (lateness < limits.IN_HOURS)       { unit = MINUTE; } 
-    else if (lateness < limits.IN_DAYS)   { unit = HOUR; } 
+    if (lateness < limits.IN_HOURS)       { unit = MINUTE; }
+    else if (lateness < limits.IN_DAYS)   { unit = HOUR; }
     else if (lateness < limits.IN_MONTHS) { unit = DAY; }
-    
+
     lateness = Math.floor(lateness / unit);
-    
+
     return { l10nId : noticeL10nIds[unit], l10nArgs: { lateness }};
   },
 
