@@ -47,7 +47,7 @@ without affecting the -moz-elements pointing to it while transitioning */
   height: var(--statusbar-height);
   margin: 0;
   top: 0;
-  right: 0;
+  offset-inline-end: 0;
   padding: 0 0.3rem;
   overflow: hidden;
   white-space: nowrap;
@@ -74,7 +74,7 @@ to be available for moz-elements */
 @media (orientation: landscape) {
   #screen.software-button-enabled #statusbar {
     width: calc(100% - var(--software-home-button-height));
-    left: 0;
+    right: var(--software-home-button-height);
   }
 }
 
