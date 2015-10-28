@@ -15,7 +15,8 @@ define(function(require) {
     this._enabled = false;
     this._listRoot = root;
     this._addonManager = manager;
-    this._addons = ObservableArray(this._addonManager.addons.array);
+    this._addons = ObservableArray(this._sortByName(
+      this._addonManager.addons.array));
 
     ['insert', 'remove'].forEach(e =>
       this._addonManager.addons.addEventListener(e, this._update.bind(this)));
@@ -34,13 +35,21 @@ define(function(require) {
       }
     },
 
+    _sortByName: function(addons) {
+      return addons.sort((a, b) => {
+        return a._app.manifest.name.localeCompare(b._app.manifest.name);
+      });
+    },
+
     _update: function() {
       return this._filter ?
         Promise.all(this._addonManager.addons.array.map(addon =>
           this._addonManager.addonAffectsApp(addon, this._filter).then(
             affects => affects ? addon : undefined))).then(
-              addons => this._addons.reset(addons.filter(addon => addon))) :
-        Promise.resolve(this._addons.reset(this._addonManager.addons.array));
+              addons => this._addons.reset(this._sortByName(
+                addons.filter(addon => addon)))) :
+        Promise.resolve(this._addons.reset(this._sortByName(
+          this._addonManager.addons.array)));
     },
 
     setFilter: function(manifestURL) {
