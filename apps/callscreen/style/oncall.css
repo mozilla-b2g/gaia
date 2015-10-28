@@ -590,10 +590,7 @@
 
   #calls:not(.big-duration) > section.held,
   #calls.big-duration > section.held .numberWrapper,
-  #calls.big-duration > section.held .additionalContactInfo,
-  #calls.big-duration > section.ended .numberWrapper,
-  #calls.big-duration > section.ended .additionalContactInfo,
-  #calls.big-duration > section.ended .switch-calls {
+  #calls.big-duration > section.held .additionalContactInfo {
     background-color: rgba(255, 255, 255, 0.85);
   }
   html[dir="rtl"] #calls:not(.big-duration) > section.ended .numberWrapper {
@@ -603,7 +600,8 @@
 
   #calls:not(.big-duration) > section.ended,
   #calls.big-duration > section.ended .numberWrapper,
-  #calls.big-duration > section.ended .additionalContactInfo {
+  #calls.big-duration > section.ended .additionalContactInfo,
+  #class.big-duration > section.ended .switch-calls {
     background-color: rgba(207, 64, 64, 0.9);
   }
 

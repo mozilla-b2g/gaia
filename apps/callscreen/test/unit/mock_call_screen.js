@@ -12,6 +12,8 @@ var MockCallScreen = {
 
   init: function() {},
   insertCall: function() {},
+  enableKeypadButton: function() {},
+  disableKeypadButton: function() {},
   enablePlaceNewCallButton: function() {
     this.menablePlaceNewCallButtonCalled = true;
   },

@@ -161,6 +161,7 @@ var CallsHandler = (function callsHandler() {
     // First incoming or outgoing call, reset mute and speaker.
     if (handledCalls.length === 0) {
       CallScreen.unmute();
+      CallScreen.enableKeypadButton();
 
       /**
        * Do not connect bluetooth SCO for first incoming/outgoing call.
@@ -207,6 +208,7 @@ var CallsHandler = (function callsHandler() {
     handledCalls.splice(index, 1);
 
     if (handledCalls.length === 0) {
+      CallScreen.disableKeypadButton();
       return;
     }
 
@@ -863,7 +865,7 @@ var CallsHandler = (function callsHandler() {
    * connected yet.
    */
   function updatePlaceNewCall() {
-    if (isEstablishingCall()) {
+    if (isEstablishingCall() || (numOpenLines() === 0)) {
       CallScreen.disablePlaceNewCallButton();
     } else {
       CallScreen.enablePlaceNewCallButton();
