@@ -650,9 +650,12 @@
         keys: keys,
         collections: collections
       }).then(result => {
-        if (result.error) {
-          console.error('Error while trying to sync', result.error);
+        if (result && result.error) {
+          var error = result.error;
+          error = error.message ? error.message : error;
+          console.error('Error while trying to sync', error);
           // XXX The sync app needs to propagate a less general error.
+          //     Bug 1210412
           SyncStateMachine.error(ERROR_SYNC_APP_GENERIC);
           return;
         }
@@ -672,8 +675,10 @@
         collections: {}
       }).then(result => {
         if (result && result.error) {
-          console.error('Error trying sync', result.error.message);
-          throw result.error.message;
+          var error = result.error;
+          error = error.message ? error.message : error;
+          console.error('Error trying sync', error);
+          throw error;
         }
       });
     },
