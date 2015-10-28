@@ -12,11 +12,15 @@ var template = require('json-templater/object');
 var GAIA_DIR = path.resolve(__dirname, '..', '..', '..');
 
 // Default image name / version this can be overriden at the task level...
-var IMAGE =
-  fs.readFileSync(GAIA_DIR + '/build/docker/gaia-taskenv/DOCKER_TAG', 'utf8');
+var IMAGE = fs.readFileSync(
+  GAIA_DIR + '/build/docker/gaia-taskenv/DOCKER_TAG',
+  'utf8'
+).trim();
 
-var VERSION =
-  fs.readFileSync(GAIA_DIR + '/build/docker/gaia-taskenv/VERSION', 'utf8');
+var VERSION = fs.readFileSync(
+  GAIA_DIR + '/build/docker/gaia-taskenv/VERSION',
+  'utf8'
+).trim();
 
 // Default provisioner and worker types
 var COPIED_ENVS = [
@@ -82,7 +86,7 @@ function decorateTask(task, options) {
 
   // Default docker image...
   var payload = output.task.payload;
-  payload.image = payload.image || (IMAGE.trim()) + ':' + (VERSION.trim());
+  payload.image = payload.image || IMAGE + ':' + VERSION;
   payload.maxRunTime = payload.maxRunTime || 30 * 60; // 30 minutes in seconds
 
   // Copy over the important environment variables...
