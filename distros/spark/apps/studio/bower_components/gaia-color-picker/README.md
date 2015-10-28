@@ -1,1 +1,0 @@
-# gaia-color-picker

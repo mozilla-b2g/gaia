@@ -1,1 +1,0 @@
-define(['./fxos-web-server/dist/fxos-web-server'], function(m) { return m; });

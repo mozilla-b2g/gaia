@@ -12,12 +12,9 @@
       ["apps", "clock"],
       ["apps", "settings"]
     ], [
-      ["apps", "customizer-launcher"],
       ["apps", "directory"],
-      ["apps", "studio"],
-      ["apps", "sharing"],
-      ["outoftree_apps", "webmaker"],
-      ["outoftree_apps", "bugzillalite"]
+      ["outoftree_apps", "bugzillalite"],
+      ["outoftree_apps", "foxfooding"]
     ], [
       ["apps", "calendar"],
       ["apps", "music"],
@@ -25,8 +22,7 @@
       ["outoftree_apps", "facebook"],
       ["outoftree_apps", "twitter"],
       ["outoftree_apps", "runwhatsapppreview"],
-      ["outoftree_apps", "buddyup"],
-      ["outoftree_apps", "foxfooding"]
+      ["outoftree_apps", "buddyup"]
     ], [
       ["apps", "costcontrol"],
       ["outoftree_apps", "notes"],
