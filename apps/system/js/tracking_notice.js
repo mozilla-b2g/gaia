@@ -44,7 +44,7 @@
                 <header><h1 data-l10n-id="tracking-notice-header"></h1></header>
                 <p class="copy">
                   <span id="tracking-notice-copy"
-                  data-l10n-id="tracking-notice-description"></span>
+                  data-l10n-id="tracking-notice-description-v2"></span>
                   <a id="tracking-notice-learn-more"
                     data-l10n-id="tracking-notice-learn-more">
                   </a>
