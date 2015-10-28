@@ -27,12 +27,11 @@ without affecting the -moz-elements pointing to it while transitioning */
   transform: translateY(0);
 }
 
-/* This is the remaining space left by the collapsed rocketbar */
 #statusbar #statusbar-icons {
-  width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
+  width: calc(var(--minimized-statusbar-width));
 }
 
-#statusbar:not(.hidden).maximized  #statusbar-icons {
+#screen:not(.utility-tray-in-transition) #statusbar:not(.hidden).maximized  #statusbar-icons {
   width: 100%;
 }
 
@@ -140,6 +139,11 @@ body .utility-tray .statusbar > .sb-start {
   font-size: 1.5rem;
   font-weight: 400;
   line-height: 1.6rem;
+  height: var(--statusbar-height);
+  overflow: hidden;
+  width: calc(100% - (var(--minimized-statusbar-width)));
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {
