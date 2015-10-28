@@ -134,19 +134,10 @@ ld be a Function`);
       });
     });
 
-    test('generates the correct value for xClientState', function(done) {
+    test('sets the correct xClientState as the bucket', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow({ history: {} }).then(function() {
-        expect(se._kinto.options.headers['X-Client-State']).to.equal(
-            SynctoServerFixture.xClientState);
-        done();
-      });
-    });
-
-    test('sets xClientState as the dbPrefix', function(done) {
-      var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      se.syncNow({ history: {} }).then(function() {
-        expect(se._kinto.options.dbPrefix).to.equal(
+        expect(se._kinto.options.bucket).to.equal(
             SynctoServerFixture.xClientState);
         done();
       });
