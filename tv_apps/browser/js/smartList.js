@@ -622,6 +622,13 @@
     },
 
     /**
+     * Get Focus list element's index
+     */
+    getFocusItemIndex: function() {
+      return this.focusIndex;
+    },
+
+    /**
      * Get Focus list element's uri content
      */
     getFocusItemUri: function() {

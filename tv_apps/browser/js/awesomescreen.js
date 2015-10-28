@@ -660,7 +660,7 @@ var Awesomescreen = {
    */
   selectHistoryTab: function awesomescreen_selectHistoryTab() {
     HistoryStore.reset().then(() => {
-      HistoryStore.updateCache().then(() => {
+      HistoryStore.fetchCache().then(() => {
         this.historyList.open();
       });
     });
@@ -1553,9 +1553,9 @@ var Awesomescreen = {
         BrowserDB.removeHistory(
           listUrl,
           function(){
-            HistoryStore.updateCache().then(() => {
-              this.historyList.removeFocusItem();
-            });
+            var index = this.historyList.getFocusItemIndex();
+            HistoryStore.removeCache(index);
+            this.historyList.removeFocusItem();
           }.bind(this)
         );
       }
