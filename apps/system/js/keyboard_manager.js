@@ -276,7 +276,8 @@ window.KeyboardManager = {
 
     var showedIndex = this.inputLayouts.layouts[showedGroup]._activeLayoutIdx;
 
-    // Need to make the message in spec: "FirefoxOS - English"...
+    // Need to make the message in spec: "Built-in Keyboard: English".
+    // These labels are already localized in InputLayouts.
     var current = this.inputLayouts.layouts[showedGroup][showedIndex];
 
     this.imeSwitcher.show(current.appName, current.name);

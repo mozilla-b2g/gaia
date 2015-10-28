@@ -14,6 +14,7 @@ var KeyboardLayoutDetail = function(id) {
 // The actual nsIFile are "file" or "dir"s.
 KeyboardLayoutDetail.prototype.id = undefined;
 KeyboardLayoutDetail.prototype.label = undefined;
+KeyboardLayoutDetail.prototype.labelL10nId = undefined;
 KeyboardLayoutDetail.prototype.layoutFile = null;
 KeyboardLayoutDetail.prototype.types = null;
 KeyboardLayoutDetail.prototype.imEngineId = undefined;
@@ -70,6 +71,9 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
 
   // These properties exists in all layouts.
   this.label = win.Keyboards[id].menuLabel;
+  if (win.Keyboards[id].menuLabelL10nId) {
+    this.labelL10nId = 'layout-' + win.Keyboards[id].menuLabelL10nId;
+  }
   this.types = win.Keyboards[id].types.sort();
   this.imEngineId = win.Keyboards[id].imEngine;
   this.noIncludeInExpandLayoutIdSet =
@@ -369,6 +373,10 @@ KeyboardLayoutConfigurator.prototype.getLayoutsJSON = function() {
       types: layoutDetail.types,
       dictFileSize: layoutDetail.fileSize
     };
+
+    if (layoutDetail.labelL10nId) {
+      layout.nameL10nId = layoutDetail.labelL10nId;
+    }
 
     if (layoutDetail.dictFile) {
       layout.preloaded = layoutDetail.dictPreloaded;

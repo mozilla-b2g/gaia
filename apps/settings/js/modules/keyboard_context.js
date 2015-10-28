@@ -67,6 +67,8 @@ define(function(require) {
                      The manifest url of the keyboard app containing the layout.
    * @param {String} name
                      The name of the layout.
+   * @param {String} nameL10nId
+                     The l10n id of the layout name.
    * @param {String} description
                      The description of the layout.
    * @param {Array} types
@@ -76,11 +78,13 @@ define(function(require) {
    * @returns {Layout}
    */
   var Layout =
-    function(id, appName, appManifestURL, name, description, types, enabled) {
+    function(id, appName, appManifestURL, name, nameL10nId, description,
+            types, enabled) {
       var _observable = Observable({
         id: id,
         appName: appName,
         name: name,
+        nameL10nId: nameL10nId,
         description: description,
         types: types,
         enabled: enabled
@@ -130,9 +134,15 @@ define(function(require) {
         app[layout.layoutId].enabled = layout.enabled;
         return app[layout.layoutId];
       }
+
+      var layoutName = layout.inputManifest.nameL10nId ?
+        navigator.mozL10n.get(layout.inputManifest.nameL10nId) :
+        layout.inputManifest.name;
+
       app[layout.layoutId] = Layout(layout.layoutId,
         layout.manifest.name, layout.app.manifestURL,
-        layout.inputManifest.name, layout.inputManifest.description,
+        layoutName, layout.inputManifest.nameL10nId,
+        layout.inputManifest.description,
         layout.inputManifest.types, layout.enabled);
       return app[layout.layoutId];
     }
@@ -193,6 +203,9 @@ define(function(require) {
         keyboard.description = keyboardManifest.description;
         keyboard.layouts.forEach(function(layout) {
           layout.appName = keyboardManifest.name;
+          if (layout.nameL10nId) {
+            layout.name = navigator.mozL10n.get(layout.nameL10nId);
+          }
         });
       });
     });
