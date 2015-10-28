@@ -9,7 +9,7 @@
   justify-content: center;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 360ms ease-in-out;
+  transition: opacity 0ms ease-in-out;
 }
 
 /**

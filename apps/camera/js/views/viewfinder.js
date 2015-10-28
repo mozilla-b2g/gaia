@@ -161,20 +161,17 @@ module.exports = View.extend({
     }, this.fadeTime);
   },
 
-  fadeIn: function(ms) {
+  fadeIn: function(firstRun) {
     debug('fade-in');
-    var self = this;
-    if (typeof ms !== 'number') { ms = this.fadeTime; }
-    if (ms) {
-      this.el.style.transitionDuration = ms + 'ms';
-      this.show();
-      this.fadeTimeout = setTimeout(function() {
-        self.el.style.transitionDuration = '';
-        self.emit('fadedin');
-      }, ms);
-    } else {
-      this.show();
+    this.show();
+    if (firstRun) {
       this.emit('fadedin');
+      // Delay to prevent the duration from applying too early
+      requestAnimationFrame(() => {
+        this.el.style.transitionDuration = this.fadeTime + 'ms';
+      });
+    } else {
+      this.fadeTimeout = setTimeout(this.firer('fadedin'), this.fadeTime);
     }
   },
 
