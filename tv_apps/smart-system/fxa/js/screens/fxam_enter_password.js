@@ -95,7 +95,7 @@ var FxaModuleEnterPassword = (function() {
         function onKeypress(event) {
           if (_isPasswordValid(this.fxaPwInput) && event.keyCode === 13) {
             document.activeElement.blur();
-            FxaModuleNavigation.next();
+            FxaModuleNavigation.done();
           }
         }.bind(this)
       );
