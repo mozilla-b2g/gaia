@@ -6,6 +6,8 @@
  * (Needs mozL10n and the settings permission)
  */
 
+/* global Promise */
+
 (function(exports) {
 
 var LOCALES_FILE = '/shared/resources/languages.json';
@@ -84,7 +86,7 @@ exports.LanguageList = {
   _removeWithNoSpeech: function(languages, srEnabled) {
     if (srEnabled) {
       var speechLangs = new Set(
-        [for (v of window.speechSynthesis.getVoices()) v.lang.split('-')[0]]);
+        window.speechSynthesis.getVoices().map(v => v.lang.split('-')[0]));
       for (var langName in languages) {
         if (!speechLangs.has(langName.split('-')[0])) {
           delete languages[langName];
