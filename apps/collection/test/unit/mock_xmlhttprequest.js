@@ -2,6 +2,7 @@
 
 (function() {
   var lastInstance;
+  var sendCallback;
 
   function MockXMLHttpRequest() {
     lastInstance = this;
@@ -24,12 +25,21 @@
     lastInstance = null;
   }
 
+  function mxhr_mSetSendCallback(cb) {
+    sendCallback = cb;
+  }
+
   function mxhr_send(data) {
     if (throwAtNextSend) {
       throwAtNextSend = false;
       throw objectToThrow;
     }
     MockXMLHttpRequest.mLastSendData = data;
+    if (sendCallback) {
+      var temp = sendCallback;
+      sendCallback = null;
+      temp();
+    }
   }
 
   function mxhr_open(method, url, opts) {
@@ -82,6 +92,7 @@
   MockXMLHttpRequest.mSendError = mxhr_mSendError;
   MockXMLHttpRequest.mSendTimeout = mxhr_mSendTimeout;
   MockXMLHttpRequest.mSendOnLoad = mxhr_mOnLoad;
+  MockXMLHttpRequest.mSetSendCallback = mxhr_mSetSendCallback;
   MockXMLHttpRequest.mSendReadyState = mxhr_mSendReadyState;
   MockXMLHttpRequest.DONE = XMLHttpRequest.DONE;
 
