@@ -188,7 +188,11 @@ class GaiaApps(object):
             "return GaiaApps.getRunningApps(%s);" % include_system_apps)
         result = []
         for app in [a[1] for a in apps.items()]:
-            result.append(GaiaApp(origin=app['origin'], name=app['name'], manifest_url=app['manifest']))
+            # Browser app can have no manifest when url is visited
+            manifest_url = None
+            if 'manifest' in app:
+                manifest_url = app['manifest']
+            result.append(GaiaApp(origin=app['origin'], name=app['name'], manifest_url=manifest_url))
         return result
 
 
@@ -766,7 +770,7 @@ class GaiaDevice(object):
             apps.switch_to_displayed_app()
 
             # touching home button inside homescreen will scroll it to the top
-            Wait(self.marionette).until(homescreen.is_at_topmost_position)
+            Wait(self.marionette).until(lambda m: homescreen.is_at_topmost_position)
 
     def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()
