@@ -253,7 +253,7 @@
     setToSupportedLanguage: function ar_setToSupportedLanguage() {
       var settingsHelper = SettingsHelper('language.current');
       var voices = this.speechSynthesizer.speech.getVoices();
-      var speechLangs = new Set([for (v of voices) v.lang.split('-')[0]]);
+      var speechLangs = new Set(voices.map(v => v.lang.split('-')[0]));
 
       settingsHelper.get((value) => {
         if (!speechLangs.has(value.split('-')[0])) {
