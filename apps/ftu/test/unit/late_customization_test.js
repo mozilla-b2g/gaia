@@ -64,7 +64,7 @@ suite('Late Customization >', function() {
     document.body.innerHTML = `
     <section id="activation-screen" role="region"
              class="skin-organic no-options">
-      <gaia-header ignore-dir>
+      <gaia-header>
         <h1 id="main-title"></h1>
         <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
       </gaia-header>
