@@ -1,5 +1,5 @@
 /* global MockL10n, MockNavigatorSettings, MockLanguageList,
-          LanguageManager, LanguageList, KeyboardHelper, 
+          LanguageManager, LanguageList, KeyboardHelper,
           MockImportNavigationHTML, dispatchEvent */
 'use strict';
 
@@ -88,6 +88,10 @@ suite('languages >', function() {
       LanguageManager.init();
     });
 
+    teardown(function() {
+      LanguageManager.uninit();
+    });
+
     test('observes settings', function() {
       assert.equal(MockNavigatorSettings.mObservers[langKey].length, 1);
     });
@@ -101,6 +105,27 @@ suite('languages >', function() {
     test('localize changed', function() {
       dispatchEvent(new CustomEvent('localized'));
       assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
+    });
+  });
+
+  suite('screen reader', function() {
+    suiteSetup(function() {
+      LanguageManager.init();
+    });
+
+    suiteTeardown(function() {
+      LanguageManager.uninit();
+    });
+
+    test('enable screen reader', function() {
+      var getLanguages = this.sinon.stub(LanguageList, 'get');
+      MockNavigatorSettings.mTriggerObservers('accessibility.screenreader',
+        { settingValue: true });
+      assert.isTrue(getLanguages.called);
+      getLanguages.reset();
+      MockNavigatorSettings.mTriggerObservers('accessibility.screenreader',
+        { settingValue: false });
+      assert.isTrue(getLanguages.called);
     });
   });
 });
