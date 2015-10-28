@@ -226,3 +226,10 @@ Please use `DialogService` in settings for dialogs. `DialogService` maintain dia
 
 In short, please don't use left/right in CSS, use -start/-end instead.
 Please take a look at https://wiki.mozilla.org/Gaia/CSS_Guidelines
+
+### Where to put panel styles?
+
+Put settings core and root panel style in `settings.css`.
+Put form-factor (phone or tablet..) specific styles in `settings_{phone}.css`.
+If there's not much styles for your panel, put it in `app.css`, which will lazy loaded automatically.
+If you create a separate css, you need include it in `index.html`, `panel_cache.js` to make it lazy loaded properly.

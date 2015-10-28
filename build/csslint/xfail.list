@@ -67,14 +67,14 @@ apps/pdfjs/content/web/viewer.css 0 1
 apps/ringtones/style/pick.css 0 1
 apps/search/style/newtab.css 3 0
 apps/search/style/search.css 12 2
-apps/settings/style/apps.css 7 0
+apps/settings/style/apps.css 21 4
 apps/settings/style/downloads.css 1 6
 apps/settings/style/homescreens.css 3 0
 apps/settings/style/icc.css 2 0
 apps/settings/style/icons.css 5 0
 apps/settings/style/lists.css 12 1
 apps/settings/style/screen_lock.css 1 2
-apps/settings/style/settings.css 18 9
+apps/settings/style/settings.css 4 5
 apps/settings/style/settings_large.css 12 1
 apps/sms/views/conversation/style/conversation.css 4 0
 apps/sms/views/conversation/style/message.css 7 0
