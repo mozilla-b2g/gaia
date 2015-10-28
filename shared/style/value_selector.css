@@ -110,7 +110,7 @@ html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li 
 }
 
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label {
-  color: #858585;
+  color: #f4f4f4;
   font-size: 1.4rem;
   font-weight: 500;
 }
