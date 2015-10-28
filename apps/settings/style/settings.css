@@ -1066,11 +1066,6 @@ p.fxsync-unverified-warning {
   padding: 1.5rem 0;
 }
 
-#developer ul li > label.pack-switch > span,
-#developer-hud ul li > label.pack-switch > span {
-  padding-inline-end: 9rem;
-}
-
 #developer-hud ul li > label > span.color-preview {
   padding-inline-start: 5rem;
 }

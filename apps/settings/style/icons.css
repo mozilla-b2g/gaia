@@ -27,6 +27,14 @@ a.menu-item:active:after {
   color: #91aab0;
 }
 
+gaia-switch .menu-item[data-icon] {
+  -moz-padding-start: 4rem;
+}
+
+gaia-switch .menu-item[data-icon] ~ details {
+  -moz-padding-start: 4rem;
+}
+
 .menu-item::before {
   position: absolute;
   offset-inline-start: 0;

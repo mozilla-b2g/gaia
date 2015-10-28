@@ -83,9 +83,9 @@ define(function(require) {
     init: function ami_init() {
       AirplaneModeHelper.ready(function() {
         // handle change on radio
-        this._element.addEventListener('change', function(e) {
-          this.disabled = true;
-          AirplaneModeHelper.setEnabled(this.checked);
+        this._element.addEventListener('change', () => {
+          this._element.setAttribute('disabled', true);
+          AirplaneModeHelper.setEnabled(this._element.checked);
         });
 
         // initial status

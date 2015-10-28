@@ -74,8 +74,8 @@ apps/settings/style/icc.css 2 0
 apps/settings/style/icons.css 5 0
 apps/settings/style/lists.css 12 1
 apps/settings/style/screen_lock.css 1 2
-apps/settings/style/settings.css 19 9
-apps/settings/style/settings_large.css 16 1
+apps/settings/style/settings.css 18 9
+apps/settings/style/settings_large.css 12 1
 apps/sms/views/conversation/style/conversation.css 4 0
 apps/sms/views/conversation/style/message.css 7 0
 apps/sms/views/conversation/style/report_view.css 6 0
