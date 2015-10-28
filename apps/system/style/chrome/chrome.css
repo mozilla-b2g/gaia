@@ -132,6 +132,8 @@ html[dir="rtl"] .appWindow:not(.bar) > .chrome { transform-origin: top right; }
   margin-inline-start: .5rem;
   position: absolute;
 }
+html[dir="ltr"] .chrome .controls .urlbar { text-align: left; }
+html[dir="rtl"] .chrome .controls .urlbar { text-align: right; }
 
 .maximized .controls .urlbar {
   background-color: rgba(204,204,204,0.2);
