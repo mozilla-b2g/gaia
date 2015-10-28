@@ -35,6 +35,15 @@ var debug = 0 ?
   (arg1, ...args) => console.log('[Startup] ' + arg1, ...args) :
   () => {};
 
+const onceDOMEvent = (what, eventName, func) => {
+  const handler = (e) => {
+    what.removeEventListener(eventName, handler);
+    func(e);
+  };
+
+  what.addEventListener(eventName, handler);
+};
+
 var Startup = exports.Startup = {
   _lazyLoadScripts: [
     '/shared/js/settings_listener.js',
@@ -133,9 +142,7 @@ var Startup = exports.Startup = {
   * more until all these non-critical JS files are loaded. This is fine.
   */
   init: function() {
-    var loaded = function() {
-      window.removeEventListener('DOMContentLoaded', loaded);
-
+    onceDOMEvent(window, 'DOMContentLoaded', () => {
       window.performance.mark('navigationLoaded');
 
       Utils.initializeShimHost(App.instanceId);
@@ -163,7 +170,11 @@ var Startup = exports.Startup = {
         debug('Rendering threads now.');
 
         InboxView.once('visually-loaded', () => {
-          this._lazyLoadInit();
+          if (document.readyState === 'complete') {
+            this._lazyLoadInit();
+          } else {
+            onceDOMEvent(window, 'load', () => this._lazyLoadInit());
+          }
         });
 
         InboxView.renderThreads();
@@ -177,9 +188,7 @@ var Startup = exports.Startup = {
       // dispatch navigationInteractive when thread list related modules
       // initialized
       window.performance.mark('navigationInteractive');
-    }.bind(this);
-
-    window.addEventListener('DOMContentLoaded', loaded);
+    });
   }
 };
 
