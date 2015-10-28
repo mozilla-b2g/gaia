@@ -384,7 +384,11 @@ function getWebapp(app, config) {
     webapp.pckManifest = readZipManifest(
       getFile(webapp.sourceDirectoryFilePath));
     webapp.metaData = getJSON(metaData);
-    webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
+    webapp.appStatus = utils.getAppStatus(
+      webapp.metaData.type ||
+      (webapp.pckManifest && webapp.pckManifest.type) ||
+      'web'
+    );
   } else {
     webapp.appStatus = utils.getAppStatus(webapp.manifest.type);
   }
