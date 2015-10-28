@@ -1,8 +1,12 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global FxaModuleStates, FxaModuleUI, FxaModule, FxModuleServerRequest,
-   FxaModuleOverlay */
+/* global FxaModule */
+/* global FxaModuleNavigation */
+/* global FxaModuleOverlay */
+/* global FxaModuleStates */
+/* global FxaModuleUI */
+/* global FxModuleServerRequest */
 /* exported FxaModuleRefreshAuth */
 /* jshint unused:false */
 
@@ -82,6 +86,15 @@ var FxaModuleRefreshAuth = (function() {
         var passwordFieldType = !!this.fxaShowPwRefresh.checked ? 'text' :
                                                                   'password';
       }).bind(this), false);
+
+      // Ensure that pressing 'ENTER' (keycode 13) we send the form
+      // as expected
+      this.fxaPwInputRefresh.addEventListener('keypress', event => {
+        if (_isPasswordValid(this.fxaPwInputRefresh) && event.keyCode === 13) {
+          document.activeElement.blur();
+          FxaModuleNavigation.done();
+        }
+      });
 
       this.fxaForgotPasswordRefresh.addEventListener('click',
                                                      _forgotPassword.bind(this),
