@@ -1,5 +1,6 @@
 {
-  "screen.timeout": 0,
+  "ftu.manifestURL": "app://ftu.gaiamobile.org/manifest.webapp",
   "homescreen.appName": "homescreen",
-  "ftu.manifestURL": "app://ftu.gaiamobile.org/manifest.webapp"
+  "lockscreen.enabled": false,
+  "screen.timeout": 0
 }

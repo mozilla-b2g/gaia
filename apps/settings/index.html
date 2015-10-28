@@ -34,7 +34,9 @@
     <link rel="stylesheet" type="text/css" href="style/homescreens.css"/>
     <link rel="stylesheet" type="text/css" href="style/achievements.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
+    <!--IFNDEF_NO_LOCK_SCREEN
     <link rel="stylesheet" type="text/css" href="style/screen_lock.css"/>
+    ENDIF_NO_LOCK_SCREEN-->
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
     <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
@@ -186,8 +188,10 @@
     <link rel="import" href="/elements/themes.html">
     <link rel="import" href="/elements/addon_details.html">
     <link rel="import" href="/elements/addons.html">
+    <!--IFNDEF_NO_LOCK_SCREEN
     <link rel="import" href="/elements/screen_lock_passcode.html">
     <link rel="import" href="/elements/screen_lock.html">
+    ENDIF_NO_LOCK_SCREEN-->
     <link rel="import" href="/elements/simpin_dialog.html">
     <link rel="import" href="/elements/simpin.html">
     <link rel="import" href="/elements/app_permissions_details.html">
@@ -376,10 +380,15 @@
     <section role="region" is="fxsync" id="fxsync"></section>
     ENDIF_FIREFOX_SYNC-->
 
+    <!--IFNDEF_NO_LOCK_SCREEN
+
     <!-- Security :: Screen Lock :: PIN Input -->
     <section role="region" class="dialog" is="screenLock-passcode" id="screenLock-passcode"></section>
     <!-- Security :: Screen Lock -->
     <section role="region" is="screenLock" id="screenLock" data-passcode-enabled="false" data-lockscreen-enabled="false"></section>
+
+    ENDIF_NO_LOCK_SCREEN-->
+
     <!-- Security :: SIM Security :: SIM PIN Input -->
     <section role="region" class="dialog" is="simpin-dialog" id="simpin-dialog"></section>
     <!-- Security :: SIM Security -->
