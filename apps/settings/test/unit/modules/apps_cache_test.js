@@ -71,15 +71,32 @@ suite('AppsCache', function() {
   });
 
   suite('_initEvents', function() {
+    var apps = [
+      { manifestURL: 'http://example.org/abc/manifest.webapp' },
+      { manifestURL: 'http://example.com/manifest.webapp' },
+      { manifestURL: 'http://example.com/manifest.webapp' }
+    ];
+
     setup(function() {
       MockMozApps.mgmt.oninstall = this.sinon.spy();
       MockMozApps.mgmt.onuninstall = this.sinon.spy();
       appsCache._initEvents();
+      appsCache._apps = apps;
     });
 
     test('we will register two necessary events', function() {
       assert.equal(MockMozApps.mgmt.oninstall.called);
       assert.equal(MockMozApps.mgmt.onuninstall.called);
+    });
+
+    test('uninstall should remove all apps with the same manifest', function() {
+      assert.equal(appsCache._apps.length, 3);
+      MockMozApps.mgmt.onuninstall({
+        application: { manifestURL: 'http://example.com/manifest.webapp' }
+      });
+      assert.equal(appsCache._apps.length, 1);
+      assert.equal(appsCache._apps[0].manifestURL,
+        'http://example.org/abc/manifest.webapp');
     });
   });
 
