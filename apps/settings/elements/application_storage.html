@@ -6,9 +6,13 @@
     </gaia-header>
 
     <div>
-      <ul>
+      <ul class="apps-storage-status">
         <li>
           <progress class="apps-space-bar" min="0" value="0" max="100"></progress>
+          <div class="apps-low-disk-space">
+            <h2 class="title" data-l10n-id="apps-low-disk-space-title"></h2>
+            <p class="description" data-l10n-id="apps-low-disk-space-desc"></p>
+          </div>
         </li>
 
         <li>
@@ -23,14 +27,16 @@
             <span class="apps-used-space"></span>
           </a>
         </li>
-        <li>
+        <li class="apps-free-space-section">
           <a>
-            <span data-l10n-id="apps-free-space"></span>
+            <span class="apps-free-space-label" data-l10n-id="apps-free-space"></span>
             <span class="apps-free-space"></span>
           </a>
         </li>
         <li class="description two-column-description">
-          <p data-l10n-id="storage-details"></p>
+          <p data-l10n-id="storage-details-with-link">
+            <a href="#" class="media-storage"></a>
+          </p>
         </li>
       </ul>
     </div>

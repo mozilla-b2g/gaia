@@ -31,6 +31,7 @@ suite('AppStoragePanel', function() {
       totalSize: 1,
       usedSize: 1,
       freeSize: 1,
+      lowDiskSpace: false,
       observe: function() {},
       unobserve: function() {}
     };
@@ -53,6 +54,10 @@ suite('AppStoragePanel', function() {
     requireCtx(modules, function(AppStoragePanel) {
       that.panel = AppStoragePanel();
       that.panel.init(document.body);
+      that.storageStatus =
+        document.querySelector('.apps-storage-status');
+      that.lowDiskSpace =
+        document.querySelector('.apps-low-disk-space');
       done();
     });
   });
@@ -68,6 +73,8 @@ suite('AppStoragePanel', function() {
       sinon.match('usedSize')));
     assert.ok(this.MockAppStorage.observe.calledWith(
       sinon.match('freeSize')));
+    assert.ok(this.MockAppStorage.observe.calledWith(
+      sinon.match('lowDiskSpace')));
   });
 
   test('unobserve appStorage when onHide', function() {
@@ -81,5 +88,23 @@ suite('AppStoragePanel', function() {
       sinon.match('usedSize')));
     assert.ok(this.MockAppStorage.unobserve.calledWith(
       sinon.match('freeSize')));
+    assert.ok(this.MockAppStorage.unobserve.calledWith(
+      sinon.match('lowDiskSpace')));
+  });
+
+  test('app-storage-status is unchanged when lowDiskSpace is false',
+    function() {
+      this.MockAppStorage.lowDiskSpace = false;
+      this.panel.beforeShow();
+      assert.equal('apps-storage-status', this.storageStatus.className);
+  });
+
+  test(
+    'app-storage-status is changed to app-storage-status-low' +
+    'when lowDiskSpace is true',
+    function() {
+      this.MockAppStorage.lowDiskSpace = true;
+      this.panel.beforeShow();
+      assert.equal('apps-storage-status-low', this.storageStatus.className);
   });
 });

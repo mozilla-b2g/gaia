@@ -393,6 +393,37 @@ section ul.operate-certificate {
 }
 
 /******************************************************************************
+* Application Storage settings
+*/
+
+#applicationStorage .apps-low-disk-space {
+  display: none;
+}
+
+#applicationStorage .apps-low-disk-space .title {
+  font-weight: bold;
+  font-size: 1.7rem;
+  margin: 0 0 0.5rem;
+  padding: 0 1.5rem;
+}
+
+#applicationStorage .apps-low-disk-space .description {
+  font-size: 1.7rem;
+  padding: 0 1.5rem 2rem;
+}
+
+#applicationStorage .apps-storage-status-low .apps-space-bar {
+  border-color: #E51E1E;
+}
+
+#applicationStorage .apps-storage-status-low .apps-low-disk-space,
+#applicationStorage .apps-storage-status-low .apps-free-space-section span {
+  display: block;
+  color: #E51E1E;
+  white-space: unset;
+}
+
+/******************************************************************************
 * Media Storage settings
 */
 

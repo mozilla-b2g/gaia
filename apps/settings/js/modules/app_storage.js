@@ -46,6 +46,11 @@ define(function(require) {
       value: 0
   });
 
+  Observable.defineObservableProperty(AppStorage.prototype,
+    'lowDiskSpace', {
+      readonly: true,
+      value: false
+  });
 
   AppStorage.prototype.updateInfo = function as_updateInfo() {
     this._getSpaceInfo();
@@ -85,8 +90,8 @@ define(function(require) {
         this._usedPercentage = usedPercentage;
       };
     };
+    this._lowDiskSpace = deviceStorage.lowDiskSpace;
   };
 
   return AppStorage();
 });
-
