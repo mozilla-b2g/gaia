@@ -13,6 +13,10 @@
       "disposition": "window",
       "href": "index.html",
       "returnValue": true
+    },
+    "test-noreturnvalue-with-postresult-activity": {
+      "disposition": "window",
+      "href": "index.html"
     }
   }
 }
