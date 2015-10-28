@@ -428,8 +428,12 @@ var UIManager = {
         this.updateSetting(event.target.name, event.target.checked);
         break;
       // Privacy
-      case 'metrics-basic':
       case 'metrics-enhanced':
+        this.updateSetting('hud.hide', (event.target.value === 'Enhanced'));
+        this.updateSetting('devtools.overlay',
+          (event.target.value === 'Enhanced'));
+        /* falls through */
+      case 'metrics-basic':
       case 'metrics-none':
         this.updateSetting('metrics.selectedMetrics.level', event.target.value);
         break;

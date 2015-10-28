@@ -516,4 +516,64 @@ suite('UI Manager > ', function() {
     });
   });
 
+  suite('Metrics Section', function() {
+    var MockSettings;
+
+    setup(function() {
+      MockNavigatorSettings.mSetup();
+      MockSettings = MockNavigatorSettings.mSettings;
+      UIManager.init();
+      Navigation.currentStepIndex = 7;
+      Navigation.manageStep();
+      // Default settings
+      MockSettings['hud.hide'] = false;
+      MockSettings['devtools.overlay'] = false;
+    });
+
+    teardown(function() {
+      Navigation.currentStep = 1;
+      Navigation.manageStep();
+      MockNavigatorSettings.mTeardown();
+    });
+
+    test('should set the HUD settings correctly for Enhanced >', function() {
+      var fakeEvent = {
+        target: {
+          id: 'metrics-enhanced',
+          value: 'Enhanced'
+        }
+      };
+      UIManager.handleEvent(fakeEvent);
+      assert.equal(MockSettings['hud.hide'], true);
+      assert.equal(MockSettings['devtools.overlay'], true);
+      assert.equal(MockSettings['metrics.selectedMetrics.level'], 'Enhanced');
+    });
+
+    test('should not modify HUD settings from default for Basic >', function() {
+      var fakeEvent = {
+        target: {
+          id: 'metrics-basic',
+          value: 'Basic'
+        }
+      };
+      UIManager.handleEvent(fakeEvent);
+      assert.equal(MockSettings['hud.hide'], false);
+      assert.equal(MockSettings['devtools.overlay'], false);
+      assert.equal(MockSettings['metrics.selectedMetrics.level'], 'Basic');
+    });
+
+    test('should not modify the HUD settings from default for None >',
+    function() {
+      var fakeEvent = {
+        target: {
+          id: 'metrics-none',
+          value: 'None'
+        }
+      };
+      UIManager.handleEvent(fakeEvent);
+      assert.equal(MockSettings['hud.hide'], false);
+      assert.equal(MockSettings['devtools.overlay'], false);
+      assert.equal(MockSettings['metrics.selectedMetrics.level'], 'None');
+    });
+  });
 });

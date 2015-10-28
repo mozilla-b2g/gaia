@@ -286,6 +286,8 @@ function execute(config) {
     settings['debug.performance_data.dogfooding'] = true;
     settings['metrics.appusage.reportInterval'] = 24 * 60 * 60 * 1000;
     settings['metrics.selectedMetrics.level'] = 'Enhanced';
+    settings['hud.hide'] = true;
+    settings['devtools.overlay'] = true;
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;

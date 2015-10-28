@@ -90,6 +90,9 @@ var MockUIManager = {
     // Privacy Settings
     'share-performance',
     'offline-error-dialog',
+    'metrics-basic',
+    'metrics-enhanced',
+    'metrics-none',
     // Browser privacy newsletter subscription
     'newsletter-form',
     'newsletter-input',
