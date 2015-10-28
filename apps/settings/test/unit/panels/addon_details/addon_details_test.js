@@ -50,6 +50,7 @@ suite('Addon Details Test > ', function() {
         enabledState: document.createElement('div'),
         name: document.createElement('div'),
         icon: document.createElement('div'),
+        version: document.createElement('div'),
         description: document.createElement('div'),
         developer: document.createElement('div'),
         targetsList: document.createElement('div'),
