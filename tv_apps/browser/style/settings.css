@@ -61,6 +61,11 @@ smart-button[type=simple-text].disabled {
   pointer-events: none;
 }
 
+p.fine-print {
+  font-size: 2rem;
+  line-height: 1.6rem;
+}
+
 #settings-header-title {
   display: inline;
 }
