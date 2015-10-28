@@ -784,7 +784,7 @@ suite('system/Statusbar', function() {
       wifiIcon.element = null;
       wifiIcon.render();
       assert.isNull(wifiIcon.element);
-      Statusbar.finishInit();
+      Statusbar.start();
       window.addEventListener('iconrendered', function() {
         assert.ok(wifiIcon.element);
         done();

@@ -92,6 +92,7 @@
         window.addEventListener('ftudone', this);
       }
       Service.registerState('height', this);
+      Service.register('iconContainer', this);
     },
 
     calculateMinimized: function sb_calculateMinimized() {
@@ -160,8 +161,6 @@
         console.error('UtilityTray load or init error', err);
       });
 
-      Service.register('onIconCreated', this);
-      Service.register('iconContainer', this);
       this.calculateMinimized();
     },
 
