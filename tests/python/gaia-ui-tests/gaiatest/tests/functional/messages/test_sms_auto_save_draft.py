@@ -9,6 +9,7 @@ from marionette_driver import Wait
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.messages.app import Messages
+from gaiatest.apps.system.regions.cards_view import CardsView
 
 
 class TestSmsAutoSaveDrafts(GaiaTestCase):
@@ -35,15 +36,14 @@ class TestSmsAutoSaveDrafts(GaiaTestCase):
 
         # close message app and leave cards view
         self.device.hold_home_button()
-        from gaiatest.apps.system.regions.cards_view import CardsView
+
         cards_view = CardsView(self.marionette)
         cards_view.wait_for_cards_view()
 
         # wait for first app ready
-        cards_view.wait_for_card_ready('sms')
-        cards_view.close_app('sms')
-        self.assertFalse(cards_view.is_app_present('sms'),
-                         "Killed app not expected to appear in cards view")
+        cards_view.cards[0].wait_for_centered()
+        cards_view.cards[0].close()
+        self.assertEqual(len(cards_view.cards), 0)
 
         # wait for homescreen to be displayed
         Homescreen(self.marionette).wait_to_be_displayed()

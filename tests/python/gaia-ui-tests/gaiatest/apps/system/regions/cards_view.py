@@ -15,18 +15,20 @@ class CardsView(PageRegion):
 
     # Home/Cards view locators
     _root_locator = (By.ID, 'task-manager')
-    _cards_locator = (By.CSS_SELECTOR, '#cards-view .card')
-    # Check that the origin contains the current app name, origin is in the format:
-    # app://clock.gaiamobile.org
-    _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
-    _close_buttons_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-button')
-
+    _card_locator = (By.CSS_SELECTOR, '#cards-view .card')
+    _cards_no_recent_windows_locator = (By.ID, 'cards-no-recent-windows')
     _new_private_sheet_locator = (By.ID, 'task-manager-new-private-sheet-button')
     _new_sheet_locator = (By.ID, 'task-manager-new-sheet-button')
 
+    # Check that the origin contains the current app name, origin is in the format:
+    # app://clock.gaiamobile.org
+    # This locator is used by is_app_a11y_visible
+    _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
+
     def __init__(self, marionette):
-        Base.__init__(self, marionette)
-        self.root_element = self.marionette.find_element(*self._root_locator)
+        marionette.switch_to_frame()
+        root = marionette.find_element(*self._root_locator)
+        PageRegion.__init__(self, marionette, root)
 
     def open_new_browser(self):
         self.root_element.find_element(*self._new_sheet_locator).tap()
@@ -40,67 +42,37 @@ class CardsView(PageRegion):
         from gaiatest.apps.search.regions.browser import PrivateWindow
         return PrivateWindow(self.marionette)
 
-    def _app_card_locator(self, app):
-        return (self._apps_cards_locator[0], self._apps_cards_locator[1] % app.lower().replace('-', ''))
-
-    def _close_button_locator(self, app):
-        return (self._close_buttons_locator[0], self._close_buttons_locator[1] % app.lower().replace('-', ''))
-
     @property
     def cards(self):
         return [Card(self.marionette, card)
-                for card in self.root_element.find_elements(*self._cards_locator)]
+                for card in self.root_element.find_elements(*self._card_locator)]
 
     @property
     def is_displayed(self):
         return self.is_element_displayed(*self._root_locator)
 
     @property
+    def is_no_card_displayed(self):
+        return (self.root_element.is_displayed() and
+            self.root_element.find_element(*self._cards_no_recent_windows_locator).is_displayed())
+
+    def wait_for_no_card_displayed(self):
+        Wait(self.marionette).until(lambda m: self.is_no_card_displayed)
+
+    @property
     def is_cards_view_a11y_hidden(self):
         return self.accessibility.is_hidden(self.root_element)
 
-    def _card_is_centered(self, card):
-        screen_width = int(self.marionette.execute_script('return window.innerWidth'))
-        left = card.rect['x']
-        width = card.rect['width']
-        # center of card should be within 1px of viewport center
-        return 1 >= abs(screen_width / 2 - (left + width / 2))
-
-    def wait_for_card_ready(self, app):
-        card = self.root_element.find_element(*self._app_card_locator(app))
-        Wait(self.marionette).until(lambda m: self._card_is_centered(card))
-
-        # TODO: Remove sleep when we find a better wait
-        time.sleep(0.2)
-
-    def is_app_displayed(self, app):
-        return self.is_element_displayed(*self._app_card_locator(app))
-
     def is_app_a11y_visible(self, app):
         return self.accessibility.is_visible(self.root_element.find_element(
-            *self._app_card_locator(app)))
+            *self._app_cards_locator(app)))
 
     def is_app_a11y_hidden(self, app):
         return self.accessibility.is_hidden(self.root_element.find_element(
-            *self._app_card_locator(app)))
+            *self._app_cards_locator(app)))
 
     def a11y_wheel_cards_view(self, direction):
         self.accessibility.wheel(self.root_element, direction)
-
-    def is_app_present(self, app):
-        return self.is_element_present(*self._app_card_locator(app))
-
-    def tap_app(self, app):
-        Wait(self.marionette).until(lambda m: self.is_app_displayed(app))
-        self.root_element.find_element(*self._app_card_locator(app)).tap()
-
-    def close_app(self, app):
-        self.wait_for_card_ready(app)
-        Wait(self.marionette).until(
-            expected.element_present(*self._app_card_locator(app)))
-        self.marionette.find_element(*self._close_button_locator(app)).tap()
-        Wait(self.marionette).until(
-            expected.element_not_present(*self._app_card_locator(app)))
 
     def wait_for_cards_view(self):
         Wait(self.marionette).until(
@@ -125,6 +97,43 @@ class Card(PageRegion):
     _close_button_locator = (By.CLASS_NAME, 'close-button')
     _screenshot_view_locator = (By.CLASS_NAME, 'screenshotView')
     _app_icon_locator = (By.CLASS_NAME, 'appIcon')
+    _title_locator = (By.CLASS_NAME, 'title')
+    _subtitle_locator = (By.CLASS_NAME, 'subtitle')
+    _close_buttons_locator = (By.CSS_SELECTOR, '.close-button')
+
+    @property
+    def title(self):
+        return self.root_element.find_element(*self._title_locator).text
+
+    @property
+    def subtitle(self):
+        return self.root_element.find_element(*self._subtitle_locator).text
+
+    @property
+    def is_displayed(self):
+        return self.root_element.is_displayed()
+
+    @property
+    def manifest_url(self):
+        return self.root_element.get_attribute('data-origin')
+
+    @property
+    def is_centered(self):
+        screen_width = int(self.marionette.execute_script('return window.innerWidth'))
+        left = self.root_element.rect['x']
+        width = self.root_element.rect['width']
+        # center of card should be within 1px of viewport center
+        return 1 >= abs(screen_width / 2 - (left + width / 2))
+
+    def wait_for_centered(self):
+        Wait(self.marionette).until(lambda m: self.is_centered)
+
+    def tap(self):
+        self.root_element.tap()
+
+    def close(self):
+        self.wait_for_centered()
+        self.root_element.find_element(*self._close_button_locator).tap()
 
     def a11y_click_close_button(self):
         self.accessibility.click(self.root_element.find_element(*self._close_button_locator))

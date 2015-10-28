@@ -6,21 +6,20 @@ import time
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.regions.cards_view import CardsView
+from gaiatest.apps.clock.app import Clock
+from gaiatest.apps.gallery.app import Gallery
 
 
 class TestCardsViewTwoApps(GaiaTestCase):
-
-    _test_apps = ["Clock", "Gallery"]
 
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.cards_view = CardsView(self.marionette)
 
-        # Launch the test apps
-        for app in self._test_apps:
-            self.apps.launch(app)
-            # Let's wait a bit for the app to fully launch
-            time.sleep(2)
+        self.clock = Clock(self.marionette)
+        self.clock.launch()
+        self.gallery = Gallery(self.marionette)
+        self.gallery.launch(empty=True)
 
     def test_kill_app_from_cards_view(self):
         """https://moztrap.mozilla.org/manage/case/1917/"""
@@ -30,15 +29,12 @@ class TestCardsViewTwoApps(GaiaTestCase):
         self.cards_view.wait_for_cards_view()
 
         # Wait for first app ready
-        self.cards_view.wait_for_card_ready(self._test_apps[1])
+        self.cards_view.cards[1].wait_for_centered()
+        self.assertIn(self.cards_view.cards[1].manifest_url, self.gallery.manifest_url)
 
         # Close the current apps from the cards view
-        self.cards_view.close_app(self._test_apps[1])
-        self.cards_view.close_app(self._test_apps[0])
+        self.cards_view.cards[1].close()
+        self.cards_view.cards[0].close()
 
         # If successfully killed, the apps should no longer appear in the cards view and the "No recent apps" message should be displayed
-        self.assertFalse(self.cards_view.is_app_present(self._test_apps[1]),
-                         "Killed app not expected to appear in cards view")
-
-        self.assertFalse(self.cards_view.is_app_present(self._test_apps[0]),
-                         "Killed app not expected to appear in cards view")
+        self.assertEqual(len(self.cards_view.cards), 0, 'Should have no cards to display')

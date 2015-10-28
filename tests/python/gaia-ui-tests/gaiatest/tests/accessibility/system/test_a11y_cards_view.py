@@ -31,7 +31,7 @@ class TestCardsViewAccessibility(GaiaTestCase):
         cards_view.wait_for_cards_view()
 
         # Wait for first app ready
-        cards_view.wait_for_card_ready(self._test_apps[2])
+        cards_view.cards[2].wait_for_centered()
 
         # Only current card should be visible
         self.assertTrue(cards_view.is_app_a11y_visible(self._test_apps[2]))
@@ -102,7 +102,7 @@ class TestCardsViewAccessibility(GaiaTestCase):
         self.marionette.switch_to_frame()
         self.device.hold_home_button()
         cards_view.wait_for_cards_view()
-        cards_view.wait_for_card_ready(self._test_apps[0])
+        cards_view.cards[0].wait_for_centered()
 
         # Assert there is 1 card
         cards = cards_view.cards
