@@ -59,6 +59,16 @@
     event: 'click',
     listener: 'onhistorychecked',
     init: 'onhistorychange'
+  }, {
+    screen: [DISABLED, ENABLED],
+    selector: '#fxsync-tos',
+    event: 'click',
+    listener: 'openTos'
+  }, {
+    screen: [DISABLED, ENABLED],
+    selector: '#fxsync-privacy',
+    event: 'click',
+    listener: 'openPrivacy'
   }];
 
   function getElementName(str) {
@@ -283,7 +293,10 @@
     loadElements(screen) {
       ELEMENTS.forEach(element => {
         var name = getElementName(element.selector);
-        if (element.screen == screen) {
+        if (!Array.isArray(element.screen)) {
+          element.screen = [element.screen];
+        }
+        if (element.screen.indexOf(screen) >= -1) {
           this.elements[name] = this.area.querySelector(element.selector);
           this.listeners.set(
             name,
@@ -366,6 +379,14 @@
 
     sync() {
       SyncManagerBridge.sync();
+    },
+
+    openTos() {
+      window.open('https://accounts.firefox.com/legal/terms');
+    },
+
+    openPrivacy() {
+      window.open('https://accounts.firefox.com/legal/privacy');
     }
   };
 
