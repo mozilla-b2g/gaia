@@ -175,7 +175,7 @@
               return;
             }
 
-            var errorIds = [ERROR_UNKNOWN];
+            var errorIds = [ERROR_UNKNOWN, ERROR_UNKNOWN + '-explanation'];
 
             const KNOWN_ERRORS = [
               ERROR_INVALID_SYNC_ACCOUNT,
