@@ -98,12 +98,12 @@
      * Returns the view for a menu item.
      * @memberof ImeMenu.prototype
      */
-    menuItemView: function({layoutName, appName, layoutId, selected}) {
+    menuItemView: function({name, nameL10nId, appName, layoutId, selected}) {
       return Sanitizer.createSafeHTML `
       <li role="option" aria-selected="${selected}"
         data-id="${layoutId}">
         <label role="presentation">
-          <span class="item-label">${layoutName}</span>
+          <span class="item-label" data-l10n-id="${nameL10nId}">${name}</span>
           <span class="item-note">${appName}</span>
         </label>
       </li>`;
@@ -117,7 +117,8 @@
       var menuList = [];
       items.forEach(function traveseItems(item) {
          menuList.push(this.menuItemView({
-          layoutName: item.layoutName,
+          name: item.name,
+          nameL10nId: item.nameL10nId,
           appName: item.appName,
           layoutId: item.value.toString(),
           selected: item.selected ? 'true' : 'false'

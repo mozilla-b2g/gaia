@@ -41,6 +41,9 @@ LayoutItemView.prototype.start = function() {
   var el = this.container =
     document.importNode(template.content, true).firstElementChild;
   el.querySelector('.label').textContent = this._model.name;
+  if (this._model.nameL10nId) {
+    el.querySelector('.label').dataset.l10nId = this._model.nameL10nId;
+  }
   el.addEventListener('click', this);
 
   this._statusEl = el.querySelector('.status');

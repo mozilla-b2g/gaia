@@ -1,6 +1,7 @@
 Keyboards.emoji = {
   label: 'Emoji',
   types: ['text', 'url', 'email'],
+  menuLabelL10nId: 'emoji',
   menuLabel: 'Emoji',
   pages: [{   // Page 0 - People
     panelKeys: [{ compositeKey: '🌂', type: 'emoji' }, { compositeKey: '🌟', type: 'emoji' },
