@@ -51,17 +51,8 @@ class GaiaImageCompareTestCase(GaiaTestCase):
     # if the status bar is visible, crop it off
     @property
     def crop_height(self):
-        self.marionette.switch_to_frame()
-        height = 0
-        _statusbar_locator = (By.ID, 'statusbar')
-        if expected.element_displayed(*_statusbar_locator)(self.marionette):
-            # get the size of the status bar to crop off
-            status_bar = self.marionette.find_element(*System._status_bar_locator)
-            # get the size of the status bar, and multiply it by the device pixel ratio to get the exact size on device
-            height = int(status_bar.rect['height']
-                                   * self.marionette.execute_script('return window.wrappedJSObject.devicePixelRatio;'))
-
-        return height
+        return int(System(self.marionette).status_bar.height
+                   * self.marionette.execute_script('return window.wrappedJSObject.devicePixelRatio;'))
 
     def take_screenshot(self, page_name=None, prewait=1, top_frame=False):
         """
@@ -133,9 +124,10 @@ class GaiaImageCompareTestCase(GaiaTestCase):
 
             # msg should be saved at this point. Otherwise, it will get lost if any of the below line fails
             if len(err.split()) > 1:
-                self.failcomment += '\n'+err
+                self.failcomment += '\n' + err
             else:
-                self.failcomment += '\nWARNING: ' + err.rstrip('\n') + ' pixels mismatched between ' + target + ' and ' + ref + '\n'
+                self.failcomment += '\nWARNING: ' + err.rstrip(
+                    '\n') + ' pixels mismatched between ' + target + ' and ' + ref + '\n'
 
             # move the diff image and the target image to a separate folder
             if not os.path.exists(self.mismatch_path):
