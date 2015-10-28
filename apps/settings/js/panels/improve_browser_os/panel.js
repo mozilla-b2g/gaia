@@ -7,6 +7,8 @@ define(function(require) {
   const METRICLEVELSETTING = 'metrics.selectedMetrics.level';
   const DOGFOODSETTING = 'debug.performance_data.dogfooding';
   const SHAREDATASETTING = 'debug.performance_data.shared';
+  const DEVTOOLSOVERLAY = 'devtools.overlay';
+
   const LEVELSMAP = {
     'Basic': 'Basic',
     'Enhanced': 'Enhanced',
@@ -63,7 +65,7 @@ define(function(require) {
               metricsEnhanced.removeAttribute('disabled');
               metricsNone.removeAttribute('disabled');
             }
-            resolve();
+            resolve(this._setMetricLevel); // Unit testing support.
           });
         });
       },
@@ -93,11 +95,31 @@ define(function(require) {
       _setMetricLevel: function(level) {
         level = LEVELSMAP[level];
         if (level) {
-          var metricLevel = {};
-          metricLevel[METRICLEVELSETTING] = level;
-          navigator.mozSettings.createLock().set(metricLevel);
+          updateSetting(METRICLEVELSETTING, level);
+
+          // If the metrics level is being set to 'enhanced', DevTools
+          // must enabled. This is because the 'enhanced' metrics
+          // are collected using the Developer Tools components.
+          if (level === LEVELSMAP.Enhanced) {
+            updateSetting(DEVTOOLSOVERLAY, true);
+          } else {
+            // The metrics level is being set to one that does not require
+            // DevTools to be enabled; disable DevTools.
+            //
+            // The use case where a developer manually enables the HUD and then
+            // sets the metric level to 'basic' or 'none' is not being
+            // addressed; DevTools will be still disabled by this page. The
+            // developer will need to manually enable the HUD.
+            updateSetting(DEVTOOLSOVERLAY, false);
+          }
         }
-      }
+
+         function updateSetting(name, value) {
+           var setting = {};
+           setting[name] = value;
+           navigator.mozSettings.createLock().set(setting);
+        }
+      },
     });
   };
 });
