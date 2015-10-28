@@ -14,14 +14,7 @@ bridge_repo="gaia-components/bridge#master"
 
 bridge_source="$bower_path/bridge"
 bridge_plugins="$bridge_source/src/plugins"
-bridge_libs=(
-  "bridge.js"
-  "bridge.min.js"
-  "service.js"
-  "service.min.js"
-  "client.js"
-  "client.min.js"
-)
+bridge_libs=( "service.js" "service.min.js" "client.js" "client.min.js" )
 bridge_destination="lib/bridge"
 
 sww_repo="gaia-components/serviceworkerware#master"

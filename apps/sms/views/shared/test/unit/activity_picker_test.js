@@ -9,11 +9,9 @@ require('/views/shared/js/utils.js');
 
 require('/views/shared/test/unit/mock_moz_activity.js');
 require('/views/shared/test/unit/mock_utils.js');
-require('/views/shared/test/unit/mock_activity_handler.js');
 
 
 var mocksHelperAP = new MocksHelper([
-  'ActivityHandler',
   'MozActivity',
   'Utils'
 ]).init();

@@ -1,5 +1,4 @@
-/*global ActivityShim,
-         Contacts,
+/*global Contacts,
          MessageManager,
          Navigation,
          NotificationHelper,
@@ -50,9 +49,7 @@
      * system message handlers will be registered.
      */
     init() {
-      // We don't want to register these system handlers when app is run as
-      // inline activity
-      if (!navigator.mozSetMessageHandler || ActivityShim.hasPendingRequest()) {
+      if (!navigator.mozSetMessageHandler) {
         return;
       }
 

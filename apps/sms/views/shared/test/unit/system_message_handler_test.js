@@ -1,5 +1,4 @@
-/*global ActivityShim,
-         Contacts,
+/*global Contacts,
          MessageManager,
          MockContact,
          MocksHelper,
@@ -22,7 +21,6 @@ require('/views/shared/test/unit/mock_contact.js');
 require('/views/shared/test/unit/mock_contacts.js');
 require('/views/shared/test/unit/mock_messages.js');
 require('/services/test/unit/mock_message_manager.js');
-require('/services/test/unit/activity/mock_activity_shim.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_notify.js');
 require('/views/shared/test/unit/mock_navigation.js');
@@ -35,7 +33,6 @@ require('/views/shared/test/unit/mock_utils.js');
 require('/views/shared/js/system_message_handler.js');
 
 var mocksHelperForActivityHandler = new MocksHelper([
-  'ActivityShim',
   'Contacts',
   'MessageManager',
   'Navigation',
@@ -83,39 +80,21 @@ suite('SystemMessageHandler', function() {
     isDocumentHidden = false;
     this.sinon.stub(document, 'addEventListener');
 
-    this.sinon.stub(ActivityShim);
-
     SystemMessageHandler.init();
   });
 
-  suite('init', function() {
-    setup(function() {
-      this.sinon.stub(navigator, 'mozSetMessageHandler');
-    });
+  test('init()', function() {
+    this.sinon.stub(navigator, 'mozSetMessageHandler');
 
-    test('if app is run as inline activity', function() {
-      ActivityShim.hasPendingRequest.returns(true);
+    SystemMessageHandler.init();
 
-      SystemMessageHandler.init();
-
-      // When app is run as activity we should not listen for 'sms-received' and
-      // 'notification' system messages.
-      sinon.assert.notCalled(navigator.mozSetMessageHandler);
-    });
-
-    test('if app is run in non-activity mode', function() {
-      ActivityShim.hasPendingRequest.returns(false);
-
-      SystemMessageHandler.init();
-
-      sinon.assert.calledTwice(window.navigator.mozSetMessageHandler);
-      sinon.assert.calledWith(
-        window.navigator.mozSetMessageHandler, 'sms-received'
-      );
-      sinon.assert.calledWith(
-        window.navigator.mozSetMessageHandler, 'notification'
-      );
-    });
+    sinon.assert.calledTwice(window.navigator.mozSetMessageHandler);
+    sinon.assert.calledWith(
+      window.navigator.mozSetMessageHandler, 'sms-received'
+    );
+    sinon.assert.calledWith(
+      window.navigator.mozSetMessageHandler, 'notification'
+    );
   });
 
   suite('sms-received system message', function() {

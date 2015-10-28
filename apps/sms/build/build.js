@@ -39,9 +39,7 @@ function removeDesktopOnlyScripts(appStageDir) {
 function prepareBridgeLibs(options) {
   var bridgeLibsPath = utils.joinPath(options.STAGE_APP_DIR, 'lib/bridge');
 
-  [
-    'bridge.min.js', 'service.min.js', 'client.min.js'
-  ].forEach(function(optimizedLib) {
+  ['service.min.js', 'client.min.js'].forEach(function(optimizedLib) {
     var optimizedLibPath = utils.joinPath(bridgeLibsPath, optimizedLib);
 
     // If we want to have only optimized libs, let's replace non-optimized

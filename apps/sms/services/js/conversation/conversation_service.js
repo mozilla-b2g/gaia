@@ -25,7 +25,6 @@
  */
 
 [
-  ['bridge', '/lib/bridge/bridge.js'],
   ['BridgeServiceMixin', '/services/js/bridge_service_mixin.js'],
   [
     'MozMobileMessageClient',

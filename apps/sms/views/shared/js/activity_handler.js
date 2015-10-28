@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ActivityClient,
-         ActivityShim,
+         App,
          Attachment,
          Draft,
          Drafts,
@@ -29,16 +29,7 @@ const ActivityDataType = {
 
 var ActivityHandler = {
   init: function() {
-    if (!window.navigator.mozSetMessageHandler ||
-        !ActivityShim.hasPendingRequest()) {
-      return;
-    }
-
-    // Currently both client and service for activity reside in the same
-    // context, so we spin up both in the same context/window.
-    ActivityShim.init();
-
-    ActivityClient.init();
+    ActivityClient.init(App.instanceId);
 
     ActivityClient.on(
       'new-activity-request', this._onNewActivity.bind(this)

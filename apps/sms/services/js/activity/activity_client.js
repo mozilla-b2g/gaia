@@ -1,5 +1,6 @@
-/* global EventDispatcher,
-          bridge
+/* global bridge,
+          BroadcastChannel,
+          EventDispatcher
 */
 
 (function(exports) {
@@ -39,12 +40,20 @@
    */
   var ActivityClient = {
     /**
-     * Initialized activity service client bridge.
+     * Initialized activity bridge client.
+     * @param {string} appInstanceId Unique identifier of app instance where
+     * client resides in.
      */
-    init() {
+    init(appInstanceId) {
+      if (!appInstanceId) {
+        throw new Error('AppInstanceId is required!');
+      }
+
       client = bridge.client({
         service: SERVICE_NAME,
-        endpoint: exports,
+        endpoint: new BroadcastChannel(
+          `${SERVICE_NAME}-channel-${appInstanceId}`
+        ),
         // Disable service response timeouts.
         timeout: false
       });

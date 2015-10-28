@@ -1,6 +1,7 @@
 /*global ActivityShim,
-         MocksHelper,
-         bridge
+         bridge,
+         BroadcastChannel,
+         MocksHelper
 */
 
 'use strict';
@@ -9,131 +10,137 @@ require('/services/test/unit/mock_bridge.js');
 require('/shared/js/event_dispatcher.js');
 require('/services/js/bridge_service_mixin.js');
 require('/services/js/activity/activity_shim.js');
+require('/views/shared/test/unit/mock_broadcast_channel.js');
 
 var MocksHelperForAttachment = new MocksHelper([
-  'bridge'
+  'bridge',
+  'BroadcastChannel'
 ]).init();
 
 suite('ActivityShim >', function() {
-  var serviceStub, realSetMessageHandler, realHasPendingMessage;
+  const APP_INSTANCE_ID = 'fake-app-id';
+
+  var serviceStub, setMessageHandlerStub;
 
   MocksHelperForAttachment.attachTestHelpers();
-
-  suiteSetup(function() {
-    realSetMessageHandler = navigator.mozSetMessageHandler;
-    realHasPendingMessage = navigator.mozHasPendingMessage;
-
-    navigator.mozSetMessageHandler = () => {};
-    navigator.mozHasPendingMessage = () => {};
-  });
-
-  suiteTeardown(function() {
-    navigator.mozSetMessageHandler = realSetMessageHandler;
-    navigator.mozHasPendingMessage = realHasPendingMessage;
-  });
-
   setup(function() {
     this.sinon.useFakeTimers();
 
     serviceStub = sinon.stub({
       method: () => {},
       broadcast: () => {},
-      listen: () => {}
+      listen: () => {},
+      on: () => {}
     });
 
+    setMessageHandlerStub = sinon.stub();
+
     this.sinon.stub(bridge, 'service').returns(serviceStub);
-    this.sinon.stub(navigator, 'mozSetMessageHandler');
-    this.sinon.stub(navigator, 'mozHasPendingMessage');
-
-    ActivityShim.init();
-
-    // To allow shim to register system message handler.
-    this.sinon.clock.tick();
   });
 
-  test('bridge service is correctly initialized', function() {
-    sinon.assert.calledOnce(bridge.service);
-    sinon.assert.calledWith(bridge.service, 'activity-service');
-  });
+  suite('init()', function() {
+    test('throws if app instance id is not provided', function() {
+      assert.throws(() => ActivityShim.init());
+    });
 
-  test('hasPendingRequest based on mozHasPendingMessage', function() {
-    navigator.mozHasPendingMessage.withArgs('activity').returns(false);
+    test('bridge service is correctly initialized', function() {
+      ActivityShim.init(APP_INSTANCE_ID, setMessageHandlerStub);
 
-    assert.isFalse(ActivityShim.hasPendingRequest());
-
-    navigator.mozHasPendingMessage.withArgs('activity').returns(true);
-
-    assert.isTrue(ActivityShim.hasPendingRequest());
+      sinon.assert.calledOnce(bridge.service);
+      sinon.assert.calledWith(bridge.service, 'activity-service');
+      sinon.assert.calledTwice(serviceStub.listen);
+      sinon.assert.calledWith(
+        serviceStub.listen,
+        sinon.match.instanceOf(BroadcastChannel).and(
+          sinon.match.has(
+            'name',
+            'activity-service-channel-' + APP_INSTANCE_ID
+          )
+        )
+      );
+    });
   });
 
   suite('activity system message >', function() {
-    var activityRequest;
-
     setup(function() {
-      activityRequest = sinon.stub({
-        postResult: () => {},
-        postError: () => {},
-        source: {
-          name: 'fake',
-          data: {
-            custom: 'custom'
+      ActivityShim.init(APP_INSTANCE_ID, setMessageHandlerStub);
+    });
+
+    test('when client is not connected yet', function() {
+      sinon.assert.notCalled(setMessageHandlerStub);
+    });
+
+    suite('once client is connected', function() {
+      var activityRequest;
+
+      setup(function() {
+        activityRequest = sinon.stub({
+          postResult: () => {},
+          postError: () => {},
+          source: {
+            name: 'fake',
+            data: {
+              custom: 'custom'
+            }
           }
-        }
+        });
+
+        serviceStub.on.withArgs('connected').yield();
+
+        setMessageHandlerStub.withArgs('activity').yield(activityRequest);
       });
 
-      navigator.mozSetMessageHandler.withArgs('activity').yield(
-        activityRequest
-      );
-    });
+      test('activity request is broadcasted', function() {
+        sinon.assert.calledWith(
+          serviceStub.broadcast, 'activity-request', activityRequest.source
+        );
+      });
 
-    test('activity request is broadcasted', function() {
-      sinon.assert.calledWith(
-        serviceStub.broadcast, 'activity-request', activityRequest.source
-      );
-    });
-
-    test('postResult passes default arguments', function() {
-      serviceStub.method.withArgs('postResult').yield();
-
-      sinon.assert.calledOnce(activityRequest.postResult);
-      sinon.assert.calledWith(activityRequest.postResult, { success: true });
-
-      // Activity request is disposed after first postResult.
-      assert.throw(() => {
+      test('postResult passes default arguments', function() {
         serviceStub.method.withArgs('postResult').yield();
+
+        sinon.assert.calledOnce(activityRequest.postResult);
+        sinon.assert.calledWith(activityRequest.postResult, { success: true });
+
+        // Activity request is disposed after first postResult.
+        assert.throw(() => {
+          serviceStub.method.withArgs('postResult').yield();
+        });
+
+        sinon.assert.calledOnce(activityRequest.postResult);
       });
 
-      sinon.assert.calledOnce(activityRequest.postResult);
-    });
-
-    test('postResult passes custom arguments', function() {
-      serviceStub.method.withArgs('postResult').yield({ custom: 'custom' });
-
-      sinon.assert.notCalled(activityRequest.postError);
-      sinon.assert.calledOnce(activityRequest.postResult);
-      sinon.assert.calledWith(activityRequest.postResult, { custom: 'custom' });
-
-      // Activity request is disposed after first postResult.
-      assert.throw(() => {
+      test('postResult passes custom arguments', function() {
         serviceStub.method.withArgs('postResult').yield({ custom: 'custom' });
+
+        sinon.assert.notCalled(activityRequest.postError);
+        sinon.assert.calledOnce(activityRequest.postResult);
+        sinon.assert.calledWith(
+          activityRequest.postResult, { custom: 'custom' }
+        );
+
+        // Activity request is disposed after first postResult.
+        assert.throw(() => {
+          serviceStub.method.withArgs('postResult').yield({ custom: 'custom' });
+        });
+
+        sinon.assert.calledOnce(activityRequest.postResult);
       });
 
-      sinon.assert.calledOnce(activityRequest.postResult);
-    });
-
-    test('postError passes error reason', function() {
-      serviceStub.method.withArgs('postError').yield('error');
-
-      sinon.assert.notCalled(activityRequest.postResult);
-      sinon.assert.calledOnce(activityRequest.postError);
-      sinon.assert.calledWith(activityRequest.postError, 'error');
-
-      // Activity request is disposed after first postError.
-      assert.throw(() => {
+      test('postError passes error reason', function() {
         serviceStub.method.withArgs('postError').yield('error');
-      });
 
-      sinon.assert.calledOnce(activityRequest.postError);
+        sinon.assert.notCalled(activityRequest.postResult);
+        sinon.assert.calledOnce(activityRequest.postError);
+        sinon.assert.calledWith(activityRequest.postError, 'error');
+
+        // Activity request is disposed after first postError.
+        assert.throw(() => {
+          serviceStub.method.withArgs('postError').yield('error');
+        });
+
+        sinon.assert.calledOnce(activityRequest.postError);
+      });
     });
   });
 });
