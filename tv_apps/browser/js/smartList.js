@@ -555,56 +555,31 @@
     },
 
     /**
-     * Preload the item before and after the view item.
-     * @param  {Number} focusIndex - current focus index.
+     * Preload the item out of visible view.
+     * @param  {Number} listIndex - preload list index.
      */
-    loadItemBuffer: function(focusIndex) {
-      var listIndex = 0,
-          dataIndex = 0;
+    preloadItem: function(listIndex) {
+      var dataIndex = 0;
 
-      // preload the item before current focus item
-      listIndex = focusIndex - MAX_VISIBLE_ITEM;
-      if(listIndex >= 0 && listIndex < this.listIndexStartAt) {
-        if(this.navState) {
-          if(listIndex === 0) {
-            var data = this.generateBackButtonData(this.navState.folderTitle);
-            this.addItem(0, data);
-          } else {
-            dataIndex = listIndex - 1;
-            this.dispatchLoadDataByIndex(
-              listIndex,
-              dataIndex,
-              this.navState.folderId
-            );
-          }
+      if(this.navState) {
+        if(listIndex === 0) {
+          var data = this.generateBackButtonData(this.navState.folderTitle);
+          this.addItem(0, data);
         } else {
-          dataIndex = listIndex;
-          this.dispatchLoadDataByIndex(
-            listIndex,
-            dataIndex,
-            null
-          );
-        }
-      }
-
-      // preload the item after current focus item
-      listIndex = focusIndex + MAX_VISIBLE_ITEM;
-      if(listIndex > this.listIndexEndAt) {
-        if(this.navState) {
           dataIndex = listIndex - 1;
           this.dispatchLoadDataByIndex(
             listIndex,
             dataIndex,
             this.navState.folderId
           );
-        } else {
-          dataIndex = listIndex;
-          this.dispatchLoadDataByIndex(
-            listIndex,
-            dataIndex,
-            null
-          );
         }
+      } else {
+        dataIndex = listIndex;
+        this.dispatchLoadDataByIndex(
+          listIndex,
+          dataIndex,
+          null
+        );
       }
     },
 
@@ -709,7 +684,10 @@
           this.listVisibleStartAt--;
           this.shiftItemTransform(this.listEl, LIST_ITEM_HEIGHT);
         }
-        this.loadItemBuffer(this.focusIndex);
+        var preloadItemIndex = this.focusIndex - MAX_VISIBLE_ITEM;
+        if(preloadItemIndex >= 0 && preloadItemIndex < this.listIndexStartAt) {
+          this.preloadItem(preloadItemIndex);
+        }
         targetEl = this.listItemMap[this.focusIndex];
         this.focusItem(targetEl);
       }
@@ -730,7 +708,10 @@
           this.listVisibleStartAt++;
           this.shiftItemTransform(this.listEl, (-1 * LIST_ITEM_HEIGHT));
         }
-        this.loadItemBuffer(this.focusIndex);
+        var preloadItemIndex = this.focusIndex + MAX_VISIBLE_ITEM;
+        if(preloadItemIndex > this.listIndexEndAt) {
+          this.preloadItem(preloadItemIndex);
+        }
         targetEl = this.listItemMap[this.focusIndex];
         this.focusItem(targetEl);
       }
