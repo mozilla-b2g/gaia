@@ -119,6 +119,77 @@
       }
     },
 
+//IFDEF_FIREFOX_SYNC
+    _createRootFolderCache: function () {
+      return Promise.all([
+        new Promise(resolve => {
+          SyncBrowserDB.getBookmark({
+            parentid: SYNC_BOOKMARK_ROOT_FOLDER_ID
+          }, syncPlacesBookmark => {
+            // We query remote bookmarks by parentid with
+            // SYNC_BOOKMARK_ROOT_FOLDER_ID for checking if the indexedDB has
+            // remote bookmark data. If there is any remote data, we create a
+            // folder item to show the synced bookmark.
+            if(syncPlacesBookmark.length > 0) {
+              this.cache.push(this.syncBookmarkRootFolderCache);
+            }
+            resolve();
+          });
+        }),
+        new Promise(resolve => {
+          // If there is mobile folder and also has children in it,
+          // create a folder item to show the synced mobile bookmark
+          SyncBrowserDB.getBookmark({
+            parentid: SYNC_BOOKMARK_MOBILE_FOLDER_ID
+          }, syncMobileBookmark => {
+            if(syncMobileBookmark.length > 0) {
+              this.cache.push(this.syncBookmarkMobileFolderCache);
+            }
+            resolve();
+          });
+        }),
+        new Promise(resolve => {
+          // get bookmark data from origin indexdDB
+          BrowserDB.getBookmarks(bookmarks => {
+            this.cache = this.cache.concat(bookmarks);
+            resolve();
+          });
+        })
+      ]);
+    },
+
+    _updateFolder: function () {
+      return new Promise(resolve => {
+        SyncBrowserDB.getBookmark({
+          parentid: this.currentFolder
+        }, syncBookmark => {
+          var length = syncBookmark.length,
+              bookmark = null;
+          for(var i = 0; i < length; i++) {
+            bookmark = syncBookmark[i];
+            //hide mobile folder in sync bookmark folder
+            if(this.currentFolder === SYNC_BOOKMARK_ROOT_FOLDER_ID &&
+              bookmark.id === SYNC_BOOKMARK_MOBILE_FOLDER_ID) {
+              continue;
+            }
+
+            // XXX: Now we only support two types: folder and bookmark.
+            // And the data from firefox sync can't be modified.
+            if(bookmark.type === 'folder' && bookmark.title) {
+              bookmark.readOnly = true;
+              this.cache.push(bookmark);
+            } else if (bookmark.type === 'bookmark') {
+              bookmark.uri = bookmark.bmkUri;
+              bookmark.readOnly = true;
+              this.cache.push(bookmark);
+            }
+          }
+          resolve();
+        });
+      });
+    },
+//ENDIF_FIREFOX_SYNC
+
     updateCache: function(){
       this.cache = [];
       return new Promise(resolve => {
@@ -130,74 +201,14 @@
           });
         } else {
 //IFNDEF_FIREFOX_SYNC
-        resolve();
+          resolve();
 //ENDIF_FIREFOX_SYNC
 
 //IFDEF_FIREFOX_SYNC
           if(!this.currentFolder) {
-            // XXX: Ideally we should use Promise.all for
-            // SyncBrowserDB.getBookmark and BrowserDB.getBookmarks.
-            // But now the implementation of these function are not
-            // return Promise.
-            SyncBrowserDB.getBookmark({
-              parentid: SYNC_BOOKMARK_ROOT_FOLDER_ID
-            }, syncPlacesBookmark => {
-              // We query remote bookmarks by parentid with
-              // SYNC_BOOKMARK_ROOT_FOLDER_ID for checking if the indexedDB has
-              // remote bookmark data. If there is any remote data, we create a
-              // folder item to show the synced bookmark.
-              if(syncPlacesBookmark.length > 0) {
-                this.cache.push(this.syncBookmarkRootFolderCache);
-
-                // If there is mobile folder and also has children in it,
-                // create a folder item to show the synced mobile bookmark
-                SyncBrowserDB.getBookmark({
-                  parentid: SYNC_BOOKMARK_MOBILE_FOLDER_ID
-                }, syncMobileBookmark => {
-                  if(syncMobileBookmark.length > 0) {
-                    this.cache.push(this.syncBookmarkMobileFolderCache);
-                  }
-                  // get bookmark data from origin indexdDB
-                  BrowserDB.getBookmarks(bookmarks => {
-                    this.cache = this.cache.concat(bookmarks);
-                    resolve();
-                  });
-                });
-              } else {
-                // get bookmark data from origin indexdDB
-                BrowserDB.getBookmarks(bookmarks => {
-                  this.cache = this.cache.concat(bookmarks);
-                  resolve();
-                });
-              }
-            });
+            this._createRootFolderCache().then(resolve);
           } else {
-            SyncBrowserDB.getBookmark({
-              parentid: this.currentFolder
-            }, syncBookmark => {
-              var length = syncBookmark.length,
-                  bookmark = null;
-              for(var i=0; i<length; i++) {
-                bookmark = syncBookmark[i];
-                //hide mobile folder in sync bookmark folder
-                if(this.currentFolder === SYNC_BOOKMARK_ROOT_FOLDER_ID &&
-                  bookmark.id === SYNC_BOOKMARK_MOBILE_FOLDER_ID) {
-                  continue;
-                }
-
-                // XXX: Now we only support two types: folder and bookmark.
-                // And the data from firefox sync can't be modified.
-                if(bookmark.type === 'folder' && bookmark.title) {
-                  bookmark.readOnly = true;
-                  this.cache.push(bookmark);
-                } else if (bookmark.type === 'bookmark') {
-                  bookmark.uri = bookmark.bmkUri;
-                  bookmark.readOnly = true;
-                  this.cache.push(bookmark);
-                }
-              }
-              resolve();
-            });
+            this._updateFolder().then(resolve);
           }
 //ENDIF_FIREFOX_SYNC
         }
