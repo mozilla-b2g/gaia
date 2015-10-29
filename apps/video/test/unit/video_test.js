@@ -5,7 +5,7 @@
   pendingUpdateTitleText:true,controlShowing:true,touchStartID:true,
   selectedFileNames:true,selectedFileNamesToBlobs:true,dragging:true,
   sliderRect:true,updateVideoControlSlider:true,setControlsVisibility:true,
-  controlFadeTimeout:true,handleSliderTouchMove:true */
+  controlFadeTimeout:true,handleSliderTouchMove:true,seeker:true */
 /* global handleScreenLayoutChange,HAVE_NOTHING,handleSliderKeypress,
   hideOptionsView,MockLazyLoader,MockVideoPlayer,ThumbnailList,
   toggleVideoControls,showOptionsView,ScreenLayout,MocksHelper,dom,
@@ -33,6 +33,7 @@ requireApp('/video/test/unit/mock_thumbnail_item.js');
 requireApp('/video/test/unit/mock_video_loading_checker.js');
 requireApp('/video/test/unit/mock_video_player.js');
 requireApp('/video/js/thumbnail_list.js');
+requireApp('/video/js/seeker.js');
 
 // Declare variables used in video.js that are declared in other
 // javascript files (that we don't want to pull in).
@@ -1684,12 +1685,19 @@ suite('Video App Unit Tests', function() {
 
   suite('handleSliderKeypress', function() {
     var keyEvent;
+    var realSeeker;
 
     setup(function() {
       dom.player.currentTime = 0;
       dom.player.duration = 10;
       dom.player.currentTime = 5;
       keyEvent = document.createEvent('KeyboardEvent');
+      realSeeker = seeker;
+      seeker = { seekTo: sinon.spy() };
+    });
+
+    teardown(function() {
+      seeker = realSeeker;
     });
 
     test('test seek up and seek down based on key up and key down', function() {
@@ -1699,7 +1707,7 @@ suite('Video App Unit Tests', function() {
         keyEvent.initKeyEvent('keypress', true, true, window, false, false,
           false, false, testSpec.key, 0);
         handleSliderKeypress(keyEvent);
-        assert.equal(dom.player.currentTime, currentTime + testSpec.step);
+        assert.ok(seeker.seekTo.calledWith(currentTime + testSpec.step));
       });
     });
   });
@@ -2083,8 +2091,8 @@ suite('Video App Unit Tests', function() {
                    'touch start id should come from event');
       assert.isTrue(handleSliderTouchMoveSpy.calledOnce,
                    'handleSliderTouchMove is called once');
-      assert.isTrue(playerPauseSpy.calledOnce,
-                   'dom.player.pause is called');
+      assert.equal(playerPauseSpy.callCount, 0,
+                   'dom.player.pause is not called');
       assert.equal(sliderRect.width, width);
       assert.equal(sliderRect.height, height);
       assert.equal(sliderRect.right, sliderRect.left + width);
@@ -2093,7 +2101,7 @@ suite('Video App Unit Tests', function() {
   });
 
   suite('handleSliderTouchMove flows', function() {
-    var fastSeekSpy;
+    var seekerStub;
 
     var clientX = 110;
     var touch = {'clientX': clientX};
@@ -2111,20 +2119,20 @@ suite('Video App Unit Tests', function() {
                          {'identifiedTouch': identifiedTouchFailure} };
 
     suiteSetup(function() {
-      fastSeekSpy = sinon.spy(dom.player, 'fastSeek');
+      seekerStub = sinon.stub(seeker, 'seekTo');
       sliderRect = {'left': 10,
                     'width': 200,
                     'right': 190};
     });
 
     setup(function() {
-      fastSeekSpy.reset();
+      seekerStub.reset();
       dragging = true;
       dom.playHead.classList.remove('active');
     });
 
     suiteTeardown(function() {
-      fastSeekSpy.restore();
+      seekerStub.restore();
     });
 
     test('#handleSliderTouchMove: update the slider (ltr)', function() {
@@ -2138,7 +2146,7 @@ suite('Video App Unit Tests', function() {
       assert.equal(dom.playHead.style.left, '50%');
       assert.equal(dom.playHead.style.right, '');
       assert.equal(dom.elapsedTime.style.width, '50%');
-      assert.isTrue(fastSeekSpy.calledOnce);
+      assert.isTrue(seekerStub.calledOnce);
     });
 
     test('#handleSliderTouchMove: update the slider (rtl)', function() {
@@ -2152,7 +2160,7 @@ suite('Video App Unit Tests', function() {
       assert.equal(dom.playHead.style.right, '40%');
       assert.equal(dom.playHead.style.left, '');
       assert.equal(dom.elapsedTime.style.width, '40%');
-      assert.isTrue(fastSeekSpy.calledOnce);
+      assert.isTrue(seekerStub.calledOnce);
     });
 
     test('#handleSliderTouchMove: not dragging', function() {
@@ -2161,7 +2169,7 @@ suite('Video App Unit Tests', function() {
       handleSliderTouchMove(successEvent);
 
       assert.isFalse(containsClass(dom.playHead, 'active'));
-      assert.equal(fastSeekSpy.callCount, 0);
+      assert.equal(seekerStub.callCount, 0);
     });
 
     test('#handleSliderTouchMove: no touch start event', function() {
@@ -2170,7 +2178,7 @@ suite('Video App Unit Tests', function() {
       handleSliderTouchMove(failureEvent);
 
       assert.isFalse(containsClass(dom.playHead, 'active'));
-      assert.equal(fastSeekSpy.callCount, 0);
+      assert.equal(seekerStub.callCount, 0);
     });
   });
 
@@ -2253,7 +2261,7 @@ suite('Video App Unit Tests', function() {
       assert.isNull(touchStartID);
       assert.isFalse(containsClass(dom.playHead, 'active'));
       assert.equal(playerPauseSpy.callCount, 0);
-      assert.isTrue(playerPlaySpy.calledOnce);
+      assert.equal(playerPlaySpy.callCount, 0);
     });
   });
 });
