@@ -1,0 +1,9 @@
+#view-contacts-list {
+  visibility: visible;
+  transform: translateY(0);
+}
+
+#search-view.insearchmode {
+  visibility: visible;
+  transform: translateY(0);
+}

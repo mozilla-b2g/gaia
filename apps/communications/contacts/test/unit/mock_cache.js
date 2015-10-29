@@ -34,5 +34,12 @@ var MockCache = {
   },
   maybeEvict: function() {
 
+  },
+  apply: function() {
+    return {
+        then: function(cb) {
+          cb();
+        }
+      };
   }
 };
