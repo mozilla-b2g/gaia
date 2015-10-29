@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('assert');
 var Ftu = require('./lib/ftu');
 
 marionette('First Time Use >', function() {
@@ -45,9 +46,23 @@ marionette('First Time Use >', function() {
         return marionetteScriptFinished(result);
       });
     });
-    console.log('ftu.enabled? ', isEnabled);
+    assert.equal(false, isEnabled);
     client.apps.switchToApp(Ftu.URL);
     client.helper.waitForElement('#update-screen');
   });
 
+  test('Sets appropriate theme color', function() {
+    client.apps.switchToApp(Ftu.URL);
+    client.helper.waitForElement('#update-screen');
+    var expectedColor = client.executeScript(function() {
+      return window.wrappedJSObject.UIManager.DARK_THEME;
+    });
+    client.waitFor(function() {
+      var themeColor = client.executeScript(function() {
+        var meta = document.querySelector('meta[name="theme-color"]');
+        return meta.getAttribute('content');
+      });
+      return (themeColor == expectedColor);
+    });
+  });
 });

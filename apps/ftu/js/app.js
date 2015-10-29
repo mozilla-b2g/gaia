@@ -61,6 +61,7 @@ var AppManager = {
     if (versionInfo && versionInfo.isUpgrade()) {
       var stepsKey = versionInfo.delta();
       // Play the FTU Tuto steps directly on update
+      UIManager.changeStatusBarColor(UIManager.DARK_THEME);
       UIManager.splashScreen.classList.remove('show');
       UIManager.activationScreen.classList.remove('show');
       UIManager.updateScreen.classList.add('show');
