@@ -45,6 +45,9 @@ class ScreenLock(PageRegion):
         checkbox.tap()
         section = self.marionette.find_element(*self._screen_lock_passcode_section_locator)
         Wait(self.marionette).until(lambda m: section.location['x'] == 0)
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def create_passcode(self, passcode):
 
