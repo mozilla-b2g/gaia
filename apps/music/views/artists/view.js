@@ -9,13 +9,13 @@ var ArtistsView = View.extend(function ArtistsView() {
   this.list = document.getElementById('list');
 
   this.client.on('databaseChange', () => this.update());
-  this.configureSearch();
+
   this.configureList();
+  this.configureSearch();
   this.update();
 });
 
 ArtistsView.prototype.configureList = function() {
-
   // Scroll search out of view, even when
   // there aren't enough list items to scroll.
   this.list.scrollTop = this.searchBox.HEIGHT;
