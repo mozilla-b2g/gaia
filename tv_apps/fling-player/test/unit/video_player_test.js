@@ -154,12 +154,6 @@ suite('fling-player/VideoPlayer', function() {
       player.handleEvent({ type : 'playing' });
       exp.verify();
     });
-
-    test('should handle the seeked event', function () {
-      exp.expects('play').once();
-      player.handleEvent({ type : 'seeked' });
-      exp.verify();
-    });
   });
 
   suite('Time parsing', function () {

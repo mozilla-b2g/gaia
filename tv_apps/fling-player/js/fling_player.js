@@ -9,6 +9,7 @@
   var uiID = {
     player : 'player',
     loadingUI : 'loading-section',
+    initialMsg : 'initial-message-section',
     controlPanel : 'video-control-panel',
     backwardButton : 'backward-button',
     playButton : 'play-button',
@@ -38,22 +39,24 @@
 
   var proto = FlingPlayer.prototype;
 
+  proto.MAX_DISPLAYED_VIDEO_TIME_SEC = 3600 * 99 + 60 * 59 + 59;
   proto.CONTROL_PANEL_HIDE_DELAY_MS = 3000;
-  proto.UPDATE_CONTROL_PANEL_INTERVAL_MS = 1000;
   proto.SEEK_ON_KEY_PRESS_INTERVAL_MS = 150;
   proto.SEEK_ON_LONG_KEY_PRESS_MS = 5000;
   proto.SEEK_ON_KEY_PRESS_NORMAL_STEP_SEC = 10;
   proto.SEEK_ON_KEY_PRESS_LARGE_STEP_SEC = 30;
+  proto.INITIAL_MSG_MIN_DISPLAY_TIME_MS = 2000;
 
   proto.init = function () {
 
-    this._contrlPanelUpdateTimer = null;
     this._seekOnKeyPressTimer = null;
     this._seekOnKeyPressDirection = null; // 'backward' or 'forward'
     this._seekOnKeyPressStartTime = null; // in ms
     this._hideControlsTimer = null;
+    this._initialMsgStartTime = null; // in ms
 
     this._loadingUI = $(uiID.loadingUI);
+    this._initialMsg = $(uiID.initialMsg);
     this._controlPanel = $(uiID.controlPanel);
     this._backwardButton = $(uiID.backwardButton);
     this._playButton = $(uiID.playButton);
@@ -63,15 +66,13 @@
     this._elapsedTime = $(uiID.elapsedTime);
     this._durationTime = $(uiID.durationTime);
 
-    this._initSession();
-    this._initPlayer();
-
     this._keyNav = new SimpleKeyNavigation();
     this._keyNav.start(
       [this._backwardButton, this._playButton, this._forwardButton],
       SimpleKeyNavigation.DIRECTION.HORIZONTAL
     );
     this._keyNav.focusOn(this._playButton);
+    this._keyNav.pause();
 
     this._keyNavAdapter = new KeyNavigationAdapter();
     this._keyNavAdapter.init();
@@ -94,24 +95,26 @@
         this._player.release();
       }
     });
+
+    this._initPlayer();
+    this._initSession();
   };
 
   proto._initSession = function () {
     this._connector.init();
-
     this._connector.on('loadRequest', this.onLoadRequest.bind(this));
     this._connector.on('playRequest', this.onPlayRequest.bind(this));
-    this._connector.on('pauseRequest', this.onPauseRequest.bind(this));
     this._connector.on('seekRequest', this.onSeekRequest.bind(this));
+    this._connector.on('pauseRequest', this.onPauseRequest.bind(this));
   };
 
   proto._initPlayer = function () {
     this._player.init();
-
     this._player.addEventListener('loadedmetadata', this);
-    this._player.addEventListener('seeked', this);
+    this._player.addEventListener('timeupdate', this);
     this._player.addEventListener('waiting', this);
     this._player.addEventListener('playing', this);
+    this._player.addEventListener('seeked', this);
     this._player.addEventListener('pause', this);
     this._player.addEventListener('ended', this);
     this._player.addEventListener('error', this);
@@ -124,11 +127,31 @@
     this.moveTimeBar('buffered', 0);
     this.writeTimeInfo('elapsed', 0);
     this.writeTimeInfo('duration', 0);
-    this.setPlayButtonState('pause');
+    this.setPlayButtonState('paused');
   };
 
   proto.showLoading = function (loading) {
     this._loadingUI.hidden = !loading;
+  };
+
+  /**
+   * @param {boolean} on True to toggle on and false to toggle off
+   */
+  proto.toggleInitialMessage = function (on) {
+    if (on) {
+      this._initialMsgStartTime = (new Date()).getTime();
+      this._initialMsg.classList.remove('fade-out');
+    } else {
+      var displayDuration = (new Date()).getTime() - this._initialMsgStartTime;
+      var gap = this.INITIAL_MSG_MIN_DISPLAY_TIME_MS - displayDuration;
+      // Make sure that the initial message has beed displayed
+      // for at least the min secs
+      if (gap > 0) {
+        setTimeout(() => this.toggleInitialMessage(false), gap);
+      } else {
+        this._initialMsg.classList.add('fade-out');
+      }
+    }
   };
 
   /**
@@ -230,8 +253,9 @@
   proto.writeTimeInfo = function (type, sec) {
 
     var timeInfo = this[`_${type}Time`];
-    var duration = this._player.getRoundedDuration();
-    sec = Math.round(sec);
+    var duration = Math.min(this._player.getRoundedDuration(),
+                            this.MAX_DISPLAYED_VIDEO_TIME_SEC);
+    sec = Math.min(Math.round(sec), this.MAX_DISPLAYED_VIDEO_TIME_SEC);
 
     if (!timeInfo ||
         (sec >= 0) === false ||
@@ -262,58 +286,25 @@
     this.setPlayButtonState('paused');
   };
 
-  proto._startUpdateControlPanelContinuously = function () {
+  proto._updateControlPanel = function () {
+    var buf = this._player.getVideo().buffered;
+    var current = this._player.getRoundedCurrentTime();
 
-    if (this._contrlPanelUpdateTimer == null) {
+    this.writeTimeInfo('elapsed', current);
+    this.moveTimeBar('elapsed', current);
 
-      // To stop this is important.
-      // We don't want they get messed with each other
-      this._stopSeekOnKeyPress();
-
-      this._contrlPanelUpdateTimer = setTimeout(
-        this._updateControlPanelContinuously.bind(this)
-      );
-      this.showControlPanel(true);
-    }
-  };
-
-  proto._stopUpdateControlPanelContinuously = function () {
-    clearTimeout(this._contrlPanelUpdateTimer);
-    this._contrlPanelUpdateTimer = null;
-  };
-
-  /**
-   * This is to keep auto updating the info and status on the control panel.
-   */
-  proto._updateControlPanelContinuously = function () {
-
-    if (this._contrlPanelUpdateTimer != null) {
-
-      var buf = this._player.getVideo().buffered;
-      var current = this._player.getRoundedCurrentTime();
-
-      this.writeTimeInfo('elapsed', current);
-      this.moveTimeBar('elapsed', current);
-
-      if (buf.length) {
-        this.moveTimeBar('buffered', buf.end(buf.length - 1));
+    for (var bufEnd, bufStart, i = 0; i < buf.length; ++i ) {
+      bufEnd = buf.end(i);
+      bufStart = buf.start(i);
+      if (bufStart <= current && current <= bufEnd) {
+        this.moveTimeBar('buffered', bufEnd);
+        break;
       }
-
-      this._contrlPanelUpdateTimer = setTimeout(
-        this._updateControlPanelContinuously.bind(this),
-        this.UPDATE_CONTROL_PANEL_INTERVAL_MS
-      );
     }
   };
 
   proto._startSeekOnKeyPress = function (dir) {
-
     if (this._seekOnKeyPressStartTime == null) { // Do not double start
-
-      // To stop this is important.
-      // We don't want they get messed with each other
-      this._stopUpdateControlPanelContinuously();
-
       this._seekOnKeyPressStartTime = (new Date()).getTime();
       this._seekOnKeyPressDirection = dir;
       this._seekOnKeyPress();
@@ -379,6 +370,10 @@
         this._connector.reportStatus('loaded', data);
       break;
 
+      case 'timeupdate':
+        this._updateControlPanel();
+      break;
+
       case 'waiting':
         this.showLoading(true);
         this._connector.reportStatus('buffering', data);
@@ -386,26 +381,25 @@
 
       case 'playing':
         this.showLoading(false);
-        // TODO: Hide 'Starting video cast from ...'
+        this.toggleInitialMessage(false);
         this._connector.reportStatus('buffered', data);
-
-        this._startUpdateControlPanelContinuously();
         this._connector.reportStatus('playing', data);
       break;
 
       case 'seeked':
+        this.play();
         this._connector.reportStatus('seeked', data);
       break;
 
-      case 'ended':
       case 'pause':
-        this._stopUpdateControlPanelContinuously();
+        this.showControlPanel(true);
         this._connector.reportStatus('stopped', data);
-        if (e.type == 'ended') {
-          this.showControlPanel();
-        } else {
-          this.showControlPanel(true);
-        }
+      break;
+
+      case 'ended':
+        this.showControlPanel();
+        this.setPlayButtonState('paused'); // Make sure state changed at ending
+        this._connector.reportStatus('stopped', data);
       break;
 
       case 'error':
@@ -419,7 +413,7 @@
   proto.onLoadRequest = function (e) {
     this.resetUI();
     this.showLoading(true);
-    // TODO: Diplay 'Starting video cast from ...'
+    this.toggleInitialMessage(true);
     this._player.load(e.url);
     this.play();
   };

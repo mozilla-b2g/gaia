@@ -44,11 +44,33 @@ article, section, video {
 }
 
 #loading-section span{
-  color: white;
+  color: #fff;
   line-height: 5rem;
   font-size: 2.4rem;
   font-style: italic;
   display: inline-block;
+}
+
+#initial-message-section {
+  width: auto;
+  height: 11rem;
+  line-height: 11rem;
+  border-radius: 5.5rem;
+  padding: 0 6rem;
+  top: auto;
+  bottom: 30rem;
+  left: 50%;
+  transform: translate(-50%, 0);
+  color: #fff;
+  font-size: 5rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+#initial-message-section.fade-out {
+  opacity: 0;
 }
 
 .control-panel {
@@ -57,34 +79,30 @@ article, section, video {
   right: 19.5rem;
   bottom: 4rem;
   opacity: 1;
-  visibility: visible;
   transition: all 1s ease;
 }
 
 .control-panel.fade-out {
   opacity: 0;
-  visibility: hidden;
 }
 
 #video-time-progress {
   height: 8rem;
   border-radius: 4rem;
   left: 34.8rem;
-  right: 0rem;
+  right: 0;
+  top: 0;
   position: absolute;
-  display: inline-block;
+  display: flex;
+  flex-direction: row;
   background-color: rgba(0, 0, 0, 0.5);
-}
-
-#video-time-progress div {
-  position: absolute;
 }
 
 #time-progress {
   height: 8rem;
-  left: 19.2rem;
-  right: 19.2rem;
-  margin: 0px auto;
+  left: 0;
+  right: 0;
+  flex-grow: 1;
 }
 
 .time-bar {
@@ -92,41 +110,44 @@ article, section, video {
   height: 0.6rem;
   background: #6d7177;
   top: 4rem;
+  position: relative;
   transform: translate(0, -50%);
 }
 
 #elapsed-time-bar {
-  width: 0%;
+  width: 0;
+  top: 2.8rem;
   background: #71c9f0;
 }
 
 #buffered-time-bar {
-  width: 0%;
+  width: 0;
+  top: 3.4rem;
   background: #fff;
 }
 
 .time-text {
-  width: 12rem;
   font-size: 3.2rem;
   height: 8rem;
   line-height: 8rem;
   font-style : italic;
-  overflow: hidden;
   color : #ffffff;
 }
 
 #elapsed-time {
-  left: 4.2rem;
+  margin-left: 4.2rem;
+  margin-right: 3rem;
 }
 
 #duration-time {
-  right: 4.2rem;
+  margin-left: 3rem;
+  margin-right: 4.2rem;
 }
 
 #video-control-buttons {
   width: 31.8rem;
   height: 8rem;
-  margin-right: 0rem;
+  margin-right: 0;
   display: inline-block;
   position: relative;
 }
