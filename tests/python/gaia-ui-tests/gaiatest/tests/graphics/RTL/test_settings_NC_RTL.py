@@ -108,8 +108,8 @@ class TestSettingsRTLNC(GaiaImageCompareTestCase):
         settings.return_to_prev_menu(cs_page.cs_screen_element, cs_page.call_forwarding_screen_element)
 
         cs_page.tap_call_barring()
-        self.take_screenshot('callBarring-init')
-        cs_page.wait_until_call_barring_info_received()
+        cs_page.wait_until_call_barring_info_received()  # this sometimes happens in less than a second,
+                                                         # making it difficult to obtain init view
         self.take_screenshot('callBarring')
         GaiaImageCompareTestCase.scroll(self.marionette, 'down',
                                         cs_page.call_barring_screen_element.size['height'],
