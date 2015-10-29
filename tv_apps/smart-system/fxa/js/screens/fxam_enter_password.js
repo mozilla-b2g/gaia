@@ -166,14 +166,14 @@ var FxaModuleEnterPassword = (function() {
     setTimeout(() => {
       FxaModuleKeyNavigation.add([
         '#fxa-pw-input', '#fxa-forgot-password',
-        '#fxa-show-pw', '#fxa-module-next']);
+        '#fxa-show-pw', '#fxa-module-done']);
     }, 500);
   };
 
   Module.onBack = function onBack() {
     FxaModuleKeyNavigation.remove([
       '#fxa-pw-input', '#fxa-forgot-password',
-      '#fxa-show-pw', '#fxa-module-next']);
+      '#fxa-show-pw', '#fxa-module-done']);
   };
 
   Module.onDone = function onDone(done) {
@@ -187,7 +187,7 @@ var FxaModuleEnterPassword = (function() {
         FxaModuleOverlay.hide();
         FxaModuleKeyNavigation.remove([
           '#fxa-pw-input', '#fxa-forgot-password',
-          '#fxa-show-pw', '#fxa-module-next']);
+          '#fxa-show-pw', '#fxa-module-done']);
 
         if (!response.authenticated) {
           // XXX For now, because we don't allow the creation of new accounts

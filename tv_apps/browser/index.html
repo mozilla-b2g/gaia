@@ -8,8 +8,10 @@
     <!-- building blocks -->
     <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
     <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
+    <link rel="stylesheet" href="bower_components/gaia-icons/gaia-icons.css">
 
     <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="style/components.css">
     <link rel="stylesheet" type="text/css" href="style/index.css">
     <link rel="stylesheet" type="text/css" href="style/awesomescreen.css">
     <link rel="stylesheet" type="text/css" href="style/authentication_dialog.css">
@@ -37,6 +39,7 @@ ENDIF_FIREFOX_SYNC-->
     <!-- building blocks -->
     <script defer src="bower_components/evt/index.js"></script>
     <script defer src="bower_components/smart-button/script.js"></script>
+    <script defer src="bower_components/gaia-icons/gaia-icons.js"></script>
 
     <!-- Shared code -->
     <script defer src="shared/js/url_helper.js"></script>
@@ -725,22 +728,22 @@ ENDIF_FIREFOX_SYNC-->
               <p data-l10n-id="fxsync">Firefox Sync</p>
             </div>
             <div id="fxsync-disabled">
-              <smart-button id="fxsync-sign-in-button" type="simple-text" data-l10n-id="fxsync-sign-in"></smart-button>
+              <smart-button id="fxsync-sign-in-button" type="rounded-corner-text" data-l10n-id="fxsync-sign-in"></smart-button>
               <p data-l10n-id="fxsync-sign-in-to-sync-description"></p>
               <p data-l10n-id="fxsync-sign-in-to-sync-description-plus"></p>
             </div>
             <div id="fxsync-enabled" hidden>
               <span id="fxsync-signed-in-as" data-l10n-id="fxsync-signed-in-as"></span>
-              <smart-button id="fxsync-sync-now-button" type="simple-text" data-l10n-id="fxsync-sync-now"></smart-button>
-              <smart-button id="fxsync-sign-out-button" type="simple-text" data-l10n-id="fxsync-disconnect"></smart-button>
+              <smart-button id="fxsync-sync-now-button" type="rounded-corner-text" data-l10n-id="fxsync-sync-now"></smart-button>
+              <smart-button id="fxsync-sign-out-button" type="rounded-corner-text" data-l10n-id="fxsync-disconnect"></smart-button>
               <ul class="settings-horizontal-list">
                 <li class="settings-horizontal-list-item">
-                  <input type="checkbox" id="fxsync-collection-bookmarks" ></input>
+                  <input type="checkbox" id="fxsync-collection-bookmarks" class="settings-list-checkbox"></input>
                   <label for="fxsync-collection-bookmarks"></label>
                   <span data-l10n-id="fxsync-collections-bookmarks"></span>
                 </li>
                 <li class="settings-horizontal-list-item">
-                  <input type="checkbox" id="fxsync-collection-history" ></input>
+                  <input type="checkbox" id="fxsync-collection-history" class="settings-list-checkbox"></input>
                   <label for="fxsync-collection-history"></label>
                   <span data-l10n-id="fxsync-collections-history"></span>
                 </li>

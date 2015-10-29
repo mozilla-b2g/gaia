@@ -28,9 +28,15 @@ var FxaModuleErrorOverlay = {
       'fxa-error-ok'
     );
 
-    this.fxaErrorOk.addEventListener('click', this.hide.bind(this));
-    this.fxaErrorOk.addEventListener('keypress', e => {
+    this.fxaErrorOk.addEventListener('mouseup', this.hide.bind(this));
+    this.fxaErrorOk.addEventListener('keydown', e => {
+      if (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN) {
+        this.fxaErrorOk.classList.add('active');
+      }
+    });
+    this.fxaErrorOk.addEventListener('keyup', e => {
       if (e.keyCode & e.keyCode === KeyEvent.DOM_VK_RETURN) {
+        this.fxaErrorOk.classList.remove('active');
         this.hide();
       }
     });
