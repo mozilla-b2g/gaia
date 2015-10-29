@@ -170,6 +170,11 @@ var HistoryHelper = (() => {
 
   function deletePlace(fxsyncId, userid) {
     return getDataStoreId(fxsyncId, userid).then(id => {
+      if (!id) {
+        console.warn('Ignoring incoming tombstone for unknown FxSyncID',
+            fxsyncId);
+        return Promise.resolve();
+      }
       return deleteByDataStoreId(id);
     });
   }
