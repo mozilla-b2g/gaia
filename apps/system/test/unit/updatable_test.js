@@ -556,6 +556,12 @@ suite('system/Updatable', function() {
           assert.isTrue(MockUpdateManager.mDownloadedCalled);
         });
 
+        test('should remove the system download from the queue', function() {
+          assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
+          assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
+          assert.equal(MockUpdateManager.mDownloads.length, 0);
+        });
+
         test('should reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
           assert.isUndefined(
             asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
@@ -790,14 +796,6 @@ suite('system/Updatable', function() {
 
       assert.equal('update-prompt-apply-result', lastDispatchedEvent.type);
       assert.equal('wait', lastDispatchedEvent.value);
-    });
-
-    test('canceling should remove from downloads queue', function() {
-      subject.declineInstallWait();
-
-      assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-      assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
-      assert.equal(MockUpdateManager.mDownloads.length, 0);
     });
 
     test('apply prompt confirm callback', function() {

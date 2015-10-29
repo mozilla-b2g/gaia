@@ -220,6 +220,7 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
     case 'update-downloaded':
       this.downloading = false;
       UpdateManager.downloaded(this);
+      UpdateManager.removeFromDownloadsQueue(this);
       this.showApplyPrompt(detail.isOSUpdate);
       break;
     case 'update-prompt-apply':
@@ -330,8 +331,6 @@ SystemUpdatable.prototype.declineInstall = function(reason) {
   this.showingApplyPrompt = false;
   Service.request('hideCustomDialog');
   this._dispatchEvent('update-prompt-apply-result', reason);
-
-  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 SystemUpdatable.prototype.declineInstallBattery = function() {
