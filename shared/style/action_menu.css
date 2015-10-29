@@ -162,14 +162,11 @@ html[dir="rtl"] [role="dialog"][data-type="action"] > header menu[type="toolbar"
   background-image: url(action_menu/images/icons/close.png);
 }
 
-[role="dialog"][data-type="action"] > header .icon.icon-back {
-  background-image: url(action_menu/images/icons/back.png);
-}
 html[dir="ltr"] [role="dialog"][data-type="action"] > header .icon.icon-back {
-  transform: scaleX(1);
+  background-image: url(action_menu/images/icons/left.png);
 }
 html[dir="rtl"] [role="dialog"][data-type="action"] > header .icon.icon-back {
-  transform: scaleX(-1);
+  background-image: url(action_menu/images/icons/right.png);
 }
 
 /* Navigation links (back, cancel, etc) */
