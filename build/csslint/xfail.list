@@ -105,7 +105,7 @@ apps/system/style/permission_manager/permission_manager.css 5 0
 apps/system/style/pin_page_system_dialog.css 2 0
 apps/system/style/rocketbar/rocketbar.css 2 0
 apps/system/style/sound_manager/sound_manager.css 5 3
-apps/system/style/statusbar/statusbar.css 2 0
+apps/system/style/statusbar/statusbar.css 1 0
 apps/system/style/storage_watcher/storage_watcher.css 2 0
 apps/system/style/system/keyboard.css 2 0
 apps/system/style/system/system.css 4 2
