@@ -43,6 +43,7 @@ class TestVideo(GaiaImageCompareTestCase):
         HTML5Player(self.marionette).invoke_controls()  # after tapping mute, the control view disappears
         HTML5Player(self.marionette).tap_unmute()
         self.take_screenshot()
+        HTML5Player(self.marionette).invoke_controls()  # delay may cause the control to disappear
         HTML5Player(self.marionette).tap_full_screen()
         permission = PermissionDialog(self.marionette)
         self.marionette.switch_to_default_content()
@@ -52,11 +53,6 @@ class TestVideo(GaiaImageCompareTestCase):
         browser.switch_to_content()
         Wait(self.marionette).until(lambda m: HTML5Player(self.marionette).is_fullscreen)
         self.take_screenshot()
-
-        # Temporary workaround until below methods are fixed (Bug 1163747)
-        # player = HTML5Player(self.marionette)
-        # player.show_controls()
-        # Wait(self.marionette).until(lambda m: player.controls_visible)
         self.marionette.find_element(*self._video_screen_locator).tap()
         self.take_screenshot()
 
