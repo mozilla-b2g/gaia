@@ -5,7 +5,6 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
-from gaiatest.form_controls.binarycontrol import InvisibleHtmlBinaryControl
 
 
 class Clock(Base):

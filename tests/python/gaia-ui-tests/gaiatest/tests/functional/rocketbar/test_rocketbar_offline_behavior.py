@@ -30,7 +30,7 @@ class TestRocketBarOffline(GaiaTestCase):
 
         settings = search_panel.tap_offline_settings_button()
 
-        settings.wait_for_airplane_toggle_ready()
+        settings.wait_for_airplane_mode_ready()
         self.assertTrue(settings.is_cell_data_menu_visible)
         self.assertTrue(settings.is_wifi_menu_visible)
-        self.assertTrue(settings.is_airplane_mode_visible)
+        self.assertTrue(settings.is_airplane_mode_displayed)
