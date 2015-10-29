@@ -172,6 +172,20 @@ suite('system/SystemDialogManager', function() {
         'the dialog was not registered in the maanger');
     });
 
+    test('Dialog destroyed', function() {
+      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent({type: 'system-dialog-show',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent({type: 'system-dialog-destroyed',
+        detail: dialogFake});
+      assert.isNull(window.systemDialogManager.states.activeDialog,
+        'the dialog was not deactivated from the manager');
+      assert.isUndefined(
+        window.systemDialogManager.states.runningDialogs[dialogFake.instanceID],
+        'the dialog was not unregistered from the manager');
+    });
+
     test('Dialog request show', function() {
       window.systemDialogManager.handleEvent({type: 'system-dialog-created',
         detail: dialogFake});

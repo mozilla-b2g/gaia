@@ -362,6 +362,14 @@
           finish();
         }.bind(this));
       });
+    },
+
+    _stop: function() {
+      this.contextMenuView.destroy();
+      this.pinPageSystemDialog.destroy();
+      this.app.element.removeEventListener('mozbrowsercontextmenu', this);
+      this.containerElement = null;
+      this.app = null;
     }
   });
 

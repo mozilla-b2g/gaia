@@ -10,6 +10,7 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_context_menu_view.js');
+requireApp('system/test/unit/mock_pin_page_system_dialog.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_service.js');
@@ -21,7 +22,7 @@ const PINNING_PREF = 'dev.gaia.pinning_the_web';
 
 var mocksForAppModalDialog = new MocksHelper([
   'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView',
-  'Service'
+  'Service', 'PinPageSystemDialog'
 ]).init();
 
 suite('system/BrowserContextMenu', function() {
@@ -177,12 +178,26 @@ suite('system/BrowserContextMenu', function() {
     }
   };
 
-  test('New', function() {
+  test('start', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
     md1.start();
     assert.isDefined(md1);
     assert.isDefined(md1.contextMenuView);
+    assert.isDefined(md1.pinPageSystemDialog);
+  });
+
+  test('stop', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+    this.sinon.spy(md1.contextMenuView, 'destroy');
+    this.sinon.spy(md1.pinPageSystemDialog, 'destroy');
+    md1.stop();
+    assert.isTrue(md1.contextMenuView.destroy.calledOnce);
+    assert.isTrue(md1.pinPageSystemDialog.destroy.calledOnce);
+    assert.isNull(md1.containerElement);
+    assert.isNull(md1.app);
   });
 
   test('launch menu', function() {
