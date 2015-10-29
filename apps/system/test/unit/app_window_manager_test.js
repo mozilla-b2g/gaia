@@ -1294,25 +1294,47 @@ suite('system/AppWindowManager', function() {
 
     test('Returns null if no apps in scope', function() {
       subject._apps = [{
-        inScope: this.sinon.stub().returns(false)
+        inScope: this.sinon.stub().returns(false),
+        matchesOriginAndName: this.sinon.stub().returns(false)
       }];
-      var app = subject.getAppInScope();
+      var app = subject.getAppInScope('scope');
       assert.isFalse(!!(app));
+    });
+
+    test('Returns null if scope provided but no apps', function() {
+      subject._apps = [{
+        inScope: this.sinon.stub().returns(false),
+        matchesOriginAndName: this.sinon.stub().returns(true)
+      }];
+      var app = subject.getAppInScope('scope');
+      assert.isFalse(!!(app));
+    });
+
+    test('Returns the app if !scope but matches origin and name', function() {
+      subject._apps = [{
+        inScope: this.sinon.stub().returns(false),
+        matchesOriginAndName: this.sinon.stub().returns(true)
+      }];
+      var app = subject.getAppInScope(false, 'origin', 'name');
+      assert.equal(app, subject._apps[0]);
     });
 
     test('Returns the last launched app in scope', function() {
       var lastApp = {
         inScope: this.sinon.stub().returns(true),
+        matchesOriginAndName: this.sinon.stub().returns(false),
         launchTime: 9999
       };
       var noLastApp = {
         inScope: this.sinon.stub().returns(true),
+        matchesOriginAndName: this.sinon.stub().returns(false),
         launchTime: 1
       };
       subject._apps = [{
-        inScope: this.sinon.stub().returns(false)
+        inScope: this.sinon.stub().returns(false),
+        matchesOriginAndName: this.sinon.stub().returns(false)
       }, lastApp, noLastApp];
-      var app = subject.getAppInScope();
+      var app = subject.getAppInScope('scope', 'origin', 'name');
       assert.equal(app, lastApp);
     });
   });

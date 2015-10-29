@@ -1,0 +1,7 @@
+{
+  "name": "Test Pin the Web",
+  "start_url": "/scoped/page_1.html",
+  "scope": "/scoped/",
+  "display": "browser",
+  "orientation": "landscape"
+}
