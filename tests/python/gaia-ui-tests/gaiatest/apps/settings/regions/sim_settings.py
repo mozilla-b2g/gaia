@@ -17,6 +17,7 @@ class SimSettings(Base):
     _network_type_confirm_button_locator = (By.CLASS_NAME, 'value-option-confirm')
 
     _apn_settings_locator = (By.CSS_SELECTOR, '[data-l10n-id ="apnSettings"]')
+    _apn_item_locator = (By.CLASS_NAME, 'apn-item')
     _apn_settings_page_locator = (By.ID, 'apn-settings')
     _data_settings_page_locator = (By.ID, 'apn-list')
     _data_settings_locator = (By.CSS_SELECTOR, '[data-l10n-id ="dataSettings"]')
@@ -93,6 +94,8 @@ class SimSettings(Base):
                                     expected.element_enabled(element))
         element.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._add_new_apn_btn_locator))
+        # also necessary to check for selections, since sometimes the button gets displayed first
+        Wait(self.marionette).until(expected.element_displayed(*self._apn_item_locator))
 
     def tap_add_new_apn(self):
         element = self.marionette.find_element(*self._add_new_apn_btn_locator)
