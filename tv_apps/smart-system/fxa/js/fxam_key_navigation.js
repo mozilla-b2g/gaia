@@ -76,7 +76,6 @@
       Array.isArray(param) ?
          elements = elements.concat(getElements(param)) :
          elements.push(document.querySelector(param));
-      console.log('add', elements);
       this.spatialNavigator.multiAdd(elements);
       this.spatialNavigator.focus(elements[0]);
       this.enabled = true;
