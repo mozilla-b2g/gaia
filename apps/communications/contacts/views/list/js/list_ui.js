@@ -36,6 +36,7 @@ monitorTagVisibility */
       // 2 contacts with current implementation
       iceContacts = [],
       iceGroup = null,
+      iceState = null,
       forceICEGroupToBeHidden = false,
       clonableSelectCheck = null,
       _action = null;
@@ -233,7 +234,7 @@ monitorTagVisibility */
     ContactsService.addListener('contactchange', oncontactchange);
 
     window.addEventListener('exitSelectMode', function() {
-      toggleICEGroup(true);
+      restoreICEGroupState();
     });
 
     window.addEventListener('pageshow', function() {
@@ -1053,9 +1054,22 @@ monitorTagVisibility */
       return;
     }
 
+    iceState = !iceGroup.classList.contains('hide');
     forceICEGroupToBeHidden = !(!!show);
     forceICEGroupToBeHidden ? hideICEGroup() : showICEGroup();
   }
+
+  function restoreICEGroupState() {
+    if (!iceState) {
+      // ICE hasn't been loaded yet so let's force to load it again
+      loadICE();
+    } else {
+      iceState ? showICEGroup() : hideICEGroup();
+    }
+
+    // Clear flag
+    iceState = null;
+ }
 
   function showICEGroup() {
     // If the ICE group has been hidden programmatically by means of
