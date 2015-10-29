@@ -13,6 +13,8 @@ class StatusBar(PageRegion):
     _battery_locator = (By.ID, 'statusbar-battery')
     _mobile_connection_locator = (By.ID, 'statusbar-mobile-connection')
     _data_connection = (By.CSS_SELECTOR, '#statusbar-mobile-connection .statusbar-data')
+    _geolocation_locator = (By.ID, 'statusbar-geolocation')
+    _airplane_mode_locator = (By.ID, 'statusbar-airplane-mode')
 
     @property
     def height(self):
@@ -70,6 +72,22 @@ class StatusBar(PageRegion):
         except StaleElementException:
             self.root_element = self.marionette.find_element(*self._locator)
             self._safe_wait(condition)
+
+    @property
+    def is_geolocation_displayed(self):
+         element = self.root_element.find_element(*self._geolocation_locator)
+         return element.is_displayed()
+
+    def wait_for_geolocation_icon_displayed(self):
+        self._safe_wait(lambda n: self.is_geolocation_displayed)
+
+    @property
+    def is_airplane_mode_displayed(self):
+         element = self.root_element.find_element(*self._airplane_mode_locator)
+         return element.is_displayed()
+
+    def wait_for_airplane_mode_icon_displayed(self):
+        self._safe_wait(lambda n: self.is_airplane_mode_displayed)
 
     def a11y_wheel_status_bar_time(self):
         self.accessibility.wheel(self.root_element.find_element(*self._time_locator), 'down')

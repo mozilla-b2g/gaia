@@ -13,8 +13,6 @@ class System(Base):
     # status bar
     _status_bar_locator = (By.ID, 'statusbar')
     _gripper_locator = (By.ID, 'tray-invisible-gripper')
-    _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
-    _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
 
     _system_banner_locator = (By.CSS_SELECTOR, '#screen > gaia-toast.banner')
@@ -101,14 +99,6 @@ class System(Base):
         self.marionette.switch_to_frame()
         element = self.marionette.find_element(*self._update_manager_toaster_locator)
         Wait(self.marionette).until(lambda m: element.location['y'] == (0 - element.size['height']))
-
-    def wait_for_geolocation_icon_displayed(self):
-        self.marionette.switch_to_frame()
-        Wait(self.marionette, timeout=40000).until(expected.element_displayed(*self._geoloc_statusbar_locator))
-
-    def wait_for_airplane_mode_icon_displayed(self):
-        self.marionette.switch_to_frame()
-        Wait(self.marionette).until(expected.element_displayed(*self._airplane_mode_statusbar_locator))
 
     @property
     def software_buttons_height(self):

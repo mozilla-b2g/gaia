@@ -27,9 +27,8 @@ class TestAirplaneMode(GaiaTestCase):
         self.wait_for_condition(lambda s: 'Disabled' in settings.wifi_menu_item_description)
 
         # wait for airplane mode icon is diaplayed on status bar
-        self.marionette.switch_to_default_content()
         system_app = System(self.marionette)
-        system_app.wait_for_airplane_mode_icon_displayed()
+        system_app.status_bar.wait_for_airplane_mode_icon_displayed()
 
         # check Wifi is disabled
         self.assertFalse(self.data_layer.is_wifi_connected(self.testvars['wifi']), "WiFi was still connected after switching on Airplane mode")
