@@ -77,13 +77,17 @@
       }
       switch (message.state) {
         case 'disabled':
-          this.syncBlock.removeEventListener('mouseup', Settings.show);
+          if (this.showListener) {
+            this.syncBlock.removeEventListener('mouseup', this.showListener);
+            this.showListener = null;
+          }
           this.syncBlock.addEventListener('mouseup', SyncManagerBridge.enable);
           this.syncTab.setAttribute('data-l10n-id', 'fxsync-sign-in-to-sync');
           this.syncTab.removeAttribute('data-l10n-args');
           break;
         case 'enabled':
-          this.syncBlock.addEventListener('mouseup', Settings.show);
+          this.showListener = Settings.show.bind(Settings);
+          this.syncBlock.addEventListener('mouseup', this.showListener);
           this.syncBlock.removeEventListener('mouseup',
                                              SyncManagerBridge.enable);
           navigator.mozL10n.setAttributes(this.syncTab, 'fxsync-signed-in-as', {

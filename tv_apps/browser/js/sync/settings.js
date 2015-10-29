@@ -165,7 +165,7 @@
           // but we only want to do that if its enabled via user action
           // (and not because it is already enabled from a previous run).
           if (this.state === 'enabling') {
-            Settings.show();
+            Settings.show.bind(Settings)();
           }
           this.showScreen(ENABLED);
           this.showUser(message.user);
