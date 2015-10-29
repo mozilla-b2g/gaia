@@ -1,55 +1,53 @@
 /* global PagesStore, IconsHelper */
 'use strict';
 
-/**
- * The size in pixels of the icons in the pinned pages.
- */
-const PAGES_ICON_SIZE = 30;
-
 (function(exports) {
 
   /**
-   * The height of the delete-app bar at the bottom of the container when
-   * dragging a deletable app.
+   * The size in pixels of the icons in the pinned pages.
    */
-  const DELETE_DISTANCE = 60;
+  const PAGES_ICON_SIZE = 30;
 
   function Pages() {
     // Element references
     this.panel = document.getElementById('pages-panel');
     this.panels = document.getElementById('panels');
     this.pages = document.getElementById('pages');
-    this.shadow = document.querySelector('#pages-panel > .shadow');
+    this.shadow = document.getElementById('shadow');
     this.scrollable = document.querySelector('#pages-panel > .scrollable');
     this.bottombar = document.getElementById('bottombar');
     this.remove = document.getElementById('remove');
+    this.done = document.getElementById('done');
 
     // Scroll behaviour
-    this.scrolled = false;
+    this.pagesVisible = false; // FIXME: This is controlled by app.js
 
     // Tracking if the list is empty
     this.empty = true;
 
+    // Edit mode
+    this.editMode = false;
+
     // Signal handlers
     this.pages.addEventListener('click', this);
+    this.pages.addEventListener('contextmenu', this);
     this.pages.addEventListener('keydown', this);
-    this.pages.addEventListener('drag-start', this);
-    this.pages.addEventListener('drag-move', this);
-    this.pages.addEventListener('drag-end', this);
-    this.pages.addEventListener('drag-finish', this);
     this.scrollable.addEventListener('scroll', this);
     window.addEventListener('hashchange', this);
+
+    this.done.addEventListener('click', e => {
+      e.preventDefault();
+      this.exitEditMode();
+    });
+
+    this.remove.addEventListener('click', e => {
+      e.preventDefault();
+      this.unpinSelectedCard();
+    });
 
     // Initialise and populate pinned pages
     this.pagesStore = new PagesStore('places');
     this.pagesStore.init().then(() => {
-      var checkEmptyCallback = () => {
-        if (!this.empty && this.pages.children.length === 0) {
-          this.empty = true;
-          this.panel.classList.add('empty');
-        }
-      };
-
       // Triggered when pages are added and updated.
       document.addEventListener('places-set', (e) => {
         var id = e.detail.id;
@@ -57,7 +55,7 @@ const PAGES_ICON_SIZE = 30;
           for (var child of this.pages.children) {
             if (child.dataset.id === id) {
               if (!page.data.pinned) {
-                this.pages.removeChild(child, checkEmptyCallback);
+                this.removeCard(child);
               } else {
                 this.updatePinnedPage(child, page.data);
               }
@@ -78,13 +76,15 @@ const PAGES_ICON_SIZE = 30;
         var id = e.detail.id;
         for (var child of this.pages.children) {
           if (child.dataset.id === id) {
-            this.pages.removeChild(child, checkEmptyCallback);
+            this.removeCard(child);
             return;
           }
         }
       });
 
       document.addEventListener('places-cleared', () => {
+        this.exitEditMode();
+
         for (var child of this.pages.children) {
           this.pages.removeChild(child);
         }
@@ -170,6 +170,66 @@ const PAGES_ICON_SIZE = 30;
       ).join(','));
     },
 
+    enterEditMode: function(card) {
+      if (this.selectedCard) {
+        this.selectedCard.classList.remove('selected');
+      }
+      if (card) {
+        this.selectedCard = card;
+        card.classList.add('selected');
+      }
+
+      this.editMode = true;
+      document.body.classList.add('edit-mode');
+      this.remove.classList.add('active');
+    },
+
+    exitEditMode: function() {
+      this.editMode = false;
+      document.body.classList.remove('edit-mode');
+      this.remove.classList.remove('active');
+      if (this.selectedCard) {
+        this.selectedCard.classList.remove('selected');
+        this.selectedCard = null;
+      }
+    },
+
+    removeCard: function(card) {
+      if (this.selectedCard === card) {
+        this.selectedCard = null;
+      }
+      this.pages.removeChild(card, () => {
+        if (!this.empty && this.pages.children.length === 0) {
+          if (this.editMode) {
+            this.exitEditMode();
+          }
+          this.empty = true;
+          this.panel.classList.add('empty');
+        }
+      });
+    },
+
+    unpinSelectedCard: function() {
+      if (!this.selectedCard) {
+        return;
+      }
+
+      var id = this.selectedCard.dataset.id;
+
+      // Remove child immediately, datastore operations can be quite slow
+      this.removeCard(this.selectedCard);
+
+      this.pagesStore.get(id).then(entry => {
+        entry.data.pinned = false;
+        this.pagesStore.datastore.put(entry.data, id).then(() => {},
+          e => {
+            console.error('Error unpinning page:', e);
+          });
+      }, e => {
+        console.error('Error retrieving page to unpin:', e);
+      });
+    },
+
     handleEvent: function(e) {
       switch (e.type) {
       case 'click':
@@ -177,7 +237,18 @@ const PAGES_ICON_SIZE = 30;
           break;
         }
 
-        this.launchCard(e.target);
+        if (this.editMode) {
+          this.enterEditMode(e.target);
+        } else {
+          this.launchCard(e.target);
+        }
+        break;
+
+      case 'contextmenu':
+        if (e.target.nodeName !== 'GAIA-PIN-CARD') {
+          break;
+        }
+        this.enterEditMode(e.target);
         break;
 
       case 'keydown':
@@ -192,58 +263,14 @@ const PAGES_ICON_SIZE = 30;
         }
         break;
 
-      case 'drag-start':
-        document.body.classList.add('dragging');
-        this.bottombar.classList.toggle('editable', false);
-        this.bottombar.classList.toggle('removable', true);
-        this.bottombar.classList.add('active');
-        break;
-
-      case 'drag-move':
-        this.remove.classList.toggle('active',
-          e.detail.clientY > window.innerHeight - DELETE_DISTANCE);
-        break;
-
-      case 'drag-end':
-        e.preventDefault();
-        if (e.detail.clientY <= window.innerHeight - DELETE_DISTANCE) {
-          return;
+      case 'scroll':
+        if (!this.pagesVisible) {
+          break;
         }
 
-        var card = e.detail.target;
-        var id = card.dataset.id;
-
-        // Take the child out of flow so it doesn't return to its original
-        // position before being removed.
-        card.classList.add('unpinning');
-        card.style.transform = card.parentNode.style.transform;
-
-        this.pagesStore.get(id).then(entry => {
-          entry.data.pinned = false;
-          this.pagesStore.datastore.put(entry.data, id).then(() => {},
-            e => {
-              card.classList.remove('unpinning');
-              card.style.transform = '';
-              console.error('Error unpinning page:', e);
-            });
-        }, e => {
-          card.classList.remove('unpinning');
-          card.style.transform = '';
-          console.error('Error retrieving page to unpin:', e);
-        });
-        break;
-
-      case 'drag-finish':
-        document.body.classList.remove('dragging');
-        this.bottombar.classList.remove('active');
-        this.remove.classList.remove('active');
-        break;
-
-      case 'scroll':
         var position = this.scrollable.scrollTop;
         var scrolled = position > 1;
-        if (this.scrolled !== scrolled) {
-          this.scrolled = scrolled;
+        if (this.shadow.classList.contains('visible') !== scrolled) {
           this.shadow.classList.toggle('visible', scrolled);
         }
         break;

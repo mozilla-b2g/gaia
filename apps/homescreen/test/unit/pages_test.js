@@ -156,6 +156,166 @@ suite('Pages', () => {
     });
   });
 
+  suite('Pages#enterEditMode()', () => {
+    var mockCard;
+    setup(() => {
+      mockCard = document.createElement('div');
+      pages.enterEditMode(mockCard);
+    });
+
+    teardown(() => {
+      pages.exitEditMode();
+    });
+
+    test('card is marked as selected', () => {
+      assert.isTrue(mockCard.classList.contains('selected'));
+    });
+
+    test('document is marked as in edit-mode', () => {
+      assert.isTrue(document.body.classList.contains('edit-mode'));
+    });
+
+    test('delete button is activated', () => {
+      assert.isTrue(pages.remove.classList.contains('active'));
+    });
+
+    test('previous card is unselected', () => {
+      var mockCard2 = document.createElement('div');
+      pages.enterEditMode(mockCard2);
+      assert.isFalse(mockCard.classList.contains('selected'));
+      assert.isTrue(mockCard2.classList.contains('selected'));
+    });
+  });
+
+  suite('Pages#exitEditMode()', () => {
+    var mockCard;
+    setup(() => {
+      mockCard = document.createElement('div');
+      pages.enterEditMode(mockCard);
+      pages.exitEditMode();
+    });
+
+    test('card is not marked as selected', () => {
+      assert.isFalse(mockCard.classList.contains('selected'));
+      assert.equal(pages.selectedCard, null);
+    });
+
+    test('document is not marked as in edit-mode', () => {
+      assert.isFalse(document.body.classList.contains('edit-mode'));
+    });
+
+    test('delete button is not activated', () => {
+      assert.isFalse(pages.remove.classList.contains('active'));
+    });
+  });
+
+  suite('Pages#removeCard()', () => {
+    var mockCard;
+    setup(() => {
+      mockCard = document.createElement('div');
+    });
+
+    test('removes child from container', () => {
+      var removeStub = sinon.stub(pages.pages, 'removeChild');
+      pages.removeCard(mockCard);
+      assert.isTrue(removeStub.calledWith(mockCard));
+    });
+
+    test('deselects card if card is selected', () => {
+      pages.selectedCard = mockCard;
+      var removeStub = sinon.stub(pages.pages, 'removeChild');
+      pages.removeCard(mockCard);
+      assert.equal(pages.selectedCard, null);
+      removeStub.restore();
+    });
+
+    test('shows the empty pinned pages panel when removing last card', done => {
+      pages.empty = false;
+      Object.defineProperty(pages.pages, 'children', {
+        value: { length: 0 },
+        configurable: true
+      });
+      var removeChildStub = sinon.stub(pages.pages, 'removeChild',
+        (card, callback) => {
+          callback();
+          done(() => {
+            delete pages.pages.children;
+            removeChildStub.restore();
+            assert.isTrue(pages.empty);
+            assert.isTrue(pages.panel.classList.contains('empty'));
+          });
+        });
+      pages.removeCard(mockCard);
+    });
+
+    test('exits edit mode when removing last card', done => {
+      pages.empty = false;
+      pages.editMode = true;
+      Object.defineProperty(pages.pages, 'children', {
+        value: { length: 0 },
+        configurable: true
+      });
+      var removeChildStub = sinon.stub(pages.pages, 'removeChild',
+        (card, callback) => {
+          callback();
+          done(() => {
+            delete pages.pages.children;
+            removeChildStub.restore();
+            assert.isFalse(pages.editMode);
+          });
+        });
+      pages.removeCard(mockCard);
+    });
+  });
+
+  suite('Pages#unpinSelectedCard()', () => {
+    var removeCardStub, storeGetStub, storePutStub, mockEntry, callback;
+    var mockCard = {
+      dataset: {
+        id: 'abc'
+      }
+    };
+
+    setup(() => {
+      mockEntry = { data: { pinned: true } };
+      removeCardStub = sinon.stub(pages, 'removeCard');
+      storeGetStub =
+        sinon.stub(pages.pagesStore, 'get', () => {
+          return Promise.resolve(mockEntry);
+        });
+      storePutStub =
+        sinon.stub(pages.pagesStore.datastore, 'put', (data, id) => {
+          if (callback) {
+            callback(data, id);
+          }
+          return Promise.resolve();
+        });
+      pages.selectedCard = mockCard;
+    });
+
+    teardown(() => {
+      removeCardStub.restore();
+      storeGetStub.restore();
+      storePutStub.restore();
+      pages.selectedCard = null;
+    });
+
+    test('removes card from container', () => {
+      pages.unpinSelectedCard();
+      assert.isTrue(removeCardStub.calledWith(mockCard));
+    });
+
+    test('unpins card in datastore', done => {
+      callback = (data, id) => {
+        done(() => {
+          assert.equal(id, mockCard.dataset.id);
+          assert.isFalse(mockEntry.data.pinned);
+        });
+      };
+      pages.unpinSelectedCard();
+    });
+  });
+
   suite('Pages#handleEvent()', () => {
     var mockCard = {
       nodeName: 'GAIA-PIN-CARD',
@@ -200,76 +360,55 @@ suite('Pages', () => {
         assert.isFalse(windowOpenStub.called);
         windowOpenStub.restore();
       });
+
+      test('pressing a card in edit mode selects it', () => {
+        var editModeStub = sinon.stub(pages, 'enterEditMode');
+        pages.editMode = true;
+        pages.handleEvent({ type: 'click', target: mockCard });
+        assert.isTrue(editModeStub.calledWith(mockCard));
+        editModeStub.restore();
+      });
+
+      test('pressing delete in edit mode unpins a card', () => {
+        var unpinStub = sinon.stub(pages, 'unpinSelectedCard');
+        pages.selectedCard = mockCard;
+        pages.remove.dispatchEvent(new CustomEvent('click'));
+        assert.isTrue(unpinStub.called);
+      });
     });
 
-    suite('drag-end', () => {
-      var getStub, getReturnValue, realInnerHeight;
+    suite('contextmenu', () => {
+      var editModeStub;
       setup(() => {
-        getStub = sinon.stub(pages.pagesStore, 'get',
-                             () => Promise.resolve(getReturnValue));
-
-        realInnerHeight =
-          Object.getOwnPropertyDescriptor(window, 'innerHeight');
-        Object.defineProperty(window, 'innerHeight', {
-          value: 500,
-          configurable: true
-        });
+        editModeStub = sinon.stub(pages, 'enterEditMode');
       });
 
       teardown(() => {
-        getStub.restore();
-        Object.defineProperty(window, 'innerHeight', realInnerHeight);
+        editModeStub.restore();
       });
 
-      test('Ending a drag above the remove tray does nothing', () => {
-        pages.handleEvent(new CustomEvent('drag-end', { detail: {
-          clientY: 0
-        } }));
-        assert.isFalse(getStub.called);
+      test('long-pressing a card initiates edit mode', () => {
+        pages.handleEvent({ type: 'contextmenu', target: mockCard });
+        assert.isTrue(editModeStub.calledWith(mockCard));
       });
 
-      test('Ending a drag in the remove tray initiates unpinning', done => {
-        var card = document.createElement('div');
-        card.dataset.id = 'success';
-        Object.defineProperty(card, 'parentNode', {
-          value: { style: { transform: 'scale(2)' } },
-          configurable: true
-        });
-
-        pages.pagesStore.datastore = {
-          put: (data, id) => {
-            done(() => {
-              delete pages.pagesStore.datastore;
-              assert.isTrue(card.classList.contains('unpinning'));
-              assert.equal(card.style.transform, 'scale(2)');
-              assert.equal(id, 'success');
-              assert.isFalse(getReturnValue.data.pinned);
-            });
-            return Promise.resolve();
-          }
-        };
-
-        getReturnValue = { data: { pinned: true } };
-        pages.handleEvent(new CustomEvent('drag-end', { detail: {
-          clientY: 600,
-          target: card
-        } }));
+      test('long-pressing not on a card does nothing', () => {
+        pages.handleEvent({ type: 'contextmenu', target: mockNotCard });
+        assert.isFalse(editModeStub.called);
       });
     });
 
     suite('scroll', () => {
       test('should show and hide the drop shadow accordingly', () => {
-        assert.isFalse(pages.scrolled);
+        pages.pagesVisible = true;
         pages.scrollable = {
           scrollTop: 50
         };
         pages.handleEvent(new CustomEvent('scroll'));
-        assert.isTrue(pages.scrolled);
         assert.isTrue(pages.shadow.classList.contains('visible'));
 
         pages.scrollable.scrollTop = 0;
         pages.handleEvent(new CustomEvent('scroll'));
-        assert.isFalse(pages.scrolled);
         assert.isFalse(pages.shadow.classList.contains('visible'));
       });
     });

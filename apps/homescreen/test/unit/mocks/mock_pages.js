@@ -5,6 +5,7 @@
 
   function Pages() {
     this.panel = document.getElementById('pages-panel');
+    this.scrollable = document.querySelector('#pages-panel .scrollable');
   }
 
   Pages.prototype = {
