@@ -40,16 +40,16 @@ marionette('Homescreen - Bookmark Edit', function() {
     client.switchToFrame(system.getHomescreenIframe());
   });
 
-  test('pressing enter after editing the bookmark', function() {
+  test('pressing enter after renaming the bookmark', function() {
     var icon = home.getIcon(url);
 
-    // Drag the icon to the edit tray
+    // Select the icon and press rename button
     icon.scriptWith(function(el) {
       el.scrollIntoView(false);
     });
 
-    actions.wait(0.5).press(icon).wait(0.5).perform();
-    actions.move(home.editTray).release().perform();
+    actions.press(icon).wait(0.5).release().wait(0.5).perform();
+    home.renameButton.tap();
 
     client.switchToFrame();
     bookmark.renameAndPressEnter('renamed');

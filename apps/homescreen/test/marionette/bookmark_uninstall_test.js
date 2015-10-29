@@ -51,8 +51,8 @@ marionette('Homescreen - Bookmark Uninstall', function() {
       el.scrollIntoView(false);
     });
 
-    actions.wait(0.5).press(icon).wait(0.5).perform();
-    actions.move(home.removeTray).release().perform();
+    actions.press(icon).wait(0.5).release().wait(0.5).perform();
+    home.removeButton.tap();
 
     client.switchToFrame();
     client.switchToFrame(system.getAppIframe(bookmark.URL));

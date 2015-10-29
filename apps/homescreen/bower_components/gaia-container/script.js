@@ -1,29 +1,29 @@
 'use strict';
 
-/**
- * The time, in ms, to wait for an animation to start in response to a state
- * change, before removing the associated style class.
- */
-const STATE_CHANGE_TIMEOUT = 100;
-
-/**
- * The time, in ms, to wait before initiating a drag-and-drop from a
- * long-press.
- */
-const DEFAULT_DND_TIMEOUT = 200;
-
-/**
- * The distance, in CSS pixels, in which a touch or mouse point can deviate
- * before it being discarded for initiation of a drag-and-drop action.
- */
-const DND_THRESHOLD = 5;
-
-/**
- * The minimum time between sending move events during drag-and-drop.
- */
-const DND_MOVE_THROTTLE = 50;
-
 window.GaiaContainer = (function(exports) {
+  /**
+   * The time, in ms, to wait for an animation to start in response to a state
+   * change, before removing the associated style class.
+   */
+  const STATE_CHANGE_TIMEOUT = 100;
+
+  /**
+   * The time, in ms, to wait before initiating a drag-and-drop from a
+   * long-press.
+   */
+  const DEFAULT_DND_TIMEOUT = 300;
+
+  /**
+   * The distance, in CSS pixels, in which a touch or mouse point can deviate
+   * before it being discarded for initiation of a drag-and-drop action.
+   */
+  const DND_THRESHOLD = 5;
+
+  /**
+   * The minimum time between sending move events during drag-and-drop.
+   */
+  const DND_MOVE_THROTTLE = 50;
+
   var proto = Object.create(HTMLElement.prototype);
 
   proto.createdCallback = function() {
@@ -137,8 +137,10 @@ window.GaiaContainer = (function(exports) {
       return this._dnd.delay;
     },
     set: function(timeout) {
-      if (timeout > 0) {
+      if (timeout >= 0) {
         this._dnd.delay = timeout;
+      } else {
+        this._dnd.delay = DEFAULT_DND_TIMEOUT;
       }
     },
     enumerable: true
@@ -347,7 +349,7 @@ window.GaiaContainer = (function(exports) {
     }
 
     var animStart = (e) => {
-      if (e.animationName !== state) {
+      if (!e.animationName.endsWith(state)) {
         return;
       }
 
@@ -609,10 +611,14 @@ window.GaiaContainer = (function(exports) {
           return;
         }
 
-        this._dnd.timeout = setTimeout(() => {
-          this._dnd.timeout = null;
+        if (this._dnd.delay > 0) {
+          this._dnd.timeout = setTimeout(() => {
+            this._dnd.timeout = null;
+            this.startDrag();
+          }, this._dnd.delay);
+        } else {
           this.startDrag();
-        }, this._dnd.delay);
+        }
         break;
 
       case 'touchmove':

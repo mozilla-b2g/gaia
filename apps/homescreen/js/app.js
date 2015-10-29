@@ -34,10 +34,10 @@
   const AUTOSCROLL_OVERFLOW_DELAY = 500;
 
   /**
-   * The height of the delete-app bar at the bottom of the container when
-   * dragging a deletable app.
+   * Time after receiving a handled hashchange that we ignore hashchange
+   * events for.
    */
-  const DELETE_DISTANCE = 60;
+  const HASH_CHANGE_DEBOUNCE = 100;
 
   /**
    * App roles that will be skipped on the homescreen.
@@ -62,12 +62,12 @@
     this.panels = document.getElementById('panels');
     this.panel = document.getElementById('apps-panel');
     this.meta = document.head.querySelector('meta[name="theme-color"]');
-    this.shadow = document.querySelector('#apps-panel > .shadow');
+    this.shadow = document.getElementById('shadow');
     this.scrollable = document.querySelector('#apps-panel > .scrollable');
     this.icons = document.getElementById('apps');
-    this.bottombar = document.getElementById('bottombar');
     this.remove = document.getElementById('remove');
-    this.edit = document.getElementById('edit');
+    this.rename = document.getElementById('rename');
+    this.done = document.getElementById('done');
     this.cancelDownload = document.getElementById('cancel-download');
     this.resumeDownload = document.getElementById('resume-download');
     this.dialogs = [this.cancelDownload, this.resumeDownload];
@@ -83,10 +83,12 @@
       for (var dialog of this.dialogs) {
         if (dialog.opened) {
           this.meta.content = 'white';
+          document.body.classList.add('dialog-active');
           return;
         }
       }
       this.meta.content = 'transparent';
+      document.body.classList.remove('dialog-active');
     };
     for (dialog of this.dialogs) {
       var observer = new MutationObserver(dialogVisibilityCallback);
@@ -103,16 +105,31 @@
 
     // Scroll behaviour
     this.appsVisible = false;
-    this.scrolled = false;
 
     // Drag-and-drop
     this.dragging = false;
-    this.draggingRemovable = false;
-    this.draggingEditable = false;
     this.draggedIndex = -1;
     this.autoScrollInterval = null;
     this.autoScrollOverflowTimeout = null;
     this.hoverIcon = null;
+
+    // Edit mode
+    this.editMode = false;
+    this.shouldEnterEditMode = false;
+    this.selectedIcon = null;
+    this.ignoreHashChangeTimeout = null;
+    this.rename.addEventListener('click', e => {
+      e.preventDefault();
+      this.renameSelectedIcon();
+    });
+    this.remove.addEventListener('click', e => {
+      e.preventDefault();
+      this.removeSelectedIcon();
+    });
+    this.done.addEventListener('click', e => {
+      e.preventDefault();
+      this.exitEditMode();
+    });
 
     this._iconSize = 0;
 
@@ -256,6 +273,10 @@
                 this.snapScrollPosition();
               });
               this.metadata.remove(id);
+
+              if (this.selectedIcon === icon) {
+                this.updateSelectedIcon(null);
+              }
               return;
             }
           }
@@ -703,6 +724,8 @@
       var appsVisible = this.panels.scrollLeft <= this.panels.scrollLeftMax / 2;
       if (this.appsVisible !== appsVisible) {
         this.appsVisible = appsVisible;
+        // FIXME: We need a window.js that controls shared panel elements
+        this.pages.pagesVisible = !appsVisible;
 
         this.header.setAttribute('data-l10n-id', appsVisible ?
           'apps-panel' : 'pages-panel');
@@ -717,6 +740,14 @@
 
         this.panel.setAttribute('aria-hidden', !appsVisible);
         this.pages.panel.setAttribute('aria-hidden', appsVisible);
+
+        // Update shadow state by dispatching a scroll event to the scrollable
+        // element of the newly selected panel.
+        if (appsVisible) {
+          this.scrollable.dispatchEvent(new CustomEvent('scroll'));
+        } else {
+          this.pages.scrollable.dispatchEvent(new CustomEvent('scroll'));
+        }
       }
     },
 
@@ -724,6 +755,100 @@
       // XXX Note, we're taking advantage of gaia-container using
       //     Array instead of HTMLCollection here.
       return this.icons.children.indexOf(child);
+    },
+
+    removeSelectedIcon: function() {
+      if (!this.selectedIcon) {
+        return;
+      }
+
+      if (this.selectedIcon.app) {
+        if (!this.selectedIcon.app.removable) {
+          return;
+        }
+        navigator.mozApps.mgmt.uninstall(this.selectedIcon.app);
+      } else if (this.selectedIcon.bookmark) {
+        new MozActivity({
+          name: 'remove-bookmark',
+          data: { type: 'url', url: this.selectedIcon.bookmark.id }
+        });
+      }
+    },
+
+    renameSelectedIcon: function() {
+      if (!this.selectedIcon || !this.selectedIcon.bookmark) {
+        return;
+      }
+
+      new MozActivity({
+        name: 'save-bookmark',
+        data: { type: 'url', url: this.selectedIcon.bookmark.id }
+      });
+    },
+
+    iconIsEditable: function(icon) {
+      return (icon.bookmark || (icon.app && icon.app.removable)) ? true : false;
+    },
+
+    updateSelectedIcon: function(icon) {
+      if (this.selectedIcon === icon) {
+        return;
+      }
+
+      if (this.selectedIcon && (!icon || this.iconIsEditable(icon))) {
+        this.selectedIcon.classList.remove('selected');
+        this.selectedIcon.removeEventListener('touchstart', this);
+        this.selectedIcon = null;
+      }
+
+      var selectedRenameable = false;
+      var selectedRemovable = false;
+
+      if (icon) {
+        selectedRenameable = !!icon.bookmark;
+        selectedRemovable = selectedRenameable || icon.app.removable;
+
+        if (selectedRenameable || selectedRemovable) {
+          this.selectedIcon = icon;
+          icon.classList.add('selected');
+          icon.addEventListener('touchstart', this);
+          this.rename.classList.toggle('active', selectedRenameable);
+          this.remove.classList.toggle('active', selectedRemovable);
+        } else if (!icon.classList.contains('uneditable')) {
+          icon.classList.add('uneditable');
+          icon.addEventListener('animationend', function animEnd() {
+            icon.removeEventListener('animationend', animEnd);
+            icon.classList.remove('uneditable');
+          });
+        }
+      } else {
+        this.rename.classList.remove('active');
+        this.remove.classList.remove('active');
+      }
+    },
+
+    enterEditMode: function(icon) {
+      this.updateSelectedIcon(icon);
+
+      if (this.editMode || !this.selectedIcon) {
+        return;
+      }
+
+      this.editMode = true;
+      document.body.classList.add('edit-mode');
+    },
+
+    exitEditMode: function() {
+      if (!this.editMode) {
+        return;
+      }
+
+      this.editMode = false;
+
+      document.body.classList.remove('edit-mode');
+      this.rename.classList.remove('active');
+      this.remove.classList.remove('active');
+      this.updateSelectedIcon(null);
     },
 
     handleEvent: function(e) {
@@ -752,13 +877,16 @@
       case 'scroll':
         if (e.target === this.panels) {
           this.updatePanelIndicator();
-          return;
+          break;
+        }
+
+        if (!this.appsVisible) {
+          break;
         }
 
         var position = this.scrollable.scrollTop;
         var scrolled = position > 1;
-        if (this.scrolled !== scrolled) {
-          this.scrolled = scrolled;
+        if (this.shadow.classList.contains('visible') !== scrolled) {
           this.shadow.classList.toggle('visible', scrolled);
         }
         break;
@@ -767,6 +895,12 @@
       case 'activate':
         e.preventDefault();
         icon = e.detail.target.firstElementChild;
+
+        // If we're in edit mode, remap taps to selection
+        if (this.editMode) {
+          this.enterEditMode(icon);
+          return;
+        }
 
         switch (icon.state) {
           case 'unrecoverable':
@@ -796,21 +930,18 @@
         }
         break;
 
+      // Activate drag-and-drop immediately for selected icons
+      case 'touchstart':
+        this.icons.dragAndDropTimeout = 0;
+        break;
+
       // Disable scrolling during dragging, and display bottom-bar
       case 'drag-start':
         this.dragging = true;
+        this.shouldEnterEditMode = true;
         document.body.classList.add('dragging');
         this.scrollable.style.overflow = 'hidden';
-        icon = e.detail.target.firstElementChild;
-
-        this.draggingEditable = !!icon.bookmark;
-        this.draggingRemovable = this.draggingEditable || !!icon.app.removable;
         this.draggedIndex = this.getChildIndex(e.detail.target);
-        this.bottombar.classList.toggle('editable', this.draggingEditable);
-        this.bottombar.classList.toggle('removable', this.draggingRemovable);
-        if (this.draggingEditable || this.draggingRemovable) {
-          this.bottombar.classList.add('active');
-        }
         break;
 
       case 'drag-finish':
@@ -818,9 +949,6 @@
         document.body.classList.remove('dragging');
         document.body.classList.remove('autoscroll');
         this.scrollable.style.overflow = '';
-        this.bottombar.classList.remove('active');
-        this.edit.classList.remove('active');
-        this.remove.classList.remove('active');
 
         if (this.autoScrollInterval !== null) {
           clearInterval(this.autoScrollInterval);
@@ -836,47 +964,33 @@
           this.hoverIcon.classList.remove('hover-before', 'hover-after');
           this.hoverIcon = null;
         }
+
+        // Restore normal drag-and-drop after dragging selected icons
+        this.icons.dragAndDropTimeout = -1;
         break;
 
-      // Handle app/site uninstallation, editing and dragging to the end of
-      // the icon grid.
+      // Handle app/site editing and dragging to the end of the icon grid.
       case 'drag-end':
-        if ((!this.draggingRemovable && !this.draggingEditable) ||
-            e.detail.clientY <= window.innerHeight - DELETE_DISTANCE) {
+        if (e.detail.dropTarget === null &&
+            e.detail.clientX >= 0 && e.detail.clientX < window.innerWidth) {
           // If the drop target is null, and the client coordinates are
           // within the panel, we must be dropping over the start or end of
           // the container.
-          if (!e.detail.dropTarget && e.detail.clientX >= 0 &&
-              e.detail.clientX < window.innerWidth) {
+          e.preventDefault();
+          var bottom = e.detail.clientY < window.innerHeight / 2;
+          this.icons.reorderChild(e.detail.target,
+                                  bottom ? this.icons.firstChild : null,
+                                  this.storeAppOrder.bind(this));
+          break;
+        }
+
+        if (e.detail.dropTarget === e.detail.target) {
+          icon = e.detail.target.firstElementChild;
+          if (this.editMode || this.shouldEnterEditMode) {
             e.preventDefault();
-            var bottom = e.detail.clientY < window.innerHeight / 2;
-            this.icons.reorderChild(e.detail.target,
-                                    bottom ? this.icons.firstChild : null,
-                                    this.storeAppOrder.bind(this));
-          }
-          return;
-        }
-
-        icon = e.detail.target.firstElementChild;
-
-        if (icon.app && icon.app.removable) {
-          e.preventDefault();
-          navigator.mozApps.mgmt.uninstall(icon.app);
-        } else if (icon.bookmark) {
-          e.preventDefault();
-          if (e.detail.clientX >= window.innerWidth / 2) {
-            new MozActivity({
-              name: 'save-bookmark',
-              data: { type: 'url', url: icon.bookmark.id }
-            });
-          } else {
-            new MozActivity({
-              name: 'remove-bookmark',
-              data: { type: 'url', url: icon.bookmark.id }
-            });
+            this.enterEditMode(icon);
           }
         }
-
         break;
 
       // Save the app grid after rearrangement
@@ -886,27 +1000,14 @@
 
       // Handle app-uninstall bar highlight and auto-scroll
       case 'drag-move':
-        var inDelete = false;
-        var inEdit = false;
         var inAutoscroll = false;
-
-        if (this.draggingRemovable &&
-            e.detail.clientY > window.innerHeight - DELETE_DISTANCE) {
-          // User is dragging in the bottom toolbar (delete/edit) area
-          var isRTL = document.documentElement.dir === 'rtl';
-          if (this.draggingEditable &&
-              e.detail.clientX >= window.innerWidth / 2) {
-            isRTL ? inDelete = true : inEdit = true;
-          } else {
-            isRTL ? inEdit = true : inDelete = true;
-          }
-        }
 
         if (e.detail.clientY > window.innerHeight - AUTOSCROLL_DISTANCE) {
           // User is dragging in the lower auto-scroll area
           inAutoscroll = true;
           if (this.autoScrollInterval === null) {
             this.autoScrollInterval = setInterval(() => {
+              this.shouldEnterEditMode = false;
               this.snapScrollPosition(1);
               return true;
             }, AUTOSCROLL_DELAY);
@@ -916,6 +1017,7 @@
           inAutoscroll = true;
           if (this.autoScrollInterval === null) {
             this.autoScrollInterval = setInterval(() => {
+              this.shouldEnterEditMode = false;
               this.snapScrollPosition(-1);
               return true;
             }, AUTOSCROLL_DELAY);
@@ -926,6 +1028,7 @@
                                                        e.detail.clientY);
           if (this.hoverIcon !== hoverIcon) {
             if (this.hoverIcon) {
+              this.shouldEnterEditMode = false;
               this.hoverIcon.classList.remove('hover-before', 'hover-after');
             }
             this.hoverIcon = (hoverIcon !== e.detail.target) ? hoverIcon : null;
@@ -943,9 +1046,6 @@
           clearInterval(this.autoScrollInterval);
           this.autoScrollInterval = null;
         }
-
-        this.remove.classList.toggle('active', inDelete);
-        this.edit.classList.toggle('active', inEdit);
         break;
 
       // Add apps installed after startup
@@ -990,28 +1090,46 @@
 
             // We only want to store the app order once, so clear the callback
             callback = null;
+
+            if (this.selectedIcon === icon) {
+              this.updateSelectedIcon(null);
+            }
           }
         }
         break;
 
       case 'hashchange':
-        if (!document.hidden) {
-          // If a dialog is showing, cancel the dialog
-          for (var dialog of this.dialogs) {
-            if (!dialog.opened) {
-              continue;
-            }
+        if (document.hidden || this.ignoreHashChangeTimeout !== null) {
+          break;
+        }
 
-            dialog.close();
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        this.ignoreHashChangeTimeout = setTimeout(() => {
+          this.ignoreHashChangeTimeout = null;
+        }, HASH_CHANGE_DEBOUNCE);
+
+        // If a dialog is showing, cancel the dialog
+        for (var dialog of this.dialogs) {
+          if (!dialog.opened) {
+            continue;
           }
 
-          if (this.panels.scrollLeft ===
-              this.scrollable.parentNode.offsetLeft) {
-            this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
-          }
+          dialog.close();
+          return;
+        }
+
+        // If we're in edit mode, cancel edit mode
+        if (this.editMode) {
+          this.exitEditMode();
+          return;
+        }
+
+        // Otherwise, scroll the visible panel to the top
+        if (this.panels.scrollLeft ===
+            this.scrollable.parentNode.offsetLeft) {
+          this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
         }
         break;
 

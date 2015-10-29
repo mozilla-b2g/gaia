@@ -38,6 +38,9 @@
     getAll: () => {
       return Promise.resolve([]);
     },
+    datastore: {
+      put: (data, id) => Promise.resolve()
+    },
 
     get _name() {
       return _name;

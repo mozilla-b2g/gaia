@@ -73,8 +73,6 @@ suite('Homescreen app', () => {
     realIconsHelper = window.IconsHelper;
     window.IconsHelper = MockIconsHelper;
 
-    MockMozActivity.mSetup();
-
     loadBodyHTML('_index.html');
     document.head.innerHTML = `<meta name="theme-color" content="transparent">`;
     for (var dialog of document.querySelectorAll('.dialog')) {
@@ -94,7 +92,6 @@ suite('Homescreen app', () => {
     window.IconsHelper = realIconsHelper;
 
     MockNavigatormozApps.mTeardown();
-    MockMozActivity.mTeardown();
 
     Object.defineProperty(window, 'localStorage', {
       configurable: true,
@@ -766,6 +763,195 @@ suite('Homescreen app', () => {
     });
   });
 
+  suite('App#removeSelectedIcon()', () => {
+    var uninstallStub;
+    setup(() => {
+      MockMozActivity.mSetup();
+      uninstallStub = sinon.stub(navigator.mozApps.mgmt, 'uninstall');
+    });
+
+    teardown(() => {
+      MockMozActivity.mTeardown();
+      uninstallStub.restore();
+    });
+
+    test('does nothing with no selected icon', () => {
+      app.selectedIcon = null;
+      app.removeSelectedIcon();
+      assert.isFalse(uninstallStub.called);
+      assert.equal(MockMozActivity.calls.length, 0);
+    });
+
+    test('does nothing for unremovable apps', () => {
+      app.selectedIcon = { app: { removable: false } };
+      app.removeSelectedIcon();
+      assert.isFalse(uninstallStub.called);
+    });
+
+    test('uninstalls app icons', () => {
+      app.selectedIcon = { app: { removable: true } };
+      app.removeSelectedIcon();
+      assert.isTrue(uninstallStub.calledWith(app.selectedIcon.app));
+    });
+
+    test('removes bookmark icons', () => {
+      app.selectedIcon = { bookmark: { id: 'abc' } };
+      app.removeSelectedIcon();
+      assert.equal(MockMozActivity.calls.length, 1);
+      assert.equal(MockMozActivity.calls[0].name, 'remove-bookmark');
+      assert.equal(MockMozActivity.calls[0].data.type, 'url');
+      assert.equal(MockMozActivity.calls[0].data.url,
+                   app.selectedIcon.bookmark.id);
+    });
+  });
+
+  suite('App#renameSelectedIcon()', () => {
+    setup(() => {
+      MockMozActivity.mSetup();
+    });
+
+    teardown(() => {
+      MockMozActivity.mTeardown();
+    });
+
+    test('does nothing with no selected icon', () => {
+      app.selectedIcon = null;
+      app.renameSelectedIcon();
+      assert.equal(MockMozActivity.calls.length, 0);
+    });
+
+    test('does nothing with no bookmark icon selected', () => {
+      app.selectedIcon = { app: {} };
+      app.renameSelectedIcon();
+      assert.equal(MockMozActivity.calls.length, 0);
+    });
+
+    test('edits bookmark icons', () => {
+      app.selectedIcon = { bookmark: { id: 'abc' } };
+      app.renameSelectedIcon();
+      assert.equal(MockMozActivity.calls.length, 1);
+      assert.equal(MockMozActivity.calls[0].name, 'save-bookmark');
+      assert.equal(MockMozActivity.calls[0].data.type, 'url');
+      assert.equal(MockMozActivity.calls[0].data.url,
+                   app.selectedIcon.bookmark.id);
+    });
+  });
+
+  suite('App#iconIsEditable()', () => {
+    var icon;
+    test('bookmark icons are editable', () => {
+      icon = { bookmark: {} };
+      assert.isTrue(app.iconIsEditable(icon));
+    });
+
+    test('removable app icons are editable', () => {
+      icon = { app: { removable: true } };
+      assert.isTrue(app.iconIsEditable(icon));
+    });
+
+    test('unremovable app icons are not editable', () => {
+      icon = { app: { removable: false } };
+      assert.isFalse(app.iconIsEditable(icon));
+    });
+  });
+
+  suite('App#updateSelectedIcon()', () => {
+    var icon;
+    setup(() => {
+      icon = document.createElement('div');
+    });
+
+    test('selects bookmark icons', () => {
+      icon.bookmark = {};
+      app.selectedIcon = null;
+      app.updateSelectedIcon(icon);
+      assert.equal(app.selectedIcon, icon);
+      assert.isTrue(icon.classList.contains('selected'));
+      assert.isTrue(app.remove.classList.contains('active'));
+      assert.isTrue(app.rename.classList.contains('active'));
+    });
+
+    test('selects removable app icons', () => {
+      icon.app = { removable: true };
+      app.selectedIcon = null;
+      app.updateSelectedIcon(icon);
+      assert.equal(app.selectedIcon, icon);
+      assert.isTrue(icon.classList.contains('selected'));
+      assert.isTrue(app.remove.classList.contains('active'));
+      assert.isFalse(app.rename.classList.contains('active'));
+    });
+
+    test('deselects old selected icon', () => {
+      icon.bookmark = {};
+      var oldIcon = document.createElement('div');
+      app.selectedIcon = oldIcon;
+      app.selectedIcon.classList.add('selected');
+      app.updateSelectedIcon(icon);
+      assert.isFalse(oldIcon.classList.contains('selected'));
+    });
+
+    test('marks unremovable apps as un-editable', () => {
+      icon.app = { removable: false };
+      app.selectedIcon = null;
+      app.updateSelectedIcon(icon);
+      assert.notEqual(app.selectedIcon, icon);
+      assert.isFalse(icon.classList.contains('selected'));
+      assert.isTrue(icon.classList.contains('uneditable'));
+    });
+  });
+
+  suite('App#enterEditMode()', () => {
+    var updateSelectedIconSpy, mockIcon;
+
+    setup(() => {
+      mockIcon = document.createElement('div');
+      mockIcon.bookmark = {};
+
+      updateSelectedIconSpy = sinon.spy(app, 'updateSelectedIcon');
+
+      app.editMode = false;
+      app.selectedIcon = null;
+      document.body.classList.remove('edit-mode');
+      app.enterEditMode(mockIcon);
+    });
+
+    teardown(() => {
+      updateSelectedIconSpy.restore();
+    });
+
+    test('updates the selected icon', () => {
+      assert.isTrue(updateSelectedIconSpy.calledWith(mockIcon));
+    });
+
+    test('document is marked as in edit mode', () => {
+      assert.isTrue(app.editMode);
+      assert.isTrue(document.body.classList.contains('edit-mode'));
+    });
+  });
+
+  suite('App#exitEditMode()', () => {
+    var updateSelectedIconStub;
+    setup(() => {
+      updateSelectedIconStub = sinon.stub(app, 'updateSelectedIcon');
+      app.editMode = true;
+      app.exitEditMode();
+    });
+
+    teardown(() => {
+      updateSelectedIconStub.restore();
+    });
+
+    test('document is marked as not in edit mode', () => {
+      assert.isFalse(document.body.classList.contains('edit-mode'));
+      assert.isFalse(app.rename.classList.contains('active'));
+      assert.isFalse(app.remove.classList.contains('active'));
+    });
+
+    test('icon is deselected', () => {
+      assert.isTrue(updateSelectedIconStub.calledWith(null));
+    });
+  });
+
   suite('App#handleEvent()', () => {
     suite('keypress', () => {
       var scrollObject, realPanels;
@@ -808,17 +994,14 @@ suite('Homescreen app', () => {
 
     suite('scroll', () => {
       test('should show and hide the drop shadow accordingly', () => {
-        assert.isFalse(app.scrolled);
         app.scrollable = {
           scrollTop: 50
         };
         app.handleEvent(new CustomEvent('scroll'));
-        assert.isTrue(app.scrolled);
         assert.isTrue(app.shadow.classList.contains('visible'));
 
         app.scrollable.scrollTop = 0;
         app.handleEvent(new CustomEvent('scroll'));
-        assert.isFalse(app.scrolled);
         assert.isFalse(app.shadow.classList.contains('visible'));
       });
 
@@ -931,51 +1114,6 @@ suite('Homescreen app', () => {
           clearIntervalStub.restore();
         });
 
-        test('Hovering at the bottom-left activates the removal icon', () => {
-          app.handleEvent(new CustomEvent('drag-move', { detail: {
-            clientX: 0,
-            clientY: 500
-          }}));
-
-          assert.isTrue(app.remove.classList.contains('active'));
-          assert.isFalse(app.edit.classList.contains('active'));
-        });
-
-        test('Hovering at the bottom-right activates the edit icon', () => {
-          app.handleEvent(new CustomEvent('drag-move', { detail: {
-            clientX: 500,
-            clientY: 500
-          }}));
-
-          assert.isFalse(app.remove.classList.contains('active'));
-          assert.isTrue(app.edit.classList.contains('active'));
-        });
-
-        test('Hover directions are mirrored in RTL', () => {
-          Object.defineProperty(document.documentElement, 'dir', {
-            value: 'rtl',
-            configurable: true
-          });
-
-          app.handleEvent(new CustomEvent('drag-move', { detail: {
-            clientX: 0,
-            clientY: 500
-          }}));
-
-          assert.isFalse(app.remove.classList.contains('active'));
-          assert.isTrue(app.edit.classList.contains('active'));
-
-          app.handleEvent(new CustomEvent('drag-move', { detail: {
-            clientX: 500,
-            clientY: 500
-          }}));
-
-          assert.isTrue(app.remove.classList.contains('active'));
-          assert.isFalse(app.edit.classList.contains('active'));
-
-          delete document.documentElement.dir;
-        });
-
         test('Auto-scroll is activated at the top of the screen', () => {
           app.handleEvent(new CustomEvent('drag-move', { detail: {
             clientX: 0,
@@ -1074,7 +1212,7 @@ suite('Homescreen app', () => {
 
         test('dropping icon on itself does nothing', () => {
           app.handleEvent(new CustomEvent('drag-end', {
-            detail: { dropTarget: 'abc', clientX: 0, clientY: 0 }
+            detail: { target: 'abc', dropTarget: 'abc', clientX: 0, clientY: 0 }
           }));
           assert.isFalse(reorderChildSpy.called);
         });
@@ -1089,6 +1227,26 @@ suite('Homescreen app', () => {
               { target: 'def', dropTarget: null, clientX: 600, clientY: 0 }
           }));
           assert.isFalse(reorderChildSpy.called);
+        });
+
+        test('dropping icon without moving activates edit mode', () => {
+          var mockIconContainer = {
+            firstElementChild: 'icon'
+          };
+          var enterEditModeStub = sinon.stub(app, 'enterEditMode');
+          var iconEditableStub = sinon.stub(app, 'iconIsEditable', () => true);
+
+          app.shouldEnterEditMode = true;
+          app.handleEvent(new CustomEvent('drag-end', {
+            detail: { target: mockIconContainer,
+                      dropTarget: mockIconContainer,
+                      clientX: 0, clientY: 0 }
+          }));
+          assert.isTrue(
+            enterEditModeStub.calledWith(mockIconContainer.firstElementChild));
+
+          enterEditModeStub.restore();
+          iconEditableStub.restore();
         });
       });
 
@@ -1191,6 +1349,13 @@ suite('Homescreen app', () => {
       }];
       app.handleEvent(new CustomEvent('hashchange'));
       app.dialogs = realDialogs;
+    });
+
+    test('should exit edit mode', () => {
+      app.editMode = true;
+      var exitEditModeStub = sinon.stub(app, 'exitEditMode');
+      app.handleEvent(new CustomEvent('hashchange'));
+      assert.isTrue(exitEditModeStub.called);
     });
   });
 });

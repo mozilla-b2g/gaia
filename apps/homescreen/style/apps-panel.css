@@ -37,7 +37,16 @@ gaia-app-icon {
 }
 
 gaia-app-icon.launching {
-  opacity: 0.8
+  opacity: 0.8;
+}
+
+.edit-mode gaia-app-icon {
+  opacity: 0.5;
+}
+
+.edit-mode gaia-app-icon.selected {
+  transform: scale(1.1);
+  opacity: 1;
 }
 
 #apps.loading {
@@ -91,7 +100,25 @@ gaia-app-icon.launching {
 }
 
 @keyframes icon-removed {
-  45% { transform: scaleY(0.1); }
-  55% { transform: scaleY(0.1); }
-  100% { transform: scale(0); }
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.5); opacity: 0; }
+}
+
+gaia-app-icon.uneditable {
+  animation-name: icon-uneditable;
+  animation-duration: 0.4s;
+}
+
+@keyframes icon-uneditable {
+  0% { transform: rotateZ(0deg); }
+  10% { transform: rotateZ(-15deg); }
+  20% { transform: rotateZ(15deg); }
+  30% { transform: rotateZ(-15deg); }
+  40% { transform: rotateZ(15deg); }
+  50% { transform: rotateZ(-15deg); }
+  60% { transform: rotateZ(15deg); }
+  70% { transform: rotateZ(-15deg); }
+  80% { transform: rotateZ(15deg); }
+  90% { transform: rotateZ(-15deg); }
+  100% { transform: rotateZ(0deg); }
 }
