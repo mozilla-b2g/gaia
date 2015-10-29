@@ -15,6 +15,7 @@ define(function(require) {
 
         addonsList = AddonsList(listElement, AddonManager);
         moreLink.addEventListener('click', function() {
+          moreLink.blur();
           // The addons list panel will update itself if new addon is installed.
           var activity = new window.MozActivity({
             name: 'marketplace-category',
