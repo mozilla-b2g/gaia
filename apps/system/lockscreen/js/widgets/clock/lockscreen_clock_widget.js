@@ -54,41 +54,49 @@
 
 	LockScreenClockWidget.prototype.updateAlarm =
 	function() {
-    var self = this;
-		// returns alarm info from DataStore
-		navigator.getDataStores('alarms')
-			.then( function(stores){
-        stores[0].getLength().then(function(len){
+    this.fetchAlarmData()
+    .then((alarmData) => {
+      var type = 'AM',
+          hour = parseInt(alarmData.hour, 10);
+
+      // Decide wheter to use AM or PM
+      if(hour > 12) {
+        type = 'PM';
+        hour = hour - 12;
+      }
+
+      var fullAlarmTime = hour + ':' + alarmData.minute + type;
+      this.resources.elements.alarmtime.textContent = fullAlarmTime;
+      this.resources.elements.alarm.classList.remove('no-alarms');
+      this.logger.debug('Alarm updated to :', fullAlarmTime);
+    }).catch(() => {
+      this.resources.elements.alarm.classList.add('no-alarms');
+    });
+	};
+
+  /*
+   * Gets the Alarm Data from the DataStore.
+   */
+  LockScreenClockWidget.prototype.fetchAlarmData = function() {
+    return new Promise((resolve, reject) => {
+      navigator.getDataStores('alarms')
+      .then((stores) => {
+        stores[0].getLength()
+        .then((len) => {
           if(len > 0) {
             stores[0].get(1)
-              .then( function(data) {
-                if(data.data) {
-                  if(data.data.hour && data.data.minute) {
-                    var type = 'AM',
-                        hour = parseInt(data.data.hour);
-
-                    // Decide wheter to use AM or PM
-                    if(hour > 12) {
-                      type = 'PM';
-                      hour = hour - 12;
-                    }
-
-                    var fullAlarmTime = hour + ':' + data.data.minute + type;
-                    self.resources.elements.alarmtime.textContent =
-                      fullAlarmTime;
-                    self.resources.elements.alarm.classList.remove('no-alarms');
-                    self.logger.debug('Alarm updated to :', fullAlarmTime);
-                    return data;
-                  }
-                  else {
-                    self.resources.elements.alarm.classList.add('no-alarms');
-                  }
-                }
-              });
+            .then((fetchedData) => {
+              if(!fetchedData.data.hour && !fetchedData.data.minute) {
+                reject();
+              } else {
+                resolve(fetchedData.data);
+              }
+            });
           }
-				});
-			});
-	};
+        });
+      });
+    });
+  };
 
   exports.LockScreenClockWidget = LockScreenClockWidget;
 })(window);
