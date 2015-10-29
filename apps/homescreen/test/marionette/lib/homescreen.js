@@ -61,15 +61,15 @@ Homescreen.prototype = {
   },
 
   get removeButton() {
-    return this.client.findElement(Homescreen.Selectors.remove);
+    return this.client.helper.waitForElement(Homescreen.Selectors.remove);
   },
 
   get renameButton() {
-    return this.client.findElement(Homescreen.Selectors.rename);
+    return this.client.helper.waitForElement(Homescreen.Selectors.rename);
   },
 
   get doneButton() {
-    return this.client.findElement(Homescreen.Selectors.done);
+    return this.client.helper.waitForElement(Homescreen.Selectors.done);
   },
 
   get cancelDownloadDialog() {

@@ -40,18 +40,14 @@ marionette('Homescreen - Bookmark Uninstall', function() {
     bookmark.openAndSave(url);
 
     system.tapHome();
-    client.switchToFrame(system.getHomescreenIframe());
+    home.waitForLaunch();
   });
 
   test('removal of bookmark', function() {
     var icon = home.getIcon(url);
 
-    // Drag the icon to the delete tray
-    icon.scriptWith(function(el) {
-      el.scrollIntoView(false);
-    });
-
-    actions.press(icon).wait(0.5).release().wait(0.5).perform();
+    home.scrollIconToCenter(icon);
+    actions.longPress(icon, 1).perform();
     home.removeButton.tap();
 
     client.switchToFrame();

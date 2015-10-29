@@ -53,7 +53,7 @@ marionette('Homescreen - App Uninstall', function() {
     });
 
     // remove the icon
-    actions.press(icon).wait(0.5).release().wait(0.5).perform();
+    actions.longPress(icon, 1).perform();
     home.removeButton.tap();
 
     // confirm the dialog to ensure it was removed.

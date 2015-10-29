@@ -37,18 +37,14 @@ marionette('Homescreen - Bookmark Edit', function() {
     bookmark.openAndSave(url);
 
     system.tapHome();
-    client.switchToFrame(system.getHomescreenIframe());
+    home.waitForLaunch();
   });
 
   test('pressing enter after renaming the bookmark', function() {
     var icon = home.getIcon(url);
 
-    // Select the icon and press rename button
-    icon.scriptWith(function(el) {
-      el.scrollIntoView(false);
-    });
-
-    actions.press(icon).wait(0.5).release().wait(0.5).perform();
+    home.scrollIconToCenter(icon);
+    actions.longPress(icon, 1).perform();
     home.renameButton.tap();
 
     client.switchToFrame();
