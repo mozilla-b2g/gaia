@@ -52,10 +52,34 @@ function showFileInformation(fileinfo) {
 
       // Populate info overlay view
       MediaUtils.populateMediaInfo(data);
+      // Hide Resolution for video files. See Bug 1217989
+      fileinfo.metadata.video ? setFieldVisibility('info-resolution', false) :
+                                setFieldVisibility('info-resolution', true);
+
     });
   }
 
   function getFileName(path) {
     return path.split('/').pop();
   }
+
+  function setFieldVisibility(id, visible) {
+    // Field label in info view
+    var label = $(id).previousElementSibling;
+
+    // If not visible, hide respective field label and
+    // its value and remove bottom border from the previous field.
+    if (visible) {
+      $(id).style.display = 'block';
+      label.style.display = 'block';
+      label.previousElementSibling.classList.remove('no-border');
+    } else {
+      $(id).style.display = 'none';
+      label.style.display = 'none';
+      if ($(id).nextElementSibling === null) {
+        label.previousElementSibling.classList.add('no-border');
+      }
+    }
+  }
+
 }
