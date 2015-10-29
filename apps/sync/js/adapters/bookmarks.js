@@ -143,7 +143,8 @@ var BookmarksHelper = (() => {
     var url;
     return getDataStoreId(fxsyncId, userid).then(id => {
       if (!id) {
-        console.warn('No DataStore ID corresponded to FxSyncID', fxsyncId);
+        console.warn('Ignoring incoming tombstone for unknown FxSyncID',
+            fxsyncId);
         return Promise.resolve();
       }
       url = id;
