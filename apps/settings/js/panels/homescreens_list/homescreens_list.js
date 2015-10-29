@@ -176,6 +176,7 @@ define(function(require) {
      * @private
      */
     _showMoreHomescreens: function hl_showMoreHomescreens() {
+      this._elements.moreLink.blur();
       SettingsCache.getSettings(result => {
         var version = result['deviceinfo.os'];
         /* jshint nonew: false */
