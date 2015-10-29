@@ -100,7 +100,7 @@ NotificationList.prototype = {
         body: document.querySelector(query + ' > .detail .detail-content')
           .innerHTML,
         lang: document.querySelector(query).getAttribute('lang'),
-        dir: document.querySelector(query).getAttribute('data-predefined-dir'),
+        dir: document.querySelector(query).querySelector('.title').dir,
         manifestURL: node.getAttribute('data-manifest-u-r-l'),
         query: query
       });

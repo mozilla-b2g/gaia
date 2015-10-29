@@ -100,7 +100,7 @@ apps/system/style/media_recording/media_recording.css 3 0
 apps/system/style/modal_dialog/modal_dialog.css 2 1
 apps/system/style/modal_dialog/prompt.css 1 0
 apps/system/style/net_error.css 2 0
-apps/system/style/notifications/notifications.css 4 0
+apps/system/style/notifications/notifications.css 8 0
 apps/system/style/permission_manager/permission_manager.css 5 0
 apps/system/style/pin_page_system_dialog.css 2 0
 apps/system/style/rocketbar/rocketbar.css 2 0

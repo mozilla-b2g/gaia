@@ -52,11 +52,10 @@
   height: 2.4rem;
   top: 0;
   bottom: 0;
+  offset-inline-start: 1.5rem;
   margin: auto;
   pointer-events: none;
 }
-html[dir="ltr"] #toaster-icon { left: 1.5rem; }
-html[dir="rtl"] #toaster-icon { right: 1.5rem; }
 
 #notification-container > div {
   width: calc(100% - 7.1rem);
@@ -68,11 +67,9 @@ html[dir="rtl"] #toaster-icon { right: 1.5rem; }
 }
 html[dir="ltr"] #notification-container > div {
   left: 5.6rem;
-  text-align: left;
 }
 html[dir="rtl"] #notification-container > div {
   right: 5.6rem;
-  text-align: right;
 }
 
 .toaster-title {
@@ -129,7 +126,8 @@ html[dir="rtl"] #notification-container > div {
 
 #notification-bar {
   height: 4.5rem;
-  padding: 0 0 0 1.5rem;
+  padding: 0;
+  padding-inline-start: 1.5rem;
 }
 
 #notification-bar [data-icon] {
@@ -140,14 +138,13 @@ html[dir="rtl"] #notification-container > div {
   display: flex;
   width: calc(100% - 4rem);
   font: italic 300 1.8rem/4.2rem auto;
+  margin-inline-start: 1rem;
 }
 html[dir="ltr"] #notification-bar .title-container {
   float: left;
-  margin-left: 1rem;
 }
 html[dir="rtl"] #notification-bar .title-container {
   float: right;
-  margin-right: 1rem;
 }
 
 #notification-bar .title {
@@ -155,9 +152,8 @@ html[dir="rtl"] #notification-bar .title-container {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  margin-inline-start: .5rem;
 }
-html[dir="ltr"] #notification-bar .title { margin-right: .5rem; }
-html[dir="rtl"] #notification-bar .title { margin-left: .5rem; }
 
 #notification-bar button {
   flex: initial;
@@ -190,6 +186,8 @@ html[dir="rtl"] #notification-bar .title { margin-left: .5rem; }
   overflow-y: scroll;
   overflow-x: hidden;
 }
+html[dir="ltr"] #notifications-container { text-align: left; }
+html[dir="rtl"] #notifications-container { text-align: right; }
 
 #notifications-container .notification {
   height: 6rem;
@@ -228,9 +226,8 @@ html[dir="rtl"] #notifications-container .notification > img { float: right; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-inline-start: 3.7rem;
 }
-html[dir="ltr"] #notifications-container .notification > div { margin-left: 3.7rem; }
-html[dir="rtl"] #notifications-container .notification > div { margin-right: 3.7rem; }
 
 #notifications-container .notification > div.title-container {
   padding-top: 1.4rem;
@@ -290,8 +287,11 @@ html[dir="rtl"] #notifications-container .notification > div.title-container .ti
 }
 
 #notifications-container .notification.disappearing.left,
+#notifications-container .notification.disappearing-via-clear-all-left,
 .notification-toaster.disappearing.left {
+  transition: transform var(--transition-duration) linear, opacity var(--transition-duration);
   transform: translateX(-100%);
+  opacity: 0;
 }
 
 #notifications-container .notification.disappearing ~ .notification {
@@ -307,30 +307,4 @@ html[dir="rtl"] #notifications-container .notification > div.title-container .ti
   to {
     transform: rotate(360deg);
   }
-}
-
-
-#notifications-container .notification[data-predefined-dir="rtl"] > div.detail {
-  direction: rtl;
-}
-
-#notifications-container .notification[data-predefined-dir="ltr"] > div.detail {
-  direction: ltr;
-}
-
-
-/*
- * For the notification title, we need to use dir="auto" to display
- * parenthesis and periods in their proper place. However, we still
- * want the text to align right when in an RTL language, so we use
- * the following override. See bug 1134453 and bug 1142925.
- */
-html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
-  text-align: right;
-  margin-right: unset;
-  margin-left: 0.5rem;
-}
-
-html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
-  text-align: right;
 }

@@ -96,12 +96,12 @@
   LockScreenNotificationSelector.prototype.toDetail =
   function (element) {
     var detail = element.scriptWith(function (node) {
+      var title = node.querySelector('.title-container .title');
       return {
-        title: node.querySelector('.title-container .title')
-               .innerHTML,
+        title: title.innerHTML,
         body: node.querySelector('.detail .detail-content').innerHTML,
         lang: node.getAttribute('lang'),
-        dir: node.getAttribute('data-predefined-dir'),
+        dir: title.dir,
         manifestURL: node.getAttribute('data-manifest-u-r-l')
       };
     });
