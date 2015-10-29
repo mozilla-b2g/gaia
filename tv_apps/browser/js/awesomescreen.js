@@ -1762,6 +1762,7 @@ var Awesomescreen = {
           function(){
             BookmarkStore.updateCache().then(() => {
               this.bookmarkList.removeFocusItem();
+              Browser.refreshBrowserParts();
             });
           }.bind(this)
         );
@@ -1769,6 +1770,16 @@ var Awesomescreen = {
         BrowserDB.removeHistory(
           listUrl,
           Awesomescreen.bmlistRemoveFunc.bind(Awesomescreen)
+        );
+      } else {
+        BrowserDB.removeBookmark(
+          listUrl,
+          function(){
+            this.dialogHidden();
+            Browser.switchCursorMode(true);
+            this.hidePointerImg();
+            Browser.refreshBrowserParts();
+          }.bind(this)
         );
       }
     }).bind(this);
