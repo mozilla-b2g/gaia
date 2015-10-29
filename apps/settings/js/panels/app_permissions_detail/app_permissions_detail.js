@@ -175,15 +175,15 @@ define(function(require) {
         askOpt.setAttribute('data-l10n-id', 'ask');
         select.add(askOpt);
 
-        var denyOpt = document.createElement('option');
-        denyOpt.value = 'deny';
-        denyOpt.setAttribute('data-l10n-id', 'deny');
-        select.add(denyOpt);
-
         var allowOpt = document.createElement('option');
         allowOpt.value = 'allow';
-        allowOpt.setAttribute('data-l10n-id', 'allow');
+        allowOpt.setAttribute('data-l10n-id', 'allow2');
         select.add(allowOpt);
+
+        var denyOpt = document.createElement('option');
+        denyOpt.value = 'deny';
+        denyOpt.setAttribute('data-l10n-id', 'block');
+        select.add(denyOpt);
 
         var opt = select.querySelector('[value="' + value + '"]');
         opt.setAttribute('selected', true);
