@@ -35,9 +35,6 @@ class TestSettingsMediaStorageChange(GaiaTestCase):
         # Apparently, the ability of making a photo is very fragile on low memory devices
         self.apps.kill_all()
 
-        # Workaround for bug 1218115 where the camera doesn't launch without this small pause
-        import time
-        time.sleep(0.5)
         camera = Camera(self.marionette)
         camera.launch()
         camera.take_photo()
