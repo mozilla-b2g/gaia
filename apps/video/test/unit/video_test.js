@@ -12,7 +12,8 @@
   MockThumbnailGroup,l10nAssert,showInfoView,hideInfoView,
   updateSelection,setButtonPaused,handleSliderTouchStart,MockMediaDB,
   handleSliderTouchEnd,loadingChecker,MockL10n,VideoUtils,
-  updateDialog,LAYOUT_MODE,showPlayer,hidePlayer,MockThumbnailItem */
+  updateDialog,LAYOUT_MODE,showPlayer,hidePlayer,MockThumbnailItem,
+  MockThumbnailGroup,MockForwardRewindController,MockIntlHelper */
 'use strict';
 
 require('/shared/js/lazy_loader.js');
@@ -22,9 +23,11 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_screen_layout.js');
 require('/shared/test/unit/mocks/mock_video_stats.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks//mock_intl_helper.js');
 requireApp('/video/js/video_utils.js');
 requireApp('/video/test/unit/mock_metadata.js');
 requireApp('/video/test/unit/mock_mediadb.js');
+requireApp('/video/test/unit/mock_forward_rewind_controller.js');
 requireApp('/video/test/unit/mock_thumbnail_group.js');
 requireApp('/video/test/unit/mock_thumbnail_item.js');
 requireApp('/video/test/unit/mock_video_loading_checker.js');
@@ -36,6 +39,11 @@ requireApp('/video/js/thumbnail_list.js');
 var videodb;              // Declared in db.js
 var startParsingMetadata; // Declared in metadata.js
 var ThumbnailItem;
+var ThumbnailDateGroup;
+var ForwardRewindController;
+var IntlHelper;
+var initDB;
+var init;
 
 function containsClass(element, value) {
   return element.classList.contains(value);
@@ -73,6 +81,14 @@ suite('Video App Unit Tests', function() {
 
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    IntlHelper = MockIntlHelper;
+
+    ThumbnailItem = MockThumbnailItem;
+    ThumbnailDateGroup = MockThumbnailGroup;
+
+    init = sinon.stub();
+    initDB = sinon.stub();
+    ForwardRewindController = MockForwardRewindController;
 
     // we don't want to trigger once/ready callbacks
     sinon.stub(navigator.mozL10n, 'once');
@@ -2097,7 +2113,8 @@ suite('Video App Unit Tests', function() {
     suiteSetup(function() {
       fastSeekSpy = sinon.spy(dom.player, 'fastSeek');
       sliderRect = {'left': 10,
-                    'width': 200};
+                    'width': 200,
+                    'right': 190};
     });
 
     setup(function() {
@@ -2110,13 +2127,31 @@ suite('Video App Unit Tests', function() {
       fastSeekSpy.restore();
     });
 
-    test('#handleSliderTouchMove: update the slider', function() {
+    test('#handleSliderTouchMove: update the slider (ltr)', function() {
 
+      document.documentElement.dir = 'ltr';
+      dom.playHead.style.left = '';
+      dom.playHead.style.right = '';
       handleSliderTouchMove(successEvent);
 
       assert.isTrue(containsClass(dom.playHead, 'active'));
       assert.equal(dom.playHead.style.left, '50%');
+      assert.equal(dom.playHead.style.right, '');
       assert.equal(dom.elapsedTime.style.width, '50%');
+      assert.isTrue(fastSeekSpy.calledOnce);
+    });
+
+    test('#handleSliderTouchMove: update the slider (rtl)', function() {
+
+      document.documentElement.dir = 'rtl';
+      dom.playHead.style.left = '';
+      dom.playHead.style.right = '';
+      handleSliderTouchMove(successEvent);
+
+      assert.isTrue(containsClass(dom.playHead, 'active'));
+      assert.equal(dom.playHead.style.right, '40%');
+      assert.equal(dom.playHead.style.left, '');
+      assert.equal(dom.elapsedTime.style.width, '40%');
       assert.isTrue(fastSeekSpy.calledOnce);
     });
 
