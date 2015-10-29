@@ -9,13 +9,13 @@ var AlbumsView = View.extend(function AlbumsView() {
   this.list = document.getElementById('list');
 
   this.client.on('databaseChange', () => this.update());
-  this.configureSearch();
+
   this.configureList();
+  this.configureSearch();
   this.update();
 });
 
 AlbumsView.prototype.configureList = function() {
-
   // Scroll search out of view, even when
   // there aren't enough list items to scroll.
   this.list.scrollTop = this.searchBox.HEIGHT;

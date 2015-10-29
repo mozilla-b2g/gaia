@@ -11,8 +11,31 @@ var SongsView = View.extend(function SongsView() {
   this.client.on('databaseChange', () => this.update());
 
   this.configureList();
+  this.configureSearch();
   this.update();
 });
+
+SongsView.prototype.configureList = function() {
+  // Scroll search out of view, even when
+  // there aren't enough list items to scroll.
+  this.list.scrollTop = this.searchBox.HEIGHT;
+  this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
+
+  this.list.configure({
+    getItemImageSrc: (item) => this.getThumbnail(item.name)
+  });
+
+  this.list.addEventListener('click', (evt) => {
+    var link = evt.target.closest('a[data-file-path]');
+    if (link) {
+      this.queueSong(link.dataset.filePath);
+    }
+  });
+
+  // Show the view only when list has something
+  // rendered, this prevents Gecko painting unnecessarily.
+  this.once(this.list, 'rendered', () => document.body.hidden = false);
+};
 
 SongsView.prototype.configureSearch = function() {
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
@@ -23,7 +46,7 @@ SongsView.prototype.configureSearch = function() {
 
   this.searchResults.addEventListener('close', () => {
     this.client.method('searchClose');
-    this.this.list.scrollTop = this.searchBox.HEIGHT;
+    this.list.scrollTop = this.searchBox.HEIGHT;
   });
 
   this.searchResults.addEventListener('resultclick', (evt) => {
@@ -36,31 +59,6 @@ SongsView.prototype.configureSearch = function() {
 
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
 };
-
-SongsView.prototype.configureList = function() {
-  var list = this.list;
-
-  // Scroll search out of view, even when
-  // there aren't enough list items to scroll.
-  this.list.scrollTop = this.searchBox.HEIGHT;
-  this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
-
-  this.list.configure({
-    getItemImageSrc: (item) => this.getThumbnail(item.name)
-  });
-
-  list.addEventListener('click', (evt) => {
-    var link = evt.target.closest('a[data-file-path]');
-    if (link) {
-      this.queueSong(link.dataset.filePath);
-    }
-  });
-
-  // Show the view only when list has something
-  // rendered, this prevents Gecko painting unnecessarily.
-  this.once(this.list, 'rendered', () => document.body.hidden = false);
-};
-
 
 SongsView.prototype.update = function() {
   this.getSongs().then((songs) => {
