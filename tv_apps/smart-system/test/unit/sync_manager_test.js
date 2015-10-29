@@ -153,6 +153,9 @@ suite('smart-system/SyncManager >', () => {
           this.sinon.stub(syncManager, 'trySync', () => {
             return Promise.resolve();
           });
+          this.sinon.stub(syncManager, 'observeSettings', () => {
+            return Promise.resolve();
+          });
           syncManager.start().then(done);
         });
       });

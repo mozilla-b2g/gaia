@@ -88,24 +88,6 @@
             SyncStateMachine.sync();
           });
 
-          // Settings listeners.
-          ['sync.collections.bookmarks.enabled',
-           'sync.collections.history.enabled',
-           'sync.collections.passwords.enabled',
-           'sync.collections.bookmarks.readonly',
-           'sync.collections.history.readonly',
-           'sync.collections.passwords.readonly',
-           'sync.server.url',
-           'sync.scheduler.interval',
-           'sync.scheduler.wifionly',
-           'sync.fxa.audience'].forEach(setting => {
-            SettingsListener.observe(setting, false, enabled => {
-              this.debug('Observed ' + setting + ' changed to ' + enabled);
-              enabled ? this.settings.set(setting, enabled)
-                      : this.settings.delete(setting);
-            });
-          });
-
           // SyncStateMachine event listeners.
           ['ondisabled',
            'ondisabling',
@@ -127,7 +109,11 @@
           window.addEventListener('appterminated',
                                   this.onappterminatedListener);
 
-          this.initStore().then(() => {
+          // We need to wait until getting the initial value for all settings.
+          this.observeSettings().then(() => {
+            this.debug('All settings observed');
+            return this.initStore();
+          }).then(() => {
             this.debug('Sync.state setting initial value', this.state);
             // SyncStateMachine starts by default with 'disabled', so we can
             // request to enable sync or stay in the disabled state.
@@ -500,6 +486,35 @@
     },
 
     /** Helpers **/
+
+    observeSettings: function() {
+      var setSettingObserver = setting => {
+        return new Promise(resolve => {
+          SettingsListener.observe(setting, false, enabled => {
+            this.debug('Observed ' + setting + ' changed to ' + enabled);
+            enabled ? this.settings.set(setting, enabled)
+                    : this.settings.delete(setting);
+            resolve();
+          });
+        });
+      };
+
+      var promises = [];
+      ['sync.collections.bookmarks.enabled',
+       'sync.collections.history.enabled',
+       'sync.collections.passwords.enabled',
+       'sync.collections.bookmarks.readonly',
+       'sync.collections.history.readonly',
+       'sync.collections.passwords.readonly',
+       'sync.server.url',
+       'sync.scheduler.interval',
+       'sync.scheduler.wifionly',
+       'sync.fxa.audience'].forEach(setting => {
+         promises.push(setSettingObserver(setting));
+      });
+
+      return Promise.all(promises);
+    },
 
     initStore: function() {
       var promises = [];
