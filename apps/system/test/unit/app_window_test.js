@@ -1602,7 +1602,9 @@ suite('system/AppWindow', function() {
       app1.setVisibleForScreenReader(false);
 
       assert.equal(app1.element.getAttribute('aria-hidden'), 'true');
+      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'true');
     });
+
     test('setVisibleForScreenReader: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
@@ -1610,22 +1612,19 @@ suite('system/AppWindow', function() {
       app1.setVisibleForScreenReader(true);
 
       assert.equal(app1.element.getAttribute('aria-hidden'), 'false');
+      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'false');
     });
-  });
 
-  suite('_setVisibleForScreenReader', function() {
-    test('_setVisibleForScreenReader: false', function() {
+    test('preserve screenreader access for frontWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      app1._setVisibleForScreenReader(false);
-      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'true');
-    });
-    test('_setVisibleForScreenReader: true', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      injectFakeMozBrowserAPI(app1.browser.element);
+      var app2 = new AppWindow(fakeAppConfig2);
+      this.sinon.stub(app2, 'isVisible').returns(true);
+      app1.frontWindow = app2;
 
-      app1._setVisibleForScreenReader(true);
+      app1.setVisibleForScreenReader(false);
+      assert.equal(app1.element.getAttribute('aria-hidden'), 'false');
       assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'false');
     });
   });

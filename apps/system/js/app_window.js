@@ -292,6 +292,12 @@
       if (!this.element) {
         return;
       }
+
+      // We need to let the screenreader reach the frontWindow if it's visible
+      if (this.frontWindow && this.frontWindow.isVisible()) {
+        visible = true;
+      }
+
       this.element.setAttribute('aria-hidden', !visible);
       this._setVisibleForScreenReader(visible);
     };
