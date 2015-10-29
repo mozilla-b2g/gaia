@@ -8,10 +8,12 @@
     window.close();
   });
 
-  var link = document.querySelector('.external-link');
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    window.open(e.target.href, '', 'dialog');
+  var links = document.querySelectorAll('.external-link');
+  Array.slice(links).forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      window.open(e.target.href, '', 'dialog');
+    });
   });
 
 }());
