@@ -816,6 +816,9 @@ gaia-overflow-menu button#share {
 .appWindow:not(.fullscreen-app) > .chrome gaia-progress {
   top: 7.3rem;
 }
+.appWindow.popupWindow > .chrome gaia-progress {
+  top: 0;
+}
 
 /* App specifics */
 .appWindow:not(.collapsible) > .chrome:not(.maximized) .controls button {
