@@ -57,21 +57,12 @@ class StatusBar(PageRegion):
         return element.is_displayed()
 
     def wait_for_data_to_be_connected(self):
-        self._safe_wait(lambda n: self.is_data_connected)
+        Wait(self.marionette).until(lambda m: self.is_data_connected)
 
     @property
     def is_data_connected(self):
          element = self.root_element.find_element(*self._data_connection)
          return element.get_attribute('hidden') != 'true'
-
-    def _safe_wait(self, condition):
-        # The status bar is removed from the DOM each time an element of the status bar is changed.
-        # Marionette can loose while performing a wait.
-        try:
-            Wait(self.marionette).until(condition)
-        except StaleElementException:
-            self.root_element = self.marionette.find_element(*self._locator)
-            self._safe_wait(condition)
 
     @property
     def is_geolocation_displayed(self):
@@ -79,7 +70,7 @@ class StatusBar(PageRegion):
          return element.is_displayed()
 
     def wait_for_geolocation_icon_displayed(self):
-        self._safe_wait(lambda n: self.is_geolocation_displayed)
+        Wait(self.marionette).until(lambda m: self.is_geolocation_displayed)
 
     @property
     def is_airplane_mode_displayed(self):
@@ -87,7 +78,7 @@ class StatusBar(PageRegion):
          return element.is_displayed()
 
     def wait_for_airplane_mode_icon_displayed(self):
-        self._safe_wait(lambda n: self.is_airplane_mode_displayed)
+        Wait(self.marionette).until(lambda m: self.is_airplane_mode_displayed)
 
     def a11y_wheel_status_bar_time(self):
         self.accessibility.wheel(self.root_element.find_element(*self._time_locator), 'down')
