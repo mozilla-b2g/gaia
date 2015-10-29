@@ -8,6 +8,7 @@ from marionette_driver.marionette import Actions
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 from gaiatest.apps.messages.app import Messages
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class MessageThread(Base):
@@ -16,23 +17,12 @@ class MessageThread(Base):
     _received_message_content_locator = (By.CSS_SELECTOR, "#messages-container li.message.received")
     _sent_message_locator = (By.CSS_SELECTOR, '#messages-container li.message.sent')
     _header_link_locator = (By.ID, 'messages-header')
-    _message_header_locator = (By.ID, 'messages-header-text')
     _call_button_locator = (By.ID, 'messages-call-number-button')
 
     def wait_for_received_messages(self, interval=5, timeout=300):
         Wait(self.marionette, timeout).until(expected.element_displayed(
             Wait(self.marionette, timeout).until(expected.element_present(
                 *self._received_message_content_locator))))
-
-    def tap_back_button(self):
-        # In a message thread, tap the back button to return to main message list
-
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        self.marionette.find_element(*self._header_link_locator).tap(25, 25)
-
-        messages = Messages(self.marionette)
-        messages.wait_for_message_list()
-        return messages
 
     @property
     def received_messages(self):
@@ -47,16 +37,15 @@ class MessageThread(Base):
         return [Message(self.marionette, message) for message in self.marionette.find_elements(*self._all_messages_locator)]
 
     @property
+    def _header(self):
+        return GaiaHeader(self.marionette, self.marionette.find_element(*self._header_link_locator))
+
+    @property
     def header_text(self):
-        header = Wait(self.marionette).until(
-            expected.element_present(*self._message_header_locator))
-        Wait(self.marionette).until(expected.element_displayed(header))
-        return header.text
+        return self._header.text
 
     def tap_header(self):
-        element = self.marionette.find_element(*self._header_link_locator)
-        Wait(self.marionette).until(lambda m: element.location['x'] == 0)
-        self.marionette.find_element(*self._message_header_locator).tap()
+        self._header.tap()
 
         from gaiatest.apps.messages.regions.activities import Activities
         return Activities(self.marionette)

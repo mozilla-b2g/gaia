@@ -5,6 +5,7 @@
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
 from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class SettingsForm(Base):
@@ -128,11 +129,13 @@ class SettingsForm(Base):
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 
+    @property
+    def _header(self):
+        return GaiaHeader(self.marionette,
+            self.marionette.find_element(*self._import_settings_header))
+
     def tap_back_from_import_contacts(self):
-        header = self.marionette.find_element(*self._import_settings_header)
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        header.tap(25, 25)
-        Wait(self.marionette).until(expected.element_not_displayed(header))
+        self._header.go_back()
 
     @property
     def is_gmail_import_service_in_error(self):
