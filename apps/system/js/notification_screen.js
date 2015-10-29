@@ -394,10 +394,11 @@ var NotificationScreen = {
     this.toaster.dataset.notificationId = detail.id;
     this.toaster.dataset.type = type;
     this.toaster.lang = detail.lang;
-    this.toaster.dir = dir;
 
     this.toasterTitle.textContent = detail.title;
+    this.toasterTitle.dir = dir;
     this.toasterDetail.textContent = detail.text;
+    this.toasterDetail.dir = dir;
   },
 
   addNotification: function ns_addNotification(detail) {
@@ -408,22 +409,13 @@ var NotificationScreen = {
     var behavior = detail.mozbehavior || {};
     var isPriorityNotification =
       this.PRIORITY_APPLICATIONS.indexOf(manifestURL) !== -1;
+    var dir = detail.dir === 'ltr' || detail.dir === 'rtl' ?
+        detail.dir : 'auto';
 
     var notificationContainer =
       (isPriorityNotification) ?
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
-
-    /* If dir "auto" was specified by the notification,
-     * use document direction instead because dir="auto"
-     * does not align the notification node according to
-     * the system language direction but instead it aligns
-     * every child element according to its own language
-     * which creates a UI mess we can't control by changing
-     * the system language.
-     */
-    var dir = (detail.dir === 'auto' || typeof detail.dir === 'undefined') ?
-      document.documentElement.dir : detail.dir;
 
     // We need to animate the ambient indicator when the toast
     // timesout, so we skip updating it here, by passing a skip bool
@@ -437,7 +429,6 @@ var NotificationScreen = {
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
     notificationNode.lang = detail.lang;
-    notificationNode.dataset.predefinedDir = detail.dir;
 
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
@@ -461,7 +452,7 @@ var NotificationScreen = {
     var title = document.createElement('div');
     title.classList.add('title');
     title.textContent = detail.title;
-    title.setAttribute('dir', 'auto');
+    title.dir = dir;
 
     titleContainer.appendChild(title);
 
@@ -482,7 +473,7 @@ var NotificationScreen = {
     var messageContent = document.createElement('div');
     messageContent.classList.add('detail-content');
     messageContent.textContent = detail.text;
-    messageContent.setAttribute('dir', 'auto');
+    messageContent.dir = dir;
     message.appendChild(messageContent);
     notificationNode.appendChild(message);
 
@@ -500,10 +491,9 @@ var NotificationScreen = {
       } else if (oldIcon) {
         oldNotif.removeChild(oldIcon);
       }
-      // but we still need to update type, lang and dir.
+      // but we still need to update type and lang.
       oldNotif.dataset.type = type;
       oldNotif.lang = detail.lang;
-      oldNotif.dataset.predefinedDir = detail.dir;
 
       notificationNode = oldNotif;
     } else {

@@ -393,37 +393,34 @@ suite('system/NotificationScreen >', function() {
       NotificationScreen.updateNotificationIndicator.restore();
     });
 
-    function testNotificationWithDirection(dir) {
-      var toaster = NotificationScreen.toaster;
+    function testNotificationWithDirection(dir, expectedDir) {
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath,
                     title: 'title',
                     detail: 'detail',
                     dir: dir};
       NotificationScreen.addNotification(detail);
-      assert.equal(dir, toaster.dir);
-      var notificationNode =
-        document.getElementsByClassName('notification')[0];
       var notificationNodeTitle =
         document.querySelector('.notification .title-container .title');
       var notificationNodeDetail =
         document.querySelector('.notification .detail');
-      assert.equal(dir, notificationNode.dataset.predefinedDir);
-      assert.equal('auto', notificationNodeTitle.dir);
-      assert.equal('auto', notificationNodeDetail
-        .querySelector('.detail-content').dir);
+      assert.equal(notificationNodeTitle.dir, expectedDir);
+      assert.equal(notificationNodeDetail
+        .querySelector('.detail-content').dir, expectedDir);
+      assert.equal(NotificationScreen.toasterTitle.dir, expectedDir);
+      assert.equal(NotificationScreen.toasterDetail.dir, expectedDir);
     }
 
     test('calling addNotification with rtl direction', function() {
-      testNotificationWithDirection('rtl');
+      testNotificationWithDirection('rtl', 'rtl');
     });
 
     test('calling addNotification with ltr direction', function() {
-      testNotificationWithDirection('ltr');
+      testNotificationWithDirection('ltr', 'ltr');
     });
 
     test('calling addNotification with auto direction', function() {
-      testNotificationWithDirection('');
+      testNotificationWithDirection('', 'auto');
     });
 
     test('calling addNotification without direction', function() {
