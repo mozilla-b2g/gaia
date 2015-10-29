@@ -630,10 +630,9 @@ var Compose = (function() {
       var sizeExceedsLimit = this.type === 'mms' &&
         Settings.mmsSizeLimitation && this.size > Settings.mmsSizeLimitation;
 
-      // We can't send if message is empty, we're in the process of resizing or
-      // message is already too big.
-      return isSendAllowedByLock && !sizeExceedsLimit && !this.isEmpty() &&
-        !this.isResizing;
+      // We can't send if we're in the process of resizing or message is
+      // already too big.
+      return isSendAllowedByLock && !sizeExceedsLimit && !this.isResizing;
     },
 
     canEdit() {

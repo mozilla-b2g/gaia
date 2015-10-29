@@ -1080,8 +1080,8 @@ suite('compose_test.js', function() {
         Compose.setupLock({});
       });
 
-      test('disabled at the beginning', function() {
-        assert.isTrue(sendButton.disabled);
+      test('enabled at the beginning', function() {
+        assert.isFalse(sendButton.disabled);
       });
 
       test('disabled when oversized', function() {
@@ -1131,33 +1131,14 @@ suite('compose_test.js', function() {
         Compose.setupLock({ canSend: () => true });
         Compose.refresh();
 
-        assert.isTrue(sendButton.disabled);
+        assert.isFalse(sendButton.disabled);
 
         Compose.append('Hola');
         assert.isFalse(sendButton.disabled);
       });
 
-      test('enabled when there is message input', function() {
-        Compose.append('Hola');
+      test('enabled when there is no message input', function() {
         assert.isFalse(sendButton.disabled);
-      });
-
-      test('enabled when there is subject input and is visible', function() {
-        SubjectComposer.prototype.isVisible.returns(true);
-        SubjectComposer.prototype.getValue.returns('test');
-        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
-
-        assert.isFalse(sendButton.disabled);
-      });
-
-      test('disabled when there is subject input, but is hidden', function() {
-        sendButton.disabled = false;
-
-        SubjectComposer.prototype.isVisible.returns(false);
-        SubjectComposer.prototype.getValue.returns('test');
-        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
-
-        assert.isTrue(sendButton.disabled);
       });
 
       test('enabled when there is message input, but too many segments',
