@@ -404,6 +404,10 @@ section ul.operate-certificate {
    padding-bottom: 1em;
  }
 
+ .apn-item .name {
+  unicode-bidi: -moz-plaintext;
+}
+
  /******************************************************************************
   * Internet sharing (Wi-Fi HotSpot)
   */
