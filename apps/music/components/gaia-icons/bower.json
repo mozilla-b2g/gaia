@@ -1,6 +1,6 @@
 {
   "name": "gaia-icons",
-  "version": "0.8.0",
+  "version": "0.10.5",
   "homepage": "https://github.com/wilsonpage/gaia-icons",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -9,7 +9,8 @@
     "gaia-icons.js",
     "gaia-icons.css",
     "fonts/gaia-icons.ttf",
-    "gaia-icons-embedded.css"
+    "gaia-icons-embedded.css",
+    "bidi-helper.css"
   ],
   "license": "MIT",
   "ignore": [

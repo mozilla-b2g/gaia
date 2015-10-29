@@ -1,6 +1,6 @@
 {
   "name": "gaia-fast-list",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "homepage": "https://github.com/gaia-components/gaia-fast-list",
   "authors": [
     "Etienne Segonzac <etienne@segonzac.info>",
@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "fast-list": "gaia-components/fast-list#master",
-    "gaia-component": "gaia-components/gaia-component#~0.3.9",
+    "gaia-component": "gaia-components/gaia-component#~0.4.0",
     "gaia-sub-header": "gaia-components/gaia-sub-header#~0.4.1",
     "poplar": "wilsonpage/poplar"
   },
@@ -33,9 +33,10 @@
     "gaia-header": "gaia-components/gaia-header#~0.8.4",
     "gaia-icons": "gaia-components/gaia-icons#~0.9.2",
     "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
-    "test-utils": "gaia-components/test-utils#~0.0.4"
+    "test-utils": "gaia-components/test-utils#~0.1.0"
   },
   "resolutions": {
-    "gaia-icons": "~0.9.2"
+    "gaia-icons": "~0.9.2",
+    "gaia-component": "~0.4.0"
   }
 }

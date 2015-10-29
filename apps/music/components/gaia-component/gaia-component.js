@@ -87,7 +87,7 @@ var base = {
     created: noop,
 
     createdCallback: function() {
-      if (this.rtl) { addDirObserver(); }
+      if (this.dirObserver) { addDirObserver(); }
       injectLightCss(this);
       this.created();
     },
@@ -117,8 +117,20 @@ var base = {
       this.attributeChanged(name, from, to);
     },
 
-    attachedCallback: function() { this.attached(); },
-    detachedCallback: function() { this.detached(); },
+    attachedCallback: function() {
+      if (this.dirObserver) {
+        this.setInnerDirAttributes = setInnerDirAttributes.bind(null, this);
+        document.addEventListener('dirchanged', this.setInnerDirAttributes);
+      }
+      this.attached();
+    },
+
+    detachedCallback: function() {
+      if (this.dirObserver) {
+        document.removeEventListener('dirchanged', this.setInnerDirAttributes);
+      }
+      this.detached();
+    },
 
     /**
      * A convenient method for setting up
@@ -130,6 +142,7 @@ var base = {
       if (!this.template) { return; }
       var node = document.importNode(this.template.content, true);
       this.createShadowRoot().appendChild(node);
+      if (this.dirObserver) { setInnerDirAttributes(this); }
       return this.shadowRoot;
     },
 
@@ -363,7 +376,7 @@ function injectLightCss(el) {
  *   toCamelCase('foo-bar'); //=> 'fooBar'
  *
  * @private
- * @param  {Sring} string
+ * @param  {String} string
  * @return {String}
  */
 function toCamelCase(string) {
@@ -380,12 +393,33 @@ function toCamelCase(string) {
 var dirObserver;
 
 /**
- * Observes the document `dir` (direction)
- * attribute and dispatches a global event
- * when it changes.
+ * Workaround for bug 1100912: applies a `dir` attribute to all shadowRoot
+ * children so that :-moz-dir() selectors work on shadow DOM elements.
  *
- * Components can listen to this event and
- * make internal changes if need be.
+ * In order to keep decent performances, the `dir` is the component dir if
+ * defined, or the document dir otherwise. This won't work if the component's
+ * direction is defined by CSS or inherited from a parent container.
+ *
+ * This method should be removed when bug 1100912 is fixed.
+ *
+ * @private
+ * @param  {WebComponent}
+ */
+function setInnerDirAttributes(component) {
+  var dir = component.dir || document.dir;
+  Array.from(component.shadowRoot.children).forEach(element => {
+    if (element.nodeName !== 'STYLE') {
+      element.dir = dir;
+    }
+  });
+}
+
+/**
+ * Observes the document `dir` (direction) attribute and when it changes:
+ *  - dispatches a global `dirchanged` event;
+ *  - forces the `dir` attribute of all shadowRoot children.
+ *
+ * Components can listen to this event and make internal changes if needed.
  *
  * @private
  */
