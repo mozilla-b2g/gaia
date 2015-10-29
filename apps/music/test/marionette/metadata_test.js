@@ -80,6 +80,7 @@ marionette('Music player metadata', function() {
         var listItemsData = music.artistsListItemsData;
 
         placeholder = listItemsData[0].img;
+
         assertStartsWith('app:', placeholder);
 
         blue = listItemsData[1].img;

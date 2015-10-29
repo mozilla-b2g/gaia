@@ -1,5 +1,6 @@
 {
   "name": "gaia-fast-list",
+  "version": "0.2.1",
   "homepage": "https://github.com/gaia-components/gaia-fast-list",
   "authors": [
     "Etienne Segonzac <etienne@segonzac.info>",
@@ -38,13 +39,13 @@
     "gaia-icons": "~0.9.2",
     "gaia-component": "~0.4.0"
   },
-  "_release": "74a33efce8",
+  "_release": "0.2.1",
   "_resolution": {
-    "type": "branch",
-    "branch": "master",
-    "commit": "74a33efce8a89a906744e828e20bbddd4d345c57"
+    "type": "version",
+    "tag": "v0.2.1",
+    "commit": "783f9bdfd6c4cc73ba19e277ad17d21d4b092628"
   },
   "_source": "git://github.com/gaia-components/gaia-fast-list.git",
-  "_target": "master",
+  "_target": "~0.2.1",
   "_originalSource": "gaia-components/gaia-fast-list"
 }

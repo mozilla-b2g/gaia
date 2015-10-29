@@ -252,9 +252,23 @@ Music.prototype = {
   },
 
   _getListItemsData: function(frame) {
+    var client = this.client;
+
     assert.ok(frame, 'Frame must be valid.' + frame);
 
     this.client.switchToFrame(frame);
+
+    // Not all lists have have images
+    var hasImages = client.executeScript(
+      'var elements = document.querySelectorAll(\'.gfl-item img\');' +
+      'return !!elements.length'
+    );
+
+    // Wait for images to be displayed
+    // before to reading their src.
+    if (hasImages) {
+      this.client.helper.waitForElement('.gfl-item img');
+    }
 
     var listItems = this.client.executeScript(
       'var parse = ' + this.parseListItemsData.toString() + '\n' +
@@ -447,8 +461,8 @@ Music.prototype = {
   },
 
   waitForArtistsView: function() {
-    this.client.helper.waitForElement(
-      Music.Selector.artistsViewFrameActive);
+    this.client.helper
+      .waitForElement(Music.Selector.artistsViewFrameActive);
   },
 
   waitForArtistDetailView: function() {

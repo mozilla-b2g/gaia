@@ -8,6 +8,29 @@ var AlbumsView = View.extend(function AlbumsView() {
   this.searchResults = document.getElementById('search-results');
   this.list = document.getElementById('list');
 
+  this.client.on('databaseChange', () => this.update());
+  this.configureSearch();
+  this.configureList();
+  this.update();
+});
+
+AlbumsView.prototype.configureList = function() {
+
+  // Scroll search out of view, even when
+  // there aren't enough list items to scroll.
+  this.list.scrollTop = this.searchBox.HEIGHT;
+  this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
+
+  this.list.configure({
+    getItemImageSrc: (item) => this.getThumbnail(item.name)
+  });
+
+  // Show the view only when list has something
+  // rendered, this prevents Gecko painting unnecessarily.
+  this.once(this.list, 'rendered', () => document.body.hidden = false);
+};
+
+AlbumsView.prototype.configureSearch = function() {
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.searchResults.addEventListener('open', () => {
@@ -27,20 +50,7 @@ var AlbumsView = View.extend(function AlbumsView() {
   });
 
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
-
-  this.list.scrollTop = this.searchBox.HEIGHT;
-  this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
-
-  this.list.configure({
-    getItemImageSrc: (item) => {
-      return this.getThumbnail(item.name);
-    }
-  });
-
-  this.client.on('databaseChange', () => this.update());
-
-  this.update();
-});
+};
 
 AlbumsView.prototype.update = function() {
   this.getAlbums().then((albums) => {
@@ -59,6 +69,7 @@ AlbumsView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 
   this.list.model = this.albums;
+  this.list.cache();
 };
 
 AlbumsView.prototype.getAlbums = function() {

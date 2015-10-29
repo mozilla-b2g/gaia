@@ -28,8 +28,8 @@
   <script defer src="/js/view.js"></script>
   <script defer src="view.js"></script>
 </head>
-<body role="application">
-  <gaia-fast-list id="list" offset="37">
+<body role="application" hidden>
+  <gaia-fast-list id="list" offset="37" top="50" bottom="0" caching>
     <music-search-box id="search-box" results="#search-results"></music-search-box>
     <template>
       <a href="${url}">
