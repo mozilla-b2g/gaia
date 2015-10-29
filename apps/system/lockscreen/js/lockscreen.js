@@ -577,6 +577,11 @@
       if(this._checkGenerateMaskedBackgroundColor()){
         this._generateMaskedBackgroundColor();
       }
+      // Remove Masked Background if there are no
+      // notifications
+      if (this.maskedBackground.classList.contains('blank')) {
+        this.maskedBackground.style.backgroundColor = 'transparent';
+      }
     }
   };
 

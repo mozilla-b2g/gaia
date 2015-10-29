@@ -35,6 +35,7 @@ suite('system/LockScreen >', function() {
   var domOverlay;
   var domPasscodeCode;
   var domMainScreen;
+  var domMaskedBackground;
   var domCamera;
   var stubById;
   var domMessage;
@@ -100,6 +101,8 @@ suite('system/LockScreen >', function() {
     domPasscodeCode = document.createElement('div');
     document.body.appendChild(domPasscodePad);
     domMainScreen = document.createElement('div');
+    domMaskedBackground = document.createElement('div');
+    domMaskedBackground.id = 'lockscreen-masked-background';
     subject.passcodePad = domPasscodePad;
     domMessage = document.createElement('div');
     subject.message = domMessage;
@@ -115,6 +118,7 @@ suite('system/LockScreen >', function() {
 
     subject.overlay = domOverlay;
     subject.mainScreen = domMainScreen;
+    subject.maskedBackground = domMaskedBackground;
     subject.camera = domCamera;
     subject.lock();
   });
@@ -619,6 +623,7 @@ suite('system/LockScreen >', function() {
       locked: false,
       overlayLocked: stubOverlayLocked,
       mainScreen: document.createElement('div'),
+      maskedBackground : document.createElement('div'),
       createClockWidget: function() {},
       dispatchEvent: function() {},
       _checkGenerateMaskedBackgroundColor: function() {
@@ -727,6 +732,26 @@ suite('system/LockScreen >', function() {
       subject._shouldRegenerateMaskedBackgroundColor = false;
       subject._regenerateMaskedBackgroundColorFrom = undefined;
       assert.isFalse(subject._checkGenerateMaskedBackgroundColor());
+    });
+
+    test('Lock : Removes masked Overlay if there are no notifications',
+      function() {
+      var method = window.LockScreen.prototype.lock;
+      subject.maskedBackground.classList.add('blank');
+      var mockThis = {
+        locked: false,
+        overlayLocked: function() {},
+        mainScreen: document.createElement('div'),
+        maskedBackground : subject.maskedBackground,
+        createClockWidget: function() {},
+        dispatchEvent: function() {},
+        _checkGenerateMaskedBackgroundColor: function() {
+          return false;
+        }
+      };
+      method.call(mockThis);
+      assert.strictEqual(subject.maskedBackground.style.backgroundColor,
+        'transparent');
     });
 
     suite('generateMaskedBackgroundColor', function() {
