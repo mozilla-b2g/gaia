@@ -16,18 +16,26 @@ class BinaryControl(Widget):
     def is_checked(self):
         pass
 
+    @property
+    def is_displayed(self):
+        return self.root_element.is_displayed()
+
     def enable(self):
         self._toggle_and_verify_state(final_state=True)
 
     def disable(self):
         self._toggle_and_verify_state(final_state=False)
 
-    def _toggle_and_verify_state(self, final_state):
+    def wait_to_be_ready(self):
+        Wait(self.marionette).until(expected.element_displayed(self.root_element))
         Wait(self.marionette).until(expected.element_enabled(self.root_element))
+
+    def _toggle_and_verify_state(self, final_state):
+        self.wait_to_be_ready()
         Wait(self.marionette).until(lambda m: self.is_checked is not final_state)
         self._toggle()
         Wait(self.marionette).until(lambda m: self.is_checked is final_state)
-        Wait(self.marionette).until(expected.element_enabled(self.root_element))
+        self.wait_to_be_ready()
 
     def _toggle(self):
         self.root_element.tap()
@@ -44,15 +52,3 @@ class HtmlBinaryControl(BinaryControl):
     @property
     def is_checked(self):
         return self.root_element.is_selected()
-
-
-class InvisibleHtmlBinaryControl(HtmlBinaryControl):
-    # Sometimes the checkboxes are present in the DOM, but they are invisible.
-    # In this case, you have to tap to another element.
-
-    def __init__(self, marionette, control_locator, element_to_tap_locator):
-        HtmlBinaryControl.__init__(self, marionette, control_locator)
-        self._element_to_tap = Wait(marionette).until(expected.element_present(*element_to_tap_locator))
-
-    def _toggle(self):
-        self._element_to_tap.tap()

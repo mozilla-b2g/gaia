@@ -4,8 +4,8 @@
 
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
-from gaiatest.form_controls.binarycontrol import InvisibleHtmlBinaryControl
 from gaiatest.form_controls.header import GaiaHeader
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Settings(Base):
@@ -26,14 +26,12 @@ class Settings(Base):
     _bluetooth_text_locator = (By.CSS_SELECTOR, '.bluetooth-desc')
 
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
-    _airplane_switch_locator = (By.XPATH, "//input[contains(@class, 'airplaneMode-input')]/..")
-    _airplane_checkbox_locator = (By.CSS_SELECTOR, ".airplaneMode-input")
+    _airplane_switch_locator = (By.CSS_SELECTOR, 'gaia-switch.airplaneMode-input')
     _usb_storage_switch_locator = (By.CSS_SELECTOR, ".pack-split.usb-item .pack-switch")
     _usb_storage_checkbox_locator = (By.CSS_SELECTOR, ".usb-switch")
     _usb_storage_confirm_button_locator = (By.CSS_SELECTOR, "button.ums-confirm-option")
     _usb_storage_cancel_button_locator = (By.CSS_SELECTOR, "button.ums-cancel-option")
-    _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
-    _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
+    _gps_switch_locator = (By.CSS_SELECTOR, 'gaia-switch[name="geolocation.enabled"]')
 
     # Following menu item list matches the menu item order in the settings app
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
@@ -101,11 +99,16 @@ class Settings(Base):
     def disable_airplane_mode(self):
         self._airplane_checkbox.disable()
 
+    def wait_for_airplane_mode_ready(self):
+        self._airplane_checkbox.wait_to_be_ready()
+
+    @property
+    def is_airplane_mode_displayed(self):
+        return self._airplane_checkbox.is_displayed
+
     @property
     def _airplane_checkbox(self):
-        return InvisibleHtmlBinaryControl(self.marionette,
-                                          self._airplane_checkbox_locator,
-                                          self._airplane_switch_locator)
+        return GaiaBinaryControl(self.marionette, self._airplane_switch_locator)
 
     def enable_gps(self):
         return self._gps_checkbox.enable()
@@ -114,12 +117,8 @@ class Settings(Base):
         return self._gps_checkbox.disable()
 
     @property
-    def is_gps_enabled(self):
-        return self._gps_checkbox.is_checked
-
-    @property
     def _gps_checkbox(self):
-        return InvisibleHtmlBinaryControl(self.marionette, self._gps_enabled_locator, self._gps_switch_locator)
+        return GaiaBinaryControl(self.marionette, self._gps_switch_locator)
 
     @property
     def header_text(self):
@@ -301,10 +300,6 @@ class Settings(Base):
             return class_defn
 
     @property
-    def is_airplane_mode_visible(self):
-        return self.is_element_displayed(*self._airplane_switch_locator)
-
-    @property
     def is_wifi_menu_visible(self):
         return self.is_element_displayed(*self._wifi_menu_item_locator)
 
@@ -337,10 +332,6 @@ class Settings(Base):
         menu_item = self._wait_for_menu_item(menu_item_locator)
         self.accessibility.click(menu_item)
         self._wait_for_parent_section_not_displayed(menu_item)
-
-    def _wait_for_toggle_ready(self, by, locator):
-        checkbox = self.marionette.find_element(by, locator)
-        Wait(self.marionette).until(expected.element_enabled(checkbox))
 
     def return_to_prev_menu(self, parent_view, exit_view):
         GaiaHeader(self.marionette, exit_view.find_element(*self._header_locator)).go_back()
