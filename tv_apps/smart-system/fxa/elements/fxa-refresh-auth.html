@@ -1,15 +1,16 @@
 <element name="fxa-refresh-auth" extends="section">
   <template>
     <section class="vertical">
-      <p id="fxa-password-refresh" data-l10n-id="fxa-password-refresh">Please enter your Firefox Account password to continue.</p>
-      <input id="fxa-pw-input-refresh" type="password" placeholder="Password" required="" pattern=".{8,}" data-l10n-id="fxa-password">
-      <p class="fine-print"><a id="fxa-forgot-password-refresh" data-l10n-id="fxa-forgot-your-password">Forgot your password?</a></p>
-      <div id="show-pw-wrapper">
-        <label class="pack-checkbox" for="fxa-show-pw-refresh">
-          <input id="fxa-show-pw-refresh" type="checkbox">
-          <span></span>
-        </label>
-        <p data-l10n-id="fxa-show-password">Show password</p>
+      <h3 class="fxa-title"><span data-l10n-id="firefox-accounts-title"></span><span class="fax-title-separator">|</span><span data-l10n-id="fxa-signin"></span></h3>
+      <p id="fxa-password-refresh" class="fxa-intro" data-l10n-id="fxa-password-refresh">Please enter your Firefox Account password to continue.</p>
+      <input id="fxa-pw-input-refresh" type="password" placeholder="Password" required="" pattern=".{8,}" data-l10n-id="fxa-password" tabindex="-1">
+      <div id="fxa-pw-option-container">
+        <p class="fine-print"><a id="fxa-forgot-password-refresh" data-l10n-id="fxa-forgot-your-password" tabindex="-1">Forgot your password?</a></p>
+        <div id="show-pw-wrapper">
+          <input id="fxa-show-pw-refresh" class="settings-list-checkbox" type="checkbox" tabindex="-1">
+          <label class="pack-checkbox" for="fxa-show-pw-refresh"></label>
+          <p data-l10n-id="fxa-show-password">Show password</p>
+        </div>
       </div>
       <script src='js/screens/fxam_refresh_auth.js'></script>
     </section>

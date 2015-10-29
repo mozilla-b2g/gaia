@@ -235,6 +235,8 @@ var FxaModuleEnterEmail = (function() {
       FxaModuleOverlay.hide();
       FxaModuleManager.setParam('email', email);
       if (response && response.registered) {
+        FxaModuleKeyNavigation.remove(
+          ['#fxa-email-input', '#fxa-email-clean-btn', '#fxa-module-next']);
         _loadSignIn(gotoNextStepCallback);
       } else if (this.isFTU) {
         // XXX Skip COPPA verification during FTU: if a child has a mobile
@@ -247,13 +249,16 @@ var FxaModuleEnterEmail = (function() {
         //     we only use FxA on Sync and we are unable to create new Sync
         //     users. So we show an error to the user, asking her to go to
         //     Desktop or Android to do the creation flow.
+        FxaModuleKeyNavigation.disable();
         this.showErrorResponse({error: ERROR_INVALID_SYNC_ACCOUNT});
       } else {
+        FxaModuleKeyNavigation.disable();
         this.showErrorResponse({error: 'OFFLINE'});
       }
-      FxaModuleKeyNavigation.remove(
-        ['#fxa-email-input', '#fxa-email-clean-btn', '#fxa-module-next']);
-    }, this.showErrorResponse);
+    }, error => {
+      FxaModuleKeyNavigation.disable();
+      this.showErrorResponse(error);
+    });
   };
 
   Module.onBack = function onBack() {
