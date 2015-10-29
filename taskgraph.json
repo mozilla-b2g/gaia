@@ -18,9 +18,7 @@
           "docker-worker:cache:gaia-tc-vcs",
           "docker-worker:cache:gaia-linux-cache",
           "docker-worker:cache:gaia-misc-caches",
-          "docker-worker:image:quay.io/mozilla/raptor-tester:latest",
-          "queue:define-task:aws-provisioner/gaia",
-          "queue:create-task:aws-provisioner/gaia"
+          "docker-worker:image:quay.io/mozilla/raptor-tester:latest"
         ],
         "payload": {
           "cache": {
