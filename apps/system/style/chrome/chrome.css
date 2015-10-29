@@ -86,8 +86,9 @@ html[dir="rtl"] .appWindow:not(.bar) > .chrome { transform-origin: top right; }
   display: none;
 }
 
-.appWindow.fullscreen-app:not(.browser) .chrome .controls .urlbar,
-.appWindow:not(.browser):not(.search-app) .chrome .controls .urlbar {
+/* Maximized rocketbar size when the 'Windows' button is not displayed */
+.appWindow.fullscreen-app:not(.browser) .chrome.maximized .controls .urlbar,
+.appWindow:not(.browser):not(.search-app) .chrome.maximized .controls .urlbar {
   width: calc(100% - 1rem);
 }
 
