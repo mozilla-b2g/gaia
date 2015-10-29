@@ -65,7 +65,10 @@ Object.keys(config.definitions).forEach(function(name) {
 
       // Chunk parameters
       chunk: chunk,
-      totalChunks: definition.chunks
+      totalChunks: definition.chunks,
+
+      // whether this is a private image
+      privateImage: definition.privateImage,
     }));
     graph.tasks.push(task);
   }
