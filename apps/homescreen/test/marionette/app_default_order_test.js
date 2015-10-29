@@ -32,9 +32,12 @@ marionette('Homescreen - Default app order', function() {
       'Clock',
       'Settings',
       'FM Radio',
+      'BuddyUp',
       'Bugzilla Lite',
       'Facebook',
       'Twitter',
+      'Notes',
+      'Calculator',
       'Usage'
     ];
     var length = expectedOrder.length;
