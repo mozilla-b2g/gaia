@@ -24,7 +24,7 @@
   ],
   "dependencies": {
     "fast-list": "gaia-components/fast-list#master",
-    "gaia-component": "gaia-components/gaia-component#~0.3.9",
+    "gaia-component": "gaia-components/gaia-component#~0.4.0",
     "gaia-sub-header": "gaia-components/gaia-sub-header#~0.4.1",
     "poplar": "wilsonpage/poplar"
   },
@@ -32,16 +32,17 @@
     "gaia-header": "gaia-components/gaia-header#~0.8.4",
     "gaia-icons": "gaia-components/gaia-icons#~0.9.2",
     "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
-    "test-utils": "gaia-components/test-utils#~0.0.4"
+    "test-utils": "gaia-components/test-utils#~0.1.0"
   },
   "resolutions": {
-    "gaia-icons": "~0.9.2"
+    "gaia-icons": "~0.9.2",
+    "gaia-component": "~0.4.0"
   },
-  "_release": "1c6cbd54c6",
+  "_release": "74a33efce8",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "1c6cbd54c6ff5712a78b0df7ffdf9f445025008f"
+    "commit": "74a33efce8a89a906744e828e20bbddd4d345c57"
   },
   "_source": "git://github.com/gaia-components/gaia-fast-list.git",
   "_target": "master",

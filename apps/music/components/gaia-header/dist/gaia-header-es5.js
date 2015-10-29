@@ -30,7 +30,7 @@
   })({ 1: [function (require, module, exports) {
       ;(function (define) {
         define(function (require, exports, module) {
-          "use strict";
+          'use strict';
 
           /**
            * Simple logger.
@@ -85,7 +85,7 @@
            * @return {Object} {fontSize,overflowing,textWidth}
            */
           module.exports = function (config) {
-            debug("font fit", config);
+            debug('font fit', config);
             var space = config.space - BUFFER;
             var min = config.min || MIN;
             var max = config.max || MAX;
@@ -95,7 +95,7 @@
             var font;
 
             do {
-              font = config.font.replace(/\d+px/, fontSize + "px");
+              font = config.font.replace(/\d+px/, fontSize + 'px');
               textWidth = getTextWidth(text, font);
             } while (textWidth > space && fontSize !== min && fontSize--);
 
@@ -117,7 +117,7 @@
           function getTextWidth(text, font) {
             var ctx = getCanvasContext(font);
             var width = ctx.measureText(text).width;
-            debug("got text width", width);
+            debug('got text width', width);
             return width;
           }
 
@@ -129,20 +129,20 @@
            * @return {CanvasRenderingContext2D}
            */
           function getCanvasContext(font) {
-            debug("get canvas context", font);
+            debug('get canvas context', font);
 
             var cached = cache[font];
             if (cached) {
               return cached;
             }
 
-            var canvas = document.createElement("canvas");
-            canvas.setAttribute("moz-opaque", "true");
-            canvas.setAttribute("width", "1px");
-            canvas.setAttribute("height", "1px");
-            debug("created canvas", canvas);
+            var canvas = document.createElement('canvas');
+            canvas.setAttribute('moz-opaque', 'true');
+            canvas.setAttribute('width', '1px');
+            canvas.setAttribute('height', '1px');
+            debug('created canvas', canvas);
 
-            var ctx = canvas.getContext("2d", { willReadFrequently: true });
+            var ctx = canvas.getContext('2d', { willReadFrequently: true });
             ctx.font = font;
 
             return cache[font] = ctx;
@@ -156,29 +156,27 @@
            * @return {String}
            */
           function trim(text) {
-            return text.replace(/\s+/g, " ").trim();
+            return text.replace(/\s+/g, ' ').trim();
           }
         });
-      })(typeof define == "function" && define.amd ? define : (function (n, w) {
-        "use strict";return typeof module == "object" ? function (c) {
+      })(typeof define == 'function' && define.amd ? define : (function (n, w) {
+        'use strict';return typeof module == 'object' ? function (c) {
           c(require, exports, module);
         } : function (c) {
           var m = { exports: {} };c(function (n) {
             return w[n];
           }, m.exports, m);w[n] = m.exports;
         };
-      })("font-fit", this));
+      })('font-fit', this));
     }, {}], 2: [function (require, module, exports) {
+      /* globals define */
       ;(function (define) {
-        define(function (require, exports, module) {
-          "use strict";
-
+        'use strict';define(function (require, exports, module) {
           /**
            * Locals
            */
-
-          var textContent = Object.getOwnPropertyDescriptor(Node.prototype, "textContent");
-          var innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
+          var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
+          var innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
           var removeAttribute = Element.prototype.removeAttribute;
           var setAttribute = Element.prototype.setAttribute;
           var noop = function noop() {};
@@ -193,19 +191,31 @@
            */
           exports.register = function (name, props) {
             var baseProto = getBaseProto(props["extends"]);
+            var template = props.template || baseProto.templateString;
+
+            // Components are extensible by default but can be declared
+            // as non extensible as an optimization to avoid
+            // storing the template strings
+            var extensible = props.extensible = props.hasOwnProperty('extensible') ? props.extensible : true;
 
             // Clean up
             delete props["extends"];
 
             // Pull out CSS that needs to be in the light-dom
-            if (props.template) {
-              var output = processCss(props.template, name);
+            if (template) {
+              // Stores the string to be reprocessed when
+              // a new component extends this one
+              if (extensible && props.template) {
+                props.templateString = props.template;
+              }
 
-              props.template = document.createElement("template");
+              var output = processCss(template, name);
+
+              props.template = document.createElement('template');
               props.template.innerHTML = output.template;
               props.lightCss = output.lightCss;
 
-              props.globalCss = props.globalCss || "";
+              props.globalCss = props.globalCss || '';
               props.globalCss += output.globalCss;
             }
 
@@ -216,7 +226,7 @@
 
             // Merge base getter/setter attributes with the user's,
             // then define the property descriptors on the prototype.
-            var descriptors = Object.assign(props.attrs || {}, base.descriptors);
+            var descriptors = mixin(props.attrs || {}, base.descriptors);
 
             // Store the orginal descriptors somewhere
             // a little more private and delete the original
@@ -232,7 +242,7 @@
             try {
               return document.registerElement(name, { prototype: proto });
             } catch (e) {
-              if (e.name !== "NotSupportedError") {
+              if (e.name !== 'NotSupportedError') {
                 throw e;
               }
             }
@@ -247,7 +257,7 @@
               created: noop,
 
               createdCallback: function createdCallback() {
-                if (this.rtl) {
+                if (this.dirObserver) {
                   addDirObserver();
                 }
                 injectLightCss(this);
@@ -282,9 +292,17 @@
               },
 
               attachedCallback: function attachedCallback() {
+                if (this.dirObserver) {
+                  this.setInnerDirAttributes = setInnerDirAttributes.bind(null, this);
+                  document.addEventListener('dirchanged', this.setInnerDirAttributes);
+                }
                 this.attached();
               },
+
               detachedCallback: function detachedCallback() {
+                if (this.dirObserver) {
+                  document.removeEventListener('dirchanged', this.setInnerDirAttributes);
+                }
                 this.detached();
               },
 
@@ -300,6 +318,9 @@
                 }
                 var node = document.importNode(this.template.content, true);
                 this.createShadowRoot().appendChild(node);
+                if (this.dirObserver) {
+                  setInnerDirAttributes(this);
+                }
                 return this.shadowRoot;
               },
 
@@ -343,7 +364,9 @@
                   }
                 },
 
-                get: textContent.get
+                get: function get() {
+                  return textContent.get();
+                }
               },
 
               innerHTML: {
@@ -371,9 +394,9 @@
            * Returns a suitable prototype based
            * on the object passed.
            *
+           * @private
            * @param  {HTMLElementPrototype|undefined} proto
            * @return {HTMLElementPrototype}
-           * @private
            */
           function getBaseProto(proto) {
             if (!proto) {
@@ -387,24 +410,26 @@
            * Extends the given proto and mixes
            * in the given properties.
            *
+           * @private
            * @param  {Object} proto
            * @param  {Object} props
            * @return {Object}
            */
           function createProto(proto, props) {
-            return Object.assign(Object.create(proto), props);
+            return mixin(Object.create(proto), props);
           }
 
           /**
            * Detects presence of shadow-dom
            * CSS selectors.
            *
+           * @private
            * @return {Boolean}
            */
           var hasShadowCSS = (function () {
-            var div = document.createElement("div");
+            var div = document.createElement('div');
             try {
-              div.querySelector(":host");return true;
+              div.querySelector(':host');return true;
             } catch (e) {
               return false;
             }
@@ -417,10 +442,10 @@
            */
           var regex = {
             shadowCss: /(?:\:host|\:\:content)[^{]*\{[^}]*\}/g,
-            ":host": /(?:\:host)/g,
-            ":host()": /\:host\((.+)\)(?: \:\:content)?/g,
-            ":host-context": /\:host-context\((.+)\)([^{,]+)?/g,
-            "::content": /(?:\:\:content)/g
+            ':host': /(?:\:host)/g,
+            ':host()': /\:host\((.+)\)(?: \:\:content)?/g,
+            ':host-context': /\:host-context\((.+)\)([^{,]+)?/g,
+            '::content': /(?:\:\:content)/g
           };
 
           /**
@@ -429,23 +454,24 @@
            * them to work from the <style scoped>
            * injected at the root of the component.
            *
+           * @private
            * @return {String}
            */
           function processCss(template, name) {
-            var globalCss = "";
-            var lightCss = "";
+            var globalCss = '';
+            var lightCss = '';
 
             if (!hasShadowCSS) {
               template = template.replace(regex.shadowCss, function (match) {
-                var hostContext = regex[":host-context"].exec(match);
+                var hostContext = regex[':host-context'].exec(match);
 
                 if (hostContext) {
-                  globalCss += match.replace(regex["::content"], "").replace(regex[":host-context"], "$1 " + name + "$2").replace(/ +/g, " "); // excess whitespace
+                  globalCss += match.replace(regex['::content'], '').replace(regex[':host-context'], '$1 ' + name + '$2').replace(/ +/g, ' '); // excess whitespace
                 } else {
-                  lightCss += match.replace(regex[":host()"], name + "$1").replace(regex[":host"], name).replace(regex["::content"], name);
-                }
+                    lightCss += match.replace(regex[':host()'], name + '$1').replace(regex[':host'], name).replace(regex['::content'], name);
+                  }
 
-                return "";
+                return '';
               });
             }
 
@@ -464,11 +490,14 @@
            * <style> in the head of the
            * document.
            *
+           * @private
            * @param  {String} css
            */
           function injectGlobalCss(css) {
-            if (!css) return;
-            var style = document.createElement("style");
+            if (!css) {
+              return;
+            }
+            var style = document.createElement('style');
             style.innerHTML = css.trim();
             headReady().then(function () {
               document.head.appendChild(style);
@@ -485,8 +514,8 @@
               if (document.head) {
                 return resolve();
               }
-              window.addEventListener("load", function fn() {
-                window.removeEventListener("load", fn);
+              window.addEventListener('load', function fn() {
+                window.removeEventListener('load', fn);
                 resolve();
               });
             });
@@ -510,10 +539,16 @@
             if (hasShadowCSS) {
               return;
             }
-            el.lightStyle = document.createElement("style");
-            el.lightStyle.setAttribute("scoped", "");
-            el.lightStyle.innerHTML = el.lightCss;
-            el.appendChild(el.lightStyle);
+            var stylesheet = el.querySelector('style');
+
+            if (!stylesheet) {
+              stylesheet = document.createElement('style');
+              stylesheet.setAttribute('scoped', '');
+              stylesheet.appendChild(document.createTextNode(el.lightCss));
+              el.appendChild(stylesheet);
+            }
+
+            el.lightStyle = stylesheet;
           }
 
           /**
@@ -524,7 +559,8 @@
            *
            *   toCamelCase('foo-bar'); //=> 'fooBar'
            *
-           * @param  {Sring} string
+           * @private
+           * @param  {String} string
            * @return {String}
            */
           function toCamelCase(string) {
@@ -541,12 +577,33 @@
           var dirObserver;
 
           /**
-           * Observes the document `dir` (direction)
-           * attribute and dispatches a global event
-           * when it changes.
+           * Workaround for bug 1100912: applies a `dir` attribute to all shadowRoot
+           * children so that :-moz-dir() selectors work on shadow DOM elements.
            *
-           * Components can listen to this event and
-           * make internal changes if need be.
+           * In order to keep decent performances, the `dir` is the component dir if
+           * defined, or the document dir otherwise. This won't work if the component's
+           * direction is defined by CSS or inherited from a parent container.
+           *
+           * This method should be removed when bug 1100912 is fixed.
+           *
+           * @private
+           * @param  {WebComponent}
+           */
+          function setInnerDirAttributes(component) {
+            var dir = component.dir || document.dir;
+            Array.from(component.shadowRoot.children).forEach(function (element) {
+              if (element.nodeName !== 'STYLE') {
+                element.dir = dir;
+              }
+            });
+          }
+
+          /**
+           * Observes the document `dir` (direction) attribute and when it changes:
+           *  - dispatches a global `dirchanged` event;
+           *  - forces the `dir` attribute of all shadowRoot children.
+           *
+           * Components can listen to this event and make internal changes if needed.
            *
            * @private
            */
@@ -557,37 +614,54 @@
 
             dirObserver = new MutationObserver(onChanged);
             dirObserver.observe(document.documentElement, {
-              attributeFilter: ["dir"],
+              attributeFilter: ['dir'],
               attributes: true
             });
 
             function onChanged(mutations) {
-              document.dispatchEvent(new Event("dirchanged"));
+              document.dispatchEvent(new Event('dirchanged'));
             }
           }
+
+          /**
+           * Copy the values of all properties from
+           * source object `target` to a target object `source`.
+           * It will return the target object.
+           *
+           * @private
+           * @param   {Object} target
+           * @param   {Object} source
+           * @returns {Object}
+           */
+          function mixin(target, source) {
+            for (var key in source) {
+              target[key] = source[key];
+            }
+            return target;
+          }
         });
-      })(typeof define == "function" && define.amd ? define : (function (n, w) {
-        "use strict";return typeof module == "object" ? function (c) {
+      })(typeof define == 'function' && define.amd ? define : (function (n, w) {
+        'use strict';return typeof module == 'object' ? function (c) {
           c(require, exports, module);
         } : function (c) {
           var m = { exports: {} };c(function (n) {
             return w[n];
           }, m.exports, m);w[n] = m.exports;
         };
-      })("gaia-component", this));
+      })('gaia-component', this));
     }, {}], 3: [function (require, module, exports) {
+      /* global define */
       (function (define) {
-        define(function (require, exports, module) {
-          /*jshint laxbreak:true*/
+        'use strict';define(function (require, exports, module) {
 
           /**
            * Exports
            */
 
-          var base = window.GAIA_ICONS_BASE_URL || window.COMPONENTS_BASE_URL || "bower_components/";
+          var base = window.GAIA_ICONS_BASE_URL || window.COMPONENTS_BASE_URL || 'bower_components/';
 
           if (!document.documentElement) {
-            window.addEventListener("load", load);
+            window.addEventListener('load', load);
           } else {
             load();
           }
@@ -597,42 +671,42 @@
               return;
             }
 
-            var link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.type = "text/css";
-            link.href = base + "gaia-icons/gaia-icons.css";
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = base + 'gaia-icons/gaia-icons.css';
             document.head.appendChild(link);
             exports.loaded = true;
           }
 
           function isLoaded() {
-            return exports.loaded || document.querySelector("link[href*=gaia-icons]") || document.documentElement.classList.contains("gaia-icons-loaded");
+            return exports.loaded || document.querySelector('link[href*=gaia-icons]') || document.documentElement.classList.contains('gaia-icons-loaded');
           }
         });
-      })(typeof define == "function" && define.amd ? define : (function (n, w) {
-        return typeof module == "object" ? function (c) {
+      })(typeof define == 'function' && define.amd ? define : (function (n, w) {
+        'use strict';return typeof module == 'object' ? function (c) {
           c(require, exports, module);
         } : function (c) {
           var m = { exports: {} };c(function (n) {
             return w[n];
           }, m.exports, m);w[n] = m.exports;
         };
-      })("gaia-icons", this));
+      })('gaia-icons', this));
     }, {}], 4: [function (require, module, exports) {
       /* globals define */
       ;(function (define) {
-        "use strict";define(function (require, exports, module) {
+        'use strict';define(function (require, exports, module) {
 
           /**
            * Dependencies
            */
-          var component = require("gaia-component");
-          var _fontFit = require("font-fit");
+          var component = require('gaia-component');
+          var _fontFit = require('font-fit');
 
           /**
            * Load 'gaia-icons' font-family
            */
-          require("gaia-icons");
+          require('gaia-icons');
 
           /**
            * Simple logger (toggle 0)
@@ -647,9 +721,9 @@
            * @type {Object}
            */
           var KNOWN_ACTIONS = {
-            menu: "menu",
-            back: "back",
-            close: "close"
+            menu: 'menu',
+            back: 'back',
+            close: 'close'
           };
 
           /**
@@ -657,7 +731,7 @@
            *
            * @type {String}
            */
-          var TITLE_FONT = "italic 300 24px FiraSans";
+          var TITLE_FONT = 'italic 300 24px FiraSans';
 
           /**
            * The padding (start/end) used if
@@ -691,7 +765,9 @@
            *
            * @return {Element} constructor
            */
-          module.exports = component.register("gaia-header", {
+          module.exports = component.register('gaia-header', {
+            extensible: false, // discards some strings
+            dirObserver: true, // triggers a workaround for bug 1100912 in gaia-component
 
             /**
              * Called when the element is first created.
@@ -704,27 +780,28 @@
             created: function created() {
               var _this = this;
 
-              debug("created");
+              debug('created');
               this.setupShadowRoot();
 
               // Elements
               this.els = {
-                actionButton: this.shadowRoot.querySelector(".action-button"),
-                titles: this.getElementsByTagName("h1")
+                actionButton: this.shadowRoot.querySelector('.action-button'),
+                titles: this.getElementsByTagName('h1')
               };
 
               // Events
-              this.els.actionButton.addEventListener("click", function (e) {
+              this.els.actionButton.addEventListener('click', function (e) {
                 return _this.onActionButtonClick(e);
               });
               this.observer = new MutationObserver(this.onMutation.bind(this));
 
               // Properties
-              this.titleEnd = this.getAttribute("title-end");
-              this.titleStart = this.getAttribute("title-start");
-              this.noFontFit = this.getAttribute("no-font-fit");
-              this.notFlush = this.hasAttribute("not-flush");
-              this.action = this.getAttribute("action");
+              this.ignoreDir = this.hasAttribute('ignore-dir');
+              this.titleEnd = this.getAttribute('title-end');
+              this.titleStart = this.getAttribute('title-start');
+              this.noFontFit = this.getAttribute('no-font-fit');
+              this.notFlush = this.hasAttribute('not-flush');
+              this.action = this.getAttribute('action');
 
               this.unresolved = {};
               this.pending = {};
@@ -749,10 +826,10 @@
              * @private
              */
             attached: function attached() {
-              debug("attached");
+              debug('attached');
               this.runFontFitSoon();
               this.observerStart();
-              window.addEventListener("resize", this.onResize);
+              window.addEventListener('resize', this.onResize);
             },
 
             /**
@@ -762,8 +839,8 @@
              * @private
              */
             detached: function detached() {
-              debug("detached");
-              window.removeEventListener("resize", this.onResize);
+              debug('detached');
+              window.removeEventListener('resize', this.onResize);
               this.observerStop();
               this.clearPending();
             },
@@ -799,7 +876,7 @@
             runFontFit: function runFontFit() {
               var _this2 = this;
 
-              debug("run font-fit");
+              debug('run font-fit');
 
               // Nothing is run if `no-font-fit` attribute
               // is present. We don't `reject()` as this
@@ -828,7 +905,7 @@
             runFontFitSoon: function runFontFitSoon() {
               var _this3 = this;
 
-              debug("run font-fit soon");
+              debug('run font-fit soon');
               if (this.pending.runFontFitSoon) {
                 return;
               }
@@ -844,23 +921,23 @@
              *
              * @param  {HTMLH1Element} el
              * @param  {Number} space
-             * @return {Object} {fontSize, marginStart, overflowing, id}
+             * @return {Object} {id, fontSize, marginStart, overflowing, padding}
              * @private
              */
             getTitleStyle: function getTitleStyle(el, space) {
-              debug("get el style", el, space);
+              debug('get el style', el, space);
               var text = el.textContent;
-              var styleId = space.start + text + space.end + "#" + space.value;
+              var styleId = space.start + text + space.end + '#' + space.value;
 
               // Bail when there's no text (or just whitespace)
               if (!text || !text.trim()) {
-                return debug("exit: no text");
+                return debug('exit: no text');
               }
 
               // If neither the text or the titleSpace
               // changed, there's no reason to continue.
               if (getStyleId(el) === styleId) {
-                return debug("exit: no change");
+                return debug('exit: no change');
               }
 
               var marginStart = this.getTitleMarginStart();
@@ -877,7 +954,7 @@
               // to free up space, rerun fontFit to
               // get a fontSize which fits this space.
               if (overflowing) {
-                debug("title overflowing");
+                debug('title overflowing');
                 padding.start = !space.start ? TITLE_PADDING : 0;
                 padding.end = !space.end ? TITLE_PADDING : 0;
                 textSpace = space.value - padding.start - padding.end;
@@ -895,7 +972,7 @@
             },
 
             /**
-             * Set's styles on the title elements.
+             * Sets styles on the title elements.
              *
              * If there is already an unresolved Promise
              * we return it instead of scheduling another.
@@ -909,8 +986,8 @@
             setTitleStylesSoon: function setTitleStylesSoon(styles) {
               var _this4 = this;
 
-              debug("set title styles soon", styles);
-              var key = "setStyleTitlesSoon";
+              debug('set title styles soon', styles);
+              var key = 'setStyleTitlesSoon';
 
               // Always update styles
               this._titleStyles = styles;
@@ -927,7 +1004,7 @@
 
                   [].forEach.call(els, function (el, i) {
                     if (!styles[i]) {
-                      return debug("exit");
+                      return debug('exit');
                     }
                     _this4.setTitleStyle(el, styles[i]);
                   });
@@ -943,26 +1020,25 @@
             },
 
             /**
-             * Fit text and center a title between
-             * the buttons before and after.
+             * Fit text and center a title between the buttons before and after.
              *
-             * Right now, because gaia-header is not
-             * fully rtl-compatible (due to Gaia),
-             * we're using `marginLeft` etc. These
-             * will be changed to `marginStart` etc
-             * when we become fully RTL.
-             *
-             * @param  {HTMLH1Element} title
-             * @param  {Number} space
+             * @param  {HTMLH1Element} el
+             * @param  {Object} style
              * @private
              */
             setTitleStyle: function setTitleStyle(el, style) {
-              debug("set title style", style);
+              debug('set title style', style);
               this.observerStop();
-              el.style.marginLeft = style.marginStart + "px";
-              el.style.paddingLeft = style.padding.start + "px";
-              el.style.paddingRight = style.padding.end + "px";
-              el.style.fontSize = style.fontSize + "px";
+              if (this.ignoreDir) {
+                el.style.marginLeft = style.marginStart + 'px';
+                el.style.paddingLeft = style.padding.start + 'px';
+                el.style.paddingRight = style.padding.end + 'px';
+              } else {
+                el.style.marginInlineStart = style.marginStart + 'px';
+                el.style.paddingInlineStart = style.padding.start + 'px';
+                el.style.paddingInlineEnd = style.padding.end + 'px';
+              }
+              el.style.fontSize = style.fontSize + 'px';
               setStyleId(el, style.id);
               this.observerStart();
             },
@@ -970,16 +1046,17 @@
             /**
              * Run font-fit on a title with
              * the given amount of content space.
-              * @param {String} text
+             *
+             * @param {String} text
              * @param {Number} space
              * @param {Object} optional {[min]}
              * @return {Object} {fontSize, textWidth}
              * @private
              */
             fontFit: function fontFit(text, space) {
-              var opts = arguments[2] === undefined ? {} : arguments[2];
+              var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-              debug("font fit:", text, space, opts);
+              debug('font fit:', text, space, opts);
 
               var fontFitArgs = {
                 font: TITLE_FONT,
@@ -1011,7 +1088,7 @@
               });
 
               this.observing = true;
-              debug("observer started");
+              debug('observer started');
             },
 
             /**
@@ -1027,7 +1104,7 @@
               this.observer.disconnect();
 
               this.observing = false;
-              debug("observer stopped");
+              debug('observer stopped');
             },
 
             /**
@@ -1039,7 +1116,7 @@
             onResize: function onResize(e) {
               var _this5 = this;
 
-              debug("onResize", this._resizeThrottlingId);
+              debug('onResize', this._resizeThrottlingId);
 
               if (this._resizeThrottlingId !== null) {
                 return;
@@ -1068,7 +1145,7 @@
              * @private
              */
             onMutation: function onMutation(mutations) {
-              debug("on mutation", mutations);
+              debug('on mutation', mutations);
               if (!this.pending.runFontFitSoon) {
                 this.runFontFit();
               }
@@ -1092,7 +1169,7 @@
                 end: end
               };
 
-              debug("get title space", result);
+              debug('get title space', result);
               return result;
             },
 
@@ -1110,7 +1187,7 @@
             getWidth: function getWidth() {
               var value = this.notFlush ? this.clientWidth : window.innerWidth;
 
-              debug("get width", value);
+              debug('get width', value);
               return value;
             },
 
@@ -1139,9 +1216,9 @@
             onActionButtonClick: function onActionButtonClick() {
               var _this6 = this;
 
-              debug("action button click");
+              debug('action button click');
               var config = { detail: { type: this.action } };
-              var e = new CustomEvent("action", config);
+              var e = new CustomEvent('action', config);
               setTimeout(function () {
                 return _this6.dispatchEvent(e);
               });
@@ -1160,7 +1237,7 @@
               var start = this.titleStart;
               var end = this.titleEnd;
               var marginStart = end - start;
-              debug("get title margin start", marginStart);
+              debug('get title margin start', marginStart);
               return marginStart;
             },
 
@@ -1178,7 +1255,7 @@
 
               for (var i = 0; i < l; i++) {
                 var el = children[i];
-                if (el.tagName === "H1") {
+                if (el.tagName === 'H1') {
                   break;
                 }
                 if (!contributesToLayout(el)) {
@@ -1208,7 +1285,7 @@
 
               for (var i = children.length - 1; i >= 0; i--) {
                 var el = children[i];
-                if (el.tagName === "H1") {
+                if (el.tagName === 'H1') {
                   break;
                 }
                 if (!contributesToLayout(el)) {
@@ -1246,7 +1323,7 @@
                 return prev + width;
               }, 0);
 
-              debug("sum button widths", buttons, sum);
+              debug('sum button widths', buttons, sum);
               return sum;
             },
 
@@ -1269,39 +1346,39 @@
                   if (action === this._action) {
                     return;
                   }
-                  this.setAttr("action", action);
+                  this.setAttr('action', action);
                   this._action = action;
                 }
               },
 
               titleStart: {
                 get: function get() {
-                  debug("get title-start");
-                  if ("_titleStart" in this) {
+                  debug('get title-start');
+                  if ('_titleStart' in this) {
                     return this._titleStart;
                   }
                   var buttons = this.getButtonsBeforeTitle();
                   var value = this.sumButtonWidths(buttons);
-                  debug("get title-start", buttons, value);
+                  debug('get title-start', buttons, value);
                   return value;
                 },
 
                 set: function set(value) {
-                  debug("set title-start", value);
+                  debug('set title-start', value);
                   value = parseInt(value, 10);
                   if (value === this._titleStart || isNaN(value)) {
                     return;
                   }
-                  this.setAttr("title-start", value);
+                  this.setAttr('title-start', value);
                   this._titleStart = value;
-                  debug("set");
+                  debug('set');
                 }
               },
 
               titleEnd: {
                 get: function get() {
-                  debug("get title-end");
-                  if ("_titleEnd" in this) {
+                  debug('get title-end');
+                  if ('_titleEnd' in this) {
                     return this._titleEnd;
                   }
                   var buttons = this.getButtonsAfterTitle();
@@ -1309,12 +1386,12 @@
                 },
 
                 set: function set(value) {
-                  debug("set title-end", value);
+                  debug('set title-end', value);
                   value = parseInt(value, 10);
                   if (value === this._titleEnd || isNaN(value)) {
                     return;
                   }
-                  this.setAttr("title-end", value);
+                  this.setAttr('title-end', value);
                   this._titleEnd = value;
                 }
               },
@@ -1324,8 +1401,8 @@
                   return this._noFontFit || false;
                 },
                 set: function set(value) {
-                  debug("set no-font-fit", value);
-                  value = !!(value || value === "");
+                  debug('set no-font-fit', value);
+                  value = !!(value || value === '');
 
                   if (value === this.noFontFit) {
                     return;
@@ -1333,15 +1410,39 @@
                   this._noFontFit = value;
 
                   if (value) {
-                    this.setAttr("no-font-fit", "");
+                    this.setAttr('no-font-fit', '');
                   } else {
-                    this.removeAttr("no-font-fit");
+                    this.removeAttr('no-font-fit');
+                  }
+                }
+              },
+
+              // The [ignore-dir] attribute can be used to force the older behavior of
+              // gaia-header, where the whole header is always displayed in LTR mode.
+              ignoreDir: {
+                get: function get() {
+                  return this._ignoreDir || false;
+                },
+                set: function set(value) {
+                  debug('set ignore-dir', value);
+                  value = !!(value || value === '');
+
+                  if (value === this.ignoreDir) {
+                    return;
+                  }
+                  this._ignoreDir = value;
+                  this.dirObserver = !value;
+
+                  if (value) {
+                    this.setAttr('ignore-dir', '');
+                  } else {
+                    this.removeAttr('ignore-dir');
                   }
                 }
               }
             },
 
-            template: "<div class=\"inner\">\n    <button class=\"action-button\">\n      <content select=\".l10n-action\"></content>\n    </button>\n    <content></content>\n  </div>\n\n  <style>\n\n  :host {\n    display: block;\n    -moz-user-select: none;\n\n    --gaia-header-button-color:\n      var(--header-button-color,\n      var(--header-color,\n      var(--link-color,\n      inherit)));\n  }\n\n  /**\n   * [hidden]\n   */\n\n  :host[hidden] {\n    display: none;\n  }\n\n  /** Reset\n   ---------------------------------------------------------*/\n\n  ::-moz-focus-inner { border: 0; }\n\n  /** Inner\n   ---------------------------------------------------------*/\n\n  .inner {\n    display: flex;\n    min-height: 50px;\n    direction: ltr;\n    -moz-user-select: none;\n\n    background:\n      var(--header-background,\n      var(--background,\n      #fff));\n  }\n\n  /** Action Button\n   ---------------------------------------------------------*/\n\n  /**\n   * 1. Hidden by default\n   */\n\n  .action-button {\n    position: relative;\n\n    display: none; /* 1 */\n    width: 50px;\n    font-size: 30px;\n    margin: 0;\n    padding: 0;\n    border: 0;\n    outline: 0;\n\n    align-items: center;\n    background: none;\n    cursor: pointer;\n    transition: opacity 200ms 280ms;\n    color:\n      var(--header-action-button-color,\n      var(--header-icon-color,\n      var(--gaia-header-button-color)));\n  }\n\n  /**\n   * [action=back]\n   * [action=menu]\n   * [action=close]\n   *\n   * 1. For icon vertical-alignment\n   */\n\n  [action=back] .action-button,\n  [action=menu] .action-button,\n  [action=close] .action-button {\n    display: flex; /* 1 */\n  }\n\n  /**\n   * :active\n   */\n\n  .action-button:active {\n    transition: none;\n    opacity: 0.2;\n  }\n\n  /** Action Button Icon\n   ---------------------------------------------------------*/\n\n  .action-button:before {\n    font-family: 'gaia-icons';\n    font-style: normal;\n    text-rendering: optimizeLegibility;\n    font-weight: 500;\n  }\n\n  [action=close] .action-button:before { content: 'close' }\n  [action=back] .action-button:before { content: 'back' }\n  [action=menu] .action-button:before { content: 'menu' }\n\n  /** Action Button Icon\n   ---------------------------------------------------------*/\n\n  /**\n   * 1. To enable vertical alignment.\n   */\n\n  .action-button:before {\n    display: block;\n  }\n\n  /** Action Button Text\n   ---------------------------------------------------------*/\n\n  /**\n   * To provide custom localized content for\n   * the action-button, we allow the user\n   * to provide an element with the class\n   * .l10n-action. This node is then\n   * pulled inside the real action-button.\n   *\n   * Example:\n   *\n   *   <gaia-header action=\"back\">\n   *     <span class=\"l10n-action\" aria-label=\"Back\">Localized text</span>\n   *     <h1>title</h1>\n   *   </gaia-header>\n   */\n\n  ::content .l10n-action {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    font-size: 0;\n  }\n\n  /** Title\n   ---------------------------------------------------------*/\n\n  /**\n   * 1. Vertically center text. We can't use flexbox\n   *    here as it breaks text-overflow ellipsis\n   *    without an inner div.\n   */\n\n  ::content h1 {\n    flex: 1;\n    margin: 0;\n    padding: 0;\n    overflow: hidden;\n\n    white-space: nowrap;\n    text-overflow: ellipsis;\n    text-align: center;\n    line-height: 50px; /* 1 */\n    font-weight: 300;\n    font-style: italic;\n    font-size: 24px;\n\n    color:\n      var(--header-title-color,\n      var(--header-color,\n      var(--title-color,\n      var(--text-color,\n      inherit))));\n  }\n\n  /**\n   * [dir=rtl]\n   *\n   * When the document is in RTL mode we still\n   * want the <h1> text to be reversed to that\n   * strings like '1 selected' become 'selected 1'.\n   *\n   * When we're happy for gaia-header to be fully\n   * RTL responsive we won't need this rule anymore,\n   * but this depends on all Gaia apps being ready.\n   */\n\n  :host-context([dir=rtl]) ::content h1 {\n    direction: rtl;\n  }\n\n  /** Buttons\n   ---------------------------------------------------------*/\n\n  ::content a,\n  ::content button {\n    position: relative;\n    z-index: 1;\n    box-sizing: border-box;\n    display: flex;\n    width: auto;\n    height: auto;\n    min-width: 50px;\n    margin: 0;\n    padding: 0 10px;\n    outline: 0;\n    border: 0;\n\n    font-size: 14px;\n    line-height: 1;\n    align-items: center;\n    justify-content: center;\n    text-decoration: none;\n    text-align: center;\n    background: none;\n    border-radius: 0;\n    font-style: italic;\n    cursor: pointer;\n    transition: opacity 200ms 280ms;\n    color: var(--gaia-header-button-color);\n  }\n\n  /**\n   * :active\n   */\n\n  ::content a:active,\n  ::content button:active {\n    transition: none;\n    opacity: 0.2;\n  }\n\n  /**\n   * [hidden]\n   */\n\n  ::content a[hidden],\n  ::content button[hidden] {\n    display: none;\n  }\n\n  /**\n   * [disabled]\n   */\n\n  ::content a[disabled],\n  ::content button[disabled] {\n    pointer-events: none;\n    color: var(--header-disabled-button-color);\n  }\n\n  /** Icon Buttons\n   ---------------------------------------------------------*/\n\n  /**\n   * Icons are a different color to text\n   */\n\n  ::content .icon,\n  ::content [data-icon] {\n    color:\n      var(--header-icon-color,\n      var(--gaia-header-button-color));\n  }\n\n  /**\n   * If users want their action button\n   * to be in the component's light-dom\n   * they can add an .action class\n   * to make it look like the\n   * shadow action button.\n   */\n\n  ::content .action {\n    color:\n      var(--header-action-button-color,\n      var(--header-icon-color,\n      var(--gaia-header-button-color)));\n  }\n\n  /**\n   * [data-icon]:empty\n   *\n   * Icon buttons with no textContent,\n   * should always be 50px.\n   *\n   * This is to prevent buttons being\n   * larger than they should be before\n   * icon-font has loaded.\n   */\n\n  ::content [data-icon]:empty {\n    width: 50px;\n  }\n\n  </style>",
+            template: "<div class=\"inner\">\n    <button class=\"action-button\">\n      <content select=\"[l10n-action]\"></content>\n    </button>\n    <content></content>\n  </div>\n\n  <style>\n\n  :host {\n    display: block;\n    -moz-user-select: none;\n\n    --gaia-header-button-color:\n      var(--header-button-color,\n      var(--header-color,\n      var(--link-color,\n      inherit)));\n  }\n\n  /**\n   * [hidden]\n   */\n\n  :host[hidden] {\n    display: none;\n  }\n\n  /** Reset\n   ---------------------------------------------------------*/\n\n  ::-moz-focus-inner { border: 0; }\n\n  /** Inner\n   ---------------------------------------------------------*/\n\n  .inner {\n    display: flex;\n    min-height: 50px;\n    -moz-user-select: none;\n\n    background:\n      var(--header-background,\n      var(--background,\n      #fff));\n  }\n\n  /** Action Button\n   ---------------------------------------------------------*/\n\n  /**\n   * 1. Hidden by default\n   */\n\n  .action-button {\n    position: relative;\n\n    display: none; /* 1 */\n    width: 50px;\n    font-size: 30px;\n    margin: 0;\n    padding: 0;\n    border: 0;\n    outline: 0;\n\n    align-items: center;\n    background: none;\n    cursor: pointer;\n    transition: opacity 200ms 280ms;\n    color:\n      var(--header-action-button-color,\n      var(--header-icon-color,\n      var(--gaia-header-button-color)));\n  }\n\n  /**\n   * [action=back]\n   * [action=menu]\n   * [action=close]\n   *\n   * 1. For icon vertical-alignment\n   */\n\n  [action=back] .action-button,\n  [action=menu] .action-button,\n  [action=close] .action-button {\n    display: flex; /* 1 */\n  }\n\n  /**\n   * :active\n   */\n\n  .action-button:active {\n    transition: none;\n    opacity: 0.2;\n  }\n\n  /** Action Button Icon\n   ---------------------------------------------------------*/\n\n  .action-button:before {\n    font-family: 'gaia-icons';\n    font-style: normal;\n    text-rendering: optimizeLegibility;\n    font-weight: 500;\n  }\n\n  [action=close] .action-button:before { content: 'close' }\n  [action=menu] .action-button:before { content: 'menu' }\n\n  [action=back]:-moz-dir(ltr) .action-button:before { content: 'left' }\n  [action=back]:-moz-dir(rtl) .action-button:before { content: 'right' }\n\n  /** Action Button Icon\n   ---------------------------------------------------------*/\n\n  /**\n   * 1. To enable vertical alignment.\n   */\n\n  .action-button:before {\n    display: block;\n  }\n\n  /** Action Button Text\n   ---------------------------------------------------------*/\n\n  /**\n   * To provide custom localized content for\n   * the action-button, we allow the user\n   * to provide an element with the class\n   * .l10n-action. This node is then\n   * pulled inside the real action-button.\n   *\n   * Example:\n   *\n   *   <gaia-header action=\"back\">\n   *     <span l10n-action aria-label=\"Back\">Localized text</span>\n   *     <h1>title</h1>\n   *   </gaia-header>\n   */\n\n  ::content [l10n-action] {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    font-size: 0;\n  }\n\n  /** Title\n   ---------------------------------------------------------*/\n\n  /**\n   * 1. Vertically center text. We can't use flexbox\n   *    here as it breaks text-overflow ellipsis\n   *    without an inner div.\n   */\n\n  ::content h1 {\n    flex: 1;\n    margin: 0;\n    padding: 0;\n    overflow: hidden;\n\n    white-space: nowrap;\n    text-overflow: ellipsis;\n    text-align: center;\n    line-height: 50px; /* 1 */\n    font-weight: 300;\n    font-style: italic;\n    font-size: 24px;\n\n    color:\n      var(--header-title-color,\n      var(--header-color,\n      var(--title-color,\n      var(--text-color,\n      inherit))));\n  }\n\n  /**\n   * [ignore-dir]\n   *\n   * When the <gaia-header> component has an [ignore-dir] attribute, header\n   * direction is forced to LTR but we still want the <h1> text to be reversed\n   * so that strings like '1 selected' become 'selected 1'.\n   *\n   * When we're happy for <gaia-header> to be fully RTL responsive we won't need\n   * these rules anymore, but this depends on all Gaia apps being ready.\n   *\n   * This should be safe to remove when bug 1179459 lands.\n   */\n\n  :host[ignore-dir] {\n    direction: ltr;\n  }\n\n  :host[ignore-dir]:-moz-dir(rtl) h1 {\n    direction: rtl;\n  }\n\n  /** Buttons\n   ---------------------------------------------------------*/\n\n  ::content a,\n  ::content button {\n    position: relative;\n    z-index: 1;\n    box-sizing: border-box;\n    display: flex;\n    width: auto;\n    height: auto;\n    min-width: 50px;\n    margin: 0;\n    padding: 0 10px;\n    outline: 0;\n    border: 0;\n\n    font-size: 14px;\n    line-height: 1;\n    align-items: center;\n    justify-content: center;\n    text-decoration: none;\n    text-align: center;\n    background: none;\n    border-radius: 0;\n    font-style: italic;\n    cursor: pointer;\n    transition: opacity 200ms 280ms;\n    color: var(--gaia-header-button-color);\n  }\n\n  /**\n   * :active\n   */\n\n  ::content a:active,\n  ::content button:active {\n    transition: none;\n    opacity: 0.2;\n  }\n\n  /**\n   * [hidden]\n   */\n\n  ::content a[hidden],\n  ::content button[hidden] {\n    display: none;\n  }\n\n  /**\n   * [disabled]\n   */\n\n  ::content a[disabled],\n  ::content button[disabled] {\n    pointer-events: none;\n    color: var(--header-disabled-button-color);\n  }\n\n  /** Icon Buttons\n   ---------------------------------------------------------*/\n\n  /**\n   * Icons are a different color to text\n   */\n\n  ::content .icon,\n  ::content [data-icon] {\n    color:\n      var(--header-icon-color,\n      var(--gaia-header-button-color));\n  }\n\n  /**\n   * If users want their action button\n   * to be in the component's light-dom\n   * they can add an .action class\n   * to make it look like the\n   * shadow action button.\n   */\n\n  ::content .action {\n    color:\n      var(--header-action-button-color,\n      var(--header-icon-color,\n      var(--gaia-header-button-color)));\n  }\n\n  /**\n   * [data-icon]:empty\n   *\n   * Icon buttons with no textContent,\n   * should always be 50px.\n   *\n   * This is to prevent buttons being\n   * larger than they should be before\n   * icon-font has loaded.\n   */\n\n  ::content [data-icon]:empty {\n    width: 50px;\n  }\n\n  </style>",
 
             // Test hook
             nextTick: nextTick
@@ -1355,11 +1456,15 @@
            * Determines whether passed element
            * contributes to the layout in gaia-header.
            *
+           * Children with `[l10n-action]` get distributed
+           * inside the action-button so don't occupy
+           * space before the `<h1>`.
+           *
            * @param  {Element}  el
            * @return {Boolean}
            */
           function contributesToLayout(el) {
-            return el.tagName !== "STYLE";
+            return el.localName !== 'style' && !el.hasAttribute('l10n-action');
           }
 
           /**
@@ -1409,14 +1514,14 @@
               } };
           }
         });
-      })(typeof define == "function" && define.amd ? define : (function (n, w) {
-        "use strict";return typeof module == "object" ? function (c) {
+      })(typeof define == 'function' && define.amd ? define : (function (n, w) {
+        'use strict';return typeof module == 'object' ? function (c) {
           c(require, exports, module);
         } : function (c) {
           var m = { exports: {} };c(function (n) {
             return w[n];
           }, m.exports, m);w[n] = m.exports;
         };
-      })("gaia-header", this));
+      })('gaia-header', this));
     }, { "font-fit": 1, "gaia-component": 2, "gaia-icons": 3 }] }, {}, [4])(4);
 });

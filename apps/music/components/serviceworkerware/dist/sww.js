@@ -217,6 +217,7 @@ SimpleOfflineCache.prototype.onFetch = function soc_onFetch(request, response) {
 
   var clone = request.clone();
   var _this = this;
+  debug('Handing fetch event: ' + clone.url);
   return this.ensureCache().then(function(cache) {
     return cache.match(clone, _this.options).then(function(res) {
       if (res) {
@@ -238,6 +239,7 @@ SimpleOfflineCache.prototype.ensureCache = function soc_ensureCache() {
   }
   return this.cacheRequest;
 };
+
 
 module.exports = SimpleOfflineCache;
 
@@ -303,6 +305,7 @@ module.exports = StaticCacher;
 'use strict';
 
 var debug = 1 ? console.log.bind(console, '[ServiceWorkerWare]') : function(){};
+
 var StaticCacher = require('./staticcacher.js');
 var SimpleOfflineCache = require('./simpleofflinecache.js');
 var Router = require('./router.js');
@@ -342,6 +345,10 @@ ServiceWorkerWare.prototype.init = function sww_init() {
 
   // misc events
   addEventListener('message', this);
+
+  // push notifications
+  addEventListener('push', this);
+
   // XXX: Add default configuration
 };
 
@@ -349,6 +356,8 @@ ServiceWorkerWare.prototype.init = function sww_init() {
  * Handle and forward all events related to SW
  */
 ServiceWorkerWare.prototype.handleEvent = function sww_handleEvent(evt) {
+
+  debug('Event received: ' + evt.type);
   switch(evt.type) {
     case 'install':
       this.onInstall(evt);
@@ -359,12 +368,14 @@ ServiceWorkerWare.prototype.handleEvent = function sww_handleEvent(evt) {
     case 'activate':
       this.onActivate(evt);
       break;
+    case 'push':
     case 'message':
     case 'beforeevicted':
     case 'evicted':
       this.forwardEvent(evt);
       break;
     default:
+      debug('Unhandled event ' + evt.type);
   }
 };
 
@@ -382,6 +393,7 @@ ServiceWorkerWare.prototype.onFetch = function sww_onFetch(evt) {
   }).bind(this));
 
   evt.respondWith(this.executeMiddleware(steps, evt.request));
+
 };
 
 /**
@@ -532,6 +544,7 @@ ServiceWorkerWare.normalizeMwAnswer = function (answer, request, response) {
 ServiceWorkerWare.prototype.onInstall = function sww_oninstall(evt) {
   var installation = this.getFromMiddleware('onInstall');
   evt.waitUntil(installation);
+
 };
 
 /**
@@ -545,6 +558,7 @@ ServiceWorkerWare.prototype.onActivate = function sww_activate(evt) {
       activation.then(function claim() { return self.clients.claim(); });
   }
   evt.waitUntil(activation);
+
 };
 
 /**
@@ -684,6 +698,7 @@ ServiceWorkerWare.decorators = {
     };
   }
 };
+
 
 module.exports = {
   ServiceWorkerWare: ServiceWorkerWare,

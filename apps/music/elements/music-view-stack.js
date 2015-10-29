@@ -54,6 +54,18 @@ music-view-stack > iframe.push.in {
 music-view-stack > iframe.push.out {
   animation-name: push-out;
 }
+[dir="rtl"] music-view-stack > iframe.pop.in {
+  animation-name: push-in;
+}
+[dir="rtl"] music-view-stack > iframe.pop.out {
+  animation-name: push-out;
+}
+[dir="rtl"] music-view-stack > iframe.push.in {
+  animation-name: pop-in;
+}
+[dir="rtl"] music-view-stack > iframe.push.out {
+  animation-name: pop-out;
+}
 @keyframes fade-in {
   0%   { opacity: 0; }
   100% { opacity: 1; }

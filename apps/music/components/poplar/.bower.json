@@ -13,11 +13,11 @@
     "test",
     "tests"
   ],
-  "_release": "df16684a2e",
+  "_release": "e317f4a968",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "df16684a2efd3d571added6edf2c843e40996e82"
+    "commit": "e317f4a9688e8c6265904d9c981a2460aded7e33"
   },
   "_source": "git://github.com/wilsonpage/poplar.git",
   "_target": "*",

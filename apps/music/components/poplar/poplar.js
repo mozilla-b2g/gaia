@@ -130,7 +130,11 @@ poplar.populate = function(el, data) {
 
   // text nodes
   while (i--) {
-    textNodes[i].node.data = getProp(data, textNodes[i].key);
+    var node = textNodes[i].node;
+    var newData = getProp(data, textNodes[i].key);
+    if (node.data !== newData) {
+      node.data = newData;
+    }
   }
 
   // attributes

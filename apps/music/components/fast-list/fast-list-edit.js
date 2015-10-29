@@ -129,7 +129,6 @@ function fastListEdit(list) {
     var li = ctx.item;
     var touch = evt.touches && evt.touches[0] || evt;
     var position = touch.pageY;
-
     var delta = position - ctx.initialY;
 
     list._rearrange(delta);
@@ -147,6 +146,8 @@ function fastListEdit(list) {
    * @param {Number} delta the distance traveled by the reordering gesture
    */
   list._rearrange = function(delta) {
+    debug('rearrange', delta);
+
     var ctx = list.reorderingContext;
     var upCount = ctx.moveUp.size;
     var downCount = ctx.moveDown.size;
@@ -168,6 +169,8 @@ function fastListEdit(list) {
       list.geometry,
       list.els.itemsInDOM
     );
+
+    debug('rearranged');
   };
 
   /**
@@ -271,22 +274,23 @@ function fastListEdit(list) {
   };
 }
 
-
 /**
  * Internals
  */
 
 function resetTransform(item) {
+  debug('reset transform');
   var position = parseInt(item.dataset.position);
   item.style.webkitTransform =
-    item.style.transform = 'translate3d(0, ' + position + 'px, 0)';
+    item.style.transform = 'translateY(' + position + 'px)';
   item.dataset.tweakDelta = '';
 }
 
 function tweakTransform(item, delta) {
-  var position = parseInt(item.dataset.position) + delta;
+  debug('tweak transform', delta);
+  var position = ~~item.dataset.position + delta;
   item.style.webkitTransform =
-    item.style.transform = 'translate3d(0, ' + position + 'px, 0)';
+    item.style.transform = 'translateY(' + position + 'px)';
   item.dataset.tweakDelta = delta;
 }
 
@@ -297,6 +301,7 @@ function resetTransition(item) {
 
 function tweakAndTransition(item, tweak) {
   return schedule.feedback(function() {
+    debug('tweak and transition', item, tweak);
     item.style.transition = 'transform 0.15s ease';
     item.style.webkitTransition = '-webkit-transform 0.15s ease';
     if (tweak === 0) {
@@ -372,6 +377,7 @@ function computeChanges(context, geometry, domItems, delta) {
 }
 
 function applyChanges(context, geometry, domItems) {
+  debug('apply changes');
   if (!context.item) return Promise.resolve();
 
   var itemHeight = geometry.itemHeight;
@@ -408,6 +414,7 @@ function applyChanges(context, geometry, domItems) {
 }
 
 function moveInPlace(context, geometry) {
+  debug('move in place');
   var li = context.item;
 
   // We're already in place
@@ -431,7 +438,6 @@ function moveInPlace(context, geometry) {
 // Shorthand
 function on(el, name, fn) { el.addEventListener(name, fn); }
 function off(el, name, fn) { el.removeEventListener(name, fn); }
-
 
 });})((typeof define)[0]=='f'&&define.amd?define:(function(n,n2,w){'use strict';
 return(typeof module)[0]=='o'?function(c){c(require,exports,module);}:

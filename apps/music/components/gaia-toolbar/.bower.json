@@ -15,7 +15,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "gaia-icons": "gaia-components/gaia-icons#~0.6.1",
+    "gaia-icons": "gaia-components/gaia-icons#~0.10.0",
     "gaia-theme": "gaia-components/gaia-theme#~0.5.0",
     "base": "gaia-components/base"
   },
@@ -24,14 +24,13 @@
     "gaia-component": "gaia-components/gaia-component#~0.2.0"
   },
   "homepage": "https://github.com/gaia-components/gaia-toolbar",
-  "_release": "51df530293",
+  "_release": "474aab785d",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "51df530293757d550c1b5dd36bbe570154f734db"
+    "commit": "474aab785d3899ae27eb08d165c7ab7799cb0c8f"
   },
   "_source": "git://github.com/gaia-components/gaia-toolbar.git",
   "_target": "master",
-  "_originalSource": "gaia-components/gaia-toolbar",
-  "_direct": true
+  "_originalSource": "gaia-components/gaia-toolbar"
 }
