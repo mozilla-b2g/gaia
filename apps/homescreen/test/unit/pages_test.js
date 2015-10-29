@@ -397,59 +397,5 @@ suite('Pages', () => {
         assert.isFalse(editModeStub.called);
       });
     });
-
-    suite('scroll', () => {
-      test('should show and hide the drop shadow accordingly', () => {
-        pages.pagesVisible = true;
-        pages.scrollable = {
-          scrollTop: 50
-        };
-        pages.handleEvent(new CustomEvent('scroll'));
-        assert.isTrue(pages.shadow.classList.contains('visible'));
-
-        pages.scrollable.scrollTop = 0;
-        pages.handleEvent(new CustomEvent('scroll'));
-        assert.isFalse(pages.shadow.classList.contains('visible'));
-      });
-    });
-
-    suite('hashchange', () => {
-      var realDocumentHidden;
-      setup(() => {
-        realDocumentHidden =
-          Object.getOwnPropertyDescriptor(document, 'hidden');
-        Object.defineProperty(document, 'hidden', {
-          value: false,
-          configurable: true
-        });
-      });
-
-      teardown(() => {
-        if (realDocumentHidden) {
-          Object.defineProperty(document, 'hidden', realDocumentHidden);
-        } else {
-          delete document.hidden;
-        }
-      });
-
-      test('should scroll to the top of the page', done => {
-        var realPanels = pages.panels;
-        pages.panels = { scrollLeft: 100 };
-
-        pages.scrollable = {
-          scrollTo: (obj) => {
-            done(() => {
-              pages.panels = realPanels;
-              assert.equal(obj.top, 0);
-              assert.equal(obj.left, 0);
-            });
-          },
-          parentNode: {
-            offsetLeft: 100
-          }
-        };
-        pages.handleEvent(new CustomEvent('hashchange'));
-      });
-    });
   });
 });
