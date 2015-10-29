@@ -9,7 +9,6 @@
 /* global asyncStorage */
 /* global ERROR_GET_FXA_ASSERTION */
 /* global ERROR_SYNC_APP_KILLED */
-/* global ERROR_SYNC_REQUEST */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global expect */
 /* global FxAccountsClient */
@@ -19,6 +18,7 @@
 /* global MockNavigatorSettings */
 /* global SettingsListener */
 /* global SyncManager */
+/* global SyncRecoverableErrors */
 /* global SyncStateMachine */
 
 require('/shared/js/sync/errors.js');
@@ -156,6 +156,10 @@ suite('smart-system/SyncManager >', () => {
           this.sinon.stub(syncManager, 'observeSettings', () => {
             return Promise.resolve();
           });
+          this.sinon.stub(syncManager, 'getAccount', () => {
+            syncManager.user = 'someone';
+            return Promise.resolve('someone');
+          });
           syncManager.start().then(done);
         });
       });
@@ -166,6 +170,7 @@ suite('smart-system/SyncManager >', () => {
       enableSpy.reset();
       syncSpy.reset();
       unregisterSyncRequestStub.restore();
+      registerSyncRequestStub.restore();
       syncManager.stop();
     });
 
@@ -199,7 +204,7 @@ suite('smart-system/SyncManager >', () => {
       nextSyncStateValue: 'disabled',
       shouldDisable: true
     }].forEach(config => {
-      test('sync.state ' + config.syncStateValue, () => {
+      test('sync.state ' + config.syncStateValue, done => {
         if (config.shouldDisable) {
           this.sinon.assert.calledOnce(updateStateSpy);
           assert.ok(updateStateSpy.calledWith('disabled'));
@@ -212,6 +217,7 @@ suite('smart-system/SyncManager >', () => {
           setTimeout(() => {
             shouldDisable ? this.sinon.assert.notCalled(syncSpy)
                           : this.sinon.assert.calledOnce(syncSpy);
+            done();
           });
         })(config.shouldDisable);
 
@@ -440,6 +446,7 @@ suite('smart-system/SyncManager >', () => {
       registerSyncSpy = this.sinon.spy(navigator.sync, 'register');
       updateStateSpy = this.sinon.spy(syncManager, 'updateState');
       errorSpy = this.sinon.spy(SyncStateMachine, 'error');
+      syncManager.user = 'someone';
     });
 
     teardown(() => {
@@ -504,6 +511,19 @@ suite('smart-system/SyncManager >', () => {
         this.sinon.assert.calledOnce(registerSyncSpy);
         this.sinon.assert.calledOnce(updateStateSpy);
         this.sinon.assert.calledOnce(errorSpy);
+        done();
+      });
+    });
+
+    test('onenabled received - no user should disable sync', done => {
+      teardown(() => {
+        disableStub.restore();
+      });
+      syncManager.user = null;
+      var disableStub = this.sinon.stub(SyncStateMachine, 'disable');
+      SyncStateMachine.onenabled();
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(disableStub);
         done();
       });
     });
@@ -654,6 +674,24 @@ suite('smart-system/SyncManager >', () => {
 
     var updateStateSpy;
     var disableStub;
+    var enableStub;
+
+    const ERROR_SYNC_APP_KILLED = 'fxsync-error-app-killed';
+    const ERROR_SYNC_APP_SYNC_IN_PROGRESS =
+      'fxsync-error-app-fxsync-in-progress';
+    const ERROR_SYNC_APP_GENERIC = 'fxsync-error-app-generic';
+    const ERROR_SYNC_APP_TRY_LATER = 'fxsync-error-app-try-later';
+    const ERROR_UNVERIFIED_ACCOUNT = 'fxsync-error-unverified-account';
+    const ERROR_DIALOG_CLOSED_BY_USER = 'fxsync-error-dialog-closed-by-user';
+    const ERROR_GET_FXA_ASSERTION = 'fxsync-error-get-fxa-assertion';
+    const ERROR_INVALID_SYNC_ACCOUNT = 'fxsync-error-invalid-account';
+    const ERROR_OFFLINE = 'fxsync-error-offline';
+    const ERROR_REQUEST_SYNC_REGISTRATION =
+      'fxsync-error-request-fxsync-registration';
+    const ERROR_SYNC_INVALID_REQUEST_OPTIONS =
+      'fxsync-error-invalid-request-options';
+    const ERROR_SYNC_REQUEST = 'fxsync-error-request-failed';
+    const ERROR_UNKNOWN = 'fxsync-error-unknown';
 
     suiteSetup(() => {
       syncManager = new SyncManager();
@@ -668,32 +706,43 @@ suite('smart-system/SyncManager >', () => {
     setup(() => {
       updateStateSpy = this.sinon.spy(syncManager, 'updateState');
       disableStub = this.sinon.stub(SyncStateMachine, 'disable');
+      enableStub = this.sinon.stub(SyncStateMachine, 'enable');
     });
 
     teardown(() => {
       updateStateSpy.restore();
       disableStub.restore();
+      enableStub.restore();
     });
 
-    test('onerrored received - recoverable error', done => {
-      SyncStateMachine.state = 'enabling';
-      SyncStateMachine.error(ERROR_SYNC_APP_KILLED);
-      setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
-        assert.equal(syncManager.error, ERROR_SYNC_APP_KILLED);
-        this.sinon.assert.notCalled(disableStub);
-        done();
-      });
-    });
-
-    test('onerrored received - unrecoverable error', done => {
-      SyncStateMachine.state = 'enabling';
-      SyncStateMachine.error(ERROR_SYNC_REQUEST);
-      setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
-        assert.equal(syncManager.error, ERROR_SYNC_REQUEST);
-        this.sinon.assert.calledOnce(disableStub);
-        done();
+    [ERROR_SYNC_APP_KILLED,
+     ERROR_SYNC_APP_SYNC_IN_PROGRESS,
+     ERROR_SYNC_APP_GENERIC,
+     ERROR_SYNC_APP_TRY_LATER,
+     ERROR_UNVERIFIED_ACCOUNT,
+     ERROR_DIALOG_CLOSED_BY_USER,
+     ERROR_GET_FXA_ASSERTION,
+     ERROR_INVALID_SYNC_ACCOUNT,
+     ERROR_OFFLINE,
+     ERROR_REQUEST_SYNC_REGISTRATION,
+     ERROR_SYNC_INVALID_REQUEST_OPTIONS,
+     ERROR_SYNC_REQUEST,
+     ERROR_UNKNOWN].forEach(error => {
+      test(`onerrored received - ${error}`, done => {
+        SyncStateMachine.state = 'enabling';
+        SyncStateMachine.error(error);
+        setTimeout(() => {
+          this.sinon.assert.calledOnce(updateStateSpy);
+          assert.equal(syncManager.error, error);
+          if (SyncRecoverableErrors.indexOf(error) > -1) {
+            this.sinon.assert.called(enableStub);
+            this.sinon.assert.notCalled(disableStub);
+          } else {
+            this.sinon.assert.called(disableStub);
+            this.sinon.assert.notCalled(enableStub);
+          }
+          done();
+        });
       });
     });
   });

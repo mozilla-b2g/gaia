@@ -4,9 +4,11 @@
 
 'use strict';
 
+/* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_OFFLINE */
-/* global ERROR_DIALOG_CLOSED_BY_USER */
+/* global ERROR_SYNC_APP_TRY_LATER */
+/* global ERROR_UNKNOWN */
 
 /**
  * These errors are shared by all Firefox Sync related modules. The key should
@@ -45,6 +47,8 @@
     ERROR_SYNC_APP_SYNC_IN_PROGRESS: 'fxsync-error-app-fxsync-in-progress',
     // Error while trying to sync.
     ERROR_SYNC_APP_GENERIC: 'fxsync-error-app-generic',
+    // The server cannot be reached.
+    ERROR_SYNC_APP_TRY_LATER: 'fxsync-error-app-try-later',
     // The user is logged in with an unverified account.
     ERROR_UNVERIFIED_ACCOUNT: 'fxsync-error-unverified-account'
   };
@@ -64,10 +68,13 @@
   // Map between external (FxA, Syncto, kinto.js) and Sync errors.
   exports.SyncErrors = {
     'invalid account': ERROR_INVALID_SYNC_ACCOUNT,
-    'UNVERIFIED_ACCOUNT': ERROR_INVALID_SYNC_ACCOUNT,
     'No keyFetchToken': ERROR_INVALID_SYNC_ACCOUNT,
     'OFFLINE': ERROR_OFFLINE,
-    'UI_ERROR': ERROR_DIALOG_CLOSED_BY_USER
+    'try later': ERROR_SYNC_APP_TRY_LATER,
+    'UI_ERROR': ERROR_DIALOG_CLOSED_BY_USER,
+    'unauthorized': ERROR_INVALID_SYNC_ACCOUNT,
+    'UNVERIFIED_ACCOUNT': ERROR_INVALID_SYNC_ACCOUNT,
+    'unrecoverable': ERROR_UNKNOWN
   };
 
 }(window));

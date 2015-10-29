@@ -216,8 +216,15 @@
     },
 
     set user(user) {
-      asyncStorage.setItem(SYNC_USER, user, () => {
-        this.store.set(SYNC_USER, user);
+      // We need to check if there's an user logged in during the enabled
+      // state handler, so we cannot wait for the asyncStorage write.
+      this.store.set(SYNC_USER, user);
+      asyncStorage.setItem(SYNC_USER, user, () => {}, () => {
+        // This should never happen, but if something goes wrong storing the
+        // user we delete the user from memory and disable Sync to avoid
+        // inconsistent states.
+        this.store.delete(SYNC_USER);
+        SyncStateMachine.disable();
       });
     },
 
@@ -303,6 +310,15 @@
     onenabled(from) {
       this.debug('onenabled observed');
       this.updateState();
+
+      // If we got to this point with no user, something went wrong, so we
+      // need to disable Sync.
+      if (!this.user) {
+        this.debug('No user');
+        SyncStateMachine.disable();
+        return;
+      }
+
       this.registerSyncRequest().then(() => {
         this.debug('Sync request registered');
         // After login in with a new account or rebooting the device,
@@ -385,11 +401,14 @@
       // We don't update the state until we set the error.
       this.updateState();
 
-      // If the error is not recoverable, we disable Sync.
-      if (SyncRecoverableErrors.indexOf(error) <= -1) {
-        this.debug('Unrecoverable error');
-        SyncStateMachine.disable();
+      // If the error is recoverable we go back to the enabled state,
+      // otherwise, we disable Sync.
+      if (SyncRecoverableErrors.indexOf(error) > -1) {
+        SyncStateMachine.enable();
+        return;
       }
+      this.debug('Unrecoverable error');
+      SyncStateMachine.disable();
     },
 
     onsyncing() {
@@ -682,9 +701,10 @@
           var error = result.error;
           error = error.message ? error.message : error;
           console.error('Error while trying to sync', error);
-          // XXX The sync app needs to propagate a less general error.
-          //     Bug 1210412
-          SyncStateMachine.error(ERROR_SYNC_APP_GENERIC);
+
+          error = SyncErrors[error] || ERROR_SYNC_APP_GENERIC;
+
+          SyncStateMachine.error(error);
           return;
         }
         this.debug('Sync succeded');
