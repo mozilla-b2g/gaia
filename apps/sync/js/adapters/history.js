@@ -26,6 +26,7 @@
 */
 
 const HISTORY_COLLECTION_MTIME = '::collections::history::mtime';
+const HISTORY_LAST_REVISIONID = '::collections::history::revisionid';
 const HISTORY_SYNCTOID_PREFIX = '::synctoid::history::';
 
 var HistoryHelper = (() => {
@@ -46,9 +47,28 @@ var HistoryHelper = (() => {
     });
   }
 
+  function removeSyncedCollectionMtime(userid) {
+    return new Promise(resolve => {
+      asyncStorage.removeItem(userid + HISTORY_COLLECTION_MTIME, resolve);
+    });
+  }
+
   function getSyncedCollectionMtime(userid) {
     return new Promise(resolve => {
       asyncStorage.getItem(userid + HISTORY_COLLECTION_MTIME, resolve);
+    });
+  }
+
+  function getLastRevisionId(userid) {
+    return new Promise(resolve => {
+      asyncStorage.getItem(userid + HISTORY_LAST_REVISIONID, resolve);
+    });
+  }
+
+  function setLastRevisionId(lastRevisionId, userid) {
+    return new Promise(resolve => {
+      asyncStorage.setItem(userid + HISTORY_LAST_REVISIONID, lastRevisionId,
+          resolve);
     });
   }
 
@@ -179,12 +199,79 @@ var HistoryHelper = (() => {
     });
   }
 
+  function checkIfClearedSince(lastRevisionId, userid) {
+    return _ensureStore().then(store => {
+      if (lastRevisionId === null) {
+        var cursor = store.sync();
+        // Skip first task which is always { id: null, operation: 'clear' }
+        cursor.next().then(() => {
+          return cursor;
+        });
+      }
+      return store.sync(lastRevisionId);
+    }).then(cursor => {
+      var wasCleared = false;
+      return new Promise(resolve => {
+        function runNextTask(cursor) {
+          cursor.next().then(task => {
+            if (task.operation === 'done') {
+              resolve({
+                newRevisionId: task.revisionId,
+                wasCleared
+              });
+            } else {
+              if (task.operation === 'clear') {
+                wasCleared = true;
+              }
+              // Avoid stack overflow:
+              setTimeout(() => {
+                // Will eventually get to a 'done' task:
+                runNextTask(cursor);
+              });
+            }
+          });
+        }
+        runNextTask(cursor);
+      });
+    });
+  }
+
+  /*
+   * handleClear - trigger re-import if DataStore was cleared
+   *
+   * In the future, the bookmarks and history DataAdapters will support
+   * two-way sync, so they will not only import data from the kinto.js
+   * collection into the DataStore, but also check what changes have
+   * been made recently in the DataStore, and reflect these in the kinto.js
+   * collection. Until then, the only thing we check from the DataStore is
+   * whether it has been cleared. If a `clear` operation was executed on the
+   * DataStore since the last time we checked (`lastRevisionId`), then the
+   * lastModifiedTime of the kinto.js collection is removed from asyncStorage,
+   * triggering a full import.
+   */
+  function handleClear(userid) {
+    var newRevisionId;
+    return getLastRevisionId(userid).then(lastRevisionId => {
+      return checkIfClearedSince(lastRevisionId, userid);
+    }).then(result => {
+      newRevisionId = result.newRevisionId;
+      if(result.wasCleared) {
+        // Removing this from asyncStorage will trigger a full re-import.
+        return removeSyncedCollectionMtime(userid);
+      }
+      return Promise.resolve();
+    }).then(() => {
+      return setLastRevisionId(newRevisionId, userid);
+    });
+  }
+
   return {
     mergeRecordsToDataStore: mergeRecordsToDataStore,
     setSyncedCollectionMtime: setSyncedCollectionMtime,
     getSyncedCollectionMtime: getSyncedCollectionMtime,
     updatePlaces: updatePlaces,
-    deletePlace: deletePlace
+    deletePlace: deletePlace,
+    handleClear: handleClear
   };
 })();
 
@@ -294,17 +381,25 @@ DataAdapters.history = {
 
   update(remoteHistory, options = { readonly: true }) {
     if (!options.readonly) {
-      console.warn('Two-way sync not implemented yet for bookmarks.');
+      console.warn('Two-way sync not implemented yet for history.');
     }
     var mtime;
     return LazyLoader.load(['shared/js/async_storage.js'])
     .then(() => {
+      // FIXME: Decide how readonly DataAdapters should deal with local
+      // deletions on the phone.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1219621
+      return HistoryHelper.handleClear(options.userid);
+    }).then(() => {
       return HistoryHelper.getSyncedCollectionMtime(options.userid);
     }).then(_mtime => {
       mtime = _mtime;
       return remoteHistory.list();
     }).then(list => {
       return this._update(list.data, mtime, options.userid);
+    }).catch(err => {
+      console.error('History DataAdapter update error', err);
+      throw err;
     });
   },
 
