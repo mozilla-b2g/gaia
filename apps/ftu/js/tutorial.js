@@ -1,5 +1,5 @@
 /* global ScreenLayout, Promise,
-          Utils, FinishScreen, LazyLoader */
+          Utils, FinishScreen, LazyLoader, TutorialUtils */
 /* exported Tutorial */
 
 (function(exports) {
@@ -12,67 +12,9 @@
   var dom = {};
 
   /**
-   * Helper function to load imagaes and video
-   * @param {DOMNode} mediaElement  video or image to assign new src to
-   * @param {String} src  URL for video/image resource
-   * @returns {Promise}
+   * Manages and controls the configuration, content and state of the tutorial
+   * @module Tutorial
    */
-  function _loadMedia(mediaElement, src) {
-    var isVideo = (mediaElement.nodeName === 'VIDEO');
-    return new Promise(function(resolve, reject) {
-      function onMediaLoadOrError(evt) {
-        console.log('TUTORIAL: _loadMedia, onMediaLoadOrError for evt.type: ' +
-          (evt && evt.type));
-        evt.target.removeEventListener('error', onMediaLoadOrError);
-        if (isVideo) {
-          evt.target.removeEventListener('canplay', onMediaLoadOrError);
-          evt.target.removeEventListener('abort', onMediaLoadOrError);
-        } else {
-          evt.target.removeEventListener('load', onMediaLoadOrError);
-        }
-        // Dont block progress on failure to load media
-        if (evt.type === 'error') {
-          console.error('Failed to load tutorial media: ' + src);
-        } else if (evt.type === 'abort') {
-          console.error('Loading of tutorial media aborted: ' + src);
-        }
-        resolve(evt);
-      }
-      function onVideoUnloaded(evt) {
-        console.log('TUTORIAL: _loadMedia, onVideoUnloaded for evt.type: ' +
-          (evt && evt.type));
-        mediaElement.removeEventListener('emptied', onVideoUnloaded);
-        mediaElement.addEventListener('canplay', onMediaLoadOrError);
-        mediaElement.addEventListener('abort', onMediaLoadOrError);
-        mediaElement.addEventListener('error', onMediaLoadOrError);
-        console.log('TUTORIAL: _loadMedia, onVideoUnloaded, assigning src: ' +
-          src);
-        mediaElement.src = src;
-        mediaElement.load();
-      }
-      if (isVideo) {
-        // must unload video and force load before switching to new source
-        if (mediaElement.src) {
-          console.log('TUTORIAL: _loadMedia, removing src attribute');
-          mediaElement.removeAttribute('src');
-          mediaElement.addEventListener('emptied', onVideoUnloaded, false);
-          console.log('TUTORIAL: _loadMedia, calling load');
-          mediaElement.load();
-        } else {
-          console.log('TUTORIAL: _loadMedia, no src, ' +
-            'just calling onVideoUnloaded');
-          onVideoUnloaded();
-        }
-      } else {
-        console.log('TUTORIAL: _loadMedia, not a video, ' +
-          'listen for load/error only');
-        mediaElement.addEventListener('load', onMediaLoadOrError, false);
-        mediaElement.addEventListener('error', onMediaLoadOrError, false);
-        mediaElement.src = src;
-      }
-    });
-  }
-
   var elementIDs = [
     'tutorial',
     'tutorial-step-title',
@@ -83,10 +25,6 @@
     'back-tutorial'
   ];
 
-  /**
-   * Manages and controls the configuration, content and state of the tutorial
-   * @module Tutorial
-   */
   var Tutorial = {
     // A configuration object.
     config: null,
@@ -122,7 +60,7 @@
         return;
       }
 
-      var initTasks = this._initialization = new Sequence(
+      var initTasks = this._initialization = new TutorialUtils.Sequence(
         // config should load or already be loaded.
         // failure should abort
         this.loadConfig.bind(this),
@@ -202,7 +140,7 @@
         initInProgress = true;
       } else {
         // init already complete, create new sequence
-        this._initialization = sequence = new Sequence();
+        this._initialization = sequence = new TutorialUtils.Sequence();
         sequence.onabort = this._onAbortInitialization.bind(this);
         sequence.oncomplete =
           this._onCompleteInitialization.bind(this);
@@ -298,14 +236,15 @@
 
       var stepPromise;
       if (stepData.video) {
-        stepPromise = _loadMedia(videoElement, stepData.video).then(function(){
-          videoElement.play();
+        stepPromise = TutorialUtils.getBestAssetForDirection(stepData.video)
+        .then((bestSrc) => {
+          return TutorialUtils.loadAndPlayMedia(videoElement, bestSrc);
         });
         videoElement.hidden = false;
         imgElement.hidden = true;
       } else {
         imgElement.hidden = false;
-        stepPromise = _loadMedia(imgElement, stepData.image);
+        stepPromise = TutorialUtils.loadMedia(imgElement, stepData.image);
         imgElement.hidden = false;
         videoElement.hidden = true;
       }
@@ -438,64 +377,6 @@
       return resetPromise;
     }
   };
-
-  /**
-   * Private helper class to manage a series of sync or async functions
-   *
-   * The array may be manipulated using standard array methods while the
-   * sequence runs. The sequence completes when there are no more functions or
-   * an exception is raised.
-   * At the end of the sequence, any 'oncomplete' assigned will be called with
-   * the return value from the last function
-   * Functions may return a 'thenable' to indicate async return
-   * Exceptions will be passed into the oncomplete function
-   * A Sequence may be cleanly aborted by calling abort() - no callbacks will
-   * be fired
-   * @class Sequence
-   */
-  function Sequence() {
-    var sequence = Array.slice(arguments);
-    var aborted = false;
-    sequence.abort = function() {
-      aborted = true;
-      this.length = 0;
-      if (typeof this.onabort === 'function') {
-        this.onabort();
-      }
-    };
-    sequence.complete = function(result) {
-      if(!aborted && typeof this.oncomplete === 'function') {
-        this.oncomplete(result);
-      }
-    };
-    sequence.fail = function(reason) {
-      this.complete(reason);
-    };
-    sequence.next = function(previousTaskResult) {
-      var result, exception;
-      if (aborted) {
-        return;
-      }
-      var task = this.shift();
-      if (task) {
-        try {
-          result = task.apply(null, arguments);
-        } catch(e) {
-          exception = e;
-        }
-        if (exception) {
-          this.fail(exception);
-        } else if (result && typeof result.then === 'function') {
-          result.then(this.next.bind(this), this.fail.bind(this));
-        } else {
-          this.next(result);
-        }
-      } else {
-        this.complete(previousTaskResult);
-      }
-    };
-    return sequence;
-  }
 
   exports.Tutorial = Tutorial;
 
