@@ -26,7 +26,7 @@ suite('VCardLoadUI', function() {
     importHook.setAttribute('rel', 'import');
     importHook.setAttribute('href', '/contacts/elements/multiple_select.html');
     document.head.appendChild(importHook);
-console.log(document.body.innerHTML);
+
     // Fill the HTML
     LazyLoader.load(
       [

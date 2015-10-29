@@ -58,6 +58,24 @@ window.addEventListener('load', function() {
   LazyLoader.load(dependencies).then(function() {
     utils.PerformanceHelper.contentInteractive();
     utils.PerformanceHelper.chromeInteractive();
+
+    ListController.init();
+    ListUI.init();
+
+    /*
+     * We have 2 ways of retrieving params:
+     * - Through URL params
+     * This is the case when calling ICE, due to we are using
+     * the activity URL, and the 'action' is a param
+     * - When exporing/importing
+     * This should be moved to URL params, but we need
+     * to get rid of the <iframe> and curtain first. More
+     * details in the following bug:
+     * https://bugzilla.mozilla.org/show_bug.cgi?id=1183561
+     */
+
+
+    // Retrieve (if any) params in the URL
     function getParams() {
       var params = {};
       var raw = window.location.search.split('?')[1];
@@ -74,13 +92,36 @@ window.addEventListener('load', function() {
     }
 
     var params = getParams();
-    ListUI.init(params.action);
-    ListController.init();
+    params && params.action && ListUI.initAction(params.action);
 
-    if (params.action && (params.action === 'delete' ||
-      params.action === 'export')) {
-      SelectMode.init(params);
-    }
+    // Retrieve (if any) params coming from export/import/delete
+    // after using Settings view.
+    window.addEventListener('pageshow', function() {
+      var action = sessionStorage.getItem('action');
+      if (!action || action === '' || action == 'null') {
+        return;
+      }
+
+      switch(action) {
+        case 'delete':
+          ListUI.initAction(action);
+          SelectMode.init({action: action});
+          break;
+        case 'export':
+          ListUI.initAction(action);
+          SelectMode.init(
+            {
+              action: action,
+              destination: sessionStorage.getItem('destination') || '',
+              iccId: sessionStorage.getItem('iccId') || ''
+            }
+          );
+          sessionStorage.setItem('destination', null);
+          sessionStorage.setItem('iccId', null);
+          break;
+      }
+      sessionStorage.setItem('action', null);
+    });
 
     navigator.mozSetMessageHandler(
       'activity',

@@ -1,6 +1,18 @@
-/* global BulkDelete, utils, ListUI, ContactsService, LazyLoader, Loader,
-Search, ContactsExporter, ListUtils, HeaderUI, ContactsSIMExport, IccHandler,
-ContactsBTExport, ContactsSDExport*/
+/* global ListUI */
+/* global ListUtils */
+/* global HeaderUI */
+/* global utils */
+/* global ContactsService */
+/* global LazyLoader */
+/* global BulkDelete */
+/* global ContactsExporter */
+/* global ContactsSDExport */
+/* global ContactsBTExport */
+/* global ContactsSIMExport */
+/* global IccHandler */
+/* global Loader */
+/* global Search */
+/* global Overlay */
 
 (function(exports) {
   'use strict';
@@ -23,7 +35,8 @@ ContactsBTExport, ContactsSDExport*/
       searchList = null,
       currentlySelected = 0,
       isDangerSelectList = false,
-      selectedContacts = {};
+      selectedContacts = {},
+      exportButtonHandler = null;
 
   /*
     Returns back the list to it's normal behaviour
@@ -42,6 +55,9 @@ ContactsBTExport, ContactsSDExport*/
         selectForm.classList.add('hide');
       });
     });
+
+    selectActionButton.removeEventListener('click', exportButtonHandler);
+    exportButtonHandler = null;
 
     selectForm.classList.remove('in-edit-mode');
     selectForm.classList.remove('contacts-select');
@@ -216,13 +232,17 @@ ContactsBTExport, ContactsSDExport*/
     utils.alphaScroll.toggleFormat('short');
 
     var title = 'DeleteTitle';
-    if (operation.action === 'delete') {
-      selectActionButton.addEventListener('click', doDeleteAction);
-    } else {
-      title = 'exportContactsAction';
-      selectActionButton.addEventListener('click',
-        doExportAction.bind(null, operation));
+    switch (operation.action) {
+      case 'delete':
+        exportButtonHandler = doDeleteAction;
+        break;
+      case 'export':
+        title = 'exportContactsAction';
+        exportButtonHandler = doExportAction.bind(null, operation);
+        break;
     }
+
+    selectActionButton.addEventListener('click', exportButtonHandler);
 
     selectActionButton.setAttribute('data-l10n-id', title);
 
@@ -366,10 +386,17 @@ ContactsBTExport, ContactsSDExport*/
   function doExportAction(operation) {
     switch (operation.destination) {
       case 'sim':
-        var iccId = operation.iccid;
+        var iccId = operation.iccId;
+
         LazyLoader.load(['/contacts/js/export/sim.js',
-          '/contacts/js/utilities/icc_handler.js'],
+          '/contacts/js/utilities/icc_handler.js',
+          '/contacts/js/export/contacts_exporter.js',
+          '/shared/js/contacts/import/utilities/status.js',
+          '/shared/js/confirm.js',
+          document.getElementById('confirmation-message')],
           function() {
+            // TODO promise like init function?
+            IccHandler.init();
             doExport(new ContactsSIMExport(IccHandler.getIccById(iccId)));
           }
         );
@@ -381,7 +408,9 @@ ContactsBTExport, ContactsSDExport*/
             '/shared/js/device_storage/get_unused_filename.js',
             '/shared/js/contact2vcard.js',
             '/shared/js/setImmediate.js',
-            '/contacts/js/export/sd.js'
+            '/contacts/js/export/sd.js',
+            '/contacts/js/export/contacts_exporter.js',
+            '/shared/js/contacts/import/utilities/status.js'
           ],
           function() {
             doExport(new ContactsSDExport());
@@ -395,7 +424,9 @@ ContactsBTExport, ContactsSDExport*/
             '/shared/js/device_storage/get_unused_filename.js',
             '/shared/js/contact2vcard.js',
             '/shared/js/setImmediate.js',
-            '/contacts/js/export/bt.js'
+            '/contacts/js/export/bt.js',
+            '/contacts/js/export/contacts_exporter.js',
+            '/shared/js/contacts/import/utilities/status.js'
           ],
           function() {
             doExport(new ContactsBTExport());
@@ -410,9 +441,23 @@ ContactsBTExport, ContactsSDExport*/
     // warn the user of the ongoin operation, dismiss it
     // once we have the result
     Loader.utility('Overlay', function _loaded() {
-      utils.overlay.show('preparing-contacts', null, 'spinner');
+      Overlay.showSpinner('preparing-contacts');
 
       var selectionPromise = createSelectPromise();
+      selectionPromise.onsuccess = function onSuccess(ids) {
+        // Once we start the export process we can exit from select mode
+        // This will have to evolve once export errors can be captured
+        exitSelectMode();
+        var exporter = new ContactsExporter(strategy);
+        exporter.init(ids, function onExporterReady() {
+          // Leave the contact exporter to deal with the overlay
+          exporter.start();
+        });
+      };
+      selectionPromise.onerror = function onError() {
+        exitSelectMode();
+        Overlay.hide();
+      };
 
       // If we are in the middle of a pending select all
       // (we clicked and the list is still not completely loaded)
@@ -437,21 +482,6 @@ ContactsBTExport, ContactsSDExport*/
       }
 
       selectionPromise.resolve(ids);
-
-      selectionPromise.onsuccess = function onSuccess(ids) {
-        // Once we start the export process we can exit from select mode
-        // This will have to evolve once export errors can be captured
-        exitSelectMode();
-        var exporter = new ContactsExporter(strategy);
-        exporter.init(ids, function onExporterReady() {
-          // Leave the contact exporter to deal with the overlay
-          exporter.start();
-        });
-      };
-      selectionPromise.onerror = function onError() {
-        exitSelectMode();
-        utils.overlay.hide();
-      };
     });
   }
 

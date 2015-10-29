@@ -1,9 +1,8 @@
-/* global Contacts */
 /* global ICEData */
 /* global ConfirmDialog */
 /* global ContactsService */
-/* global HeaderUI */
-/* global Search */
+/* global SettingsUI */
+/* global MozActivity */
 
 /**
  * ICE Settings view. In charge of selecting
@@ -11,12 +10,9 @@
  * the datastore to share those contacts with
  * dialer and lockscreen.
  */
-
-'use strict';
-
-var contacts = window.contacts || {};
-
 (function(exports) {
+  'use strict';
+
   var iceSettingsPanel,
     iceSettingsHeader,
     iceContactItems = [],
@@ -54,7 +50,7 @@ var contacts = window.contacts || {};
 
     // ICE Events handlers
     iceSettingsHeader.addEventListener('action', function(){
-      contacts.Settings.navigation.back();
+      SettingsUI.navigation.back();
     });
 
     // All the controls do the same, just modifications on the
@@ -187,34 +183,6 @@ var contacts = window.contacts || {};
     iceContactButtons[index].setAttribute('data-l10n-id', 'ICESelectContact');
   }
 
-  function resetIceGroupStates() {
-    for(var j = 0; j < iceContactCheckboxes.length; j++) {
-      resetIceGroupState(j);
-    }
-  }
-
-  function goBack() {
-    contacts.List.clearClickHandlers();
-    contacts.List.handleClick(Contacts.showContactDetail);
-    HeaderUI.setNormalHeader();
-
-    var hasICESet = ICEData.iceContacts.find(function(x) {
-      return x.active === true;
-    });
-
-    if (!hasICESet) {
-      resetIceGroupStates();
-    }
-
-    if (window.Search && Search.isInSearchMode()) {
-      Search.exitSearchMode();
-    }
-
-    contacts.Settings.navigation.back(() => {
-      hasICESet && contacts.List.toggleICEGroup(true);
-    });
-  }
-
   /**
    * Given a contact id, saves it internally. Also restores the contact
    * list default handler.
@@ -224,7 +192,7 @@ var contacts = window.contacts || {};
    */
   function selectICEHandler(id) {
     checkContact(id).then(function() {
-      setICEContact(id, currentICETarget, true, goBack);
+      setICEContact(id, currentICETarget, true);
     }, function error(l10nId) {
       var dismiss = {
         title: 'ok',
@@ -293,12 +261,22 @@ var contacts = window.contacts || {};
    * @para target (HTMLButton) Button click to select an ICE contact
    */
   function showSelectList(target) {
-    contacts.List.toggleICEGroup(false);
-    HeaderUI.setCancelableHeader(goBack, 'selectContact');
-    contacts.Settings.navigation.go('view-contacts-list', 'right-left');
-    currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
-    contacts.List.clearClickHandlers();
-    contacts.List.handleClick(selectICEHandler);
+    var activity = new MozActivity({
+      name: 'pick',
+
+      data: {
+        type: 'webcontacts/contact',
+        fullContact: true
+      }
+    });
+
+    activity.onsuccess = () => {
+      var contact = activity.result;
+      if (contact) {
+        currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
+        selectICEHandler(contact.id);
+      }
+    };
   }
 
   /**

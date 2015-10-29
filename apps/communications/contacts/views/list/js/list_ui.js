@@ -1,7 +1,7 @@
 /* globals ListUtils, Cache, Search, HeaderUI, ActivityHandler,
 ContactsService, utils, Normalizer, LazyLoader, Loader, SelectMode, ICEStore,
 ICEData, ICEView, ImageLoader, ContactPhotoHelper, ConfirmDialog,
-monitorTagVisibility */
+monitorTagVisibility, GaiaHeader, GaiaSubheader */
 
 (function(exports){
   'use strict';
@@ -36,7 +36,7 @@ monitorTagVisibility */
       // 2 contacts with current implementation
       iceContacts = [],
       iceGroup = null,
-      forceICEGroupToBeHidden = false,
+      iceState = null,
       clonableSelectCheck = null,
       _action = null;
 
@@ -150,7 +150,19 @@ monitorTagVisibility */
     monitor && monitor.resumeMonitoringMutations(false);
   }
 
-  function init(action, reset) {
+  function initAction(action) {
+    if (action) {
+      _action = action;
+      toggleICEGroup(false);
+    }
+
+    // Hide buttons if the action is a pick
+    if (action === 'pick') {
+      document.body.classList.add('pick');
+    }
+  }
+
+  function init(reset) {
     _ = navigator.mozL10n.get;
     cancel = document.getElementById('cancel-search');
     contactsListView = document.getElementById('view-contacts-list');
@@ -161,11 +173,6 @@ monitorTagVisibility */
     searchInput = document.querySelector('#search-start > input');
 
     groupsList = document.getElementById('groups-list');
-
-    if (action) {
-      _action = action;
-      toggleICEGroup(false);
-    }
 
     addListeners();
 
@@ -208,16 +215,20 @@ monitorTagVisibility */
       return;
     }
     var changes = JSON.parse(changesStringified);
+
     if (!changes || !changes[0] || !changes[0].reason) {
+      console.log('no event on changes array');
       return;
     }
 
-    oncontactchange(changes[0]);
+    changes.forEach((contact) => {
+      oncontactchange(contact);
+    });
+    // oncontactchange(changes[0]);
   }
 
   function checkOrderChange() {
     var orderChange = sessionStorage.getItem('orderchange');
-
     // Update list if neeeded
     if (orderChange && orderChange !== 'null') {
       setOrderByLastName(!orderByLastName);
@@ -233,11 +244,33 @@ monitorTagVisibility */
     ContactsService.addListener('contactchange', oncontactchange);
 
     window.addEventListener('exitSelectMode', function() {
-      toggleICEGroup(true);
+      restoreICEGroupState();
     });
 
     window.addEventListener('pageshow', function() {
+      // XXX: Workaround until the platform will be fixed
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1184953
+      document.registerElement(
+        'gaia-header',
+        { prototype: GaiaHeader.prototype }
+      );
+      document.registerElement(
+        'gaia-subheader',
+        { prototype: GaiaSubheader.prototype }
+      );
+
+      // XXX: We need to get back the theme color
+      // due to the bug with back&forward cache
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1184953
+      var meta = document.querySelector('meta[name="theme-color"]');
+      document.head.removeChild(meta);
+      meta = document.createElement('meta');
+      meta.content = 'var(--header-background)';
+      meta.name = 'theme-color';
+      document.head.appendChild(meta);
+
       window.dispatchEvent(new CustomEvent('list-shown'));
+      loadICE();
       checkContactChanges();
       checkOrderChange();
     });
@@ -433,7 +466,7 @@ monitorTagVisibility */
 
   function load(contacts, forceReset, callback) {
     var onError = function() {
-      console.log('ERROR Retrieving contacts');
+      console.error('ERROR Retrieving contacts');
     };
 
     if (forceReset) {
@@ -492,7 +525,7 @@ monitorTagVisibility */
       });
       callback();
     }, function configError(err) {
-        window.console.error('Error while reading configuration file');
+        console.error('Error while reading configuration file');
         orderByLastName = utils.cookie.getDefault('order');
         defaultImage = utils.cookie.getDefault('defaultImage');
         utils.cookie.update({
@@ -912,7 +945,7 @@ monitorTagVisibility */
 
     var inCache = Cache.active &&
                   (Cache.hasContact(contact.id)) ||
-                  (group == 'favorites' && Cache.hasFavorite(contact.id));
+                  (group === 'favorites' && Cache.hasFavorite(contact.id));
 
     // If above the fold for list or if the contact is in the cache,
     // create the DOM node. If the contact is in the cache and has not
@@ -934,7 +967,7 @@ monitorTagVisibility */
     // can append the new node with the updated information.
     if (inCache) {
       var cachedContact;
-      if (group == 'favorites') {
+      if (group === 'favorites') {
         cachedContact = Cache.getFavorite(contact.id);
       } else {
         cachedContact = Cache.getContact(contact.id);
@@ -1009,18 +1042,13 @@ monitorTagVisibility */
   /**
    * Check if we have ICE contacts information
    */
-  var ICELoaded;
   function loadICE() {
-    if (ICELoaded) {
-      return Promise.resolve();
-    }
     return new Promise((resolve, reject) => {
       LazyLoader.load([
         '/contacts/js/utilities/ice_data.js',
         '/shared/js/contacts/utilities/ice_store.js'],
        function() {
         ICEStore.getContacts().then((ids) => {
-          ICELoaded = true;
           displayICEIndicator(ids);
           resolve();
         });
@@ -1053,17 +1081,21 @@ monitorTagVisibility */
       return;
     }
 
-    forceICEGroupToBeHidden = !(!!show);
-    forceICEGroupToBeHidden ? hideICEGroup() : showICEGroup();
+    iceState = !iceGroup.classList.contains('hide');
+    show ? hideICEGroup() : showICEGroup();
   }
 
-  function showICEGroup() {
-    // If the ICE group has been hidden programmatically by means of
-    // <toggleICEGroup> it will only be displayed again using the same
-    // mechanism regardless updates.
-    if (forceICEGroupToBeHidden) {
+  function restoreICEGroupState() {
+    if (!iceState) {
       return;
     }
+    iceState ? showICEGroup() : hideICEGroup();
+    
+    // Clear flag
+    iceState = null;
+ }
+
+  function showICEGroup() {
     iceGroup.classList.remove('hide');
     utils.alphaScroll.showGroup('ice');
   }
@@ -1255,9 +1287,9 @@ monitorTagVisibility */
       if (link.dataset.uuid !== id || !link.dataset.src) {
         delete img.dataset.group;
         img.style.backgroundPosition = img.dataset.backgroundPosition || '';
-        setImageURL(img, photo, asClone);  
+        setImageURL(img, photo, asClone);
       }
-      
+
       return;
     }
 
@@ -1318,7 +1350,6 @@ monitorTagVisibility */
       group = '#';
     }
     img.dataset.group = group;
-
   }
 
   // Remove the image for the given list item.  Leave the photo in our cache,
@@ -1505,8 +1536,8 @@ monitorTagVisibility */
     // 2. List is loaded (so no select pending), but the button for select
     //    all the contact is clicked, so we add it as selected
     var selectAll = document.getElementById('select-all');
-    SelectMode.selectedContacts[contact.id] = SelectMode.selectAllPending ||
-      (selectAll && selectAll.disabled);
+    SelectMode.selectedContacts[contact.id] =
+      SelectMode.selectAllPending || (selectAll && selectAll.disabled);
   }
 
   function hasName(contact) {
@@ -1691,9 +1722,10 @@ monitorTagVisibility */
     return ret;
   }
 
-  // Perform contact refresh.  First arg may be either an ID or a contact
-  // object.  If an ID is passed then the contact is retrieved from the
-  // database.  Otherwise refresh the list based on the given contact
+  // Perform contact refresh.
+  // First arg may be either an ID or a contact object.
+  // If an ID is passed then get the contact from the database.
+  // Otherwise refresh the list based on the given contact
   // object without looking up any information.
   function refresh(idOrContact, callback) {
     // Passed a contact, not an ID
@@ -1728,7 +1760,6 @@ monitorTagVisibility */
       return;
     }
     iceGroup = null;
-    ICELoaded = false;
     utils.dom.removeChildNodes(groupsList);
     headers = {};
     loadedContacts = {};
@@ -1967,6 +1998,7 @@ monitorTagVisibility */
   }
 
   exports.ListUI = {
+    initAction: initAction,
     'init': init,
     get chunkSize() {
       return CHUNK_SIZE;

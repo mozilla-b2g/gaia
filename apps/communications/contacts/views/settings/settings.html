@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="theme-group" content="theme-communications">
+    <meta name="theme-color" content="var(--header-background)">
+    <title> Contacts </title>
+
+    <!-- Hack for avoiding 'glitch' when loading the view -->
+    <style type="text/css">
+        html, body {
+            background: #E7E7E7 !important;
+        }
+    </style>
+
+    <!-- Building Blocks -->
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/lists.css" rel="stylesheet">
+    <link href="/shared/style/scrolling.css" rel="stylesheet">
+    <link href="/shared/style/buttons.css" rel="stylesheet">
+    <link href="/shared/style/progress_activity.css" rel="stylesheet">
+    <link href="/shared/style/status.css" rel="stylesheet">
+    <link href="/shared/style/switches.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style/action_menu.css" rel="stylesheet">
+
+    <link href="/shared/style/edit_mode.css" rel="stylesheet">
+    <link href="/shared/style/animations.css" rel="stylesheet">
+
+    <link href="/contacts/style/app.css" rel="stylesheet">
+    <link href="/contacts/style/contacts.css" rel="stylesheet">
+
+    <link href="/shared/pages/import/style/search.css" rel="stylesheet">
+    <link href="/shared/pages/import/style/curtain_frame.css" rel="stylesheet">
+    <link href="/contacts/style/status.css" rel="stylesheet">
+    <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
+    <link href="/shared/style/contacts.css" rel="stylesheet">
+    <link href="/shared/style/contacts/contacts_buttons.css" rel="stylesheet">
+
+    <link href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" rel="stylesheet" />
+    <link href="/shared/elements/gaia-icons/gaia-icons.css" rel="stylesheet" />
+
+    <!-- Web Components -->
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+
+    <link rel="localization" href="/locales/contacts.{locale}.properties">
+    <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="/shared/locales/phone_types/phone_types.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
+
+    <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/contacts/js/utilities/performance_helper.js"></script>
+    <script defer src="/contacts/js/cache.js"></script>
+    <script defer src='/contacts/views/settings/js/boot.js'></script>
+    <script defer src="/shared/elements/gaia_switch/script.js"></script>
+
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="/contacts/locales/contacts.{locale}.properties">
+    <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="/shared/locales/phone_types/phone_types.{locale}.properties">
+
+    <link rel="import" href="/contacts/elements/confirm.html">
+    <link rel="import" href="/contacts/elements/status.html">
+    <link rel="import" href="/contacts/elements/settings.html">
+    <link rel="import" href="/contacts/elements/multiple_select.html">
+
+    <!-- Lazy Loading
+    <link href="/shared/pages/import/oauth.html">
+    <link href="/shared/pages/import/curtain.html">
+
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia_menu/style.css">
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia_sim_picker/style.css">
+
+    <script defer src="/shared/elements/gaia_menu/script.js"></script>
+    <script defer src="/shared/elements/gaia_sim_picker/script.js"></script>
+
+    <script defer src="/shared/pages/import/js/curtain.js"></script>
+
+    <link href="/contacts/style/overlay.css" rel="stylesheet">
+    <script src="/shared/js/async_storage.js"></script>
+    <script src="/shared/js/confirm.js"></script>
+    <script src="/shared/js/l10n_date.js"></script>
+    <script src="/shared/js/text_normalizer.js"></script>
+    <script src="/shared/js/advanced_telemetry_helper.js"></script>
+    <script src="/shared/js/settings_listener.js"></script>
+    // import
+    <script src="/shared/js/contacts/import/utilities/vcard_parser.js"></script>
+    <script src="/shared/js/contacts/import/utilities/overlay.js"></script>
+    <script src="/shared/js/contacts/import/utilities/status.js"></script>
+    <script src="/shared/js/contacts/import/utilities/sdcard.js"></script>
+    <script src="/shared/js/contacts/utilities/event_listeners.js"></script>
+    // utilities
+    <script src="/contacts/js/utilities/sim_dom_generator.js"></script>
+    <script src="/contacts/js/utilities/icc_handler.js"></script>
+    <script src="/contacts/js/utilities/normalizer.js"></script>
+    <script src="/contacts/js/utilities/cookie.js"></script>
+    <script src="/contacts/js/service_extensions.js"></script>
+    <script src="/contacts/js/navigation.js"></script>
+    <script src="/contacts/js/activities.js"></script>
+    <script src="/contacts/js/loader.js"></script>
+    // settings
+    <script src="/contacts/views/settings/js/settings_ui.js',
+    <script src="/contacts/views/settings/js/main_navigation.js"></script>
+    <script src="/contacts/views/settings/js/settings_controller.js"></script>
+    <script src="/contacts/services/contacts.js"></script>
+    -->
+  </head>
+
+  <body role="application" class="app-contacts skin-comms theme-communications">
+    <iframe id="iframe_curtain" src="/shared/pages/import/curtain.html"></iframe>
+
+    <article id="settings-wrapper">
+       <section data-theme="organic" id="view-settings" role="region" class="skin-organic view theme-settings current">
+          <gaia-header>
+            <h1 data-l10n-id="settings"></h1>
+            <button id="settings-close" data-l10n-id="done">Done</button>
+          </gaia-header>
+
+          <article class="view-body" id="settings-article">
+            <section role="region" class="view-body-inner">
+              <ul data-type="list" role="presentation">
+                <li id="settingsOrder" role="checkbox">
+                  <gaia-switch name="order.lastname">
+                    <label data-l10n-id="contactsOrderBy"></label>
+                  </gaia-switch>
+                </li>
+              </ul>
+              <gaia-subheader skin="organic" id="transfer-contacts-header">
+                <span data-l10n-id="transferContactsTitle">Transfer Contacts</span>
+              </gaia-subheader>
+              <ul data-type="list" id="sources" role="listbox" aria-labelledby="transfer-contacts-header">
+                <li role="presentation" id="importContacts" data-source="sim">
+                  <button role="option" class="icon icon-import" data-l10n-id="importContactsButton">
+                    Import Contacts
+                  </button>
+                </li>
+                <li role="presentation" id="exportContacts" data-source="sd">
+                  <button role="option" class="icon icon-export" data-l10n-id="exportContactsButton">
+                    Export Contacts
+                  </button>
+                </li>
+              </ul>
+              <gaia-subheader skin="organic" id="contacts-management-header">
+                <span data-l10n-id="ContactManagementTitle">Contacts Management</span>
+              </gaia-subheader>
+              <ul data-type="list" id="contactsManagement" role="listbox" aria-labelledby="contacts-management-header">
+                <li role="presentation">
+                  <button role="option" id="set-ice" class="action" data-l10n-id="setICEButton">
+                    Set ICE Contacts
+                  </button>
+                </li>
+                <li role="presentation">
+                  <button role="option" id="bulkDelete" class="action" data-l10n-id="bulkDeleteButton">
+                    Delete Contacts
+                  </button>
+                </li>
+              </ul>
+            </section>
+          </article>
+        </section>
+        <section data-theme="organic" id="import-settings" role="region" class="skin-organic view theme-settings">
+          <gaia-header id="import-settings-header" action="back">
+            <h1 id='import-settings-title'></h1>
+          </gaia-header>
+          <article class="view-body">
+            <section role="region" class="view-body-inner">
+              <ul role="listbox" data-type="list" id="import-options">
+                <li role="presentation" id="import-sd-option" data-source="sd">
+                  <button role="option" class="icon icon-sd" >
+                    <span data-l10n-id="importMemoryCard">Memory card</span>
+                    <p><span></span><time></time></p>
+                  </button>
+                  <p class="error-message"></p>
+                </li>
+                <li role="presentation" id="import-gmail-option" class="importService" data-source="gmail">
+                  <button role="option" class="icon icon-gmail">
+                    <span data-l10n-id="importGmail">Gmail</span>
+                    <p><span></span><time></time></p>
+                  </button>
+                </li>
+                <li role="presentation" id="import-live-option" class="importService" data-source="live">
+                  <button role="option" class="icon icon-live">
+                    <span data-l10n-id="importOutlook">Outlook</span>
+                    <p><span></span><time></time></p>
+                  </button>
+                  <p class="error-message" data-l10n-id="genericNoConnection"></p>
+                </li>
+              </ul>
+              <ul role="listbox" data-type="list" id="export-options">
+                <li role="presentation" id="export-sd-option" data-source="sd">
+                  <button role="option" class="icon icon-sd" data-l10n-id="memoryCard">
+                    Memory card
+                  </button>
+                  <p class="error-message"></p>
+                </li>
+                <li role="presentation" id="export-bluetooth-option" data-source="bluetooth">
+                  <button role="option" class="icon icon-bluetooth" data-l10n-id="bluetooth">
+                    Bluetooth
+                  </button>
+                </li>
+              </ul>
+            </section>
+          </article>
+        </section>
+        <section data-theme="organic" id="ice-settings" role="region" class="skin-organic view theme-settings">
+          <gaia-header id="ice-settings-header" action="back">
+            <h1 id='ice-settings-title' data-l10n-id="ICESettingTitle"></h1>
+          </gaia-header>
+          <article class="view-body">
+            <section role="region" class="view-body-inner">
+              <p class="description" data-l10n-id="ICEDescription">
+                Add two contacts for making “In Case of Emergency” calls.
+              </p>
+              <ul data-type="list" role="listbox" aria-multiselectable="true">
+                <li role="option" id="ice-contacts-1-switch" class="ice-contacts-switch">
+                  <gaia-switch name="ice-contact-1-enabled">
+                    <label data-l10n-id="ICEContact1"></label>
+                  </gaia-switch>
+                </li>
+                <li role="presentation">
+                  <button role="option" id="select-ice-contact-1" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
+                    Select a contact
+                  </button>
+                </li>
+                <li role="option" id="ice-contacts-2-switch" class="ice-contacts-switch">
+                  <gaia-switch name="ice-contact-2-enabled">
+                    <label data-l10n-id="ICEContact2"></label>
+                  </gaia-switch>
+                </li>
+                <li role="presentation">
+                  <button role="option" id="select-ice-contact-2" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
+                    Select a contact
+                  </button>
+                </li>
+              </ul>
+            </section>
+          </article>
+        </section>
+    </article>
+    <form    is="confirmation-message" id="confirmation-message" class="hide" role="dialog" data-type="confirm"></form>
+    <section is="status-message" id="statusMsg" role="status" class="hidden"></section>
+  </body>
+</html>

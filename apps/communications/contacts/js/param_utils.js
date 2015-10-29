@@ -1,5 +1,4 @@
 (function(exports) {
-  
   'use strict';
 
   /*
@@ -10,9 +9,8 @@
   const paths = {
     detail: '/contacts/views/details/details.html',
     form: '/contacts/views/form/form.html',
-    // TODO Add paths to the rest of views
-    settings: '',
-    list: ''
+    settings: '/contacts/views/settings/settings.html',
+    list: '/contacts/views/list/list.html'
   };
 
   exports.ParamUtils = {

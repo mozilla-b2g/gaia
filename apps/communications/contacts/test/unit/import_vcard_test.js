@@ -6,14 +6,15 @@ require('/shared/js/contacts/import/utilities/import_from_vcard.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_moz_contact.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 
 requireApp('communications/contacts/test/unit/mock_contacts_match.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_vcard_reader.js');
 requireApp('communications/contacts/test/unit/mock_file_reader.js');
-require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_overlay.js');
 requireApp('communications/contacts/test/unit/mock_loader.js');
 requireApp('/shared/test/unit/mocks/mock_moz_contact.js');
 
@@ -31,7 +32,8 @@ var mocksHelperForImportVcard = new MocksHelper([
   'Contacts',
   'VCardReader',
   'ConfirmDialog',
-  'FileReader'
+  'FileReader',
+  'Overlay'
 ]).init();
 
 var vcardSingle = 'BEGIN:VCARD\n' +
@@ -101,7 +103,6 @@ suite('Import from vcard', function() {
       real_,
       realStatus,
       realMatcher,
-      realOverlay,
       realLoader;
 
   suiteSetup(function() {
@@ -112,7 +113,6 @@ suite('Import from vcard', function() {
     window._ = navigator.mozL10n.get;
 
     realStatus = window.utils.status;
-    realOverlay = window.Overlay;
 
     navigator.mozContacts = MockMozContacts;
     sinon.stub(navigator.mozContacts, 'find', function mockMozContactsFind() {
@@ -134,21 +134,6 @@ suite('Import from vcard', function() {
     realLoader = window.Loader;
     window.Loader = MockLoader;
 
-    window.Overlay = {
-      total: 0,
-      show: function() {
-        return this;
-      },
-      hide: function() {},
-      showMenu: function() {},
-      update: function() {},
-      setClass: function() {},
-      setTotal: function(n) {
-        this.total = n;
-      },
-      setHeaderMsg: function() {}
-    };
-
     window.utils.status = {
       show: function() {}
     };
@@ -160,6 +145,8 @@ suite('Import from vcard', function() {
     window.Overlay.total = 0;
     navigator.mozContacts.contacts = [];
     mocksHelperForImportVcard.setup();
+    this.sinon.spy(window.Overlay, 'showProgressBar');
+    this.sinon.spy(window.ConfirmDialog, 'show');
   });
 
   suiteTeardown(function() {
@@ -167,7 +154,6 @@ suite('Import from vcard', function() {
     window._ = real_;
     window.Matcher = realMatcher;
     window.utils.status = realStatus;
-    window.Overlay = realOverlay;
     window.Loader = realLoader;
     mocksHelperForImportVcard.suiteTeardown();
   });
@@ -175,7 +161,8 @@ suite('Import from vcard', function() {
   test('Import single contact', function(done) {
     utils.importFromVcard(vcardSingle, function(numberOfContacts, id) {
       assert.equal(id, contact1.id, 'return id of the contact imported');
-      assert.equal(window.Overlay.total, 1);
+      assert.equal(window.Overlay.showProgressBar.getCall(0).args[1], 1,
+                   'total number of contacts to process is 1');
       done();
     });
   });
@@ -183,7 +170,8 @@ suite('Import from vcard', function() {
   test('Import multiple contacts', function(done) {
     utils.importFromVcard(vcardMultiple, function(numberOfContacts, id) {
       assert.equal(id, contact1.id, 'returns id of the first contact imported');
-      assert.equal(window.Overlay.total, 2);
+      assert.equal(window.Overlay.showProgressBar.getCall(0).args[1], 2,
+                   'total number of contacts to process is 2');
       done();
     });
   });
@@ -191,7 +179,8 @@ suite('Import from vcard', function() {
   test('Error while importing', function(done) {
     utils.importFromVcard(vcardError, function(numberOfContacts, id) {
       assert.isUndefined(id, 'returns no id as there was an error');
-      assert.equal(window.Overlay.total, 0);
+      assert.isFalse(window.Overlay.showProgressBar.called,
+                     'progress is not updated with contacts');
       done();
     });
   });

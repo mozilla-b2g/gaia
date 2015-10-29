@@ -1,6 +1,5 @@
 'use strict';
 
-/* global contacts */
 /* global LazyLoader */
 /* global MyLocks */
 /* global MockWakeLock */
@@ -9,6 +8,7 @@
 /* global MockSdCard */
 /* global MocksHelper */
 /* global MockUtils */
+/* global MockLoader */
 /* global MockContactsIndexHtml */
 /* global MockNavigatorMozMobileConnections */
 /* global MockSimContactsImporter */
@@ -16,12 +16,16 @@
 /* global MockMozContacts */
 /* global MockAdvancedTelemetryHelper */
 
+/* global SettingsUI */
+/* global SettingsController */
+
 require('/shared/js/lazy_loader.js');
+
+require('/shared/test/unit/mocks/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
-requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
-
 requireApp('communications/contacts/test/unit/mock_service_extensions.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
@@ -35,11 +39,14 @@ requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
 requireApp(
   'communications/contacts/test/unit/mock_advanced_telemetry_helper.js');
+requireApp('communications/contacts/test/unit/mock_overlay.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
+requireApp('communications/contacts/test/unit/mock_fb_loader.js');
+requireApp('communications/contacts/services/contacts.js');
 
-require('/shared/test/unit/mocks/mock_confirm_dialog.js');
-require('/shared/test/unit/mocks/mock_mozContacts.js');
 
-requireApp('communications/contacts/js/views/settings.js');
+requireApp('communications/contacts/views/settings/js/settings_controller.js');
+requireApp('communications/contacts/views/settings/js/settings_ui.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');
 requireApp('communications/contacts/js/utilities/sim_dom_generator.js');
 requireApp('communications/contacts/js/navigation.js');
@@ -50,24 +57,19 @@ if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
 
 var mocksHelperForContactImport = new MocksHelper([
   'ExtServices', 'Contacts', 'fb', 'asyncStorage', 'ConfirmDialog',
-  'VCFReader', 'WakeLock', 'SimContactsImporter'
-]);
-mocksHelperForContactImport.init();
+  'VCFReader', 'WakeLock', 'SimContactsImporter', 'Overlay', 'fbLoader'
+]).init();
 
 suite('Import contacts >', function() {
   var mocksHelper = mocksHelperForContactImport;
 
   var real_,
       realUtils,
+      realLoader,
       realWakeLock,
       realMozMobileConnections,
       realMozContacts,
       realATH;
-
-  setup(function() {
-    this.sinon.spy(window.Overlay, 'showProgressBar');
-    this.sinon.spy(window.Overlay, 'showActivityBar');
-  });
 
   teardown(function() {
     MockasyncStorage.clear();
@@ -90,16 +92,13 @@ suite('Import contacts >', function() {
 
     realUtils = window.utils;
     window.utils = MockUtils;
-    window.Overlay = {
-      showProgressBar: function() {},
-      showActivityBar: function() {},
-      showSpinner: function() {},
-      hide: function() {},
-      updateProgressBar: function() {}
-    };
+
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
 
     window.utils.status = {
-      show: function() {}
+      show: function() {
+      }
     };
 
     window.utils.misc = {
@@ -114,9 +113,13 @@ suite('Import contacts >', function() {
     window.utils.time = {
       pretty: function() {}
     };
+    window.utils.cookie = {
+      load: function() {}
+    };
 
     document.body.innerHTML = MockContactsIndexHtml;
-    contacts.Settings.init();
+    SettingsController.init();
+    SettingsUI.init();
 
     LazyLoader.load(['/shared/js/contacts/import/utilities/status.js',
       '/shared/js/advanced_telemetry_helper.js'], () => {
@@ -134,85 +137,128 @@ suite('Import contacts >', function() {
     navigator.mozContacts = realMozContacts;
 
     window.utils = realUtils;
+    window.Loader = realLoader;
     window._ = real_;
     window.AdvancedTelemetryHelper = realATH;
 
     mocksHelper.suiteTeardown();
   });
 
-
-  setup(function() {
-    this.sinon.spy(window.utils.status, 'show');
+  teardown(function() {
+    MockasyncStorage.clear();
   });
 
-  test('SD Import went well', function(done) {
-    sinon.spy(window, 'AdvancedTelemetryHelper');
-    contacts.Settings.importFromSDCard(function onImported() {
-      assert.equal(window.Overlay.showActivityBar.getCall(0).args.length, 3);
-      assert.equal(window.utils.status.show.getCall(0).args.length, 2);
-      assert.equal(false, MyLocks.cpu);
-      window.TelemetryReady.then(() => {
-        assert.isTrue(window.AdvancedTelemetryHelper.calledWithNew());
-        var counter = window.AdvancedTelemetryHelper.getCall(0).returnValue;
-        assert.equal(counter.name, 'telemetry_gaia_contacts_import_sd');
-        assert.equal(window.AdvancedTelemetryHelper.HISTOGRAM_COUNT,
-          counter.type);
-        window.AdvancedTelemetryHelper.restore();
+  suite('SD Import >', function() {
+    var SDEvent = {
+      detail: {
+        target: {
+          parentNode: {
+            dataset: {
+              source: 'sd'
+            }
+          }
+        }
+      }
+    };
+
+    setup(function() {
+      this.sinon.spy(window.Overlay, 'showActivityBar');
+      this.sinon.spy(window.utils.status, 'show');
+      this.sinon.spy(window, 'AdvancedTelemetryHelper');
+      MockSdCard.failOnRetrieveFiles = false;
+    });
+
+    test('SD Import went well', function(done) {
+      window.addEventListener('contactsimportdone', function onImported() {
+        window.removeEventListener('contactsimportdone', onImported);
+        assert.equal(window.Overlay.showActivityBar.getCall(0).args.length, 3);
+        assert.equal(window.utils.status.show.getCall(0).args.length, 2);
+        assert.equal(false, MyLocks.cpu);
+        window.TelemetryReady.then(() => {
+          assert.isTrue(window.AdvancedTelemetryHelper.calledWithNew());
+          var counter = window.AdvancedTelemetryHelper.getCall(0).returnValue;
+          assert.equal(counter.name, 'telemetry_gaia_contacts_import_sd');
+          assert.equal(window.AdvancedTelemetryHelper.HISTOGRAM_COUNT,
+            counter.type);
+          window.AdvancedTelemetryHelper.restore();
+          done();
+        });
+      });
+
+      window.dispatchEvent(new CustomEvent('importClicked', SDEvent));
+    });
+
+    test('SD Import went well with duplicates found', function(done) {
+      MockVCFReader.prototype.numDuplicated = 2;
+
+      window.addEventListener('contactsimportdone', function onImported() {
+        window.removeEventListener('contactsimportdone', onImported);
+        assert.isTrue(window.Overlay.showActivityBar.called);
+        assert.isTrue(window.utils.status.show.called);
+        assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
+        assert.isTrue(window.utils.status.show.getCall(0).args[1] !== null);
+        assert.equal(false, MyLocks.cpu);
+
+        delete MockVCFReader.prototype.numDuplicated;
         done();
       });
-      
+
+      window.dispatchEvent(new CustomEvent('importClicked', SDEvent));
     });
-  });
 
-  test('SD Import went well with duplicates found', function(done) {
-    MockVCFReader.prototype.numDuplicated = 2;
+    test('SD Import with error cause no files to import', function(done) {
+      // Simulate not finding any files
+      MockSdCard.failOnRetrieveFiles = true;
+      window.addEventListener('contactsimportdone', function onImported() {
+        window.removeEventListener('contactsimportdone', onImported);
+        // Activity Bar is shown at the pbeggining of the process
+        assert.isTrue(window.Overlay.showActivityBar.called);
+        // But the status is not called when error is found
+        assert.isFalse(window.utils.status.show.called);
+        // And the locks are released
+        assert.equal(false, MyLocks.cpu);
 
-    contacts.Settings.importFromSDCard(function onImported() {
-      assert.isTrue(window.Overlay.showActivityBar.called);
+        done();
+      });
 
-      assert.isTrue(window.utils.status.show.called);
-      assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
-      assert.isTrue(window.utils.status.show.getCall(0).args[1] !== null);
-
-      assert.equal(false, MyLocks.cpu);
-
-      delete MockVCFReader.prototype.numDuplicated;
-      done();
-    });
-  });
-
-  test('SD Import with error cause no files to import', function(done) {
-    // Simulate not finding any files
-    MockSdCard.failOnRetrieveFiles = true;
-    contacts.Settings.importFromSDCard(function onImported() {
-      assert.isFalse(window.Overlay.showProgressBar.called);
-      assert.isFalse(window.utils.status.show.called);
-      assert.equal(false, MyLocks.cpu);
-      // Restore the mock
-      MockSdCard.failOnRetrieveFiles = false;
-      done();
+      window.dispatchEvent(new CustomEvent('importClicked', SDEvent));
     });
   });
 
   suite('SIM Import ', function() {
-    suiteSetup(function() {
-      contacts.Settings.init();
+    var SimEvent = {
+      detail: {
+        target: {
+          parentNode: {
+            dataset: {
+              source: 'sim',
+              iccid: '1234'
+            }
+          }
+        }
+      }
+    };
+
+    setup(function() {
+      this.sinon.spy(window.utils.status, 'show');
     });
 
-    test('If there are no Contacts to be imported a message appears',
-      function(done) {
-        MockSimContactsImporter.prototype.numImportedContacts = 0;
-        MockSimContactsImporter.prototype.numDuplicated = 0;
-        MockSimContactsImporter.prototype.number = 0;
+    test('If no Contacts to be imported, a message appears', function(done) {
+      MockSimContactsImporter.prototype.numImportedContacts = 0;
+      MockSimContactsImporter.prototype.numDuplicated = 0;
+      MockSimContactsImporter.prototype.number = 0;
 
-        contacts.Settings.importFromSIMCard('1234', function onImported() {
-          assert.isTrue(window.utils.status.show.called);
-          assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
-          assert.isTrue(window.utils.status.show.getCall(0).args[1] === null);
+      window.addEventListener('contactsimportdone', function onImported() {
+        window.removeEventListener('contactsimportdone', onImported);
+        assert.isTrue(window.utils.status.show.called);
+        assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
+        assert.isTrue(window.utils.status.show.getCall(0).args[1] === null);
 
-          delete MockSimContactsImporter.prototype.numImportedContacts;
-          done();
-        });
+        delete MockSimContactsImporter.prototype.numImportedContacts;
+        done();
+      });
+
+      window.dispatchEvent(new CustomEvent('importClicked', SimEvent));
     });
 
     test('SIM Import went well with duplicates found', function(done) {
@@ -220,7 +266,8 @@ suite('Import contacts >', function() {
       MockSimContactsImporter.prototype.numImportedContacts = 3;
       MockSimContactsImporter.prototype.number = 3;
 
-      contacts.Settings.importFromSIMCard('1234', function onImported() {
+      window.addEventListener('contactsimportdone', function onImported() {
+        window.removeEventListener('contactsimportdone', onImported);
         assert.isTrue(window.utils.status.show.called);
         assert.isTrue(window.utils.status.show.getCall(0).args[0] !== null);
         assert.isTrue(window.utils.status.show.getCall(0).args[1] !== null);
@@ -230,6 +277,8 @@ suite('Import contacts >', function() {
         delete MockSimContactsImporter.prototype.numDuplicates;
         done();
       });
+
+      window.dispatchEvent(new CustomEvent('importClicked', SimEvent));
     });
   });
 });

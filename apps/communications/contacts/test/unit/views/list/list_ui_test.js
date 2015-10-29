@@ -118,6 +118,14 @@ suite('ListUI', function() {
     realPhotoHelper = window.ContactPhotoHelper;
     window.ContactPhotoHelper = MockContactPhotoHelper;
 
+    window.GaiaHeader = function GaiaHeader() {};
+    window.GaiaSubheader = function GaiaSubheader() {};
+    document.registerElement = function foo() {};
+
+    var meta = document.createElement('meta');
+    meta.setAttribute('name', 'theme-color');
+    document.head.appendChild(meta);
+
     // Load HTML
     loadBodyHTML('/contacts/views/list/list.html');
     requireApp('communications/contacts/js/header_ui.js', function() {
@@ -141,6 +149,8 @@ suite('ListUI', function() {
     window.ContactPhotoHelper = realPhotoHelper;
     realPhotoHelper = null;
     window.ListUI = null;
+    window.GaiaHeader = null;
+    document.registerElement = null;
   });
 
   suite('ListUI init', function() {
@@ -225,7 +235,8 @@ suite('ListUI', function() {
     });
 
     test('> Action pick', function(done) {
-      ListUI.init('pick');
+      ListUI.init();
+      ListUI.initAction('pick');
       window.addEventListener('pickAction', function onpick(evt) {
         window.removeEventListener('pickAction', onpick);
         assert.equal(evt.detail.uuid, mozContact.id);
@@ -238,7 +249,8 @@ suite('ListUI', function() {
     });
 
     test('> Action update', function(done) {
-      ListUI.init('update');
+      ListUI.init();
+      ListUI.initAction('update');
       this.sinon.spy(HeaderUI, 'hideAddButton');
       window.addEventListener('updateAction', function onpick(evt) {
         window.removeEventListener('updateAction', onpick);
@@ -312,7 +324,7 @@ suite('ListUI', function() {
 
   suite('Render list', function() {
     suiteSetup(function() {
-      ListUI.init(null, true);
+      ListUI.init(true);
     });
 
     setup(function() {

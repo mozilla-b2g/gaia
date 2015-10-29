@@ -1,8 +1,8 @@
 /* global SelectMode, utils */
 
-'use strict';
-
 (function(exports) {
+  'use strict';
+
   // Given a row, and the contact id, setup the value of the selection check
   function updateSingleRowSelection(row, id) {
     id = id || row.dataset.uuid;
