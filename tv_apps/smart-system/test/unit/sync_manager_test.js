@@ -189,8 +189,12 @@ suite('smart-system/SyncManager >', () => {
       shouldDisable: false
     }, {
       syncStateValue: 'syncing',
-      nextSyncStateValue: 'disabled',
+      nextSyncStateValue: 'disabling',
       shouldDisable: false
+    }, {
+      syncStateValue: 'disabling',
+      nextSyncStateValue: 'disabled',
+      shouldDisable: true
     }].forEach(config => {
       test('sync.state ' + config.syncStateValue, () => {
         if (config.shouldDisable) {
@@ -315,6 +319,41 @@ suite('smart-system/SyncManager >', () => {
     });
   });
 
+  suite('ondisabling', () => {
+    var syncManager;
+
+    var updateStateSpy;
+    var logoutSpy;
+    var successStub;
+
+    suiteSetup(() => {
+      syncManager = new SyncManager();
+      syncManager.start();
+
+      updateStateSpy = this.sinon.spy(syncManager, 'updateState');
+      logoutSpy = this.sinon.spy(FxAccountsClient, 'logout');
+      successStub = this.sinon.stub(SyncStateMachine, 'success');
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+      updateStateSpy.restore();
+      logoutSpy.restore();
+      successStub.restore();
+    });
+
+    test('ondisabling received', done => {
+      SyncStateMachine.ondisabling();
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(updateStateSpy);
+        this.sinon.assert.calledOnce(logoutSpy);
+        this.sinon.assert.calledOnce(successStub);
+        done();
+      });
+    });
+  });
+
+
   suite('ondisabled', () => {
     var syncManager;
 
@@ -322,7 +361,6 @@ suite('smart-system/SyncManager >', () => {
     var unregisterSyncSpy;
     var updateStateSpy;
     var removeEventListenerSpy;
-    var logoutSpy;
 
     suiteSetup(() => {
       syncManager = new SyncManager();
@@ -337,7 +375,6 @@ suite('smart-system/SyncManager >', () => {
       unregisterSyncSpy = this.sinon.spy(navigator.sync, 'unregister');
       updateStateSpy = this.sinon.spy(syncManager, 'updateState');
       removeEventListenerSpy = this.sinon.spy(window, 'removeEventListener');
-      logoutSpy = this.sinon.spy(FxAccountsClient, 'logout');
     });
 
     suiteTeardown(() => {
@@ -345,7 +382,6 @@ suite('smart-system/SyncManager >', () => {
       unregisterSyncSpy.restore();
       updateStateSpy.restore();
       removeEventListenerSpy.restore();
-      logoutSpy.restore();
       navigator.sync = realNavigatorSync;
     });
 
@@ -359,7 +395,6 @@ suite('smart-system/SyncManager >', () => {
         assert.ok(
           removeEventListenerSpy.calledWith('mozFxAccountsUnsolChromeEvent')
         );
-        this.sinon.assert.calledOnce(logoutSpy);
         done();
       });
     });

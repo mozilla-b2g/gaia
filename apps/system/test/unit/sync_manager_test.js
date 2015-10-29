@@ -149,8 +149,12 @@ suite('system/SyncManager >', () => {
       shouldDisable: false
     }, {
       syncStateValue: 'syncing',
-      nextSyncStateValue: 'disabled',
+      nextSyncStateValue: 'disabling',
       shouldDisable: false
+    }, {
+      syncStateValue: 'disabling',
+      nextSyncStateValue: 'disabled',
+      shouldDisable: true
     }].forEach(config => {
       test('sync.state ' + config.syncStateValue, () => {
         if (config.shouldDisable) {

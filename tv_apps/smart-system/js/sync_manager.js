@@ -108,6 +108,7 @@
 
           // SyncStateMachine event listeners.
           ['ondisabled',
+           'ondisabling',
            'onenabled',
            'onenabling',
            'onerrored',
@@ -132,7 +133,7 @@
             // request to enable sync or stay in the disabled state.
             // We need to make sure that we didn't end up in an inconsistent
             // state during the latest run (i.e. error, success, syncing,
-            // enabling).
+            // enabling, disabling).
             switch(this.state) {
               case 'enabled':
               case 'success':
@@ -140,6 +141,7 @@
                 SyncStateMachine.enable();
                 resolve();
                 break;
+              case 'disabling':
               case 'enabling':
                 this.updateState('disabled');
                 resolve();
@@ -297,12 +299,18 @@
       this.user = null;
       this.lastSync = null;
       this.cleanup();
+    },
+
+    ondisabling() {
+      this.debug('ondisabling observed');
+      this.updateState();
       // On TV because the login on Sync is tied to a login on FxA, login out
       // from Sync means login out from FxA.
       // Keep logout *after* the cleanup call where we remove the FxA event
       // listeners.
       LazyLoader.load('js/fx_accounts_client.js', () => {
         FxAccountsClient.logout();
+        SyncStateMachine.success();
       });
     },
 
@@ -438,6 +446,11 @@
     },
 
     onfxa(event) {
+      // We don't care about FxA events if we are already disabling.
+      if (this.state === 'disabling') {
+        return;
+      }
+
       if (!event || !event.detail) {
         console.error('Wrong event');
         return;

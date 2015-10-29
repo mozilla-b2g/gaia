@@ -105,6 +105,7 @@
 
     /** Sync State Machine events **/
     'onsyncdisabled',
+    'onsyncdisabling',
     'onsyncenabled',
     'onsyncenabling',
     'onsyncerrored',
@@ -144,13 +145,14 @@
             // request to enable sync or stay in the disabled state.
             // We need to make sure that we didn't end up in an inconsistent
             // state during the latest run (i.e. error, success, syncing,
-            // enabling).
+            // enabling, disabling).
             switch(this.state) {
               case 'enabled':
               case 'success':
               case 'syncing':
                 Service.request('SyncStateMachine:enable').then(resolve);
                 break;
+              case 'disabling':
               case 'enabling':
                 this.updateState('disabled');
                 resolve();
@@ -245,6 +247,12 @@
       this.user = null;
       this.lastSync = null;
       this.cleanup();
+    },
+
+    _handle_onsyncdisabling: function() {
+      this.debug('onsyncdisabling observed');
+      this.updateState();
+      Service.request('SyncStateMachine:success');
     },
 
     _handle_onsyncenabled: function(event) {
@@ -381,6 +389,11 @@
     },
 
     _handle_fxaEvent: function(event) {
+      // We don't care about FxA events if we are already disabling.
+      if (this.state === 'disabling') {
+        return;
+      }
+
       if (!event || !event.detail) {
         console.error('Wrong event');
         return;
