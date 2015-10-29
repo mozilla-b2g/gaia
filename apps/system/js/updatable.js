@@ -3,6 +3,7 @@
 /* global
    asyncStorage,
    ManifestHelper,
+   NotificationHelper,
    Service,
    UpdateManager
  */
@@ -198,7 +199,7 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
 
   switch (detail.type) {
     case 'update-error':
-      this.errorCallBack();
+      this.errorCallBack(detail);
       break;
     case 'update-download-started':
       // TODO UpdateManager glue
@@ -228,10 +229,68 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
   }
 };
 
-SystemUpdatable.prototype.errorCallBack = function() {
-  UpdateManager.requestErrorBanner();
+SystemUpdatable.prototype.errorCallBack = function(aUpdate) {
+  // Show notification for update installation failures
+  console.debug('Handling systemUpdatable error: updateType',
+                aUpdate.updateType, 'state', aUpdate.state);
+  if (aUpdate.updateType === 'complete' && aUpdate.state === 'failed') {
+    var errorOptions = {
+      bodyL10n: 'systemUpdateErrorDetails',
+      icon: '/style/notifications/images/system_update_error.svg',
+      tag: 'systemUpdateError',
+      mozbehavior: {
+        showOnlyOnce: true
+      },
+      closeOnClick: false
+    };
+
+    NotificationHelper.send('systemUpdateError', errorOptions).then(n => {
+      n.addEventListener('click',
+                         this.showUpdateErrorDetails.bind(this, aUpdate));
+    });
+  } else {
+    // Keep the old banner for the others for now
+    UpdateManager.requestErrorBanner();
+  }
+
   UpdateManager.removeFromDownloadsQueue(this);
   this.downloading = false;
+};
+
+SystemUpdatable.prototype.showUpdateErrorDetails = function(updateError) {
+  var cancel = {
+    title: 'later',
+    callback: function() {
+      Service.request('hideCustomDialog');
+    }
+  };
+
+  var confirm = {
+    title: 'report',
+    callback: function() {
+      Service.request('hideCustomDialog');
+      Notification.get({ tag: 'systemUpdateError' }).then(ns => {
+        ns.forEach(n => {
+          n && n.close();
+        });
+      });
+      window.dispatchEvent(new CustomEvent('requestSystemLogs'));
+    },
+    recommend: true
+  };
+
+  Service.request('UtilityTray:hide');
+  Service.request('showCustomDialog',
+    'systemUpdateError',
+    { id: 'wantToReportNow',
+      args: {
+        version: updateError.appVersion,
+        buildID: updateError.buildID
+      }
+    },
+    cancel,
+    confirm
+  );
 };
 
 // isOsUpdate comes from Gecko's update object passed in the mozChromeEvent
