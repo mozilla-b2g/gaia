@@ -113,6 +113,22 @@
 
   };
 
+  BaseUI.prototype.start = function bu_start() {
+    this._start();
+    this.publish('started');
+  };
+
+  BaseUI.prototype._start = function bu__start() {
+  };
+
+  BaseUI.prototype.stop = function bu_start() {
+    this._stop();
+    this.publish('stopped');
+  };
+
+  BaseUI.prototype._stop = function bu__stop() {
+  };
+
   BaseUI.prototype.destroy = function bu_destroy() {
     this.publish('willdestroy');
     this._unregisterEvents();

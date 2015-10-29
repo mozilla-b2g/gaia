@@ -3,18 +3,12 @@
 
 (function(exports) {
 
-  var pinDialogInstance;
-
   /**
    * @class PinPageSystemDialog
    * @param {options} object for attributes `onShow`, `onHide` callback.
    * @extends SystemDialog
    */
   var PinPageSystemDialog = function(controller) {
-    if (pinDialogInstance) {
-      return pinDialogInstance;
-    }
-
     this.instanceID = 'pin-page-dialog';
     this.controller = controller || {};
     this.options = {};
@@ -36,7 +30,6 @@
       });
 
     this.publish('created');
-    pinDialogInstance = this;
   };
 
   PinPageSystemDialog.prototype = Object.create(SystemDialog.prototype, {
@@ -150,6 +143,14 @@
 
   PinPageSystemDialog.prototype._visible = false;
 
+  PinPageSystemDialog.prototype.handleEvent = function(evt) {
+    switch(evt.type) {
+      case 'pin-page-dialog-requestopen':
+        this.show(evt.detail);
+        break;
+    }
+  };
+
   PinPageSystemDialog.prototype.show = function(data) {
     this.pageTitle.textContent = data.title;
     this._renderPinCard(data);
@@ -201,10 +202,17 @@
     this._visible = false;
   };
 
+  PinPageSystemDialog.prototype._start = function() {
+    window.addEventListener('pin-page-dialog-requestopen', this);
+  };
+
+  PinPageSystemDialog.prototype._stop = function() {
+    window.removeEventListener('pin-page-dialog-requestopen', this);
+  };
+
   PinPageSystemDialog.prototype.destroy = function() {
-    this.containerElement.removeChild(this.element);
-    pinDialogInstance = null;
-    this.publish('destroyed');
+    this.stop();
+    SystemDialog.prototype.destroy.apply(this);
   };
 
   exports.PinPageSystemDialog = PinPageSystemDialog;

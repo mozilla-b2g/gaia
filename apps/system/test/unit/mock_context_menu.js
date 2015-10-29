@@ -6,6 +6,7 @@ var MockContextMenu = (function() {
 
   return {
     start: function() {},
+    stop: function() {},
     isShown: function() {},
     showDefaultMenu: function() {},
     hide: function() {}

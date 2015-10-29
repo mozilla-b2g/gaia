@@ -55,9 +55,12 @@
      * @memberof SystemDialogManager#
      */
     configs: {
-      listens: ['system-dialog-created',
-                'simlockcreated',
+      listens: ['system-dialog-started',
+                'system-dialog-stopped',
+                'simlockstarted',
+                'simlockstopped',
                 'actionmenucreated',
+                'actionmenudestroyed',
                 'system-dialog-show',
                 'system-dialog-hide',
                 'simlockshow',
@@ -156,7 +159,7 @@
   };
 
   /**
-   * @listens system-dialog-created - when a system dialog got created,
+   * @listens system-dialog-started - when a system dialog got started,
    *                                  it would fire this event.
    * @listens system-dialog-show - when a system dialog got show request,
    *                               it would fire this event.
@@ -186,9 +189,9 @@
         }
         Service.request('focus', this);
         break;
-      case 'simlockcreated':
+      case 'simlockstarted':
       case 'actionmenucreated':
-      case 'system-dialog-created':
+      case 'system-dialog-started':
         dialog = evt.detail;
         this.registerDialog(dialog);
         break;
@@ -203,6 +206,13 @@
       case 'system-dialog-hide':
         dialog = evt.detail;
         this.deactivateDialog(dialog);
+        break;
+      case 'simlockstopped':
+      case 'actionmenudestroyed':
+      case 'system-dialog-stopped':
+        dialog = evt.detail;
+        this.deactivateDialog(dialog);
+        this.unregisterDialog(dialog);
         break;
     }
   };

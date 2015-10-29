@@ -823,7 +823,6 @@
     'modalDialog': 'AppModalDialog',
     'valueSelector': 'ValueSelector',
     'authDialog': 'AppAuthenticationDialog',
-    'contextmenu': 'BrowserContextMenu',
     'childWindowFactory': 'ChildWindowFactory',
     'statusbar': 'AppStatusbar',
     'textSelectionDialog': 'AppTextSelectionDialog'
@@ -864,13 +863,11 @@
         }
       }
 
-      if (this.constructor.SUB_MODULES) {
-        for (var propertyName in this.constructor.SUB_MODULES) {
-          var moduleName = this.constructor.SUB_MODULES[propertyName];
-          if (moduleName) {
-            this[propertyName] = BaseModule.instantiate(moduleName, this);
-            this[propertyName].start();
-          }
+      for (var propertyName in this.constructor.SUB_MODULES) {
+        var moduleName = this.constructor.SUB_MODULES[propertyName];
+        if (moduleName) {
+          this[propertyName] = BaseModule.instantiate(moduleName, this);
+          this[propertyName].start();
         }
       }
 
@@ -924,6 +921,13 @@
           this[componentName].destroy();
         }
         this[componentName] = null;
+      }
+
+      for (var propertyName in this.constructor.SUB_MODULES) {
+        if (this[propertyName] && this[propertyName].stop) {
+          this[propertyName].stop();
+        }
+        this[propertyName] = null;
       }
 
       this._unregisterAudioChannels();

@@ -18,7 +18,7 @@ AppInstall.Selector = Object.freeze({
   // General app install dialog
   installDialog: '#app-install-dialog',
   installButton: '#app-install-install-button',
-  installToast: 'gaia-toast.banner',
+  installToast: '#screen > gaia-toast.banner',
   // Setup dialog after installation
   setupDialog: '#setup-installed-app-dialog',
   setupButton: '#setup-confirm-button',
