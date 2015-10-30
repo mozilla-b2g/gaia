@@ -343,24 +343,16 @@ FastList.prototype = {
 
       if (!item) {
         item = findItemFor(i);
-
-        var shouldUnpopulate = source.unpopulateItemDetail
-          && item.dataset.detailPopulated === 'true';
-
-        // Recycling, need to unpopulate and
-        // populate with the new content
-        if (shouldUnpopulate) {
-          source.unpopulateItemDetail(item);
-          item.dataset.detailPopulated = false;
-        }
-
+        self.unpopulateItemDetail(item);
         tryToPopulate(item, i, source, true);
         item.classList.toggle('new', i === changedIndex);
+
+      // Reloading, re-populating all items
+      // We expect the DataSource to be ready
+      // to populate all items so not
+      // going through `tryToPopulate()`
       } else if (reload) {
-        // Reloading, re-populating all items
-        // We expect the DataSource to be ready to populate all items so not
-        // going through |tryToPopulate|
-        item.dataset.detailPopulated = false;
+        self.unpopulateItemDetail(item);
         source.populateItem(item, i);
         item.dataset.populated = true;
         if (item.style.display === 'none') {
@@ -393,6 +385,18 @@ FastList.prototype = {
       startIndex,
       endIndex
     );
+  },
+
+  unpopulateItemDetail: function(item) {
+    var shouldUnpopulate = this.source.unpopulateItemDetail
+      && item.dataset.detailPopulated === 'true';
+
+    // Recycling, need to unpopulate and
+    // populate with the new content
+    if (shouldUnpopulate) {
+      this.source.unpopulateItemDetail(item);
+      item.dataset.detailPopulated = false;
+    }
   },
 
   /**
@@ -491,6 +495,7 @@ FastList.prototype = {
   },
 
   scrollInstantly: function(position) {
+    debug('scroll instantly', position);
     this.els.container.scrollTop = position;
     this.processScrollPosition(true);
     this.render();

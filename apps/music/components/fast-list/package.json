@@ -1,6 +1,7 @@
 {
   "name": "fast-list",
   "main": "fast-list.js",
+  "version": "0.1.4",
   "devDependencies": {
     "jshint": "^2.7.0",
     "karma": "^0.12.31",

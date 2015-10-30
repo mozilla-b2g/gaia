@@ -90,7 +90,6 @@ var GaiaFastListProto = {
     this.top = this.getAttribute('top');
 
     this[keys.internal] = new Internal(this);
-    debug('created');
   },
 
   /**
@@ -106,6 +105,24 @@ var GaiaFastListProto = {
   configure(props) {
     debug('configure');
     this[keys.internal].configure(props);
+  },
+
+  /**
+   * Set a data model for the list to render.
+   *
+   * The returned Promise will resolve
+   * when rendering has *fully* completed.
+   *
+   * The `.rendered` Promise can be used
+   * to determine when the list is *visually*
+   * complete.
+   *
+   * @param  {Array} value
+   * @return {Promise}
+   * @public
+   */
+  setModel(value) {
+    return this[keys.internal].setModel(value);
   },
 
   /**
@@ -126,7 +143,7 @@ var GaiaFastListProto = {
     debug('cache');
     if (!this.caching) return;
     this[keys.internal].cachedHeight = null;
-    this[keys.internal].updateCache();
+    return this[keys.internal].updateCache();
   },
 
   /**
@@ -137,6 +154,16 @@ var GaiaFastListProto = {
   clearCache() {
     debug('clear cache');
     this[keys.internal].clearCache();
+  },
+
+  /**
+   * Smooth scrolls to the given position.
+   *
+   * @param  {Number} y
+   * @return {Promise}
+   */
+  scrollTo(y) {
+    return this[keys.internal].scrollTo(y);
   },
 
   /**
@@ -155,9 +182,8 @@ var GaiaFastListProto = {
    * @type {Object}
    */
   attrs: {
-    model: {
-      get() { return this[keys.internal].model; },
-      set(value) { this[keys.internal].setModel(value); }
+    rendered: {
+      get() { return this[keys.internal].rendered.promise; }
     },
 
     top: {
@@ -356,14 +382,24 @@ var GaiaFastListProto = {
         text-overflow: ellipsis;
       }
 
-      ::content .image ~ h3,
-      ::content .image ~ p {
-        padding-inline-end: 60px;
+      ::content :-moz-dir(ltr) .image ~ h3,
+      ::content :-moz-dir(ltr) .image ~ p {
+        padding-right: 52px;
       }
 
-      ::content .image.round ~ h3,
-      ::content .image.round ~ p {
-        padding-inline-end: 42px;
+      ::content :-moz-dir(rtl) .image ~ h3,
+      ::content :-moz-dir(rtl) .image ~ p {
+        padding-left: 52px;
+      }
+
+      ::content :-moz-dir(ltr) .image.round ~ h3,
+      ::content :-moz-dir(ltr) .image.round ~ p {
+        padding-right: 42px;
+      }
+
+      ::content :-moz-dir(rtl) .image.round ~ h3,
+      ::content :-moz-dir(rtl) .image.round ~ p {
+        padding-left: 42px;
       }
 
       ::content h3 {
@@ -490,10 +526,14 @@ var GaiaFastListProto = {
  * @param {GaiaFastList} el
  */
 function Internal(el) {
-  this.el = el;
-
-  this.renderedCache = this.renderCache();
   var shadow = el.shadowRoot;
+
+  this.el = el;
+  this.renderedCache = this.renderCache();
+
+  this.listCreated = new Deferred();
+  this.rendered = new Deferred();
+
   this.images = {
     list: [],
     hash: {},
@@ -529,20 +569,6 @@ Internal.prototype = {
   itemHeight: 60,
 
   /**
-   * Permanently destroy the list.
-   *
-   * @private
-   */
-  destroy() {
-    debug('detached');
-    this.teardownPicker();
-    if (this.fastList) {
-      this.fastList.destroy();
-      delete this.fastList;
-    }
-  },
-
-  /**
    * Setting the model for the first
    * time creates a new FastList. Setting
    * it subsequent times rerenders
@@ -553,11 +579,45 @@ Internal.prototype = {
    */
   setModel(model) {
     debug('set model');
-    if (!model) return;
-    this.model = model;
+    if (!model) return Promise.reject(new Error('model undefined'));
+
     this.sections = this.sectionize(model);
-    if (!this.fastList) this.createList();
-    else this.reloadData();
+    this.model = model;
+
+    return !this.fastList
+      ? this.createList()
+      : this.reloadData();
+  },
+
+  /**
+   * Creates the FastList.
+   *
+   * We add the fast-gradient last as it's
+   * expensive to paint (50-80ms) and only
+   * required for scrolling, not first paint.
+   *
+   * @return {Promise}
+   * @private
+   */
+  createList() {
+    return this.renderedCache
+      .then(() => {
+        debug('create list');
+        this.fastList = new this.el.FastList(this);
+        return this.fastList.rendered;
+      })
+
+      .then(() => {
+        this.rendered.resolve();
+        this.els.list.style.transform = '';
+        this.removeCachedRender();
+        return this.fastList.complete;
+      })
+
+      .then(() => {
+        this.updateFastGradient();
+        this.listCreated.resolve();
+      });
   },
 
   /**
@@ -575,7 +635,7 @@ Internal.prototype = {
    * @private
    */
   reloadData() {
-    return this.listCreated
+    return this.listCreated.promise
       .then(() => {
         debug('reload data');
         this.emptyImageCache();
@@ -630,54 +690,6 @@ Internal.prototype = {
 
     this.hasSections = !!count;
     return this.hasSections && result;
-  },
-
-  /**
-   * Creates the FastList.
-   *
-   * We add the fast-gradient last as it's
-   * expensive to paint (50-80ms) and only
-   * required for scrolling, not first paint.
-   *
-   * @return {Promise}
-   * @private
-   */
-  createList() {
-    return this.listCreated = this.renderedCache
-      .then(() => {
-        debug('create list');
-        this.fastList = new this.el.FastList(this);
-        return this.fastList.rendered;
-      })
-
-      .then(() => {
-        this.firstRender();
-        this.els.list.style.transform = '';
-        this.removeCachedRender();
-        return this.fastList.complete;
-      })
-
-      .then(() => this.updateFastGradient());
-  },
-
-  /**
-   * Dispatches a 'rendered' event
-   * to signal to the user that
-   * the component is ready to
-   * be revealed.
-   *
-   * We use events not Promises here
-   * so that the user can attach
-   * event listeners to a component
-   * before it's been upgraded.
-   *
-   * @private
-   */
-  firstRender() {
-    if (this.rendered) return;
-    var event = new CustomEvent('rendered', { bubbles: false });
-    this.el.dispatchEvent(event);
-    this.rendered = true;
   },
 
   /**
@@ -780,6 +792,10 @@ Internal.prototype = {
    * .populateItemDetail() is run only when the
    * list is 'idle' (stopped or slow) so that
    * we don't harm scrolling performance.
+   *
+   * NOTE: It seems sometimes fast-list may
+   * be calling this function more than
+   * once per item. Need to look into this.
    *
    * @param  {HTMLElement} el  list-item node
    * @param  {Number} i  index
@@ -894,6 +910,7 @@ Internal.prototype = {
   cacheImage(image, index) {
     if (!this.el.imageCacheLength) return;
     if (!this.el.imageCacheSize) return;
+    if (this.images.hash[index]) return;
     this.images.hash[index] = image;
     this.images.list.push(index);
     this.images.bytes += image.bytes;
@@ -1255,6 +1272,29 @@ Internal.prototype = {
   },
 
   /**
+   * Scroll smoothly to a position.
+   *
+   * In certain circumstances .scrollTo()
+   * is ignored by Gecko. Wrapping it in
+   * setTimeout() seems to fix this :/
+   *
+   * @param  {Number} y
+   */
+  scrollTo(y) {
+    return this.listCreated.promise
+      .then(() => {
+        setTimeout(() => {
+          debug('scroll to', y);
+          this.els.container.scrollTo({
+            left: 0,
+            top: y,
+            behavior: 'smooth'
+          });
+        });
+      });
+  },
+
+  /**
    * Get the list's current scroll position.
    *
    * Before FastList is created we
@@ -1400,12 +1440,17 @@ Internal.prototype = {
    * @private
    */
   updateCache() {
-    if (!this.el.caching) return;
+    if (!this.el.caching) return Promise.resolve();
     debug('update cache');
+
     var fullHeight = this.getFullHeight();
     var maxViewportHeight = Math.max(window.innerWidth, window.innerHeight);
     var length = Math.ceil(maxViewportHeight / this.getItemHeight());
+    var fullLength = this.getFullLength();
     var html = '';
+
+    // Don't attempt to cache more items than we have.
+    if (length > fullLength) length = fullLength;
 
     for (var i = 0; i < length; i++) {
       var el = this.createItem();
@@ -1423,12 +1468,12 @@ Internal.prototype = {
       if (height >= maxViewportHeight) break;
     }
 
-    this.setCache({
+    debug('cached html', html);
+
+    return this.setCache({
       height: fullHeight,
       html: html
     });
-
-    debug('cached html', html);
   },
 
   /**
@@ -1479,7 +1524,7 @@ Internal.prototype = {
         // Dispatch a 'rendered' event
         // so the user knows the list
         // is ready to be revealed.
-        this.firstRender();
+        this.rendered.resolve();
       });
   },
 
@@ -1569,6 +1614,20 @@ Internal.prototype = {
       letterNode.firstChild.data = text;
       iconNode.style.visibility = 'hidden';
       letterNode.style.visibility = 'visible';
+    }
+  },
+
+  /**
+   * Permanently destroy the list.
+   *
+   * @private
+   */
+  destroy() {
+    debug('detached');
+    this.teardownPicker();
+    if (this.fastList) {
+      this.fastList.destroy();
+      delete this.fastList;
     }
   },
 
@@ -1731,6 +1790,13 @@ function normalizeImageSrc(src) {
   if (typeof src == 'string') return src;
   else if (src instanceof Blob) return URL.createObjectURL(src);
   else throw new Error('invalid image src');
+}
+
+function Deferred() {
+  this.promise = new Promise((resolve, reject) => {
+    this.resolve = resolve;
+    this.reject = reject;
+  });
 }
 
 });})(typeof define=='function'&&define.amd?define

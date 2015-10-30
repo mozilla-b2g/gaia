@@ -1,4 +1,5 @@
 body {
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -6,8 +7,22 @@ body[data-search="true"] {
   overflow: hidden;
 }
 
+music-search-box {
+  padding: 0 16px 10px;
+  border-bottom: solid 1px var(--border-color);
+  box-sizing: border-box;
+}
+
+music-search-box[hidden] {
+  display: none;
+}
+
 #tiles {
   min-height: 100%;
+}
+
+.search-open #tiles {
+  display: none;
 }
 
 .tile {
@@ -19,6 +34,7 @@ body[data-search="true"] {
   width: 33.3vw;
   height: 33.3vw;
   overflow: hidden;
+  text-decoration: none;
 }
 
 .tile:nth-child(1),

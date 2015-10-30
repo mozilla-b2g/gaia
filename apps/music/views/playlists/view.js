@@ -32,8 +32,8 @@ var PlaylistsView = View.extend(function PlaylistsView() {
 
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
 
-  this.list.scrollTop = this.searchBox.HEIGHT;
   this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
+  this.list.offset = this.searchBox.HEIGHT;
 
   this.list.addEventListener('click', (evt) => {
     var link = evt.target.closest('a[data-shuffle="true"]');
@@ -49,34 +49,32 @@ var PlaylistsView = View.extend(function PlaylistsView() {
 
   this.client.on('databaseChange', () => this.update());
 
-  this.update();
+  this.update()
+    .then(() => this.list.scrollTo(this.searchBox.HEIGHT));
 });
 
 PlaylistsView.prototype.update = function() {
-  this.getPlaylists().then((playlists) => {
-    Promise.all(playlists.map((playlist) => {
-      return document.l10n.formatValue('playlists-' + playlist.id);
-    })).then((titles) => {
-      titles.forEach((title, index) => {
-        playlists[index].title = title;
-      });
+  return this.getPlaylists().then((playlists) => {
+    return Promise.all(playlists.map((playlist) => {
+        return document.l10n.formatValue('playlists-' + playlist.id);
+      }))
 
-      this.playlists = playlists;
-      this.render();
-    });
+      .then((titles) => {
+        titles.forEach((title, index) => playlists[index].title = title);
+        this.playlists = playlists;
+        return this.render();
+      });
   });
 };
 
 PlaylistsView.prototype.destroy = function() {
   this.client.destroy();
-
   View.prototype.destroy.call(this); // super(); // Always call *last*
 };
 
 PlaylistsView.prototype.render = function() {
   View.prototype.render.call(this); // super();
-
-  this.list.model = this.playlists;
+  return this.list.setModel(this.playlists);
 };
 
 PlaylistsView.prototype.getPlaylists = function() {

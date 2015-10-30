@@ -15,65 +15,27 @@ body {
   -moz-user-select: none;
 }
 
-a {
-  text-decoration: none;
-}
-
-/* Hide the default placeholder */
-img:-moz-loading {
-  display: none;
-}
-
-gaia-fast-list a {
-  color: var(--text-color);
-  width: 100%;
-}
-
-gaia-fast-list li {
-  padding: 0;
-}
-
-gaia-fast-list li > a {
-  padding: 9px 0;
-}
-
-gaia-fast-list h3,
-gaia-fast-list p {
-  background: none !important;
-}
-
 gaia-fast-list em {
   position: absolute;
+  offset-inline-start: 0.9rem;
   top: 50%;
-  left: 0.9rem;
   width: 2rem;
   line-height: 0.7rem;
 }
 
 gaia-fast-list em ~ h3,
 gaia-fast-list em ~ p {
-  padding-left: 2.9rem;
-}
-
-gaia-fast-list img {
-  right: 0;
-  left: auto !important;
-  object-fit: cover;
-}
-
-gaia-fast-list img ~ h3,
-gaia-fast-list img ~ p {
-  padding-right: 60px;
+  -moz-padding-start: 2.9rem;
 }
 
 music-search-box {
-  height: 37px;
+  display: block;
 }
 
 music-search-results {
   position: absolute;
-  top: 37px;
+  top: 52px; /* music-search-box height */
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: calc(100% - 37px);
 }

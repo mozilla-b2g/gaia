@@ -65,7 +65,6 @@ apps/music/components/dom-scheduler/bower_components/gaia-theme/gaia-theme.css 5
 apps/music/components/dom-scheduler/demo-app/css/ul.css 1 1
 apps/music/components/gaia-theme/gaia-theme.css 5 0
 apps/music/css/app.css 0 2
-apps/music/css/view.css 0 2
 apps/music/node_modules/nws/node_modules/connect/lib/public/style.css 4 10
 apps/pdfjs/content/web/viewer.css 0 1
 apps/ringtones/style/pick.css 0 1
