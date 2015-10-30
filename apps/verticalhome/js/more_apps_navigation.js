@@ -64,7 +64,7 @@
           break;
         case 'BrowserBack':
         case 'Backspace':
-          app.backToMainScreen();
+          app.hideMoreApps();
           break;
       }
     },

@@ -172,17 +172,17 @@
     showMoreApps: function() {
       this.inMoreApps = true;
       console.log("inMoreApps is : " + this.inMoreApps);
-      document.getElementById("main-screen").setAttribute("hidden","");
-      document.getElementById("more-apps-screen").removeAttribute("hidden");
+      document.getElementById("main-screen").classList.add('hidden');
+      document.getElementById("more-apps-screen").classList.remove('hidden');;
       MoreAppsNavigation.init();
       document.getElementsByTagName('gaia-grid-rs')[0].scrollTo(0,0);
     },
 
-    backToMainScreen: function() {
-      this.__proto__.inMoreApps = false;
+    hideMoreApps: function() {
+      this.inMoreApps = false;
       console.log("inMoreApps is : " + this.inMoreApps);
-      document.getElementById("main-screen").removeAttribute("hidden");
-      document.getElementById("more-apps-screen").setAttribute("hidden","");
+      document.getElementById("main-screen").classList.remove('hidden');
+      document.getElementById("more-apps-screen").classList.add('hidden');
     },
 
     /**
@@ -373,8 +373,7 @@
         // The system app changes the hash of the homescreen iframe when it
         // receives a home button press.
         case 'hashchange':
-
-          this.backToMainScreen();
+          this.hideMoreApps();
           this.pinNavigation.reset();
           this.clock.clockTime.parentNode.classList.remove('not-visible');
           this.clock.start();

@@ -13,6 +13,22 @@ body {
   overflow-x: hidden;
 }
 
+#main-screen.hidden,
+#more-apps-screen.hidden {
+  transition: all 0.5s ease 0s;
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+}
+
+#main-screen,
+#more-apps-screen {
+  transition: all 0.5s ease 0s;
+  opacity: 1;
+  visibility: visible;
+  height: 100%;
+}
+
 #more-apps-screen .more-apps-header {
   height: 50px;
   line-height: 50px;
@@ -98,11 +114,6 @@ gaia-grid-rs .icon.selected p {
 body.edit-group {
   overflow: hidden;
 }
-
-#main-screen{
-  height:100%;
-}
-
 
 #clock {
   width: 20rem;
