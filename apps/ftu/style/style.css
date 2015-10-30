@@ -820,13 +820,15 @@ html[dir="rtl"] .change {
 #welcome_browser p {
   margin: 0;
   color: #000;
-  padding: 0 0 2rem;
+  padding: 0 0 1.5rem;
   font-size: 1.35rem;
   line-height: 1.8rem;
 }
 
 #welcome_browser #browser_logo_horizontal {
   margin: 0 0;
+  padding-bottom: 2rem;
+  text-align: center;
 }
 
 #welcome_browser #browser_logo_horizontal img {
