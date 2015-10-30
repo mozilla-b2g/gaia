@@ -56,10 +56,10 @@ function pushStartCard(id, addedArgs) {
 }
 
 // Handles visibility changes: if the app becomes visible after starting up
-// hidden because of a request-sync, start showing some UI.
+// hidden because of an alarm, start showing some UI.
 document.addEventListener('visibilitychange', function onVisibilityChange() {
   if (!document.hidden && !started &&
-      startupData && startupData.entry === 'request-sync') {
+      startupData && startupData.entry === 'alarm') {
     pushStartCard('message_list');
   }
 }, false);
@@ -287,10 +287,10 @@ var startupData = globalOnAppMessage({
 console.log('startupData: ' + JSON.stringify(startupData, null, '  '));
 
 // If not a mozSetMessageHandler entry point, start up the UI now. Or, if
-// a request-sync started the app, but the app became visible during the
+// an alarm started the app, but the app became visible during the
 // startup. In that case, make sure we show something to the user.
 if (startupData.entry === 'default' ||
-   (startupData.entry === 'request-sync' && !document.hidden)) {
+   (startupData.entry === 'alarm' && !document.hidden)) {
   pushStartCard(startupData.view);
 }
 
