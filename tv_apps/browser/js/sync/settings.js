@@ -258,13 +258,16 @@
           onlogout: () => {},
           onready: () => {},
           onerror: error => {
+            this.elements.collectionHistory.checked = false;
             console.error(error);
           }
         });
       } catch(e) {}
 
       navigator.mozId.request({
-        oncancel: () => {},
+        oncancel: () => {
+          this.elements.collectionHistory.checked = false;
+        },
         // We keep authenticated sessions of 5 minutes, if the user clicks on
         // the history collection switch after the 5 minutes are expired, we
         // will be asking her to re-enter her fxa password.

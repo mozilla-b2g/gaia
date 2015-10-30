@@ -408,6 +408,8 @@ suite('Sync settings >', function() {
       subject.onhistorychecked();
       expect(subject.collections.has(HISTORY_SETTING))
         .to.be.equal(false);
+      expect(subject.elements.collectionHistory.checked)
+        .to.be.equal(false);
     });
   });
 });
