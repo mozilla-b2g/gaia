@@ -16,38 +16,42 @@ define(function(require, exports, module) {
 module.exports = function(profiles, options) {
   var exclude = options && options.exclude || [];
   var formatted = [];
-  var pixelSize;
-  var profile;
   var option;
   var defaultOption;
-  var video;
+  var resolution = {};
 
-  for (var key in profiles) {
+  function createOption(key) {
     // Bug 1091820 - [Camera] Add hasOwnProperty() check to recorderProfiles
     // loop
-    if (!profiles.hasOwnProperty(key)) {
-      continue;
-    }
-
-    profile = profiles[key];
-    video = profile.video;
+    if (!profiles.hasOwnProperty(key)) { return; }
 
     // Don't include profile if marked as excluded
-    if (exclude.indexOf(key) > -1) { continue; }
+    if (exclude.indexOf(key) > -1) { return; }
 
-    pixelSize = video.width * video.height;
-
-    option = {
+    var profile = profiles[key];
+    var video = profile.video;
+    var option = {
       key: key,
-      title: key + ' ' + video.width + 'x' + video.height,
-      pixelSize: pixelSize,
+      title: video.width + 'x' + video.height,
+      pixelSize: video.width * video.height,
       raw: profile
     };
-    if (key === 'default') {
-      defaultOption = option;
-    } else {
-      formatted.push(option);
-    }
+
+    // Eliminate duplicate options with the same resolution
+    if (resolution[option.title]) { return; }
+    resolution[option.title] = true;
+
+    return option;
+  }
+
+  // Ensure the default option, if present, is always in the final list
+  defaultOption = createOption('default');
+
+  for (var key in profiles) {
+    option = createOption(key);
+    if (!option) { continue; }
+
+    formatted.push(option);
   }
 
   // Sort from largest to small but put the default/preferred profile first

@@ -371,9 +371,9 @@ module.exports = {
       // {
       //   key: 'pictureSizes'
       // },
-      // {
-      //   key: 'recorderProfiles'
-      // },
+      {
+        key: 'recorderProfiles'
+      },
       {
         key: 'grid'
       }
