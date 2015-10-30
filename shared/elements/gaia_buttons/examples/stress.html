@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <title>GaiaButtons Demo</title>
+  <meta name="description" content="Demo app for gaia-buttons" />
+  <style type="text/css">
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+  </style>
+  <script>
+    window.onload = function() {
+      var dirInput = document.getElementById('dir');
+      dirInput.checked = false;
+      dirInput.onchange = function() {
+        document.documentElement.dir = this.checked ? "rtl" : "ltr";
+      };
+    };
+
+  </script>
+  <script>window.GaiaButtonsBaseurl = '../';</script>
+  <script src="../../../js/component_utils.js"></script>
+  <script src="../script.js" type="text/javascript"></script>
+</head>
+<body role="application">
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox"> RTL mode
+    </label>
+  </p>
+
+  <section id="stress-test">
+  </section>
+  <script>
+    // add a thousand buttons
+    var stressSection = document.getElementById('stress-test');
+    var innerSectionHtml = '';
+    for (var i = 0; i < 1000; i++) {
+      innerSectionHtml += 
+        '<gaia-buttons class="inline">' +
+        '  <button class="icon icon-next">next</button>' +
+        '</gaia-buttons>';
+    }
+    stressSection.innerHTML = innerSectionHtml;
+  </script>
+</body>
+</html>

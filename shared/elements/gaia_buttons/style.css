@@ -151,27 +151,30 @@ button.icon:before {
 
 a.icon-next:before,
 button.icon-next:before {
-  background-image: url(images/right-light.svg);
   background-size: 3rem;
+}
+:-moz-dir(ltr) a.icon-next:before,
+:-moz-dir(ltr) button.icon-next:before {
+  background-image: url(images/right-light.svg);
 }
 :-moz-dir(rtl) a.icon-next:before,
 :-moz-dir(rtl) button.icon-next:before {
-  transform: scaleX(-1);
+  background-image: url(images/left-light.svg);
 }
 
 a.icon-previous:before,
 button.icon-previous:before {
-  background-image: url(images/right-light.svg);
   background-size: 3rem;
 }
 :-moz-dir(ltr) a.icon-previous:before,
 :-moz-dir(ltr) button.icon-previous:before {
   left: 0.5rem;
-  transform: scaleX(-1);
+  background-image: url(images/left-light.svg);
 }
 :-moz-dir(rtl) a.icon-previous:before,
 :-moz-dir(rtl) button.icon-previous:before {
   right: 0.5rem;
+  background-image: url(images/right-light.svg);
 }
 
 
