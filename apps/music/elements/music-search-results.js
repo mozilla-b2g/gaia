@@ -61,7 +61,7 @@ var template =
   <template>
     <li>
       <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
-        <img style="visibility: \${name ? 'visible' : 'hidden'}">
+        <div class="image"><img></div>
         <h3>\${title}</h3>
         <p>\${subtitle}</p>
       </a>
