@@ -1,0 +1,11 @@
+{
+  "name": "LOL System",
+  "description": "An mock addon that affects the system app.",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "content_scripts": [{
+    "matches": "app://system.gaiamobile.org/index.html"
+  }]
+}

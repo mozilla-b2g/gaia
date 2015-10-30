@@ -18,6 +18,7 @@ AppInstall.Selector = Object.freeze({
   // General app install dialog
   installDialog: '#app-install-dialog',
   installButton: '#app-install-install-button',
+  addonWarning: '#app-install-dialog #system-addon-warning',
   installToast: '#screen > gaia-toast.banner',
   // Setup dialog after installation
   setupDialog: '#setup-installed-app-dialog',
@@ -36,6 +37,10 @@ AppInstall.prototype = {
 
   get installButton() {
     return this.client.findElement(AppInstall.Selector.installButton);
+  },
+
+  get addonWarning() {
+    return this.client.findElement(AppInstall.Selector.addonWarning);
   },
 
   get setupDialog() {

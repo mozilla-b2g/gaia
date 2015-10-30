@@ -43,6 +43,7 @@
 
     <script defer src="shared/elements/config.js"></script>
     <script defer src="shared/js/component_utils.js"></script>
+    <!-- <script defer src="/shared/js/addons/match_pattern.js"></script> -->
     <!-- <script defer src="/shared/js/homescreens/confirm_dialog_helper.js"></script> -->
     <!-- <script defer src="/shared/js/gzip/gzip.js"></script> -->
     <!-- <script defer src="/shared/js/gzip/gzip_worker.js"></script> -->
@@ -516,6 +517,13 @@
                 <div id="app-install-author-url"></div>
               </dd>
           </dl>
+          <div id="system-addon-warning" hidden>
+            <div id="system-addon-icon">
+              <img src="style/app_install_manager/images/alert-icon.svg" />
+            </div>
+            <p data-l10n-id="addon-affects-system"></p>
+            <p data-l10n-id="addon-disable-instructions"></p>
+          </div>
         </section>
         <menu data-items="2">
           <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>

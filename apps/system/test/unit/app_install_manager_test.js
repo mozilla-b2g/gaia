@@ -122,6 +122,7 @@ suite('system/AppInstallManager >', function() {
             '</td>',
           '</tr>',
         '</table>',
+        '<div id="system-addon-warning"></div>',
         '<menu>',
           '<button id="app-install-cancel-button" type="reset"' +
           ' data-l10n-id="cancel">Cancel</button>',

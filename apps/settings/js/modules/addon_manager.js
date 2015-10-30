@@ -1,10 +1,11 @@
+/* global MatchPattern */
+
 define(function(require) {
   'use strict';
 
   var mozApps = require('modules/navigator/mozApps');
   var App = require('modules/app');
   var AppsCache = require('modules/apps_cache');
-  var MatchPattern = require('modules/match_pattern');
   var ObservableArray = require('modules/mvvm/observable_array');
 
   /**

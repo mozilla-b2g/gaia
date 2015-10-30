@@ -1,5 +1,7 @@
 'use strict';
 
+require('/shared/js/addons/match_pattern.js');
+
 suite('addons manager test > ', function() {
   var realMozActivity;
   var realXMLHttpRequest;
