@@ -704,9 +704,14 @@ html[dir="rtl"] .msg-attachment-icon { background-position: center right; }
 }
 
 .bb-tablist .icon.msg-edit-btn {
-  background-image: url("images/icons/edit-mode.png");
   background-position: 50% 45%;
   background-size: 3rem auto;
+}
+html[dir="ltr"] .bb-tablist .icon.msg-edit-btn {
+  background-image: url("images/icons/edit-mode.png");
+}
+html[dir="rtl"] .bb-tablist .icon.msg-edit-btn {
+  background-image: url("images/icons/edit-mode-rtl.png");
 }
 
 .bb-tablist .msg-star-btn {
