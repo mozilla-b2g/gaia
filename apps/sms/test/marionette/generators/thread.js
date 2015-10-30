@@ -59,7 +59,7 @@ var ThreadGenerator = {
 
     for (var i = 0; i < parameters.numberOfMessages; i++) {
       var message = null;
-      var messageBody = thread.body;
+      var messageBody = thread.body + ' (threadId: ' + thread.id + ')';
       if (i) {
         messageBody +=
           ' (messageId: ' + (ThreadGenerator.uniqueMessageId + 1) + ')';

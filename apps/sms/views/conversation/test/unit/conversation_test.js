@@ -160,6 +160,21 @@ suite('conversation.js >', function() {
     delete ConversationView.activeThread;
   }
 
+  function setupEnterConversationView({ threadId, recipients }) {
+    var strThreadId = '' + threadId;
+
+    var mockThread = getMockThread(threadId, recipients, []);
+    Threads.get.withArgs(threadId).returns(mockThread);
+
+    var transitionArgs = {
+      id: strThreadId,
+      meta: { next: { panel: 'thread', id: strThreadId }}
+    };
+    return ConversationView.beforeEnter(transitionArgs).then(
+      () => ConversationView.afterEnter(transitionArgs)
+    );
+  }
+
   mocksHelperForConversationView.attachTestHelpers();
 
   suiteSetup(function(done) {
@@ -1568,11 +1583,14 @@ suite('conversation.js >', function() {
       );
     }
 
-    setup(function() {
+    setup(function(done) {
       this.sinon.stub(Navigation, 'isCurrentPanel');
       this.sinon.spy(ConversationView, 'appendMessage');
-    });
 
+      setupEnterConversationView(
+        { threadId: 1, recipients: ['999']}
+      ).then(done, done);
+    });
 
     test('onMessageSent for MMS', function(done) {
       fakeMessage = MockMessages.mms({
@@ -2043,12 +2061,15 @@ suite('conversation.js >', function() {
     setup(function(done) {
       someDateInThePast = new Date(2010, 10, 10, 16, 0);
 
-      ConversationView.initializeRendering();
-      ConversationView.appendMessage({
-        id: 1,
-        threadId: 1,
-        timestamp: +someDateInThePast
-      }).then(done,done);
+     setupEnterConversationView(
+       { threadId: 1, recipients: ['999'] }
+     ).then(() => {
+       return ConversationView.appendMessage({
+         id: 1,
+         threadId: 1,
+         timestamp: +someDateInThePast
+       });
+     }).then(done,done);
     });
 
     teardown(function() {
@@ -2607,24 +2628,45 @@ suite('conversation.js >', function() {
     });
   });
 
-  suite('more complex renderMessages behavior,', function() {
-    var transitionArgs;
+  suite('more complex renderMessages behaviors,', function() {
+    var currentPanel;
 
-    setup(function() {
-      setActiveThread();
-
-      transitionArgs = {
-        id: '1',
+    function enterConversation(threadId) {
+      var nextPanel = { panel: 'thread', args: { id: '' + threadId } };
+      var transitionArgs = {
+        id: '' + threadId,
         meta: {
-          next: { panel: 'thread', args: { id: '1' } },
-          prev: { panel: 'thread-list', args: {} }
+          next: nextPanel,
+          prev: currentPanel
         }
       };
+      currentPanel = nextPanel;
+
+      return ConversationView.beforeEnter(transitionArgs).then(
+        () => ConversationView.afterEnter(transitionArgs)
+      );
+    }
+
+    setup(function() {
+      var mockThread1 = getMockThread(1, ['999'], []);
+      var mockThread2 = getMockThread(2, ['888'], []);
+      Threads.get.withArgs(1).returns(mockThread1);
+      Threads.get.withArgs(2).returns(mockThread2);
+
+      currentPanel = null;
+
+      this.sinon.stub(MessageManager, 'getMessages');
     });
 
     test('renderMessages does not render if we pressed back', function(done) {
-      this.sinon.stub(MessageManager, 'getMessages');
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      var transitionArgs = {
+        id: '1',
+        meta: {
+          prev: null,
+          next: { panel: 'thread', args: { id: '1' }}
+        }
+      };
 
       ConversationView.beforeEnter(transitionArgs).then(() => {
         // Trigger the action button on the header
@@ -2635,6 +2677,43 @@ suite('conversation.js >', function() {
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
         ConversationView.afterEnter(transitionArgs);
         sinon.assert.notCalled(MessageManager.getMessages);
+      }).then(done, done);
+    });
+
+    test('renderMessages stops rendering if we enter another thread',
+    function(done) {
+
+      var messageId = 1;
+      function yieldMessageForThread(threadId) {
+        MessageManager.getMessages.withArgs(
+          sinon.match.has('filter', { threadId })
+        ).yieldTo('each', MockMessages.sms({ id: messageId++, threadId }));
+      }
+
+      this.sinon.spy(TaskRunner.prototype, 'push');
+
+      enterConversation(1).then(() => {
+        yieldMessageForThread(1); // id 1
+
+        return TaskRunner.prototype.push.lastCall.returnValue;
+      }).then(() => {
+        assert.ok(document.getElementById('message-1'));
+
+        yieldMessageForThread(1); // id 2
+        return enterConversation(2);
+      }).then(
+        () => TaskRunner.prototype.push.lastCall.returnValue
+      ).then(() => {
+        assert.isNull(document.getElementById('message-2'));
+
+        TaskRunner.prototype.push.reset();
+        yieldMessageForThread(1); // id 3
+        sinon.assert.notCalled(TaskRunner.prototype.push);
+
+        yieldMessageForThread(2); // id 4
+        return TaskRunner.prototype.push.lastCall.returnValue;
+      }).then(() => {
+        assert.ok(document.getElementById('message-4'));
       }).then(done, done);
     });
   });
@@ -2896,9 +2975,12 @@ suite('conversation.js >', function() {
       return testMessages[index];
     }
 
-    setup(function() {
+    setup(function(done) {
       this.sinon.stub(MessagingClient, 'retrieveMMS');
-      ConversationView.initializeRendering();
+
+      setupEnterConversationView(
+        { threadId: 8, recipients: ['123456'] }
+      ).then(done, done);
     });
 
     teardown(function() {
@@ -3448,11 +3530,14 @@ suite('conversation.js >', function() {
       return testMessages[index];
     }
 
-    setup(function() {
+    setup(function(done) {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
-      ConversationView.initializeRendering();
+
+      setupEnterConversationView(
+        { threadId: 8, recipients: ['123456']}
+      ).then(done, done);
     });
 
     teardown(function() {
@@ -3744,13 +3829,18 @@ suite('conversation.js >', function() {
         '" data-action="dial-link">' + phone + '</a>';
       });
 
-      ConversationView.initializeRendering();
-      ConversationView.appendMessage({
-        id: messageId,
-        type: 'sms',
-        body: 'This is a test with 123123123',
-        delivery: 'error',
-        timestamp: Date.now()
+      setupEnterConversationView(
+        { threadId: 1, recipients: ['999'] }
+      ).then(() => {
+        return ConversationView.appendMessage({
+          id: messageId,
+          threadId: 1,
+          receiver: '999',
+          type: 'sms',
+          body: 'This is a test with 123123123',
+          delivery: 'error',
+          timestamp: Date.now()
+        });
       }).then(() => {
         // Retrieve DOM element for executing the event
         var messageDOM = document.getElementById('message-' + messageId);
@@ -3904,13 +3994,18 @@ suite('conversation.js >', function() {
         return '<a data-dial="123123123" data-action="dial-link">123123123</a>';
       });
 
-      ConversationView.initializeRendering();
-      ConversationView.appendMessage({
-        id: messageId,
-        type: 'sms',
-        body: 'This is a test with 123123123',
-        delivery: 'sent',
-        timestamp: Date.now()
+      setupEnterConversationView(
+        { threadId: 1, recipients: ['999'] }
+      ).then(() => {
+        return ConversationView.appendMessage({
+          id: messageId,
+          threadId: 1,
+          receiver: '999',
+          type: 'sms',
+          body: 'This is a test with 123123123',
+          delivery: 'sent',
+          timestamp: Date.now()
+        });
       }).then(() => {
         // Retrieve DOM element for executing the event
         messageDOM = document.getElementById('message-' + messageId);
@@ -3989,6 +4084,8 @@ suite('conversation.js >', function() {
         // Create a message with a delivery error
         ConversationView.appendMessage({
           id: 9,
+          threadId: 1,
+          receiver: '999',
           type: 'sms',
           body: 'This is a test with 123123123',
           delivery: 'error',
@@ -4015,9 +4112,11 @@ suite('conversation.js >', function() {
         // Create a message with a sending error
         ConversationView.appendMessage({
           id: 10,
+          threadId: 1,
+          receivers: ['999'],
           type: 'mms',
           delivery: 'error',
-          deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
+          deliveryInfo: [{receiver: '999', deliveryStatus: 'error'}],
           attachments: [],
           subject: 'error sending'
         }).then(() => {
@@ -4042,7 +4141,8 @@ suite('conversation.js >', function() {
         // Create a message with a download error
         ConversationView.appendMessage({
           id: 11,
-          sender: '123456',
+          threadId: 1,
+          sender: '999',
           iccId: 'B',
           type: 'mms',
           delivery: 'not-downloaded',
@@ -4071,6 +4171,8 @@ suite('conversation.js >', function() {
         // Create a message with an undownloaded attachment:
         ConversationView.appendMessage({
           id: 12,
+          threadId: 1,
+          sender: '999',
           type: 'mms',
           body: 'This is mms message test without attachment',
           delivery: 'received',
@@ -4116,24 +4218,30 @@ suite('conversation.js >', function() {
 
   suite('Message resending UI', function() {
     setup(function(done) {
-      var promises = [];
-
-      promises.push(ConversationView.appendMessage({
-        id: 23,
-        type: 'sms',
-        body: 'This is a test',
-        delivery: 'error',
-        timestamp: Date.now()
-      }), ConversationView.appendMessage({
-        id: 45,
-        type: 'sms',
-        body: 'This is another test',
-        delivery: 'sent',
-        timestamp: Date.now()
-      }));
-
-      ConversationView.initializeRendering();
-      Promise.all(promises).then(() => {
+      setupEnterConversationView(
+        { threadId: 1, recipients: ['999' ]}
+      ).then(() => {
+        return Promise.all([
+          ConversationView.appendMessage({
+            id: 23,
+            threadId: 1,
+            sender: '999',
+            type: 'sms',
+            body: 'This is a test',
+            delivery: 'error',
+            timestamp: Date.now()
+          }),
+          ConversationView.appendMessage({
+            id: 45,
+            threadId: 1,
+            sender: '999',
+            type: 'sms',
+            body: 'This is another test',
+            delivery: 'sent',
+            timestamp: Date.now()
+          })
+        ]);
+      }).then(() => {
         this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
         this.sinon.stub(ConversationView, 'resendMessage');
         this.elems = {
@@ -4279,7 +4387,7 @@ suite('conversation.js >', function() {
       }];
       var message;
 
-      setup(function() {
+      setup(function(done) {
         this.sinon.spy(Attachment.prototype, 'render');
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
@@ -4292,8 +4400,12 @@ suite('conversation.js >', function() {
           id: '1',
           bodyHTML: 'test #1'
         });
+
         message = MockMessages.mms();
-        ConversationView.initializeRendering();
+
+        setupEnterConversationView(
+          { threadId: 1, recipients: ['999'] }
+        ).then(done, done);
       });
 
       teardown(function() {
@@ -6050,7 +6162,11 @@ suite('conversation.js >', function() {
         id: 20
       });
 
-      addMessages().then(() => {
+      setupEnterConversationView(
+        { threadId: 1, recipients: ['999'] }
+      ).then(
+        addMessages
+      ).then(() => {
         //Put the scroll on top
         container.scrollTop = 0;
         dispatchScrollEvent(container);
@@ -6063,7 +6179,6 @@ suite('conversation.js >', function() {
         // so we need to run tests after the promise resolves.
         return Contacts.findByPhoneNumber.lastCall.returnValue;
       }).then(() => done(), done);
-      ConversationView.initializeRendering();
     });
 
     teardown(function() {
@@ -7368,12 +7483,19 @@ suite('conversation.js >', function() {
         'bubbles': true,
         'cancelable': true
       });
-      ConversationView.appendMessage({
-        id: messageId,
-        type: 'sms',
-        body: 'This is a test',
-        delivery: 'sent',
-        timestamp: Date.now()
+
+      setupEnterConversationView(
+        { threadId: 1, recipients: ['999'] }
+      ).then(() => {
+        return ConversationView.appendMessage({
+          id: messageId,
+          threadId: 1,
+          receiver: '999',
+          type: 'sms',
+          body: 'This is a test',
+          delivery: 'sent',
+          timestamp: Date.now()
+        });
       }).then(() => {
         messageDOM = document.getElementById('message-' + messageId);
         node = messageDOM.querySelector('.message-content-body');

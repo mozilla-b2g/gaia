@@ -116,7 +116,7 @@ marionette('Conversation Panel Tests', function() {
 
       assert.equal(
         messagesApp.Composer.messageInput.text(),
-        smsBody,
+        smsThread.messages[0].body,
         'Forwarded body is the initial body'
       );
 
@@ -287,7 +287,7 @@ marionette('Conversation Panel Tests', function() {
     });
 
     test('MMS should be retrieved successfully', function() {
-      var notDownloadedMessage = conversationView.messages[0];
+      var notDownloadedMessage = conversationView.messages()[0];
 
       assert.isFalse(notDownloadedMessage.isDownloaded);
       assert.isFalse(notDownloadedMessage.isPending);
@@ -328,13 +328,13 @@ marionette('Conversation Panel Tests', function() {
     test('User can enter and exit edit mode', function () {
       conversationView.enterEditMode();
 
-      conversationView.messages.forEach(function(message) {
+      conversationView.messages().forEach(function(message) {
         assert.isTrue(message.isInEditMode);
       });
 
       conversationView.exitEditMode();
 
-      conversationView.messages.forEach(function(message) {
+      conversationView.messages().forEach(function(message) {
         assert.isFalse(message.isInEditMode);
       });
     });
@@ -348,7 +348,7 @@ marionette('Conversation Panel Tests', function() {
         // Selecting all messages
         conversationView.toggleMessagesSelection();
 
-        conversationView.messages.forEach(function(message) {
+        conversationView.messages().forEach(function(message) {
           assert.isTrue(message.isSelected);
         });
         assert.equal(
@@ -365,7 +365,7 @@ marionette('Conversation Panel Tests', function() {
         // Deselecting all messages
         conversationView.toggleMessagesSelection();
 
-        conversationView.messages.forEach(function(message) {
+        conversationView.messages().forEach(function(message) {
           assert.isFalse(message.isSelected);
         });
         assert.equal(
@@ -384,13 +384,13 @@ marionette('Conversation Panel Tests', function() {
         // Selecting the 1st and 3rd message
         var messageIndicesToSelect = [2, 0];
 
-        var messages = conversationView.messages;
+        var messages = conversationView.messages();
 
         messageIndicesToSelect.forEach(function(messageIndex) {
           conversationView.tapOnMessage(messages[messageIndex].id);
         });
 
-        conversationView.messages.forEach(function(message, index) {
+        conversationView.messages().forEach(function(message, index) {
           if (messageIndicesToSelect.indexOf(index) >= 0) {
             assert.isTrue(message.isSelected);
           } else {
@@ -406,7 +406,7 @@ marionette('Conversation Panel Tests', function() {
         // Selecting all messages
         conversationView.toggleMessagesSelection();
 
-        conversationView.messages.forEach(function(message) {
+        conversationView.messages().forEach(function(message) {
           assert.isTrue(message.isSelected);
         });
         assert.equal(
@@ -423,7 +423,7 @@ marionette('Conversation Panel Tests', function() {
         // Deselecting all messages
         conversationView.toggleMessagesSelection();
 
-        conversationView.messages.forEach(function(message) {
+        conversationView.messages().forEach(function(message) {
           assert.isFalse(message.isSelected);
         });
         assert.equal(
@@ -442,7 +442,7 @@ marionette('Conversation Panel Tests', function() {
         // Selecting all messages
         conversationView.toggleMessagesSelection();
 
-        conversationView.messages.forEach(function(message) {
+        conversationView.messages().forEach(function(message) {
           assert.isTrue(message.isSelected);
         });
         assert.equal(
@@ -459,13 +459,13 @@ marionette('Conversation Panel Tests', function() {
         // Deselecting 1st and 3rd message
         var messageIndicesToDeselect = [2, 0];
 
-        var messages = conversationView.messages;
+        var messages = conversationView.messages();
 
         messageIndicesToDeselect.forEach(function(messageIndex) {
           conversationView.tapOnMessage(messages[messageIndex].id);
         });
 
-        conversationView.messages.forEach(function(message, index) {
+        conversationView.messages().forEach(function(message, index) {
           if (messageIndicesToDeselect.indexOf(index) >= 0) {
             assert.isFalse(message.isSelected);
           } else {
@@ -481,7 +481,7 @@ marionette('Conversation Panel Tests', function() {
         // Selecting all messages
         conversationView.toggleMessagesSelection();
 
-        conversationView.messages.forEach(function(message) {
+        conversationView.messages().forEach(function(message) {
           assert.isTrue(message.isSelected);
         });
         assert.equal(

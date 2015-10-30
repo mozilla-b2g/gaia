@@ -34,7 +34,7 @@ MessageAccessor.prototype = {
       );
 
       return {
-        id: messageNode.getAttribute('data-message-id'),
+        id: +messageNode.getAttribute('data-message-id'),
         type: messageClass.indexOf('mms') >= 0 ? 'mms' : 'sms',
         content: messageNode.findElement(SELECTORS.content).text(),
         attachments: attachments.map(function(attachment) {
