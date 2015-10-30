@@ -5,7 +5,12 @@
   // The .sjs file is located in the Gecko since it needs chrome privilege.
   var AJAX_URL = 'client.sjs';
 
+  // The client will send the currently-inputed string to server automatically
+  // whenever a user stops typing for the specified period.
+  var INPUT_STRING_SYNC_PERIOD = 200; // in milliseconds
+
   var enabled = false;
+  var inputStringSyncTimer = null;
 
   function sendMessage(type, detail) {
     if (!enabled) {
@@ -30,6 +35,33 @@
     });
   }
 
+  function inputStringSyncHandler() {
+    if (inputStringSyncTimer) {
+      clearTimeout(inputStringSyncTimer);
+    }
+    inputStringSyncTimer = setTimeout(function() {
+      inputStringSyncTimer = null;
+      sendMessage('input', {
+        clear: true,
+        string: document.getElementById('input-string').value
+      });
+    }, INPUT_STRING_SYNC_PERIOD);
+  }
+
+  function sendFinalInputString() {
+    if (inputStringSyncTimer) {
+      clearTimeout(inputStringSyncTimer);
+      inputStringSyncTimer = null;
+    }
+    var input = document.getElementById('input-string');
+    sendMessage('input', {
+      clear: true,
+      string: input.value,
+      keycode: 13
+    });
+    input.value = '';
+  }
+
   function init() {
     var input = document.getElementById('input-string');
     var btnSend = document.getElementById('send-string');
@@ -40,11 +72,7 @@
         case 13: //Enter
           setTimeout(function() {
             document.activeElement.blur();
-            sendMessage('input', {
-              clear: true,
-              string: input.value,
-              keycode: 13
-            });
+            sendFinalInputString();
           });
           break;
         case 27: //Escape
@@ -61,19 +89,16 @@
     });
 
     input.addEventListener('focus', function() {
-      // The "select()" doesn't work if it's triggered in a "focus()" handler.
+      // The "select()" doesn't work if it's triggered in a "focus" handler.
       setTimeout(function() {
         input.select();
       });
     });
 
-    btnSend.addEventListener('click', function() {
-      sendMessage('input', {
-        clear: true,
-        string: input.value,
-        keycode: 13
-      });
-    });
+    input.addEventListener('input', inputStringSyncHandler);
+    input.addEventListener('keyup', inputStringSyncHandler);
+
+    btnSend.addEventListener('click', sendFinalInputString);
 
     /* jshint nonew: false */
     new PanelElement(document.getElementById('touch-panel'), {
