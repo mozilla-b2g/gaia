@@ -18,7 +18,6 @@
 
     this._video.addEventListener('loadedmetadata', this);
     this._video.addEventListener('playing', this);
-    this._video.addEventListener('seeked', this);
   };
 
   proto.getVideo = function () {
@@ -121,10 +120,6 @@
 
       case 'playing':
         this.show();
-      break;
-
-      case 'seeked':
-        this.play();
       break;
     }
   };

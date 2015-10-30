@@ -32,6 +32,15 @@
     <script defer src="js/video_player.js"></script>
     <script defer src="js/connector.js"></script>
     <script defer src="js/fling_player.js"></script>
+
+    <!-- Shared L10n libraries -->
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/l10n_date.js"></script>
+
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/fling-player.{locale}.properties"/>
   </head>
 
   <body class="theme-media">
@@ -45,20 +54,20 @@
             <smart-button id="forward-button" data-icon="fling-player-forward"></smart-button>
           </div>
           <div id="video-time-progress">
-            <div id="elapsed-time" class="time-text">00:00:00</div>
+            <div id="elapsed-time" class="time-text">00:00</div>
             <div id="time-progress">
               <div id="background-time-bar" class="time-bar"></div>
               <div id="buffered-time-bar" class="time-bar"></div>
               <div id="elapsed-time-bar" class="time-bar"></div>
             </div>
-            <div id="duration-time" class="time-text">00:00:00</div>
+            <div id="duration-time" class="time-text">00:00</div>
           </div>
         </nav>
       </section>
       <section role="region" id="loading-section">
         <gaia-loading></gaia-loading>
-        <span>Loading...</span>
       </section>
+      <section id="initial-message-section" class="fade-out" data-l10n-id="playing-video-from-device"></section>
     </article>
   </body>
 
