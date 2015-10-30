@@ -593,7 +593,7 @@
     },
 
     '_handle_appwindow-orientationchange': function() {
-      this.broadcastMessage('appwindow-orientationchange',
+      this.broadcastMessage('orientationchange',
         this.service.query('getTopMostUI') === this);
     },
 
