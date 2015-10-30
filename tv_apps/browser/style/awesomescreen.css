@@ -39,20 +39,6 @@
   -moz-transition: opacity  0.1s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
-#history {
-  pointer-events : none;
-}
-
-#history > .container {
-  top: 70px;
-  width : 1320px;
-  margin : 0px auto;
-  display : block;
-  height : 925px;
-  overflow : hidden;
-  position: relative;
-}
-
 /* -------- history  title -------- */
 #title-area {
   position: relative;
