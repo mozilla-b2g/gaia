@@ -145,6 +145,9 @@ var Awesomescreen = {
     this.privateBrowsingBlock.addEventListener('mouseup',
         this.hidePrivateBrowsingBlock.bind(this));
 
+    // init BookmarkStore
+    BookmarkStore.init();
+
     //init bookmark list
     this.bookmarkList = new SmartList(this.bookmark, 'LT_NET_BOOKMARK');
 
