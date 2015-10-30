@@ -315,7 +315,7 @@ SettingsController.prototype.notify = function(setting, flashDeactivated) {
   // Localize option title only if not specified in the config
   var optionTitle = localizeOption ? 
     '<span data-l10n-id="' + setting.selected('title') + '"></span>' :
-    '<span>' + optionTitle + '</span>';
+    '<span>' + setting.selected('title') + '</span>';
   var html;
 
   // Check if the `flashMode` setting is going to be deactivated as part

@@ -131,10 +131,15 @@ suite('lib/format-recorder-profiles', function() {
   });
 
   test('Should have formatted title string', function() {
-    assert.equal(this.options[0].title, 'default 1280x720');
-    assert.equal(this.options[1].title, 'high 1920x1080');
-    assert.equal(this.options[2].title, '1080p 1920x1080');
-    assert.equal(this.options[3].title, '720p 1280x720');
+    assert.equal(this.options[0].title, '1280x720');
+    assert.equal(this.options[1].title, '1920x1080');
+    assert.equal(this.options[2].title, '720x480');
+    assert.equal(this.options[3].title, '352x288');
+    assert.equal(this.options[4].title, '320x240');
+  });
+
+  test('Should have eliminated duplicates', function() {
+    assert.equal(this.options.length, 5);
   });
 
   test('Should start with the default profile if present', function() {
