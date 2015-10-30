@@ -56,6 +56,13 @@
 	function() {
     this.fetchAlarmData()
     .then((alarmData) => {
+
+      // if there is no alarm
+      if(!alarmData.hour && !alarmData.minute) {
+        this.resources.elements.alarm.classList.add('no-alarms');
+        return;
+      }
+
       var type = 'AM',
           hour = parseInt(alarmData.hour, 10);
 
@@ -81,19 +88,18 @@
     return new Promise((resolve, reject) => {
       navigator.getDataStores('alarms')
       .then((stores) => {
-        stores[0].getLength()
-        .then((len) => {
-          if(len > 0) {
-            stores[0].get(1)
-            .then((fetchedData) => {
-              if(!fetchedData.data.hour && !fetchedData.data.minute) {
-                reject();
-              } else {
-                resolve(fetchedData.data);
-              }
-            });
-          }
-        });
+
+        return stores[0].getLength()
+          .then((len) => {
+
+            if(0 === len) {
+              return;
+            }
+
+            return stores[0].get(1);
+          });
+      }).then((fetchedData) => {
+        resolve(fetchedData.data);
       });
     });
   };
