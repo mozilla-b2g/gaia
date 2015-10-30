@@ -88,6 +88,21 @@ suite('system/SecureWindowManager', function() {
         'the app was not registered in the maanger');
     });
 
+    test('App focused after opening', function() {
+      var stubFocus = this.sinon.stub(appFake, 'focus');
+      try {
+        window.secureWindowManager.handleEvent({type: 'secure-appcreated',
+          detail: appFake});
+        window.secureWindowManager.handleEvent({type: 'secure-appopened',
+          detail: appFake});
+        assert.isTrue(stubFocus.calledOnce,
+          'the app was not given keyboard focus after opening');
+      }
+      finally {
+        stubFocus.restore();
+      }
+    });
+
     test('App request close', function() {
       var stubClose = this.sinon.stub(appFake, 'close');
       window.secureWindowManager.handleEvent({type: 'secure-apprequestclose',
