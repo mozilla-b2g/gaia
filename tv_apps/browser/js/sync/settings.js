@@ -88,7 +88,9 @@
       this.listeners = new Map();
       this.collections = new Map();
       this.screen = null;
-      this.state = null;
+      this.state = 'disabled';
+
+      this.showScreen(DISABLED);
 
       LazyLoader.load('shared/js/settings_listener.js').then(() => {
         [{
@@ -159,6 +161,10 @@
       switch (message.state) {
         case 'disabled':
           this.showScreen(DISABLED);
+          this.hideEnabling();
+          break;
+        case 'enabling':
+          this.showEnabling();
           break;
         case 'enabled':
           // We want to show the settings page once Sync is enabled
@@ -167,6 +173,7 @@
           if (this.state === 'enabling') {
             Settings.show.bind(Settings)();
           }
+          this.hideEnabling();
           this.showScreen(ENABLED);
           this.showUser(message.user);
           this.showSyncNow();
@@ -354,6 +361,16 @@
       });
       disabled ? this.elements.syncNowButton.classList.add('disabled')
                : this.elements.syncNowButton.classList.remove('disabled');
+    },
+
+    showEnabling() {
+      this.elements.signInButton.classList.add('disabled');
+      this.elements.signInButton.dataset.l10nId = 'fxsync-signing';
+    },
+
+    hideEnabling() {
+      this.elements.signInButton.classList.remove('disabled');
+      this.elements.signInButton.dataset.l10nId = 'fxsync-sign-in';
     },
 
     showSyncNow() {

@@ -22,7 +22,7 @@
  * - When Sync is enabled, we show the 'Sign is as {{email}}' entry. Where
  *   {{email}} is the email used by the user to login into FxA.
  *
- * XXX We also handle a third Sync state. When an error is received through the
+ * We also handle a third Sync state. When an error is received through the
  * Sync Manager Bridge, we inform the user about them. The expected errors are:
  *
  * - ERROR_OFFLINE: The user is trying to log in Sync when the device is
@@ -84,6 +84,9 @@
           this.syncBlock.addEventListener('mouseup', SyncManagerBridge.enable);
           this.syncTab.setAttribute('data-l10n-id', 'fxsync-sign-in-to-sync');
           this.syncTab.removeAttribute('data-l10n-args');
+          break;
+        case 'enabling':
+          this.syncTab.setAttribute('data-l10n-id', 'fxsync-signing');
           break;
         case 'enabled':
           this.showListener = Settings.show.bind(Settings);
