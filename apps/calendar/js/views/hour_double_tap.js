@@ -40,11 +40,58 @@ HourDoubleTap.prototype = {
     this.alldaysHolder.removeEventListener('click', this._onAllDayTap);
   },
 
-  _onDayTap: function(evt) {
+  /**
+   * If the event target is an existing event, the method finds whether the tap
+   * was _really_ on the existing event, to account for possible event
+   * retargeting that's not desirable in that case.
+   *
+   * @param {MouseEvent} evt This is the event to check.
+   * @returns {Boolean} True if we tapped on a child of a day.
+   */
+  _isEventRightOnEventLink(evt) {
     var target = evt.target;
     if (!target.classList.contains('md__day')) {
-      return;
+      // Could be aggressive event fuzzing registering a tap on an existing
+      // event or the "add event" UI, where the tap is really below that item.
+      // See bug 1210201.
+
+      // In this case, offsetY is the vertical space between the top of the
+      // target element and the actual tap, so if the tap is bigger than the
+      // height of the element, or smaller than 0, the tap really happened out
+      // of the element.
+      var tappedOnExistingEvent =
+        // intentionally keeping retargeting behavior for the `add` button.
+        target.classList.contains('md__add-event') ||
+        target.classList.contains('md__event') &&
+        evt.offsetY >= 0 &&
+        evt.offsetY <= target.getBoundingClientRect().height;
+
+      if (tappedOnExistingEvent) {
+        return true;
+      }
     }
+
+    return false;
+  },
+
+  _onDayTap: function(evt) {
+    if (this._isEventRightOnEventLink(evt)) {
+      return;
+    } else {
+      // Having this in the `else` block is a hint to the reader that we could
+      // remove it if the event retargeting gets smarter and we don't need this
+      // `if` anymore.
+
+      // It works because the event handler for the <a> is actually on `window`
+      // and checks if the event was defaultPrevented. Check js/ext/page.js.
+
+      // Until Bug 1091889 gets fixed we'll still get the :active
+      // styles because they're being applied with `touchstart` and we can't
+      // defaultPrevent this event without breaking everything.
+      evt.preventDefault();
+    }
+
+    var target = evt.target.closest('.md__day');
 
     var y = evt.clientY + this.main.scrollTop - this._mainOffset;
     var hour = Math.floor(y / this.hourHeight);
