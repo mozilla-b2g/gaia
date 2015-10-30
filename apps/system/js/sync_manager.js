@@ -360,6 +360,11 @@
       // to do it for a periodic sync.
       this.unregisterSyncRequest();
 
+      if (!navigator.onLine) {
+        Service.request('SyncStateMachine:success');
+        return;
+      }
+
       var collections = {};
       COLLECTIONS.forEach(name => {
         if (this._settings['sync.collections.' + name + '.enabled']) {

@@ -402,6 +402,11 @@
       // to do it for a periodic sync.
       this.unregisterSyncRequest();
 
+      if (!navigator.onLine) {
+        SyncStateMachine.success();
+        return;
+      }
+
       var collections = {};
       COLLECTIONS.forEach(name => {
         if (this.settings.has('sync.collections.' + name + '.enabled')) {
