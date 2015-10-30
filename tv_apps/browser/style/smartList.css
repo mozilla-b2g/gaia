@@ -72,7 +72,7 @@
 
 .smart-list-view .list-item .text-box {
   display: inline-flex;
-  width: 111.5rem;
+  width: 108rem;
   height: 100%;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
@@ -91,19 +91,13 @@
 }
 
 .smart-list-view .list-item .icon-box-right {
-  width: 8.5rem;
+  width: 12rem;
   height: 100%;
-  padding: 1rem;
-}
-
-.smart-list-view .list-item .icon-box-right .icon {
-  width: 6rem;
-  height: 6rem;
 }
 
 .smart-list-view .list-item .icon-box-right .icon:before {
-  font-size: 6rem;
-  line-height: 6rem;
+  font-size: 12rem;
+  line-height: 12rem;
   color: #fff;
   opacity: 0.5;
 }
@@ -173,7 +167,8 @@
 }
 
 .smart-list-view .list-item[data-type="button"] .icon-box-left .icon {
-  color: #57d1ef;
+  color: #fff;
+  opacity: 0.5;
 }
 
 .smart-list-view .list-item[data-type="button"] .icon-box-left .icon:before {
@@ -191,9 +186,7 @@
 }
 
 .smart-list-view .list-item[data-type="button"] .icon-box-right {
-  position: absolute;
-  top: 0;
-  left: -8.5rem;
+  display: none;
 }
 
 .smart-list-mask {

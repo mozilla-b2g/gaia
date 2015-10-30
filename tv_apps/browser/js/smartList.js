@@ -360,8 +360,8 @@
             break;
           case 'button':
             itemEl.setAttribute('data-folder', '');
-            iconImgLeftEl.setAttribute('data-icon', 'folder');
-            iconImgRightEl.setAttribute('data-icon', 'arrow-left');
+            iconImgLeftEl.setAttribute('data-icon', 'arrow-left');
+            iconImgRightEl.setAttribute('data-icon', '');
             break;
           default:
             break;
@@ -443,10 +443,10 @@
           case 'button':
             el.setAttribute('data-folder', '');
             iconImgLeftEl.style.backgroundImage = '';
-            iconImgLeftEl.setAttribute('data-icon', 'folder');
+            iconImgLeftEl.setAttribute('data-icon', 'arrow-left');
             titleEl.textContent = data.title;
             uriEl.textContent = '';
-            iconImgRightEl.setAttribute('data-icon', 'arrow-left');
+            iconImgRightEl.setAttribute('data-icon', '');
             break;
           default:
             break;
