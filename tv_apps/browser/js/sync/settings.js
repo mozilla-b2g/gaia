@@ -180,6 +180,10 @@
           break;
         case 'syncing':
           this.showScreen(ENABLED);
+          // In case that the user opens the browser app while we are on a
+          // syncing state the previous 'enabled' state is missed and so
+          // we need to make sure that we show the user here as well.
+          this.showUser(message.user);
           this.showSyncing();
           break;
         case 'errored':
