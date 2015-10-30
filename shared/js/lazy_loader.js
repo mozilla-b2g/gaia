@@ -99,6 +99,32 @@ var LazyLoader = (function() {
       });
     },
 
+    loadNGA: function(name, callback) {
+      var scriptElem =
+        document.head.querySelector('script[data-group="'+name+'"]');
+
+      if (!scriptElem) {
+        var elem2 = document.head.querySelector('link[data-group="'+name+'"]');
+
+        scriptElem = document.createElement('script');
+        scriptElem.type = 'text/javascript';
+        scriptElem.async = true;
+        var deferred = {};
+        scriptElem.ready = new Promise(resolve => {
+          deferred.resolve = resolve;
+        });
+        scriptElem.src = elem2.getAttribute('data-lazy-src');
+        scriptElem.addEventListener('load', () => {
+          deferred.resolve();
+        });
+        scriptElem.setAttribute('data-group', name);
+        document.head.appendChild(scriptElem);
+        elem2.parentNode.removeChild(elem2);
+      }
+
+      return scriptElem.ready;
+    },
+
     load: function(files, callback) {
       var deferred = {};
       deferred.promise = new Promise(resolve => {

@@ -95,7 +95,12 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
     function isTest(file) {
       var appPath = options.webapp.buildDirectoryFilePath;
       var pathElements = file.path.substr(appPath.length + 1).split(/[\\/]/);
-      return pathElements.some(function(path) { return path === 'test'; });
+      return pathElements.some(function(path) { return path.startsWith('test'); });
+    },
+    function isFont(file) {
+      var appPath = options.webapp.buildDirectoryFilePath;
+      var pathElements = file.path.substr(appPath.length + 1).split(/[\\/]/);
+      return pathElements.some(function(path) { return path.startsWith('gaia-fonts'); });
     },
     function isGit(file) {
       var appPath = options.webapp.buildDirectoryFilePath;

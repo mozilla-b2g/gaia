@@ -35,6 +35,7 @@ var HTMLOptimizer = function(options) {
   this.document = utils.getDocument(utils.getFileContent(this.htmlFile));
   this.locales = options.locales;
   this.optimizeConfig = options.optimizeConfig;
+  this.resourceDependencies = options.resourceDependencies;
 
   this.l10n = l20n.getView(this);
 
@@ -51,19 +52,33 @@ HTMLOptimizer.prototype.dump = function(str) {
   utils.log(fileName, str);
 };
 
+HTMLOptimizer.prototype.collectResources = function() {
+  var doc = this.document;
+  var scripts = Array.prototype.slice.call(
+    doc.head.querySelectorAll('script[src], link[data-lazy-src]'));
+
+  scripts.forEach(script => {
+    var src = script.getAttribute('src') || script.getAttribute('data-lazy-src');
+    var scriptFile = this.getFileByRelativePath(src);
+    if (this.resourceDependencies['js'].get(scriptFile.file.path) === null) {
+      this.resourceDependencies['js'].set(scriptFile.file.path, new Set());
+    }
+
+    this.resourceDependencies['js'].get(scriptFile.file.path).add(
+      this.htmlFile.path);
+  });
+};
+
 HTMLOptimizer.prototype.process = function() {
   var queue = CrossCompatPromise.resolve();
-
-  // only optimize files which are l10n-enabled
-  if (!this.l10n.isEnabled) {
-    return queue;
-  }
 
   this.embedHtmlImports();
   this.optimizeDeviceTypeCSS();
 
   var appName = this.webapp.sourceDirectoryName;
   var fileName = this.htmlFile.leafName;
+
+  this.collectResources();
 
   var jsAggregationBlacklist = this.optimizeConfig.JS_AGGREGATION_BLACKLIST;
   if (this.config.GAIA_OPTIMIZE === '1' &&
@@ -294,120 +309,128 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
  */
 HTMLOptimizer.prototype.aggregateJsResources = function() {
   var gaia = utils.gaia;
-  var baseName = this.htmlFile.leafName.split('.')[0];
-  var deferred = {
-    fileType: 'script',
-    content: '',
-    lastNode: null,
-    name: gaia.aggregatePrefix + 'defer_' + baseName + '.js',
-    specs: {
-      type: 'text/javascript',
-      defer: true,
-      src: './' + gaia.aggregatePrefix + 'defer_' + baseName + '.js'
-    }
-  };
-  var normal = {
-    fileType: 'script',
-    content: '',
-    lastNode: null,
-    name: gaia.aggregatePrefix + baseName + '.js',
-    specs: {
-      type: 'text/javascript',
-      src: './' + gaia.aggregatePrefix + baseName + '.js'
-    }
-  };
+  var baseName = getResourceFileName(
+      this.htmlFile, this.webapp.buildDirectoryFilePath);
 
-  // Everyone should be putting their scripts in head with defer.
-  // The best case is that only l10n.js is put into a normal.
+  var groups = new Map();
+
   var doc = this.document;
   var scripts = Array.prototype.slice.call(
-    doc.head.querySelectorAll('script[src]'));
-  scripts = scripts.filter(function(script, idx) {
-    if ('skipOptimize' in script.dataset || script.hasAttribute('async')) {
-      return false;
+    doc.head.querySelectorAll('script[src], link[data-lazy-src]'));
+
+  scripts.forEach(script => {
+    var groupName = script.dataset.group;
+
+    if (!groupName && script.hasAttribute('data-lazy-src')) {
+      //XXX: for now, skip lazy loaded scripts until we improve lazy loader
+      return;
     }
 
-    var html = script.outerHTML;
-    // we inject the whole outerHTML into the comment for debugging so
-    // if there is something valuable in the html that effects the script
-    // that broke the app it should be fairly easy to tell what happened.
-    var content = '; /* "' + html + ' "*/\n\n';
-    // fetch the whole file append it to the comment.
-    var scriptFile = this.getFileByRelativePath(script.src);
-    content += scriptFile.content;
-
-    // We store the unminified content for comparing.
-    var originalContent = content;
-    try {
-      content = jsmin(content).code;
-    } catch (e) {
-      utils.log('Failed to minify content: ' + e);
+    if (!groupName) {
+      groupName = script.defer ? 'unnamed_defer' : 'unnamed';
     }
 
-    // When BUILD_DEBUG is true, we'll do AST comparing in build time.
-    if (this.config.BUILD_DEBUG &&
-        !utils.jsComparator(originalContent, content)) {
-      throw 'minified ' + script.src + ' has different AST with' +
-            ' unminified script.';
+    if (!groups.has(groupName)) {
+
+      //XXX: we need a webapp index of shared groups with JS links to ensure
+      // consistency
+      var name = groupName.startsWith('shared-') ? groupName + '.js' : baseName
+        + '.' + groupName + '.js';
+
+      groups.set(groupName, {
+        type: null,
+        lazy: false,
+        name: name,
+        content: '',
+        scripts: new Set()
+      });
+
+      if (script.hasAttribute('defer')) {
+        groups.get(groupName).type = 'defer';
+      }
+      if (script.hasAttribute('async')) {
+        groups.get(groupName).type = 'async';
+      }
+      if (script.hasAttribute('data-lazy-src')) {
+        groups.get(groupName).lazy = true;
+      }
     }
 
-    var scriptConfig = normal;
-    if (script.defer) {
-      scriptConfig = deferred;
+    var group = groups.get(groupName);
+
+    if (script.hasAttribute('defer') !== group.type === 'defer' ||
+        script.hasAttribute('async') !== group.type === 'async') {
+      throw new Error('Can\'t mix sync/async/defer scripts in one group');
+    }
+    if (script.hasAttribute('data-lazy-src') !== group.lazy) {
+      throw new Error('Can\'t mix lazy and non-lazy script in one group');
     }
 
-    if (scriptFile.file && scriptFile.file.exists()) {
-      utils.writeContent(scriptFile.file, content);
-    }
+    group.scripts.add(script);
+  });
 
-    scriptConfig.content += content;
-    scriptConfig.lastNode = script;
-    // some apps (email) use version in the script types
-    //  (text/javascript;version=x).
-    //
-    // If we don't have the same version in the aggregate the
-    //  app will not load correctly.
-    if (script.type.indexOf('version') !== -1) {
-      scriptConfig.specs.type = script.type;
-    }
+  groups.forEach((group, groupName) => {
+    var scriptsSize = group.scripts.size;
 
-    return true;
-  }, this);
+    group.scripts.forEach(script => {
+      var src = group.lazy ? script.getAttribute('data-lazy-src') : script.src;
+      var scriptFile = this.getFileByRelativePath(src);
+      group.content += scriptFile.content;
 
-  this.writeAggregatedContent(deferred);
-  this.writeAggregatedContent(normal);
-
-  scripts.forEach(function commentScript(script) {
-    script.outerHTML = '<!-- ' + script.outerHTML + ' -->';
+      if (--scriptsSize === 0) {
+        this.writeAggregatedContent(group, groupName, script);
+      }
+      if (script.nextSibling.nodeType === this.document.TEXT_NODE) {
+        script.parentNode.removeChild(script.nextSibling);
+      }
+      script.parentNode.removeChild(script);
+      this.resourceDependencies['js'].get(scriptFile.file.path).delete(this.htmlFile.path);
+    });
   });
 };
 
 /**
  * Write aggregated content into one js and mark original script tag of html.
  */
-HTMLOptimizer.prototype.writeAggregatedContent = function(conf) {
-  if (!conf.content) {
+HTMLOptimizer.prototype.writeAggregatedContent = function(group, groupName, lastNode) {
+  if (!group.content) {
     return;
   }
-  var doc = this.document;
-  var rootDirectory = this.htmlFile.parent;
 
-  var target = rootDirectory.clone();
-  target.append(conf.name);
+  var jsOptDir =
+    utils.getFile(this.webapp.buildDirectoryFilePath, 'js-opt');
+  utils.ensureFolderExists(jsOptDir);
+  
+
+  var file =
+    utils.getFile(jsOptDir.path, group.name);
+
+  var dep = new Set();
+  dep.add(this.htmlFile.path);
+  this.resourceDependencies['js'].set(file.path, dep);
 
   // write the contents of the aggregated script
-  utils.writeContent(target, conf.content);
+  utils.writeContent(file, jsmin(group.content).code);
 
-  var file = doc.createElement(conf.fileType);
-  var lastScript = conf.lastNode;
+  var scriptElement = this.document.createElement(group.lazy ? 'link' : 'script');
 
-  for (var spe in conf.specs) {
-    file[spe] = conf.specs[spe];
+  scriptElement.setAttribute('type', 'text/javascript;version=1.8');
+  if (group.type) {
+    scriptElement.setAttribute(group.type, group.type);
+  }
+
+  scriptElement.setAttribute('data-group', groupName);
+
+  var src = '/js-opt/' + group.name;
+  if (group.lazy) {
+    scriptElement.setAttribute('data-lazy-src', src);
+  } else {
+    scriptElement.setAttribute('src', src);
   }
 
   // insert after the last script node of this type...
-  var parent = lastScript.parentNode;
-  parent.insertBefore(file, lastScript.nextSibling);
+  var parent = lastNode.parentNode;
+  parent.insertBefore(scriptElement, lastNode.nextSibling);
 };
 
 /**
@@ -551,7 +574,6 @@ var WebappOptimize = function() {
   this.config = null;
   this.webapp = null;
   this.locales = null;
-  this.numOfFiles = 0;
 };
 
 WebappOptimize.prototype.RE_HTML = /\.html$/;
@@ -559,6 +581,9 @@ WebappOptimize.prototype.RE_HTML = /\.html$/;
 WebappOptimize.prototype.setOptions = function(options) {
   this.config = options.config;
   this.webapp = options.webapp;
+  this.resourceDependencies = {
+    'js': new Map()
+  };
   this.locales = options.locales;
   this.optimizeConfig = options.optimizeConfig;
 };
@@ -569,13 +594,40 @@ WebappOptimize.prototype.processFile = function(file) {
     webapp: this.webapp,
     config: this.config,
     locales: this.locales,
-    optimizeConfig: this.optimizeConfig
+    optimizeConfig: this.optimizeConfig,
+    resourceDependencies: this.resourceDependencies
   });
   htmlOptimizer.process();
 
   // Don't quit xpcshell before all asynchronous code is done
   utils.processEvents(
     htmlOptimizer.l10n.checkError.bind(htmlOptimizer.l10n));
+};
+
+WebappOptimize.prototype.collectResources = function() {
+  var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
+  utils.ls(buildDirectoryFile, true).forEach(file => {
+    if (file.path.endsWith('.js')) {
+      this.resourceDependencies['js'].set(file.path, null);
+    }
+  });
+};
+
+WebappOptimize.prototype.removeUnusedResources = function() {
+  this.resourceDependencies['js'].forEach((value, key) => {
+    if (value === null || value.size === 0) {
+      if (value === null) {
+        utils.log('Removing unused resource file: ' + key);
+      }
+      var file = utils.getFile(key);
+      file.remove(false);
+    } else if(key.indexOf('js-opt') === -1) {
+      utils.log('Optimizing script: ' + key);
+      var file = utils.getFile(key);
+      var content = utils.getFileContent(file);
+      utils.writeContent(file, jsmin(content).code);
+    }
+  });
 };
 
 WebappOptimize.prototype.execute = function(config) {
@@ -586,10 +638,13 @@ WebappOptimize.prototype.execute = function(config) {
     return;
   }
 
+  this.collectResources();
+
   // remove excluded condition /^(shared|tests?)$/)
   var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
   var buildDirectoryPath = buildDirectoryFile.path.replace(/\\/g, '/');
-  var excluded = new RegExp(buildDirectoryPath + '.*\/(shared|tests?)');
+  var excluded = new RegExp(buildDirectoryPath +
+      '.*\/(shared|tests?|examples|components)');
   var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
     return !(excluded.test(file.path.replace(/\\/g, '/')));
   });
@@ -604,8 +659,9 @@ WebappOptimize.prototype.execute = function(config) {
       return this.RE_HTML.test(file.leafName);
     }, this);
 
-  this.numOfFiles = files.length;
+
   files.forEach(this.processFile, this);
+  this.removeUnusedResources();
 };
 
 function execute(options) {
@@ -675,6 +731,11 @@ function getL10nJSONFileName(htmlFile, buildDirectoryFilePath) {
   var relativePath = utils.relativePath(buildDirectoryFilePath, htmlFile.path);
   var base = relativePath.replace('.html', '').replace(/\//g, '.');
   return base + '.{locale}.json';
+}
+
+function getResourceFileName(htmlFile, buildDirectoryFilePath) {
+  var relativePath = utils.relativePath(buildDirectoryFilePath, htmlFile.path);
+  return relativePath.replace('.html', '').replace(/\//g, '.');
 }
 
 exports.execute = execute;

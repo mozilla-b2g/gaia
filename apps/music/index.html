@@ -17,34 +17,24 @@
   <link rel="stylesheet" href="/components/gaia-theme/gaia-theme.css">
   <link rel="stylesheet" href="/css/app.css">
   <!-- Deferred Scripts -->
-  <script defer src="/components/bridge/bridge.js"></script>
-  <script defer src="/shared/js/intl/l20n-service.js" type="application/javascript;version=1.8"></script>
-  <script defer src="/shared/js/intl/l20n-client.js" type="application/javascript;version=1.8"></script>
-  <script defer src="/shared/js/intl_helper.js"></script>
-  <script defer src="/components/gaia-header/dist/gaia-header.js"></script>
-  <script defer src="/components/gaia-toolbar/gaia-toolbar.js"></script>
-  <script defer src="/elements/music-overlay.js"></script>
-  <script defer src="/elements/music-scan-progress.js"></script>
-  <script defer src="/elements/music-tab-bar.js"></script>
-  <script defer src="/elements/music-view-stack.js"></script>
-  <script defer src="/shared/js/lazy_loader.js"></script>
-  <script defer src="/shared/js/mediadb.js"></script>
-  <script defer src="/js/db.js"></script>
-  <script defer src="/js/endpoint.js"></script>
-  <script defer src="/js/config.js"></script>
-  <script defer src="/js/app.js"></script>
-  <!-- Lazy-Loaded Scripts -->
-  <!--
-  <script src="/shared/js/media/remote_controls.js"></script>
-  <script src="/shared/js/omadrm/fl.js"></script>
-  <script src="/shared/js/async_storage.js"></script>
-  <script src="/shared/js/bluetooth_helper.js"></script>
-  <script src="/shared/js/image_utils.js"></script>
-  <script src="/shared/js/text_normalizer.js"></script>
-  <script src="/js/queue.js"></script>
-  <script src="/js/remote.js"></script>
-  <script src="/js/nfc_share.js"></script>
-  -->
+  <script data-group="navigationLoaded" defer src="/components/bridge/bridge.js"></script>
+  <script data-group="navigationLoaded" defer src="/shared/js/intl/l20n-service.js" type="application/javascript;version=1.8"></script>
+  <script data-group="navigationLoaded" defer src="/shared/js/intl/l20n-client.js" type="application/javascript;version=1.8"></script>
+  <script data-group="navigationLoaded" defer src="/shared/js/intl_helper.js"></script>
+  <script data-group="navigationLoaded" defer src="/components/gaia-header/dist/gaia-header.js"></script>
+  <script data-group="navigationLoaded" defer src="/components/gaia-toolbar/gaia-toolbar.js"></script>
+  <script data-group="navigationLoaded" defer src="/elements/music-overlay.js"></script>
+  <script data-group="navigationLoaded" defer src="/elements/music-scan-progress.js"></script>
+  <script data-group="navigationLoaded" defer src="/elements/music-tab-bar.js"></script>
+  <script data-group="navigationLoaded" defer src="/elements/music-view-stack.js"></script>
+  <script data-group="navigationLoaded" defer src="/shared/js/lazy_loader.js"></script>
+  <script data-group="navigationLoaded" defer src="/shared/js/mediadb.js"></script>
+  <script data-group="navigationLoaded" defer src="/js/db.js"></script>
+  <script data-group="navigationLoaded" defer src="/js/endpoint.js"></script>
+  <script data-group="navigationLoaded" defer src="/js/config.js"></script>
+  <script data-group="navigationLoaded" defer src="/js/app.js"></script>
+
+  <link data-group="albumArtCache" data-lazy-src="/js/metadata/album_art_cache.js"></link>
 </head>
 <body role="application">
   <gaia-header id="header" no-font-fit>
