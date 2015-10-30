@@ -31,12 +31,20 @@ class TestClockRunStopWatch(GaiaTestCase):
 
         first_time = stopwatch_view.current_time
 
+        stopwatch_view.tap_resume()
+
         time.sleep(0.2)
 
         self.assertNotEqual(stopwatch_view.current_time, '00:00.00')
 
         self.assertNotEqual(first_time, stopwatch_view.current_time)
 
+        stopwatch_view.tap_pause()
+
+        time.sleep(0.2)
+
         stopwatch_view.tap_reset()
+
+        time.sleep(0.2)
 
         self.assertEqual(stopwatch_view.current_time, '00:00.00')
