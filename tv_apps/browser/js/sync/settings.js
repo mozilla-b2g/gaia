@@ -193,6 +193,7 @@
             ];
 
             if (IGNORED_ERRORS.indexOf(message.error) > -1) {
+              Settings.hide.bind(Settings)();
               return;
             }
 
