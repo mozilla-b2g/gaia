@@ -100,14 +100,14 @@ client.on('databaseReady', () => {
 // If you add a Promise to either of these handlers, be careful!
 
 client.on('scanProgress', (detail) => {
-  scanProgress.show({
+  scanProgress.update({
     value:      detail.count,
     heading:    detail.artist,
     subheading: detail.title
   });
 });
 
-client.on('scanStopped', () => scanProgress.hide());
+client.on('scanStopped', () => scanProgress.clear());
 
 client.connect();
 
@@ -258,6 +258,7 @@ function setHeaderTitle(title) {
 
 function setBackButtonHidden(hidden) {
   header.els.actionButton.style.visibility = hidden ? 'hidden' : 'visible';
+  scanProgress.hidden = !hidden;
 }
 
 function getTabByViewURL(url) {
