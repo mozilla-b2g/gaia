@@ -140,6 +140,9 @@ button.pin-button::before {
   display: block;
   outline: 0 none;
   transition: transform ease .3s, opacity ease .3s;
+}
+
+#pin-site-container gaia-app-icon.default {
   background-image: url('chrome/images/loading_icon_dark.svg');
 }
 
