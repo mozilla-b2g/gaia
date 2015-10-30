@@ -10,15 +10,16 @@
   ],
   "dependencies": {
     "bridge": "gaia-components/bridge#master",
-    "gaia-fast-list": "gaia-components/gaia-fast-list#~0.2.1",
-    "gaia-header": "gaia-components/gaia-header#~0.8.4",
-    "gaia-icons": "gaia-components/gaia-icons#~0.8.0",
+    "gaia-fast-list": "gaia-components/gaia-fast-list#~0.2.2",
+    "gaia-header": "gaia-components/gaia-header#~0.9.5",
+    "gaia-icons": "gaia-components/gaia-icons#~0.10.5",
     "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
     "gaia-toolbar": "gaia-components/gaia-toolbar#master",
     "serviceworkerware": "gaia-components/serviceworkerware#master",
     "sww-raw-cache": "gaia-components/sww-raw-cache#~0.2.1"
   },
   "resolutions": {
-    "gaia-component": "~0.3.9"
+    "gaia-component": "~0.4.0",
+    "gaia-icons": "~0.10.5"
   }
 }
