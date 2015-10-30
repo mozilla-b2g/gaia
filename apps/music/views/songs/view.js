@@ -10,34 +10,12 @@ var SongsView = View.extend(function SongsView() {
 
   this.client.on('databaseChange', () => this.update());
 
-  this.configureList();
-  this.configureSearch();
+  this.setupSearch();
+  this.setupList();
   this.update();
 });
 
-SongsView.prototype.configureList = function() {
-  // Scroll search out of view, even when
-  // there aren't enough list items to scroll.
-  this.list.scrollTop = this.searchBox.HEIGHT;
-  this.list.minScrollHeight = `calc(100% + ${this.searchBox.HEIGHT}px)`;
-
-  this.list.configure({
-    getItemImageSrc: (item) => this.getThumbnail(item.name)
-  });
-
-  this.list.addEventListener('click', (evt) => {
-    var link = evt.target.closest('a[data-file-path]');
-    if (link) {
-      this.queueSong(link.dataset.filePath);
-    }
-  });
-
-  // Show the view only when list has something
-  // rendered, this prevents Gecko painting unnecessarily.
-  this.once(this.list, 'rendered', () => document.body.hidden = false);
-};
-
-SongsView.prototype.configureSearch = function() {
+SongsView.prototype.setupSearch = function() {
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.searchResults.addEventListener('open', () => {
@@ -60,28 +38,39 @@ SongsView.prototype.configureSearch = function() {
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
 };
 
+SongsView.prototype.setupList = function() {
+  View.prototype.setupList.call(this);
+
+  // Triggers player service to begin playing the track.
+  // This works for now, but we might have the PlayerView
+  // take care of this task as it's a big more webby :)
+  this.list.addEventListener('click', (evt) => {
+    var link = evt.target.closest('a[data-file-path]');
+    if (link) {
+      this.queueSong(link.dataset.filePath);
+    }
+  });
+};
+
 SongsView.prototype.update = function() {
-  this.getSongs().then((songs) => {
+  return this.getSongs().then((songs) => {
     this.songs = songs;
-    this.render();
+    return this.render();
   });
 };
 
 SongsView.prototype.destroy = function() {
   this.client.destroy();
-
   View.prototype.destroy.call(this); // super(); // Always call *last*
 };
 
 SongsView.prototype.render = function() {
   View.prototype.render.call(this); // super();
-
-  this.list.model = this.songs;
-  this.list.cache();
+  return this.list.setModel(this.songs)
+    .then(() => this.list.cache());
 };
 
 SongsView.prototype.getSongs = function() {
-  console.time('getSongs');
   return document.l10n.formatValues('unknownTitle', 'unknownArtist')
     .then(([unknownTitle, unknownArtist]) => {
       return this.fetch('/api/songs/list')

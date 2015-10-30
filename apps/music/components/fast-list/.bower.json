@@ -25,14 +25,14 @@
   "dependencies": {
     "dom-scheduler": "etiennesegonzac/dom-scheduler#~1.0.1"
   },
-  "version": "0.1.3",
-  "_release": "0.1.3",
+  "version": "0.1.4",
+  "_release": "0.1.4",
   "_resolution": {
     "type": "version",
-    "tag": "v0.1.3",
-    "commit": "6a3686487d0e9bcea5f490314b31d29bae4777da"
+    "tag": "v0.1.4",
+    "commit": "f426267a5ee42cba2f88b25ac01195485d7f54fa"
   },
   "_source": "git://github.com/gaia-components/fast-list.git",
-  "_target": "~0.1.3",
+  "_target": "~0.1.4",
   "_originalSource": "gaia-components/fast-list"
 }

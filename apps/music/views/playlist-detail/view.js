@@ -19,22 +19,20 @@ var PlaylistDetailView = View.extend(function PlaylistDetailView() {
 });
 
 PlaylistDetailView.prototype.update = function() {
-  this.getPlaylist().then((songs) => {
+  return this.getPlaylist().then((songs) => {
     this.songs = songs;
-    this.render();
+    return this.render();
   });
 };
 
 PlaylistDetailView.prototype.destroy = function() {
   this.client.destroy();
-
   View.prototype.destroy.call(this); // super(); // Always call *last*
 };
 
 PlaylistDetailView.prototype.render = function() {
   View.prototype.render.call(this); // super();
-
-  this.list.model = this.songs;
+  return this.list.setModel(this.songs);
 };
 
 PlaylistDetailView.prototype.getPlaylist = function() {
