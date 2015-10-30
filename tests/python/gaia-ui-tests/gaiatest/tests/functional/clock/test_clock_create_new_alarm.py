@@ -13,7 +13,6 @@ class TestClockCreateNewAlarm(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-
         self.clock = Clock(self.marionette)
         self.clock.launch()
 
@@ -76,7 +75,6 @@ class TestClockCreateNewAlarm(GaiaTestCase):
 
         self.assertNotEqual(alarm_view.alarm_items[0].time, alarm_time)
 
-<<<<<<< HEAD
         # turn off the alarm
         alarm_view.alarm_items[0].tap_checkbox()
         alarm_view.alarm_items[0].wait_for_checkbox_to_change_state(False)
@@ -87,14 +85,12 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         alarm_view.alarm_items[0].wait_for_checkbox_to_change_state(True)
         alarm_view.dismiss_banner()
         self.assertTrue(alarm_view.alarm_items[0].is_alarm_active, 'user should be able to turn off the alarm.')
-=======
-        self.clock.alarms[0].disable()
-        self.assertFalse(self.clock.alarms[0].is_alarm_active, 'user should be able to turn on the alarm.')
+        alarm_view.alarms[0].disable()
+        self.assertFalse(alarm_view.alarms[0].is_alarm_active, 'user should be able to turn on the alarm.')
 
-        self.clock.alarms[0].enable()
-        self.clock.dismiss_banner()
-        self.assertTrue(self.clock.alarms[0].is_alarm_active, 'user should be able to turn off the alarm.')
->>>>>>> 11e4c572e3a2690e4ef1e8436beba55587ffed6d
+        alarm_view.alarms[0].enable()
+        alarm_view.dismiss_banner()
+        self.assertTrue(alarm_view.alarms[0].is_alarm_active, 'user should be able to turn off the alarm.')
 
         self.device.touch_home_button()
         self.marionette.switch_to_frame()
