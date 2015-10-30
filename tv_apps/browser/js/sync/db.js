@@ -187,6 +187,7 @@ var SyncBrowserDB = {
    *                            without arguments on error.
    */
   getBookmark: function browserDB_getBookmark(indexes, callback) {
+    const FXSYNCID_LEN = 12;
     if (typeof indexes === 'string') {
       this.db.getBookmark(indexes, callback);
     } else if (indexes.id) {
@@ -194,7 +195,28 @@ var SyncBrowserDB = {
     } else if (indexes.bmkUri) {
       this.db.getBookmarkByUri(indexes.bmkUri, callback);
     } else if (indexes.parentid) {
-      this.db.getBookmarkByParentId(indexes.parentid, callback);
+      this.db.getBookmark(indexes.parentid, folder => {
+        if (folder && folder.type === 'folder' && folder.children) {
+          this.db.getBookmarkByParentId(indexes.parentid, list => {
+            var children = folder.children;
+            var result = [];
+            for (var i = 0; i < children.length; i++) {
+              for (var j = 0; j < list.length; j++) {
+                var oriId = list[j].id;
+                // Append the reduntant underline to match the ID from Syncto.
+                var id = (oriId + '____________').substring(0, FXSYNCID_LEN);
+                if (children[i] === id) {
+                  result.push(list[j]);
+                  break;
+                }
+              }
+            }
+            callback(result);
+          });
+        } else {
+          this.db.getBookmarkByParentId(indexes.parentid, callback);
+        }
+      });
     } else {
       callback(null);
     }
