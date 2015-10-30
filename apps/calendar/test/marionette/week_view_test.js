@@ -283,7 +283,7 @@ marionette('week view', function() {
         .perform();
 
       client.waitFor(function() {
-        return isShowingAddEventLink();
+        return week.isShowingAddEventLink();
       });
 
       // clicking on another hour should hide the link
@@ -292,7 +292,7 @@ marionette('week view', function() {
         .perform();
 
       client.waitFor(function() {
-        return !isShowingAddEventLink();
+        return !week.isShowingAddEventLink();
       });
 
       week.actions
@@ -313,12 +313,47 @@ marionette('week view', function() {
       assert.equal(editEvent.startTime, pad(time) + ':00:00', 'startTime');
       assert.equal(editEvent.endTime, pad(time + 1) + ':00:00', 'endTime');
     }
+  });
 
-    function isShowingAddEventLink() {
-      return week.element.scriptWith(function(el) {
-        return !!el.querySelector('.md__add-event');
-      });
-    }
+  suite('event retargeting tests', function() {
+    test('When tapping around an event we can create another event',
+    function() {
+      // When displaying the view, for some reason (likely APZC) scrollTop is
+      // incorrect for some time. So we wait for the expected value using
+      // waitForHourScrollEnd().
+      // Also rarely we're not scrolled at first, and so this fails with a
+      // timeout.
+      week.waitForHourScrollEnd();
+
+      var testedHour = 6;
+      // it's really the 3rd visible day as 5 invisible days are in the markup
+      var testedDay = 7;
+
+      week.scrollToHour(testedHour);
+      week.tapDayHour({ day: testedDay, hour: testedHour });
+      week.actions.wait(1).perform();
+
+      assert.ok(
+        week.isShowingAddEventLink(), 'The `add-event` link is displayed'
+      );
+
+      // The "+" button should work with event retargeting.
+      week.tapDayHour({ day: testedDay, hour: testedHour, bottom: -1 });
+      // tapping using "-1" could theorically fail because scrollToHour does not
+      // ensure we have some pixels after the element. Moreover this fails for
+      // sure if testedHour is 23.
+
+      app.editEvent.waitForDisplay();
+      app.editEvent.title = 'Test event';
+      app.editEvent.save();
+
+      week.waitForDisplay();
+      week.tapDayHour({ day: testedDay, hour: testedHour, bottom: -1 });
+
+      assert.ok(
+        week.isShowingAddEventLink(), 'The `add-event` link is displayed'
+      );
+    });
   });
 
   suite('12/24 hour format', function() {

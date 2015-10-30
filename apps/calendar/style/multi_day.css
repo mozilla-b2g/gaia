@@ -213,6 +213,11 @@ html[dir="rtl"] .md__allday {
   padding: 0.5rem;
 }
 
+/* The content of event links should be actionable, the links work as buttons */
+.md__event > * {
+  pointer-events: none;
+}
+
 .day-view .md__event {
   padding: 0.8rem 0.5rem;
 }
