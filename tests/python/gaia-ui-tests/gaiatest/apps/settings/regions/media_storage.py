@@ -53,6 +53,7 @@ class MediaStorage(Base):
         """, [element]);
 
     def tap_select_media_location(self):
+        # if scrollIntoView() method is used before tapping, it will cause a slight screen shift
         self.marionette.find_element(*self._media_location_selector_locator).tap()
         Wait(self.marionette).until(expected.element_displayed(*self._default_change_confirm_locator))
 

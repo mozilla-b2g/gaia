@@ -39,6 +39,7 @@ class StorageRegion(PageRegion):
         return self.root_element.find_element(*self._eject_locator)
 
     def tap_format(self):
+        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [self._format_button])
         self._format_button.tap()
         Wait(self.marionette).until(expected.element_displayed(*self._format_dialog_confirm_locator))
 
