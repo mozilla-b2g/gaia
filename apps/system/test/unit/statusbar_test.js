@@ -114,7 +114,6 @@ suite('system/Statusbar', function() {
   setup(function(done) {
     icons = [];
     this.sinon.useFakeTimers();
-    UtilityTray.shown = false;
 
     realService = window.Service;
     window.Service = MockService;
@@ -448,14 +447,14 @@ suite('system/Statusbar', function() {
       assert.isFalse(Statusbar.element.classList.contains('maximized'));
     });
 
-    test('setAppearance with utility tray does not add maximized', function() {
+    test('setAppearance with utility tray adds maximized', function() {
       this.sinon.stub(app.appChrome, 'isMaximized').returns(false);
       app.isHomescreen = undefined;
       app.isAttentionWindow = undefined;
       app.isLockscreen = undefined;
       UtilityTray.shown = true;
       Statusbar.setAppearance();
-      assert.isFalse(Statusbar.element.classList.contains('maximized'));
+      assert.isTrue(Statusbar.element.classList.contains('maximized'));
       UtilityTray.shown = false;
     });
 

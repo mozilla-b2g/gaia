@@ -8,6 +8,4 @@
   /* 0.682 = --statusbar-height (3rem) / rocketbar height (4.4rem) */
   --rocketbar-scale: 0.682;
   --rocketbar-urlbar-height: 4.4rem;
-
-  --minimized-statusbar-width: 100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem;
 }

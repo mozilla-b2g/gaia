@@ -300,7 +300,7 @@
       });
       var chromeMaximized = !!(app.appChrome && app.appChrome.isMaximized());
       var trayActive = !!(this.utilityTray && this.utilityTray.shown);
-      var shouldMaximize = (noRocketbar || chromeMaximized) && !trayActive;
+      var shouldMaximize = noRocketbar || chromeMaximized || trayActive;
       var fewIcons = (this._iconsCount < this._numMinimizedIcons);
 
       // Important: we need a boolean to make the toggle method
