@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid, configurator, appManager */
+/* global GaiaGrid, configurator */
 
 (function(exports) {
 
@@ -35,16 +35,7 @@
       });
     }
 
-    function addMozAppListener() {
-      window.addEventListener('downloadapplied', function onDownloadApplied(e) {
-        appManager.sendEventToCollectionApp('install', {
-          id: e.detail.id
-        });
-      });
-    }
-
     addSVEventListener();
-    addMozAppListener();
 
     var self = this;
     function addIcons() {
@@ -92,14 +83,6 @@
 
       app.grid.render();
       app.itemStore.deferredSave(app.grid.getItems());
-
-      // for packaged apps ignore the 'install' event and wait for
-      // 'downloadapplied'
-      if (application.installState === 'installed') {
-        appManager.sendEventToCollectionApp('install', {
-          id: application.manifestURL
-        });
-      }
     }
 
     /**
@@ -145,9 +128,6 @@
       if (app.HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
         return;
       }
-
-      appManager.sendEventToCollectionApp('uninstall',
-        { id: application.manifestURL });
     }.bind(this);
 
   }

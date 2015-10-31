@@ -694,15 +694,6 @@ var Homescreen = {
       search_page: { enabled: true }
     };
 
-    //FIXME: we don't support collections for now
-    var collections = [
-      ['apps/homescreen/collections', 'social'],
-      ['apps/homescreen/collections', 'games'],
-      ['apps/homescreen/collections', 'music'],
-      ['apps/homescreen/collections', 'showbiz']
-    ];
-    grid.homescreens.push(collections);
-
     Array.prototype.forEach.call(pages, function(page, index) {
       var pageArray = [];
       Array.prototype.forEach.call(page.children, function(el, position) {

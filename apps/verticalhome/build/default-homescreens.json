@@ -7,10 +7,6 @@
       ["apps", "email"],
       ["apps", "search"]
     ], [
-      ["apps/collection/collections", "social"],
-      ["apps/collection/collections", "games"],
-      ["apps/collection/collections", "music"]
-    ], [
       ["apps", "camera"],
       ["apps", "gallery"],
       ["apps", "music"],

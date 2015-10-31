@@ -6,8 +6,6 @@
 
   const ACTIVE_SCALE = 1.4;
 
-  const COLLECTION_DROP_SCALE = 0.5;
-
   /* This is an alternative delay used to initiate icon movement when in edit
    * mode. The normal contextmenu delay is too long once we're in edit mode
    * and causes user confusion, but a short delay globally would cause too many
@@ -25,9 +23,6 @@
   /* The page is scrolled via javascript if an icon is being moved, and is
    * within a length of a page edge configured by this value */
   const EDGE_PAGE_THRESHOLD = 50;
-
-  /* This delay is the time to wait before rearranging a collection. */
-  const REARRANGE_COLLECTION_DELAY = 500;
 
   /* This is the delay before calling finish when handling touchend. */
   const TOUCH_END_FINISH_DELAY = 20;
@@ -102,11 +97,6 @@
      * @type {GaiaGrid.Group}
      */
     hoverGroup: null,
-
-    /**
-     * A port for IAC to the collections app.
-     */
-    collectionsPort: null,
 
     /*
      * An element that's aligned to the top of the grid and should be
@@ -236,65 +226,7 @@
         if (this.rearrangeDelay) {
           clearTimeout(this.rearrangeDelay);
         }
-        if (this.hoverItem && this.hoverItem.detail.type === 'collection') {
-          // The user has dropped into a collection
-          window.dispatchEvent(new CustomEvent(
-            'gaiagrid-add-to-collection',
-            { detail: {
-              'collectionId': this.hoverItem.detail.id,
-              'identifier': this.icon.identifier
-            }
-          }));
-
-          // Animate two icons, the original one in its original position,
-          // scaling up, and a second copy from the dropped position
-          // scaling down into the collection.
-
-          // When we set the position, we need to compensate for the transform
-          // center being at the top-left.
-          var scale = this.gridView.layout.percent * COLLECTION_DROP_SCALE;
-          var scaleAdjustX =
-            ((this.gridView.layout.gridItemWidth * this.icon.scale) -
-             (this.gridView.layout.gridItemWidth * scale)) / 2;
-          var scaleAdjustY =
-            ((this.gridView.layout.gridItemHeight * this.icon.scale) -
-             (this.gridView.layout.gridItemHeight * scale)) / 2;
-
-          // Create the clone icon that we'll animate dropping into the
-          // collection
-          var clone = this.icon.element.cloneNode(true);
-          clone.classList.add('dropped');
-          this.icon.element.parentNode.appendChild(clone);
-
-          // Force a reflow on the clone so that the following property changes
-          // cause transitions.
-          clone.clientWidth;
-
-          var destroyOnTransitionEnd = function() {
-            this.parentNode.removeChild(this);
-            this.removeEventListener('transitionend', destroyOnTransitionEnd);
-          }.bind(clone);
-          clone.addEventListener('transitionend', destroyOnTransitionEnd);
-
-          clone.style.opacity = 0;
-          this.icon.transform(
-            this.hoverItem.x + scaleAdjustX,
-            this.hoverItem.y + scaleAdjustY,
-            scale,
-            clone);
-
-          // Now animate the original icon back into its original position.
-          this.icon.transform(this.icon.x + scaleAdjustX,
-                              this.icon.y + scaleAdjustY,
-                              scale);
-
-          // Force a reflow on this icon, otherwise when we remove the active
-          // class, it will transition from its original position instead of
-          // this new position.
-          this.icon.element.clientWidth;
-        } else {
-          this.doRearrange.call(this);
-        }
+        this.doRearrange.call(this);
       } else {
         this.icon.requestAttention();
       }
@@ -561,11 +493,9 @@
         return;
       }
 
-      // If the item isn't a collection or a group, trigger the
+      // If the item isn't a group, trigger the
       // hovered state on the found item.
-      if (!insertDividerAtTop &&
-          (foundItem.detail.type !== 'collection' ||
-           (this.icon.detail.type !== 'collection' && !iconIsDivider))) {
+      if (!insertDividerAtTop && !iconIsDivider) {
         this.hoverItem = foundItem;
         this.hoverItem.element.classList.add('hovered');
       }
@@ -642,9 +572,7 @@
 
         if (rearrangeAfterDelay) {
           this.rearrangeDelay =
-            setTimeout(this.doRearrange.bind(this),
-              this.hoverItem && this.hoverItem.detail.type === 'collection' ?
-                REARRANGE_COLLECTION_DELAY : REARRANGE_DELAY);
+            setTimeout(this.doRearrange.bind(this), REARRANGE_DELAY);
         }
       }
     },
@@ -747,7 +675,6 @@
       this.gridView.element.dispatchEvent(
         new CustomEvent('editmode-start'));
       document.addEventListener('visibilitychange', this);
-      this.container.addEventListener('collection-close', this);
       this.gridView.render();
     },
 
@@ -764,7 +691,6 @@
       document.body.classList.remove('edit-mode');
       this.gridView.element.dispatchEvent(new CustomEvent('editmode-end'));
       document.removeEventListener('visibilitychange', this);
-      this.container.removeEventListener('collection-close', this);
       this.gridView.render();
     },
 
@@ -786,10 +712,6 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
-          case 'collection-close':
-            this.exitEditMode();
-            break;
-
           case 'visibilitychange':
             if (document.hidden) {
               this.exitEditMode();
@@ -828,7 +750,7 @@
           case 'contextmenu':
             this.cancelLongPressTimeout();
 
-            if (this.gridView._collectionOpen || this.icon) {
+            if (this.icon) {
               e.stopImmediatePropagation();
               e.preventDefault();
               return;
