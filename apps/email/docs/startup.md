@@ -28,7 +28,7 @@ The localStorage values are stamped with the signature of the app files, since c
 
 4) It continues to listen for mozSetMessageHandler entry point messages, and dispatches to handlers that have registered to `window.globalOnAppMessage`. `mail_app` calls `globalOnAppMessage`. The startupData is returned from calls to `globalOnAppMessage`, so this is how `mail_app` knows what startup entry point and view are suggested by `html_cache_restore`.
 
-`html_cache_restore` will **not** listen for mozSetMessageHandler messagesfor request-sync messages, because wake locks need to be acquired in that case, and given the complexity of that need, it relies on cronsync-main to do that work. `html_cache_restore` does detect if it was started from a request-sync message, but only uses that it setting up the startup state.
+`html_cache_restore` will **not** listen for mozSetMessageHandler messagesfor alarm messages, because wake locks need to be acquired in that case, and given the complexity of that need, it relies on cronsync-main to do that work. `html_cache_restore` does detect if it was started from a alarm message, but only uses that it setting up the startup state.
 
 ## config
 
