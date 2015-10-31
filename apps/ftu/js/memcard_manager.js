@@ -46,7 +46,6 @@ var SdManager = {
 
     var importButton = UIManager.sdImportButton;
 
-
     utils.sdcard.retrieveFiles([
       'text/vcard',
       'text/directory;profile=vCard',
@@ -59,7 +58,43 @@ var SdManager = {
         return;
       }
       if (fileArray.length) {
-        utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
+        var promises = [];
+        fileArray.forEach(file => {
+          promises.push(utils.sdcard.getTextFromFile(file, onContacts));
+        });
+        Promise.all(promises).then(results => {
+          var numDupsMerged = results.reduce((sum, current) => {
+            return sum + current;
+          });
+          window.setTimeout(() => {
+            utils.misc.setTimestamp('sd', () => {
+              // Once the timestamp is saved, update the list
+              updateTimestamps();
+              checkNoContacts();
+              resetWait(wakeLock);
+              if (!cancelled) {
+                var msg1 = {
+                  id: 'memoryCardContacts-imported3',
+                  args: {
+                    n: importedContacts
+                  }
+                };
+                var msg2 = !numDupsMerged ? null : {
+                  id: 'contactsMerged',
+                  args: {
+                    numDups: numDupsMerged
+                  }
+                };
+                utils.status.show(msg1, msg2);
+                if (typeof cb === 'function') {
+                  cb();
+                }
+              }
+            });
+          }, DELAY_FEEDBACK);
+        }).catch(error => {
+          import_error(error);
+        });
       } else {
         import_error('No contacts were found.');
       }
@@ -105,7 +140,7 @@ var SdManager = {
       Overlay.showProgressBar('memoryCardContacts-importing', n);
     }
 
-    function imported_contact() {
+    function imported_contact(contact) {
       importedContacts++;
       Overlay.updateProgressBar();
     }

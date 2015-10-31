@@ -1,13 +1,13 @@
 'use strict';
 
 /* global loadBodyHTML */
-/* global MocksHelper */
-/* global contacts */
 /* global asyncStorage */
-/* global MockContactsListObj */
+/* global MocksHelper */
+/* global MockMozActivity */
+/* global MockContactsSettings */
 /* global ContactsService */
 /* global ConfirmDialog */
-/* global ICEData, MockContactsSettings, ICE */
+/* global ICEData, ICE */
 
 requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/services/contacts.js');
@@ -19,6 +19,7 @@ requireApp('communications/contacts/js/utilities/ice_data.js');
 requireApp('communications/contacts/js/views/ice_settings.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
+requireApp('communications/contacts/test/unit/mock_mozActivity.js');
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_switch/script.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
@@ -30,33 +31,36 @@ var mocksHelper = new MocksHelper([
   'ConfirmDialog',
   'Contacts',
   'ICEStore',
-  'HeaderUI'
+  'MozActivity'
 ]);
 mocksHelper.init();
 
 suite('ICE Settings view', function() {
   var subject;
-  var realContactsList;
-  var realContactsSettings;
+  var realSettingsUI;
   var defaultLabel = 'ICESelectContact';
 
   var cid1 = '1', cid2 = '2', fbcid3 = '3';
 
   suiteSetup(function() {
-    mocksHelper.suiteSetup();
     subject = ICE;
-    realContactsSettings = contacts.Settings;
-    contacts.Settings = MockContactsSettings;
-    realContactsList = contacts.List;
-    contacts.List = MockContactsListObj;
+    realSettingsUI = window.SettingsUI;
+    window.SettingsUI = {
+      navigation: {
+        back: function() {}
+      }
+    };
+
+    mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
-    contacts.List = realContactsList;
-    contacts.Settings = realContactsSettings;
+    mocksHelper.suiteTeardown();
+    window.SettingsUI = realSettingsUI;
   });
 
   setup(function() {
+    mocksHelper.setup();
     setupHTML();
     this.sinon.stub(
       ContactsService,
@@ -93,6 +97,7 @@ suite('ICE Settings view', function() {
   });
 
   teardown(function() {
+    mocksHelper.teardown();
     subject.reset();
     window.asyncStorage.clear();
     ContactsService.get.restore();
@@ -372,15 +377,7 @@ suite('ICE Settings view', function() {
   });
 
   suite('> Error handling ', function() {
-
-    var handleClick;
-
     setup(function() {
-
-      this.sinon.stub(contacts.List, 'handleClick', function(cb) {
-        handleClick = cb;
-      });
-
       window.asyncStorage.keys = {
         'ice-contacts': [
           {
@@ -389,18 +386,7 @@ suite('ICE Settings view', function() {
           }
         ]
       };
-
-
     });
-
-    teardown(function() {
-      handleClick = null;
-    });
-
-    function clickOnList(id) {
-      document.getElementById('select-ice-contact-1').click();
-      handleClick(id);
-    }
 
     function assertErrorMessage(code, expectedCode, cb) {
       assert.equal(code, expectedCode);
@@ -410,7 +396,9 @@ suite('ICE Settings view', function() {
 
     test(' repeated contact', function(done) {
       subject.refresh(function() {
-        clickOnList(cid1);
+        document.getElementById('select-ice-contact-1').click();
+        MockMozActivity.setResult([{},{}]);
+        MockMozActivity.currentActivity.onsuccess();
         sinon.stub(ConfirmDialog, 'show', function(param1, code) {
           assertErrorMessage(code, 'ICERepeatedContact', done);
         });

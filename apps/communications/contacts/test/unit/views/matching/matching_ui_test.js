@@ -150,7 +150,6 @@ suite('MatchingUI', function() {
         // Duplicate contacts list is displayed correctly
         var dupContactsKeys = Object.keys(dupContacts);
 
-        console.log(list.innerHTML);
         assert.equal(list.children.length, dupContactsKeys.length);
         dupContactsKeys.forEach(function(id) {
           checkItem(list.querySelector('li[data-uuid="' + id + '"]'),

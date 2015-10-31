@@ -1,0 +1,14 @@
+#view-contacts-list {
+  visibility: visible;
+  transform: translateY(0);
+}
+
+#search-view.insearchmode {
+  visibility: visible;
+  transform: translateY(0);
+}
+
+body.pick #settings-button,
+body.pick #add-contact-button{
+  display: none !important;
+}

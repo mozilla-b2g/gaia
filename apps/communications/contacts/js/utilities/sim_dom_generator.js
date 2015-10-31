@@ -1,4 +1,3 @@
-/* global _ */
 'use strict';
 
 // Generates the DOM for each button, depending
@@ -71,7 +70,7 @@ SimDomGenerator.prototype.generateExportDOM = function() {
 
     var p = document.createElement('p');
     p.classList.add('error-message');
-    p.textContent = _('noSimMsgExport');
+    navigator.mozL10n.setAttributes(p, 'noSimMsgExport');
 
     li.appendChild(button);
     li.appendChild(p);
@@ -120,7 +119,7 @@ SimDomGenerator.prototype.generateImportDOM = function() {
 
     var p = document.createElement('p');
     p.classList.add('error-message');
-    p.textContent = _('noSimMsg');
+    navigator.mozL10n.setAttributes(p, 'noSimMsg');
 
     li.appendChild(button);
     li.appendChild(p);

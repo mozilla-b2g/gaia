@@ -27,20 +27,10 @@ utils.importFromVcard = function(file, callback) {
     var cancelled = false;
     var importer = null;
     var text = null;
-    var progress = Overlay.show(
-                   'memoryCardContacts-reading',
-                   'activityBar',
-                   null,
-                   true
-                 );
-
-    Overlay.oncancel = function oncancel() {
+    Overlay.showActivityBar('memoryCardContacts-reading');
+    Overlay.oncancel = function() {
       cancelled = true;
-      if (importer) {
-        importer.finish();
-      } else {
-        Overlay.hide();
-      }
+      importer ? importer.finish() : Overlay.hide();
     };
 
     readVCard(function(vcardText) {
@@ -150,16 +140,12 @@ utils.importFromVcard = function(file, callback) {
     }
 
     function import_read(n) {
-      progress.setClass('progressBar');
-      progress.setHeaderMsg('memoryCardContacts-importing');
-      progress.setTotal(n);
+      Overlay.showProgressBar('memoryCardContacts-importing', n);
     }
 
     function imported_contact() {
       importedContacts++;
-      if (!cancelled) {
-        progress.update();
-      }
+      Overlay.updateProgressBar();
     }
 
     function import_error(e) {
@@ -182,7 +168,7 @@ utils.importFromVcard = function(file, callback) {
         }
       };
       ConfirmDialog.show(null, 'memoryCardContacts-error',
-                             cancel, retry);
+                         cancel, retry);
       Overlay.hide();
     }
   }

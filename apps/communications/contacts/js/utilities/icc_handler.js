@@ -14,6 +14,9 @@ var IccHandler = function IccHandler() {
   var sims = [];
   var mobileConnections = null;
 
+  // TODO change init into a Promise that you can wait for, and put
+  // all DOM generation outside of it
+  // e.g. IccHandler.init().then(generateDOM);
   var init = function init(domGenerator, cb) {
     iccManager = navigator.mozIccManager;
     // Avoid any icc operation in devices that don't
@@ -36,7 +39,10 @@ var IccHandler = function IccHandler() {
       for (var i = 0; i < mobileConnections.length; i++) {
         sims[i] = iccs[mobileConnections[i].iccId] || null;
       }
+    }
 
+    if (!domGenerator) {
+      return;
     }
 
     domGenerator.setIccList(sims);

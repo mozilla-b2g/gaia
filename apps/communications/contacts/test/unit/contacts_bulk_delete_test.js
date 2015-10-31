@@ -1,5 +1,6 @@
 /*jshint node: true, browser: true */
-/* globals MocksHelper, MockLoader, BulkDelete, ConfirmDialog */
+/* globals MocksHelper, MockLoader,
+           BulkDelete, ConfirmDialog */
 
 'use strict';
 
@@ -7,33 +8,28 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_loader.js');
+requireApp('communications/contacts/test/unit/mock_overlay.js');
 
 requireApp('communications/contacts/js/contacts_bulk_delete.js');
 
 var mocksHelperForContactsBulkDelete = new MocksHelper([
+  'Overlay',
   'ConfirmDialog'
 ]).init();
 
-/* jshint ignore:start */
-if (!this.utils) {
-  this.utils = null;
+if (!window.utils) {
+  window.utils = {};
 }
-/* jshint ignore:end */
 
 suite('contacts_bulk_delete.js', function() {
 
-  var realLoader = null;
+  var realLoader;
 
   var promise = {};
-
-  var confirmShowSpy, confirmHideSpy, spies;
 
   mocksHelperForContactsBulkDelete.attachTestHelpers();
 
   suiteSetup(function() {
-    if (!window.utils) {
-      window.utils = {};
-    }
     realLoader = window.Loader;
     window.Loader = MockLoader;
   });
@@ -43,15 +39,8 @@ suite('contacts_bulk_delete.js', function() {
   });
 
   setup(function() {
-    confirmShowSpy = sinon.spy(ConfirmDialog, 'show');
-    confirmHideSpy = sinon.spy(ConfirmDialog, 'hide');
-    spies = [confirmShowSpy, confirmHideSpy];
-  });
-
-  teardown(function() {
-    spies.forEach(function(spy) {
-      spy.restore();
-    });
+    this.sinon.spy(ConfirmDialog, 'show');
+    this.sinon.spy(ConfirmDialog, 'hide');
   });
 
   function assertPerformDeleteSuccess(numberOfContacts) {
@@ -61,10 +50,10 @@ suite('contacts_bulk_delete.js', function() {
       length: numberOfContacts
     });
 
-    assert.isTrue(confirmShowSpy.called);
+    assert.isTrue(ConfirmDialog.show.called);
     assert.isNull(ConfirmDialog.title);
     assert.deepEqual(ConfirmDialog.text,
-      { id: 'ContactConfirmDel', args: { n: 69 } });
+                     {id: 'ContactConfirmDel', args: {n: 10}});
     assert.equal(ConfirmDialog.noObject.title, 'cancel');
     assert.equal(ConfirmDialog.yesObject.title, 'delete');
   }
@@ -75,16 +64,16 @@ suite('contacts_bulk_delete.js', function() {
       done();
     });
 
-    assertPerformDeleteSuccess(69);
+    assertPerformDeleteSuccess(10);
     // Confirmed by user
     ConfirmDialog.executeYes();
-    assert.isTrue(confirmHideSpy.called);
+    assert.isTrue(ConfirmDialog.hide.called);
   });
 
   test('call performDelete successfully and user cancels', function() {
-    assertPerformDeleteSuccess(69);
+    assertPerformDeleteSuccess(10);
     // Cancelled by user
     ConfirmDialog.executeNo();
-    assert.isTrue(confirmHideSpy.called);
+    assert.isTrue(ConfirmDialog.hide.called);
   });
 });

@@ -72,7 +72,7 @@ NewMessageView.prototype = {
     this.accessors.pickContactButton.tap();
     var Contacts = fromApp('contacts').require('lib/contacts');
     var contacts = new Contacts(this.client);
-    contacts.switchToApp();
+    contacts.switchToPickContactActivity();
     return contacts;
   },
 

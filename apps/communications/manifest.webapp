@@ -38,7 +38,7 @@
       }
     },
     "contacts": {
-      "launch_path": "/contacts/index.html",
+      "launch_path": "/contacts/views/list/list.html",
       "name": "Contacts",
       "icons": {
         "84": "/contacts/style/icons/contacts_84.png",
@@ -99,7 +99,7 @@
          }
        },
       "disposition": "inline",
-      "href": "/contacts/index.html?pick",
+      "href": "/contacts/views/list/list.html?action=pick",
       "returnValue": true
     },
     "import": {

@@ -1,6 +1,5 @@
 'use strict';
 
-/* global contacts */
 /* global Contacts */
 /* global MockMozContacts */
 /* global MockContactsIndexHtml */
@@ -16,6 +15,8 @@
 /* global MockLoader */
 /* global utils */
 /* global ICE */
+/* global SettingsUI */
+/* global SettingsController */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/import/utilities/misc.js');
@@ -23,7 +24,9 @@ require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
-requireApp('communications/contacts/services/contacts.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
+
 requireApp('communications/contacts/test/unit/mock_service_extensions.js');
 requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
@@ -36,14 +39,16 @@ requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
 requireApp('communications/contacts/test/unit/mock_loader.js');
-require('/shared/test/unit/mocks/mock_confirm_dialog.js');
-require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
+
 requireApp('communications/contacts/js/utilities/icc_handler.js');
 requireApp('communications/contacts/js/utilities/sim_dom_generator.js');
-requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/utilities/normalizer.js');
-requireApp('communications/contacts/js/views/settings.js');
+requireApp('communications/contacts/services/contacts.js');
+requireApp('communications/contacts/js/navigation.js');
+
+requireApp('communications/contacts/views/settings/js/settings_controller.js');
+requireApp('communications/contacts/views/settings/js/settings_ui.js');
 
 if (!window._) { window._ = null; }
 if (!window.utils) { window.utils = null; }
@@ -130,6 +135,9 @@ suite('Contacts settings >', function() {
     window.utils.status = {
       show: function() {}
     };
+    window.fbLoader = {
+      load: function() {}
+    };
 
     document.body.innerHTML = MockContactsIndexHtml;
 
@@ -188,7 +196,8 @@ suite('Contacts settings >', function() {
       };
       navigator.mozMobileConnections.mAddMobileConnection(conn2, 1);
 
-      contacts.Settings.init();
+      SettingsUI.init();
+      SettingsController.init();
     });
 
     test('Check number of import buttons appearing', function() {
@@ -200,7 +209,7 @@ suite('Contacts settings >', function() {
 
       // We test as well that the l10NIds are correctly set
       assert.equal(spyL10n.args[0][1], 'simNumberNoMSISDN');
-      assert.equal(spyL10n.args[1][1], 'simNumberNoMSISDN');
+      assert.equal(spyL10n.args[1][1], 'noSimMsgExport');
     });
 
     test('Check number of export buttons appearing', function() {
@@ -210,7 +219,7 @@ suite('Contacts settings >', function() {
 
     test('Check one sim inserted in slot 0', function() {
       // Modify the iccManager to return null when asking for slot 1
-      var stub = sinon.stub(navigator.mozIccManager, 'getIccById',
+      this.sinon.stub(navigator.mozIccManager, 'getIccById',
         function(id) {
           if (id == 1) {
             return null;
@@ -224,20 +233,19 @@ suite('Contacts settings >', function() {
         }
       );
 
-      contacts.Settings.init();
+      SettingsUI.init();
+      SettingsController.init();
 
       assert.isNotNull(document.querySelector('#import-sim-option-0'));
       assert.isNotNull(document.querySelector('#export-sim-option-0'));
 
       assert.isNull(document.querySelector('#import-sim-option-1'));
       assert.isNull(document.querySelector('#export-sim-option-1'));
-
-      stub.restore();
     });
 
     test('Check one sim inserted in slot 1', function() {
       // Modify the iccManager to return null when asking for slot 0
-      var stub = sinon.stub(navigator.mozIccManager, 'getIccById',
+      this.sinon.stub(navigator.mozIccManager, 'getIccById',
         function(id) {
           if (id === 0) {
             return null;
@@ -251,15 +259,14 @@ suite('Contacts settings >', function() {
         }
       );
 
-      contacts.Settings.init();
+      SettingsUI.init();
+      SettingsController.init();
 
       assert.isNotNull(document.querySelector('#import-sim-option-1'));
       assert.isNotNull(document.querySelector('#export-sim-option-1'));
 
       assert.isNull(document.querySelector('#import-sim-option-0'));
       assert.isNull(document.querySelector('#export-sim-option-0'));
-
-      stub.restore();
     });
   });
 
@@ -269,29 +276,9 @@ suite('Contacts settings >', function() {
     suiteSetup(function() {
       oldCheckStorageCard = utils.sdcard.checkStorageCard;
       utils.sdcard.checkStorageCard = function() { return true; };
-    });
-
-    setup(function() {
-      contacts.Settings.init();
       mocksHelper.suiteSetup();
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = MockMozContacts;
-    });
-
-    test('If there are no contacts, export option is disabled', function() {
-      navigator.mozContacts.number = 0;
-      contacts.Settings.refresh();
-      var exportContacts = document.
-                            getElementById('exportContacts').firstElementChild;
-      assert.equal(exportContacts.getAttribute('disabled'), 'disabled');
-    });
-
-    test('If there are contacts, export option is enabled', function() {
-      navigator.mozContacts.number = 100;
-      contacts.Settings.refresh();
-      var exportContacts = document.
-                            getElementById('exportContacts').firstElementChild;
-      assert.isNull(exportContacts.getAttribute('disabled'));
     });
 
     suiteTeardown(function() {
@@ -299,6 +286,35 @@ suite('Contacts settings >', function() {
       navigator.mozContacts = realMozContacts;
       utils.sdcard.checkStorageCard = oldCheckStorageCard;
     });
+
+    test('If there are no contacts, export option is disabled', function(done) {
+      navigator.mozContacts.number = 0;
+
+      SettingsController.init();
+      SettingsUI.init();
+      // checkNoContacts Promise takes longer than the teste, hence the timeout
+      setTimeout(function() {
+        var exportContacts =
+          document.getElementById('exportContacts').firstElementChild;
+        assert.equal(exportContacts.getAttribute('disabled'), 'disabled');
+        done();
+      }, 0);
+    });
+
+    test('If there are contacts, export option is enabled', function(done) {
+      navigator.mozContacts.number = 100;
+
+      SettingsController.init();
+      SettingsUI.init();
+
+      setTimeout(function() {
+        var exportContacts =
+          document.getElementById('exportContacts').firstElementChild;
+        assert.isNull(exportContacts.getAttribute('disabled'));
+        done();
+      },0);
+    });
+
   });
 
   suite('SD Card Availability>', function() {
@@ -336,7 +352,8 @@ suite('Contacts settings >', function() {
       exportSDButton = exportSection.firstElementChild;
       exportError = exportSection.querySelector('p.error-message');
 
-      contacts.Settings.init();
+      SettingsUI.init();
+      SettingsController.init();
     });
 
     suite('SD shared >', function() {
@@ -473,7 +490,8 @@ suite('Contacts settings >', function() {
     setup(function(done) {
       // Restore previous tainted html
       document.body.innerHTML = MockContactsIndexHtml;
-      contacts.Settings.init();
+      SettingsUI.init();
+      SettingsController.init();
 
       MockImportStatusData.clear().then(done, done);
 
@@ -523,7 +541,7 @@ suite('Contacts settings >', function() {
       MockImportStatusData.put(source + '_last_import_timestamp',
           timestamps[source])
         .then(function() {
-          contacts.Settings.updateTimestamps();
+          SettingsUI.updateTimestamps();
         });
     }
 
@@ -560,7 +578,8 @@ suite('Contacts settings >', function() {
         importLiveOption;
 
     suiteSetup(function() {
-      contacts.Settings.init();
+      SettingsUI.init();
+      SettingsController.init();
 
       importGmailOption = document.getElementById('import-gmail-option');
       importLiveOption = document.getElementById('import-live-option');
@@ -619,26 +638,38 @@ suite('Contacts settings >', function() {
   suite('Bulk Delete options', function() {
 
     setup(function() {
-      contacts.Settings.init();
       mocksHelper.suiteSetup();
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = MockMozContacts;
     });
 
-    test('If no contacts, Bulk Delete option is disabled', function() {
+    test('If no contacts, Bulk Delete option is disabled', function(done) {
       navigator.mozContacts.number = 0;
-      contacts.Settings.refresh();
-      var bulkDelContacts = document.
-                            getElementById('bulkDelete');
-      assert.equal(bulkDelContacts.getAttribute('disabled'), 'disabled');
+
+      SettingsController.init();
+      SettingsUI.init();
+
+      setTimeout(function() {
+        var bulkDelContacts = document.
+                              getElementById('bulkDelete');
+        assert.equal(bulkDelContacts.getAttribute('disabled'), 'disabled');
+        done();
+      }, 0);
     });
 
-    test('If there are contacts, bulk Delete option is enabled', function() {
+    test('If there are contacts, bulk Delete option is enabled',
+      function(done) {
       navigator.mozContacts.number = 100;
-      contacts.Settings.refresh();
-      var bulkDelContacts = document.
-                            getElementById('bulkDelete');
-      assert.isNull(bulkDelContacts.getAttribute('disabled'));
+
+      SettingsController.init();
+      SettingsUI.init();
+
+      setTimeout(function() {
+        var bulkDelContacts = document.
+                              getElementById('bulkDelete');
+        assert.isNull(bulkDelContacts.getAttribute('disabled'));
+        done();
+      }, 0);
     });
 
     suiteTeardown(function() {
@@ -656,28 +687,39 @@ suite('Contacts settings >', function() {
     });
 
     setup(function() {
-      contacts.Settings.init();
       mocksHelper.suiteSetup();
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = MockMozContacts;
     });
 
-    test('If no contacts, ICE contacts option is disabled', function() {
+    test('If no contacts, ICE contacts option is disabled', function(done) {
       navigator.mozContacts.number = 0;
-      contacts.Settings.refresh();
-      assert.isTrue(iceContacts.disabled);
+      SettingsController.init();
+      SettingsUI.init();
+      setTimeout(function() {
+        assert.isTrue(iceContacts.disabled);
+        done();
+      }, 0);
     });
 
-    test('If there are contacts, ICE contacts option is enabled', function() {
+    test('If there are contacts, ICE contacts option is enabled',
+      function(done) {
       navigator.mozContacts.number = 100;
-      contacts.Settings.refresh();
-      assert.isFalse(iceContacts.disabled);
+      SettingsController.init();
+      SettingsUI.init();
+      setTimeout(function() {
+        assert.isFalse(iceContacts.disabled);
+        done();
+      }, 0);
     });
 
     test('Pressing the ICE button should init ICE module', function(done) {
-      contacts.Settings.showICEScreen(function() {
+      SettingsController.init();
+      SettingsUI.init();
+
+      SettingsUI.showICEScreen(function() {
         assert.equal(
-          contacts.Settings.navigation.currentView(),
+          SettingsUI.navigation.currentView(),
           'ice-settings'
         );
         assert.ok(ICE.initialized);

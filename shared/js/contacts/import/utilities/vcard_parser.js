@@ -643,7 +643,8 @@ var VCFReader = (function _VCFReader() {
       cb(numImported, self.numDupsMerged);
     };
 
-    LazyLoader.load(['/shared/js/simple_phone_matcher.js',
+    LazyLoader.load([
+      '/shared/js/simple_phone_matcher.js',
       '/shared/js/mime_mapper.js',
       '/shared/js/contact_photo_helper.js',
       '/shared/js/contacts/import/utilities/misc.js',
@@ -680,7 +681,7 @@ var VCFReader = (function _VCFReader() {
     this.processed += 1;
     this.importedContacts.push(ct);
 
-    this.onimported && this.onimported(ct && ct.name);
+    this.onimported && this.onimported(ct);
     if (this.finished || this.processed === this.total) {
       this.ondone(this.importedContacts);
       return;

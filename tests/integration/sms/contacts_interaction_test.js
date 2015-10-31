@@ -114,7 +114,9 @@ marionette('Contacts', function() {
       newMessage = inbox.createNewMessage();
     });
 
-    test('should pick contacts from Contacts', function() {
+    // XXX Deactivated because sms app should invoke the new pick activity
+    // instead of invoking the old contacts list
+    test.skip('should pick contacts from Contacts', function() {
       var contactPicker = newMessage.openContactPicker();
       contactPicker.tapContact(testContact.name);
       messagesApp.switchTo();

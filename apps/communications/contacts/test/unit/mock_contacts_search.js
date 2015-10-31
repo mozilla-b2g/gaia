@@ -11,5 +11,6 @@ var MockContactsSearch = {
   'exitSearchMode': function(evt) {},
   'isInSearchMode': function() { return false; },
   'enableSearch': function() {},
-  'selectRow': function(id, value) {}
+  'selectRow': function(id, value) {},
+  'updateSearchList': function(cb) {}
 };
