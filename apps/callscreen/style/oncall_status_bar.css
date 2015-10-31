@@ -10,7 +10,7 @@
 
   .total-duration {
     display: none;
-    padding-left: 0.5rem;
+    padding-inline-start: 0.5rem;
   }
 
   .handled-call,
@@ -20,8 +20,8 @@
     background-size: auto 4rem;
     color: white;
     font-size: 1.7rem;
-    padding-left: 1rem;
-    padding-right: 2rem;
+    padding-inline-start: 1rem;
+    padding-inline-end: 2rem;
     height: 40px;
   }
 
@@ -77,9 +77,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-right: 0.5rem;
     font-style: italic;
   }
+  html[dir="ltr"] .number { padding-right: 0.5rem; }
+  html[dir="rtl"] .number { padding-left: 0.5rem; }
 
   .direction-status-bar:before {
     content: "";
@@ -88,7 +89,7 @@
     height: 3rem;
     background-repeat: no-repeat;
     background-size: 3rem;
-    margin-right: 0.5rem;
+    margin-inline-end: 0.5rem;
     flex-shrink: 0;
   }
 
