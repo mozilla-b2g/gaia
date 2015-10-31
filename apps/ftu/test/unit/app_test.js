@@ -68,11 +68,11 @@ suite('AppManager >', function() {
     MockNavigatormozApps.mTeardown();
   });
 
-  test('IAC Message > will send message', function() {
+  test('publishes setup event', function(done) {
+    window.addEventListener('ftu-setup', function() {
+      done();
+    });
     AppManager.init();
-    MockNavigatormozApps.mTriggerLastRequestSuccess();
-    assert.equal(MockNavigatormozApps.mLastConnectionKeyword,
-                 'setup');
   });
 
 });
