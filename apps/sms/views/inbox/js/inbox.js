@@ -317,11 +317,10 @@ var InboxView = {
         };
 
         var thread = Threads.get(+threadId);
+        var isRead = thread.unreadCount > 0;
+        var l10nKey = isRead ? 'mark-as-read' : 'mark-as-unread';
 
         if (thread && !thread.isDraft && (isRead || !thread.getDraft())) {
-          var isRead = thread.unreadCount > 0;
-          var l10nKey = isRead ? 'mark-as-read' : 'mark-as-unread';
-
           params.items.push(
             {
               l10nId: l10nKey,
