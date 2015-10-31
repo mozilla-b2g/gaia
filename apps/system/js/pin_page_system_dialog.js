@@ -161,8 +161,10 @@
 
   PinPageSystemDialog.prototype._renderSitePanel = function(data) {
     var siteBadge = this.siteBadge;
+    siteBadge.classList.add('default');
     siteBadge.addEventListener('icon-loaded', function onLoad() {
       siteBadge.removeEventListener('icon-loaded', onLoad);
+      siteBadge.classList.remove('default');
       siteBadge.refresh();
     });
     siteBadge.icon = data.icon;
