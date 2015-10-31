@@ -318,7 +318,7 @@ var InboxView = {
 
         var thread = Threads.get(+threadId);
 
-        if (!thread.isDraft) {
+        if (thread && !thread.isDraft && (isRead || !thread.getDraft())) {
           var isRead = thread.unreadCount > 0;
           var l10nKey = isRead ? 'mark-as-read' : 'mark-as-unread';
 
@@ -374,7 +374,11 @@ var InboxView = {
       });
 
       var allDraft = selected.selectedList.every((id) => {
-        return (Threads.get(id).isDraft);
+        var thread  = Threads.get(id);
+
+        return thread && (thread.isDraft || (
+          !thread.unreadCount && thread.getDraft())
+        );
       });
 
       if (allDraft) {
@@ -400,7 +404,7 @@ var InboxView = {
       var thread = Threads.get(+id);
 
       var markable = thread && !thread.isDraft &&
-        (isRead || !thread.getDraft());
+        (isRead || !thread.getDraft()) && !(thread.unreadCount ^ isRead);
 
       if (markable) {
         thread.unreadCount = isRead ? 0 : 1;
