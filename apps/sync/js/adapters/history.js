@@ -157,9 +157,9 @@ var HistoryHelper = (() => {
         var newPlace = mergeRecordsToDataStore(existedPlace, place);
         return placesStore.put(newPlace, id, revisionId);
       }
-      return placesStore.add(place, id, revisionId).then(() => {
-        return setDataStoreId(place.fxsyncId, id, userid);
-      });
+      return placesStore.add(place, id, revisionId);
+    }).then(() => {
+      return setDataStoreId(place.fxsyncId, id, userid);
     }).catch(e => {
       console.error(e);
     });
