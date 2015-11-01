@@ -3,6 +3,8 @@
 requireApp('system/js/utility_tray_motion.js');
 requireApp('system/js/utility_tray.js');
 
+/* global UtilityTray */
+
 /**
  * This unit test suite only sanity-checks the basic mechanics of the tray.
  * Integration tests check tray motion and state more thoroughly, as well as
@@ -110,7 +112,6 @@ suite('UtilityTrayMotion', function() {
     assert.deepEqual(stub.secondCall.args[0].behavior, 'smooth');
     assert.deepEqual(stub.thirdCall.args[0].behavior, 'auto');
   });
-
 });
 
 suite('UtilityTray', function() {
@@ -138,8 +139,37 @@ suite('UtilityTray', function() {
 
   });
 
-});
+  suite('Hiearchy events support', function() {
+    test('should have a name', function() {
+      assert.equal(UtilityTray.name, 'UtilityTray');
+    });
 
+    test('should expose |isActive|', function() {
+      UtilityTray.shown = true;
+      assert.isTrue(UtilityTray.isActive());
+      UtilityTray.shown = false;
+      assert.isFalse(UtilityTray.isActive());
+    });
+
+    test('should consume home to close when opened', function() {
+      UtilityTray.shown = true;
+      this.sinon.stub(UtilityTray, 'hide');
+
+      var result = UtilityTray.respondToHierarchyEvent(new CustomEvent('home'));
+      assert.isFalse(result);
+      sinon.assert.calledOnce(UtilityTray.hide);
+    });
+
+    test('should ignore home when closed', function() {
+      UtilityTray.shown = false;
+      this.sinon.stub(UtilityTray, 'hide');
+      var result = UtilityTray.respondToHierarchyEvent(new CustomEvent('home'));
+      assert.isTrue(result);
+      sinon.assert.notCalled(UtilityTray.hide);
+    });
+  });
+
+});
 
 suite('Notification Scroll Handling: ', function() {
 
