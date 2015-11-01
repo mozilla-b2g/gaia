@@ -226,7 +226,9 @@ marionette('Pinning the Web', function() {
     });
   });
 
-  test('Unpin a page', function() {
+  // Skipped due to intermittent failures.
+  // See https://bugzilla.mozilla.org/show_bug.cgi?id=1220487
+  test.skip('Unpin a page', function() {
     var url = server.url('sample.html');
 
     client.switchToFrame();
