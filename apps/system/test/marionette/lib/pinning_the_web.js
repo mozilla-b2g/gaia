@@ -34,12 +34,6 @@ PinningTheWeb.prototype = {
     this.rocketbar.enterText(url, true);
     this.rocketbar.switchToBrowserFrame(url);
     this.client.switchToFrame();
-    if (this.chromeIsPinned()) {
-      this.client.waitFor(function() {
-        this.system.appUrlbar.tap();
-        return !this.chromeIsPinned();
-      }.bind(this));
-    }
   },
 
   // Open a URL, tap on the site icon and tap the pin site button.
