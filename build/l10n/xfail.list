@@ -108,7 +108,6 @@ apps/verticalhome/test/marionette/lib/verticalhome.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
 shared/js/l10n_date.js
-shared/js/tz_select.js
 tv_apps/browser/js/index.js
 tv_apps/smart-home/js/edit.js
 tv_apps/smart-home/js/home.js

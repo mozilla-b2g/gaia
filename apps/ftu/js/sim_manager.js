@@ -34,8 +34,8 @@ var SimManager = (function() {
       var retryCount = request.result.retryCount;
       if (retryCount) {
         var l10nArgs = {n: retryCount};
-        navigator.mozL10n.setAttributes(uiElement,'inputCodeRetriesLeft',
-                                          l10nArgs);
+        document.l10n.setAttributes(uiElement,'inputCodeRetriesLeft',
+          l10nArgs);
         uiElement.classList.remove('hidden');
       }
     };
@@ -98,14 +98,14 @@ var SimManager = (function() {
         UIManager.pinInput.value = '';
         UIManager.pinInput.classList.add('onerror');
         UIManager.pinError.classList.remove('hidden');
-        navigator.mozL10n.setAttributes(UIManager.pinRetriesLeft,
-                                          'inputCodeRetriesLeft', l10nArgs);
+        document.l10n.setAttributes(UIManager.pinRetriesLeft,
+          'inputCodeRetriesLeft', l10nArgs);
         UIManager.pinRetriesLeft.classList.remove('hidden');
         if (retryCount === 1) {
           UIManager.pinError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             UIManager.pinError.querySelector('.main'),
             'pinAttemptMsg2',
             l10nArgs
@@ -118,14 +118,14 @@ var SimManager = (function() {
         UIManager.pukInput.classList.add('onerror');
         UIManager.pukError.classList.remove('hidden');
         UIManager.pukInfo.classList.add('hidden');
-        navigator.mozL10n.setAttributes(UIManager.pukRetriesLeft,
-                                          'inputCodeRetriesLeft', l10nArgs);
+        document.l10n.setAttributes(UIManager.pukRetriesLeft,
+          'inputCodeRetriesLeft', l10nArgs);
         UIManager.pukRetriesLeft.classList.remove('hidden');
         if (retryCount === 1) {
           UIManager.pukError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             UIManager.pukError.querySelector('.main'),
             'pukAttemptMsg2',
             l10nArgs
@@ -140,14 +140,14 @@ var SimManager = (function() {
         UIManager.xckInput.value = '';
         UIManager.xckInput.classList.add('onerror');
         UIManager.xckError.classList.remove('hidden');
-        navigator.mozL10n.setAttributes(UIManager.xckRetriesLeft,
-                                          'inputCodeRetriesLeft', l10nArgs);
+        document.l10n.setAttributes(UIManager.xckRetriesLeft,
+          'inputCodeRetriesLeft', l10nArgs);
         UIManager.xckRetriesLeft.classList.remove('hidden');
         if (retryCount == 1) {
           UIManager.xckError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             UIManager.xckError.querySelector('.main'),
             'nckAttemptMsg2',
             l10nArgs
@@ -383,8 +383,8 @@ var SimManager = (function() {
     UIManager.unlockSimHeader.setAttribute('data-l10n-id', 'pincode2');
     if (this.simSlots > 1) {
       var simNumber = icc === this.icc0 ? 1 : 2;
-      navigator.mozL10n.setAttributes(UIManager.pinLabel,
-                                      'pincodeLabel', {n: simNumber});
+      document.l10n.setAttributes(UIManager.pinLabel,
+        'pincodeLabel', {n: simNumber});
     } else {
       UIManager.pinLabel.setAttribute('data-l10n-id', 'type_pin');
     }
@@ -403,8 +403,8 @@ var SimManager = (function() {
     UIManager.unlockSimHeader.setAttribute('data-l10n-id', 'pukcode');
     if (this.simSlots > 1) {
       var simNumber = icc === this.icc0 ? 1 : 2;
-      navigator.mozL10n.setAttributes(UIManager.pukLabel,
-                                      'pukcodeLabel', {n: simNumber});
+      document.l10n.setAttributes(UIManager.pukLabel,
+        'pukcodeLabel', {n: simNumber});
     } else {
       UIManager.pukLabel.setAttribute('data-l10n-id', 'type_puk');
     }
@@ -454,52 +454,52 @@ var SimManager = (function() {
     var simNumber = icc === this.icc0 ? 1 : 2;
     switch (icc.mozIcc.cardState) {
       case 'networkLocked':
-        navigator.mozL10n.setAttributes(UIManager.unlockSimHeader,
-                                        'nckcodeTitle', {n: simNumber});
-        navigator.mozL10n.setAttributes(UIManager.xckLabel, 'nckcodeLabel',
-                                           {n: simNumber});
+        document.l10n.setAttributes(UIManager.unlockSimHeader,
+          'nckcodeTitle', {n: simNumber});
+        document.l10n.setAttributes(UIManager.xckLabel, 'nckcodeLabel',
+          {n: simNumber});
         break;
       case 'corporateLocked':
-        navigator.mozL10n.setAttributes(UIManager.unlockSimHeader,
-                                        'cckcodeTitle', {n: simNumber});
-        navigator.mozL10n.setAttributes(UIManager.xckLabel, 'cckcodeLabel',
-                                           {n: simNumber});
+        document.l10n.setAttributes(UIManager.unlockSimHeader,
+          'cckcodeTitle', {n: simNumber});
+        document.l10n.setAttributes(UIManager.xckLabel, 'cckcodeLabel',
+          {n: simNumber});
         break;
       case 'serviceProviderLocked':
-        navigator.mozL10n.setAttributes(UIManager.unlockSimHeader,
-                                        'spckcodeTitle', {n: simNumber});
-        navigator.mozL10n.setAttributes(UIManager.xckLabel, 'spckcodeLabel',
-                                           {n: simNumber});
+        document.l10n.setAttributes(UIManager.unlockSimHeader,
+          'spckcodeTitle', {n: simNumber});
+        document.l10n.setAttributes(UIManager.xckLabel, 'spckcodeLabel',
+          {n: simNumber});
         break;
       case 'network1Locked':
-        navigator.mozL10n.setAttributes(UIManager.unlockSimHeader,
-                                        'nck1codeTitle', {n: simNumber});
-        navigator.mozL10n.setAttributes(UIManager.xckLabel, 'nck1codeLabel',
-                                           {n: simNumber});
+        document.l10n.setAttributes(UIManager.unlockSimHeader,
+          'nck1codeTitle', {n: simNumber});
+        document.l10n.setAttributes(UIManager.xckLabel, 'nck1codeLabel',
+          {n: simNumber});
         break;
       case 'network2Locked':
-        navigator.mozL10n.setAttributes(UIManager.unlockSimHeader,
-                                        'nck2codeTitle', {n: simNumber});
-        navigator.mozL10n.setAttributes(UIManager.xckLabel, 'nck2codeLabel',
-                                           {n: simNumber});
+        document.l10n.setAttributes(UIManager.unlockSimHeader,
+          'nck2codeTitle', {n: simNumber});
+        document.l10n.setAttributes(UIManager.xckLabel, 'nck2codeLabel',
+          {n: simNumber});
         break;
       case 'hrpdNetworkLocked':
-        navigator.mozL10n.setAttributes(UIManager.unlockSimHeader,
-                                        'hnckcodeTitle', {n: simNumber});
-        navigator.mozL10n.setAttributes(UIManager.xckLabel, 'hnckcodeLabel',
-                                           {n: simNumber});
+        document.l10n.setAttributes(UIManager.unlockSimHeader,
+          'hnckcodeTitle', {n: simNumber});
+        document.l10n.setAttributes(UIManager.xckLabel, 'hnckcodeLabel',
+          {n: simNumber});
         break;
       case 'ruimCorporateLocked':
-        navigator.mozL10n.setAttributes(UIManager.unlockSimHeader,
-                                        'rcckcodeTitle', {n: simNumber});
-        navigator.mozL10n.setAttributes(UIManager.xckLabel, 'rcckcodeLabel',
-                                           {n: simNumber});
+        document.l10n.setAttributes(UIManager.unlockSimHeader,
+          'rcckcodeTitle', {n: simNumber});
+        document.l10n.setAttributes(UIManager.xckLabel, 'rcckcodeLabel',
+          {n: simNumber});
         break;
       case 'ruimServiceProviderLocked':
-        navigator.mozL10n.setAttributes(UIManager.unlockSimHeader,
-                                        'rspckcodeTitle', {n: simNumber});
-        navigator.mozL10n.setAttributes(UIManager.xckLabel, 'rspckcodeLabel',
-                                           {n: simNumber});
+        document.l10n.setAttributes(UIManager.unlockSimHeader,
+          'rspckcodeTitle', {n: simNumber});
+        document.l10n.setAttributes(UIManager.xckLabel, 'rspckcodeLabel',
+          {n: simNumber});
         break;
     }
     UIManager.xckInput.focus();

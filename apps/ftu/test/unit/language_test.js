@@ -1,13 +1,13 @@
 /* global MockL10n, MockNavigatorSettings, MockLanguageList,
           LanguageManager, LanguageList, KeyboardHelper,
-          MockImportNavigationHTML, dispatchEvent */
+          MockImportNavigationHTML */
 'use strict';
 
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_radio/script.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_language_list.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('ftu/test/unit/mock_navigation.html.js');
 requireApp('ftu/js/language.js');
 
@@ -20,8 +20,8 @@ suite('languages >', function() {
     realHTML = document.body.innerHTML;
     document.body.innerHTML = MockImportNavigationHTML;
     // mock l10n
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     realLanguageList = window.LanguageList;
@@ -32,7 +32,7 @@ suite('languages >', function() {
 
   suiteTeardown(function() {
     document.body.innerHTML = realHTML;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozSettings = realSettings;
     realSettings = null;
     window.LanguageList = realLanguageList;
@@ -103,13 +103,6 @@ suite('languages >', function() {
       MockNavigatorSettings.mTriggerObservers(langKey,
                                               {settingValue: 'newLanguage'});
       assert.isTrue(KeyboardHelper.changeDefaultLayouts.called);
-    });
-
-    test('localize changed', function(done) {
-      dispatchEvent(new CustomEvent('localized'));
-      return Promise.resolve().then(() => {
-        assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
-      }).then(done, done);
     });
   });
 

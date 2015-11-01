@@ -26,9 +26,9 @@ var utils = window.utils || {};
       var attributes = progressTextId == 'infiniteProgress' ?
                        { n: counter }                       :
                        { current: counter, total: total };
-      navigator.mozL10n.setAttributes(progressMsg,
-                                      progressTextId,
-                                      attributes);
+      document.l10n.setAttributes(progressMsg,
+                                  progressTextId,
+                                  attributes);
     }
 
     /**
@@ -72,9 +72,9 @@ var utils = window.utils || {};
     if (typeof messageId === 'string') {
       progressTitle.setAttribute('data-l10n-id', messageId);
     } else {
-      navigator.mozL10n.setAttributes(progressTitle,
-                                      messageId.id,
-                                      messageId.args);
+      document.l10n.setAttributes(progressTitle,
+                                  messageId.id,
+                                  messageId.args);
     }
     progressMsg.textContent = null;
     progressMsg.removeAttribute('data-l10n-id');

@@ -14,7 +14,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 requireApp('ftu/js/navigation.js');
 
@@ -69,8 +69,8 @@ suite('navigation >', function() {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
@@ -91,7 +91,7 @@ suite('navigation >', function() {
     navigator.mozSettings = realSettings;
     realSettings = null;
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
 
     if (realOnLine) {

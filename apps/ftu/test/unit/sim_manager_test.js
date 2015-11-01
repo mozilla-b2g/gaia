@@ -60,8 +60,8 @@ suite('sim mgmt >', function() {
                                      navigator.mozIccManager.iccIds[0];
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     iccId0 = navigator.mozIccManager.iccIds[0];
     iccInfo0 = navigator.mozIccManager.getIccById(iccId0);
@@ -89,7 +89,7 @@ suite('sim mgmt >', function() {
     navigator.mozIccManager = realMozIccManager;
     realMozIccManager = null;
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
   });
 
@@ -205,7 +205,7 @@ suite('sim mgmt >', function() {
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
-      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.pinLabel);
+      l10nAttrs = document.l10n.getAttributes(UIManager.pinLabel);
       assert.equal(l10nAttrs.id, 'pincodeLabel');
       assert.deepEqual(l10nAttrs.args, {n: 1});
 
@@ -214,7 +214,7 @@ suite('sim mgmt >', function() {
       assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
 
       SimManager.skip();
-      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.pinLabel);
+      l10nAttrs = document.l10n.getAttributes(UIManager.pinLabel);
       assert.equal(l10nAttrs.id, 'pincodeLabel');
       assert.deepEqual(l10nAttrs.args, {n: 2});
       assert.isTrue(UIManager.pinRetriesLeft.classList.contains('hidden'));
@@ -226,7 +226,7 @@ suite('sim mgmt >', function() {
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
-      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.pukLabel);
+      l10nAttrs = document.l10n.getAttributes(UIManager.pukLabel);
       assert.equal(l10nAttrs.id, 'pukcodeLabel');
       assert.deepEqual(l10nAttrs.args, {n: 1});
 
@@ -235,7 +235,7 @@ suite('sim mgmt >', function() {
       assert.isFalse(UIManager.pukRetriesLeft.classList.contains('hidden'));
 
       SimManager.skip();
-      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.pukLabel);
+      l10nAttrs = document.l10n.getAttributes(UIManager.pukLabel);
       assert.equal(l10nAttrs.id, 'pukcodeLabel');
       assert.deepEqual(l10nAttrs.args, {n: 2});
       assert.isTrue(UIManager.pukRetriesLeft.classList.contains('hidden'));
@@ -247,7 +247,7 @@ suite('sim mgmt >', function() {
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
-      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.xckLabel);
+      l10nAttrs = document.l10n.getAttributes(UIManager.xckLabel);
       assert.equal(l10nAttrs.id, 'nckcodeLabel');
       assert.deepEqual(l10nAttrs.args, {n: 1});
 
@@ -256,7 +256,7 @@ suite('sim mgmt >', function() {
       assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
 
       SimManager.skip();
-      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.xckLabel);
+      l10nAttrs = document.l10n.getAttributes(UIManager.xckLabel);
       assert.equal(l10nAttrs.id, 'nckcodeLabel');
       assert.deepEqual(l10nAttrs.args, {n: 2});
       assert.isTrue(UIManager.xckRetriesLeft.classList.contains('hidden'));

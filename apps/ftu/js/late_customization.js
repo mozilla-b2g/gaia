@@ -501,7 +501,7 @@
 
       function setTranslationById(domId, l10Id, attrs) {
         var elem = section.querySelector('#' + domId);
-        navigator.mozL10n.setAttributes(elem, l10Id, attrs);
+        document.l10n.setAttributes(elem, l10Id, attrs);
       }
 
       var carrierName = this.carrierName;
@@ -631,7 +631,7 @@
   exports.LateCustomizationPanel = LateCustomizationPanel;
   var panel;
 
-  navigator.mozL10n.once(function firstLocalized() {
+  document.l10n.ready.then(() => {
     panel = exports.lateCustomizationPanel = new LateCustomizationPanel();
   });
 
