@@ -451,6 +451,7 @@
     var manifestURL = this.app.webManifestURL;
     var manifestObject = this.app.webManifest;
     var pageURL = new URL(this.app.config.url);
+    var scope = pageURL.origin + '/';
     var hostname = pageURL.hostname;
 
     siteObject.type = 'url';
@@ -459,7 +460,6 @@
     siteObject.frecency = 1;
     siteObject.pinned = true;
     siteObject.pinnedFrom = pageURL.href;
-    siteObject.name = this.app.name || hostname;
 
     var siteUrl = this.getSiteUrl();
     siteObject.id = siteUrl;
@@ -471,8 +471,14 @@
       siteObject.name = manifestObject.short_name || manifestObject.name ||
         hostname;
       if (manifestObject.scope) {
-        siteObject.scope = manifestObject.scope;
+        var scopeURL = new URL(manifestObject.scope, pageURL);
+        siteObject.scope = scopeURL.origin + scopeURL.pathname;
+      } else {
+        siteObject.scope = scope;
       }
+    } else {
+      siteObject.name = this.app.name || hostname;
+      siteObject.scope = scope;
     }
 
     // Set the .icon property before saving for
@@ -665,16 +671,7 @@
 
   AppChrome.prototype.handleBookmarksScopeChange = function (evt) {
     var scope = evt.detail.scope;
-    var inScope = !!(scope && this.app.inScope(scope));
-
-    if (scope && !inScope) {
-      return;
-    }
-
-    var origin = new URL(evt.detail.url).origin;
-    var name = evt.detail.name;
-
-    if (inScope || this.app.matchesOriginAndName(origin, name)) {
+    if (this.app.inScope(scope)) {
       switch (evt.detail.action) {
         case 'add':
         case 'update':
@@ -1050,8 +1047,12 @@
         // Make the rocketbar unscrollable until the page resizes to the
         // appropriate height.
         this.containerElement.classList.remove('scrollable');
-        this.scrollable.scrollTop = 0;
 
+        // Expand
+        if (!this.isMaximized()) {
+          this.expand();
+        }
+        this.scrollable.scrollTop = 0;
         Service.request('PinsManager:isPinned', this._currentURL)
           .then((isPinned) => {
             isPinned ? this.pin() : this.unpin();

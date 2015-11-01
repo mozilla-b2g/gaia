@@ -210,17 +210,12 @@
      * @param  {String} scope The scope to be matched.
      * @return {AppWindow}        The app window object matched.
      */
-    getAppInScope: function awm_getAppInScope(scope, origin, name) {
+    getAppInScope: function awm_getAppInScope(scope) {
       var keys = Object.keys(this._apps);
       var appInScope;
       keys.forEach(function(id) {
         var app = this._apps[id];
-        var inScope = (scope && app.inScope(scope));
-        if (scope && !inScope) {
-          return;
-        }
-
-        if (inScope || app.matchesOriginAndName(origin, name)) {
+        if (app.inScope(scope)) {
           var replace = (!appInScope || appInScope.launchTime < app.launchTime);
           appInScope = replace ? app : appInScope;
         }
