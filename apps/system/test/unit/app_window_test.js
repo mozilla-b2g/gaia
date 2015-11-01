@@ -2382,7 +2382,7 @@ suite('system/AppWindow', function() {
         type: '_orientationchange'
       });
 
-      assert.isTrue(app2.broadcast.calledWith('appwindow-orientationchange'));
+      assert.isTrue(app2.broadcast.calledWith('orientationchange'));
       assert.equal(app1.element.style.width,
         MockService.mQueries['LayoutManager.width'] + 'px');
       assert.equal(app1.element.style.height, '380px');
