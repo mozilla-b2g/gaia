@@ -8,8 +8,6 @@ var LanguageManager = {
   init: function init() {
     this.buildLanguageList();
     document.getElementById('languages').addEventListener('change', this);
-    window.addEventListener('localized',
-      this.localizedEventListener.bind(this));
 
     var onSettingChange = this._boundHandleSettingChange =
       this.handleSettingChange.bind(this);
@@ -50,16 +48,6 @@ var LanguageManager = {
   setLanguage: function settings_setLanguage(language) {
     this.settings.createLock().set({
       'language.current': language
-    });
-  },
-
-  // set proper timeformat while localized
-  localizedEventListener: function settings_localizedEventListener() {
-    navigator.mozL10n.formatValue('shortTimeFormat').then((format) => {
-      var is12hFormat = (format.indexOf('%I') >= 0);
-      this.settings.createLock().set({
-        'locale.hour12': is12hFormat
-      });
     });
   },
 

@@ -78,7 +78,7 @@ var Curtain = (function() {
     progressElement.setAttribute('value', 0);
 
     function showMessage() {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         messages.progress,
         'progressFB',
         { current: counter, total: total }
@@ -136,16 +136,16 @@ var Curtain = (function() {
         break;
 
         case 'timeout':
-          navigator.mozL10n.formatValue('timeout' + from).then((from) => {
-            navigator.mozL10n.setAttributes(messages[type], 'timeout1', {
+          document.l10n.formatValue('timeout' + from).then((from) => {
+            document.l10n.setAttributes(messages[type], 'timeout1', {
               from: from
             });
           });
         break;
 
         case 'error':
-          navigator.mozL10n.formatValue('type' + from).then((from) => {
-            navigator.mozL10n.setAttributes(messages[type], 'error1', {
+          document.l10n.formatValue('type' + from).then((from) => {
+            document.l10n.setAttributes(messages[type], 'error1', {
               from: from
             });
           });

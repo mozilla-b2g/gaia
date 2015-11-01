@@ -6,7 +6,7 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('ftu/test/unit/mock_screenlayout.js');
 requireApp('ftu/test/unit/mock_finish_screen.js');
 
@@ -43,8 +43,8 @@ suite('Tutorial >', function() {
   var realMozSettings;
 
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
@@ -58,7 +58,7 @@ suite('Tutorial >', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
     realL10n = null;
@@ -238,7 +238,7 @@ suite('Tutorial >', function() {
     test(' text & src are the right ones for the current step (2)',
       function(done) {
       // Spy the l10n
-      this.sinon.spy(navigator.mozL10n, 'setAttributes');
+      this.sinon.spy(document.l10n, 'setAttributes');
       // Move forwad again
       function onNextLoaded() {
          // Are we in Step 2?
@@ -247,7 +247,7 @@ suite('Tutorial >', function() {
           2
         );
         // We are in step 2 and taking into account the current layout
-        assert.equal(navigator.mozL10n.setAttributes.args[0][1],
+        assert.equal(document.l10n.setAttributes.args[0][1],
                     Tutorial.config['default'].steps[1].l10nKey);
         // Now we check the element src.
         // As we are in 'tiny' (default layout in the mock)

@@ -37,17 +37,23 @@ marionette('First Time Use > Pseudo Localization', function() {
     client.findElement('gaia-radio[value="fr-x-psaccent"]');
   });
 
-  test('Can select accented-english', function() {
+  test('Can select accented-english', function(done) {
     client.settings.set('devtools.pseudolocalization.enabled', true);
     client.apps.switchToApp(Ftu.URL);
     client.helper.waitForElement('#languages');
     var header = client.helper.waitForElement(Ftu.Selectors.header);
     ftu.selectLanguage('fr-x-psaccent');
 
-    var translatedHeader = client.executeScript('' +
-      'var qps = window.wrappedJSObject.navigator.mozL10n.qps;' +
-      'return qps["fr-x-psaccent"].translate("Language");'
-    );
-    assert.equal(translatedHeader, header.text());
+    client.executeAsyncScript(function() {
+      var pseudo = window.wrappedJSObject.document.l10n.pseudo;
+      pseudo['fr-x-psaccent'].processString('Language').then(
+        function(string) {
+          marionetteScriptFinished(string);
+        }
+      );
+    }, function(err, value) {
+      assert.equal(value, header.text());
+      done();
+    });
   });
 });

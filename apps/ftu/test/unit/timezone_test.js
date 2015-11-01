@@ -8,7 +8,7 @@
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 require('/shared/test/unit/load_body_html_helper.js');
 
@@ -79,7 +79,7 @@ suite('timezones >', function() {
     // Careful with the text transformations for the lists
     // we add 'tzRegion-' to mapped regions
     var mRegion = regionSelector.querySelectorAll('option')
-      [regionSelector.selectedIndex].textContent.split('-')[1];
+      [regionSelector.selectedIndex].getAttribute('data-l10n-id');
     var mCity = citySelector.querySelectorAll('option')
       [citySelector.selectedIndex].textContent;
     return {
@@ -125,8 +125,8 @@ suite('timezones >', function() {
     MockNavigatorSettings.mSettings['time.timezone'] = 'America/New_York';
     MockNavigatorSettings.mSettings['time.timezone.user-selected'] = null;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
@@ -143,7 +143,7 @@ suite('timezones >', function() {
   suiteTeardown(function() {
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozSettings = realMozSettings;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.XMLHttpRequest = realXHR;
   });
 
@@ -165,7 +165,7 @@ suite('timezones >', function() {
       test('we use DEFAULT value', function(done) {
         function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
-          assert.equal(currentValues.region, 'America');
+          assert.equal(currentValues.region, 'tzRegion-America');
           assert.equal(currentValues.city, 'New York');
           assert.isTrue(needsConfirmation);
           done();
@@ -200,7 +200,7 @@ suite('timezones >', function() {
       test('get timezone from the connection', function(done) {
         function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
-          assert.equal(currentValues.region, 'Australia');
+          assert.equal(currentValues.region, 'tzRegion-Australia');
           assert.equal(currentValues.city, 'Sydney');
           // When the timezone (and presumably the time) is loaded from
           // network, it doesn't need to be confirmed by the user.
@@ -216,7 +216,7 @@ suite('timezones >', function() {
         function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
           // DEFAULT is America/New_York
-          assert.equal(currentValues.region, 'America');
+          assert.equal(currentValues.region, 'tzRegion-America');
           assert.equal(currentValues.city, 'New York');
           assert.isTrue(needsConfirmation);
           done();
@@ -249,7 +249,7 @@ suite('timezones >', function() {
       test('get timezone from SIM', function(done) {
         function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
-          assert.equal(currentValues.region, 'Europe');
+          assert.equal(currentValues.region, 'tzRegion-Europe');
           assert.equal(currentValues.city, 'London');
           assert.isTrue(needsConfirmation);
           done();
@@ -266,7 +266,7 @@ suite('timezones >', function() {
       test('if unknown MCC/MNC, use default', function(done) {
         function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
-          assert.equal(currentValues.region, 'America');
+          assert.equal(currentValues.region, 'tzRegion-America');
           assert.equal(currentValues.city, 'New York');
           assert.isTrue(needsConfirmation);
           done();
@@ -302,7 +302,7 @@ suite('timezones >', function() {
         function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
           assert.lengthOf(IccHelper.mEventListeners.iccinfochange, 1);
-          assert.equal(currentValues.region, 'America');
+          assert.equal(currentValues.region, 'tzRegion-America');
           assert.equal(currentValues.city, 'New York');
           assert.isTrue(needsConfirmation);
           done();
@@ -321,7 +321,7 @@ suite('timezones >', function() {
           if (calls === 2) {
             var currentValues = getTextFromSelectors();
             done(function check_asserts() {
-              assert.equal(currentValues.region, 'Europe');
+              assert.equal(currentValues.region, 'tzRegion-Europe');
               assert.equal(currentValues.city, 'London');
               assert.isTrue(needsConfirmation);
             });
@@ -350,7 +350,7 @@ suite('timezones >', function() {
     test('> previous selection prevails', function(done) {
       function tzLoaded(timezone, needsConfirmation) {
         var currentValues = getTextFromSelectors();
-        assert.equal(currentValues.region, 'Europe');
+        assert.equal(currentValues.region, 'tzRegion-Europe');
         assert.equal(currentValues.city, 'Madrid');
         assert.isTrue(needsConfirmation);
         done();
