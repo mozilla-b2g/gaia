@@ -2,7 +2,7 @@
   ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
   ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
   MozActivity,MediaDB,metadataQueue,processingQueue,LazyLoader,Dialogs,
-  captureFrame,VideoStats,noMoreWorkCallback:true,IntlHelper,Seeker */
+  captureFrame,VideoStats,noMoreWorkCallback:true,IntlHelper,Seeker,Captions */
 /* exported resetCurrentVideo,updateLoadingSpinner,thumbnailClickHandler,
   showThrobber,hideThrobber,$ */
 'use strict';
@@ -45,6 +45,7 @@ dom.player.mozAudioChannelType = 'content';
 function $(id) { return document.getElementById(id); }
 
 var seeker = new Seeker(dom.player);
+var captions = new Captions(dom.player);
 
 var playing = false;
 
@@ -1012,8 +1013,12 @@ function setVideoUrl(player, video, callback) {
     player.src = url;
   }
 
+  // Make sure we don't display captions from an old video
+  captions.remove();
+
   if ('name' in video) {
     videodb.getFile(video.name, function(file) {
+      captions.findAndDisplay(file.name);
       var url = URL.createObjectURL(file);
       loadVideo(url);
 
@@ -1156,6 +1161,7 @@ function hidePlayer(updateVideoMetadata, callback) {
     updateDialog();
 
     // The video is no longer being played; unload the it.
+    captions.remove();
     dom.player.removeAttribute('src');
     dom.player.load();
 
@@ -1431,6 +1437,7 @@ function releaseVideo() {
   else {
     restoreTime = 0;
   }
+  captions.remove();
   dom.player.removeAttribute('src');
   dom.player.load();
 }
