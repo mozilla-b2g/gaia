@@ -53,6 +53,13 @@ suite('Nfc Manager Functions', function() {
     isPrivate: true
   };
 
+  var fakeBrowserForFullscreen = {
+    url: 'app://browser.gaiamobile.org/',
+    manifest: {},
+    origin: 'http://somevideo',
+    isBrowser: function() { return true; }
+  };
+
   setup(function(done) {
     fakeApp = new window.AppWindow(fakeAppConfig);
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
@@ -927,6 +934,40 @@ suite('Nfc Manager Functions', function() {
       MockService.currentApp.config.url = 'http://mozilla.org';
       nfcManager.checkP2PRegistration();
       assert.isTrue(stubCheckP2P.calledOnce);
+    });
+
+    test('browser with fullscreen', function() {
+      var fakePromise = new MockPromise();
+
+      // Mock the necessary methods and properties.
+      var fakeAppWindow = new window.AppWindow(fakeBrowserForFullscreen);
+      fakeAppWindow.getTopMostWindow = function() {
+        return {};
+      };
+      fakeAppWindow.isBrowser = function() {
+        return true;
+      };
+      fakeAppWindow.isPrivateBrowser = function() {
+        return false;
+      };
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        value: true
+      });
+      Object.defineProperty(window.navigator, 'mozNfc', {
+        configurable: true,
+        value: { checkP2PRegistration: this.sinon.stub() }
+      });
+
+      // Should not shrink when it is a fullscreen browser window.
+      nfcManager.checkP2PRegistration();
+      assert.isTrue(window.navigator.mozNfc
+        .checkP2PRegistration.notCalled);
+
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        value: false
+      });
     });
 
   });
