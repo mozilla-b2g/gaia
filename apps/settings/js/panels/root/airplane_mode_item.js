@@ -91,8 +91,22 @@ define(function(require) {
         // initial status
         var status = AirplaneModeHelper.getStatus();
         this._element.checked = (status === 'enabled') ? true : false;
-        this._element.disabled = false;
+        // Bug 1217717 disable the Airplane mode interaction
+        // before the wifi panel is ready
+        this._element.disabled = true;
+        window.addEventListener('wificontext-ready', this);
       }.bind(this));
+    },
+
+    handleEvent: function ami_handleEvent(evt) {
+      switch (evt.type) {
+        // Bug 1217717 enable the Airplane mode interaction
+        // once the wifi panel is ready
+        case 'wificontext-ready':
+          window.removeEventListener('wificontext-ready', this);
+          this._element.disabled = false;
+          break;
+      }
     }
   };
 
