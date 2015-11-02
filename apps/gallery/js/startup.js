@@ -274,10 +274,13 @@
 
       // Remove the attribute to trigger gaia header font-fit logic, defer it
       // til now to postpone the overhead.
-      var headers = document.querySelectorAll('gaia-header');
-      for (var i = 0; i < headers.length; ++i) {
-        headers[i].removeAttribute('no-font-fit');
-      }
+       LazyLoader.load(['shared/elements/gaia-header/dist/gaia-header.js'],
+        function() {
+          var headers = document.querySelectorAll('gaia-header');
+          for (var i = 0; i < headers.length; ++i) {
+            headers[i].removeAttribute('no-font-fit');
+          }
+        });
     });
 
     // When all the thumbnails have been created, we can start a scan
