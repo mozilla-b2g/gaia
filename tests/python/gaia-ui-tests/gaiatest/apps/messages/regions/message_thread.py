@@ -77,6 +77,10 @@ class Message(PageRegion):
     _attachments_locator = (By.CSS_SELECTOR, '.bubble .attachment-container.preview')
     _message_section_locator = (By.CSS_SELECTOR, '.bubble')
 
+    def open_report(self):
+        activity = self.long_press_message()
+        return activity.tap_report()
+
     @property
     def text(self):
         return self.root_element.find_element(*self._text_locator).text
