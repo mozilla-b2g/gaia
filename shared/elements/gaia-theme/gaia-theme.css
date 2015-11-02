@@ -9,7 +9,7 @@ Gaia theme variables
    ---------------------------------------------------------*/
 
   --color-alpha: #333333;
-  --color-beta: #ffffff;
+  --color-beta: #333333;
   --color-gamma: #4d4d4d;
   --color-delta: #5f5f5f;
   --color-epsilon: #858585;
@@ -17,8 +17,10 @@ Gaia theme variables
   --color-eta: #c7c7c7;
   --color-theta: #e7e7e7;
   --color-iota: #f4f4f4;
-  --color-rs: #666666;
-  --color-rst: #ffffff;
+  --color-rs: #f4f4f4;
+  --color-rst: #333333;
+  --color-rs-back:#999CB2;
+
 
 /** Brand Colors
  ---------------------------------------------------------*/
@@ -162,7 +164,7 @@ Gaia theme variables
   --header-background: var(--background);
   --header-button-color: var(--highlight-color);
   --header-disabled-button-color: var(--color-theta);
-  --header-action-button-color: var(--title-color);
+  --header-action-button-color: var(--color-rs-back);
 }
 
 .theme-media {

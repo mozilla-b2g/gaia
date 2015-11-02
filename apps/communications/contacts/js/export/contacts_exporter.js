@@ -26,7 +26,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   var contacts;
   var strategy = theStrategy;
   var hasProgress = false;
-  var determinativeProgress = false;
+  var determinativeProgress = true;
   var progress;
 
   // XXX: Bug 904623 since we cannot fetch a list of contacts by
@@ -160,9 +160,9 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   // determinative or indeterminate ui depending on the strategy
   //
   var _configureProgress = function _configureProgress() {
-    determinativeProgress =
-      strategy.hasDeterminativeProgress !== undefined &&
-      strategy.hasDeterminativeProgress();
+    determinativeProgress = true; /*True for progressBar activity, As per Redsquare UX */
+    //   strategy.hasDeterminativeProgress !== undefined &&
+    //   strategy.hasDeterminativeProgress();
   };
 
   //

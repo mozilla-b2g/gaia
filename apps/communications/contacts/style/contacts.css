@@ -1257,14 +1257,14 @@ form[role="dialog"][data-type="confirm"]#loading-overlay {
   color: #cdd5e2;
   font-style: italic;
   line-height: 3rem;
+  margin-right: 1rem;
 }
 
 #search-image {
-  background-image: url("images/search.svg");
-  display: block;
-  width: 4rem;
   transform: scaleX(-1);
   margin-left: 0.8rem;
+  margin-top: 0.5rem;
+  opacity: 0.3;
 }
 
 #search-container {
@@ -1298,116 +1298,6 @@ form[role="dialog"][data-type="confirm"]#loading-overlay {
 
 #about-ice-view {
   background: #ffffff;
-}
-
-[role="dialog"][data-type="action"] {
-  background: rgba(45, 45, 45, 0.8) none repeat scroll 0% 0%;
-  overflow: hidden;
-  position: fixed;
-  z-index: 100;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0 0 7rem;
-  color: #ffffff;
-}
-
-[role="dialog"][data-type="action"] > header {
-  box-sizing: border-box;
-  font-size: 1.6rem;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  height: 5rem;
-  line-height: 5.9rem;
-  color: #ffffff;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  display: block;
-  overflow: hidden;
-  font-weight: normal;
-  padding: 0 0 0 1.2rem;
-  text-align: left;
-  font-style: italic;
-}
-
-[role="dialog"][data-type="action"] > header:before {
-  content: "";
-  position: absolute;
-  left: 4%;
-  bottom: 0;
-  width: 92%;
-  border-bottom: 0.1rem solid #ffffff;
-}
-
-[role="dialog"][data-type="action"] > menu {
-  margin: 0 0.5rem 0 0.5rem;
-  padding: 1.5rem 0 0;
-  max-height: calc(100% - 13.5rem);
-  height: auto;
-  overflow: auto;
-  width: auto;
-  border: medium none;
-  background: transparent none repeat scroll 0% 0%;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 7rem;
-}
-
-[role="dialog"][data-type="action"] > menu > button {
-  width: calc(100% - 0.8rem);
-  height: 5.4rem;
-  box-sizing: border-box;
-  vertical-align: middle;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  font-weight: normal;
-  line-height: 4rem;
-  outline: medium none;
-  font-size: 1.6rem;
-  text-shadow: none;
-  text-align: start;
-  padding: 0 1.2rem;
-  -moz-padding-end: 0.2rem;
-  background: #ffffff;
-  border: medium none;
-  border-radius: 0;
-  position: relative;
-  color: #000000;
-  font-family: sans-serif;
-  font-style: italic;
-  margin: 0;
-}
-
-[role="dialog"][data-type="action"] > menu > button:nth-last-child(2) {
-  margin: 0;
-}
-
-[role="dialog"][data-type="action"] > menu > button::before {
-  content: "";
-  position: absolute;
-  left: 8%;
-  bottom: 0;
-  width: 80%;
-  border-bottom: 0.1rem solid #616262;
-}
-
-[role="dialog"][data-type="action"] > menu > button:last-child {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  color: #333333;
-  background: #d8d8d8;
-  text-align: center;
-  border: medium none;
-  margin-bottom: 1.5rem;
-  border-radius: 2rem;
-  height: 4rem;
 }
 
 .ice-select {

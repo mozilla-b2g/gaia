@@ -45,7 +45,6 @@ form[role="dialog"][data-type="confirm"] > section {
   display: inline-block;
   overflow-y: scroll;
   max-height: inherit;
-  /* change vertical-align middle to top, UX: 6.4.5.2*/
   vertical-align: top;
   white-space: normal;
 }

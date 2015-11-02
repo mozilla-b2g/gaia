@@ -156,9 +156,9 @@ li .button {
   line-height: 2rem;
   padding: 1rem 1.2rem;
   font-size: 1.5rem;
-  margin: 0 -1.5rem;/*margin: 0 0 1rem; to 0 -1.5rem, UX: 4.6.4*/
-  padding: 1.5rem 1.5rem 1rem;
-  font-style: italic;
+  margin: 0 -1.5rem;
+  padding: 1.5rem 1.5rem 1rem 0rem;
+  font-style: normal;
 }
 
 /* -----------------------------------------
@@ -263,7 +263,7 @@ li .button.icon-dialog:before {
   bottom: 0.5rem;
   border-top: 0.7rem solid transparent;
   border-bottom: 0.7rem solid transparent;
-  border-left: 0.7rem solid transparent;/*UX: 6.4.1 #00aac5 -> transparent*/
+  border-left: 0.7rem solid transparent;
   transform: rotate(45deg);
   z-index: 1;
 }
@@ -386,7 +386,7 @@ select:-moz-focusring {
   -moz-padding-end: 5rem;
   text-indent: 0;
   font-weight: 400;
-  font-size: 1.5rem;/* 1.7 to 1.5 change , UX: 6.4.1 */
+  font-size: 1.5rem;
   /*
     The select element uses the text color to determine the color of the outline.
     We put a text shadow with needed offset and no blur, so that replaces the text.
