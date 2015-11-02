@@ -2,84 +2,111 @@
 (function (exports) {
 
   var MoreAppsNavigation = {
-    controls: null,
+    items: null,
     selectedElemIndex: 0,
-    selectElement: null,
 
+    /**
+     * Initialize navigation list in MoreAppsNavigation when all items are
+     * loaded
+     */
     init: function () {
-      this.controls = app.grid.getItems();
-      this.reset();
+      this.items = app.grid.getItems();
     },
 
+    /**
+     * Called when 'More Apps' screen has been opened. This function resets
+     * selected element to a first element and adds listener on keydown event
+     */
     reset: function () {
-      if (this.selectElement) {
-        this.selectElement.classList.remove('selected');
+      document.getElementsByTagName('gaia-grid-rs')[0].scrollTo(0, 0);
+      if (this.items[this.selectedElemIndex].element) {
+        this.items[this.selectedElemIndex].element.classList.remove('selected');
       }
       this.selectedElemIndex = 0;
-      this.selectElement = this.controls[this.selectedElemIndex].element;
-      this.selectElement.classList.add('selected');
-      this.clearNavigationEvents();
+      this.items[this.selectedElemIndex].element.classList.add('selected');
       window.addEventListener('keydown', this);
     },
 
-    clearNavigationEvents: function () {
+    /**
+     * Removes listener of keydown event.
+     * Note: called when "More Apps" screen is closed
+     */
+    stopListeningKeydownEvents: function () {
       window.removeEventListener('keydown', this);
     },
 
+    /**
+     * Handles keydown event on 'More Apps' screen
+     */
     handleEvent: function (e) {
       var deltaIndex = 0;
-      e.preventDefault();
       switch (e.key) {
         case 'ArrowUp':
           deltaIndex = -2;
-          this.changeSelectElem(deltaIndex);
-          if (!this.isVisible(this.selectElement)) {
-            this.selectElement.scrollIntoView({behavior:"smooth", block: "start"});
-          }
+          this.changeSelectElem(deltaIndex, 'top');
+          e.preventDefault();
           break;
         case 'ArrowDown':
           deltaIndex = 2;
-          this.changeSelectElem(deltaIndex);
-          if (!this.isVisible(this.selectElement)) {
-            this.selectElement.childNodes[0].scrollIntoView({behavior:"smooth", block: "end"});
-          }
+          this.changeSelectElem(deltaIndex, 'bottom');
+          e.preventDefault();
           break;
         case 'ArrowLeft':
           deltaIndex = -1;
-          this.changeSelectElem(deltaIndex);
-          if (!this.isVisible(this.selectElement)) {
-            this.selectElement.scrollIntoView({behavior:"smooth", block: "start"});
-          }
+          this.changeSelectElem(deltaIndex, 'top');
+          e.preventDefault();
           break;
         case 'ArrowRight':
           deltaIndex = 1;
-          this.changeSelectElem(deltaIndex);
-          if (!this.isVisible(this.selectElement)) {
-            this.selectElement.childNodes[0].scrollIntoView({behavior:"smooth", block: "end"});
-          }
+          this.changeSelectElem(deltaIndex, 'bottom');
+          e.preventDefault();
           break;
         case 'Accept':
-          window.removeEventListener('keydown', this);
-          this.selectElement.click();
-          break;
-        case 'BrowserBack':
-        case 'Backspace':
-          app.hideMoreApps();
+          /**
+           * Launch the selected app. Don't need to call hideMoreApps(), because
+           * it is called when app is closed
+           */
+          this.items[this.selectedElemIndex].element.click();
           break;
       }
     },
 
-    changeSelectElem: function (deltaIndex) {
-      this.selectElement.classList.remove('selected');
-      var temp = this.selectedElemIndex + deltaIndex;
-      if (temp > -1 && temp < this.controls.length) {
-        this.selectedElemIndex = temp;
+    /**
+     * Change old selected item to new selected item and scroll it into view if
+     * it doesn't fully visible. If new selectedElemIndex is out of 'items'
+     * array range, then currently selected item  remains unchanged
+     */
+    changeSelectElem: function (deltaIndex, behavior) {
+      var trialIndex = this.selectedElemIndex + deltaIndex;
+      if (trialIndex >= 0 && trialIndex < this.items.length) {
+        this.items[this.selectedElemIndex].element.classList.remove('selected');
+        this.selectedElemIndex = trialIndex;
+        this.items[this.selectedElemIndex].element.classList.add('selected');
+      } else {
+        return;
       }
-      this.selectElement = this.controls[this.selectedElemIndex].element;
-      this.selectElement.classList.add('selected');
+      if (!this.isFullyVisible(this.items[this.selectedElemIndex].element)) {
+        /**
+         * 'childNodes[0]' - it is a container for element's title
+         * When we move to bottom element we use scrollIntoView for
+         * childNodes[0], because title container is a bit outside of parent
+         * element.
+         * It should be changed after refactoring of 'gaia_grid_rs' styles
+         */
+        if (behavior == 'bottom') {
+          this.items[this.selectedElemIndex].element.childNodes[0].
+                  scrollIntoView({behavior: 'smooth', block: 'end'});
+        } else if (behavior == 'top') {
+          this.items[this.selectedElemIndex].element.
+                  scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+      }
     },
 
-    isVisible: function (element) {
+    /**
+     * Check that selected element is fully visible on the screen
+     */
+    isFullyVisible: function (element) {
       var height = document.documentElement.clientHeight;
       var elementRects = element.getClientRects()[0];
       if (elementRects.bottom > height) {
@@ -92,4 +119,4 @@
   };
 
   exports.MoreAppsNavigation = MoreAppsNavigation;
-})(this);
+})(window);
