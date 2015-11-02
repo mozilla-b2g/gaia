@@ -1,26 +1,24 @@
-/* global MocksHelper, MockAppWindowManager, MockL10n,
+/* global MocksHelper, Service, MockL10n,
    LockScreenMediaPlaybackWidget */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForMediaPlayback = new MocksHelper([
-  'AppWindowManager'
+  'Service'
 ]).init();
 
 suite('system/media playback widget', function() {
   mocksForMediaPlayback.attachTestHelpers();
-  var realL10n, realAppWindowManager;
+  var realL10n;
   var widget;
 
   suiteSetup(function(done) {
     loadBodyHTML('/lockscreen/lockscreen.html');
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    realAppWindowManager = window.appWindowManager;
-    window.appWindowManager = new MockAppWindowManager();
     requireApp('system/lockscreen/js/lockscreen_media_playback.js', function() {
       widget = new LockScreenMediaPlaybackWidget(
         document.getElementById('lockscreen-media-container'),
@@ -32,7 +30,6 @@ suite('system/media playback widget', function() {
   });
 
   suiteTeardown(function() {
-    window.appWindowManager = realAppWindowManager;
     navigator.mozL10n = realL10n;
     document.body.innerHTML = '';
   });
@@ -153,6 +150,23 @@ suite('system/media playback widget', function() {
 
   suite('updatePlaybackStatus', function() {
     test('play', function() {
+      this.sinon.stub(Service, 'query');
+
+      // widget is hidden and no music app.
+      widget.hidden = true;
+      Service.query.returns(false);
+      widget.updatePlaybackStatus({ playStatus: 'PLAYING' });
+      assert.isTrue(widget.hidden);
+
+      // widget is hidden and music app existed.
+      widget.hidden = true;
+      Service.query.returns(true);
+      widget.updatePlaybackStatus({ playStatus: 'PLAYING' });
+      assert.isFalse(widget.hidden);
+      assert.equal(widget.playPauseButton.dataset.icon, 'pause');
+
+      // widget is displayed.
+      widget.hidden = false;
       widget.updatePlaybackStatus({ playStatus: 'PLAYING' });
       assert.isFalse(widget.hidden);
       assert.equal(widget.playPauseButton.dataset.icon, 'pause');
