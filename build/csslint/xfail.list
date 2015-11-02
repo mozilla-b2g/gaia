@@ -65,7 +65,7 @@ apps/video/style/video_tablet.css 0 11
 apps/wappush/style/wappush.css 0 1
 apps/search/style/search.css 0 2
 shared/elements/gaia_grid/style.css 0 5
-shared/elements/gaia_grid_rs/style.css 0 5
+shared/elements/gaia_grid_rs/style.css 0 15
 shared/elements/gaia-theme/gaia-theme.css 5 0
 shared/style/value_selector.css 0 1
 shared/style/edit_mode.css 0 2

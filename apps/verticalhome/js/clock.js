@@ -74,25 +74,21 @@ function Clock() {
         if (!this.l10nready) {
           return;
         }
-
-        this.timeFormat = window.navigator.mozHour12 ?
-          navigator.mozL10n.get('shortTimeFormat12') :
-          navigator.mozL10n.get('shortTimeFormat24');
-        this.refreshClock(new Date());
+        this.setClockFormat();
 
         break;
-    };
+    }
 
   };
 
   /**
-   * We need to do some refreshing thing after l10n is ready.
+   * We need to do some refreshing thing.
+   * It must be done only when l10n is ready.
    *
    * @memberOf Clock
    * @return {none}
    */
-  this.l10nInit = function cl_l10nInit() {
-    this.l10nready = true;
+  this.setClockFormat = function cl_setClockFormat() {
     this.timeFormat = window.navigator.mozHour12 ?
       navigator.mozL10n.get('shortTimeFormat12') :
       navigator.mozL10n.get('shortTimeFormat24');
@@ -157,7 +153,10 @@ function Clock() {
     }
   };
 
-  navigator.mozL10n.ready(this.l10nInit.bind(this));
+  navigator.mozL10n.ready(function(){
+    this.l10nready = true;
+    this.setClockFormat.bind(this);
+  }.bind(this));
 
 }
 

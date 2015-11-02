@@ -1,7 +1,7 @@
 #pin-apps-list {
   width: 100%;
   position: fixed;
-  bottom: 0rem;
+  bottom: 0;
   /*height: 100%;*/
   overflow-y: hidden;
   text-align: center;
@@ -11,7 +11,7 @@
 
 #pin-apps-list  .selected.pin-app-item {
   height: 11rem;
-  width: 11rem;
+  width: 15rem;
   margin: 2rem auto 4.5rem auto;
 }
 
@@ -91,12 +91,12 @@
 
 
 
-.removed {
-  margin: 0 auto !important;
-  height: 0 !important;
+#pin-apps-list div.removed {
+  margin: 0 auto;
+  height: 0;
 }
 
-.out-focus {
-  margin: 0 auto !important;
-  height: 0 !important;
+#pin-apps-list  div.out-focus {
+  margin: 0 auto;
+  height: 0;
 }
