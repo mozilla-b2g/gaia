@@ -249,7 +249,8 @@ gaia-header {
   color: rgb(185, 0, 0);
 }
 
-.screen input[type="email"]:invalid:focus {
+.screen input[type="email"]:invalid:focus,
+.screen input[type="password"]:invalid:focus {
   box-shadow: unset;
   border-bottom-color: rgb(130, 0, 0);
 }
