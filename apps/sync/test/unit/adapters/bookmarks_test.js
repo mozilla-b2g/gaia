@@ -53,6 +53,23 @@ suite('sync/adapters/bookmarks >', () => {
 
   function verifyBookmarks(collectionItem, bookmarksItem) {
     var payload = collectionItem.payload;
+    var keys = [
+      'id',
+      'type',
+      'iconable',
+      'icon',
+      'syncNeeded',
+      'fxsyncRecords'
+    ];
+    if (payload.type !== 'separator') {
+      keys.push('name');
+    }
+    if (['bookmark', 'query'].indexOf(payload.type) !== -1) {
+      keys.push('url');
+    }
+    assert.equal(Object.keys(bookmarksItem).length, keys.length);
+    keys.forEach(key => assert.equal(bookmarksItem.hasOwnProperty(key), true));
+
     switch (payload.type) {
     case 'bookmark':
       assert.equal(payload.bmkUri, bookmarksItem.id);
@@ -91,8 +108,6 @@ suite('sync/adapters/bookmarks >', () => {
     default:
       assert.ok(false, 'Unknown type');
     }
-
-    assert.equal(payload.id, bookmarksItem.fxsyncId);
   }
 
   function testDataGenerator(initIndex, initDate, count) {
@@ -228,9 +243,9 @@ suite('sync/adapters/bookmarks >', () => {
             for (var i = 0; i < ids.length; i++) {
               verifyBookmarks(testCollectionData[i], list[i]);
               assert.equal(
-                asyncStorage.mItems[
-                    'foo' + BOOKMARKS_SYNCTOID_PREFIX + list[i].fxsyncId],
-                list[i].url);
+                asyncStorage.mItems['foo' + BOOKMARKS_SYNCTOID_PREFIX +
+                    testCollectionData[i].id],
+                    testCollectionData[i].payload.bmkUri);
             }
             assert.equal(asyncStorage.mItems[
                 'foo' + BOOKMARKS_LAST_REVISIONID], 'latest-after-clear');
@@ -287,9 +302,9 @@ suite('sync/adapters/bookmarks >', () => {
         for (var i = 0; i < ids.length; i++) {
           verifyBookmarks(testCollectionData[i], list[i]);
           assert.equal(
-            asyncStorage.mItems[
-                'foo' + BOOKMARKS_SYNCTOID_PREFIX + list[i].fxsyncId],
-            list[i].url);
+            asyncStorage.mItems['foo' + BOOKMARKS_SYNCTOID_PREFIX +
+                testCollectionData[i].id],
+                testCollectionData[i].payload.bmkUri);
         }
       });
     }).then(done, reason => {
@@ -335,9 +350,9 @@ suite('sync/adapters/bookmarks >', () => {
         for (var i = 0; i < ids.length; i++) {
           verifyBookmarks(testCollectionData[i], list[i]);
           assert.equal(
-            asyncStorage.mItems[
-                'foo' + BOOKMARKS_SYNCTOID_PREFIX + list[i].fxsyncId],
-            list[i].url);
+            asyncStorage.mItems['foo' + BOOKMARKS_SYNCTOID_PREFIX +
+                testCollectionData[i].id],
+                testCollectionData[i].payload.bmkUri);
         }
       });
     }).then(done, reason => {
@@ -399,9 +414,9 @@ suite('sync/adapters/bookmarks >', () => {
           if (list[i]) {
             verifyBookmarks(testCollectionData[i], list[i]);
             assert.equal(
-              asyncStorage.mItems[
-                  'foo' + BOOKMARKS_SYNCTOID_PREFIX + list[i].fxsyncId],
-              list[i].url);
+              asyncStorage.mItems['foo' + BOOKMARKS_SYNCTOID_PREFIX +
+                  testCollectionData[i].id],
+                  testCollectionData[i].payload.bmkUri);
           } else {
             assert.notEqual(deletedQueue.indexOf(testCollectionData[i].id), -1);
           }
@@ -510,8 +525,7 @@ suite('sync/adapters/bookmarks >', () => {
               title: 'Example 3 Title',
               timestamp: 130
             }
-          },
-          fxsyncId: 'UNIQUE_ID_3'
+          }
         };
         for(var i=1; i <= 3; i++) {
           assert.equal(
@@ -607,8 +621,7 @@ suite('sync/adapters/bookmarks >', () => {
               title: 'Example 3 Title',
               timestamp: 130
             }
-          },
-          fxsyncId: 'UNIQUE_ID_2'
+          }
         };
         for(var i=1; i <= 3; i++) {
           assert.equal(
@@ -684,10 +697,10 @@ suite('sync/adapters/bookmarks >', () => {
         for (var i = 0; i < list.length; i++) {
           if (list[i]) {
             verifyBookmarks(testCollectionData[i], list[i]);
-            assert.equal(
-              asyncStorage.mItems[
-                  'foo' + BOOKMARKS_SYNCTOID_PREFIX + list[i].fxsyncId],
-              list[i].id);
+            for (var fxsyncId in testCollectionData[i].fxsyncRecords) {
+              assert.equal(asyncStorage.mItems[
+                  'foo' + BOOKMARKS_SYNCTOID_PREFIX + fxsyncId],list[i].id);
+            }
           } else {
             assert.ok(false, 'Empty Record!');
           }
@@ -810,8 +823,7 @@ suite('sync/adapters/bookmarks >', () => {
     var bookmark1 = {
       url: 'http://www.mozilla.org/en-US/',
       name: '',
-      type: 'url',
-      fxsyncId: ''
+      type: 'url'
     };
 
     var bookmark2 = {
@@ -820,20 +832,23 @@ suite('sync/adapters/bookmarks >', () => {
       type: 'url',
       fxsyncRecords: {
         'XXXXX_ID_XXXXX': {}
-      },
-      fxsyncId: 'XXXXX_ID_XXXXX'
+      }
     };
 
-    var result = BookmarksHelper.mergeRecordsToDataStore(bookmark1, bookmark2);
+    var result = BookmarksHelper.mergeRecordsToDataStore(bookmark1, bookmark2,
+        'XXXXX_ID_XXXXX');
     var expectedBookmark = {
       url: 'http://www.mozilla.org/en-US/',
       name: 'Mozilla',
       type: 'url',
-      fxsyncId: 'XXXXX_ID_XXXXX'
+      fxsyncRecords: {
+        'XXXXX_ID_XXXXX': {}
+      }
     };
 
     assert.equal(result.name, expectedBookmark.name);
     assert.equal(result.url, expectedBookmark.url);
+    assert.deepEqual(result, expectedBookmark);
     done();
   });
 
@@ -841,24 +856,23 @@ suite('sync/adapters/bookmarks >', () => {
     var bookmark1 = {
       url: 'dummy',
       name: '',
-      type: 'url',
-      fxsyncId: ''
+      type: 'url'
     };
 
     var bookmark2 = {
       url: 'http://www.mozilla.org/en-US/',
       name: 'Mozilla',
-      type: 'url',
-      fxsyncId: 'XXXXX_ID_XXXXX'
+      type: 'url'
     };
 
     assert.throws(() => {
-      BookmarksHelper.mergeRecordsToDataStore(bookmark1, bookmark2);
+      BookmarksHelper.mergeRecordsToDataStore(bookmark1, bookmark2,
+          'XXXXX_ID_XXXXX');
     });
     done();
   });
 
-  test('BookmarksHelper - merge two records with incorrect fxsyncId', done => {
+  test('BookmarksHelper - merge two records with fxsyncRecords', done => {
     var bookmark1 = {
       url: 'http://www.mozilla.org/en-US/',
       name: '',
@@ -867,8 +881,7 @@ suite('sync/adapters/bookmarks >', () => {
         'XXXXX_ID_XXXXX_A': {
           id: 'XXXXX_ID_XXXXX_A'
         }
-      },
-      fxsyncId: 'XXXXX_ID_XXXXX_A'
+      }
     };
 
     var bookmark2 = {
@@ -879,11 +892,11 @@ suite('sync/adapters/bookmarks >', () => {
         'XXXXX_ID_XXXXX_B': {
           id: 'XXXXX_ID_XXXXX_B'
         }
-      },
-      fxsyncId: 'XXXXX_ID_XXXXX_B'
+      }
     };
 
-    var result = BookmarksHelper.mergeRecordsToDataStore(bookmark1, bookmark2);
+    var result = BookmarksHelper.mergeRecordsToDataStore(bookmark1, bookmark2,
+        'XXXXX_ID_XXXXX_B');
     var expectedBookmark = {
       url: 'http://www.mozilla.org/en-US/',
       name: 'Mozilla',
@@ -895,8 +908,7 @@ suite('sync/adapters/bookmarks >', () => {
         'XXXXX_ID_XXXXX_B': {
           id: 'XXXXX_ID_XXXXX_B'
         }
-      },
-      fxsyncId: 'XXXXX_ID_XXXXX_A'
+      }
     };
 
     assert.equal(result.name, expectedBookmark.name);

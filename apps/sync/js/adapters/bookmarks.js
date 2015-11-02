@@ -100,7 +100,7 @@ var BookmarksHelper = (() => {
     });
   }
 
-  function mergeRecordsToDataStore(localRecord, remoteRecord) {
+  function mergeRecordsToDataStore(localRecord, remoteRecord, fxsyncId) {
     if (!localRecord || !remoteRecord ||
         localRecord.id !== remoteRecord.id ||
         (remoteRecord.type === 'url' && localRecord.url !== remoteRecord.url)) {
@@ -113,8 +113,7 @@ var BookmarksHelper = (() => {
     if (!localRecord.fxsyncRecords) {
       localRecord.fxsyncRecords = {};
     }
-    localRecord.fxsyncRecords[remoteRecord.fxsyncId] =
-        remoteRecord.fxsyncRecords[remoteRecord.fxsyncId];
+    localRecord.fxsyncRecords[fxsyncId] = remoteRecord.fxsyncRecords[fxsyncId];
     return localRecord;
   }
 
@@ -129,14 +128,17 @@ var BookmarksHelper = (() => {
     var revisionId;
     return _ensureStore().then(store => {
       revisionId = store.revisionId;
+      var fxsyncId = remoteRecord.fxsyncId;
+      delete remoteRecord.fxsyncId;
       return store.get(id).then(localRecord => {
         if (localRecord) {
-          var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord);
+          var newBookmark = mergeRecordsToDataStore(localRecord, remoteRecord,
+              fxsyncId);
           return store.put(newBookmark, id, revisionId);
         }
         return store.add(remoteRecord, id, revisionId);
       }).then(() => {
-        return setDataStoreId(remoteRecord.fxsyncId, id, userid);
+        return setDataStoreId(fxsyncId, id, userid);
       });
     }).catch(e => {
       console.error(e);
@@ -288,8 +290,7 @@ DataAdapters.bookmarks = {
       'fxsyncID_A': fxsync_payload_A,
       'fxsyncID_B': fxsync_payload_B,
       'fxsyncID_C': fxsync_payload_C
-    }, // payload from BC
-    "fxsyncId": "REMOTE_ID" // [1.1]
+    } // payload from BC
   }
 
   [2] Add/Update Records from Bookmark Collection (BC): {
