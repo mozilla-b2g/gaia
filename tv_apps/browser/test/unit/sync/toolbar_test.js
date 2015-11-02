@@ -129,6 +129,19 @@ suite('Sync toolbar >', function() {
     });
   });
 
+  suite('Enabling', function() {
+    suiteSetup(function() {
+      onsyncchange({
+        state: 'enabling'
+      });
+    });
+
+    test('Tab name should change', function() {
+      expect(subject.syncTab.getAttribute('data-l10n-id'))
+        .to.equal('fxsync-signing');
+    });
+  });
+
   suite('Disable', function() {
     suiteSetup(function() {
       onsyncchange({

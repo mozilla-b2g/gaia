@@ -117,11 +117,11 @@ suite('Sync settings >', function() {
       expect(subject.elements.enabled).to.be.an('object');
       expect(subject.elements.disabled).to.be.an('object');
       expect(subject.listeners).to.be.an('object');
-      expect(subject.listeners.size).to.be.equals(0);
+      expect(subject.listeners.size).to.be.equals(8);
       expect(subject.collections).to.be.an('object');
       expect(subject.collections.size).to.be.equals(0);
-      expect(subject.screen).to.be.equals(null);
-      expect(subject.state).to.be.equals(null);
+      expect(subject.screen).to.be.equals('disabled');
+      expect(subject.state).to.be.equals('disabled');
     });
   });
 
@@ -162,7 +162,9 @@ suite('Sync settings >', function() {
     test('should have signin button', function() {
       expect(subject.elements.signInButton).to.be.an('object');
       expect(subject.elements.signInButton.getAttribute('data-l10n-id'))
-        .to.equals('fxsync-create-account-or-sign-in');
+        .to.equals('fxsync-sign-in');
+      expect(subject.elements.signInButton.classList.contains('disabled'))
+        .to.equals(false);
     });
   });
 
@@ -208,6 +210,24 @@ suite('Sync settings >', function() {
     test('should show collection switches', function() {
       expect(subject.elements.collectionBookmarks).to.be.an('object');
       expect(subject.elements.collectionHistory).to.be.an('object');
+    });
+  });
+
+  suite('Enabling', function() {
+    suiteSetup(function() {
+      onsyncchange({
+        state: 'enabling'
+      });
+    });
+
+    test('should show signing in button', function() {
+      expect(subject.elements.signInButton.dataset.l10nId)
+        .to.equals('fxsync-signing');
+    });
+
+    test('should disable signin button', function() {
+      expect(subject.elements.signInButton.classList.contains('disabled'))
+        .to.equals(true);
     });
   });
 
