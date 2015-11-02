@@ -200,7 +200,7 @@ smart-button[type="app-button"].pressed {
 }
 
 smart-button[type="app-button"].fullsized {
-  background-size: 33.6rem auto;
+  background-size: cover;
 }
 
 smart-button[type="app-button"].fitted {
