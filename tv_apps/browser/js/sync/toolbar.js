@@ -88,6 +88,7 @@
         case 'enabling':
           this.syncTab.setAttribute('data-l10n-id', 'fxsync-signing');
           break;
+        case 'syncing':
         case 'enabled':
           this.showListener = Settings.show.bind(Settings);
           this.syncBlock.addEventListener('mouseup', this.showListener);

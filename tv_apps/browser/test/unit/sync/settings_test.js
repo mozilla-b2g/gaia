@@ -244,6 +244,14 @@ suite('Sync settings >', function() {
         .to.equals('fxsync-syncing');
     });
 
+    test('should show user', function() {
+      expect(subject.elements.signedInAs).to.be.an('object');
+      expect(subject.elements.signedInAs.getAttribute('data-l10n-id'))
+        .to.equals('fxsync-signed-in-as');
+      expect(subject.elements.signedInAs.getAttribute('data-l10n-args'))
+        .to.equals('{"email":"pepito"}');
+    });
+
     test('should disable sync button and collection switches', function() {
       expect(subject.elements.syncNowButton.classList.contains('disabled'))
         .to.equals(true);
