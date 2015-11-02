@@ -30,14 +30,14 @@ const HISTORY_LAST_REVISIONID = '::collections::history::revisionid';
 const HISTORY_SYNCTOID_PREFIX = '::synctoid::history::';
 
 var HistoryHelper = (() => {
-  var placesStore;
+  var _store;
   function _ensureStore() {
-    if (placesStore) {
-      return Promise.resolve(placesStore);
+    if (_store) {
+      return Promise.resolve(_store);
     }
     return navigator.getDataStores('places').then(stores => {
-      placesStore = stores[0];
-      return placesStore;
+      _store = stores[0];
+      return _store;
     });
   }
 
@@ -149,17 +149,17 @@ var HistoryHelper = (() => {
     var revisionId;
     return _ensureStore().then(placesStore => {
       revisionId = placesStore.revisionId;
-      return placesStore.get(id);
-    }).then(existedPlace => {
-      // Bug 1208352 - PlacesDS accessing code should be extracted to a shared
-      // code to prevent drifting out of sync from different piece codes.
-      if (existedPlace) {
-        var newPlace = mergeRecordsToDataStore(existedPlace, place);
-        return placesStore.put(newPlace, id, revisionId);
-      }
-      return placesStore.add(place, id, revisionId);
-    }).then(() => {
-      return setDataStoreId(place.fxsyncId, id, userid);
+      return placesStore.get(id).then(existedPlace => {
+        // Bug 1208352 - PlacesDS accessing code should be extracted to a shared
+        // code to prevent drifting out of sync from different piece codes.
+        if (existedPlace) {
+          var newPlace = mergeRecordsToDataStore(existedPlace, place);
+          return placesStore.put(newPlace, id, revisionId);
+        }
+        return placesStore.add(place, id, revisionId);
+      }).then(() => {
+        return setDataStoreId(place.fxsyncId, id, userid);
+      });
     }).catch(e => {
       console.error(e);
     });
