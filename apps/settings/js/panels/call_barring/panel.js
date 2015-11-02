@@ -103,12 +103,22 @@ define(function(require) {
         _callBarring.set(_mobileConnection, setting, passcode).catch(
           function error(err) {
           // err = { name, message }
-          var toast = {
-            messageL10nId: 'callBarring-update-item-error',
-            messageL10nArgs: {'error': err.name || 'unknown'},
-            latency: 2000,
-            useTransition: true
-          };
+          var toast;
+          if (err.name === 'GenericFailure') {
+            // show more user friendly string
+            toast = {
+              messageL10nId: 'callBarring-update-generic-error',
+              latency: 2000,
+              useTransition: true
+            };
+          } else {
+            toast = {
+              messageL10nId: 'callBarring-update-item-error',
+              messageL10nArgs: {'error': err.name || 'unknown'},
+              latency: 2000,
+              useTransition: true
+            };
+          }
           Toaster.showToast(toast);
         });
       }).catch(function canceled() {
