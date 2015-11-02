@@ -95,7 +95,7 @@
         //      need to dismiss this app in order to let the user reset their
         //      password.
         onsuccess && onsuccess();
-        FxaModuleManager.close('DIALOG_CLOSED_BY_USER');
+        FxaModuleManager.close();
       };
       activity.onerror = function on_reset_error(err) {
         console.error(err);
