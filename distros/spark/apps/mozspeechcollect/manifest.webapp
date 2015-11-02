@@ -1,22 +1,20 @@
 {
   "name": "MozSpeech",
   "description": "Mozspeech Benchmark",
-  "type" : "certified",
+  "type": "certified",
   "launch_path": "/index.html",
   "icons": {
-    "128": "/img/icon.png",
-    "120": "/img/icon.png",
-    "512": "/img/icon.png"
+    "128": "/img/128.png",
+    "512": "/img/512.png"
   },
   "developer": {
-      "name": "Mozilla Speech Team",
-      "url": "http://www.mozilla.com"
+    "name": "Mozilla Speech Team",
+    "url": "http://www.mozilla.com"
   },
   "default_locale": "en",
-   "permissions": {
-      "audio-capture" : {
-        "description" : "Audio capture"
-      }
-
+  "permissions": {
+    "audio-capture": {
+      "description": "Audio capture"
     }
+  }
 }
