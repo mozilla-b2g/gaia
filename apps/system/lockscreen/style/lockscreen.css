@@ -17,6 +17,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  visibility: visible;
   -moz-user-select: none;
 }
 
@@ -27,6 +28,7 @@
 
 #lockscreen.unlocked {
   pointer-events: none;
+  visibility: hidden;
 }
 
 /**
