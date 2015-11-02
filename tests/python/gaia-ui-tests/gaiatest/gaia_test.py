@@ -135,6 +135,8 @@ class GaiaApps(object):
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("GaiaApps.kill('%s');" % app.origin)
         assert result, "Failed to kill app with name '%s'" % app.name
+        # Workaround for bug 1219971, launch an app directly after a kill fails sometimes
+        time.sleep(0.5)
 
     def kill_all(self):
         # First we attempt to kill the FTU, we treat it as a user app
@@ -146,6 +148,8 @@ class GaiaApps(object):
         # Now kill the user apps
         self.marionette.switch_to_frame()
         self.marionette.execute_async_script("GaiaApps.killAll();")
+        # Workaround for bug 1219971, launch an app directly after a kill fails sometimes
+        time.sleep(0.5)
 
     def uninstall(self, name):
         self.marionette.switch_to_frame()
