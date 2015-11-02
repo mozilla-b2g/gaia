@@ -1837,8 +1837,14 @@
 
       const pseudoentries = Object.create(null);
       for (let key in entries) {
-        pseudoentries[key] = walkEntry(
-          entries[key], pseudo[lang.code].process);
+        if (['datePickerOrder',
+            'timePickerOrder',
+            'durationPattern'].indexOf(key) > -1) {
+          pseudoentries[key] = entries[key];
+        } else {
+          pseudoentries[key] = walkEntry(
+            entries[key], pseudo[lang.code].process);
+        }
       }
       return pseudoentries;
     }
