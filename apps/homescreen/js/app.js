@@ -1,4 +1,4 @@
-/* global MozActivity, HomeMetadata, Datastore, Pages, LazyLoader, FirstRun,
+/* global MozActivity, HomeMetadata, Datastore, LazyLoader, FirstRun,
           IconsHelper, Settings */
 /* jshint nonew: false */
 'use strict';
@@ -34,12 +34,6 @@
   const AUTOSCROLL_OVERFLOW_DELAY = 500;
 
   /**
-   * Time after receiving a handled hashchange that we ignore hashchange
-   * events for.
-   */
-  const HASH_CHANGE_DEBOUNCE = 100;
-
-  /**
    * App roles that will be skipped on the homescreen.
    */
   const HIDDEN_ROLES = [
@@ -57,12 +51,8 @@
     window.performance.mark('navigationLoaded');
 
     // Element references
-    this.header = document.getElementById('page-indicator-header');
-    this.indicator = document.getElementById('page-indicator');
-    this.panels = document.getElementById('panels');
     this.panel = document.getElementById('apps-panel');
     this.meta = document.head.querySelector('meta[name="theme-color"]');
-    this.shadow = document.getElementById('shadow');
     this.scrollable = document.querySelector('#apps-panel > .scrollable');
     this.icons = document.getElementById('apps');
     this.remove = document.getElementById('remove');
@@ -117,7 +107,6 @@
     this.editMode = false;
     this.shouldEnterEditMode = false;
     this.selectedIcon = null;
-    this.ignoreHashChangeTimeout = null;
     this.rename.addEventListener('click', e => {
       e.preventDefault();
       this.renameSelectedIcon();
@@ -134,9 +123,6 @@
     this._iconSize = 0;
 
     // Signal handlers
-    this.indicator.addEventListener('keypress', this);
-    this.panels.addEventListener('scroll', this);
-    this.scrollable.addEventListener('scroll', this);
     this.icons.addEventListener('activate', this);
     this.icons.addEventListener('drag-start', this);
     this.icons.addEventListener('drag-move', this);
@@ -145,7 +131,6 @@
     this.icons.addEventListener('drag-finish', this);
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
-    window.addEventListener('hashchange', this, true);
     window.addEventListener('localized', this);
     window.addEventListener('online', this);
     window.addEventListener('resize', this);
@@ -355,14 +340,6 @@
       // All asynchronous loading has finished
       window.performance.mark('fullyLoaded');
     });
-
-    this.pages = new Pages();
-
-    // Update the panel indicator
-    this.updatePanelIndicator();
-
-    // Application has finished initialisation
-    window.performance.mark('navigationInteractive');
   }
 
   App.prototype = {
@@ -720,37 +697,6 @@
       setTimeout(() => { dialog.open(); }, DIALOG_SHOW_TIMEOUT);
     },
 
-    updatePanelIndicator: function() {
-      var appsVisible = this.panels.scrollLeft <= this.panels.scrollLeftMax / 2;
-      if (this.appsVisible !== appsVisible) {
-        this.appsVisible = appsVisible;
-        // FIXME: We need a window.js that controls shared panel elements
-        this.pages.pagesVisible = !appsVisible;
-
-        this.header.setAttribute('data-l10n-id', appsVisible ?
-          'apps-panel' : 'pages-panel');
-
-        this.indicator.children[0].classList.toggle('active', appsVisible);
-        this.indicator.children[1].classList.toggle('active', !appsVisible);
-        this.indicator.setAttribute('aria-valuenow', appsVisible ? 1 : 2);
-        this.indicator.setAttribute('data-l10n-args', JSON.stringify({
-          currentPage: appsVisible ? 1 : 2,
-          totalPages: 2
-        }));
-
-        this.panel.setAttribute('aria-hidden', !appsVisible);
-        this.pages.panel.setAttribute('aria-hidden', appsVisible);
-
-        // Update shadow state by dispatching a scroll event to the scrollable
-        // element of the newly selected panel.
-        if (appsVisible) {
-          this.scrollable.dispatchEvent(new CustomEvent('scroll'));
-        } else {
-          this.pages.scrollable.dispatchEvent(new CustomEvent('scroll'));
-        }
-      }
-    },
-
     getChildIndex: function(child) {
       // XXX Note, we're taking advantage of gaia-container using
       //     Array instead of HTMLCollection here.
@@ -855,42 +801,6 @@
       var icon, child, id;
 
       switch (e.type) {
-      // Switch between panels
-      case 'keypress':
-        if (!e.ctrlKey) {
-          break;
-        }
-
-        switch (e.keyCode) {
-          case e.DOM_VK_RIGHT:
-            this.panels.scrollTo(
-              { left: this.panels.scrollLeftMax, top: 0, behavior: 'smooth' });
-            break;
-          case e.DOM_VK_LEFT:
-            this.panels.scrollTo(
-              { left: 0, top: 0, behavior: 'smooth' });
-            break;
-        }
-        break;
-
-      // Display the top shadow when scrolling down
-      case 'scroll':
-        if (e.target === this.panels) {
-          this.updatePanelIndicator();
-          break;
-        }
-
-        if (!this.appsVisible) {
-          break;
-        }
-
-        var position = this.scrollable.scrollTop;
-        var scrolled = position > 1;
-        if (this.shadow.classList.contains('visible') !== scrolled) {
-          this.shadow.classList.toggle('visible', scrolled);
-        }
-        break;
-
       // App launching
       case 'activate':
         e.preventDefault();
@@ -1098,47 +1008,11 @@
         }
         break;
 
-      case 'hashchange':
-        if (document.hidden || this.ignoreHashChangeTimeout !== null) {
-          break;
-        }
-
-        e.preventDefault();
-        e.stopImmediatePropagation();
-
-        this.ignoreHashChangeTimeout = setTimeout(() => {
-          this.ignoreHashChangeTimeout = null;
-        }, HASH_CHANGE_DEBOUNCE);
-
-        // If a dialog is showing, cancel the dialog
-        for (var dialog of this.dialogs) {
-          if (!dialog.opened) {
-            continue;
-          }
-
-          dialog.close();
-          return;
-        }
-
-        // If we're in edit mode, cancel edit mode
-        if (this.editMode) {
-          this.exitEditMode();
-          return;
-        }
-
-        // Otherwise, scroll the visible panel to the top
-        if (this.panels.scrollLeft ===
-            this.scrollable.parentNode.offsetLeft) {
-          this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
-        }
-        break;
-
       case 'localized':
         for (icon of this.icons.children) {
           icon.firstElementChild.updateName();
         }
         this.icons.synchronise();
-        this.updatePanelIndicator();
         break;
 
       case 'online':
