@@ -5,6 +5,7 @@
 
   var PinsManager = function() {};
   PinsManager.SERVICES = ['isPinned'];
+  PinsManager.STATES = ['getScope'];
 
   BaseModule.create(PinsManager, {
     EVENT_PREFIX: 'pins-',
@@ -29,7 +30,43 @@
       }
 
       return Object.keys(scopes).some(function(scope) {
-        return url.indexOf(scope) === 0;
+        return this._inScope(url, scope);
+      }.bind(this));
+    },
+
+    getScope: function(url) {
+      var origin = new URL(url).origin;
+      var paths = this._scopes[origin];
+
+      if (!paths) {
+        return;
+      }
+
+      var scopes = [];
+
+      for (var path in paths) {
+        var scope = paths[path].scope;
+        if (this._inScope(url, scope)) {
+          scopes.push(scope);
+        }
+      }
+
+      return scopes.length && this._getLongestScope(scopes);
+    },
+
+    _inScope: function(url, scope) {
+      if (!scope) {
+        return false;
+      }
+
+      var origin = new URL(url).origin;
+      var scopeFullUrl = new URL(scope, origin);
+      return url.indexOf(scopeFullUrl) === 0;
+    },
+
+    _getLongestScope: function(scopes) {
+      return scopes.reduce(function(a, b) {
+        return a.length > b.length ? a : b;
       });
     },
 
@@ -69,9 +106,18 @@
       var origin = url.origin;
       this._scopes[origin] = this._scopes[origin] || {};
 
-      var scope = data.scope || data.origin;
-      this._scopes[origin][scope] = data.id;
-      this.publish('scopechange', { action: 'add', scope: scope });
+      var path = data.scope || '/';
+      this._scopes[origin][path] = {
+        id: data.id,
+        name: data.name,
+        scope: data.scope
+      };
+      this.publish('scopechange', {
+        action: 'add',
+        scope: data.scope || false,
+        name: data.name,
+        url: data.id
+      });
     },
 
     _removeScope: function(id) {
@@ -79,16 +125,20 @@
       var origin = url.origin;
       if (this._scopes[origin]) {
         var currentHost = this._scopes[origin];
-        var removedScope;
-        Object.keys(currentHost).forEach(function(scope) {
-          if (currentHost[scope] === id) {
-            delete currentHost[scope];
-            removedScope = scope;
+        var removed;
+        Object.keys(currentHost).forEach(function(path) {
+          if (currentHost[path].id === id) {
+            removed = currentHost[path];
+            delete currentHost[path];
           }
         });
-        if (removedScope) {
-          this.publish('scopechange',
-                      { action: 'remove', scope: removedScope });
+        if (removed) {
+          this.publish('scopechange', {
+            action: 'remove',
+            scope: removed.scope || false,
+            name: removed.name,
+            url: removed.id
+          });
         }
       }
     }

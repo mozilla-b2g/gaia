@@ -69,15 +69,7 @@ PinningTheWeb.prototype = {
   // Open a URL, open the pin dialog and tap the unpin site button.
   openAndUnpinSiteFromBrowser: function openAndUnpinSiteFromBrowser(url) {
     this._openUrl(url);
-
     this.client.switchToFrame();
-
-    // Tap to expand the browser chrome.
-    this.system.appUrlbar.tap();
-    this.client.waitFor(function() {
-      return !this.chromeIsPinned();
-    }.bind(this));
-
     this._clickPinContextMenu();
     this.pinSiteButton.tap();
     this.client.helper.waitForElementToDisappear(this.pinDialog);
@@ -98,8 +90,19 @@ PinningTheWeb.prototype = {
     return isMinimized && notScrollable;
   },
 
+  _unpinChrome: function() {
+    this.client.waitFor(function() {
+      // Tap to expand the browser chrome.
+      this.system.appUrlbar.tap();
+      return !this.chromeIsPinned();
+    }.bind(this));
+  },
+
   _clickPinContextMenu: function() {
     this.client.switchToFrame();
+    if (this.chromeIsPinned()) {
+      this._unpinChrome();
+    }
     this.system.appChromeContextLink.tap();
     var menu = this.system.appChromeContextMenu;
     this.system.appChromeContextMenuPin.tap();

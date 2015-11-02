@@ -225,13 +225,23 @@
   };
 
   AppWindow.prototype.inScope = function(scope) {
-    if (!this.isBrowser()) {
+    if (!this.isBrowser() || !scope) {
       return false;
     }
     // within-scope per http://www.w3.org/TR/appmanifest/#dfn-within-scope
     // except we also support paths
     var target = this.config.url;
-    return scope && target.startsWith(scope);
+    var fullScopeUrl = new URL(scope, target).href;
+    return fullScopeUrl && target.startsWith(fullScopeUrl);
+  };
+
+  AppWindow.prototype.matchesOriginAndName = function(origin, name) {
+    if (!this.isBrowser()) {
+      return false;
+    }
+
+    var target = this.config.url;
+    return new URL(target).origin === origin && this.name === name;
   };
 
   /**
@@ -1074,6 +1084,7 @@
       this.loading = true;
       this.inError = false;
       this._changeState('loading', true);
+      this.nameChanged = false;
       this.publish('loading');
     };
 
@@ -1132,9 +1143,6 @@
 
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
-      if (!this.manifest) {
-        this.name = new URL(evt.detail).hostname;
-      }
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
       if (this.config.url !== evt.detail) {
@@ -1143,6 +1151,9 @@
         this.webManifestURL = null;
         this.webManifest = null;
         this.config.url = evt.detail;
+        if (!this.manifest && !this.nameChanged) {
+          this.name = new URL(evt.detail).hostname;
+        }
       }
       this.publish('locationchange');
     };
@@ -1209,6 +1220,11 @@
 
           break;
 
+        case 'og:site_name':
+          if (this.nameChanged) {
+            break;
+          }
+          /* falls through */
         case 'application-name':
           // Apps have a compulsory name field in their manifest
           // which takes precedence.
@@ -1218,6 +1234,7 @@
             return;
           }
           this.name = name;
+          this.nameChanged = true;
           this.publish('namechanged');
           break;
       }
