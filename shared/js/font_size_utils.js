@@ -4,13 +4,6 @@
   'use strict';
 
   /**
-   * Allowable font sizes for header elements.
-   */
-  const HEADER_SIZES = [
-    16, 17, 18, 19, 20, 21, 22, 23
-  ];
-
-  /**
    * Utility functions for measuring and manipulating font sizes
    */
   var FontSizeUtils = {
@@ -67,90 +60,6 @@
      */
     resetCache: function() {
       this._cachedContexts = {};
-    },
-
-    /**
-     * Use a single observer for all text changes we are interested in.
-     */
-    _textChangeObserver: null,
-
-    /**
-     * Auto resize all text changes.
-     * @param {Array} mutations A MutationRecord list.
-     */
-    _handleTextChanges: function(mutations) {
-      for (var i = 0; i < mutations.length; i++) {
-        this._reformatHeaderText(mutations[i].target);
-      }
-    },
-
-    /**
-     * Singleton-like interface for getting our text change observer.
-     * By reusing the observer, we make sure we only ever attach a
-     * single observer to any given element we are interested in.
-     */
-    _getTextChangeObserver: function() {
-      if (!this._textChangeObserver) {
-        this._textChangeObserver = new MutationObserver(
-          this._handleTextChanges.bind(this));
-      }
-      return this._textChangeObserver;
-    },
-
-    /**
-     * Perform auto-resize when textContent changes on element.
-     *
-     * @param {HTMLElement} element The element to observer for changes
-     */
-    _observeHeaderChanges: function(element) {
-      var observer = this._getTextChangeObserver();
-      // Listen for any changes in the child nodes of the header.
-      observer.observe(element, { childList: true });
-    },
-
-    /**
-     * Resize and reposition the header text based on string length and
-     * container position.
-     *
-     * @param {HTMLElement} header h1 text inside header to reformat.
-     */
-    _reformatHeaderText: function(header) {
-      // Skip resize logic if header has no content, ie before localization.
-      if (header.textContent.trim() === '') {
-        return;
-      }
-
-      // Reset our centering styles.
-      this.resetCentering(header);
-
-      // Cache the element style properites to avoid reflows.
-      var style = this.getStyleProperties(header);
-
-      // Perform auto-resize and center.
-      style.textWidth = this.autoResizeElement(header, style);
-      this.centerTextToScreen(header, style);
-    },
-
-    /**
-     * Reformat all the headers located inside a DOM node, and add mutation
-     * observer to reformat when any changes are made.
-     *
-     * @param {HTMLElement} domNode
-     */
-    _registerHeadersInSubtree: function(domNode) {
-      if (!domNode) {
-        return;
-      }
-
-      var headers = domNode.querySelectorAll('header > h1');
-      for (var i = 0; i < headers.length; i++) {
-        // On some apps wrapping inside a requestAnimationFrame reduces the
-        // number of calls to _reformatHeaderText().
-        window.requestAnimationFrame(function(header) {
-          this._reformatHeaderText(header);
-          this._observeHeaderChanges(header);
-        }.bind(this, headers[i]));
-      }
     },
 
     /**
@@ -239,20 +148,6 @@
     },
 
     /**
-     * Get an array of allowed font sizes for an element
-     *
-     * @param {HTMLElement} element The element to get allowed sizes for.
-     * @return {Array} An array containing pizels values of allowed sizes.
-     */
-    getAllowedSizes: function(element) {
-      if (element.tagName === 'H1' && element.parentNode.tagName === 'HEADER') {
-        return HEADER_SIZES;
-      }
-      // No allowed sizes for this element, so return empty array.
-      return [];
-    },
-
-    /**
      * Get an element's content width disregarding its box model sizing.
      *
      * @param {HTMLElement|Object} HTML element, or style object.
@@ -290,117 +185,6 @@
     },
 
     /**
-     * Auto resize element's font to fit its content width.
-     *
-     * @param {HTMLElement} element The element to perform auto-resize on.
-     * @param {Object} styleOptions Dictionary containing cached style props,
-     *                 to avoid reflows caused by grabbing style properties.
-     * @return {Integer} The pixel width of the resized text.
-     */
-    autoResizeElement: function(element, styleOptions) {
-      var allowedSizes = this.getAllowedSizes(element);
-      if (allowedSizes.length === 0) {
-        return 0;
-      }
-
-      var contentWidth = styleOptions.contentWidth ||
-        this.getContentWidth(element);
-
-      var fontFamily = styleOptions.fontFamily ||
-        getComputedStyle(element).fontFamily;
-
-      var info = this.getMaxFontSizeInfo(
-        element.textContent.trim(),
-        allowedSizes,
-        fontFamily,
-        contentWidth
-      );
-
-      element.style.fontSize = info.fontSize + 'px';
-
-      return info.textWidth;
-    },
-
-    /**
-     * Reset the auto-centering styling on an element.
-     *
-     * @param {HTMLElement} element The element to reset.
-     */
-    resetCentering: function(element) {
-      // We need to set the lateral margins to 0 to be able to measure the
-      // element width properly. All previously set values are ignored.
-      element.style.marginLeft = element.style.marginRight = '0';
-    },
-
-    /**
-     * Center an elements text based on screen position rather than container.
-     *
-     * @param {HTMLElement} element The element whose text we want to center.
-     * @param {Object} styleOptions Dictionary containing cached style props,
-     *                 avoids reflows caused by caching style properties.
-     */
-    centerTextToScreen: function(element, styleOptions) {
-      // Calculate the minimum amount of space needed for the header text
-      // to be displayed without overflowing its content box.
-      var minHeaderWidth = styleOptions.textWidth + styleOptions.paddingRight +
-        styleOptions.paddingLeft;
-
-      // Get the amount of space on each side of the header text element.
-      var sideSpaceLeft = styleOptions.offsetLeft;
-      var sideSpaceRight = this.getWindowWidth() - sideSpaceLeft -
-        styleOptions.contentWidth - styleOptions.paddingRight -
-        styleOptions.paddingLeft;
-
-      // If both margins have the same width, the header is already centered.
-      if (sideSpaceLeft === sideSpaceRight) {
-        return;
-      }
-
-      // To center, we need to make sure the space to the left of the header
-      // is the same as the space to the right, so take the largest of the two.
-      var margin = Math.max(sideSpaceLeft, sideSpaceRight);
-
-      // If the minimum amount of space our header needs plus the max margins
-      // fits inside the width of the window, we can center this header.
-      // We subtract 1 pixels to wrap text like Gecko.
-      // See https://bugzil.la/1026955
-      if (minHeaderWidth + (margin * 2) < this.getWindowWidth() - 1) {
-        element.style.marginLeft = element.style.marginRight = margin + 'px';
-      }
-    },
-
-    _initHeaderFormatting: function() {
-      if (document.l10n) {
-        // When l10n is ready, register all displayed headers for formatting.
-        document.l10n.ready.then(() => {
-          this._registerHeadersInSubtree(document.body);
-        });
-      } else {
-        this._registerHeadersInSubtree(document.body);
-      }
-    },
-
-    /**
-     * Initialize the FontSizeUtils, add overflow handler and perform
-     * auto resize once strings have been localized.
-     */
-    init: function() {
-      // Listen for lazy loaded DOM to register new headers.
-      window.addEventListener('lazyload', function(evt) {
-        this._registerHeadersInSubtree(evt.detail);
-      }.bind(this));
-
-      // Once document is ready, format any headers already in the DOM.
-      if (document.readyState === 'loading') {
-        window.addEventListener('DOMContentLoaded', function() {
-          this._initHeaderFormatting();
-        }.bind(this));
-      } else {
-        this._initHeaderFormatting();
-      }
-    },
-
-    /**
      * Cache and return the width of the inner window.
      *
      * @return {Integer} The width of the inner window in pixels.
@@ -409,8 +193,6 @@
       return window.innerWidth;
     }
   };
-
-  FontSizeUtils.init();
 
   exports.FontSizeUtils = FontSizeUtils;
 }(this));
