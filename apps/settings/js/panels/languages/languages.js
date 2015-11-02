@@ -46,7 +46,6 @@ define(function(require) {
       }
     },
     showMoreLanguages: function() {
-      this.elements.moreLanguages.blur();
       SettingsCache.getSettings(function(result) {
         var version = result['langpack.channel'];
         /* jshint nonew: false */
@@ -68,11 +67,9 @@ define(function(require) {
       // see https://bugzil.la/1124098.  On other device types the link to the
       // Marketpace is hidden.  Don't set the handler if it's display: none.
       if (this.elements.moreLanguages.offsetParent) {
-        this.elements.moreLanguages.addEventListener('click',
-          this.showMoreLanguages.bind(this));
+        this.elements.moreLanguages.onclick = this.showMoreLanguages;
       }
-      this.elements.langSel.addEventListener('blur',
-        this.buildList.bind(this));
+      this.elements.langSel.onblur = this.buildList.bind(this);
     },
     onLocalized: function() {
       // update keyboard layout
