@@ -411,6 +411,8 @@ ifdef GAIA_DISTRIBUTION_DIR
   ifneq ($(wildcard $(DISTRIBUTION_EMAIL_SERVICES)),)
     EMAIL_SERVICES_PATH := $(DISTRIBUTION_EMAIL_SERVICES)
   endif
+
+  -include $(GAIA_DISTRIBUTION_DIR)$(SEP)distro.mk
 endif
 
 # Read the file specified in $GAIA_APP_CONFIG and turn them into $GAIA_APPDIRS,
