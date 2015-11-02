@@ -189,7 +189,7 @@ define(function(require) {
 
         var networkProp = network ? {ssid: network.ssid} : null;
         this._wifiStatusText =
-          { id: 'fullStatus-' + status,
+          { id: 'full-status-' + status,
             args: networkProp };
       } else {
         this._wifiStatusText =

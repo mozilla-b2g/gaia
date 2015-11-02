@@ -104,7 +104,7 @@ define(function(require) {
           icon.classList.add('connecting');
         }
 
-        small.setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
+        small.setAttribute('data-l10n-id', 'short-status-' + networkStatus);
       }
 
       // bind connection callback
@@ -320,7 +320,7 @@ define(function(require) {
       if (activeItemDOM && activeItemDOM != listItemDOM) {
         activeItemDOM.classList.remove('active');
         activeItemDOM.querySelector('small').
-          setAttribute('data-l10n-id', 'shortStatus-disconnected');
+          setAttribute('data-l10n-id', 'short-status-disconnected');
         activeItemDOM.querySelector('aside').classList.remove('connecting');
         activeItemDOM.querySelector('aside').classList.remove('connected');
       }
@@ -328,7 +328,7 @@ define(function(require) {
       if (listItemDOM) {
         listItemDOM.classList.add('active');
         listItemDOM.querySelector('small').
-          setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
+          setAttribute('data-l10n-id', 'short-status-' + networkStatus);
         if (networkStatus === 'connecting' || networkStatus === 'associated') {
           listItemDOM.querySelector('aside').classList.remove('connected');
           listItemDOM.querySelector('aside').classList.add('connecting');
