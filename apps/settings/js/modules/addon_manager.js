@@ -190,37 +190,6 @@ define(function(require) {
     },
 
     /**
-     * Get content scripts from add-on manifest that specify JavaScript and CSS
-     * to be injected into matching apps.
-     *
-     * NOTE: content_sctipts is not present in the add-on's .manifest file and
-     * instead is stored in {add-on origin}/manifest.json that needs to be
-     * individually fetched.
-     *
-     * @param  {DOMApplication} addon Add-on to get content scripts for.
-     * @return {Promse} content_sctipts JSON object promise.
-     */
-    _getContentScripts: function(addon) {
-      var url = addon.origin + '/manifest.json';
-      var xhr = new XMLHttpRequest({ mozSystem: true });
-      xhr.open('GET', url);
-      xhr.responseType = 'json';
-
-      return new Promise(function(resolve, reject) {
-        xhr.onload = () => {
-          var contentScripts = xhr.response && xhr.response.content_scripts;
-          if (contentScripts && contentScripts.length > 0) {
-            resolve(contentScripts);
-          } else {
-            reject();
-          }
-        };
-        xhr.onerror = reject;
-        xhr.send();
-      });
-    },
-
-    /**
      * This internal utility function returns an array of objects describing
      * the apps that are affected by the given addon.
      *
@@ -236,6 +205,9 @@ define(function(require) {
 
       var manifest = this._getManifest(addon);
       var customizations = manifest && manifest.customizations;
+      // content_scripts field is internally copied from manifest.json to
+      // manifest.webapp
+      var contentScripts = manifest && manifest.content_scripts;
 
       // If the addon specifies customizations, then it is obsolete and does not
       // work
@@ -243,29 +215,28 @@ define(function(require) {
         return Promise.resolve([]);
       }
 
+      // If there are no content scripts or content scripts list is empty, the
+      // addon does not affect any apps.
+      if (!contentScripts || contentScripts.length === 0) {
+        return Promise.resolve([]);
+      }
+
       var matched;
-      return this._getContentScripts(addon)
-        // If add-on has content scripts specified, fetch all apps that it can
-        // possibly affect
-        .then(contentScripts => Promise.all([
-          contentScripts,
-          AppsCache.apps().then(apps => apps.filter(app => {
-            var manifest = this._getManifest(app);
-            // Ignore apps that are themselves add-ons or if the addon doesn't
-            // have high enough privileges to affect this app then we can just
-            // return now.
-            return manifest.role !== 'addon' &&
-              this._privilegeCheck(addon, app);
-          }))
-        ]))
+      return AppsCache.apps()
+        .then(apps => apps.filter(app => {
+          var manifest = this._getManifest(app);
+          // Ignore apps that are themselves add-ons or if the addon doesn't
+          // have high enough privileges to affect this app then we can just
+          // return now.
+          return manifest.role !== 'addon' &&
+            this._privilegeCheck(addon, app);
+        }))
         // Match apps based on add-on's content sctipts.
-        .then(([contentScripts, apps]) =>
+        .then(apps =>
           [for (app of apps)
-            if (matched = this._matchContentScripts(contentScripts, app)) {
-              app: app,
-              contentScripts: matched
-            }
-          ])
+            if (matched = this._matchContentScripts(contentScripts, app))
+              { app: app, contentScripts: matched }
+        ])
         .catch(() => []);
     },
 
@@ -666,6 +637,9 @@ define(function(require) {
 
       var manifest = this._getManifest(addon.instance);
       var customizations = manifest && manifest.customizations;
+      // content_scripts field is internally copied from manifest.json to
+      // manifest.webapp
+      var contentScripts = manifest && manifest.content_scripts;
 
       // If the addon specifies customizations, then it is obsolete and does not
       // work
@@ -673,15 +647,17 @@ define(function(require) {
         return Promise.resolve(false);
       }
 
-      return this._getContentScripts(addon.instance)
-        .then(contentScripts => Promise.all([
-          contentScripts,
-          AppsCache.apps().then(
-            apps => apps.find(app => app.manifestURL === manifestURL))
-        ]))
-        .then(([contentScripts, app]) => app ?
+      // If there are no content scripts or content scripts list is empty, the
+      // addon does not affect any apps.
+      if (!contentScripts || contentScripts.length === 0) {
+        return Promise.resolve(false);
+      }
+
+      return AppsCache.apps()
+        .then(apps => apps.find(app => app.manifestURL === manifestURL))
+        .then(app => app ?
           this._matchContentScripts(contentScripts, app) : undefined)
-        .then(customizations => !!customizations)
+        .then(appliedContentScripts => !!appliedContentScripts)
         .catch(() => false);
     },
 
