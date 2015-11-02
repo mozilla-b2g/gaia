@@ -545,6 +545,24 @@ suite('system/UpdateManager', function() {
         });
       });
     });
+
+    suite('home button events', function() {
+      setup(function() {
+        UpdateManager.start();
+      });
+
+      test('should close dialogs when home button is pressed',
+      function () {
+        window.dispatchEvent(new CustomEvent('home'));
+        assert.ok(Service.request.calledWith('hideCustomDialog'));
+      });
+
+      test('should close dialogs when home button is held',
+      function () {
+        window.dispatchEvent(new CustomEvent('holdhome'));
+        assert.ok(Service.request.calledWith('hideCustomDialog'));
+      });
+    });
   });
 
   suite('UI', function() {

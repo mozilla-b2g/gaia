@@ -115,6 +115,8 @@
       window.addEventListener('online', this);
       window.addEventListener('offline', this);
       window.addEventListener('lockscreen-appopened', this);
+      window.addEventListener('home', this);
+      window.addEventListener('holdhome', this);
 
       SettingsListener.observe('gaia.system.checkForUpdates', false,
                                this.checkForUpdates.bind(this));
@@ -808,6 +810,10 @@
           if (this._hasDialog) {
             Service.request('hideCustomDialog');
           }
+          break;
+        case 'home':
+        case 'holdhome':
+          this.cancelPrompt();
           break;
       }
 
