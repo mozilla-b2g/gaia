@@ -12,6 +12,7 @@
 /* global MocksHelper */
 /* global MockL10n */
 /* global NavigatorSettings */
+/* global Settings */
 /* global SettingsListener */
 /* global SyncManagerBridge */
 
@@ -24,6 +25,8 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/sync/errors.js');
 requireApp('browser/test/unit/sync/mocks/mock_manager_bridge.js');
+requireApp('browser/js/settings.js');
+requireApp('browser/js/browser_dialog.js');
 
 var mocksForSettings = new MocksHelper([
   'LazyLoader',
@@ -74,6 +77,7 @@ suite('Sync settings >', function() {
                                       (event, listener) => {
       visibilityListener = listener;
     });
+    sinon.stub(Settings, 'hide');
 
     require('/tv_apps/browser/js/sync/settings.js').then(() => {
       subject = FirefoxSyncSettings;
