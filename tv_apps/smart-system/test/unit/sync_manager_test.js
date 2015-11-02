@@ -968,6 +968,29 @@ suite('smart-system/SyncManager >', () => {
         });
       });
     });
+
+    test('onsyncing - offline', done => {
+      Object.defineProperty(navigator, 'onLine', {
+        configurable: true,
+        get: () => {
+          return false;
+        },
+        set: () => {}
+      });
+
+      var previousLastSync = syncManager.lastSync;
+      SyncStateMachine.onsyncing();
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(updateStateStub);
+        this.sinon.assert.calledOnce(unregisterSyncStub);
+        this.sinon.assert.notCalled(getAssertionStub);
+        this.sinon.assert.notCalled(getKeysStub);
+        this.sinon.assert.notCalled(portStub);
+        this.sinon.assert.calledOnce(successStub);
+        assert.equal(syncManager.lastSync, previousLastSync);
+        done();
+      });
+    });
   });
 
   suite('Firefox Accounts - onlogout', () => {
