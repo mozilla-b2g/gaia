@@ -51,7 +51,17 @@ define(function(require) {
       // manifest, we need to listen to 'downloadsuccess' on the app
       // (not mozApps.mgmt), and that's when manifest will be ready.
       AppsCache.addEventListener('oninstall', (evt) => {
-        evt.application.addEventListener('downloadsuccess', _boundUpdateAddons);
+        var app = evt && evt.application;
+        // Bug 1220195
+        // If installed via WebIDE, _isAddon will return true, and we should
+        // run _boundUpdateAddons immediately because 'downloadsuccess' would
+        // never fire. If installed from Marketplace we need to wait for the
+        // 'downloadsuccess' event and run _boundUpdateAddons later.
+        if (this._isAddon(app)) {
+          _boundUpdateAddons(evt);
+        } else {
+          app.addEventListener('downloadsuccess', _boundUpdateAddons);
+        }
       });
       AppsCache.addEventListener('onuninstall', _boundUpdateAddons);
       mozApps.mgmt.addEventListener('enabledstatechange', _boundUpdateAddons);
@@ -70,7 +80,8 @@ define(function(require) {
       var index;
 
       if (this._isAddon(app)) {
-        if (type === 'downloadsuccess' && !this._alreadyExists(app)) {
+        if ((type === 'downloadsuccess' || type === 'install') &&
+          !this._alreadyExists(app)) {
           this._addons.push(App(app));
         } else if (type === 'uninstall') {
           index = this._findAddonIndex(app);

@@ -300,7 +300,8 @@ suite('addons manager test > ', function() {
   });
 
   suite('_updateAddons', function() {
-    test('add the new addon to addons when "install"', function() {
+    test('add the new addon to addons from WebIDE', function() {
+      // Installed with WebIDE, manifest exists
       var newAddon = {
         manifest: {
           role: 'addon',
@@ -320,6 +321,39 @@ suite('addons manager test > ', function() {
       // Trigger an install event
       mockAppsCache.addEventListener.args.forEach(listener => {
         if (listener[0] === 'oninstall') {
+          // evt for the callback function
+          listener[1]({
+            application: newAddon,
+            type: 'install'
+          });
+        }
+      });
+      assert.isTrue(containsAddon(AddonManager.addons.array, newAddon));
+    });
+
+    test('add the new addon to addons from Marketplace', function() {
+      // Installed with Marketplace, manifest does not exist yet
+      var newAddon = {
+        manifestURL: 'newAddonManifestURL',
+        origin: 'app://newAddonManifestURL',
+        addEventListener: function(evt, cb) {
+          cb({
+            type: evt,
+            application: this
+          });
+        }
+      };
+
+      assert.isFalse(containsAddon(AddonManager.addons.array, newAddon));
+      // Trigger an install event
+      mockAppsCache.addEventListener.args.forEach(listener => {
+        if (listener[0] === 'oninstall') {
+          // evt for the callback function
+          // Once downloadsuccess is fired, manifest would be available
+          newAddon.manifest = {
+            role: 'addon',
+            name: 'newAddon'
+          };
           listener[1]({
             application: newAddon,
             type: 'downloadsuccess'
