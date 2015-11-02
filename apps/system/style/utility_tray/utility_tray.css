@@ -80,12 +80,13 @@
 #statusbar-tray {
   background-image: none;
   background-repeat: no-repeat;
-  background-position: right;
   width: 100%;
   top: 0;
   height: 3rem;
   filter: none;
 }
+html[dir="ltr"] #statusbar-tray { background-position: right; }
+html[dir="rtl"] #statusbar-tray { background-position: left; }
 
 #screen.utility-tray-in-transition #statusbar-tray,
 #screen:-moz-full-screen-ancestor #statusbar-tray,
