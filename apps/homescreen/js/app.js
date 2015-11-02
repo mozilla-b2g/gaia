@@ -92,6 +92,8 @@
     this.gridHeight = 1;
     this.pendingGridHeight = 1;
     this.iconsPerPage = 0;
+    this.iconsLeft = 0;
+    this.iconsRight = 0;
 
     // Scroll behaviour
     this.appsVisible = false;
@@ -566,6 +568,7 @@
 
     refreshGridSize: function() {
       var children = this.icons.children;
+      var cols = this.settings.small ? 4 : 3;
 
       var visibleChildren = 0;
       var firstVisibleChild = -1;
@@ -574,6 +577,9 @@
           visibleChildren ++;
           if (firstVisibleChild === -1) {
             firstVisibleChild = i;
+            this.iconsLeft = this.icons.getChildOffsetRect(children[i]).left;
+          } else if (visibleChildren === cols) {
+            this.iconsRight = this.icons.getChildOffsetRect(children[i]).right;
           }
         }
       }
@@ -591,25 +597,20 @@
 
         if (this.settings.scrollSnapping) {
           gridHeight = (Math.ceil((iconHeight *
-            Math.ceil(visibleChildren /
-                      (this.settings.small ? 4 : 3))) / pageHeight) *
+            Math.ceil(visibleChildren / cols)) / pageHeight) *
             pageHeight) + (scrollHeight - pageHeight);
         } else {
-          gridHeight =
-            (Math.ceil(visibleChildren / (this.settings.small ? 4 : 3)) + 1) *
-            iconHeight;
+          gridHeight = (Math.ceil(visibleChildren / cols) + 1) * iconHeight;
         }
 
         this.pageHeight = pageHeight;
         this.pendingGridHeight = gridHeight;
-        this.iconsPerPage = rowsPerPage * (this.settings.small ? 4 : 3);
+        this.iconsPerPage = rowsPerPage * cols;
 
         // When a full screen of apps is visible, we mark that as visual loading
         // being complete.
         if (!this.visualLoadComplete &&
-            Math.floor(visibleChildren /
-                       (this.settings.small ? 4 : 3)) * iconHeight >=
-              scrollHeight) {
+            Math.floor(visibleChildren / cols) * iconHeight >= scrollHeight) {
           this.onVisualLoad();
         }
       }
@@ -882,7 +883,8 @@
       // Handle app/site editing and dragging to the end of the icon grid.
       case 'drag-end':
         if (e.detail.dropTarget === null &&
-            e.detail.clientX >= 0 && e.detail.clientX < window.innerWidth) {
+            e.detail.clientX >= this.iconsLeft &&
+            e.detail.clientX < this.iconsRight) {
           // If the drop target is null, and the client coordinates are
           // within the panel, we must be dropping over the start or end of
           // the container.
