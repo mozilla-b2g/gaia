@@ -18,6 +18,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'settings': {
         exports: 'Settings'
       },
+      'shared/addons/match_pattern': {
+        exports: 'MatchPattern'
+      },
       'shared/lazy_loader': {
         exports: 'LazyLoader'
       },
