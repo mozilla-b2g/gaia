@@ -12,6 +12,7 @@ apps/calendar/style/multi_day.css 9 0
 apps/calendar/style/settings.css 3 1
 apps/calendar/style/ui.css 2 1
 apps/callscreen/style/conference_group_ui.css 1 0
+apps/callscreen/style/lockscreen.css 2 0
 apps/callscreen/style/oncall.css 20 1
 apps/callscreen/style/oncall_status_bar.css 4 0
 apps/camera/bower_components/gaia-theme/gaia-theme.css 5 0
@@ -90,6 +91,8 @@ apps/sms/views/shared/style/composer.css 5 0
 apps/sms/views/shared/style/edit-mode.css 1 0
 apps/sms/views/shared/style/sms.css 1 2
 apps/system/fxa/style/fxa.css 1 0
+apps/system/lockscreen/style/lockscreen.css 3 0
+apps/system/lockscreen/style/notifications.css 9 0
 apps/system/mobile_id/style/mobile_id.css 0 16
 apps/system/style/action_menu/action_menu_extended.css 2 0
 apps/system/style/app_install_manager/app_install_manager.css 2 0

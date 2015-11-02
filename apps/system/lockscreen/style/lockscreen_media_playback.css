@@ -1,3 +1,8 @@
+/**
+ * BiDi note: media controls are always displayed in LTR (hardware legacy).
+ * This stylesheet must *NOT* be mirrored for RTL.
+ */
+
 #lockscreen .media-playback-container {
   height: auto;
   padding: 0 1.8rem;
@@ -79,4 +84,12 @@
   bottom: 5rem;
   background: rgba(51, 51, 51, 0.3);
   z-index: 1;
+}
+
+/**
+ * BiDi note: player controls do not change in RTL, for hardware legacy reason:
+ * Forcing float: left
+ */
+#lockscreen #lockscreen-media-container .fake-notification [data-icon] {
+  float: left;
 }
