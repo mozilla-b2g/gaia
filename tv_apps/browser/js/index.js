@@ -5,6 +5,7 @@
 /* global Awesomescreen */
 /* global BrowserDB */
 /* global BrowserDialog */
+/* global connectionHandler */
 /* global SearchResult */
 /* global SearchUtil */
 /* global Settings */
@@ -961,7 +962,7 @@ var Browser = {
           case 'url':
             var url = this.getUrlFromInput(activity.source.data.url);
             this.debug(' url = ' + url);
-            this.start_page_url = url;
+            connectionHandler.openPage(url);
             break;
         }
         break;
