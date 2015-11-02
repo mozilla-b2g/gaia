@@ -102,7 +102,8 @@ class FmRadio(Base):
 
         @property
         def text(self):
-            return float(self.root_element.find_element(*self._frequency_locator).text)
+            raw_frequency = self.root_element.find_element(*self._frequency_locator).text
+            return float(FmRadio._crop_trailing_mhz_and_invisible_characters(raw_frequency))
 
         def remove(self):
             frequency = self.marionette.find_element(*self._frequency_locator)
