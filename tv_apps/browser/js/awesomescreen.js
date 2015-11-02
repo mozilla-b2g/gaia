@@ -145,7 +145,7 @@ var Awesomescreen = {
     BookmarkStore.init();
 
     //init bookmark list
-    this.bookmarkList = new SmartList(this.bookmark, 'LT_NET_BOOKMARK');
+    this.bookmarkList = new SmartList(this.bookmark, 'bookmarks');
 
     this.bookmark.addEventListener('open',
       this.showAwesomescreen.bind(this)
