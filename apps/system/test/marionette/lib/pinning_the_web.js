@@ -66,41 +66,39 @@ PinningTheWeb.prototype = {
     this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 
-  // Open a URL, open the pin dialog and tap the unpin site button.
-  openAndUnpinSiteFromBrowser: function openAndUnpinSiteFromBrowser(url) {
-    this._openUrl(url);
-    this.client.switchToFrame();
-    this._clickPinContextMenu();
-    this.pinSiteButton.tap();
-    this.client.helper.waitForElementToDisappear(this.pinDialog);
-  },
-
   // Open a URL, open the pin dialog and tap the pin/unpin page button.
-  openAndPinPage: function openAndPinSite(url) {
+  openAndPinPage: function openAndPinPage(url) {
     this._openUrl(url);
     this._clickPinContextMenu();
     this.pinPageButton.tap();
+    this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 
   chromeIsPinned: function chromeIsPinned() {
     var classes = this.system.appChrome.getAttribute('class');
-    var isMinimized = classes.indexOf('maximized') < 0;
     var notScrollable = classes.indexOf('collapsible') < 0;
 
-    return isMinimized && notScrollable;
+    return this.chromeisMinimized() && notScrollable;
+  },
+
+  chromeisMinimized: function chromeisMinimized() {
+    var classes = this.system.appChrome.getAttribute('class');
+    var isMinimized = classes.indexOf('maximized') < 0;
+
+    return isMinimized;
   },
 
   _unpinChrome: function() {
     this.client.waitFor(function() {
       // Tap to expand the browser chrome.
       this.system.appUrlbar.tap();
-      return !this.chromeIsPinned();
+      return !this.chromeisMinimized();
     }.bind(this));
   },
 
   _clickPinContextMenu: function() {
     this.client.switchToFrame();
-    if (this.chromeIsPinned()) {
+    if (this.chromeisMinimized()) {
       this._unpinChrome();
     }
     this.system.appChromeContextLink.tap();
