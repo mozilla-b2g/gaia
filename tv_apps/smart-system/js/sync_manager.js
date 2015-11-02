@@ -319,8 +319,10 @@
         FxAccountsClient.logout();
 
         // Go back to default settings, so new users won't inherit old users
-        // preferences.
-        this.restoreDefaultSettings().then(SyncStateMachine.success);
+        // preferences, but we save user settings before that.
+        this.saveUserSettings().then(() => {
+          return this.restoreDefaultSettings();
+        }).then(SyncStateMachine.success);
       });
     },
 
@@ -384,6 +386,10 @@
         // the default values when the user logs out from Sync. So new
         // users don't inherit old users preferences.
         return this.saveDefaultSettings();
+      }).then(() => {
+        // We also restore previously saved user settings if they are
+        // available.
+        return this.restoreUserSettings();
       }).then(() => {
         SyncStateMachine.success();
       }).catch(error => {
@@ -553,25 +559,25 @@
       return Promise.all(promises);
     },
 
-    saveDefaultSettings() {
-      var saveDefaultSetting = setting => {
+    saveSettings(prefix) {
+      var saveSetting = setting => {
         return new Promise((resolve, reject) => {
-          asyncStorage.getItem(setting, value => {
+          asyncStorage.getItem(prefix + setting, value => {
             if (value !== null) {
               resolve();
               return;
             }
 
-            this.debug(`Saving default setting value ${setting}`);
+            this.debug(`Saving setting ${prefix + setting}`);
             var req = navigator.mozSettings.createLock().get(setting);
             req.onerror = reject;
             req.onsuccess = () => {
-              var defaultValue = req.result[setting];
-              defaultValue ? this.settings.set(setting, defaultValue)
-                           : this.settings.delete(setting);
-              asyncStorage.setItem(setting, defaultValue, () => {
-                this.debug(`Saved default setting ${setting} as
-                           ${defaultValue}`);
+              var _value = req.result[setting];
+              _value ? this.settings.set(setting, _value)
+                     : this.settings.delete(setting);
+              asyncStorage.setItem(prefix + setting, _value, () => {
+                this.debug(`Saved default setting ${prefix + setting} as
+                           ${_value}`);
                 resolve();
               });
             };
@@ -581,25 +587,35 @@
 
       var promises = [];
       SETTINGS.forEach(setting => {
-        promises.push(saveDefaultSetting(setting));
+        promises.push(saveSetting(setting));
       });
 
       return Promise.all(promises);
     },
 
-    restoreDefaultSettings() {
-      var _revertSetting = setting => {
+    saveDefaultSettings() {
+      this.debug('Saving default settings');
+      return this.saveSettings('');
+    },
+
+    saveUserSettings() {
+      this.debug('Saving user settings');
+      return this.saveSettings(this.user + '.');
+    },
+
+    restoreSettings(prefix) {
+      var revertSetting = setting => {
         return new Promise((resolve, reject) => {
-          asyncStorage.getItem(setting, value => {
-            if (value === null) {
+          asyncStorage.getItem(prefix + setting, value => {
+            if (value === null || value === undefined) {
               resolve();
               return;
             }
 
-            this.debug(`Reverting ${setting} to ${value}`);
+            this.debug(`Reverting ${prefix + setting} to ${value}`);
             // We need to remove the setting from asyncStorage to allow
             // default setting changes within OTA updates.
-            asyncStorage.removeItem(setting, () => {
+            asyncStorage.removeItem(prefix + setting, () => {
               var settingObject = {};
               settingObject[setting] = value;
               var req = navigator.mozSettings.createLock().set(settingObject);
@@ -618,10 +634,20 @@
 
       var promises = [];
       SETTINGS.forEach(setting => {
-        promises.push(_revertSetting(setting));
+        promises.push(revertSetting(setting));
       });
 
       return Promise.all(promises);
+    },
+
+    restoreDefaultSettings() {
+      this.debug('Restoring default settings');
+      return this.restoreSettings('');
+    },
+
+    restoreUserSettings() {
+      this.debug('Restoring user settings');
+      return this.restoreSettings(this.user + '.');
     },
 
     initStore: function() {
