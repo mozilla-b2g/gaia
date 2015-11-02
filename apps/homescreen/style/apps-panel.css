@@ -31,9 +31,18 @@ gaia-app-icon {
   outline: 0;
   transition: transform 0.2s, opacity 0.2s;
 
-  font-size: 1.6rem;
+  font-size: 1.4rem;
+  font-weight: 400;
   color: white;
-  text-shadow: rgba(0, 0, 0, 0.6) 0 0.05rem 0.25rem;
+  text-shadow: rgba(0, 0, 0, 0.5) 0 0.1rem 0.3rem;
+}
+
+/* Small icons are scaled down 0.75x, so apply the reverse transforms to the
+ * font so that it conforms to spec.
+ */
+#apps.small gaia-app-icon {
+  font-size: calc(1.2rem / 0.75);
+  text-shadow: rgba(0, 0, 0, 0.5) 0 calc(0.1rem / 0.75) calc(0.3rem / 0.75);
 }
 
 gaia-app-icon.launching {
