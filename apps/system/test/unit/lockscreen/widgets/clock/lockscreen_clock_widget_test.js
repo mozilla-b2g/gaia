@@ -6,8 +6,10 @@ requireApp(
   'system/lockscreen/js/widgets/clock/lockscreen_clock_widget.js');
 
 suite('LockScreenClockWidget > ', function() {
+  var domAlarm;
   setup(function() {
     window.LockScreenClockWidgetSetup = this.sinon.stub();
+    domAlarm = document.createElement('div');
   });
 
   test(`when setup it would kick off the state machine`,
@@ -48,5 +50,56 @@ suite('LockScreenClockWidget > ', function() {
     assert.equal(mockThis.dateFormatter.format(now),
       mockThis.resources.elements.date.textContent,
       `it doesn't update the date.textContent with the date in locale format`);
+  });
+
+  test(`it would update the alarm info (an alarm is set)`, function(done) {
+    var mockThis = {
+      resources: {
+        elements: {
+          alarm: domAlarm,
+          alarmtime: { textContent: 'dummy-textContent' },
+        }
+      },
+      fetchAlarmData: function() {
+        return new Promise( function(resolve,reject){
+          resolve({hour: '20', minute: '15'});
+        });
+      }
+    };
+    var method = LockScreenClockWidget.prototype.updateAlarm;
+    method.call(mockThis);
+    assert.isFulfilled(mockThis.fetchAlarmData());
+    mockThis.fetchAlarmData().then( function() {
+      assert.equal(mockThis.resources.elements.alarmtime.textContent, '8:15PM');
+      assert.propertyVal( mockThis.resources.elements.alarm.classList,
+        '0', 'has-alarm');
+    })
+    .then(done)
+    .catch(done);
+  });
+
+  test(`it would update the alarm info (an alarm is not set)`, function(done) {
+    var mockThis = {
+      resources: {
+        elements: {
+          alarm: domAlarm,
+          alarmtime: { textContent: 'dummy-textContent' },
+        }
+      },
+      fetchAlarmData: function() {
+        return new Promise( function(resolve,reject){
+          resolve(null);
+        });
+      }
+    };
+    var method = LockScreenClockWidget.prototype.updateAlarm;
+    method.call(mockThis);
+    assert.isFulfilled(mockThis.fetchAlarmData());
+    mockThis.fetchAlarmData().then( function() {
+      assert.propertyVal( mockThis.resources.elements.alarm.classList,
+        '0', 'no-alarms');
+    })
+    .then(done)
+    .catch(done);
   });
 });
