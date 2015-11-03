@@ -96,6 +96,7 @@ if (!utils.sdcard) {
    */
   SdCard.retrieveFiles = function retrieveFilesContent(mimes, exts, cb) {
     var fileArray = [];
+    var forbiddenDirectories = ['.Trash'];
 
     // getDeviceStorages('sdcard') can return more than one storage unit
     // in different order, depends on the default media storage setting,
@@ -108,6 +109,9 @@ if (!utils.sdcard) {
     var cursorOnError = function() {
       cb(this.error.name);
     };
+
+    // RegExp that checks if a string contains any of the extensions.
+    var reExt = new RegExp('.(' + exts.join('|') + ')$');
 
     var cursorOnSuccess = function(e) {
       var file = e.target.result;
@@ -123,12 +127,13 @@ if (!utils.sdcard) {
           cb(null, fileArray);
         }
       } else {
-        if ((mimes.indexOf(file.type) === -1) &&
-          file.name.search(new RegExp('.(' + exts.join('|') + ')$')) === -1) {
+        if ((mimes.indexOf(file.type) === -1) && !reExt.test(file.name)) {
           cursor.continue();
         } else {
-          fileArray.push(file);
-          cursor.continue();
+          if (forbiddenDirectories.indexOf(file.name) === -1) {
+            fileArray.push(file);
+            cursor.continue();
+          }
         }
       }
     };
