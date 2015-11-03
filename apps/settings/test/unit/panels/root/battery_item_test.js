@@ -80,7 +80,7 @@ suite('BatteryItem', function() {
       this.sinon.stub(this.MockL10n, 'setAttributes');
       this.subject._boundRefreshText();
       sinon.assert.calledWith(this.MockL10n.setAttributes, this.element,
-        'batteryLevel-percent-' + this.MockBattery.state,
+        'battery-level-percent',
         sinon.match({level: this.MockBattery.level}));
     });
   });
