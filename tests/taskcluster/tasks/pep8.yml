@@ -11,11 +11,13 @@ task:
     - docker-worker:cache:gaia-misc-caches
 
   payload:
+    env:
+      GAIATEST_LOCATION: tests/python/gaia-ui-tests/gaiatest
     cache:
       gaia-misc-caches: /home/worker/caches/
     command:
       - entrypoint
-      - pip install pylint && pylint tests/python/gaia-ui-tests/gaiatest
+      - pip install pylint && pylint --rcfile="$GAIATEST_LOCATION/pylintrc" "$GAIATEST_LOCATION"
 
   extra:
     treeherder:
