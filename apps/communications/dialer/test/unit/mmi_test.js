@@ -25,6 +25,7 @@ const SUCCESS_MMI_MSG = 'success_mmi_msg';
 const FAILED_MMI_MSG = 'failed_mmi_msg';
 
 const MMI_MSG = 'mmi_msg';
+const USSD_MSG = 'ussd_msg';
 
 const ICC_SERVICE_CLASS_VOICE = (1 << 0);
 const ICC_SERVICE_CLASS_DATA = (1 << 1);
@@ -699,6 +700,53 @@ suite('dialer/mmi', function() {
       }, 1);
       sinon.assert.called(MockMmiUI.cancel);
       sinon.assert.notCalled(MockMmiUI.success);
+    });
+  });
+
+  suite('USSD with promise', function() {
+    setup(function(done) {
+      MmiManager.handleDialing(
+        MockNavigatorMozMobileConnections[0],
+        SUCCESS_MMI_NO_MSG, Promise.resolve({
+          success: true,
+          serviceCode: 'scUssd',
+          statusMessage: USSD_MSG,
+          additionalInformation: 'session'
+        })
+      ).then(done, done);
+    });
+
+    test('the display is populated',
+      function() {
+        sinon.assert.calledWith(MockMmiUI.received, 'session', USSD_MSG,
+                                    MockMobileOperator.mOperator);
+      }
+    );
+  });
+
+  suite('USSD with promise - replies', function() {
+    setup(function(done) {
+      MmiManager._conn = mobileConn;
+      MmiManager._session = {
+        send: function mockSend(message) {
+          return Promise.resolve({
+              result: Promise.resolve({
+                serviceCode: 'scUssd',
+                statusMessage: USSD_MSG
+              })
+            });
+        }
+      };
+
+      MmiManager.reply(SUCCESS_MMI_MSG).then(done, done);
+    });
+
+    teardown(function() {
+      MmiManager._session = null;
+    });
+
+    test('the reply message is shown', function() {
+      sinon.assert.calledWith(MockMmiUI.success, USSD_MSG, 'scUssd');
     });
   });
 });
