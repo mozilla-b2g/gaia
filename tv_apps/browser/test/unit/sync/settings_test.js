@@ -431,17 +431,27 @@ suite('Sync settings >', function() {
       });
     });
 
-    test(`should not enable history sync on collection check if refresh
-          auth failed`, function() {
-      mozIdError = true;
-      expect(subject.collections.has(HISTORY_SETTING))
-        .to.be.equal(false);
-      subject.elements.collectionHistory.checked = true;
-      subject.onhistorychecked();
-      expect(subject.collections.has(HISTORY_SETTING))
-        .to.be.equal(false);
-      expect(subject.elements.collectionHistory.checked)
-        .to.be.equal(false);
+    test(`should not enable collections checkboxes if refresh auth failed`,
+         function() {
+      [{
+        setting: HISTORY_SETTING,
+        element: 'collectionHistory',
+        onchecked: 'onhistorychecked'
+      }, {
+        setting: BOOKMARKS_SETTING,
+        element: 'collectionBookmarks',
+        onchecked: 'onbookmarkschecked'
+      }].forEach(config => {
+        mozIdError = true;
+        expect(subject.collections.has(config.setting))
+          .to.be.equal(false);
+        subject.elements[config.element].checked = true;
+        subject[config.onchecked]();
+        expect(subject.collections.has(config.setting))
+          .to.be.equal(false);
+        expect(subject.elements[config.element].checked)
+          .to.be.equal(false);
+      });
     });
   });
 });

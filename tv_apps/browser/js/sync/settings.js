@@ -249,12 +249,8 @@
 
     onbookmarkschecked() {
       debug('onbookmarkschecked');
-      var checked = this.elements.collectionBookmarks.checked;
-      checked ? this.collections.set(BOOKMARKS_SETTING, true)
-              : this.collections.delete(BOOKMARKS_SETTING);
-      navigator.mozSettings.createLock().set({
-        'sync.collections.bookmarks.enabled': checked
-      });
+      this.oncollectionchecked(this.elements.collectionBookmarks,
+                               BOOKMARKS_SETTING);
     },
 
     onhistorychange() {
@@ -281,14 +277,32 @@
 
     onhistorychecked() {
       debug('onhistorychecked');
-      var checked = this.elements.collectionHistory.checked;
-      if (!checked) {
-        this.collections.delete(HISTORY_SETTING);
-        navigator.mozSettings.createLock().set({
-          'sync.collections.history.enabled': checked
-        });
+     this.oncollectionchecked(this.elements.collectionHistory,
+                              HISTORY_SETTING);
+    },
+
+    oncollectionchecked(element, setting) {
+      if (!element || !setting) {
         return;
       }
+
+      var checked = element.checked;
+      var settingObj = {};
+      settingObj[setting] = checked;
+      if (!checked) {
+        this.collections.delete(setting);
+        navigator.mozSettings.createLock().set(settingObj);
+        return;
+      }
+
+      // Yeah, mozId sucks...
+      // We cannot call watch twice to change the id lifetime
+      // callbacks. But we still need to do different stuff
+      // within the onlogin callback depending on who calls
+      // oncollectionchecked. So we need to save state.
+      // Thank you mozId.
+      this.setting = setting;
+      this.settingObj = settingObj;
 
       try {
         navigator.mozId.watch({
@@ -301,15 +315,13 @@
             if (this.state !== 'enabled') {
               return;
             }
-            this.collections.set(HISTORY_SETTING, true);
-            navigator.mozSettings.createLock().set({
-              'sync.collections.history.enabled': checked
-            });
+            this.collections.set(this.setting, true);
+            navigator.mozSettings.createLock().set(this.settingObj);
           },
           onlogout: () => {},
           onready: () => {},
           onerror: error => {
-            this.elements.collectionHistory.checked = false;
+            element.checked = false;
             console.error(error);
           }
         });
@@ -317,7 +329,7 @@
 
       navigator.mozId.request({
         oncancel: () => {
-          this.elements.collectionHistory.checked = false;
+          element.checked = false;
         },
         // We keep authenticated sessions of 5 minutes, if the user clicks on
         // the history collection switch after the 5 minutes are expired, we
