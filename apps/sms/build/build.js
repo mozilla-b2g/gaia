@@ -36,8 +36,30 @@ function removeDesktopOnlyScripts(appStageDir) {
   });
 }
 
+function prepareBridgeLibs(options) {
+  var bridgeLibsPath = utils.joinPath(options.STAGE_APP_DIR, 'lib/bridge');
+
+  [
+    'bridge.min.js', 'service.min.js', 'client.min.js'
+  ].forEach(function(optimizedLib) {
+    var optimizedLibPath = utils.joinPath(bridgeLibsPath, optimizedLib);
+
+    // If we want to have only optimized libs, let's replace non-optimized
+    // version with optimized one.
+    if (options.GAIA_OPTIMIZE === '1') {
+      utils.copyFileTo(
+        optimizedLibPath, bridgeLibsPath, optimizedLib.replace('.min', '')
+      );
+    }
+
+    utils.deleteFile(optimizedLibPath);
+  });
+}
+
 exports.execute = function(options) {
   utils.copyToStage(options);
+
+  prepareBridgeLibs(options);
 
   removeDesktopOnlyFolder(options.STAGE_APP_DIR);
   removeDesktopOnlyScripts(options.STAGE_APP_DIR);

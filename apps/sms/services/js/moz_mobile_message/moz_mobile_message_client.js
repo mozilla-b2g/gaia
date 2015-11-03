@@ -4,15 +4,6 @@
  */
 'use strict';
 
-[
-  ['bridge', '/lib/bridge/bridge.js'],
-  ['streamClient', '/lib/bridge/plugins/stream/client.js']
-].forEach(([dependencyName, dependencyPath]) => {
-  if (!(dependencyName in self)) {
-    importScripts(dependencyPath);
-  }
-});
-
 (function(exports) {
   const debug = 0 ?
     (arg1, ...args) => console.log(`[MozMobileMessageClient] ${arg1}`, ...args):
@@ -29,6 +20,14 @@
   const TIMEOUT = false;
 
   function MobileMessageClient(endpoint) {
+    if (!('bridge' in self) || !('client' in bridge)) {
+      importScripts('/lib/bridge/client.js');
+    }
+
+    if (!('streamClient' in self)) {
+      importScripts('/lib/bridge/plugins/stream/client.js');
+    }
+
     this[priv.bridgeClient] = bridge.client({
       service: 'moz-mobile-message-shim',
       endpoint: endpoint,
