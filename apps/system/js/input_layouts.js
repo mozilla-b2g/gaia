@@ -142,10 +142,12 @@
   InputLayouts.prototype._setSupportsSwitchingTypes = function() {
     // Let chrome know about how many inputTypes should be marked as
     // supporting swiching.
+    // inputTypes should only be marked as support switching if and only if
+    // there is more than one layout supporting this type.
     var supportsSwitchingTypes =
       Object.keys(this.layouts)
         .reduce((types, group) => {
-          if (this.layouts[group].length) {
+          if (this.layouts[group].length > 1) {
             types = types.concat(this._groupToTypeTable[group]);
           }
 
