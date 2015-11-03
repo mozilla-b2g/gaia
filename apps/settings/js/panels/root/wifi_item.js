@@ -2,7 +2,6 @@ define(function(require) {
   'use strict';
 
   var WifiContext = require('modules/wifi_context');
-  var wifiManager = navigator.mozWifiManager;
 
   function WifiItem(element) {
     this._enabled = false;
@@ -11,7 +10,7 @@ define(function(require) {
 
   WifiItem.prototype = {
     set enabled(value) {
-      if (value === this._enabled || !wifiManager) {
+      if (value === this._enabled || !navigator.mozWifiManager) {
         return;
       }
 
@@ -38,6 +37,9 @@ define(function(require) {
       } else {
         element.removeAttribute('data-l10n-args');
       }
+      // Bug 1217717 enable the Airplane mode interaction
+      // once the wifi panel is ready
+      window.dispatchEvent(new CustomEvent('wificontext-ready'));
     }
   };
 

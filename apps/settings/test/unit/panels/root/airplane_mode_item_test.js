@@ -34,6 +34,14 @@ suite('AirplaneModeItem', function() {
       assert.isTrue(this.MockAirplaneModeHelper.ready.called);
   });
 
+  test('when wificontext-ready event is received', function() {
+    var airplaneModeItem = this.AirplaneModeItem(this.element);
+    airplaneModeItem.handleEvent({
+      type: 'wificontext-ready'
+    });
+    assert.isFalse(airplaneModeItem._element.disabled);
+  });
+
   test('when item is enabled, we would start observing change', function() {
     this.sinon.stub(this.MockAirplaneModeHelper, 'addEventListener');
     var airplaneModeItem = this.AirplaneModeItem(this.element);
@@ -41,7 +49,7 @@ suite('AirplaneModeItem', function() {
     airplaneModeItem.enabled = true;
     assert.isTrue(this.MockAirplaneModeHelper.addEventListener.called);
   });
-  
+
   test('when item is enabled, we would stop observing change', function() {
     this.sinon.stub(this.MockAirplaneModeHelper, 'removeEventListener');
     var airplaneModeItem = this.AirplaneModeItem(this.element);
@@ -58,7 +66,7 @@ suite('AirplaneModeItem', function() {
 
     ['enabled', 'disabled'].forEach(function(status) {
       test('status is ' + status + ', let UI clickable', function() {
-        airplaneModeItem._onAPMStateChange(status); 
+        airplaneModeItem._onAPMStateChange(status);
         assert.equal(this.element.checked, (status === 'enabled'));
         assert.isFalse(this.element.disabled);
       });
@@ -66,7 +74,7 @@ suite('AirplaneModeItem', function() {
 
     ['enabling', 'disabling'].forEach(function(status) {
       test('status is ' + status + ', let UI unclickable', function() {
-        airplaneModeItem._onAPMStateChange(status); 
+        airplaneModeItem._onAPMStateChange(status);
         assert.isTrue(this.element.disabled);
       });
     });
