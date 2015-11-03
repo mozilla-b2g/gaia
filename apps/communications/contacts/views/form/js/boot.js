@@ -28,7 +28,6 @@ window.addEventListener('load', function() {
     '/contacts/js/param_utils.js',
     '/contacts/js/navigation.js',
     '/contacts/services/contacts.js',
-    '/shared/js/l10n_date.js',
     '/shared/js/contact_photo_helper.js',
     '/shared/js/contacts/utilities/templates.js',
     '/contacts/js/contacts_tag.js',

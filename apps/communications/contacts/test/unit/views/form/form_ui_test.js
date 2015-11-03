@@ -16,7 +16,6 @@ requireApp('communications/contacts/js/utilities/performance_helper.js');
 require('/shared/js/l10n.js');
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/services/contacts.js');
-require('/shared/js/l10n_date.js');
 require('/shared/js/contact_photo_helper.js');
 require('/shared/js/contacts/utilities/templates.js');
 requireApp('communications/contacts/js/contacts_tag.js');

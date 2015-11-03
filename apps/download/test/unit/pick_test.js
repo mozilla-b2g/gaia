@@ -51,18 +51,10 @@ suite('pick.js >', function() {
         }
       };
     });
-    sinon.stub(navigator.mozL10n, 'DateTimeFormat', function(date) {
-      return {
-        relativeDate: function(date, useCompactFormat) {
-          return Promise.resolve('pretty' + date.toString());
-        }
-      };
-    });
     requireApp('download/js/pick.js', done);
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n.DateTimeFormat.restore();
     navigator.mozL10n = realL10n;
     navigator.mozSetMessageHandler.mTeardown();
     navigator.mozSetMessageHandler = realSetMessageHandler;

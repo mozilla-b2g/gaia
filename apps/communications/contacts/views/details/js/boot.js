@@ -25,7 +25,6 @@ window.onload = function() {
   var dependencies = [
     '/contacts/js/param_utils.js',
     '/contacts/services/contacts.js',
-    '/shared/js/l10n_date.js',
     '/shared/js/contact_photo_helper.js',
     '/shared/js/contacts/contacts_buttons.js',
     '/shared/js/text_normalizer.js',

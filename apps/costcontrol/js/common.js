@@ -438,7 +438,7 @@ var Common = {
 
   localizeWeekdaySelector: function _localizeWeekdaySelector(selector) {
     var weekStartsOnMonday =
-      !!parseInt(navigator.mozL10n.get('weekStartsOnMonday'), 10);
+      parseInt(navigator.mozL10n.get('firstDayOfTheWeek'), 10) === 1;
     debug('Week starts on monday?', weekStartsOnMonday);
     var monday = selector.querySelector('.monday');
     var sunday = selector.querySelector('.sunday');

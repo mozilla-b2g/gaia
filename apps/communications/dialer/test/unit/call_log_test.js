@@ -104,9 +104,6 @@ suite('dialer/call_log', function() {
     document.body.appendChild(noResult);
     document.body.classList.remove('recents-edit');
 
-    this.sinon.stub(MockL10n.DateTimeFormat.prototype, 'localeFormat',
-      function(date, format) { return date; });
-
     /* Assume that the contact cache is valid during the tests and make the
      * promise used to validaate it return synchronously. */
     this.sinon.stub(CallLog, '_validateContactsCache', function() {

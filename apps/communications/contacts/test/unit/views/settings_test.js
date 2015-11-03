@@ -471,7 +471,6 @@ suite('Contacts settings >', function() {
       navigator.mozSettings = MockNavigatorSettings;
       navigator.mozSettings.mSettings['locale.hour12'] = true;
 
-      require('/shared/js/l10n_date.js');
       require('/shared/js/date_time_helper.js', done);
 
     });

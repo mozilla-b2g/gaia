@@ -644,7 +644,6 @@ var Contacts = (function() {
     navigator.mozL10n.ready(() => {
       Cache.maybeEvict();
     });
-    LazyLoader.load('/shared/js/l10n_date.js');
   });
 
   window.addEventListener('DOMContentLoaded', function onLoad() {

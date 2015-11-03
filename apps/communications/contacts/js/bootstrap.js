@@ -27,7 +27,6 @@
     // scripts. This will avoid the non localized text to appear in the screen.
     if (!Cache.active) {
       dependencies.push('/shared/js/l10n.js');
-      dependencies.push('/shared/js/l10n_date.js');
     }
 
     LazyLoader.load(dependencies, () => {
