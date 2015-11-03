@@ -81,17 +81,20 @@ var issueNotification = co.wrap(function *(alarm) {
     'alarm-start-notice' :
     'alarm-started-notice';
 
-  var l10n = navigator.mozL10n;
-  var title = l10n.get(alarmType, {
-    title: event.remote.title,
-    distance: distance
-  });
+  var titleL10n = {
+    id: alarmType,
+    args: {
+      title: event.remote.title,
+      distance: distance
+    }
+  };
 
-  var body = event.remote.description || '';
-  debug('Will send event notification with title', title, 'body:', body);
+  var bodyL10n = { raw: event.remote.description || '' };
+  debug('Will send event notification with title', titleL10n,
+        'body:', bodyL10n);
   return notification.sendNotification(
-    title,
-    body,
+    titleL10n,
+    bodyL10n,
     `/alarm-display/${busytime._id}`,
     { id: event.remote.id }
   );

@@ -10,7 +10,7 @@ var router = require('router');
 
 var cachedSelf;
 
-exports.sendNotification = co.wrap(function *(title, body, url, data) {
+exports.sendNotification = co.wrap(function *(titleL10n, bodyL10n, url, data) {
   data = data || {};
 
   var app = yield getSelf();
@@ -21,16 +21,17 @@ exports.sendNotification = co.wrap(function *(title, body, url, data) {
   }
 
   var icon = `${NotificationHelper.getIconURI(app)}?${url}`;
-  var notification = new Notification(title, {
-    body: body,
+  var notification = yield NotificationHelper.send(titleL10n, {
+    bodyL10n: bodyL10n,
     icon: icon,
     // we use the URL as the ID so we display a single notification for each
     // busytime (it will override previous notifications)
     tag: url,
-    data: data
+    data: data,
+    // we close all notifications for a given URL in launch(url)
+    closeOnClick: false
   });
-
-  return new Promise((resolve, reject) => {
+  return new Promise(function(resolve, reject) {
     notification.onshow = resolve;
     notification.onerror = reject;
     notification.onclick = () => launch(url);
