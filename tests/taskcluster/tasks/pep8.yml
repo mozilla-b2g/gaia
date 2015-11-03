@@ -21,8 +21,6 @@ task:
       - pylint --output-format=parseable tests/python/gaia-ui-tests/gaiatest
 
   extra:
-    treeherderEnv:
-      - staging
     treeherder:
       symbol: PEP8
       groupSymbol: LINT
