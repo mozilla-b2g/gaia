@@ -21,6 +21,7 @@ WHITELIST = \
  en_us.dict \
  es.dict \
  eu.dict \
+ fa.dict \
  fi.dict \
  ff.dict \
  fr.dict \
