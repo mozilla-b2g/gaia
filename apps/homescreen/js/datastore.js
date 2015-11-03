@@ -207,6 +207,7 @@
         var results = [];
         var txn = this.db.transaction([this.storeName], 'readonly');
         txn.onerror = reject;
+        txn.oncomplete = () => { resolve(results); };
         txn.objectStore(this.storeName).openCursor().onsuccess =
           (event) => {
             var cursor = event.target.result;
@@ -217,7 +218,6 @@
               cursor.continue();
             }
           };
-        txn.oncomplete = () => { resolve(results); };
       });
     }
   };
