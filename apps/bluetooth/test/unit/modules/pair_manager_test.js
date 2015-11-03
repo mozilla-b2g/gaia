@@ -1,5 +1,5 @@
 /* global MockL10n, MockNavigatormozSetMessageHandler, MockNavigatorSettings,
-   MockNavigatormozApps, MockMozBluetooth */
+   MockNavigatormozApps, MockMozBluetooth, MockNotificationHelper */
 
 'use strict';
 
@@ -9,6 +9,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
   Object.defineProperty(originObject, propName, {
@@ -19,6 +20,7 @@ function switchReadOnlyProperty(originObject, propName, targetObj) {
 
 suite('Bluetooth app > PairManager ', function() {
   var realL10n;
+  var realNotificationHelper;
   var realSetMessageHandler;
   var realMozSettings;
   var realMozApps;
@@ -32,6 +34,9 @@ suite('Bluetooth app > PairManager ', function() {
   suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    
+    realNotificationHelper = window.NotificationHelper;
+    window.NotificationHelper = MockNotificationHelper;
 
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
@@ -106,6 +111,7 @@ suite('Bluetooth app > PairManager ', function() {
     MockNavigatorSettings.mTeardown();
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.mozL10n = realL10n;
+    window.NotificationHelper = realNotificationHelper;
   });
 
   suite('init > ', function() {
@@ -357,12 +363,12 @@ suite('Bluetooth app > PairManager ', function() {
     var notificationStub, mockNotification, pairingInfo, titleResult,
       optionsResult;
     setup(function() {
-      var _ = window.navigator.mozL10n.get;
       this.sinon.stub(PairManager, 'showPairview');
       this.sinon.stub(PairManager, 'pairingRequestExpiredNotificationHandler');
       mockNotification = {};
       notificationStub =
-        this.sinon.stub(window, 'Notification').returns(mockNotification);
+        this.sinon.stub(window.NotificationHelper, 'send').returns(
+          Promise.resolve(mockNotification));
 
       PairManager.pendingPairing = null;
       pairingInfo = {
@@ -370,28 +376,29 @@ suite('Bluetooth app > PairManager ', function() {
           deviceName: 'device-01'
         }
       };
-      titleResult = _('bluetooth-pairing-request-now-title');
+      titleResult = 'bluetooth-pairing-request-now-title';
       optionsResult = {
-        body: pairingInfo.evt.deviceName,
+        bodyL10n: { raw: pairingInfo.evt.deviceName },
         icon: 'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png',
         tag: 'pairing-request'
       };
     });
 
     test('pendingPairing, new and fired one notification, set notification ' +
-      'onclick handler ', function() {
-      PairManager.fireNotification(pairingInfo);
-      assert.isDefined(PairManager.pendingPairing.showPairviewCallback);
-      PairManager.pendingPairing.showPairviewCallback();
-      assert.isTrue(PairManager.showPairview.calledWith(pairingInfo));
-      assert.isTrue(notificationStub.calledOnce);
-      assert.isTrue(notificationStub.calledWithNew());
-      assert.equal(notificationStub.firstCall.args[0], titleResult);
-      assert.deepEqual(notificationStub.firstCall.args[1], optionsResult);
-      assert.isDefined(mockNotification.onclick);
-      mockNotification.onclick();
-      assert.isTrue(
-        PairManager.pairingRequestExpiredNotificationHandler.called);
+      'onclick handler ', function(done) {
+      PairManager.fireNotification(pairingInfo).then(() => {
+        assert.isDefined(PairManager.pendingPairing.showPairviewCallback);
+        PairManager.pendingPairing.showPairviewCallback();
+        assert.isTrue(PairManager.showPairview.calledWith(pairingInfo));
+        assert.isTrue(notificationStub.calledOnce);
+        assert.equal(notificationStub.firstCall.args[0], titleResult);
+        assert.deepEqual(notificationStub.firstCall.args[1], optionsResult);
+        assert.isDefined(mockNotification.onclick);
+        mockNotification.onclick();
+        assert.isTrue(
+          PairManager.pairingRequestExpiredNotificationHandler.called);
+        done();
+      });
     });
   });
 
