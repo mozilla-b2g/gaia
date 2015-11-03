@@ -775,6 +775,7 @@
     },
 
     enterEditMode: function(icon) {
+      console.debug('Entering edit mode on ' + icon.name);
       this.updateSelectedIcon(icon);
 
       if (this.editMode || !this.selectedIcon) {
@@ -789,6 +790,7 @@
       if (!this.editMode) {
         return;
       }
+      console.debug('Exiting edit mode');
 
       this.editMode = false;
 
@@ -848,6 +850,8 @@
 
       // Disable scrolling during dragging, and display bottom-bar
       case 'drag-start':
+        console.debug('Drag-start on ' +
+                      e.detail.target.firstElementChild.name);
         this.dragging = true;
         this.shouldEnterEditMode = true;
         document.body.classList.add('dragging');
@@ -856,6 +860,7 @@
         break;
 
       case 'drag-finish':
+        console.debug('Drag-finish');
         this.dragging = false;
         document.body.classList.remove('dragging');
         document.body.classList.remove('autoscroll');
@@ -882,6 +887,8 @@
 
       // Handle app/site editing and dragging to the end of the icon grid.
       case 'drag-end':
+        console.debug('Drag-end, target: ' + (e.detail.dropTarget ?
+          e.detail.dropTarget.firstElementChild.name : 'none'));
         if (e.detail.dropTarget === null &&
             e.detail.clientX >= this.iconsLeft &&
             e.detail.clientX < this.iconsRight) {
@@ -890,6 +897,8 @@
           // the container.
           e.preventDefault();
           var bottom = e.detail.clientY < window.innerHeight / 2;
+          console.debug('Reordering dragged icon to ' +
+                      (bottom ? 'bottom' : 'top'));
           this.icons.reorderChild(e.detail.target,
                                   bottom ? this.icons.firstChild : null,
                                   this.storeAppOrder.bind(this));
@@ -907,6 +916,7 @@
 
       // Save the app grid after rearrangement
       case 'drag-rearrange':
+        console.debug('Drag rearrange');
         this.storeAppOrder();
         break;
 

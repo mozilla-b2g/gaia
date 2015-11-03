@@ -1032,6 +1032,7 @@ suite('Homescreen app', () => {
 
       suite('drag-end', () => {
         var realInnerHeight, realInnerWidth, realIcons, reorderChildSpy;
+        var mockIconContainer = { firstElementChild: 'icon' };
 
         setup(() => {
           realInnerHeight =
@@ -1086,7 +1087,12 @@ suite('Homescreen app', () => {
 
         test('dropping icon on itself does nothing', () => {
           app.handleEvent(new CustomEvent('drag-end', {
-            detail: { target: 'abc', dropTarget: 'abc', clientX: 0, clientY: 0 }
+            detail: {
+              target: 'abc',
+              dropTarget: mockIconContainer,
+              clientX: 0,
+              clientY: 0
+            }
           }));
           assert.isFalse(reorderChildSpy.called);
         });
@@ -1104,9 +1110,6 @@ suite('Homescreen app', () => {
         });
 
         test('dropping icon without moving activates edit mode', () => {
-          var mockIconContainer = {
-            firstElementChild: 'icon'
-          };
           var enterEditModeStub = sinon.stub(app, 'enterEditMode');
           var iconEditableStub = sinon.stub(app, 'iconIsEditable', () => true);
 
