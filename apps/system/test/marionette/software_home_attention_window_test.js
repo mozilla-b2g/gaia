@@ -43,10 +43,12 @@ marionette('Software Home Button - Attention window', function() {
 
     var winHeight = client.findElement('body').size().height;
     client.waitFor(function() {
+      console.log('waiting for attention window');
       var attentionWindow =
         client.helper.waitForElement('.attentionWindow.active');
       var attentionWindowRect = attentionWindow.scriptWith(rect);
 
+      console.log('TESTING', winHeight, attentionWindowRect.height);
       return winHeight >= attentionWindowRect.height;
     });
 
