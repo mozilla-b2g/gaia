@@ -22,7 +22,7 @@ var MockMozL10n = {
         return 'just now';
       }
     }
-    if (key === 'weekStartsOnMonday') {
+    if (key === 'firstDayOfTheWeek') {
       return '0';
     }
     return key;

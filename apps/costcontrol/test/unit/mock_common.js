@@ -89,7 +89,7 @@ var MockCommon = function(config) {
     },
     localizeWeekdaySelector: function _localizeWeekdaySelector(selector) {
       var weekStartsOnMonday =
-        !!parseInt(navigator.mozL10n.get('weekStartsOnMonday'), 10);
+        parseInt(navigator.mozL10n.get('firstDayOfTheWeek'), 10) === 1;
 
       var monday = selector.querySelector('.monday');
       var sunday = selector.querySelector('.sunday');
