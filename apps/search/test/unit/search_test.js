@@ -78,6 +78,7 @@ suite('search/search', function() {
     test('will call provider init method', function() {
       var initCalled;
       this.sinon.spy(window.MetricsHelper.prototype, 'init');
+      this.sinon.spy(navigator, 'mozSetMessageHandler');
 
       Search.providers = [{
         init: function() {
@@ -95,7 +96,8 @@ suite('search/search', function() {
       assert.ok(initCalled);
       Search.providers = [];
       assert.isFalse(Search.suggestionsWrapper.classList.contains('offline'));
-      sinon.assert.calledOnce(window.MetricsHelper.prototype.init);
+      assert.ok(window.MetricsHelper.prototype.init.calledOnce);
+      assert.ok(navigator.mozSetMessageHandler.called);
     });
   });
 
@@ -118,11 +120,9 @@ suite('search/search', function() {
       this.sinon.spy(Search, 'initConnectivityCheck');
       Search.init();
 
-      sinon.assert.calledOnce(Search.initConnectivityCheck);
+      assert.ok(Search.initConnectivityCheck.calledOnce);
       assert.isTrue(Search.searchResults.classList.contains('offline'));
     });
-
-
   });
 
   suite('provider', function() {
@@ -375,6 +375,21 @@ suite('search/search', function() {
       this.sinon.stub(Search, 'expandSearch');
       Search.setInput('foo');
       assert.ok(stub.calledWith({action: 'input', input: 'foo'}));
+    });
+  });
+
+  suite('handleActivityEvents', function() {
+    test('handle search activity', function() {
+      this.sinon.stub(Search, 'submit');
+      Search.handleActivityEvents({
+        source: {
+          name: 'search',
+          data: {keyword: 'mozilla'}
+        }
+      });
+      assert.ok(Search.submit.calledWith({data: {
+        input: 'mozilla'
+      }}));
     });
   });
 
@@ -715,6 +730,5 @@ suite('search/search', function() {
       removeProvider(localProvider);
       removeProvider(remoteProvider);
     });
-
   });
 });
