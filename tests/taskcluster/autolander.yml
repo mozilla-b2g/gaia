@@ -25,6 +25,8 @@ definitions:
 
   eslint:
 
+  pep8:
+
   marionette_js_tests:
     chunks: 30
 
