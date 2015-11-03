@@ -54,7 +54,7 @@
  * associated encryption keys and the list of collections to be synchronized.
  */
 
-(function() {
+(function(exports) {
   const FXA_EVENT = 'mozFxAccountsUnsolChromeEvent';
 
   const SYNC_TASK = 'gaia::system::firefoxsync';
@@ -252,7 +252,12 @@
     _handle_onsyncdisabling: function() {
       this.debug('onsyncdisabling observed');
       this.updateState();
-      Service.request('SyncStateMachine:success');
+
+      // Go back to default settings, so new users won't inherit old users'
+      // preferences.
+      this.restoreDefaultSettings().then(() => {
+        Service.request('SyncStateMachine:success');
+      });
     },
 
     _handle_onsyncenabled: function(event) {
@@ -286,7 +291,7 @@
       this.debug('onsyncenabling observed');
       this.updateState();
 
-      // Because we need to bind this to the event handler, we need to save
+     // Because we need to bind this to the event handler, we need to save
       // a reference to it so we can properly remove it later.
       this.fxaEventHandler = this._handle_fxaEvent.bind(this);
       window.addEventListener(FXA_EVENT, this.fxaEventHandler);
@@ -312,6 +317,11 @@
         return this.trySync.apply(this, args);
       }).then(() => {
         return this.getAccount();
+      }).then(() => {
+        // We save default settings so we can revert user changes to the
+        // default values when the user logs out from Sync. So new users don't
+        // inherit old users' preferences.
+        return this.saveDefaultSettings();
       }).then(() => {
         Service.request('SyncStateMachine:success');
       }).catch(error => {
@@ -715,6 +725,57 @@
           'services.sync.enabled': this.state !== 'disabled'
         }).onerror = reject;
       });
+    },
+
+    saveDefaultSettings() {
+      var saveDefaultSetting = setting => {
+        return new Promise(resolve => {
+          asyncStorage.getItem(setting, value => {
+            if (value !== null) {
+              this.debug('Default setting value already saved', setting);
+              resolve();
+              return;
+            }
+            this.debug('Saving default setting value', setting);
+            asyncStorage.setItem(setting, this._settings[setting], resolve);
+          });
+        });
+      };
+
+      var promises = [];
+      SyncManager.SETTINGS.forEach(setting => {
+        promises.push(saveDefaultSetting(setting));
+      });
+
+      return Promise.all(promises);
+    },
+
+    restoreDefaultSettings() {
+      var revertSetting = setting => {
+        return new Promise((resolve, reject) => {
+          asyncStorage.getItem(setting, value => {
+            // We need to remove the setting from asyncStorage to allow
+            // default setting changes within OTA updates.
+            asyncStorage.removeItem(setting, () => {
+              var settingObject = {};
+              settingObject[setting] = value;
+              var req = navigator.mozSettings.createLock().set(settingObject);
+              req.onerror = error => {
+                console.error(error);
+                reject();
+              };
+              req.onsuccess = resolve;
+            });
+          });
+        });
+      };
+
+      var promises = [];
+      SyncManager.SETTINGS.forEach(setting => {
+        promises.push(revertSetting(setting));
+      });
+
+      return Promise.all(promises);
     }
   }, {
     state: {
@@ -783,4 +844,7 @@
       }
     }
   });
-}());
+
+  // Exported only for testing purposes.
+  exports.SyncManager = SyncManager;
+}(window));
