@@ -312,6 +312,14 @@ var KeypadManager = {
     this._longPress = false;
     this._lastPressedKey = key;
 
+    // If user input number more 50 digits, app shouldn't accept.
+    // The limit only applies while not on a call - there is no
+    // limit while on a call (bug 917630).
+    if (key !== 'delete' && !this._onCall &&
+        (this._phoneNumber.length >= this.kMaxDigits)) {
+      return;
+    }
+
     if (key != 'delete') {
       if (this._keypadSoundIsEnabled) {
         // We do not support long press if not on a call
@@ -379,6 +387,20 @@ var KeypadManager = {
       this._insertAtCaret(key);
     }
 
+    // Per certification requirements abbreviated dialing codes need to be
+    // called immediately after the user enters the '#' key. This covers
+    // retrieving the device's IMEI codes as well as speed dialing.
+    if (key === '#' && !this._onCall) {
+      if (this._phoneNumber === '*#06#') {
+        this.multiSimActionButton.performAction();
+        return;
+      } else if (this._isSpeedDialNumber(this._phoneNumber)) {
+        // Remove the trailing '#' to get the index
+        this._handleSpeedDial(this._phoneNumber.slice(0, -1));
+        return;
+      }
+    }
+
     setTimeout(function(self) {
       self._updatePhoneNumberView('begin', false);
     }, 0, this);
@@ -397,7 +419,6 @@ var KeypadManager = {
 
     if (key !== this._lastPressedKey || key === 'delete') {
       this._stopDtmfTone();
-      this._lastPressedKey = null;
     }
   },
 
@@ -408,9 +429,10 @@ var KeypadManager = {
    * @param {String} key The key over which the tap finished.
    */
   _touchEnd: function kh_touchEnd(key) {
-    if (key !== 'delete' && key === this._lastPressedKey) {
+    this._lastPressedKey = null;
+
+    if (key !== 'delete') {
       this._stopDtmfTone();
-      this._lastPressedKey = null;
     }
 
     if (this._keypadSoundIsEnabled) {
@@ -452,51 +474,14 @@ var KeypadManager = {
       return;
     }
 
-    // Per certification requirements abbreviated dialing codes need to be
-    // called immediately after the user enters the '#' key. This covers
-    // retrieving the device's IMEI codes as well as speed dialing.
-    if (key === '#' && !this._onCall) {
-      if (this._phoneNumber === '*#06#') {
-        this.multiSimActionButton.performAction();
-        event.target.classList.remove('active');
-        return;
-      } else if (this._isSpeedDialNumber(this._phoneNumber)) {
-        var self = this;
-        var index = this._phoneNumber.slice(0, -1); // Remove the trailing '#'
-
-        this.updatePhoneNumber('', 'begin', false);
-        this._getSpeedDialNumber(+index).then(
-        function(number) {
-          self.updatePhoneNumber(number, 'begin', false);
-        }, function(error) {
-          /* Do not display an error message if the user explicitly
-           * cancelled the speed dial operation. */
-          if (error) {
-            ConfirmDialog.show(error, null,  {
-              title: 'noContactsFoundDialogOk',
-              callback: ConfirmDialog.hide
-            });
-          }
-        });
-
-        event.target.classList.remove('active');
-        return;
-      }
-    }
-
-    // If user input number more 50 digits, app shouldn't accept.
-    // The limit only applies while not on a call - there is no
-    // limit while on a call (bug 917630).
-    if (key != 'delete' && this._phoneNumber.length >= this.kMaxDigits &&
-        !this._onCall) {
-      event.target.classList.remove('active');
-      return;
-    }
-
     event.stopPropagation();
 
     switch (event.type) {
       case 'touchstart':
+        if (this._lastPressedKey) {
+          return; // Ignore multi-taps
+        }
+
         event.target.classList.add('active');
         this._touchStart(key);
         break;
@@ -505,6 +490,10 @@ var KeypadManager = {
         break;
       case 'touchend':
       case 'touchcancel':
+        if (key !== this._lastPressedKey) {
+          return; // Ignore multi-taps
+        }
+
         event.target.classList.remove('active');
         this._touchEnd(key);
         break;
@@ -563,6 +552,31 @@ var KeypadManager = {
           return Promise.reject('noContactsWereFound');
         }
       });
+    });
+  },
+
+  /**
+   * Handles a speed dial number, replaces the phone number with the one
+   * at the specified index or displays an error message if none was found.
+   *
+   * @param {Integer} index The index of the speed dial number.
+   */
+  _handleSpeedDial: function(index) {
+    var self = this;
+
+    this.updatePhoneNumber('', 'begin', false);
+    this._getSpeedDialNumber(+index).then(
+    function(number) {
+      self.updatePhoneNumber(number, 'begin', false);
+    }, function(error) {
+      /* Do not display an error message if the user explicitly
+       * cancelled the speed dial operation. */
+      if (error) {
+        ConfirmDialog.show(error, null,  {
+          title: 'noContactsFoundDialogOk',
+          callback: ConfirmDialog.hide
+        });
+      }
     });
   },
 

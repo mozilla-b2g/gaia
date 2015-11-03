@@ -66,43 +66,50 @@ suite('dialer/keypad', function() {
 
   mocksHelperForKeypad.attachTestHelpers();
 
-  // Helpers for testing abbreviated dialing codes
-  var node;
-  var fakeEventStart;
-  var fakeEventEnd;
+  // Dummy node used as event target
+  var dummyNode = document.createElement('div');
 
   /**
-   * Create the mock elements needed to test abbreviated dialing codes.
+   * Simulate a touchstart event
+   *
+   * @param key {String} The target's dataset value, the touched key
    */
-  function setupAbbreviatedDialingCodesMocks() {
-    subject._phoneNumber = '';
-    node = document.createElement('div');
-    fakeEventStart = {
-      target: node,
+  function mockTouchStart(key) {
+    var fakeEvent = {
+      target: dummyNode,
       preventDefault: function() {},
       stopPropagation: function() {},
       type: 'touchstart'
     };
-    fakeEventEnd = {
-      target: node,
+    dummyNode.dataset.value = key;
+    subject.keyHandler(fakeEvent);
+  }
+
+  /**
+   * Simulate a touchend event
+   *
+   * @param key {String} The target's dataset value, the touched key
+   */
+  function mockTouchEnd(key) {
+    var fakeEvent = {
+      target: dummyNode,
       preventDefault: function() {},
       stopPropagation: function() {},
       type: 'touchend'
     };
+    dummyNode.dataset.value = key;
+    subject.keyHandler(fakeEvent);
   }
 
   /**
-   * Send the fake events needed to emulate the typing of an abbreviated
-   * dialing code.
+   * Send the fake events needed to emulate the typing of an umber.
    *
-   * @param {String} number The abbrevited dialing code to type.
+   * @param {String} number The number to type.
    */
-  function typeAbbreviatedDialingCode(number) {
+  function mockTypeNumber(number) {
     for (var i = 0, end = number.length; i < end; i++) {
-      fakeEventStart.target.dataset.value = number.charAt(i);
-      subject.keyHandler(fakeEventStart);
-      fakeEventEnd.target.dataset.value = number.charAt(i);
-      subject.keyHandler(fakeEventEnd);
+      mockTouchStart(number[i]);
+      mockTouchEnd(number[i]);
     }
   }
 
@@ -139,9 +146,12 @@ suite('dialer/keypad', function() {
 
   setup(function() {
     this.sinon.useFakeTimers();
+    dummyNode = document.createElement('div');
+    subject._phoneNumber = '';
   });
 
   teardown(function() {
+    dummyNode = null;
     MockNavigatorMozTelephony.mTeardown();
   });
 
@@ -186,19 +196,13 @@ suite('dialer/keypad', function() {
       var mmi = '*#06#';
       var speedDialNum = '1#';
 
-      setup(function() {
-        setupAbbreviatedDialingCodesMocks();
-      });
-
       test('Properly highlight the last key in an abbreviated dialing code',
       function() {
         for (var i = 0, end = mmi.length; i < end; i++) {
-          fakeEventStart.target.dataset.value = mmi.charAt(i);
-          subject.keyHandler(fakeEventStart);
-          assert.isTrue(node.classList.contains('active'));
-          fakeEventEnd.target.dataset.value = mmi.charAt(i);
-          subject.keyHandler(fakeEventEnd);
-          assert.isFalse(node.classList.contains('active'));
+          mockTouchStart(mmi[i]);
+          assert.isTrue(dummyNode.classList.contains('active'));
+          mockTouchEnd(mmi[i]);
+          assert.isFalse(dummyNode.classList.contains('active'));
         }
       });
 
@@ -210,11 +214,8 @@ suite('dialer/keypad', function() {
          * moving  the cursor to insert the #. In this scenario an abbreviated
          * dialing operation should not be triggered. */
         subject._phoneNumber = '1#1';
-
-        fakeEventStart.target.dataset.value = 'delete';
-        subject.keyHandler(fakeEventStart);
-        fakeEventEnd.target.dataset.value = 'delete';
-        subject.keyHandler(fakeEventEnd);
+        mockTouchStart('delete');
+        mockTouchEnd('delete');
 
         sinon.assert.notCalled(KeypadManager._getSpeedDialNumber);
       });
@@ -222,7 +223,7 @@ suite('dialer/keypad', function() {
       test('Get IMEI via send MMI', function() {
         this.sinon.spy(MockMultiSimActionButtonSingleton, 'performAction');
 
-        typeAbbreviatedDialingCode(mmi);
+        mockTypeNumber(mmi);
 
         sinon.assert.calledOnce(
           MockMultiSimActionButtonSingleton.performAction);
@@ -233,14 +234,24 @@ suite('dialer/keypad', function() {
           return Promise.resolve('123');
         });
 
-        typeAbbreviatedDialingCode(speedDialNum);
+        mockTypeNumber(speedDialNum);
 
         sinon.assert.calledWith(KeypadManager._getSpeedDialNumber, 1);
       });
     });
 
+    test('Multi-tap events are ignored', function() {
+      mockTouchStart('1');
+      assert.equal(subject._phoneNumber, '1');
+      mockTouchStart('2');
+      assert.equal(subject._phoneNumber, '1');
+      mockTouchEnd('2');
+      assert.equal(subject._phoneNumber, '1');
+      mockTouchEnd('1');
+      assert.equal(subject._phoneNumber, '1');
+    });
+
     test('Call button pressed with no calls in Call Log', function() {
-      subject._phoneNumber = '';
       subject.fetchLastCalled();
       assert.equal(subject._phoneNumber, '');
     });
@@ -254,7 +265,6 @@ suite('dialer/keypad', function() {
         status: 'connected'
       };
       CallLogDBManager.add(recentCall, function(result) {
-        subject._phoneNumber = '';
         subject.fetchLastCalled();
         assert.equal(subject._phoneNumber, '');
       });
@@ -266,7 +276,6 @@ suite('dialer/keypad', function() {
         type: 'dialing',
         date: Date.now()
       };
-      subject._phoneNumber = '';
       CallLogDBManager.add(recentCall);
       subject.fetchLastCalled();
       assert.equal(subject._phoneNumber, recentCall.number);
@@ -274,50 +283,18 @@ suite('dialer/keypad', function() {
 
     test('Dialer is limited to 50 digits', function() {
       var digits = '111111111122222222223333333333444444444455555555556';
-      var fakeEvent = {
-        target: {
-          dataset: {
-            value: null
-          },
-          classList: {
-            add: function() {},
-            remove: function() {}
-          }
-        },
-        preventDefault: function() {},
-        stopPropagation: function() {},
-        type: null
-      };
 
-      subject._phoneNumber = '';
-      for (var i = 0, end = digits.length; i < end; i++) {
-        fakeEvent.target.dataset.value = digits.charAt(i);
-        fakeEvent.type = 'touchstart';
-        subject.keyHandler(fakeEvent);
-        fakeEvent.type = 'touchend';
-        subject.keyHandler(fakeEvent);
-      }
+      mockTypeNumber(digits);
+
       assert.equal(subject._phoneNumber, digits.substring(0, 50));
     });
 
     test('Adds active class to keys when pressed', function() {
-      var fakeEvent = {
-        target: document.createElement('div'),
-        preventDefault: function() {},
-        stopPropagation: function() {},
-        type: null
-      };
-      fakeEvent.target.dataset.value = 1;
-
-      subject._phoneNumber = '';
-
-      assert.isFalse(fakeEvent.target.classList.contains('active'));
-      fakeEvent.type = 'touchstart';
-      subject.keyHandler(fakeEvent);
-      assert.isTrue(fakeEvent.target.classList.contains('active'));
-      fakeEvent.type = 'touchend';
-      subject.keyHandler(fakeEvent);
-      assert.isFalse(fakeEvent.target.classList.contains('active'));
+      assert.isFalse(dummyNode.classList.contains('active'));
+      mockTouchStart('1');
+      assert.isTrue(dummyNode.classList.contains('active'));
+      mockTouchEnd('1');
+      assert.isFalse(dummyNode.classList.contains('active'));
     });
 
     test('FontSizeManager is invoked with the right parameters', function() {
@@ -424,8 +401,7 @@ suite('dialer/keypad', function() {
       test('Disable abbreviated dialing codes', function() {
         this.sinon.spy(KeypadManager, '_getSpeedDialNumber');
 
-        setupAbbreviatedDialingCodesMocks();
-        typeAbbreviatedDialingCode('1#');
+        mockTypeNumber('1#');
 
         sinon.assert.notCalled(KeypadManager._getSpeedDialNumber);
       });
@@ -520,29 +496,8 @@ suite('dialer/keypad', function() {
       test('Dialer is not limited to 50 digits while on a call', function() {
         var digits = '11111111112222222222333333333344444444445555555555' +
           '6666666666';
-        var fakeEvent = {
-          target: {
-            dataset: {
-              value: null
-            },
-            classList: {
-              add: function() {},
-              remove: function() {}
-            }
-          },
-          preventDefault: function() {},
-          stopPropagation: function() {},
-          type: null
-        };
 
-        subject._phoneNumber = '';
-        for (var i = 0, end = digits.length; i < end; i++) {
-          fakeEvent.target.dataset.value = digits.charAt(i);
-          fakeEvent.type = 'touchstart';
-          subject.keyHandler(fakeEvent);
-          fakeEvent.type = 'touchend';
-          subject.keyHandler(fakeEvent);
-        }
+        mockTypeNumber(digits);
         assert.equal(subject._phoneNumber, digits);
       });
 
@@ -748,10 +703,6 @@ suite('dialer/keypad', function() {
 
     suite('Speed dial', function() {
       var speedDialNum = '1#';
-
-      setup(function() {
-        subject._phoneNumber = '';
-      });
 
       test(speedDialNum + ' is a speed dial number', function() {
         assert.isTrue(subject._isSpeedDialNumber(speedDialNum));
