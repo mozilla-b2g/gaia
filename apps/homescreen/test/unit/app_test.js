@@ -81,6 +81,16 @@ suite('Homescreen app', () => {
     }
     var icons = document.getElementById('apps');
     icons.freeze = icons.thaw = () => {};
+    icons.getChildOffsetRect = child => {
+      return {
+        top: child.offsetTop,
+        right: child.offsetLeft + child.offsetWidth,
+        bottom: child.offsetTop + child.offsetHeight,
+        left: child.offsetLeft,
+        width: child.offsetWidth,
+        height: child.offsetHeight
+      };
+    };
     app = new App();
   });
 
@@ -1045,6 +1055,8 @@ suite('Homescreen app', () => {
             },
             reorderChild: () => {}
           };
+          app.iconsLeft = 10;
+          app.iconsRight = 490;
 
           reorderChildSpy = sinon.spy(app.icons, 'reorderChild');
         });
@@ -1059,7 +1071,7 @@ suite('Homescreen app', () => {
         test('icon can be dropped at the beginning of the container', () => {
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: 0, clientY: -100 }
+              { target: 'def', dropTarget: null, clientX: 250, clientY: -100 }
           }));
           assert.isTrue(reorderChildSpy.calledWith('def', 'abc'));
         });
@@ -1067,7 +1079,7 @@ suite('Homescreen app', () => {
         test('icon can be dropped at the end of the container', () => {
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: 0, clientY: 600 }
+              { target: 'def', dropTarget: null, clientX: 250, clientY: 600 }
           }));
           assert.isTrue(reorderChildSpy.calledWith('def', null));
         });
@@ -1082,11 +1094,11 @@ suite('Homescreen app', () => {
         test('dropping icon to the side does nothing', () => {
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: -100, clientY: 0 }
+              { target: 'def', dropTarget: null, clientX: 5, clientY: 0 }
           }));
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: 600, clientY: 0 }
+              { target: 'def', dropTarget: null, clientX: 495, clientY: 0 }
           }));
           assert.isFalse(reorderChildSpy.called);
         });
