@@ -4,7 +4,11 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
-var template =
+injectGlobalStyles();
+
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style scoped>
   [hidden] {
     display: none;
@@ -73,18 +77,6 @@ var template =
   <h1 id="heading"></h1>
   <h2 id="subheading"></h2>
 </div>`;
-
-var globalStyles =
-`@keyframes music-scan-progress-spinner {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}`;
-
-injectGlobalStyles();
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 
@@ -165,7 +157,11 @@ proto.hide = function() {
 
 function injectGlobalStyles() {
   var style = document.createElement('style');
-  style.innerHTML = globalStyles;
+  style.innerHTML =
+`@keyframes music-scan-progress-spinner {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}`;
 
   document.head.appendChild(style);
 }
