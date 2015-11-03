@@ -6,6 +6,7 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
 from marionette.marionette_test import parameterized
+from marionette_driver import expected, By, Wait
 
 
 class TestDeleteApp(GaiaTestCase):
@@ -46,9 +47,8 @@ class TestDeleteApp(GaiaTestCase):
         # We can't pass parameters to the setUp(). Bug # to be filed
         self.parameterized_set_up(app_to_delete, install_method)
 
-        self.homescreen.delete_app(self.app_to_delete['url']).tap_confirm()
-        self.homescreen.wait_to_be_displayed()
-        self.apps.switch_to_displayed_app()
+        bottom_bar = self.homescreen.delete_app(self.app_to_delete['url']).tap_confirm()
+        bottom_bar.tap_exit_edit_mode()
         self.homescreen.wait_for_app_icon_not_present(self.app_to_delete['url'])
 
         # Check that the app is no longer available
