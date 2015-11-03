@@ -28,14 +28,6 @@
 }
 
 /**
- * Vertical homescreen panel
- */
-
-#homescreen [data-type="list"] li:first-child {
-  padding-bottom: 1rem;
-}
-
-/**
  * App permissions details panel
  */
 
