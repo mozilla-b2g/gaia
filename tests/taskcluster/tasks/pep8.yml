@@ -11,14 +11,11 @@ task:
     - docker-worker:cache:gaia-misc-caches
 
   payload:
-    env:
-      NODE_MODULES_SRC: npm-cache
     cache:
       gaia-misc-caches: /home/worker/caches/
     command:
       - entrypoint
-      - pip install pylint
-      - pylint --output-format=parseable tests/python/gaia-ui-tests/gaiatest
+      - pip install pylint && pylint --output-format=parseable tests/python/gaia-ui-tests/gaiatest
 
   extra:
     treeherder:
