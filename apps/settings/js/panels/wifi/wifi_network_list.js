@@ -74,10 +74,14 @@ define(function(require) {
 
           // display network list
           if (networkKeys.length) {
-            // sort networks by signal strength
+            // sort networks by name and signal strength
             networkKeys.sort(function(a, b) {
-              return self._networks[b].relSignalStrength -
-                self._networks[a].relSignalStrength;
+              let barDelta =
+                WifiHelper.getSignalLevel(self._networks[b]) -
+                WifiHelper.getSignalLevel(self._networks[a]);
+              // If two networks have the same signal strength,
+              // then sort by name.
+              return (barDelta ? barDelta : a.localeCompare(b));
             });
 
             // add detected networks
@@ -153,7 +157,7 @@ define(function(require) {
 
         var keys = WifiHelper.getSecurity(network);
         var security = (keys && keys.length) ? keys.join(', ') : '';
-        var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+        var sl = WifiHelper.getSignalLevel(network);
 
         if (WifiHelper.isConnected(network)) {
           // online: show status + offer to disconnect

@@ -43,5 +43,8 @@ var MockWifiHelper = {
         self._cb.onerror.push(callback);
       }
     };
+  },
+  getSignalLevel: function(network) {
+    return Math.min(Math.floor(network.relSignalStrength / 20), 4);
   }
 };
