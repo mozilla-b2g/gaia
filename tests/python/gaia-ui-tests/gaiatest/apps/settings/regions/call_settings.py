@@ -47,7 +47,7 @@ class CallSettings(Base):
     _call_barring_page_locator = (By.ID, 'call-cbSettings')
     _call_barring_back_btn_locator = (By.CSS_SELECTOR, '[data-l10n-id = "back"]')
     _call_barring_locator = (By.ID, 'menuItem-callBarring')
-    _call_barring_status_disabled_text_locator = (By.CSS_SELECTOR, '#baoc-desc[data-l10n-id = "disabled"]')
+    _call_barring_status_disabled_locator = (By.CSS_SELECTOR, '#baoc-desc[data-l10n-id = "disabled"]')
     _call_barring_all_switch_locator = (By.ID, 'li-cb-baoc')
     _call_barring_all_cancel_button_locator = (By.ID, 'cb-passcode-cancel-btn')
     _change_passcode_locator = (By.ID, 'li-cb-pswd')
@@ -239,8 +239,8 @@ class CallSettings(Base):
         Wait(self.marionette).until(expected.element_displayed(*self._call_settings_query_locator))
 
     def wait_until_call_barring_info_received(self):
-        Wait(self.marionette, timeout=60).until(
-            expected.element_displayed(*self._call_barring_status_disabled_text_locator))
+        Wait(self.marionette, timeout=120, interval=1).until(
+            expected.element_present(*self._call_barring_status_disabled_locator))
 
     def tap_call_barring_all(self):
         element = self.marionette.find_element(*self._call_barring_all_switch_locator)
