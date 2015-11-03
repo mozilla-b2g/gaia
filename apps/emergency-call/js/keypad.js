@@ -469,9 +469,10 @@ var KeypadManager = {
    * @param {String} key The key over which the tap finished.
    */
   _touchEnd: function kh_touchEnd(key) {
-    if (key !== 'delete' && key === this._lastPressedKey) {
+    this._lastPressedKey = null;
+
+    if (key !== 'delete') {
       this._stopDtmfTone();
-      this._lastPressedKey = null;
     }
 
     if (this._keypadSoundIsEnabled) {
@@ -499,11 +500,6 @@ var KeypadManager = {
 
     var key = event.target.dataset.value;
 
-    // Prevent the delete keys to get the focus.
-    if (key === 'delete') {
-      event.preventDefault();
-    }
-
     // We could receive this event from an element that
     // doesn't have the dataset value. Got the last key
     // pressed and assing this value to continue with the
@@ -516,6 +512,10 @@ var KeypadManager = {
 
     switch (event.type) {
       case 'touchstart':
+        if (this._lastPressedKey) {
+          return; // Ignore multi-taps
+        }
+
         event.target.classList.add('active');
         this._touchStart(key);
         break;
@@ -524,6 +524,10 @@ var KeypadManager = {
         break;
       case 'touchend':
       case 'touchcancel':
+        if (key !== this._lastPressedKey) {
+          return; // Ignore multi-taps
+        }
+
         event.target.classList.remove('active');
         this._touchEnd(key);
         break;
