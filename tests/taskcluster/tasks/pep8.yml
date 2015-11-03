@@ -1,0 +1,29 @@
+task:
+  metadata:
+    name: Gaia PEP8
+    description: PEP8
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
+
+  payload:
+    env:
+      NODE_MODULES_SRC: npm-cache
+    cache:
+      gaia-misc-caches: /home/worker/caches/
+    command:
+      - entrypoint
+      - pip install pylint
+      - pylint --output-format=parseable tests/python/gaia-ui-tests/gaiatest
+
+  extra:
+    treeherderEnv:
+      - staging
+    treeherder:
+      symbol: PEP8
+      groupSymbol: LINT
+      groupName: Linters
