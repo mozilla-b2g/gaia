@@ -199,6 +199,9 @@ var Awesomescreen = {
       );
     }).bind(this));
 
+    // init HistoryStore
+    HistoryStore.init();
+
     //init history list
     this.historyList = new SmartList(this.history, 'LT_SE_HISTORY');
 
