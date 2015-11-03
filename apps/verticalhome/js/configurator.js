@@ -20,7 +20,9 @@
   var singleVariantApps = {};
   var simPresentOnFirstBoot = true;
 
-  var DEFAULT_PIN_APP_CONF_FILE = "js/pin_apps_default.json";
+  const DEFAULT_COLUMNS = 2;
+
+  var DEFAULT_PIN_APP_CONF_FILE = 'js/pin_apps_default.json';
   var pinAppsList = null;
 
   function loadSettingSIMPresent(currentMccMnc) {
@@ -139,15 +141,14 @@
    * Sets up the default columns.
    */
   function setupColumns() {
-    var defaultCols = conf && conf.preferences &&
-                          conf.preferences['grid.cols'] || undefined;
-
-    if (defaultCols) {
-      verticalPreferences.get('grid.cols').then(function(cols) {
-        // Set the number of cols by default in preference's datastore
-        !cols && verticalPreferences.put('grid.cols', defaultCols);
-      });
-    }
+    /**
+     * It is required for correct work of shared component 'gaia_grid_rs'.
+     * This function can be removed after refactoring of 'gaia_grid_rs'
+     */
+    verticalPreferences.get('grid.cols').then(function(cols) {
+      // Set the number of cols by default in preference's datastore
+      !cols && verticalPreferences.put('grid.cols', DEFAULT_COLUMNS);
+    });
   }
 
   function onErrorInitJSON(e) {
@@ -174,7 +175,7 @@
   }
 
   function onErrorPinApps(e) {
-    console.error("Failed Load Pin Apps:" + e);
+    console.error('Failed Load Pin Apps:' + e);
   }
 
   function load() {

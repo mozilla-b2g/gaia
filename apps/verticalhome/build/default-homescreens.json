@@ -22,8 +22,5 @@
       ["apps", "calendar"],
       ["apps", "costcontrol"]
     ]
-  ],
-  "preferences": {
-    "grid.cols": 2
-  }
+  ]
 }
