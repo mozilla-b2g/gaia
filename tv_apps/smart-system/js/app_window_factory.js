@@ -124,6 +124,11 @@
       });
       config.timestamp = detail.timestamp;
 
+      if (!config.manifest.permissions ||
+          !config.manifest.permissions.presentation) {
+        this._sendPresentationDenied(requestId);
+        return;
+      }
 
       return new Promise(function(resolve, reject) {
         var app = AppWindowManager.getApp(config.origin, config.manifestURL);
@@ -152,6 +157,18 @@
           self._launchPresentationApp(config, protocol);
         }
       });
+    },
+
+    _sendPresentationDenied: function awf_sendPresentationDenied(id) {
+      var evt = new CustomEvent('mozPresentationContentEvent', {
+        bubbles: true,
+        cancelable: false,
+        detail: {
+          type: 'presentation-receiver-permission-denied',
+          id: id
+        }
+      });
+      window.dispatchEvent(evt);
     },
 
     _sendPresentationLaunched: function awf_sendPresentationLaunched(app, id) {
