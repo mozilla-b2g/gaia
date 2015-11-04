@@ -154,6 +154,38 @@
       }
     },
 
+    getHeaderDate: function ut_getHeaderDate(time) {
+
+      var formatter;
+      var today = Utils.getDayDate(Date.now());
+      var otherDay = Utils.getDayDate(time);
+      var dayDiff = (today - otherDay) / 86400000;
+      this.date.shared.setTime(+time);
+
+      if (isNaN(dayDiff)) {
+        return document.l10n.formatValue('incorrectDate');
+      }
+
+      if (dayDiff < 0) {
+        // future time
+        formatter = this._getFormatter('full');
+        return Promise.resolve(formatter.format(this.date.shared));
+      }
+
+      if (dayDiff === 0) {
+        return document.l10n.formatValue('today');
+      } else if (dayDiff === 1) {
+        return document.l10n.formatValue('yesterday');
+      } else if (dayDiff < 6) {
+        // day
+        formatter = this._getFormatter('day');
+        return Promise.resolve(formatter.format(this.date.shared));
+      } else {
+        formatter = this._getFormatter('full');
+        return Promise.resolve(formatter.format(this.date.shared));
+      }
+    },
+
     // We will apply createObjectURL for details.photoURL if contact image exist
     // Please remember to revoke the photoURL after utilizing it.
     getContactDetails:

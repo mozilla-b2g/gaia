@@ -56,32 +56,32 @@
   display: none;
 }
 
-.threadlist-item-picture.has-picture {
+.threadlist-item-picture[data-show-contact=true] {
   display: block;
 }
 
-.threadlist-item .default-picture > span[data-type=img],
-.threadlist-item .group-picture > span[data-type=img] {
+.threadlist-item [data-contact-photo=default] > span[data-type=img],
+.threadlist-item [data-contact-photo=group] > span[data-type=img] {
   /* Please keep this image in sync with what is used in js/inbox.js */
   background: url('images/default_contact_image.png') top left; /* BiDi proof: CSS sprites */
 }
 
-.threadlist-item:nth-child(even) .default-picture > span[data-type=img],
-.threadlist-item:nth-child(even) .group-picture > span[data-type=img] {
+.threadlist-item:nth-child(even) [data-contact-photo=default] > span[data-type=img],
+.threadlist-item:nth-child(even) [data-contact-photo=group] > span[data-type=img] {
   background-position: bottom right; /* BiDi proof: CSS sprites */
 }
 
-.threadlist-item:nth-child(3n+1) .default-picture > span[data-type=img],
-.threadlist-item:nth-child(3n+1) .group-picture > span[data-type=img] {
+.threadlist-item:nth-child(3n+1) [data-contact-photo=default] > span[data-type=img],
+.threadlist-item:nth-child(3n+1) [data-contact-photo=group] > span[data-type=img] {
   background-position: top right; /* BiDi proof: CSS sprites */
 }
 
-.threadlist-item:nth-child(4n+4) .default-picture > span[data-type=img],
-.threadlist-item:nth-child(4n+4) .group-picture > span[data-type=img] {
+.threadlist-item:nth-child(4n+4) [data-contact-photo=default] > span[data-type=img],
+.threadlist-item:nth-child(4n+4) [data-contact-photo=group] > span[data-type=img] {
   background-position: center center;
 }
 
-.threadlist-item-picture.group-picture > span[data-type=img] {
+.threadlist-item-picture[data-contact-photo=group] > span[data-type=img] {
   display: flex;
 
   align-items: center;

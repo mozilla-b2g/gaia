@@ -21,6 +21,17 @@ sww_repo="gaia-components/serviceworkerware#master"
 sww_dist="$bower_path/serviceworkerware/dist/sww.js"
 sww_path="lib/sww.js"
 
+fast_list_repo="gaia-components/gaia-fast-list#master"
+fast_list_libs=(
+  "$bower_path/dom-scheduler/lib/dom-scheduler.js"
+  "$bower_path/fast-list/fast-list.js"
+  "$bower_path/gaia-fast-list/gaia-fast-list.js"
+  "$bower_path/gaia-component/gaia-component.js"
+  "$bower_path/poplar/poplar.js"
+  "$bower_path/gaia-sub-header/gaia-sub-header.js"
+)
+fast_list_destination="lib/gaia-fast-list"
+
 ###############################################################################
 # Main script
 
@@ -29,7 +40,7 @@ if [ ! -x "`which bower`" -o ! -x "`which browserify`" ] ; then
   exit 1
 fi
 
-bower install $bridge_repo $sww_repo
+bower install $bridge_repo $sww_repo $fast_list_repo
 
 # Bridge lib preparing.
 [ -d "$bridge_destination" ] || mkdir "$bridge_destination"
@@ -44,3 +55,9 @@ cp -r "$bridge_plugins" "$bridge_destination"
 
 # ServiceWorkerWare lib preparing.
 cp "$sww_dist" "$sww_path"
+
+# Copy all required fast list libs.
+for lib in "${fast_list_libs[@]}"
+do
+  cp "$lib" "$fast_list_destination"
+done

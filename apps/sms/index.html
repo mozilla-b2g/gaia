@@ -80,6 +80,13 @@
     <script defer src="shared/js/fb/fb_data_reader.js"></script>
     <script defer src="shared/js/fb/fb_reader_utils.js"></script>
     <script defer src="shared/js/event_dispatcher.js"></script>
+    <!-- Load gaia fast list libs -->
+    <script defer src="lib/gaia-fast-list/poplar.js"></script>
+    <script defer src="lib/gaia-fast-list/gaia-component.js"></script>
+    <script defer src="lib/gaia-fast-list/gaia-sub-header.js"></script>
+    <script defer src="lib/gaia-fast-list/dom-scheduler.js"></script>
+    <script defer src="lib/gaia-fast-list/fast-list.js"></script>
+    <script defer src="lib/gaia-fast-list/gaia-fast-list.js"></script>
     <script defer src="views/shared/js/utils.js"></script>
     <script defer src="views/shared/js/navigation.js"></script>
     <script defer src="views/shared/js/inter_instance_event_dispatcher.js"></script>
@@ -148,6 +155,33 @@
           <a id="threads-settings-button" data-icon="settings" data-l10n-id="settingsButton"></a>
         </gaia-header>
         <article id="threads-container" class="view-body edit-container" data-type="list">
+          <gaia-fast-list id="threads-list" top="0" bottom="0">
+            <!--<template header>
+              <gaia-sub-header data-time="${daySection}">${section}</gaia-sub-header>
+            </template>-->
+            <template item>
+              <li class="${classList}" data-last-message-type="${type}" data-time="${timestamp}" data-thread-id="${id}" data-draftId="${draftId}" id="thread-${id}">
+                <label class="pack-checkbox negative">
+                  <input type="checkbox" value="${id}" data-mode="${mode}">
+                  <span></span>
+                </label>
+                <a href="${hash}">
+                  <aside role="note" data-l10n-id="${iconLabel}" class="icon icon-unread icon-draft"></aside>
+                  <aside class="pack-end threadlist-item-picture"
+                         role="img" aria-label="Contact photo"
+                         data-l10n-id="contact-photo" data-show-contact="${showContact}" data-contact-photo="${photoUrl}">
+                    <span data-type="img" style="${bgImgStyle}">${titleLength}</span>
+                  </aside>
+                  <p class="threadlist-item-title"><bdi class="ellipsis-dir-fix">${title}</bdi></p>
+                  <p class="summary">
+                    <time>${timeTextContent}</time>
+                    <span class="mms-icon">${mmsTextContent}</span>
+                    <span dir="auto" class="body-text ellipsis-dir-fix">${bodyHTML}</span>
+                  </p>
+                </a>
+              </li>
+            </template>
+          </gaia-fast-list>
         </article>
 
         <div id="threads-no-messages">

@@ -16,7 +16,7 @@ form[role="dialog"][data-type="edit"] > menu {
 /* Add a margin at the end of the last thread or message node to avoid overlay
  * with the edit mode menu */
 .edit .edit-container {
-  padding-bottom: 7rem;
+  padding-bottom: 5.5rem;
 }
 
 #main-wrapper.edit [data-type="list"] li a {
