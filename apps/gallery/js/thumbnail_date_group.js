@@ -1,7 +1,8 @@
 'use strict';
 /* global
   MediaUtils,
-  ThumbnailItem
+  ThumbnailItem,
+  DateFormatter
 */
 
 /**
@@ -130,15 +131,9 @@ ThumbnailDateGroup.prototype.removeItem = function(thumbnail) {
   this.container.removeChild(thumbnail.htmlNode);
 };
 
-ThumbnailDateGroup.formatter = new Intl.DateTimeFormat(navigator.languages, {
-  month: 'long',
-  year: 'numeric',
-});
-
 ThumbnailDateGroup.prototype.localize = function() {
   var date = new Date(this.date);
-
-  this.header.textContent = ThumbnailDateGroup.formatter.format(date);
+  this.header.textContent = DateFormatter.format(date);
 
   // Localize each of the group's thumbnails.
   this.thumbnails.forEach(function(thumbnail) { thumbnail.localize(); });

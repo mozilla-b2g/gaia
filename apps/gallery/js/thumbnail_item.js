@@ -1,4 +1,5 @@
 'use strict';
+/* global TimeFormatter */
 
 /**
  * ThumbnailItem is view object for a single gallery item data. It renders file
@@ -36,21 +37,12 @@ function ThumbnailItem(fileData) {
   this.localize();
 }
 
-ThumbnailItem.formatter = new Intl.DateTimeFormat(navigator.languages, {
-  hour: 'numeric',
-  minute: 'numeric',
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-});
-
 ThumbnailItem.prototype.localize = function() {
   var date = new Date(this.data.date);
-
   var descId = !this.data.metadata.video ?
     'imageDated' : 'videoDated';
 
   navigator.mozL10n.setAttributes(this.imgNode, descId, {
-    timeStamp: ThumbnailItem.formatter.format(date)
+    timeStamp: TimeFormatter.format(date)
   });
 };
