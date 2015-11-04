@@ -75,7 +75,8 @@ class TestSearchMarketplaceAndInstallAddon(GaiaTestCase):
 
         self.assertTrue(addon_details.is_enabled)
         self.assertEquals(addon_details.description, "Adds a 'M' to the status bar")
-        self.assertEquals(self.apps.is_app_installed(addon_details.affected_apps)['name'], 'System')
+        # Disabled because of bug 1220742
+        # self.assertEquals(self.apps.is_app_installed(addon_details.affected_apps)['name'], 'System')
 
         status_bar_addon = StatusBarAddon(self.marionette)
         self.assertEquals(status_bar_addon.instances, 1)
