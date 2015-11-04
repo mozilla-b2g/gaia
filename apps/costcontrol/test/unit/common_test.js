@@ -301,7 +301,7 @@ suite('Cost Control Common >', function() {
     });
 
     test('localizeWeekdaySelector - week starts on sunday', function() {
-      l10nStub.withArgs('weekStartsOnMonday').returns('0');
+      l10nStub.withArgs('firstDayOfTheWeek').returns('0');
       Common.localizeWeekdaySelector(domForTesting);
       var monday = domForTesting.querySelector('.monday');
       var weekdayList = monday.parentNode;
@@ -309,7 +309,7 @@ suite('Cost Control Common >', function() {
     });
 
     test('localizeWeekdaySelector - week starts on monday', function() {
-      l10nStub.withArgs('weekStartsOnMonday').returns('1');
+      l10nStub.withArgs('firstDayOfTheWeek').returns('1');
       Common.localizeWeekdaySelector(domForTesting);
       var monday = domForTesting.querySelector('.monday');
       var weekdayList = monday.parentNode;
