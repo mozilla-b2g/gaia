@@ -59,15 +59,17 @@ class SearchPanel(Base):
 
         Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
         self.keyboard.tap_enter()
-        if 'http' in urllib.quote(url, safe=':/?=&~').lower():
-            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name in urllib.quote(url, safe=':/?=&~'))
 
         if is_private:
             from gaiatest.apps.search.app import PrivateWindow
-            return PrivateWindow(self.marionette)
+            private_browser = PrivateWindow(self.marionette)
+            private_browser.wait_for_page_to_load()
+            return private_browser
         else:
             from gaiatest.apps.search.app import Browser
-            return Browser(self.marionette)
+            browser = Browser(self.marionette)
+            browser.wait_for_page_to_load()
+            return browser
 
     def wait_for_search_results_to_load(self, minimum_expected_results=1):
         Wait(self.marionette).until(lambda m: len(m.find_elements(
