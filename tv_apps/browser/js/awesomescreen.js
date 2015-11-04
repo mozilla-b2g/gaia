@@ -144,115 +144,17 @@ var Awesomescreen = {
     // init BookmarkStore
     BookmarkStore.init();
 
-    //init bookmark list
+    // init bookmark list
     this.bookmarkList = new SmartList(this.bookmark, 'bookmarks');
-
-    this.bookmark.addEventListener('open',
-      this.showAwesomescreen.bind(this)
+    this.handleSmartListEvent(
+      this.bookmark, this.bookmarkList, BookmarkStore, this.DEFAULT_BOOKMARK
     );
 
-    this.bookmark.addEventListener('close', (function(e) {
-      if(!this.isDisplayedTop()) {
-        this.hideAwesomescreen();
-      }
-    }).bind(this));
-
-    this.bookmark.addEventListener('itemUpdated', (function(e){
-      this.dialogHidden();
-    }).bind(this));
-
-    this.bookmark.addEventListener('itemRemoved', (function(e){
-      this.dialogHidden();
-    }).bind(this));
-
-    this.bookmark.addEventListener('showSubMenu', (function(e){
-      var option = this.DEFAULT_BOOKMARK;
-//IFDEF_FIREFOX_SYNC
-      option = e.detail.readOnly === 'true' ? this.FIREFOX_SYNC_BOOKMARK
-                                            : this.DEFAULT_BOOKMARK;
-//ENDIF_FIREFOX_SYNC
-      this.optionDialogOpen(option);
-    }).bind(this));
-
-    this.bookmark.addEventListener('displayWebsite', (function(e){
-      var uri = e.detail;
-      Browser.navigate(uri);
-      Browser.switchCursorMode(true);
-    }).bind(this));
-
-    this.bookmark.addEventListener('loadDataByRange', (function(e){
-      var detail = e.detail;
-      BookmarkStore.getByRange(
-        detail.startAt,
-        detail.number,
-        detail.folderId,
-        detail.callback
-      );
-    }).bind(this));
-
-    this.bookmark.addEventListener('loadDataByIndex', (function(e){
-      var detail = e.detail;
-      BookmarkStore.getByIndex(
-        detail.dataIndex,
-        detail.folderId,
-        this.bookmarkList.addItem.bind(this.bookmarkList, detail.listIndex)
-      );
-    }).bind(this));
-
-    //init history list
+    // init history list
     this.historyList = new SmartList(this.history, 'LT_SE_HISTORY');
-
-    this.history.addEventListener('open',
-      this.showAwesomescreen.bind(this)
+    this.handleSmartListEvent(
+      this.history, this.historyList, HistoryStore, this.DEFAULT_HISTORY
     );
-
-    this.history.addEventListener('close', (function(e) {
-      if(!this.isDisplayedTop()) {
-        this.hideAwesomescreen();
-      }
-    }).bind(this));
-
-    this.history.addEventListener('itemUpdated', (function(e){
-      this.dialogHidden();
-    }).bind(this));
-
-    this.history.addEventListener('itemRemoved', (function(e){
-      this.dialogHidden();
-    }).bind(this));
-
-    this.history.addEventListener('showSubMenu', (function(e){
-      var option = this.DEFAULT_HISTORY;
-//IFDEF_FIREFOX_SYNC
-      option = e.detail.readOnly === 'true' ? this.FIREFOX_SYNC_HISTORY
-                                            : this.DEFAULT_HISTORY;
-//ENDIF_FIREFOX_SYNC
-      this.optionDialogOpen(option);
-    }).bind(this));
-
-    this.history.addEventListener('displayWebsite', (function(e){
-      var uri = e.detail;
-      Browser.navigate(uri);
-      Browser.switchCursorMode(true);
-    }).bind(this));
-
-    this.history.addEventListener('loadDataByRange', (function(e){
-      var detail = e.detail;
-      HistoryStore.getByRange(
-        detail.startAt,
-        detail.number,
-        detail.folderId,
-        detail.callback
-      );
-    }).bind(this));
-
-    this.history.addEventListener('loadDataByIndex', (function(e){
-      var detail = e.detail;
-      HistoryStore.getByIndex(
-        detail.dataIndex,
-        detail.folderId,
-        this.historyList.addItem.bind(this.historyList, detail.listIndex)
-      );
-    }).bind(this));
 
     //And setting various button events
     this.setEventListener();
@@ -3166,5 +3068,81 @@ var Awesomescreen = {
     if(Awesomescreen.pointerImg.style.display != 'none') {
       Awesomescreen.pointerImg.style.display = 'none';
     }
+  },
+
+  /**
+   * Handle smartList event binding
+   * @param {Node} el - Dom element of smartList.
+   * @param {Object} list  - SmartList object.
+   * @param {Object} store - Store object.
+   * @param {String} list  - SmartList display type, now support.
+   */
+  handleSmartListEvent:
+    function awesomescreen_handleSmartListEvent(el, list, store, type) {
+
+    el.addEventListener('open',
+      this.showAwesomescreen.bind(this)
+    );
+
+    el.addEventListener('close', (function(e) {
+      if(!this.isDisplayedTop()) {
+        this.hideAwesomescreen();
+      }
+    }).bind(this));
+
+    el.addEventListener('itemUpdated', (function(e){
+      this.dialogHidden();
+    }).bind(this));
+
+    el.addEventListener('itemRemoved', (function(e){
+      this.dialogHidden();
+    }).bind(this));
+
+    if (type === this.DEFAULT_BOOKMARK) {
+      el.addEventListener('showSubMenu', (function(e){
+        var option = type;
+
+//IFDEF_FIREFOX_SYNC
+        option =
+          e.detail.readOnly === 'true' ? this.FIREFOX_SYNC_BOOKMARK : type;
+//ENDIF_FIREFOX_SYNC
+
+        this.optionDialogOpen(option);
+      }).bind(this));
+    } else if (type === this.DEFAULT_HISTORY) {
+      el.addEventListener('showSubMenu', (function(e){
+        var option = type;
+//IFDEF_FIREFOX_SYNC
+        option =
+          e.detail.readOnly === 'true' ? this.FIREFOX_SYNC_HISTORY : type;
+//ENDIF_FIREFOX_SYNC
+        this.optionDialogOpen(option);
+      }).bind(this));
+    }
+
+    el.addEventListener('displayWebsite', (function(e){
+      var uri = e.detail;
+      Browser.navigate(uri);
+      Browser.switchCursorMode(true);
+    }).bind(this));
+
+    el.addEventListener('loadDataByRange', (function(e){
+      var detail = e.detail;
+      store.getByRange(
+        detail.startAt,
+        detail.number,
+        detail.folderId,
+        detail.callback
+      );
+    }).bind(this));
+
+    el.addEventListener('loadDataByIndex', (function(e){
+      var detail = e.detail;
+      store.getByIndex(
+        detail.dataIndex,
+        detail.folderId,
+        list.addItem.bind(list, detail.listIndex)
+      );
+    }).bind(this));
   }
 };
