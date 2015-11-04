@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ###############################################################################
 
@@ -11,10 +11,18 @@
 bower_path="bower_components"
 
 bridge_repo="gaia-components/bridge#master"
-bridge_plugins="$bower_path/bridge/src/plugins"
+
+bridge_source="$bower_path/bridge"
+bridge_plugins="$bridge_source/src/plugins"
+bridge_libs=(
+  "bridge.js"
+  "bridge.min.js"
+  "service.js"
+  "service.min.js"
+  "client.js"
+  "client.min.js"
+)
 bridge_destination="lib/bridge"
-bridge_index="$bower_path/bridge/bridge.js"
-bridge_index_destination="$bridge_destination/bridge.js"
 
 sww_repo="gaia-components/serviceworkerware#master"
 sww_dist="$bower_path/serviceworkerware/dist/sww.js"
@@ -30,9 +38,15 @@ fi
 
 bower install $bridge_repo $sww_repo
 
-# Threads lib preparing.
+# Bridge lib preparing.
 [ -d "$bridge_destination" ] || mkdir "$bridge_destination"
-cp "$bridge_index" "$bridge_index_destination" 
+
+# Copy all required Bridge libs.
+for lib in "${bridge_libs[@]}"
+do
+  cp "$bridge_source/$lib" "$bridge_destination/$lib"
+done
+
 cp -r "$bridge_plugins" "$bridge_destination"
 
 # ServiceWorkerWare lib preparing.
