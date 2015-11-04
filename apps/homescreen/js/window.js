@@ -29,6 +29,7 @@
     this.panels.addEventListener('scroll', this);
     window.addEventListener('hashchange', this, true);
     window.addEventListener('localized', this);
+    document.addEventListener('visibilitychange', this);
 
     // Update the panel indicator
     this.updatePanelIndicator();
@@ -154,6 +155,15 @@
 
       case 'localized':
         this.updatePanelIndicator();
+        return;
+
+      // Exit edit mode if the user switches away from the home screen (e.g.
+      // by locking the phone).
+      case 'visibilitychange':
+        if (document.hidden) {
+          this.apps.exitEditMode();
+          this.pages.exitEditMode();
+        }
         return;
       }
     }
