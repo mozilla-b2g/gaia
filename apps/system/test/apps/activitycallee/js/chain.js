@@ -13,3 +13,16 @@ document.getElementById('launchwindowactivity')
       activityOutput.setAttribute('value', activityRequest.result);
     };
   });
+
+
+document.getElementById('launchwindowactivitynoreturnvaluewithpost')
+  .addEventListener('click', function() {
+    var activityRequest = new MozActivity({
+      name: 'test-noreturnvalue-with-postresult-activity'
+    });
+    activityRequest.onsuccess = function onSuccess() {
+      activityOutput.setAttribute('value', activityRequest.result);
+    };
+  });
+
+
