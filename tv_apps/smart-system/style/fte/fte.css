@@ -1,0 +1,57 @@
+.ctxmenu-fte {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: RGBA(0, 0, 0, 0.7);
+  opacity: 1;
+  transition: opacity 0.5s linear;
+}
+
+.ctxmenu-fte.finish {
+  opacity: 0;
+}
+
+.fte-page {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  font-size: 3.6rem;
+  color: white;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.fte-panel {
+  position: absolute;
+  bottom: 12rem;
+  text-align: center;
+  width: 100%;
+}
+
+.fte-content {
+  text-align: center;
+}
+
+.fte-content > smart-button {
+  position: relative;
+  margin-top: 6.4rem;
+  transition: none;
+}
+
+.fte-content > smart-button > .icon {
+  background-image: url(/style/fte/ic_pin.png);
+}
+
+.fte-button[data-behavior="finish"] {
+  width: 30.4rem;
+  height: 8rem;
+}
+
+.fte-description {
+  margin-top: 11.9rem;
+  padding: 0 25%;
+}
