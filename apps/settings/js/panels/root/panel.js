@@ -132,7 +132,6 @@ define(function(require) {
         }
       },
       onHide: function rp_onHide() {
-        airplaneModeItem.enabled = false;
         themesItem.enabled = false;
         addonsItem.enabled = false;
 
@@ -141,6 +140,9 @@ define(function(require) {
             Object.keys(items).forEach((key) => items[key].enabled = false);
           });
         }
+      },
+      onUninit: function rp_onUninit() {
+        airplaneModeItem.enabled = false;
       }
     });
   };
