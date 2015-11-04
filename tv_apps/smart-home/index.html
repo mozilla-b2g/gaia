@@ -22,6 +22,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/navigation.css">
     <link rel="stylesheet" type="text/css" href="style/info-bar.css">
     <link rel="stylesheet" type="text/css" href="style/search-bar.css">
+    <link rel="stylesheet" type="text/css" href="style/fte.css">
 
     <!-- default cards for first time launch -->
     <link rel="resource" type="application/json" href="shared/resources/default-cards.json">
@@ -48,6 +49,7 @@
     <script defer src="shared/js/smart-screen/card_manager.js"></script>
     <script defer src="shared/js/smart-screen/animations.js"></script>
     <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
+    <script defer src="shared/js/smart-screen/f_t_e_wizard.js"></script>
 
     <!-- building blocks -->
     <script defer src="bower_components/smart-button/script.js"></script>
@@ -163,6 +165,20 @@
         <div data-icon="search" class="search-input">
           <span data-l10n-id="search-default-text">search</span>
         </div>
+      </section>
+
+      <section id="fte">
+        <section class="fte-page">
+          <div class="fte-content-image">
+            <div id="fte-tvdeck-detail" data-l10n-id="fte-tvdeck-detail"></div>
+            <div id="fte-appdeck-detail" data-l10n-id="fte-appdeck-detail"></div>
+            <div id="fte-devicedeck-detail" data-l10n-id="fte-devicedeck-detail"></div>
+            <div id="fte-browser-detail" data-l10n-id="fte-browser-detail"></div>
+          </div>
+          <section class="fte-panel">
+            <smart-button data-behavior="finish" type="rounded-corner-text" class="fte-button primary" data-l10n-id="ok"></smart-button>
+          </section>
+        </section>
       </section>
     </article>
   </body>

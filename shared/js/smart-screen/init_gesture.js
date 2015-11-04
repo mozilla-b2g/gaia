@@ -9,21 +9,21 @@
       eventObj.key = key;
       eventObj.keyCode = keyCode;
       eventObj.which = keyCode;
-      window.dispatchEvent(eventObj);
+      document.activeElement.dispatchEvent(eventObj);
 
       eventObj = document.createEvent('Events');
       eventObj.initEvent('keypress', true, true);
       eventObj.key = key;
       eventObj.keyCode = keyCode;
       eventObj.which = keyCode;
-      window.dispatchEvent(eventObj);
+      document.activeElement.dispatchEvent(eventObj);
 
       eventObj = document.createEvent('Events');
       eventObj.initEvent('keyup', true, true);
       eventObj.key = key;
       eventObj.keyCode = keyCode;
       eventObj.which = keyCode;
-      window.dispatchEvent(eventObj);
+      document.activeElement.dispatchEvent(eventObj);
     }
 
     new GestureDetector(document.body).startDetecting();
