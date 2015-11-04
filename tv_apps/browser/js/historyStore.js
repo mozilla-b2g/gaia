@@ -19,7 +19,11 @@
 
     lastDataIndex: null,
 
-    currentFolder : null,
+    currentFolder: null,
+
+    isHandlingCache: false,
+
+    cacheEventQueue: [],
 
     reset: function (cb) {
       return new Promise(resolve => {
@@ -28,6 +32,8 @@
         this.cacheIndexEndAt = 0;
         this.lastDataIndex = null;
         this.currentFolder = null;
+        this.isHandlingCache = false;
+        this.cacheEventQueue = [];
 //IFNDEF_FIREFOX_SYNC
         resolve();
 //ENDIF_FIREFOX_SYNC
@@ -67,91 +73,130 @@
       }
     },
 
-    getByIndex: function (index, folderId, cb) {
-      var self = this;
-      function getCache(cacheIndex){
-        var promise = new Promise(resolve => {
-          var history = null;
-//IFNDEF_FIREFOX_SYNC
-          if(self.cacheIndexStartAt <= index <= self.cacheIndexEndAt) {
-            resolve(null);
-          } else {
-            history = self.cache.get(cacheIndex);
-            resolve(history);
-          }
+//IFDEF_FIREFOX_SYNC
+    traverseNextCache: function(cacheIndex) {
+      return new Promise(resolve => {
+        var traverse = () =>{
+          var start = this.cache.get(this.cacheIndexStartAt).timestamp;
+          SyncBrowserDB.getHistoryTimestamp(start, 'next', false,
+            timestamp => {
+              if(timestamp) {
+                this.updateCacheByNextHistory(timestamp).then(() => {
+                  var history = this.cache.get(cacheIndex);
+                  if(!history) {
+                    traverse();
+                  } else {
+                    resolve(history);
+                  }
+                });
+              } else {
+                resolve(null);
+              }
+            }
+          );
+        };
+
+        traverse();
+      });
+    },
 //ENDIF_FIREFOX_SYNC
 
 //IFDEF_FIREFOX_SYNC
-          function traverseNextCache(cacheIndex) {
-            var start = self.cache.get(self.cacheIndexStartAt).timestamp;
-            SyncBrowserDB.getHistoryTimestamp(start, 'next', false,
-              timestamp => {
-                if(timestamp) {
-                  self.updateCacheByNextHistory(timestamp).then(() => {
-                    history = self.cache.get(cacheIndex);
-                    if(!history) {
-                      traverseNextCache(cacheIndex);
-                    } else {
-                      resolve(history);
-                    }
-                  });
-                } else {
-                  resolve(null);
-                }
+    traversePreviousCache: function(cacheIndex) {
+      return new Promise(resolve => {
+        var traverse = () => {
+          var start = this.cache.get(this.cacheIndexEndAt).timestamp;
+          SyncBrowserDB.getHistoryTimestamp(start, 'prev', false,
+            timestamp => {
+              if(timestamp) {
+                this.updateCacheByPreviousHistory(timestamp).then(() => {
+                  var history = this.cache.get(cacheIndex);
+                  if(!history) {
+                    traverse();
+                  } else {
+                    resolve(history);
+                  }
+                });
+              } else {
+                this.lastDataIndex = this.cacheIndexEndAt;
+                resolve(null);
               }
-            );
-          }
-
-          function traversePreviousCache(cacheIndex) {
-            var start = self.cache.get(self.cacheIndexEndAt).timestamp;
-            SyncBrowserDB.getHistoryTimestamp(start, 'prev', false,
-              timestamp => {
-                if(timestamp) {
-                  self.updateCacheByPreviousHistory(timestamp).then(() => {
-                    history = self.cache.get(cacheIndex);
-                    if(!history) {
-                      traversePreviousCache(cacheIndex);
-                    } else {
-                      resolve(history);
-                    }
-                  });
-                } else {
-                  self.lastDataIndex = self.cacheIndexEndAt;
-                  resolve(null);
-                }
-              }
-            );
-          }
-
-          if(cacheIndex < self.cacheIndexStartAt) {
-            traverseNextCache(cacheIndex);
-          } else if (cacheIndex > self.cacheIndexEndAt) {
-            if(self.lastDataIndex && cacheIndex > self.lastDataIndex) {
-              resolve(history);
-            } else {
-              traversePreviousCache(cacheIndex);
             }
-          } else {
-            history = self.cache.get(cacheIndex);
-            resolve(history);
-          }
+          );
+        };
+        traverse();
+      });
+    },
 //ENDIF_FIREFOX_SYNC
-        });
-        return promise;
-      }
 
-      if(folderId !== this.currentFolder) {
-        this.currentFolder = folderId;
-        this.fetchCache().then(() => {
-          getCache(index).then(history => {
-            cb(history);
+    getCache: function(cacheIndex) {
+      return new Promise(resolve => {
+        var history = null;
+
+//IFNDEF_FIREFOX_SYNC
+        if(this.cacheIndexStartAt <= cacheIndex <= this.cacheIndexEndAt) {
+          resolve(null);
+        } else {
+          history = this.cache.get(cacheIndex);
+          resolve(history);
+        }
+//ENDIF_FIREFOX_SYNC
+
+//IFDEF_FIREFOX_SYNC
+        if(cacheIndex < this.cacheIndexStartAt) {
+          this.traverseNextCache(cacheIndex).then(history => {
+            resolve(history);
           });
-        });
-      } else {
-        getCache(index).then(history => {
-          cb(history);
+        } else if (cacheIndex > this.cacheIndexEndAt) {
+          if(this.lastDataIndex && cacheIndex > this.lastDataIndex) {
+            resolve(history);
+          } else {
+            this.traversePreviousCache(cacheIndex).then(history => {
+              resolve(history);
+            });
+          }
+        } else {
+          history = this.cache.get(cacheIndex);
+          resolve(history);
+        }
+//ENDIF_FIREFOX_SYNC
+
+      });
+    },
+
+    handleCacheEvent: function() {
+      if(!this.isHandlingCache) {
+        this.isHandlingCache = true;
+        var handler = this.cacheEventQueue.shift();
+        handler().then(() => {
+          this.isHandlingCache = false;
+          if(this.cacheEventQueue.length > 0) {
+            this.handleCacheEvent();
+          }
         });
       }
+    },
+
+    getByIndex: function (index, folderId, cb) {
+      var handler = () => new Promise(resolve => {
+        if(folderId !== this.currentFolder) {
+          this.currentFolder = folderId;
+          this.fetchCache().then(() => {
+            this.getCache(index).then(history => {
+              cb(history);
+              resolve();
+            });
+          });
+        } else {
+          this.getCache(index).then(history => {
+            cb(history);
+            resolve();
+          });
+        }
+      });
+
+      this.cacheEventQueue.push(handler);
+      this.handleCacheEvent();
     },
 
     fetchCache: function () {
