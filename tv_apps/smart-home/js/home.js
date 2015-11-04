@@ -1,7 +1,8 @@
 'use strict';
 /* global Application, FilterManager, CardManager, Clock, Deck, Edit, Folder,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
-          SharedUtils, SpatialNavigator, URL, XScrollable, Animations, Utils */
+          SharedUtils, SpatialNavigator, URL, XScrollable, Animations,
+          Utils, FTEWizard */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -50,6 +51,7 @@
     settingsButton: document.getElementById('settings-button'),
     searchButton: document.getElementById('search-button'),
     timeElem: document.getElementById('time'),
+    fteElem: document.getElementById('fte'),
 
 
     init: function() {
@@ -89,11 +91,12 @@
 
         that.spatialNavigator = new SpatialNavigator(collection);
         that.spatialNavigator.straightOnly = true;
+
         that.keyNavigatorAdapter = new KeyNavigationAdapter();
         that.keyNavigatorAdapter.init();
         that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
-        // All behaviors which no need to have multple events while holding the
-        // key should use keyup.
+        // All behaviors which no need to have multple events while holding
+        // the key should use keyup.
         that.keyNavigatorAdapter.on('enter-keyup', that.onEnter.bind(that));
 
         that.cardListElem.addEventListener('transitionend',
@@ -163,8 +166,14 @@
                         that.onCardRemoved.bind(that, that.folderScrollable));
           }
         });
-
-        that.spatialNavigator.focus(that.cardScrollable);
+        that._fteWizard = new FTEWizard('homeFTE');
+        that._fteWizard.init({
+          container: that.fteElem,
+          onfinish: () => {
+            that.spatialNavigator.focus(that.cardScrollable);
+            that.isNavigable = true;
+          }
+        });
       });
     },
 
@@ -188,9 +197,12 @@
         })]).then(function() {
           // Catch focus back unless there is a pin activity since callback of
           // pinning would catch the focus for us.
-          if (!that.messageHandler.resumeActivity()) {
+          if (that._fteWizard.running) {
+            that._fteWizard.focus();
+          } else if (!that.messageHandler.resumeActivity()) {
             that.spatialNavigator.focus();
           }
+
           that.isNavigable = true;
           that.skipBubble = null;
           that.skipFolderBubble = null;
