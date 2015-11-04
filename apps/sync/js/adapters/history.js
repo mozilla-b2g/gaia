@@ -115,6 +115,13 @@ var HistoryHelper = (() => {
       throw new Error('Inconsistent records on FxSync ID',
         localRecord, remoteRecord);
     }
+    // We remember if a record had already been created locally before we got
+    // remote data for that URL, so that we know not to remove it even when the
+    // remote data is deleted. This applies only to readonly sync, and will be
+    // removed when sync becomes read-write.
+    if (localRecord.createdLocally === undefined) {
+      localRecord.createdLocally = true;
+    }
 
     localRecord.visits = localRecord.visits || [];
     // If a localRecord is without any visit records or with older visit
@@ -156,6 +163,10 @@ var HistoryHelper = (() => {
           var newPlace = mergeRecordsToDataStore(existedPlace, place);
           return placesStore.put(newPlace, id, revisionId);
         }
+        // Setting createdLocally to false will cause the record to be deleted
+        // again if it's deleted remotely. This applies only to readonly sync,
+        // and will be removed when sync becomes read-write.
+        place.createdLocally = false;
         return placesStore.add(place, id, revisionId);
       }).then(() => {
         return setDataStoreId(place.fxsyncId, id, userid);
@@ -184,7 +195,16 @@ var HistoryHelper = (() => {
 
   function deleteByDataStoreId(id) {
     return _ensureStore().then(store => {
-      return store.remove(id);
+      var revisionId = store.revisionId;
+      return store.get(id).then(record => {
+        // Do not delete records that were originally created locally, even if
+        // they are deleted remotely. This applies only for readonly sync, and
+        // will be removed in the future when we switch to two-way sync.
+        if (record.createdLocally) {
+          return Promise.resolve();
+        }
+        return store.remove(id, revisionId);
+      });
     });
   }
 

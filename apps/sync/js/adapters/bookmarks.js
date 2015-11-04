@@ -112,6 +112,11 @@ var BookmarksHelper = (() => {
     localRecord.name = remoteRecord.name;
     if (!localRecord.fxsyncRecords) {
       localRecord.fxsyncRecords = {};
+      // We remember if a record had already been created locally before we got
+      // remote data for that URL, so that we know not to remove it even when
+      // the remote data is deleted. This applies only to readonly sync, and
+      // will be removed when sync becomes read-write.
+      localRecord.createdLocally = true;
     }
     localRecord.fxsyncRecords[fxsyncId] = remoteRecord.fxsyncRecords[fxsyncId];
     return localRecord;
@@ -136,6 +141,10 @@ var BookmarksHelper = (() => {
               fxsyncId);
           return store.put(newBookmark, id, revisionId);
         }
+        // Setting createdLocally to false will cause the record to be deleted
+        // again if it's deleted remotely. This applies only to readonly sync,
+        // and will be removed when sync becomes read-write.
+        remoteRecord.createdLocally = false;
         return store.add(remoteRecord, id, revisionId);
       }).then(() => {
         return setDataStoreId(fxsyncId, id, userid);
@@ -177,7 +186,10 @@ var BookmarksHelper = (() => {
           var isEmpty = Object.keys(localRecord.fxsyncRecords).every(value => {
             return localRecord.fxsyncRecords[value].deleted;
           });
-          if (isEmpty && localRecord.syncNeeded) {
+          // Do not delete records that were originally created locally, even if
+          // they are deleted remotely. This applies only for readonly sync, and
+          // will be removed in the future when we switch to two-way sync.
+          if (isEmpty && !localRecord.createdLocally) {
             return store.remove(url, revisionId);
           } else {
             return store.put(localRecord, url, revisionId);
@@ -405,7 +417,6 @@ DataAdapters.bookmarks = {
         type: payload.type === 'bookmark' ? 'url' : 'others',
         iconable: false,
         icon: '',
-        syncNeeded: true,
         fxsyncRecords: fxsyncRecords,
         fxsyncId: payload.id
       });

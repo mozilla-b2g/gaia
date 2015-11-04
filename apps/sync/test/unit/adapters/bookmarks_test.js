@@ -58,7 +58,7 @@ suite('sync/adapters/bookmarks >', () => {
       'type',
       'iconable',
       'icon',
-      'syncNeeded',
+      'createdLocally',
       'fxsyncRecords'
     ];
     if (payload.type !== 'separator') {
@@ -505,7 +505,7 @@ suite('sync/adapters/bookmarks >', () => {
           type: 'url',
           iconable: false,
           icon: '',
-          syncNeeded: true,
+          createdLocally: false,
           fxsyncRecords: {
             UNIQUE_ID_1: {
               id: 'UNIQUE_ID_1',
@@ -598,7 +598,7 @@ suite('sync/adapters/bookmarks >', () => {
           type: 'url',
           iconable: false,
           icon: '',
-          syncNeeded: true,
+          createdLocally: false,
           fxsyncRecords: {
             UNIQUE_ID_1: {
               id: 'UNIQUE_ID_1',
@@ -819,7 +819,7 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  test('BookmarksHelper - merge two records', done => {
+  test('BookmarksHelper - merge remote record into local record', done => {
     var bookmark1 = {
       url: 'http://www.mozilla.org/en-US/',
       name: '',
@@ -841,6 +841,7 @@ suite('sync/adapters/bookmarks >', () => {
       url: 'http://www.mozilla.org/en-US/',
       name: 'Mozilla',
       type: 'url',
+      createdLocally: true,
       fxsyncRecords: {
         'XXXXX_ID_XXXXX': {}
       }
@@ -877,6 +878,7 @@ suite('sync/adapters/bookmarks >', () => {
       url: 'http://www.mozilla.org/en-US/',
       name: '',
       type: 'url',
+      createdLocally: false,
       fxsyncRecords: {
         'XXXXX_ID_XXXXX_A': {
           id: 'XXXXX_ID_XXXXX_A'
@@ -901,6 +903,7 @@ suite('sync/adapters/bookmarks >', () => {
       url: 'http://www.mozilla.org/en-US/',
       name: 'Mozilla',
       type: 'url',
+      createdLocally: false,
       fxsyncRecords: {
         'XXXXX_ID_XXXXX_A': {
           id: 'XXXXX_ID_XXXXX_A'

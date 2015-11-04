@@ -436,7 +436,7 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - empty visits array record', done => {
+  test('update - empty visits array record (not created locally)', done => {
     var historyAdapter = DataAdapters.history;
     var i = 1;
     testCollectionData.unshift({
@@ -449,12 +449,44 @@ suite('sync/adapters/history >', () => {
         visits: []
       }
     });
+    MockDatastore._records = {
+      'http://example1.com/': {}
+    };
     historyAdapter.update(kintoCollection,
         { readonly: true, userid: 'foo' }).then((result) => {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], 110);
       assert.equal(dataStoreRemoveSpy.callCount, 1);
       assert.equal(dataStoreRemoveSpy.args[0][0], 'http://example1.com/');
+      return Promise.resolve();
+    }).then(done, reason => {
+      assert.ok(false, reason);
+    });
+  });
+
+  test('update - empty visits array record (created locally)', done => {
+    var historyAdapter = DataAdapters.history;
+    var i = 1;
+    testCollectionData.unshift({
+      id: 'UNIQUE_ID_' + i,
+      last_modified: 100 + i * 10,
+      payload: {
+        id: 'UNIQUE_ID_' + i,
+        histUri: 'http://example' + i + '.com/',
+        title: 'Example ' + i + ' Title',
+        visits: []
+      }
+    });
+    MockDatastore._records = {
+      'http://example1.com/': {
+        createdLocally: true
+      }
+    };
+    historyAdapter.update(kintoCollection,
+        { readonly: true, userid: 'foo' }).then((result) => {
+      assert.equal(result, false);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], 110);
+      assert.equal(dataStoreRemoveSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       assert.ok(false, reason);
@@ -513,7 +545,41 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('HistoryHelper - merge two records', done => {
+  test('HistoryHelper - merge two remote records', done => {
+    var place1 = {
+      url: 'http://www.mozilla.org/en-US/',
+      title: '',
+      fxsyncId: '',
+      createdLocally: false,
+      visits: [ 1501000000000, 1502000000000 ]
+    };
+
+    var place2 = {
+      url: 'http://www.mozilla.org/en-US/',
+      title: 'Mozilla',
+      fxsyncId: 'XXXXX_ID_XXXXX',
+      visits: [ 1502000000000, 1503000000000 ]
+    };
+
+    var result = HistoryHelper.mergeRecordsToDataStore(place1, place2);
+    var expectedPlace = {
+      url: 'http://www.mozilla.org/en-US/',
+      title: 'Mozilla',
+      fxsyncId: 'XXXXX_ID_XXXXX',
+      createdLocally: false,
+      visits: [1503000000000, 1502000000000, 1501000000000]
+    };
+
+    assert.equal(result.title, expectedPlace.title);
+    assert.equal(result.url, expectedPlace.url);
+    assert.equal(result.visits.length, expectedPlace.visits.length);
+    for(var i = 0; i < result.visits.length; i++){
+      assert.equal(result.visits[i], expectedPlace.visits[i]);
+    }
+    done();
+  });
+
+  test('HistoryHelper - merge remote record into local record', done => {
     var place1 = {
       url: 'http://www.mozilla.org/en-US/',
       title: '',
@@ -533,6 +599,7 @@ suite('sync/adapters/history >', () => {
       url: 'http://www.mozilla.org/en-US/',
       title: 'Mozilla',
       fxsyncId: 'XXXXX_ID_XXXXX',
+      createdLocally: true,
       visits: [1503000000000, 1502000000000, 1501000000000]
     };
 
