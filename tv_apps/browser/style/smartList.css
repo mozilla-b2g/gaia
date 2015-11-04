@@ -199,3 +199,21 @@
   margin: 0 auto;
   background: transparent linear-gradient(to bottom, transparent, rgb(64, 65, 65)) repeat scroll 0% 0%;
 }
+
+.smart-list-pointer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: none;
+  width: 6.4rem;
+  height: 6.4rem;
+  z-index: 550;
+  background: url('./images/img_cursor_arrow2x.png') no-repeat center;
+  background-size: cover;
+  transform: translate(0, 0);
+  transition: transform  0.42s cubic-bezier(0.25, 0, 0, 1.0);
+}
+
+.smart-list-pointer.show {
+  display: block;
+}
