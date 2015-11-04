@@ -2086,8 +2086,8 @@
         for (i = 0; i < SPECIAL_USE_BOX_FLAGS.length; i++) {
             type = SPECIAL_USE_BOX_FLAGS[i];
             if (SPECIAL_USE_BOXES[type].indexOf(name) >= 0) {
-                mailbox.flags = [].concat(mailbox.flags || []).concat(type);
                 mailbox.specialUse = type;
+                mailbox.specialUseFlag = type;
                 return type;
             }
         }
