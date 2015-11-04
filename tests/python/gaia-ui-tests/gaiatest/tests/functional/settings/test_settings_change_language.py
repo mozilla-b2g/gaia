@@ -10,17 +10,20 @@ from gaiatest.apps.settings.app import Settings
 
 class TestChangeLanguage(GaiaTestCase):
 
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        self.data_layer.set_setting('devtools.pseudolocalization.enabled', True)
+
     def test_change_language_settings(self):
         lang_name = self.marionette.execute_script("""
-            var  = window.wrappedJSObject.navigator.mozL10n.;
-            return ['fr-x-psaccent'].translate('Packaged Accented');
+            var qps = window.wrappedJSObject.navigator.mozL10n.qps;
+            return qps['fr-x-psaccent'].translate('Runtime Accented');
         """)
         header = self.marionette.execute_script("""
-            var  = window.wrappedJSObject.navigator.mozL10n.;
-            return ['fr-x-psaccent'].translate('Settings');
+            var qps = window.wrappedJSObject.navigator.mozL10n.qps;
+            return qps['fr-x-psaccent'].translate('Settings');
         """)
 
-        self.data_layer.set_setting('devtools.pseudolocalization.enabled', True)
         settings = Settings(self.marionette)
         settings.launch()
 
