@@ -21,7 +21,7 @@
   // Bug 1135256: Having a listener in ThumbnailList prevents them from
   // being garbage collected since ready() holds a strong reference, so
   // we have a singleton listener here.
-  navigator.mozL10n.ready(thumbnails.list.localize.bind(thumbnails.list));
+  //navigator.mozL10n.ready(thumbnails.list.localize.bind(thumbnails.list));
 
   // How many thumbnails are visible on a page.
   // Batch sizes are based on this.

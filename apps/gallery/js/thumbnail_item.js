@@ -1,4 +1,5 @@
 'use strict';
+/* global IntlHelper */
 
 /**
  * ThumbnailItem is view object for a single gallery item data. It renders file
@@ -34,15 +35,8 @@ function ThumbnailItem(fileData) {
   this.htmlNode.appendChild(this.imgNode);
 
   this.localize();
+  IntlHelper.observe('time-stamp', this.localize.bind(this));
 }
-
-ThumbnailItem.formatter = new Intl.DateTimeFormat(navigator.languages, {
-  hour: 'numeric',
-  minute: 'numeric',
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-});
 
 ThumbnailItem.prototype.localize = function() {
   var date = new Date(this.data.date);
@@ -50,7 +44,8 @@ ThumbnailItem.prototype.localize = function() {
   var descId = !this.data.metadata.video ?
     'imageDated' : 'videoDated';
 
+  var formatter = IntlHelper.get('time-stamp');
   navigator.mozL10n.setAttributes(this.imgNode, descId, {
-    timeStamp: ThumbnailItem.formatter.format(date)
+    timeStamp: formatter.format(date)
   });
 };
