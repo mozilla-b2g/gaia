@@ -958,6 +958,7 @@ Camera.prototype.startRecording = function(options) {
 
 Camera.prototype.startedRecording = function() {
   debug('started recording');
+  this.activeTracks = 2;
   this.startVideoTimer();
   this.set('recording', 'started');
 };
@@ -991,8 +992,16 @@ Camera.prototype.stopRecording = function() {
   }
 
   this.set('recording', 'stopping');
-  this.busy();
+  this.busy('stopRecording');
   this.mozCamera.stopRecording();
+};
+
+Camera.prototype.trackCompleted = function() {
+  --this.activeTracks;
+  if (!this.activeTracks) {
+    this.stopVideoTimer();
+    this.set('recording', 'saving');
+  }
 };
 
 Camera.prototype.stoppedRecording = function(recorded) {
@@ -1116,6 +1125,8 @@ Camera.prototype.onRecorderStateChange = function(e) {
     this.emit('filesizelimitreached');
   } else if(msg === 'Started') {
     this.startedRecording();
+  } else if(msg === 'TrackCompleted') {
+    this.trackCompleted();
   } else if(msg === 'Stopped') {
     // The last event to come in is always Stopped; if an asynchronous
     // error happened (i.e. couldn't create the poster), we need to
@@ -1276,6 +1287,7 @@ Camera.prototype.startVideoTimer = function() {
  * @private
  */
 Camera.prototype.stopVideoTimer = function() {
+  if (!this.videoTimer) { return; }
   clearInterval(this.videoTimer);
   this.videoTimer = null;
   this.updateVideoElapsed();

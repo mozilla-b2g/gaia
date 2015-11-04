@@ -430,6 +430,7 @@ suite('lib/camera/camera', function() {
       sinon.stub(this.camera, 'stoppedRecording');
       sinon.stub(this.camera, 'onStopRecordingError');
       sinon.stub(this.camera, 'stopRecording');
+      sinon.stub(this.camera, 'trackCompleted');
     });
 
     test('Should call `startedRecording`', function() {
@@ -462,6 +463,11 @@ suite('lib/camera/camera', function() {
       this.camera.onRecorderStateChange({newState: 'FileSizeLimitReached'});
       sinon.assert.calledWith(this.camera.emit, 'filesizelimitreached');
     });
+
+    test('Should call `trackCompleted`', function() {
+      this.camera.onRecorderStateChange({newState: 'TrackCompleted'});
+      sinon.assert.called(this.camera.trackCompleted);
+    });
   });
 
   suite('Camera#startedRecording()', function() {
@@ -469,6 +475,30 @@ suite('lib/camera/camera', function() {
       sinon.stub(this.camera, 'startVideoTimer');
       this.camera.startedRecording();
       sinon.assert.called(this.camera.startVideoTimer);
+      assert.ok(this.camera.activeTracks === 2);
+    });
+  });
+
+  suite('Camera#trackCompleted()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'set');
+      sinon.stub(this.camera, 'stopVideoTimer');
+    });
+
+    test('Should stop video timer if all tracks complete', function() {
+      this.camera.activeTracks = 2;
+      this.camera.trackCompleted();
+      sinon.assert.notCalled(this.camera.stopVideoTimer);
+      sinon.assert.notCalled(this.camera.set);
+      assert.ok(this.camera.activeTracks === 1);
+    });
+
+    test('Should stop video timer if all tracks complete', function() {
+      this.camera.activeTracks = 1;
+      this.camera.trackCompleted();
+      sinon.assert.called(this.camera.stopVideoTimer);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'saving');
+      assert.ok(this.camera.activeTracks === 0);
     });
   });
 
