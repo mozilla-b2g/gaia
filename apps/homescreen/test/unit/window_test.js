@@ -289,5 +289,29 @@ suite('AppWindow', () => {
         exitEditModeStub.restore();
       });
     });
+
+    suite('visibilitychange', () => {
+      var appsExitEditModeStub, pagesExitEditModeStub;
+      setup(() => {
+        appsExitEditModeStub = sinon.stub(appWindow.apps, 'exitEditMode');
+        pagesExitEditModeStub = sinon.stub(appWindow.pages, 'exitEditMode');
+        Object.defineProperty(document, 'hidden', {
+          value: true,
+          configurable: true
+        });
+      });
+
+      teardown(() => {
+        appsExitEditModeStub.restore();
+        pagesExitEditModeStub.restore();
+        delete document.hidden;
+      });
+
+      test('should exit edit mode', () => {
+        appWindow.handleEvent(new CustomEvent('visibilitychange'));
+        assert.isTrue(appsExitEditModeStub.called);
+        assert.isTrue(pagesExitEditModeStub.called);
+      });
+    });
   });
 });
