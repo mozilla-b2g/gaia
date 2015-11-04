@@ -21,7 +21,8 @@
   },
   "permissions": {
     "homescreen-webapps-manage": {},
-    "moz-extremely-unstable-and-will-change-webcomponents": {}
+    "moz-extremely-unstable-and-will-change-webcomponents": {},
+    "systemXHR": {}
   },
   "default_locale": "en-US",
   "locales": {
