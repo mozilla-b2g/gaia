@@ -21,6 +21,8 @@ var mocksForInputLayouts = new MocksHelper([
 suite('InputLayouts', function() {
   var inputLayouts;
   var realMozSettings;
+  var realMozInputMethod;
+  var setSupportsSwitchingTypesStub;
 
   var appLayouts = [{
     layoutId: 'en',
@@ -56,6 +58,18 @@ suite('InputLayouts', function() {
       'password': 'password',
       'text2': 'textG'
     });
+
+    realMozInputMethod = navigator.mozInputMethod;
+    setSupportsSwitchingTypesStub = this.sinon.stub();
+    navigator.mozInputMethod = {
+      mgmt: {
+        setSupportsSwitchingTypes: setSupportsSwitchingTypesStub
+      }
+    };
+  });
+
+  teardown(function() {
+    navigator.mozInputMethod = realMozInputMethod;
   });
 
   test('start() calls _getSettings', function() {
@@ -146,7 +160,8 @@ suite('InputLayouts', function() {
     MockKeyboardHelper.fallbackLayouts = oldFallbackLayouts;
   });
 
-  test('setSupportsSwitchingTypes', function() {
+  test('setSupportsSwitchingTypes (w/ more than one layout enabled)',
+  function() {
     inputLayouts.layouts = {
       'text': ['en', 'fr', 'zh-hans'],
       'password': ['en', 'fr'],
@@ -159,22 +174,35 @@ suite('InputLayouts', function() {
       'password': ['password']
     };
 
-    var realMozInputMethod = navigator.mozInputMethod;
-    var setSupportsSwitchingTypesStub = this.sinon.stub();
-    navigator.mozInputMethod = {
-      mgmt: {
-        setSupportsSwitchingTypes: setSupportsSwitchingTypesStub
-      }
-    };
-
     inputLayouts._setSupportsSwitchingTypes();
 
     assert.isTrue(setSupportsSwitchingTypesStub
       .calledWith(['text', 'textarea', 'password']));
 
     inputLayouts._groupToTypeTable = oldGroupToTypeTable;
-    navigator.mozInputMethod = realMozInputMethod;
   });
+
+  test('setSupportsSwitchingTypes (w/ only one layout enabled)', function() {
+    inputLayouts.layouts = {
+      'text': ['en'],
+      'password': ['en'],
+      'number': []
+    };
+
+    var oldGroupToTypeTable = inputLayouts._groupToTypeTable;
+    inputLayouts._groupToTypeTable = {
+      'text': ['text', 'textarea'],
+      'password': ['password']
+    };
+
+    inputLayouts._setSupportsSwitchingTypes();
+
+    assert.isTrue(setSupportsSwitchingTypesStub
+      .calledWith([]));
+
+    inputLayouts._groupToTypeTable = oldGroupToTypeTable;
+  });
+
 
   test('generateToGroupMapping', function() {
     inputLayouts.layouts = {
