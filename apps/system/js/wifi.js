@@ -49,10 +49,12 @@
 
     start: function() {
       if (!window.navigator.mozSettings) {
+        console.error('Wifi: No mozSettings!');
         return;
       }
 
       if (!window.navigator.mozWifiManager) {
+        console.error('Wifi: No mozWifiManager!');
         return;
       }
 

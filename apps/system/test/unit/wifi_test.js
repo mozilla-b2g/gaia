@@ -157,6 +157,7 @@ suite('WiFi > ', function() {
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozPower = realMozPower;
     navigator.mozWifiManager = realWifiManager;
+    navigator.battery = realBattery;
   });
 
   test('Should lazy load icon', function(done) {
@@ -523,8 +524,6 @@ suite('WiFi > ', function() {
       MockMozSetMessageHandler_listeners.alarm({ data: 'wifi-off' });
 
       assert.isFalse(Wifi.sleep.calledOnce);
-
-      navigator.battery = realBattery;
     });
   });
 
@@ -547,8 +546,6 @@ suite('WiFi > ', function() {
       fakeClock.tick(1000);
       assert.equal(Wifi.wifiEnabled, true);
       assert.equal(Wifi.wifiDisabledByWakelock, true);
-
-      navigator.battery = realBattery;
     });
 
     test('Test wifi should be turned on', function() {
@@ -579,8 +576,6 @@ suite('WiFi > ', function() {
 
       assert.equal(Wifi.wifiDisabledByWakelock, false);
 
-      navigator.battery = realBattery;
-
       Wifi.wifiEnabled = true;
       stubWifiWakeLockManager.isHeld = true;
       Wifi.wifiDisabledByWakelock = false;
@@ -604,8 +599,6 @@ suite('WiFi > ', function() {
       // Expect wifi stay enabled and enter power saving mode.
       assert.equal(Wifi.wifiEnabled, false);
       assert.equal(Wifi.wifiDisabledByWakelock, false);
-
-      navigator.battery = realBattery;
 
       Wifi.wifiEnabled = false;
       stubWifiWakeLockManager.isHeld = false;
@@ -653,8 +646,6 @@ suite('WiFi > ', function() {
       fakeClock.tick(110);
       assert.equal(MockLock.locks[0]['wifi.enabled'], false);
       assert.equal(MockLock.locks[1]['wifi.disabled_by_wakelock'], true);
-
-      navigator.battery = realBattery;
 
       Wifi.wifiEnabled = false;
       Wifi.wifiWakeLocked = true;
