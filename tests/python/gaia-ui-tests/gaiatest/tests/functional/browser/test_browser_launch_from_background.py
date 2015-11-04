@@ -6,7 +6,6 @@ from gaiatest import GaiaTestCase
 from marionette_driver import By, Wait
 
 from gaiatest.apps.search.app import Search
-from gaiatest.apps.search.regions.browser import Browser
 from gaiatest.apps.system.regions.cards_view import CardsView
 
 
