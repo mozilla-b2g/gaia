@@ -6,12 +6,24 @@
 
 body[role="application"] section[role="dialog"].banner {
   top: auto;
-  height: 8rem;
-  padding: 0;
+  height: 16rem;
+  background: none;
+  box-shadow: none;
   text-align: center;
+  border: none;
+  width: auto;
+  margin: 0;
 }
 
-body[role="application"] section[role="dialog"].banner:after {
+body[role="application"] section[role="dialog"].banner div {
+  height: 7rem;
+  padding: 2rem 4.4rem;
+  border-radius: 5.5rem;
+  background: RGBA(0, 0, 0, 0.7);
+  display: inline-block;
+}
+
+body[role="application"] section[role="dialog"].banner div:after {
   content: "";
   display: inline-block;
   vertical-align: middle;
@@ -19,17 +31,17 @@ body[role="application"] section[role="dialog"].banner:after {
   height: 100%;
 }
 
-body[role="application"] section[role="dialog"].banner p {
+body[role="application"] section[role="dialog"].banner div p {
   display: inline-block;
   vertical-align: middle;
   white-space: normal;
-  font-size: 1.6rem;
-  line-height: 1.4em;
-  max-width: 75%;
+  font-size: 2.8rem;
+  font-weight: 200;
+  line-height: 7rem;
   margin: 0;
 }
 
-body[role="application"] section[role="dialog"].banner p strong {
+body[role="application"] section[role="dialog"].banner div p strong {
   text-transform: uppercase;
   color: #0995b0;
   font-weight: normal;

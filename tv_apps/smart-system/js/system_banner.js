@@ -47,7 +47,7 @@
         this._banner.setAttribute('role', 'dialog');
         this._banner.dataset.zIndexLevel = 'system-notification-banner';
         this._banner.dataset.button = 'false';
-        this._banner.innerHTML = '<p></p><button></button>';
+        this._banner.innerHTML = '<div><p></p><button></button></div>';
         document.getElementById('screen').appendChild(this._banner);
       }
 
@@ -66,7 +66,7 @@
     show: function(message, buttonParams) {
       var banner = this.banner;
       navigator.mozL10n.setAttributes(
-        banner.firstElementChild,
+        banner.firstElementChild.firstElementChild,
         message.id,
         message.args
       );
