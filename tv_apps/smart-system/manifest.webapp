@@ -34,6 +34,7 @@
     "input-manage":{},
     "systemXHR":{},
     "feature-detection": {},
+    "before-after-keyboard-event": {},
     "moz-extremely-unstable-and-will-change-webcomponents":{},
     "presentation-device-manage": {},
     "moz-firefox-accounts": {}
