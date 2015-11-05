@@ -1,6 +1,5 @@
 {
   "name": "fast-list",
-  "version": "0.1.2",
   "homepage": "https://github.com/gaia-components/fast-list",
   "authors": [
     "Etienne Segonzac <etienne@segonzac.info>",
@@ -24,6 +23,6 @@
     "tests"
   ],
   "dependencies": {
-    "dom-scheduler": "etiennesegonzac/dom-scheduler"
+    "dom-scheduler": "etiennesegonzac/dom-scheduler#~1.0.1"
   }
 }
