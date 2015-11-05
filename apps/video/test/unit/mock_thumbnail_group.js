@@ -17,11 +17,14 @@ var MockThumbnailGroup = function(item) {
     counter--;
   }
 
+  function localize() {}
+
   MockThumbnailGroup._GroupMap[MockThumbnailGroup._GroupID] = {
     // api
     addItem: addItem,
     getCount: function() {return counter;},
     removeItem: removeItem,
+    localize: localize,
     // properties.
     groupID: MockThumbnailGroup._GroupID,
     htmlNode: dummyNode
@@ -44,4 +47,3 @@ MockThumbnailGroup.reset = function() {
   MockThumbnailGroup._GroupMap = {};
   delete MockThumbnailGroup._GroupID;
 };
-
