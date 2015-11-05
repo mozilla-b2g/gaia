@@ -23,6 +23,22 @@
   const LIST_ITEM_HEIGHT = 12;
 
   /**
+   * pointer animation duration, unit is ms
+   * @type {Number}
+   */
+  const POINTER_ANIMATION_DURATION = 420;
+
+  /**
+   * 1rem equals to 10px
+   * @type {Number}
+   */
+  const PER_REM = 10;
+
+  const LIST_DIRECTION_UP = -1;
+
+  const LIST_DIRECTION_DOWN = 1;
+
+  /**
    * SmartList constructor
    * @param {Node} el - Target HTML element of SmartList.
    * @param {String} l10nTitle - Smart list title string.
@@ -31,6 +47,8 @@
     this.el = el;
 
     this.listEl = null;
+
+    this.listPointerEl = null;
 
     this.l10nTitle = l10nTitle;
 
@@ -88,6 +106,8 @@
      */
     this.listItemMap = {};
 
+    this.isAnimation = false;
+
     this.init();
   }
 
@@ -104,6 +124,7 @@
      *    <div class="smart-list-wrap">
      *      <ul class="smart-list-view"></ul>
      *      <div class="smart-list-mask"></div>
+     *      <div class="smart-list-pointer"></div>
      *    </div>
      *  </div>
      */
@@ -112,7 +133,8 @@
           title = document.createElement('h2'),
           listWrap = document.createElement('div'),
           listView = document.createElement('ul'),
-          listMask = document.createElement('div');
+          listMask = document.createElement('div'),
+          listPointer = document.createElement('div');
 
       container.classList.add('smart-list-container');
       title.classList.add('smart-list-title');
@@ -120,15 +142,18 @@
       listWrap.classList.add('smart-list-wrap');
       listView.classList.add('smart-list-view');
       listMask.classList.add('smart-list-mask');
+      listPointer.classList.add('smart-list-pointer');
 
       container.appendChild(title);
       container.appendChild(listWrap);
       listWrap.appendChild(listView);
       listWrap.appendChild(listMask);
+      listWrap.appendChild(listPointer);
 
       this.el.classList.add('smart-list');
       this.el.appendChild(container);
       this.listEl = listView;
+      this.listPointerEl = listPointer;
     },
 
     /**
@@ -147,6 +172,7 @@
           this.el.classList.add('show');
           focusEl = this.listItemMap[0];
           if(focusEl) {
+            this.pointerItem(focusEl);
             this.focusItem(focusEl);
           }
           this.el.dispatchEvent(event);
@@ -167,6 +193,9 @@
       this.navHistory = [];
       this.el.classList.remove('show');
       this.el.dispatchEvent(event);
+      if(this.isPointerDisplay()) {
+        this.hideListPointer();
+      }
     },
 
     /**
@@ -181,6 +210,7 @@
       this.listVisibleStartAt = 0;
       this.listIndexStartAt = 0;
       this.listIndexEndAt = 0;
+      this.isAnimation = false;
 
       for(key in this.listItemMap) {
         if(this.listItemMap.hasOwnProperty(key)) {
@@ -510,8 +540,16 @@
      */
     focusItem: function(el) {
       el.focus();
-      var event = new CustomEvent('focusItem', {detail: el});
-      this.el.dispatchEvent(event);
+    },
+
+    pointerItem: function(el) {
+      var pos = el.getBoundingClientRect(),
+          transposX = (Math.ceil(pos.right) - 120 ) / PER_REM,
+          transposY = (Math.ceil(pos.bottom) - 40 ) / PER_REM;
+
+      this.listPointerEl.style.transform =
+        'translate(' + transposX + 'rem,' + transposY + 'rem)';
+      this.showListPointer();
     },
 
     /**
@@ -529,6 +567,7 @@
         this.focusIndex = this.listVisibleStartAt;
         targetEl = this.listItemMap[this.focusIndex];
         if(targetEl) {
+          this.pointerItem(targetEl);
           this.focusItem(targetEl);
         }
       }
@@ -634,6 +673,79 @@
       }
     },
 
+    isPointerDisplay: function() {
+      return this.listPointerEl.classList.contains('show');
+    },
+
+    showListPointer: function() {
+      this.listPointerEl.classList.add('show');
+    },
+
+    hideListPointer: function() {
+      this.listPointerEl.classList.remove('show');
+    },
+
+    /**
+     * move pointer to targetEl
+     * @param  {Node} targetEl - list item destination
+     * @param  {Number} direction - pointer move direction, up or down
+     */
+    movePointer: function (targetEl, direction) {
+      if(this.isAnimation) {
+        return;
+      }
+
+      this.isAnimation = true;
+
+      var tick = (function(self){
+        var startTime = 0,
+            duration = 0,
+            isTargetFocus = false,
+            targetElRect = targetEl.getBoundingClientRect(),
+            targetElBorderTop = Math.ceil(targetElRect.top) / PER_REM,
+            targetElBorderBottom = Math.ceil(targetElRect.bottom) / PER_REM,
+            pointerRect = self.listPointerEl.getBoundingClientRect(),
+            pointerPos = {
+              x : Math.ceil(pointerRect.left) / PER_REM,
+              y : Math.ceil(pointerRect.top) / PER_REM
+            };
+
+        return function(timestamp){
+          var ceilTime = Math.ceil(timestamp);
+          if(startTime === 0) {
+            startTime = ceilTime;
+          }
+
+          duration = ceilTime - startTime;
+          if(duration > POINTER_ANIMATION_DURATION) {
+            duration = POINTER_ANIMATION_DURATION;
+          }
+          var offsetY = (duration / POINTER_ANIMATION_DURATION) *
+            (direction * LIST_ITEM_HEIGHT);
+          var translateY = pointerPos.y + Math.round(offsetY * 10) / 10;
+          self.listPointerEl.style.transform =
+            'translate(' + pointerPos.x + 'rem,' + translateY + 'rem)';
+
+          // if pointer move into target list item, focus target item
+          if(!isTargetFocus &&
+            targetElBorderBottom > translateY  &&
+            translateY > targetElBorderTop) {
+
+            self.focusItem(targetEl);
+            isTargetFocus = true;
+          }
+
+          if(duration < POINTER_ANIMATION_DURATION) {
+            requestAnimationFrame(tick);
+          } else {
+            self.isAnimation = false;
+          }
+        };
+      })(this);
+
+      requestAnimationFrame(tick);
+    },
+
     /**
      * Add folder id and folder title
      * @param  {[type]} folderId    [description]
@@ -674,22 +786,30 @@
      * Move focus to the previous element
      */
     moveFocusIndexUp: function() {
-      var targetEl = null;
-      if(this.focusIndex > this.listIndexStartAt) {
-        this.focusIndex -= 1;
+      if(this.focusIndex <= this.listIndexStartAt || this.isAnimation) {
+        return;
+      }
 
-        // if the new focus element is before this.listVisibleStartAt,
-        // update list item's transform to shift down
-        if(this.focusIndex < this.listVisibleStartAt) {
-          this.listVisibleStartAt--;
-          this.shiftItemTransform(this.listEl, LIST_ITEM_HEIGHT);
-        }
-        var preloadItemIndex = this.focusIndex - MAX_VISIBLE_ITEM;
-        if(preloadItemIndex >= 0 && preloadItemIndex < this.listIndexStartAt) {
-          this.preloadItem(preloadItemIndex);
-        }
-        targetEl = this.listItemMap[this.focusIndex];
+      this.focusIndex -= 1;
+      var preloadItemIndex = this.focusIndex - MAX_VISIBLE_ITEM;
+      if(preloadItemIndex >= 0 && preloadItemIndex < this.listIndexStartAt) {
+        this.preloadItem(preloadItemIndex);
+      }
+
+      // if the new focus element is before this.listVisibleStartAt,
+      // update list item's transform to shift down
+      var targetEl = this.listItemMap[this.focusIndex];
+      if(this.focusIndex < this.listVisibleStartAt) {
+        this.listVisibleStartAt--;
+        this.shiftItemTransform(this.listEl, LIST_ITEM_HEIGHT);
         this.focusItem(targetEl);
+      } else {
+        if(this.isPointerDisplay()){
+          this.movePointer(targetEl, LIST_DIRECTION_UP);
+        } else {
+          this.pointerItem(targetEl);
+          this.focusItem(targetEl);
+        }
       }
     },
 
@@ -697,23 +817,33 @@
      * Move focus to the next element
      */
     moveFocusIndexDown: function() {
-      var targetEl = null;
-      if(this.focusIndex < this.listIndexEndAt) {
-        this.focusIndex += 1;
+      if(this.focusIndex >= this.listIndexEndAt || this.isAnimation) {
+        return;
+      }
 
-        // if the new focus element is after this.listIndexEndAt,
-        // update list item's transform to shift up
-        if ((this.focusIndex - this.listVisibleStartAt) ===
-           MAX_VISIBLE_ITEM ) {
-          this.listVisibleStartAt++;
-          this.shiftItemTransform(this.listEl, (-1 * LIST_ITEM_HEIGHT));
-        }
-        var preloadItemIndex = this.focusIndex + MAX_VISIBLE_ITEM;
-        if(preloadItemIndex > this.listIndexEndAt) {
-          this.preloadItem(preloadItemIndex);
-        }
-        targetEl = this.listItemMap[this.focusIndex];
+      this.focusIndex += 1;
+
+      // pre-load list item later then listIndexEndAt
+      var preloadItemIndex = this.focusIndex + MAX_VISIBLE_ITEM;
+      if(preloadItemIndex > this.listIndexEndAt) {
+        this.preloadItem(preloadItemIndex);
+      }
+
+      // if the new focus element is after this.listIndexEndAt,
+      // update list item's transform to shift up
+      var targetEl = this.listItemMap[this.focusIndex];
+      if ((this.focusIndex - this.listVisibleStartAt) ===
+         MAX_VISIBLE_ITEM ) {
+        this.listVisibleStartAt++;
+        this.shiftItemTransform(this.listEl, (-1 * LIST_ITEM_HEIGHT));
         this.focusItem(targetEl);
+      } else {
+        if(this.isPointerDisplay()){
+          this.movePointer(targetEl, LIST_DIRECTION_DOWN);
+        } else {
+          this.pointerItem(targetEl);
+          this.focusItem(targetEl);
+        }
       }
     },
 
@@ -721,12 +851,9 @@
       switch(e.keyCode){
         case KeyEvent.DOM_VK_UP:
           this.moveFocusIndexUp();
-          e.stopPropagation();
           break;
         case KeyEvent.DOM_VK_DOWN:
           this.moveFocusIndexDown();
-          e.stopPropagation();
-          e.preventDefault();
           break;
         default:
           return;
@@ -775,6 +902,7 @@
     handleItemMouseOut: function(e) {
       var targetEl = e.currentTarget;
       if(targetEl) {
+        this.hideListPointer();
         targetEl.blur();
       }
     },
@@ -809,6 +937,7 @@
                     this.focusIndex = 1;
                   }
                 }
+                this.pointerItem(focusEl);
                 this.focusItem(focusEl);
               }
             }).bind(this)
@@ -846,6 +975,7 @@
                     this.focusIndex = 1;
                   }
                 }
+                this.pointerItem(focusEl);
                 this.focusItem(focusEl);
               }
             }).bind(this)
