@@ -714,10 +714,6 @@ var Browser = {
         }, 800);
         break;
 
-      case 'mozbrowserasyncscroll':
-        this.debug('mozbrowserasyncscroll[' + tab.id + ']');
-        break;
-
       default:
         this.debug('other event = ' + evt.type);
         break;
@@ -761,7 +757,7 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
-                         'showmodalprompt', 'error', 'asyncscroll',
+                         'showmodalprompt', 'error',
                          'usernameandpasswordrequired', 'memorypressure'];
     browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' + type,

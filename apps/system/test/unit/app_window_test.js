@@ -2167,20 +2167,6 @@ suite('system/AppWindow', function() {
       assert.equal(app1.title, 'http://example.com/page.html');
     });
 
-    test('Scroll event', function() {
-      var app4 = new AppWindow(fakeAppConfig4);
-      app4.manifest = null;
-
-      app4.handleEvent({
-        type: 'mozbrowserasyncscroll',
-        detail: {
-          top: 7
-        }
-      });
-
-      assert.equal(app4.scrollPosition, 7);
-    });
-
     test('VisibilityChange event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubPublish = this.sinon.stub(app1, 'publish');
