@@ -1,6 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global NotificationHelper */
+
 define(function(require) {
   'use strict';
 
@@ -98,21 +100,24 @@ define(function(require) {
         showPairviewCallback: this.showPairview.bind(this, pairingInfo)
       };
       // Prepare notification toast.
-      var title = _('bluetooth-pairing-request-now-title');
-      var body = pairingInfo.name || _('unnamed-device');
+      var titleL10n = 'bluetooth-pairing-request-now-title';
+      var bodyL10n = pairingInfo.name ?
+        { raw: pairingInfo.name } :
+        'unnamed-device';
       var iconUrl =
         'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png';
       // We always use tag "pairing-request" to manage these notifications.
       var notificationId = 'pairing-request';
-      var notification = new Notification(title, {
-        body: body,
+      return NotificationHelper.send(titleL10n, {
+        bodyL10n: bodyL10n,
         icon: iconUrl,
         tag: notificationId
+      }).then(notification => {
+        // set onclick handler for the notification
+        notification.onclick =
+          this.pairingRequestExpiredNotificationHandler.bind(this,
+                                                             notification);
       });
-
-      // set onclick handler for the notification
-      notification.onclick =
-        this.pairingRequestExpiredNotificationHandler.bind(this, notification);
     },
 
     // According to user story, it won't notify user again
