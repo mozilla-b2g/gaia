@@ -274,13 +274,17 @@ smart-button[type="text-and-icon"] {
   position: relative;
   color: white;
   font-size: 2.4rem;
-  padding-left: 9.6rem;
+  padding-left: 4.6rem;
   padding-right: 4.6rem;
   border-radius: 4rem;
   width: auto;
   line-height: 8rem;
   margin-right: 1.4rem;
   overflow: hidden;
+}
+
+smart-button[type="text-and-icon"][data-icon] {
+  padding-left: 9.6rem;
 }
 
 smart-button[type="text-and-icon"][data-icon]:before {
@@ -441,4 +445,39 @@ smart-button[type="circle-text"].danger.pressed {
 
 /**
  * End of circle text button
+ */
+
+/**
+ * rounded-corner text button
+ */
+smart-button[type="rounded-corner-text"] {
+  -moz-user-select: none;
+  width: auto;
+  height: 8rem;
+  border-radius: 4rem;
+  background-color: #5f6368;
+  padding: 0 3.8rem;
+  line-height: 8rem;
+  color: white;
+  text-align: center;
+  font-size: 2.4rem;
+  overflow: hidden;
+  transition-property: transform, color, background-color;
+}
+
+smart-button[type="rounded-corner-text"].focused,
+smart-button[type="rounded-corner-text"]:hover {
+  transform: scale(1.2);
+  color: #2d2d2d;
+  background-color: white;
+}
+
+smart-button[type="rounded-corner-text"].pressed {
+  transform: scale(1);
+  /*color: white;*/
+  background-color: #00caf2;
+}
+
+/**
+ * End of rounded-corner text button
  */

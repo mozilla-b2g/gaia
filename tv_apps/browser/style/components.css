@@ -1,0 +1,43 @@
+/* checkbox */
+
+.settings-horizontal-list-item {
+  display: flex;
+  align-items: center;
+}
+
+input[type="checkbox"].settings-list-checkbox {
+  display: none;
+}
+
+input[type="checkbox"].settings-list-checkbox + label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 5rem;
+  border: 0.4rem solid #5f6368;
+  border-radius: 50%;
+  margin-right: 2rem;
+  line-height: 5rem;
+  text-align: center;
+}
+
+input[type="checkbox"].settings-list-checkbox:disabled + label,
+input[type="checkbox"].settings-list-checkbox:disabled ~ span {
+  opacity: 0.5;
+}
+
+input[type="checkbox"].settings-list-checkbox:checked + label::after {
+  font-family: "gaia-icons";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 3rem;
+  text-rendering: optimizelegibility;
+  content: "tick";
+  color: #00caf2;
+}
+
+input[type="checkbox"].settings-list-checkbox ~ span {
+  line-height: normal;
+  font-size: 3rem;
+}
