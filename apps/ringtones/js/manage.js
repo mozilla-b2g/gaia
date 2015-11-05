@@ -9,7 +9,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
   // Conclude the activity if the user taps "back".
   document.getElementById('header').addEventListener('action', function() {
     tonePlayer.stop();
-    activity.postResult({});
+    window.close();
   });
 
   function addNewTone(customRingtonesList) {
