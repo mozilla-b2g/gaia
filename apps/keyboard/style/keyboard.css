@@ -103,7 +103,6 @@ button::-moz-focus-inner {
 /* Buttons: logic keys */
 .keyboard-key {
   display: inline-block;
-  min-width: 2.6rem;
   padding: 0;
   font-size: 0;
   font-family: sans-serif;
@@ -228,7 +227,9 @@ button::-moz-focus-inner {
   bottom: 0;
   left: 0;
   color: #abb0b1;
-  font: 500 1.5rem/var(--key-height) 'Keyboard Symbols', sans-serif;
+  font-weight: 500;
+  font-size: 1.5rem;
+  font-family: 'Keyboard Symbols', sans-serif;
 }
 
 /* Highlight for special keys */
