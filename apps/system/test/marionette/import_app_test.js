@@ -15,7 +15,7 @@ marionette('Import App', function() {
     desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
-  var home, server, system;
+  var server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -30,9 +30,7 @@ marionette('Import App', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    home = client.loader.getAppClass('homescreen');
     system.waitForStartup();
-    home.waitForLaunch();
   });
 
   function countApps() {
@@ -47,7 +45,8 @@ marionette('Import App', function() {
     var numApps = countApps();
     var appZipUrl = server.url('simple_addon.zip');
 
-    // Fire the import activity from the home screen.
+    // Fire the import activity from the system app.
+    client.switchToFrame();
     client.executeAsyncScript(function(appZipUrl) {
 
       // Execute an XHR to get the addon blob content.
