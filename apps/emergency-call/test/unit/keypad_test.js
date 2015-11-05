@@ -38,6 +38,41 @@ suite('Keypad', function() {
 
   mocksHelperForKeypad.attachTestHelpers();
 
+  // Dummy node used as event target
+  var dummyNode = document.createElement('div');
+
+  /**
+   * Simulate a touchstart event
+   *
+   * @param key {String} The target's dataset value, the touched key
+   */
+  function mockTouchStart(key) {
+    var fakeEvent = {
+      target: dummyNode,
+      preventDefault: function() {},
+      stopPropagation: function() {},
+      type: 'touchstart'
+    };
+    dummyNode.dataset.value = key;
+    subject.keyHandler(fakeEvent);
+  }
+
+  /**
+   * Simulate a touchend event
+   *
+   * @param key {String} The target's dataset value, the touched key
+   */
+  function mockTouchEnd(key) {
+    var fakeEvent = {
+      target: dummyNode,
+      preventDefault: function() {},
+      stopPropagation: function() {},
+      type: 'touchend'
+    };
+    dummyNode.dataset.value = key;
+    subject.keyHandler(fakeEvent);
+  }
+
   suiteSetup(function() {
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = new MockIccManager();
@@ -65,6 +100,8 @@ suite('Keypad', function() {
   setup(function() {
     loadBodyHTML('/test/unit/mock_dialer_index.html');
 
+    dummyNode = document.createElement('div');
+
     subject = KeypadManager;
     subject.init(false);
 
@@ -72,6 +109,7 @@ suite('Keypad', function() {
   });
 
   teardown(function() {
+    dummyNode = null;
     MockNavigatorMozTelephony.mTeardown();
   });
 
@@ -112,23 +150,23 @@ suite('Keypad', function() {
     });
 
     test('Adds active class to keys when pressed', function() {
-      var fakeEvent = {
-        target: document.createElement('div'),
-        preventDefault: function() {},
-        stopPropagation: function() {},
-        type: null
-      };
-      fakeEvent.target.dataset.value = 1;
-
       subject._phoneNumber = '';
 
-      assert.isFalse(fakeEvent.target.classList.contains('active'));
-      fakeEvent.type = 'touchstart';
-      subject.keyHandler(fakeEvent);
-      assert.isTrue(fakeEvent.target.classList.contains('active'));
-      fakeEvent.type = 'touchend';
-      subject.keyHandler(fakeEvent);
-      assert.isFalse(fakeEvent.target.classList.contains('active'));
+      mockTouchStart('1');
+      assert.isTrue(dummyNode.classList.contains('active'));
+      mockTouchEnd('1');
+      assert.isFalse(dummyNode.classList.contains('active'));
+    });
+
+    test('Multi-tap events are ignored', function() {
+      mockTouchStart('1');
+      assert.equal(subject._phoneNumber, '1');
+      mockTouchStart('2');
+      assert.equal(subject._phoneNumber, '1');
+      mockTouchEnd('2');
+      assert.equal(subject._phoneNumber, '1');
+      mockTouchEnd('1');
+      assert.equal(subject._phoneNumber, '1');
     });
 
     suite('Audible and DTMF tones when composing numbers', function() {
