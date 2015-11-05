@@ -1,10 +1,9 @@
 'use strict';
 
-var fs = require('fs'),
-    FxA = require('./lib/fxa'),
+var FxA = require('./lib/fxa'),
     FxAUser = require('./lib/fxa_user'),
     Server = require('./lib/server'),
-    config = JSON.parse(fs.readFileSync(__dirname + '/lib/config.json'));
+    config = require('./lib/config.json');
 
 marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
   var app,
@@ -14,19 +13,25 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
       client = marionette.client({
         profile: {
           prefs: {
+            'focusmanager.testmode': true,
             'identity.fxaccounts.auth.uri': 'http://' +
               config.SERVER_HOST + ':' +
               config.SERVER_PORT + '/' +
               config.SERVER_PATH
-            }
+          }
         }
       });
 
-  setup(function() {
-    fxaUser= new FxAUser();
+  setup(function(done) {
+    fxaUser = new FxAUser();
     app = new FxA(client);
     Server.create(FxA.SERVER_ARGS, function (err, _server) {
+      if (err) {
+        console.error(err);
+        throw err;
+      }
       server = _server;
+      done();
     });
     selectors = FxA.Selectors;
     app.launch(FxA.UITEST_ORIGIN);
@@ -38,28 +43,20 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
   });
 
   test('should walk screen flow for new user', function () {
-    // XXX: Gij failed with unknown reason at selecting year of birth.
-    //      The test is the same as the one in apps/system . Maybe notification
-    //      toast is related to this issue.
-    // app.enterEmailNew();
-    // app.clickNext();
-    // app.clickNext();
-    // app.enterPasswordNew();
-    // app.clickNext();
-    // app.clickDone();
+    app.enterEmailNew();
+    app.clickNext();
+    app.enterCOPPANew();
+    app.clickNext();
+    app.enterPasswordNew();
+    app.clickNext();
+    app.clickDone();
   });
 
   test('should walk screen flow for existing user', function () {
     app.enterEmailExisting();
-    app.clickNext();
     app.clickNext();
     app.enterPasswordExisting();
     app.clickNext();
     app.clickDone();
   });
 });
-
-
-
-
-
