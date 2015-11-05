@@ -12,6 +12,11 @@
 /* global Toolbar */
 /* global UrlHelper */
 
+//IFDEF_FIREFOX_SYNC
+/* global SyncManagerBridge */
+/* global SyncBrowserDB */
+//ENDIF_FIREFOX_SYNC
+
 var _ = navigator.mozL10n.get;
 
 var Browser = {
@@ -595,6 +600,16 @@ var Browser = {
             a.href = tab.url;
             var iconUrl = a.protocol + '//' + a.hostname + '/' + 'favicon.ico';
             BrowserDB.setAndLoadIconForPage(tab.url, iconUrl);
+
+//IFDEF_FIREFOX_SYNC
+            // if data sync enabled, update icon info to data sync indexedDB
+            SyncManagerBridge.getInfo().then(message => {
+              if(message.state === 'enabled') {
+                SyncBrowserDB.setAndLoadIconForPage(tab.url, iconUrl);
+              }
+            });
+//ENDIF_FIREFOX_SYNC
+
           }
 
         // Capture screenshot for tab thumbnail
@@ -645,6 +660,15 @@ var Browser = {
           // TODO: Pick up the best icon
           // based on evt.detail.sizes and device size.
           BrowserDB.setAndLoadIconForPage(tab.url, tab.iconUrl);
+
+//IFDEF_FIREFOX_SYNC
+          // if data sync enabled, update icon info to data sync indexedDB
+          SyncManagerBridge.getInfo().then(message => {
+            if(message.state === 'enabled') {
+              SyncBrowserDB.setAndLoadIconForPage(tab.url, tab.iconUrl);
+            }
+          });
+//ENDIF_FIREFOX_SYNC
         }
         break;
 

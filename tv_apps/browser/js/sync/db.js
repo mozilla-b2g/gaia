@@ -1190,14 +1190,40 @@ SyncBrowserDB.db = {
     var records = [];
     var db = this._db;
 
-    var transaction = db.transaction(DBOS_BOOKMARKS);
-    var objectStore = transaction.objectStore(DBOS_BOOKMARKS).index('parentid');
+    function fetchIconUri(data) {
+      return new Promise(resolve => {
+        if(data.type !== 'bookmark') {
+          resolve(data);
+        } else {
+          var iconRequest = iconsStore.get(data.bmkUri);
+          iconRequest.onsuccess = function(e) {
+            var icon = e.target.result;
+            if(icon && icon.iconUri){
+              data.iconUri = icon.iconUri;
+            } else {
+              data.iconUri = Awesomescreen.DEFAULT_FAVICON;
+            }
+            resolve(data);
+          };
+          iconRequest.onerror = function(e) {
+            resolve(data);
+          };
+        }
+      });
+    }
 
-    objectStore.openCursor(parentId, 'prev').onsuccess =
+    var transaction = db.transaction([DBOS_BOOKMARKS, DBOS_ICONS]);
+    var bookmarksStore =
+      transaction.objectStore(DBOS_BOOKMARKS).index('parentid');
+    var iconsStore = transaction.objectStore(DBOS_ICONS);
+
+    bookmarksStore.openCursor(parentId, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
-        records.push(cursor.value);
+        fetchIconUri(cursor.value).then(bookmark => {
+          records.push(bookmark);
+        });
         cursor.continue();
       }
     };
