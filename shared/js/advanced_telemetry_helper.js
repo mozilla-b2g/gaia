@@ -130,9 +130,10 @@
       this.metricType = type;
       if (typeof name !== 'undefined') {
         var varCount = 2;
+        var re = /_/g;
         var message = APP_TELEMETRY_LOG_PREFIX;
         // Disallow underscores so telemetry system can parse it.
-        this.metricName = name.replace('_', '-');
+        this.metricName = name.replace(re, '-');
         message += '|' + this.metricName;
         message += '|' + type + '|';
         if (typeof min !== 'undefined') { varCount++; }
