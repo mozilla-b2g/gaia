@@ -10,17 +10,20 @@ from gaiatest.apps.settings.app import Settings
 
 class TestChangeLanguageRTL(GaiaTestCase):
 
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        self.data_layer.set_setting('devtools.pseudolocalization.enabled', True)
+
     def test_change_language_settings_rtl(self):
         lang_name = self.marionette.execute_script("""
-            var  = window.wrappedJSObject.navigator.mozL10n.;
-            return ['ar-x-psbidi'].translate('Packaged Bidi');
+            var qps = window.wrappedJSObject.navigator.mozL10n.qps;
+            return qps['ar-x-psbidi'].translate('Runtime Bidi');
         """)
         header = self.marionette.execute_script("""
-            var  = window.wrappedJSObject.navigator.mozL10n.;
-            return ['ar-x-psbidi'].translate('Settings');
+            var qps = window.wrappedJSObject.navigator.mozL10n.qps;
+            return qps['ar-x-psbidi'].translate('Settings');
         """)
 
-        self.data_layer.set_setting('devtools.pseudolocalization.enabled', True)
         settings = Settings(self.marionette)
         settings.launch()
 
