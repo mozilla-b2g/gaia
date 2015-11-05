@@ -1,5 +1,6 @@
 {
   "name": "dom-scheduler",
+  "version": "1.0.1",
   "homepage": "https://github.com/etiennesegonzac/dom-scheduler",
   "authors": [
     "Etienne Segonzac <etienne@segonzac.info>"
@@ -21,13 +22,13 @@
     "test",
     "tests"
   ],
-  "_release": "88ee168781",
+  "_release": "1.0.1",
   "_resolution": {
-    "type": "branch",
-    "branch": "master",
-    "commit": "88ee16878124221b9ff023245c56df89bcc19cef"
+    "type": "version",
+    "tag": "v1.0.1",
+    "commit": "1f3a138fb104d067774315acf7ae23f7d940bc4f"
   },
   "_source": "git://github.com/etiennesegonzac/dom-scheduler.git",
-  "_target": "*",
+  "_target": "~1.0.1",
   "_originalSource": "etiennesegonzac/dom-scheduler"
 }

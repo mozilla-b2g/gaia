@@ -1,7 +1,6 @@
 'use strict';
 /* global ApplicationSource */
 /* global BookmarkSource */
-/* global CollectionSource */
 /* global configurator */
 /* global dispatchEvent */
 /* global GaiaGrid */
@@ -43,8 +42,7 @@
         } else {
           return lookFor.manifestURL === compareWith.detail.manifestURL;
         }
-      } else if (compareWith instanceof GaiaGrid.Collection ||
-                 compareWith instanceof GaiaGrid.Bookmark) {
+      } else if (compareWith instanceof GaiaGrid.Bookmark) {
         if (!lookFor.id || !compareWith.detail.id) {
           return false;
         }
@@ -175,10 +173,8 @@
     var self = this;
     this.applicationSource = new ApplicationSource(this);
     this.bookmarkSource = new BookmarkSource(this);
-    this.collectionSource = new CollectionSource(this);
 
-    this.sources = [this.applicationSource, this.bookmarkSource,
-                    this.collectionSource];
+    this.sources = [this.applicationSource, this.bookmarkSource];
 
     this.ready = false;
 
@@ -387,9 +383,6 @@
           } else if (thisItem.type === 'bookmark') {
             var bookmark = new GaiaGrid.Bookmark(thisItem);
             addIfUnique.call(this, bookmark);
-          } else if (thisItem.type === 'collection') {
-            var collection = new GaiaGrid.Collection(thisItem);
-            addIfUnique.call(this, collection);
           }
         }
 

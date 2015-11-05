@@ -2,7 +2,6 @@ var running = false;
 var watchId = undefined;
 var sep = "<br />************<br />";
 
-var dtf = undefined;
 var _ = undefined;
 
 var locations = undefined;
@@ -34,7 +33,11 @@ function successWatch(position) {
 
   var datefix = document.getElementById('date-last-fix');
   var cdate = new Date();
-  var localeFormat = dtf.localeFormat(cdate, _('dateTimeFormat_%X'));
+  var localeFormat = cdate.toLocaleString(navigator.languages, {
+    month: 'numeric',
+    day: 'numeric',
+    year: 'numeric'
+  });
   datefix.value = localeFormat;
 }
 
@@ -143,7 +146,17 @@ function locationsToGPX() {
   xmldoc.appendChild(doc);
 
   var time = xmldoc.createElement('time');
-  var ts = xmldoc.createTextNode(dtf.localeFormat(new Date(), '%Y-%m-%dT%H:%M:%S%z'));
+
+  var dtf = Intl.DateTimeFormat(navigator.languages, {
+    year: 'numeric',
+    moth: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    timeZoneName: 'short'
+  });
+  var ts = xmldoc.createTextNode(dtf.format(new Date()));
   time.appendChild(ts);
   doc.appendChild(time);
 
@@ -162,7 +175,7 @@ function locationsToGPX() {
     var ele = createSimpleNode('ele', e.coords.altitude);
     x.appendChild(ele);
 
-    var time = createSimpleNode('time', dtf.localeFormat(new Date(e.timestamp), '%Y-%m-%dT%H:%M:%S%z'));
+    var time = createSimpleNode('time', dtf.format(new Date(e.timestamp)));
     x.appendChild(time);
 
     var ext = xmldoc.createElement('extensions');
@@ -201,7 +214,7 @@ function locationsToFile(format) {
 }
 
 function saveGeoloc() {
-  var date = dtf.localeFormat(new Date(), "%Y%m%d%H%M%S");
+  var date = (new Date()).toLocaleFormat("%Y%m%d%H%M%S");
   var file = locationsToFile("gpx");
   var blob = new Blob([file], {type: 'application/gpx+xml'});
   var fname = "geoloc/geoloc-" + date + ".gpx";
@@ -257,7 +270,6 @@ function keep() {
 }
 
 window.addEventListener('DOMContentLoaded', function() {
-  dtf = new navigator.mozL10n.DateTimeFormat();
   _ = navigator.mozL10n.get;
   disable('btnStop');
   disable('btnClear');

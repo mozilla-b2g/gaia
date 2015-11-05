@@ -37,10 +37,13 @@ smart-button[type=simple-text].disabled {
 }
 
 /*IFDEF_FIREFOX_SYNC*/
-#fxsync-area,
+#fxsync-area {
+  margin-top: 13rem
+}
 /*ENDIF_FIREFOX_SYNC*/
+
 #settings-list-area {
-  width: 1108px;
+  width: 120rem;
   margin: 50px auto 0 auto;
 }
 
@@ -52,10 +55,10 @@ smart-button[type=simple-text].disabled {
   top: 0;
   left: 0;
   right: 0;
-  height: 72px;
+  height: 4.6rem;
   width: 100%;
   font-family: Fira Sans;
-  font-size: 48px;
+  font-size: 4.6rem;
   font-style: Italic; /* TODO: Regular? */
   color: #4d4d4d;
   pointer-events: none;
@@ -65,6 +68,16 @@ p.fine-print {
   font-size: 2rem;
   line-height: 1.6rem;
 }
+
+#settings-header {
+  margin: 7rem 0;
+}
+
+/*IFDEF_FIREFOX_SYNC*/
+#fxsync-header {
+  margin-bottom: 5rem;
+}
+/*ENDIF_FIREFOX_SYNC*/
 
 #settings-header-title {
   display: inline;
@@ -200,7 +213,7 @@ p.fine-print {
 
 /* Firefox Sync */
 
-/*IFDEF_FIREFOX_SYNC
+/*IFDEF_FIREFOX_SYNC*/
 #fxsync-sign-in > smart-button {
   background-color: #4d4d4d;
   line-height: 4rem;
@@ -210,7 +223,36 @@ p.fine-print {
 #fxsync-sign-in-to-sync-description,
 #fxsync-signed-in-as {
   color: #4d4d4d;
-  padding: 15px;
+  font-style: italic;
+  font-size: 2.8rem;
+  font-weight: lighter;
+  flex-grow: 1;
+}
+
+#fxsync-disabled {
+  margin-left: 4.5rem;
+}
+
+#fxsync-disabled > p {
+  font-size: 2.8rem;
+  font-style: italic;
+  font-weight: lighter;
+}
+
+#fxsync-enabled {
+  display: flex;
+  align-items: center;
+  margin-top: -5.1rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+#fxsync-enabled[hidden] {
+  display: none;
+}
+
+#fxsync-enabled > smart-button {
+  margin-left: 1.8rem;
 }
 
 #fxsync-area.hidden,
@@ -223,6 +265,7 @@ p.fine-print {
 
 .settings-horizontal-list {
   display: flex;
+  width: 100%;
   margin-top: 2rem;
   margin-left: 1rem;
 }

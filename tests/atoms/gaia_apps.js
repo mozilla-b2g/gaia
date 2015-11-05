@@ -181,20 +181,26 @@ var GaiaApps = {
     var apps = window.wrappedJSObject.applications ||
                 window.wrappedJSObject.Applications;
     var app = apps.getByManifestURL(manifestURL);
-    var appName, launchPath;
+    var launchPath;
 
-    if (entryPoint) {
-      if (app.manifest.entry_points[entryPoint]) {
-        appName = app.manifest.entry_points[entryPoint].name;
-        launchPath = app.manifest.entry_points[entryPoint].launch_path;
-      } else {
-        app = null;
-      }
+    if (app != null) {
+      GaiaApps._formatApp(app, manifestURL, entryPoint, callback, launchPath);
     } else {
-      appName = app.manifest.name;
-      launchPath = app.manifest.launch_path;
+      callback(false);
     }
-    GaiaApps.sendLocateResponse(callback, app, appName, launchPath, entryPoint);
+  },
+  _formatApp: function(app, manifestURL, entryPoint, callback, launchPath) {
+      if (entryPoint) {
+        if (app.manifest.entry_points[entryPoint]) {
+          launchPath = app.manifest.entry_points[entryPoint].launch_path;
+        } else {
+          app = null;
+        }
+      } else {
+        launchPath = app.manifest.launch_path;
+      }
+      GaiaApps.sendLocateResponse(callback, app, 
+        manifestURL, launchPath, entryPoint); 
   },
 
   // Returns the number of running apps.
@@ -390,24 +396,46 @@ var GaiaApps = {
     };
     return result;
   },
-
   /**
-   * Uninstalls the app with the specified name.
-   */
-  uninstallWithName: function(name) {
-    GaiaApps.locateWithName(name, function uninstall(app) {
-      if (typeof(app) === 'object') {
-        let req = navigator.mozApps.mgmt.uninstall(app);
-          req.onsuccess = function() {
-          marionetteScriptFinished(true);
-        };
-        req.onerror = function() {
-          marionetteScriptFinished(req.error);
-        };
-      } else {
-        // App was never installed, so nothing to do here
+  * Install the app with the specified ManifestURL
+  */
+  install: function(manifestURL) {
+    let req = navigator.mozApps.install(manifestURL);
+    req.onsuccess = function() {
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      marionetteScriptFinished(req.error);
+    };
+  },
+
+  installPackage: function(manifestURL) {
+    let req = navigator.mozApps.installPackage(manifestURL);
+    req.onsuccess = function() {
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      marionetteScriptFinished(req.error);
+    };
+  },
+  /**
+  * Uninstall the app with the specified ManifestURL
+  */
+  uninstall: function(manifestURL) {
+    GaiaApps.locateWithManifestURL(manifestURL, null, function uninstall(app) {
+      if (typeof(app) !== 'object') {
+        // App is already not there, so nothing to do here
         marionetteScriptFinished(true);
+        return;
       }
+
+    let req = navigator.mozApps.mgmt.uninstall(app);
+    req.onsuccess = function() {
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      marionetteScriptFinished(req.error);
+    };
     });
-  }
+   }
 };

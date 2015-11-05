@@ -163,7 +163,8 @@
     registerState: function(state, provider) {
       this._states.set(provider.name, provider);
       if (!provider.name) {
-        console.warn(provider);
+        console.warn('Service.registerState: Provider should have a name.',
+          provider);
       }
       this._statesByState.set(state, provider);
     },

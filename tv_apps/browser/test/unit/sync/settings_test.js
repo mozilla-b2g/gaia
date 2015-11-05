@@ -12,6 +12,7 @@
 /* global MocksHelper */
 /* global MockL10n */
 /* global NavigatorSettings */
+/* global Settings */
 /* global SettingsListener */
 /* global SyncManagerBridge */
 
@@ -24,6 +25,8 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/sync/errors.js');
 requireApp('browser/test/unit/sync/mocks/mock_manager_bridge.js');
+requireApp('browser/js/settings.js');
+requireApp('browser/js/browser_dialog.js');
 
 var mocksForSettings = new MocksHelper([
   'LazyLoader',
@@ -74,6 +77,7 @@ suite('Sync settings >', function() {
                                       (event, listener) => {
       visibilityListener = listener;
     });
+    sinon.stub(Settings, 'hide');
 
     require('/tv_apps/browser/js/sync/settings.js').then(() => {
       subject = FirefoxSyncSettings;
@@ -117,11 +121,11 @@ suite('Sync settings >', function() {
       expect(subject.elements.enabled).to.be.an('object');
       expect(subject.elements.disabled).to.be.an('object');
       expect(subject.listeners).to.be.an('object');
-      expect(subject.listeners.size).to.be.equals(0);
+      expect(subject.listeners.size).to.be.equals(8);
       expect(subject.collections).to.be.an('object');
       expect(subject.collections.size).to.be.equals(0);
-      expect(subject.screen).to.be.equals(null);
-      expect(subject.state).to.be.equals(null);
+      expect(subject.screen).to.be.equals('disabled');
+      expect(subject.state).to.be.equals('disabled');
     });
   });
 
@@ -162,7 +166,9 @@ suite('Sync settings >', function() {
     test('should have signin button', function() {
       expect(subject.elements.signInButton).to.be.an('object');
       expect(subject.elements.signInButton.getAttribute('data-l10n-id'))
-        .to.equals('fxsync-create-account-or-sign-in');
+        .to.equals('fxsync-sign-in');
+      expect(subject.elements.signInButton.classList.contains('disabled'))
+        .to.equals(false);
     });
   });
 
@@ -211,6 +217,24 @@ suite('Sync settings >', function() {
     });
   });
 
+  suite('Enabling', function() {
+    suiteSetup(function() {
+      onsyncchange({
+        state: 'enabling'
+      });
+    });
+
+    test('should show signing in button', function() {
+      expect(subject.elements.signInButton.dataset.l10nId)
+        .to.equals('fxsync-signing');
+    });
+
+    test('should disable signin button', function() {
+      expect(subject.elements.signInButton.classList.contains('disabled'))
+        .to.equals(true);
+    });
+  });
+
   suite('Syncing', function() {
     suiteSetup(function() {
       onsyncchange({
@@ -222,6 +246,14 @@ suite('Sync settings >', function() {
     test('should show syncing button', function() {
       expect(subject.elements.syncNowButton.dataset.l10nId)
         .to.equals('fxsync-syncing');
+    });
+
+    test('should show user', function() {
+      expect(subject.elements.signedInAs).to.be.an('object');
+      expect(subject.elements.signedInAs.getAttribute('data-l10n-id'))
+        .to.equals('fxsync-signed-in-as');
+      expect(subject.elements.signedInAs.getAttribute('data-l10n-args'))
+        .to.equals('{"email":"pepito"}');
     });
 
     test('should disable sync button and collection switches', function() {
@@ -399,15 +431,27 @@ suite('Sync settings >', function() {
       });
     });
 
-    test(`should not enable history sync on collection check if refresh
-          auth failed`, function() {
-      mozIdError = true;
-      expect(subject.collections.has(HISTORY_SETTING))
-        .to.be.equal(false);
-      subject.elements.collectionHistory.checked = true;
-      subject.onhistorychecked();
-      expect(subject.collections.has(HISTORY_SETTING))
-        .to.be.equal(false);
+    test(`should not enable collections checkboxes if refresh auth failed`,
+         function() {
+      [{
+        setting: HISTORY_SETTING,
+        element: 'collectionHistory',
+        onchecked: 'onhistorychecked'
+      }, {
+        setting: BOOKMARKS_SETTING,
+        element: 'collectionBookmarks',
+        onchecked: 'onbookmarkschecked'
+      }].forEach(config => {
+        mozIdError = true;
+        expect(subject.collections.has(config.setting))
+          .to.be.equal(false);
+        subject.elements[config.element].checked = true;
+        subject[config.onchecked]();
+        expect(subject.collections.has(config.setting))
+          .to.be.equal(false);
+        expect(subject.elements[config.element].checked)
+          .to.be.equal(false);
+      });
     });
   });
 });

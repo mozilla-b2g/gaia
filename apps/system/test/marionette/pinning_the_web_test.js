@@ -122,7 +122,7 @@ marionette('Pinning the Web', function() {
     pinTheWeb.openAndPinSiteFromBrowser(url);
     lastIconMatches(url);
 
-    pinTheWeb.openAndUnpinSiteFromBrowser(url);
+    pinTheWeb.openAndPinSiteFromBrowser(url);
     lastIconMatches(lastIconId);
   });
 
@@ -141,7 +141,7 @@ marionette('Pinning the Web', function() {
     pinTheWeb.openAndPinSiteFromBrowser(url);
     lastIconMatches(url);
     var url2 = server.url('scoped/page_2.html');
-    pinTheWeb.openAndUnpinSiteFromBrowser(url2);
+    pinTheWeb.openAndPinSiteFromBrowser(url2);
     lastIconMatches(lastIconId);
   });
 
@@ -296,6 +296,7 @@ marionette('Pinning the Web', function() {
       return home.visibleCards.length === 1;
     });
 
+    system.tapHome();
     pinTheWeb.openAndPinPage(url);
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());

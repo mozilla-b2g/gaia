@@ -88,7 +88,9 @@
       this.listeners = new Map();
       this.collections = new Map();
       this.screen = null;
-      this.state = null;
+      this.state = 'disabled';
+
+      this.showScreen(DISABLED);
 
       LazyLoader.load('shared/js/settings_listener.js').then(() => {
         [{
@@ -99,6 +101,7 @@
           onchange: 'onhistorychange'
         }].forEach(setting => {
           SettingsListener.observe(setting.name, true, enabled => {
+            debug(setting.name + ' changed to ' + enabled);
             enabled ? this.collections.set(setting.name, enabled)
                     : this.collections.delete(setting.name);
             this[setting.onchange]();
@@ -120,6 +123,7 @@
     },
 
     refresh() {
+      debug('Refreshing');
       SyncManagerBridge.getInfo().then(this.onsyncchange.bind(this));
     },
 
@@ -159,6 +163,10 @@
       switch (message.state) {
         case 'disabled':
           this.showScreen(DISABLED);
+          this.hideEnabling();
+          break;
+        case 'enabling':
+          this.showEnabling();
           break;
         case 'enabled':
           // We want to show the settings page once Sync is enabled
@@ -167,12 +175,17 @@
           if (this.state === 'enabling') {
             Settings.show.bind(Settings)();
           }
+          this.hideEnabling();
           this.showScreen(ENABLED);
           this.showUser(message.user);
           this.showSyncNow();
           break;
         case 'syncing':
           this.showScreen(ENABLED);
+          // In case that the user opens the browser app while we are on a
+          // syncing state the previous 'enabled' state is missed and so
+          // we need to make sure that we show the user here as well.
+          this.showUser(message.user);
           this.showSyncing();
           break;
         case 'errored':
@@ -182,6 +195,7 @@
             ];
 
             if (IGNORED_ERRORS.indexOf(message.error) > -1) {
+              Settings.hide.bind(Settings)();
               return;
             }
 
@@ -212,59 +226,111 @@
     },
 
     onbookmarkschange() {
+      debug('onbookmarkschange');
+      var needsCleanup;
       if (!this.elements.collectionBookmarks) {
-        return;
+        // We may observe a setting change once we already disabled Sync
+        // because the Sync Manager is reverting user preference changes to
+        // the default ones. In that case, we need to create the object
+        // briefly, so we can update the DOM accordingly.
+        this.elements.collectionBookmarks = this.area.querySelector(
+          '#fxsync-collection-bookmarks'
+        );
+        needsCleanup = true;
       }
+
       this.elements.collectionBookmarks.checked =
         this.collections.has(BOOKMARKS_SETTING);
+
+      if (needsCleanup) {
+        this.elements.collectionBookmarks = null;
+      }
     },
 
     onbookmarkschecked() {
-      var checked = this.elements.collectionBookmarks.checked;
-      checked ? this.collections.set(BOOKMARKS_SETTING, true)
-              : this.collections.delete(BOOKMARKS_SETTING);
-      navigator.mozSettings.createLock().set({
-        'sync.collections.bookmarks.enabled': checked
-      });
+      debug('onbookmarkschecked');
+      this.oncollectionchecked(this.elements.collectionBookmarks,
+                               BOOKMARKS_SETTING);
     },
 
     onhistorychange() {
-      if (!this.elements.collectionBookmarks) {
-        return;
+      debug('onhistorychange');
+      var needsCleanup;
+      if (!this.elements.collectionHistory) {
+        // We may observe a setting change once we already disabled Sync
+        // because the Sync Manager is reverting user preference changes to
+        // the default ones. In that case, we need to create the object
+        // briefly, so we can update the DOM accordingly.
+        this.elements.collectionHistory = this.area.querySelector(
+          '#fxsync-collection-history'
+        );
+        needsCleanup = true;
       }
+
       this.elements.collectionHistory.checked =
         this.collections.has(HISTORY_SETTING);
+
+      if (needsCleanup) {
+        this.elements.collectionHistory = null;
+      }
     },
 
     onhistorychecked() {
-      var checked = this.elements.collectionHistory.checked;
-      if (!checked) {
-        this.collections.delete(HISTORY_SETTING);
-        navigator.mozSettings.createLock().set({
-          'sync.collections.history.enabled': checked
-        });
+      debug('onhistorychecked');
+     this.oncollectionchecked(this.elements.collectionHistory,
+                              HISTORY_SETTING);
+    },
+
+    oncollectionchecked(element, setting) {
+      if (!element || !setting) {
         return;
       }
+
+      var checked = element.checked;
+      var settingObj = {};
+      settingObj[setting] = checked;
+      if (!checked) {
+        this.collections.delete(setting);
+        navigator.mozSettings.createLock().set(settingObj);
+        return;
+      }
+
+      // Yeah, mozId sucks...
+      // We cannot call watch twice to change the id lifetime
+      // callbacks. But we still need to do different stuff
+      // within the onlogin callback depending on who calls
+      // oncollectionchecked. So we need to save state.
+      // Thank you mozId.
+      this.setting = setting;
+      this.settingObj = settingObj;
 
       try {
         navigator.mozId.watch({
           wantIssuer: 'firefox-accounts',
           onlogin: () => {
-            this.collections.set(HISTORY_SETTING, true);
-            navigator.mozSettings.createLock().set({
-              'sync.collections.history.enabled': checked
-            });
+            // This callback is fired every time a new account logs in,
+            // but we only want to enable the history setting when this
+            // callback is called because the refresh auth flow succeeded.
+            // This can happen only if Sync is already enabled.
+            if (this.state !== 'enabled') {
+              return;
+            }
+            this.collections.set(this.setting, true);
+            navigator.mozSettings.createLock().set(this.settingObj);
           },
           onlogout: () => {},
           onready: () => {},
           onerror: error => {
+            element.checked = false;
             console.error(error);
           }
         });
       } catch(e) {}
 
       navigator.mozId.request({
-        oncancel: () => {},
+        oncancel: () => {
+          element.checked = false;
+        },
         // We keep authenticated sessions of 5 minutes, if the user clicks on
         // the history collection switch after the 5 minutes are expired, we
         // will be asking her to re-enter her fxa password.
@@ -312,6 +378,11 @@
         if (!this.listeners.has(name)) {
           return;
         }
+
+        if (this.elements[name].checked) {
+          this.elements[name].checked = false;
+        }
+
         this.removeListener(this.elements[name],
                             element.event, this.listeners.get(name));
         this.listeners.delete(name);
@@ -350,10 +421,23 @@
     disableSyncNowAndCollections(disabled) {
       ['collectionBookmarks',
        'collectionHistory'].forEach(name => {
+        if (!this.elements[name]) {
+          return;
+        }
         this.elements[name].disabled = disabled;
       });
       disabled ? this.elements.syncNowButton.classList.add('disabled')
                : this.elements.syncNowButton.classList.remove('disabled');
+    },
+
+    showEnabling() {
+      this.elements.signInButton.classList.add('disabled');
+      this.elements.signInButton.dataset.l10nId = 'fxsync-signing';
+    },
+
+    hideEnabling() {
+      this.elements.signInButton.classList.remove('disabled');
+      this.elements.signInButton.dataset.l10nId = 'fxsync-sign-in';
     },
 
     showSyncNow() {

@@ -79,6 +79,24 @@ suite('system/Accessibility', function() {
     timeStamp: Date.now()
   };
 
+  var fakeAppwillopen = {
+    type: 'appwillopen'
+  };
+
+  var fakeHomescreenopening = {
+    type: 'homescreenopening'
+  };
+
+  var fakeAppopened = {
+    type: 'appopened',
+    detail: { name: 'test-app' }
+  };
+
+  var fakeHomescreenopened = {
+    type: 'homescreenopened',
+    detail: { name: 'homescreen-app' }
+  };
+
   function getAccessFuOutput(aDetails) {
     return {
       type: 'mozChromeEvent',
@@ -181,7 +199,7 @@ suite('system/Accessibility', function() {
       var stubReset = this.sinon.stub(accessibility, 'reset');
       var stubCancelSpeech = this.sinon.stub(accessibility, 'cancelSpeech');
       var stubAnnounceScreenReader = this.sinon.stub(accessibility,
-        'announceScreenReader');
+        'announceScreenReader').returns(Promise.resolve());
       SettingsListener.mTriggerCallback('accessibility.screenreader', false);
       accessibility.FTU_STARTED_TIMEOUT = 0;
 
@@ -234,7 +252,7 @@ suite('system/Accessibility', function() {
 
     test('announce screen reader', function() {
       var stubAnnounceScreenReader = this.sinon.stub(accessibility,
-        'announceScreenReader');
+        'announceScreenReader').returns(Promise.resolve());
       var stubDisableFTUStartedTimeout = this.sinon.stub(accessibility,
         'disableFTUStartedTimeout');
       // Toggle volume up + volume down sequence three times.
@@ -315,6 +333,11 @@ suite('system/Accessibility', function() {
   });
 
   suite('handle accessibility-output events', function() {
+    var stubSpeak;
+    setup(function() {
+      stubSpeak = this.sinon.stub(accessibility, 'speak').returns(
+        Promise.resolve());
+    });
     test('handleAccessFuOutput', function() {
       var stubHandleAccessFuOutput = this.sinon.stub(accessibility,
         'handleAccessFuOutput');
@@ -326,7 +349,6 @@ suite('system/Accessibility', function() {
     test('vc-change key event', function() {
       var stub_playSound = this.sinon.stub(accessibility,
         '_playSound');
-      var stubSpeak = this.sinon.stub(accessibility, 'speak');
       accessibility.handleEvent(getAccessFuOutput(vcChangeKeyDetails));
       assert.isTrue(stub_playSound.called);
       assert.isTrue(stub_playSound.calledWith('vcKeyAudio'));
@@ -336,7 +358,6 @@ suite('system/Accessibility', function() {
     test('vc-change not key event', function() {
       var stub_playSound = this.sinon.stub(accessibility,
         '_playSound');
-      var stubSpeak = this.sinon.stub(accessibility, 'speak');
       accessibility.handleEvent(getAccessFuOutput(vcChangeNotKeyDetails));
       assert.isTrue(stub_playSound.called);
       assert.isTrue(stub_playSound.calledWith('vcMoveAudio'));
@@ -346,7 +367,6 @@ suite('system/Accessibility', function() {
     test('action click event', function() {
       var stub_playSound = this.sinon.stub(accessibility,
         '_playSound');
-      var stubSpeak = this.sinon.stub(accessibility, 'speak');
       accessibility.handleEvent(getAccessFuOutput(clickActionDetails));
       assert.isTrue(stub_playSound.called);
       assert.isTrue(stub_playSound.calledWith('clickedAudio'));
@@ -356,13 +376,11 @@ suite('system/Accessibility', function() {
     test('liveregion change event', function() {
       var stub_playSound = this.sinon.stub(accessibility,
         '_playSound');
-      var stubSpeak = this.sinon.stub(accessibility, 'speak');
       accessibility.handleEvent(getAccessFuOutput(liveRegionDetails));
       assert.isFalse(stub_playSound.called);
       assert.isTrue(stubSpeak.called);
       assert.deepEqual(liveRegionDetails.data, stubSpeak.args[0][0]);
-      assert.equal(typeof stubSpeak.args[0][1], 'function');
-      assert.deepEqual(liveRegionDetails.options, stubSpeak.args[0][2]);
+      assert.deepEqual(liveRegionDetails.options, stubSpeak.args[0][1]);
     });
 
     test('no-move event', function() {
@@ -405,13 +423,18 @@ suite('system/Accessibility', function() {
   });
 
   suite('interaction hints', function() {
-    test('handle vc change event with hints enabled', function() {
+    test('handle vc change event with hints enabled', function(done) {
       var stubSetHintsTimeout = this.sinon.stub(accessibility,
         'setHintsTimeout');
+      this.sinon.stub(accessibility, 'speak').returns(
+        Promise.resolve());
       accessibility.handleAccessFuOutput(vcChangeHintsEnabledDetails);
-      assert.isTrue(stubSetHintsTimeout.called);
-      assert.isTrue(stubSetHintsTimeout.calledWith(
-        vcChangeHintsEnabledDetails.options.hints));
+      setTimeout(() => {
+        assert.isTrue(stubSetHintsTimeout.called);
+        assert.isTrue(stubSetHintsTimeout.calledWith(
+          vcChangeHintsEnabledDetails.options.hints));
+        done();
+      });
     });
 
     test('make sure hints are canceled on screen off', function() {
@@ -444,7 +467,8 @@ suite('system/Accessibility', function() {
       });
 
       test('make sure hints are spoken', function() {
-        var stubSpeak = this.sinon.stub(accessibility, 'speak');
+        var stubSpeak = this.sinon.stub(accessibility, 'speak').returns(
+          Promise.resolve());
         accessibility.setHintsTimeout(
           vcChangeHintsEnabledDetails.options.hints);
         clock.tick(accessibility.HINTS_TIMEOUT + 50);
@@ -521,6 +545,55 @@ suite('system/Accessibility', function() {
       assert.equal(MockSettingsHelper.instances['language.current'].value,
         'en-GB');
       SettingsListener.mTriggerCallback('accessibility.screenreader', false);
+    });
+  });
+
+  suite('app related events', function() {
+    test('appwillopen/homescreenopening', function() {
+      var stubPrepareForApp = this.sinon.stub(accessibility, 'prepareForApp');
+      accessibility.handleEvent(fakeAppwillopen);
+      assert.isTrue(stubPrepareForApp.called);
+
+      stubPrepareForApp.reset();
+      accessibility.handleEvent(fakeHomescreenopening);
+      assert.isTrue(stubPrepareForApp.called);
+    });
+
+    test('prepareForApp', function() {
+      accessibility.appOpening = false;
+      accessibility.prepareForApp();
+      assert.isTrue(accessibility.appOpening);
+    });
+
+    test('appopened/homescreenopened', function() {
+      var stubAnnounceApp = this.sinon.stub(accessibility, 'announceApp');
+      accessibility.handleEvent(fakeAppopened);
+      assert.isTrue(stubAnnounceApp.called);
+      assert.isTrue(stubAnnounceApp.calledWith(fakeAppopened.detail));
+
+      stubAnnounceApp.reset();
+      accessibility.handleEvent(fakeHomescreenopened);
+      assert.isTrue(stubAnnounceApp.called);
+      assert.isTrue(stubAnnounceApp.calledWith(fakeHomescreenopened.detail));
+    });
+
+    test('announceApp', function(done) {
+      accessibility.appOpening = true;
+      var stubSpeak = this.sinon.stub(accessibility, 'speak').returns(
+        Promise.resolve());
+      var stubHandleAccessFuOutput = this.sinon.stub(accessibility,
+        'handleAccessFuOutput');
+      var fakeLastVCChangeDetails = {test: 'test'};
+      accessibility.lastVCChangeDetails = fakeLastVCChangeDetails;
+
+      accessibility.announceApp(fakeAppopened.detail);
+      assert.isTrue(stubSpeak.calledWith(fakeAppopened.detail.name));
+      setTimeout(() => {
+        assert.isFalse(accessibility.appOpening);
+        assert.isTrue(stubHandleAccessFuOutput.calledWith(
+          fakeLastVCChangeDetails));
+        done();
+      });
     });
   });
 });

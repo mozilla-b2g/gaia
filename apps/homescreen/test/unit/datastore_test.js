@@ -135,7 +135,7 @@ suite('Datastore', () => {
       });
     });
 
-    test('should call set() on remove', done => {
+    test('should call remove() on remove', done => {
       stub = sinon.stub(bookmarks, 'remove');
       bookmarks.datastore._tasks[0] = {
         operation: 'remove',
@@ -148,7 +148,7 @@ suite('Datastore', () => {
       });
     });
 
-    test('should call set() on clear', done => {
+    test('should call clear() on clear', done => {
       stub = sinon.stub(bookmarks, 'clear');
       bookmarks.datastore._tasks[0] = {
         operation: 'clear',
@@ -182,6 +182,7 @@ suite('Datastore', () => {
       objectStores = {};
       deletedValues = [];
       bookmarks.db.transaction = (objectStoreNames, IDBTransactionMode) => {
+        var oncomplete = null;
         return {
           objectStore: name => {
             return {
@@ -190,16 +191,28 @@ suite('Datastore', () => {
                   return;
                 }
                 objectStores[name] = value;
+                if (oncomplete) {
+                  oncomplete();
+                  oncomplete = null;
+                }
               },
               delete: value => {
                 if (name !== objectStoreName) {
                   return;
                 }
                 deletedValues.push(value);
+                if (oncomplete) {
+                  oncomplete();
+                  oncomplete = null;
+                }
               },
               clear: () => {
                 if (name !== objectStoreName) {
                   return;
+                }
+                if (oncomplete) {
+                  oncomplete();
+                  oncomplete = null;
                 }
               },
               get: () => {
@@ -239,13 +252,17 @@ suite('Datastore', () => {
                         }
                       }
                     });
+                    if (oncomplete) {
+                      oncomplete();
+                      oncomplete = null;
+                    }
                   }
                 };
               }
             };
           },
           set oncomplete(cb) {
-            cb();
+            oncomplete = cb;
           },
           onerror: () => {}
         };
@@ -283,6 +300,23 @@ suite('Datastore', () => {
         });
         bookmarks.set(data);
       });
+
+      test('handles exception', done => {
+        var realTransaction = bookmarks.db.transaction;
+        bookmarks.db.transaction = (objectStoreNames, IDBTransactionMode) => {
+          var txn = realTransaction(objectStores, IDBTransactionMode);
+          var realObjectStore = txn.objectStore;
+          txn.objectStore = objectStoreName => {
+            var objectStore = realObjectStore(objectStoreName);
+            sinon.stub(objectStore, 'put', () => {
+              throw 'this exception should be caught';
+            });
+            return objectStore;
+          };
+          return txn;
+        };
+        bookmarks.set(data).then(done, done);
+      });
     });
 
     suite('Datastore#remove()', () => {
@@ -306,6 +340,23 @@ suite('Datastore', () => {
           done();
         });
         bookmarks.remove(id);
+      });
+
+      test('handles exception', done => {
+        var realTransaction = bookmarks.db.transaction;
+        bookmarks.db.transaction = (objectStoreNames, IDBTransactionMode) => {
+          var txn = realTransaction(objectStores, IDBTransactionMode);
+          var realObjectStore = txn.objectStore;
+          txn.objectStore = objectStoreName => {
+            var objectStore = realObjectStore(objectStoreName);
+            sinon.stub(objectStore, 'delete', () => {
+              throw 'this exception should be caught';
+            });
+            return objectStore;
+          };
+          return txn;
+        };
+        bookmarks.remove(id).then(done, done);
       });
     });
 

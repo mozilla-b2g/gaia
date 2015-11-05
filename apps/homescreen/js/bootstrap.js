@@ -1,5 +1,5 @@
-/* global App */
-/* exported app */
+/* global AppWindow */
+/* exported appWindow */
 'use strict';
 
-var app = new App();
+var appWindow = new AppWindow();

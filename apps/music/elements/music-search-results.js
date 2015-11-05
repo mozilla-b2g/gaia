@@ -4,7 +4,9 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
-var template =
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style>
   [data-icon]:before { /* Copied from /components/gaia-icons/gaia-icons.css */
     font-family: "gaia-icons";
@@ -61,17 +63,13 @@ var template =
   <template>
     <li>
       <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
-        <img style="visibility: \${name ? 'visible' : 'hidden'}">
+        <div class="image"><img></div>
         <h3>\${title}</h3>
         <p>\${subtitle}</p>
       </a>
     </li>
   </template>
 </gaia-fast-list>`;
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 

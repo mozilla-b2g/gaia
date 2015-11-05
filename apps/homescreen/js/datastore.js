@@ -139,7 +139,12 @@
                                                  { detail: { id: data.id }}));
         }.bind(this, data, resolve);
         txn.onerror = reject;
-        txn.objectStore(this.storeName).put({ id: data.id, data: data });
+        try {
+          txn.objectStore(this.storeName).put({ id: data.id, data: data });
+        } catch(e) {
+          console.error('Error putting data in ' + this.idbName + ':', e);
+          resolve();
+        }
       });
     },
 
@@ -152,7 +157,12 @@
                                                  { detail: { id: id }}));
         }.bind(this, id, resolve);
         txn.onerror = reject;
-        txn.objectStore(this.storeName).delete(id);
+        try {
+          txn.objectStore(this.storeName).delete(id);
+        } catch(e) {
+          console.error('Error deleting data from ' + this.idbName + ':', e);
+          resolve();
+        }
       });
     },
 
@@ -197,6 +207,7 @@
         var results = [];
         var txn = this.db.transaction([this.storeName], 'readonly');
         txn.onerror = reject;
+        txn.oncomplete = () => { resolve(results); };
         txn.objectStore(this.storeName).openCursor().onsuccess =
           (event) => {
             var cursor = event.target.result;
@@ -207,7 +218,6 @@
               cursor.continue();
             }
           };
-        txn.oncomplete = () => { resolve(results); };
       });
     }
   };

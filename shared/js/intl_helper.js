@@ -34,7 +34,7 @@
         );
       },
       isAffected: function(obj, reason) {
-        if (reason === 'languagechange') {
+        if (['languagechange', 'moztimechange'].includes(reason)) {
           return true;
         }
         if (reason === 'timeformatchange') {
@@ -55,7 +55,7 @@
         );
       },
       isAffected: function(obj, reason) {
-        if (reason === 'languagechange') {
+        if (['languagechange', 'moztimechange'].includes(reason)) {
           return true;
         }
         if (reason === 'timeformatchange') {
@@ -226,4 +226,5 @@
 
   window.addEventListener('timeformatchange', global.IntlHelper, false);
   window.addEventListener('languagechange', global.IntlHelper, false);
+  window.addEventListener('moztimechange', global.IntlHelper, false);
 })(this);

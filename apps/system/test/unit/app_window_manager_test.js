@@ -395,7 +395,7 @@ suite('system/AppWindowManager', function() {
         this.sinon.stub(subject, 'broadcastMessage');
       subject.handleEvent({ type: 'appwindow-orientationchange' });
       assert.isTrue(
-        stubBroadcastMessage.calledWith('appwindow-orientationchange', true));
+        stubBroadcastMessage.calledWith('orientationchange', true));
     });
 
     test('Press home on home displayed', function() {

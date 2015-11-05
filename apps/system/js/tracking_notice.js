@@ -150,8 +150,12 @@
 
   TrackingNotice.prototype.destroy = function() {
     if (this.element) {
+      var removeOnHide = () => {
+        this.element.removeEventListener('transitionend', removeOnHide);
+        this.containerElement.removeChild(this.element);
+      };
+      this.element.addEventListener('transitionend', removeOnHide);
       this.hide();
-      this.containerElement.removeChild(this.element);
     }
     this.publish('destroyed');
   };

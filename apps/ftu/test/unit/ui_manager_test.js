@@ -4,7 +4,7 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 require('/shared/js/component_utils.js');
@@ -47,8 +47,8 @@ suite('UI Manager > ', function() {
   var mocksHelper = mocksHelperForUI;
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realTzSelect = window.tzSelect;
     window.tzSelect = MockTzSelect;
@@ -79,7 +79,7 @@ suite('UI Manager > ', function() {
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
 
     window.tzSelect = realTzSelect;
@@ -128,7 +128,7 @@ suite('UI Manager > ', function() {
         cityLabel = document.getElementById('tz-city-label');
         timeLabel = document.getElementById('time-configuration-label');
 
-        localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+        localizeSpy = this.sinon.spy(document.l10n, 'setAttributes');
         UIManager.setTimeZone(FAKE_TIMEZONE);
       });
 
@@ -214,13 +214,13 @@ suite('UI Manager > ', function() {
     });
 
     setup(function() {
-      localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+      localizeSpy = this.sinon.spy(document.l10n, 'setAttributes');
       nextButton = document.getElementById('forward');
       createAccountButton = document.getElementById('fxa-create-account');
     });
 
     teardown(function() {
-      navigator.mozL10n.setAttributes.restore();
+      document.l10n.setAttributes.restore();
     });
 
     suite('Verified Firefox Account login', function() {

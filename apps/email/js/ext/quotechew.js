@@ -13,7 +13,24 @@
  * growing in size because all users keep replying and leaving default quoting
  * intact.
  *
+ * The quotechew representation is a flat array consisting of (flattened) pairs
+ * of an encoded content type integer and a string that is the content whose
+ * nature is described by that block.
  *
+ * NOTE: This representation was okay, but arguably a compromise between:
+ * - premature optimization storage concerns
+ * - wide eyes looking at a future where we could be more clever about quoting
+ *   than we ended up being able to be
+ * - wanting to be able to efficiently render the quoted text into the DOM
+ *   without having complicated render code or having to worry about security
+ *   issues.
+ *
+ * Going forward, a more DOM-y representation that could allow the UI to
+ * more uniformly treat text/plain and text/html for display purposes could be
+ * nice.  In particular, I think it would be great to be able to have quotes
+ * tagged as such and things like boilerplate be indicated both at the top-level
+ * and inside quotes.  This would be great for smart-collapsing of quotes and
+ * things no one cares about.
  **/
 
 define(
@@ -113,7 +130,41 @@ var RE_SECTION_DELIM = /^[_-]{6,}$/;
 
 var RE_LIST_BOILER = /mailing list$/;
 
+/**
+ * Non-localized hard-coded heuristic to help us detect whether a line is the
+ * lead-in to a quote block.  This is only checked against the last content line
+ * preceding a quote block.  This only results in styling guidance, so if it's
+ * too aggresive or insufficiently aggressive, the worst that happens is the
+ * line will be dark gray instead of black.  (For now!  Moohoohahahahahaha.)
+ */
 var RE_WROTE_LINE = /wrote/;
+
+/**
+ * Hacky reply helper to check if the last line in a content block contains the
+ * words wrote.  In a nutshell:
+ * - The current quoting logic can only detect a quoting lead-in in non-quoted
+ *   text and I'm not crazy enough to enhance this at this time.  (The current
+ *   mechanism is already complex and assumes it's not dealing with '>'
+ *   characters.  An enhanced mechanism could operate on a normalized
+ *   representation where the quoting has been normalized to no longer include
+ *   the > characters.  That would be a sortof multi-pass AST/tree-transformer.
+ *   Future work.)
+ * - The reply logic performs normalization on output, but without knowing about
+ *   lead-ins, it makes the wrong normalization call for these wrote lines,
+ *   inserting wasted whitespace.  This regex is an attempt to retroactively do
+ *   the cool thing the former bullet proposes.  And it does indeed work out
+ *   because of our aggressive newline normalization logic.
+ * - Obviously this is not localized at all, but neither is the above.
+ *
+ * To keep the regex cost-effective and doing what we want, we anchor it to the
+ * end of the string and ensure there are no newline characters before wrote.
+ * (And we check for wrote without any other constraints because that's what the
+ * above does.)
+ *
+ * Again, since this only controls whether a newline is inserted or not, it's
+ * really not the end of the world.
+ */
+var RE_REPLY_LAST_LINE_IN_BLOCK_CONTAINS_WROTE = /wrote[^\n]+$/;
 
 var RE_SIGNATURE_LINE = /^-- $/;
 
@@ -136,6 +187,10 @@ var RE_PRODUCT_BOILER = /^(?:Sent from (?:Mobile|my .+))$/;
 
 var RE_LEGAL_BOILER_START = /^(?:This message|Este mensaje)/;
 
+/**
+ * String.indexOf helper that will return the provided default value when -1
+ * would otherwise be returned.
+ */
 function indexOfDefault(string, search, startIndex, defVal) {
   var idx = string.indexOf(search, startIndex);
   if (idx === -1)
@@ -145,6 +200,11 @@ function indexOfDefault(string, search, startIndex, defVal) {
 
 var NEWLINE = '\n', RE_NEWLINE = /\n/g;
 
+/**
+ * Count the number of newlines in the string in the [startIndex, endIndex)
+ * characterized region.  (Using mathy syntax there: startIndex is inclusive,
+ * endIndex is exclusive.)
+ */
 function countNewlinesInRegion(string, startIndex, endIndex) {
   var idx = startIndex - 1, count = 0;
   for (;;) {
@@ -173,8 +233,13 @@ function countNewlinesInRegion(string, startIndex, endIndex) {
  *   until we reach something that we don't think is boilerplate.
  */
 exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
+  // Our serialized representation of the body, incrementally built.  Consists
+  // of pairwise integer codes and content string blocks.
   var contentRep = [];
+  // The current content line being parsed by our parsing loop, does NOT include
+  // the trailing newline.
   var line;
+
   /**
    * Count the number of '>' quoting characters in the line, mutating `line` to
    * not include the quoting characters.  Some clients will place a single space
@@ -209,8 +274,17 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
   }
 
   /**
-   * Scan backwards line-by-line through a chunk of text looking for boilerplate
-   * chunks.  We can stop once we determine we're not in boilerplate.
+   * Scan backwards line-by-line through a chunk of content (AKA non-quoted)
+   * text looking for boilerplate chunks.  We can stop once we determine we're
+   * not in boilerplate.
+   *
+   * Note: The choice to not run us against quoted blocks was an intentional
+   * simplification at the original time of implementation, presumably because
+   * knowing something was a quote was sufficient and realistically all our
+   * styling could hope to handle.  Also, the ontological commitment to a flat
+   * document representation.  In retrospect, I think it could make sense to
+   * use a tree that marks up each layer as quote/content/boilerplate/etc. in a
+   * more DOM-like fashion.
    *
    * - Product blurbs must be the first non-whitespace line seen to be detected;
    *   they do not have to be delimited by an ASCII line.
@@ -325,7 +399,14 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
   }
 
   /**
-   * Assume that we are in a content region and that all variables are proper.
+   * Interpret the current content region starting at (from the loop)
+   * idxRegionStart as a user-authored content-region which may have one or more
+   * segments of boilerplate on the end that should be chopped off and marked as
+   * such.
+   *
+   * We are called by the main parsing loop and assume that all the shared state
+   * variables that we depend on have been properly maintained and we will,
+   * in-turn, mutate them.
    */
   function pushContent(considerForBoilerplate, upToPoint, forcePostLine) {
     if (idxRegionStart === null) {
@@ -398,6 +479,14 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
     idxPrevLastNonWhitespaceLineEnd = null;
   }
 
+  /**
+   * Interpret the current content region starting at (from the loop)
+   * idxRegionStart as a quoted block.
+   *
+   * We are called by the main parsing loop and assume that all the shared state
+   * variables that we depend on have been properly maintained and we will,
+   * in-turn, mutate them.
+   */
   function pushQuote(newQuoteDepth) {
     var atePostLines = 0;
     // Discard empty lines at the end.  We already skipped adding blank lines, so
@@ -428,19 +517,34 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
   // is fine with us asking for more than it has.
 
 
+  // ==== It's the big parsing loop!
+  // Each pass of the for-loop tries to look at one line of the message at a
+  // time.  (This is sane because text/plain messages are line-centric.)
+  //
+  // The main goal of the loop is to keep processing lines of a single content
+  // type until it finds content of a different type and then "push"/flush what
+  // it accumulated.  Then it can start processing that content type until it
+  // finds a different content type.
+  //
+  // This mainly means noticing when we change quoting levels, and if we're
+  // entering a deeper level of quoting, separating off any quoting lead-in (ex:
+  // "Alive wrote:").
+
   var idxLineStart, idxLineEnd, bodyLength = fullBodyText.length,
       // null means we are looking for a non-whitespace line.
       idxRegionStart = null,
-      curRegionType = null,
       lastNonWhitespaceLine = null,
-      // The index of the last non-purely whitespace line.
+      // The index of the last non-purely whitespace line. (Its \n)
       idxLastNonWhitespaceLineEnd = null,
       // value of idxLastNonWhitespaceLineEnd prior to its current value
       idxPrevLastNonWhitespaceLineEnd = null,
-      //
+      // Our current quote depth.  0 if we're not in quoting right now.
       inQuoteDepth = 0,
       quoteRunLines = null,
-      contentType = null,
+      // XXX very sketchy mechanism that inhibits boilerplate detection if we
+      // have ever generated a quoted block.  This seems like it absolutely
+      // must be broken and the intent was for it to be some type of short-term
+      // memory effect that ended up being a permanent memory effect.
       generatedQuoteBlock = false,
       atePreLines = 0, ateQuoteLines = 0;
   for (idxLineStart = 0,
@@ -476,8 +580,50 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
         if (lastNonWhitespaceLine &&
             RE_WROTE_LINE.test(lastNonWhitespaceLine)) {
 
-          // count the newlines up to the lead-in's newline
+          // But surprise!  This could be a non-format-flowed message where the
+          // true lead-in line started on the previous line and the "wrote" bit
+          // that triggered us spills over.
+
+          // Let's start with just the line we've got...
+          // (count the newlines up to the lead-in's newline)
           var upToPoint = idxLastNonWhitespaceLineEnd;
+
+          // Now let's see if the preceding line had content.  We can infer this
+          // by whether we find a newline between the prevLast and last points.
+          // No newline means there's content on that preceding line.  (There
+          // could also be more content on the line(s) prior to that that flow
+          // into this, but that's not particularly likely unless something is
+          // going wrong with our heuristic.  At which point it's good for us
+          // to mitigate the damage.)
+          if (idxPrevLastNonWhitespaceLineEnd !== null) {
+            var considerIndex = idxPrevLastNonWhitespaceLineEnd + 1;
+            while (considerIndex < idxLastNonWhitespaceLineEnd) {
+              if (fullBodyText[considerIndex++] === '\n') {
+                break;
+              }
+            }
+
+            if (considerIndex === idxLastNonWhitespaceLineEnd) {
+              // We didn't encounter a newline.  So now we need to rewind the
+              // point to be at the start of the PrevLast line.
+              upToPoint =
+                fullBodyText.lastIndexOf(
+                  '\n', idxPrevLastNonWhitespaceLineEnd - 1);
+              lastNonWhitespaceLine =
+                fullBodyText.substring(upToPoint + 1,
+                                       idxLastNonWhitespaceLineEnd)
+                .replace(/\s*\n\s*/, ' ');
+              // Note, we really should be scanning further to elide whitespace,
+              // but this is largely a hack to mitigate worse-case snippet
+              // generating behaviour in the face of bottom-posting where the
+              // quoting lines are the first things observed.
+              idxPrevLastNonWhitespaceLineEnd = upToPoint - 1;
+              if (idxPrevLastNonWhitespaceLineEnd <= idxRegionStart) {
+                idxRegionStart = null;
+              }
+            }
+          }
+
           idxLastNonWhitespaceLineEnd = idxPrevLastNonWhitespaceLineEnd;
           // Nuke the content region if the lead-in was the start of the region;
           // this can be inferred by there being no prior content line.
@@ -505,12 +651,12 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
       }
 
       // Eat whitespace lines until we get a non-whitespace (quoted) line.
-      if (quoteRunLines.length || line.length)
+      if (quoteRunLines.length || line.length) {
         quoteRunLines.push(line);
-      else
+      } else {
         ateQuoteLines++;
-    }
-    else {
+      }
+    } else { // We're leaving a quoted region!
       if (inQuoteDepth) {
         pushQuote(0);
         idxLastNonWhitespaceLineEnd = null;
@@ -602,6 +748,10 @@ var replyQuoteNewlineReplaceStringsNoSpace = [
   '\n>', '\n>>', '\n>>>', '\n>>>>', '\n>>>>>', '\n>>>>>>', '\n>>>>>>>',
   '\n>>>>>>>>',
 ];
+var replyQuoteBlankLine = [
+  '\n', '>\n', '>>\n', '>>>\n', '>>>>\n', '>>>>>\n', '>>>>>>\n', '>>>>>>>\n',
+  '>>>>>>>>\n',
+];
 var replyPrefix = '> ', replyNewlineReplace = '\n> ';
 
 function expandQuotedPrefix(s, depth) {
@@ -628,27 +778,71 @@ function expandQuoted(s, depth) {
 
 /**
  * Generate a text message reply given an already quote-processed body.  We do
- * not simply '>'-prefix everything because 1) we don't store the raw message
- * text because it's faster for us to not quote-process everything every time we
- * display a message, 2) we want to strip some stuff out, 3) we don't care about
- * providing a verbatim quote.
+ * not simply '>'-prefix everything because
+ * 1. We don't store the raw message text because it's faster for us to not
+ *    quote-process everything every time we display a message
+ * 2. We want to strip some stuff out of the reply.
+ * 3. It is not our goal to provide a verbatim quoting.  (However, it is our
+ *    goal in the forwarding case.  Which is why forwarding makes use of the
+ *    counts of newlines we ate to try and reconstruct whitespace and the
+ *    message verbatim.)
  */
 exports.generateReplyText = function generateReplyText(rep) {
   var strBits = [];
+  // For the insertion of delimiting whitespace newlines between blocks, we want
+  // to continue the quoting
+  var lastContentDepth = null;
+  // Lead-ins do not want delimiting newlines between them and their quoted
+  // content.
+  var suppressWhitespaceBlankLine = false;
   for (var i = 0; i < rep.length; i += 2) {
     var etype = rep[i]&0xf, block = rep[i + 1];
     switch (etype) {
+      default:
       case CT_AUTHORED_CONTENT:
       case CT_SIGNATURE:
-      case CT_LEADIN_TO_QUOTE:
-        strBits.push(expandQuotedPrefix(block, 0));
-        strBits.push(expandQuoted(block, 0));
+      case CT_LEADIN_TO_QUOTE: // (only first-level!)
+        // Ignore content blocks with nothing in them.  (These may exist for
+        // the benefit of the forwarding logic which wants them for whitespace
+        // consistency.)
+        if (block.length) {
+          if (lastContentDepth !== null) {
+            // Blocks lack trailing newlines, so we need to flush the newline if
+            // there was a preceding one.
+            strBits.push(NEWLINE);
+            // Add appropriate delimiting whitespace
+            if (!suppressWhitespaceBlankLine) {
+              strBits.push(replyQuoteBlankLine[lastContentDepth]);
+            }
+          }
+          strBits.push(expandQuotedPrefix(block, 0));
+          strBits.push(expandQuoted(block, 0));
+          lastContentDepth = 1;
+          suppressWhitespaceBlankLine = (etype === CT_LEADIN_TO_QUOTE);
+        }
         break;
       case CT_QUOTED_TYPE:
         var depth = ((rep[i] >> 8)&0xff) + 1;
+        // If this quoting level is too deep, just pretend like it does not
+        // exist.
         if (depth < MAX_QUOTE_REPEAT_DEPTH) {
+          if (lastContentDepth !== null) {
+            // Blocks lack trailing newlines, so we need to flush the newline if
+            // there was a preceding one.
+            strBits.push(NEWLINE);
+            // Add appropriate delimiting whitespace
+            if (!suppressWhitespaceBlankLine) {
+              strBits.push(replyQuoteBlankLine[lastContentDepth]);
+            }
+          }
           strBits.push(expandQuotedPrefix(block, depth));
           strBits.push(expandQuoted(block, depth));
+          lastContentDepth = depth;
+          // Don't suppress a whitespace blank line unless we seem to include
+          // a quote lead-in at the end of our block.  See the regex's content
+          // block for more details on this.
+          suppressWhitespaceBlankLine =
+            RE_REPLY_LAST_LINE_IN_BLOCK_CONTAINS_WROTE.test(block);
         }
         break;
       // -- eat boilerplate!
@@ -678,25 +872,30 @@ exports.generateForwardBodyText = function generateForwardBodyText(rep) {
   var strBits = [], nl;
 
   for (var i = 0; i < rep.length; i += 2) {
-    if (i)
+    if (i) {
       strBits.push(NEWLINE);
+    }
 
     var etype = rep[i]&0xf, block = rep[i + 1];
     switch (etype) {
       // - injected with restored whitespace
+      default:
       case CT_AUTHORED_CONTENT:
         // pre-newlines
-        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--) {
           strBits.push(NEWLINE);
+        }
         strBits.push(block);
         // post new-lines
-        for (nl = (rep[i] >> 16)&0xff; nl; nl--)
+        for (nl = (rep[i] >> 16)&0xff; nl; nl--) {
           strBits.push(NEWLINE);
+        }
         break;
       case CT_LEADIN_TO_QUOTE:
         strBits.push(block);
-        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--) {
           strBits.push(NEWLINE);
+        }
         break;
       // - injected verbatim,
       case CT_SIGNATURE:
@@ -704,11 +903,13 @@ exports.generateForwardBodyText = function generateForwardBodyText(rep) {
       case CT_BOILERPLATE_LIST_INFO:
       case CT_BOILERPLATE_PRODUCT:
       case CT_BOILERPLATE_ADS:
-        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--) {
           strBits.push(NEWLINE);
+        }
         strBits.push(block);
-        for (nl = (rep[i] >> 16)&0xff; nl; nl--)
+        for (nl = (rep[i] >> 16)&0xff; nl; nl--) {
           strBits.push(NEWLINE);
+        }
         break;
       // - quote character reconstruction
       // this is not guaranteed to round-trip since we assume the non-whitespace
@@ -731,5 +932,4 @@ exports.generateForwardBodyText = function generateForwardBodyText(rep) {
 
   return strBits.join('');
 };
-
 }); // end define

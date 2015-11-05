@@ -3,7 +3,7 @@
 /**
  * Helper object to find all supported languages;
  *
- * (Needs mozL10n and the settings permission)
+ * (Needs l10n.js or l20n.js, and the settings permission)
  */
 
 (function(exports) {
@@ -52,32 +52,37 @@ exports.LanguageList = {
   _readSetting: readSetting,
 
   _extendPseudo: function(languages, currentLang, pseudoEnabled) {
-    var lang;
-    var isCurrent;
-
+    // 1. remove buildtime pseudolocales is pseudo is disabled
     if (!pseudoEnabled) {
-      // remove buildtime pseudolocales
-      for (lang in languages) {
-        isCurrent = (lang === currentLang);
-        if (lang.indexOf('-x-ps') > -1 && !isCurrent) {
-          delete languages[lang];
+      for (var code in languages) {
+        var isCurrent = (code === currentLang);
+        if (code.indexOf('-x-ps') > -1 && !isCurrent) {
+          delete languages[code];
         }
       }
     }
 
-    if (navigator.mozL10n) {
-      // add runtime pseudolocales
-      for (lang in navigator.mozL10n.qps) {
-        if (lang in languages) {
-          continue;
-        }
-        isCurrent = (lang === currentLang);
-        if (isCurrent || pseudoEnabled) {
-          languages[lang] = navigator.mozL10n.qps[lang].name;
-        }
-      }
+    if (!document.l10n) {
+      return Promise.resolve(languages);
     }
 
+    // 2. add the remaining runtime pseudolocales if pseudo enabled
+    var runtimePseudoCodes = Object.keys(document.l10n.pseudo).filter(
+      code => !(code in languages) && (code === currentLang || pseudoEnabled));
+
+    function obj(arr1, arr2) {
+      // JSHint doesn't work with array comprehensions 
+      /* jshint ignore: start */
+      const zipped = [for (x of arr1) for (y of arr2) [x, y]];
+      return zipped.reduce(
+        (obj, [x, y]) => Object.assign(obj, { [x]: y }), {});
+      /* jshint ignore: end */
+    }
+
+    return Promise.all(
+      runtimePseudoCodes.map(
+        code => document.l10n.pseudo[code].getName())).then(
+      names => Object.assign(languages, obj(runtimePseudoCodes, names)));
   },
 
   _extendAdditional: function(languages, ver, additional) {
@@ -120,20 +125,22 @@ exports.LanguageList = {
   _build: function() {
     return Promise.all([
       this._languages || (this._languages = this._readFile(LOCALES_FILE)),
-      this._readSetting('deviceinfo.os'),
       this._readSetting('language.current'),
-      this._readSetting('devtools.pseudolocalization.enabled'),
-      this._readSetting('accessibility.screenreader'),
-      navigator.mozApps.getAdditionalLanguages()
-    ]).then(
-      function([langsFromFile, ver, current, pseudoEnabled, srEnabled, addl]) {
-        var langs = this._copyObj(langsFromFile);
-        this._extendPseudo(langs, current, pseudoEnabled);
-        this._extendAdditional(langs, this._parseVersion(ver), addl);
-        this._removeWithNoSpeech(langs, srEnabled);
-        return [langs, current];
-      }.bind(this));
-
+      this._readSetting('devtools.pseudolocalization.enabled')
+    ]).then(([langsFromFile, current, pseudoEnabled]) => {
+      var langs = this._copyObj(langsFromFile);
+      return Promise.all([
+        this._extendPseudo(langs, current, pseudoEnabled),
+        this._readSetting('deviceinfo.os'),
+        current,
+        this._readSetting('accessibility.screenreader'),
+        navigator.mozApps.getAdditionalLanguages()
+      ]);
+    }).then(([langs, ver, current, srEnabled, addl]) => {
+      this._extendAdditional(langs, this._parseVersion(ver), addl);
+      this._removeWithNoSpeech(langs, srEnabled);
+      return [langs, current];
+    });
   },
 
   get: function(callback) {

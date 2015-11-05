@@ -5,5 +5,10 @@
   "description": "Another test add-on that doesn't actually do anything",
   "developer": {
     "name": "The Gaia Team"
-  }
+  },
+  "content_scripts": [{
+    "matches": ["app://settings.gaiamobile.org/index.html"],
+    "js": [],
+    "css": []
+  }]
 }

@@ -5,7 +5,9 @@ var proto = Object.create(HTMLElement.prototype);
 
 var isTouch = 'ontouchstart' in window;
 
-var template =
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style>
   [data-icon]:before { /* Copied from /components/gaia-icons/gaia-icons.css */
     font-family: "gaia-icons";
@@ -69,10 +71,6 @@ var template =
       data-l10n-id="playbackNext">
   </button>
 </div>`;
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 

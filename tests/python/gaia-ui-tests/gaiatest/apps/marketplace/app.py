@@ -17,7 +17,7 @@ class Marketplace(Base):
     _search_locator = (By.ID, 'search-q')
     _filter_locator = (By.ID, 'compat-filter')
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
-    _search_toggle_locator = (By.CSS_SELECTOR, '.header--search-toggle')
+    _search_toggle_locator = (By.CLASS_NAME, 'mkt-search-btn')
 
     name = 'Marketplace'
     manifest_url = 'https://marketplace.firefox.com/packaged.webapp'

@@ -75,6 +75,7 @@ class Language(Base):
         # loop options until we find the match
         for li in options:
             if match_string in li.text:
+                self.marionette.execute_script('arguments[0].scrollIntoView(false);', [li])
                 li.tap()
                 break
         else:

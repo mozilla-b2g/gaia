@@ -18,6 +18,7 @@
 
   color: white;
   font-weight: 400;
+  text-shadow: rgba(0, 0, 0, 0.5) 0 0.1rem 0.3rem;
   white-space: normal;
   text-align: center;
 
@@ -50,6 +51,18 @@ div#boxes > div {
   height: 15rem;
   border: 0.2rem dashed rgba(255, 255, 255, 0.8);
   box-sizing: border-box;
+}
+
+/* Pseudo-element to get a shadow */
+div#boxes > div:before {
+  content: ' ';
+  position: absolute;
+  top: -0.1rem;
+  right: -0.2rem;
+  bottom: -0.3rem;
+  left: -0.2rem;
+  border: 0.2rem dashed rgba(0, 0, 0, 0.2);
+  z-index: -1;
 }
 
 div#boxes > div:nth-child(0) {

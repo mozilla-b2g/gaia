@@ -1,4 +1,4 @@
-/*global define, console, setTimeout */
+/*global define, console */
 /**
  * Drives periodic synchronization, covering the scheduling, deciding what
  * folders to sync, and generating notifications to relay to the UI.  More
@@ -10,7 +10,7 @@
  *    server for general responsiveness and so the user can use the device
  *    offline.
  *
- * We use navigator.sync to schedule ourselves to wake up when our next
+ * We use mozAlarm to schedule ourselves to wake up when our next
  * synchronization should occur.
  *
  * All synchronization occurs in parallel because we want the interval that we
@@ -21,34 +21,20 @@
  * displays and services them to the user.
  **/
 
-define(
-  [
-    'logic',
-    './worker-router',
-    './slice_bridge_proxy',
-    './mailslice',
-    './syncbase',
-    './allback',
-    'module',
-    'exports'
-  ],
-  function(
-    logic,
-    $router,
-    $sliceBridgeProxy,
-    $mailslice,
-    $syncbase,
-    $allback,
-    $module,
-    exports
-  ) {
+define(function(require, exports) {
+'use strict';
 
+var logic = require('logic'),
+    router = require('./worker-router'),
+    mailslice = require('./mailslice'),
+    syncbase = require('./syncbase'),
+    allback = require( './allback');
 
 function debug(str) {
-  console.log("cronsync: " + str + "\n");
+  console.log('cronsync: ' + str + '\n');
 }
 
-var SliceBridgeProxy = $sliceBridgeProxy.SliceBridgeProxy;
+var SliceBridgeProxy = require('./slice_bridge_proxy').SliceBridgeProxy;
 
 /**
  * Create a specialized sync slice via clobbering that accumulates a list of
@@ -95,7 +81,7 @@ function makeHackedUpSlice(storage, callback) {
         __sendMessage: function() {}
       },
       proxy = new SliceBridgeProxy(fakeBridgeThatEatsStuff, 'cron'),
-      slice = new $mailslice.MailSlice(proxy, storage),
+      slice = new mailslice.MailSlice(proxy, storage),
       oldStatusMethod = proxy.sendStatus,
       newHeaders = [];
 
@@ -149,33 +135,21 @@ function CronSync(universe) {
 
   logic.defineScope(this, 'CronSync');
 
-  this._activeSlices = [];
+  this._ensureSyncResolve = null;
 
-  this._completedEnsureSync = true;
-  this._syncAccountsDone = true;
-
-  // An internal callback to invoke when it looks like sync has completed.  This
-  // can also be thought of as a boolean indicator that we're actually
-  // performing a cronsync as opposed to just in a paranoia-call to ensureSync.
-  // TODO: Use a promises flow or otherwise alter control flow so that ensureSync
-  // doesn't end up in _checkSyncDone with ambiguity about what is going on.
-  this._onSyncDone = null;
-
-  this._synced = [];
-
-  this.sendCronSync = $router.registerSimple('cronsync', function(data) {
+  this.sendCronSync = router.registerSimple('cronsync', (data) => {
     var args = data.args;
     switch (data.cmd) {
-      case 'requestSync':
-        debug('received a requestSync via a message handler');
-        this.onRequestSync.apply(this, args);
+      case 'alarm':
+        debug('received an alarm via a message handler');
+        this.onAlarm.apply(this, args);
         break;
       case 'syncEnsured':
         debug('received an syncEnsured via a message handler');
         this.onSyncEnsured.apply(this, args);
         break;
     }
-  }.bind(this));
+  });
   this.sendCronSync('hello');
 
   this.ensureSync();
@@ -183,25 +157,23 @@ function CronSync(universe) {
 
 exports.CronSync = CronSync;
 CronSync.prototype = {
-  _killSlices: function() {
-    logic(this, 'killSlices', { count: this._activeSlices.length });
-    this._activeSlices.forEach(function(slice) {
-      slice.die();
-    });
-  },
-
   /**
    * Makes sure there is a sync timer set up for all accounts.
    */
   ensureSync: function() {
     // Only execute ensureSync if it is not already in progress. Otherwise, due
-    // to async timing of navigator.sync setting, could end up with two sync
-    // tasks for the same ID.
-    if (!this._completedEnsureSync)
+    // to async timing of mozAlarm setting, could end up with two sync tasks for
+    // the same ID.
+    if (this._ensureSyncResolve) {
       return;
+    }
 
     logic(this, 'ensureSync_begin');
-    this._completedEnsureSync = false;
+
+    this._ensureSyncPromise = new Promise((resolve) => {
+      // No error pathway for the bridge hop, so just tracking resolve.
+      this._ensureSyncResolve = resolve;
+    });
 
     debug('ensureSync called');
 
@@ -209,9 +181,8 @@ CronSync.prototype = {
         syncData = {};
 
     accounts.forEach(function(account) {
-      // Store data by interval, use a more obvious string
-      // key instead of just stringifying a number, which
-      // could be confused with an array construct.
+      // Store data by interval, use a more obvious string key instead of just
+      // stringifying a number, which could be confused with an array construct.
       var interval = account.accountDef.syncInterval,
           intervalKey = 'interval' + interval;
 
@@ -225,151 +196,162 @@ CronSync.prototype = {
   },
 
   /**
-   * Synchronize the given account. This fetches new messages for the
-   * inbox, and attempts to send pending outbox messages (if
-   * applicable). The callback occurs after both of those operations
-   * have completed.
+   * Called from cronsync-main once ensureSync as set any alarms needed. Need to
+   * wait for it before signaling sync is done because otherwise the app could
+   * get closed down before the alarm additions succeed.
    */
-  syncAccount: function(account, doneCallback) {
-    var scope = logic.subscope(this, { accountId: account.id });
-
-    // - Skip syncing if we are offline or the account is disabled
-    if (!this._universe.online || !account.enabled) {
-      debug('syncAccount early exit: online: ' +
-            this._universe.online + ', enabled: ' + account.enabled);
-      logic(scope, 'syncSkipped');
-      doneCallback();
-      return;
-    }
-
-    var latch = $allback.latch();
-    var inboxDone = latch.defer('inbox');
-
-    var inboxFolder = account.getFirstFolderWithType('inbox');
-    var storage = account.getFolderStorageForFolderId(inboxFolder.id);
-
-    // XXX check when the folder was most recently synchronized and skip this
-    // sync if it is sufficiently recent.
-
-    // - Initiate a sync of the folder covering the desired time range.
-    logic(scope, 'syncAccount_begin');
-    logic(scope, 'syncAccountHeaders_begin');
-
-    var slice = makeHackedUpSlice(storage, function(newHeaders) {
-      logic(scope, 'syncAccountHeaders_end', { headers: newHeaders });
-      this._activeSlices.splice(this._activeSlices.indexOf(slice), 1);
-
-      // Reduce headers to the minimum number and data set needed for
-      // notifications.
-      var notifyHeaders = [];
-      newHeaders.some(function(header, i) {
-        notifyHeaders.push({
-          date: header.date,
-          from: header.author.name || header.author.address,
-          subject: header.subject,
-          accountId: account.id,
-          messageSuid: header.suid
-        });
-
-        if (i === $syncbase.CRONSYNC_MAX_MESSAGES_TO_REPORT_PER_ACCOUNT - 1)
-          return true;
-      });
-
-      if (newHeaders.length) {
-        debug('Asking for snippets for ' + notifyHeaders.length + ' headers');
-        // POP3 downloads snippets as part of the sync process, there is no
-        // need to call downloadBodies.
-        if (account.accountDef.type === 'pop3+smtp') {
-          logic(scope, 'syncAccount_end');
-          inboxDone([newHeaders.length, notifyHeaders]);
-        } else if (this._universe.online) {
-          logic(scope, 'syncAccountSnippets_begin');
-          this._universe.downloadBodies(
-            newHeaders.slice(
-              0, $syncbase.CRONSYNC_MAX_SNIPPETS_TO_FETCH_PER_ACCOUNT),
-            {
-              maximumBytesToFetch: $syncbase.MAX_SNIPPET_BYTES
-            },
-            function() {
-              debug('Notifying for ' + newHeaders.length + ' headers');
-              logic(scope, 'syncAccountSnippets_end');
-              logic(scope, 'syncAccount_end');
-              inboxDone([newHeaders.length, notifyHeaders]);
-            }.bind(this));
-        } else {
-          logic(scope, 'syncAccount_end');
-          debug('UNIVERSE OFFLINE. Notifying for ' + newHeaders.length +
-                ' headers');
-          inboxDone([newHeaders.length, notifyHeaders]);
-        }
-      } else {
-        logic(scope, 'syncAccount_end');
-        inboxDone();
-      }
-
-      // Kill the slice.  This will release the connection and result in its
-      // death if we didn't schedule snippet downloads above.
-      slice.die();
-    }.bind(this));
-
-    this._activeSlices.push(slice);
-    // Pass true to force contacting the server.
-    storage.sliceOpenMostRecent(slice, true);
-
-    // Check the outbox; if it has pending messages, attempt to send them.
-    var outboxFolder = account.getFirstFolderWithType('outbox');
-    if (outboxFolder) {
-      var outboxStorage = account.getFolderStorageForFolderId(outboxFolder.id);
-      if (outboxStorage.getKnownMessageCount() > 0) {
-        var outboxDone = latch.defer('outbox');
-        logic(scope, 'sendOutbox_begin');
-        this._universe.sendOutboxMessages(
-          account,
-          {
-            reason: 'syncAccount'
-          },
-          function() {
-            logic(scope, 'sendOutbox_end');
-            outboxDone();
-          }.bind(this));
-      }
-    }
-
-    // After both inbox and outbox syncing are algorithmically done,
-    // wait for any ongoing job operations to complete so that the app
-    // is not killed in the middle of a sync.
-    latch.then(function(latchResults) {
-      // Right now, we ignore the outbox sync's results; we only care
-      // about the inbox.
-      var inboxResult = latchResults.inbox[0];
-      this._universe.waitForAccountOps(account, function() {
-        // Also wait for any account save to finish. Most
-        // likely failure will be new message headers not
-        // getting saved if the callback is not fired
-        // until after account saves.
-        account.runAfterSaves(function() {
-          doneCallback(inboxResult);
-        });
-      });
-    }.bind(this));
+  onSyncEnsured: function() {
+    this._ensureSyncResolve();
+    this._ensureSyncResolve = null;
+    logic(this, 'ensureSync_end');
   },
 
-  onRequestSync: function(accountIds) {
-    logic(this, 'requestSyncFired', { accountIds: accountIds });
+  /**
+   * Synchronize the given account. This fetches new messages for the inbox, and
+   * attempts to send pending outbox messages (if applicable). The callback
+   * occurs after both of those operations have completed.
+   */
+  syncAccount: function(account) {
+    return new Promise((resolve) => {
+      var scope = logic.subscope(this, { accountId: account.id });
 
-    if (!accountIds)
+      // - Skip syncing if we are offline or the account is disabled
+      if (!this._universe.online || !account.enabled) {
+        debug('syncAccount early exit: online: ' +
+              this._universe.online + ', enabled: ' + account.enabled);
+        logic(scope, 'syncSkipped');
+        resolve();
+        return;
+      }
+
+      var latch = allback.latch();
+      var inboxDone = latch.defer('inbox');
+
+      var inboxFolder = account.getFirstFolderWithType('inbox');
+      var storage = account.getFolderStorageForFolderId(inboxFolder.id);
+
+      // XXX check when the folder was most recently synchronized and skip this
+      // sync if it is sufficiently recent.
+
+      // - Initiate a sync of the folder covering the desired time range.
+      logic(scope, 'syncAccount_begin');
+      logic(scope, 'syncAccountHeaders_begin');
+
+      var slice = makeHackedUpSlice(storage, (newHeaders) => {
+        logic(scope, 'syncAccountHeaders_end', { headers: newHeaders });
+
+        // Reduce headers to the minimum number and data set needed for
+        // notifications.
+        var notifyHeaders = [];
+        newHeaders.some(function(header, i) {
+          notifyHeaders.push({
+            date: header.date,
+            from: header.author.name || header.author.address,
+            subject: header.subject,
+            accountId: account.id,
+            messageSuid: header.suid
+          });
+
+          if (i === syncbase.CRONSYNC_MAX_MESSAGES_TO_REPORT_PER_ACCOUNT - 1) {
+            return true;
+          }
+        });
+
+        if (newHeaders.length) {
+          debug('Asking for snippets for ' + notifyHeaders.length + ' headers');
+          // POP3 downloads snippets as part of the sync process, there is no
+          // need to call downloadBodies.
+          if (account.accountDef.type === 'pop3+smtp') {
+            logic(scope, 'syncAccount_end');
+            inboxDone([newHeaders.length, notifyHeaders]);
+          } else if (this._universe.online) {
+            logic(scope, 'syncAccountSnippets_begin');
+            this._universe.downloadBodies(
+              newHeaders.slice(
+                0, syncbase.CRONSYNC_MAX_SNIPPETS_TO_FETCH_PER_ACCOUNT),
+              {
+                maximumBytesToFetch: syncbase.MAX_SNIPPET_BYTES
+              },
+              () => {
+                debug('Notifying for ' + newHeaders.length + ' headers');
+                logic(scope, 'syncAccountSnippets_end');
+                logic(scope, 'syncAccount_end');
+                inboxDone([newHeaders.length, notifyHeaders]);
+              });
+          } else {
+            logic(scope, 'syncAccount_end');
+            debug('UNIVERSE OFFLINE. Notifying for ' + newHeaders.length +
+                  ' headers');
+            inboxDone([newHeaders.length, notifyHeaders]);
+          }
+        } else {
+          logic(scope, 'syncAccount_end');
+          inboxDone();
+        }
+
+        // Kill the slice.  This will release the connection and result in its
+        // death if we didn't schedule snippet downloads above.
+        slice.die();
+      });
+
+      // Pass true to force contacting the server.
+      storage.sliceOpenMostRecent(slice, true);
+
+      // Check the outbox; if it has pending messages, attempt to send them.
+      var outboxFolder = account.getFirstFolderWithType('outbox');
+      if (outboxFolder) {
+        var outboxStorage = account
+                                  .getFolderStorageForFolderId(outboxFolder.id);
+        if (outboxStorage.getKnownMessageCount() > 0) {
+          var outboxDone = latch.defer('outbox');
+          logic(scope, 'sendOutbox_begin');
+          this._universe.sendOutboxMessages(
+            account,
+            {
+              reason: 'syncAccount'
+            },
+            () => {
+              logic(scope, 'sendOutbox_end');
+              outboxDone();
+            });
+        }
+      }
+
+      // After both inbox and outbox syncing are algorithmically done, wait for
+      // any ongoing job operations to complete so that the app is not killed in
+      // the middle of a sync.
+      latch.then((latchResults) => {
+        // Right now, we ignore the outbox sync's results; we only care about
+        // the inbox.
+        var inboxResult = latchResults.inbox[0];
+        this._universe.waitForAccountOps(account, function() {
+          // Also wait for any account save to finish. Most likely failure will
+          // be new message headers not getting saved if the callback is not
+          // fired until after account saves.
+          account.runAfterSaves(function() {
+            resolve(inboxResult);
+          });
+        });
+      });
+    });
+  },
+
+  onAlarm: function(accountIds) {
+    logic(this, 'alarmFired', { accountIds: accountIds });
+
+    if (!accountIds) {
       return;
+    }
 
     var accounts = this._universe.accounts,
         targetAccounts = [],
         ids = [];
 
-    this._cronsyncing = true;
     logic(this, 'cronSync_begin');
     this._universe.__notifyStartedCronSync(accountIds);
 
-    // Make sure the acount IDs are still valid. This is to protect agains
-    // an account deletion that did not clean up any sync tasks correctly.
+    // Make sure the acount IDs are still valid. This is to protect against an
+    // account deletion that did not clean up any alarms correctly.
     accountIds.forEach(function(id) {
       accounts.some(function(account) {
         if (account.id === id) {
@@ -380,107 +362,58 @@ CronSync.prototype = {
       });
     });
 
-    // Flip switch to say account syncing is in progress.
-    this._syncAccountsDone = false;
-
-    // Make sure next sync is set up. In the case of a cold start
-    // background sync, this is a bit redundant in that the startup
-    // of the mailuniverse would trigger this work. However, if the
-    // app is already running, need to be sure next sync is set up,
-    // so ensure the next sync is set up here. Do it here instead of
-    // after a sync in case an error in sync would prevent the next
-    // sync from getting scheduled.
+    // Make sure next alarm is set up. In the case of a cold start background
+    // sync, this is a bit redundant in that the startup of the mailuniverse
+    // would trigger this work. However, if the app is already running, need to
+    // be sure next alarm is set up, so ensure the next sync is set up here. Do
+    // it here instead of after a sync in case an error in sync would prevent
+    // the next sync from getting scheduled.
     this.ensureSync();
 
-    var syncMax = targetAccounts.length,
-        syncCount = 0,
-        accountsResults = {
-          accountIds: accountIds
-        };
+    var syncResults = [];
+    var accountsResults = {
+      accountIds: accountIds
+    };
 
-    var done = function() {
-      syncCount += 1;
-      if (syncCount < syncMax)
-        return;
-
-      // Kill off any slices that still exist from the last sync.
-      this._killSlices();
-
-      // Wrap up the sync
-      this._syncAccountsDone = true;
-      this._onSyncDone = function() {
-        if (this._synced.length) {
-          accountsResults.updates = this._synced;
-          this._synced = [];
+    var done = () => {
+      // Make sure the ensure work is done before wrapping up.
+      this._ensureSyncPromise.then(() => {
+        if (syncResults.length) {
+          accountsResults.updates = syncResults;
         }
 
         this._universe.__notifyStoppedCronSync(accountsResults);
         logic(this, 'syncAccounts_end', { accountsResults: accountsResults });
-      }.bind(this);
+        logic(this, 'cronSync_end');
+      });
+    };
 
-      this._checkSyncDone();
-    }.bind(this);
-
-    // Nothing new to sync, probably old accounts. Just return and indicate
-    // that syncing is done.
+    // Nothing new to sync, probably old accounts. Just return and indicate that
+    // syncing is done.
     if (!ids.length) {
       done();
       return;
     }
 
     logic(this, 'syncAccounts_begin');
-    targetAccounts.forEach(function(account) {
-      this.syncAccount(account, function (result) {
+    Promise.all(targetAccounts.map((account) => {
+      return this.syncAccount(account).then((result) => {
         if (result) {
-          this._synced.push({
+          syncResults.push({
             id: account.id,
             address: account.identities[0].address,
             count: result[0],
             latestMessageInfos: result[1]
           });
         }
-        done();
-      }.bind(this));
-    }.bind(this));
-  },
-
-  /**
-   * Checks for "sync all done", which means the ensureSync call completed, and
-   * new sync tasks for next sync are set, and the account syncs have finished.
-   * If those two things are true, then notify the universe that the sync is
-   * done.
-   */
-  _checkSyncDone: function() {
-    if (!this._completedEnsureSync || !this._syncAccountsDone)
-      return;
-
-    // _onSyncDone implies this was a cronsync, !_onSyncDone implies just an
-    // ensureSync.  See comments in the constructor.
-    if (this._onSyncDone) {
-      this._onSyncDone();
-      this._onSyncDone = null;
-      logic(this, 'cronSync_end');
-    }
-  },
-
-  /**
-   * Called from cronsync-main once ensureSync as set
-   * any sync tasks needed. Need to wait for it before
-   * signaling sync is done because otherwise the app
-   * could get closed down before the sync task additions
-   * succeed.
-   */
-  onSyncEnsured: function() {
-    this._completedEnsureSync = true;
-    logic(this, 'ensureSync_end');
-    this._checkSyncDone();
+      });
+    }))
+    .then(done);
   },
 
   shutdown: function() {
-    $router.unregister('cronsync');
-    this._killSlices();
+    router.unregister('cronsync');
   }
 };
-
 
 }); // end define

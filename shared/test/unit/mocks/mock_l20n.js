@@ -17,7 +17,9 @@
         keys.map(key => stringify(key)));
     },
 
-    translateFragment: function() {},
+    translateFragment: function() {
+      return Promise.resolve();
+    },
 
     setAttributes: function(element, id, args) {
       element.setAttribute('data-l10n-id', id);

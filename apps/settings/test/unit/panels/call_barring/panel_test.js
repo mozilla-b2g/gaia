@@ -306,6 +306,13 @@ suite('Call Barring Panel >', function() {
         baicRElement
       ];
 
+      var toastContent = {
+        messageL10nId: 'callBarring-update-item-error',
+        messageL10nArgs: {'error': 'wrong_password'},
+        latency: 2000,
+        useTransition: true
+      };
+
       targets.forEach(function(element) {
         var input = element.querySelector('gaia-switch');
         input.click();
@@ -314,7 +321,61 @@ suite('Call Barring Panel >', function() {
         setTimeout(function() {
           assert.isTrue(this.mockCallBarring.set.called,
             'try to set a new value');
-          assert.isTrue(this.mockToaster.showToast.called, 'should show error');
+          assert.isTrue(this.mockToaster.showToast.calledWith(toastContent),
+            'should show error');
+          assert.isFalse(input.checked, 'state remains the same');
+        }.bind(this));
+      }.bind(this));
+    });
+  });
+
+  suite('Click on item, insert wrong password and got GenericFailure >',
+    function() {
+    setup(function() {
+      resetHTML();
+      this.panel.init(document.body);
+
+      this.sinon.stub(this.mockPasscode, 'show', function() {
+        return Promise.resolve('0000');
+      });
+      this.sinon.stub(this.mockCallBarring, 'set', function() {
+        return Promise.reject({
+          'name': 'GenericFailure',
+          'message': ''
+        });
+      });
+      this.sinon.stub(this.mockToaster, 'showToast');
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+    });
+
+    test('click on each item > ', function() {
+      var targets = [
+        baocElement,
+        boicElement,
+        boicExhcElement,
+        baicElement,
+        baicRElement
+      ];
+
+      var toastContent = {
+        messageL10nId: 'callBarring-update-generic-error',
+        latency: 2000,
+        useTransition: true
+      };
+
+      targets.forEach(function(element) {
+        var input = element.querySelector('gaia-switch');
+        input.click();
+        assert.isFalse(input.checked, 'state doesn\'t change on click');
+        assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
+        setTimeout(function() {
+          assert.isTrue(this.mockCallBarring.set.called,
+            'try to set a new value');
+          assert.isTrue(this.mockToaster.showToast.calledWith(toastContent),
+            'should show error');
           assert.isFalse(input.checked, 'state remains the same');
         }.bind(this));
       }.bind(this));

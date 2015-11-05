@@ -3,6 +3,7 @@
   "description": "Browser",
   "launch_path": "/index.html",
   "type": "certified",
+  "role": "deck",
   "permissions": {
     "browser":{},
     "systemXHR":{},

@@ -378,7 +378,7 @@ var WifiUI = {
           icon.classList.add('wifi-icon');
           var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
           icon.classList.add('level-' + level);
-          navigator.mozL10n.setAttributes(icon, 'wifiLevel', {level: level});
+          document.l10n.setAttributes(icon, 'wifiLevel', {level: level});
           icon.setAttribute('role', 'presentation');
           // Set SSID
           ssidp.textContent = network.ssid;

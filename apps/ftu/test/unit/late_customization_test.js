@@ -3,7 +3,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
@@ -53,9 +53,8 @@ suite('Late Customization >', function() {
   suiteSetup(function(done) {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
-    sinon.stub(MockL10n, 'once');
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     window.Navigation = MockNavigation;
     realLazyLoader = window.LazyLoader;
     window.LazyLoader = MockLazyLoader;

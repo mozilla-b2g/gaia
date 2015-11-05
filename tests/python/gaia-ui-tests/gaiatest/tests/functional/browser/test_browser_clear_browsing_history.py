@@ -28,15 +28,10 @@ class TestBrowserClearHistory(GaiaTestCase):
         Wait(self.marionette, timeout=30).until(lambda m: m.title == 'Mozilla')
 
         self.apps.kill(search.app)
-        self.device.touch_home_button()
 
         search.launch()
         search.wait_for_history_to_load(number_of_items=1)
         self.assertGreater(search.history_items_count, 0)
-
-        # This shouldn't be necessary, remove these 2 lines once bug 1216933 is fixed
-        self.apps.kill(search.app)
-        self.device.touch_home_button()
 
         settings = Settings(self.marionette)
         settings.launch()

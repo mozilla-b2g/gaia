@@ -4,7 +4,11 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
-var template =
+injectGlobalStyles();
+
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style scoped>
   [hidden] {
     display: none;
@@ -74,18 +78,6 @@ var template =
   <h2 id="subheading"></h2>
 </div>`;
 
-var globalStyles =
-`@keyframes music-scan-progress-spinner {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}`;
-
-injectGlobalStyles();
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
-
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 
   this.els = {
@@ -96,9 +88,14 @@ proto.createdCallback = function() {
     subheading: $id('subheading')
   };
 
-  this.els.value.textContent      = this.getAttribute('value');
-  this.els.heading.textContent    = this.getAttribute('heading');
-  this.els.subheading.textContent = this.getAttribute('subheading');
+  if (!this.hasAttribute('value') && !this.hasAttribute('heading') &&
+      !this.hasAttribute('subheading')) {
+    this.els.container.hidden = true;
+  }
+
+  this.value      = this.getAttribute('value');
+  this.heading    = this.getAttribute('heading');
+  this.subheading = this.getAttribute('subheading');
 
   this.onDOMRetranslated = () => {
     document.l10n.translateFragment(shadowRoot);
@@ -139,16 +136,16 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
   });
 };
 
-proto.show = function(properties = {}) {
+proto.update = function(properties = {}) {
   this.value      = properties.value      || this.value;
   this.heading    = properties.heading    || this.heading;
   this.subheading = properties.subheading || this.subheading;
 
-  this.hidden = false;
+  this.els.container.hidden = false;
 };
 
-proto.hide = function() {
-  this.hidden = true;
+proto.clear = function() {
+  this.els.container.hidden = true;
 };
 
 ['value', 'heading', 'subheading'].forEach((prop) => {
@@ -165,7 +162,11 @@ proto.hide = function() {
 
 function injectGlobalStyles() {
   var style = document.createElement('style');
-  style.innerHTML = globalStyles;
+  style.innerHTML =
+`@keyframes music-scan-progress-spinner {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}`;
 
   document.head.appendChild(style);
 }

@@ -35,7 +35,6 @@
             options.body = body;
           }
           options.lang = document.documentElement.getAttribute('lang');
-          options.dir = document.documentElement.getAttribute('dir');
 
           var notification = new window.Notification(title, options);
 

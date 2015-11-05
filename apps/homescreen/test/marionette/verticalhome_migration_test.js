@@ -33,7 +33,7 @@ marionette('Homescreen - verticalhome migration', function() {
     // Record the names of all the apps and bookmarks (these are the only
     // items that are migrated)
     var iconNames =
-      client.findElements('#icons div.icon:not(.placeholder):not(.collection)').
+      client.findElements('#icons div.icon:not(.placeholder)').
         map(function(icon) {
           return icon.findElement('.title').text();
         });

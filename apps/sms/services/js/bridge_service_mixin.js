@@ -32,8 +32,8 @@
      *  The context/thread that service could listen for.
      */
     initService(endpoint) {
-      if (!('bridge' in self)) {
-        importScripts('/lib/bridge/bridge.js');
+      if (!('bridge' in self) || !('service' in bridge)) {
+        importScripts('/lib/bridge/service.js');
       }
 
       var service = bridge.service(this[priv.name]);

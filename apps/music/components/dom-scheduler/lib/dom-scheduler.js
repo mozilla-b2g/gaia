@@ -22,7 +22,7 @@
   var directProtectionWindow = 360;
 
   var Scheduler = function() {
-    this._directTracking = {};
+    this._directTracking = new Map();
 
     this._ongoingTransitions = 0;
     this._queuedTransitions = [];
@@ -39,10 +39,10 @@
     // the event loop gets too busy.
     attachDirect: function(elm, evtType, block) {
       var tracking = this._directTracking;
-      if (!(elm in tracking)) {
-        tracking[elm] = {};
+      if (!tracking.get(elm)) {
+        tracking.set(elm, {});
       }
-      var tElm = tracking[elm];
+      var tElm = tracking.get(elm);
 
       if (!(evtType in tElm)) {
         tElm[evtType] = {
@@ -86,21 +86,22 @@
 
       if (!tEvt.blocks.length) {
         elm.removeEventListener(evtType, this);
-        delete this._directTracking[elm][evtType];
+        var tElm = this._directTracking.get(elm);
+        delete tElm[evtType];
 
-        if (Object.keys(this._directTracking[elm]).length === 0) {
-          delete this._directTracking[elm];
+        if (Object.keys(tElm).length === 0) {
+          this._directTracking.delete(elm);
         }
       }
     },
 
     _trackingFor: function(elm, evtType) {
       var tracking = this._directTracking;
-      if (!(elm in tracking)) {
+      if (!tracking.get(elm)) {
         log('wrong detach element');
         return;
       }
-      var tElm = tracking[elm];
+      var tElm = tracking.get(elm);
 
       if (!(evtType in tElm)) {
         log('wrong detach event');
@@ -112,8 +113,8 @@
     _shouldProtectDirect: function() {
       var tracking = this._directTracking;
 
-      for (var elm in tracking) {
-        var tElm = tracking[elm];
+      for (var elm of tracking.keys()) {
+        var tElm = tracking.get(elm);
         for (var evtType in tElm) {
           var tEvt = tElm[evtType];
           if (tEvt.protectionTimeout !== null) {

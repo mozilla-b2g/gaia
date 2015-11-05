@@ -1468,6 +1468,18 @@ var ConversationView = {
     this._stopRenderingNextStep = true;
   },
 
+  /**
+   * This method checks whether we're in the right state to render something for
+   * this threadId.
+   * @param {Number} threadId The threadId we'd like to render.
+   * @returns {Boolean} True if we can render for this threadId.
+   */
+  shouldRenderForThreadId(threadId) {
+    return !this._stopRenderingNextStep &&
+      this.activeThread &&
+      this.activeThread.id === threadId;
+  },
+
   // Method for rendering the first chunk at the beginning
   showFirstChunk: function conv_showFirstChunk() {
     // Show chunk of messages
@@ -1519,13 +1531,13 @@ var ConversationView = {
     }).bind(this);
 
     var onRenderMessage = (function renderMessage(message) {
-      if (this._stopRenderingNextStep) {
+      if (!this.shouldRenderForThreadId(threadId)) {
         // stop the iteration and clear the taskQueue
         taskQueue = null;
         return false;
       }
       taskQueue.push(() => {
-        if (!this._stopRenderingNextStep) {
+        if (this.shouldRenderForThreadId(threadId)) {
           Threads.registerMessage(message);
           return this.appendMessage(message,/*hidden*/ true);
         }
@@ -1538,7 +1550,7 @@ var ConversationView = {
       return true;
     }).bind(this);
 
-    if (this._stopRenderingNextStep) {
+    if (!this.shouldRenderForThreadId(threadId)) {
       // we were already asked to stop rendering, before even starting
       return;
     }
@@ -1821,7 +1833,7 @@ var ConversationView = {
 
     // build messageDOM adding the links
     return this.buildMessageDOM(message, hidden).then((messageDOM) => {
-      if (this._stopRenderingNextStep) {
+      if (!this.shouldRenderForThreadId(message.threadId)) {
         return;
       }
 

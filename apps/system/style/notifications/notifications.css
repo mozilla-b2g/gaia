@@ -67,9 +67,11 @@
 }
 html[dir="ltr"] #notification-container > div {
   left: 5.6rem;
+  text-align: left;
 }
 html[dir="rtl"] #notification-container > div {
   right: 5.6rem;
+  text-align: right;
 }
 
 .toaster-title {

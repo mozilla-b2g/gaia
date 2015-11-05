@@ -20,12 +20,15 @@ require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 
 require('/views/shared/test/unit/mock_contact.js');
 require('/views/shared/test/unit/mock_time_headers.js');
 require('/views/shared/test/unit/mock_information.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
+require('/views/shared/test/unit/mock_app.js');
+require('/services/test/unit/activity/mock_activity_client.js');
 require('/views/shared/test/unit/utils_mockup.js');
 require('/views/shared/test/unit/messages_mockup.js');
 require('/views/shared/test/unit/thread_list_mockup.js');
@@ -50,13 +53,16 @@ require('/views/shared/js/task_runner.js');
 
 
 var MocksHelperForSmsUnitTest = new MocksHelper([
+  'ActivityClient',
+  'App',
   'asyncStorage',
   'Settings',
   'TimeHeaders',
   'Information',
   'ContactPhotoHelper',
   'InterInstanceEventDispatcher',
-  'LazyLoader'
+  'LazyLoader',
+  'MultiSimActionButton'
 ]).init();
 
 suite('SMS App Unit-Test', function() {
@@ -194,7 +200,7 @@ suite('SMS App Unit-Test', function() {
         return Promise.resolve(MockContact.list());
       }
 
-      return Promise.resolve(null);
+      return Promise.resolve([]);
     });
 
     this.sinon.stub(Contacts, 'findByPhoneNumber', function(tel) {
@@ -203,7 +209,7 @@ suite('SMS App Unit-Test', function() {
         return Promise.resolve(MockContact.list());
       }
 
-      return Promise.resolve(null);
+      return Promise.resolve([]);
     });
   });
 
@@ -497,11 +503,19 @@ suite('SMS App Unit-Test', function() {
     setup(function(done) {
       this.sinon.spy(TaskRunner.prototype, 'push');
 
-      ConversationView.renderMessages(1);
+      var transitionArgs = {
+        id: '1',
+        meta: { next: { panel: 'thread', id: '1'}}
+      };
+      ConversationView.beforeEnter(transitionArgs).then(
+        () => ConversationView.afterEnter(transitionArgs)
+      ).then(() => {
+        ConversationView.renderMessages(1);
 
-      _tci = ConversationView.updateSelectionStatus;
+        _tci = ConversationView.updateSelectionStatus;
 
-      TaskRunner.prototype.push.lastCall.returnValue.then(done, done);
+        return TaskRunner.prototype.push.lastCall.returnValue;
+      }).then(done, done);
     });
 
     suite('Thread-messages rendering (bubbles view)', function() {
@@ -532,8 +546,6 @@ suite('SMS App Unit-Test', function() {
       setup(function() {
         this.sinon.spy(ConversationView, 'updateSelectionStatus');
         this.sinon.stub(InboxView, 'setContact');
-
-        ConversationView.activeThread = threadSetup();
       });
 
       teardown(function() {
@@ -675,10 +687,11 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
+          threadId: 1,
           timestamp: Date.now(),
           channel: 'sms'
         }).then(() => {
-          assert.ok(ConversationView.updateSelectionStatus.called);
+          sinon.assert.called(ConversationView.updateSelectionStatus);
         }).then(done, done);
       });
 
@@ -692,7 +705,7 @@ suite('SMS App Unit-Test', function() {
           sender: '197746797',
           body: 'Recibidas!',
           delivery: 'received',
-          id: 9999,
+          id: 1,
           timestamp: Date.now(),
           channel: 'sms'
         }).then(() => {

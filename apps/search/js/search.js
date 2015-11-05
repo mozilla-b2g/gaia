@@ -95,6 +95,8 @@
       this.contextmenu = new Contextmenu();
       window.addEventListener('resize', this.resize);
       window.addEventListener('scroll', this.onScroll);
+      navigator.mozSetMessageHandler('activity',
+        this.handleActivityEvents.bind(this));
     },
 
     resize: function() {
@@ -256,6 +258,18 @@
 
       this.gridWrapper.classList.toggle('hidden', !this.gridCount);
       provider.render(results);
+    },
+
+    /**
+     * Called when the user trigger a search activity
+     */
+    handleActivityEvents: function(activity) {
+      var activityName = activity.source.name;
+      if (activityName === 'search') {
+        this.submit({data: {
+          input: activity.source.data.keyword
+        }});
+      }
     },
 
     /**

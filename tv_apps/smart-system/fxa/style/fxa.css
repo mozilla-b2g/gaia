@@ -2,7 +2,7 @@
  * Basic and shared styles of the structure
  * */
 html, body {
-  font-size: 62.5%;
+  font-size: 10px;
   width: 100%;
   height: 100%;
   margin: 0;
@@ -27,7 +27,7 @@ section[role="region"] {
   height: 100%;
   margin: 0;
   padding-left: 36rem;
-  padding-right: 40.5rem;
+  padding-right: 36rem;
   box-sizing: border-box;
   position: absolute;
   z-index: 1;
@@ -69,7 +69,13 @@ gaia-header {
 .navigation {
   box-sizing: border-box;
   margin: 0;
-  overflow: hidden;
+  display: block;
+  padding-right: 4.5rem;
+}
+
+.navigation:after {
+  clear: both;
+  content: "";
   display: block;
 }
 
@@ -77,6 +83,9 @@ gaia-header {
 .navigation button{
   font-size: 2.4rem;
   margin-left: 0.5rem;
+  transition: transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0) ,
+              background 0.06s  cubic-bezier(0.25, 0, 0, 1.0) ,
+              border 0.06s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 .navigation button.left {
@@ -111,11 +120,30 @@ gaia-header {
   display: none;
 }
 
-.navigation #fxa-module-next {
+.navigation #fxa-module-next,
+.navigation #fxa-module-done {
   width: 23.7rem;
   height: 8rem;
   background-color: #5f6368;
   border-radius: 4rem;
+}
+
+.navigation #fxa-module-next:focus,
+.navigation #fxa-module-next:hover,
+.navigation #fxa-module-done:focus,
+.navigation #fxa-module-done:hover {
+  transform: scale(1.2);
+  background-color: #fff;
+  color: #2d2d2d;
+}
+
+.navigation #fxa-module-next:active,
+.navigation #fxa-module-next.active,
+.navigation #fxa-module-done:active,
+.navigation #fxa-module-done.active {
+  transform: scale(1);
+  background-color: #00caf2;
+  color: #fff;
 }
 
 .navigation-back-only button {
@@ -133,20 +161,12 @@ gaia-header {
   display: none;
 }
 
-.navigation #fxa-module-next:focus {
-  background-color: #00caf2
-}
-
 #fxa-module-done {
   display: none;
 }
 
 .navigation-done #fxa-module-done {
   display: block;
-  width: 23.7rem;
-  height: 8rem;
-  background-color: #5f6368;
-  border-radius: 4rem;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * *
@@ -249,7 +269,8 @@ gaia-header {
   color: rgb(185, 0, 0);
 }
 
-.screen input[type="email"]:invalid:focus {
+.screen input[type="email"]:invalid:focus,
+.screen input[type="password"]:invalid:focus {
   box-shadow: unset;
   border-bottom-color: rgb(130, 0, 0);
 }
@@ -280,7 +301,7 @@ gaia-header {
 #fxa-email-clean-btn {
   position: absolute;
   top: 1.4rem;
-  right: 1rem;
+  right: 5em;
   display: none;
   width: 3rem;
   height: 3rem;
@@ -288,12 +309,17 @@ gaia-header {
   padding: 0;
   color: #ffffff;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1),
+              background-color 0.2s cubic-bezier(0.25, 0, 0, 1),
+              color 0.2s cubic-bezier(0.25, 0, 0, 1);
 }
 
-#fxa-email-clean-btn:focus {
-  transform: scale(1.3);
-  transform-origin: 50% 50%;
+#fxa-email-clean-btn:focus,
+#fxa-email-clean-btn:hover {
+  transform: scale(1.2);
+  background-color: #fff;
+  color: black;
+  /*transform-origin: 50% 50%;*/
 }
 
 #fxa-email-clean-btn.show {
@@ -307,6 +333,10 @@ gaia-header {
 #fxa-email-input ~ #fxa-notice {
   margin-left: 4.5rem;
   white-space: nowrap;
+}
+
+#fxa-notice {
+  padding-left: 4.6rem;
 }
 
 #fxa-notice #fxa-terms,
@@ -354,11 +384,13 @@ ul.fxa-verification-wrapper li {
  * Password screen styles
  */
 
-#fxa-enter-password {
+#fxa-enter-password,
+#fxa-refresh-auth {
   height: 80rem;
 }
 
-#fxa-pw-input {
+#fxa-pw-input,
+#fxa-pw-input-refresh {
   width: 110.8rem;
   margin-top: 19.2rem;
   margin-left: 4.5rem;
@@ -366,6 +398,7 @@ ul.fxa-verification-wrapper li {
 }
 
 #fxa-pw-option-container {
+  width: 110.8rem;
   display: flex;
   margin-left: 4.5rem;
   justify-content: space-between;
@@ -539,28 +572,35 @@ form[role=dialog].show {
   background-color: transparent;
 }
 
-#fxa-error-overlay #fxa-error-ok:hover,
-#fxa-error-overlay #fxa-error-ok:focus {
-    transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1) 0s, background-color 0.42s cubic-bezier(0.25, 0, 0, 1) 0s, color 0.42s cubic-bezier(0.25, 0, 0, 1) 0s;
-    color: rgb(255, 255, 255);
-    outline: medium none;
-    transform: scale(1.2);
+#fxa-error-overlay #fxa-error-ok {
+  width: 21rem;
+  height: 21rem;
+  background-image: none;
+  font-style: italic;
+  color: rgb(255, 255, 255);
+  background-color: #0097b6;
+  float: left;
+  border: medium none;
+  border-radius: 50%;
+  font-size: 2.4rem;
+  transform: scale(1);
+  transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, background-color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
+  pointer-events: auto;
 }
 
-#fxa-error-overlay #fxa-error-ok {
-    width: 21rem;
-    height: 21rem;
-    background-image: none;
-    font-style: italic;
-    color: rgb(255, 255, 255);
-    background-color: rgb(0, 151, 182);
-    float: left;
-    border: medium none;
-    border-radius: 50%;
-    font-size: 2.4rem;
-    transform: scale(1);
-    transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, background-color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s, color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
-    pointer-events: auto;
+#fxa-error-overlay #fxa-error-ok:hover,
+#fxa-error-overlay #fxa-error-ok:focus {
+  color: rgb(255, 255, 255);
+  outline: medium none;
+  transform: scale(1.2);
+}
+
+#fxa-error-overlay #fxa-error-ok:active,
+#fxa-error-overlay #fxa-error-ok.active {
+  background-color: #00758c;
+  color: rgb(255, 255, 255);
+  outline: medium none;
+  transform: scale(1);
 }
 
 /*

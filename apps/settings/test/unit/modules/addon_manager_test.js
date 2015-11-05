@@ -4,7 +4,6 @@ require('/shared/js/addons/match_pattern.js');
 
 suite('addons manager test > ', function() {
   var realMozActivity;
-  var realXMLHttpRequest;
 
   var mockAppsCache;
   var mockXMLHttpRequest;
@@ -82,29 +81,23 @@ suite('addons manager test > ', function() {
     origin: 'app://certifiedorigin'
   };
 
-  var MockContentScripts = {
-    addon1: [],
-    addon2: [{
-      matches: '<all_urls>',
-      js: [],
-      css: ['foo.css']
-    }],
-    privilegedAddon: [{
-      matches: '<all_urls>',
-      js: ['addon.js'],
-      css: []
-    }],
-    certifiedAddon: [{
-      matches: '<all_urls>',
-      js: ['addon.js'],
-      css: []
-    }]
+  var settingsApp = {
+    manifest: {
+      type: 'certified',
+      name: 'Settings',
+      launch_path: '/index.html#',
+    },
+    manifestURL: 'testManifestURL_settings_app',
+    origin: 'app://settings.gaiamobile.org'
   };
 
   var addon1 = {
     manifest: {
       role: 'addon',
       name: 'testAddonName1',
+      // content_scripts field is internally copied from manifest.json to
+      // manifest.webapp
+      content_scripts: []
     },
     manifestURL: 'testManifestURL_addon1',
     origin: 'app://testaddonorigin1'
@@ -113,7 +106,14 @@ suite('addons manager test > ', function() {
   var addon2 = {
     manifest: {
       role: 'addon',
-      name: 'testAddonName2'
+      name: 'testAddonName2',
+      // content_scripts field is internally copied from manifest.json to
+      // manifest.webapp
+      content_scripts: [{
+        matches: '<all_urls>',
+        js: [],
+        css: ['foo.css']
+      }]
     },
     manifestURL: 'testManifestURL_addon2',
     origin: 'app://testaddonorigin2'
@@ -136,7 +136,14 @@ suite('addons manager test > ', function() {
     manifest: {
       role: 'addon',
       type: 'privileged',
-      name: 'privilegedAddonName'
+      name: 'privilegedAddonName',
+      // content_scripts field is internally copied from manifest.json to
+      // manifest.webapp
+      content_scripts: [{
+        matches: '<all_urls>',
+        js: ['addon.js'],
+        css: []
+      }]
     },
     manifestURL: 'testManifestURL_priv_addon',
     origin: 'app://privilegedaddonorigin'
@@ -146,10 +153,32 @@ suite('addons manager test > ', function() {
     manifest: {
       role: 'addon',
       type: 'certified',
-      name: 'certifiedAddonName'
+      name: 'certifiedAddonName',
+      // content_scripts field is internally copied from manifest.json to
+      // manifest.webapp
+      content_scripts: [{
+        matches: '<all_urls>',
+        js: ['addon.js'],
+        css: []
+      }]
     },
     manifestURL: 'testManifestURL_cert_addon',
     origin: 'app://certifiedaddonorigin'
+  };
+
+  var settingsAddon = {
+    manifest: {
+      role: 'addon',
+      type: 'certified',
+      name: 'settingAddonName',
+      content_scripts: [{
+        matches: 'app://settings.gaiamobile.org/index.html*',
+        js: [],
+        css: []
+      }]
+    },
+    manifestURL: 'testManifestURL_settings_addon',
+    origin: 'app://settingsaddonorigin'
   };
 
   setup(function(done) {
@@ -159,7 +188,8 @@ suite('addons manager test > ', function() {
         mockAppsCache._apps = [
           app1, app2, addon1, addon2, obsoleteAddon,
           privilegedApp, privilegedAddon,
-          certifiedApp, certifiedAddon
+          certifiedApp, certifiedAddon,
+          settingsApp, settingsAddon
         ];
         this.sinon.spy(mockAppsCache, 'addEventListener');
         this.sinon.spy(mockAppsCache, 'removeEventListener');
@@ -177,7 +207,8 @@ suite('addons manager test > ', function() {
             mockMozApps.mSetApps([
               app1, app2, addon1, addon2, obsoleteAddon,
               privilegedApp, privilegedAddon,
-              certifiedApp, certifiedAddon
+              certifiedApp, certifiedAddon,
+              settingsApp, settingsAddon
             ]);
 
             this.sinon.spy(mockMozApps.mgmt, 'uninstall');
@@ -212,9 +243,9 @@ suite('addons manager test > ', function() {
     test('contains all the addons and no apps', function(done) {
       function doCheck() {
         var containsAll = [addon1, addon2, obsoleteAddon, privilegedAddon,
-          certifiedAddon].every(addon =>
+          certifiedAddon, settingsAddon].every(addon =>
             containsAddon(AddonManager.addons.array, addon));
-        if (containsAll && AddonManager.length === 5) {
+        if (containsAll && AddonManager.length === 6) {
           done();
         }
       }
@@ -236,6 +267,7 @@ suite('addons manager test > ', function() {
       assert.isTrue(AddonManager._isAddon(addon2));
       assert.isTrue(AddonManager._isAddon(certifiedAddon));
       assert.isTrue(AddonManager._isAddon(privilegedAddon));
+      assert.isTrue(AddonManager._isAddon(settingsAddon));
     });
 
     test('returns false for non-addons', function() {
@@ -243,6 +275,7 @@ suite('addons manager test > ', function() {
       assert.isFalse(AddonManager._isAddon(app2));
       assert.isFalse(AddonManager._isAddon(certifiedApp));
       assert.isFalse(AddonManager._isAddon(privilegedApp));
+      assert.isFalse(AddonManager._isAddon(settingsApp));
     });
   });
 
@@ -441,18 +474,6 @@ suite('addons manager test > ', function() {
   });
 
   suite('getAddonTargets', function() {
-
-    setup(function() {
-      var stub = sinon.stub(AddonManager, '_getContentScripts');
-      stub.withArgs(addon2).returns(
-        Promise.resolve(MockContentScripts.addon2));
-      stub.withArgs(privilegedAddon).returns(
-        Promise.resolve(MockContentScripts.privilegedAddon));
-      stub.withArgs(certifiedAddon).returns(
-        Promise.resolve(MockContentScripts.certifiedAddon));
-      stub.withArgs(addon1).returns(Promise.reject());
-    });
-
     test('rejects non-addons', function(done) {
       var wrappedApp = MockApp(app1);
       assert.isRejected(AddonManager.getAddonTargets(wrappedApp)).notify(done);
@@ -483,50 +504,44 @@ suite('addons manager test > ', function() {
       function(done) {
         var wrappedAddon = MockApp(privilegedAddon);
         assert.becomes(AddonManager.getAddonTargets(wrappedAddon),
-          [app1, app2, privilegedApp, certifiedApp]).notify(done);
+          [app1, app2, privilegedApp, certifiedApp, settingsApp]).notify(done);
     });
 
     test('returns any apps for certified addons', function(done) {
       var wrappedAddon = MockApp(certifiedAddon);
       assert.becomes(AddonManager.getAddonTargets(wrappedAddon),
-        [app1, app2, privilegedApp, certifiedApp]).notify(done);
+        [app1, app2, privilegedApp, certifiedApp, settingsApp]).notify(done);
     });
 
     test('honors specific addon filters', function(done) {
       var wrappedAddon = MockApp(addon2);
-      MockContentScripts.addon2[0].matches = 'app://testorigin1/';
+      addon2.manifest.content_scripts[0].matches = 'app://testorigin1/';
       assert.becomes(AddonManager.getAddonTargets(wrappedAddon), [app1])
         .notify(done);
     });
 
     test('honors regexp addon filters', function(done) {
       var wrappedAddon = MockApp(addon2);
-      MockContentScripts.addon2[0].matches = 'app://*/';
+      addon2.manifest.content_scripts[0].matches = 'app://*/';
       assert.becomes(AddonManager.getAddonTargets(wrappedAddon), [app1, app2])
+        .notify(done);
+    });
+
+    test('honors settings regexp addon filters', function(done) {
+      var wrappedAddon = MockApp(settingsAddon);
+      assert.becomes(AddonManager.getAddonTargets(wrappedAddon), [settingsApp])
         .notify(done);
     });
 
     test('does not return addons even explicitly targeted', function(done) {
       var wrappedAddon = MockApp(addon2);
-      MockContentScripts.addon2[0].matches = 'app://testaddonorigin1/';
+      addon2.manifest.content_scripts[0].matches = 'app://testaddonorigin1/';
       assert.becomes(AddonManager.getAddonTargets(wrappedAddon), [])
         .notify(done);
     });
   });
 
   suite('getAddonDisableType', function() {
-
-    setup(function() {
-      var stub = sinon.stub(AddonManager, '_getContentScripts');
-      stub.withArgs(addon2).returns(
-        Promise.resolve(MockContentScripts.addon2));
-      stub.withArgs(privilegedAddon).returns(
-        Promise.resolve(MockContentScripts.privilegedAddon));
-      stub.withArgs(certifiedAddon).returns(
-        Promise.resolve(MockContentScripts.certifiedAddon));
-      stub.withArgs(addon1).returns(Promise.reject());
-    });
-
     test('resolves to an empty string if no targets', function(done) {
       var wrappedAddon = MockApp(addon1);
       assert.becomes(AddonManager.getAddonDisableType(wrappedAddon), '')
@@ -548,7 +563,7 @@ suite('addons manager test > ', function() {
 
     test('resolves to "restart" if it injects scripts', function(done) {
       var wrappedAddon = MockApp(privilegedAddon);
-      MockContentScripts.privilegedAddon[0].exclude_matches =
+      privilegedAddon.manifest.content_scripts[0].exclude_matches =
         'app://certifiedorigin/';
       assert.becomes(AddonManager.getAddonDisableType(wrappedAddon), 'restart')
         .notify(done);
@@ -580,16 +595,8 @@ suite('addons manager test > ', function() {
   });
 
   suite('addonAffectsApp', function() {
-
-    setup(function() {
-      var stub = sinon.stub(AddonManager, '_getContentScripts');
-      stub.withArgs(addon2).returns(
-        Promise.resolve(MockContentScripts.addon2));
-      stub.withArgs(addon1).returns(Promise.reject());
-    });
-
     test('resolves to true when an addon affects an app', function(done) {
-      MockContentScripts.addon2[0].matches = 'app://testorigin1/';
+      addon2.manifest.content_scripts[0].matches = 'app://testorigin1/';
       var wrappedAddon = MockApp(addon2);
       assert.becomes(AddonManager
         .addonAffectsApp(wrappedAddon, 'testManifestURL_app1'), true)
@@ -610,46 +617,13 @@ suite('addons manager test > ', function() {
           .addonAffectsApp(wrappedAddon, 'testManifestURL_app1'), false)
           .notify(done);
       });
-  });
 
-  suite('_getContentScripts', function() {
-    setup(function() {
-      realXMLHttpRequest = window.XMLHttpRequest;
-      window.XMLHttpRequest = mockXMLHttpRequest;
-    });
-
-    teardown(function() {
-      window.XMLHttpRequest = realXMLHttpRequest;
-      mockXMLHttpRequest = null;
-    });
-
-    test('addon with no content scripts is rejected', function(done) {
-      var contentSctiptsPromise = AddonManager._getContentScripts(addon1);
-      mockXMLHttpRequest.triggerReadyStateChange({
-        status: 200,
-        response: MockContentScripts.addon1
+    test('resolves to true when an addon match pattern matches an app',
+      function(done) {
+        var wrappedAddon = MockApp(settingsAddon);
+        assert.becomes(AddonManager
+          .addonAffectsApp(wrappedAddon, 'testManifestURL_settings_app'), true)
+          .notify(done);
       });
-      assert.isRejected(contentSctiptsPromise).notify(done);
-    });
-
-    test('obsolete addon is rejected', function(done) {
-      var contentSctiptsPromise = AddonManager._getContentScripts(
-        obsoleteAddon);
-      mockXMLHttpRequest.triggerReadyStateChange({
-        status: 400,
-        statusText: 'not found'
-      });
-      assert.isRejected(contentSctiptsPromise).notify(done);
-    });
-
-    test('addon with content scripts is resolved', function(done) {
-      var contentSctiptsPromise = AddonManager._getContentScripts(addon2);
-      mockXMLHttpRequest.triggerReadyStateChange({
-        status: 200,
-        statusText: MockContentScripts.addon2
-      });
-      assert.becomes(contentSctiptsPromise, MockContentScripts.addon2)
-            .notify(done);
-    });
   });
 });

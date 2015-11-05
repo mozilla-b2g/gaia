@@ -113,23 +113,39 @@ suite('Sync toolbar >', function() {
     });
   });
 
-  suite('Enable', function() {
+  ['enabled',
+   'syncing'].forEach(event => {
+    suite(event, function() {
+      suiteSetup(function() {
+        onsyncchange({
+          state: event,
+          user: 'pepito'
+        });
+      });
+
+      test('Tab name should change', function() {
+        expect(subject.syncTab.getAttribute('data-l10n-id'))
+          .to.equal('fxsync-signed-in-as');
+        expect(subject.syncTab.getAttribute('data-l10n-args'))
+          .to.equal('{"email":"pepito"}');
+      });
+    });
+  });
+
+  suite('enabling', function() {
     suiteSetup(function() {
       onsyncchange({
-        state: 'enabled',
-        user: 'pepito'
+        state: 'enabling'
       });
     });
 
     test('Tab name should change', function() {
       expect(subject.syncTab.getAttribute('data-l10n-id'))
-        .to.equal('fxsync-signed-in-as');
-      expect(subject.syncTab.getAttribute('data-l10n-args'))
-        .to.equal('{"email":"pepito"}');
+        .to.equal('fxsync-signing');
     });
   });
 
-  suite('Disable', function() {
+  suite('disabled', function() {
     suiteSetup(function() {
       onsyncchange({
         state: 'disabled'

@@ -127,12 +127,7 @@ var AppManager = {
   }
 };
 
-navigator.mozL10n.once(function firstLocalized() {
-  window.performance.mark('l10nready');
-});
-
-navigator.mozL10n.ready(function showBody() {
-
+function init() {
   VersionHelper.getVersionInfo().then(function(versionInfo) {
     if (!AppManager.isInitialized) {
       AppManager.init(versionInfo);
@@ -143,4 +138,13 @@ navigator.mozL10n.ready(function showBody() {
       }
     }
   });
+}
+
+
+init();
+document.addEventListener('DOMRetranslated', init);
+
+document.l10n.ready.then(() => {
+  window.performance.mark('l10nready');
 });
+

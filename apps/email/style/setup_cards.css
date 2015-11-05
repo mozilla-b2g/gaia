@@ -171,12 +171,17 @@ li button.signature-button.icon:before {
   width: 2.6rem;
   height: 2.6rem;
   margin-top: 0;
-  background: url('../shared/style/buttons/images/forward-light.svg') no-repeat center / 2.6rem;
+  background: no-repeat center / 2.6rem;
   opacity: 0.7;
 }
-
-html[dir="rtl"] li button.signature-button.icon:before  { right: 0; }
-html[dir="rtl"] li button.signature-button.icon:before  { left: 0; }
+html[dir="ltr"] li button.signature-button.icon:before {
+  background-image: url('../shared/style/buttons/images/right-light.svg');
+  right: 0;
+}
+html[dir="rtl"] li button.signature-button.icon:before {
+  background-image: url('../shared/style/buttons/images/left-light.svg');
+  left: 0;
+}
 
 li button.signature-button.button.icon {
   width: 100%;
@@ -352,12 +357,17 @@ li.align-center {
   height: 2.6rem;
   position: absolute;
   top: calc(50% - 1.3rem);
-  background: url('../shared/style/buttons/images/forward-light.svg') no-repeat center / 2.6rem;
+  background: no-repeat center / 2.6rem;
   opacity: 0.7;
 }
-
-html[dir="ltr"] .item-with-children::after  { right: -0.5rem; }
-html[dir="rtl"] .item-with-children::after  { left: -0.5rem; }
+html[dir="ltr"] .item-with-children::after {
+  background-image: url('../shared/style/buttons/images/right-light.svg');
+  right: -0.5rem;
+}
+html[dir="rtl"] .item-with-children::after {
+  background-image: url('../shared/style/buttons/images/left-light.svg');
+  left: -0.5rem;
+}
 
 .mail-select {
   vertical-align: middle;

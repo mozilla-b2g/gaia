@@ -3,7 +3,10 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
-var template =
+
+proto.createdCallback = function() {
+  var style = document.createElement('style');
+  style.innerHTML =
 `music-view-stack {
   position: relative;
   width: 100%;
@@ -90,10 +93,6 @@ music-view-stack > iframe.push.out {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-100%); }
 }`;
-
-proto.createdCallback = function() {
-  var style = document.createElement('style');
-  style.innerHTML = template;
 
   if (this.firstChild) {
     this.insertBefore(style, this.firstChild);

@@ -55,6 +55,10 @@ suite('Languages > ', function() {
       });
 
       languages = Languages();
+      languages.onInit({}, {
+        moreLanguages: document.createElement('a'),
+        langSel: document.createElement('select')
+      });
       done();
     });
   });

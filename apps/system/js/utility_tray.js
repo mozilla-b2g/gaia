@@ -157,7 +157,6 @@ exports.UtilityTray = {
     window.addEventListener('screenchange', this);
     window.addEventListener('resize', this);
     window.addEventListener('emergencyalert', this);
-    window.addEventListener('home', this);
     window.addEventListener('attentionopened', this);
     window.addEventListener('attentionwill-become-active', this);
     window.addEventListener('launchapp', this);
@@ -312,12 +311,6 @@ exports.UtilityTray = {
         break;
       case 'cardviewbeforeshow':
         this.hide(true);
-        break;
-      case 'home':
-        this.hide();
-        if (evt.type == 'home') {
-          evt.stopImmediatePropagation();
-        }
         break;
       case 'attentionopened':
       case 'attentionwill-become-active':

@@ -11,7 +11,6 @@
 /* global ERROR_GET_FXA_ASSERTION */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_SYNC_APP_KILLED */
-/* global ERROR_SYNC_REQUEST */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global expect */
 /* global FxAccountsClient */
@@ -20,6 +19,8 @@
 /* global MockNavigatormozSetMessageHandler */
 /* global MockNavigatorSettings */
 /* global MockService */
+/* global SyncManager */
+/* global SyncRecoverableErrors */
 
 requireApp('system/js/service.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
@@ -115,6 +116,11 @@ suite('system/SyncManager >', () => {
           requestStub = this.sinon.stub(MockService, 'request', () => {
             return Promise.resolve();
           });
+          this.sinon.stub(syncManager, 'getAccount', () => {
+            syncManager.user = 'someone';
+            return Promise.resolve('someone');
+          });
+
           syncManager.start().then(done);
         });
       });
@@ -361,6 +367,7 @@ suite('system/SyncManager >', () => {
       requestStub = this.sinon.stub(MockService, 'request', () => {
         return Promise.resolve();
       });
+      syncManager.user = 'someone';
     });
 
     teardown(() => {
@@ -427,6 +434,16 @@ suite('system/SyncManager >', () => {
         done();
       });
     });
+
+    test('onsyncenabled received - no user should disable sync', done => {
+      syncManager.user = null;
+      window.dispatchEvent(new CustomEvent('onsyncenabled'));
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(requestStub);
+        assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
+        done();
+      });
+    });
   });
 
   suite('onsyncenabling', () => {
@@ -442,6 +459,7 @@ suite('system/SyncManager >', () => {
     var trySyncError;
     var getAccountStub;
     var addEventListenerSpy;
+    var saveDefaultSettingsStub;
 
     suiteSetup(() => {
       syncManager = BaseModule.instantiate('SyncManager');
@@ -475,6 +493,11 @@ suite('system/SyncManager >', () => {
       getAccountStub = this.sinon.stub(syncManager, 'getAccount', () => {
         return Promise.resolve();
       });
+      saveDefaultSettingsStub = this.sinon.stub(syncManager,
+                                                'saveDefaultSettings',
+                                                () => {
+        return Promise.resolve();
+      });
     });
 
     teardown(() => {
@@ -485,6 +508,7 @@ suite('system/SyncManager >', () => {
       getKeysStub.restore();
       trySyncStub.restore();
       getAccountStub.restore();
+      saveDefaultSettingsStub.restore();
     });
 
     test('onsyncenabling received - success', done => {
@@ -573,7 +597,6 @@ suite('system/SyncManager >', () => {
         done();
       });
     });
-
   });
 
   suite('onsyncerrored', () => {
@@ -581,6 +604,23 @@ suite('system/SyncManager >', () => {
 
     var updateStateSpy;
     var requestStub;
+
+    const ERROR_SYNC_APP_KILLED = 'fxsync-error-app-killed';
+    const ERROR_SYNC_APP_SYNC_IN_PROGRESS =
+      'fxsync-error-app-fxsync-in-progress';
+    const ERROR_SYNC_APP_GENERIC = 'fxsync-error-app-generic';
+    const ERROR_SYNC_APP_TRY_LATER = 'fxsync-error-app-try-later';
+    const ERROR_UNVERIFIED_ACCOUNT = 'fxsync-error-unverified-account';
+    const ERROR_DIALOG_CLOSED_BY_USER = 'fxsync-error-dialog-closed-by-user';
+    const ERROR_GET_FXA_ASSERTION = 'fxsync-error-get-fxa-assertion';
+    const ERROR_INVALID_SYNC_ACCOUNT = 'fxsync-error-invalid-account';
+    const ERROR_OFFLINE = 'fxsync-error-offline';
+    const ERROR_REQUEST_SYNC_REGISTRATION =
+      'fxsync-error-request-fxsync-registration';
+    const ERROR_SYNC_INVALID_REQUEST_OPTIONS =
+      'fxsync-error-invalid-request-options';
+    const ERROR_SYNC_REQUEST = 'fxsync-error-request-failed';
+    const ERROR_UNKNOWN = 'fxsync-error-unknown';
 
     suiteSetup(() => {
       syncManager = BaseModule.instantiate('SyncManager');
@@ -603,32 +643,35 @@ suite('system/SyncManager >', () => {
       requestStub.restore();
     });
 
-    test('onsyncerrored received - recoverable error', done => {
-      window.dispatchEvent(new CustomEvent('onsyncerrored', {
-        detail: {
-          args: [ERROR_SYNC_APP_KILLED]
-        }
-      }));
-      setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
-        assert.equal(syncManager.error, ERROR_SYNC_APP_KILLED);
-        this.sinon.assert.notCalled(requestStub);
-        done();
-      });
-    });
-
-    test('onsyncerrored received - unrecoverable error', done => {
-      window.dispatchEvent(new CustomEvent('onsyncerrored', {
-        detail: {
-          args: [ERROR_SYNC_REQUEST]
-        }
-      }));
-      setTimeout(() => {
-        this.sinon.assert.calledOnce(updateStateSpy);
-        assert.equal(syncManager.error, ERROR_SYNC_REQUEST);
-        this.sinon.assert.calledOnce(requestStub);
-        assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
-        done();
+    [ERROR_SYNC_APP_KILLED,
+     ERROR_SYNC_APP_SYNC_IN_PROGRESS,
+     ERROR_SYNC_APP_GENERIC,
+     ERROR_SYNC_APP_TRY_LATER,
+     ERROR_UNVERIFIED_ACCOUNT,
+     ERROR_DIALOG_CLOSED_BY_USER,
+     ERROR_GET_FXA_ASSERTION,
+     ERROR_INVALID_SYNC_ACCOUNT,
+     ERROR_OFFLINE,
+     ERROR_REQUEST_SYNC_REGISTRATION,
+     ERROR_SYNC_INVALID_REQUEST_OPTIONS,
+     ERROR_SYNC_REQUEST,
+     ERROR_UNKNOWN].forEach(error => {
+      test(`onerrored received - ${error}`, done => {
+        window.dispatchEvent(new CustomEvent('onsyncerrored', {
+          detail: {
+            args: [error]
+          }
+        }));
+        setTimeout(() => {
+          this.sinon.assert.calledOnce(updateStateSpy);
+          assert.equal(syncManager.error, error);
+          if (SyncRecoverableErrors.indexOf(error) > -1) {
+            assert.ok(requestStub.calledWith('SyncStateMachine:enable'));
+          } else {
+            assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
+          }
+          done();
+        });
       });
     });
   });
@@ -851,6 +894,30 @@ suite('system/SyncManager >', () => {
             done();
           });
         });
+      });
+    });
+
+    test('onsyncing - offline', done => {
+      Object.defineProperty(navigator, 'onLine', {
+        configurable: true,
+        get: () => {
+          return false;
+        },
+        set: () => {}
+      });
+
+      var previousLastSync = syncManager.lastSync;
+      window.dispatchEvent(new CustomEvent('onsyncsyncing'));
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(updateStateStub);
+        this.sinon.assert.calledOnce(unregisterSyncStub);
+        this.sinon.assert.notCalled(getAssertionStub);
+        this.sinon.assert.notCalled(getKeysStub);
+        this.sinon.assert.notCalled(portStub);
+        this.sinon.assert.calledOnce(requestStub);
+        assert.equal(syncManager.lastSync, previousLastSync);
+        assert.ok(requestStub.calledWith('SyncStateMachine:success'));
+        done();
       });
     });
   });
@@ -1416,6 +1483,98 @@ suite('system/SyncManager >', () => {
       });
       setTimeout(() => {
         assert.ok(requestStub.calledOnce);
+      });
+    });
+  });
+
+  suite('Default settings', () => {
+    var syncManager;
+    var successDeferred = {
+      fulfilled: false
+    };
+    successDeferred.promise = new Promise(resolve => {
+      successDeferred.resolve = () => {
+        successDeferred.fulfilled = true;
+        resolve();
+      };
+    });
+
+    var disableSuccessDeferred = {};
+    disableSuccessDeferred.promise = new Promise(resolve => {
+      disableSuccessDeferred.resolve = resolve;
+    });
+
+    var _defaults = {};
+
+    var promiseResolve = () => {
+      return Promise.resolve();
+    };
+
+    suiteSetup(() => {
+      syncManager = BaseModule.instantiate('SyncManager');
+      syncManager.start();
+
+      this.sinon.stub(syncManager, 'updateState', () => {
+        syncManager.updateStateDeferred = Promise.resolve();
+      });
+
+      this.sinon.stub(syncManager, 'getAssertion', promiseResolve);
+      this.sinon.stub(syncManager, 'getKeys', promiseResolve);
+      this.sinon.stub(syncManager, 'trySync', promiseResolve);
+      this.sinon.stub(syncManager, 'getAccount', promiseResolve);
+      this.sinon.stub(MockService, 'request', (what) => {
+        if (what !== 'SyncStateMachine:success') {
+          return;
+        }
+        successDeferred.fulfilled ? disableSuccessDeferred.resolve()
+                                  : successDeferred.resolve();
+      });
+
+      SyncManager.SETTINGS.forEach(setting => {
+        _defaults[setting] = Date.now();
+        MockNavigatorSettings.mSettings[setting] = _defaults[setting];
+        syncManager._settings[setting] = _defaults[setting];
+      });
+    });
+
+    suiteTeardown(() => {
+      syncManager.stop();
+    });
+
+    test('should save and restore default settings on login/logout', done => {
+      window.dispatchEvent(new CustomEvent('onsyncenabling'));
+      successDeferred.promise.then(() => {
+        return Promise.all(SyncManager.SETTINGS.map(setting => {
+          return new Promise(resolve => {
+            asyncStorage.getItem(setting, value => {
+              expect(value).to.equal(_defaults[setting]);
+              resolve();
+            });
+          });
+        }));
+      }).then(() => {
+        return Promise.all(SyncManager.SETTINGS.map(setting => {
+          return new Promise(resolve => {
+            MockNavigatorSettings.mSettings[setting] = Date.now();
+            resolve();
+          });
+        }));
+      }).then(() => {
+        window.dispatchEvent(new CustomEvent('onsyncdisabling'));
+        return disableSuccessDeferred.promise;
+      }).then(() => {
+        return Promise.all(SyncManager.SETTINGS.map(setting => {
+          return new Promise(resolve => {
+            asyncStorage.getItem(setting, value => {
+              expect(value).to.equal(null);
+              expect(MockNavigatorSettings.mSettings[setting])
+                .to.equal(_defaults[setting]);
+              resolve();
+            });
+          });
+        }));
+      }).then(() => {
+        done();
       });
     });
   });

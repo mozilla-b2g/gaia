@@ -173,8 +173,11 @@ section[role="region"] > header:first-child .icon-compose {
   background-image: url(headers/images/icons/compose.png);
 }
 
-section[role="region"] > header:first-child .icon-edit {
+html[dir="ltr"] section[role="region"] > header:first-child .icon-edit {
   background-image: url(headers/images/icons/edit.png);
+}
+html[dir="rtl"] section[role="region"] > header:first-child .icon-edit {
+  background-image: url(headers/images/icons/edit-rtl.png);
 }
 
 html[dir="ltr"] section[role="region"] > header:first-child .icon-send {
@@ -354,9 +357,13 @@ section[role="region"].skin-organic > header:first-child .icon-add,
   background-image: url(headers/images/icons/organic/add.png);
 }
 
-section[role="region"].skin-organic > header:first-child .icon-edit,
-.skin-organic section[role="region"] > header:first-child .icon-edit {
+html[dir="ltr"] section[role="region"].skin-organic > header:first-child .icon-edit,
+html[dir="ltr"] .skin-organic section[role="region"] > header:first-child .icon-edit {
   background-image: url(headers/images/icons/organic/edit.png);
+}
+html[dir="rtl"] section[role="region"].skin-organic > header:first-child .icon-edit,
+html[dir="rtl"] .skin-organic section[role="region"] > header:first-child .icon-edit {
+  background-image: url(headers/images/icons/organic/edit-rtl.png);
 }
 
 /* ----------------------------------

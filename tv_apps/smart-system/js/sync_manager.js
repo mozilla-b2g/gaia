@@ -63,6 +63,19 @@
 
   const COLLECTIONS = ['history', 'passwords', 'bookmarks'];
 
+  const SETTINGS = [
+    'sync.collections.bookmarks.enabled',
+    'sync.collections.history.enabled',
+    'sync.collections.passwords.enabled',
+    'sync.collections.bookmarks.readonly',
+    'sync.collections.history.readonly',
+    'sync.collections.passwords.readonly',
+    'sync.server.url',
+    'sync.scheduler.interval',
+    'sync.scheduler.wifionly',
+    'sync.fxa.audience'
+  ];
+
   // Keys of asyncStorage persisted data.
   const SYNC_STATE = 'sync.state';
   const SYNC_STATE_ERROR = 'sync.state.error';
@@ -216,8 +229,15 @@
     },
 
     set user(user) {
-      asyncStorage.setItem(SYNC_USER, user, () => {
-        this.store.set(SYNC_USER, user);
+      // We need to check if there's an user logged in during the enabled
+      // state handler, so we cannot wait for the asyncStorage write.
+      this.store.set(SYNC_USER, user);
+      asyncStorage.setItem(SYNC_USER, user, () => {}, () => {
+        // This should never happen, but if something goes wrong storing the
+        // user we delete the user from memory and disable Sync to avoid
+        // inconsistent states.
+        this.store.delete(SYNC_USER);
+        SyncStateMachine.disable();
       });
     },
 
@@ -290,19 +310,32 @@
     ondisabling() {
       this.debug('ondisabling observed');
       this.updateState();
+
       // On TV because the login on Sync is tied to a login on FxA, login out
       // from Sync means login out from FxA.
       // Keep logout *after* the cleanup call where we remove the FxA event
       // listeners.
       LazyLoader.load('js/fx_accounts_client.js', () => {
         FxAccountsClient.logout();
-        SyncStateMachine.success();
+
+        // Go back to default settings, so new users won't inherit old users
+        // preferences.
+        this.restoreDefaultSettings().then(SyncStateMachine.success);
       });
     },
 
     onenabled(from) {
       this.debug('onenabled observed');
       this.updateState();
+
+      // If we got to this point with no user, something went wrong, so we
+      // need to disable Sync.
+      if (!this.user) {
+        this.debug('No user');
+        SyncStateMachine.disable();
+        return;
+      }
+
       this.registerSyncRequest().then(() => {
         this.debug('Sync request registered');
         // After login in with a new account or rebooting the device,
@@ -347,6 +380,11 @@
       }).then(() => {
         return this.getAccount();
       }).then(() => {
+        // We save default settings so we can revert user changes to
+        // the default values when the user logs out from Sync. So new
+        // users don't inherit old users preferences.
+        return this.saveDefaultSettings();
+      }).then(() => {
         SyncStateMachine.success();
       }).catch(error => {
         // XXX Bug 1200284 - Normalize all Firefox Accounts error reporting.
@@ -385,11 +423,14 @@
       // We don't update the state until we set the error.
       this.updateState();
 
-      // If the error is not recoverable, we disable Sync.
-      if (SyncRecoverableErrors.indexOf(error) <= -1) {
-        this.debug('Unrecoverable error');
-        SyncStateMachine.disable();
+      // If the error is recoverable we go back to the enabled state,
+      // otherwise, we disable Sync.
+      if (SyncRecoverableErrors.indexOf(error) > -1) {
+        SyncStateMachine.enable();
+        return;
       }
+      this.debug('Unrecoverable error');
+      SyncStateMachine.disable();
     },
 
     onsyncing() {
@@ -401,6 +442,11 @@
       // It's harmless to unregister an expired request, so it's also ok
       // to do it for a periodic sync.
       this.unregisterSyncRequest();
+
+      if (!navigator.onLine) {
+        SyncStateMachine.success();
+        return;
+      }
 
       var collections = {};
       COLLECTIONS.forEach(name => {
@@ -500,17 +546,79 @@
       };
 
       var promises = [];
-      ['sync.collections.bookmarks.enabled',
-       'sync.collections.history.enabled',
-       'sync.collections.passwords.enabled',
-       'sync.collections.bookmarks.readonly',
-       'sync.collections.history.readonly',
-       'sync.collections.passwords.readonly',
-       'sync.server.url',
-       'sync.scheduler.interval',
-       'sync.scheduler.wifionly',
-       'sync.fxa.audience'].forEach(setting => {
+      SETTINGS.forEach(setting => {
          promises.push(setSettingObserver(setting));
+      });
+
+      return Promise.all(promises);
+    },
+
+    saveDefaultSettings() {
+      var saveDefaultSetting = setting => {
+        return new Promise((resolve, reject) => {
+          asyncStorage.getItem(setting, value => {
+            if (value !== null) {
+              resolve();
+              return;
+            }
+
+            this.debug(`Saving default setting value ${setting}`);
+            var req = navigator.mozSettings.createLock().get(setting);
+            req.onerror = reject;
+            req.onsuccess = () => {
+              var defaultValue = req.result[setting];
+              defaultValue ? this.settings.set(setting, defaultValue)
+                           : this.settings.delete(setting);
+              asyncStorage.setItem(setting, defaultValue, () => {
+                this.debug(`Saved default setting ${setting} as
+                           ${defaultValue}`);
+                resolve();
+              });
+            };
+          });
+        });
+      };
+
+      var promises = [];
+      SETTINGS.forEach(setting => {
+        promises.push(saveDefaultSetting(setting));
+      });
+
+      return Promise.all(promises);
+    },
+
+    restoreDefaultSettings() {
+      var _revertSetting = setting => {
+        return new Promise((resolve, reject) => {
+          asyncStorage.getItem(setting, value => {
+            if (value === null) {
+              resolve();
+              return;
+            }
+
+            this.debug(`Reverting ${setting} to ${value}`);
+            // We need to remove the setting from asyncStorage to allow
+            // default setting changes within OTA updates.
+            asyncStorage.removeItem(setting, () => {
+              var settingObject = {};
+              settingObject[setting] = value;
+              var req = navigator.mozSettings.createLock().set(settingObject);
+              req.onerror = error => {
+                console.error(error);
+                reject();
+              };
+              req.onsuccess = () => {
+                this.debug(`Reverted setting ${setting} to ${value}`);
+                resolve();
+              };
+            });
+          });
+        });
+      };
+
+      var promises = [];
+      SETTINGS.forEach(setting => {
+        promises.push(_revertSetting(setting));
       });
 
       return Promise.all(promises);
@@ -530,6 +638,14 @@
         });
         promises.push(promise);
       });
+
+      SETTINGS.forEach(setting => {
+        var promise = new Promise(resolve => {
+          asyncStorage.removeItem(setting, resolve);
+          promises.push(promise);
+        });
+      });
+
       return Promise.all(promises);
     },
 
@@ -682,9 +798,10 @@
           var error = result.error;
           error = error.message ? error.message : error;
           console.error('Error while trying to sync', error);
-          // XXX The sync app needs to propagate a less general error.
-          //     Bug 1210412
-          SyncStateMachine.error(ERROR_SYNC_APP_GENERIC);
+
+          error = SyncErrors[error] || ERROR_SYNC_APP_GENERIC;
+
+          SyncStateMachine.error(error);
           return;
         }
         this.debug('Sync succeded');
@@ -781,4 +898,5 @@
 
   // Exported for testing purposes only.
   exports.SyncManager = SyncManager;
+  exports.SyncManagerSettings = SETTINGS;
 }(window));

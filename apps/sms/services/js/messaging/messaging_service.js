@@ -1,4 +1,5 @@
-/* global BridgeServiceMixin,
+/* global bridge,
+          BridgeServiceMixin,
           MozMobileMessageClient,
           Settings,
           SMIL
@@ -22,8 +23,8 @@ const METHODS = Object.freeze([
 ]);
 
 function ensureBridge() {
-  if (!('bridge' in self)) {
-    importScripts('/lib/bridge/bridge.js');
+  if (!('bridge' in self) || !('service' in bridge)) {
+    importScripts('/lib/bridge/service.js');
   }
 }
 

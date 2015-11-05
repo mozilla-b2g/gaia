@@ -39,8 +39,21 @@ ConversationView.prototype = {
     return this.accessors.toggleSelectionButton.text();
   },   
 
-  get messages() {
-    return this.accessors.messages.map(function(message) {
+  /**
+   * Returns the messages in this conversation, following an optional filter.
+   * @param {Object} [filter] Optional filter
+   * @param {Number} [filter.first] Will return the first n messages.
+   * @returns {ParsedMessage[]} List of the messages found.
+   */
+  messages: function(filter) {
+    filter = filter || [];
+    var messages = this.accessors.messages;
+
+    if (filter.first) {
+      messages = messages.slice(0, filter.first);
+    }
+
+    return messages.map(function(message) {
       return this.messageAccessors.parse(message);
     }, this);
   },
@@ -122,7 +135,7 @@ ConversationView.prototype = {
   },
 
   deleteMessage: function(messageId) {
-    var lastMessageWillBeDeleted = this.messages.length === 1;
+    var lastMessageWillBeDeleted = this.messages().length === 1;
 
     var message = this.accessors.findMessage(messageId);
 

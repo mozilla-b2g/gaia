@@ -7,7 +7,9 @@ var proto = Object.create(HTMLElement.prototype);
 
 var isTouch = 'ontouchstart' in window;
 
-var template =
+proto.createdCallback = function() {
+  var shadowRoot = this.createShadowRoot();
+  shadowRoot.innerHTML =
 `<style>
   #container {
     background-color: rgba(0, 0, 0, 0.85);
@@ -95,10 +97,6 @@ var template =
   </span>
   <span id="remaining-time"></span>
 </div>`;
-
-proto.createdCallback = function() {
-  var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML = template;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 

@@ -122,23 +122,51 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
       }
     }
 
+    // This is a function for options that are localizable.
+    // Currently Regions are, while Cities use the old versio
+    function fillSelectL10nElement(selector, options) {
+      selector.innerHTML = '';
+
+      const collator = Intl.Collator(navigator.languages, {
+        usage: 'sort',
+      });
+
+      const frag = document.createDocumentFragment();
+
+      const items = options.map(option => {
+        const item = document.createElement('option');
+        item.setAttribute('data-l10n-id', option.l10nId);
+        item.selected = option.selected;
+        item.value = option.value;
+        frag.appendChild(item);
+        return item;
+      });
+
+      return document.l10n.translateFragment(frag).then(() => {
+        items.sort(
+          (a, b) => collator.compare(a.textContent, b.textContent)
+        );
+
+        items.forEach(item => frag.appendChild(item));
+        selector.appendChild(frag);
+      });
+    }
+
     function getSelectedText(selector) {
       var options = selector.querySelectorAll('option');
       return options[selector.selectedIndex].textContent;
     }
 
     function fillRegions() {
-      var _ = navigator.mozL10n.get;
       var options = [];
       for (var c in gTZ) {
         options.push({
-          text: _('tzRegion-' + c) || c,
+          l10nId: 'tzRegion-' + c,
           value: c,
           selected: (c === gRegion)
         });
       }
-      fillSelectElement(regionSelector, options);
-      fillCities();
+      fillSelectL10nElement(regionSelector, options).then(fillCities);
     }
 
     function fillCities() {

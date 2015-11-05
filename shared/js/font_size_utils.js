@@ -370,11 +370,11 @@
     },
 
     _initHeaderFormatting: function() {
-      if (navigator.mozL10n) {
+      if (document.l10n) {
         // When l10n is ready, register all displayed headers for formatting.
-        navigator.mozL10n.once(function() {
+        document.l10n.ready.then(() => {
           this._registerHeadersInSubtree(document.body);
-        }.bind(this));
+        });
       } else {
         this._registerHeadersInSubtree(document.body);
       }

@@ -225,7 +225,7 @@
       dom.tutorial.dataset.step = this._currentStep;
 
       // Internationalize
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         dom.tutorialStepTitle,
         stepData.l10nKey
       );

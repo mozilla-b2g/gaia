@@ -17,7 +17,7 @@ marionette('First Time Use >', function() {
     quickly.helper.client = quickly;
   });
 
-  test('Change language to bidi english', function() {
+  test('Change language to bidi english', function(done) {
     quickly.settings.set('devtools.pseudolocalization.enabled', true);
     quickly.apps.switchToApp(Ftu.URL);
     quickly.helper.waitForElement('#languages');
@@ -25,17 +25,23 @@ marionette('First Time Use >', function() {
     ftu.selectLanguage('ar-x-psbidi');
 
     assert.equal(quickly.settings.get('language.current'), 'ar-x-psbidi');
-    var translatedHeader = quickly.executeScript('' +
-      'var qps = window.wrappedJSObject.navigator.mozL10n.qps;' +
-      'return qps["ar-x-psbidi"].translate("Language");'
-    );
     // sanity check expected translation
     var direction = quickly.helper.waitForElement('body')
                     .scriptWith(function(el) {
       return window.wrappedJSObject.getComputedStyle(el).direction;
     });
     assert.equal(direction, 'rtl');
-    assert.equal(translatedHeader, header.text());
+    quickly.executeAsyncScript(function() {
+      var pseudo = window.wrappedJSObject.document.l10n.pseudo;
+      pseudo['ar-x-psbidi'].processString('Language').then(
+        function(string) {
+          marionetteScriptFinished(string);
+        }
+      );
+    }, function(err, value) {
+      assert.equal(value, header.text());
+      done();
+    });
   });
 
   test('Correct nav button order under RTL', function() {

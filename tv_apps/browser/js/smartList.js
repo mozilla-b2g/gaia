@@ -330,7 +330,7 @@
 
       textEl.classList.add('text-box');
       titleEl.classList.add('title');
-      titleEl.textContent = data.title;
+      titleEl.textContent = data.title ? data.title : data.uri;
       urlEl.classList.add('uri');
       textEl.appendChild(titleEl);
       textEl.appendChild(urlEl);

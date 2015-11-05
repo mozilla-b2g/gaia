@@ -13,14 +13,10 @@
     this.panel = document.getElementById('pages-panel');
     this.panels = document.getElementById('panels');
     this.pages = document.getElementById('pages');
-    this.shadow = document.getElementById('shadow');
     this.scrollable = document.querySelector('#pages-panel > .scrollable');
     this.bottombar = document.getElementById('bottombar');
     this.remove = document.getElementById('remove');
     this.done = document.getElementById('done');
-
-    // Scroll behaviour
-    this.pagesVisible = false; // FIXME: This is controlled by app.js
 
     // Tracking if the list is empty
     this.empty = true;
@@ -28,12 +24,13 @@
     // Edit mode
     this.editMode = false;
 
+    // Dialogs
+    this.dialogs = [];
+
     // Signal handlers
     this.pages.addEventListener('click', this);
     this.pages.addEventListener('contextmenu', this);
     this.pages.addEventListener('keydown', this);
-    this.scrollable.addEventListener('scroll', this);
-    window.addEventListener('hashchange', this);
 
     this.done.addEventListener('click', e => {
       e.preventDefault();
@@ -185,6 +182,10 @@
     },
 
     exitEditMode: function() {
+      if (!this.editMode) {
+        return;
+      }
+
       this.editMode = false;
       document.body.classList.remove('edit-mode');
       this.remove.classList.remove('active');
@@ -200,9 +201,7 @@
       }
       this.pages.removeChild(card, () => {
         if (!this.empty && this.pages.children.length === 0) {
-          if (this.editMode) {
-            this.exitEditMode();
-          }
+          this.exitEditMode();
           this.empty = true;
           this.panel.classList.add('empty');
         }
@@ -260,27 +259,6 @@
           case 32: // Space
           case 13: // Enter
             this.launchCard(e.target);
-        }
-        break;
-
-      case 'scroll':
-        if (!this.pagesVisible) {
-          break;
-        }
-
-        var position = this.scrollable.scrollTop;
-        var scrolled = position > 1;
-        if (this.shadow.classList.contains('visible') !== scrolled) {
-          this.shadow.classList.toggle('visible', scrolled);
-        }
-        break;
-
-      case 'hashchange':
-        if (!document.hidden) {
-          if (this.panels.scrollLeft ===
-              this.scrollable.parentNode.offsetLeft) {
-            this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
-          }
         }
         break;
       }

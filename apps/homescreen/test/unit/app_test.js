@@ -9,7 +9,6 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_icons_helper.js');
 require('mocks/mock_metadata.js');
 require('mocks/mock_datastore.js');
-require('mocks/mock_pages.js');
 require('mocks/mock_settings.js');
 require('/shared/js/l10n.js');
 require('/js/app.js');
@@ -82,6 +81,16 @@ suite('Homescreen app', () => {
     }
     var icons = document.getElementById('apps');
     icons.freeze = icons.thaw = () => {};
+    icons.getChildOffsetRect = child => {
+      return {
+        top: child.offsetTop,
+        right: child.offsetLeft + child.offsetWidth,
+        bottom: child.offsetTop + child.offsetHeight,
+        left: child.offsetLeft,
+        width: child.offsetWidth,
+        height: child.offsetHeight
+      };
+    };
     app = new App();
   });
 
@@ -690,79 +699,6 @@ suite('Homescreen app', () => {
     });
   });
 
-  suite('App#updatePanelIndicator()', () => {
-    var indicatorToggleStubs;
-    var realPanels;
-    var mockPanels = {
-      scrollLeft: 0,
-      scrollLeftMax: 100
-    };
-
-    setup(() => {
-      indicatorToggleStubs = [
-        sinon.stub(app.indicator.children[0].classList, 'toggle'),
-        sinon.stub(app.indicator.children[1].classList, 'toggle')];
-      realPanels = app.panels;
-      app.panels = mockPanels;
-    });
-
-    teardown(() => {
-      indicatorToggleStubs.forEach((stub) => { stub.restore(); });
-      app.panels = realPanels;
-    });
-
-    test('should update indicator when apps visible', () => {
-      app.appsVisible = false;
-      app.updatePanelIndicator();
-      assert.isTrue(indicatorToggleStubs[0].calledWith('active', true));
-      assert.isTrue(indicatorToggleStubs[1].calledWith('active', false));
-      assert.equal(app.header.getAttribute('data-l10n-id'), 'apps-panel');
-    });
-
-    test('should update aria-hidden on both panels', () => {
-      var appPanelSetAttributeStub = sinon.stub(app.panel, 'setAttribute');
-      var pagesPanelSetAttributeStub =
-        sinon.stub(app.pages.panel, 'setAttribute');
-
-      app.appsVisible = false;
-      app.updatePanelIndicator();
-      assert.isTrue(appPanelSetAttributeStub.calledWith('aria-hidden', false));
-      assert.isTrue(pagesPanelSetAttributeStub.calledWith('aria-hidden', true));
-
-      appPanelSetAttributeStub.restore();
-      pagesPanelSetAttributeStub.restore();
-    });
-
-    test('should update indicator when pages visible', () => {
-      var setAttributeSpy = sinon.spy(app.indicator, 'setAttribute');
-      var spy1 = setAttributeSpy.withArgs('aria-valuenow', 2);
-      var spy2 = setAttributeSpy.withArgs('data-l10n-args', JSON.stringify({
-        currentPage: 2,
-        totalPages: 2
-      }));
-
-      mockPanels.scrollLeft = mockPanels.scrollLeftMax;
-      app.updatePanelIndicator();
-
-      assert.isTrue(indicatorToggleStubs[0].calledWith('active', false));
-      assert.isTrue(indicatorToggleStubs[1].calledWith('active', true));
-      assert.isTrue(spy1.called);
-      assert.isTrue(spy2.called);
-      assert.equal(app.header.getAttribute('data-l10n-id'), 'pages-panel');
-    });
-
-    test('should do nothing when visibility is unchanged', () => {
-      var setAttributeSpy = sinon.spy(app.indicator, 'setAttribute');
-      app.appsVisible = true;
-      mockPanels.scrollLeft = 0;
-      app.updatePanelIndicator();
-      assert.isFalse(indicatorToggleStubs[0].called);
-      assert.isFalse(indicatorToggleStubs[1].called);
-      assert.isFalse(setAttributeSpy.called);
-      setAttributeSpy.restore();
-    });
-  });
-
   suite('App#removeSelectedIcon()', () => {
     var uninstallStub;
     setup(() => {
@@ -953,70 +889,6 @@ suite('Homescreen app', () => {
   });
 
   suite('App#handleEvent()', () => {
-    suite('keypress', () => {
-      var scrollObject, realPanels;
-      var event = {
-        type: 'keypress',
-        ctrlKey: true,
-        DOM_VK_RIGHT: 'right',
-        DOM_VK_LEFT: 'left'
-      };
-      var mockPanels = {
-        scrollLeftMax: 100,
-        scrollTo: obj => { scrollObject = obj; }
-      };
-
-      setup(() => {
-        realPanels = app.panels;
-        app.panels = mockPanels;
-      });
-
-      teardown(() => {
-        app.panels = realPanels;
-      });
-
-      test('right should display pinned pages', () => {
-        event.keyCode = 'right';
-        app.handleEvent(event);
-        assert.equal(scrollObject.left, app.panels.scrollLeftMax);
-        assert.equal(scrollObject.top, 0);
-        assert.equal(scrollObject.behavior, 'smooth');
-      });
-
-      test('left should display apps', () => {
-        event.keyCode = 'left';
-        app.handleEvent(event);
-        assert.equal(scrollObject.left, 0);
-        assert.equal(scrollObject.top, 0);
-        assert.equal(scrollObject.behavior, 'smooth');
-      });
-    });
-
-    suite('scroll', () => {
-      test('should show and hide the drop shadow accordingly', () => {
-        app.scrollable = {
-          scrollTop: 50
-        };
-        app.handleEvent(new CustomEvent('scroll'));
-        assert.isTrue(app.shadow.classList.contains('visible'));
-
-        app.scrollable.scrollTop = 0;
-        app.handleEvent(new CustomEvent('scroll'));
-        assert.isFalse(app.shadow.classList.contains('visible'));
-      });
-
-      test('should update the panel indicator', () => {
-        document.body.classList.add('pin-the-web');
-        var updatePanelStub = sinon.stub(app, 'updatePanelIndicator');
-
-        app.panels.dispatchEvent(new CustomEvent('scroll'));
-        assert.isTrue(updatePanelStub.called);
-
-        updatePanelStub.restore();
-        document.body.classList.remove('pin-the-web');
-      });
-    });
-
     suite('activate', () => {
       test('should be preventDefaulted', () => {
         var icon = getIcon('abc');
@@ -1160,6 +1032,7 @@ suite('Homescreen app', () => {
 
       suite('drag-end', () => {
         var realInnerHeight, realInnerWidth, realIcons, reorderChildSpy;
+        var mockIconContainer = { firstElementChild: 'icon' };
 
         setup(() => {
           realInnerHeight =
@@ -1183,6 +1056,8 @@ suite('Homescreen app', () => {
             },
             reorderChild: () => {}
           };
+          app.iconsLeft = 10;
+          app.iconsRight = 490;
 
           reorderChildSpy = sinon.spy(app.icons, 'reorderChild');
         });
@@ -1197,7 +1072,7 @@ suite('Homescreen app', () => {
         test('icon can be dropped at the beginning of the container', () => {
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: 0, clientY: -100 }
+              { target: 'def', dropTarget: null, clientX: 250, clientY: -100 }
           }));
           assert.isTrue(reorderChildSpy.calledWith('def', 'abc'));
         });
@@ -1205,14 +1080,19 @@ suite('Homescreen app', () => {
         test('icon can be dropped at the end of the container', () => {
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: 0, clientY: 600 }
+              { target: 'def', dropTarget: null, clientX: 250, clientY: 600 }
           }));
           assert.isTrue(reorderChildSpy.calledWith('def', null));
         });
 
         test('dropping icon on itself does nothing', () => {
           app.handleEvent(new CustomEvent('drag-end', {
-            detail: { target: 'abc', dropTarget: 'abc', clientX: 0, clientY: 0 }
+            detail: {
+              target: 'abc',
+              dropTarget: mockIconContainer,
+              clientX: 0,
+              clientY: 0
+            }
           }));
           assert.isFalse(reorderChildSpy.called);
         });
@@ -1220,19 +1100,16 @@ suite('Homescreen app', () => {
         test('dropping icon to the side does nothing', () => {
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: -100, clientY: 0 }
+              { target: 'def', dropTarget: null, clientX: 5, clientY: 0 }
           }));
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: 600, clientY: 0 }
+              { target: 'def', dropTarget: null, clientX: 495, clientY: 0 }
           }));
           assert.isFalse(reorderChildSpy.called);
         });
 
         test('dropping icon without moving activates edit mode', () => {
-          var mockIconContainer = {
-            firstElementChild: 'icon'
-          };
           var enterEditModeStub = sinon.stub(app, 'enterEditMode');
           var iconEditableStub = sinon.stub(app, 'iconIsEditable', () => true);
 
@@ -1302,60 +1179,6 @@ suite('Homescreen app', () => {
       });
       app.handleEvent(new CustomEvent('install',
         { detail: { application: {} } }));
-    });
-  });
-
-  suite('hashchange', () => {
-    var realDocumentHidden;
-    setup(() => {
-      realDocumentHidden = Object.getOwnPropertyDescriptor(document, 'hidden');
-      Object.defineProperty(document, 'hidden', {
-        value: false,
-        configurable: true
-      });
-    });
-
-    teardown(() => {
-      if (realDocumentHidden) {
-        Object.defineProperty(document, 'hidden', realDocumentHidden);
-      } else {
-        delete document.hidden;
-      }
-    });
-
-    test('should scroll to the top of the page', done => {
-      var realScrollable = app.scrollable;
-      app.scrollable = {
-        scrollTo: (obj) => {
-          done(() => {
-            assert.equal(obj.top, 0);
-            assert.equal(obj.left, 0);
-          });
-        },
-        scrollLeft: 0,
-        parentNode: {
-          offsetLeft: 0
-        }
-      };
-      app.handleEvent(new CustomEvent('hashchange'));
-      app.scrollable = realScrollable;
-    });
-
-    test('should cancel dialogs', done => {
-      var realDialogs = app.dialogs;
-      app.dialogs = [{
-        close: () => { done(); },
-        opened: () => { return true; }
-      }];
-      app.handleEvent(new CustomEvent('hashchange'));
-      app.dialogs = realDialogs;
-    });
-
-    test('should exit edit mode', () => {
-      app.editMode = true;
-      var exitEditModeStub = sinon.stub(app, 'exitEditMode');
-      app.handleEvent(new CustomEvent('hashchange'));
-      assert.isTrue(exitEditModeStub.called);
     });
   });
 });

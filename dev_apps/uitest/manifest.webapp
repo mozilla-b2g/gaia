@@ -45,6 +45,7 @@
     "firefox-accounts": {},
     "engineering-mode": {},
     "secureelement-manage": {},
-    "presentation-device-manage": {}
+    "presentation-device-manage": {},
+    "moz-extremely-unstable-and-will-change-webcomponents": {}
   }
 }

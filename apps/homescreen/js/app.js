@@ -1,4 +1,4 @@
-/* global MozActivity, HomeMetadata, Datastore, Pages, LazyLoader, FirstRun,
+/* global MozActivity, HomeMetadata, Datastore, LazyLoader, FirstRun,
           IconsHelper, Settings */
 /* jshint nonew: false */
 'use strict';
@@ -34,12 +34,6 @@
   const AUTOSCROLL_OVERFLOW_DELAY = 500;
 
   /**
-   * Time after receiving a handled hashchange that we ignore hashchange
-   * events for.
-   */
-  const HASH_CHANGE_DEBOUNCE = 100;
-
-  /**
    * App roles that will be skipped on the homescreen.
    */
   const HIDDEN_ROLES = [
@@ -57,12 +51,8 @@
     window.performance.mark('navigationLoaded');
 
     // Element references
-    this.header = document.getElementById('page-indicator-header');
-    this.indicator = document.getElementById('page-indicator');
-    this.panels = document.getElementById('panels');
     this.panel = document.getElementById('apps-panel');
     this.meta = document.head.querySelector('meta[name="theme-color"]');
-    this.shadow = document.getElementById('shadow');
     this.scrollable = document.querySelector('#apps-panel > .scrollable');
     this.icons = document.getElementById('apps');
     this.remove = document.getElementById('remove');
@@ -102,6 +92,8 @@
     this.gridHeight = 1;
     this.pendingGridHeight = 1;
     this.iconsPerPage = 0;
+    this.iconsLeft = 0;
+    this.iconsRight = 0;
 
     // Scroll behaviour
     this.appsVisible = false;
@@ -117,7 +109,6 @@
     this.editMode = false;
     this.shouldEnterEditMode = false;
     this.selectedIcon = null;
-    this.ignoreHashChangeTimeout = null;
     this.rename.addEventListener('click', e => {
       e.preventDefault();
       this.renameSelectedIcon();
@@ -134,9 +125,6 @@
     this._iconSize = 0;
 
     // Signal handlers
-    this.indicator.addEventListener('keypress', this);
-    this.panels.addEventListener('scroll', this);
-    this.scrollable.addEventListener('scroll', this);
     this.icons.addEventListener('activate', this);
     this.icons.addEventListener('drag-start', this);
     this.icons.addEventListener('drag-move', this);
@@ -145,7 +133,6 @@
     this.icons.addEventListener('drag-finish', this);
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
-    window.addEventListener('hashchange', this, true);
     window.addEventListener('localized', this);
     window.addEventListener('online', this);
     window.addEventListener('resize', this);
@@ -355,14 +342,6 @@
       // All asynchronous loading has finished
       window.performance.mark('fullyLoaded');
     });
-
-    this.pages = new Pages();
-
-    // Update the panel indicator
-    this.updatePanelIndicator();
-
-    // Application has finished initialisation
-    window.performance.mark('navigationInteractive');
   }
 
   App.prototype = {
@@ -589,6 +568,7 @@
 
     refreshGridSize: function() {
       var children = this.icons.children;
+      var cols = this.settings.small ? 4 : 3;
 
       var visibleChildren = 0;
       var firstVisibleChild = -1;
@@ -597,6 +577,9 @@
           visibleChildren ++;
           if (firstVisibleChild === -1) {
             firstVisibleChild = i;
+            this.iconsLeft = this.icons.getChildOffsetRect(children[i]).left;
+          } else if (visibleChildren === cols) {
+            this.iconsRight = this.icons.getChildOffsetRect(children[i]).right;
           }
         }
       }
@@ -614,25 +597,20 @@
 
         if (this.settings.scrollSnapping) {
           gridHeight = (Math.ceil((iconHeight *
-            Math.ceil(visibleChildren /
-                      (this.settings.small ? 4 : 3))) / pageHeight) *
+            Math.ceil(visibleChildren / cols)) / pageHeight) *
             pageHeight) + (scrollHeight - pageHeight);
         } else {
-          gridHeight =
-            (Math.ceil(visibleChildren / (this.settings.small ? 4 : 3)) + 1) *
-            iconHeight;
+          gridHeight = (Math.ceil(visibleChildren / cols) + 1) * iconHeight;
         }
 
         this.pageHeight = pageHeight;
         this.pendingGridHeight = gridHeight;
-        this.iconsPerPage = rowsPerPage * (this.settings.small ? 4 : 3);
+        this.iconsPerPage = rowsPerPage * cols;
 
         // When a full screen of apps is visible, we mark that as visual loading
         // being complete.
         if (!this.visualLoadComplete &&
-            Math.floor(visibleChildren /
-                       (this.settings.small ? 4 : 3)) * iconHeight >=
-              scrollHeight) {
+            Math.floor(visibleChildren / cols) * iconHeight >= scrollHeight) {
           this.onVisualLoad();
         }
       }
@@ -720,37 +698,6 @@
       setTimeout(() => { dialog.open(); }, DIALOG_SHOW_TIMEOUT);
     },
 
-    updatePanelIndicator: function() {
-      var appsVisible = this.panels.scrollLeft <= this.panels.scrollLeftMax / 2;
-      if (this.appsVisible !== appsVisible) {
-        this.appsVisible = appsVisible;
-        // FIXME: We need a window.js that controls shared panel elements
-        this.pages.pagesVisible = !appsVisible;
-
-        this.header.setAttribute('data-l10n-id', appsVisible ?
-          'apps-panel' : 'pages-panel');
-
-        this.indicator.children[0].classList.toggle('active', appsVisible);
-        this.indicator.children[1].classList.toggle('active', !appsVisible);
-        this.indicator.setAttribute('aria-valuenow', appsVisible ? 1 : 2);
-        this.indicator.setAttribute('data-l10n-args', JSON.stringify({
-          currentPage: appsVisible ? 1 : 2,
-          totalPages: 2
-        }));
-
-        this.panel.setAttribute('aria-hidden', !appsVisible);
-        this.pages.panel.setAttribute('aria-hidden', appsVisible);
-
-        // Update shadow state by dispatching a scroll event to the scrollable
-        // element of the newly selected panel.
-        if (appsVisible) {
-          this.scrollable.dispatchEvent(new CustomEvent('scroll'));
-        } else {
-          this.pages.scrollable.dispatchEvent(new CustomEvent('scroll'));
-        }
-      }
-    },
-
     getChildIndex: function(child) {
       // XXX Note, we're taking advantage of gaia-container using
       //     Array instead of HTMLCollection here.
@@ -828,6 +775,7 @@
     },
 
     enterEditMode: function(icon) {
+      console.debug('Entering edit mode on ' + icon.name);
       this.updateSelectedIcon(icon);
 
       if (this.editMode || !this.selectedIcon) {
@@ -842,6 +790,7 @@
       if (!this.editMode) {
         return;
       }
+      console.debug('Exiting edit mode');
 
       this.editMode = false;
 
@@ -855,42 +804,6 @@
       var icon, child, id;
 
       switch (e.type) {
-      // Switch between panels
-      case 'keypress':
-        if (!e.ctrlKey) {
-          break;
-        }
-
-        switch (e.keyCode) {
-          case e.DOM_VK_RIGHT:
-            this.panels.scrollTo(
-              { left: this.panels.scrollLeftMax, top: 0, behavior: 'smooth' });
-            break;
-          case e.DOM_VK_LEFT:
-            this.panels.scrollTo(
-              { left: 0, top: 0, behavior: 'smooth' });
-            break;
-        }
-        break;
-
-      // Display the top shadow when scrolling down
-      case 'scroll':
-        if (e.target === this.panels) {
-          this.updatePanelIndicator();
-          break;
-        }
-
-        if (!this.appsVisible) {
-          break;
-        }
-
-        var position = this.scrollable.scrollTop;
-        var scrolled = position > 1;
-        if (this.shadow.classList.contains('visible') !== scrolled) {
-          this.shadow.classList.toggle('visible', scrolled);
-        }
-        break;
-
       // App launching
       case 'activate':
         e.preventDefault();
@@ -937,6 +850,8 @@
 
       // Disable scrolling during dragging, and display bottom-bar
       case 'drag-start':
+        console.debug('Drag-start on ' +
+                      e.detail.target.firstElementChild.name);
         this.dragging = true;
         this.shouldEnterEditMode = true;
         document.body.classList.add('dragging');
@@ -945,6 +860,7 @@
         break;
 
       case 'drag-finish':
+        console.debug('Drag-finish');
         this.dragging = false;
         document.body.classList.remove('dragging');
         document.body.classList.remove('autoscroll');
@@ -971,13 +887,18 @@
 
       // Handle app/site editing and dragging to the end of the icon grid.
       case 'drag-end':
+        console.debug('Drag-end, target: ' + (e.detail.dropTarget ?
+          e.detail.dropTarget.firstElementChild.name : 'none'));
         if (e.detail.dropTarget === null &&
-            e.detail.clientX >= 0 && e.detail.clientX < window.innerWidth) {
+            e.detail.clientX >= this.iconsLeft &&
+            e.detail.clientX < this.iconsRight) {
           // If the drop target is null, and the client coordinates are
           // within the panel, we must be dropping over the start or end of
           // the container.
           e.preventDefault();
           var bottom = e.detail.clientY < window.innerHeight / 2;
+          console.debug('Reordering dragged icon to ' +
+                      (bottom ? 'bottom' : 'top'));
           this.icons.reorderChild(e.detail.target,
                                   bottom ? this.icons.firstChild : null,
                                   this.storeAppOrder.bind(this));
@@ -995,6 +916,7 @@
 
       // Save the app grid after rearrangement
       case 'drag-rearrange':
+        console.debug('Drag rearrange');
         this.storeAppOrder();
         break;
 
@@ -1098,47 +1020,11 @@
         }
         break;
 
-      case 'hashchange':
-        if (document.hidden || this.ignoreHashChangeTimeout !== null) {
-          break;
-        }
-
-        e.preventDefault();
-        e.stopImmediatePropagation();
-
-        this.ignoreHashChangeTimeout = setTimeout(() => {
-          this.ignoreHashChangeTimeout = null;
-        }, HASH_CHANGE_DEBOUNCE);
-
-        // If a dialog is showing, cancel the dialog
-        for (var dialog of this.dialogs) {
-          if (!dialog.opened) {
-            continue;
-          }
-
-          dialog.close();
-          return;
-        }
-
-        // If we're in edit mode, cancel edit mode
-        if (this.editMode) {
-          this.exitEditMode();
-          return;
-        }
-
-        // Otherwise, scroll the visible panel to the top
-        if (this.panels.scrollLeft ===
-            this.scrollable.parentNode.offsetLeft) {
-          this.scrollable.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
-        }
-        break;
-
       case 'localized':
         for (icon of this.icons.children) {
           icon.firstElementChild.updateName();
         }
         this.icons.synchronise();
-        this.updatePanelIndicator();
         break;
 
       case 'online':

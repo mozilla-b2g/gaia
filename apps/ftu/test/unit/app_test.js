@@ -6,7 +6,7 @@
 require('/shared/js/event_safety.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 requireApp('ftu/test/unit/mock_version_helper.js');
 requireApp('ftu/test/unit/mock_tutorial.js');
@@ -41,8 +41,8 @@ suite('AppManager >', function() {
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
@@ -58,7 +58,7 @@ suite('AppManager >', function() {
     navigator.mozMobileConnections = realMozMobileConnections;
     realMozMobileConnections = null;
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
 
     navigator.mozApps = realMozApps;
