@@ -34,5 +34,6 @@ class TestBrowserPinSite(GaiaTestCase):
 
         self.assertEqual(last_icon.manifest_url, self.test_url)
 
-        # Delete the icon of the pinned site
-        homescreen.delete_app(self.test_url).tap_confirm()
+        def tearDown(self):
+           self.apps.uninstall(last_icon.manifest_url)
+           GaiaTestCase.tearDown(self)
