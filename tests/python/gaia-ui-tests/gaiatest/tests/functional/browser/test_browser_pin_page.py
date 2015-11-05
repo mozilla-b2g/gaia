@@ -17,7 +17,6 @@ class TestBrowserPinPage(GaiaTestCase):
 
         self.test_url = self.marionette.absolute_url('mozilla.html')
 
-
     def test_browser_pin_page(self):
         search = Search(self.marionette)
         search.launch()
