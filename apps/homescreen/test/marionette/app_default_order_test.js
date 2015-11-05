@@ -5,7 +5,7 @@ var assert = require('assert');
 
 marionette('Homescreen - Default app order', function() {
   var client = marionette.client({
-    profile: require(__dirname + '/client_options_bookmarks.js')
+    profile: require(__dirname + '/client_options.js')
   });
   var home, system;
 
