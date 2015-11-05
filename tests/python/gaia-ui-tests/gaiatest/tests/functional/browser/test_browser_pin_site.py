@@ -34,6 +34,6 @@ class TestBrowserPinSite(GaiaTestCase):
 
         self.assertEqual(last_icon.manifest_url, self.test_url)
 
-        def tearDown(self):
-           self.apps.uninstall(last_icon.manifest_url)
-           GaiaTestCase.tearDown(self)
+    def tearDown(self):
+        self.apps.uninstall(self.test_url)
+        GaiaTestCase.tearDown(self)
