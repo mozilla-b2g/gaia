@@ -1,0 +1,1 @@
+NO_LOCK_SCREEN=1
