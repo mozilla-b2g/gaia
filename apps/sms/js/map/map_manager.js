@@ -51,12 +51,57 @@ MozMmsMessage: {
 */
 
 'use strict';
+
+var managerBt = navigator.mozBluetooth;
+var adapter;
+
+const MAP_LISTING_HEAD = '<MAP-msg-listing version = "1.0">\n';
+const MAP_LISTING_FOOT = '</MAP-msg-listing>\n';
+
 (function (exports) {
 var MapManager = {
   init() {
+/*
+    var req = managerBt.getDefaultAdapter();
+    req.onsuccess = function bt_getAdapterSuccess() {
+      adapter = req.result;
+      adapter.addEventListener('mapmessageslistingreq',
+        this.mapmessageslistingreq);
+    };
+    req.onerror = function bt_getAdapterFailed() {
+      console.error('MAP', 'ERROR adapter');
+    };
+*/
+    adapter = managerBt.defaultAdapter;
+    adapter.addEventListener('mapmessageslistingreq',
+      this.mapmessageslistingreq.bind(this));
     MessageManager.on('message-sent', this.onSendingSuccess.bind(this));
     MessageManager.on('message-delivered', this.onDeliverySuccess.bind(this));
     MessageManager.on('message-received', this.onNewMessage.bind(this));
+  },
+
+  mapmessageslistingreq(evt) {
+    console.log('[map]' ,'mapmessageslisting');
+    console.log(evt);
+    console.log('[map]' ,'maxlistcount: '+ evt.maxListCount +
+      ', recipient: ' + evt.filterRecipient);
+
+    this.getMessagesListXML(evt).then(data => {
+      console.log();
+      var properties = {
+        type: 'text/xml'
+      };
+      console.log('[map]' ,'getMessagesListXML');
+      console.log(data);
+      console.log('[map]' ,'A');
+      var contentXml = evt.maxlistcount === 0 ?
+          MAP_LISTING_HEAD + MAP_LISTING_FOOT : data.xml;
+      var blob = new Blob([contentXml], properties);
+      console.log('[map]' ,'B');
+      evt.handle.replyToMessagesListing(0, blob, false,
+        '201510151020', data.size);
+      console.log('[map]' ,'C');
+    });
   },
 
   onSendingSuccess() {},
@@ -156,13 +201,19 @@ var MapManager = {
   },
 
   getMessagesListXML(options) {
-    const MAP_LISTING_HEAD = '<MAP-msg-listing version = "1.0">\n';
-    const MAP_LISTING_FOOT = '</MAP-msg-listing>\n';
     var ret = MAP_LISTING_HEAD;
     var promises = [];
     return new Promise(resolve => {
       MessageManager.getMessages({
         each: msgBrief => {
+          console.log(promises.length);
+          console.log(msgBrief);
+          if (promises.length > 3) {
+            return;
+          }
+          if (msgBrief.type !== 'sms') {
+            return;
+          }
           var p = MessageManager.getMessage(msgBrief.id).then(msgRecord => {
             return this._reformatMsg(msgBrief, msgRecord, options);
           });
@@ -171,13 +222,18 @@ var MapManager = {
         end: () => {},
         done: () => {
           Promise.all(promises).then(msgs => {
+            console.log(msgs);
             for (var i in msgs) {
+              console.log(msgs[i]);
               if (msgs[i]) {
                 ret += msgs[i];
               }
             }
             ret += MAP_LISTING_FOOT;
-            resolve(ret);
+            resolve({
+              xml: ret,
+              size: promises.length
+            });
           });
         },
         filter: {}
