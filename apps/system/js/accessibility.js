@@ -141,6 +141,11 @@
       window.addEventListener('logohidden', this);
       window.addEventListener('screenchange', this);
       window.addEventListener('ftustarted', this);
+      window.addEventListener('appwillopen', this);
+      window.addEventListener('appopened', this);
+      window.addEventListener('homescreenopening', this);
+      window.addEventListener('homescreenopened', this);
+      this.appOpening = false;
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
@@ -241,7 +246,7 @@
       }
       if (!aSilent) {
         this.speak({ string: aEnable ? 'shadeToggleOn' : 'shadeToggleOff' },
-          null, {enqueue: true});
+          { enqueue: true });
       }
     },
 
@@ -295,9 +300,9 @@
 
       if (!this.isSpeaking && timeStamp > this.expectedCompleteTimeStamp) {
         this.cancelSpeech();
-        this.announceScreenReader(function onEnd() {
-          this.resetSpeaking(timeStamp + this.REPEAT_BUTTON_PRESS);
-        }.bind(this));
+        this.announceScreenReader()
+          .then(() => this.resetSpeaking(timeStamp + this.REPEAT_BUTTON_PRESS))
+          .catch(err => console.error(err));
         return;
       }
 
@@ -325,9 +330,10 @@
       this.FTUStartedTimeout = setTimeout(() => {
         this.cancelSpeech();
         this.reset();
-        this.announceScreenReader(() =>
-          this.resetSpeaking(aEvent.timeStamp +
-            this.REPEAT_BUTTON_PRESS + this.FTU_STARTED_TIMEOUT * 1000));
+        this.announceScreenReader()
+          .then(() => this.resetSpeaking(aEvent.timeStamp +
+            this.REPEAT_BUTTON_PRESS + this.FTU_STARTED_TIMEOUT * 1000))
+          .catch(err => console.error(err));
       }, this.FTU_STARTED_TIMEOUT);
     },
 
@@ -393,11 +399,9 @@
       clearTimeout(this.hintsTimer);
       this.hintsTimer = setTimeout(function onHintsTimeout() {
         this.isSpeakingHints = true;
-        this.speak(aHints, function onSpeakHintsEnd() {
-          this.isSpeakingHints = false;
-        }.bind(this), {
-          enqueue: true
-        });
+        this.speak(aHints, { enqueue: true })
+          .then(() => this.isSpeakingHints = false)
+          .catch(err => console.error(err));
       }.bind(this), this.HINTS_TIMEOUT);
     },
 
@@ -409,8 +413,15 @@
     handleAccessFuOutput: function ar_handleAccessFuOutput(aDetails) {
       this.cancelHints();
       var options = aDetails.options || {};
+      var type = aDetails.eventType;
       window.dispatchEvent(new CustomEvent('accessibility-action'));
-      switch (aDetails.eventType) {
+      if (this.appOpening) {
+        if (type === 'vc-change') {
+          this.lastVCChangeDetails = aDetails;
+        }
+        return;
+      }
+      switch (type) {
         case 'vc-change':
           // Vibrate when the virtual cursor changes.
           navigator.vibrate(options.pattern);
@@ -428,13 +439,11 @@
           return;
       }
 
-      this.speak(aDetails.data, function hintsCallback() {
+      this.speak(aDetails.data, { enqueue: options.enqueue }).then(() => {
         if (options.hints) {
           this.setHintsTimeout(options.hints);
         }
-      }.bind(this), {
-        enqueue: options.enqueue
-      });
+      }).catch(err => console.error(err));
     },
 
     handleAccessFuControl: function ar_handleAccessFuControls(aDetails) {
@@ -485,6 +494,29 @@
     },
 
     /**
+     * Set the flag indicating that the app is opening.
+     */
+    prepareForApp: function ar_prepareForApp() {
+      this.appOpening = true;
+    },
+
+    /**
+     * Speak the name of the app and announce latest virtual cursor change.
+     * @param  {Object} aDetail app_window object
+     */
+    announceApp: function ar_announceApp(aDetail) {
+      this.speak(aDetail.name)
+        .then(() => {
+          this.appOpening = false;
+          if (this.lastVCChangeDetails) {
+            this.handleAccessFuOutput(this.lastVCChangeDetails);
+            delete this.lastVCChangeDetails;
+          }
+        })
+        .catch(err => console.error(err));
+    },
+
+    /**
      * Handle event.
      * @param  {Object} aEvent mozChromeEvent/logohidden/volumeup/volumedown.
      * @memberof Accessibility.prototype
@@ -517,6 +549,14 @@
         case 'volumedown':
           this.handleVolumeButtonPress(aEvent);
           break;
+        case 'appwillopen':
+        case 'homescreenopening':
+          this.prepareForApp();
+          break;
+        case 'appopened':
+        case 'homescreenopened':
+          this.announceApp(aEvent.detail);
+          break;
       }
     },
 
@@ -535,29 +575,26 @@
     /**
      * Based on whether the screen reader is currently enabled, announce the
      * instructions of how to enable/disable it.
-     * @param {Function} aCallback A callback after the speech synthesis is
-     * completed.
      * @memberof Accessibility.prototype
      */
-    announceScreenReader: function ar_announceScreenReader(aCallback) {
+    announceScreenReader: function ar_announceScreenReader() {
       var enabled = this.settings['accessibility.screenreader'];
       this.isSpeaking = true;
-      this.speak({
+      return this.speak({
         string: enabled ? 'disableScreenReaderSteps' : 'enableScreenReaderSteps'
-      }, aCallback, {enqueue: false});
+      }, {enqueue: false});
     },
 
     /**
      * Use speechSynthesis to speak screen reader utterances.
      * @param  {?Array} aData Speech data before it is localized.
-     * @param  {?Function} aCallback aCallback A callback after the speech
      * synthesis is completed.
      * @param  {?Object} aOptions = {} Speech options such as enqueue etc.
      * @memberof Accessibility.prototype
      */
-    speak: function ar_speak(aData, aCallback, aOptions = {}) {
-      this.speechSynthesizer.speak(aData, aOptions, this.rate, this.volume,
-        aCallback);
+    speak: function ar_speak(aData, aOptions = {}) {
+      return this.speechSynthesizer.speak(
+        aData, aOptions, this.rate, this.volume);
     },
 
     /**
@@ -747,16 +784,11 @@
      * }
      * @param {Number} aRate Speech rate.
      * @param {Number} aVolume Speech volume.
-     * @param {Function} aCallback A callback after the speech synthesis is
-     * completed.
      * @memberof speechSynthesizer
      */
-    speak: function ss_speak(aData, aOptions, aRate, aVolume, aCallback) {
+    speak: function ss_speak(aData, aOptions, aRate, aVolume) {
       if (!this.speech || !this.utterance) {
-        if (aCallback) {
-          aCallback();
-        }
-        return;
+        return Promise.resolve();
       }
 
       if (!aOptions.enqueue) {
@@ -769,28 +801,25 @@
 
       var sentence = this.buildUtterance(aData);
       if (!sentence) {
-        if (aCallback) {
-          aCallback();
-        }
-        return;
+        return Promise.resolve();
       }
 
-      var utterance = new this.utterance(sentence);
-      utterance.volume = aVolume;
-      utterance.rate = aRate;
-      utterance.addEventListener('end', function() {
+      return new Promise(resolve => {
+        var utterance = new this.utterance(sentence);
+        utterance.volume = aVolume;
+        utterance.rate = aRate;
+        utterance.addEventListener('end', () => {
+          if (this.captions) {
+            this.hideSpeech();
+          }
+          resolve();
+        });
+
         if (this.captions) {
-          this.hideSpeech();
+          this.showSpeech(sentence);
         }
-        if (aCallback) {
-          aCallback();
-        }
-      }.bind(this));
-
-      if (this.captions) {
-        this.showSpeech(sentence);
-      }
-      this.speech.speak(utterance);
+        this.speech.speak(utterance);
+      });
     }
   };
 
