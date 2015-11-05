@@ -42,7 +42,6 @@
      * @return {[nothing]} [nothing]
      */
     reset: function reset() {
-      MoreAppsNavigation.clearNavigationEvents();
       this.elements.sort(function(elem1, elem2) {
         if (!elem1.dataset.index || !elem2.dataset.index) {
           return 1;

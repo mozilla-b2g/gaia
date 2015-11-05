@@ -129,6 +129,7 @@
             window.performance.mark('fullyLoaded');
             window.dispatchEvent(new CustomEvent('moz-app-loaded'));
           });
+        MoreAppsNavigation.init();
       }.bind(this));
 
       this.pinManager = new PinAppManager();
@@ -174,8 +175,7 @@
       console.log("inMoreApps is : " + this.inMoreApps);
       document.getElementById("main-screen").classList.add('hidden');
       document.getElementById("more-apps-screen").classList.remove('hidden');;
-      MoreAppsNavigation.init();
-      document.getElementsByTagName('gaia-grid-rs')[0].scrollTo(0,0);
+      MoreAppsNavigation.reset();
     },
 
     hideMoreApps: function() {
@@ -183,6 +183,7 @@
       console.log("inMoreApps is : " + this.inMoreApps);
       document.getElementById("main-screen").classList.remove('hidden');
       document.getElementById("more-apps-screen").classList.add('hidden');
+      MoreAppsNavigation.stopListeningKeydownEvents();
     },
 
     /**
