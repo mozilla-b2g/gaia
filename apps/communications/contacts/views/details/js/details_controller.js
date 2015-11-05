@@ -122,16 +122,19 @@
 
     LazyLoader.load(VCARD_DEPS,function vcardLoaded() {
       ContactToVcardBlob([contact], function blobReady(vcardBlob) {
-        var filename = VcardFilename(contact);
-         /* jshint nonew: false */
-        new MozActivity({
-          name: 'share',
-          data: {
-            type: 'text/vcard',
-            number: 1,
-            blobs: [new window.File([vcardBlob], filename)],
-            filenames: [filename]
-          }
+        VcardFilename(contact).then(filename => {
+           /* jshint nonew: false */
+          new MozActivity({
+            name: 'share',
+            data: {
+              type: 'text/vcard',
+              number: 1,
+              blobs: [new window.File([vcardBlob], filename, {
+                type: 'text/x-vcard'
+              })],
+              filenames: [filename]
+            }
+          });
         });
         // The MIME of the blob should be this for some MMS gateways
       }, { type: 'text/x-vcard'} );

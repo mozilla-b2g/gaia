@@ -69,24 +69,6 @@ html[dir="rtl"] #picture {
   line-height: 5rem;
 }
 
-#set-default .pack-checkbox {
-  float: left;
-  -moz-margin-start: -0.5rem;
-}
-
-html[dir="rtl"] #set-default .pack-checkbox {
-  float: right;
-}
-
-#set-default p {
-  display: inline-block;
-  width: calc(100% - 4.5rem);
-  margin: 0;
-  font-size: 1.8rem;
-  line-height: normal;
-  vertical-align: middle;
-}
-
 #saving-overlay {
   position: absolute;
   top: 0;

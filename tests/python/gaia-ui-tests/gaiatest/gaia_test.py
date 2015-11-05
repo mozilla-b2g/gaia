@@ -44,21 +44,25 @@ DEFAULT_SETTINGS = {
     'screen.brightness': 0.1,  # reduce screen brightness
     'screen.timeout': 0,  # disable screen timeout
     'vibration.enabled': False,  # disable vibration
+    'privacy.trackingprotection.shown': True
 }
 
 DEFAULT_PREFS = {
-    'webapps.update.enabled': False  # disable web apps update
+    'webapps.update.enabled': False,  # disable web apps update
+    'ui.caretBlinkTime': 0  # Make caret permanently visible so imagecompare screenshots are consistent
 }
 
 
 class GaiaApp(object):
 
-    def __init__(self, origin=None, name=None, frame=None, src=None):
+    def __init__(self, origin=None, name=None, frame=None, src=None, manifest_url=None, entry_point=None):
         self.frame = frame
         self.frame_id = frame
         self.src = src
         self.name = name
         self.origin = origin
+        self.manifest_url = manifest_url
+        self.entry_point = entry_point
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -87,7 +91,6 @@ class GaiaApps(object):
 
     def launch(self, name, manifest_url=None, entry_point=None, switch_to_frame=True, launch_timeout=None):
         self.marionette.switch_to_frame()
-
         if manifest_url:
             result = self.marionette.execute_async_script("GaiaApps.launchWithManifestURL('%s', %s)"
                                                           % (manifest_url, json.dumps(entry_point)), script_timeout=launch_timeout)
@@ -100,7 +103,9 @@ class GaiaApps(object):
         app = GaiaApp(frame=result.get('frame'),
                       src=result.get('src'),
                       name=result.get('name'),
-                      origin=result.get('origin'))
+                      origin=result.get('origin'),
+                      manifest_url=result.get('manifestURL'),
+                      entry_point=result.get('entryPoint'))
         if app.frame_id is None:
             raise Exception("App failed to launch; there is no app frame")
         if switch_to_frame:
@@ -114,7 +119,9 @@ class GaiaApps(object):
         return GaiaApp(frame=result.get('frame'),
                        src=result.get('src'),
                        name=result.get('name'),
-                       origin=result.get('origin'))
+                       origin=result.get('origin'),
+                       manifest_url=result.get('manifestURL'),
+                       entry_point=result.get('entryPoint'))
 
     def switch_to_displayed_app(self):
         self.marionette.switch_to_default_content()
@@ -159,11 +166,13 @@ class GaiaApps(object):
                 for ep in entry_points.values():
                     result.append(GaiaApp(
                         origin=app['origin'],
-                        name=ep['name']))
+                        name=ep['name'],
+                        manifest_url=app['manifest']))
             else:
                 result.append(GaiaApp(
                     origin=app['origin'],
-                    name=app['manifest']['name']))
+                    name=app['manifest']['name'],
+                    manifest_url=app['manifest']))
         return result
 
     def running_apps(self, include_system_apps=False):
@@ -179,14 +188,17 @@ class GaiaApps(object):
             "return GaiaApps.getRunningApps(%s);" % include_system_apps)
         result = []
         for app in [a[1] for a in apps.items()]:
-            result.append(GaiaApp(origin=app['origin'], name=app['name']))
+            # Browser app can have no manifest when url is visited
+            manifest_url = None
+            if 'manifest' in app:
+                manifest_url = app['manifest']
+            result.append(GaiaApp(origin=app['origin'], name=app['name'], manifest_url=manifest_url))
         return result
 
 
 class GaiaData(object):
 
     def __init__(self, marionette, testvars=None):
-        self.apps = GaiaApps(marionette)
         self.marionette = marionette
         self.testvars = testvars or {}
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
@@ -205,6 +217,7 @@ class GaiaData(object):
 
     @property
     def all_contacts(self):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-read', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -221,6 +234,7 @@ class GaiaData(object):
         return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-create', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -231,6 +245,7 @@ class GaiaData(object):
         self.marionette.push_permission('contacts-create', False)
 
     def insert_sim_contact(self, contact, contact_type='adn'):
+        self.marionette.switch_to_frame()
         mozcontact = contact.create_mozcontact()
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertSIMContact("%s", %s);'
                                                       % (contact_type, json.dumps(mozcontact)))
@@ -238,11 +253,13 @@ class GaiaData(object):
         return result
 
     def delete_sim_contact(self, moz_contact_id, contact_type='adn'):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('return GaiaDataLayer.deleteSIMContact("%s", "%s");'
                                                       % (contact_type, moz_contact_id))
         assert result, 'Unable to insert SIM contact %s' % moz_contact_id
 
     def remove_all_contacts(self):
+        self.marionette.switch_to_frame()
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
         self.marionette.push_permission('contacts-write', True)
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -740,26 +757,20 @@ class GaiaDevice(object):
         return ret
 
     def touch_home_button(self):
+        from gaiatest.apps.homescreen.app import Homescreen
+        homescreen = Homescreen(self.marionette)
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'homescreen':
+        if homescreen.is_displayed == False:
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
-            Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'homescreen')
+            homescreen.wait_to_be_displayed()
             apps.switch_to_displayed_app()
         else:
-            apps.switch_to_displayed_app()
-            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('class')
             self._dispatch_home_button_event()
             apps.switch_to_displayed_app()
-            if 'edit-mode' in mode:
-                # touching home button will exit edit mode
-                Wait(self.marionette).until(lambda m: m.find_element(
-                    By.TAG_NAME, 'body').get_attribute('class') != mode)
-            else:
-                # touching home button inside homescreen will scroll it to the top
-                Wait(self.marionette).until(lambda m: m.execute_script(
-                    "return window.wrappedJSObject.scrollY") == 0)
+
+            # touching home button inside homescreen will scroll it to the top
+            Wait(self.marionette).until(lambda m: homescreen.is_at_topmost_position)
 
     def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()
@@ -768,6 +779,9 @@ class GaiaDevice(object):
     def hold_home_button(self):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+        # This is for the opacity animation to be finished for the task-manager
+        # Otherwise we get intermittent issues tapping on opening a new browser window
+        time.sleep(0.3)
 
     def hold_sleep_button(self):
         self.marionette.switch_to_frame()
@@ -835,6 +849,7 @@ class GaiaDevice(object):
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
+        self.locale = kwargs.pop('locale')
         MarionetteTestCase.__init__(self, *args, **kwargs)
         B2GTestCaseMixin.__init__(self, *args, **kwargs)
 
@@ -930,11 +945,11 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         storage_paths = [self.device.storage_path]
         if self.device.is_android_build:
             # TODO: Remove hard-coded paths once bug 1018079 is resolved
-            storage_paths.extend(['/mnt/sdcard',
-                                  '/mnt/extsdcard',
-                                  '/storage/sdcard',
-                                  '/storage/sdcard0',
-                                  '/storage/sdcard1'])
+            storage_paths.extend(['/mnt/sdcard/',
+                                  '/mnt/extsdcard/',
+                                  '/storage/sdcard/',
+                                  '/storage/sdcard0/',
+                                  '/storage/sdcard1/'])
         for path in storage_paths:
             if self.device.file_manager.dir_exists(path):
                 for item in self.device.file_manager.list_items(path):
@@ -1066,6 +1081,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         defaults.update(self.testvars.get('settings', {}))
         defaults = self.modify_settings(defaults)
 
+        if self.locale != 'undefined':
+                defaults['language.current'] = self.locale
+
         if self.device.is_desktop_b2g:
             directory = self.marionette.instance.profile_path
             path = os.path.join(directory, filename)
@@ -1088,53 +1106,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         finally:
             mozfile.remove(td)
 
-    def wait_for_element_present(self, by, locator, timeout=None):
-        return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(
-            lambda m: m.find_element(by, locator))
-
-    def wait_for_element_not_present(self, by, locator, timeout=None):
-        self.marionette.set_search_timeout(0)
-        try:
-            return Wait(self.marionette, timeout).until(
-                lambda m: not m.find_element(by, locator))
-        except NoSuchElementException:
-            pass
-        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
-    def wait_for_element_displayed(self, by, locator, timeout=None):
-        Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
-            lambda m: m.find_element(by, locator).is_displayed())
-
-    def wait_for_element_not_displayed(self, by, locator, timeout=None):
-        self.marionette.set_search_timeout(0)
-        try:
-            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
-                lambda m: not m.find_element(by, locator).is_displayed())
-        except NoSuchElementException:
-            pass
-        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
     def wait_for_condition(self, method, timeout=None, message=None):
         Wait(self.marionette, timeout).until(method, message=message)
-
-    def is_element_present(self, by, locator):
-        self.marionette.set_search_timeout(0)
-        try:
-            self.marionette.find_element(by, locator)
-            return True
-        except NoSuchElementException:
-            return False
-        finally:
-            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
-    def is_element_displayed(self, by, locator):
-        self.marionette.set_search_timeout(0)
-        try:
-            return self.marionette.find_element(by, locator).is_displayed()
-        except NoSuchElementException:
-            return False
-        finally:
-            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def tearDown(self):
         self.marionette.switch_to_frame()
@@ -1155,7 +1128,11 @@ class PasscodeTestCase(GaiaTestCase):
         SET_DIGEST_ALGORITHM = 'lockscreen.passcode-lock.digest.algorithm'
 
         settings = {}
+        # The code for setting the passcode uses ArrayBuffers.
         # ArrayBuffers are represented as objects keys from 0 to n-1.
+        # The settings DB does not support this and sees an array buffer of [3,6,9] objects
+        # of the format {0: 3, 1: 6, 2: 9} (hence objects with keys from 0 to n-1)
+        # n is array.length. So 8 for the salt and 20 for the digest.
         # The passcode is stored using PBKDF2 with a non-deterministic salt.
         # These values are the result of a pre-computation of PBKDF2 with the given salt,
         # 1000 iterations of SHA-1 and the passcode "1337".

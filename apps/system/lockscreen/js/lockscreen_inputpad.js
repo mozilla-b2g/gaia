@@ -28,28 +28,37 @@
   var LockScreenInputpad = function(lockScreen) {
     this.lockScreen = lockScreen;
     this.configs = {
-      passcodeDecoratingTimeout: 500,
-      padVibrationDuration: 50,
+      padVibrationDuration: 50
     };
     this.states = {
       // Keep in sync with Dialer and Keyboard vibration
       padVibrationEnabled: false,
       passCodeEntered: '',
-      passcodeErrorCounter: 0
+      passCodeErrorTimeoutPending: false
     };
   };
   LockScreenInputpad.prototype.start = function() {
     this.addEventListener('lockscreen-notify-passcode-validationfailed');
+    this.addEventListener('lockscreen-notify-passcode-validationreset');
     this.addEventListener('lockscreen-notify-passcode-validationsuccess');
-    // Need these to reset status.
-    this.addEventListener('lockscreen-appclosed', this);
     this.addEventListener('lockscreen-inputappclosed', this);
+    this.addEventListener('lockscreen-inputappopened', this);
 
     this.passcodeCode = document.getElementById('lockscreen-passcode-code');
     this.passcodePad = document.getElementById('lockscreen-passcode-pad');
     this.emergencyCallBtn = this.passcodePad.querySelector('a[data-key=e]');
 
+    /* lastTouchedKey
+     * Keeps track of the key that was under the finger during
+     * the previous 'touchmove' event. UI must be redrawn only if
+     * the finger moved to a different key.
+     */
+    this.lastTouchedKey = null;
+
     this.passcodePad.addEventListener('click', this);
+    this.passcodePad.addEventListener('touchstart', this);
+    this.passcodePad.addEventListener('touchmove', this);
+    this.passcodePad.addEventListener('touchend', this);
 
     window.SettingsListener.observe('keyboard.vibration',
       false, (function(value) {
@@ -90,39 +99,179 @@
   };
 
   LockScreenInputpad.prototype.handleEvent = function(evt) {
+    /* The event flow from lockscreen.js is:
+     * on pass code fail:
+     *   - 'validationfailed' -> (validation timeout) -> 'validationreset'
+     * on pass code success:
+     *   - 'validationsuccess'
+     */
     switch (evt.type) {
       case 'lockscreen-notify-passcode-validationfailed':
-        return this.decorateErrorPasscodeUI()
-          .then(() => {
-            this.removeErrorPasscodeUI();
-            this.updatePassCodeUI();
-          });
+        this.states.passCodeErrorTimeoutPending = true;
+        this.updatePassCodeUI();
+        break;
+      case 'lockscreen-notify-passcode-validationreset':
       case 'lockscreen-notify-passcode-validationsuccess':
-        this.resetPasscodeStatus();
+        // Currently both validationreset and validationsuccess
+        // just need to reset Inputpad's internal state.
+        this.states.passCodeEntered = '';
+        this.states.passCodeErrorTimeoutPending = false;
         this.updatePassCodeUI();
-      break;
+        break;
+      case 'lockscreen-inputappopened':
       case 'lockscreen-inputappclosed':
-      case 'lockscreen-appclosed':
-        this.removeErrorPasscodeUI();
         this.updatePassCodeUI();
-      break;
+        break;
+      case 'touchstart':
+        this.onTouchStart(evt);
+        break;
+      case 'touchmove':
+        this.onTouchMove(evt);
+        break;
+      case 'touchend':
+        evt.preventDefault();  // prevent the 'click'
+        this.onTouchEnd(evt);
+        break;
       case 'click':
-        var key = evt.target.dataset.key;
-        if (!key &&
-            ('div' === evt.target.tagName.toLowerCase() &&
-             'a' === evt.target.parentNode.tagName.toLowerCase())
-           ) {
-          key = evt.target.parentNode.dataset.key;
-        }
-        if (!key) {
-          break;
-        }
-
-        // Cancel the default action of <a>
-        evt.preventDefault();
-        this.handlePassCodeInput(key);
-      break;
+        this.onClick(evt);
+        break;
     }
+  };
+
+  /* On touchstart, mark key under finger as active
+   * and vibrate if vibration is enabled.
+   */
+  LockScreenInputpad.prototype.onTouchStart = function(evt) {
+    var target = this._touchTarget(evt);
+    // Only act if touch landed on a key
+    var key = this._keyForTarget(target);
+    if (key) {
+      this._visualizeKeypress(target);
+      if (this.states.padVibrationEnabled &&
+          !this.states.passCodeErrorTimeoutPending) {
+        navigator.vibrate(this.configs.padVibrationDuration);
+      }
+    }
+  };
+
+  /* On touchmove, update keypad display if and only if
+   * finger moves between keys.
+   */
+  LockScreenInputpad.prototype.onTouchMove = function(evt) {
+    // State update is only required if the touch location moved
+    // onto a different key than in the last round.
+    // _visualizeKeypress keeps track of this.
+    var target = this._touchTarget(evt);
+    this._visualizeKeypress(target);
+  };
+
+  /* On touchend, handle input from the key over which the
+   * finger was released.
+   */
+  LockScreenInputpad.prototype.onTouchEnd = function(evt) {
+    var target = this._touchTarget(evt);
+    this.handlePassCodeInput(target);
+    this._visualizeKeypress(null); // deactivates all keys
+  };
+
+  /* Handler for traditional click events. Only required on
+   * platforms that don't support touch events.
+   */
+  LockScreenInputpad.prototype.onClick = function(evt) {
+    var target = evt.target;
+    this._visualizeKeypress(target);
+    this.handlePassCodeInput(target);
+    setTimeout(() => {
+      this._visualizeKeypress(null); // deactivates all keys
+    }, 200); // after 200ms
+  };
+
+  /* Visualize the current key as active, and the previous
+   * key as inactive, and keep track of which key was active
+   * for the next round, and only update if there was a key
+   * change.
+   */
+  LockScreenInputpad.prototype._visualizeKeypress = function(target) {
+    // State update is only required if the touch location moved
+    // onto a different key than in the last round or if target is
+    // null, requesting internal reset.
+    // Comparing DOM elements is tricky. .isEqualNode() and friends
+    // do not always work as expected. Comparing textContent instead.
+    if (!target || !this.lastTouchedKey ||
+        target.textContent !== this.lastTouchedKey.textContent) {
+      // Make old key inactive if there was one
+      if (this.lastTouchedKey) {
+        this._makeKeyInactive(this.lastTouchedKey);
+      }
+      // Make new key active if touch is actually on a key
+      var key = this._keyForTarget(target);
+      if (key) {
+        this._makeKeyActive(target);
+        // Remember new key for the next event
+        this.lastTouchedKey = target;
+      } else {
+        // If there's no new key, touch moved beyond the keypad
+        // or target was null
+        this.lastTouchedKey = null;
+      }
+    }
+  };
+
+  LockScreenInputpad.prototype._makeKeyActive = function(target) {
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      anchor.classList.add('active-key');
+    } else {
+      throw Error('lsip_makeKeyActive called with non-key node');
+    }
+  };
+
+  LockScreenInputpad.prototype._makeKeyInactive = function(target) {
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      anchor.classList.remove('active-key');
+    } else {
+      throw Error('lsip_makeKeyInactive called with non-key node');
+    }
+  };
+
+  LockScreenInputpad.prototype._keyForTarget = function(target) {
+    var anchor = this._anchorForTarget(target);
+    if (anchor) {
+      return anchor.dataset.key;
+    } else {
+      return null;
+    }
+  };
+
+  LockScreenInputpad.prototype._anchorForTarget = function(target) {
+    // Find ancestorial anchor that has info on the key
+    // Current structure: a > div > span
+    try {
+      if (target.tagName !== 'A') {
+        target = target.parentNode;
+      }
+      if (target.tagName !== 'A') {
+        target = target.parentNode;
+      }
+      if (target.tagName === 'A') {
+        return target;
+      }
+      return null;
+    }
+    catch (e) {
+      return null;
+    }
+  };
+
+  LockScreenInputpad.prototype._touchTarget = function(event) {
+    // Determine from touch coordinates in the event
+    // which key the finger is on.
+    // Can't use evt.target, because it remains
+    // on where the touch started.
+    // CAVE: .elementFromPoint() is experimental and may change
+    var touch = event.changedTouches[0];
+    return document.elementFromPoint(touch.clientX, touch.clientY);
   };
 
   LockScreenInputpad.prototype.dispatchEvent = function(evt) {
@@ -139,40 +288,21 @@
     window.removeEventListener(name, cb);
   };
 
-  LockScreenInputpad.prototype.decorateErrorPasscodeUI = function() {
-    var promise = new Promise((resolve) => {
-      //double delay if >5 failed attempts
-      this.states.passcodeErrorCounter ++;
-      if (this.states.passcodeErrorCounter > 5) {
-        this.configs.passcodeDecoratingTimeout =
-          this.configs.passcodeDecoratingTimeout << 1;
-      }
-      this.passcodeCode.classList.add('error');
-      setTimeout(() => {
-        this.removeErrorPasscodeUI();
-        resolve();
-      }, this.configs.passcodeDecoratingTimeout);
-    });
-    return promise;
-  };
-
-  LockScreenInputpad.prototype.removeErrorPasscodeUI = function() {
-    this.states.passCodeEntered = '';
-    this.passcodeCode.classList.remove('error');
-  };
-
-  LockScreenInputpad.prototype.resetPasscodeStatus = function() {
-    this.configs.passcodeDecoratingTimeout = 500;
-    this.states.passcodeErrorCounter = 0;
-    this.states.passCodeEntered = '';
-  };
-
   LockScreenInputpad.prototype.updatePassCodeUI =
   function() {
     if (this.states.passCodeEntered) {
       this.passcodePad.classList.add('passcode-entered');
     } else {
       this.passcodePad.classList.remove('passcode-entered');
+    }
+    if (this.states.passCodeEntered.length !== 4 &&
+        this.passcodePad.classList.contains('passcode-fulfilled')) {
+      this.passcodePad.classList.remove('passcode-fulfilled');
+    }
+    if (this.states.passCodeErrorTimeoutPending) {
+      this.passcodeCode.classList.add('error');
+    } else {
+      this.passcodeCode.classList.remove('error');
     }
     var i = 4;
     while (i--) {
@@ -188,7 +318,8 @@
   };
 
   LockScreenInputpad.prototype.handlePassCodeInput =
-  function(key) {
+  function(target) {
+    var key = this._keyForTarget(target);
     switch (key) {
       case 'e': // 'E'mergency Call
         // Cancel the notification clicked to activate.
@@ -211,29 +342,33 @@
         break;
 
       case 'b': // 'B'ackspace for correction
-        // XXX: Directly access LockScreen for workaround.
-        if (this.lockScreen.overlay.dataset.passcodeStatus) {
-          return;
+        if (this.states.passCodeErrorTimeoutPending) {
+          break;
         }
         this.states.passCodeEntered =
           this.states.passCodeEntered.substr(0,
             this.states.passCodeEntered.length - 1);
         this.updatePassCodeUI();
-
         break;
+
+      case null: // Ignore non-keys
+        break;
+
       default:
-        if (this.lockScreen.overlay.dataset.passcodeStatus) {
+        if (this.states.passCodeErrorTimeoutPending) {
+          break;
+        }
+        // If it's already 4 digits and this is the > 5th one,
+        // don't do anything.
+        if (this.states.passCodeEntered.length === 4) {
           return;
         }
 
         this.states.passCodeEntered += key;
         this.updatePassCodeUI();
 
-        if (this.states.padVibrationEnabled) {
-          navigator.vibrate(this.configs.padVibrationDuration);
-        }
-
         if (this.states.passCodeEntered.length === 4) {
+          this.passcodePad.classList.add('passcode-fulfilled');
           this.lockScreen.checkPassCode(this.states.passCodeEntered);
         }
         break;
@@ -242,4 +377,3 @@
 
   exports.LockScreenInputpad = LockScreenInputpad;
 })(window);
-

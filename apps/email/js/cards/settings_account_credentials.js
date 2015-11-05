@@ -6,7 +6,8 @@ var mozL10n = require('l10n!'),
     oauthFetch = require('./oauth2/fetch');
 
 return [
-  require('./base')(require('template!./settings_account_credentials.html')),
+  require('./base_card')
+         (require('template!./settings_account_credentials.html')),
   {
     onArgs: function(args) {
       this.account = args.account;

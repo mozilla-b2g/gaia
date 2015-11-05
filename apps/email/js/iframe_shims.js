@@ -1,8 +1,6 @@
-define(['shared/js/gesture_detector'], function() {
+define(['shared/js/gesture_detector'], function(GestureDetector) {
 
 'use strict';
-
-var GestureDetector = window.GestureDetector;
 
 /**
  * Style tag to put in the header of the body.  We currently only support inline

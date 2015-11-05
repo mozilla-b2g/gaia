@@ -6,23 +6,24 @@ import time
 
 from gaiatest.apps.system.regions.cards_view import CardsView
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
+from gaiatest.apps.contacts.app import Contacts
+from gaiatest.apps.gallery.app import Gallery
 
 
 class TestCardsViewTwoApps(GaiaImageCompareTestCase):
-
-    _test_apps = ["Contacts", "Gallery"]
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
         self.cards_view = CardsView(self.marionette)
 
-        # Launch the test apps
-        for app in self._test_apps:
-            self.apps.launch(app)
+        self.contacts = Contacts(self.marionette)
+        self.contacts.launch()
+        self.gallery = Gallery(self.marionette)
+        self.gallery.launch(empty=True)
 
-            # 10 seconds for the actual user using the app a bit, and going back to homescreen
-            time.sleep(10)
-            self.device.touch_home_button()
+        # 10 seconds for the actual user using the app a bit, and going back to homescreen
+        time.sleep(10)
+        self.device.touch_home_button()
 
     def test_cards_view_kill_apps_with_two_apps(self):
         """https://moztrap.mozilla.org/manage/case/1917/"""
@@ -32,19 +33,21 @@ class TestCardsViewTwoApps(GaiaImageCompareTestCase):
         self.cards_view.wait_for_cards_view()
 
         # Wait for first app ready
-        self.cards_view.wait_for_card_ready(self._test_apps[1])
-        self.take_screenshot()
+        self.cards_view.cards[1].wait_for_centered()
+        self.take_screenshot(top_frame=True)
 
         # Close the current apps from the cards view
-        self.cards_view.close_app(self._test_apps[1])
-        self.take_screenshot()
-        self.cards_view.close_app(self._test_apps[0])
-        self.take_screenshot()
+        self.cards_view.cards[1].close()
+        self.cards_view.cards[0].wait_for_centered()
+        self.take_screenshot(top_frame=True)
+        self.cards_view.cards[0].close()
+        self.cards_view.wait_for_cards_view_not_displayed()
+        self.take_screenshot(top_frame=True)
 
         # If successfully killed, the apps should no longer appear in the cards view
         # and the "No recent apps" message should be displayed
-        self.assertFalse(self.cards_view.is_app_present(self._test_apps[1]),
-                         "Killed app not expected to appear in cards view")
-
-        self.assertFalse(self.cards_view.is_app_present(self._test_apps[0]),
-                         "Killed app not expected to appear in cards view")
+        self.device.hold_home_button()
+        self.cards_view.wait_for_no_card_displayed()
+        self.take_screenshot(top_frame=True)
+        self.assertEqual(len(self.cards_view.cards), 0)
+        self.assertTrue(self.cards_view.is_no_card_displayed)

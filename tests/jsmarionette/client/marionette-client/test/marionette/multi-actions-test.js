@@ -52,6 +52,6 @@ suite('marionette/multi-actions', function() {
         max_length: 0
       }).
       serverResponds('ok').
-      callbackReceives('ok');
+      callbackReceives();
   });
 });

@@ -112,7 +112,7 @@ var MessageManager = {
     try {
       cursor = this._mozMobileMessage.getThreads();
     } catch(e) {
-      console.error('Error occurred while retrieving threads: ' + e.name);
+      console.error('Error occurred while retrieving threads:', e.name, e);
       end && end();
       done && done();
 
@@ -382,21 +382,18 @@ var MessageManager = {
     };
   },
 
-  deleteMessages: function mm_deleteMessages(id, callback) {
-    var req = this._mozMobileMessage.delete(id);
-    req.onsuccess = function onsuccess() {
-      callback && callback(this.result);
-    };
+  deleteMessages: function mm_deleteMessages(id) {
+    // As DOMRequest doesn't have "catch" method we should use "then" with
+    // "null" for the success callback to handle reject case only.
+    return this._mozMobileMessage.delete(id).then(null, (e) => {
+      // TODO: If the messages could not be deleted completely, conversation
+      // view will also update without notification currently. May need more
+      // information for user that the messages were not removed completely.
+      // See bug #1045666 for details.
+      console.error(`Deleting in the database. [${e.name}] ${e.message || ''}`);
 
-    // TODO: If the messages could not be deleted completely, conversation list
-    // page will also update without notification currently. May need more
-    // information for user that the messages were not removed completely.
-    // See bug #1045666 for details.
-    req.onerror = function onerror() {
-      var msg = 'Deleting in the database. Error: ' + req.error.name;
-      console.log(msg);
-      callback && callback(null);
-    };
+      return null;
+    });
   },
 
   markThreadRead: function mm_markThreadRead(threadId, isRead = true) {
@@ -510,9 +507,6 @@ var MessageManager = {
         _isMessageBelongTo1to1Conversation(number, message);
       if (isMessageInThread) {
         threadId = message.threadId;
-        // we need to set the current threadId,
-        // because we start sms app in a new window
-        Threads.registerMessage(message);
         return false; // found the message, stop iterating
       }
     }
@@ -535,6 +529,32 @@ var MessageManager = {
     });
 
     return deferred.promise;
+  },
+
+  ensureThreadRegistered(threadId) {
+    /** @function */
+    var getOneMessageForThread = (threadId) => {
+      var defer = Utils.Promise.defer();
+      this.getMessages({
+        each: function(message) {
+          defer.resolve(message);
+          return false;
+        },
+        done: function() {
+          defer.reject(new Error('found no message'));
+        },
+        filter: { threadId: threadId }
+      });
+      return defer.promise;
+    };
+
+    if (Threads.has(threadId)) {
+      return Promise.resolve();
+    }
+
+    return getOneMessageForThread(threadId).then(
+      (message) => Threads.registerMessage(message)
+    );
   }
 };
 

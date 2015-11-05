@@ -21,19 +21,13 @@
   pointer-events: none;
 }
 
-.edit .message.incoming .bubble {
+html[dir="ltr"] .edit .message.incoming .bubble {
   transform: translateX(2.5rem);
+}
+html[dir="rtl"] .edit .message.incoming .bubble {
+  transform: translateX(-2.5rem);
 }
 
 .edit #messages-compose-form {
   display: none;
-}
-
-/* RTL View */
-html[dir="rtl"] .edit .message.outgoing .bubble {
-  transform: translateX(0);
-}
-
-html[dir="rtl"] .edit .message.incoming .bubble {
-  transform: translateX(-2.5rem);
 }

@@ -1,4 +1,4 @@
-/* globals onLoadCallScreen, MockAudioCompetingHelper, MockKeypadManager,
+/* globals onLoadCallScreen, MockKeypadManager,
            MocksHelper, unloadCallScreen */
 
 'use strict';
@@ -6,11 +6,9 @@
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 
-require('/test/unit/mock_audio_competing_helper.js');
 require('/test/unit/mock_call_screen.js');
 
 var mocksHelperForIndex = new MocksHelper([
-  'AudioCompetingHelper',
   'CallScreen',
   'CallsHandler',
   'KeypadManager'
@@ -41,7 +39,6 @@ suite('index.js', function() {
 
   suite('initialization', function() {
     setup(function() {
-      this.sinon.spy(MockAudioCompetingHelper, 'init');
       this.sinon.spy(MockKeypadManager, 'init');
 
       onLoadCallScreen();
@@ -49,7 +46,6 @@ suite('index.js', function() {
 
     test('all components are initialized with the proper parameters',
     function() {
-      sinon.assert.calledWith(MockAudioCompetingHelper.init, 'callscreen');
       sinon.assert.calledWith(MockKeypadManager.init, /* oncall */ true);
     });
   });

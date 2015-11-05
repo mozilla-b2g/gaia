@@ -1,17 +1,25 @@
 /**
- * element 0.0.0-native-register
- * Copyright (c) 2013-2014, The Dojo Foundation All Rights Reserved.
+ * element 0.0.1+
+ * Copyright (c) 2013-2015, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/element for details
  */
 /*jshint browser: true */
 /*globals define */
-define(function() {
+define(function(require, exports, module) {
   'use strict';
   var slice = Array.prototype.slice,
       callbackSuffix = 'Callback',
       callbackSuffixLength = callbackSuffix.length,
-      charRegExp = /[^a-z]/g;
+      charRegExp = /[^a-z]/g,
+      idToTag = function(id) {
+        return id.toLowerCase().replace(charRegExp, '-');
+      },
+      moduleConfig = module.config();
+
+  if (moduleConfig.hasOwnProperty('idToTag')) {
+    idToTag = moduleConfig.idToTag;
+  }
 
   /**
    * Converts an attribute like a-long-attr to aLongAttr
@@ -174,9 +182,9 @@ define(function() {
 
         // Translate any characters that are unfit for custom element
         // names to dashes
-        id = id.toLowerCase().replace(charRegExp, '-');
+        var tagId = idToTag(id);
 
-        onload(document.registerElement(id, {
+        onload(document.registerElement(tagId, {
           prototype: proto
         }));
       });

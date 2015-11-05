@@ -1,5 +1,4 @@
 'use strict';
-
 /* exports MockDatastore, MockDatastoreObj */
 
 function MockDatastoreObj(name, owner, records) {
@@ -50,8 +49,7 @@ MockDatastoreObj.prototype = {
 
       if (args.length === 1) {
         dsIds = Array.isArray(args[0]) ? args[0] : [args[0]];
-      }
-      else {
+      } else {
         dsIds = args;
       }
 
@@ -120,6 +118,33 @@ MockDatastoreObj.prototype = {
     });
   },
 
+  sync: function(revisionId) {
+    return {
+      next: () => {
+        if (!this._tasks[this._taskCounter]) {
+          this._taskCounter = 0;
+        }
+
+        return Promise.resolve(this._tasks[this._taskCounter++]);
+      }
+    };
+  },
+
+  _taskCounter: 0,
+  // Please make sure there is always a 'done' task at the end.
+  _tasks: [
+    {
+      operation: 'update',
+      id: 0,
+      data: {}
+    },
+    {
+      operation: 'done',
+      id: 0,
+      data: null
+    }
+  ],
+
   getLength: function() {
     if (this._inError === true) {
       return this._reject();
@@ -152,7 +177,7 @@ MockDatastoreObj.prototype = {
 
   removeEventListener: function() {
     this._cb = null;
-  },
+  }
 };
 
 var MockDatastore = new MockDatastoreObj();
@@ -170,8 +195,7 @@ var MockNavigatorDatastore = {
     return new window.Promise(function(resolve, reject) {
       if (!MockNavigatorDatastore._datastores) {
         resolve([MockDatastore]);
-      }
-      else {
+      } else {
         resolve(MockNavigatorDatastore._datastores);
       }
     });

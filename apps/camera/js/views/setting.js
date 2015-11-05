@@ -37,41 +37,46 @@ module.exports = View.extend({
 
   render: function() {
     var data = this.model.get();
-
     data.selected = this.model.selected();
     data.value = data.selected && data.selected.title;
-
-    // The settings list is a listbox (list of actionable items) thus the
-    // setting must be an 'option'.
     this.el.setAttribute('role', 'option');
-    // The only way to exclude content from :before element (present in setting
-    // item) is to override it with ARIA label.
-    this.l10n.setAttributes(this.el, 'setting-option-' + data.title, {
-      value: this.localizeValue(data)
+
+
+    var localizedValue;
+    if (data.optionsLocalizable === false) {
+      localizedValue = Promise.resolve(data.value);
+    } else {
+      localizedValue = this.l10n.formatValue(data.value);
+    }
+
+    localizedValue.then(valueString => {
+      this.l10n.setAttributes(
+        this.el,
+        'setting-option-' + data.title,
+        { value: valueString }
+      );
+      this.el.innerHTML = this.template({
+        titleL10n: 'data-l10n-id="' + data.title + '"',
+        valueL10n: data.optionsLocalizable !== false ? 'data-l10n-id="' +
+          data.value + '"' : '',
+        valueText: data.optionsLocalizable === false ? data.value : '',
+      });
+
+      // Clean up
+      delete this.template;
+
+      debug('rendered (item %s)', data.key);
     });
 
-    this.el.innerHTML = this.template(data);
-
-    // Clean up
-    delete this.template;
-
-    debug('rendered (item %s)', data.key);
     return this;
-  },
-
-  localizeValue: function(data) {
-    // some data items are not to be localized
-    if (data.optionsLocalizable === false) {
-      return data.value;
-    } else {
-      return this.l10n.get(data.value);
-    }
   },
 
   template: function(data) {
     return '<div class="setting_text">' +
-      '<h4 class="setting_title" data-l10n-id="' + data.title + '"></h4>' +
-      '<h5 class="setting_value">' + this.localizeValue(data) + '</h5>' +
+      '<h4 class="setting_title" ' + data.titleL10n + '></h4>' +
+      '<h5 class="setting_value" ' + data.valueL10n + '>' + 
+        data.valueText +
+      '</h5>' +
     '</div>';
   },
 });

@@ -1,10 +1,6 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-
-/* global bridge,
-          streamService,
-          Utils
+/* global BridgeServiceMixin,
+          BroadcastChannel,
+          DOMError
 */
 
 /* exported MozMobileMessageShim */
@@ -12,94 +8,125 @@
 (function(exports) {
 'use strict';
 
+const debug = 0 ?
+  (arg1, ...args) => console.log(`[MozMobileMessageShim] ${arg1}`, ...args):
+  () => {};
+
+const mark = 0 ?
+  (...args) => exports.performance.mark(`[MozMobileMessageShim] ${args}`):
+  () => {};
+
 /**
  * Name of the service for mozMobileMessage API shim.
  * @type {string}
  */
-const SERVICE_NAME = 'mozMobileMessageShim';
+const SERVICE_NAME = 'moz-mobile-message-shim';
 
 /**
- * Array of the event names that is corresponding to mozMobileMessage events.
- * @type {Array.<string>}
+ * Event set that key is corresponding to mozMobileMessage events and value is
+ * the name that broadcasts to client side.
+ * @type {Object.<string, string>}
  */
-const EVENTS = ['received', 'sending', 'sent', 'failed', 'deleted',
-                'readsuccess', 'deliverysuccess'];
+const EVENTS = Object.freeze({
+  'received': 'message-received',
+  'sending': 'message-sending',
+  'sent': 'message-sent',
+  'failed': 'message-failed-to-send',
+  'deleted': 'threads-deleted',
+  'readsuccess': 'message-read',
+  'deliverysuccess': 'message-delivered'
+});
 
 /**
  * Array of method names that need to be exposed for API shim.
  * @type {Array.<string>}
  */
-const METHODS = ['getMessage', 'retrieveMMS', 'send', 'sendMMS',
-                 'delete', 'markMessageRead', 'getSegmentInfoForText'];
+const METHODS = Object.freeze(['getMessage', 'retrieveMMS', 'send', 'sendMMS',
+  'delete', 'markMessageRead', 'getSegmentInfoForText']);
 
 /**
  * Array of stream names that need to return data (messages/threads) in chunk.
  * @type {Array.<string>}
  */
-const STREAMS = ['getThreads', 'getMessages'];
+const STREAMS = Object.freeze(['getThreads', 'getMessages']);
 
 var mozMobileMessage = null;
 
-var service = null;
+/**
+ * Clones DOM thread object to plain JS object, so that it's possible to pass it
+ * via postMessage. Should be removed once bug 1172794 is landed.
+ * @param {DOMMozMobileMessageThread} thread DOM Message thread instance.
+ * @returns {Object}
+ */
+function cloneThread(thread) {
+  // See nsIDOMMozMobileMessageThread.idl file at:
+  // http://mxr.mozilla.org/mozilla-central/source/dom/mobilemessage/interfaces
+  return {
+    id: thread.id,
+    body: thread.body,
+    participants: thread.participants,
+    timestamp: thread.timestamp,
+    unreadCount: thread.unreadCount,
+    lastMessageType: thread.lastMessageType
+  };
+}
 
 var MozMobileMessageShim = {
-  init(mobileMessage) {
+  init(appInstanceId, mobileMessage) {
     if (!mobileMessage) {
       return;
     }
 
+    function capitalize(str) {
+      return str[0].toUpperCase() + str.slice(1);
+    }
+
+    var broadcastChannelName = `${SERVICE_NAME}-channel-${appInstanceId}`;
     mozMobileMessage = mobileMessage;
-    service = bridge.service(SERVICE_NAME);
+    this.initService(new BroadcastChannel(broadcastChannelName));
 
-    service.plugin(streamService);
-
-    EVENTS.forEach((event) => {
+    Object.keys(EVENTS).forEach((event) => {
       mozMobileMessage.addEventListener(
         event,
-        this[Utils.camelCase(`on-${event}`)]
+        this['on' + capitalize(event)].bind(this)
       );
     });
 
-    METHODS.forEach((shimMethod) => {
-      service.method(shimMethod, this[shimMethod]);
-    });
-
-    STREAMS.forEach((shimStream) => {
-      service.stream(shimStream, this[shimStream]);
-    });
-
-    service.listen();
+    debug(
+      'Listen incoming connections on "%s" broadcast channel',
+      broadcastChannelName
+    );
   },
 
   /* Events */
 
   onSending(e) {
-    service.broadcast('message-sending', { message: e.message });
+    this.broadcast('message-sending', { message: e.message });
   },
 
   onFailed(e) {
-    service.broadcast('message-failed-to-send', { message: e.message });
+    this.broadcast('message-failed-to-send', { message: e.message });
   },
 
   onDeliverysuccess(e) {
-    service.broadcast('message-delivered', { message: e.message });
+    this.broadcast('message-delivered', { message: e.message });
   },
 
   onReadsuccess(e) {
-    service.broadcast('message-read', { message: e.message });
+    this.broadcast('message-read', { message: e.message });
   },
 
   onSent(e) {
-    service.broadcast('message-sent', { message: e.message });
+    this.broadcast('message-sent', { message: e.message });
   },
 
   onReceived(e) {
-    service.broadcast('message-received', { message: e.message });
+    this.broadcast('message-received', { message: e.message });
   },
 
   onDeleted(e) {
     if (e.deletedThreadIds && e.deletedThreadIds.length) {
-      service.broadcast('threads-deleted', {
+      this.broadcast('threads-deleted', {
         ids: e.deletedThreadIds
       });
     }
@@ -111,8 +138,22 @@ var MozMobileMessageShim = {
     return mozMobileMessage.getMessage(id);
   },
 
+  /**
+   * Call platform retrieveMMS API to retrieve the MMS by ID.
+   * @param {Number} id MMS message id.
+   * @returns {Promise.<void|Error>} return void if MMS is retrieved
+   *  successfully or error while failed.
+   */
   retrieveMMS(id) {
-    return mozMobileMessage.retrieveMMS(id);
+    return mozMobileMessage.retrieveMMS(id).then((message) => {
+      // Return void instead of message to avoid clone error issue.
+      return;
+    }, (error) => {
+      // Clone the error if error is DOMError. Should be removed once
+      // https://github.com/gaia-components/bridge/issues/80 or bug 1200496 that
+      // make DOMError supporting structured clone addressed.
+      throw error instanceof DOMError ? { name: error.name } : error;
+    });
   },
 
   send(recipient, content, sendOpts) {
@@ -142,35 +183,51 @@ var MozMobileMessageShim = {
    * @param {ServiceStream} stream Channel for returning thread.
    */
   getThreads(stream) {
+    mark('start retrieving conversations');
+
     var cursor = null;
+    var isStreamCancelled = false;
+
+    stream.cancel = (reason) => {
+      debug('getThreads stream is cancelled: %s', reason);
+      isStreamCancelled = true;
+      return Promise.resolve();
+    };
 
     // WORKAROUND for bug 958738. We can remove 'try\catch' block once this bug
     // is resolved
     try {
       cursor = mozMobileMessage.getThreads();
     } catch(e) {
-      console.error('Error occurred while retrieving threads: ' + e.name);
-      stream.abort();
+      console.error('Error occurred while retrieving threads:', e);
+      // Pass error object once the following issue is fixed:
+      // https://github.com/gaia-components/threads/issues/74
+      stream.abort(`[${e.name}] ${e.message || ''}`);
       return;
     }
 
+    var index = 0;
     cursor.onsuccess = function onsuccess() {
       var result = this.result;
 
-      if (result) {
-        // TODO: we might need to track result of write to stop iterating
-        //       through cursor.
-        stream.write(result);
+      if (result && !isStreamCancelled) {
+        mark(++index, ' conversation retrieved');
+        stream.write(cloneThread(result));
         this.continue();
         return;
       }
+
+      mark('all conversations retrieved');
 
       stream.close();
     };
 
     cursor.onerror = function onerror() {
-      console.error('Reading the database. Error: ' + this.error.name);
-      stream.abort();
+      console.error('Error occurred while reading the database', this.error);
+
+      // Pass error object once the following issue is fixed:
+      // https://github.com/gaia-components/threads/issues/74
+      stream.abort(`[${this.error.name}] ${this.error.message || ''}`);
     };
   },
 
@@ -212,6 +269,15 @@ var MozMobileMessageShim = {
   }
 };
 
-exports.MozMobileMessageShim = MozMobileMessageShim;
+exports.MozMobileMessageShim = Object.seal(
+  BridgeServiceMixin.mixin(
+    MozMobileMessageShim,
+    SERVICE_NAME, {
+      methods: METHODS,
+      streams: STREAMS,
+      events: Object.keys(EVENTS).map((key) => EVENTS[key])
+    }
+  )
+);
 
 }(this));

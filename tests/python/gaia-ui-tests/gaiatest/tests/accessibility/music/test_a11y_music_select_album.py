@@ -2,8 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
-from gaiatest.apps.music.app import Music
+from gaiatest.apps.music_oga.app import Music
 
 
 class TestAccessibilityMusicSelectAlbum(GaiaTestCase):
@@ -26,7 +28,8 @@ class TestAccessibilityMusicSelectAlbum(GaiaTestCase):
 
         # select an album by click
         sublist_view = albums[0].a11y_click_first_album()
-        self.wait_for_element_displayed(*sublist_view._play_control_locator)
-        self.assertTrue(self.accessibility.is_visible(
-            self.marionette.find_element(*sublist_view._play_control_locator)))
+        element = Wait(self.marionette).until(
+                       expected.element_present(*sublist_view._play_control_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        self.assertTrue(self.accessibility.is_visible(element))
 

@@ -1,4 +1,4 @@
-/* global BaseIcon, Clock, Service */
+/* global BaseIcon, Clock, Service, mozIntl */
 'use strict';
 
 (function(exports) {
@@ -11,23 +11,25 @@
     if (!this.clock) {
       this.clock = new Clock();
     }
-    this.timeFormatter = new Intl.DateTimeFormat(navigator.languages, {
-      hour12: navigator.mozHour12,
-      hour: 'numeric',
-      minute: 'numeric'
-    });
+    if (this.manager._ampm) {
+      this.timeFormatter = new mozIntl.DateTimeFormat(navigator.languages, {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric'
+      });
+    } else {
+      this.timeFormatter = new mozIntl.DateTimeFormat(navigator.languages, {
+        hour12: navigator.mozHour12,
+        dayperiod: false,
+        hour: 'numeric',
+        minute: 'numeric'
+      });
+    }
 
     this.clock.start(this.update.bind(this));
   };
   TimeIcon.prototype._stop = function() {
     this.clock.stop();
-  };
-
-  TimeIcon.prototype.render = function() {
-    if (!this.rendered) {
-      BaseIcon.prototype.render.apply(this);
-      this.rendered = true;
-    }
   };
 
   TimeIcon.prototype.view = function view() {
@@ -43,18 +45,15 @@
     this.manager.active ? this.show() : this.hide();
     now = now || new Date();
 
-    var timeText = this.timeFormatter.format(now);
+    var timeText;
 
-    if (this.timeFormatter.resolvedOptions().hour12 === true) {
-      // this is a non-standard, Gecko only API, but we have
-      // no other way to get the am/pm portion of the date to wrap it in
-      // a <span/> element.
-      var amPm = now.toLocaleFormat('%p');
-      if (this.manager._ampm) {
-        timeText = timeText.replace(amPm, '<span>$&</span>');
-      } else {
-        timeText = timeText.replace(amPm, '').trim();
-      }
+    if (this.manager._ampm &&
+        this.timeFormatter.resolvedOptions().hour12 === true) {
+      timeText = this.timeFormatter.format(now, {
+        dayperiod: '<span>$&</span>'
+      });
+    } else {
+      timeText = this.timeFormatter.format(now);
     }
     this.element.innerHTML = timeText;
 

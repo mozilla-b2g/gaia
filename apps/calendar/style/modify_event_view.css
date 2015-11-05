@@ -8,11 +8,11 @@
 
 #modify-event-view form {
   overflow-Y: auto;
-  height: -moz-calc(100% - 5rem);
+  height: calc(100% - 5rem);
 }
 
 #modify-event-view form ol {
-  margin: 1rem 1.5rem 0 1.5rem;
+  margin: 1rem 1.5rem 0;
   overflow: hidden;
 }
 
@@ -30,17 +30,31 @@
 
 #modify-event-view li.end-date,
 #modify-event-view li.start-date {
-  -moz-box-sizing: border-box;
-  float: left;
+  box-sizing: border-box;
   width: 60%;
-  -moz-padding-end: 0.5rem;
+  padding-inline-end: 0.5rem;
+}
+html[dir="ltr"] #modify-event-view li.end-date,
+html[dir="ltr"] #modify-event-view li.start-date {
+  float: left;
+}
+html[dir="rtl"] #modify-event-view li.end-date,
+html[dir="rtl"] #modify-event-view li.start-date {
+  float: right;
 }
 
 #modify-event-view li.end-time,
 #modify-event-view li.start-time {
   text-align: center;
   width: calc(40% - 1px);
-  float: left
+}
+html[dir="ltr"] #modify-event-view li.end-time,
+html[dir="ltr"] #modify-event-view li.start-time {
+  float: left;
+}
+html[dir="rtl"] #modify-event-view li.end-time,
+html[dir="rtl"] #modify-event-view li.start-time {
+  float: right;
 }
 
 #modify-event-view li.notes  {
@@ -57,8 +71,8 @@
 
 #modify-event-view li.allday {
   padding: 0;
-  -moz-padding-start: 1.5rem;
-  margin: 0 0 1rem 0;
+  padding-inline-start: 1.5rem;
+  margin: 0 0 1rem;
   font-size: 1.9rem;
   line-height: 4rem;
   font-weight: normal;
@@ -66,7 +80,7 @@
 
 #modify-event-view h3 {
   padding: 0;
-  -moz-padding-start: 1.5rem;
+  padding-inline-start: 1.5rem;
   font-size: 1.9rem;
   line-height: 3rem;
   font-weight: normal;
@@ -76,13 +90,13 @@
   height: 100%;
   width: 100%;
   padding: 0;
-  -moz-padding-end: 5rem;
+  padding-inline-end: 5rem;
   line-height: 1.3em;
 }
 
 #modify-event-view li.allday > label > span:after {
-  left: auto;
-  right: 0;
+  offset-inline-start: auto;
+  offset-inline-end: 0;
 }
 
 #modify-event-view.allday .start-time,
@@ -152,19 +166,4 @@
 
 #modify-event-view .save[aria-disabled="true"] {
   pointer-events: none;
-}
-
-/* RTL View */
-html[dir="rtl"] #modify-event-view li.end-date,
-html[dir="rtl"] #modify-event-view li.start-date {
-  float: right;
-}
-html[dir="rtl"] #modify-event-view li.end-time,
-html[dir="rtl"] #modify-event-view li.start-time {
-  float: right
-}
-
-html[dir="rtl"] #modify-event-view li.allday > label > span:after {
-  left: 0;
-  right: auto;
 }

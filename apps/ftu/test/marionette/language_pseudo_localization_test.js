@@ -12,7 +12,7 @@ marionette('First Time Use > Pseudo Localization', function() {
   });
 
   test('FTU Languages without pseudo localization', function() {
-    client.settings.set('devtools.qps.enabled', false);
+    client.settings.set('devtools.pseudolocalization.enabled', false);
     client.apps.switchToApp(Ftu.URL);
 
     var panel = ftu.getPanel('language');
@@ -20,11 +20,13 @@ marionette('First Time Use > Pseudo Localization', function() {
 
     // the input is hidden so we can't use waitForElement
     client.findElement('gaia-radio[value="en-US"]');
-    client.helper.waitForElementToDisappear('gaia-radio[value="qps-ploc"]');
+    client.helper.waitForElementToDisappear(
+      'gaia-radio[value="fr-x-psaccent"]'
+    );
   });
 
   test('FTU Languages with pseudo localization', function() {
-    client.settings.set('devtools.qps.enabled', true);
+    client.settings.set('devtools.pseudolocalization.enabled', true);
     client.apps.switchToApp(Ftu.URL);
 
     var panel = ftu.getPanel('language');
@@ -32,20 +34,26 @@ marionette('First Time Use > Pseudo Localization', function() {
 
     client.helper.waitForElement('#languages');
     client.findElement('gaia-radio[value="en-US"]');
-    client.findElement('gaia-radio[value="qps-ploc"]');
+    client.findElement('gaia-radio[value="fr-x-psaccent"]');
   });
 
-  test('Can select accented-english', function() {
-    client.settings.set('devtools.qps.enabled', true);
+  test('Can select accented-english', function(done) {
+    client.settings.set('devtools.pseudolocalization.enabled', true);
     client.apps.switchToApp(Ftu.URL);
     client.helper.waitForElement('#languages');
     var header = client.helper.waitForElement(Ftu.Selectors.header);
-    ftu.selectLanguage('qps-ploc');
+    ftu.selectLanguage('fr-x-psaccent');
 
-    var translatedHeader = client.executeScript('' +
-      'var qps = window.wrappedJSObject.navigator.mozL10n.qps;' +
-      'return qps["qps-ploc"].translate("Language");'
-    );
-    assert.equal(translatedHeader, header.text());
+    client.executeAsyncScript(function() {
+      var pseudo = window.wrappedJSObject.document.l10n.pseudo;
+      pseudo['fr-x-psaccent'].processString('Language').then(
+        function(string) {
+          marionetteScriptFinished(string);
+        }
+      );
+    }, function(err, value) {
+      assert.equal(value, header.text());
+      done();
+    });
   });
 });

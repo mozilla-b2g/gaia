@@ -19,43 +19,46 @@
 'use strict';
 
 (function(exports) {
+  const AVG_ICON_SIZE = 22;
+
   var Statusbar = {
     name: 'Statusbar',
 
     // The indices indicate icons priority (lower index = highest priority)
-    // In each object:
-    // * witdth: is the icon element width or null if size is variable
-    // * order: is the order in which the icons will be displayed
-    PRIORITIES: {
-      'emergency-callback': { width: 16 + 4, order: 12},
-      'battery': {width: 25 + 4, order: 2},
-      'recording': {width: 16 + 4, order: 16},
-      'airplane-mode': {width: 16 + 4, order: 3},
-      'wifi': {width: 16 + 4, order: 4},
-      'mobile-connection': {width: null, order: 5}, // Width can change
-      'time': {width: null, order: 1}, // Width can change
-      'debugging': {width: 16 + 4, order: 11},
-      'download': {width: 16 + 4, order: 13},
-      'geolocation': {width: 16 + 4, order: 17},
-      'network-activity': {width: 16 + 4, order: 6},
-      'tethering': {width: 16 + 4, order: 7},
-      'bluetooth-transfer': {width: 16 + 4, order: 9},
-      'bluetooth': {width: 16 + 4, order: 8},
-      'nfc': {width: 16 + 4, order: 10},
-      'usb': {width: 16 + 4, order: 14},
-      'alarm': {width: 16 + 4, order: 22},
-      'bluetooth-headphone': {width: 16 + 4, order: 19},
-      'mute': {width: 16 + 4, order: 15},
-      'call-forwardings': {width: null, order: 18}, // Width can change
-      'playing': {width: 16 + 4, order: 21},
-      'headphone': {width: 16 + 4, order: 20},
-      'operator': {width: null, order: 23} // Only visible in the maximized.
-    },
+    PRIORITIES: [
+      'time',
+      'emergency-callback',
+      'battery',
+      'recording',
+      'airplane-mode',
+      'wifi',
+      'mobile-connection',
+      'debugging',
+      'download',
+      'geolocation',
+      'network-activity',
+      'tethering',
+      'bluetooth-transfer',
+      'bluetooth',
+      'nfc',
+      'usb',
+      'alarm',
+      'bluetooth-headphone',
+      'mute',
+      'call-forwardings',
+      'playing',
+      'headphone',
+      'operator'
+    ],
 
     /* Whether or not status bar is actively updating or not */
     active: true,
 
-    _minimizedStatusbarWidth: window.innerWidth,
+    _numMinimizedIcons: 9,
+    _currentIcons: {},
+    get _iconsCount() {
+      return Object.keys(this._currentIcons).length;
+    },
 
     /* For other modules to acquire */
     get height() {
@@ -81,12 +84,7 @@
       window.addEventListener('homescreentitlestatechanged', this);
       window.addEventListener('appchromecollapsed', this);
       window.addEventListener('appchromeexpanded', this);
-      window.addEventListener('iconcreated', this);
-      window.addEventListener('iconshown', this);
-      window.addEventListener('iconhidden', this);
-      window.addEventListener('iconchanged', this);
       window.addEventListener('iconrendered', this);
-      window.addEventListener('iconwidthchanged', this);
       if (Service.query('FtuLauncher.isFinished')) {
         this.finishInit();
       } else {
@@ -94,28 +92,30 @@
         window.addEventListener('ftudone', this);
       }
       Service.registerState('height', this);
-      Service.register('pauseUpdate', this);
+      Service.register('iconContainer', this);
+    },
+
+    calculateMinimized: function sb_calculateMinimized() {
+      var minimizedWidth = this.element.clientWidth / 2;
+      var count = minimizedWidth / AVG_ICON_SIZE;
+      this._numMinimizedIcons = Math.floor(count);
     },
 
     iconContainer: function sb_iconContainer(icon) {
       if (icon.dashPureName === 'operator') {
         return this.statusbarTray;
       }
-      return this.statusbarIconsMax;
-    },
-
-    onIconCreated: function sb_onIconCreated(icon) {
-      if (!this.PRIORITIES[icon.dashPureName]) {
-        return;
-      }
-
-      this.PRIORITIES[icon.dashPureName].icon = icon;
+      return this.statusbarIcons;
     },
 
     /**
      * Finish all initializing statusbar event handlers
      */
     finishInit: function() {
+      window.addEventListener(
+        'appstatusbar-fullscreen-statusbar-set-appearance', this);
+      window.addEventListener('appstatusbar-fullscreen-statusbar-show', this);
+      window.addEventListener('appstatusbar-fullscreen-statusbar-hide', this);
       window.addEventListener('sheets-gesture-begin', this);
       window.addEventListener('sheets-gesture-end', this);
       window.addEventListener('utilitytraywillshow', this);
@@ -126,16 +126,8 @@
       window.addEventListener('utility-tray-abortclose', this);
       window.addEventListener('cardviewshown', this);
       window.addEventListener('cardviewclosed', this);
-
-      // Listen to 'lockscreen-appopened', 'lockscreen-appclosing', and
-      // 'lockpanelchange' in order to correctly set the visibility of
-      // the statusbar clock depending on the active lockscreen panel
-      window.addEventListener('lockscreen-appopened', this);
-      window.addEventListener('lockscreen-appclosing', this);
-      window.addEventListener('lockpanelchange', this);
-
-      // Listen to orientation change and SHB activation/deactivation.
-      window.addEventListener('system-resize', this);
+      window.addEventListener('iconshown', this);
+      window.addEventListener('iconhidden', this);
 
       window.addEventListener('attentionopened', this);
       window.addEventListener('appwillopen', this);
@@ -144,8 +136,6 @@
       window.addEventListener('appclosed', this);
       window.addEventListener('hierarchytopmostwindowchanged', this);
       window.addEventListener('activityopened', this);
-      window.addEventListener('activitydestroyed', this);
-      window.addEventListener('homescreenopening', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('stackchanged', this);
 
@@ -161,50 +151,37 @@
         this.topPanel.addEventListener(name, this.panelHandler.bind(this));
       }, this);
 
-      this.statusbarIcons.addEventListener('wheel', this);
-
-      LazyLoader.load(['js/utility_tray.js']).then(function() {
+      LazyLoader.load([
+        'js/utility_tray_motion.js',
+        'js/utility_tray.js'
+      ]).then(function() {
         this.utilityTray = UtilityTray;
         UtilityTray.init();
       }.bind(this)).catch((err) => {
         console.error('UtilityTray load or init error', err);
       });
 
-      Service.register('onIconCreated', this);
-      Service.register('iconContainer', this);
+      this.calculateMinimized();
     },
 
     handleEvent: function sb_handleEvent(evt) {
       var icon;
       switch (evt.type) {
+        case 'iconshown':
+          this._currentIcons[evt.detail.dashPureName] = true;
+          this.toggleMaximized();
+          break;
+        case 'iconhidden':
+          delete this._currentIcons[evt.detail.dashPureName];
+          break;
         case 'ftudone':
         case 'ftuskip':
           this.finishInit();
           break;
         case 'iconrendered':
           icon = evt.detail;
-          var iconObj = this.PRIORITIES[icon.dashPureName];
-          if (!iconObj) {
-            return;
-          }
-
-          var order = iconObj && iconObj.order ? iconObj.order : 1000;
+          var order = this.PRIORITIES.indexOf(icon.dashPureName);
           icon.setOrder(order);
-          this._updateIconVisibility();
-          break;
-        case 'iconchanged':
-          this.cloneStatusbar();
-          break;
-        case 'iconshown':
-        case 'iconhidden':
-          this._updateIconVisibility();
-          break;
-        case 'iconwidthchanged':
-          this._updateMinimizedStatusbarWidth();
-          icon = evt.detail;
-          if (icon.name === 'OperatorIcon') {
-            this.updateOperatorWidth(icon);
-          }
           break;
 
         case 'attentionopened':
@@ -215,78 +192,57 @@
         case 'sheets-gesture-begin':
         case 'appwillopen':
         case 'appwillclose':
+        case 'cardviewshown':
           this.element.classList.add('hidden');
-          this.pauseUpdate(evt.type);
+          break;
+
+        case 'sheets-gesture-end':
+        case 'stackchanged':
+        case 'cardviewclosed':
+          this.element.classList.remove('hidden');
+          break;
+
+        case 'appstatusbar-fullscreen-statusbar-show':
+          this.topPanel.style.pointerEvents = 'none';
+          break;
+        case 'appstatusbar-fullscreen-statusbar-hide':
+          this.topPanel.style.pointerEvents = '';
           break;
 
         case 'utilitytraywillshow':
         case 'utilitytraywillhide':
-        case 'cardviewshown':
-          this.pauseUpdate(evt.type);
-          this.setAppearance();
-          break;
-
+        case 'appstatusbar-fullscreen-statusbar-set-appearance':
         case 'utility-tray-overlayopened':
         case 'utility-tray-overlayclosed':
         case 'utility-tray-abortopen':
         case 'utility-tray-abortclose':
-        case 'cardviewclosed':
-          this.resumeUpdate(evt.type);
-          this.setAppearance();
-          break;
-
-        case 'wheel':
-          if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
-            evt.deltaY < 0 && !this.isLocked()) {
-            window.dispatchEvent(new CustomEvent('statusbarwheel'));
-          }
-          break;
-
-        case 'system-resize':
-          // Reprioritize icons when:
-          // * Screen orientation changes
-          // * Software home button is enabled/disabled
-          this._updateMinimizedStatusbarWidth();
-          break;
-
-        case 'sheets-gesture-end':
-          this.element.classList.remove('hidden');
-          this.resumeUpdate(evt.type);
-          break;
-
-        case 'stackchanged':
-          this.setAppearance();
-          this.element.classList.remove('hidden');
-          break;
-
         case 'appchromecollapsed':
+        case 'updateprompthidden':
           this.setAppearance();
-          this._updateMinimizedStatusbarWidth();
           break;
 
         case 'appopened':
-        case 'appclosed':
-          this.resumeUpdate(evt.type);
+          var app = evt.detail;
+          if (!app.isFullScreen() && !app.isFullScreenLayout()) {
+            this.element.setAttribute('aria-owns',
+              evt.detail.appChrome.element.id);
+          } else {
+            this.element.removeAttribute('aria-owns');
+          }
           /* falls through */
+        case 'appclosed':
         case 'hierarchytopmostwindowchanged':
         case 'appchromeexpanded':
-          if (!this.isPaused()) {
-            this.element.classList.remove('hidden');
-          }
+          this.element.classList.remove('hidden');
           this.setAppearance();
-          this._updateMinimizedStatusbarWidth();
           break;
 
         case 'activityopened':
-          this._updateMinimizedStatusbarWidth();
-          /* falls through */
         case 'apptitlestatechanged':
         case 'activitytitlestatechanged':
         case 'homescreentitlestatechanged':
           this.setAppearance();
-          if (!this.isPaused()) {
-            this.element.classList.remove('hidden');
-          }
+          this.element.classList.remove('hidden');
           break;
         case 'homescreenopened':
           // In some cases, if the user has been switching apps so fast and
@@ -294,19 +250,13 @@
           // |sheets-gesture-end| event so we must resume the statusbar
           // if needed
           this.setAppearance();
-          this.resumeUpdate(evt.type);
           this.element.classList.remove('hidden');
           this.element.classList.remove('fullscreen');
           this.element.classList.remove('fullscreen-layout');
-          break;
-        case 'activitydestroyed':
-          this._updateMinimizedStatusbarWidth();
+          this.element.removeAttribute('aria-owns');
           break;
         case 'updatepromptshown':
           this.element.classList.remove('light');
-          break;
-        case 'updateprompthidden':
-          this.setAppearance();
           break;
       }
     },
@@ -317,17 +267,27 @@
         return;
       }
 
+      var isFullScreen = app.isFullScreen() || document.mozFullScreen;
+
       this.element.classList.toggle('light',
-        !!(app.appChrome && app.appChrome.useLightTheming())
+        !!(app.appChrome && app.appChrome.useLightTheming()) && !isFullScreen
       );
 
-      this.element.classList.toggle('fullscreen',
-        app.isFullScreen()
-      );
+      this.element.classList.toggle('fullscreen', isFullScreen);
 
       this.element.classList.toggle('fullscreen-layout',
         app.isFullScreenLayout()
       );
+
+      this.toggleMaximized();
+    },
+
+    toggleMaximized: function() {
+      var app = Service.query('getTopMostWindow');
+
+      if (!app) {
+        return;
+      }
 
       var appsWithoutRocketbar = [
         'isHomescreen',
@@ -338,201 +298,15 @@
       var noRocketbar = appsWithoutRocketbar.some(function(name) {
         return !!(app[name]);
       });
-
       var chromeMaximized = !!(app.appChrome && app.appChrome.isMaximized());
       var trayActive = !!(this.utilityTray && this.utilityTray.shown);
       var shouldMaximize = noRocketbar || chromeMaximized || trayActive;
+      var fewIcons = (this._iconsCount < this._numMinimizedIcons);
 
       // Important: we need a boolean to make the toggle method
-      // takes the right decision
-      this.element.classList.toggle('maximized',  shouldMaximize || false);
-    },
-
-    _getMaximizedStatusbarWidth: function sb_getMaximizedStatusbarWidth() {
-      // Let's consider the style of the status bar:
-      // * padding: 0 0.3rem;
-      return Math.round((Service.query('LayoutManager.width') ||
-        window.innerWidth) - (3 * 2));
-    },
-
-    _updateMinimizedStatusbarWidth: function() {
-      var app = Service.query('getTopMostWindow');
-      var appChrome = app && app.appChrome;
-
-      // Only calculate the search input width when the chrome is minimized
-      // Bug 1118025 for more info
-      if (appChrome && appChrome.isMaximized()) {
-        this._updateIconVisibility();
-        return;
-      }
-
-      // Get the width of the minimized shadow element
-      var selector = '.titlebar .titlebar-minimized';
-      var element = app && app.element && app.element.querySelector(selector);
-
-      if (element) {
-        var elementWidth = element.getBoundingClientRect().width;
-        this._minimizedStatusbarWidth = Math.floor(elementWidth);
-      } else {
-        this._minimizedStatusbarWidth = this._getMaximizedStatusbarWidth();
-      }
-
-      this._updateIconVisibility();
-    },
-
-
-    // Update the width of the date element. Called when the content changed.
-    updateOperatorWidth: function(icon) {
-      var iconObj = this.PRIORITIES.operator;
-      if (!iconObj) {
-        return false;
-      }
-      iconObj.width = this._getWidthFromDomElementWidth(icon);
-      return true;
-    },
-
-    _paused: 0,
-
-    _eventGroupStates: {
-      utilitytrayopening: false,
-      utilitytrayclosing: false,
-      appopening: false,
-      appclosing: false,
-      cardview: false,
-      sheetsgesture: false,
-      marionette: false
-    },
-
-    pauseUpdate: function sb_pauseUpdate(evtType) {
-      var eventGroup = this._eventTypeToEventGroup(evtType);
-      if (this._eventGroupStates[eventGroup]) {
-        return;
-      }
-      this._eventGroupStates[eventGroup] = true;
-
-      this._paused++;
-    },
-
-    resumeUpdate: function sb_resumeUpdate(evtType) {
-      var eventGroup = this._eventTypeToEventGroup(evtType);
-      if (!this._eventGroupStates[eventGroup]) {
-        return;
-      }
-      this._eventGroupStates[eventGroup] = false;
-
-      this._paused--;
-      if (!this.isPaused()) {
-        this._updateIconVisibility();
-      }
-    },
-
-    /**
-     * Map event types to event groups.
-     *
-     * @param {string} evtType
-     * @returns {string}
-     */
-    _eventTypeToEventGroup: function sb_eventTypeToEventGroup(evtType) {
-      switch (evtType) {
-        case 'utilitytraywillshow':
-        case 'utility-tray-overlayopened':
-        case 'utility-tray-abortopen':
-          return 'utilitytrayopening';
-        case 'utilitytraywillhide':
-        case 'utility-tray-overlayclosed':
-        case 'utility-tray-abortclose':
-          return 'utilitytrayclosing';
-        case 'cardviewshown':
-        case 'cardviewclosed':
-          return 'cardview';
-        case 'appwillopen':
-        case 'appopened':
-          return 'appopening';
-        case 'appwillclose':
-        case 'appclosed':
-          return 'appclosing';
-        case 'sheets-gesture-begin':
-        case 'sheets-gesture-end':
-        case 'homescreenopened':
-          return 'sheetsgesture';
-      }
-      return evtType;
-    },
-
-    isPaused: function sb_isPaused() {
-      return this._paused > 0;
-    },
-
-    _updateIconVisibility: function sb_updateIconVisibility() {
-      if (this.isPaused()) {
-        return;
-      }
-
-      // Let's refresh the minimized clone.
-      this.cloneStatusbar();
-
-      var maximizedStatusbarWidth = this._getMaximizedStatusbarWidth();
-      var minimizedStatusbarWidth = this._minimizedStatusbarWidth;
-
-      Object.keys(this.PRIORITIES).forEach(function(iconId) {
-        var iconObj = this.PRIORITIES[iconId];
-        var icon = iconObj.icon;
-        if (!icon) {
-          return;
-        }
-        if (!icon.isVisible()) {
-          return;
-        }
-
-        var className = 'sb-hide-' + iconId;
-
-        if (maximizedStatusbarWidth < 0) {
-          this.statusbarIcons.classList.add(className);
-          return;
-        }
-
-        this.statusbarIcons.classList.remove(className);
-        this.statusbarIconsMin.classList.remove(className);
-
-        var iconWidth = this._getIconWidth(iconObj);
-
-        maximizedStatusbarWidth -= iconWidth;
-        if (maximizedStatusbarWidth < 0) {
-          // Add a class to the container so that both status bars inherit it.
-          this.statusbarIcons.classList.add(className);
-          return;
-        }
-
-        minimizedStatusbarWidth -= iconWidth;
-        if (minimizedStatusbarWidth < 0) {
-          // This icon needs to be hidden on the minimized status bar only.
-          this.statusbarIconsMin.classList.add(className);
-        }
-      }.bind(this));
-    },
-
-    _getIconWidth: function sb_getIconWidth(iconObj) {
-      var iconWidth = iconObj.width;
-
-      if (!iconWidth) {
-        // The width of this icon is not static.
-        var icon = iconObj.icon;
-        if (!icon || !icon.element) {
-          return 0;
-        }
-        iconWidth = this._getWidthFromDomElementWidth(icon);
-      }
-
-      return iconWidth;
-    },
-
-    _getWidthFromDomElementWidth: function(icon) {
-      var style = window.getComputedStyle(icon.element);
-      var iconWidth = icon.element.clientWidth +
-        parseInt(style.marginLeft, 10) +
-        parseInt(style.marginRight, 10);
-
-      return iconWidth;
+      // take the right decision
+      var elem = this.element;
+      elem.classList.toggle('maximized', !!(shouldMaximize && !fewIcons));
     },
 
     panelHandler: function sb_panelHandler(evt) {
@@ -541,8 +315,8 @@
         return;
       }
 
-      // Do not forward events is utility-tray is active
-      if (this.utilityTray && this.utilityTray.active) {
+      // Do not forward events if the utility tray is shown.
+      if (this.utilityTray && this.utilityTray.shown) {
         return;
       }
 
@@ -551,8 +325,6 @@
     },
 
     getAllElements: function sb_getAllElements() {
-      this._icons = new Map();
-
       this.element = document.getElementById('statusbar');
       this.statusbarIcons = document.getElementById('statusbar-icons');
       this.statusbarIconsMax = document.getElementById('statusbar-maximized');
@@ -563,38 +335,11 @@
       // Dummy element used at initialization.
       this.statusbarIconsMin = document.createElement('div');
       this.statusbarIcons.appendChild(this.statusbarIconsMin);
-
-      this.cloneStatusbar();
-    },
-
-    cloneStatusbar: function() {
-      var className = this.statusbarIconsMin.className;
-      this.statusbarIcons.removeChild(this.statusbarIconsMin);
-      this.statusbarIconsMin =
-        this.statusbarIconsMax.parentNode.cloneNode(true);
-      this.statusbarIconsMin.setAttribute('id', 'statusbar-minimized-wrapper');
-      this.statusbarIconsMin.firstElementChild.setAttribute('id',
-        'statusbar-minimized');
-      this.statusbarIconsMin.className = className;
-      this.statusbarIcons.appendChild(this.statusbarIconsMin);
     },
 
     // To reduce the duplicated code
     isLocked: function() {
       return Service.query('locked');
-    },
-
-    toCamelCase: function sb_toCamelCase(str) {
-      return str.replace(/\-(.)/g, function replacer(str, p1) {
-        return p1.toUpperCase();
-      });
-    },
-
-    toClassName: function(str) {
-      str = str.replace(/\-(.)/g, function replacer(str, p1) {
-        return p1.toUpperCase();
-      });
-      return str.charAt(0).toUpperCase() + str.slice(1);
     }
   };
   exports.Statusbar = Statusbar;

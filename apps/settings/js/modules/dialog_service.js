@@ -248,7 +248,7 @@ define(function(require) {
       if (request) {
         this.show(request.panelId, request.userOptions, request.defer);
       }
-    },
+    }
   };
 
   var dialogService = new DialogService();

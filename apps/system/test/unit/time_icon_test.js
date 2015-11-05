@@ -1,7 +1,8 @@
-/* global TimeIcon, MockService */
+/* global TimeIcon, MockService, MockMozIntl */
 'use strict';
 
 
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
@@ -9,11 +10,13 @@ requireApp('system/js/clock.js');
 requireApp('system/js/time_icon.js');
 
 suite('system/TimeIcon', function() {
-  var subject, manager, realService;
+  var subject, manager, realService, realMozIntl;
 
   setup(function() {
     realService = window.Service;
     window.Service = MockService;
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
     manager = {
       _ampm: false,
       active: true
@@ -26,6 +29,7 @@ suite('system/TimeIcon', function() {
   });
 
   teardown(function() {
+    window.mozIntl = realMozIntl;
     subject.stop();
   });
 
@@ -44,11 +48,9 @@ suite('system/TimeIcon', function() {
       subject._start();
 
       var timeFormat = subject.timeFormatter.resolvedOptions().hour12;
+      var dayperiod = subject.timeFormatter.resolvedOptions().dayperiod;
       assert.isTrue(timeFormat);
-
-      var amPm = (new Date()).toLocaleFormat('%p');
-
-      assert.notEqual(subject.element.innerHTML.indexOf(amPm), -1);
+      assert.isTrue(dayperiod === undefined);
     });
 
     test('should be 12 hour without AM/PM', function() {
@@ -57,11 +59,9 @@ suite('system/TimeIcon', function() {
       subject._start();
 
       var timeFormat = subject.timeFormatter.resolvedOptions().hour12;
+      var dayperiod = subject.timeFormatter.resolvedOptions().dayperiod;
       assert.isTrue(timeFormat);
-
-      var amPm = (new Date()).toLocaleFormat('%p');
-
-      assert.equal(subject.element.innerHTML.indexOf(amPm), -1);
+      assert.isFalse(dayperiod);
     });
 
     test('Should ask operator icon to update and publish changed', function() {

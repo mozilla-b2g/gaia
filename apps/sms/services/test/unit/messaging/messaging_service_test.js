@@ -1,5 +1,6 @@
 /*global bridge,
          MessagingService,
+         MozMobileMessageClient,
          MocksHelper,
          MockMessages,
          Settings,
@@ -10,6 +11,9 @@
 
 require('/services/js/bridge_service_mixin.js');
 require('/services/test/unit/mock_bridge.js');
+require(
+  '/services/test/unit/moz_mobile_message/mock_moz_mobile_message_client.js'
+);
 require('/views/shared/test/unit/mock_messages.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_smil.js');
@@ -17,12 +21,15 @@ require('/services/js/messaging/messaging_service.js');
 
 var MocksHelperForAttachment = new MocksHelper([
   'bridge',
+  'MozMobileMessageClient',
   'Settings',
   'SMIL'
 ]).init();
 
 suite('Messaging service >', function() {
   var serviceStub, clientStub, successResult, errorResult;
+
+  const APP_INSTANCE_ID = 'fake-app-instance-id';
 
   MocksHelperForAttachment.attachTestHelpers();
 
@@ -39,11 +46,18 @@ suite('Messaging service >', function() {
     });
 
     clientStub = sinon.stub({
-      method: () => {}
+      send: () => {},
+      sendMMS: () => {},
+      resendMessage: () => {},
+      retrieveMMS: () => {},
+      delete: () => {}
     });
 
+    this.sinon.stub(MozMobileMessageClient, 'forApp').withArgs(
+      APP_INSTANCE_ID
+    ).returns(clientStub);
+
     this.sinon.stub(bridge, 'service').returns(serviceStub);
-    this.sinon.stub(bridge, 'client').returns(clientStub);
 
     MessagingService.init();
   });
@@ -51,7 +65,6 @@ suite('Messaging service >', function() {
   suite('init', function() {
     test('service mixing and client are initialized', function() {
       sinon.assert.calledWith(bridge.service, 'messaging-service');
-      sinon.assert.calledWith(bridge.client, 'mozMobileMessageShim');
     });
   });
 
@@ -64,12 +77,10 @@ suite('Messaging service >', function() {
         content: 'hola'
       };
 
-      clientStub.method
-        .withArgs('send').returns(Promise.resolve(successResult));
-      MessagingService.sendSMS(smsOpts).then((results) => {
+      clientStub.send.returns(Promise.resolve(successResult));
+      MessagingService.sendSMS(smsOpts, APP_INSTANCE_ID).then((results) => {
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients, smsOpts.content, undefined
+          clientStub.send, smsOpts.recipients, smsOpts.content, undefined
         );
 
         assert.deepEqual(results, [{
@@ -87,19 +98,16 @@ suite('Messaging service >', function() {
         content: 'hola'
       };
 
-      clientStub.method
-        .withArgs('send').returns(Promise.resolve(successResult));
-      MessagingService.sendSMS(smsOpts).then((results) => {
-        sinon.assert.calledTwice(clientStub.method);
+      clientStub.send.returns(Promise.resolve(successResult));
+      MessagingService.sendSMS(smsOpts, APP_INSTANCE_ID).then((results) => {
+        sinon.assert.calledTwice(clientStub.send);
 
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients[0], smsOpts.content, undefined
+          clientStub.send, smsOpts.recipients[0], smsOpts.content, undefined
         );
 
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients[1], smsOpts.content, undefined
+          clientStub.send, smsOpts.recipients[1], smsOpts.content, undefined
         );
 
         results.forEach((result, idx) => {
@@ -108,7 +116,7 @@ suite('Messaging service >', function() {
             result: successResult,
             code: undefined,
             recipient: smsOpts.recipients[idx]
-          });          
+          });
         });
       }).then(done, done);
 
@@ -120,12 +128,10 @@ suite('Messaging service >', function() {
         content: 'hola'
       };
 
-      clientStub.method
-        .withArgs('send').returns(Promise.reject(errorResult));
-      MessagingService.sendSMS(smsOpts).then((results) => {
+      clientStub.send.returns(Promise.reject(errorResult));
+      MessagingService.sendSMS(smsOpts, APP_INSTANCE_ID).then((results) => {
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients, smsOpts.content, undefined
+          clientStub.send, smsOpts.recipients, smsOpts.content, undefined
         );
 
         assert.deepEqual(results, [{
@@ -143,19 +149,16 @@ suite('Messaging service >', function() {
         content: 'hola'
       };
 
-      clientStub.method
-        .withArgs('send').returns(Promise.reject(errorResult));
-      MessagingService.sendSMS(smsOpts).then((results) => {
-        sinon.assert.calledTwice(clientStub.method);
+      clientStub.send.returns(Promise.reject(errorResult));
+      MessagingService.sendSMS(smsOpts, APP_INSTANCE_ID).then((results) => {
+        sinon.assert.calledTwice(clientStub.send);
 
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients[0], smsOpts.content, undefined
+          clientStub.send, smsOpts.recipients[0], smsOpts.content, undefined
         );
 
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients[1], smsOpts.content, undefined
+          clientStub.send, smsOpts.recipients[1], smsOpts.content, undefined
         );
 
         results.forEach((result, idx) => {
@@ -177,12 +180,10 @@ suite('Messaging service >', function() {
         serviceId: 0 // we use 0 because it's falsy, to test it still works
       };
 
-      clientStub.method
-        .withArgs('send').returns(Promise.resolve(successResult));
-      MessagingService.sendSMS(smsOpts).then(() => {
+      clientStub.send.returns(Promise.resolve(successResult));
+      MessagingService.sendSMS(smsOpts, APP_INSTANCE_ID).then(() => {
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients, smsOpts.content, { serviceId: 0 }
+          clientStub.send, smsOpts.recipients, smsOpts.content, { serviceId: 0 }
         );
       }).then(done, done);
 
@@ -196,12 +197,10 @@ suite('Messaging service >', function() {
         serviceId: 1
       };
 
-      clientStub.method
-        .withArgs('send').returns(Promise.resolve(successResult));
-      MessagingService.sendSMS(smsOpts).then(() => {
+      clientStub.send.returns(Promise.resolve(successResult));
+      MessagingService.sendSMS(smsOpts, APP_INSTANCE_ID).then(() => {
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients, smsOpts.content, undefined
+          clientStub.send, smsOpts.recipients, smsOpts.content, undefined
         );
       }).then(done, done);
 
@@ -215,12 +214,10 @@ suite('Messaging service >', function() {
         serviceId: '0'
       };
 
-      clientStub.method
-        .withArgs('send').returns(Promise.resolve(successResult));
-      MessagingService.sendSMS(smsOpts).then(() => {
+      clientStub.send.returns(Promise.resolve(successResult));
+      MessagingService.sendSMS(smsOpts, APP_INSTANCE_ID).then(() => {
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients, smsOpts.content, { serviceId: 0 }
+          clientStub.send, smsOpts.recipients, smsOpts.content, { serviceId: 0 }
         );
       }).then(done, done);
 
@@ -234,12 +231,10 @@ suite('Messaging service >', function() {
         serviceId: 'oirutoirutoitr'
       };
 
-      clientStub.method
-        .withArgs('send').returns(Promise.resolve(successResult));
-      MessagingService.sendSMS(smsOpts).then(() => {
+      clientStub.send.returns(Promise.resolve(successResult));
+      MessagingService.sendSMS(smsOpts, APP_INSTANCE_ID).then(() => {
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'send', smsOpts.recipients, smsOpts.content, undefined
+          clientStub.send, smsOpts.recipients, smsOpts.content, undefined
         );
       }).then(done, done);
     });
@@ -263,12 +258,10 @@ suite('Messaging service >', function() {
         content: 'hola'
       };
 
-      clientStub.method
-        .withArgs('sendMMS').returns(Promise.resolve(successResult));
-      MessagingService.sendMMS(mmsOpts).then((result) => {
+      clientStub.sendMMS.returns(Promise.resolve(successResult));
+      MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).then((result) => {
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'sendMMS',
+          clientStub.sendMMS,
           {
             receivers: ['123'],
             subject: null,
@@ -287,12 +280,10 @@ suite('Messaging service >', function() {
         content: 'hola'
       };
 
-      clientStub.method
-        .withArgs('sendMMS').returns(Promise.resolve(successResult));
-      MessagingService.sendMMS(mmsOpts).then((result) => {
+      clientStub.sendMMS.returns(Promise.resolve(successResult));
+      MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).then((result) => {
         sinon.assert.calledWithExactly(
-          clientStub.method,
-          'sendMMS',
+          clientStub.sendMMS,
           {
             receivers: ['123', '456'],
             subject: null,
@@ -311,9 +302,8 @@ suite('Messaging service >', function() {
         content: 'hola'
       };
 
-      clientStub.method
-        .withArgs('sendMMS').returns(Promise.reject(errorResult));
-      MessagingService.sendMMS(mmsOpts).catch((error) => {
+      clientStub.sendMMS.returns(Promise.reject(errorResult));
+      MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).catch((error) => {
         assert.equal(error, errorResult);
       }).then(done, done);
     });
@@ -325,9 +315,8 @@ suite('Messaging service >', function() {
         content: 'hola'
       };
 
-      clientStub.method
-        .withArgs('sendMMS').returns(Promise.reject(errorResult));
-      MessagingService.sendMMS(mmsOpts).catch((error) => {
+      clientStub.sendMMS.returns(Promise.reject(errorResult));
+      MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).catch((error) => {
         assert.equal(error, errorResult);
       }).then(done, done);
     });
@@ -346,17 +335,15 @@ suite('Messaging service >', function() {
           serviceId: 0
         };
 
-        clientStub.method
-          .withArgs('sendMMS').returns(Promise.resolve(successResult));
+        clientStub.sendMMS.returns(Promise.resolve(successResult));
       });
 
       test('while the current serviceId is the same', function(done) {
         Settings.mmsServiceId = 0;
 
-        MessagingService.sendMMS(mmsOpts).then(() => {
+        MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).then(() => {
           sinon.assert.calledWithExactly(
-            clientStub.method,
-            'sendMMS',
+            clientStub.sendMMS,
             {
               receivers: ['123'],
               subject: null,
@@ -372,10 +359,9 @@ suite('Messaging service >', function() {
       test('while the current serviceId is different', function(done) {
         Settings.mmsServiceId = 1;
 
-        MessagingService.sendMMS(mmsOpts).then(() => {
+        MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).then(() => {
           sinon.assert.calledWithExactly(
-            clientStub.method,
-            'sendMMS',
+            clientStub.sendMMS,
             {
               receivers: ['123'],
               subject: null,
@@ -392,10 +378,9 @@ suite('Messaging service >', function() {
         Settings.hasSeveralSim.returns(false);
         Settings.mmsServiceId = 1;
 
-        MessagingService.sendMMS(mmsOpts).then(() => {
+        MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).then(() => {
           sinon.assert.calledWithExactly(
-            clientStub.method,
-            'sendMMS',
+            clientStub.sendMMS,
             {
               receivers: ['123'],
               subject: null,
@@ -409,11 +394,9 @@ suite('Messaging service >', function() {
         mmsOpts.serviceId = '0';
         Settings.mmsServiceId = 0;
 
-        MessagingService.sendMMS(mmsOpts).then(() => {
+        MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).then(() => {
           sinon.assert.calledWith(
-            clientStub.method,
-            'sendMMS',
-            sinon.match.any, { serviceId: 0 }
+            clientStub.sendMMS, sinon.match.any, { serviceId: 0 }
           );
         }).then(done, done);
       });
@@ -422,11 +405,9 @@ suite('Messaging service >', function() {
         mmsOpts.serviceId = 'hjuoriut';
         Settings.mmsServiceId = 0;
 
-        MessagingService.sendMMS(mmsOpts).then(() => {
+        MessagingService.sendMMS(mmsOpts, APP_INSTANCE_ID).then(() => {
           sinon.assert.calledWithExactly(
-            clientStub.method,
-            'sendMMS',
-            sinon.match.any, undefined
+            clientStub.sendMMS, sinon.match.any, undefined
           );
         }).then(done, done);
       });
@@ -436,7 +417,7 @@ suite('Messaging service >', function() {
   suite('resendMessage', function() {
 
     setup(function() {
-      clientStub.method.withArgs('delete').returns(Promise.resolve());
+      clientStub.delete.returns(Promise.resolve());
     });
 
     test('fails if message is not given', function() {
@@ -461,17 +442,15 @@ suite('Messaging service >', function() {
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(serviceId);
 
-        clientStub.method
-          .withArgs('send').returns(Promise.resolve(successResult));
-        MessagingService.resendMessage(message).then(() => {
+        clientStub.send.returns(Promise.resolve(successResult));
+        MessagingService.resendMessage(message, APP_INSTANCE_ID).then(() => {
           sinon.assert.calledWith(
             Settings.getServiceIdByIccId,
             message.iccId
           );
 
           sinon.assert.calledWith(
-            clientStub.method,
-            'send',
+            clientStub.send,
             sinon.match.any, sinon.match.any, {
               serviceId: serviceId
             }
@@ -480,29 +459,22 @@ suite('Messaging service >', function() {
       });
 
       test('deletes old message on service promise resolve', function(done) {
-        clientStub.method
-          .withArgs('send').returns(Promise.resolve(successResult));
-        MessagingService.resendMessage(message).then(() => {
+        clientStub.send.returns(Promise.resolve(successResult));
+        MessagingService.resendMessage(message, APP_INSTANCE_ID).then(() => {
           sinon.assert.calledWith(
-            clientStub.method,
-            'delete',
-            message.id
+            clientStub.delete, message.id
           );
         }).then(done, done);
       });
 
       test('deletes old message on service promise reject', function(done) {
-        clientStub.method
-          .withArgs('send').returns(Promise.reject(errorResult));
-        MessagingService.resendMessage(message).catch((error) => {
-          sinon.assert.calledWith(
-            clientStub.method,
-            'delete',
-            message.id
-          );
+        clientStub.send.returns(Promise.reject(errorResult));
+        MessagingService.resendMessage(message, APP_INSTANCE_ID).catch(
+          (error) => {
+            sinon.assert.calledWith(clientStub.delete, message.id);
 
-          assert.equal(error, errorResult);
-        }).then(done, done);
+            assert.equal(error, errorResult);
+          }).then(done, done);
       });
     });
 
@@ -518,56 +490,46 @@ suite('Messaging service >', function() {
       function(done) {
         var serviceId = 3;
 
-        clientStub.method
-          .withArgs('sendMMS').returns(Promise.resolve(successResult));
+        clientStub.sendMMS.returns(Promise.resolve(successResult));
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(serviceId);
 
-        MessagingService.resendMessage(message).then((result) => {
-          sinon.assert.calledWith(
-            Settings.getServiceIdByIccId,
-            message.iccId
-          );
+        MessagingService.resendMessage(message, APP_INSTANCE_ID).then(
+          (result) => {
+            sinon.assert.calledWith(
+              Settings.getServiceIdByIccId,
+              message.iccId
+            );
 
-          sinon.assert.calledWith(
-            clientStub.method,
-            'sendMMS',{
-              receivers: message.receivers,
-              subject: message.subject,
-              smil: message.smil,
-              attachments: message.attachments
-            }, {
-              serviceId: serviceId
-            }
-          );
+            sinon.assert.calledWith(
+              clientStub.sendMMS,{
+                receivers: message.receivers,
+                subject: message.subject,
+                smil: message.smil,
+                attachments: message.attachments
+              }, {
+                serviceId: serviceId
+              }
+            );
 
-          assert.equal(result, successResult);
-        }).then(done, done);
+            assert.equal(result, successResult);
+          }).then(done, done);
       });
 
       test('deletes old message on success and calls callback', function(done) {
-        clientStub.method
-          .withArgs('sendMMS').returns(Promise.resolve(successResult));
-        MessagingService.resendMessage(message).then(() => {
-          sinon.assert.calledWith(
-            clientStub.method,
-            'delete',
-            message.id
-          );
+        clientStub.sendMMS.returns(Promise.resolve(successResult));
+        MessagingService.resendMessage(message, APP_INSTANCE_ID).then(() => {
+          sinon.assert.calledWith(clientStub.delete, message.id);
         }).then(done, done);
       });
 
       test('deletes old message on error and calls callback', function(done) {
-        clientStub.method
-          .withArgs('sendMMS').returns(Promise.reject(errorResult));
-        MessagingService.resendMessage(message).catch((error) => {
-          sinon.assert.calledWith(
-            clientStub.method,
-            'delete',
-            message.id
-          );
-          assert.equal(error, errorResult);
-        }).then(done, done);
+        clientStub.sendMMS.returns(Promise.reject(errorResult));
+        MessagingService.resendMessage(message, APP_INSTANCE_ID).catch(
+          (error) => {
+            sinon.assert.calledWith(clientStub.delete, message.id);
+            assert.equal(error, errorResult);
+          }).then(done, done);
       });
     });
   });
@@ -580,25 +542,17 @@ suite('Messaging service >', function() {
     });
 
     test('retrieveMMS success', function(done) {
-      clientStub.method.returns(Promise.resolve(successResult));
-      MessagingService.retrieveMMS(id).then((result) => {
-        sinon.assert.calledWith(
-          clientStub.method,
-          'retrieveMMS',
-          id
-        );
+      clientStub.retrieveMMS.returns(Promise.resolve(successResult));
+      MessagingService.retrieveMMS(id, APP_INSTANCE_ID).then((result) => {
+        sinon.assert.calledWith(clientStub.retrieveMMS, id);
         assert.equal(result, successResult);
       }).then(done, done);
     });
 
     test('retrieveMMS error', function(done) {
-      clientStub.method.returns(Promise.reject(errorResult));
-      MessagingService.retrieveMMS(id).catch((error) => {
-        sinon.assert.calledWith(
-          clientStub.method,
-          'retrieveMMS',
-          id
-        );
+      clientStub.retrieveMMS.returns(Promise.reject(errorResult));
+      MessagingService.retrieveMMS(id, APP_INSTANCE_ID).catch((error) => {
+        sinon.assert.calledWith(clientStub.retrieveMMS, id);
         assert.equal(error, errorResult);
       }).then(done, done);
     });

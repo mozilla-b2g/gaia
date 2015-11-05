@@ -12,9 +12,9 @@ define(function(require) {
   var APIVersion = APIVersionDetector.getVersion();
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
-    Debug = function bti_debug(msg) {
+    debug = function bti_debug(msg) {
       console.log('--> [BluetoothItem]: ' + msg);
     };
   }
@@ -70,7 +70,7 @@ define(function(require) {
           if (this._APIVersion() === 1) {
             bluetoothModulePath = 'modules/bluetooth/bluetooth_v1';
           } else if (this._APIVersion() === 2) {
-            Debug('loading.. modules/bluetooth/bluetooth_context');
+            debug('loading.. modules/bluetooth/bluetooth_context');
             bluetoothModulePath = 'modules/bluetooth/bluetooth_context';
           }
 
@@ -95,7 +95,7 @@ define(function(require) {
       }
 
       this._getBluetooth().then(function(bluetooth) {
-        Debug('Got bluetooth context');
+        debug('Got bluetooth context');
         if (bluetooth.enabled) {
           if (bluetooth.numberOfPairedDevices === 0) {
             element.setAttribute('data-l10n-id', 'bt-status-nopaired');
@@ -157,7 +157,7 @@ define(function(require) {
         SettingsService.navigate('bluetooth');
       } else if (this._APIVersion() === 2) {
         // navigate new bluetooth panel..
-        Debug('navigate bluetooth_v2 panel');
+        debug('navigate bluetooth_v2 panel');
         SettingsService.navigate('bluetooth_v2');
       }
     }

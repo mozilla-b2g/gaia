@@ -108,6 +108,22 @@ suite('lib/format-recorder-profiles', function() {
           samplerate: 48000,
           channels: 1
         }
+      },
+      'default': {
+        format: 'mp4',
+        video: {
+          codec: 'h264',
+          bitrate: 8000000,
+          framerate: 30,
+          width: 1280,
+          height: 720
+        },
+        audio: {
+          codec: 'aac',
+          bitrate: 96000,
+          samplerate: 48000,
+          channels: 1
+        }
       }
     };
 
@@ -115,21 +131,26 @@ suite('lib/format-recorder-profiles', function() {
   });
 
   test('Should have formatted title string', function() {
-    assert.equal(this.options[0].title, 'high 1920x1080');
-    assert.equal(this.options[1].title, '1080p 1920x1080');
-    assert.equal(this.options[2].title, '720p 1280x720');
+    assert.equal(this.options[0].title, 'default 1280x720');
+    assert.equal(this.options[1].title, 'high 1920x1080');
+    assert.equal(this.options[2].title, '1080p 1920x1080');
+    assert.equal(this.options[3].title, '720p 1280x720');
   });
 
-  test('Should should be sorted by pixel count', function() {
-    var first = this.options[0];
+  test('Should start with the default profile if present', function() {
+    assert.equal(this.options[0].key, 'default');
+  });
+
+  test('Should be sorted by pixel count', function() {
+    var first = this.options[1];
     var last = this.options[this.options.length - 1];
 
     assert.equal(last.key, 'low');
     assert.equal(first.key, 'high');
   });
 
-  test('Should exlcude given keys', function() {
-    var exclude = ['low', 'high', 'other'];
+  test('Should exclude given keys', function() {
+    var exclude = ['default', 'low', 'high', 'other'];
     var options = this.formatRecorderProfiles(this.profiles, { exclude: exclude });
     var found = options.some(function(item) { return exclude.indexOf(item.key) > -1; });
 
@@ -138,10 +159,10 @@ suite('lib/format-recorder-profiles', function() {
   });
 
   test('Should store the raw profile', function() {
-    assert.equal(this.options[0].raw, this.profiles.high);
+    assert.equal(this.options[1].raw, this.profiles.high);
   });
 
   test('Should store the `key`', function() {
-    assert.equal(this.options[0].key, 'high');
+    assert.equal(this.options[1].key, 'high');
   });
 });

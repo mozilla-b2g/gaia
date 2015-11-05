@@ -1,11 +1,14 @@
 'use strict';
 
-/* global AppUpdatable, Service, UpdateManager,
+/* global AppUpdatable, Service, UpdateManager, l10nAssert,
           MockApp, MockAppUpdatable, MockAppsMgmt, MockChromeEvent,
-          MockCustomDialog, MocksHelper, MockL10n,
+          MockCustomDialog, MocksHelper, MockL10n, MockMozActivity,
           MockNavigatorMozMobileConnections, MockNavigatorSettings,
           MockNavigatorWakeLock, MockNotificationScreen,
           MockSettingsListener, MockSystemBanner, MockSystemUpdatable */
+
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_checkbox/script.js');
 
 requireApp('system/js/update_manager.js');
 
@@ -20,6 +23,7 @@ requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/service.js');
 requireApp('system/test/unit/mock_notification_screen.js');
+requireApp('system/shared/test/unit/mocks/mock_moz_activity.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require(
@@ -37,7 +41,8 @@ var mocksForUpdateManager = new MocksHelper([
   'AppUpdatable',
   'SettingsListener',
   'asyncStorage',
-  'LazyLoader'
+  'LazyLoader',
+  'MozActivity'
 ]).init();
 
 suite('system/UpdateManager', function() {
@@ -604,6 +609,15 @@ suite('system/UpdateManager', function() {
         assert.equal(l10nAttrs.id, 'updateAvailableInfo');
         assert.deepEqual(l10nAttrs.args, { n: 3 });
       });
+
+      test('should show the system app available message if not downloading ' +
+           'and only a system update is present',
+      function() {
+        UpdateManager.updatesQueue = [new MockSystemUpdatable()];
+        UpdateManager.render();
+
+        l10nAssert(UpdateManager.message, 'systemUpdateAvailableInfo');
+      });
     });
 
     suite('progress display', function() {
@@ -1044,11 +1058,11 @@ suite('system/UpdateManager', function() {
       suite('with no checkbox checked', function() {
         setup(function() {
           var dialog = UpdateManager.downloadDialogList;
-          var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+          var checkboxes = dialog.querySelectorAll('gaia-checkbox');
           for (var i = 0; i < checkboxes.length; i++) {
             var checkbox = checkboxes[i];
             if (checkbox.checked) {
-              checkbox.click();
+              checkbox.checked = false;
             }
           }
 
@@ -1080,11 +1094,13 @@ suite('system/UpdateManager', function() {
 
           setup(function() {
             dialog = UpdateManager.downloadDialogList;
-            var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+            var checkboxes = dialog.querySelectorAll('gaia-checkbox');
             for (var i = 0; i < checkboxes.length; i++) {
               var checkbox = checkboxes[i];
               if (checkbox.checked) {
-                checkboxes[i].click();
+                checkboxes[i].checked = false;
+                // Trigger an onchange event.
+                UpdateManager.updateDownloadButton();
               }
             }
 
@@ -1097,8 +1113,9 @@ suite('system/UpdateManager', function() {
 
           suite('then checking one back', function() {
             setup(function() {
-              var checkbox = dialog.querySelector('input[type="checkbox"]');
-              checkbox.click();
+              var checkbox = dialog.querySelector('gaia-checkbox');
+              checkbox.checked = !checkbox.checked;
+              UpdateManager.updateDownloadButton();
             });
 
             test('should enable the download button back', function() {
@@ -1118,7 +1135,7 @@ suite('system/UpdateManager', function() {
 
             test('should check all checkboxes', function() {
               var checkboxes = dialog.querySelectorAll(
-                'input[type="checkbox"]'
+                'gaia-checkbox'
               );
               for (var i = 0; i < checkboxes.length; i++) {
                 var checkbox = checkboxes[i];
@@ -1192,9 +1209,17 @@ suite('system/UpdateManager', function() {
     });
 
     suite('download prompt', function() {
+      var systemUpdatable = null;
+      var mockBuildID = '20150929135540';
+      var mockDetailsURL = 'https://www.mozilla.org';
+      var mockDisplayVersion = '2.5';
+
       setup(function() {
-        var systemUpdatable = new MockSystemUpdatable();
+        systemUpdatable = new MockSystemUpdatable();
         systemUpdatable.size = 5296345;
+        systemUpdatable.buildID = mockBuildID;
+        systemUpdatable.detailsURL = mockDetailsURL;
+        systemUpdatable.displayVersion = mockDisplayVersion;
         var appUpdatable = new MockAppUpdatable(new MockApp());
         appUpdatable.name = 'Angry birds';
         appUpdatable.nameID = '';
@@ -1242,12 +1267,51 @@ suite('system/UpdateManager', function() {
           test('should render system update item first with required',
           function() {
             var item = UpdateManager.downloadDialogList.children[0];
-            assert.equal(
-              item.children[0].getAttribute('data-l10n-id'), 'required');
-            assert.equal(
-              item.children[1].getAttribute('data-l10n-id'), 'systemUpdate');
-            assert.equal(
-              item.children[2].textContent, '5.05 MB');
+            l10nAssert(item.children[0], 'required');
+            l10nAssert(item.children[1], 'systemUpdateWithVersion', {
+              version: mockDisplayVersion
+            });
+            assert.equal(item.children[2].textContent, '5.05 MB');
+            l10nAssert(item.children[3], 'build-id', { buildid: mockBuildID });
+            l10nAssert(item.children[4], 'view-release-notes');
+          });
+
+          test('should display the release notes when tapping on the link',
+          function() {
+            var item = UpdateManager.downloadDialogList.children[0];
+            var link = item.children[4];
+            var event = new MouseEvent('click', {
+              'view': window,
+              'bubbles': true,
+              'cancelable': true
+            });
+
+            var canceled = !link.dispatchEvent(event);
+            assert.isTrue(canceled); // preventDefault() was called
+            assert.equal(MockMozActivity.calls.length, 1);
+            assert.deepEqual(MockMozActivity.calls[0], {
+              name: 'view',
+              data: {
+                type: 'url',
+                url: mockDetailsURL
+              }
+            });
+          });
+
+          test('should not display the release notes if the URL is not ' +
+               'present or blank',
+          function() {
+            var item;
+
+            systemUpdatable.detailsURL = null;
+            UpdateManager.containerClicked();
+            item = UpdateManager.downloadDialogList.children[0];
+            assert.equal(item.children.length, 4);
+
+            systemUpdatable.detailsURL = 'about:blank';
+            UpdateManager.containerClicked();
+            item = UpdateManager.downloadDialogList.children[0];
+            assert.equal(item.children.length, 4);
           });
 
           test('should render packaged app items alphabetically with checkbox',
@@ -1255,12 +1319,11 @@ suite('system/UpdateManager', function() {
             var item = UpdateManager.downloadDialogList.children[1];
             assert.include(item.textContent, '413.53 kB');
 
-            var name = item.querySelector('div.name');
+            var name = item.querySelector('span.name');
             assert.equal(name.textContent, 'Angry birds');
             assert.isUndefined(name.dataset.l10nId);
 
-            var checkbox = item.querySelector('input');
-            assert.equal(checkbox.type, 'checkbox');
+            var checkbox = item.querySelector('gaia-checkbox');
             assert.isTrue(checkbox.checked);
             assert.equal(checkbox.dataset.position, '1');
           });
@@ -1269,12 +1332,11 @@ suite('system/UpdateManager', function() {
           function() {
             var item = UpdateManager.downloadDialogList.children[2];
 
-            var name = item.querySelector('div.name');
+            var name = item.querySelector('span.name');
             assert.equal(name.textContent, 'Twitter');
             assert.isUndefined(name.dataset.l10nId);
 
-            var checkbox = item.querySelector('input');
-            assert.equal(checkbox.type, 'checkbox');
+            var checkbox = item.querySelector('gaia-checkbox');
             assert.isTrue(checkbox.checked);
             assert.equal(checkbox.dataset.position, '2');
           });

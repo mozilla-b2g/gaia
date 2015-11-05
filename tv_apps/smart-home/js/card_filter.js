@@ -2,6 +2,15 @@
 (function(exports) {
   'use strict';
 
+  /**
+   * This class controls UI and user interaction of filter, with the help from
+   * [MenuGroup](http://bit.ly/1JbbnZ8).
+   *
+   * @class CardFilter
+   * @requires {@link http://bit.ly/1JbbnZ8|MenuGroup}
+   * @fires CardFilter#opened
+   * @fires CardFilter#filterchanged
+   */
   function CardFilter() {}
 
   var proto = CardFilter.prototype = new evt();
@@ -18,6 +27,10 @@
         this._selectedFilter = icon;
         this.menuGroup.changeIcon(icon);
         this._buttons[icon].classList.add('toggled');
+        /**
+         * This event fires whenever filter changes.
+         * @event CardFilter#filterchanged
+         */
         this.emit('filterchanged', icon);
       }
     }
@@ -26,6 +39,10 @@
   proto.start = function cf_start(menuGroup) {
     this.menuGroup = menuGroup;
     this.menuGroup.addEventListener('opened', function() {
+      /**
+       * This event fires whenever [MenuGroup](http://bit.ly/1JbbnZ8) is opened.
+       * @event CardFilter#opened
+       */
       this.fire('opened');
     }.bind(this));
     var buttons = this.menuGroup.querySelectorAll(

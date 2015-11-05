@@ -13,6 +13,10 @@
   -moz-user-select: none;
 }
 
+/* Enforce default alignment for everything, even with dir="auto" and unicode-bidi: -moz-plaintext */
+html[dir="ltr"] { text-align: left; }
+html[dir="rtl"] { text-align: right; }
+
 /* Allow inputs to be selectable, and to allow cut/copy operations. Copy/paste
 select all could reach across the whole DOM so only scope the selection to the
 center "active" card. Bug 1152172. */
@@ -110,9 +114,8 @@ body.content-visible {
   opacity: 1;
 }
 
-.card.before {
-  transform: translateX(-100%);
-}
+html[dir="ltr"] .card.before { transform: translateX(-100%); }
+html[dir="rtl"] .card.before { transform: translateX(100%); }
 
 .card.before.anim-vertical {
   transform: translateY(100%);
@@ -127,9 +130,8 @@ body.content-visible {
   transform: translateY(-100%);
 }
 
-.card.after {
-  transform: translateX(100%);
-}
+html[dir="ltr"] .card.after { transform: translateX(100%); }
+html[dir="rtl"] .card.after { transform: translateX(-100%); }
 
 .card.after.anim-vertical {
   transform: translateY(-100%);
@@ -151,12 +153,13 @@ body.content-visible {
 .header-label {
   color: white;
   line-height: 5.2rem;
-  margin: 0 0 0 4rem;
+  margin: 0;
+  margin-inline-start: 4rem;
   font-size: 2.2rem;
   font-weight: normal;
 }
 
-.header-btn, .header-left-btn, .header-right-btn {
+.header-btn, .header-start-btn, .header-end-btn {
   position: absolute;
   top: 0;
   height: 5.2rem;
@@ -166,17 +169,21 @@ body.content-visible {
   font-size: 2.4rem;
 }
 
-.header-left-btn {
-  left: 0;
-  background: url("images/ui/separator-large.png") no-repeat scroll 3rem center transparent;
+.header-start-btn {
+  offset-inline-start: 0;
+  background: url("images/ui/separator-large.png") no-repeat scroll transparent;
   background-size: auto 100%;
 }
+html[dir="ltr"] .header-start-btn { background-position: left 3rem center; }
+html[dir="rtl"] .header-start-btn { background-position: right 3rem center; }
 
-.header-right-btn {
-  right: 0;
-  background: url("images/ui/separator.png") no-repeat scroll 0 center transparent;
+.header-end-btn {
+  offset-inline-end: 0;
+  background: url("images/ui/separator.png") no-repeat scroll transparent;
   width: 5rem;
 }
+html[dir="ltr"] .header-end-btn { background-position: left 0 center; }
+html[dir="rtl"] .header-end-btn { background-position: right 0 center; }
 
 .scrollregion {
   overflow-y: auto;
@@ -330,33 +337,34 @@ the list of folders.
 */
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth0,
 .fld-folder-depth0 {
-  -moz-padding-start: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth1,
 .fld-folder-depth1 {
-  -moz-padding-start: 3rem;
+  padding-inline-start: 3rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth2,
 .fld-folder-depth2 {
-  -moz-padding-start: 4.5rem;
+  padding-inline-start: 4.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth3,
 .fld-folder-depth3 {
-  -moz-padding-start: 6rem;
+  padding-inline-start: 6rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth4,
+
 .fld-folder-depth4 {
-  -moz-padding-start: 6.5rem;
+  padding-inline-start: 7.5rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth5,
 .fld-folder-depth5 {
-  -moz-padding-start: 9.5rem;
+  padding-inline-start: 9rem;
 }
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth6,
 .fld-folder-depth6,
 .email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depthmax,
 .fld-folder-depthmax {
-  -moz-padding-start: 11rem;
+  padding-inline-start: 10.5rem;
 }
 
 .email-value-selector[role="dialog"][data-type="value-selector"] menu {

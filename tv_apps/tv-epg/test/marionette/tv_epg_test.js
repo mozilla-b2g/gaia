@@ -1,7 +1,7 @@
 'use strict';
 
 var APP_URL = 'app://tv-epg.gaiamobile.org';
-var SHARED_PATH = __dirname + '/../../../../shared/js/smart-screen/';
+var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 
 var Keys = {
   'up': '\ue013',
@@ -12,6 +12,8 @@ var Keys = {
 
 var assert = require('chai').assert;
 
+// Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
+// We should investigate the issue and re-enable the test later.
 marionette.skip('Test Program Navigation', function() {
 
   var opts = {
@@ -26,7 +28,8 @@ marionette.skip('Test Program Navigation', function() {
 
   var client = marionette.client({
     profile: opts,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    // XXX: Set this to true once Accessibility is implemented in TV
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var actions;
 
@@ -37,7 +40,7 @@ marionette.skip('Test Program Navigation', function() {
 
   function launchModalDialogApp() {
     // Launch test app
-    client.contentScript.inject(SHARED_PATH + '/fake_tv_service.js');
+    client.contentScript.inject(SHARED_PATH + '/mock_tv_service.js');
     client.apps.launch(APP_URL);
     client.apps.switchToApp(APP_URL);
   }

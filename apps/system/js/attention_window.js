@@ -93,7 +93,6 @@
     this.debug('intance id: ' + this.instanceID);
     return `<div class="${this.CLASS_LIST}" id="${this.instanceID}">
             <div class="browser-container"></div>
-            <div class="screenshot-overlay"></div>
             </div>`;
   };
 
@@ -122,7 +121,6 @@
     this.browserContainer.insertBefore(this.browser.element, null);
     this.frame = this.element;
     this.iframe = this.browser.element;
-    this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
 
     this._registerEvents();
     this.installSubComponents();
@@ -154,13 +152,20 @@
   };
 
   // XXX: We may need to wait the underlying window,
-  // which may be attention window or app window
-  // to be repainted, but we don't care it here.
+  // which may be attention window or app window to be painted,
+  // so keeping track of the request in order to handle
+  // |mozbrowserclose| events properly.
   AttentionWindow.prototype.requestOpen = function() {
     this.element.classList.remove('fake-notification');
     this.element.classList.remove('notification-disappearing');
+    this._requestedOpen = true;
     // XXX: A hack to reset height.
     AppWindow.prototype.requestOpen.apply(this);
+  };
+
+  AttentionWindow.prototype.open = function(animation) {
+    this._requestedOpen = false;
+    AppWindow.prototype.open.apply(this);
   };
 
   /**

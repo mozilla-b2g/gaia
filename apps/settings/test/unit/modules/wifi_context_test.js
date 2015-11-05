@@ -1,5 +1,4 @@
-/* global MockL10n, MockNavigatorSettings, MockNavigatorMozWifiManager */
-require('/shared/test/unit/mocks/mock_l10n.js');
+/* global MockNavigatorSettings, MockNavigatorMozWifiManager */
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
@@ -7,7 +6,6 @@ requireApp(
 suite('WifiContext', function() {
   'use strict';
 
-  var realL10n;
   var realSettings;
   var wifiHelper;
   var wifiContext;
@@ -20,9 +18,6 @@ suite('WifiContext', function() {
   };
 
   suiteSetup(function() {
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
-
     realSettings = window.navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
 
@@ -31,7 +26,6 @@ suite('WifiContext', function() {
   });
 
   suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
     window.navigator.mozSettings = realSettings;
   });
 

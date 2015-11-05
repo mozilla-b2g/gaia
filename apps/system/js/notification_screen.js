@@ -1,5 +1,5 @@
 /* global LazyLoader, MediaPlaybackWidget, Service,
-          SettingsListener, SettingsURL, toneUpgrader */
+          SettingsListener, SettingsURL, toneUpgrader, mozIntl */
 
 'use strict';
 
@@ -261,7 +261,10 @@ var NotificationScreen = {
       return;
     }
 
+    // Otherwise, we're swiping on a notification, which should only be allowed
+    // when the utility tray is fully open.
     if (evt.touches.length !== 1 ||
+        !Service.query('UtilityTray.shown') ||
         (this._isTap && Math.abs(touchDiffY) >= this.SCROLL_THRESHOLD)) {
       this._touching = false;
       this.cancelSwipe();
@@ -275,6 +278,7 @@ var NotificationScreen = {
     }
     if (!this._isTap) {
       evt.preventDefault();
+      evt.stopPropagation(); // Prevent this event from bubbling up to the tray.
       this._notification.style.transform =
         'translateX(' + this._touchPosX + 'px)';
     }
@@ -368,24 +372,15 @@ var NotificationScreen = {
   },
 
   updateTimestamps: function ns_updateTimestamps() {
-    var timestamps = document.getElementsByClassName('timestamp');
-    for (var i = 0, l = timestamps.length; i < l; i++) {
-      timestamps[i].textContent =
-        this.prettyDate(new Date(timestamps[i].dataset.timestamp));
-    }
-  },
+    var timestamps = [...document.querySelectorAll('.timestamp')];
+    var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+      style: 'short'
+    });
 
-  /**
-   * Display a human-readable relative timestamp.
-   */
-  prettyDate: function prettyDate(time) {
-    var date;
-    if (navigator.mozL10n) {
-      date = navigator.mozL10n.DateTimeFormat().fromNow(time, true);
-    } else {
-      date = time.toLocaleFormat();
-    }
-    return date;
+    timestamps.forEach(timestamp => {
+      formatter.formatElement(
+        timestamp, new Date(timestamp.dataset.timestamp));
+    });
   },
 
   updateToaster: function ns_updateToaster(detail, type, dir) {
@@ -399,10 +394,11 @@ var NotificationScreen = {
     this.toaster.dataset.notificationId = detail.id;
     this.toaster.dataset.type = type;
     this.toaster.lang = detail.lang;
-    this.toaster.dir = dir;
 
     this.toasterTitle.textContent = detail.title;
+    this.toasterTitle.dir = dir;
     this.toasterDetail.textContent = detail.text;
+    this.toasterDetail.dir = dir;
   },
 
   addNotification: function ns_addNotification(detail) {
@@ -413,22 +409,13 @@ var NotificationScreen = {
     var behavior = detail.mozbehavior || {};
     var isPriorityNotification =
       this.PRIORITY_APPLICATIONS.indexOf(manifestURL) !== -1;
+    var dir = detail.dir === 'ltr' || detail.dir === 'rtl' ?
+        detail.dir : 'auto';
 
     var notificationContainer =
       (isPriorityNotification) ?
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
-
-    /* If dir "auto" was specified by the notification,
-     * use document direction instead because dir="auto"
-     * does not align the notification node according to
-     * the system language direction but instead it aligns
-     * every child element according to its own language
-     * which creates a UI mess we can't control by changing
-     * the system language.
-     */
-    var dir = (detail.dir === 'auto' || typeof detail.dir === 'undefined') ?
-      document.documentElement.dir : detail.dir;
 
     // We need to animate the ambient indicator when the toast
     // timesout, so we skip updating it here, by passing a skip bool
@@ -437,11 +424,11 @@ var NotificationScreen = {
     var notificationNode = document.createElement('div');
     notificationNode.classList.add('notification');
     notificationNode.setAttribute('role', 'link');
+    notificationNode.setAttribute('tabindex', 0);
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
     notificationNode.lang = detail.lang;
-    notificationNode.dataset.predefinedDir = detail.dir;
 
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
@@ -465,7 +452,7 @@ var NotificationScreen = {
     var title = document.createElement('div');
     title.classList.add('title');
     title.textContent = detail.title;
-    title.setAttribute('dir', 'auto');
+    title.dir = dir;
 
     titleContainer.appendChild(title);
 
@@ -473,7 +460,10 @@ var NotificationScreen = {
     var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
     time.classList.add('timestamp');
     time.dataset.timestamp = timestamp;
-    time.textContent = this.prettyDate(timestamp);
+    var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+      style: 'short'
+    });
+    formatter.formatElement(time, timestamp);
     titleContainer.appendChild(time);
 
     notificationNode.appendChild(titleContainer);
@@ -483,7 +473,7 @@ var NotificationScreen = {
     var messageContent = document.createElement('div');
     messageContent.classList.add('detail-content');
     messageContent.textContent = detail.text;
-    messageContent.setAttribute('dir', 'auto');
+    messageContent.dir = dir;
     message.appendChild(messageContent);
     notificationNode.appendChild(message);
 
@@ -501,10 +491,9 @@ var NotificationScreen = {
       } else if (oldIcon) {
         oldNotif.removeChild(oldIcon);
       }
-      // but we still need to update type, lang and dir.
+      // but we still need to update type and lang.
       oldNotif.dataset.type = type;
       oldNotif.lang = detail.lang;
-      oldNotif.dataset.predefinedDir = detail.dir;
 
       notificationNode = oldNotif;
     } else {
@@ -521,7 +510,9 @@ var NotificationScreen = {
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (!behavior.noscreen && !Service.query('screenEnabled')) {
+    if (!Service.query('screenEnabled') &&
+        !behavior.noscreen &&
+        (!Service.query('locked') || this.lockscreenPreview)) {
       Service.request('turnScreenOn');
     }
 
@@ -553,7 +544,8 @@ var NotificationScreen = {
         notificationNode.cloneNode(true));
     }
 
-    if (notify && !this.isResending) {
+    if (notify && !this.isResending &&
+        (!Service.query('locked') || this.lockscreenPreview)) {
       if (!this.silent) {
         var ringtonePlayer = new Audio();
         var telephony = window.navigator.mozTelephony;
@@ -782,10 +774,12 @@ var NotificationScreen = {
     }).bind(this);
     lastClearable.addEventListener('transitionend', removeAll);
 
+    var disappearingClass = document.dir === 'ltr' ?
+      'disappearing-via-clear-all' : 'disappearing-via-clear-all-left';
     for (var index = 0, max = clearable.length; index < max; index++) {
       notification = clearable[index];
       notification.style.transitionDelay = (this.CLEAR_DELAY * index) + 'ms';
-      notification.classList.add('disappearing-via-clear-all');
+      notification.classList.add(disappearingClass);
       notification.style.transform = '';
     }
   },

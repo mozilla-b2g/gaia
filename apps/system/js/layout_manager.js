@@ -184,7 +184,7 @@
                 this.keyboardEnabled)) {
             this.publish('system-resize', systemResizeEventDetail);
           }
-          this.publish('orientationchange');
+          this.publish('appwindow-orientationchange');
           this._lastOrientation = screen.mozOrientation;
           break;
         case 'lockscreen-appclosed':

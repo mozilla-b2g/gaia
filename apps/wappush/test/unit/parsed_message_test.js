@@ -1,16 +1,24 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global ParsedMessage */
+/* global MockMessageDB, MocksHelper, ParsedMessage */
 
 'use strict';
 
-requireApp('wappush/js/provisioning.js');
-requireApp('wappush/js/parsed_message.js');
+require('/js/provisioning.js');
+require('/js/parsed_message.js');
+
+require('/test/unit/mock_messagedb.js');
+
+var mocksHelperParsedMessage = new MocksHelper([
+  'MessageDB'
+]).init();
 
 suite('ParsedMessage', function() {
   var messages;
   var timestamp;
+
+  mocksHelperParsedMessage.attachTestHelpers();
 
   suiteSetup(function() {
     timestamp = Date.now();
@@ -232,6 +240,38 @@ suite('ParsedMessage', function() {
       var message = ParsedMessage.from(messages.unsupported, timestamp);
 
       assert.equal(message, null);
+    });
+  });
+
+  suite('ParsedMessage.load()', function() {
+    var jsonMessage;
+
+    suiteSetup(function() {
+      jsonMessage = ParsedMessage.from({
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si><indication>check this out</indication></si>',
+        serviceId: 0
+      }, 0).toJSON();
+    });
+
+    test('Successful retrieve a message', function(done) {
+      this.sinon.stub(MockMessageDB, 'retrieve').returns(
+        Promise.resolve(jsonMessage)
+      );
+
+      ParsedMessage.load(0).then(message => {
+        assert.instanceOf(message, ParsedMessage);
+      }).then(done, done);
+    });
+
+    test('Rejects if no message is found', function(done) {
+      this.sinon.stub(MockMessageDB, 'retrieve').returns(Promise.reject());
+
+      ParsedMessage.load(0).then(
+        () => assert.isTrue(false, 'Should not resolve the promise'),
+        () => {}
+      ).then(done, done);
     });
   });
 });

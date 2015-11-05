@@ -3,16 +3,16 @@
     opacity: 0.15;
     width: 8.6rem;
     background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
+    border-inline-start: 0.2rem solid transparent;
+    border-inline-end: 0.2rem solid transparent;
     border-top: 0.2rem solid white;
   }
   50% {
     opacity: 1;
     width: 8.6rem;
     background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
+    border-inline-start: 0.2rem solid transparent;
+    border-inline-end: 0.2rem solid transparent;
     border-top: 0.2rem solid #B3F3FF;
   }
   100% {
@@ -52,20 +52,24 @@
   height: 2.4rem;
   top: 0;
   bottom: 0;
+  offset-inline-start: 1.5rem;
   margin: auto;
-  left: 1.5rem;
   pointer-events: none;
 }
 
 #notification-container > div {
-  left: 5.6rem;
   width: calc(100% - 7.1rem);
   padding: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 400;
-  text-align: left;
+}
+html[dir="ltr"] #notification-container > div {
+  left: 5.6rem;
+}
+html[dir="rtl"] #notification-container > div {
+  right: 5.6rem;
 }
 
 .toaster-title {
@@ -122,40 +126,51 @@
 
 #notification-bar {
   height: 4.5rem;
+  padding: 0;
+  padding-inline-start: 1.5rem;
 }
 
 #notification-bar [data-icon] {
-  color: #008eab;
-  margin: 0.5rem 0;
+  margin: 1.1rem 0;
 }
 
 #notification-bar .title-container {
   display: flex;
-  width: calc(100% - 3.7rem);
-  -moz-margin-start: .7rem;
-  float: left;
+  width: calc(100% - 4rem);
   font: italic 300 1.8rem/4.2rem auto;
+  margin-inline-start: 1rem;
+}
+html[dir="ltr"] #notification-bar .title-container {
+  float: left;
+}
+html[dir="rtl"] #notification-bar .title-container {
+  float: right;
 }
 
 #notification-bar .title {
   flex: 1;
-  -moz-margin-end: .5rem;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  margin-inline-start: .5rem;
 }
 
 #notification-bar button {
   flex: initial;
   width: auto;
   height: 4.5rem;
-  padding: 0;
+  padding: 0 1.5rem;
   border: 0;
-  background: none;
+  border-radius: 0;
   color: #008eab;
+  background: none;
   font: italic normal 1.3rem/1.3rem auto;
 }
 
+#notification-bar button:active {
+  background-color: #00caf2;
+  color: #000000;
+}
 #notification-bar button[disabled] {
   color: rgba(255, 255, 255, 0.2);
 }
@@ -167,13 +182,12 @@
 
 #notifications-container {
   width: 100%;
-
-  /* minus cost control, quick settings, bar and grippy */
-  height: calc(100% - 6rem - 6.8rem - 4.5rem - 1.2rem);
   flex: 1;
   overflow-y: scroll;
   overflow-x: hidden;
 }
+html[dir="ltr"] #notifications-container { text-align: left; }
+html[dir="rtl"] #notifications-container { text-align: right; }
 
 #notifications-container .notification {
   height: 6rem;
@@ -198,20 +212,21 @@
 }
 
 #notifications-container .notification > img {
-  float: left;
   display: block;
   width: 2.4rem;
   height: 2.4rem;
   margin: 1.8rem 0 0;
   pointer-events: none;
 }
+html[dir="ltr"] #notifications-container .notification > img { float: left; }
+html[dir="rtl"] #notifications-container .notification > img { float: right; }
 
 #notifications-container .notification > div {
   width: calc(100% - 3.7rem);
-  margin-left: 3.7rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-inline-start: 3.7rem;
 }
 
 #notifications-container .notification > div.title-container {
@@ -222,11 +237,17 @@
 
 #notifications-container .notification > div.title-container .title {
   flex: 1;
-  -moz-margin-end: .5rem;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+html[dir="ltr"] #notifications-container .notification > div.title-container .title {
+  margin-right: .5rem;
+}
+html[dir="rtl"] #notifications-container .notification > div.title-container .title {
+  margin-left: .5rem;
+}
+
 
 #notifications-container .notification > div.title-container .timestamp {
   flex: initial;
@@ -260,13 +281,17 @@
 #notifications-container .notification.disappearing,
 #notifications-container .notification.disappearing-via-clear-all,
 .notification-toaster.disappearing {
-  transition: transform var(--transition-duration) linear;
+  transition: transform var(--transition-duration) linear, opacity var(--transition-duration);
   transform: translateX(100%);
+  opacity: 0;
 }
 
 #notifications-container .notification.disappearing.left,
+#notifications-container .notification.disappearing-via-clear-all-left,
 .notification-toaster.disappearing.left {
+  transition: transform var(--transition-duration) linear, opacity var(--transition-duration);
   transform: translateX(-100%);
+  opacity: 0;
 }
 
 #notifications-container .notification.disappearing ~ .notification {
@@ -282,55 +307,4 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-/* RTL View */
-
-#notifications-container .notification[data-predefined-dir="rtl"] > div.detail {
-  direction: rtl;
-}
-
-#notifications-container .notification[data-predefined-dir="ltr"] > div.detail {
-  direction: ltr;
-}
-
-
-html[dir="rtl"] #toaster-icon{
-  left: unset;
-  right: 1.5rem;
-}
-
-html[dir="rtl"] #notification-container > div {
-  left: unset;
-  right: 5.6rem;
-  text-align: right;
-}
-
-html[dir="rtl"] #notification-bar .title-container {
-  float: right;
-}
-
-html[dir="rtl"] #notifications-container .notification > img {
-  float: right;
-}
-
-html[dir="rtl"] #notifications-container .notification > div {
-  margin-left: unset;
-  margin-right: 3.7rem;
-}
-
-/*
- * For the notification title, we need to use dir="auto" to display
- * parenthesis and periods in their proper place. However, we still
- * want the text to align right when in an RTL language, so we use
- * the following override. See bug 1134453 and bug 1142925.
- */
-html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
-  text-align: right;
-  -moz-margin-end: unset;
-  margin-left: 0.5rem;
-}
-
-html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
-  text-align: right;
 }

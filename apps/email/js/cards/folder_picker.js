@@ -2,30 +2,35 @@
 'use strict';
 define(function(require) {
 
-var fldFolderItemNode = require('tmpl!./fld/folder_item.html'),
+var containerListen = require('container_listen'),
+    fldFolderItemNode = require('tmpl!./fld/folder_item.html'),
     fldAccountItemNode = require('tmpl!./fld/account_item.html'),
     FOLDER_DEPTH_CLASSES = require('folder_depth_classes'),
     cards = require('cards'),
-    model = require('model'),
     evt = require('evt'),
     transitionEnd = require('transition_end');
 
 require('css!style/folder_cards');
 
 return [
-  require('./base')(require('template!./folder_picker.html')),
+  require('./base_card')(require('template!./folder_picker.html')),
   {
     createdCallback: function() {
-      this.bindContainerHandler(this.foldersContainer, 'click',
-                                this.onClickFolder.bind(this));
+      containerListen(this.foldersContainer, 'click',
+                      this.onClickFolder.bind(this));
 
-      this.updateAccount = this.updateAccount.bind(this);
-      model.latest('account', this.updateAccount);
-
-      this.bindContainerHandler(this.accountListContainer, 'click',
-                                this.onClickAccount.bind(this));
+      containerListen(this.accountListContainer, 'click',
+                      this.onClickAccount.bind(this));
 
       transitionEnd(this, this.onTransitionEnd.bind(this));
+
+      this.updateAccount = this.updateAccount.bind(this);
+    },
+
+    onArgs: function(args) {
+      var model = this.model = args.model;
+
+      model.latest('account', this.updateAccount);
 
       // If more than one account, need to show the account dropdown
       var accountCount = model.getAccountCount();
@@ -63,7 +68,7 @@ return [
       if (oldAccount !== account) {
         this.foldersContainer.innerHTML = '';
 
-        model.latestOnce('folder', function(folder) {
+        this.model.latestOnce('folder', function(folder) {
           this.curAccount = account;
 
           // - DOM!
@@ -83,7 +88,7 @@ return [
             this.foldersSlice.onchange = null;
           }
 
-          this.foldersSlice = model.foldersSlice;
+          this.foldersSlice = this.model.foldersSlice;
 
           // since the slice is already populated, generate a fake notification
           this.onFoldersSplice(0, 0, this.foldersSlice.items, true, false);
@@ -314,6 +319,7 @@ return [
         // After card is removed, then switch the account, to provide
         // smooth animation on closing of drawer.
         if (this._waitingAccountId) {
+          var model = this.model;
           model.changeAccountFromId(this._waitingAccountId, function() {
             model.selectInbox();
           });
@@ -333,7 +339,7 @@ return [
      * Tell the message-list to show this folder; exists for single code path.
      */
     _showFolder: function(folder) {
-      model.changeFolder(folder);
+      this.model.changeFolder(folder);
     },
 
     /**
@@ -351,7 +357,7 @@ return [
      */
     die: function() {
       this.acctsSlice.die();
-      model.removeListener('account', this.updateAccount);
+      this.model.removeListener('account', this.updateAccount);
     }
   }
 ];

@@ -9,7 +9,6 @@
   function ContextMenuUI() {
     this.grid = document.getElementById('icons');
     this.dialog = document.getElementById('contextmenu-dialog');
-    this.collectionOption = document.getElementById('create-smart-collection');
     this.wallpaperOption = document.getElementById('change-wallpaper-action');
     this.settingsOption = document.getElementById('homescreen-settings-action');
 
@@ -31,7 +30,6 @@
 
       this.dialog.addEventListener('gaiamenu-cancel', this.handleCancel);
       this.dialog.removeAttribute('hidden');
-      this.collectionOption.addEventListener('click', this);
       this.wallpaperOption.addEventListener('click', this);
       this.settingsOption.addEventListener('click', this);
       window.addEventListener('visibilitychange', this);
@@ -40,7 +38,6 @@
     hide: function() {
       this.dialog.removeEventListener('gaiamenu-cancel', this.handleCancel);
       this.dialog.setAttribute('hidden', '');
-      this.collectionOption.removeEventListener('click', this);
       this.wallpaperOption.removeEventListener('click', this);
       this.settingsOption.removeEventListener('click', this);
       window.removeEventListener('visibilitychange', this);
@@ -63,36 +60,6 @@
         }.bind(this));
       },
 
-      'create-smart-collection': function() {
-        this.hide();
-
-        window.dispatchEvent(new CustomEvent('collections-create-begin'));
-
-        var maxIconSize = this.grid.maxIconSize;
-        var activity = new MozActivity({
-          name: 'create-collection',
-          data: {
-            type: 'folder',
-            maxIconSize: maxIconSize
-          }
-        });
-
-        activity.onsuccess = function(e) {
-          window.dispatchEvent(new CustomEvent('collections-create-return', {
-            detail: {
-              ids: activity.result
-            }
-          }));
-        };
-
-        activity.onerror = function onerror(e) {
-          window.dispatchEvent(new CustomEvent('collections-create-return'));
-          if (this.error.name !== 'ActivityCanceled') {
-            alert(this.error.name);
-          }
-        };
-      },
-
       'homescreen-settings-action': function() {
         this.hide();
 
@@ -100,7 +67,7 @@
           name: 'configure',
           data: {
             target: 'device',
-            section: 'homescreen'
+            section: 'homescreens-list'
           }
         });
       }

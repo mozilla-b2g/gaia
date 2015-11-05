@@ -118,7 +118,7 @@
           break;
         case 'resize':
           this.publish('system-resize');
-          this.publish('orientationchange');
+          this.publish('appwindow-orientationchange');
           break;
         default:
           if (evt.type === 'keyboardhide') {

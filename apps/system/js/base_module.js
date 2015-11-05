@@ -9,6 +9,11 @@
   var GLOBAL_DEBUG = false;
 
   /**
+   * `_GAIA_DEVICE_TYPE_` is a placeholder and will be replaced by real
+   * device type in build time, `system/build/build.js` does the trick.
+   */
+  var DEVICE_TYPE = '_GAIA_DEVICE_TYPE_';
+  /**
    * This is used to store the constructors which are created
    * via BaseModule.create().
    * constructor.name => constructor
@@ -35,9 +40,22 @@
    * The expressions can include path (e.g. 'path/to/ModuleName'). BaseModule
    * will load them from specified subdirectory. However, the module names
    * (without path) should be unique even they're under different folders.
-   * @type {Array}
+   *
+   * You can provide an object:
+   * Define a list of default type modules are able to be loaded in anytime.
+   * Define a list of device type modules can be loaded when running on a given
+   * device-type.
+   * {
+   *   default: ['base_module1', 'base_module2', ...],
+   *   device-type: ['module1', 'module2', ...]
+   * }
+   *
+   * Or provide an array:
+   * ['module1', 'module2', ...]
+   *
+   * @type {Object|Array}
    */
-  BaseModule.SUB_MODULES = [];
+  BaseModule.SUB_MODULES = {};
 
   /**
    * All events of need to be listened.
@@ -59,8 +77,22 @@
   /**
    * This defines a list of file path needs to be imported
    * before the real start of this module.
+   *
+   * You can provide an object:
+   * Define a list of default type modules are able to be loaded in anytime.
+   * Define a list of device type modules can be loaded when running on a given
+   * device-type.
+   * {
+   *   default: ['base_module1', 'base_module2', ...],
+   *   device-type: ['module1', 'module2', ...]
+   * }
+   *
+   * Or provide an array:
+   * ['module1', 'module2', ...]
+   *
+   * @type {Object|Array}
    */
-  BaseModule.IMPORTS = [];
+  BaseModule.IMPORTS = {};
 
   /**
    * This tells System the sandbox what methods you are going to
@@ -107,22 +139,43 @@
   var SubmoduleMixin = {
     loadWhenIdle: function(modules) {
       return this.service.request('schedule', () => {
-        this.constructor.SUB_MODULES =
-          this.constructor.SUB_MODULES.concat(modules);
+        var submodules = this._arraylizeModules(this.constructor.SUB_MODULES);
+        var newModules = this._arraylizeModules(modules);
+        this.constructor.SUB_MODULES = submodules.concat(newModules);
         return this._startSubModules();
       });
     },
+
+    _arraylizeModules: function(submodules) {
+      var modules;
+      var defaulModules;
+      var deviceModules;
+
+      if (submodules && Array.isArray(submodules)) {
+        modules = submodules;
+      } else if (submodules && typeof submodules === 'object') {
+        defaulModules = submodules.default || [];
+        deviceModules = submodules[DEVICE_TYPE] || [];
+        modules = defaulModules.concat(deviceModules);
+      } else {
+        modules = [];
+      }
+
+      return modules;
+    },
+
     /**
      * Helper function to load and start the submodules defined in
      * |this.constructor.SUB_MODULES|.
      */
     _startSubModules: function() {
-      if (!this.constructor.SUB_MODULES ||
-          this.constructor.SUB_MODULES.length === 0) {
+      var submodules = this._arraylizeModules(this.constructor.SUB_MODULES);
+      this.constructor.SUB_MODULES = submodules;
+
+      if (submodules.length === 0) {
         return Promise.resolve();
       }
 
-      var submodules = this.constructor.SUB_MODULES.slice();
       var unloaded = [];
       submodules.forEach(function(submodule) {
         if (BaseModule.defined(submodule) || window[submodule]) {
@@ -713,14 +766,16 @@
     },
 
     imports: function() {
-      if (!this.constructor.IMPORTS ||
-          typeof(this.constructor.IMPORTS) == 'undefined' ||
-          this.constructor.IMPORTS.length === 0) {
+      var imports = this._arraylizeModules(this.constructor.IMPORTS);
+      this.constructor.IMPORTS = imports;
+
+      if (imports.length === 0) {
         return this.__imported();
       }
-      this.debug(this.constructor.IMPORTS);
+
+      this.debug(imports);
       this.debug('import loading.');
-      return LazyLoader.load(this.constructor.IMPORTS)
+      return LazyLoader.load(imports)
         .then(() => {
           this.debug('imported..');
           return this.__imported();

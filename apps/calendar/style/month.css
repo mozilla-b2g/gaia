@@ -41,7 +41,7 @@ section.month li {
   -moz-user-select: none;
   font-size: 1.4rem;
   line-height: 120%;
-  -moz-margin-end: 0.1rem;
+  margin-inline-end: 0.1rem;
   flex-grow: 1;
   flex-basis: 4.4rem;
 }
@@ -51,7 +51,7 @@ section.month li {
  * we should turn it off.
  */
 section.month li:last-child {
-  -moz-margin-end: 0;
+  margin-inline-end: 0;
 }
 
 #month-days {
@@ -122,8 +122,8 @@ section.month .busy-indicator {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  left: 0;
   position: absolute;
+  left: 0;
   right: 0;
 }
 
@@ -141,7 +141,7 @@ section.month .icon-calendar-dot {
 
 section.month .icon-calendar-dot:before {
   /* center dots */
-  -moz-margin-start: calc(50% - 1.8rem);
+  margin-inline-start: calc(50% - 1.8rem);
 }
 
 /* month-day-agenda
@@ -206,13 +206,13 @@ section.month .icon-calendar-dot:before {
 }
 
 #month-day-agenda .container.has-alarm {
-  padding-right: 3rem;
+  padding-inline-end: 3rem;
 }
 
 #month-day-agenda .icon-calendar-alarm {
   position: absolute;
   top: 0.2rem;
-  right: 0;
+  offset-inline-end: 0;
   width: 3rem;
   height: 3rem;
 }
@@ -244,7 +244,7 @@ section.month .icon-calendar-dot:before {
 #month-day-agenda .icon-calendar-dot {
   position: absolute;
   height: 3rem;
-  left: -1.4rem;
+  offset-inline-start: -1.4rem;
   top: 50%;
   margin-top: -3rem;
 }
@@ -257,11 +257,12 @@ section.month .icon-calendar-dot:before {
   color: #657073;
   display: flex;
   flex-direction: column;
-  float: left;
   font-size: 1.5rem;
   height: 6rem;
   justify-content: center;
 }
+html[dir="ltr"] #month-day-agenda .event-time { float: left; }
+html[dir="rtl"] #month-day-agenda .event-time { float: right; }
 
 #month-day-agenda .event-time .all-day {
   white-space: normal;
@@ -281,8 +282,8 @@ section.month .icon-calendar-dot:before {
   flex-direction: column;
   height: 6rem;
   justify-content: center;
-  left: 11.5rem;
   position: absolute;
+  offset-inline-start: 11.5rem;
   top: 0;
   width: 17rem;
 }
@@ -324,47 +325,5 @@ section.month .icon-calendar-dot:before {
   height: 6rem;
   line-height: 6rem;
   position: absolute;
-  right: 1rem;
-}
-
-/* RTL View */
-
-html[dir="rtl"] section.month .busy-indicator {
-  flex-direction: row-reverse;
-}
-
-html[dir="rtl"] #month-day-agenda .icon-calendar-alarm {
-  left: 0;
-  right: unset;
-}
-
-html[dir="rtl"] #month-day-agenda .icon-calendar-dot {
-  left: unset;
-  right: -1.4rem;
-}
-
-html[dir="rtl"] #month-day-agenda .event-time {
-  float: right;
-  text-align: right;
-}
-
-html[dir="rtl"] #month-day-agenda .event-details {
-  left: unset;
-  right: 11.5rem;
-  width: 19rem;
-  text-align: right;
-}
-
-html[dir="rtl"] #month-day-agenda .has-alarms .event-details {
-  width: 16rem;
-}
-
-html[dir="rtl"] #month-day-agenda .has-alarms .icon-calendar-alarm {
-  left: 1rem;
-  right: unset;
-}
-
-html[dir="rtl"] #month-day-agenda .details,
-html[dir="rtl"] #event-list-date {
-  text-align: right;
+  offset-inline-end: 1rem;
 }

@@ -1,13 +1,13 @@
 /**
- * template 0.0.0-native-register
- * Copyright (c) 2013-2014, The Dojo Foundation All Rights Reserved.
+ * template 0.0.1
+ * Copyright (c) 2013-2015, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/element for details
  */
 /*jshint browser: true, strict: false */
 /*globals define, requirejs */
 define(function(require, exports, module) {
-  var template, fetchText, templateDiv,
+  var template, fetchText,
       isReady = false,
       readyQueue = [],
       tagRegExp = /<(\w+-[\w-]+)(\s|>)/g,
@@ -30,10 +30,6 @@ define(function(require, exports, module) {
   }
   if (moduleConfig.hasOwnProperty('tagToId')) {
     tagToId = moduleConfig.tagToId;
-  }
-
-  if (typeof document !== 'undefined') {
-    templateDiv = document.createElement('div');
   }
 
   /**
@@ -165,7 +161,10 @@ define(function(require, exports, module) {
     makeTemplateFn: function(text) {
       return function() {
         var e,
-            frag = document.createDocumentFragment();
+            frag = document.createDocumentFragment(),
+            // Use a fresh div for each creation, otherwise run into failures
+            // with templates that have nested custom elements.
+            templateDiv = document.createElement('div');
 
         // For the security conscious: the contents of `text` comes from the
         // require('template!...') calls that exercises this module's

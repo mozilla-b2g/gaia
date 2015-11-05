@@ -24,7 +24,7 @@ suite('Make with DEBUG=1', function() {
         'downloaded.json');
       var expectedSettings = {
         'homescreen.manifestURL':
-          'app://verticalhome.gaiamobile.org/manifest.webapp',
+          'app://homescreen.gaiamobile.org/manifest.webapp',
         'rocketbar.searchAppURL': 'app://search.gaiamobile.org/index.html'
       };
       var expectedUserPrefs = {
@@ -71,8 +71,8 @@ suite('Make with DEBUG=1', function() {
       assert.ok(fs.existsSync(installedExtsPath));
       helper.checkSettings(settings, expectedSettings);
       helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
-      // only expect one zip file for marketplace.
-      assert.equal(zipCount, 3, 'we should have three zip files in ' +
+      // expect one zip file for each "external" app.
+      assert.equal(zipCount, 6, 'we should have six zip files in ' +
         'profile-debug directory');
 
       restoreFunc();

@@ -102,4 +102,23 @@ suite('system/PopupWindow', function() {
     assert.equal(popup.element.classList.contains('light'),
       app.element.classList.contains('light'));
   });
+
+  test('Stay in background popup should be hidden', function() {
+    var hiddenPopupConfig = Object.assign({}, fakePopupConfig);
+    app = new AppWindow(fakeAppConfig);
+    hiddenPopupConfig.stayBackground = true;
+    var popup = new PopupWindow(hiddenPopupConfig);
+    assert.isTrue(popup.element.classList.contains('alwaysLowered'));
+  });
+
+  test('Should replace the app name if the title changes', function() {
+    var name = 'testName';
+    var popup = new PopupWindow(fakePopupConfig);
+    this.sinon.stub(popup, 'publish');
+    assert.isFalse(popup.name === name);
+    var titleEvent = new CustomEvent('mozbrowsertitlechange', {detail: name});
+    popup.element.dispatchEvent(titleEvent);
+    assert.isTrue(popup.name === name);
+    assert.isTrue(popup.publish.calledWith('namechanged'));
+  });
 });

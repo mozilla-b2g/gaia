@@ -49,10 +49,12 @@ suite('system/AppTransitionController', function() {
 
   test('Open with immediate animation', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
+    this.sinon.stub(app1, 'publish');
     var acn1 = new AppTransitionController(app1);
     assert.deepEqual(acn1._transitionState, 'closed');
     acn1.requireOpen('immediate');
     assert.deepEqual(acn1._transitionState, 'opened');
+    sinon.assert.calledWith(app1.publish, 'opening');
   });
 
   test('Close', function() {
@@ -65,10 +67,12 @@ suite('system/AppTransitionController', function() {
 
   test('Close with immediate animation', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
+    this.sinon.stub(app1, 'publish');
     var acn1 = new AppTransitionController(app1);
     acn1._transitionState = 'opened';
     acn1.requireClose('immediate');
     assert.deepEqual(acn1._transitionState, 'closed');
+    sinon.assert.calledWith(app1.publish, 'closing');
   });
 
   test('Closed notfication', function() {
@@ -105,7 +109,36 @@ suite('system/AppTransitionController', function() {
       stopPropagation: spy
     });
     assert.isTrue(spy.called);
-    acn1._transitionState = 'opened';
+    assert.equal(acn1._transitionState, 'opened');
+  });
+
+  test('Animation end event when closing', function() {
+    MockService.mockQueryWith('isBusyLoading', true);
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var spy = this.sinon.spy();
+    acn1._transitionState = 'closing';
+    acn1.handleEvent({
+      type: 'animationend',
+      stopPropagation: spy
+    });
+    assert.isTrue(spy.called);
+    assert.equal(acn1._transitionState, 'closed');
+  });
+
+  test('Complete on animationend on the Browser when loading', function() {
+    MockService.mockQueryWith('isBusyLoading', true);
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    this.sinon.stub(app1, 'isBrowser').returns(true);
+    var acn1 = new AppTransitionController(app1);
+    var spy = this.sinon.spy();
+    acn1._transitionState = 'opening';
+    acn1.handleEvent({
+      type: 'animationend',
+      stopPropagation: spy
+    });
+    assert.isTrue(spy.called);
+    assert.equal(acn1._transitionState, 'opened');
   });
 
   test('Complete on _loaded event if we discarded the animationend',
@@ -282,6 +315,18 @@ suite('system/AppTransitionController', function() {
     acn1.handle_opened();
     assert.isTrue(stubFocus.notCalled);
     assert.isFalse(app1.setNFCFocus.called);
+  });
+
+  test('Do not focus on alwaysLowered window', function() {
+    var alwaysLoweredConfig = Object.assign({}, fakeAppConfig1);
+    alwaysLoweredConfig.stayBackground = true;
+    var app1 = new MockAppWindow(alwaysLoweredConfig);
+    var acn1 = new AppTransitionController(app1);
+    var stubFocus = this.sinon.stub(app1, 'focus');
+    app1.loaded = true;
+    acn1._transitionState = 'opened';
+    acn1.handle_opened();
+    assert.isTrue(stubFocus.notCalled);
   });
 
   test('Do not focus the search window', function() {

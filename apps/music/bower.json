@@ -1,0 +1,24 @@
+{
+  "name": "gaia-music",
+  "description": "Gaia Music app for Firefox OS",
+  "version": "2.5.0",
+  "license": "Apache 2.0",
+  "ignore": [
+    "**/.*",
+    "components",
+    "node_modules"
+  ],
+  "dependencies": {
+    "bridge": "gaia-components/bridge#master",
+    "gaia-fast-list": "gaia-components/gaia-fast-list#~0.2.1",
+    "gaia-header": "gaia-components/gaia-header#~0.8.4",
+    "gaia-icons": "gaia-components/gaia-icons#~0.8.0",
+    "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
+    "gaia-toolbar": "gaia-components/gaia-toolbar#master",
+    "serviceworkerware": "gaia-components/serviceworkerware#master",
+    "sww-raw-cache": "gaia-components/sww-raw-cache#~0.2.1"
+  },
+  "resolutions": {
+    "gaia-component": "~0.3.9"
+  }
+}

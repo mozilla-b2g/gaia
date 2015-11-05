@@ -81,7 +81,7 @@ Gaia uses
 [marionette-js-runner](https://developer.mozilla.org/en-US/Firefox_OS/Automated_testing/Gaia_integration_tests)
 for ui testing. For the time being, tests need to live in `apps/<some
 app>/test/marionette` and should be named `*_test.js`. Gaia's marionette
-tests run on nodejs and you'll need nodejs>=v0.10 installed.
+tests run on nodejs and you'll need nodejs>=v0.12 and npm>=v2.0 installed.
 
 Also for the time being, shared code for tests lives in plugins at
 `tests/jsmarionette/plugins` or in helpers at `shared/test/integration`.

@@ -13,8 +13,6 @@
 
 var Curtain = (function() {
 
-  var _ = navigator.mozL10n.get;
-
   var curtainFrame = parent.document.querySelector('#iframe_curtain');
 
   if (!curtainFrame) {
@@ -24,14 +22,16 @@ var Curtain = (function() {
     parent.document.body.appendChild(curtainFrame);
   }
 
-  var doc = curtainFrame.contentDocument;
+  function getDoc() {
+    return curtainFrame.contentWindow.document;
+  }
 
   var cpuWakeLock, cancelButton, retryButton, okButton, progressElement, form,
       progressTitle;
   var messages = [];
   var elements = ['error', 'timeout', 'wait', 'message', 'progress', 'alert'];
 
-  if (doc.readyState === 'complete') {
+  if (getDoc().readyState === 'complete') {
     init();
   } else {
     // The curtain could not be loaded at this moment
@@ -42,6 +42,7 @@ var Curtain = (function() {
   }
 
   function init() {
+    var doc = getDoc();
     cancelButton = doc.querySelector('#cancel');
     retryButton = doc.querySelector('#retry');
     okButton = doc.querySelector('#ok');
@@ -77,7 +78,7 @@ var Curtain = (function() {
     progressElement.setAttribute('value', 0);
 
     function showMessage() {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         messages.progress,
         'progressFB',
         { current: counter, total: total }
@@ -91,7 +92,8 @@ var Curtain = (function() {
 
     this.setFrom = function(pfrom) {
       from = capitalize(pfrom);
-      progressTitle.textContent = _('progressFB3' + from + 'Title');
+      progressTitle.setAttribute(
+        'data-l10n-id', 'progressFB3' + from + 'Title');
     };
 
     this.setTotal = function(ptotal) {
@@ -130,28 +132,33 @@ var Curtain = (function() {
 
       switch (type) {
         case 'wait':
-          messages[type].textContent = _(type + from);
+          messages[type].setAttribute('data-l10n-id', type + from);
         break;
 
         case 'timeout':
-          messages[type].textContent = _('timeout1', {
-            from: _('timeout' + from)
+          document.l10n.formatValue('timeout' + from).then((from) => {
+            document.l10n.setAttributes(messages[type], 'timeout1', {
+              from: from
+            });
           });
         break;
 
         case 'error':
-          messages[type].textContent = _('error1', {
-            from: _(type + from)
+          document.l10n.formatValue('type' + from).then((from) => {
+            document.l10n.setAttributes(messages[type], 'error1', {
+              from: from
+            });
           });
         break;
 
         case 'alert':
         case 'message':
-          messages[type].textContent = _(type + from);
+          messages[type].setAttribute('data-l10n-id', type + from);
         break;
 
         case 'progress':
-          progressTitle.textContent = _(type + 'FB3' + from + 'Title');
+          progressTitle.setAttribute('data-l10n-id',
+            type + 'FB3' + from + 'Title');
           out = new Progress(from);
           cpuWakeLock = navigator.requestWakeLock('cpu');
         break;

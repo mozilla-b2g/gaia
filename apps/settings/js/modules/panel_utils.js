@@ -270,15 +270,13 @@ define(function(require) {
               spanFields[i].textContent = result[key];
             }
           } else { // result[key] is undefined
-            var _ = navigator.mozL10n.get;
             switch (key) {
               //XXX bug 816899 will also provide 'deviceinfo.software' from
               // Gecko which is {os name + os version}
               case 'deviceinfo.software':
                 navigator.mozL10n.setAttributes(spanFields[i],
                   'deviceInfo_software',
-                  { brandShortName: _('brandShortName'),
-                    os: result['deviceinfo.os'] });
+                  { os: result['deviceinfo.os'] });
                 break;
 
               //XXX workaround request from bug 808892 comment 22

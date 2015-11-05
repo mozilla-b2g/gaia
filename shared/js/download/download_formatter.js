@@ -1,4 +1,4 @@
-/* global LazyLoader */
+/* global mozIntl */
 
 /**
  * This lib relies on `l10n.js' to implement localizable date/time strings.
@@ -6,8 +6,6 @@
  * The proposed `DownloadFormatter' object provides features for formatting
  * the data retrieved from the new API for Downloads, taking into account
  * the structure defined by the API itself.
- * WARNING: this library relies on the non-standard `toLocaleFormat()' method,
- * which is specific to Firefox -- no other browser is supported.
  */
 
 
@@ -19,7 +17,7 @@
 
   function _getFormattedSize(bytes) {
     if (bytes === undefined || isNaN(bytes)) {
-      return null;
+      return Promise.resolve(null);
     }
 
     var index = 0;
@@ -28,10 +26,12 @@
       ++index;
     }
 
-    var _ = navigator.mozL10n.get;
-    return _('fileSize', {
-      size: bytes.toFixed(NUMBER_OF_DECIMALS),
-      unit: _('byteUnit-' + BYTE_SCALE[index])
+    return navigator.mozL10n.
+      formatValue('byteUnit-' + BYTE_SCALE[index]).then(unit => {
+      return navigator.mozL10n.formatValue('fileSize', {
+        size: bytes.toFixed(NUMBER_OF_DECIMALS),
+        unit: unit
+      });
     });
   }
 
@@ -61,7 +61,7 @@
       var bytes = download.currentBytes;
       return _getFormattedSize(bytes);
     },
-    getDate: function(download, callback) {
+    getDate: function(download) {
       var date;
 
       try {
@@ -71,10 +71,8 @@
         console.error(ex);
       }
 
-      LazyLoader.load(['shared/js/l10n_date.js'], function onload() {
-        var prettyDate = navigator.mozL10n.DateTimeFormat().fromNow(date);
-        callback && callback(prettyDate);
-      });
+      var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+      return formatter.format(date);
     },
     getUUID: function(download) {
       return download.id || this.getFileName(download);

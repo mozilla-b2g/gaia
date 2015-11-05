@@ -10,14 +10,13 @@ import time
 from StringIO import StringIO
 
 from PIL import Image
-from marionette_driver import By
+from marionette_driver import expected, By
 from marionette_driver.marionette import Actions
 from marionette_driver.gestures import pinch, smooth_scroll
 from mozlog.structured import get_default_logger
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
-from gaiatest import DEFAULT_SETTINGS
 
 
 class GaiaImageCompareTestCase(GaiaTestCase):
@@ -29,12 +28,10 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         self.reference_path = kwargs.pop('reference_path')
         self.screenshots_path = kwargs.pop('screenshots_path')
         self.mismatch_path = os.path.join(self.screenshots_path, 'mismatches')
-        self.locale = kwargs.pop('locale')
 
         self.logger = get_default_logger()
         self.picture_index = 0
         self.test_passed = True
-
         self.failcomment = ""
 
         # set up directories
@@ -51,34 +48,18 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         """At the end of test execution, it checks for the errors"""
         self.assertTrue(self.test_passed, msg=self.failcomment)
 
-    # marionette hook to override default locale setting
-    def modify_settings(self, settings):
+    # if the status bar is visible, crop it off
+    @property
+    def crop_height(self):
+        return int(System(self.marionette).status_bar.height
+                   * self.marionette.execute_script('return window.wrappedJSObject.devicePixelRatio;'))
 
-        if self.locale != 'undefined':
-            settings['language.current'] = self.locale
-        return settings
-
-    def take_screenshot(self,page_name=None, prewait=0):
+    def take_screenshot(self, page_name=None, prewait=1, top_frame=False):
         """
         invokes screen capture event, crops the status bar, and saves to the file
         page_name: a (optional) name that is given to the screenshot image file
         """
-        if prewait > 0:
-            time.sleep(prewait)
-        # if the status bar is visible, crop it off
-        current_frame = self.marionette.get_active_frame()
-        self.marionette.switch_to_frame()
-
-        _statusbar_locator = (By.ID, 'statusbar')
-        if self.is_element_displayed(*_statusbar_locator):
-        # get the size of the status bar to crop off
-            status_bar = self.marionette.find_element(*System._status_bar_locator)
-            # get the size of the status bar, and multiply it by the device pixel ratio to get the exact size on device
-            self.crop_height = int(status_bar.size['height']
-                                   * self.marionette.execute_script('return window.wrappedJSObject.devicePixelRatio;'))
-        else:
-            self.crop_height = 0
-        self.marionette.switch_to_frame(current_frame)
+        time.sleep(prewait)
 
         # take screenshot
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -118,24 +99,19 @@ class GaiaImageCompareTestCase(GaiaTestCase):
                 ref_file_list[i] = os.path.join(self.reference_path, p)
 
             if reference_filename in ref_file_list:
-
-                error_msg = self.image_compare(filename,
-                                               reference_filename,
-                                               "{0}_diff.png".format(filename[0:filename.find(".png")]),
-                                               self.fuzz_factor)
+                self.image_compare(filename, reference_filename,
+                                   "{0}_diff.png".format(filename[0:filename.find(".png")]), self.fuzz_factor)
             else:
-                error_msg = "Ref file not found for: " + filename + '\n'
-            if error_msg != "":
-                #self.logger.critical(error_msg)  uncomment for debugging
-                self.failcomment += error_msg
+                self.failcomment += "\nRef file not found for: " + filename + '\n'
                 self.test_passed = False
 
+        # sometimes the frame should remain at the top level
+        if top_frame is False:
+            self.apps.switch_to_displayed_app()
         self.picture_index += 1
 
     def image_compare(self, target, ref, diff, fuzz_value):
         """do single image compare using the convert console command of ImageMagick"""
-
-        message = ""
 
         p = subprocess.Popen(
             ["compare", "-fuzz", str(fuzz_value) + "%", "-metric", "AE", target, ref, diff],
@@ -143,19 +119,26 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         out, err = p.communicate()
         p.wait()
 
-        if not (err == '0\n' or err == '0'):
-            err = err.replace('\n', '')
-            message = 'WARNING: ' + err + ' pixels mismatched between ' + target + ' and ' + ref + '\n'
+        if not (err.rstrip('\n') == '0'):
+            self.test_passed = False
+
+            # msg should be saved at this point. Otherwise, it will get lost if any of the below line fails
+            if len(err.split()) > 1:
+                self.failcomment += '\n' + err
+            else:
+                self.failcomment += '\nWARNING: ' + err.rstrip(
+                    '\n') + ' pixels mismatched between ' + target + ' and ' + ref + '\n'
 
             # move the diff image and the target image to a separate folder
             if not os.path.exists(self.mismatch_path):
                 os.makedirs(self.mismatch_path)
-            target_image_name = target[target.rfind("/")+1:]
-            diff_image_name = diff[diff.rfind("/") + 1:]
+            target_image_name = target[target.rfind("/") + 1:]
             os.rename(target, os.path.join(self.mismatch_path, target_image_name))
-            os.rename(diff, os.path.join(self.mismatch_path, diff_image_name))
 
-        return message
+            # diff may not be generated if the image sizes do not match
+            if os.path.exists(diff):
+                diff_image_name = diff[diff.rfind("/") + 1:]
+                os.rename(diff, os.path.join(self.mismatch_path, diff_image_name))
 
     # Make UI action related methods static, so they can be used outside the GaiaImageCompareTestCase object as well.
     @staticmethod
@@ -175,15 +158,15 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         if direction == 'LtoR':
             start_x = 0
         elif direction == 'RtoL':
-            start_x = frame.size['width']
+            start_x = frame.rect['width']
             dist *= -1  # travel opposite direction
 
-        limit = dist * frame.size['width']
+        limit = dist * frame.rect['width']
         dist_unit = limit * time_increment
 
         assert isinstance(marionette, object)
         action = Actions(marionette)
-        action.press(frame, start_x, frame.size['height'] / 2)  # press either the left or right edge
+        action.press(frame, start_x, frame.rect['height'] / 2)  # press either the left or right edge
 
         while abs(dist_travelled) < abs(limit):
             action.move_by_offset(dist_unit, 0)
@@ -192,7 +175,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         if release:
             action.release()
         action.perform()
-        time.sleep(1)  # compensate for the time taken for edge scroll to bring another app to active
+        time.sleep(2)  # compensate for the time taken for edge scroll to bring another app to active
 
         return action
 
@@ -205,8 +188,8 @@ class GaiaImageCompareTestCase(GaiaTestCase):
 
         assert isinstance(marionette, object)
         screen = marionette.find_element(*locator)
-        mid_x = screen.size['width'] / 2
-        mid_y = screen.size['height'] / 2
+        mid_x = screen.rect['width'] / 2
+        mid_y = screen.rect['height'] / 2
 
         # default is zooming in
         init_index_x = mid_x
@@ -226,10 +209,10 @@ class GaiaImageCompareTestCase(GaiaTestCase):
 
         pinch(marionette, screen, init_index_x, init_index_y, init_thumb_x, init_thumb_y,
               -disp_x, -disp_y, disp_x, disp_y, duration)
-        time.sleep(1)  # compensate for the time taken for pinch to complete
+        time.sleep(2)  # compensate for the time taken for pinch to complete
 
     @staticmethod
-    def scroll( marionette, direction, distance,locator=None,screen=None, increments=None):
+    def scroll(marionette, direction, distance, locator=None, screen=None, increments=None):
         """scroll - uses smooth_scroll method in gestures.py.
 
         direction = 'up' or 'down' (page location)
@@ -253,4 +236,4 @@ class GaiaImageCompareTestCase(GaiaTestCase):
             vector = 0
 
         smooth_scroll(marionette, screen, axis, vector, distance, increments)
-        time.sleep(1)  # compensate for the time taken for dynamic scroll
+        time.sleep(2)  # compensate for the time taken for dynamic scroll

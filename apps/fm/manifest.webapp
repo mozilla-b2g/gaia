@@ -12,7 +12,8 @@
     "fmradio":{},
     "settings":{ "access": "readonly" },
     "speaker-control":{},
-    "audio-channel-content":{}
+    "audio-channel-content":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {

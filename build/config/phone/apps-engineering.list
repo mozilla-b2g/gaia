@@ -1,5 +1,6 @@
 apps/*
 outoftree_apps/*
+hosted_apps/*
 dev_apps/marketplace-dev.allizom.org
 dev_apps/in_app_pay_test
 dev_apps/marketplace.allizom.org
@@ -31,5 +32,7 @@ dev_apps/theme-test-1
 dev_apps/theme-test-2
 dev_apps/theme-test-3
 dev_apps/nfc-api-test
+dev_apps/music-oga
 apps/settings/test/fixtures/addon1
 apps/settings/test/fixtures/addon2
+apps/settings/test/fixtures/addon3

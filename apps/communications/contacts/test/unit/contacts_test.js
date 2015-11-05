@@ -75,6 +75,7 @@ suite('Contacts', function() {
   mocksForStatusBar.attachTestHelpers();
 
   suiteSetup(function(done) {
+    loadBodyHTML('/contacts/index.html');
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
 
@@ -109,6 +110,7 @@ suite('Contacts', function() {
     sinon.spy(window, 'navigationStack');
     requireApp('communications/contacts/js/utilities/performance_helper.js');
     requireApp('communications/contacts/js/main_navigation.js');
+    requireApp('communications/contacts/js/header_ui.js');
     requireApp('communications/contacts/js/contacts.js', done);
   });
 
@@ -125,10 +127,9 @@ suite('Contacts', function() {
     window.navigationStack = realNavigationStack;
   });
 
-  setup(function(done) {
+  setup(function() {
     this.sinon.spy(window.utils.PerformanceHelper, 'chromeInteractive');
     this.sinon.spy(window.utils.PerformanceHelper, 'contentInteractive');
-    loadBodyHTML('/contacts/index.html');
 
     window.ImportStatusData.clear();
 
@@ -142,8 +143,6 @@ suite('Contacts', function() {
 
     Contacts.init();
     mockNavigation = window.navigationStack.firstCall.thisValue;
-
-    requireApp('communications/contacts/js/header_ui.js', done);
 
     navigator.mozL10n.fireOnce();
   });

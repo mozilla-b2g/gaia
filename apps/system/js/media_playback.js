@@ -185,6 +185,14 @@ MediaPlaybackWidget.prototype = {
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
     switch (status.playStatus) {
       case 'PLAYING':
+        // WORKAROUND: Sometimes we can still get the playing event after music
+        // app terminated, so we check the music app existence when playback is
+        // hidden initially before showing. Remove it once Bug 915880 fixed.
+        var origin = this.origin;
+        if (this.hidden && !Service.query('AppWindowManager.getApp', origin)) {
+          return;
+        }
+
         this.hidden = false;
         this.playPauseButton.dataset.icon = 'pause';
         this.playPauseButton.setAttribute('data-l10n-id',

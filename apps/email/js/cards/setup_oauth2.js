@@ -5,7 +5,7 @@ var appSelf = require('app_self'),
     cards = require('cards');
 
 return [
-  require('./base')(require('template!./setup_oauth2.html')),
+  require('./base_card')(require('template!./setup_oauth2.html')),
   {
     onArgs: function(args) {
       this.onBrowserComplete = args.onBrowserComplete;

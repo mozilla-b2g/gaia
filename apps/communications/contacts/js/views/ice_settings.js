@@ -16,7 +16,7 @@
 
 var contacts = window.contacts || {};
 
-contacts.ICE = (function() {
+(function(exports) {
   var iceSettingsPanel,
     iceSettingsHeader,
     iceContactItems = [],
@@ -276,13 +276,10 @@ contacts.ICE = (function() {
    */
   function contactNotAllowed(id) {
     return new Promise(function(resolve, reject) {
-      ContactsService.get(id, function(contact, isFBContact) {
+      ContactsService.get(id, function(contact) {
         if(Array.isArray(contact.tel) && contact.tel[0] &&
          contact.tel[0].value && contact.tel[0].value.trim()) {
           resolve(id);
-        }
-        else if (isFBContact) {
-          reject('ICEFacebookContactNotAllowed');
         } else {
           reject('ICEContactNoNumber');
         }
@@ -348,10 +345,10 @@ contacts.ICE = (function() {
     currentICETarget = null;
   }
 
-  return {
+  exports.ICE = {
     init: init,
     refresh: refresh,
     reset: reset,
     get initialized() { return iceScreenInitialized; }
   };
-})();
+})(window);

@@ -28,8 +28,8 @@
   flex-direction: row;
 
   padding: 1rem;
-  -moz-padding-start: 2rem;
-  -moz-padding-end: 1.5rem;
+  padding-inline-start: 2rem;
+  padding-inline-end: 1.5rem;
   overflow: hidden;
 
   white-space: nowrap;
@@ -58,8 +58,8 @@
   flex: none;
 
   padding: 0.2rem;
-  -moz-padding-start: 1.5rem;
-  -moz-padding-end: 0;
+  padding-inline-start: 1.5rem;
+  padding-inline-end: 0;
 }
 
 /* remove margin for notice-button class of button */
@@ -156,12 +156,4 @@
 /* RTL View */
 #messages-header-text .ellipsis-dir-fix {
   width: auto;
-}
-
-.conversation-view .panel {
-  left: 0;
-}
-
-#main-wrapper[data-position="left"].conversation-view .panel {
-  transform: translateX(0);
 }

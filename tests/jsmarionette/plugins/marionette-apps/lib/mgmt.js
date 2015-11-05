@@ -19,6 +19,14 @@ Mgmt.prototype = {
    */
   _client: undefined,
 
+  _formatApp: function(client, data) {
+    var app = new App(client);
+    for (var key in data) {
+      app[key] = data[key];
+    }
+    return app;
+  },
+
   /**
    * List all installed apps in the user's repository.
    *
@@ -33,6 +41,7 @@ Mgmt.prototype = {
     );
 
     var client = this._client.scope({ context: 'content' });
+    var format = this._formatApp.bind(this, client);
 
     return client.executeAsyncScript(script, function(err, operation) {
       // handle scripting error
@@ -45,17 +54,40 @@ Mgmt.prototype = {
         return callback(new Error(operation.error));
       }
 
-
       // success format the apps
-      var apps = operation.result.map(function(data) {
-        var app = new App(client);
-        for (var key in data) {
-          app[key] = data[key];
-        }
-        return app;
-      });
-
+      var apps = operation.result.map(format);
       return callback(null, apps);
+    });
+  },
+
+  /**
+   * Returns information about the calling app, if any.
+   * @param {Function} callback [Error, Array<App>].
+   */
+  getSelf: function(callback) {
+    callback = callback || this._client.defaultCallback;
+
+    var script = fs.readFileSync(
+      __dirname + '/scripts/getself.js',
+      'utf8'
+    );
+
+    var client = this._client.scope({ context: 'content' });
+    var format = this._formatApp.bind(this, client);
+
+    return client.executeAsyncScript(script, function(err, operation) {
+      // handle scripting error
+      if (err) {
+        return callback(err);
+      }
+
+      // handle error from operation
+      if (operation.error) {
+        return callback(new Error(operation.error));
+      }
+
+      // success format the app
+      return callback(null, operation.result ? format(operation.result) : null);
     });
   },
 

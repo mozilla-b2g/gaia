@@ -70,8 +70,19 @@ define(function(require) {
       var self = this;
 
       mozAppsMgmt.oninstall = function(evt) {
-        var installedApp = evt.application;
-        self._apps.push(installedApp);
+        var newApp = evt.application;
+        var existing = false;
+        self._apps.some((app, i) => {
+          if (app.manifestURL === newApp.manifestURL) {
+            self._apps[i] = newApp;
+            existing = true;
+            return true;
+          }
+        });
+
+        if (!existing) {
+          self._apps.push(newApp);
+        }
         self._eventHandlers.oninstall.forEach(function(eventHandler) {
           eventHandler(evt);
         });
@@ -79,18 +90,16 @@ define(function(require) {
 
       mozAppsMgmt.onuninstall = function(evt) {
         var manifestURL = evt.application.manifestURL;
-        var removedAppIndex;
-        // installed apps are normally in the end, so let's iterate
-        // backward to find them quickly.
-        for (var i = self._apps.length - 1; i >= 0; i--) {
-          if (self._apps[i].manifestURL === manifestURL) {
-            removedAppIndex = i;
-            break;
+        var appRemoved = false;
+        self._apps = self._apps.filter(app => {
+          if (app.manifestURL === manifestURL) {
+            appRemoved = true;
+            return false;
           }
-        }
+          return true;
+        });
 
-        if (removedAppIndex) {
-          self._apps.splice(removedAppIndex, 1);
+        if (appRemoved) {
           self._eventHandlers.onuninstall.forEach(function(eventHandler) {
             eventHandler(evt);
           });

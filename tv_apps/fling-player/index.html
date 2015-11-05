@@ -6,9 +6,13 @@
     <title>Fling Player</title>
 
     <!-- stylesheets of building blocks -->
-    <link rel="stylesheet" type="text/css" href="bower_component/smart-icons/smart-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
     <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
     <link rel="stylesheet" type="text/css" href="style/fling_player.css">
+
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
 
     <!-- shared libraries -->
     <script defer src="bower_components/evt/index.js"></script>
@@ -18,24 +22,52 @@
     <script defer src="bower_components/gaia-loading/gaia-loading.js"></script>
     <script defer src="bower_components/smart-button/script.js"></script>
 
+    <!-- Helper libraries -->
+    <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+
     <!-- main javascript code -->
+    <script defer src="js/master_debug.js"></script>
+    <script defer src="js/casting_message.js"></script>
     <script defer src="js/video_player.js"></script>
     <script defer src="js/connector.js"></script>
     <script defer src="js/fling_player.js"></script>
+
+    <!-- Shared L10n libraries -->
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/l10n_date.js"></script>
+
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/fling-player.{locale}.properties"/>
   </head>
 
   <body class="theme-media">
     <article class="skin-dark">
       <section role="region" id="video-player-section">
         <video id="player" preload="metadata"></video>
-        <nav id="video-control-bar" class="control-bar fade-out">
-          <smart-button data-icon="check"></smart-button>
+        <nav id="video-control-panel" class="control-panel fade-out">
+          <div id="video-control-buttons">
+            <smart-button id="backward-button" data-icon="fling-player-rewind"></smart-button>
+            <smart-button id="play-button" data-icon="fling-player-play"></smart-button>
+            <smart-button id="forward-button" data-icon="fling-player-forward"></smart-button>
+          </div>
+          <div id="video-time-progress">
+            <div id="elapsed-time" class="time-text">00:00</div>
+            <div id="time-progress">
+              <div id="background-time-bar" class="time-bar"></div>
+              <div id="buffered-time-bar" class="time-bar"></div>
+              <div id="elapsed-time-bar" class="time-bar"></div>
+            </div>
+            <div id="duration-time" class="time-text">00:00</div>
+          </div>
         </nav>
       </section>
       <section role="region" id="loading-section">
         <gaia-loading></gaia-loading>
-        <span>Loading...</span>
       </section>
+      <section id="initial-message-section" class="fade-out" data-l10n-id="playing-video-from-device"></section>
     </article>
   </body>
 

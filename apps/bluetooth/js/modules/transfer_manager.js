@@ -21,9 +21,9 @@ define(function(require) {
   var TurnBluetoothOnDialog = require('views/turn_bluetooth_on_dialog');
 
   var _debug = false;
-  var Debug = function() {};
+  var debug = function() {};
   if (_debug) {
-    Debug = function bttm_debug(msg) {
+    debug = function bttm_debug(msg) {
       console.log('--> [TransferManager]: ' + msg);
     };
   }
@@ -69,7 +69,7 @@ define(function(require) {
      * @param {Object} activityRequest
      */
     _activityHandler: function bttm__activityHandler(activityRequest) {
-      Debug('_activityHandler(): activityRequest = ' +
+      debug('_activityHandler(): activityRequest = ' +
             JSON.stringify(activityRequest));
       if (activityRequest.source.data.blobs &&
           activityRequest.source.data.blobs.length > 0) {
@@ -81,7 +81,7 @@ define(function(require) {
         this._watchEventFromDevicePicker();
         DevicePickerPanel.visible = true;
       } else {
-        Debug('_activityHandler(): Cannot transfer without blobs data!');
+        debug('_activityHandler(): Cannot transfer without blobs data!');
         this._cannotTransfer();
       }
     },
@@ -94,7 +94,7 @@ define(function(require) {
      * @memberOf TransferManager
      */
     _cannotTransfer: function bttm__cannotTransfer() {
-      Debug('_cannotTransfer(): show alert dialog!!');
+      debug('_cannotTransfer(): show alert dialog!!');
       // show an alert with the overdue message
       if (!CannotTransferDialog.isVisible) {
         CannotTransferDialog.showConfirm().then(() => {
@@ -111,13 +111,13 @@ define(function(require) {
      * @memberOf TransferManager
      */
     _endTransferWithReason: function bttm__endTransferWithReason(reason) {
-      Debug('_endTransferWithReason(): reason = ' + reason);
+      debug('_endTransferWithReason(): reason = ' + reason);
       if (reason === 'transferred') {
         this._activity.postResult(reason);
       } else if (reason === 'cancelled') {
         this._activity.postError(reason);
       }
-      
+
       this._activity = null;
     },
 
@@ -158,7 +158,7 @@ define(function(require) {
     _onDefaultAdapterChanged:
     function bttm__onDefaultAdapterChanged(newAdapter, oldAdapter) {
       if (oldAdapter && (newAdapter === null)) {
-        Debug('_onDefaultAdapterChanged(): Can not get bluetooth adapter!');
+        debug('_onDefaultAdapterChanged(): Can not get bluetooth adapter!');
         // Post error with reason then end the activity service.
         this._endTransferWithReason('cancelled');
       }
@@ -174,20 +174,25 @@ define(function(require) {
      */
     _onBluetoothEnabledChanged:
     function bttm__onBluetoothEnabledChanged(enabled) {
-      Debug('_onBluetoothEnabledChanged(): enabled = ' + enabled);
-      if (enabled) {
-        // Close the confirmation dialog
-        TurnBluetoothOnDialog.close();
-      } else {
-        TurnBluetoothOnDialog.showConfirm().then((result) => {
-          if (result === 'confirm') {
-            // Turn Bluetooth on.
-            BtContext.setEnabled(true);
-          } else if (result === 'cancel') {
-            // Post error with reason then end the activity service.
-            this._endTransferWithReason('cancelled');
-          }
-        });
+      debug('_onBluetoothEnabledChanged(): enabled = ' + enabled);
+      switch(enabled) {
+        case undefined:
+          break;
+        case true:
+          // Close the confirmation dialog
+          TurnBluetoothOnDialog.close();
+          break;
+        default:
+          TurnBluetoothOnDialog.showConfirm().then((result) => {
+            if (result === 'confirm') {
+              // Turn Bluetooth on.
+              BtContext.setEnabled(true);
+            } else if (result === 'cancel') {
+              // Post error with reason then end the activity service.
+              this._endTransferWithReason('cancelled');
+            }
+          });
+          break;
       }
     },
 
@@ -198,7 +203,7 @@ define(function(require) {
      * @memberOf TransferManager
      */
     _watchEventFromDevicePicker: function bttm__watchEventFromDevicePicker() {
-      Debug('_watchEventFromDevicePicker():');
+      debug('_watchEventFromDevicePicker():');
       // Watch 'devicePicked' event for reaching device picked from user.
       DevicePickerPanel.addEventListener('devicePicked',
         this._onDevicePicked.bind(this));
@@ -221,11 +226,11 @@ define(function(require) {
      */
     _onDevicePicked: function bttm__onDevicePicked(event) {
       // Send file to the device via address
-      Debug('_onDevicePicked(): address of target device = ' +
+      debug('_onDevicePicked(): address of target device = ' +
             event.detail.address);
       var targetDeviceAddress = event.detail.address;
       var blobs = this._activity.source.data.blobs;
-      
+
       // Produce sending files schedule.
       // Then, post message to system app for sending files in queue.
       var schedule = this._produceSendingFilesSchedule(blobs.length);
@@ -234,15 +239,15 @@ define(function(require) {
       // Send each file via Bluetooth sendFile API
       return Promise.all(blobs.map((blob, index) => {
         /**
-         * Checking blob.name is because the sendFile() API needs a "file" o
-         * bject. And it is needing a filaname before send it.
-         * If there is no filename in the blob, Bluetooth API will give a 
+         * Check blob.name because sendFile() API needs a "file"
+         * object and a filaname before sending it.
+         * If there is no filename in the blob, Bluetooth API will give a
          * default name "Unknown.jpeg".
-         * So Bluetooth app have to find out the name via device stroage.
+         * So Bluetooth app has to find out the name via device storage.
          */
         if (blob.name) {
           // The blob has name, send the blob directly.
-          Debug('blob is sending with name...');
+          debug('blob is sending with name...');
           return BtContext.sendFile(targetDeviceAddress, blob);
         } else if (this._activity.source.data.filepaths) {
           // The blob does not have name,
@@ -250,22 +255,22 @@ define(function(require) {
           var filepath = this._activity.source.data.filepaths[index];
           var storage = navigator.getDeviceStorage('sdcard');
           return storage.get(filepath).then((file) => {
-            Debug('getFile succeed & file is sending... file = ' + file);
+            debug('getFile succeed & file is sending... file = ' + file);
             return BtContext.sendFile(targetDeviceAddress, file);
           }, (error) => {
-            Debug('getFile failed so that blob is sending without filename ' +
+            debug('getFile failed so that blob is sending without filename ' +
                   error && error.name);
             return BtContext.sendFile(targetDeviceAddress, blob);
           });
         } else {
           // The blob does not have name and filepath,
           // pass the blob without name to send file directly.
-          Debug('no filepath to get from device storage ' +
+          debug('no filepath to get from device storage ' +
                 'so that blob is sending without filename');
           return BtContext.sendFile(targetDeviceAddress, blob);
         }
       })).then(() => {
-        Debug('all files are already sent out..');
+        debug('all files are already sent out..');
         // Post result with reason then end the activity service.
         this._endTransferWithReason('transferred');
         return Promise.resolve();
@@ -282,7 +287,7 @@ define(function(require) {
      * @param {String} event.type - type of event name
      */
     _onCancelSelection: function bttm__onCancelSelection(event) {
-      Debug('_onCancelSelection(): cancel from user decision');
+      debug('_onCancelSelection(): cancel from user decision');
       // Post error with reason then end the activity service.
       this._endTransferWithReason('cancelled');
     },
@@ -298,7 +303,7 @@ define(function(require) {
      */
     _produceSendingFilesSchedule:
     function bttm__produceSendingFilesSchedule(numberOfTasks) {
-      // Construct a object to contain info of sending files schedule. 
+      // Construct a object to contain info of sending files schedule.
       // And the info will be posted message to system app.
       // The result of send files will be displayed on notification.
       var sendingFilesSchedule = {
@@ -324,7 +329,7 @@ define(function(require) {
         var app = evt.target.result;
         // If IAC doesn't exist, just bail out.
         if (!app.connect) {
-          Debug('_postMessageToSystemApp(): Cannot post message since no ' +
+          debug('_postMessageToSystemApp(): Cannot post message since no ' +
                 'connect function, message = ' + JSON.stringify(message));
           return;
         }
@@ -332,7 +337,7 @@ define(function(require) {
         app.connect('bluetoothTransfercomms').then((ports) => {
           ports.forEach((port) => {
             port.postMessage(message);
-            Debug('_postMessageToSystemApp(): sending files schedule = ' +
+            debug('_postMessageToSystemApp(): sending files schedule = ' +
                   JSON.stringify(message));
           });
         });

@@ -4,11 +4,10 @@
 
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Settings(Base):
-    _screen_locator = (By.ID, 'screen')
-
     _settings_iframe_locator = (By.ID, 'settings-view-placeholder')
     _settings_title_locator = (By.CSS_SELECTOR, 'section#settings-view h1')
 
@@ -40,17 +39,12 @@ class Settings(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._settings_title_locator))))
 
-    def toggle_data_alert_switch(self):
-        self.marionette.find_element(*self._data_alert_switch_locator).tap()
+    def enable_data_alert_switch(self):
+        GaiaBinaryControl(self.marionette, self._data_alert_switch_locator).enable()
 
     @property
     def is_data_alert_switch_checked(self):
-        # The following should work, but doesn't, see bug 1113742, hence the execute_script
-        # return self.marionette.find_element(
-        #     *self._data_alert_switch_locator).is_selected()
-        return self.marionette.execute_script("""
-            return window.wrappedJSObject.document.querySelector('gaia-switch[data-option="dataLimit"]').checked;
-         """)
+        return GaiaBinaryControl(self.marionette, self._data_alert_switch_locator).is_checked
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         when_use_is_above_button = self.marionette.find_element(*self._when_use_is_above_button_locator)
@@ -77,12 +71,7 @@ class Settings(Base):
             expected.element_present(*self._confirm_reset_button_locator))
         Wait(self.marionette).until(expected.element_displayed(confirm_reset_button))
 
-        # Workaround for bug 1161088, where tapping on the button inside the app itself
-        # makes Marionette spew out NS_ERROR_NOT_INITIALIZED errors
-        x = confirm_reset_button.rect['x'] + confirm_reset_button.rect['width']//2
-        y = confirm_reset_button.rect['y'] + confirm_reset_button.rect['height']//2
-        self.marionette.switch_to_frame()
-        self.marionette.find_element(*self._screen_locator).tap(x=x, y=y)
+        self.tap_element_from_system_app(confirm_reset_button)
 
         # go back to iframe of usage app settings
         self.apps.switch_to_displayed_app()

@@ -22,7 +22,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/navigation.css">
     <link rel="stylesheet" type="text/css" href="style/info-bar.css">
     <link rel="stylesheet" type="text/css" href="style/search-bar.css">
-    <link rel="stylesheet" type="text/css" href="style/modal_dialog.css">
 
     <!-- default cards for first time launch -->
     <link rel="resource" type="application/json" href="shared/resources/default-cards.json">
@@ -62,15 +61,14 @@
     <script defer src="shared/js/smart-screen/scrollable.js"></script>
     <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
     <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+    <script defer src="shared/js/smart-screen/connection_manager.js"></script>
     <!-- Specific code -->
     <script defer src="js/utils.js"></script>
     <script defer src="js/card_filter.js"></script>
     <script defer src="js/filter_manager.js"></script>
-    <script defer src="js/connection_manager.js"></script>
     <script defer src="js/message_handler.js"></script>
     <script defer src="js/edit.js"></script>
     <script defer src="js/search_bar.js"></script>
-    <script defer src="js/modal_dialog.js"></script>
 
     <script defer src="js/home.js"></script>
     <script defer src="js/bootstrap.js"></script>
@@ -92,14 +90,12 @@
       <nav id="nav-regular">
         <section id="header-buttons" class="left-top-panel">
           <smart-button data-icon="search" id="search-button" class="search-button"></smart-button>
-          <menu-group data-icon="setting" id="settings-group" class="settings-group" rotate>
-            <smart-button type="simple-text" id="edit-button" class="edit-button">
-              <span data-l10n-id="edit">edit</span>
-            </smart-button>
-            <smart-button type="simple-text" id="settings-button" class="settings-button">
-              <span data-l10n-id="settings">settings</span>
-            </smart-button>
-          </menu-group>
+          <smart-button type="text-and-icon" id="edit-button" class="edit-button">
+            <span data-l10n-id="edit">edit</span>
+          </smart-button>
+          <smart-button type="text-and-icon" id="settings-button" class="settings-button">
+            <span data-l10n-id="settings">settings</span>
+          </smart-button>
         </section>
         <section id="information-bar" class="information-bar">
           <div id="clock-info" class="clock-info"><span id="time" class="time"></span></div>
@@ -146,19 +142,19 @@
       <section id="filter-tab-container" class="filter-tab-container">
         <menu-group data-icon="filter" id="filter-tab-group" class="filter-tab-group">
           <smart-button type="simple-text" id="filter-all-button" data-icon-type="filter">
-            <span data-l10n-id="all">all</span>
+            <span data-l10n-id="all"></span>
           </smart-button>
           <smart-button type="simple-text" id="filter-tv-button" data-icon-type="tv">
-            <span data-l10n-id="tv">live-tv</span>
-          </smart-button>
-          <smart-button type="simple-text" id="filter-dashboard-button" data-icon-type="dashboard">
-            <span data-l10n-id="dash">dashboard</span>
-          </smart-button>
-          <smart-button type="simple-text" id="filter-device-button" data-icon-type="device">
-            <span data-l10n-id="device">device</span>
+            <span data-l10n-id="tv"></span>
           </smart-button>
           <smart-button type="simple-text" id="filter-app-button" data-icon-type="application">
-            <span data-l10n-id="app">app</span>
+            <span data-l10n-id="app"></span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-device-button" data-icon-type="device">
+            <span data-l10n-id="device"></span>
+          </smart-button>
+          <smart-button type="simple-text" id="filter-website-button" data-icon-type="web">
+            <span data-l10n-id="website"></span>
           </smart-button>
         </menu-group>
       </section>

@@ -74,24 +74,25 @@ suite('app', function() {
       settings: {
         geolocation: sinon.createStubInstance(this.Setting),
         spinnerTimeouts: sinon.createStubInstance(this.Setting),
-        keyDownEvents: sinon.createStubInstance(this.Setting)
+        keyDownEvents: sinon.createStubInstance(this.Setting),
+        countdown: sinon.createStubInstance(this.Setting)
       },
       views: {},
       controllers: {
         battery: sinon.spy(),
         overlay: sinon.spy(),
         hud: sinon.spy(),
-        timer: sinon.spy(),
+        countdown: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
+        storage: sinon.spy(),
 
         // Lazy loaded
         lazy: [
           'controllers/preview-gallery',
-          'controllers/storage',
           'controllers/confirm',
           'controllers/sounds'
         ]
@@ -119,7 +120,6 @@ suite('app', function() {
     // methods before any of this happens, so that the
     // spy is always at the root of any call.
     this.sandbox.spy(this.App.prototype, 'boot');
-    this.sandbox.spy(this.App.prototype, 'onReady');
     this.sandbox.spy(this.App.prototype, 'showSpinner');
     this.sandbox.spy(this.App.prototype, 'clearSpinner');
 
@@ -274,10 +274,8 @@ suite('app', function() {
         this.spy = this.app.once.withArgs('viewfinder:visible');
         this.callback = this.spy.args[0][1];
 
-        sinon.stub(this.app, 'onReady');
         sinon.spy(this.app, 'loadLazyControllers');
         sinon.stub(this.app, 'clearSpinner');
-        sinon.spy(this.app, 'loadL10n');
 
         // Call the callback to test
         this.callback();
@@ -289,10 +287,6 @@ suite('app', function() {
 
       test('Should flag `this.criticalPathDone`', function() {
         assert.isTrue(this.app.criticalPathDone);
-      });
-
-      test('Should load l10n', function() {
-        assert.isTrue(this.app.loadL10n.calledOnce);
       });
 
       test('Should load non-critical controllers', function() {
@@ -315,19 +309,52 @@ suite('app', function() {
         .withArgs('localized')
         .returns('<localized-firer>');
 
+      this.sandbox.stub(this.app, 'onCountdown');
+      this.options.settings.countdown.selected.returns('off');
+    });
+
+    suite('default', function() {
+      setup(function() {
+        this.app.bindEvents();
+      });
+
+      test('Should listen for visibilitychange on document', function() {
+        sinon.assert.calledWith(this.app.doc.addEventListener, 'visibilitychange');
+      });
+
+      test('Should relay window \'localized\' event', function() {
+        sinon.assert.calledWith(this.app.win.addEventListener, 'localized', '<localized-firer>');
+      });
+
+      test('It indicates the app is \'busy\' when the camera \'willchange\'', function() {
+        sinon.assert.calledWith(this.app.on, 'camera:willchange', '<busy-firer>');
+      });
+
+      test('Should listen for \'willchange\' to lazy load once', function() {
+        sinon.assert.calledWith(this.app.once, 'camera:willchange', this.app.onWillChange);
+      });
+
+      test('Should listen for \'activity\' to lazy load once', function() {
+        sinon.assert.calledWith(this.app.once, 'activity', this.app.onActivity);
+      });
+
+      test('Should listen for \'preview\' to lazy load once', function() {
+        sinon.assert.calledWith(this.app.once, 'preview', this.app.onPreview);
+      });
+
+      test('Should listen for \'newthumbnail\' to lazy load once', function() {
+        sinon.assert.calledWith(this.app.once, 'newthumbnail', this.app.onNewThumbnail);
+      });
+
+      test('Should listen for change:selected on countdown if disabled', function() {
+        sinon.assert.calledWith(this.options.settings.countdown.once, 'change:selected', this.app.onCountdown);
+      });
+    });
+
+    test('Should listen for change:selected on countdown if disabled', function() {
+      this.options.settings.countdown.selected.returns('2sec');
       this.app.bindEvents();
-    });
-
-    test('Should listen for visibilitychange on document', function() {
-      sinon.assert.calledWith(this.app.doc.addEventListener, 'visibilitychange');
-    });
-
-    test('Should relay window \'localized\' event', function() {
-      sinon.assert.calledWith(this.app.win.addEventListener, 'localized', '<localized-firer>');
-    });
-
-    test('It indicates the app is \'busy\' when the camera \'willchange\'', function() {
-      sinon.assert.calledWith(this.app.on, 'camera:willchange', '<busy-firer>');
+      sinon.assert.called(this.app.onCountdown);
     });
   });
 
@@ -378,13 +405,6 @@ suite('app', function() {
 
     test('It locks the orientation to portrait', function() {
       sinon.assert.called(this.app.orientation.lock);
-    });
-  });
-
-  suite('App#loadL10n()', function() {
-    test('Should require l10n', function() {
-      this.app.loadL10n();
-      assert.equal(this.app.require.args[0][0][0], 'l10n');
     });
   });
 
@@ -463,7 +483,6 @@ suite('app', function() {
     test('Should clear loadingTimeout', function() {
       this.app.views.loading = null;
       this.app.showSpinner();
-      this.app.onReady();
       this.app.clearSpinner();
       sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
@@ -482,11 +501,100 @@ suite('app', function() {
     });
   });
 
+  suite('App#onActivity', function() {
+    setup(function() {
+      this.sandbox.stub(this.app, 'loadLazyController');
+      this.app.onActivity();
+    });
+
+    test('Should lazy load confirm controller', function() {
+      sinon.assert.calledWith(this.app.loadLazyController, 'controllers/confirm');
+    });
+  });
+
+  suite('App#onCountdown', function() {
+    setup(function() {
+      this.sandbox.stub(this.app, 'loadLazyController');
+      this.app.onCountdown();
+    });
+
+    test('Should lazy load countdown controller', function() {
+      sinon.assert.calledWith(this.app.loadLazyController, 'controllers/countdown');
+    });
+  });
+
+  suite('App#onWillChange', function() {
+    setup(function() {
+      this.sandbox.stub(this.app, 'loadLazyController');
+      this.app.onWillChange();
+    });
+
+    test('Should lazy load recording-timer controller', function() {
+      sinon.assert.calledWith(this.app.loadLazyController, 'controllers/recording-timer');
+    });
+  });
+
+  suite('App#onNewThumbnail', function() {
+    setup(function() {
+      this.sandbox.stub(this.app, 'loadLazyController');
+      this.app.onNewThumbnail();
+    });
+
+    test('Should lazy load recording-timer controller', function() {
+      sinon.assert.calledWith(this.app.loadLazyController, 'controllers/preview-gallery');
+    });
+  });
+
+  suite('App#onPreview', function() {
+    setup(function() {
+      this.sandbox.stub(this.app, 'loadLazyController').returns({
+        then: sinon.stub().callsArg(0)
+      });
+      this.app.onPreview();
+    });
+
+    test('Should lazy load preview gallery controller', function() {
+      sinon.assert.calledWith(this.app.loadLazyController, 'controllers/preview-gallery');
+    });
+
+    test('Should re-emit `preview`', function() {
+      sinon.assert.calledWith(this.app.emit, 'preview');
+    });
+  });
+
+  suite('App#loadLazyController()', function() {
+    setup(function() {
+      this.sandbox.stub(this.app, 'loadLazyControllers').returns('<promise>');
+      this.app.controllers.lazy = [];
+    });
+
+    test('Should add to lazy load controllers if critical path not reached', function() {
+      var promise = this.app.loadLazyController('<controller>');
+      assert.isTrue(this.app.controllers.lazy[0] === '<controller>');
+      assert.isTrue(promise === undefined);
+    });
+
+    test('Should lazy load immediately if critical path done', function() {
+      this.app.criticalPathDone = true;
+      var promise = this.app.loadLazyController('<controller>');
+      sinon.assert.called(this.app.loadLazyControllers);
+      assert.isTrue(promise === '<promise>');
+      assert.isTrue(this.app.dynamicLazy['<controller>'] === '<promise>');
+    });
+
+    test('Should return existing lazy load promise', function() {
+      this.app.criticalPathDone = true;
+      this.app.dynamicLazy['<controller>'] = '<existing-promise>';
+      var promise = this.app.loadLazyController('<controller>');
+      sinon.assert.notCalled(this.app.loadLazyControllers);
+      assert.isTrue(promise === '<existing-promise>');
+    });
+  });
+
   suite('App#loadLazyControllers()', function() {
     setup(function() {
-      this.done = sinon.spy();
       this.fakeControllers = [ sinon.spy(), sinon.spy(), sinon.spy() ];
-      this.app.loadLazyControllers(this.done);
+      this.lazyPromise = this.app.loadLazyControllers(this.app.controllers.lazy);
       this.callback = this.app.require.withArgs(this.app.controllers.lazy).args[0][1];
       this.callback.apply(window, this.fakeControllers);
     });
@@ -502,8 +610,12 @@ suite('app', function() {
       });
     });
 
-    test('It calls the callback', function() {
-      sinon.assert.calledOnce(this.done);
+    test('It emits `lazyloaded`', function() {
+      sinon.assert.calledWith(this.app.emit, 'lazyloaded');
+    });
+
+    test('It fulfills the promise', function(done) {
+      this.lazyPromise.then(done);
     });
   });
 
@@ -516,28 +628,20 @@ suite('app', function() {
       this.app.emit('viewfinder:visible');
     });
 
-    test('It loads l10n', function() {
-      sinon.assert.calledWith(this.app.require, ['l10n']);
-    });
-
     test('It loads lazy controllers', function() {
       sinon.assert.calledWith(this.app.require, this.app.controllers.lazy);
     });
 
-    test('It fires the \'loaded\' event only when:', function() {
-      var loadL10nRequireCallback = this.app.require.args[0][1];
-      var loadLazyControllersRequireCallback = this.app.require.args[1][1];
+    test('It fires the \'loaded\' event only when:', function(done) {
+      var loadLazyControllersRequireCallback = this.app.require.args[0][1];
 
-      // 1. l10n has loaded
-      loadL10nRequireCallback();
-
-      // 2. Lazy controllers have loaded
+      // 1. Lazy controllers have loaded
       loadLazyControllersRequireCallback();
 
-      // 3. Storage has been checked
+      // 2. Storage has been checked
       this.app.emit('storage:checked');
 
-      sinon.assert.calledWith(this.app.emit, 'loaded');
+      this.app.once('loaded', done);
     });
   });
 

@@ -1,7 +1,9 @@
 'use strict';
 
 /* global require, exports */
+
 var utils = require('utils');
+var preprocessor = require('preprocessor');
 
 var SystemAppBuilder = function() {
 };
@@ -101,18 +103,47 @@ SystemAppBuilder.prototype.integrateLockScreenInputpad = function(options) {
 SystemAppBuilder.prototype.inlineDeviceType = function(options) {
   var stagePath = options.STAGE_APP_DIR;
   var deviceType = options.GAIA_DEVICE_TYPE;
+  var basemodulePath = [stagePath, 'js', 'base_module.js'];
+  var basemoduleFile = utils.getFile.apply(utils, basemodulePath);
+  var basemoduleContent = utils.getFileContent(basemoduleFile);
   var featureDetectorPath = [stagePath, 'js', 'feature_detector.js'];
   var featureDetectorFile = utils.getFile.apply(utils, featureDetectorPath);
   var featureDetectorContent = utils.getFileContent(featureDetectorFile);
 
   // `this.deviceType = '_GAIA_DEVICE_TYPE_';` will be replaced by real device
   // type, take phone for example, result will be: this.deviceType = 'phone';
+  // Only override necessary modules below in build time.
+  // For common case, using standard method Service.query('getDeviceType') to
+  // get device type
+  utils.writeContent(
+    basemoduleFile,
+    basemoduleContent.replace(
+      /this\.deviceType = \'_GAIA_DEVICE_TYPE_\';/,
+      'this.deviceType = \'' + deviceType + '\';')
+  );
+
   utils.writeContent(
     featureDetectorFile,
     featureDetectorContent.replace(
       /this\.deviceType = \'_GAIA_DEVICE_TYPE_\';/,
       'this.deviceType = \'' + deviceType + '\';')
   );
+};
+
+SystemAppBuilder.prototype.enableFirefoxSync = function(options) {
+  var fileList = {
+    process: [
+      ['js', 'core.js'],
+      ['js', 'fx_accounts_client.js']
+    ],
+    remove: [
+      ['js', 'sync_manager.js'],
+      ['js', 'sync_state_machine.js'],
+      ['test', 'unit', 'sync_manager_test.js'],
+      ['test', 'unit', 'sync_state_machine_test.js']
+    ]
+  };
+  preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
 };
 
 SystemAppBuilder.prototype.execute = function(options) {
@@ -122,6 +153,7 @@ SystemAppBuilder.prototype.execute = function(options) {
   if (this.distDirPath) {
     this.addCustomizeFiles();
   }
+  this.enableFirefoxSync(options);
   this.integrateLockScreen(options);
   this.integrateLockScreenInputpad(options);
   this.inlineDeviceType(options);

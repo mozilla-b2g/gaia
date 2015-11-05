@@ -1,10 +1,14 @@
-/* global InboxView,
+/* global App,
+          ConversationClient,
+          Drafts,
+          InboxView,
           InterInstanceEventDispatcher,
           LazyLoader,
           MessageManager,
           Navigation,
           Settings,
-          TimeHeaders
+          TimeHeaders,
+          Utils
 */
 
 (function(exports) {
@@ -29,27 +33,21 @@
     });
   }
 
-  function initHeaders() {
-    var headers = document.querySelectorAll('gaia-header[no-font-fit]');
-    for (var header of headers) {
-      header.removeAttribute('no-font-fit');
-    }
-  }
-
   exports.Startup = {
     init() {
+      Utils.initializeShimHost(App.instanceId);
+
+      ConversationClient.init(App.instanceId);
       MessageManager.init();
       Navigation.init();
+      Drafts.init();
       InboxView.init();
 
       InboxView.once('visually-loaded', () => {
         initLazyDependencies();
-        initHeaders();
       });
 
       InboxView.renderThreads();
-
-      Navigation.toDefaultPanel();
     }
   };
 })(window);

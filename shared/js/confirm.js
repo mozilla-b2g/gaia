@@ -71,11 +71,11 @@ var ConfirmDialog = (function() {
 
     var setL10nAttributes = function (element, options){
       if ('string' === typeof options) {
-        navigator.mozL10n.setAttributes(element, options);
+        document.l10n.setAttributes(element, options);
       }
 
       if(options.id) {
-        navigator.mozL10n.setAttributes(element, options.id, options.args);
+        document.l10n.setAttributes(element, options.id, options.args);
       }
     };
 

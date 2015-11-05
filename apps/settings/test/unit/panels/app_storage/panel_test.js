@@ -1,7 +1,7 @@
 /* globals loadBodyHTML*/
 'use strict';
 
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('AppStoragePanel', function() {
   var modules = ['panels/app_storage/panel'];
@@ -26,17 +26,13 @@ suite('AppStoragePanel', function() {
 
     // Define MockAppStorage
     this.MockAppStorage = {
-      isMock: true,
-      enabled: true,
       updateInfo: function () {},
-      storage: {
-        usedPercentage: 1,
-        totalSize: 1,
-        usedSize: 1,
-        freeSize: 1,
-        observe: function() {},
-        unobserve: function() {}
-      }
+      usedPercentage: 1,
+      totalSize: 1,
+      usedSize: 1,
+      freeSize: 1,
+      observe: function() {},
+      unobserve: function() {}
     };
     define('MockAppStorage', function() {
       return that.MockAppStorage;
@@ -62,28 +58,28 @@ suite('AppStoragePanel', function() {
   });
 
   test('observe appStorage when onBeforeShow', function() {
-    this.sinon.stub(this.MockAppStorage.storage, 'observe');
+    this.sinon.stub(this.MockAppStorage, 'observe');
     this.panel.beforeShow();
-    assert.ok(this.MockAppStorage.storage.observe.calledWith(
+    assert.ok(this.MockAppStorage.observe.calledWith(
       sinon.match('usedPercentage')));
-    assert.ok(this.MockAppStorage.storage.observe.calledWith(
+    assert.ok(this.MockAppStorage.observe.calledWith(
       sinon.match('totalSize')));
-    assert.ok(this.MockAppStorage.storage.observe.calledWith(
+    assert.ok(this.MockAppStorage.observe.calledWith(
       sinon.match('usedSize')));
-    assert.ok(this.MockAppStorage.storage.observe.calledWith(
+    assert.ok(this.MockAppStorage.observe.calledWith(
       sinon.match('freeSize')));
   });
 
   test('unobserve appStorage when onHide', function() {
-    this.sinon.stub(this.MockAppStorage.storage, 'unobserve');
+    this.sinon.stub(this.MockAppStorage, 'unobserve');
     this.panel.hide();
-    assert.ok(this.MockAppStorage.storage.unobserve.calledWith(
+    assert.ok(this.MockAppStorage.unobserve.calledWith(
       sinon.match('usedPercentage')));
-    assert.ok(this.MockAppStorage.storage.unobserve.calledWith(
+    assert.ok(this.MockAppStorage.unobserve.calledWith(
       sinon.match('totalSize')));
-    assert.ok(this.MockAppStorage.storage.unobserve.calledWith(
+    assert.ok(this.MockAppStorage.unobserve.calledWith(
       sinon.match('usedSize')));
-    assert.ok(this.MockAppStorage.storage.unobserve.calledWith(
+    assert.ok(this.MockAppStorage.unobserve.calledWith(
       sinon.match('freeSize')));
   });
 });

@@ -4,7 +4,7 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 require('/shared/js/component_utils.js');
@@ -47,8 +47,8 @@ suite('UI Manager > ', function() {
   var mocksHelper = mocksHelperForUI;
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realTzSelect = window.tzSelect;
     window.tzSelect = MockTzSelect;
@@ -79,7 +79,7 @@ suite('UI Manager > ', function() {
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
 
     window.tzSelect = realTzSelect;
@@ -113,8 +113,7 @@ suite('UI Manager > ', function() {
           cityLabel,
           timeLabel,
           FAKE_TIMEZONE;
-      var localizeSpy,
-          localeFormatSpy;
+      var localizeSpy;
 
       setup(function() {
         FAKE_TIMEZONE = {
@@ -129,10 +128,7 @@ suite('UI Manager > ', function() {
         cityLabel = document.getElementById('tz-city-label');
         timeLabel = document.getElementById('time-configuration-label');
 
-        localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
-        localeFormatSpy =
-          this.sinon.spy(navigator.mozL10n.DateTimeFormat.prototype,
-                        'localeFormat');
+        localizeSpy = this.sinon.spy(document.l10n, 'setAttributes');
         UIManager.setTimeZone(FAKE_TIMEZONE);
       });
 
@@ -164,7 +160,15 @@ suite('UI Manager > ', function() {
       });
 
       test('should format the time', function() {
-        assert.isTrue(localeFormatSpy.called);
+        assert.equal(timeLabel.textContent, (new Date()).toLocaleString(
+          navigator.languages,
+          {
+            hour12: navigator.mozHour12,
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric'
+          }
+        ));
       });
     });
   });
@@ -210,13 +214,13 @@ suite('UI Manager > ', function() {
     });
 
     setup(function() {
-      localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+      localizeSpy = this.sinon.spy(document.l10n, 'setAttributes');
       nextButton = document.getElementById('forward');
       createAccountButton = document.getElementById('fxa-create-account');
     });
 
     teardown(function() {
-      navigator.mozL10n.setAttributes.restore();
+      document.l10n.setAttributes.restore();
     });
 
     suite('Verified Firefox Account login', function() {
@@ -277,7 +281,7 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('Account login - getAccounts no account', function() {
+    suite('Account login - getAccount no account', function() {
       setup(function() {
         createAccountButton.disabled = false;
         nextButton.setAttribute('data-l10n-id', 'skip');
@@ -298,9 +302,9 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('Account login - getAccounts error', function() {
+    suite('Account login - getAccount error', function() {
       setup(function() {
-        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        MockFxAccountsIACHelper.getAccountError = 'WHATEVER';
         createAccountButton.disabled = false;
         nextButton.setAttribute('data-l10n-id', 'skip');
         UIManager.onFxAFlowDone();
@@ -339,10 +343,10 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts does not ' +
+    suite('FTU initiates with a existing FxA login - getAccount does not ' +
           'give any results (or maybe it does but not in time)', function() {
       setup(function() {
-        MockFxAccountsIACHelper.getAccountsNoCallback = true;
+        MockFxAccountsIACHelper.getAccountNoCallback = true;
         UIManager.skipFxA = false;
         UIManager.checkInitialFxAStatus();
       });
@@ -356,12 +360,12 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+    suite('FTU initiates with a existing FxA login - getAccount error - ' +
           'logout ok', function() {
       var logoutSpy;
 
       setup(function() {
-        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        MockFxAccountsIACHelper.getAccountError = 'WHATEVER';
         UIManager.skipFxA = false;
         logoutSpy = this.sinon.spy(MockFxAccountsIACHelper, 'logout');
         UIManager.checkInitialFxAStatus();
@@ -380,12 +384,12 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+    suite('FTU initiates with a existing FxA login - getAccount error - ' +
           'logout no result or error', function() {
       var logoutSpy;
 
       setup(function() {
-        MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
+        MockFxAccountsIACHelper.getAccountError = 'WHATEVER';
         MockFxAccountsIACHelper.logoutNoCallback = true;
         UIManager.skipFxA = false;
         logoutSpy = this.sinon.spy(MockFxAccountsIACHelper, 'logout');
@@ -512,4 +516,64 @@ suite('UI Manager > ', function() {
     });
   });
 
+  suite('Metrics Section', function() {
+    var MockSettings;
+
+    setup(function() {
+      MockNavigatorSettings.mSetup();
+      MockSettings = MockNavigatorSettings.mSettings;
+      UIManager.init();
+      Navigation.currentStepIndex = 7;
+      Navigation.manageStep();
+      // Default settings
+      MockSettings['hud.hide'] = false;
+      MockSettings['devtools.overlay'] = false;
+    });
+
+    teardown(function() {
+      Navigation.currentStep = 1;
+      Navigation.manageStep();
+      MockNavigatorSettings.mTeardown();
+    });
+
+    test('should set the HUD settings correctly for Enhanced >', function() {
+      var fakeEvent = {
+        target: {
+          id: 'metrics-enhanced',
+          value: 'Enhanced'
+        }
+      };
+      UIManager.handleEvent(fakeEvent);
+      assert.equal(MockSettings['hud.hide'], true);
+      assert.equal(MockSettings['devtools.overlay'], true);
+      assert.equal(MockSettings['metrics.selectedMetrics.level'], 'Enhanced');
+    });
+
+    test('should not modify HUD settings from default for Basic >', function() {
+      var fakeEvent = {
+        target: {
+          id: 'metrics-basic',
+          value: 'Basic'
+        }
+      };
+      UIManager.handleEvent(fakeEvent);
+      assert.equal(MockSettings['hud.hide'], false);
+      assert.equal(MockSettings['devtools.overlay'], false);
+      assert.equal(MockSettings['metrics.selectedMetrics.level'], 'Basic');
+    });
+
+    test('should not modify the HUD settings from default for None >',
+    function() {
+      var fakeEvent = {
+        target: {
+          id: 'metrics-none',
+          value: 'None'
+        }
+      };
+      UIManager.handleEvent(fakeEvent);
+      assert.equal(MockSettings['hud.hide'], false);
+      assert.equal(MockSettings['devtools.overlay'], false);
+      assert.equal(MockSettings['metrics.selectedMetrics.level'], 'None');
+    });
+  });
 });

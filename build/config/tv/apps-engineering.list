@@ -11,7 +11,8 @@ tv_apps/dlna-player
 tv_apps/fling-player
 tv_apps/notification-receiver
 tv_apps/weather-widget
-tv_apps/notification
+tv_apps/remote-control
+tv_apps/remote-control-client
 apps/bluetooth
 apps/calendar
 apps/camera
@@ -22,10 +23,11 @@ apps/gallery
 apps/keyboard
 apps/music
 apps/pdfjs
-apps/system
 apps/video
 apps/wallpaper
 apps/marketplace.firefox.com
 apps/default_theme
 outoftree_apps/*
 dev_apps/test-agent
+dev_apps/uitest
+apps/sync

@@ -104,8 +104,7 @@ a:active {
   left: 0;
 }
 
-#frequency::after {
-  content: "MHz";
+#frequency small {
   font-size: 1.5rem;
   padding-left: 0.3rem;
 }
@@ -312,8 +311,7 @@ div#fav-list-container div.fav-list-frequency {
   width: 6rem;
 }
 
-div#fav-list-container div.fav-list-frequency::after {
-  content: "MHz";
+div#fav-list-container div.fav-list-frequency small {
   font-size: 1.5rem;
   position: absolute;
   padding: .6rem .2rem 0 1rem;
@@ -482,6 +480,11 @@ a#frequency-op-seekup:active {
 /***  styles for antenna warning box ****/
 #antenna-warning {
   z-index: 2;
+}
+
+#antenna-warning:not([hidden]) {
+  display: flex;
+  flex-direction: column;
 }
 
 #antenna-warning > div:first-child {

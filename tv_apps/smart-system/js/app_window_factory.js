@@ -52,7 +52,8 @@
       window.addEventListener('openwindow', this.preHandleEvent);
       window.addEventListener('appopenwindow', this.preHandleEvent);
       window.addEventListener('iac-customlaunchpath', this.preHandleEvent);
-      window.addEventListener('mozChromeEvent', this.preHandleEvent);
+      window.addEventListener(
+                            'mozPresentationChromeEvent', this.preHandleEvent);
       window.addEventListener('applicationready', (function appReady(e) {
         window.removeEventListener('applicationready', appReady);
         this._handlePendingEvents();
@@ -154,7 +155,7 @@
     },
 
     _sendPresentationLaunched: function awf_sendPresentationLaunched(app, id) {
-      var evt = new CustomEvent('mozContentEvent', {
+      var evt = new CustomEvent('mozPresentationContentEvent', {
         bubbles: true,
         cancelable: false,
         detail: {
@@ -179,7 +180,7 @@
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
 
-      if (evt.type == 'mozChromeEvent' &&
+      if (evt.type == 'mozPresentationChromeEvent' &&
         detail.type == 'presentation-launch-receiver') {
         this.handlePresentation(evt.detail);
         return;

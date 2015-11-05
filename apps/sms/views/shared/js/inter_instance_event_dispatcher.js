@@ -13,7 +13,7 @@
   var channel = null;
 
   const BROADCAST_CHANNEL_NAME = 'messages-channel';
-  const ALLOWED_EVENTS = ['drafts-changed'];
+  const ALLOWED_EVENTS = ['draft-saved', 'draft-deleted'];
 
   function postMessage(name, parameters) {
     if (!channel) {

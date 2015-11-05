@@ -86,6 +86,11 @@ window.GaiaRadio = (function(win) {
     });
     this.dispatchEvent(event);
 
+    // If this radio component is already checked, don't do anything.
+    if (this.checked) {
+      return;
+    }
+
     if (!event.defaultPrevented) {
       this.checked = !this.checked;
     }
@@ -103,6 +108,22 @@ window.GaiaRadio = (function(win) {
   proto.configureClass = function() {
     this._wrapper.className = this.className;
     this._wrapper.classList.toggle('checked', this._checked);
+  };
+
+  /**
+   * Helper method to remove the component details.
+   */
+  proto.hideDetails = function() {
+    this.shadowRoot.querySelector('.details').style.display = 'none';
+  };
+
+  /**
+   * Proxy className property to the wrapper.
+   */
+  proto.attributeChangedCallback = function(name, from, to) {
+    if (name === 'class') {
+      this._wrapper.className = to;
+    }
   };
 
   /**
@@ -175,6 +196,8 @@ window.GaiaRadio = (function(win) {
   var template = document.createElement('template');
   template.innerHTML = '<span role="radio" id="radio">' +
       '<span><content select="p,label"></content></span>' +
+      '<div class="details"><content select="details"></content></div>' +
+      '<div class="divider"></div>' +
     '</span>';
 
   // Register and return the constructor

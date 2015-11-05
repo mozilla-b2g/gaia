@@ -1,10 +1,19 @@
 {
-  "smart-home": {
-    "src": [
-      "tv_apps/apps-deck/js/**/*.js"
-    ],
-    "options": {
-      "destination": "docs/apps-deck"
-    }
+  "name": "app-deck",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["tv_apps/app-deck/README.md", "tv_apps/app-deck/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/app-deck"
   }
 }
+

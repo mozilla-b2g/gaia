@@ -78,15 +78,6 @@ var Marquee = {
     var titleText = document.getElementById('marquee-h-text');
     var cssClass, width;
 
-    // Regardless of text character alignment, still want shorter text that does
-    // not span the whole element area to be aligned to match the UI. The
-    // dir="auto" on titleText will still preserve the correct order of the
-    // characters in the text.
-    titleText.classList.remove('ltr-align');
-    titleText.classList.remove('rtl-align');
-    titleText.classList.add((document.dir === 'rtl' ? 'rtl' : 'ltr') +
-                           '-align');
-
     // Check if the title text overflows, and if so, add the marquee class
     // NOTE: this can only be checked it the DOM structure is updated
     //       through Marquee.setup()

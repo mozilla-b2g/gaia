@@ -59,6 +59,7 @@ suite('Operator variant', function() {
     { key: 'ril.data.httpProxyHost', value: '127.0.0.1' },
     { key: 'ril.data.httpProxyPort', value: '8080' },
     { key: 'ril.data.authtype', value: 'none' },
+    { key: 'ril.data.mtu', value: '1440' },
     { key: 'ril.supl.carrier', value: 'Test Network' },
     { key: 'ril.supl.apn', value: 'internet' },
     { key: 'ril.supl.user', value: 'user' },
@@ -66,6 +67,7 @@ suite('Operator variant', function() {
     { key: 'ril.supl.httpProxyHost', value: '127.0.0.1' },
     { key: 'ril.supl.httpProxyPort', value: '8080' },
     { key: 'ril.supl.authtype', value: 'none' },
+    { key: 'ril.supl.mtu', value: '1440' },
     { key: 'ril.dun.carrier', value: 'Test Network' },
     { key: 'ril.dun.apn', value: 'internet' },
     { key: 'ril.dun.user', value: 'user' },
@@ -73,6 +75,7 @@ suite('Operator variant', function() {
     { key: 'ril.dun.httpProxyHost', value: '127.0.0.1' },
     { key: 'ril.dun.httpProxyPort', value: '8080' },
     { key: 'ril.dun.authtype', value: 'none' },
+    { key: 'ril.dun.mtu', value: '1440' },
     { key: 'ril.ims.carrier', value: 'Test Network' },
     { key: 'ril.ims.apn', value: 'internet' },
     { key: 'ril.ims.user', value: 'user' },
@@ -80,11 +83,21 @@ suite('Operator variant', function() {
     { key: 'ril.ims.httpProxyHost', value: '127.0.0.1' },
     { key: 'ril.ims.httpProxyPort', value: '8080' },
     { key: 'ril.ims.authtype', value: 'none' },
+    { key: 'ril.ims.mtu', value: '1440' },
+    { key: 'ril.fota.carrier', value: 'Test Network' },
+    { key: 'ril.fota.apn', value: 'internet' },
+    { key: 'ril.fota.user', value: 'user' },
+    { key: 'ril.fota.passwd', value: 'password' },
+    { key: 'ril.fota.httpProxyHost', value: '127.0.0.1' },
+    { key: 'ril.fota.httpProxyPort', value: '8080' },
+    { key: 'ril.fota.authtype', value: 'none' },
+    { key: 'ril.fota.mtu', value: '1440' },
     { key: 'ril.mms.carrier', value: 'Test Network' },
     { key: 'ril.mms.apn', value: 'internet' },
     { key: 'ril.mms.mmsc', value: 'http://127.0.0.1' },
     { key: 'ril.mms.mmsproxy', value: '127.0.0.1' },
     { key: 'ril.mms.mmsport', value: '8080' },
+    { key: 'ril.mms.mtu', value: '1440' },
     { key: 'ril.data.carrier', value: 'Test Network' },
     { key: 'ril.iccInfo.mbdn', value: [ORIGINAL_VOICEMAIL_NUMBER, ''] },
     { key: 'ril.cellbroadcast.searchlist', value: '0,1,2,3' }
@@ -97,7 +110,8 @@ suite('Operator variant', function() {
     { key: 'ril.data.passwd', value: 'password' },
     { key: 'ril.data.httpProxyHost', value: '127.0.0.1' },
     { key: 'ril.data.httpProxyPort', value: '8080' },
-    { key: 'ril.data.authtype', value: 'none' }
+    { key: 'ril.data.authtype', value: 'none' },
+    { key: 'ril.data.mtu', value: '1440' }
   ];
 
   var realMozSettings, realMozIccManager;

@@ -20,7 +20,7 @@
     'BrowserSettings'
   ];
   Places.SERVICES = [
-    'clear', 'pin'
+    'clearHistory'
   ];
 
   BaseModule.create(Places, {
@@ -197,7 +197,8 @@
         frecency: 0,
         // An array containing previous visits to this url
         visits: [],
-        screenshot: null
+        screenshot: null,
+        themeColor: null
       };
     },
 
@@ -244,10 +245,10 @@
     },
 
     /**
-     * Pin/un-pin a page.
-     * 
+     * Pin/unpin a page.
+     *
      * @param {String} url The URL of the page to pin.
-     * @param {Boolean} value true for pin, false for un-pin.
+     * @param {Boolean} value true for pin, false for unpin.
      * @returns {Promise} Promise of a response.
      */
     setPinned: function(url, value) {
@@ -260,6 +261,28 @@
       });
     },
 
+    /**
+     * Is a page currently pinned?
+     *
+     * @param {String} url The URL of the page to check.
+     * @returns {Promise} Promise of a response.
+     */
+    isPinned: function(url) {
+      return new Promise((resolve, reject) => {
+        return this.getStore()
+          .then(store => {
+            return store.get(url);
+          })
+          .then(place => {
+            return resolve(!!place.pinned);
+          })
+          .catch(e => {
+            console.error(`Error getting the page details: ${e}`);
+            return reject(e);
+          });
+      });
+    },
+
     /*
      * Add a recorded visit to the history, we prune them to the last
      * TRUNCATE_VISITS number of visits and store them in a low enough
@@ -268,7 +291,6 @@
     TRUNCATE_VISITS: 10,
 
     addToVisited: function(place) {
-
       place.visits = place.visits || [];
 
       if (!place.visits.length) {
@@ -321,12 +343,87 @@
     },
 
     /**
-     * Clear all the visits in the store.
-     * @memberof Places.prototype
+     * Update the theme color of a page in the places db.
+     *
+     * @param {String} url The URL of the page
+     * @param {String} color The CSS color
      */
-    clear: function() {
-      return this.getStore().then(store => {
-        store.clear();
+    saveThemeColor: function(url, color) {
+      return this.editPlace(url, function(place, cb) {
+        place.themeColor = color;
+        cb(place);
+      });
+    },
+
+    /**
+     * Clear all the visits in the store but the pinned pages.
+     *
+     * @return Promise
+     */
+    clearHistory: function() {
+      return new Promise((resolve, reject) => {
+        return this.getStore().then(store => {
+          store.getLength().then((storeLength) => {
+            if (!storeLength) {
+              return resolve();
+            }
+
+            new Promise((resolveInner, rejectInner) => {
+              var urls = new Map();
+              var cursor = store.sync();
+
+              function cursorResolve(task) {
+                switch (task.operation) {
+                  case 'update':
+                  case 'add':
+                    urls.set(task.id, task.data);
+                    break;
+
+                  case 'remove':
+                    urls.delete(task.id, task.data);
+                    break;
+
+                  case 'clear':
+                    urls.clear();
+                    break;
+
+                  case 'done':
+                    return resolveInner(urls);
+                }
+
+                cursor.next().then(cursorResolve, rejectInner);
+              }
+
+              cursor.next().then(cursorResolve, rejectInner);
+            })
+              .then((urls) => {
+                var promises = [];
+
+                urls.forEach((val, key) => {
+                  if (val.pinned) {
+                    // Clear the visit history of pinned pages.
+                    promises.push(this.editPlace(key, function(place, cb) {
+                      place.visits = [];
+                      cb(place);
+                    }));
+                  } else {
+                    // Remove all other pages from history.
+                    promises.push(store.remove(key));
+                  }
+                });
+
+                Promise.all(promises)
+                  .then(() => {
+                    console.log('Browsing history successfully cleared.');
+                    resolve();
+                  });
+              })
+              .catch((e) => {
+                console.error(`Error trying to clear browsing history: ${e}`);
+                reject(e);
+              });
+          });
+        });
       });
     },
 

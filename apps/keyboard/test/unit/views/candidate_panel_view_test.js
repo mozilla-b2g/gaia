@@ -16,7 +16,8 @@ function createFakeCandidates(count) {
 suite('Views > CandidatePanelView', function() {
   var candidatePanelView = null;
   var viewManager = {
-    registerView: sinon.stub()
+    registerView: sinon.stub(),
+    getRemToPx: sinon.stub().returns(10)
   };
 
   suite('some basic functions',  function() {
@@ -35,6 +36,10 @@ suite('Views > CandidatePanelView', function() {
       var classList = candidatePanelView.element.classList;
       assert.isTrue(classList.contains('basic-class'),
                     'should contain the className specified in options');
+    });
+
+    test('> getHeight()', function() {
+      assert.equal(candidatePanelView.getHeight(), 32);
     });
 
     suite('> showCandidates()',  function() {

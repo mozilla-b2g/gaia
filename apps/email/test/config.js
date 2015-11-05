@@ -8,7 +8,7 @@
     paths: {
       test: '../test',
       l10nbase: '../shared/js/l10n',
-      l10ndate: '../shared/js/l10n_date',
+      moz_intl: '../shared/test/unit/mocks/mock_moz_intl',
       style: '../style',
       shared: '../shared'
     },
@@ -18,8 +18,10 @@
       }
     },
     shim: {
-      l10ndate: ['l10nbase'],
-
+      moz_intl: {
+        deps: ['l10nbase'],
+        exports: 'MockMozIntl'
+      },
       'shared/js/mime_mapper': {
         exports: 'MimeMapper'
       },
@@ -30,6 +32,31 @@
 
       'shared/js/accessibility_helper': {
         exports: 'AccessibilityHelper'
+      },
+
+      'shared/js/gesture_detector': {
+        exports: 'GestureDetector'
+      }
+    },
+    config: {
+      template: {
+        tagToId: function(tag) {
+           return tag.replace(/^cards-/, 'cards/')
+                  .replace(/^lst-/, 'cards/lst/')
+                  .replace(/^msg-/, 'cards/msg/')
+                  .replace(/^cmp-/, 'cards/cmp/')
+                  .replace(/-/g, '_');
+        }
+      },
+
+      element: {
+        idToTag: function(id) {
+          return id.toLowerCase()
+                 .replace(/^cards\/lst\//, 'lst-')
+                 .replace(/^cards\/msg\//, 'msg-')
+                 .replace(/^cards\/cmp\//, 'cmp-')
+                 .replace(/[^a-z]/g, '-');
+        }
       }
     },
     definePrim: 'prim'

@@ -2,13 +2,11 @@
 
 suite('about > update_check', function() {
   var updateCheck;
-  var realL10n;
   var realNavigatorSettings;
   var geckoUpdateSetting = 'gecko.updateStatus';
   var appsUpdateSetting = 'apps.updateStatus';
 
   var modules = [
-    'shared_mocks/mock_l10n',
     'shared_mocks/mock_navigator_moz_settings',
     'panels/about/update_check'
   ];
@@ -23,11 +21,10 @@ suite('about > update_check', function() {
   };
 
   setup(function(done) {
-    testRequire(modules, maps,
-      function(MockL10n, MockNavigatorSettings, module) {
-        realL10n = navigator.mozL10n;
-        navigator.mozL10n = MockL10n;
+    this.clock = this.sinon.useFakeTimers();
 
+    testRequire(modules, maps,
+      function(MockNavigatorSettings, module) {
         realNavigatorSettings = navigator.mozSettings;
         navigator.mozSettings = MockNavigatorSettings;
 
@@ -38,9 +35,6 @@ suite('about > update_check', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
-    realL10n = null;
-
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
   });
@@ -218,6 +212,9 @@ suite('about > update_check', function() {
       });
 
       test('hides the status', function() {
+        assert.isTrue(updateCheck._elements.updateStatus.classList
+          .contains('visible'));
+        this.clock.tick(5001);
         assert.isFalse(updateCheck._elements.updateStatus.classList
           .contains('visible'));
       });
@@ -242,6 +239,9 @@ suite('about > update_check', function() {
       });
 
       test('hide the status', function() {
+        assert.isTrue(updateCheck._elements.updateStatus.classList
+          .contains('visible'));
+        this.clock.tick(5001);
         assert.isFalse(updateCheck._elements.updateStatus.classList
           .contains('visible'));
       });

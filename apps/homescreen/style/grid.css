@@ -1,0 +1,33 @@
+gaia-container {
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-flow: row wrap;
+  align-content: flex-start;
+  transition: opacity 0.2s;
+  box-sizing: padding-box;
+  padding: 0 1.5vw;
+  padding-bottom: 6rem;
+}
+
+.snapping gaia-container {
+  background: linear-gradient(to bottom, transparent,
+                                         transparent 50%,
+                                         rgba(255, 255, 255, 0.15) 50%,
+                                         rgba(255, 255, 255, 0.15));
+  background-size: 100% 200%;
+  background-repeat: repeat-y;
+}
+
+gaia-container:not(.loading) > .gaia-container-child:not(.added):not(.dragging) {
+  transition: transform 0.2s;
+}
+
+gaia-container > .gaia-container-child.dragging {
+  z-index: 1;
+  will-change: transform;
+}
+
+gaia-container > .gaia-container-child:not(.added):not(.removed) > * {
+  transition: transform 0.2s;
+}

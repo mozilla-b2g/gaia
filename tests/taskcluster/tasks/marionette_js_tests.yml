@@ -8,15 +8,9 @@ task:
 
   workerType: '{{workerType}}'
   provisionerId: '{{provisionerId}}'
-  scopes:
-    # Source caches contains various sources (including a tarball of gaia source
-    # tree)
-    - docker-worker:cache:gaia-misc-caches
-
   payload:
     maxRunTime: 7200
-    cache:
-      gaia-misc-caches: /home/tester/caches/
+
     # Chunking logic is actually in the Makefile here which may make it
     # confusing to figure out who calls what this should be improved.
     env:

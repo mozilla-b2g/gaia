@@ -1,5 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager,
-           LockScreenSlide, MozActivity, SettingsListener, Utils */
+           LockScreenSlide, MozActivity, SettingsListener, Utils, mozIntl */
 /* jshint nonew: false */
 
 'use strict';
@@ -378,16 +378,14 @@ var CallScreen = {
   },
 
   showClock: function cs_showClock(now) {
-    // this is a non-standard, Gecko only API, but we have
-    // no other way to get the am/pm portion of the date and remove it.
-    var amPm = now.toLocaleFormat('%p');
-
-    var timeText = now.toLocaleString(navigator.languages, {
+    var formatter = mozIntl.DateTimeFormat(navigator.languages, {
       hour12: navigator.mozHour12,
+      dayperiod: false,
       hour: 'numeric',
       minute: 'numeric'
-    }).replace(amPm, '').trim();
+    });
 
+    var timeText = formatter.format(now);
     var dateText = now.toLocaleString(navigator.languages, {
       weekday: 'long',
       month: 'long',
@@ -417,6 +415,14 @@ var CallScreen = {
     }
 
     this.setCallerContactImage();
+  },
+
+  enableKeypadButton: function cs_enableKeypadButton() {
+    this.keypadButton.removeAttribute('disabled');
+  },
+
+  disableKeypadButton: function cs_disableKeypadButton() {
+    this.keypadButton.setAttribute('disabled', 'disabled');
   },
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
@@ -490,6 +496,7 @@ var CallScreen = {
       return false;
     }
 
+    durationChildNode.removeAttribute('data-l10n-id');
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
 

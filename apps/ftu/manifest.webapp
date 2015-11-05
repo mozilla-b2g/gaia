@@ -42,7 +42,8 @@
     "time": {},
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},
-    "webapps-manage":{}
+    "webapps-manage":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
 
   "orientation": "default",
@@ -63,6 +64,11 @@
     "Import_Status_Data": {
       "readonly": false,
       "description": "Import status data shared between FTU and Contacts"
+    },
+    "icons": {
+      "readonly": true,
+      "description": "Retrieve cached website icons."
     }
   }
+
 }

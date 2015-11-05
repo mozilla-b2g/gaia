@@ -9,7 +9,7 @@ function MockIndexedDB() {
   this.storedDataDbs = {};
 
   var self = this;
-  
+
   var nextId = 1;
 
   Object.defineProperty(this, 'dbs', {
@@ -24,7 +24,7 @@ function MockIndexedDB() {
     }
   });
 
-  var FakeDB = function(name , storedData) {
+  var FakeDB = function(name, storedData) {
     var dummyFunction = function(obj) {
       return obj;
     };
@@ -58,10 +58,10 @@ function MockIndexedDB() {
     this.objectStore.returns(this);
 
     var self = this;
-    
+
     sinon.stub(this, 'index', function(indexName) {
       var data = self.storedData;
-      
+
       if (self._indexedData && self._indexedData.by) {
         data = self._indexedData.by[indexName] || self.storedData;
       }
@@ -82,7 +82,7 @@ function MockIndexedDB() {
     sinon.stub(this, 'get', function(key) {
       return _getRequest(self.storedData[key] || self.receivedDataHash[key]);
     });
-    
+
     sinon.stub(this, 'openCursor', function() {
       if (self.options.cursorOpenInError === true) {
         return _getRequest(null, {
@@ -92,11 +92,11 @@ function MockIndexedDB() {
       if (Object.keys(self.storedData).length === 0) {
         return _getRequest(null);
       }
- 
+
       var cursor = new FakeCursor(self.storedData);
       var req = _getRequest(cursor);
       cursor.request = req;
- 
+
       return req;
     });
 
@@ -116,20 +116,20 @@ function MockIndexedDB() {
       if (idx !== -1) {
         self.receivedData.splice(idx, 1);
       }
-      
+
       self.deletedData.push(id);
       return _getRequest(true);
     });
-    
+
     sinon.stub(this, 'clear', function() {
       self.storedData = {};
       self.receivedDataHash = {};
       self.receivedData = [];
-      
+
       return _getRequest();
     });
   };
-  
+
   function FakeIndex(indexName, data, options) {
     this.openCursor = function() {
       if (options.cursorOpenInError === true) {
@@ -137,7 +137,7 @@ function MockIndexedDB() {
           isInError: true
         });
       }
-      
+
       if (Object.keys(data).length === 0) {
         return _getRequest(null);
       }
@@ -171,7 +171,7 @@ function MockIndexedDB() {
     };
   };
 
-  sinon.stub(window.indexedDB, 'open', function(name) {
+  var openStub = sinon.stub(window.indexedDB, 'open', function(name) {
     if (Array.isArray(self.options.inErrorDbs) &&
         self.options.inErrorDbs.indexOf(name) !== -1) {
       return _getRequest(null, {
@@ -189,15 +189,15 @@ function MockIndexedDB() {
     return outReq;
   });
 
-  sinon.stub(window.indexedDB, 'deleteDatabase', function(name) {
-    deletedDbs.push(name);
-    return _getRequest(null);
-  });
-
+  var deleteDatabaseStub = sinon.stub(window.indexedDB, 'deleteDatabase',
+    function(name) {
+      deletedDbs.push(name);
+      return _getRequest(null);
+    });
 
   function _getRequest(result, opts) {
     var options = opts || {};
-    
+
     return {
       result: result,
       error: null,
@@ -236,4 +236,9 @@ function MockIndexedDB() {
       }
     };
   }
+
+  this.mTearDown = () => {
+    openStub.restore();
+    deleteDatabaseStub.restore();
+  };
 }

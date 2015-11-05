@@ -4,7 +4,7 @@
 
 @font-face {
   font-family: "smart-icons";
-  src: url("smart-icons.ttf") format("truetype");
+  src: url("fonts/smart-icons.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
 }

@@ -48,13 +48,17 @@ suite('Download item', function() {
 
   suite(' > create', function() {
     var downloadMock, downloadElement;
-    setup(function() {
+    setup(function(done) {
       downloadMock = new MockDownload({
         totalBytes: 1000,
         currentBytes: 500,
         state: 'downloading'
       });
-      downloadElement = DownloadItem.create(downloadMock);
+
+      DownloadItem.create(downloadMock).then((res) => {
+        downloadElement = res;
+        done();
+      });
     });
 
     teardown(function() {
@@ -90,14 +94,17 @@ suite('Download item', function() {
 
   suite(' > update', function() {
     var downloadMock, downloadElement, l10nSpy, fileFormatterSpy;
-    setup(function() {
+    setup(function(done) {
       downloadMock = new MockDownload({
         state: 'downloading'
       });
-      downloadElement = DownloadItem.create(downloadMock);
-      l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
-      fileFormatterSpy = this.sinon.spy(DownloadFormatter, 'getTotalSize');
-      navigator.onLine = true;
+      DownloadItem.create(downloadMock).then((res) => {
+        downloadElement = res;
+        l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+        fileFormatterSpy = this.sinon.spy(DownloadFormatter, 'getTotalSize');
+        navigator.onLine = true;
+        done();
+      });
     });
 
     teardown(function() {
@@ -105,57 +112,65 @@ suite('Download item', function() {
       downloadElement = null;
     });
 
-    test(' > from downloading to stopped by the user', function() {
+    test(' > from downloading to stopped by the user', function(done) {
       var downloadPaused = new MockDownload({
         state: 'stopped'
       });
-      DownloadItem.refresh(downloadElement, downloadPaused);
-      assert.ok(l10nSpy.called);
-      var l10nParams = l10nSpy.args[0][2];
-      assert.equal(l10nParams.status, 'download-stopped');
+      DownloadItem.refresh(downloadElement, downloadPaused).then(() => {
+        assert.ok(l10nSpy.called);
+        var l10nParams = l10nSpy.args[0][2];
+        assert.equal(l10nParams.status, 'download-stopped');
+        done();
+      });
     });
 
     test(' > from downloading to stopped because of connectivity was lost',
-         function() {
+         function(done) {
       var downloadPaused = new MockDownload({
         state: 'stopped'
       });
       navigator.onLine = false;
-      DownloadItem.refresh(downloadElement, downloadPaused);
-      assert.ok(l10nSpy.called);
-      assert.ok(fileFormatterSpy.called);
-      var l10nParams = l10nSpy.args[0][2];
-      assert.equal(l10nParams.partial,
-                   DownloadFormatter.getDownloadedSize(downloadPaused));
-      assert.equal(l10nParams.total,
-                   DownloadFormatter.getTotalSize(downloadPaused));
+      Promise.all([
+        DownloadFormatter.getDownloadedSize(downloadPaused),
+        DownloadFormatter.getTotalSize(downloadPaused),
+        DownloadItem.refresh(downloadElement, downloadPaused)
+      ]).then(([downloadedSize, totalSize, refreshRes]) => {
+        assert.ok(l10nSpy.called);
+        assert.ok(fileFormatterSpy.called);
+        var l10nParams = l10nSpy.args[0][2];
+        assert.equal(l10nParams.partial, downloadedSize);
+        assert.equal(l10nParams.total, totalSize);
+        done();
+      });
     });
 
-    test(' > from downloading to failed', function() {
+    test(' > from downloading to failed', function(done) {
       var downloadPaused = new MockDownload({
         state: 'stopped',
         error: {}
       });
-      DownloadItem.refresh(downloadElement, downloadPaused);
-      assert.ok(l10nSpy.called);
-      var l10nParams = l10nSpy.args[0][2];
-      assert.equal(l10nParams.status, 'download-failed');
+      DownloadItem.refresh(downloadElement, downloadPaused).then(() => {
+        assert.ok(l10nSpy.called);
+        var l10nParams = l10nSpy.args[0][2];
+        assert.equal(l10nParams.status, 'download-failed');
+        done();
+      });
     });
 
-    test(' > from downloading to succeeded', function() {
+    test(' > from downloading to succeeded', function(done) {
       var downloadPaused = new MockDownload({
         state: 'succeeded'
       });
-      DownloadItem.refresh(downloadElement, downloadPaused);
+      DownloadItem.refresh(downloadElement, downloadPaused).then(() => {
+        assert.ok(fileFormatterSpy.called);
+        assert.ok(l10nSpy.called);
 
-      assert.ok(fileFormatterSpy.called);
-      assert.ok(l10nSpy.called);
-
-      var l10nParams = l10nSpy.args[0][2];
-      assert.equal(
-        l10nParams.status,
-        DownloadFormatter.getTotalSize(downloadPaused)
-      );
+        var l10nParams = l10nSpy.args[0][2];
+        DownloadFormatter.getTotalSize(downloadPaused).then(status => {
+          assert.equal(l10nParams.status, status);
+          done();
+        });
+      });
     });
   });
 });

@@ -20,8 +20,10 @@
   ];
   AppWindowManager.STATES = [
     'getApp',
+    'getAppInScope',
     'getAppByURL',
     'getApps',
+    'getUnpinnedWindows',
     'slowTransition',
     'getActiveApp',
     'getActiveWindow',
@@ -55,12 +57,13 @@
     'attentionopened',
     'homegesture-enabled',
     'homegesture-disabled',
-    'orientationchange',
+    'appwindow-orientationchange',
     'sheets-gesture-begin',
     'sheets-gesture-end',
       // XXX: PermissionDialog is shared so we need AppWindowManager
       // to focus the active app after it's closed.
     'permissiondialoghide',
+    'sleepmenuhide', // We need to focus the active app on this event
     'appopening',
     'localized',
     'launchtrusted',
@@ -68,9 +71,12 @@
     'hierarchytopmostwindowchanged',
     'cardviewbeforeshow',
     'cardviewclosed',
-    'cardviewshown'
+    'cardviewshown',
+    'inputfocus',
+    'inputblur'
   ];
   AppWindowManager.SUB_MODULES = [
+    'PinPageSystemDialog',
     'FtuLauncher',
     'AppWindowFactory',
     'LockScreenLauncher',
@@ -200,6 +206,45 @@
     },
 
     /**
+     * Match app scope and get the first matching one.
+     * @param  {String} scope The scope to be matched.
+     * @return {AppWindow}        The app window object matched.
+     */
+    getAppInScope: function awm_getAppInScope(scope, origin, name) {
+      var keys = Object.keys(this._apps);
+      var appInScope;
+      keys.forEach(function(id) {
+        var app = this._apps[id];
+        var inScope = (scope && app.inScope(scope));
+        if (scope && !inScope) {
+          return;
+        }
+
+        if (inScope || app.matchesOriginAndName(origin, name)) {
+          var replace = (!appInScope || appInScope.launchTime < app.launchTime);
+          appInScope = replace ? app : appInScope;
+        }
+      }.bind(this));
+
+      return appInScope;
+    },
+
+    /**
+     * Find all not pinned appWindows
+     * @return Array {AppWindow} Array of appWindows
+     */
+    getUnpinnedWindows: function awm_getUnpinnedWindows() {
+      var unpinnedWindows = [];
+      for (var id in this._apps) {
+        var app = this._apps[id];
+        if (app.isBrowser() && !app.appChrome.pinned) {
+          unpinnedWindows.push(app);
+        }
+      }
+      return unpinnedWindows;
+    },
+
+    /**
      * Match app window that is currently at a specific url.
      * @param  {String} url The url to be matched.
      * @return {AppWindow} The app window object matched.
@@ -283,14 +328,12 @@
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
 
-      this._updateActiveApp(appNext.instanceID);
-
       var that = this;
       if (appCurrent && this.service.query('keyboardEnabled')) {
         this.stopRecording();
 
         // Ask keyboard to hide before we switch the app.
-      window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
+        window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
           that.switchApp(appCurrent, appNext, switching);
         });
@@ -327,7 +370,10 @@
      */
     switchApp: function awm_switchApp(appCurrent, appNext, switching,
                                       openAnimation, closeAnimation) {
+
       this.debug('before ready check' + appCurrent + appNext);
+      this._updateActiveApp(appNext.instanceID);
+
       appNext.ready(function() {
         if (appNext.isDead()) {
           if (!appNext.isHomescreen) {
@@ -540,7 +586,13 @@
       this._activeApp && this._activeApp.broadcast('focus');
     },
 
-    _handle_orientationchange: function() {
+    // When the sleep menu is hidden we need to re-focus the active app
+    // or key events won't be properly dispatched to it. See bug 1200351.
+    '_handle_sleepmenuhide': function() {
+      this._activeApp && this._activeApp.broadcast('focus');
+    },
+
+    '_handle_appwindow-orientationchange': function() {
       this.broadcastMessage('orientationchange',
         this.service.query('getTopMostUI') === this);
     },
@@ -589,7 +641,11 @@
       this._apps[evt.detail.instanceID] = evt.detail;
     },
 
-    '_handle_homescreen-changed': function() {
+    '_handle_homescreen-changed': function(evt) {
+      if (this.service.query('isFtuRunning')) {
+        return;
+      }
+
       this.display();
     },
 
@@ -701,14 +757,17 @@
       return true;
     },
 
-    '_handle_mozChromeEvent': function(evt) {
-      if (!evt.detail || evt.detail.type !== 'inputmethod-contextchange') {
-        return true;
-      }
+    '_handle_inputfocus': function(evt) {
       if (this._activeApp) {
-        this._activeApp.getTopMostWindow()
-            .broadcast('inputmethod-contextchange',
-          evt.detail);
+        this._activeApp.getTopMostWindow().broadcast('inputfocus', evt.detail);
+        return false;
+      }
+      return true;
+    },
+
+    '_handle_inputblur': function(evt) {
+      if (this._activeApp) {
+        this._activeApp.getTopMostWindow().broadcast('inputblur');
         return false;
       }
       return true;
@@ -780,13 +839,21 @@
       }
       if (config.stayBackground) {
         return;
-      } else {
-        // Link the window before displaying it to avoid race condition.
-        if (config.isActivity && this._activeApp) {
-          this.linkWindowActivity(config);
-        }
-        this.display(this.getApp(config.origin));
       }
+
+      // Cancel inline activities on webapps-launch to make sure we actually
+      // open on the app and not on an inline activity
+      // (Workaround for bug 1122205)
+      var app = this.getApp(config.origin);
+      if (config.evtType === 'webapps-launch') {
+        app.frontWindow && app.frontWindow.kill();
+      }
+
+      // Link the window before displaying it to avoid race condition.
+      if (config.isActivity && this._activeApp) {
+        this.linkWindowActivity(config);
+      }
+      this.display(app);
     },
 
     linkWindowActivity: function awm_linkWindowActivity(config) {
@@ -841,6 +908,9 @@
         this.debug('no active app alive: ' + instanceID);
         return;
       }
+
+      this.screen.classList.toggle(
+        'fullscreen-app', this._activeApp.isFullScreen());
 
       var fullScreenLayout = this._activeApp.isFullScreenLayout();
       this.screen.classList.toggle('fullscreen-layout-app', fullScreenLayout);

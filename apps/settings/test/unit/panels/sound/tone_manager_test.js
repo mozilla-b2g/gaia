@@ -161,9 +161,7 @@ suite('Sound > ToneManager', function() {
       });
 
       test('_setRingtone is called when tone is playable', function(done) {
-        toneManager._renderTone(tone, result, secret);
-        assert.isTrue(toneManager._isPlayableTone.called);
-        toneManager._isPlayableTone(fakeBlob).then(function(value) {
+        toneManager._renderTone(tone, result, secret).then(() => {
           assert.isTrue(toneManager._setRingtone.calledWith(
             tone.settingsKey, result.l10nID,
             result.name, result.blob, result.id));
@@ -179,9 +177,8 @@ suite('Sound > ToneManager', function() {
       });
 
       test('alert is called when tone is playable', function(done) {
-        toneManager._renderTone(tone, result, secret);
-        assert.isTrue(toneManager._isPlayableTone.called);
-        toneManager._isPlayableTone(fakeBlob).then(function(value) {
+        toneManager._renderTone(tone, result, secret).then(() => {
+          assert.isTrue(toneManager._isPlayableTone.called);
           assert.isTrue(window.alert.called);
           assert.isFalse(toneManager._setRingtone.called);
         }).then(done, done);
@@ -190,8 +187,7 @@ suite('Sound > ToneManager', function() {
       test('textContent is set to origin name ' +
         'when data-l10n-id is not found', function(done) {
           tone.button.textContent = 'test';
-          toneManager._renderTone(tone, result, secret);
-          toneManager._isPlayableTone(fakeBlob).then(function(value) {
+          toneManager._renderTone(tone, result, secret).then(() => {
             assert.isTrue(window.alert.called);
             assert.isFalse(toneManager._setRingtone.called);
             assert.equal(tone.button.getAttribute('data-l10n-id'), null);
@@ -204,13 +200,12 @@ suite('Sound > ToneManager', function() {
           var toneId = 'fake-tone';
           tone.button.textContent = 'test';
           tone.button.setAttribute('data-l10n-id', toneId);
-          toneManager._renderTone(tone, result, secret);
-          toneManager._isPlayableTone(fakeBlob).then(function(value) {
+          toneManager._renderTone(tone, result, secret).then(() => {
             assert.isTrue(window.alert.called);
             assert.isFalse(toneManager._setRingtone.called);
             assert.equal(tone.button.getAttribute('data-l10n-id'), toneId);
             assert.equal(tone.button.textContent, 'test');
-        }).then(done, done);
+          }).then(done, done);
       });
     });
   });
@@ -248,28 +243,34 @@ suite('Sound > ToneManager', function() {
     });
 
     test('generally blob is exist, _setRingtone and alert are not called',
-      function() {
+      function(done) {
         window.MozActivity.successResult = { blob: fakeBlob };
         toneManager._pickTone(tone, '123', secret);
         this.clock.tick(100);
-        assert.isFalse(window.alert.called);
-        assert.isFalse(toneManager._setRingtone.called);
-        assert.isTrue(toneManager._renderTone.calledWith(
-          tone, window.MozActivity.successResult, secret));
+        Promise.resolve().then(() => {
+          assert.isFalse(window.alert.called);
+          assert.isFalse(toneManager._setRingtone.called);
+          assert.isTrue(toneManager._renderTone.calledWith(
+            tone, window.MozActivity.successResult, secret));
+          done();
+        });
     });
 
     test('_setRingtone is called while blob is not exist and ' +
-      'tone.allowNone is true', function() {
+      'tone.allowNone is true', function(done) {
         window.MozActivity.successResult = {};
         toneManager._pickTone(tone, '123', secret);
         this.clock.tick(100);
-        assert.isFalse(window.alert.called);
-        assert.isTrue(toneManager._setRingtone.called);
-        assert.isFalse(toneManager._renderTone.called);
+        Promise.resolve().then(() => {
+          assert.isFalse(window.alert.called);
+          assert.isTrue(toneManager._setRingtone.called);
+          assert.isFalse(toneManager._renderTone.called);
+          done();
+        });
     });
 
     test('alert is called while blob is not exist and ' +
-      'tone.allowNone is false', function() {
+      'tone.allowNone is false', function(done) {
         var tone2 = {
           pickType: 'alerttone',
           settingsKey: 'notification.ringtone',
@@ -279,9 +280,12 @@ suite('Sound > ToneManager', function() {
         window.MozActivity.successResult = {};
         toneManager._pickTone(tone2, '123', secret);
         this.clock.tick(100);
-        assert.isTrue(window.alert.called);
-        assert.isFalse(toneManager._setRingtone.called);
-        assert.isFalse(toneManager._renderTone.called);
+        Promise.resolve().then(() => {
+          assert.isTrue(window.alert.called);
+          assert.isFalse(toneManager._setRingtone.called);
+          assert.isFalse(toneManager._renderTone.called);
+          done();
+        });
     });
   });
 

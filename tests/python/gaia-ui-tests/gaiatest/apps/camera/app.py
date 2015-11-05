@@ -32,32 +32,28 @@ class Camera(Base):
     _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
     _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
 
-    _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
-
     # ConfirmDialog
     _select_button_locator = (By.CSS_SELECTOR, '.test-confirm-select')
-
-    _screen_locator = (By.ID, 'screen')
 
     def launch(self):
         Base.launch(self)
         self.wait_for_capture_ready()
-        self.wait_for_element_not_displayed(*self._loading_screen_locator)
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._loading_screen_locator))
 
     @property
     def camera_mode(self):
         return self.marionette.find_element(*self._controls_locator).get_attribute('data-mode')
 
     def take_photo(self):
-        # Wait for camera to be ready to take a picture
-        controls = self.marionette.find_element(*self._controls_locator)
-        Wait(self.marionette, timeout=20).until(
-            lambda m: controls.get_attribute('data-enabled') == 'true')
+        self.wait_for_capture_ready()
 
         self.tap_capture()
 
         # Wait for thumbnail to appear
         self.wait_for_thumbnail_visible()
+        Wait(self.marionette).until(
+            expected.element_not_displayed(*self._loading_screen_locator))
 
     def record_video(self, duration):
         # Start recording
@@ -86,16 +82,10 @@ class Camera(Base):
     def tap_select_button(self):
         select = self.marionette.find_element(*self._select_button_locator)
         Wait(self.marionette).until(expected.element_enabled(select))
-
-        # Workaround for bug 1109213, where tapping on the button inside the app itself
-        # makes Marionette spew out NoSuchWindowException errors
-        x = select.rect['x'] + select.rect['width']//2
-        y = select.rect['y'] + select.rect['height']//2
-        self.marionette.switch_to_frame()
-        self.marionette.find_element(*self._screen_locator).tap(x, y)
+        self.tap_element_from_system_app(select)
 
         # Fall back to app beneath the picker
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)
+        self.wait_to_not_be_displayed()
         self.apps.switch_to_displayed_app()
 
     def tap_switch_source(self):
@@ -123,8 +113,6 @@ class Camera(Base):
         Wait(self.marionette).until(lambda m: self.current_flash_mode != initial_flash_mode)
 
     def wait_for_capture_ready(self):
-        viewfinder = Wait(self.marionette).until(expected.element_present(*self._viewfinder_video_locator))
-        Wait(self.marionette, timeout=10).until(lambda m: m.execute_script('return arguments[0].readyState;', [viewfinder]) > 0)
         controls = self.marionette.find_element(*self._controls_locator)
         Wait(self.marionette).until(lambda m: controls.get_attribute('data-enabled') == 'true')
         Wait(self.marionette).until(lambda m: controls.is_enabled())
@@ -146,13 +134,12 @@ class Camera(Base):
         switch_to_gallery_button.tap()
         from gaiatest.apps.gallery.app import Gallery
         gallery_app = Gallery(self.marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        gallery_app.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
         return gallery_app
 
     def wait_for_thumbnail_visible(self):
-        thumbnail = Wait(self.marionette).until(expected.element_present(*self._thumbnail_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(thumbnail))
+        Wait(self.marionette).until(expected.element_displayed(*self._thumbnail_button_locator))
 
     def tap_thumbnail(self):
         self.marionette.find_element(*self._thumbnail_button_locator).tap()
@@ -227,8 +214,7 @@ class ImagePreview(Base):
 
     def tap_options(self):
         self.marionette.find_element(*self._options_button_locator).tap()
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(*self._option_menu_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._option_menu_locator))
 
     def delete_file(self):
         self.tap_options()
@@ -242,12 +228,9 @@ class ImagePreview(Base):
         self.marionette.find_element(*self._gallery_button_locator).tap()
         from gaiatest.apps.gallery.app import Gallery
         gallery_app = Gallery(self.marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        gallery_app.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._progress_bar_locator)
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._thumbnail_list_view_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._thumbnail_list_view_locator))
 
         return gallery_app
 

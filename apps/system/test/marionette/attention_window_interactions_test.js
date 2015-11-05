@@ -39,7 +39,7 @@ marionette('AttentionWindow interactions', function() {
   });
 
   test('the utility tray should be actionable', function() {
-    utilityTray.swipeDown(system.topPanel);
+    utilityTray.swipeDown();
     utilityTray.waitForOpened();
   });
 

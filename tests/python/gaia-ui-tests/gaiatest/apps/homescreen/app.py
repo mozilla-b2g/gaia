@@ -6,6 +6,7 @@ import time
 
 from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
+from marionette_driver.errors import NoSuchElementException
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -13,10 +14,10 @@ from gaiatest.apps.base import PageRegion
 
 class Homescreen(Base):
 
-    name = 'Homescreen'
+    name = 'Default Home Screen'
 
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
-    _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
+    _all_icons_locator = (By.TAG_NAME, 'gaia-app-icon')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
     _search_bar_icon_locator = (By.ID, 'search-input')
     _landing_page_locator = (By.ID, 'icons')
@@ -25,175 +26,131 @@ class Homescreen(Base):
     _divider_separator_locator = (By.CSS_SELECTOR, 'section.divider .separator > span')
     _exit_edit_mode_locator = (By.ID, 'exit-edit-mode')
 
-    def launch(self):
-        Base.launch(self)
+    _body_dragging_locator = (By.CSS_SELECTOR, 'body.dragging')
+    _apps_locator = (By.ID, 'apps')
+    _app_icon_locator = (By.CSS_SELECTOR, 'gaia-app-icon[data-identifier="%s"]')
+    _remove_locator = (By.ID, 'remove')
 
-    def tap_search_bar(self):
-        search_bar = self.marionette.find_element(*self._search_bar_icon_locator)
-        search_bar.tap()
+    _scollable_div_locator = (By.CSS_SELECTOR, '#apps-panel div.scrollable')
 
-        # TODO These lines are a workaround for bug 1020974
-        import time
-        time.sleep(1)
-        self.marionette.switch_to_frame()
-        Wait(self.marionette).until(lambda m: not self.keyboard.is_keyboard_displayed)
-        self.marionette.find_element('id', 'rocketbar-form').tap()
-        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+    def wait_for_app_icon_present(self, app_manifest):
+        Wait(self.marionette, timeout=30).until(lambda m: self.installed_app(app_manifest))
 
-        from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
-        return SearchPanel(self.marionette)
+    def wait_for_app_icon_not_present(self, app_manifest):
+        def _app_is_not_found(_):
+            try:
+                self.installed_app(app_manifest)
+            except NoSuchElementException:
+                return True
+            return False
 
-    def wait_for_app_icon_present(self, app_name):
-        Wait(self.marionette, timeout=30).until(lambda m: self.installed_app(app_name))
-
-    def wait_for_app_icon_not_present(self, app_name):
-        Wait(self.marionette).until(lambda m: self.installed_app(app_name) is None)
+        Wait(self.marionette).until(_app_is_not_found)
 
     def wait_for_bookmark_icon_not_present(self, bookmark_title):
         Wait(self.marionette).until(lambda m: self.bookmark(bookmark_title) is None)
 
-    def is_app_installed(self, app_name):
+    def is_app_installed(self, app_manifest):
         """Checks whether app is installed"""
-        return self.installed_app(app_name) is not None
-
-    def activate_edit_mode(self):
-        app = self.marionette.find_element(*self._homescreen_all_icons_locator)
-        Actions(self.marionette).\
-            press(app).\
-            wait(3).\
-            release().\
-            wait(1).\
-            perform()
-        Wait(self.marionette).until(expected.element_displayed(app))
-        # Ensure that edit mode is active
-        Wait(self.marionette).until(expected.element_present(
-            *self._edit_mode_locator))
-
-    def open_context_menu(self):
-        test = self.marionette.find_element(*self._landing_page_locator)
-        Actions(self.marionette).\
-            press(test, 0, 0).\
-            wait(3).\
-            release().\
-            perform()
-        from gaiatest.apps.homescreen.regions.context_menu import ContextMenu
-        return ContextMenu(self.marionette)
-
-    def move_app_to_position(self, app_position, to_position):
-        app_elements = self.app_elements
-
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(false);', [app_elements[app_position]])
-
-        Actions(self.marionette).\
-            press(app_elements[app_position]).\
-            wait(3).\
-            move(app_elements[to_position]).\
-            wait(1).\
-            release().\
-            wait(1).\
-            perform()
-
-    def move_to_divider(self, app_position, divider_position):
-        app_element = self.app_elements[app_position]
-        separator_element = self.marionette.find_elements(*self._divider_separator_locator)[divider_position]
-
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(false);', [app_element])
-
-        Actions(self.marionette).\
-            press(app_element).\
-            wait(3).\
-            move(separator_element).\
-            wait(1).\
-            release().\
-            wait(1).\
-            perform()
+        return self.installed_app(app_manifest) is not None
 
     @property
-    def is_edit_mode_active(self):
-        return self.is_element_present(*self._edit_mode_locator)
+    def is_at_topmost_position(self):
+        position = self.marionette.execute_script("""
+          return {x:arguments[0].scrollLeft, y: arguments[0].scrollTop}
+        """, [self.marionette.find_element(*self._scollable_div_locator)])
+        return (position['x'] == 0 and position['y'] == 0)
 
-    def tap_edit_done(self):
-         element = self.marionette.find_element(*self._exit_edit_mode_locator)
-         Wait(self.marionette).until(lambda m: element.is_displayed())
-         element.tap()
-         Wait(self.marionette).until(lambda m: not element.is_displayed())
-         Wait(self.marionette).until(expected.element_not_present(
-             *self._edit_mode_locator))
+    def scroll_to_icon(self, icon_position=0):
+        app_icon = self.visible_apps[icon_position]
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(true);', [app_icon.root_element])
 
-    def tap_collection(self, collection_name):
-        for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
-            if root_el.text == collection_name:
-                # TODO bug 1043293 introduced a timing/tap race issue here
-                time.sleep(0.5)
-                root_el.tap()
-                from gaiatest.apps.homescreen.regions.collections import Collection
-                return Collection(self.marionette)
+    def move_app_to_position(self, app_position, to_position):
+        app = self.app_elements[app_position]
+        destination_element = self.app_elements[to_position].root_element
+        app.move_to(destination_element)
 
     @property
     def app_elements(self):
-        return self.marionette.execute_script("""
-        var gridItems = window.wrappedJSObject.app.grid.getItems();
-        var appElements = [];
-        for(var i=0; i<gridItems.length; i++){
-        // it must have an app to be a
-        if(gridItems[i].app) appElements.push(gridItems[i].element);
-        }
-        return appElements;
-        """)
-
-    @property
-    def divider_elements(self):
-        return self.marionette.find_elements(*self._divider_locator)
+        return [self.GaiaAppIcon(self.marionette, app_element)
+                for app_element in self.marionette.find_elements(*self._all_icons_locator)]
 
     @property
     def visible_apps(self):
-        # Bug 1020910 - Marionette cannot detect correctly detect icons on vertical homescreen
-        # The icons' order on screen is not represented in the DOM, thus we use the grid
-        return [self.InstalledApp(self.marionette, root_element)
-                for root_element in self.app_elements if root_element.is_displayed()]
+        return [homescreen_element for homescreen_element in self.app_elements if homescreen_element.is_displayed]
 
     def wait_for_number_of_apps(self, number_of_apps=1):
         Wait(self.marionette).until(lambda m: len(self.app_elements) >= number_of_apps)
 
-    def installed_app(self, app_name):
-        for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
-            if root_el.text == app_name and (root_el.get_attribute('data-app-state') == 'ready' or
-                'bookmark' in root_el.get_attribute('class') or 'collection' in root_el.get_attribute('class')):
-                return self.InstalledApp(self.marionette, root_el)
+    def installed_app(self, app_manifest):
+        apps_container = self.marionette.find_elements(*self._apps_locator)
+        self.marionette.switch_to_shadow_root(apps_container)
+        icon_locator = (self._app_icon_locator[0], self._app_icon_locator[1] % app_manifest)
+        app_icon = self.marionette.find_element(*icon_locator)
+        return self.GaiaAppIcon(self.marionette, app_icon)
 
     def bookmark(self, bookmark_title):
         for root_el in self.marionette.find_elements(*self._bookmark_icons_locator):
             if root_el.text == bookmark_title:
-                return self.InstalledApp(self.marionette, root_el)
+                return self.GaiaAppIcon(self.marionette, root_el)
 
     @property
     def number_of_columns(self):
-        element = self.marionette.find_element(*self._landing_page_locator)
-        Wait(self.marionette).until(lambda m: element.get_attribute('cols') is not None)
-        return int(element.get_attribute('cols'))
+        _icon_container_text = 'div.gaia-container-child:nth-child(%s)'
+        #first element is always on the first column
+        _first_icon_locator = (By.CSS_SELECTOR, _icon_container_text % str(1))
+        # wait until the icons are fully drawn
+        Wait(self.marionette).until(lambda m: self.marionette.find_element(*_first_icon_locator).rect['x'] != 0)
+        base_x_axis = self.marionette.find_element(*_first_icon_locator).rect['x']
+        has_row_changed = False
+        column = 1
+        while not has_row_changed:
+            _icon_locator = (By.CSS_SELECTOR, _icon_container_text % str(column+1))
+            if self.marionette.find_element(*_icon_locator).rect['x'] == base_x_axis:
+                has_row_changed = True
+            else:
+                column += 1
 
-    class InstalledApp(PageRegion):
+        return column
 
-        _delete_app_locator = (By.CSS_SELECTOR, 'span.remove')
+    def delete_app(self, app_manifest):
+        app = self.installed_app(app_manifest)
+        remove_action_element = self.marionette.find_element(*self._remove_locator)
+        app.move_to(remove_action_element)
+        from gaiatest.apps.homescreen.regions.confirm_dialog import ConfirmDialog
+        return ConfirmDialog(self.marionette)
+
+    class GaiaAppIcon(PageRegion):
 
         @property
-        def name(self):
-            return self.root_element.text
+        def manifest_url(self):
+            return self.root_element.get_attribute('data-identifier')
+
+        @property
+        def is_app_installed(self):
+            self.marionette.switch_to_shadow_root(self.root_element)
+            app_installed = self.root_element.get_attribute('data-test-icon-url') == 'app-icon'
+            self.marionette.switch_to_shadow_root()
+            return app_installed
+
+        @property
+        def is_displayed(self):
+            return self.root_element.is_displayed()
 
         def tap_icon(self):
-            expected_name = self.name
-
-            # TODO bug 1043293 introduced a timing/tap race issue here
-            time.sleep(0.5)
-            self.root_element.tap(y=1)
-            Wait(self.marionette).until(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
+            expected_manifest_url = self.manifest_url
+            self.root_element.tap()
+            Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == expected_manifest_url)
             self.apps.switch_to_displayed_app()
 
-        def tap_delete_app(self):
-            """Tap on (x) to delete app"""
-            self.root_element.find_element(*self._delete_app_locator).tap()
+        def move_to(self, html_element):
+            self.marionette.execute_script('arguments[0].scrollIntoView(false);', [self.root_element])
 
-            from gaiatest.apps.homescreen.regions.confirm_dialog import ConfirmDialog
-            return ConfirmDialog(self.marionette)
+            Actions(self.marionette).\
+                press(self.root_element).\
+                wait(3).\
+                move(html_element).\
+                wait(1).\
+                release().\
+                wait(1).\
+                perform()

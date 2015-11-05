@@ -1,6 +1,7 @@
 'use strict';
 
 /* global require, exports */
+var preprocessor = require('preprocessor');
 var utils = require('utils');
 
 var BrowserAppBuilder = function() {
@@ -44,10 +45,40 @@ BrowserAppBuilder.prototype.initTopsitesJSON = function() {
                                                  this.distDirPath));
 };
 
+BrowserAppBuilder.prototype.enableFirefoxSync = function(options) {
+  var fileList = {
+    process: [
+      ['index.html'],
+      ['js', 'awesomescreen.js'],
+      ['js', 'bookmarkStore.js'],
+      ['js', 'historyStore.js'],
+      ['js', 'browser_dialog.js'],
+      ['js', 'index.js'],
+      ['js', 'settings.js'],
+      ['js', 'toolbar.js'],
+      ['style', 'settings.css']
+    ],
+    remove: [
+      ['js', 'sync', 'bookmarks.js'],
+      ['js', 'sync', 'db.js'],
+      ['js', 'sync', 'ds_helper.js'],
+      ['js', 'sync', 'history.js'],
+      ['js', 'sync', 'manager_bridge.js'],
+      ['js', 'sync', 'settings.js'],
+      ['js', 'sync', 'toolbar.js'],
+      ['test', 'unit', 'sync', 'manager_bridge_test.js'],
+      ['test', 'unit', 'sync', 'settings_test.js'],
+      ['test', 'unit', 'sync', 'toolbar_test.js']
+    ]
+  };
+  preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
+};
+
 BrowserAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.initJSON();
   this.initTopsitesJSON();
+  this.enableFirefoxSync(options);
 };
 
 exports.execute = function(options) {

@@ -9,13 +9,11 @@ from gaiatest.apps.contacts.app import Contacts
 
 class TestContacts(GaiaTestCase):
 
-    # contacts name list
     _contacts_name_list = [('GG', 'E'), ('AA', 'Z'), ('XX', 'C'), ('CC', 'X'), ('EE', 'G'), ('FF', 'F'), ('HH', 'D'), ('BB', 'Y'), ('YY', 'B'), ('ZZ', 'A'), ('DD', 'H')]
 
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # insert contacts by given names
         for contact_name in self._contacts_name_list:
             contact = MockContact(givenName=contact_name[0], familyName=contact_name[1])
             self.data_layer.insert_contact(contact)
@@ -24,20 +22,9 @@ class TestContacts(GaiaTestCase):
         self.sorted_contacts_name_by_last = sorted(self._contacts_name_list, key=lambda name: name[1])
 
     def test_sort_contacts(self):
-        order_by_last_name_default = False
-
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
 
-        # if "Order by last name" switch is on, turn off it
-        contacts_settings = contacts_app.tap_settings()
-        self.assertEqual(contacts_settings.order_by_last_name, order_by_last_name_default)
-        # This test starts from when order_by_last_name is false
-        if order_by_last_name_default:
-            contacts_settings.tap_order_by_last_name()
-        contacts_settings.tap_done()
-
-        # here we wait for contacts once the correct order has been set
         contacts_app.wait_for_contacts(number_to_wait_for=len(self._contacts_name_list))
 
         # sort by first name, compare with sorted-by-first-name list
@@ -46,23 +33,16 @@ class TestContacts(GaiaTestCase):
             name_tuple = self.sorted_contacts_name_by_first[idx]
             self.assertEqual(contact_items[idx].full_name, name_tuple[0] + " " + name_tuple[1], "Should order by first name.")
 
-        # navigate to settings page
         contacts_settings = contacts_app.tap_settings()
-        # turn on "Order by last name" switch
-        contacts_settings.tap_order_by_last_name()
-        # go to contacts main page from settings page
+        contacts_settings.enable_order_by_last_name()
         contacts_settings.tap_done()
         contacts_app.wait_for_contacts(number_to_wait_for=len(self._contacts_name_list))
 
-        # sort by last name, compare with sorted-by-last-name list
         contact_items = contacts_app.contacts
         for idx in range(len(self._contacts_name_list)):
             name_tuple = self.sorted_contacts_name_by_last[idx]
             self.assertEqual(contact_items[idx].full_name, name_tuple[0] + " " + name_tuple[1], "Should order by last name.")
 
-        # navigate to settings page
         contacts_settings = contacts_app.tap_settings()
-        # turn off "Order by last name" switch
-        contacts_settings.tap_order_by_last_name()
-        # go to contacts main page from settings page
+        contacts_settings.disable_order_by_last_name()
         contacts_settings.tap_done()

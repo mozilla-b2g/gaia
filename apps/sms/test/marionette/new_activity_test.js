@@ -104,7 +104,7 @@ marionette('Messages as "new" activity target', function() {
       assert.isTrue(messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
-        messagesApp.Composer.header.getAttribute('action'), 'close',
+        messagesApp.NewMessage.header.getAttribute('action'), 'close',
         'Close activity button should be visible'
       );
 
@@ -122,7 +122,7 @@ marionette('Messages as "new" activity target', function() {
       assert.equal(messagesApp.Conversation.headerTitle.text(), number);
 
       assert.equal(
-        messagesApp.Composer.header.getAttribute('action'), 'close',
+        messagesApp.NewMessage.header.getAttribute('action'), 'close',
         'Close activity button should be visible'
       );
 
@@ -141,15 +141,15 @@ marionette('Messages as "new" activity target', function() {
       });
 
       assert.isFalse(messagesApp.Composer.sendButton.enabled());
-      assert.equal(messagesApp.Composer.recipients.length, 0);
+      assert.equal(messagesApp.NewMessage.recipients.length, 0);
 
       assert.equal(
-        messagesApp.Composer.header.getAttribute('action'), 'close',
+        messagesApp.NewMessage.header.getAttribute('action'), 'close',
         'Close activity button should be visible'
       );
 
       assertIsFocused(
-        messagesApp.Composer.recipientsInput,
+        messagesApp.NewMessage.recipientsInput,
         'Recipient input should be focused'
       );
     });
@@ -162,7 +162,7 @@ marionette('Messages as "new" activity target', function() {
         return messagesApp.Composer.messageInput.text() === content;
       });
 
-      var recipients = messagesApp.Composer.recipients;
+      var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), number);
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
@@ -170,7 +170,7 @@ marionette('Messages as "new" activity target', function() {
       assert.isTrue(messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
-        messagesApp.Composer.header.getAttribute('action'), 'close',
+        messagesApp.NewMessage.header.getAttribute('action'), 'close',
         'Close activity button should be visible'
       );
 
@@ -188,7 +188,7 @@ marionette('Messages as "new" activity target', function() {
         return messagesApp.Composer.messageInput.text() === content;
       });
 
-      var recipients = messagesApp.Composer.recipients;
+      var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), 'Alan Turing');
       assert.equal(recipients[0].getAttribute('data-source'), 'contacts');
@@ -196,7 +196,7 @@ marionette('Messages as "new" activity target', function() {
       assert.isTrue(messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
-        messagesApp.Composer.header.getAttribute('action'), 'close',
+        messagesApp.NewMessage.header.getAttribute('action'), 'close',
         'Close activity button should be visible'
       );
 
@@ -219,13 +219,39 @@ marionette('Messages as "new" activity target', function() {
       assert.isFalse(messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
-        messagesApp.Composer.header.getAttribute('action'), 'close',
+        messagesApp.NewMessage.header.getAttribute('action'), 'close',
         'Close activity button should be visible'
       );
 
       // Validate that header is correctly set even that thread list hasn't
       // been loaded yet.
       assert.equal(messagesApp.Conversation.headerTitle.text(), '+200');
+
+      assertIsFocused(
+        messagesApp.Composer.messageInput, 'Message input should be focused'
+      );
+    });
+
+    test('Activity with thread "number" and "body"', function() {
+      // Send message to number that has thread associated with it
+      launchAsActivity({ number: '+200', body: content });
+
+      // Wait until message input is filled with the content
+      client.scope({ searchTimeout: 100 }).waitFor(function() {
+        return messagesApp.Composer.messageInput.text() === content;
+      });
+
+      var recipients = messagesApp.NewMessage.recipients;
+      assert.equal(recipients.length, 1);
+      assert.equal(recipients[0].text(), '+200');
+      assert.equal(recipients[0].getAttribute('data-source'), 'manual');
+
+      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+
+      assert.equal(
+        messagesApp.NewMessage.header.getAttribute('action'), 'close',
+        'Close activity button should be visible'
+      );
 
       assertIsFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'

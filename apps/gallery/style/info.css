@@ -40,6 +40,10 @@
   border-bottom: none;
 }
 
+#info-view > section > dl > dd.no-border {
+ border-bottom: none;
+}
+
 #info-name {
   /* file name is not directional and stays LTR */
   direction: ltr;

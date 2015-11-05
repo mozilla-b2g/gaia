@@ -13,7 +13,7 @@ require('/views/shared/js/shared_components.js');
 require('/views/shared/js/utils.js');
 
 require('/views/shared/test/unit/mock_utils.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_settings.js');
 
@@ -35,13 +35,13 @@ suite('Recipients', function() {
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
   });
 

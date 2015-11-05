@@ -2,7 +2,6 @@
   color: #888888;
   width: -moz-min-content;
   white-space: nowrap;
-  text-align: left;
   line-height: 3.3rem;
 }
 
@@ -21,14 +20,12 @@
 
 .cmp-bubble-container {
   width: calc(100% - 1rem);
-  float: left;
   display: inline-flex;
   flex-wrap: wrap;
 }
 
-html:-moz-dir(rtl) .cmp-bubble-container {
-  float: right;
-}
+html[dir="ltr"] .cmp-bubble-container { float: left; }
+html[dir="rtl"] .cmp-bubble-container { float: right; }
 
 /* Make sure these styles take precedence over the base msg-peep-bubble styles
    by using both class names */
@@ -65,12 +62,20 @@ body cards-compose input:focus {
   border-bottom: 0;
 }
 
-input.cmp-addr-text, input.cmp-subject-text {
+input.cmp-addr-text,
+input.cmp-subject-text {
   height: 3.3rem;
-  -moz-margin-start: 0.5rem;
   font-size: 1.4rem;
   border: 0;
   background: none;
+}
+html[dir="ltr"] input.cmp-addr-text,
+html[dir="ltr"] input.cmp-subject-text {
+  margin-left: 0.5rem;
+}
+html[dir="rtl"] input.cmp-addr-text,
+html[dir="rtl"] input.cmp-subject-text {
+  margin-right: 0.5rem;
 }
 
 input.cmp-addr-text, input.cmp-dot-text {
@@ -86,6 +91,82 @@ input.cmp-addr-text, input.cmp-dot-text {
 input.cmp-subject-text {
   font-size: 1.6rem;
   text-overflow: ellipsis;
+}
+
+/* Allows the position absolute autocomplete list to be relative to this
+   element */
+.cmp-autocomplete-origin {
+  position: relative;
+}
+
+.cmp-autocomplete-input-container {
+  background-color: #f2f2f2;
+}
+
+.cmp-autocomplete-input-list {
+  transition: transform 200ms ease;
+}
+
+/* Prevents scrolling of areas under the autocomplete list to avoid confusing
+   dueling scrollbars */
+.cmp-autocomplete-noscroll {
+  overflow: hidden;
+}
+
+/* When the autocomplete is active, change the flex alignment so that the label
+and + buttons are visible when typing */
+.cmp-autocomplete-input-label.cmp-autocomplete-active {
+  align-items: flex-end;
+}
+
+.cmp-autocomplete-list {
+  box-sizing: border-box;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  font-size: 1.4rem;
+  background-color: white;
+}
+
+.cmp-autocomplete-item {
+  overflow: hidden;
+  border-bottom: 0;
+}
+
+.cmp-autocomplete-item-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cmp-autocomplete-item-link:focus,
+.cmp-autocomplete-item-link:active,
+.cmp-autocomplete-item-link:hover {
+  background-color: #b1f1ff;
+  outline: none;
+  color: inherit;
+}
+
+.cmp-autocomplete-item-details {
+  margin: 0 1.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 0.1rem solid #DBD9D9;
+}
+
+.cmp-autocomplete-name,
+.cmp-autocomplete-email {
+  display: block;
+  line-height: 2.4rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.cmp-autocomplete-email {
+  color: #858585;
 }
 
 .cmp-contact-add {
@@ -135,6 +216,8 @@ input.cmp-subject-text {
   outline: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
+  unicode-bidi: -moz-plaintext;
+  text-align: initial;
 }
 
 
@@ -175,7 +258,6 @@ section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
 
 .cmp-attachment-size {
   white-space: nowrap;
-  text-align: left;
   line-height: 1.4rem;
   -moz-padding-start: 0.5rem;
 }
@@ -206,14 +288,14 @@ section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
 }
 
 .cmp-attachment-icon {
-  background: url("images/icons/icon_default.png") no-repeat center left / 3rem auto;
+  background: url("images/icons/icon_default.png") no-repeat;
+  background-size: 3rem auto;
   width: 3.6rem;
   height: 4rem;
 }
 
-html:-moz-dir(rtl) .cmp-attachment-icon {
-  background-position: center right;
-}
+html[dir="ltr"] .cmp-attachment-icon { background-position: center left; }
+html[dir="rtl"] .cmp-attachment-icon { background-position: center right; }
 
 .mime-image .cmp-attachment-icon {
   background-image: url("images/icons/icon_image.png");
@@ -239,12 +321,6 @@ html:-moz-dir(rtl) .cmp-attachment-icon {
   font-size: 1.4rem;
   font-weight: normal;
   color: #393d3e;
-  text-align: left;
-}
-
-html:-moz-dir(rtl) .cmp-attachment-filename,
-html:-moz-dir(rtl) .cmp-attachment-filesize {
-  text-align: right;
 }
 
 .cmp-attachment-filesize {

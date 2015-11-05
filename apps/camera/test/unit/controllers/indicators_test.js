@@ -23,7 +23,7 @@ suite('controllers/indicators', function() {
     this.app.settings = {
       hdr: sinon.createStubInstance(this.Setting),
       mode: sinon.createStubInstance(this.Setting),
-      timer: sinon.createStubInstance(this.Setting),
+      countdown: sinon.createStubInstance(this.Setting),
       indicators: sinon.createStubInstance(this.Setting)
     };
     this.app.views = {
@@ -36,7 +36,7 @@ suite('controllers/indicators', function() {
 
     // Return values
     this.settings.hdr.selected.returns('on');
-    this.settings.timer.selected.returns('on');
+    this.settings.countdown.selected.returns('on');
     this.app.get.withArgs('batteryStatus').returns('healthy');
 
     // Create our test instance
@@ -45,7 +45,7 @@ suite('controllers/indicators', function() {
 
   suite('IndicatorsController()', function() {
     test('Should bind settings change events', function() {
-      assert.ok(this.app.settings.timer.on.calledWith('change:selected'));
+      assert.ok(this.app.settings.countdown.on.calledWith('change:selected'));
       assert.ok(this.app.settings.mode.on.calledWith('change:selected'));
       assert.ok(this.app.settings.hdr.on.calledWith('change:selected'));
       assert.ok(this.app.on.calledWith('change:batteryStatus'));
@@ -67,8 +67,8 @@ suite('controllers/indicators', function() {
       sinon.assert.calledWith(this.view.set, 'hdr', 'on');
     });
 
-    test('It sets timer status initially', function() {
-      sinon.assert.calledWith(this.view.set, 'timer', 'on');
+    test('It sets countdown status initially', function() {
+      sinon.assert.calledWith(this.view.set, 'countdown', 'on');
     });
 
     test('It reconfigures when the settings change', function() {
@@ -85,7 +85,7 @@ suite('controllers/indicators', function() {
   });
 
   suite('IndicatorsController#configure()', function() {
-    test('Should set the current \'hdr\' and \'timer\' keys' +
+    test('Should set the current \'hdr\' and \'countdown\' keys' +
          'on the view', function() {
       var view = this.app.views.indicators;
 
@@ -93,7 +93,7 @@ suite('controllers/indicators', function() {
       this.controller = new this.IndicatorsController(this.app);
       this.controller.configure();
 
-      assert.ok(view.set.calledWith('timer', 'on'));
+      assert.ok(view.set.calledWith('countdown', 'on'));
       assert.ok(view.set.calledWith('hdr', 'on'));
     });
   });

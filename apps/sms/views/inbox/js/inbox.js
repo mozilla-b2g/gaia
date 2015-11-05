@@ -5,7 +5,6 @@
          WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, OptionMenu, ActivityPicker,
          StickyHeader, Navigation,
-         InterInstanceEventDispatcher,
          SelectionHandler,
          Settings,
          LazyLoader,
@@ -38,6 +37,12 @@ var InboxView = {
 
   // Set to |true| when in edit mode
   inEditMode: false,
+
+  /**
+   * Indicates that draft with particular id has been saved recently and  user
+   * should be notified about it.
+   */
+  notifyAboutSavedDraftWithId: null,
 
   init: function inbox_init() {
     this.tmpl = {
@@ -111,11 +116,6 @@ var InboxView = {
     Drafts.on('deleted', this.onDraftDeleted.bind(this));
     Drafts.on('saved', this.onDraftSaved.bind(this));
 
-    InterInstanceEventDispatcher.on(
-      'drafts-changed',
-      this.renderDrafts.bind(this, true /* force update */)
-    );
-
     privateMembers.set(this, {
       // Very approximate number of letters that can fit into title for the
       // group thread, "100" is for all paddings, image width and so on,
@@ -141,11 +141,14 @@ var InboxView = {
     }
   },
 
-  beforeEnter: function inbox_beforeEnter(args) {
-    // If user left Conversation or New Message views saving a draft, let's
-    // unobtrusively notify him that draft is successfully saved.
-    if (args.notifyAboutSavedDraft) {
+  beforeEnter: function inbox_beforeEnter(args = {}) {
+    // In case user saved draft when Inbox was not the active view, we want to
+    // notify that save operation successfully completed once user returns back
+    // to Inbox view.
+    if (this.notifyAboutSavedDraftWithId) {
       this.showDraftSavedBanner();
+
+      this.notifyAboutSavedDraftWithId = null;
     }
   },
 
@@ -287,7 +290,6 @@ var InboxView = {
           if (draftId) {
             Navigation.toPanel('composer', {
               draftId: +draftId,
-              focusComposer: true
             });
           } else {
             Navigation.toPanel('thread', {
@@ -358,7 +360,7 @@ var InboxView = {
     }
     if (selected.selectedCount) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected-threads', {
+      document.l10n.setAttributes(this.editMode, 'selected-threads', {
         n: selected.selectedCount
       });
 
@@ -389,7 +391,7 @@ var InboxView = {
     } else {
       this.deleteButton.disabled = true;
       this.readUnreadButton.disabled = true;
-      navigator.mozL10n.setAttributes(this.editMode, 'selectThreads-title');
+      document.l10n.setAttributes(this.editMode, 'selectThreads-title');
     }
   },
 
@@ -411,8 +413,8 @@ var InboxView = {
     this.cancelEdit();
   },
 
-  removeThread: function inbox_removeThread(threadId) {
-    var li = document.getElementById('thread-' + threadId);
+  removeConversationDOM(conversationId) {
+    var li = document.getElementById('thread-' + conversationId);
     var parent;
     var photoUrl = li && li.dataset.photoUrl;
 
@@ -441,9 +443,9 @@ var InboxView = {
     }
   },
 
-  // Since removeThread will revoke list photoUrl at the end of deletion,
-  // please make sure url will also be revoked if new delete api remove threads
-  // without calling removeThread in the future.
+  // Since removeConversationDOM will revoke list photoUrl at the end of
+  // deletion, please make sure url will also be revoked if new delete api
+  // remove threads without calling removeConversationDOM in the future.
   delete: function inbox_delete(selected) {
     function performDeletion() {
     /* jshint validthis: true */
@@ -523,7 +525,7 @@ var InboxView = {
   },
 
   setEmpty: function inbox_setEmpty(empty) {
-    var panel = document.getElementById('thread-list');
+    var panel = document.querySelector('.panel-InboxView');
 
     // Hide the container when threadlist is empty.
     panel.classList.toggle('threadlist-is-empty', !!empty);
@@ -556,8 +558,17 @@ var InboxView = {
       this.mainWrapper.classList.toggle('edit');
     }
 
+    this.editHeader.removeAttribute('no-font-fit');
+
     if (!this.selectionHandler) {
-      LazyLoader.load('/views/shared/js/selection_handler.js', () => {
+      LazyLoader.load([
+        '/views/shared/js/selection_handler.js',
+        '/shared/style/edit_mode.css',
+        '/shared/style/switches.css',
+        '/views/shared/style/edit-mode.css',
+        '/shared/style/tabs.css',
+        '/views/inbox/style/edit-mode.css'
+        ], () => {
         this.selectionHandler = new SelectionHandler({
           // Elements
           container: this.container,
@@ -568,6 +579,7 @@ var InboxView = {
           getIdIterator: this.getIdIterator.bind(this),
           isInEditMode: this.isInEditMode.bind(this)
         });
+        this.editForm.classList.remove('hide');
         editModeSetup.call(this);
       });
     } else {
@@ -584,10 +596,10 @@ var InboxView = {
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderDrafts: function inbox_renderDrafts(force) {
+  renderDrafts: function inbox_renderDrafts() {
     // Request and render all threads with drafts
     // or thread-less drafts.
-    return Drafts.request(force).then(() => {
+    return Drafts.request().then(() => {
       for (var draft of Drafts.getAll()) {
         if (draft.threadId) {
           // Find draft-containing threads that have already been rendered
@@ -745,7 +757,7 @@ var InboxView = {
 
     // Render markup with thread data
     li.innerHTML = this.tmpl.thread.interpolate({
-      hash: isDraft ? '#composer' : '#thread=' + id,
+      hash: isDraft ? '#/composer' : '#/thread?id=' + id,
       mode: isDraft ? 'drafts' : 'threads',
       id: isDraft ? draft.id : id,
       number: number,
@@ -768,7 +780,7 @@ var InboxView = {
     Threads.delete(threadId);
 
     // Cleanup the DOM
-    this.removeThread(threadId);
+    this.removeConversationDOM(threadId);
 
     // Remove notification if exist
     Utils.closeNotificationsForThread(threadId);
@@ -817,7 +829,7 @@ var InboxView = {
     // General case: update the thread UI.
     if (threadUINode) {
       // remove the current thread node in order to place the new one properly
-      this.removeThread(thread.id);
+      this.removeConversationDOM(thread.id);
     }
 
     this.setEmpty(false);
@@ -973,15 +985,28 @@ var InboxView = {
     }
 
     if (thread.isDraft) {
-      this.removeThread(thread.id);
+      this.deleteThread(thread.id);
     } else {
       this.updateThread(thread);
+    }
+
+    // If the draft we scheduled notification for has been deleted, we shouldn't
+    // notify user anymore.
+    if (draft.id === this.notifyAboutSavedDraftWithId) {
+      this.notifyAboutSavedDraftWithId = null;
     }
   },
 
   onDraftSaved: function inbox_onDraftSaved(draft) {
     var threadToUpdate = draft.threadId ? Threads.get(draft.threadId) : draft;
     this.updateThread(threadToUpdate);
+
+    // In case user saved draft when Inbox was not the active view, we want to
+    // notify that save operation successfully completed once user returns back
+    // to Inbox view.
+    if (!Navigation.isCurrentPanel('thread-list')) {
+      this.notifyAboutSavedDraftWithId = draft.id;
+    }
   },
 
   showDraftSavedBanner: function() {
@@ -990,9 +1015,10 @@ var InboxView = {
     clearTimeout(this.timeouts.onDraftSaved);
     this.timeouts.onDraftSaved = null;
 
-    this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
-      this.draftSavedBanner.classList.add('hide');
-    }.bind(this), this.DRAFT_SAVED_DURATION);
+    this.timeouts.onDraftSaved = setTimeout(
+      () => this.draftSavedBanner.classList.add('hide'),
+      this.DRAFT_SAVED_DURATION
+    );
   }
 };
 

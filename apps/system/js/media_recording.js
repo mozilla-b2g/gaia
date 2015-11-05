@@ -250,22 +250,6 @@
       window.dispatchEvent(event);
       this.icon && this.icon.update();
     },
-
-    /**
-     * Return the formatted time string
-     * @memberof MediaRecording.prototype
-     * @param {Date} now The date/time where we receive the object.
-     * @returns {String}
-     */
-    getFormattedTimeString: function mr_getFormattedTimeString(now) {
-      var _ = navigator.mozL10n.get;
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = window.navigator.mozHour12 ?
-        _('shortTimeFormat12') : _('shortTimeFormat24');
-      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
-      var formatted = f.localeFormat(now, timeFormat);
-      return formatted;
-    }
   };
 
   exports.MediaRecording = MediaRecording;

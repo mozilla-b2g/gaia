@@ -29,7 +29,8 @@ class TestGalleryCropPhoto(GaiaTestCase):
         edit_image.tap_portrait_crop()
         edit_image.tap_edit_tool_apply_button()
 
-        gallery = edit_image.tap_edit_save_button()
+        image = edit_image.tap_edit_save_button()
+        gallery = image.go_back()
         gallery.wait_for_files_to_load(2)
 
         # get the absolute image for the new first image

@@ -3,6 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaia import *
-from treeherder import TreeherderOptionsMixin, \
+from treeherder import TreeherderArguments, \
     TreeherderTestRunnerMixin
-from imagecompare import GaiaImageCompareOptionsMixin
+from imagecompare import GaiaImageCompareArguments

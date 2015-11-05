@@ -1,4 +1,4 @@
-/* global BlobView */
+/* global BlobView, assert */
 /* exported fetchBlobView, fetchBuffer, readPicSlice, assertBuffersEqual, pass,
    fail */
 

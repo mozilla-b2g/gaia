@@ -55,7 +55,7 @@ define(function(require) {
         } else {
           element.removeAttribute('aria-disabled');
         }
-        var input = element.querySelector('input');
+        var input = element.querySelector('gaia-switch');
         if (!input) {
           input = element.querySelector('select');
         }
@@ -153,12 +153,12 @@ define(function(require) {
 
       // Cell Broadcast
       this._cbs = panel.querySelector('#menuItem-cellBroadcast');
-      this._cbsInput = this._cbs.querySelector('input');
+      this._cbsInput = this._cbs.querySelector('gaia-switch');
       this._cbsInit = false;
 
       // Emergency Alert
       this._cmas = panel.querySelector('#menuItem-emergencyAlert');
-      this._cmasInput = this._cmas.querySelector('input');
+      this._cmasInput = this._cmas.querySelector('gaia-switch');
       this._cmasInit = false;
 
       // cleanup first

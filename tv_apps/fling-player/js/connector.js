@@ -1,125 +1,187 @@
+/* global evt, castingMessage, mDBG */
 (function(exports) {
   'use strict';
 
-  var seq = 0;
-  function Connector(player) {
-    this._player = player;
+  /**
+   * This class handles the connection to controller via the presentation API
+   * The events of controller's message are:
+   *   - loadRequest: Triggered when controller asks to load video.
+   *           Will be passed in one object with url property storing the
+   *           video url.
+   *   - playRequest: Triggered when controller asks to play video.
+   *   - pauseRequest: Triggered when controller asks to pause video.
+   *   - seekRequest: Triggered when controller asks to seek video.
+   *           Will be passed in one object with time property storing the
+   *           seeking time.
+   *
+   * @param {object} presentation The navigator's presentation object
+   * @constructor
+   */
+  function Connector(presentation) {
+    this._presentation = presentation;
+    this._msgSeq = 0; // This sequence of message sent to controller
+    this._lastSeq = -1; // The sequence of the last message received
+    this._isInit = false;
+    this._isInitConnection = false;
   }
 
-  var presentation = navigator.mozPresentation;
-  var proto = Connector.prototype;
+  var proto = evt(Connector.prototype);
 
-  proto.init = function c_init() {
-    if (!presentation) {
+  proto.init = function () {
+
+    if (this._isInit) {
       return;
     }
 
-    if (presentation.session) {
-      this.initSession(presentation.session);
-    } else {
-      presentation.addEventListener('sessionready', this);
+    mDBG.log('Connector#init');
+    if (!this._presentation) {
+      throw new Error('Init connection without the presentation object.');
     }
+
+    this._isInit = true;
+
+    this._presentation.receiver.getConnection().then(
+      this._initConnection.bind(this)
+    );
+
+    this._presentation.receiver.onconnectionavailable = (e) => {
+      this._presentation.receiver.getConnection().then(
+        this._initConnection.bind(this)
+      );
+    };
   };
 
-  proto.initSession = function c_initSession(session) {
-    if (!presentation) {
+  proto._initConnection = function (connection) {
+
+    if (this._isInitConnection) {
       return;
     }
 
-    this._session = session;
-    this._session.onmessage = this.handleEvent.bind(this);
-    this.initEvents();
+    mDBG.log('Connector#_initConnection');
+    if (!this._presentation) {
+      throw new Error('Init connection without the presentation object.');
+    }
+
+    this._isInitConnection = true;
+
+    mDBG.log('this._connection = ', connection);
+
+    this._connection = connection;
+    this._connection.onmessage = this.onConnectionMessage.bind(this);
+    this._connection.onstatechange = this.onConnectionStateChange.bind(this);
   };
 
-  proto.initEvents = function c_initEvents() {
-    if (!this._player) {
-      console.error('Connector doesn\'t have player object.');
-      return;
-    }
-
-    this._player.on('loaded', this.reportStatus.bind(this, 'loaded'));
-    this._player.on('seeked', this.reportStatus.bind(this, 'seeked'));
-    this._player.on('playing', this.reportStatus.bind(this, 'playing'));
-    this._player.on('timeupdate', this.reportStatus.bind(this, 'timeupdate'));
-    this._player.on('stopped', this.reportStatus.bind(this, 'stopped'));
-    this._player.on('buffering', this.reportStatus.bind(this, 'buffering'));
-    this._player.on('buffered', this.reportStatus.bind(this, 'buffered'));
-    this._player.on('error', this.reportStatus.bind(this, 'error'));
+  proto.sendMsg = function (msg) {
+    mDBG.log('Connector#sendMsg');
+    mDBG.log('msg = ', msg);
+    this._connection.send(castingMessage.stringify(msg));
   };
 
-  proto.handleRemoteMessage = function c_handleRemoteMessage(msg) {
-    // We don't process the out of dated message.
-    if (this._lastReceived >= msg.seq) {
-      this.replyACK(msg, 'wrong-seq');
-      return;
-    }
+  proto.replyACK = function (msg, error) {
 
-    this._lastReceived = msg.seq;
-    if (!this._player) {
-      console.error('Connector doesn\'t have player object.');
-      this.replyACK(msg, 'player-error');
-      return;
-    }
-    var err;
-    switch(msg.type) {
-      case 'load':
-        this._player.load(msg.url);
-        break;
-      case 'play':
-        this._player.play();
-        break;
-      case 'pause':
-        this._player.pause();
-        break;
-      case 'seek':
-        try {
-          this._player.seek(msg.time);
-        } catch(e) {
-          err = e.message;
-        }
-        break;
-      default:
-        return;
-    }
-    this.replyACK(msg, err);
-  };
+    mDBG.log('Connector#replyACK');
 
-  proto.replyACK = function c_replyACK(msg, error) {
     var reply = {
-                  'type': 'ack',
-                  'seq': msg.seq
-                };
+          'type': 'ack',
+          'seq': msg.seq
+        };
+
     if (error) {
-      reply.error = error;
+      reply.error = '' + error;
     }
-    this._session.send(JSON.stringify(reply));
+
+    this.sendMsg(reply);
   };
 
-  proto.reportStatus = function c_reportStatus(status, data) {
+  proto.reportStatus = function (status, data) {
+
+    mDBG.log('Connector#reportStatus');
+
     var msg = {
       'type': 'status',
-      'seq': seq++,
+      'seq': this._msgSeq++,
       'status': status,
       'time': data.time
     };
+
     if (data.error) {
-      msg.error = data.error;
+      msg.error = '' + data.error;
     }
-    if (data.detail) {
+
+    if (data.detail) { // TODO: Discuss should we need this ?
       msg.detail = data.detail;
     }
-    this._session.send(JSON.stringify(msg));
+
+    this.sendMsg(msg);
   };
 
-  proto.handleEvent = function c_handleEvent(evt) {
-    switch(evt.type) {
-      case 'sessionready':
-        this.initSession(presentation.session);
+  proto.handleRemoteMessage = function (msg) {
+
+    mDBG.log('Connector#handleRemoteMessage');
+    mDBG.log('msg = ', msg);
+
+    var err;
+    try {
+
+      // We don't process the out of dated message.
+      if (this._lastSeq >= msg.seq) {
+        throw new Error('Receive outdated message with ' +
+          'msg sequence = ' + msg.seq);
+      }
+      this._lastSeq = msg.seq;
+
+      switch(msg.type) {
+
+        case 'load':
+          if (typeof msg.url != 'string' && !msg.url) {
+            throw new Error('Controller dose not provide the url to load.');
+          }
+          this.fire('loadRequest', { url : msg.url });
         break;
-      case 'message':
-        this.handleRemoteMessage(JSON.parse(evt.data));
+
+        case 'play':
+          this.fire('playRequest');
         break;
+
+        case 'pause':
+          this.fire('pauseRequest');
+        break;
+
+        case 'seek':
+          var time = +msg.time;
+          if (time <= 0) {
+            throw new Error('Controller asks to seek on invalid time = ' +
+              time);
+          }
+          this.fire('seekRequest', { time : time });
+        break;
+      }
+    } catch (e) {
+      err = e;
+      mDBG.error(e);
     }
+
+    this.replyACK(msg, err);
+  };
+
+  proto.onConnectionMessage = function (e) {
+    mDBG.log('Connector#onConnectionMessage');
+
+    var messages = castingMessage.parse(e.data);
+
+    mDBG.log('messages = ', messages);
+
+    messages.sort((a, b) => { // Make sure message sequence
+      return a.seq - b.seq;
+    });
+
+    messages.forEach(message => this.handleRemoteMessage(message));
+  };
+
+  proto.onConnectionStateChange = function () {
+    mDBG.log('Connector#onConnectionStateChange');
+    mDBG.log('State = ', this._connection.state);
+    // TODO: How to do when presentation session is closed or terminated
   };
 
   exports.Connector = Connector;

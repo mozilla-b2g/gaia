@@ -1,8 +1,16 @@
-/* global UrlHelper, AppWindow, BrowserConfigHelper, LazyLoader */
+/* global UrlHelper, AppWindow, BrowserConfigHelper, LazyLoader,
+          SettingsListener */
 
 (function(exports) {
 
   'use strict';
+
+  function handleSettingChange (value) {
+    Browser.privateByDefault = value;
+  }
+
+  SettingsListener.observe('browser.private.default', false,
+    handleSettingChange);
 
   function handleOpenUrl(url, isPrivate) {
     var config = new BrowserConfigHelper({url: url});
@@ -15,15 +23,15 @@
 
   function Browser() {}
 
-  /**
-   * Opens a new private window.
-   * @param {String} url The url to navigate to
-   */
+  Browser.privateByDefault = false;
+
   Browser.prototype = {
 
     start: function() {
       window.addEventListener('new-private-window',
-        this.newPrivateWindow.bind(this));
+        this.newWindow.bind(this));
+      window.addEventListener('new-non-private-window',
+        this.newWindow.bind(this));
       window.addEventListener('activity-view',
         this.handleActivity.bind(this));
     },
@@ -35,8 +43,11 @@
       switch (data.type) {
         case 'url':
           LazyLoader.load(['shared/js/url_helper.js']).then(function() {
-            handleOpenUrl(
-              UrlHelper.getUrlFromInput(data.url), data.isPrivate);
+            var url = UrlHelper.getUrlFromInput(data.url);
+            var isPrivate = data.hasOwnProperty('isPrivate') ?
+              data.isPrivate : Browser.privateByDefault;
+
+            handleOpenUrl(url, isPrivate);
           }).catch(function(err) {
             console.error(err);
           });
@@ -45,13 +56,24 @@
     },
 
     /**
-     * Opens a new private window.
+     * Opens a new browser window.
      */
-    newPrivateWindow: function() {
-      var privateBrowserUrl = location.origin + '/private_browser.html';
-      var config = new BrowserConfigHelper({url: privateBrowserUrl});
+    newWindow: function(e) {
+      var basePath = 'app://search.gaiamobile.org';
+      var isPrivate = e && e.type === 'new-private-window';
+      var privateFlag = isPrivate ? '1' : '0';
+      var config = new BrowserConfigHelper({
+        url: basePath + '/newtab.html?private=' + privateFlag,
+        manifestURL: basePath + '/manifest.webapp'
+      });
+
+      if (isPrivate) {
+        config.isMockPrivate = true;
+        config.isPrivate = true;
+      }
+
       config.oop = true;
-      config.isPrivate = true;
+
       var newApp = new AppWindow(config);
       newApp.requestOpen();
     }

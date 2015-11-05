@@ -241,7 +241,11 @@ contacts.Form = (function() {
       return;
     }
 
-    bdayInputText.textContent = utils.misc.formatDate(date);
+    bdayInputText.textContent = utils.misc.formatDate(date, {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    });
     bdayInputText.classList.remove('placeholder');
   }
 

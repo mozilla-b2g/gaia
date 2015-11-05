@@ -414,7 +414,7 @@ suite('preferences.js', function() {
         'b2g.system_startup_url': 'app://system/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
-        'intl.uidirection.qps-plocm': 'rtl',
+        'intl.uidirection.ar-x-psbidi': 'rtl',
         'layout.css.scroll-behavior.enabled': true,
         'layout.css.sticky.enabled': true,
         'ril.debugging.enabled': false,

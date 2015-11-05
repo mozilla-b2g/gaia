@@ -29,8 +29,19 @@ ul[data-type="edit"] {
   overflow: visible;
 }
 
-li {
+section[data-type="list"] {
+    padding: 0;
+}
+
+section[data-type="list"] li {
   z-index: 1;
+  -moz-padding-start: 1.5rem;
+  margin: 0 1.5rem;
+  width: calc(100% - 3rem);
+}
+
+li label {
+  background: none;
 }
 
 li:active:before {
@@ -38,9 +49,29 @@ li:active:before {
      the whole list item. It causes a reflow, but that's not a big deal here. */
   position: absolute;
   left: -1.5rem;
+  top: 0;
   width: 100vw;
   height: 5.9rem; /* Subtract 0.1rem for the bottom border. */
   background-color: rgba(0, 213, 255, 0.3);
   z-index: -1;
   content: '';
+}
+
+/*
+ * Overrides for shared lists.css styles.
+ * This will be removed with the transition to a gaia-list component in the future.
+ * These styles match the settings custom CSS list styles.
+ */
+section [data-type="list"] li {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/**
+ * Override for shared lists.css style.
+ * This will be removed once we use the gaia-list component in the future.
+ */
+section [data-type="list"] li label bdi {
+  font-size: 1.8rem !important;
 }

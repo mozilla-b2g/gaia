@@ -1,4 +1,6 @@
 {
+ "dom.presentation.discoverable": true,
  "homescreen.appName": "smart-home",
- "landing_app.manifestURL": "app://dashboard.gaiamobile.org/manifest.webapp"
+  "sync.collections.bookmarks.enabled": true,
+  "sync.collections.history.enabled": false
 }

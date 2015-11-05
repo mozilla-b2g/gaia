@@ -16,8 +16,7 @@ function BatteryPanel(client) {
 module.exports = BatteryPanel;
 
 BatteryPanel.Selectors = {
-  'powerSaveModeEnabledCheckbox': '#battery input',
-  'powerSaveModeEnabledLabel': '#battery label',
+  'powerSaveModeEnabledCheckbox': '#battery gaia-switch',
   'threshold': 'select[name="powersave.threshold"]',
   'option': 'option'
 };
@@ -28,7 +27,9 @@ BatteryPanel.prototype = {
 
   get isPowerSavingEnabled() {
     return this.findElement('powerSaveModeEnabledCheckbox')
-      .getAttribute('checked');
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   get isLastOptionSelected() {
@@ -44,14 +45,14 @@ BatteryPanel.prototype = {
   },
 
   enablePowerSaveMode: function() {
-    this.waitForElement('powerSaveModeEnabledLabel').tap();
+    this.waitForElement('powerSaveModeEnabledCheckbox').click();
     this.client.waitFor(function() {
       return this.isPowerSavingEnabled;
     }.bind(this));
   },
 
   disablePowerSaveMode: function() {
-    this.waitForElement('powerSaveModeEnabledLabel').tap();
+    this.waitForElement('powerSaveModeEnabledCheckbox').click();
     this.client.waitFor(function() {
       return !this.isPowerSavingEnabled;
     }.bind(this));

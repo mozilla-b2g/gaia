@@ -58,20 +58,6 @@ define(function(require) {
     },
 
     /**
-     * promised version of mozL10n.once()
-     *
-     * @memberOf DialogManager
-     * @access private
-     * @return {Promise}
-     */
-    _initializedL10n: function dm__initializedL10n() {
-      var promise = new Promise(function(resolve) {
-        navigator.mozL10n.once(resolve);
-      });
-      return promise;
-    },
-
-    /**
      * promised version of PanelCache.get()
      *
      * @memberOf DialogManager
@@ -169,20 +155,16 @@ define(function(require) {
         return self._loadPanel(dialog.panel.id);
       })
       .then(function() {
-        // 2: l10n is ready
-        return self._initializedL10n();
-      })
-      .then(function() {
-        // 3: Get that panel
+        // 2: Get that panel
         return self._getPanel(dialog.panel.id);
       })
       .then(function(panel) {
-        // 4: call beforeShow
+        // 3: call beforeShow
         foundPanel = panel;
         return foundPanel.beforeShow(dialog.panel, options);
       })
       .then(function() {
-        // 5. UI stuffs + transition
+        // 4. UI stuffs + transition
         dialog.init();
         dialog.initUI();
         dialog.bindEvents();
@@ -194,7 +176,7 @@ define(function(require) {
         return self._transit('open', dialog, options);
       })
       .then(function() {
-        // 6. show that panel as a dialog
+        // 5. show that panel as a dialog
         return foundPanel.show(dialog.panel, options);
       });
     },

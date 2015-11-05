@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var _ = window.navigator.mozL10n.get;
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
   var SIMSlotManager = require('shared/simslot_manager');
   var DialogService = require('modules/dialog_service');
@@ -21,6 +20,8 @@ define(function(require) {
         this.isAirplaneMode = (AirplaneModeHelper.getStatus() === 'enabled');
 
         this._elements.simPinContainer.addEventListener('click', this);
+        this._elements.simPinContainer.addEventListener('change',
+          this.simPinSwitched.bind(this));
         this.addIccDetectedEvent();
         this.addIccUndetectedEvent();
         this.addAirplaneModeChangeEvent();
@@ -31,21 +32,20 @@ define(function(require) {
         this.addChangeEventOnIccs();
       });
     },
-    simPinView: function({simIndex, simName, changeSimLabel}) {
+    simPinView: function({simIndex, simPinArgs}) {
       return Sanitizer.escapeHTML `
         <li class="simpin-enabled simpin-enabled-${simIndex}
           simpin-${simIndex}">
-          <label class="pack-switch">
-            <input type="checkbox" data-ignore data-sim-index="${simIndex}"
-              data-type="checkSimPin"/>
-            <span>${simName}</span>
-        </label>
+          <gaia-switch data-ignore data-sim-index="${simIndex}">
+            <label data-l10n-id="simPinWithIndex"
+              data-l10n-args="${simPinArgs}"></label>
+          </gaia-switch>
         </li>
         <li class="simpin-change simpin-change-${simIndex} simpin-${simIndex}"
           hidden>
           <a class="menu-item" href="#" data-sim-index="${simIndex}"
             data-type="changeSimPin">
-            <span data-l10n-id="changeSimPin">${changeSimLabel}</span>
+            <span data-l10n-id="changeSimPin"></span>
           </a>
         </li>`;
     },
@@ -72,8 +72,7 @@ define(function(require) {
         simPinHTMLs.push(
           this.simPinView({
             'simIndex': index.toString(),
-            'simName': _('simPinWithIndex', { 'index': simPinIndex }),
-            'changeSimLabel': _('changeSimPin')
+            'simPinArgs': JSON.stringify({ 'index': simPinIndex })
           })
         );
       });
@@ -90,7 +89,7 @@ define(function(require) {
 
       var simPinCheckbox =
         this._elements.simPinContainer.querySelector(
-          '.simpin-enabled-' + cardIndex + ' input');
+          '.simpin-enabled-' + cardIndex + ' gaia-switch');
 
       var isSimAvailable = icc && icc.cardState && icc.cardState !== 'unknown';
 
@@ -127,14 +126,22 @@ define(function(require) {
       cardIndex = parseInt(cardIndex, 10);
 
       switch (type) {
-        case 'checkSimPin':
-          this.checkSimPin(target, cardIndex);
-          break;
-
         case 'changeSimPin':
           this.changeSimPin(cardIndex);
           break;
       }
+    },
+    /**
+     * Handles user enabling the sim pin.
+     * This is outside of handleEvent due to gaia-switch firing both a click
+     * and a change event, and wanting to handle the switch state only when
+     * it changes.
+     */
+    simPinSwitched: function simpin_simPinSwitched(evt) {
+      var target = evt.target;
+      var cardIndex = target.dataset && target.dataset.simIndex;
+      cardIndex = parseInt(cardIndex, 10);
+      this.checkSimPin(target, cardIndex);
     },
     checkSimPin: function simpin_checkSimPin(checkbox, cardIndex) {
       var enabled = checkbox.checked;

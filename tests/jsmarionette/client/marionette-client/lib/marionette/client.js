@@ -188,8 +188,23 @@
     _state: null,
 
     /**
-     * Actor id for instance
+     * The current Marionette protocol level.
      *
+     * When a new connection is established, the client will assume
+     * the protocol version that the passed driver connection got upon
+     * establishing a connection with the remote end.
+     *
+     * Defaults to protocol version 1.
+     *
+     * @property protocol
+     * @type Number
+     */
+    protocol: 1,
+
+    /**
+     * Actor ID for instance.
+     *
+     * @deprecated
      * @property actor
      * @type String
      */
@@ -198,10 +213,10 @@
     /**
      * Session id for instance.
      *
-     * @property session
+     * @property sessionId
      * @type String
      */
-    session: null,
+    sessionId: null,
 
     // _state getters
 
@@ -275,6 +290,9 @@
       for (var key in this._state) {
         this._scope[key] = this._state[key];
       }
+
+      // assume protocol level from driver, if set
+      this.protocol = this.driver.marionetteProtocol || this.protocol;
     },
 
     /**
@@ -422,10 +440,12 @@
     },
 
     /**
-     * Sends a command to the server.
-     * Adds additional information like actor and session
-     * to command if not present.
+     * Send given command to the server with optional callback fired
+     * on completion.
      *
+     * Adds additional information like actor and session ID to command
+     * if not present and using the deprecated version 1 of the Marionette
+     * protocol.
      *
      * @method send
      * @chainable
@@ -448,19 +468,38 @@
         this._bypassScopeChecks = false;
       }
 
-      if (!cmd.to) {
-        cmd.to = this.actor || 'root';
-      }
-
-      if (this.session) {
-        cmd.session = cmd.session || this.session;
+      if (this.protocol == 1) {
+        if (!cmd.to) {
+          cmd.to = this.actor || 'root';
+        }
+        if (this.sessionId) {
+          cmd.session = cmd.session || this.sessionId;
+        }
       }
 
       if (!cb && this.defaultCallback) {
         cb = this.defaultCallback();
       }
 
-      var driverSent = this.driver.send(cmd, cb);
+      var driverSent = null;
+      try {
+        driverSent = this.driver.send(cmd, cb);
+      }
+      catch(e) {
+        // !!! HACK HACK HACK !!!
+        // single retry when not connected. this should never happen, but
+        // currently it does. so here it is.
+        if (e && e.message && e.message.indexOf('not connected') !== -1) {
+          console.info('Will attempt re-connect and re-send *ONCE*');
+          this.driver.connect(function() {
+            this.driver.send(cmd, cb);
+          }.bind(this));
+        }
+        else {
+          // Unhandled.
+          throw e;
+        }
+      }
 
       if (this.isSync) {
         return driverSent;
@@ -477,7 +516,8 @@
         callback = this.defaultCallback;
       }
 
-      assert(typeof callback === 'function', 'you must use functions');
+      assert(typeof callback == 'function',
+          'expected function, got ' + callback);
 
       // Convert first argument to an error it is possible for this to already
       // be an exception so skip conversion if that is the case...
@@ -496,28 +536,37 @@
     /**
      * Sends request and formats response.
      *
-     *
      * @private
      * @method _sendCommand
      * @chainable
-     * @param {Object} command marionette command.
-     * @param {String} responseKey the part of the response to pass \
-     *                             unto the callback.
-     * @param {Object} callback wrapped callback.
+     * @param {Object} body The body of the Marionette command
+     * @param {Object} cb wrapped callback
+     * @param {String} key optional key in the response to pass
+     *     unto the callback, will return the full object if undefined
      */
-    _sendCommand: function(command, responseKey, callback) {
-      var self = this;
-
+    _sendCommand: function(body, cb, key) {
       try {
-        return this.send(command, function(data) {
-          var value;
-          try {
-            value = self._transformResultValue(data[responseKey]);
-          } catch (e) {
-            console.log('Error: unable to transform marionette response', data);
+        return this.send(body, function(data) {
+          var res, err;
+
+          if ('error' in data) {
+            if (this.protocol == 1) {
+              err = data.error;
+            } else {
+              err = data;
+            }
+          } else if (key) {
+            res = data[key];
+          } else {
+            res = data;
           }
-          return self._handleCallback(callback, data.error, value);
-        });
+
+          if (res) {
+            res = this._unmarshalWebElement(res);
+          }
+
+          return this._handleCallback(cb, err, res);
+        }.bind(this));
       } catch (e) {
         // Attach current client to any host related errors too...
         e.client = this;
@@ -528,43 +577,48 @@
     /**
      * Finds the actor for this instance.
      *
+     * @deprecated
      * @private
      * @method _getActorId
-     * @param {Function} callback executed when response is sent.
+     * @param {Function} callback executed when response is sent
      */
-    _getActorId: function _getActorId(callback) {
-      var self = this, cmd;
-
-      cmd = { name: 'getMarionetteID' };
-
-      return this._sendCommand(cmd, 'id', function(err, actor) {
-        self.actor = actor;
-        if (callback) {
-          callback(err, actor);
+    _getActorId: function(cb) {
+      var body = {name: 'getMarionetteID'};
+      return this._sendCommand(body, function(err, actor) {
+        this.actor = actor;
+        if (cb) {
+          cb(err, actor);
         }
-      });
+      }.bind(this), 'id');
     },
 
     /**
-     * Starts a remote session.
+     * Starts a new remote session with the old Marionette protocol.
      *
+     * @deprecated
      * @private
      * @method _newSession
-     * @param {Function} callback optional.
+     * @param {Function} optional callback
      * @param {Object} desired capabilities
      */
-    _newSession: function _newSession(callback, desiredCapabilities) {
-      var self = this;
-
-      function newSession(data) {
-        self.session = data.value;
-        return self._handleCallback(callback, data.error, data);
-      }
-
-      return this.send({
+    _newSession: function(callback, desiredCapabilities) {
+      var newSession = function(data) {
+        this.sessionId = data.value;
+        var err;
+        if ('error' in data) {
+          if (typeof data.error == 'object') {
+            err = data.error;
+          } else {
+            err = data;
+          }
+        }
+        return this._handleCallback(callback, err, data);
+      }.bind(this);
+      var body = {
         name: 'newSession',
-        parameters: { capabilities: desiredCapabilities }
-      }, newSession);
+        parameters: {capabilities: desiredCapabilities},
+      };
+      return this.send(body, newSession);
     },
 
     /**
@@ -680,23 +734,22 @@
      */
     waitForSync: function(test, callback, interval, timeout) {
       var err, result;
-
-      function done(_err, _result) {
+      var testFunc = function(_err, _result) {
         err = _err;
         result = _result;
-      }
-
-      function sleep(waitMillis) {
-        setTimeout(marionetteScriptFinished, waitMillis);
-      }
+      };
+      var wait = function(ms) {
+        setTimeout(marionetteScriptFinished, ms);
+      };
 
       while (Date.now() < timeout) {
         if (err || result) {
           return callback(err);
         }
 
-        test(done);
-        this.executeAsyncScript(sleep, [interval]);
+        test(testFunc);
+
+        this.executeAsyncScript(wait, [interval]);
       }
 
       this.onScriptTimeout && this.onScriptTimeout();
@@ -736,32 +789,49 @@
     },
 
     /**
-     * Finds actor and creates connection to marionette.
-     * This is a combination of calling getMarionetteId and then newSession.
+     * Starts a new session with Marionette.
      *
      * @method startSession
      * @param {Function} callback executed when session is started.
      * @param {Object} desired capabilities
      */
     startSession: function startSession(callback, desiredCapabilities) {
-      var self = this;
       callback = callback || this.defaultCallback;
       desiredCapabilities = desiredCapabilities || {};
 
-      function runHook(err) {
-        if (err) return callback(err);
-        self.runHook('startSession', callback);
-      }
+      if (this.protocol == 1) {
+        var runHook = function(err) {
+          if (err) {
+            return callback(err);
+          }
+          this.runHook('startSession', callback);
+        };
 
-      return this._getActorId(function() {
-        //actor will not be set if we send the command then
-        self._newSession(runHook, desiredCapabilities);
-      });
+        return this._getActorId(function() {
+          // actor will not be set if we send the command then
+          this._newSession(runHook, desiredCapabilities);
+        }.bind(this));
+      } else {
+        var newSession = function(err, res) {
+          if (err) {
+            callback(err);
+          } else {
+            this.sessionId = res.sessionId;
+            this.capabilities = res.capabilities;
+            this.runHook('startSession', function() { callback(err, res); });
+          }
+        }.bind(this);
+
+        var body = {
+          name: 'newSession',
+          parameters: {capabilities: desiredCapabilities},
+        };
+        return this._sendCommand(body, newSession);
+      }
     },
 
     /**
      * Destroys current session.
-     *
      *
      * @chainable
      * @method deleteSession
@@ -771,13 +841,14 @@
       var cmd = { name: 'deleteSession' };
 
       var closeDriver = function closeDriver() {
-        this._sendCommand(cmd, 'ok', function(err, value) {
+        this._sendCommand(cmd, function(err) {
           // clear state of the past session
-          this.session = null;
+          this.sessionId = null;
+          this.capabilities = null;
           this.actor = null;
 
           this.driver.close();
-          this._handleCallback(callback, err, value);
+          this._handleCallback(callback, err);
         }.bind(this));
       }.bind(this);
 
@@ -795,8 +866,9 @@
      * @return {Object} A JSON representing capabilities.
      */
      sessionCapabilities: function sessionCapabilities(callback) {
-       var cmd = { name: 'getSessionCapabilities' };
-       return this._sendCommand(cmd, 'value', callback);
+       var cmd = {name: 'getSessionCapabilities'};
+       return this._sendCommand(
+           cmd, callback, this.protocol == 1 ? 'value' : 'capabilities');
      },
 
     /**
@@ -808,8 +880,8 @@
      * @return {Object} self.
      */
     getWindow: function getWindow(callback) {
-      var cmd = { name: 'getWindow' };
-      return this._sendCommand(cmd, 'value', callback);
+      var cmd = {name: 'getWindow'};
+      return this._sendCommand(cmd, callback, 'value');
     },
 
     /**
@@ -820,8 +892,9 @@
      * @param {Function} [callback] executes with an array of ids.
      */
     getWindows: function getWindows(callback) {
-      var cmd = { name: 'getWindows' };
-      return this._sendCommand(cmd, 'value', callback);
+      var cmd = {name: 'getWindows'};
+      return this._sendCommand(
+          cmd, callback, this.protocol == 1 ? 'value' : undefined);
     },
 
     /**
@@ -834,8 +907,8 @@
      * @param {Function} callback called with boolean.
      */
     switchToWindow: function switchToWindow(id, callback) {
-      var cmd = { name: 'switchToWindow', parameters: {value: id }};
-      return this._sendCommand(cmd, 'ok', callback);
+      var cmd = {name: 'switchToWindow', parameters: {value: id}};
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -846,8 +919,8 @@
      * @return {Object} self.
      */
      getWindowType: function getWindowType(callback) {
-       var cmd = { name: 'getWindowType' };
-       return this._sendCommand(cmd, 'value', callback);
+       var cmd = {name: 'getWindowType'};
+       return this._sendCommand(cmd, callback, 'value');
      },
 
     /**
@@ -862,8 +935,8 @@
      * @param {Function} callback called with boolean.
      */
     importScript: function(script, callback) {
-      var cmd = { name: 'importScript', parameters: {script: script }};
-      return this._sendCommand(cmd, 'ok', callback);
+      var cmd = {name: 'importScript', parameters: {script: script}};
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -910,7 +983,33 @@
         }
       }
 
-      return this._sendCommand(cmd, 'ok', callback);
+      return this._sendCommand(cmd, callback);
+    },
+
+    /**
+     * Switch the current context to the specified host's Shadow DOM.
+     * Subsequent commands will operate in the context of the specified Shadow
+     * DOM, if applicable.
+     *
+     * @param {Marionette.Element} [host] A reference to the host element
+     * containing Shadow DOM. This can be an Marionette.Element. If you call
+     * switchToShadowRoot without an argument, it will switch to the
+     * parent Shadow DOM or the top-level frame.
+     * @param {Function} callback called with boolean.
+     */
+    switchToShadowRoot: function switchToShadowRoot(host, callback) {
+      if (typeof(host) === 'function') {
+        callback = host;
+        host = null;
+      }
+
+      var cmd = { name: 'switchToShadowRoot', parameters: {} };
+
+      if (host instanceof this.Element) {
+        cmd.parameters.id = host.id;
+      }
+
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -929,7 +1028,7 @@
      *
      * @method setContext
      * @chainable
-     * @param {String} context either: 'chome' or 'content'.
+     * @param {String} context either: 'chrome' or 'content'.
      * @param {Function} callback receives boolean.
      */
     setContext: function setContext(context, callback) {
@@ -938,8 +1037,8 @@
       }
 
       setState(this, 'context', context);
-      var cmd = { name: 'setContext', parameters: { value: context }};
-      return this._sendCommand(cmd, 'ok', callback);
+      var cmd = {name: 'setContext', parameters: {value: context}};
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -952,10 +1051,10 @@
      * @return {Object} self.
      */
     setScriptTimeout: function setScriptTimeout(timeout, callback) {
-      var cmd = { name: 'setScriptTimeout', parameters: {ms: timeout} };
+      var cmd = {name: 'setScriptTimeout', parameters: {ms: timeout}};
       setState(this, 'scriptTimeout', timeout);
       this.driver.setScriptTimeout(timeout);
-      return this._sendCommand(cmd, 'ok', callback);
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -978,7 +1077,7 @@
     setSearchTimeout: function setSearchTimeout(timeout, callback) {
       var cmd = { name: 'setSearchTimeout', parameters:{ ms: timeout }};
       setState(this, 'searchTimeout', timeout);
-      return this._sendCommand(cmd, 'ok', callback);
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -989,8 +1088,8 @@
      * @return {Object} self.
      */
      title: function title(callback) {
-       var cmd = { name: 'getTitle' };
-       return this._sendCommand(cmd, 'value', callback);
+       var cmd = {name: 'getTitle'};
+       return this._sendCommand(cmd, callback, 'value');
      },
 
     /**
@@ -1001,8 +1100,8 @@
      * @param {Function} callback receives url.
      */
     getUrl: function getUrl(callback) {
-      var cmd = { name: 'getUrl' };
-      return this._sendCommand(cmd, 'value', callback);
+      var cmd = {name: 'getUrl'};
+      return this._sendCommand(cmd, callback, 'value');
     },
 
     /**
@@ -1013,8 +1112,8 @@
      * @return {Object} self.
      */
     refresh: function refresh(callback) {
-      var cmd = { name: 'refresh' };
-      return this._sendCommand(cmd, 'ok', callback);
+      var cmd = {name: 'refresh'};
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -1026,8 +1125,8 @@
      * @param {Function} callback executes when finished driving browser to url.
      */
     goUrl: function goUrl(url, callback) {
-      var cmd = { name: 'goUrl', parameters: { url: url }};
-      return this._sendCommand(cmd, 'ok', callback);
+      var cmd = {name: 'goUrl', parameters: {url: url}};
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -1039,8 +1138,8 @@
      * @param {Function} callback receives boolean.
      */
     goForward: function goForward(callback) {
-      var cmd = { name: 'goForward' };
-      return this._sendCommand(cmd, 'ok', callback);
+      var cmd = {name: 'goForward'};
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -1051,8 +1150,8 @@
      * @param {Function} callback receives boolean.
      */
     goBack: function goBack(callback) {
-      var cmd = { name: 'goBack' };
-      return this._sendCommand(cmd, 'ok', callback);
+      var cmd = {name: 'goBack'};
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -1067,8 +1166,8 @@
      * @return {Object} self.
      */
     log: function log(msg, level, callback) {
-      var cmd = { name: 'log', parameters:{level: level, value: msg }};
-      return this._sendCommand(cmd, 'ok', callback);
+      var cmd = {name: 'log', parameters: {level: level, value: msg}};
+      return this._sendCommand(cmd, callback);
     },
 
     /**
@@ -1091,8 +1190,9 @@
      * @param {Function} callback receive an array of logs.
      */
     getLogs: function getLogs(callback) {
-      var cmd = { name: 'getLogs' };
-      return this._sendCommand(cmd, 'value', callback);
+      var cmd = {name: 'getLogs'};
+      return this._sendCommand(
+          cmd, callback, this.protocol == 1 ? 'value' : undefined);
     },
 
     /**
@@ -1103,8 +1203,8 @@
      * @return {Object} self.
      */
      pageSource: function pageSource(callback) {
-       var cmd = { name: 'getPageSource' };
-       return this._sendCommand(cmd, 'value', callback);
+       var cmd = {name: 'getPageSource'};
+       return this._sendCommand(cmd, callback, 'value');
      },
 
     /**
@@ -1145,7 +1245,7 @@
         }
       }
 
-      return this._sendCommand(cmd, 'value', callback);
+      return this._sendCommand(cmd, callback, 'value');
     },
 
     /**
@@ -1299,8 +1399,6 @@
      * @param {Function} callback executes with element uuid(s).
      */
     _findElement: function _findElement(type, query, method, id, callback) {
-      var cmd, self = this;
-
       if (isFunction(id)) {
         callback = id;
         id = undefined;
@@ -1313,7 +1411,7 @@
 
       callback = callback || this.defaultCallback;
 
-      cmd = {
+      var cmd = {
         name: type || 'findElement',
         parameters: {
           value: query,
@@ -1321,40 +1419,39 @@
         }
       };
 
-      // only pass element when id is given.
-      if (id) cmd.parameters.element = id;
+      // only pass element when id is given
+      if (id) {
+        cmd.parameters.element = id;
+      }
 
-      if (this.searchMethods.indexOf(cmd.parameters.using) === -1) {
+      if (this.searchMethods.indexOf(cmd.parameters.using) < 0) {
         throw new Error(
-          'invalid option for using: \'' +
-          cmd.parameters.using +
-          '\' use one of : ' +
-          this.searchMethods.join(', ')
+          'invalid option for using: \'' + cmd.parameters.using + '\' ' +
+          'use one of : ' + this.searchMethods.join(', ')
         );
       }
 
-      //proably should extract this function into a private
-      return this._sendCommand(cmd, 'value',
-                               function processElements(err, result) {
+      var processElements = function(err, res) {
+        var rv;
+        if (res instanceof Array) {
+           rv = [];
+           res.forEach(function(el) {
+             rv.push(this._unmarshalWebElement(el));
+           }, this);
+         } else {
+           rv = this._unmarshalWebElement(res);
+         }
+         return this._handleCallback(callback, err, rv);
+      }.bind(this);
 
-       if (result instanceof this.Element) {
-         return self._handleCallback(callback, err, result);
-       }
+      // always look for "value" key for protocol 1,
+      // but only for single element searches under protocol 2
+      var extract;
+      if (this.protocol == 1 || type == 'findElement') {
+        extract = 'value';
+      }
 
-       var element;
-       if (result instanceof Array) {
-          element = [];
-          result.forEach(function(el) {
-            if (typeof el === 'object' && el.ELEMENT) {
-              el = el.ELEMENT;
-            }
-            element.push(new this.Element(el, self));
-          }, this);
-        } else {
-          element = new this.Element(result, self);
-        }
-        return self._handleCallback(callback, err, element);
-      });
+      return this._sendCommand(cmd, processElements, extract);
     },
 
     /**
@@ -1374,8 +1471,6 @@
      *
      *        });
      *     });
-     *
-     *
      *
      * @method findElement
      * @chainable
@@ -1415,7 +1510,6 @@
       return this._findElement.apply(this, args);
     },
 
-
     /**
      * Converts an function into a string
      * that can be sent to marionette.
@@ -1434,19 +1528,21 @@
     },
 
     /**
-     * Processes result of command
-     * if an {'ELEMENT': 'uuid'} combination
-     * is returned a Marionette.Element
-     * instance will be created and returned.
+     * Unmarshals a web element object if provided input holds a web
+     * element reference and returns a Marionette.Element object, or the
+     * original input if not.
      *
+     * A web element represents a DOM element through a
+     * {"ELEMENT": <UUID>} JSON object.
      *
      * @private
-     * @method _transformResultValue
-     * @param {Object} value original result from server.
-     * @return {Object|Marionette.Element} processed result.
+     * @method _unmarshalWebElement
+     * @param {Object} value result body from server.
+     * @return {Object|Marionette.Element} unmarshaled element, or the
+     *     original input.
      */
-    _transformResultValue: function _transformResultValue(value) {
-      if (value && typeof(value.ELEMENT) === 'string') {
+    _unmarshalWebElement: function(value) {
+      if (typeof value == 'object' && 'ELEMENT' in value) {
         return new this.Element(value.ELEMENT, this);
       }
       return value;
@@ -1501,10 +1597,9 @@
           args: this._prepareArguments(options.parameters.args || []),
           sandbox: options.parameters.sandbox
         }
-      }, 'value', callback);
+      }, callback, 'value');
     }
   };
-
 
   //gjslint: ignore
   var proto = Client.prototype;

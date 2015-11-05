@@ -64,3 +64,7 @@ MockVideoPlayer.prototype.fastSeek = function(seekTime) {
 MockVideoPlayer.prototype.cloneNode = function() {
   return this;
 };
+
+MockVideoPlayer.prototype.querySelectorAll = function(selector) {
+  return [];
+};

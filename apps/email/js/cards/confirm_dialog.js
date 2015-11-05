@@ -3,7 +3,7 @@ define(function(require) {
   var cards = require('cards');
 
   return [
-    require('./base')(require('template!./confirm_dialog.html')),
+    require('./base_card')(require('template!./confirm_dialog.html')),
     {
       onArgs: function(args) {
         var dialogBodyNode = args.dialogBodyNode,

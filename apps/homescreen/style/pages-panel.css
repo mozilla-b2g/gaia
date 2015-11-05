@@ -1,0 +1,148 @@
+#pages-panel {
+  font-size: 1.5rem;
+  display: inline-block;
+}
+
+#pages-panel > .scrollable {
+  overflow-y: auto;
+  height: 100%;
+}
+
+#empty-pages {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-left: 2.2rem solid transparent;
+  border-right: 2.2rem solid transparent;
+  overflow: hidden;
+
+  color: white;
+  font-weight: 400;
+  text-shadow: rgba(0, 0, 0, 0.5) 0 0.1rem 0.3rem;
+  white-space: normal;
+  text-align: center;
+
+  transition: visibility 0.2s, opacity 0.2s;
+}
+
+#empty-pages h1 {
+  font-size: 1.6rem;
+  margin: 2.333rem 0;
+}
+
+#empty-pages p {
+  font-size: 1.4rem;
+  margin: 0 2.333rem 1.266rem;
+}
+
+#empty-pages img {
+  width: 100%;
+  margin-bottom: 1.8666rem;
+}
+
+div#boxes {
+  position: relative;
+  height: calc(15rem + 15rem + 1.0666rem);
+}
+
+div#boxes > div {
+  position: absolute;
+  width: calc(50% - 1.0666rem / 2);
+  height: 15rem;
+  border: 0.2rem dashed rgba(255, 255, 255, 0.8);
+  box-sizing: border-box;
+}
+
+/* Pseudo-element to get a shadow */
+div#boxes > div:before {
+  content: ' ';
+  position: absolute;
+  top: -0.1rem;
+  right: -0.2rem;
+  bottom: -0.3rem;
+  left: -0.2rem;
+  border: 0.2rem dashed rgba(0, 0, 0, 0.2);
+  z-index: -1;
+}
+
+div#boxes > div:nth-child(0) {
+  top: 0;
+  left: 0;
+}
+
+div#boxes > div:nth-child(1) {
+  top: 0;
+  right: 0;
+}
+
+div#boxes > div:nth-child(2) {
+  bottom: 0;
+  left: 0;
+}
+
+div#boxes > div:nth-child(3) {
+  bottom: 0;
+  right: 0;
+}
+
+#pages-panel:not(.empty) #empty-pages {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  min-height: 100%;
+  padding-top: 1rem;
+}
+
+#pages gaia-pin-card {
+  display: block;
+  width: calc(50vw - 1.5vw - 0.75rem);
+  height: 16.5rem;
+  padding: 0 0 1.5rem 1.5rem;
+  outline: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.edit-mode #pages gaia-pin-card {
+  opacity: 0.5;
+}
+
+.edit-mode #pages gaia-pin-card.selected {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+#pages gaia-pin-card.unpinning {
+  position: fixed;
+}
+
+#pages > .gaia-container-child.dragging > gaia-pin-card {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+#pages > .gaia-container-child.added gaia-pin-card {
+  animation-name: card-added;
+  animation-duration: 0.4s;
+  z-index: 1;
+}
+
+@keyframes card-added {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; }
+}
+
+#pages > .gaia-container-child.removed gaia-pin-card {
+  animation-name: card-removed;
+  animation-duration: 0.4s;
+}
+
+@keyframes card-removed {
+  0% { opacity: 0.8; }
+  100% { opacity: 0; }
+}

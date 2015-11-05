@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8" />
   <title>GaiaOverflowMenu Demo</title>
@@ -37,8 +37,22 @@
   <script>window.GaiaOverflowMenuBaseurl = '../';</script>
   <script src="../../../js/component_utils.js"></script>
   <script src="../script.js" type="text/javascript"></script>
+  <script>
+    window.onload = function() {
+      var inputDir = document.getElementById('dir');
+      inputDir.checked = false;
+      inputDir.onchange = function() {
+        document.documentElement.dir = this.checked ? 'rtl' : 'ltr';
+      };
+    };
+  </script>
 </head>
 <body>
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox"> RTL mode
+    </label>
+  </p>
   <p>
     <a onclick="document.getElementById('menu').show()">Click me</a>
   </p>

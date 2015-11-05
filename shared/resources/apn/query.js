@@ -219,7 +219,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.data.passwd': 'password',
       'ril.data.httpProxyHost': 'proxy',
       'ril.data.httpProxyPort': 'port',
-      'ril.data.authtype': 'authtype'
+      'ril.data.authtype': 'authtype',
+      'ril.data.mtu': 'mtu'
     },
     'supl': {
       'ril.supl.carrier': 'carrier',
@@ -228,7 +229,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.supl.passwd': 'password',
       'ril.supl.httpProxyHost': 'proxy',
       'ril.supl.httpProxyPort': 'port',
-      'ril.supl.authtype': 'authtype'
+      'ril.supl.authtype': 'authtype',
+      'ril.supl.mtu': 'mtu'
     },
     'mms': {
       'ril.mms.carrier': 'carrier',
@@ -240,7 +242,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.mms.mmsc': 'mmsc',
       'ril.mms.mmsproxy': 'mmsproxy',
       'ril.mms.mmsport': 'mmsport',
-      'ril.mms.authtype': 'authtype'
+      'ril.mms.authtype': 'authtype',
+      'ril.mms.mtu': 'mtu'
     },
     'dun': {
       'ril.dun.carrier': 'carrier',
@@ -249,7 +252,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.dun.passwd': 'password',
       'ril.dun.httpProxyHost': 'proxy',
       'ril.dun.httpProxyPort': 'port',
-      'ril.dun.authtype': 'authtype'
+      'ril.dun.authtype': 'authtype',
+      'ril.dun.mtu': 'mtu'
     },
     'ims': {
       'ril.ims.carrier': 'carrier',
@@ -258,7 +262,18 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.ims.passwd': 'password',
       'ril.ims.httpProxyHost': 'proxy',
       'ril.ims.httpProxyPort': 'port',
-      'ril.ims.authtype': 'authtype'
+      'ril.ims.authtype': 'authtype',
+      'ril.ims.mtu': 'mtu'
+    },
+    'fota': {
+      'ril.fota.carrier': 'carrier',
+      'ril.fota.apn': 'apn',
+      'ril.fota.user': 'user',
+      'ril.fota.passwd': 'password',
+      'ril.fota.httpProxyHost': 'proxy',
+      'ril.fota.httpProxyPort': 'port',
+      'ril.fota.authtype': 'authtype',
+      'ril.fota.mtu': 'mtu'
     },
     'operatorvariant': {
       'ril.iccInfo.mbdn': 'voicemail',

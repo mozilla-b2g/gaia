@@ -6,7 +6,8 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
 
   var DEFAULT_CONNECTION_STRING = 'fxa-mgmt';
   var default_rules = {
-    'manifestURLs': ['app://system.gaiamobile.org/manifest.webapp']
+    'manifestURLs': ['app://system.gaiamobile.org/manifest.webapp',
+                     'app://smart-system.gaiamobile.org/manifest.webapp']
   };
 
   var CONNECTION_STRING = DEFAULT_CONNECTION_STRING;
@@ -14,7 +15,7 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
   var port;
 
   // callbacks is a set of arrays containing {successCb, errorCb} pairs,
-  // keyed on the method name, for example, callbacks.getAccounts.
+  // keyed on the method name, for example, callbacks.getAccount.
   var callbacks = {};
   var eventListeners = {};
 
@@ -186,9 +187,9 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     port.postMessage(message);
   };
 
-  var getAccounts = function getAccounts(successCb, errorCb) {
+  var getAccount = function getAccount(successCb, errorCb) {
     sendMessage({
-      'name': 'getAccounts'
+      'name': 'getAccount'
     }, successCb, errorCb);
   };
 
@@ -228,7 +229,7 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
 
   return {
     'addEventListener': addEventListener,
-    'getAccounts': getAccounts,
+    'getAccount': getAccount,
     'init': init,
     'logout': logout,
     'openFlow': openFlow,

@@ -39,6 +39,7 @@ manifest.appcache
 /shared/js/search_providers.json
 
 /b2g
+/firefox
 /profile/
 /profile-debug/
 /profile-test/
@@ -57,8 +58,10 @@ manifest.appcache
 /build_stage/
 /coverage/
 /local.mk
-/raptor.log
 /npm-debug.log
+
+/raptor.log
+/metrics.ldjson
 
 /tools/xpcwindow/vendor/
 

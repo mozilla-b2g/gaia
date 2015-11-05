@@ -6,7 +6,7 @@
 */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 require('/views/shared/test/unit/mock_dialog.js');
 require('/views/shared/test/unit/mock_settings.js');
@@ -27,13 +27,13 @@ suite('ErrorDialog', function() {
   mocksHelperForDialog.attachTestHelpers();
 
   setup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     this.sinon.spy(Dialog, 'call');
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('basic tests', function() {

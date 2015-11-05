@@ -6,6 +6,7 @@ import time
 
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.cost_control.app import CostControl
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class FTUStep3(CostControl):
@@ -25,23 +26,20 @@ class FTUStep3(CostControl):
     def __init__(self, marionette):
         CostControl.__init__(self, marionette)
         view = self.marionette.find_element(*self._view_locator)
-        Wait(self.marionette).until(lambda m: view.location['x'] == 0)
+        Wait(self.marionette).until(lambda m: view.rect['x'] == 0)
 
-    def toggle_data_alert(self):
-        self.marionette.find_element(*self._data_alert_switch_locator).tap()
+    def enable_data_alert(self):
+        self._data_alert_switch.enable()
         # Wait for Usage section to hide/display as required
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(
-                *self._data_alert_selector_locator))))
+        Wait(self.marionette).until(expected.element_displayed(*self._data_alert_selector_locator))
 
     @property
     def is_data_alert_switch_checked(self):
-        # The following should work, but doesn't, see bug 1113742, hence the execute_script
-        # return self.marionette.find_element(
-        #     *self._data_alert_switch_locator).is_selected()
-        return self.marionette.execute_script("""
-            return window.wrappedJSObject.document.querySelector('#non-vivo-step-2 gaia-switch[data-option="dataLimit"]').checked;
-        """)
+        return self._data_alert_switch.is_checked
+
+    @property
+    def _data_alert_switch(self):
+        return GaiaBinaryControl(self.marionette, self._data_alert_switch_locator)
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         self.marionette.find_element(*self._data_alert_selector_locator).tap()
@@ -70,8 +68,8 @@ class FTUStep3(CostControl):
 
     def tap_lets_go(self):
         self.marionette.find_element(*self._go_button_locator).tap()
+        Wait(self.marionette).until(expected.element_not_displayed(*self._ftu_frame_locator))
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._ftu_frame_locator)
 
         # TODO Some wait for Usage to fully initialize
         time.sleep(2)

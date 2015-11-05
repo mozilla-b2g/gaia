@@ -271,7 +271,7 @@ suite('system/BaseModule', function() {
     setup(function() {
       BaseModule.__clearDefined();
     });
-    suite('Already defined submodules', function() {
+    suite('Already defined submodules with array SUB_MODULES', function() {
       setup(function() {
         fakePromise = new MockPromise();
         this.sinon.stub(BaseModule, 'lazyLoad', function() {
@@ -296,7 +296,34 @@ suite('system/BaseModule', function() {
         assert.isFalse(fakeAppWindowManager._fakeTaskManager_loaded.called);
       });
     });
-    suite('Not defined submodules', function() {
+    suite('Already defined submodules with object SUB_MODULES', function() {
+      setup(function() {
+        fakePromise = new MockPromise();
+        this.sinon.stub(BaseModule, 'lazyLoad', function() {
+          return fakePromise;
+        });
+        window.FakeAppWindowManager = function() {};
+        window.FakeAppWindowManager.SUB_MODULES = {
+          default: ['FakeTaskManager']
+        };
+        BaseModule.create(window.FakeAppWindowManager, {
+          name: 'FakeAppWindowManager'
+        });
+        window.FakeTaskManager = function() {};
+        BaseModule.create(window.FakeTaskManager, {
+          name: 'FakeTaskManager'
+        });
+        fakeAppWindowManager = new window.FakeAppWindowManager();
+        fakeAppWindowManager.start();
+      });
+
+      test('submodule should be not loaded', function() {
+        fakeAppWindowManager._fakeTaskManager_loaded = this.sinon.spy();
+        assert.isDefined(fakeAppWindowManager.fakeTaskManager);
+        assert.isFalse(fakeAppWindowManager._fakeTaskManager_loaded.called);
+      });
+    });
+    suite('Not defined submodules with array SUB_MODULES', function() {
       setup(function() {
         fakePromise = new MockPromise();
         this.sinon.stub(BaseModule, 'lazyLoad', function() {
@@ -307,6 +334,112 @@ suite('system/BaseModule', function() {
           'FakeTaskManager',
           'path/to/FakeSubModuleInDir'
         ];
+        BaseModule.create(window.FakeAppWindowManager, {
+          name: 'FakeAppWindowManager'
+        });
+        window.FakeTaskManager = null;
+        window.FakeSubModuleInDir = null;
+        fakeAppWindowManager = new window.FakeAppWindowManager();
+        fakeAppWindowManager.start();
+      });
+
+      teardown(function() {
+        fakeAppWindowManager.stop();
+        window.FakeTaskManager = null;
+        window.FakeAppWindowManager = null;
+        window.FakeSubModuleInDir = null;
+      });
+
+      test('submodule should be loaded', function() {
+        var spy = fakeAppWindowManager._fakeTaskManager_loaded =
+          this.sinon.spy();
+        var spy2 = fakeAppWindowManager._fakeSubModuleInDir_loaded =
+          this.sinon.spy();
+        window.FakeTaskManager = function() {};
+        BaseModule.create(window.FakeTaskManager, {
+          name: 'FakeTaskManager'
+        });
+        window.FakeSubModuleInDir = function() {};
+        BaseModule.create(window.FakeSubModuleInDir, {
+          name: 'FakeSubModuleInDir'
+        });
+        fakePromise.mFulfillToValue();
+        assert.isDefined(fakeAppWindowManager.fakeTaskManager);
+        assert.isTrue(spy.called);
+        assert.isDefined(fakeAppWindowManager.fakeSubModuleInDir);
+        assert.isTrue(spy2.called);
+      });
+
+      test('submodule loaded handler should be called if it exists',
+        function() {
+          var spy = fakeAppWindowManager._fakeTaskManager_loaded =
+            this.sinon.spy();
+          window.FakeTaskManager = function() {};
+          BaseModule.create(window.FakeTaskManager, {
+            name: 'FakeTaskManager'
+          });
+          fakePromise.mFulfillToValue();
+          assert.isDefined(fakeAppWindowManager.fakeTaskManager);
+          assert.isTrue(spy.called);
+        });
+
+      test('submodule should be started once parent is started', function() {
+        window.FakeTaskManager = function() {};
+        BaseModule.create(window.FakeTaskManager, {
+          name: 'FakeTaskManager'
+        });
+        var spyStart = this.sinon.stub(window.FakeTaskManager.prototype,
+          'start');
+        fakePromise.mFulfillToValue();
+        assert.isTrue(spyStart.called);
+      });
+
+      test('submodule should be stopped once parent is stopped', function() {
+        window.FakeTaskManager = function() {};
+        window.FakeSubModuleInDir = function() {};
+        BaseModule.create(window.FakeTaskManager, {
+          name: 'FakeTaskManager'
+        });
+        BaseModule.create(window.FakeSubModuleInDir, {
+          name: 'FakeSubModuleInDir'
+        });
+        fakePromise.mFulfillToValue();
+        var spyStop =
+          this.sinon.stub(fakeAppWindowManager.fakeTaskManager, 'stop');
+        var spyStop2 =
+          this.sinon.stub(fakeAppWindowManager.fakeSubModuleInDir, 'stop');
+
+        fakeAppWindowManager.stop();
+        assert.isTrue(spyStop.called);
+        assert.isTrue(spyStop2.called);
+      });
+
+      test('submodule should not be started if the parent is already stopped',
+        function() {
+          window.FakeTaskManager = function() {};
+          BaseModule.create(window.FakeTaskManager, {
+            name: 'FakeTaskManager'
+          });
+          var spyStart =
+            this.sinon.stub(window.FakeTaskManager.prototype, 'start');
+          fakeAppWindowManager.stop();
+
+          fakePromise.mFulfillToValue();
+          assert.isFalse(spyStart.called);
+        });
+    });
+
+    suite('Not defined submodules with object SUB_MODULES', function() {
+      setup(function() {
+        fakePromise = new MockPromise();
+        this.sinon.stub(BaseModule, 'lazyLoad', function() {
+          return fakePromise;
+        });
+        window.FakeAppWindowManager = function() {};
+        window.FakeAppWindowManager.SUB_MODULES = {
+          default: ['FakeTaskManager'],
+          _GAIA_DEVICE_TYPE_: ['path/to/FakeSubModuleInDir']
+        };
         BaseModule.create(window.FakeAppWindowManager, {
           name: 'FakeAppWindowManager'
         });

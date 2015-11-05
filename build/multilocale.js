@@ -63,11 +63,11 @@ function L10nManager(gaiaDir,
       // if the resource URL is a subject to branding, then
       // add official/unofficial to the path
       if (utils.isSubjectToBranding(utils.dirname(resURL))) {
+        isOfficialBranding = self.official === '1';
+
         realURL = utils.joinPath(utils.dirname(resURL),
-                                 self.official === '1' ?
-                                   'official' : 'unofficial',
-                                 utils.basename(resURL));
-        isOfficialBranding = true;
+          isOfficialBranding ? 'official' : 'unofficial',
+          utils.basename(resURL));
       } else {
         isOfficialBranding = false;
       }
@@ -82,22 +82,18 @@ function L10nManager(gaiaDir,
 
       for (var key in self.locales) {
         var loc = self.locales[key];
-        var relPathInApp =
+
+        var isAbsolute = realURL[0] === '/';
+
+        var relPathInApp = isAbsolute ? '' :
           utils.dirname(file.path).substr(webapp.buildDirectoryFilePath.length);
+
         var resFile =
           getResourceFile(webapp, relPathInApp,
                           realURL, loc, isOfficialBranding);
-        var isShared = /\.?\/?shared\//.test(realURL);
+        var destFile = utils.getFile(webapp.buildDirectoryFilePath,
+          relPathInApp, realURL.replace('{locale}', loc));
 
-        var destFile;
-        if (isShared) {
-          destFile = utils.getFile(webapp.buildDirectoryFilePath,
-                                   realURL.replace('{locale}', loc));
-        } else {
-          destFile = utils.getFile(webapp.buildDirectoryFilePath,
-                                   relPathInApp,
-                                   realURL.replace('{locale}', loc));
-        }
         if (!resFile.exists()) {
           if (self.localeBasedir !== null) {
             utils.log(MODNAME, 'Resource file not found: ' + resFile.path);
@@ -283,7 +279,7 @@ function L10nManager(gaiaDir,
         'common-settings.json');
     var settings = utils.getJSON(settingsFile);
 
-    metas.appVersion.setAttribute('content', settings['moz.b2g.version']);
+    metas.appVersion.setAttribute('content', settings['langpack.channel']);
 
     var str = utils.serializeDocument(doc);
     utils.writeContent(file, str);
@@ -326,9 +322,9 @@ function L10nManager(gaiaDir,
 
       if (locale === GAIA_SOURCE_LOCALE) {
         manifestProps = sourceLocaleProps;
-      } else if (locale in l20n.qps) {
+      } else if (locale in l20n.pseudo) {
         manifestProps = l20n.walkValue(
-          sourceLocaleProps, l20n.qps[locale].translate);
+          sourceLocaleProps, l20n.pseudo[locale].process);
       } else {
         manifestProps = getManifestProperties(webapp, locale);
       }

@@ -7,7 +7,7 @@
 /* global MockContactsListObj */
 /* global ContactsService */
 /* global ConfirmDialog */
-/* global ICEData, MockContactsSettings */
+/* global ICEData, MockContactsSettings, ICE */
 
 requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/services/contacts.js');
@@ -44,7 +44,7 @@ suite('ICE Settings view', function() {
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
-    subject = contacts.ICE;
+    subject = ICE;
     realContactsSettings = contacts.Settings;
     contacts.Settings = MockContactsSettings;
     realContactsList = contacts.List;
@@ -416,15 +416,5 @@ suite('ICE Settings view', function() {
         });
       });
     });
-
-    test(' facebook contact', function(done) {
-      subject.refresh(function() {
-        clickOnList(fbcid3);
-        sinon.stub(ConfirmDialog, 'show', function(param1, code) {
-          assertErrorMessage(code, 'ICEFacebookContactNotAllowed', done);
-        });
-      });
-    });
-
   });
 });

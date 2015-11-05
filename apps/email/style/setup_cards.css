@@ -56,7 +56,7 @@ section[role="region"].skin-organic {
   word-spacing: 0.1rem;
 }
 .sup-progress-spinner {
-  -moz-margin-end: 1.2rem;
+  margin-inline-end: 1.2rem;
 }
 
 cards-setup-done .sup-progress-label {
@@ -85,6 +85,10 @@ cards-setup-done .sup-form-btn.recommend {
   word-wrap: break-word;
 }
 
+.sup-email-display {
+  direction: ltr; /* contains email addresses */
+}
+
 /* get some margin around the form elements; I'm not sure how BB wants it */
 .tng-form {
   margin: 0 3rem;
@@ -106,9 +110,14 @@ cards-setup-done .sup-form-btn.recommend {
   color: gray;
 }
 
+.tng-account-header-label {
+  direction: ltr; /* contains email addresses */
+}
+
 .tng-account-item-label {
   white-space: nowrap;
   margin: 0;
+  direction: ltr; /* contains an email address */
 }
 
 .tng-account-add, .tng-account-delete {
@@ -159,24 +168,26 @@ field. Bug 1127160. */
 
 li button.signature-button.icon:before {
   top: calc(50% - 1.3rem);
-  right: 0;
   width: 2.6rem;
   height: 2.6rem;
   margin-top: 0;
-  background: url('../shared/style/buttons/images/forward-light.svg') no-repeat center / 2.6rem;
+  background: no-repeat center / 2.6rem;
   opacity: 0.7;
 }
-
-html:-moz-dir(rtl) li button.signature-button.icon:before  {
+html[dir="ltr"] li button.signature-button.icon:before {
+  background-image: url('../shared/style/buttons/images/right-light.svg');
+  right: 0;
+}
+html[dir="rtl"] li button.signature-button.icon:before {
+  background-image: url('../shared/style/buttons/images/left-light.svg');
   left: 0;
-  right: unset;
 }
 
 li button.signature-button.button.icon {
   width: 100%;
-  margin: 0 auto 2rem auto;
-  -moz-padding-start: 0;
-  -moz-padding-end: 3rem;
+  margin: 0 auto 2rem;
+  padding-inline-start: 0;
+  padding-inline-end: 3rem;
 }
 
 .signature-button-content {
@@ -184,14 +195,14 @@ li button.signature-button.button.icon {
   white-space: nowrap;
   width: 100%;
   overflow: hidden;
-  /* Explicit left for RTL right alignment regardless of user input */
-  margin-left: 1rem;
-  text-align: left;
 }
-
+html[dir="ltr"] .signature-button-content {
+  text-align: left;
+  margin-left: 1rem;
+}
 html:-moz-dir(rtl) .signature-button-content {
-  margin-right: 1rem;
   text-align: right;
+  margin-right: 1rem;
 }
 
 .signature-button-content.empty-placeholder {
@@ -209,7 +220,6 @@ li {
 }
 
 .tng-account-type {
-  padding-right: 1.2rem;
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -217,10 +227,8 @@ li {
   color: #52B6CC;
   font-size: 1.8rem;
 }
-html:-moz-dir(rtl) .tng-account-type {
-  padding-left: 1.2rem;
-  padding-right: 0;
-}
+html[dir="ltr"] .tng-account-type { padding-right: 1.2rem; }
+html[dir="rtl"] .tng-account-type { padding-left: 1.2rem; }
 
 /* Special override because delete button follows the
    tng-acccount-server-container, and cannot place the button inside that ul
@@ -255,7 +263,7 @@ li a:active {
 
 .list-text-pair .aside.start {
   flex-grow: 2;
-  -moz-margin-end: 1.5rem;
+  margin-inline-end: 1.5rem;
   line-height: inherit;
 }
 
@@ -278,22 +286,17 @@ label.list-pack-checkbox, .settings-input-list .list-pack-switch {
 .list-pack-switch .list-pack-switch-text,
 .list-pack-checkbox .list-pack-checkbox-text {
   flex-grow: 2;
-  -moz-margin-end: 7.5rem;
+  margin-inline-end: 7.5rem;
   line-height: inherit;
 }
 
 .list-pack-checkbox .list-pack-checkbox-text:after {
-  left: auto;
-  right: 1.5rem;
-}
-
-html:-moz-dir(rtl) .list-pack-checkbox .list-pack-checkbox-text:after {
-  right: auto;
-  left: 1.5rem;
+  offset-inline-start: auto;
+  offset-inline-end: 1.5rem;
 }
 
 li.select-item {
-  padding: 1rem 0 1rem 0;
+  padding: 1rem 0 1rem;
 }
 
 .list-text {
@@ -302,20 +305,21 @@ li.select-item {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #000;
-  /* Explicit -left used since RTL cases always want right alignment, regardless
-     of direction of user input string. See rtl style overrides below */
-  padding-left: 1.5rem;
-  padding-right: 2.2rem;
   line-height: 5.5rem;
   font-size: 1.8rem;
   outline: 0 none;
-  text-align: left;
 }
-
-html:-moz-dir(rtl) .list-text {
+/**
+* Explicit -left/-right used since .list-text has a dir="auto": we want padding
+* and text-align not to depend on direction of user input string.
+*/
+html[dir="ltr"] .list-text {
+  padding-left: 1.5rem;
+  padding-right: 2.2rem;
+}
+html[dir="rtl"] .list-text {
   padding-left: 2.2rem;
   padding-right: 1.5rem;
-  text-align: right;
 }
 
 /* Select items with list text do not need the after spacing for the submenu
@@ -332,16 +336,10 @@ li.select-item .list-text {
   word-wrap: break-word;
   color: #5b5b5b;
   font-size: 1.6rem;
-  /* Explicit left usage, want RTL UI to be right aligned no matter dir="auto"
-     user input text direction */
-  padding-left: 1.5rem;
-  text-align: left;
 }
-
-html:-moz-dir(rtl) .list-sub-text {
-  padding-right: 1.5rem;
-  text-align: right;
-}
+/* .list-sub-text has a dir="auto": we cannot use start/end properties. */
+html[dir="ltr"] .list-sub-text { padding-left: 1.5rem; }
+html[dir="rtl"] .list-sub-text { padding-right: 1.5rem; }
 
 li.align-center {
   text-align: center;
@@ -359,14 +357,16 @@ li.align-center {
   height: 2.6rem;
   position: absolute;
   top: calc(50% - 1.3rem);
-  right: -0.5rem;
-  background: url('../shared/style/buttons/images/forward-light.svg') no-repeat center / 2.6rem;
+  background: no-repeat center / 2.6rem;
   opacity: 0.7;
 }
-
-html:-moz-dir(rtl) .item-with-children::after  {
+html[dir="ltr"] .item-with-children::after {
+  background-image: url('../shared/style/buttons/images/right-light.svg');
+  right: -0.5rem;
+}
+html[dir="rtl"] .item-with-children::after {
+  background-image: url('../shared/style/buttons/images/left-light.svg');
   left: -0.5rem;
-  right: auto;
 }
 
 .mail-select {
@@ -374,7 +374,7 @@ html:-moz-dir(rtl) .item-with-children::after  {
   height: 3.8rem;
   background: rgb(231, 231, 231);
   border: 0.1rem solid rgb(182, 182, 182);
-  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
+  border-radius: 0.3rem;
   font-size: 1.4rem;
   font-weight: 600;
   padding: 0.9rem 1rem;
@@ -387,7 +387,8 @@ html:-moz-dir(rtl) .item-with-children::after  {
 .settings-input-title {
   display: block;
   font-size: 1.8rem;
-  padding: 1rem 1rem 0 3rem;
+  padding: 1rem 1rem 0;
+  padding-inline-start: 3rem;
 }
 
 li.settings-input-list {
@@ -426,7 +427,7 @@ section.settings-account-common li {
 
 .settings-account-common li span.button {
   display: block;
-  margin: 0 auto 1rem auto;
+  margin: 0 auto 1rem;
 }
 
 .tng-account-check-interval,
@@ -443,8 +444,9 @@ section.settings-account-common li {
   font-weight: bold;
   background: none;
   border: transparent;
-  -moz-margin-start: -1.5rem;
-  padding: 0.7rem 0 0.7rem 1.5rem;
+  margin-inline-start: -1.5rem;
+  padding: 0.7rem 0;
+  padding-inline-start: 1.5rem;
 }
 
 li.sup-manual-account-type-container,

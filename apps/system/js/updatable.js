@@ -3,6 +3,7 @@
 /* global
    asyncStorage,
    ManifestHelper,
+   NotificationHelper,
    Service,
    UpdateManager
  */
@@ -26,6 +27,7 @@ function AppUpdatable(app) {
   var manifest = app.manifest ? app.manifest : app.updateManifest;
   this.name = new ManifestHelper(manifest).name;
   this.nameL10nId = '';
+  this.nameL10nArgs = null;
 
   this.size = app.downloadSize;
   this.progress = null;
@@ -139,8 +141,11 @@ AppUpdatable.prototype.progressCallBack = function() {
  *
  */
 function SystemUpdatable() {
-  this.nameL10nId = 'systemUpdate';
+  this.nameL10nId = 'systemUpdateWithVersion';
+  this.nameL10nArgs = null;
   this.size = 0;
+  this.buildID = null;
+  this.detailsURL = null;
   this.downloading = false;
   this.paused = false;
   this.showingApplyPrompt = false;
@@ -149,7 +154,13 @@ function SystemUpdatable() {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
   this.checkKnownUpdate(UpdateManager.checkForUpdates.bind(UpdateManager));
 
+  // We need to make sure that SystemUpdatable has an event listener ready
+  // to catch mozChromeEvent to be sure we can get "update-error" events.
+  // This was broken for the case of system updates error because of a race:
+  // Gecko was sending the |update-error| event before the |mozChromeEvent|
+  // could get installed.
   window.addEventListener('mozChromeEvent', this);
+  this._dispatchEvent('update-prompt-ready');
 }
 
 SystemUpdatable.KNOWN_UPDATE_FLAG = 'known-sysupdate';
@@ -188,7 +199,7 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
 
   switch (detail.type) {
     case 'update-error':
-      this.errorCallBack();
+      this.errorCallBack(detail);
       break;
     case 'update-download-started':
       // TODO UpdateManager glue
@@ -210,6 +221,7 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
     case 'update-downloaded':
       this.downloading = false;
       UpdateManager.downloaded(this);
+      UpdateManager.removeFromDownloadsQueue(this);
       this.showApplyPrompt(detail.isOSUpdate);
       break;
     case 'update-prompt-apply':
@@ -218,10 +230,68 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
   }
 };
 
-SystemUpdatable.prototype.errorCallBack = function() {
-  UpdateManager.requestErrorBanner();
+SystemUpdatable.prototype.errorCallBack = function(aUpdate) {
+  // Show notification for update installation failures
+  console.debug('Handling systemUpdatable error: updateType',
+                aUpdate.updateType, 'state', aUpdate.state);
+  if (aUpdate.updateType === 'complete' && aUpdate.state === 'failed') {
+    var errorOptions = {
+      bodyL10n: 'systemUpdateErrorDetails',
+      icon: '/style/notifications/images/system_update_error.svg',
+      tag: 'systemUpdateError',
+      mozbehavior: {
+        showOnlyOnce: true
+      },
+      closeOnClick: false
+    };
+
+    NotificationHelper.send('systemUpdateError', errorOptions).then(n => {
+      n.addEventListener('click',
+                         this.showUpdateErrorDetails.bind(this, aUpdate));
+    });
+  } else {
+    // Keep the old banner for the others for now
+    UpdateManager.requestErrorBanner();
+  }
+
   UpdateManager.removeFromDownloadsQueue(this);
   this.downloading = false;
+};
+
+SystemUpdatable.prototype.showUpdateErrorDetails = function(updateError) {
+  var cancel = {
+    title: 'later',
+    callback: function() {
+      Service.request('hideCustomDialog');
+    }
+  };
+
+  var confirm = {
+    title: 'report',
+    callback: function() {
+      Service.request('hideCustomDialog');
+      Notification.get({ tag: 'systemUpdateError' }).then(ns => {
+        ns.forEach(n => {
+          n && n.close();
+        });
+      });
+      window.dispatchEvent(new CustomEvent('requestSystemLogs'));
+    },
+    recommend: true
+  };
+
+  Service.request('UtilityTray:hide');
+  Service.request('showCustomDialog',
+    'systemUpdateError',
+    { id: 'wantToReportNow',
+      args: {
+        version: updateError.appVersion,
+        buildID: updateError.buildID
+      }
+    },
+    cancel,
+    confirm
+  );
 };
 
 // isOsUpdate comes from Gecko's update object passed in the mozChromeEvent
@@ -320,8 +390,6 @@ SystemUpdatable.prototype.declineInstall = function(reason) {
   this.showingApplyPrompt = false;
   Service.request('hideCustomDialog');
   this._dispatchEvent('update-prompt-apply-result', reason);
-
-  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 SystemUpdatable.prototype.declineInstallBattery = function() {

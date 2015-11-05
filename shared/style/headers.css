@@ -36,9 +36,14 @@ section[role="region"] > header:first-child h1 em {
 
 section[role="region"] > header:first-child menu {
   height: 100%;
-  float: right;
   padding: 0;
   margin: 0;
+}
+html[dir="ltr"] section[role="region"] > header:first-child menu {
+  float: right;
+}
+html[dir="rtl"] section[role="region"] > header:first-child menu {
+  float: left;
 }
 
 /* ----------------------------------
@@ -51,7 +56,6 @@ section[role="region"] > header:first-child button {
   position: relative;
   display: block;
   overflow: hidden;
-  float: left;
   min-width: 5rem;
   width: auto;
   height: 5rem;
@@ -67,6 +71,14 @@ section[role="region"] > header:first-child button {
   text-align: center;
   text-shadow: none;
   font-style: italic;
+}
+html[dir="ltr"] section[role="region"] > header:first-child a,
+html[dir="ltr"] section[role="region"] > header:first-child button {
+  float: left;
+}
+html[dir="rtl"] section[role="region"] > header:first-child a,
+html[dir="rtl"] section[role="region"] > header:first-child button {
+  float: right;
 }
 
 /* Pressed state */
@@ -165,16 +177,22 @@ section[role="region"] > header:first-child .icon-edit {
   background-image: url(headers/images/icons/edit.png);
 }
 
-section[role="region"] > header:first-child .icon-send {
+html[dir="ltr"] section[role="region"] > header:first-child .icon-send {
   background-image: url(headers/images/icons/send.png);
+}
+html[dir="rtl"] section[role="region"] > header:first-child .icon-send {
+  background-image: url(headers/images/icons/send_rtl.png);
 }
 
 section[role="region"] > header:first-child .icon-close {
   background-image: url(headers/images/icons/close.png);
 }
 
-section[role="region"] > header:first-child .icon-back {
-  background-image: url(headers/images/icons/back.png);
+html[dir="ltr"] section[role="region"] > header:first-child .icon-back {
+  background-image: url(headers/images/icons/left.png);
+}
+html[dir="rtl"] section[role="region"] > header:first-child .icon-back {
+  background-image: url(headers/images/icons/right.png);
 }
 
 section[role="region"] > header:first-child .icon-menu {
@@ -317,9 +335,13 @@ section[role="region"].skin-organic > header:first-child button:focus,
   Icons
 ---------------------------------- */
 
-section[role="region"].skin-organic > header:first-child .icon-back,
-.skin-organic section[role="region"] > header:first-child .icon-back {
-  background-image: url(headers/images/icons/organic/back.png);
+html[dir="ltr"] section[role="region"].skin-organic > header:first-child .icon-back,
+html[dir="ltr"] .skin-organic section[role="region"] > header:first-child .icon-back {
+  background-image: url(headers/images/icons/organic/left.png);
+}
+html[dir="rtl"] section[role="region"].skin-organic > header:first-child .icon-back,
+html[dir="rtl"] .skin-organic section[role="region"] > header:first-child .icon-back {
+  background-image: url(headers/images/icons/organic/right.png);
 }
 
 section[role="region"].skin-organic > header:first-child .icon-close,

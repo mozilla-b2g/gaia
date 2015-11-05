@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="theme-color" content="#eeeeee">
+  <link rel="stylesheet" href="style/app.css">
+
+  <title>Welcome to Firefox OS developer preview</title>
+
+  <!-- Localization -->
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="en-US">
+  <link rel="localization" href="locales/ftu-droid.{locale}.properties">
+
+  <script src="/shared/js/l10n.js"></script>
+  <script defer src="js/app.js"></script>
+
+  <!-- Components -->
+  <script defer src="/shared/js/component_utils.js"></script>
+  <script defer src="/shared/elements/gaia_buttons/script.js"></script>
+</head>
+<body class="theme-settings">
+  <section>
+    <h1 data-l10n-id="welcome"></h1>
+    <p data-l10n-id="welcomeBody1"></p>
+    <p data-l10n-id="welcomeBody2"></p>
+    <p data-l10n-id="welcomeBody3">
+      <a class="external-link" href="https://www.mozilla.org/contribute"></a>
+      <a class="external-link" href="https://github.com/mozilla-b2g/gaia"></a>
+    </p>
+
+    <gaia-buttons class="nav">
+      <button id="nav-done" class="recommend icon icon-next" data-l10n-id="done"></button>
+    </gaia-buttons>
+  </section>
+</body>
+</html>

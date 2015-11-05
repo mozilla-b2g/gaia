@@ -38,21 +38,21 @@ class S3UploadError(Exception):
         Exception.__init__(self, 'Error uploading to S3')
 
 
-class TreeherderOptionsMixin(object):
-
-    def __init__(self, **kwargs):
-        treeherder = self.add_option_group('Treeherder')
-        treeherder.add_option(
-            '--treeherder',
-            default='https://treeherder.mozilla.org/',
-            dest='treeherder_url',
-            help='Location of Treeherder instance (default: %default). You '
-                 'must set the TREEHERDER_KEY and TREEHERDER_SECRET '
-                 'environment variables for posting to Treeherder. If you '
-                 'want to post attachments you will also need to set the '
-                 'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment '
-                 'variables.',
-            metavar='URL')
+class TreeherderArguments(object):
+    name = 'Treeherder'
+    args = [
+        [['--treeherder'],
+         {'default': 'https://treeherder.mozilla.org/',
+          'dest': 'treeherder_url',
+          'help': '''Location of Treeherder instance (default: %(default)s). You
+              must set the TREEHERDER_KEY and TREEHERDER_SECRET
+              environment variables for posting to Treeherder. If you
+              want to post attachments you will also need to set the
+              AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment
+              variables.''',
+          'metavar': 'URL'
+          }],
+    ]
 
 
 class TreeherderTestRunnerMixin(object):
@@ -250,7 +250,7 @@ class TreeherderTestRunnerMixin(object):
         self.logger.debug('Sending results to Treeherder: %s' %
                           job_collection.to_json())
         client.post_collection(project, os.environ.get('TREEHERDER_KEY'),
-            os.environ.get('TREEHERDER_SECRET'), job_collection)
+                               os.environ.get('TREEHERDER_SECRET'), job_collection)
         self.logger.info('Results are available to view at: %s' % (
             urljoin(self.treeherder_url, '/ui/#/jobs?repo=%s&revision=%s' % (
                 project, revision))))

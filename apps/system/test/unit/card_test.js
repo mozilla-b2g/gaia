@@ -1,9 +1,11 @@
-/* global AppWindow, Card, MocksHelper, MockPromise */
+/* global AppWindow, Card, MocksHelper, MockPromise, Icon,
+   TaskManagerUtils, SwipeToKillMotion */
 'use strict';
 
 require('/shared/js/sanitizer.js');
 requireApp('system/test/unit/mock_app_window.js');
 require('/shared/test/unit/mocks/mock_promise.js');
+require('/shared/js/homescreens/icon.js');
 
 var mocksForCard = new MocksHelper([
   'AppWindow'
@@ -11,24 +13,15 @@ var mocksForCard = new MocksHelper([
 
 suite('system/Card', function() {
 
-  function createTouchEvent(type, target, x, y) {
-    var touch = document.createTouch(window, target, 1, x, y, x, y);
-    var touchList = document.createTouchList(touch);
-
-    var evt = document.createEvent('TouchEvent');
-    evt.initTouchEvent(type, true, true, window,
-                       0, false, false, false, false,
-                       touchList, touchList, touchList);
-    return evt;
-  }
-
   function makeApp(config) {
     var appWindow = new AppWindow({
       launchTime: 4,
+      title: config.title,
       name: config.name || 'dummyapp',
       manifest: {
         orientation: config.orientation || 'portrait-primary'
       },
+      isPrivate: config.isPrivate,
       rotatingDegree: config.rotatingDegree || 0,
       getScreenshot: function(callback) {
         callback();
@@ -39,6 +32,9 @@ suite('system/Card', function() {
       blur: function() {}
     });
     appWindow.browser.element.src = appWindow.origin + '/index.html';
+    if (config.isBrowser) {
+      appWindow.isBrowser = () => config.isBrowser;
+    }
     return appWindow;
   }
 
@@ -55,7 +51,7 @@ suite('system/Card', function() {
 
     requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
-    requireApp('system/js/cards_helper.js');
+    requireApp('system/js/task_manager_utils.js');
     requireApp('system/js/card.js', done);
   });
 
@@ -64,377 +60,218 @@ suite('system/Card', function() {
     this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
                    .returns(getIconPromise);
     mockManager = {
-      useAppScreenshotPreviews: true,
       SWIPE_UP_THRESHOLD: 480/4,
       cardsList: cardsList
     };
+
+    this.sinon.stub(Icon.prototype, 'renderBlob', function() {
+      this.elem.style.backgroundImage = 'url(' + this.uri + ')';
+    });
   });
   teardown(function() {
     cardsList.innerHTML = '';
     if (getIconPromise.then.called) {
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
+      getIconPromise.mFulfillToValue({originalUrl: iconDataURI, blob: {}});
     }
   });
 
   suite('render > ', function() {
-    setup(function(){
-      this.card = new Card({
-        app: makeApp({ name: 'dummyapp' }),
-        manager: mockManager
-      });
-    });
 
-    test('card instance properties', function() {
-      // sanity check properties expected to be exposed on the instance
-      this.card.render();
+    test('does nothing when stayInvisible is set', function() {
+      var card = new Card(makeApp({
+        name: 'anyapp',
+        title: 'sometitle'
+      }), { stayInvisible: true });
 
-      assert.isDefined(this.card.app);
-      assert.isDefined(this.card.instanceID);
-      assert.isDefined(this.card.title);
-      assert.isDefined(this.card.subTitle);
-      assert.isDefined(this.card.iconValue);
-      assert.isDefined(this.card.sslState);
-      assert.isDefined(this.card.viewClassList);
-      assert.isDefined(this.card.titleId);
-      assert.isDefined(this.card.closeButtonVisibility);
-      assert.isDefined(this.card.favoriteButtonVisibility);
-    });
-
-    test('exposes expected element properties', function(){
-      var card = this.card;
-      card.render();
-
-      assert.ok(card.element, 'element node');
-      assert.equal(card.element.tagName, 'LI');
-      assert.ok(card.screenshotView, 'screenshotView node');
-      assert.ok(card.titleNode, 'title node');
-      assert.ok(card.titleId, 'title id');
-      assert.ok(card.iconButton, 'iconButton');
-    });
-
-    test('has expected classes/elements', function(){
-      var card = this.card;
-      card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
-
-      var header = card.element.querySelector('h1');
-      assert.ok(card.element.classList.contains, '.card');
-      assert.isFalse(card.element.classList.contains('browser'),
-                     'no browser class for non-browser windows');
-      assert.ok(card.element.querySelector('.close-button'), '.close-button');
-      assert.ok(card.element.querySelector('.screenshotView'),
-                '.screenshotView');
-      assert.ok(header, 'h1');
-      assert.ok(header.id, 'h1.id');
-      assert.isFalse(card.element.classList.contains('show-subtitle'),
-                     'no show-subtitle by default');
-      assert.isFalse(card.iconButton.classList.contains('small-icon'));
-      assert.isFalse(card.iconButton.classList.contains('pending'));
-    });
-
-    test('has expected aria values', function(){
-      var card = this.card;
-      card.render();
-
-      assert.equal(card.screenshotView.getAttribute('role'), 'link');
-      assert.equal(card.element.getAttribute('role'), 'presentation');
-      assert.strictEqual(card.iconButton.getAttribute('aria-hidden'), 'true');
+      assert.equal(card.element.style.display, 'none');
+      assert.equal(card.title, undefined);
     });
 
     test('adds browser class for browser windows', function(){
-      var app = makeApp({ name: 'browserwindow' });
-      this.sinon.stub(app, 'isBrowser', function() {
-        return true;
-      });
-      var card = new Card({
-        app: app,
-        manager: mockManager
-      });
-      card.render();
+      var card = new Card(makeApp({
+        name: 'browserapp',
+        isBrowser: true,
+        title: 'Page title'
+      }));
 
       assert.ok(card.element.classList.contains('browser'),
                'has browser class');
-    });
-
-    test('browser app title', function() {
-      var browserCard = new Card({
-        app: makeApp({ name: 'browserwindow' }),
-        manager: mockManager
-      });
-      browserCard.app.title = 'Page title';
-      this.sinon.stub(browserCard.app, 'isBrowser', function() {
-        return true;
-      });
-      browserCard.render();
-
-      assert.equal(browserCard.titleNode.textContent, 'Page title');
+      assert.equal(
+        card.element.querySelector('.title').textContent,
+        card.app.title);
+      assert.ok(!card.element.classList.contains('.private'));
     });
 
     test('adds private class for private windows', function(){
-      var app = makeApp({ name: 'privatewindow' });
-      app.isPrivate = true;
-      var card = new Card({
-        app: app,
-        manager: mockManager
-      });
-      card.render();
+      var card = new Card(makeApp({
+        name: 'privatewindow',
+        isBrowser: true,
+        isPrivate: true
+      }));
 
-      assert.ok(card.element.classList.contains('private'),
-               'has private class');
+      assert.ok(card.element.classList.contains('private'));
     });
 
-    test('app name', function() {
-      var appCard = new Card({
-        app: makeApp({ name: 'otherapp' }),
-        manager: mockManager
-      });
-      appCard.app.title = 'Some title';
-      this.sinon.stub(appCard.app, 'isBrowser', function() {
-        return false;
-      });
-      appCard.render();
+    test('calls loadAppIcon', function(){
+      this.sinon.stub(TaskManagerUtils, 'loadAppIcon')
+        .returns(Promise.resolve());
 
-      assert.equal(appCard.titleNode.textContent, 'otherapp');
+      var card = new Card(makeApp({ name: 'app' }));
+
+      assert.ok(TaskManagerUtils.loadAppIcon.called);
+      assert.equal(TaskManagerUtils.loadAppIcon.firstCall.args[0], card.app);
+    });
+
+    test('unkillable card', function(){
+      var app = makeApp({
+        name: 'privatewindow',
+        isBrowser: true,
+        isPrivate: true
+      });
+      app.attentionWindow = true; // makes the card unkillable
+      var card = new Card(app);
+
+      assert.equal(
+        card.element.querySelector('.close-button').style.visibility,
+        'hidden');
     });
 
     test('app security for browser windows', function() {
-      var browserCard = new Card({
-        app: makeApp({ name: 'browserwindow' }),
-        manager: mockManager
-      });
-      browserCard.app.title = 'Page title';
-      this.sinon.stub(browserCard.app, 'isBrowser', function() {
-        return true;
-      });
-      this.sinon.stub(browserCard.app, 'getSSLState', function() {
-        return 'broken';
-      });
-      browserCard.render();
-
-      assert.isTrue(browserCard.app.getSSLState.calledOnce);
-      assert.equal(browserCard.sslState, 'broken');
-      assert.equal(browserCard.element.dataset.ssl, 'broken');
-    });
-    test('browser windows display URL in their subTitle', function() {
-      var browserCard = new Card({
-        app: makeApp({ name: 'browserwindow' }),
-        manager: mockManager
-      });
-      browserCard.app.config.url = 'https://someorigin.org/foo';
-      this.sinon.stub(browserCard, 'getDisplayURLString', function() {
-        return 'someorigin.org/foo';
-      });
-      this.sinon.stub(browserCard.app, 'isBrowser', function() {
-        return true;
-      });
-      browserCard.render();
-
-      assert.ok(browserCard.element.classList.contains('show-subtitle'),
-                'show-subtitle class added');
-      assert.equal(browserCard.subTitle, 'someorigin.org/foo');
-    });
-    test('getDisplayURLString', function() {
-      var browserCard = new Card({
-        app: makeApp({ name: 'browserwindow' }),
-        manager: mockManager
-      });
-      assert.equal(browserCard.getDisplayURLString('foo'), 'foo');
-      assert.equal(browserCard.getDisplayURLString('about:blank'),
-                   'about:blank');
-      assert.equal(
-        browserCard.getDisplayURLString('http://foo.com:8080/bar?bazz#boss'),
-        'foo.com:8080/bar?bazz#boss'
-      );
-    });
-
-    test('subTitle when private browser splash', function() {
       var app = makeApp({
-        name: 'shortname',
-        origin: 'app://system.gaiamobile.org',
-        url: 'app://system.gaiamobile.org/private_browser.html'
+        name: 'browserwindow',
+        isBrowser: true
       });
-      this.sinon.stub(app, 'isBrowser').returns(true);
-      var appCard = new Card({
-        app: app,
-        manager: mockManager
-      });
-      appCard.render();
+      app.getSSLState = () => 'broken';
+      var card = new Card(app);
 
-      assert.equal(appCard.subTitle, '');
-      assert.isFalse(appCard.element.classList.contains('show-subtitle'));
+      assert.equal(card.element.dataset.ssl, 'broken');
     });
 
-    test('gets icon from appWindow', function() {
-      var card = this.card;
-      var app = card.app;
-      card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
+    test('browser windows display URL in their subTitle', function() {
+      var app = makeApp({
+        name: 'browserwindow',
+        isBrowser: true
+      });
+      app.config.url = 'https://someorigin.org/foo';
+      var card = new Card(app);
+      this.sinon.stub(TaskManagerUtils, 'getDisplayUrlForApp')
+        .returns('someorigin.org/foo');
 
-      assert.ok(app.getSiteIconUrl.called);
-      assert.ok(card.iconValue.includes(iconDataURI));
-    });
-
-    test('small icons', function() {
-      var card = this.card;
-      card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI, isSmall: true });
-
-      assert.ok(card.iconButton.classList.contains('small-icon'));
+      assert.ok(card.element.classList.contains('show-subtitle'));
+      assert.equal(
+        card.element.querySelector('.subtitle-url').textContent,
+        'someorigin.org/foo');
     });
 
   });
 
-  suite('destroy', function() {
-    setup(function(){
-      this.card = new Card({
-        app: makeApp({ name: 'dummyapp' }),
-        manager: mockManager,
-        containerElement: mockManager.cardsList
-      });
-      this.card.render();
-    });
+});
 
-    test('removes element from parentNode', function() {
-      var cardNode = this.card.element;
-      assert.ok(cardNode.parentNode, 'cardNode has parentNode when rendered');
-      this.card.destroy();
-      assert.ok(!cardNode.parentNode, 'cardNode has no parentNode');
-      assert.equal(cardsList.childNodes.length, 0, 'cardsList has no children');
-    });
+suite('system/SwipeToKillMotion', function() {
+  var motion, el, setTranslateY;
+  var currentY;
 
-    test('cleans up references', function() {
-      this.card.destroy();
-      assert.ok(!this.card.manager, 'card.manager reference is falsey');
-      assert.ok(!this.card.app, 'card.app reference is falsey');
-      assert.ok(!this.card.element, 'card.element reference is falsey');
+  setup(function() {
+    el = document.createElement('div');
+    setTranslateY = this.sinon.stub();
+    currentY = 0;
+    motion = new SwipeToKillMotion(el, {
+      setTranslateY(newY) {
+        currentY = newY;
+        setTranslateY(currentY);
+      }
     });
   });
 
-  suite('Unkillable card', function() {
-    setup(function(){
-      this.cardNode = document.createElement('li');
-      var app = makeApp({ name: 'dummyapp' });
-      app.attentionWindow = true;
-      this.card = new Card({
-        app: app,
-        manager: mockManager,
-        containerElement: mockManager.cardsList,
-        element: this.cardNode
-      });
-      this.card.render();
-    });
-    teardown(function() {
-      mockManager.cardsList.innerHTML = '';
-    });
-
-    test('card whose app has attentionWindow should not be closed', function() {
-      assert.equal(this.card.closeButtonVisibility, 'hidden');
-    });
-  });
-
-  suite('killApp >', function() {
-    setup(function() {
-      this.card = new Card({
-        app: makeApp({ name: 'dummyapp' }),
-        manager: mockManager
-      });
-      this.card.render();
-    });
-    test('kills app', function() {
-      var card = this.card;
-      this.sinon.stub(card.app, 'kill');
-      card.killApp();
-      assert.ok(card.app.kill.calledOnce, 'kill was called');
-    });
-    test('stops event listeners', function() {
-      var card = this.card;
-      this.sinon.stub(card, 'handleEvent');
-      card.killApp();
-      var touchStartEvt = createTouchEvent('touchstart',
-                                           card.element, 100, 100);
-      card.element.dispatchEvent(touchStartEvt);
-      assert.equal(card.handleEvent.callCount, 0, 'handleEvent not called');
-    });
-  });
-
-  suite('previews > ', function() {
-    test('card using screenshots doesnt show icon', function() {
-      mockManager.useAppScreenshotPreviews = true;
-      var card = new Card({
-        app: makeApp({ name: 'dummyapp' }),
-        manager: mockManager
-      });
-      card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
-
-      assert.isFalse(card.element.classList.contains('appIconPreview'),
-                    'card doesnt have appIconPreview class');
-    });
-
-    test('card with screenshots disabled shows icon', function() {
-      mockManager.useAppScreenshotPreviews = false;
-      var card = new Card({
-        app: makeApp({ name: 'dummyapp-icons' }),
-        manager: mockManager
-      });
-      card.render();
-      getIconPromise.mFulfillToValue({ url: iconDataURI });
-
-      assert.isTrue(card.element.classList.contains('appIconPreview'),
-                    'card has appIconPreview class');
-
-      var iconView = card.element.querySelector('.appIconView');
-      assert.ok(iconView.style.backgroundImage.indexOf('url') > -1,
-                '.appIconView element has backgroundImage value');
-    });
-  });
-
-  suite('events > ', function() {
-    setup(function(){
-      this.card = new Card({
-        app: makeApp({ name: 'dummyapp' }),
-        manager: mockManager
-      });
-      this.card.render();
-    });
-    test('touch', function() {
-      var card = this.card,
-          element = this.card.element,
-          yOffset;
-      this.sinon.spy(card, 'handleEvent');
-      this.sinon.spy(card, 'onCrossSlide');
-      var touchStartEvt = createTouchEvent('touchstart',
-                                           element, 100, 100);
-      element.dispatchEvent(touchStartEvt);
-      assert.ok(card.handleEvent.calledOnce, 'touchstart handled');
-      assert.ok(Array.isArray(card.startTouchPosition));
-      card.handleEvent.reset();
-
-      var touchMoveEvt = createTouchEvent('touchmove',
-                                           element, 90, 10);
-      card.element.dispatchEvent(touchMoveEvt);
-      assert.ok(card.handleEvent.calledOnce, 'touchmove handled');
-      assert.ok(card.deltaX, 'deltaX');
-      assert.ok(card.deltaY, 'deltaY');
-      assert.ok(card.onCrossSlide.calledOnce,
-                'vertical touchmove called onCrossSlide');
-      yOffset = card.element.style.transform
-                    .replace(/translateY\(([^\)]+)\)/, '$1');
-      assert.ok(yOffset && parseInt(yOffset) < 0,
-                'transform: translateY is negative');
-      card.handleEvent.reset();
-      assert.equal(card.element.style.transition, 'transform 0s linear 0s');
-
-
-      var touchEndEvt = createTouchEvent('touchend',
-                                           element, 10, 10);
-      card.element.dispatchEvent(touchEndEvt);
-      assert.ok(card.handleEvent.calledOnce, 'touchend handled');
-      yOffset = card.element.style.transform
-                    .replace(/translateY\(([^\)]+)\)/, '$1');
-      assert.ok(!yOffset || yOffset === '0px');
-      assert.ok(!card.element.style.transition, 'transition is removed');
-    });
+  teardown(function() {
 
   });
+
+  function touch(subtype, x, y) {
+    var evt = new CustomEvent('touch' + subtype);
+    evt.touches = evt.targetTouches = [];
+    if (arguments.length > 1) {
+      evt.touches.push({
+        clientX: x, clientY: y
+      });
+    }
+    return evt;
+  }
+
+  test('swipe up to kill', function() {
+    var dropStub = this.sinon.stub();
+    var willDragStub = this.sinon.stub();
+    el.addEventListener('card-dropped', dropStub);
+    el.addEventListener('card-will-drag', willDragStub);
+
+    motion.el.dispatchEvent(touch('start', 0, 0));
+    motion.el.dispatchEvent(touch('move', 0, -10));
+    assert.isTrue(motion.activelyDragging);
+    assert.equal(currentY, '-10px');
+    motion.el.dispatchEvent(touch('move', 0, -20));
+    motion.el.dispatchEvent(touch('move', 0, -30));
+    motion.el.dispatchEvent(touch('move', 0, -40));
+    motion.el.dispatchEvent(touch('end'));
+    assert.isFalse(motion.activelyDragging);
+
+    assert.equal(currentY, '-200%');
+    assert.isTrue(dropStub.calledOnce);
+    assert.isTrue(dropStub.firstCall.args[0].detail.willKill);
+    assert.isTrue(willDragStub.calledOnce);
+  });
+
+  test('swipe up but without enough velocity', function() {
+    var dropStub = this.sinon.stub();
+    el.addEventListener('card-dropped', dropStub);
+
+    motion.el.dispatchEvent(touch('start', 0, 0));
+    motion.el.dispatchEvent(touch('move', 0, -10));
+    motion.el.dispatchEvent(touch('move', 0, -20));
+    motion.el.dispatchEvent(touch('move', 0, -20));
+    motion.el.dispatchEvent(touch('move', 0, -10));
+    motion.el.dispatchEvent(touch('end'));
+
+    assert.equal(currentY, '0px');
+    assert.isTrue(dropStub.calledOnce);
+    assert.isFalse(dropStub.firstCall.args[0].detail.willKill);
+  });
+
+  test('touch events are intercepted by the card', function() {
+    var touchEvent = touch('start', 0, 0);
+    this.sinon.spy(touchEvent, 'stopPropagation');
+    motion.el.dispatchEvent(touchEvent);
+    assert.isTrue(touchEvent.stopPropagation.called);
+  });
+
+  test('swipe up, but event canceled', function() {
+    var dropStub = this.sinon.stub();
+    el.addEventListener('card-will-drag', (evt) => {
+      evt.preventDefault();
+    });
+
+    motion.el.dispatchEvent(touch('start', 0, 0));
+    motion.el.dispatchEvent(touch('move', 0, -10));
+    assert.equal(currentY, '0px');
+    motion.el.dispatchEvent(touch('move', 0, -20));
+    motion.el.dispatchEvent(touch('move', 0, -30));
+    motion.el.dispatchEvent(touch('move', 0, -40));
+    motion.el.dispatchEvent(touch('end'));
+
+    assert.equal(currentY, '0px');
+    assert.isFalse(dropStub.calledOnce); // no drop event expected
+  });
+
+  test('click while dragging should be ignored', function() {
+    motion.el.dispatchEvent(touch('start', 0, 0));
+    motion.el.dispatchEvent(touch('move', 0, -10));
+    motion.el.dispatchEvent(touch('move', 0, -20));
+    motion.el.dispatchEvent(touch('move', 0, -30));
+
+    var click = new CustomEvent('click', { cancelable: true });
+    this.sinon.spy(click, 'stopPropagation');
+    motion.el.dispatchEvent(click);
+    assert.isTrue(click.defaultPrevented);
+    assert.isTrue(click.stopPropagation.called);
+  });
+
 });

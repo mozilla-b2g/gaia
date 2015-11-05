@@ -24,13 +24,6 @@ suite('AppStorage > ', function() {
     realDeviceStorage = null;
   });
 
-  suite('initiation', function() {
-    test('AppStorage is enabled while get the instance',
-      function() {
-        assert.ok(AppStorage.enabled);
-    });
-  });
-
   suite('_getSpaceInfo', function() {
     setup(function() {
       this.sinon.spy(AppStorage._appStorage, 'freeSpace');
@@ -44,14 +37,14 @@ suite('AppStorage > ', function() {
 
         var req = AppStorage._appStorage.freeSpace.getCall(0).returnValue;
         req.fireSuccess(100);
-        assert.equal(100, AppStorage.storage.freeSize);
+        assert.equal(100, AppStorage.freeSize);
 
         assert.ok(AppStorage._appStorage.usedSpace.called);
         var req2 = AppStorage._appStorage.usedSpace.getCall(0).returnValue;
         req2.fireSuccess(300);
-        assert.equal(300, AppStorage.storage.usedSize);
-        assert.equal(400, AppStorage.storage.totalSize);
-        assert.equal(75, AppStorage.storage.usedPercentage);
+        assert.equal(300, AppStorage.usedSize);
+        assert.equal(400, AppStorage.totalSize);
+        assert.equal(75, AppStorage.usedPercentage);
     });
   });
 });

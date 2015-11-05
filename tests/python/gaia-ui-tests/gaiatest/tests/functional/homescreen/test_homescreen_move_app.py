@@ -20,22 +20,9 @@ class TestMoveApp(GaiaTestCase):
         """
 
         self.homescreen.wait_for_number_of_apps(1)
-        first_app_before_move = self.homescreen.visible_apps[0].name
-
-        # Assert that we are not in edit mode.
-        self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
-
-        # Move first app to position 3 (index 2)
+        first_app_before_move = self.homescreen.visible_apps[0].manifest_url
         self.homescreen.move_app_to_position(0, 2)
 
-        # Assert that we are in edit mode.
-        self.assertTrue(self.homescreen.is_edit_mode_active, "Edit mode should be active")
-
-        # Exit edit mode
-        self.device.touch_home_button()
-        self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
-
-        # Check the app order and that the app on position 12 is the right one
-        first_app_after_move = self.homescreen.visible_apps[0].name
+        first_app_after_move = self.homescreen.visible_apps[0].manifest_url
         self.assertNotEqual(first_app_before_move, first_app_after_move)
-        self.assertEqual(first_app_before_move, self.homescreen.visible_apps[2].name)
+        self.assertEqual(first_app_before_move, self.homescreen.visible_apps[2].manifest_url)

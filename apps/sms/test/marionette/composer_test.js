@@ -7,6 +7,7 @@ var Messages = require('./lib/messages.js');
 var InboxView = require('./lib/views/inbox/view');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
 var Storage = require('./lib/storage.js');
+var Tools = require('./lib/views/shared/tools.js');
 
 marionette('Messages Composer', function() {
   var apps = {};
@@ -24,6 +25,7 @@ marionette('Messages Composer', function() {
   });
 
   var messagesApp, activityCallerApp;
+  var storage;
 
   function assertIsDisplayed(element) {
     assert.isTrue(element.displayed(), 'Element should be displayed');
@@ -33,70 +35,91 @@ marionette('Messages Composer', function() {
     assert.isFalse(element.displayed(), 'Element should not be displayed');
   }
 
-  function assertIsFocused(element, message) {
-    assert.isTrue(element.scriptWith(function(el) {
-      return document.activeElement === el;
-    }), message);
-  }
+  var MOCKS = [
+    '/mocks/mock_test_storages.js',
+    '/mocks/mock_navigator_moz_icc_manager.js',
+    '/mocks/mock_navigator_moz_mobile_message.js',
+    '/mocks/mock_navigator_moz_contacts.js'
+  ];
 
   setup(function() {
     messagesApp = Messages.create(client);
+    storage = Storage.create(client);
+
     activityCallerApp = MessagesActivityCaller.create(client);
 
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
-    );
+    MOCKS.forEach(function(mock) {
+      client.contentScript.inject(__dirname + mock);
+    });
   });
 
   suite('Preserve message input while navigating', function() {
-    var composer, inbox, conversation;
+    var inboxView, conversationView;
     var message = 'test message';
 
-    function waitForInbox() {
-      client.helper.waitForElement(inbox.mmsConversation);
-    }
-
-    function createMMSConversation() {
-      inbox.navigateToComposer();
-      messagesApp.addRecipient('a@b.c');
-      messagesApp.addRecipient('s@p.c');
-      composer.messageInput.sendKeys('MMS thread.');
-      messagesApp.send();
-    }
-
     setup(function() {
-      conversation = messagesApp.Conversation;
-      composer = messagesApp.Composer;
-      inbox = messagesApp.Inbox;
-
       messagesApp.launch();
-      createMMSConversation();
-      messagesApp.performHeaderAction();
-      waitForInbox();
-      inbox.mmsConversation.tap();
 
-      composer.messageInput.tap();
-      composer.messageInput.sendKeys(message);
+      // Set empty stores.
+      storage.setMessagesStorage();
+      storage.setContactsStorage();
+
+      inboxView = new InboxView(client);
+
+      var newMessageView = inboxView.createNewMessage();
+      newMessageView.addNewRecipient('a@b.c');
+      newMessageView.addNewRecipient('s@p.c');
+      newMessageView.typeMessage('MMS thread.');
+
+      conversationView = newMessageView.send();
+      conversationView.typeMessage(message);
     });
 
     test('Message input is preserved when navigating to and from group-view',
     function() {
-      conversation.headerTitle.tap();
-      client.helper.waitForElement(messagesApp.Participants.main);
-      messagesApp.performHeaderAction();
-      assert.equal(composer.messageInput.text(), message);
+      var participantsView = conversationView.openParticipants();
+
+      participantsView.back();
+
+      assert.equal(conversationView.messageText, message);
     });
 
     test('Message input is preserved when navigating to and from ' +
     'message-report', function() {
-      messagesApp.contextMenu(conversation.message);
-      messagesApp.selectAppMenuOption('View message report');
-      client.helper.waitForElement(messagesApp.Report.main);
-      messagesApp.performHeaderAction();
-      assert.equal(composer.messageInput.text(), message);
+      var reportView = conversationView.openReport(
+        conversationView.messages()[0].id
+      );
+
+      reportView.back();
+
+      assert.equal(conversationView.messageText, message);
+    });
+  });
+
+  suite('Sending a message', function() {
+    setup(function() {
+      messagesApp.launch();
+
+      // Set empty messages and contacts store.
+      storage.setMessagesStorage();
+      storage.setContactsStorage();
+
+      messagesApp.Inbox.navigateToComposer();
+
+      // Create new thread from the scratch
+      messagesApp.addRecipient('+1');
+      messagesApp.Composer.messageInput.sendKeys('message');
+      messagesApp.send();
+    });
+
+    test('Header should be updated accordingly', function() {
+      client.helper.waitForElement(messagesApp.Conversation.message);
+
+      assert.equal(
+        messagesApp.Conversation.headerTitle.text(),
+        '+1',
+        'Header title should display contact phone number'
+      );
     });
   });
 
@@ -107,6 +130,10 @@ marionette('Messages Composer', function() {
 
     setup(function() {
       messagesApp.launch();
+      // Set empty stores.
+      storage.setMessagesStorage();
+      storage.setContactsStorage();
+
       messagesApp.Inbox.navigateToComposer();
     });
 
@@ -184,7 +211,7 @@ marionette('Messages Composer', function() {
         return composer.attachButton.enabled();
       }.bind(this));
       composer.attachButton.tap();
-      messagesApp.selectSystemMenuOption('Messages Activity Caller');
+      messagesApp.Menu.selectSystemMenuOption('Messages Activity Caller');
 
       activityCallerApp.switchTo();
       activityCallerApp.pickImage();
@@ -215,7 +242,7 @@ marionette('Messages Composer', function() {
       // converted to SMS and we should show actual available char counter
       composer.messageInput.sendKeys('ef');
 
-      composer.attachment.scriptWith(function(el) {
+      composer.attachments[0].scriptWith(function(el) {
         el.scrollIntoView(false);
       });
 
@@ -223,8 +250,8 @@ marionette('Messages Composer', function() {
       // "Bug 1046706 - "tap" does not find the element after scrolling in APZC"
       client.helper.wait(600);
 
-      composer.attachment.tap();
-      messagesApp.selectAppMenuOption('Remove image');
+      composer.attachments[0].tap();
+      messagesApp.Menu.selectAppMenuOption('Remove image');
 
       client.helper.waitForElementToDisappear(composer.mmsLabel);
       client.helper.waitForElement(composer.charCounter);
@@ -245,25 +272,29 @@ marionette('Messages Composer', function() {
 
       // Case #1: Add subject input, once added it should be focused
       messagesApp.showSubject();
-      assertIsFocused(composer.subjectInput, 'Subject input should be focused');
+      Tools.assertElementFocused(composer.subjectInput,
+                                 'Subject input should be focused');
 
       // Case #2: Hide subject field, focus should be moved to message field
       messagesApp.hideSubject();
-      assertIsFocused(composer.messageInput, 'Message input should be focused');
+      Tools.assertElementFocused(composer.messageInput,
+                                 'Message input should be focused');
 
       // Case #3: Focus should be moved to message input when subject is removed
       // by user with backspace key as well
       messagesApp.showSubject();
-      assertIsFocused(composer.subjectInput, 'Subject input should be focused');
+      Tools.assertElementFocused(composer.subjectInput,
+                                 'Subject input should be focused');
 
       composer.subjectInput.sendKeys(Messages.Chars.BACKSPACE);
-      assertIsFocused(composer.messageInput, 'Message input should be focused');
+      Tools.assertElementFocused(composer.messageInput,
+                                 'Message input should be focused');
     });
   });
 
 
   suite('Recipients', function() {
-    var newMessage, storage;
+    var newMessage;
     var contact = {
       name: ['Existing Contact'],
       givenName: ['Existing'],
@@ -273,18 +304,8 @@ marionette('Messages Composer', function() {
         type: 'Mobile'
       }]
     };
-    var MOCKS = [
-      '/mocks/mock_test_storages.js',
-      '/mocks/mock_navigator_moz_contacts.js'
-    ];
 
     setup(function() {
-      storage = Storage.create(client);
-
-      MOCKS.forEach(function(mock) {
-        client.contentScript.inject(__dirname + mock);
-      });
-
       messagesApp.launch();
       storage.setMessagesStorage();
       storage.setContactsStorage([contact]);

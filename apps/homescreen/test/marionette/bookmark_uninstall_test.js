@@ -1,0 +1,71 @@
+'use strict';
+/* global __dirname */
+
+var assert = require('assert');
+
+var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
+var Server = require('../../../../shared/test/integration/server');
+
+marionette('Homescreen - Bookmark Uninstall', function() {
+
+  var options = require(__dirname + '/client_options_bookmarks.js');
+  options.settings['dev.gaia.pinning_the_web'] = false;
+  var client = marionette.client({
+    profile: options
+  });
+  var actions, bookmark, home, server, system;
+
+  suiteSetup(function(done) {
+    Server.create(__dirname + '/fixtures/', function(err, _server) {
+      server = _server;
+      done();
+    });
+  });
+
+  suiteTeardown(function() {
+    server.stop();
+  });
+
+  var url;
+  setup(function() {
+    actions = client.loader.getActions();
+    home = client.loader.getAppClass('homescreen');
+    system = client.loader.getAppClass('system');
+    bookmark = new Bookmark(client, server);
+    system.waitForFullyLoaded();
+    home.waitForLaunch();
+
+    url = server.url('sample.html');
+    client.switchToFrame();
+    bookmark.openAndSave(url);
+
+    system.tapHome();
+    home.waitForLaunch();
+  });
+
+  test('removal of bookmark', function() {
+    var icon = home.getIcon(url);
+
+    home.scrollIconToCenter(icon);
+    actions.longPress(icon, 1).perform();
+    home.removeButton.tap();
+
+    client.switchToFrame();
+    client.switchToFrame(system.getAppIframe(bookmark.URL));
+    bookmark.removeButton.tap();
+
+    // ensure the icon disappears
+    client.switchToFrame();
+    client.switchToFrame(system.getHomescreenIframe());
+    client.helper.waitForElementToDisappear(icon);
+
+    // ensure bookmark is gone upon restart
+    home.restart();
+    client.setSearchTimeout(20);
+    icon = null;
+    try {
+      icon = home.getIcon(server.packageManifestURL);
+    } catch(e) { }
+    assert.ok(!icon, 'bookmark was not removed');
+  });
+});

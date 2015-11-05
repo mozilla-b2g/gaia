@@ -11,7 +11,9 @@ var Keys = {
 
 var assert = require('chai').assert;
 
-marionette('Test Arrow Key Events', function() {
+// Skip because the dashboard is not needed app now.
+// Should re-enable the test when we need it.
+marionette.skip('Test Arrow Key Events', function() {
 
   var opts = {
     hostOptions: {
@@ -24,7 +26,8 @@ marionette('Test Arrow Key Events', function() {
 
   var client = marionette.client({
     profile: opts,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    // XXX: Set this to true once Accessibility is implemented in TV
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {

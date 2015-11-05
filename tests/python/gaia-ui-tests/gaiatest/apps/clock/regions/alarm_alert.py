@@ -12,10 +12,8 @@ class AlarmAlertScreen(Base):
     _stop_button_locator = (By.ID, 'ring-button-stop')
     _alarm_label_locator = (By.ID, 'ring-label')
 
-    _screen_locator = (By.ID, 'screen')
-
     def wait_for_alarm_to_trigger(self):
-        alarm_frame = Wait(self.marionette, timeout=60).until(
+        alarm_frame = Wait(self.marionette, timeout=60, interval=5).until(
             expected.element_present(*self._alarm_frame_locator))
         Wait(self.marionette).until(expected.element_displayed(alarm_frame))
         self.marionette.switch_to_frame(alarm_frame)
@@ -24,13 +22,7 @@ class AlarmAlertScreen(Base):
         stop_alarm_button = Wait(self.marionette).until(
             expected.element_present(*self._stop_button_locator))
         Wait(self.marionette).until(expected.element_displayed(stop_alarm_button))
-
-        # Workaround for bug 1109213, where tapping on the button inside the app itself
-        # makes Marionette spew out NoSuchWindowException errors
-        x = stop_alarm_button.rect['x'] + stop_alarm_button.rect['width']//2
-        y = stop_alarm_button.rect['y'] + stop_alarm_button.rect['height']//2
-        self.marionette.switch_to_frame()
-        self.marionette.find_element(*self._screen_locator).tap(x, y)
+        self.tap_element_from_system_app(stop_alarm_button)
 
     @property
     def alarm_label(self):

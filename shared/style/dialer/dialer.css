@@ -42,12 +42,12 @@ a:hover, a:active, a:focus {
 }
 
 .contact-primary-info {
-  font-size: -moz-calc(15*0.226rem);
+  font-size: calc(15 * 0.226rem);
   color: black;
 }
 
 .contact-secondary-info {
-  font-size: -moz-calc(6*0.226rem);
+  font-size: calc(6 * 0.226rem);
   color: white;
 }
 

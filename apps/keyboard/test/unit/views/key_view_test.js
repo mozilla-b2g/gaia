@@ -183,7 +183,7 @@ suite('Views > KeyView', function() {
       assert.equal(keyView.element.getAttribute('disabled'), 'true');
     });
 
-    test('alt label node for secondLayout case', function() {
+    test('alt label node for option w/ altOutputChar case', function() {
       var key = {
         value: 'k',
         lowercaseValue: 'l_k',

@@ -54,6 +54,10 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "128": "/style/icons/Blank.png"
+    "84": "/style/icons/membuster_84.png",
+    "126": "/style/icons/membuster_126.png",
+    "142": "/style/icons/membuster_142.png",
+    "189": "/style/icons/membuster_189.png",
+    "284": "/style/icons/membuster_284.png"
   }
 }

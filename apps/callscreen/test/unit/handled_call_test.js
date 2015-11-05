@@ -1,4 +1,4 @@
-/* globals AudioCompetingHelper, ConferenceGroupHandler, FontSizeManager,
+/* globals ConferenceGroupHandler, FontSizeManager,
            HandledCall, l10nAssert, MockCall, MockCallScreen, MockCallsHandler,
            MockContactPhotoHelper, MockContacts, MockFontSizeUtils, MockL10n,
            MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
@@ -6,7 +6,6 @@
 
 'use strict';
 
-require('/shared/test/unit/l10n_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
@@ -25,7 +24,6 @@ require('/shared/test/unit/mocks/mock_voicemail.js');
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_handler.js');
 
-require('/js/audio_competing_helper.js');
 require('/js/handled_call.js');
 
 var mocksHelperForHandledCall = new MocksHelper([
@@ -130,7 +128,6 @@ suite('dialer/handled_call', function() {
     subject = new HandledCall(mockCall);
     MockVoicemail.mResolvePromise(false);
 
-    AudioCompetingHelper.init('test');
     document.body.appendChild(subject.node);
   });
 
@@ -309,7 +306,6 @@ suite('dialer/handled_call', function() {
 
   suite('on connect', function() {
     setup(function() {
-      this.sinon.spy(AudioCompetingHelper, 'compete');
       this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
       this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
       this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
@@ -377,12 +373,6 @@ suite('dialer/handled_call', function() {
 
     test('the mute and speaker buttons\' status is updated', function() {
       sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
-    });
-
-    test('AudioCompetingHelper compete gets called when connected', function() {
-      sinon.assert.notCalled(AudioCompetingHelper.compete);
-      this.sinon.clock.tick(1000);
-      sinon.assert.calledOnce(AudioCompetingHelper.compete);
     });
   });
 
@@ -488,14 +478,6 @@ suite('dialer/handled_call', function() {
         mockCall._disconnect();
         sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
       });
-
-      test('AudioCompetingHelper leaveCompetition gets called on disconnected',
-        function() {
-          this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
-          mockCall._disconnect();
-
-          sinon.assert.called(AudioCompetingHelper.leaveCompetition);
-      });
     });
 
     suite('from a group', function() {
@@ -514,7 +496,7 @@ suite('dialer/handled_call', function() {
         sinon.assert.calledWithMatch(
           MockCallScreen.showStatusMessage, {
             id: 'caller-left-call',
-            args: { caller: 'test name' }
+            args: { caller: ['test name'] }
           }
         );
       });
@@ -581,8 +563,8 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('outgoing'));
-        assert.isTrue(subject.node.hasAttribute('aria-label'));
-        assert.equal(subject.node.getAttribute('aria-label'), 'outgoing');
+        assert.isTrue(subject.node.hasAttribute('data-l10n-id'));
+        l10nAssert(subject.node, 'outgoing_screen_reader');
       });
     });
 
@@ -599,8 +581,8 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('incoming'));
-        assert.isTrue(subject.node.hasAttribute('aria-label'));
-        assert.equal(subject.node.getAttribute('aria-label'), 'incoming');
+        assert.isTrue(subject.node.hasAttribute('data-l10n-id'));
+        l10nAssert(subject.node, 'incoming_screen_reader');
       });
     });
   });
@@ -664,7 +646,7 @@ suite('dialer/handled_call', function() {
 
   suite('additional information', function() {
     test('check additional info updated', function() {
-      this.sinon.stub(MockUtils, 'getLocalizedPhoneNumberAdditionalInfo')
+      this.sinon.stub(MockUtils, 'getPhoneNumberAdditionalInfo')
                 .returns({
         id: 'phone_type_custom_and_carrier',
         args: { type: 'type', carrier: 'carrier' }

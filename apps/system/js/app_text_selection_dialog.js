@@ -3,10 +3,57 @@
 (function(exports) {
   var DEBUG = false;
   var _id = 0;
-  /**
-   * Text Selection Dialog of the AppWindow
-   */
+  var _globalStates = null;
 
+  // Manipulate global states for app text selection dialog across all apps. All
+  // states which are shared by apps should be put in this class.
+  var AppTextSelectionDialogGlobalStates = function() {
+    this._hasCutOrCopiedTimeoutId = null;
+    this._isPrefOn = true;
+    this.appTSDs = new Set();
+    this.bindOnObservePrefChanged = this.onObservePrefChanged.bind(this);
+    SettingsListener.observe('copypaste.enabled', true,
+                             this.bindOnObservePrefChanged);
+  };
+
+  // If a user cuts or copies something, a paste shortcut will pop up every time
+  // when single tapping on an editable field within this timeout.
+  AppTextSelectionDialogGlobalStates.prototype.CUT_OR_COPIED_TIMEOUT_MS = 15000;
+
+  AppTextSelectionDialogGlobalStates.prototype.hasCutOrCopied =
+    function() {
+      return !!this._hasCutOrCopiedTimeoutId;
+    };
+
+  AppTextSelectionDialogGlobalStates.prototype.launchHasCutOrCopiedTimer =
+    function() {
+      this._hasCutOrCopiedTimeoutId = window.setTimeout(() => {
+        this._hasCutOrCopiedTimeoutId = null;
+      }, this.CUT_OR_COPIED_TIMEOUT_MS);
+    };
+
+  AppTextSelectionDialogGlobalStates.prototype.cancelHasCutOrCopiedTimer =
+    function() {
+      window.clearTimeout(this._hasCutOrCopiedTimeoutId);
+      this._hasCutOrCopiedTimeoutId = null;
+    };
+
+  AppTextSelectionDialogGlobalStates.prototype.resetAllStates =
+    function() {
+      this._hasCutOrCopiedTimeoutId = null;
+      this._isPrefOn = true;
+      this.appTSDs.clear();
+    };
+
+  AppTextSelectionDialogGlobalStates.prototype.onObservePrefChanged =
+    function (value) {
+      this._isPrefOn = value;
+      this.appTSDs.forEach(appTSD => {
+        this._isPrefOn ? appTSD.start() : appTSD.stop();
+      });
+    };
+
+  // Text selection dialog per AppWindow.
   var AppTextSelectionDialog = function (app) {
     this.app = app;
     this.containerElement = (app && app.element) ? app.element :
@@ -14,46 +61,35 @@
     this.instanceID = _id++;
     this.event = null;
     this._enabled = false;
-    this._shortcutTimeout = null;
     this._injected = false;
-    this._hasCutOrCopied = false;
     this._isCommandSendable = false;
     this._transitionState = 'closed';
+    this._transitionStateOnPressCaret = null;
     this.textualmenuDetail = null;
-    this.bindOnObservePrefChanged = this.onObservePrefChanged.bind(this);
-    SettingsListener.observe('copypaste.enabled', true,
-                             this.bindOnObservePrefChanged);
+    this.globalStates = _globalStates =
+      _globalStates || new AppTextSelectionDialogGlobalStates();
+    this.globalStates.appTSDs.add(this);
   };
 
   AppTextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
 
-  AppTextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 52;
+  AppTextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 46;
 
-  AppTextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 54;
-
-  // Based on UX spec, there would be a temporary shortcut and only appears
-  // after the action 'copy/cut'. In this use case, the utility bubble will be
-  // time-out after 3 secs if no action is taken.
-  AppTextSelectionDialog.prototype.SHORTCUT_TIMEOUT = 3000;
-
-  // If text is not pasted immediately after copy/cut, the text will be viewed
-  // as pasted after 15 seconds (count starting from the moment when there's no
-  // action at all), and there will be no paste shortcut pop up when tapping on
-  // edit field.
-  AppTextSelectionDialog.prototype.RESET_CUT_OR_PASTE_TIMEOUT = 15000;
+  AppTextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 48;
 
   // Distance between selected area and the bottom of menu when menu show on
   // the top of selected area.
-  // By UI spec, 12px from the top of dialog to utility menu.
+  // By UI spec, 12px from the top of selected area to utility menu.
   AppTextSelectionDialog.prototype.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA =
     12;
 
   // Distance between selected area and the top of menu when menu show on
   // the bottom of selected area.
-  // caret tile height is controlled by gecko, we estimate the height as
-  // 22px. So 22px plus 12px which defined in UI spec, we get 34px from
-  // the bottom of selected area to utility menu.
-  AppTextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 43;
+  // Caret height is 36px which is controlled by gecko (libpref/init/all.js).
+  // Note that 36px includes 28px for caret and 8px for space underneath caret.
+  // So 28px plus 12px which defined in UI spec, we get 40px from the bottom
+  // of selected area to utility menu.
+  AppTextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 40;
 
   // Minimum distance between bubble and boundary.
   AppTextSelectionDialog.prototype.DISTANCE_FROM_BOUNDARY = 5;
@@ -62,22 +98,11 @@
 
   AppTextSelectionDialog.prototype.ELEMENT_PREFIX = 'textselection-dialog-';
 
-  AppTextSelectionDialog.prototype.onObservePrefChanged =
-    function tsd_onObservePrefChanged(value) {
-      if (value) {
-        this.start();
-      } else {
-        this.stop();
-      }
-    };
-
-  // Overwrite _unregisterEvents to make sure we remove event handlers
-  // and preference observer when destroying this app.
+  // Overwrite _unregisterEvents to remove this AppTextSelectionDialog
+  // from global states when destroying this app.
   AppTextSelectionDialog.prototype._unregisterEvents =
     function tsd__unregisterEvents() {
-      this.stop();
-      SettingsListener.unobserve('copypaste.enabled',
-                                 this.bindOnObservePrefChanged);
+      this.globalStates.appTSDs.delete(this);
     };
 
   AppTextSelectionDialog.prototype.start = function tsd_start() {
@@ -106,8 +131,8 @@
 
   AppTextSelectionDialog.prototype.debug = function tsd_debug(msg) {
     if (DEBUG || this._DEBUG) {
-      console.log('[Dump: ' + this.ID_NAME + ']' +
-        JSON.stringify(msg));
+      console.log(this.ID_NAME + '(' + this.CLASS_NAME + this.instanceID +
+                  '): ' + msg);
     }
   };
 
@@ -141,6 +166,7 @@
          return;
       }
       if (detail.reason === 'presscaret') {
+        this._transitionStateOnPressCaret = this._transitionState;
         this.hide();
         return;
       }
@@ -157,47 +183,48 @@
 
   AppTextSelectionDialog.prototype._onCollapsedMode =
     function tsd__onCollapsedMode(detail) {
+      var showDialog = false;
+
       switch (detail.reason) {
         case 'taponcaret':
         case 'longpressonemptycontent':
           // Always allow, do nothing here.
+          showDialog = true;
           break;
         case 'updateposition':
-          // Only allow when this._hasCutOrCopied is true
-          if (!this._hasCutOrCopied) {
-            this.hide();
-            return;
+          // Only allow when something had been cut or copied.
+          if (this.globalStates.hasCutOrCopied()) {
+            showDialog = true;
           }
+          break;
+        case 'releasecaret':
+          // Show the dialog if it was shown when pressing the caret.
+          if (this._transitionStateOnPressCaret === 'opened') {
+            showDialog = true;
+          }
+          this._transitionStateOnPressCaret = null;
           break;
         default:
           // Not allow
-          this.hide();
-          return;
+          break;
       }
 
-      detail.commands.canSelectAll = false;
-      this._triggerShortcutTimeout();
-      this.show(detail);
+      if (showDialog) {
+        detail.commands.canCut = false;
+        detail.commands.canCopy = false;
+        detail.commands.canSelectAll = false;
+        this.show(detail);
+      } else {
+        this.hide();
+      }
     };
 
   AppTextSelectionDialog.prototype._onSelectionMode =
     function tsd__onSelectionMode(detail) {
-      this._resetShortcutTimeout();
+      // make sure cut command option is only shown on editable element
+      detail.commands.canCut = detail.commands.canCut &&
+                                 detail.selectionEditable;
       this.show(detail);
-    };
-
-  AppTextSelectionDialog.prototype._resetShortcutTimeout =
-    function tsd__resetShortcutTimeout() {
-      window.clearTimeout(this._shortcutTimeout);
-      this._shortcutTimeout = null;
-    };
-
-  AppTextSelectionDialog.prototype._triggerShortcutTimeout =
-    function tsd__triggerShortcutTimeout() {
-      this._resetShortcutTimeout();
-      this._shortcutTimeout = window.setTimeout(function() {
-        this.close();
-      }.bind(this), this.SHORTCUT_TIMEOUT);
     };
 
   AppTextSelectionDialog.prototype._fetchElements =
@@ -308,27 +335,25 @@
         this.close();
       }
       evt.preventDefault();
+      evt.stopPropagation();
     };
 
   AppTextSelectionDialog.prototype.copyHandler =
     function tsd_copyHandler(evt) {
       this._doCommand(evt, 'copy', true);
-      this._resetCutOrCopiedTimer();
-      this._hasCutOrCopied = true;
+      this.globalStates.launchHasCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.cutHandler =
     function tsd_cutHandler(evt) {
       this._doCommand(evt, 'cut', true);
-      this._resetCutOrCopiedTimer();
-      this._hasCutOrCopied = true;
+      this.globalStates.launchHasCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.pasteHandler =
     function tsd_pasteHandler(evt) {
       this._doCommand(evt, 'paste', true);
-      this._hasCutOrCopied = false;
-      window.clearTimeout(this._resetCutOrCopiedTimeout);
+      this.globalStates.cancelHasCutOrCopiedTimer();
   };
 
   AppTextSelectionDialog.prototype.selectallHandler =
@@ -350,17 +375,7 @@
     return temp;
   };
 
-  AppTextSelectionDialog.prototype._resetCutOrCopiedTimer =
-    function tsd_resetCutOrCopiedTimer() {
-      window.clearTimeout(this._resetCutOrCopiedTimeout);
-      this._resetCutOrCopiedTimeout = window.setTimeout(function() {
-        this._hasCutOrCopied = false;
-      }.bind(this), this.RESET_CUT_OR_PASTE_TIMEOUT);
-  };
-
-
   AppTextSelectionDialog.prototype.show = function tsd_show(detail) {
-    this._resetShortcutTimeout();
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
@@ -397,7 +412,7 @@
   AppTextSelectionDialog.prototype.updateDialogPosition =
     function tsd_updateDialogPosition() {
       var pos = this.calculateDialogPostion();
-      this.debug(pos);
+      this.debug(JSON.stringify(pos));
       this.element.style.top = pos.top + 'px';
       this.element.style.left = pos.left + 'px';
       this.element.style.height = this.TEXTDIALOG_HEIGHT + 'px';
@@ -436,8 +451,17 @@
         posTop = selectDialogBottom + distanceFromBottom;
       }
 
+      var offset = 0;
+      if (this.app && this.app.appChrome) {
+        offset = this.app.appChrome.isMaximized() ?
+                 this.app.appChrome.height -
+                   this.app.appChrome.scrollable.scrollTop :
+                 Service.query('Statusbar.height');
+      }
+      posTop += offset;
+
       // Put dialog in the center of selected area if it overlap keyboard.
-      if (posTop >= (frameHeight - distanceFromBottom - selectOptionHeight)) {
+      if (posTop >= (frameHeight - selectOptionHeight)) {
         posTop = (((selectDialogTop >= 0) ? selectDialogTop : 0) +
           ((selectDialogBottom >= frameHeight) ? frameHeight :
             selectDialogBottom) - selectOptionHeight) / 2;
@@ -453,15 +477,8 @@
           this.DISTANCE_FROM_BOUNDARY;
       }
 
-      var offset = 0;
-      if (this.app && this.app.appChrome) {
-        offset = this.app.appChrome.isMaximized() ?
-                 this.app.appChrome.height :
-                 Service.query('Statusbar.height');
-      }
-
       return {
-        top: posTop + offset,
+        top: posTop,
         left: posLeft
       };
     };
@@ -480,7 +497,6 @@
     this.hide();
     this.element.blur();
     this.textualmenuDetail = null;
-    this._resetShortcutTimeout();
   };
 
   exports.AppTextSelectionDialog = AppTextSelectionDialog;

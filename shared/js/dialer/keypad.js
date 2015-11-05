@@ -189,7 +189,6 @@ var KeypadManager = {
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',
-                     '/shared/js/sanitizer.js',
                      '/dialer/js/suggestion_bar.js']);
 
     this._observePreferences();
@@ -614,6 +613,12 @@ var KeypadManager = {
         function() {
           var iccId = navigator.mozIccManager.iccIds[cardIndex];
           var icc = navigator.mozIccManager.getIccById(iccId);
+
+          if (!icc) {
+            reject('noSimCardToLoadContactsFrom');
+            return;
+          }
+
           var req = icc.readContacts('adn');
 
           req.onsuccess = function(event) {
@@ -738,10 +743,11 @@ var KeypadManager = {
       LazyLoader.load(['/shared/js/component_utils.js',
                        '/shared/elements/gaia_sim_picker/script.js'],
       function() {
-        var _ = navigator.mozL10n.get;
         var simPicker = document.getElementById('sim-picker');
-        simPicker.getOrPick(req.result[key], _('voiceMail'),
-                            self._callVoicemailForSim.bind(self));
+        navigator.mozL10n.formatValue('voiceMail').then(string => {
+          simPicker.getOrPick(req.result[key], string,
+                              self._callVoicemailForSim.bind(self));
+        });
       });
     };
   },
@@ -822,7 +828,7 @@ var KeypadManager = {
         self._keypadSoundIsEnabled = !!value;
       });
 
-      SettingsListener.observe('phone.dtmf.type', false, function(value) {
+      SettingsListener.observe('phone.dtmf.type', 'long', function(value) {
         self._shortTone = (value === 'short');
       });
 

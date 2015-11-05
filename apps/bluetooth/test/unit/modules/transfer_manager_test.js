@@ -332,13 +332,10 @@ suite('Bluetooth app > PairManager ', function() {
       this.sinon.stub(TransferManager, '_onBluetoothEnabledChanged');
     });
 
-    test('BtContext should be observed with "enabled", ' +
-         '_onBluetoothEnabledChanged() should be called ', function() {
+    test('BtContext should be observed with "enabled"', function() {
       TransferManager._observeBluetoothEnabled();
       assert.equal(BtContext.observe.args[0][0], 'enabled');
       assert.isDefined(BtContext.observe.args[0][1]);
-      assert.isTrue(TransferManager._onBluetoothEnabledChanged.calledWith(
-        mockEnabledState));
     });
   });
 
@@ -380,6 +377,11 @@ suite('Bluetooth app > PairManager ', function() {
     var mockEnabledState;
     setup(function() {
       this.sinon.stub(TurnBluetoothOnDialog, 'close');
+    });
+
+    test('not function when passed value is undefined ', function() {
+      TransferManager._onBluetoothEnabledChanged(undefined);
+      assert.isFalse(TurnBluetoothOnDialog.close.called);
     });
 
     suite('Bluetooth "enabled" state changed to be true > ', function() {

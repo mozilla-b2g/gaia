@@ -150,6 +150,7 @@
 
           // we may have updated icons so recalculate the correct icon.
           delete this._accurateIcon;
+          delete this._accurateIconSize;
 
           // Need to set app state here to correctly handle the pause/resume
           // case.
@@ -167,6 +168,20 @@
 
           break;
       }
+    },
+
+    // Overrides GridItem.fetchIconBlob
+    fetchIconBlob: function() {
+      if (!this._accurateIconSize) {
+        this._accurateIconSize =
+          this.closestIconSizeFromList(this.descriptor.icons);
+      }
+
+      var result = this._accurateIconSize ?
+        navigator.mozApps.mgmt.getIcon(this.app, this._accurateIconSize,
+                                       this.entryPoint || '') :
+        GaiaGrid.GridItem.prototype.fetchIconBlob.call(this);
+      return result;
     },
 
     /**

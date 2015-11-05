@@ -28,6 +28,7 @@
     "mocha-json-proxy": "file:../../mocha/mocha-json-proxy",
     "mozilla-runner": "file:../mozilla-runner",
     "object-assign": "^1.0.0",
+    "prettyjson": "1.1.2",
     "promise": "^6.0.1",
     "uuid": "^2.0.1"
   },

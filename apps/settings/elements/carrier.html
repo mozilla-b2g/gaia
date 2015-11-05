@@ -8,7 +8,7 @@
     <div>
       <ul class="carrier-info" hidden>
         <li>
-          <span data-l10n-id="dataNetwork"></span>
+          <span data-l10n-id="dataOperator"></span>
           <small id="dataNetwork-desc"></small>
         </li>
       </ul>
@@ -18,20 +18,17 @@
       </header>
       <ul>
         <li id="menuItem-enableDataCall" aria-disabled="true">
-          <label class="pack-switch">
-            <input type="checkbox">
-            <span data-l10n-id="dataConnection"></span>
-            <small id="dataConnection-desc"></small>
-          </label>
+          <gaia-switch>
+            <label data-l10n-id="dataConnection"></label>
+            <details id="dataConnection-expl" data-l10n-id="dataConnection-warning-message-short"></details>
+          </gaia-switch>
         </li>
-        <li id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden></li>
         <li id="menuItem-enableDataRoaming">
-          <label class="pack-switch">
-            <input type="checkbox">
-            <span data-l10n-id="dataRoaming"></span>
-          </label>
+          <gaia-switch>
+            <label data-l10n-id="dataRoaming"></label>
+            <details id="dataRoaming-expl" data-l10n-id="dataRoaming-warning-message-short"></details>
+          </gaia-switch>
         </li>
-        <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden></li>
       </ul>
 
       <div class="carrier-advancedSettings" hidden>
@@ -41,7 +38,7 @@
         <ul>
           <li>
             <a class="menu-item" href="#operator-settings">
-              <span data-l10n-id="networkOperator"></span>
+              <span data-l10n-id="netOperator"></span>
             </a>
           </li>
           <li>

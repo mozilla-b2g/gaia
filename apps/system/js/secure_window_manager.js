@@ -136,6 +136,9 @@
           break;
         case 'secure-appopened':
           this.elements.screen.classList.add('secure-app');
+          if (this.states.activeApp) {
+            this.states.activeApp.focus();
+          }
           break;
         case 'secure-appterminated':
           app = evt.detail;

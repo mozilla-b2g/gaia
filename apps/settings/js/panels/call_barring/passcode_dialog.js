@@ -80,7 +80,7 @@ define(function(require) {
     }
 
     function _showPanel() {
-      return new Promise(function showing(resolve, reject) {
+      return new Promise((resolve, reject) => {
         panel.hidden = false;
         input.focus();
         this.resolve = resolve;

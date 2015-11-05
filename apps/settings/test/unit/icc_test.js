@@ -181,7 +181,6 @@ suite('STK (App menu) >', function() {
         ], map, function(MockStkHelper) {
           // we have to replace `require` in icc.js
           window.require = function(modules, callback) {
-            navigator.mozL10n = MockL10n;
             callback(MockStkHelper);
           };
           testRequire(['icc'], {}, function() {
@@ -232,7 +231,7 @@ suite('STK (App menu) >', function() {
     test('All items with correct NAI data', function() {
       this.items.forEach(function(item, index) {
         assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
-          (index + 1) + ') small').textContent,
+          (index + 1) + ') small').getAttribute('data-l10n-id'),
           this.STK_NEXT_ACTION_INDICATOR[this.nextActionList[index]]);
       }, this);
     });
@@ -246,7 +245,7 @@ suite('STK (App menu) >', function() {
 
     test('Help entry showed (isHelpAvailable)', function() {
       assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
-        (this.items.length + 1) + ') a').textContent,
+        (this.items.length + 1) + ') a').getAttribute('data-l10n-id'),
         'operatorServices-helpmenu');
     });
   });

@@ -48,7 +48,7 @@
         max_length: this.maxLength
       };
 
-      this.client._sendCommand(cmd, 'ok', callback);
+      this.client._sendCommand(cmd, callback);
       this.multiActions = [];
       return this;
     }

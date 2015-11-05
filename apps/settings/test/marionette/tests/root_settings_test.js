@@ -25,14 +25,14 @@ marionette('check root panel settings', function() {
       client.contentScript.inject(__dirname +
         '/../mocks/mock_navigator_moz_bluetooth.js');
 
-      client.settings.set('devtools.qps.enabled', true);
+      client.settings.set('devtools.pseudolocalization.enabled', true);
 
       settingsApp.launch();
       rootPanel = settingsApp.rootPanel;
     });
 
     teardown(function() {
-      client.settings.set('devtools.qps.enabled', false);
+      client.settings.set('devtools.pseudolocalization.enabled', false);
     });
 
     test('check static item descriptions', function() {
@@ -68,15 +68,15 @@ marionette('check root panel settings', function() {
         rootPanel.isLanguageDescTranslated('accented'),
         'language desc was not localized into Accented English');
 
-      settingsApp.currentLanguage = 'mirrored';
+      settingsApp.currentLanguage = 'bidi';
       assert.ok(
-        rootPanel.isLanguageDescTranslated('mirrored'),
-        'language desc was not localized into Mirrored English');
+        rootPanel.isLanguageDescTranslated('bidi'),
+        'language desc was not localized into Bidi English');
 
       settingsApp.currentLanguage = 'english';
       assert.ok(
         rootPanel.isLanguageDescTranslated('english'),
-        'language desc was not localized into Mirrored English');
+        'language desc was not localized into English');
     });
 
     suite('airplane mode', function() {
@@ -104,28 +104,6 @@ marionette('check root panel settings', function() {
           'geolocation should be disabled');
         assert.ok(!rootPanel.geolocationEnabledSetting,
           'geolocation.enabled should be false');
-      });
-    });
-
-    suite('usb storage', function() {
-      test('check default value', function() {
-        assert.ok(!rootPanel.usbStorageCheckboxChecked,
-          'usb storage should be disabled by default');
-        assert.equal(rootPanel.usbStorageDesc, 'Disabled');
-      });
-
-      test.skip('enable usb storage', function() {
-        rootPanel.usbStorage(true);
-
-        // There will be confirmation dialog shown at the first time the usb
-        // storage is enabled. Add a waitFor for this case.
-        client.waitFor(function() {
-          return client.findElement('.turn-on-ums-dialog').displayed();
-        });
-        rootPanel.tapUsbStorageConfirmButton();
-
-        assert.ok(rootPanel.usbStorageCheckboxChecked,
-          'usb storage should be enabled');
       });
     });
   });

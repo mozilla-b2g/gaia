@@ -6,13 +6,15 @@
 /* global MozActivity */
 /* global SettingsListener */
 /* global Service */
-/* global GaiaPinCard */
+/* global SystemBanner */
 
 'use strict';
 
 (function(exports) {
-  const DEFAULT_ICON_URL = '/style/chrome/images/default_icon.png';
   const PINNING_PREF = 'dev.gaia.pinning_the_web';
+  // 32px + 4px padding added by the Icon renderer
+  const ICON_SIZE = 32 + 4;
+  const PREVIEW_ICON_SIZE = 64;
 
   var _id = 0;
 
@@ -41,7 +43,6 @@
     this.scrollable = app.browserContainer;
     this._currentOrigin = app.origin || '';
     this._currentIconUrl = '';
-    this.pinned = false;
     this.render();
 
     if (this.app.themeColor && this.app.themeColor !== '') {
@@ -69,6 +70,9 @@
     if (!chrome) {
       return;
     }
+
+    this.pinned = chrome.pinned || false;
+    this.debug('AppChrome#' + this.app.instanceID + ', pinned ' + this.pinned);
 
     if (this.isSearchApp()) {
       this._fixedTitle = true;
@@ -119,29 +123,33 @@
 
     return `<div class="chrome chrome-combined" id="${className}">
               <gaia-progress></gaia-progress>
+              <section role="dialog" class="pin-dialog hidden">
+                <header>
+                  <h2 class="pin-type" data-l10n-id="pinning-pin-type"></h2>
+                </header>
+                <div class="card-container">
+                  <div class="pin-site-icon"></div>
+                  <h2 class="pin-site-name"></h2>
+                </div>
+                <div class="footer-container">
+                  <button data-l10n-id="pinning-pin" data-action="pin"
+                    class="pin-button">
+                    Pin
+                  </button>
+                  <footer>
+                    <span data-l10n-id="from">from</span>
+                    <span class="origin"></span>
+                  </footer>
+                </div>
+              </section>
+              <div class="pin-scrim"></div>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar js-chrome-ssl-information">
-                  <section role="dialog" class="pin-dialog hidden">
-                    <a href="#" data-action="cancel"></a>
-                    <header>
-                      <h2 data-l10n-id="pinning-pin-page">Pin Page</h2>
-                    </header>
-                    <div class="card-container"></div>
-                    <div class="footer-container">
-                      <button data-l10n-id="pinning-pin" data-action="pin"
-                        class="pin-button">
-                        Pin
-                      </button>
-                      <footer>
-                        <span data-l10n-id="from">from</span>
-                        <span class="origin"></span>
-                      </footer>
-                    </div>
-                  </section>
+                  <div class="urlbar-hit-area"></div>
                   <span class="pb-icon"></span>
                   <div class="site-icon"></div>
                   <div class="chrome-ssl-indicator chrome-title-container">
@@ -217,14 +225,21 @@
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.chrome-title-container > .title');
+    this.urlbar = this.element.querySelector('.urlbar');
     this.siteIcon = this.element.querySelector('.site-icon');
+    LazyLoader.load(['js/system_banner.js']).then(function() {
+      this.systemBanner = new SystemBanner();
+    }.bind(this));
 
     if (this.useCombinedChrome()) {
       this.pinDialog = this.element.querySelector('.pin-dialog');
       this.pinButton = this.element.querySelector('.pin-button');
-      this.closePin = this.pinDialog.querySelector('a[data-action="cancel"]');
       this.originElement = this.pinDialog.querySelector('.origin');
       this.pinCardContainer = this.pinDialog.querySelector('.card-container');
+      this.pinSiteIcon = this.pinCardContainer.querySelector('.pin-site-icon');
+      this.pinSiteName = this.pinCardContainer.querySelector('.pin-site-name');
+      this.pinType = this.pinDialog.querySelector('.pin-type');
+      this.pinScrim = this.element.querySelector('.pin-scrim');
     }
 
     this.sslIndicator =
@@ -247,8 +262,11 @@
         this.collapse();
         break;
 
-      case 'click':
+      case 'rocketbar-activating':
         this.hidePinDialogCard();
+        break;
+
+      case 'click':
         this.handleClickEvent(evt);
         break;
 
@@ -302,11 +320,16 @@
       case 'mozbrowsermetachange':
         this.handleMetaChange(evt);
         break;
+      case 'pins-scopechange':
+        this.handleBookmarksScopeChange(evt);
+        break;
     }
   };
 
   AppChrome.prototype.handleClickEvent = function ac_handleClickEvent(evt) {
-    switch (evt.target) {
+    evt.stopPropagation(); // We'll handle all clicks here, thanks.
+
+    switch (evt.currentTarget) {
       case this.reloadButton:
         this.app.reload();
         break;
@@ -328,6 +351,7 @@
         this.onClickSiteIcon();
         break;
 
+      case this.urlbar:
       case this.title:
         this.titleClicked();
         break;
@@ -342,7 +366,8 @@
 
       case this.newWindowButton:
         evt.stopImmediatePropagation();
-        this.onNewWindow();
+        // XXX: this isn't a function!
+        // this.onNewWindow();
         break;
 
       case this.newPrivateWinButton:
@@ -362,22 +387,148 @@
         break;
 
       case this.pinButton:
-        this.pin();
+        if (this.pinButton.dataset.action == 'unpin') {
+          this.unpinSite();
+        } else {
+          this.pinSite();
+        }
+        break;
+
+      case this.pinScrim:
+        this.hidePinDialogCard();
         break;
     }
   };
 
+  /**
+   * Pin current page in places database.
+   */
+  AppChrome.prototype.pinPage = function ac_pinPage() {
+    Service && Service.request('Places:setPinned', this.app.config.url, true)
+      .then(() => {
+      this.app.debug('Succeeding in pinning ' + this.app.config.url);
+      this.systemBanner.show('page-pinned-to-home-screen');
+      var screenshotBlob = this.app.getCachedScreenshotBlob();
+      if (screenshotBlob) {
+        Service.request('Places:saveScreenshot', this.app.config.url,
+                        screenshotBlob);
+      }
+      if (this._themeChanged) {
+        Service.request('Places:saveThemeColor', this.app.config.url,
+                        this.app.themeColor, true);
+      }
+    }, () => {
+      console.error('Failed to pin ' + this.app.config.url);
+    });
+  };
+
+  /**
+   * Unpin current page in places database.
+   */
+  AppChrome.prototype.unpinPage = function ac_unpinPage() {
+    Service && Service.request('Places:setPinned', this.app.config.url, false)
+      .then(() => {
+        this.app.debug('Succeeding in unpinning ' + this.app.config.url);
+        this.systemBanner.show('page-unpinned-from-home-screen');
+      }, () => {
+        console.error('Failed to unpin ' + this.app.config.url);
+      });
+  };
+
+  AppChrome.prototype.getSiteUrl = function() {
+    var pageUrl = this.app.config.url;
+    var webManifest = this.app.webManifest;
+    var startURL = (webManifest && this.app.webManifest.start_url) ?
+      new URL(this.app.webManifest.start_url, pageUrl) : null;
+    return startURL ? startURL.href : pageUrl;
+  };
+
+  /**
+   * Pin current site in bookmarks database.
+   */
+  AppChrome.prototype.pinSite = function ac_pinSite() {
+    var siteObject = {};
+    var manifestURL = this.app.webManifestURL;
+    var manifestObject = this.app.webManifest;
+    var pageURL = new URL(this.app.config.url);
+    var hostname = pageURL.hostname;
+
+    siteObject.type = 'url';
+    siteObject.iconable = false;
+    siteObject.icons = this.app.favicons;
+    siteObject.frecency = 1;
+    siteObject.pinned = true;
+    siteObject.pinnedFrom = pageURL.href;
+    siteObject.name = this.app.name || hostname;
+
+    var siteUrl = this.getSiteUrl();
+    siteObject.id = siteUrl;
+    siteObject.url = siteUrl;
+
+    if (manifestURL && manifestObject) {
+      siteObject.webManifestUrl = manifestURL;
+      siteObject.webManifest = manifestObject;
+      siteObject.name = manifestObject.short_name || manifestObject.name ||
+        hostname;
+      if (manifestObject.scope) {
+        siteObject.scope = manifestObject.scope;
+      }
+    }
+
+    // Set the .icon property before saving for
+    // backwards compatibility with verticalhome
+    IconsHelper.getIcon(siteObject.url, null,
+      {icons: this.app.favicons}, siteObject).then(icon => {
+        siteObject.icon = icon;
+        BookmarksDatabase.put(siteObject, siteObject.id)
+          .then(() => {
+            this.app.debug('pinSite: ' + siteObject.id);
+            this.systemBanner.show('site-pinned-to-home-screen');
+          })
+          .catch((error) => {
+            console.error('pinSite, Failed to pin site: ' + error);
+          });
+      });
+  };
+
+  /**
+   * Unpin current site from bookmarks database.
+   */
+  AppChrome.prototype.unpinSite = function ac_pinSite() {
+    if (!this.pinned) {
+      return;
+    }
+    var siteId = this.getSiteUrl();
+    BookmarksDatabase.remove(siteId)
+      .then(() => {
+        this.app.debug('unpinSite: ' + siteId);
+        this.systemBanner.show('site-unpinned-from-home-screen');
+        // 'removed' listener will call unpin()
+      }, (evt) => {
+        this.app.debug('unpinSite, unpinning cancelled for: ' + siteId);
+      });
+  };
+
+  /**
+   * Put browser chrome in pinned state.
+   */
   AppChrome.prototype.pin = function ac_pin() {
     this.hidePinDialogCard();
     this.collapse();
     this.pinned = true;
     this.app.element.classList.remove('collapsible');
-    Service && Service.request('Places:setPinned', this.app.config.url, true)
-      .then(function() {
-      console.log('Succeeding in pinning ' + this.app.config.url);
-    }, function() {
-      console.log('Failed to pin ' + this.app.config.url);
-    });
+  };
+
+  /**
+   * Remove pinned state from the browser.
+   */
+  AppChrome.prototype.unpin = function ac_unpin() {
+    this.hidePinDialogCard();
+    this.pinned = false;
+    if (this.app.config && this.app.config.chrome.scrollable) {
+      this.app.element.classList.add('collapsible');
+    }
+    this.expand();
   };
 
   AppChrome.prototype.titleClicked = function ac_titleClicked() {
@@ -387,7 +538,16 @@
     if (locked || contextMenu) {
       return;
     }
-    window.dispatchEvent(new CustomEvent('global-search-request'));
+
+    if (!this.isMaximized() && this.app.isBrowser()) {
+      if (this.pinned) {
+        this.app.element.classList.add('collapsible');
+        this.scrollable.scrollTop = 0;
+      }
+      this.maximize();
+    } else {
+      window.dispatchEvent(new CustomEvent('global-search-request'));
+    }
   };
 
   AppChrome.prototype.onClickSiteIcon = function onClickSiteIcon() {
@@ -395,24 +555,29 @@
       this.app.debug('Pinning is only enabled in the browser');
       return;
     }
-    this.setPinDialogCard();
+
+    if (this.pinDialog.classList.contains('hidden')) {
+      this.setPinDialogCard();
+    } else {
+      this.hidePinDialogCard();
+    }
   };
 
-  AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard(url) {
-    var card = new GaiaPinCard();
-    card.title = this.app.title;
-    card.icon = {
-      url: this.siteIcon.style.backgroundImage,
-      small: this.siteIcon.classList.contains('small-icon')
-    };
-    this.pinCardContainer.innerHTML = '';
-    this.app.getScreenshot(function() {
-      card.background = {
-        src: URL.createObjectURL(this.app._screenshotBlob),
-        themeColor: this.app.themeColor
-      };
-    }.bind(this));
-    this.pinCardContainer.appendChild(card);
+  AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard() {
+    if (this.pinned) {
+      navigator.mozL10n.setAttributes(this.pinType, 'pinning-unpin-type', {
+        'type': this.app.name
+      });
+      this.pinButton.setAttribute('data-l10n-id', 'pinning-unpin-site');
+      this.pinButton.dataset.action = 'unpin';
+    } else {
+      navigator.mozL10n.setAttributes(this.pinType, 'pinning-pin-type', {
+        'type': this.app.name
+      });
+      this.pinButton.setAttribute('data-l10n-id', 'pinning-pin');
+      this.pinButton.dataset.action = 'pin';
+    }
+    this.pinSiteName.textContent = this.app.name;
     this.setOrigin();
     this.pinDialog.classList.remove('hidden');
   };
@@ -438,7 +603,7 @@
     this.originElement.appendChild(tld);
   };
 
-  AppChrome.prototype.hidePinDialogCard = function ac_setPinDialogCard(url) {
+  AppChrome.prototype.hidePinDialogCard = function ac_hidePinDialogCard(url) {
     this.pinDialog && this.pinDialog.classList.add('hidden');
   };
 
@@ -471,12 +636,57 @@
     // a scrollTop position of scrollTopMax - 1, which triggers the transition!
     if (this.scrollable.scrollTop >= this.scrollable.scrollTopMax - 1) {
       this.collapse();
+      if (this.pinned) {
+        this.app.element.classList.remove('collapsible');
+      }
     } else if (!this.pinned) {
       this.expand();
     }
 
     if (this.app.isActive()) {
       this.app.publish('titlestatechanged');
+    }
+  };
+
+  AppChrome.prototype._pinningObserver = function ac__pinningObserver(enabled) {
+    // Disable the pinning doorhanger in 2.5 since we have removed all
+    // functionality from it. Beyond 2.5 we will use the doorhanger for
+    // Tracking protection and privacy configuration.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=1207710
+    var targets = [
+      // this.siteIcon, * See comment above. *
+      this.pinScrim
+    ];
+    var method = enabled ? 'addEventListener' : 'removeEventListener';
+    targets.forEach(element => {
+      element[method]('click', this);
+    });
+  };
+
+  AppChrome.prototype.handleBookmarksScopeChange = function (evt) {
+    var scope = evt.detail.scope;
+    var inScope = !!(scope && this.app.inScope(scope));
+
+    if (scope && !inScope) {
+      return;
+    }
+
+    var origin = new URL(evt.detail.url).origin;
+    var name = evt.detail.name;
+
+    if (inScope || this.app.matchesOriginAndName(origin, name)) {
+      switch (evt.detail.action) {
+        case 'add':
+        case 'update':
+          this.pin();
+          break;
+        case 'remove':
+          this.unpin();
+          break;
+        default:
+          this.app.debug('Unknown pins-scopechange action: ' +
+                         evt.detail.action);
+      }
     }
   };
 
@@ -489,10 +699,13 @@
       });
       LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
 
+      window.addEventListener('pins-scopechange', this);
+      window.addEventListener('rocketbar-activating', this);
       this.stopButton.addEventListener('click', this);
       this.reloadButton.addEventListener('click', this);
       this.backButton.addEventListener('click', this);
       this.forwardButton.addEventListener('click', this);
+      this.urlbar.addEventListener('click', this);
       this.title.addEventListener('click', this);
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);
@@ -501,13 +714,9 @@
 
       // Adding or removing the click listener, depending on
       // the 'Pinning the Web' setting enabled or disabled
-      SettingsListener.observe(PINNING_PREF, '', function(enabled) {
-        var targets = [this.siteIcon, this.closePin];
-        var method = enabled ? 'addEventListener' : 'removeEventListener';
-        targets.forEach(function(element) {
-          element[method]('click', this);
-        }.bind(this));
-      }.bind(this));
+      this._boundPinningObserver =
+        this._boundPinningObserver || this._pinningObserver.bind(this);
+      SettingsListener.observe(PINNING_PREF, '', this._boundPinningObserver);
 
     } else {
       this.header.addEventListener('action', this);
@@ -540,6 +749,8 @@
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
 
     if (this.useCombinedChrome()) {
+      window.removeEventListener('pins-scopechange', this);
+      window.removeEventListener('rocketbar-activating', this);
       this.stopButton.removeEventListener('click', this);
       this.menuButton.removeEventListener('click', this);
       this.windowsButton.removeEventListener('click', this);
@@ -549,6 +760,8 @@
       this.forwardButton.removeEventListener('click', this);
       this.title.removeEventListener('click', this);
       this.scrollable.removeEventListener('scroll', this);
+
+      SettingsListener.unobserve(PINNING_PREF, this._boundPinningObserver);
 
       if (this.newWindowButton) {
         this.newWindowButton.removeEventListener('click', this);
@@ -586,10 +799,20 @@
       if (this._fixedTitle) {
         return;
       }
-      this.title.textContent = this.app.name;
+      if (!this.app.isHomescreen && !this.isSearchApp()) {
+        this.title.textContent = this.app.name;
+      } else {
+        this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
+      }
     };
 
   AppChrome.prototype.handleScrollAreaChanged = function(evt) {
+    // Make sure the scroll-area-changed is coming from the right element.
+    if (evt && (!this.app || !this.app.browser ||
+                evt.target !== this.app.browser.element)) {
+      return;
+    }
+
     // Check if the page has become scrollable and add the scrollable class.
     // We don't check if a page has stopped being scrollable to avoid oddness
     // with a page oscillating between scrollable/non-scrollable states, and
@@ -599,12 +822,25 @@
       return;
     }
 
-    // We allow the bar to collapse if the page is greater than or equal to
-    // the area of the window with a collapsed bar. Strictly speaking, we'd
-    // allow it to collapse if it was greater than the area of the window with
-    // the expanded bar, but due to prevalent use of -webkit-box-sizing and
-    // plain mistakes, this causes too many false-positives.
-    if (evt.detail.height >= this.containerElement.clientHeight) {
+    // Cache the last given scroll area height so this function can be called
+    // without an event object.
+    if (evt) {
+      this.browserScrollHeight = evt.detail.height;
+    }
+
+    // Don't respond to this event when we aren't visible. The container size
+    // isn't updated in this case, which can ending up incorrectly causing it
+    // to be labelled as scrollable.
+    if (!this.app.isVisible()) {
+      return;
+    }
+
+    // We allow the bar to collapse if the page is greater than the area of the
+    // window with a collapsed bar. Strictly speaking, we'd allow it to
+    // collapse if it was greater than the area of the window with the expanded
+    // bar, but due to prevalent use of -webkit-box-sizing and plain mistakes,
+    // this causes too many false-positives.
+    if (this.browserScrollHeight > this.containerElement.clientHeight) {
       this.containerElement.classList.add('scrollable');
     }
   };
@@ -615,6 +851,9 @@
     this.sslIndicator.classList.toggle(
       'chrome-has-ssl-indicator', sslState === 'broken' || sslState === 'secure'
     );
+    if (this.pinDialog) {
+      this.pinDialog.classList.toggle('secure', sslState === 'secure');
+    }
   };
 
   AppChrome.prototype.handleMetaChange =
@@ -634,12 +873,17 @@
 
       this._themeChanged = true;
       this.setThemeColor(color);
+      if (!this.app.isHomescreen && this.app.config.url) {
+        Service && Service.request('Places:saveThemeColor',
+                                   this.app.config.url, color, true);
+      }
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
-    // Do not set theme color for private windows
+    // Overwrite theme color for private windows and add private class
     if (this.app.isPrivateBrowser()) {
-      return;
+      color = '#392E54';
+      this.containerElement.classList.add('private');
     }
 
     var bottomApp = this.app.getBottomMostWindow();
@@ -759,6 +1003,7 @@
 
       // Check if this is just a location-change to an anchor tag.
       var anchorChange = false;
+
       if (this._currentURL && this.app.config.url) {
         anchorChange =
           this._currentURL.replace(/#.*/g, '') ===
@@ -792,9 +1037,8 @@
       // on the same domain than the previous one.
       // In both cases, we look for the best icon after `mozbrowserloadend`.
       var origin = new URL(this._currentURL).origin;
-
       if (this._currentOrigin !== origin) {
-        this.setSiteIcon(DEFAULT_ICON_URL);
+        this.setSiteIcon();
         this._currentOrigin = origin;
       }
 
@@ -806,14 +1050,12 @@
         // Make the rocketbar unscrollable until the page resizes to the
         // appropriate height.
         this.containerElement.classList.remove('scrollable');
-
-        // Expand
-        if (!this.isMaximized()) {
-          this.expand();
-        }
         this.scrollable.scrollTop = 0;
-        this.pinned = false;
-        this.app.element.classList.add('collapsible');
+
+        Service.request('PinsManager:isPinned', this._currentURL)
+          .then((isPinned) => {
+            isPinned ? this.pin() : this.unpin();
+          });
       }
 
       // Set the title for the private browser landing page.
@@ -837,6 +1079,7 @@
       this.setThemeColor('');
     }
     this.setSiteIcon();
+    this.setPinPreviewIcon();
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
@@ -853,9 +1096,7 @@
 
   AppChrome.prototype.maximize = function ac_maximize(callback) {
     var element = this.element;
-    if (!this.pinned) {
-      this.expand();
-    }
+    this.expand();
     window.addEventListener('rocketbar-overlayclosed', this);
 
     if (!callback) {
@@ -1014,32 +1255,39 @@
    *
    * @param {string?} url
    */
-  AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
+  AppChrome.prototype.setSiteIcon = function ac_setSiteIcon() {
     if (!this.siteIcon || this.app.isPrivateBrowser()) {
       return;
     }
 
-    if (url) {
-      this.siteIcon.classList.remove('small-icon');
-      this.siteIcon.style.backgroundImage = `url("${url}")`;
-      this._currentIconUrl = url;
-      return;
-    }
-
-    this.app.getSiteIconUrl()
+    this.app.getSiteIconUrl(ICON_SIZE)
       .then(iconObject => {
-        this.siteIcon.classList.toggle('small-icon', iconObject.isSmall);
-
         // We compare the original icon URL, otherwise there is a flickering
         // effect because a different object url is created each time.
         if (this._currentIconUrl !== iconObject.originalUrl) {
-          this.siteIcon.style.backgroundImage = `url("${iconObject.url}")`;
+          this.siteIcon.style.backgroundImage = iconObject.url;
           this._currentIconUrl = iconObject.originalUrl;
         }
       })
       .catch((err) => {
+        this.siteIcon.style.backgroundImage = '';
         this.app.debug('setSiteIcon, error from getSiteIcon: %s', err);
       });
+  };
+
+  /**
+   * Populate the pin preview doorhanger with current site/app icon.
+   */
+  AppChrome.prototype.setPinPreviewIcon = function ac_setPinPreviewIcon() {
+    if (!this.pinSiteIcon) {
+      return;
+    }
+    this.app.getSiteIconUrl(PREVIEW_ICON_SIZE).then(iconObject => {
+      this.pinSiteIcon.style.backgroundImage = iconObject.url;
+    }).catch((err) => {
+      this.app.debug('setPinPreviewIcon, error from getSiteIcon: %s', err);
+      this.pinSiteIcon.style.backgroundImage = '';
+    });
   };
 
   exports.AppChrome = AppChrome;

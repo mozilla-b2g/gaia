@@ -20,9 +20,9 @@
     },
     {
       "type": "Deck",
-      "deckClass": "dashboard",
-      "manifestURL": "app://dashboard.gaiamobile.org/manifest.webapp",
-      "group": "dashboard"
+      "deckClass": "browser",
+      "manifestURL": "app://browser.gaiamobile.org/manifest.webapp",
+      "group": "website"
     }
   ]
 }

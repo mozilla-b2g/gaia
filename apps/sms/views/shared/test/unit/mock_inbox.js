@@ -14,7 +14,7 @@ var MockInboxView = {
   updateSelectionStatus: function() {},
   cleanForm: function() {},
   toggleCheckedAll: function() {},
-  removeThread: function() {},
+  removeConversationDOM: function() {},
   delete: function() {},
   setEmpty: function() {},
   showOptions: function() {},

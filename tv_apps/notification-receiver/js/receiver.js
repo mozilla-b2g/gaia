@@ -5,56 +5,47 @@
 (function(exports) {
 
   const DEFAULT_ICON_URL = 'style/icons/ic_default-notification.png';
+  const DEBUG = 0;
 
-  var Receiver = function Receiver() {
-  };
+  var Receiver = function Receiver() {};
 
   Receiver.prototype = {
 
-    _onSessionReady: undefined,
     _onMessage: undefined,
     _onStateChange: undefined,
+    _connection: undefined,
 
     init: function r_init() {
-      this._onSessionReady = this._handleSessionReady.bind(this);
       this._onMessage = this._handleMessage.bind(this);
       this._onStateChange = this._handleStateChange.bind(this);
 
-      if (navigator.mozPresentation) {
-        if (navigator.mozPresentation.session) {
-          this._onSessionReady();
-        } else {
-          navigator.mozPresentation.addEventListener('sessionready',
-            this._onSessionReady);
-        }
-      }
+      navigator.presentation &&
+                          navigator.presentation.receiver.getConnection().then(
+      function addConnection(connection) {
+        this._connection = connection;
+        this._connection.addEventListener('message', this._onMessage);
+        this._connection.addEventListener('statechange', this._onStateChange);
+      }.bind(this),
+      function connectionError() {
+        console.warn('Getting connection failed.');
+      });
     },
 
     uninit: function r_uninit() {
-      if (navigator.mozPresentation) {
-        navigator.mozPresentation.removeEventListener('sessionready',
-          this._onSessionReady);
-
-        var session = navigator.mozPresentation.session;
-        if (session) {
-          // XXX: message is an exception that we could not use addEventListener
-          // on it. See http://bugzil.la/1128384
-          session.removeEventListener('message', this._onMessage);
-          session.removeEventListener('statechange', this._onStateChange);
-        }
+      if (this._connection) {
+        this._connection.removeEventListener('message', this._onMessage);
+        this._connection.removeEventListener(
+                                            'statechange', this._onStateChange);
+        this._connection = null;
       }
-    },
-
-    _handleSessionReady: function r_handleSessionReady() {
-      var session = navigator.mozPresentation.session;
-      session.addEventListener('message', this._onMessage);
-      session.addEventListener('statechange', this._onStateChange);
     },
 
     _renderMessage: function r_renderMessage(message) {
       var result;
-
       switch(message.type) {
+        case 'view':
+          this.sendViewUrl(message.url);
+          break;
         case 'Message':
         case 'Laundry':
         case 'Home':
@@ -68,20 +59,46 @@
       return result;
     },
 
-    _handleMessage: function r_handleMessage(evt) {
-      var message = JSON.parse(evt.data);
-      var renderedMessage = this._renderMessage(message);
-
-      if (renderedMessage) {
-        new Notification(renderedMessage.title, {
-          body: renderedMessage.body,
-          icon: DEFAULT_ICON_URL
+    sendViewUrl: function r_sendViewUrl(targetUrl) {
+      navigator.mozApps.getSelf().onsuccess = function(evt) {
+        var selfApp = evt.target.result;
+        var iacmsg = {
+          type: 'view',
+          data: {
+            type: 'url',
+            url: targetUrl,
+          }
+        };
+        selfApp.connect('webpage-open').then(function (ports) {
+          ports.forEach(function(port) {
+            port.postMessage(iacmsg);
+          });
+        }.bind(this),
+        function () {
+          console.warn('Sending view request failed.');
         });
-      }
+      }.bind(this);
     },
 
-    _handleStateChange: function r_handleStateChange(evt) {
-      if (!evt.state) {
+    _handleMessage: function r_handleMessage(evt) {
+      DEBUG && console.log('Got message:' + evt.data);
+      var rawdata = '[' + evt.data.replace('}{', '},{') + ']';
+      var messages = JSON.parse(rawdata);
+      messages.forEach(message => {
+        var renderedMessage = this._renderMessage(message);
+
+        if (renderedMessage) {
+          new Notification(renderedMessage.title, {
+            body: renderedMessage.body,
+            icon: DEFAULT_ICON_URL
+          });
+        }
+      });
+    },
+
+    _handleStateChange: function r_handleStateChange() {
+      DEBUG && console.log('connection state:' + this._connection.state);
+      if(this._connection.state !== 'connected') {
         this.uninit();
         window.close();
       }

@@ -52,8 +52,10 @@ marionette('Contacts > Activities', function() {
         });
       }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
 
+      var iframe = 'iframe[src="' + Contacts.URL +
+        '/contacts/views/vcard_load/vcard_load.html"]';
       client.switchToFrame();
-      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.switchToFrame(client.findElement(iframe), {'focus': true});
       client.helper.waitForElement(selectors.multipleSelectSave);
 
       assert.ok(getListItems().length === 1); // vcard has one element
@@ -71,8 +73,10 @@ marionette('Contacts > Activities', function() {
         });
       }, [fs.readFileSync(__dirname + '/data/vcard_21_multiple.vcf', 'utf8')]);
 
+      var iframe = 'iframe[src="' + Contacts.URL +
+        '/contacts/views/vcard_load/vcard_load.html"]';
       client.switchToFrame();
-      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.switchToFrame(client.findElement(iframe), {'focus': true});
       client.helper.waitForElement(selectors.multipleSelectSave);
 
       assert.ok(getListItems().length === 2); // vcard has one element
@@ -120,7 +124,8 @@ marionette('Contacts > Activities', function() {
 
       subject.enterContactDetails({
         givenName: 'From Dialer Activity'
-      }, true);
+      });
+      this.waitForFormTransition();
 
       client.switchToFrame(client.findElement(selectors.duplicateFrame));
 
@@ -205,13 +210,7 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('webcontacts/email activity', function() {
-    // Disabling these tests by now due to we need a way to switch to an
-    // activity instead of switching to an app, due to paths can differ.
-    // More info in [1].
-    // These test must be recovered once this bug will be landed.
-
-    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
-    test.skip('Creates only one instance of action menu', function() {
+    test('Creates only one instance of action menu', function() {
       subject.launch();
 
       subject.addContactMultipleEmails({

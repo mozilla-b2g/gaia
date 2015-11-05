@@ -1,0 +1,169 @@
+#apps-panel > .scrollable {
+  overflow-y: auto;
+  height: 100%;
+  transition: transform 0.2s;
+  padding-top: 1.5vw;
+}
+
+#apps-panel > .scrollable.snapping {
+  scroll-snap-type-y: mandatory;
+}
+
+/* This weird arrangement of constant sizes, transforms and containers is so
+ * the gaia-container can animate fully between small and not-small states.
+ * Without this animation, the container would be unnecessary and only the
+ * width would need to be specified.
+ */
+.icon-container {
+  position: relative;
+  display: inline-block;
+  width: 32vw;
+  height: calc(32vw + 1.9rem);
+}
+
+gaia-app-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32vw;
+  box-sizing: border-box;
+  border: 0.8rem solid transparent;
+  outline: 0;
+  transition: transform 0.2s, opacity 0.2s;
+
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: white;
+  text-shadow: rgba(0, 0, 0, 0.5) 0 0.1rem 0.3rem;
+}
+
+/* Small icons are scaled down 0.75x, so apply the reverse transforms to the
+ * font so that it conforms to spec.
+ */
+#apps.small gaia-app-icon {
+  font-size: calc(1.2rem / 0.75);
+  text-shadow: rgba(0, 0, 0, 0.5) 0 calc(0.1rem / 0.75) calc(0.3rem / 0.75);
+}
+
+gaia-app-icon.launching {
+  opacity: 0.8;
+}
+
+.edit-mode gaia-app-icon {
+  opacity: 0.5;
+}
+
+.edit-mode gaia-app-icon.selected {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+#apps.loading {
+  visibility: hidden;
+}
+
+#apps.small > .gaia-container-child > .icon-container {
+  width: 24vw;
+  height: calc(24vw + 1.9rem);
+}
+
+#apps > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+#apps.small > .gaia-container-child > .icon-container > gaia-app-icon {
+  transform: scale(0.75) translate(-4vw, -4vw);
+}
+
+#apps.small > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
+  transform: scale(0.8) translate(-3.2vw, -3.2vw);
+}
+
+.dragging:not(.autoscroll) #apps > .gaia-container-child > .icon-container {
+  will-change: transform;
+}
+
+#apps > .gaia-container-child > .icon-container.hover-before {
+  transform: translateX(3.5rem);
+}
+
+#apps > .gaia-container-child > .icon-container.hover-after {
+  transform: translateX(-3.5rem);
+}
+
+#apps > .gaia-container-child.added gaia-app-icon {
+  animation-name: icon-added;
+  animation-duration: 0.4s;
+  z-index: 1;
+}
+
+#apps.small > .gaia-container-child.added gaia-app-icon {
+  animation-name: small-icon-added;
+}
+
+@keyframes icon-added {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; }
+}
+
+@keyframes small-icon-added {
+  0% { opacity: 0; transform: scale(0.375) translate(-6vw, -6vw); }
+  100% { opacity: 1; transform: scale(0.75) translate(-4vw, -4vw); }
+}
+
+#apps > .gaia-container-child.removed gaia-app-icon {
+  animation-name: icon-removed;
+  animation-duration: 0.4s;
+}
+
+#apps.small > .gaia-container-child.removed gaia-app-icon {
+  animation-name: small-icon-removed;
+}
+
+@keyframes icon-removed {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.5); opacity: 0; }
+}
+
+@keyframes small-icon-removed {
+  0% { transform: scale(0.75) translate(-4vw, -4vw); opacity: 1; }
+  100% { transform: scale(0.375) translate(-6vw, -6vw); opacity: 0; }
+}
+
+gaia-app-icon.uneditable {
+  animation-name: icon-uneditable;
+  animation-duration: 0.4s;
+}
+
+#apps.small gaia-app-icon.uneditable {
+  animation-name: small-icon-uneditable;
+}
+
+@keyframes icon-uneditable {
+  0% { transform: rotateZ(0deg); }
+  10% { transform: rotateZ(-15deg); }
+  20% { transform: rotateZ(15deg); }
+  30% { transform: rotateZ(-15deg); }
+  40% { transform: rotateZ(15deg); }
+  50% { transform: rotateZ(-15deg); }
+  60% { transform: rotateZ(15deg); }
+  70% { transform: rotateZ(-15deg); }
+  80% { transform: rotateZ(15deg); }
+  90% { transform: rotateZ(-15deg); }
+  100% { transform: rotateZ(0deg); }
+}
+
+@keyframes small-icon-uneditable {
+  0% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(0deg); }
+  10% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(-15deg); }
+  20% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(15deg); }
+  30% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(-15deg); }
+  40% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(15deg); }
+  50% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(-15deg); }
+  60% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(15deg); }
+  70% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(-15deg); }
+  80% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(15deg); }
+  90% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(-15deg); }
+  100% { transform: scale(0.75) translate(-4vw, -4vw) rotateZ(0deg); }
+}

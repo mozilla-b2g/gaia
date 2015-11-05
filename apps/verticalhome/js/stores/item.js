@@ -1,7 +1,6 @@
 'use strict';
 /* global ApplicationSource */
 /* global BookmarkSource */
-/* global CollectionSource */
 /* global configurator */
 /* global dispatchEvent */
 /* global GaiaGrid */
@@ -15,7 +14,12 @@
   const DB_ITEM_STORE = 'items';
   const DB_SV_APP_STORE_NAME = 'svAppsInstalled';
 
+  const DATASTORE_NAME = 'verticalhome_items_migration';
+
+  const PREFS_STORE = 'vertical_preferences_store';
+
   var db;
+  var datastore;
 
   function sort(entries, order) {
 
@@ -38,8 +42,7 @@
         } else {
           return lookFor.manifestURL === compareWith.detail.manifestURL;
         }
-      } else if (compareWith instanceof GaiaGrid.Collection ||
-                 compareWith instanceof GaiaGrid.Bookmark) {
+      } else if (compareWith instanceof GaiaGrid.Bookmark) {
         if (!lookFor.id || !compareWith.detail.id) {
           return false;
         }
@@ -170,10 +173,8 @@
     var self = this;
     this.applicationSource = new ApplicationSource(this);
     this.bookmarkSource = new BookmarkSource(this);
-    this.collectionSource = new CollectionSource(this);
 
-    this.sources = [this.applicationSource, this.bookmarkSource,
-                    this.collectionSource];
+    this.sources = [this.applicationSource, this.bookmarkSource];
 
     this.ready = false;
 
@@ -214,6 +215,9 @@
       } else {
         self.initSources(cb);
       }
+
+      // Handle migration
+      navigator.mozSetMessageHandler('connection', self.handleIAC.bind(self));
     };
 
     window.addEventListener('gaiagrid-cached-icons-rendered', this);
@@ -267,6 +271,19 @@
         if (typeof aNext === 'function') {
           aNext();
         }
+      });
+    },
+
+    saveMigrationData: function(objArr, column, checkPersist) {
+      return datastore.clear().then(() => {
+        var chain = [];
+        objArr.forEach((object) => {
+          if (!checkPersist || object.persistToDB) {
+            var data = column ? object[column] : object;
+            chain.push(datastore.put(data, data.index + 1));
+          }
+        });
+        return Promise.all(chain);
       });
     },
 
@@ -366,9 +383,6 @@
           } else if (thisItem.type === 'bookmark') {
             var bookmark = new GaiaGrid.Bookmark(thisItem);
             addIfUnique.call(this, bookmark);
-          } else if (thisItem.type === 'collection') {
-            var collection = new GaiaGrid.Collection(thisItem);
-            addIfUnique.call(this, collection);
           }
         }
 
@@ -444,6 +458,71 @@
       var nextPosition = this.nextPosition;
       this.nextPosition++;
       return nextPosition;
+    },
+
+    handleIAC: function(connectionRequest) {
+      if (connectionRequest.keyword !== 'verticalhome-migrate') {
+        return;
+      }
+
+      var port = connectionRequest.port;
+      port.onmessage = (event) => {
+        if (event.data.action !== 'migrate') {
+          console.error('Unhandled migration action requested:',
+                        event.data.action);
+          return;
+        }
+
+        this.migrate(event.data.manifestURL);
+      };
+      port.start();
+    },
+
+    migrate: function(manifestURL) {
+      this.migratingTo = manifestURL;
+      console.info('verticalhome migrating to ' + this.migratingTo);
+
+      if (this.migrating) {
+        return;
+      }
+
+      this.migrating = true;
+      (datastore ? Promise.resolve() :
+         navigator.getDataStores(DATASTORE_NAME).
+           then(stores => {
+               datastore = stores[0];
+               return Promise.resolve();
+             },
+             (e) => {
+               return Promise.reject(e);
+             })).
+        then(() => {
+          this.all(entries => {
+            this.saveMigrationData(entries, 'detail', true).then(() => {
+              this.migrating = false;
+              window.navigator.mozSettings.createLock().set({
+                'homescreen.manifestURL': this.migratingTo
+              });
+              navigator.getDataStores(PREFS_STORE).then(
+                stores => {
+                  if (stores.length < 1) {
+                    console.error('Error opening verticalhome prefs datastore');
+                    return;
+                  }
+
+                  stores[0].put('migrated', true).then(() => {
+                    window.close();
+                  }, e => {
+                    console.error('Error storing migration pref', e);
+                    window.close();
+                  });
+                });
+            });
+          });
+        },
+        e => {
+          console.error('Error retrieving datastore', e);
+        });
     },
 
     handleEvent: function(e) {

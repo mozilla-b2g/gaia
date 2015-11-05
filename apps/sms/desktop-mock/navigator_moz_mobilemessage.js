@@ -1,5 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global Utils */
 
 'use strict';
 
@@ -761,9 +760,29 @@
     message.id = messagesDb.id++;
   });
 
+  const SECOND = 1000;
+  const MINUTE = 60 * SECOND;
+  const HOUR = 60 * MINUTE;
+  const DAY = 24 * HOUR;
+  const MONTH = 30 * DAY;
+
   var i, sender, receivers;
+  var delays = [
+    SECOND,
+    MINUTE - 1,
+    MINUTE,
+    HOUR - 1,
+    HOUR,
+    DAY - 1,
+    DAY,
+    MONTH - 1,
+    MONTH,
+    MONTH * 5,
+    MONTH * 2 + DAY * 3 + HOUR * 8 + MINUTE * 30 + SECOND * 45
+  ];
 
   // Procedurally generate a large amount of messages for a single thread
+  // cycling around different delays 
   for (i = 0; i < 150; i++) {
     messagesDb.messages.push({
       threadId: 5,
@@ -773,8 +792,8 @@
       delivery: 'received',
       id: messagesDb.id++,
       type: 'sms',
-      timestamp: now - 60000000,
-      sentTimestamp: now - 60100000
+      timestamp: now - 1000 * MINUTE,
+      sentTimestamp: now - 1000 * MINUTE - delays[i % delays.length]
     });
   }
 
@@ -1263,7 +1282,9 @@
     var request = {
       error: null
     };
-    var threads = messagesDb.threads.slice();
+    var threads = messagesDb.threads.slice().sort((threadA, threadB) => {
+      return threadB.timestamp - threadA.timestamp;
+    });
     var idx = 0;
     var len, continueCursor;
 
@@ -1423,9 +1444,8 @@
   //  - onerror: Function that may be set by the suer. If set, will be invoked
   //    in the event of a failure
   MockNavigatormozMobileMessage.delete = function(id) {
-    var request = {
-      error: null
-    };
+    var deferred = Utils.Promise.defer();
+
     // Convenience alias
     var threads = messagesDb.threads;
     var msgs = messagesDb.messages;
@@ -1434,24 +1454,15 @@
 
     setTimeout(function() {
       if (simulation.failState()) {
-        request.error = {
-          name: window.MessagesDebugError
-        };
-        if (typeof request.onerror === 'function') {
-          request.onerror({
-            target: {
-              error: request.error
-            }
-          });
-        }
+        deferred.reject({ name: window.MessagesDebugError });
         return;
       }
 
-      request.result = false;
+      var result = false;
 
       for (idx = 0, len = msgs.length; idx < len; ++idx) {
         if (msgs[idx].id === id) {
-          request.result = true;
+          result = true;
           threadId = msgs[idx].threadId;
           msgs.splice(idx, 1);
           break;
@@ -1471,12 +1482,10 @@
         }
       }
 
-      if (typeof request.onsuccess === 'function') {
-        request.onsuccess.call(request);
-      }
+      deferred.resolve(result);
     }, simulation.delay());
 
-    return request;
+    return deferred.promise;
   };
 
   MockNavigatormozMobileMessage.markMessageRead = function(id, readBool) {
@@ -1538,9 +1547,7 @@
   };
 
   MockNavigatormozMobileMessage.retrieveMMS = function(id) {
-    var request = {
-      error: null
-    };
+    var deferred = Utils.Promise.defer();
     var msgs = messagesDb.messages;
     var idx = 0, len = msgs.length;
     setTimeout(function() {
@@ -1552,7 +1559,6 @@
           continue;
         }
         if (msg.id === id) {
-          request.result = msg;
           msg.smil = '<smil><body><par><text src="text1"/></par>' +
             '</body></smil>';
           msg.attachments = [{
@@ -1561,9 +1567,7 @@
           }];
           msg.delivery = 'received';
 
-          if (typeof request.onsuccess === 'function') {
-            request.onsuccess.call(request);
-          }
+          deferred.resolve(msg);
           trigger('received', {
             type: 'received',
             message: msg
@@ -1571,11 +1575,10 @@
           return;
         }
       }
-      if (typeof request.onerror === 'function') {
-        request.onerror.call(request);
-      }
+
+      deferred.reject();
     }, simulation.delay());
-    return request;
+    return deferred.promise;
   };
 
   MockNavigatormozMobileMessage.getSegmentInfoForText = function(text) {

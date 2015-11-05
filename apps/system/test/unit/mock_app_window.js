@@ -155,7 +155,9 @@
     requestScreenshotURL: function() {},
     getSiteIconUrl: function() {},
     _showFrame: function() {},
-    _hideFrame: function() {}
+    _hideFrame: function() {},
+    inScope: function() {},
+    matchesOriginAndName: function() {}
   };
 
   MockAppWindow.addMixin = function() {};

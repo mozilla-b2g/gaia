@@ -74,7 +74,7 @@ suite('system/SleepMenu', function() {
     assert.equal(items.length, 3);
   });
 
-  test('generateItems /w developer options', function() {
+  test('generateItems w/ developer options', function() {
     navigator.mozTelephony = MockNavigatorMozTelephony;
     subject.isDeveloperMenuEnabled = true;
     subject.developerOptions = {
@@ -86,6 +86,17 @@ suite('system/SleepMenu', function() {
 
     var items = subject.generateItems();
     assert.equal(items.length, 5);
+    subject.isDeveloperMenuEnabled = false;
+  });
+
+  test('generateItems w/ view source enabled', function() {
+    subject.isViewSourceEnabled = true;
+    subject.isDeveloperMenuEnabled = true;
+
+    var items = subject.generateItems();
+    assert.equal(items.length, 4);
+
+    subject.isViewSourceEnabled = false;
     subject.isDeveloperMenuEnabled = false;
   });
 
@@ -157,6 +168,19 @@ suite('system/SleepMenu', function() {
       });
       var airplaneDisableEvent = 'request-airplane-mode-disable';
       assert.isTrue(subject.publish.calledWith(airplaneDisableEvent));
+    });
+
+    test('view source requested', function() {
+      this.sinon.stub(MockService, 'request');
+      subject.handleEvent({
+        type: 'click',
+        target: {
+          dataset: {
+            value: 'viewSource'
+          }
+        }
+      });
+      sinon.assert.calledWith(MockService.request, 'viewsource');
     });
 
   });

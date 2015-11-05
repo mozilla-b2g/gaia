@@ -3,14 +3,25 @@
 /* global exports, require */
 
 var utils = require('utils');
+var esomin = require('esomin');
 
 function optimize(options) {
   var r = require('r-wrapper').get(options.GAIA_DIR);
   var configFile = utils.getFile(options.APP_DIR, 'build',
     'require_config.jslike');
-  var optimizeOption = 'optimize=' + (options.GAIA_OPTIMIZE === '1' ?
-    'uglify2' : 'none');
-  r.optimize([configFile.path, optimizeOption]);
+  var ropt = new Promise(function(resolve, reject) {
+    r.optimize([configFile.path, 'optimize=none'], resolve, reject);
+  });
+  return ropt.then(function() {
+    if (options.GAIA_OPTIMIZE === '1') {
+      utils.log('camera', 'Using esomin to minify');
+      return esomin.minifyDir(options.STAGE_APP_DIR);
+    }
+  }).catch(function (err) {
+    utils.log(err);
+    utils.log(err.stack);
+    throw err;
+  });
 }
 
 function copyUserConfig(options) {
@@ -29,5 +40,5 @@ function copyUserConfig(options) {
 
 exports.execute = function(options) {
   copyUserConfig(options);
-  optimize(options);
+  return optimize(options);
 };

@@ -1,6 +1,6 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
          MockMozPhoneNumberService, MocksHelper,
-         MockNotification, Threads, MockSettings,
+         MockNotification, MockSettings,
          AssetsHelper, Settings, Dialog
 */
 
@@ -8,19 +8,17 @@
 
 require('/views/shared/test/unit/mock_contact.js');
 require('/views/shared/test/unit/mock_contacts.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/views/shared/test/unit/mock_navigator_mozphonenumberservice.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/views/shared/js/utils.js');
 require('/shared/test/unit/mocks/mock_notification.js');
-require('/services/test/unit/mock_threads.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_dialog.js');
 
 var MocksHelperForUtilsUnitTest = new MocksHelper([
   'ContactPhotoHelper',
   'Notification',
-  'Threads',
   'Settings',
   'Dialog'
 ]).init();
@@ -188,7 +186,7 @@ suite('Utils', function() {
             withTime: withTime
           });
 
-          assert.equal(element.textContent, expect); 
+          assert.equal(element.textContent, expect);
         }
       });
     });
@@ -217,7 +215,7 @@ suite('Utils', function() {
           withTime: withTime
         });
 
-        assert.equal(element.textContent, expect); 
+        assert.equal(element.textContent, expect);
       });
     });
 
@@ -245,7 +243,7 @@ suite('Utils', function() {
           withTime: withTime
         });
 
-        assert.equal(element.textContent, expect); 
+        assert.equal(element.textContent, expect);
       });
     });
 
@@ -1022,14 +1020,46 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.params', function() {
+  suite('URL utils', function() {
     var tests = {
-      '?foo=bar&baz=1&quux=null': {foo: 'bar', baz: '1', quux: 'null'}
+      '?foo=bar&baz=1&quux=null&bool1=true&bool2=false': {
+        foo: 'bar',
+        baz: '1',
+        quux: 'null',
+        bool1: true,
+        bool2: false
+      }
     };
 
-    Object.keys(tests).forEach(function(testIndex) {
-      test(testIndex, function() {
-        assert.deepEqual(Utils.params(testIndex), tests[testIndex]);
+    test('Utils.params', function() {
+      Object.keys(tests).forEach(function(search) {
+        assert.deepEqual(Utils.params(search), tests[search], search);
+      });
+    });
+
+    test('Utils.url', function() {
+      Object.keys(tests).forEach(function(search) {
+        var params = tests[search];
+
+        var base = '#';
+        var expected = base + search;
+        assert.equal(
+          Utils.url(base, params), expected,
+          'base without ?: ' + search
+        );
+
+        base = '#?something';
+        expected = base + '&' + search.slice(1);
+        assert.equal(
+          Utils.url(base, params), expected,
+          'base with ?: ' + search
+        );
+
+        params = Object.assign({ test: null }, params);
+        assert.equal(
+          Utils.url(base, params), expected,
+          'with a null value: ' + search
+        );
       });
     });
   });
@@ -1041,15 +1071,6 @@ suite('Utils', function() {
       this.sinon.stub(Notification, 'get').returns(Promise.resolve([]));
       this.sinon.spy(console, 'error');
       closeStub = this.sinon.stub(MockNotification.prototype, 'close');
-    });
-
-    test('notification matched with no threadId given(current Id)',
-    function(done) {
-      Threads.currentId = 'currentId';
-      Utils.closeNotificationsForThread().then(function() {
-        sinon.assert.calledWith(Notification.get,
-          {tag : 'threadId:' + Threads.currentId});
-      }).then(done, done);
     });
 
     test('notification matched with specific threadId', function(done) {
@@ -1130,6 +1151,159 @@ suite('Utils', function() {
       this.sinon.clock.tick(waitTime);
       sinon.assert.calledOnce(funcToExecute);
     });
+  });
+
+  suite('Utils.throttle', function() {
+    setup(function() {
+      // Starting fake timers clock at Unix epoch (timestamp of 0) would
+      // prevent Utils.throttle to work properly so init it to 1
+      this.sinon.useFakeTimers(1);
+    });
+
+    test('right typeof parameters', function() {
+        assert.throw(
+          () => Utils.throttle(null),
+          Error,
+          'func must be a Function'
+        );
+
+        assert.throw(
+          () => Utils.throttle(() => {}, null),
+          Error,
+          'delay must be a positive number'
+        );
+
+        assert.throw(
+          () => Utils.throttle(() => {}, -1),
+          Error,
+          'delay must be a positive number'
+        );
+    });
+
+    test('parameters are passed to the throttled func', function() {
+      var dummyObjectA = {};
+      var dummyObjectB = {};
+
+      var func = function() {
+        assert.equal(arguments[0], dummyObjectA);
+        assert.equal(arguments[1], dummyObjectB);
+      };
+
+      var throttlerFunc = Utils.throttle(func, 100);
+
+      throttlerFunc(dummyObjectA, dummyObjectB);
+    });
+
+    test('testing this in the throttled func', function() {
+      var self = this;
+      var dummyObject = {};
+
+      var throttlerFunc = Utils.throttle(function() {
+        assert.equal(this, dummyObject);
+      }, 100);
+      throttlerFunc.call(dummyObject);
+
+      var throttlerFunc2 = Utils.throttle(()=>{
+        assert.equal(this, self);
+      }, 100);
+      throttlerFunc2.call(dummyObject);
+    });
+
+    test('preventing first call', function() {
+      var delay = 100;
+      var firstCallFuncToExecute = sinon.stub();
+      var firstCallThrottleFuncToExecute =
+        Utils.throttle(firstCallFuncToExecute, delay);
+
+      var notFirstCallFuncToExecute = sinon.stub();
+      var notFirstCallThrottleFuncToExecute =
+        Utils.throttle(
+          notFirstCallFuncToExecute,
+          delay,
+          {
+            preventFirstCall: true
+          }
+        );
+
+      firstCallThrottleFuncToExecute();
+      this.sinon.clock.tick(delay - 1);
+      sinon.assert.calledOnce(firstCallFuncToExecute);
+
+      notFirstCallThrottleFuncToExecute();
+      this.sinon.clock.tick(delay - 1);
+      sinon.assert.notCalled(notFirstCallFuncToExecute);
+    });
+
+    test('preventing last call', function() {
+      var delay = 100;
+      var lastCallStub = sinon.stub();
+      var notLastCallStub = sinon.stub();
+      var notLastCallFuncToExecute = Utils.throttle(
+        notLastCallStub,
+        delay,
+        {
+          preventLastCall: true
+        }
+      );
+      var lastCallFuncToExecute = Utils.throttle(lastCallStub, delay);
+
+      lastCallFuncToExecute();
+      notLastCallFuncToExecute();
+      this.sinon.clock.tick(delay);
+
+      lastCallFuncToExecute();
+      notLastCallFuncToExecute();
+      this.sinon.clock.tick(delay / 2);
+
+      this.sinon.clock.tick(delay);
+      sinon.assert.calledTwice(lastCallStub);
+      sinon.assert.calledOnce(notLastCallStub);
+    });
+
+    test('multiple calls under delay should limit rate to 1 call', function() {
+      var delay = 100;
+      var stubOnce = sinon.stub();
+      var stubOnceThrottler = Utils.throttle(stubOnce, delay);
+
+      stubOnceThrottler();
+      this.sinon.clock.tick(delay - 1);
+      // Under delay these calls will be filtered
+      stubOnceThrottler();
+      stubOnceThrottler();
+      stubOnceThrottler();
+      sinon.assert.calledOnce(stubOnce);
+    });
+
+    test('second call after delay should trigger 2 calls', function() {
+      var delay = 100;
+      var stubTwice = sinon.stub();
+      var stubTwiceThrottler = Utils.throttle(stubTwice, delay);
+
+      stubTwiceThrottler();
+      this.sinon.clock.tick(delay);
+      // This one is called after the delay
+      stubTwiceThrottler();
+      this.sinon.clock.tick(delay);
+      // But then these calls are filtered
+      stubTwiceThrottler();
+      stubTwiceThrottler();
+      sinon.assert.calledTwice(stubTwice);
+    });
+
+    test('3 calls separated by delay should trigger 3 calls', function() {
+      var delay = 200;
+      var stubThrice = sinon.stub();
+      var stubThriceThrottler = Utils.throttle(stubThrice, delay);
+
+      stubThriceThrottler();
+      this.sinon.clock.tick(delay);
+      stubThriceThrottler();
+      this.sinon.clock.tick(delay);
+      stubThriceThrottler();
+      this.sinon.clock.tick(delay);
+      sinon.assert.calledThrice(stubThrice);
+    });
+
   });
 
   suite('Modal dialogs >', function() {
@@ -1420,18 +1594,18 @@ suite('Utils', function() {
   });
 
   suite('getSimNameByIccId', function() {
-    var nativeMozL10n = navigator.mozL10n;
+    var nativeMozL10n = document.l10n;
 
     setup(function () {
-      navigator.mozL10n = MockL10n;
+      document.l10n = MockL10n;
       this.sinon.stub(Settings, 'getServiceIdByIccId');
-      this.sinon.stub(navigator.mozL10n, 'formatValue').returns(
+      this.sinon.stub(document.l10n, 'formatValue').returns(
         Promise.resolve('SIM name')
       );
     });
 
     teardown(function() {
-       navigator.mozL10n = nativeMozL10n;
+       document.l10n = nativeMozL10n;
     });
 
     test('returns the correct name when service id existed', function(done) {
@@ -1440,7 +1614,7 @@ suite('Utils', function() {
       Settings.getServiceIdByIccId.withArgs(iccId).returns(index);
       Utils.getSimNameByIccId(iccId).then((name) => {
         sinon.assert.calledWith(
-          navigator.mozL10n.formatValue,
+          document.l10n.formatValue,
           'sim-id-label',
           { id: index + 1 }
         );
@@ -1452,8 +1626,112 @@ suite('Utils', function() {
       var iccId = 'sim3';
       Settings.getServiceIdByIccId.withArgs(iccId).returns(null);
       Utils.getSimNameByIccId(iccId).then((name) => {
-        sinon.assert.notCalled(navigator.mozL10n.formatValue);
+        sinon.assert.notCalled(document.l10n.formatValue);
         assert.equal(name, '');
+      }).then(done, done);
+    });
+  });
+
+  suite('initializeShimHost', function() {
+    var shimHostStub;
+    setup(function() {
+
+      shimHostStub = sinon.stub({
+        contentDocument: {
+          readyState: 'complete'
+        },
+        contentWindow: {
+          bootstrap: sinon.stub()
+        },
+        addEventListener: () => {},
+        removeEventListener: () => {}
+      });
+
+      this.sinon.stub(document, 'querySelector').withArgs('.shim-host').returns(
+        shimHostStub
+      );
+    });
+
+    test('if shim host is ready it is bootstraped immediately', function(done) {
+      Utils.initializeShimHost('app-instance-id').then(() => {
+        sinon.assert.calledWith(
+          shimHostStub.contentWindow.bootstrap, 'app-instance-id'
+        );
+        sinon.assert.notCalled(shimHostStub.addEventListener);
+      }).then(done, done);
+    });
+
+    test('if shim host is not ready yet it is bootstraped once it is ready',
+    function(done) {
+      shimHostStub.contentDocument.readyState = 'loading';
+
+      var initializationPromise = Utils.initializeShimHost('app-instance-id');
+
+      Promise.race([
+        initializationPromise, Promise.resolve('not-yet-resolved')
+      ]).then((value) => {
+        assert.equal(value, 'not-yet-resolved');
+
+        sinon.assert.notCalled(
+          shimHostStub.contentWindow.bootstrap, 'app-instance-id'
+        );
+
+        shimHostStub.addEventListener.withArgs('load').yield();
+
+        sinon.assert.calledWith(
+          shimHostStub.removeEventListener,
+          'load',
+          shimHostStub.addEventListener.lastCall.args[1]
+        );
+
+        return initializationPromise;
+      }).then(() => {
+        sinon.assert.calledWith(
+          shimHostStub.contentWindow.bootstrap, 'app-instance-id'
+        );
+      }).then(done, done);
+    });
+  });
+
+  suite('Utils.onceDocumentIsVisible', function() {
+    var isDocumentHidden, onceDocumentIsVisibleStub;
+
+    setup(function() {
+      isDocumentHidden = false;
+      onceDocumentIsVisibleStub = sinon.stub();
+
+      this.sinon.stub(document, 'addEventListener');
+
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get() { return isDocumentHidden; }
+      });
+    });
+
+    teardown(function() {
+      delete document.hidden;
+    });
+
+    test('resolves instantly if document is visible', function(done) {
+      Utils.onceDocumentIsVisible().then(onceDocumentIsVisibleStub);
+
+      Promise.resolve().then(() => {
+        sinon.assert.calledOnce(onceDocumentIsVisibleStub);
+      }).then(done, done);
+    });
+
+    test('resolves after `visibilitychange` event if document is not visible',
+    function(done) {
+      isDocumentHidden = true;
+
+      Utils.onceDocumentIsVisible().then(onceDocumentIsVisibleStub);
+
+      Promise.resolve().then(() => {
+        sinon.assert.notCalled(onceDocumentIsVisibleStub);
+
+        document.addEventListener.withArgs('visibilitychange').yield();
+      }).then(() => {
+        sinon.assert.calledOnce(onceDocumentIsVisibleStub);
       }).then(done, done);
     });
   });

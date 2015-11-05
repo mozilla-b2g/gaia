@@ -23,10 +23,12 @@ var utils = window.utils || {};
     progressElement.setAttribute('value', 0);
 
     function showMessage() {
-      navigator.mozL10n.setAttributes(progressMsg,
-                                      progressTextId,
-                                      { current: counter, total: total }
-      );
+      var attributes = progressTextId == 'infiniteProgress' ?
+                       { n: counter }                       :
+                       { current: counter, total: total };
+      document.l10n.setAttributes(progressMsg,
+                                  progressTextId,
+                                  attributes);
     }
 
     /**
@@ -70,9 +72,9 @@ var utils = window.utils || {};
     if (typeof messageId === 'string') {
       progressTitle.setAttribute('data-l10n-id', messageId);
     } else {
-      navigator.mozL10n.setAttributes(progressTitle,
-                                      messageId.id,
-                                      messageId.args);
+      document.l10n.setAttributes(progressTitle,
+                                  messageId.id,
+                                  messageId.args);
     }
     progressMsg.textContent = null;
     progressMsg.removeAttribute('data-l10n-id');

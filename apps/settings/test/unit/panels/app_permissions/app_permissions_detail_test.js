@@ -1,7 +1,6 @@
 /* global MockMozApps, MockPermissionSettings */
 'use strict';
 suite('app permission detail > ', function() {
-  var mockL10n, realL10n;
   var mockConfirmDialog, realConfirmDialog;
   var PermissionDetail;
 
@@ -79,7 +78,6 @@ suite('app permission detail > ', function() {
 
   suiteSetup(function(done) {
     var modules = [
-      'shared_mocks/mock_l10n',
       'panels/app_permissions_detail/app_permissions_detail'
     ];
 
@@ -93,11 +91,7 @@ suite('app permission detail > ', function() {
       }
     };
     testRequire(modules, maps,
-      function(MockL10n, PermissionDetailModule) {
-        mockL10n = MockL10n;
-        realL10n = window.navigator.mozL10n;
-        window.navigator.mozL10n = mockL10n;
-
+      function(PermissionDetailModule) {
         realConfirmDialog = window.confirm;
         window.confirm = mockConfirmDialog;
 
@@ -108,7 +102,6 @@ suite('app permission detail > ', function() {
   });
 
   suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
     window.confirm = realConfirmDialog;
   });
 

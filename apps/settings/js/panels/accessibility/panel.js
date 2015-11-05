@@ -10,11 +10,13 @@ define(function(require) {
   return function ctor_accessibilityPanel() {
     var _screenReaderDesc;
     var _colorFilterDesc;
+    var _audioDesc;
 
     return SettingsPanel({
       onInit: function accessibilityPanel_onInit(rootElement) {
         _screenReaderDesc = rootElement.querySelector('#screenReader-desc');
         _colorFilterDesc = rootElement.querySelector('#colorFilter-desc');
+        _audioDesc = rootElement.querySelector('#audio-desc');
 
         SettingsListener.observe('accessibility.screenreader', false,
           function(enabled) {
@@ -26,6 +28,12 @@ define(function(require) {
           function(enabled) {
             _colorFilterDesc.setAttribute('data-l10n-id',
               enabled ? 'enabled' : 'disabled');
+        });
+
+        SettingsListener.observe('accessibility.monoaudio.enable', false,
+          function(enabled) {
+            _audioDesc.setAttribute('data-l10n-id',
+              enabled ? 'mono-enabled' : 'mono-disabled');
         });
       }
     });

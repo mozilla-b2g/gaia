@@ -1,0 +1,73 @@
+{
+  "name": "Default Home Screen",
+  "description": "Gaia home screen.",
+  "launch_path": "/index.html",
+  "type": "privileged",
+  "role": "homescreen",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "icons": {
+    "16": "/icons/16.png",
+    "32": "/icons/32.png",
+    "48": "/icons/48.png",
+    "60": "/icons/60.png",
+    "64": "/icons/64.png",
+    "90": "/icons/90.png",
+    "128": "/icons/128.png",
+    "256": "/icons/256.png",
+    "512": "/icons/512.png"
+  },
+  "permissions": {
+    "homescreen-webapps-manage": {},
+    "moz-extremely-unstable-and-will-change-webcomponents": {},
+    "systemXHR": {}
+  },
+  "default_locale": "en-US",
+  "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Gaia الشاشة الرئيسية"
+    },
+    "en-US": {
+      "name": "Default Home Screen",
+      "description": "Gaia Home Screen."
+    },
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Gaia"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Gaia 主畫面"
+    }
+  },
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": true,
+      "description": "View bookmarks."
+    },
+    "places": {
+      "readonly": false,
+      "description": "View and modify data about browsing history."
+    },
+    "icons": {
+      "readonly": false,
+      "description": "Store and retrieve cached website icons."
+    },
+    "homescreen_settings": {
+      "readonly": true,
+      "description": "Read home screen settings."
+    },
+    "vertical_preferences_store": {
+      "readonly": true,
+      "description": "Import settings from old home screen."
+    },
+    "verticalhome_items_migration": {
+      "readonly": true,
+      "description": "Import settings from old home screen."
+    }
+  },
+  "orientation": "default"
+}

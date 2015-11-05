@@ -49,7 +49,43 @@ suite('system/TouchForwarder >', function() {
     subject.destination = iframe;
   });
 
-  suite('touchstart >', function() {
+
+  suite('plain-old element support', function() {
+    var element;
+    var forwarder;
+    setup(function() {
+      element = document.createElement('div');
+      forwarder = new TouchForwarder(element);
+    });
+
+    ['touchstart', 'touchmove', 'touchend', 'touchcancel'].forEach((type) => {
+      test(type, function() {
+        var spy = this.sinon.spy(element, 'dispatchEvent');
+        var evt = forgeTouch(type, 1, 2);
+        forwarder.forward(evt);
+        assert.equal(spy.firstCall.args[0].type, type);
+        if (type === 'touchend' || type === 'touchcancel') {
+          assert.equal(spy.firstCall.args[0].touches.length, 0);
+        } else {
+          assert.equal(spy.firstCall.args[0].touches[0].clientX, 1);
+          assert.equal(spy.firstCall.args[0].touches[0].clientY, 2);
+        }
+      });
+    });
+
+    test('click', function() {
+      var spy = this.sinon.spy(element, 'dispatchEvent');
+      var evt = forgeTouch('click', 1, 2);
+      forwarder.forward(evt);
+
+      ['mousemove', 'mousedown', 'mouseup', 'click'].forEach((type, idx) => {
+        assert.equal(spy.getCall(idx).args[0].type, type);
+      });
+    });
+  });
+
+
+  suite('iframe touchstart >', function() {
     test('it should forward touchstart events', function() {
       var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
       subject.forward(forgeTouch('touchstart', 3, 20));
@@ -68,7 +104,7 @@ suite('system/TouchForwarder >', function() {
     });
   });
 
-  suite('touchmove >', function() {
+  suite('iframe touchmove >', function() {
     setup(function() {
       subject.forward(forgeTouch('touchstart', 3, 20));
     });
@@ -86,7 +122,7 @@ suite('system/TouchForwarder >', function() {
     });
   });
 
-  suite('touchend >', function() {
+  suite('iframe touchend >', function() {
     setup(function() {
       subject.forward(forgeTouch('touchstart', 3, 20));
       subject.forward(forgeTouch('touchmove', 3, 27));
@@ -105,7 +141,25 @@ suite('system/TouchForwarder >', function() {
     });
   });
 
-  suite('tap >', function() {
+
+  suite('iframe touchcancel >', function() {
+    setup(function() {
+      subject.forward(forgeTouch('touchstart', 3, 20));
+      subject.forward(forgeTouch('touchmove', 3, 27));
+    });
+
+    test('it should forward the touchend event', function() {
+      var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
+      subject.forward(forgeTouch('touchcancel', 3, 37));
+
+      assert.isTrue(sendTouchSpy.calledOnce);
+
+      var call = sendTouchSpy.firstCall;
+      assert.equal(call.args[0], 'touchcancel');
+    });
+  });
+
+  suite('iframe tap >', function() {
     function assertMouseEventsSequence(spy, x, y) {
       var call = spy.getCall(0);
       assertMouseEvent(call, 'mousemove', x, y, 0);

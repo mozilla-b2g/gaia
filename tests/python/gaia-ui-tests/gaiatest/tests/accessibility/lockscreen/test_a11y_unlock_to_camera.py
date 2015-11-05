@@ -21,7 +21,7 @@ class TestLockScreenAccessibility(GaiaTestCase):
         camera_locator = (By.CSS_SELECTOR, '[data-manifest-name="Camera"]')
 
         self.assertTrue(self.accessibility.is_visible(lockScreen_window))
-        self.assertFalse(self.is_element_present(*camera_locator))
+        self.assertFalse(lock_screen.is_element_present(*camera_locator))
 
         camera = lock_screen.a11y_click_camera_button()
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == camera.name)

@@ -3,6 +3,7 @@
 /* global KeyboardHelper */
 /* global LazyLoader */
 /* global ManifestHelper */
+/* global MatchPattern */
 /* global ModalDialog */
 /* global NotificationScreen */
 /* global Service */
@@ -15,6 +16,8 @@
 
 (function(exports) {
   var AppInstallManager = {
+    DEBUG: false,
+    name: 'AppInstallManager',
     mapDownloadErrorsToMessage: {
       'NETWORK_ERROR': 'download-failed',
       'DOWNLOAD_ERROR': 'download-failed',
@@ -27,7 +30,11 @@
     },
 
     start: function() {
-      LazyLoader.load(['js/system_banner.js']).then(() => {
+      var lazyLoadScripts = [
+        'js/system_banner.js',
+        'shared/js/addons/match_pattern.js'
+      ];
+      LazyLoader.load(lazyLoadScripts).then(() => {
         this.systemBanner = new SystemBanner();
       }).catch((err) => {
         console.error(err);
@@ -68,21 +75,10 @@
       this.appInfos = {};
       this.setupQueue = [];
       this.isSetupInProgress = false;
-      window.addEventListener('mozChromeEvent',
-        (function ai_handleChromeEvent(e) {
-        if (e.detail.type == 'webapps-ask-install') {
-          this.handleAppInstallPrompt(e.detail);
-        }
-        if (e.detail.type == 'webapps-ask-uninstall') {
-          this.handleAppUninstallPrompt(e.detail);
-        }
-      }).bind(this));
 
-      window.addEventListener('applicationinstall',
-        this.handleApplicationInstall.bind(this));
-
-      window.addEventListener('applicationuninstall',
-        this.handleApplicationUninstall.bind(this));
+      window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('applicationinstall', this);
+      window.addEventListener('applicationuninstall', this);
 
       this.installButton.onclick = this.handleInstall.bind(this);
       this.cancelButton.onclick = this.showInstallCancelDialog.bind(this);
@@ -103,6 +99,11 @@
       LazyLoader.load(['shared/js/template.js',
                        'shared/js/homescreens/confirm_dialog_helper.js']);
 
+      window.addEventListener('applicationready', this);
+
+      window.addEventListener('home', this);
+      window.addEventListener('holdhome', this);
+
       // bind these handlers so that we can have only one instance and check
       // them later on
       ['handleDownloadSuccess',
@@ -112,21 +113,42 @@
       ].forEach(function(name) {
         this[name] = this[name].bind(this);
       }, this);
+    },
 
-      window.addEventListener('applicationready',
-          this.handleApplicationReady);
+    stop: function ai_stop() {
+      window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('applicationinstall', this);
+      window.removeEventListener('applicationuninstall', this);
+      window.removeEventListener('applicationready', this);
 
-      window.addEventListener('home', this.cancelInstallation.bind(this));
-      window.addEventListener('holdhome', this.cancelInstallation.bind(this));
+      window.removeEventListener('home', this);
+      window.removeEventListener('holdhome', this);
+    },
+
+    handleEvent: function ai_handleEvent(evt) {
+      switch (evt.type) {
+        case 'mozChromeEvent':
+          return this.handleMozChromeEvent(evt);
+        case 'applicationready':
+          return this.handleApplicationReady(evt);
+        case 'home':
+        case 'holdhome':
+          return this.cancelInstallation(evt);
+        case 'applicationinstall':
+          return this.handleApplicationInstall(evt);
+        case 'applicationuninstall':
+          return this.handleApplicationUninstall(evt);
+      }
     },
 
     imeListView: function({displayName, imeName}) {
-      return Sanitizer.escapeHTML `<li>
+      return Sanitizer.createSafeHTML `
+      <li>
          <gaia-checkbox class="ime inline" name="keyboards" value="${imeName}">
            <label>${displayName}</label>
          </gaia-checkbox>
-       </li>`;
-   },
+      </li>`;
+    },
 
     cancelInstallation: function ai_cancelInstallation() {
       this.dialog.classList.remove('visible');
@@ -141,6 +163,36 @@
       // hide IME layout list if presented
       if (this.imeLayoutDialog.classList.contains('visible')) {
         this.hideIMEList();
+      }
+    },
+
+    handleMozChromeEvent: function ai_handleMozChromeEvent(e) {
+      switch (e.detail.type) {
+        case 'webapps-ask-install':
+          var manifestURL = e.detail.app && e.detail.app.manifestURL;
+          var isCustomizing = Service.query('ftuCustomizationContains',
+                                            manifestURL);
+          this.debug('handling webapps-ask-install, ' +
+            'manifestURL: ' + manifestURL + ', ' +
+            'isCustomizing: ' + isCustomizing);
+
+          if (manifestURL && isCustomizing) {
+            var grantedEvent = new CustomEvent('mozContentEvent', {
+              bubbles: true,
+              cancelable: true,
+              detail: {
+                id: e.detail.id,
+                type: 'webapps-install-granted'
+              }
+            });
+            window.dispatchEvent(grantedEvent);
+          } else {
+            this.handleAppInstallPrompt(e.detail);
+          }
+          break;
+        case 'webapps-ask-uninstall':
+          this.handleAppUninstallPrompt(e.detail);
+          break;
       }
     },
 
@@ -209,6 +261,10 @@
         this.authorUrl.textContent = '';
       }
 
+      // Warn about system level addons?
+      var warningEl = document.getElementById('system-addon-warning');
+      warningEl.hidden = !this.requiresRestart(manifest.content_scripts);
+
       this.installCallback = (function ai_installCallback() {
         this.dispatchResponse(id, 'webapps-install-granted');
       }).bind(this);
@@ -219,6 +275,52 @@
 
     },
 
+    requiresRestart: function ai_requiresRestart(contentScripts) {
+      var restartRequired = false;
+
+      if (contentScripts) {
+        var patterns = contentScripts.map(contentScript => {
+          return {
+            matches: new MatchPattern(contentScript.matches),
+            excludeMatches: new MatchPattern(contentScript.exclude_matches)
+          };
+        });
+
+        appLoop:
+        for (var appKey in applications.installedApps) {
+          if (!appKey) {
+            continue;
+          }
+
+          var installedApp = applications.installedApps[appKey];
+          var launchPath = installedApp.manifest.launch_path || '';
+
+          if (!installedApp.manifest.origin) {
+            continue;
+          }
+
+          if (installedApp.manifest.role !== 'system' &&
+              installedApp.manifest.role !== 'homescreen') {
+            continue;
+          }
+
+          var launchURL = new URL(launchPath, installedApp.manifest.origin);
+
+          for(var i = 0; i < patterns.length; i++) {
+            var pattern = patterns[i];
+            if (!pattern.excludeMatches.matches(launchURL) &&
+                pattern.matches.matches(launchURL)) {
+
+              restartRequired = true;
+              break appLoop;
+            }
+          }
+        }
+      }
+
+      return restartRequired;
+    },
+
     handleInstall: function ai_handleInstall(evt) {
       if (evt) {
         evt.preventDefault();
@@ -227,6 +329,7 @@
         this.installCallback();
       }
       this.installCallback = null;
+      this.installCancelCallback = null;
       this.dialog.classList.remove('visible');
       this.dispatchPromptEvent('hidden');
     },
@@ -413,16 +516,16 @@
       }
 
       // build the list of keyboard layouts
-      var listHtml = '';
+      var listHtml = [];
       for (var name in inputs) {
         var displayIMEName = new ManifestHelper(inputs[name]).displayName;
-        listHtml += this.imeListView({
+        listHtml.push(this.imeListView({
           imeName: name,
           displayName: displayIMEName
-        });
+        }));
       }
       // keeping li template
-      this.imeList.innerHTML = listHtml;
+      this.imeList.innerHTML = Sanitizer.unwrapSafeHTML(...listHtml);
       this.imeLayoutDialog.classList.add('visible');
       this.dispatchPromptEvent('shown');
     },
@@ -532,14 +635,15 @@
         return;
       }
 
-      var newNotif =
-        `<div class="fake-notification" role="link">
+      var newNotif = Sanitizer.createSafeHTML `
+        <div class="fake-notification" role="link">
           <div data-icon="rocket" class="alert" aria-hidden="true"></div>
           <div class="title-container"></div>
           <progress></progress>
         </div>`;
 
-      this.notifContainer.insertAdjacentHTML('afterbegin', newNotif);
+      this.notifContainer.insertAdjacentHTML('afterbegin',
+        Sanitizer.unwrapSafeHTML(newNotif));
 
       var newNode = this.notifContainer.firstElementChild;
       newNode.dataset.manifest = manifestURL;
@@ -715,6 +819,7 @@
       if (this.installCancelCallback) {
         this.installCancelCallback();
       }
+      this.installCallback = null;
       this.installCancelCallback = null;
       this.installCancelDialog.classList.remove('visible');
       this.dispatchPromptEvent('hidden');
@@ -746,6 +851,16 @@
 
     dispatchPromptEvent: function(state) {
       window.dispatchEvent(new CustomEvent('installprompt' + state));
+    },
+    debug: function() {
+      if (this.DEBUG) {
+        console.log('[' + this.name + ']' +
+          '[' + Service.currentTime() + '] ' +
+            Array.slice(arguments).concat());
+        if (this.TRACE) {
+          console.trace();
+        }
+      }
     }
   };
   exports.AppInstallManager = AppInstallManager;

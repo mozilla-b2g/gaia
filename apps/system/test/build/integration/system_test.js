@@ -26,7 +26,9 @@ suite('System tests', function() {
   });
 
   suite('System/FeatureDetector tests', function() {
-    var devices = ['phone', 'tablet', 'tv'];
+    // XXX: TV doesn't use apps/system. Test for tv should be enabled once
+    //      smart-system is merged back to apps/system.
+    var devices = ['phone', 'tablet'];
 
     devices.forEach(function(device) {
       var command = 'GAIA_DEVICE_TYPE=' + device + ' APP=system make';

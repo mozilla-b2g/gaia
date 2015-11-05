@@ -51,20 +51,6 @@
     enabled: true,
 
     /*
-    * Boolean returns wether we want a sound effect when unlocking.
-    */
-    unlockSoundEnabled: false,
-
-    /*
-    * Boolean return whether if the lock screen is enabled or not.
-    * Must not multate directly - use setPassCodeEnabled(val)
-    * Only Settings Listener should change this value to sync with data
-    * in Settings API.
-    * Will be ignored if 'enabled' is set to false.
-    */
-    passCodeEnabled: false,
-
-    /*
     * Boolean returns whether the screen is enabled, as mutated by screenchange
     * event.
     * Note: 'undefined' should be regarded as 'true' as screenchange event
@@ -87,11 +73,6 @@
     * String url of the background image to regenerate overlay color from
     */
     _regenerateMaskedBackgroundColorFrom: undefined,
-
-    /*
-    * The time to request for passcode input since device is off.
-    */
-    passCodeRequestTimeout: 0,
 
     /**
      * How long the unlocked session is.
@@ -119,11 +100,6 @@
     * reached one of the ends.
     */
     _slideReachEnd: false,
-
-    /*
-    * Current passcode entered by the user
-    */
-    passCodeEntered: '',
 
     /**
      * Are we currently switching panels ?
@@ -158,9 +134,6 @@
       case 'lockscreen-appopened':
         this.lock();
         break;
-      case 'lockscreen-notification-request-activate-unlock':
-        this._activateUnlock();
-        break;
       case 'screenchange':
         // Don't lock if screen is turned off by promixity sensor.
         if (evt.detail.screenOffBy == 'proximity') {
@@ -187,16 +160,7 @@
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
         this.dispatchEvent('secure-killapps');
-        if (this.enabled) {
-          this.overlayLocked(true);
-        }
-        break;
-
-      case 'click':
-        if (this.altCameraButton === evt.target) {
-          this.handleIconClick(evt.target);
-          break;
-        }
+        this.overlayLocked(true);
         break;
 
       case 'touchstart':
@@ -252,28 +216,11 @@
       case 'lockscreenslide-unlocker-initializer':
         this._unlockerInitialized = true;
         break;
-      case 'lockscreenslide-near-left':
-        break;
-      case 'lockscreenslide-near-right':
-        break;
       case 'lockscreenslide-unlocking-start':
         this._notifyUnlockingStart();
         break;
       case 'lockscreenslide-unlocking-stop':
         this._notifyUnlockingStop();
-        break;
-      case 'lockscreenslide-activate-left':
-      case 'holdcamera':
-        this._activateCamera();
-        break;
-      case 'emergency-call-leave':
-        this.handleEmergencyCallLeave();
-        break;
-      case 'lockscreen-mode-on':
-        this.modeSwitch(evt.detail, true);
-        break;
-      case 'lockscreen-mode-off':
-        this.modeSwitch(evt.detail, false);
         break;
       /**
        * we need to know whether the media player widget is shown or not,
@@ -312,11 +259,6 @@
     }
   };  // -- LockScreen#handleEvent --
 
-  LockScreen.prototype.initEmergencyCallEvents =
-  function() {
-    window.addEventListener('emergency-call-leave', this);
-  };
-
   /**
    * This function would exist until we refactor the lockscreen.js with
    * new patterns. @see https://bugzil.la/960381
@@ -340,7 +282,7 @@
       this.notificationsContainer =
         document.getElementById('notifications-lockscreen-container');
 
-      this.lockIfEnabled(true);
+      this.lock(true);
       this.initUnlockerEvents();
 
       // This component won't know when the it get locked unless
@@ -380,14 +322,6 @@
       window.addEventListener('iac-mediacomms', this);
       window.addEventListener('appterminated', this);
 
-      // Listen to event to start the Camera app
-      window.addEventListener('holdcamera', this);
-
-      window.SettingsListener.observe('lockscreen.enabled', true,
-        (function(value) {
-          this.setEnabled(value);
-      }).bind(this));
-
       // it is possible that lockscreen is initialized after wallpapermanager
       // (e.g. user turns on lockscreen in settings after system is booted);
       // if this is the case, then the wallpaperchange event might not be
@@ -405,40 +339,26 @@
         this.overlay.classList.remove('uninit');
       }).bind(this));
 
-      window.SettingsListener.observe(
-          'lockscreen.passcode-lock.enabled', false, (function(value) {
-        this.setPassCodeEnabled(value);
-      }).bind(this));
-
-      window.SettingsListener.observe('lockscreen.unlock-sound.enabled',
-        true, (function(value) {
-        this.setUnlockSoundEnabled(value);
-      }).bind(this));
-
-      window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
-        0, (function(value) {
-        this.setPassCodeLockTimeout(value);
-      }).bind(this));
+      this.notificationsContainer.addEventListener('scroll', this);
 
       window.SettingsListener.observe('lockscreen.lock-message',
         '', (function(value) {
         this.setLockMessage(value);
       }).bind(this));
 
-
       // FIXME(ggp) this is currently used by Find My Device
       // to force locking. Should be replaced by a proper IAC API in
       // bug 992277. We don't need to use SettingsListener because
       // we're only interested in changes to the setting, and don't
       // keep track of its value.
-      navigator.mozSettings.addObserver('lockscreen.lock-immediately',
-        (function(event) {
-        if (event.settingValue === true) {
-          this.lockIfEnabled(true);
-        }
+      window.SettingsListener.observe('lockscreen.lock-immediately',
+        false, (function ls_observeImmediately(value) {
+        if (value === true) {
+          // Enforce immediate pass code unlock
+          this.resetTimeoutForcibly();
+          window.dispatchEvent(new CustomEvent('lockscreen-request-lock'));
+		}
       }).bind(this));
-
-      this.notificationsContainer.addEventListener('scroll', this);
 
       navigator.mozL10n.ready(this.l10nInit.bind(this));
 
@@ -527,74 +447,10 @@
     return this.bootstrapping;
   };
 
-  /*
-  * Set enabled state.
-  * If enabled state is somehow updated when the lock screen is enabled
-  * This function will unlock it.
-  */
-  LockScreen.prototype.setEnabled =
-  function ls_setEnabled(val) {
-    var prevEnabled = this.enabled;
-    if (typeof val === 'string') {
-      this.enabled = val == 'false' ? false : true;
-    } else {
-      this.enabled = val;
-    }
-
-    if (prevEnabled && !this.enabled && this.locked) {
-      this.unlock();
-    }
-  };
-
-  LockScreen.prototype.setPassCodeEnabled =
-  function ls_setPassCodeEnabled(val) {
-    if (typeof val === 'string') {
-      this.passCodeEnabled = val == 'false' ? false : true;
-    } else {
-      this.passCodeEnabled = val;
-    }
-  };
-
-  LockScreen.prototype.setUnlockSoundEnabled =
-  function ls_setUnlockSoundEnabled(val) {
-    if (typeof val === 'string') {
-      this.unlockSoundEnabled = val == 'false' ? false : true;
-    } else {
-      this.unlockSoundEnabled = val;
-    }
-  };
-
-  LockScreen.prototype.setPassCodeLockTimeout =
-  function(val) {
-    this.passCodeRequestTimeout = val;
-  };
-
   LockScreen.prototype.setLockMessage =
   function ls_setLockMessage(val) {
     this.message.textContent = val;
     this.message.hidden = (val === '');
-  };
-
-  /**
-   * Light the camera and unlocking icons when user touch on our LockScreen.
-   *
-   * @this {LockScreen}
-   */
-  LockScreen.prototype._lightIcons =
-  function() {
-    this.rightIcon.classList.remove('dark');
-    this.leftIcon.classList.remove('dark');
-  };
-
-  /**
-   * Dark the camera and unlocking icons when user leave our LockScreen.
-   *
-   * @this {LockScreen}
-   */
-  LockScreen.prototype._darkIcons =
-  function() {
-    this.rightIcon.classList.add('dark');
-    this.leftIcon.classList.add('dark');
   };
 
   LockScreen.prototype._notifyUnlockingStart =
@@ -612,45 +468,21 @@
    *
    * @this {LockScreen}
    */
-  LockScreen.prototype._activateCamera =
-  function ls_activateCamera() {
-    var panelOrFullApp = (function() {
-      // If the passcode is enabled and it has a timeout which has passed
-      // switch to secure camera
-      if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
-        this.invokeSecureApp('camera');
-        return;
+  LockScreen.prototype._activateUnlockingCamera =
+  function ls_activateUnlockingCamera(unlockingDetails) {
+    var activityDetail = {
+      name: 'record',
+      data: {
+        type: 'photos'
       }
-      var activityDetail = {
-        name: 'record',
-        data: {
-          type: 'photos'
-        }
-      };
-      this.unlock(false, { activity: activityDetail } );
-    }).bind(this);
-
-    panelOrFullApp();
+    };
+    this._unlockingMessage = { 'activity': activityDetail };
+    this.unlock(false, unlockingDetails);
   };
 
   LockScreen.prototype._activateUnlock =
   function ls_activateUnlock() {
-    if (!(this.passCodeEnabled && this.checkPassCodeTimeout())) {
-      this.unlock();
-    }
-  };
-
-  LockScreen.prototype.handleIconClick =
-  function ls_handleIconClick(target) {
-    switch (target) {
-      case this.areaCamera:
-      case this.altCameraButton:
-        this._activateCamera();
-        break;
-      case this.areaUnlock:
-        this._activateUnlock();
-        break;
-    }
+    this.unlock(false);
   };
 
   LockScreen.prototype.invokeSecureApp =
@@ -671,22 +503,9 @@
     ));
   };
 
-  LockScreen.prototype.lockIfEnabled =
-  function ls_lockIfEnabled(instant) {
-    if (Service.query('isFtuRunning')) {
-      this.unlock(instant);
-      return;
-    }
-
-    if (this.enabled) {
-      this.lock(instant);
-    } else {
-      this.unlock(instant);
-    }
-  };
-
   LockScreen.prototype.unlock =
-  function ls_unlock(instant, detail) {
+  function ls_unlock(instant, details) {
+    details = details || {};
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
@@ -703,16 +522,13 @@
     this.lockScreenClockWidget.stop().destroy();
     delete this.lockScreenClockWidget;
 
-    if (this.unlockSoundEnabled) {
+    if (details.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
       unlockAudio.play();
     }
 
-    if (!detail) {
-      detail = this._unlockingMessage;
-    }
     this.overlay.classList.toggle('no-transition', instant);
-    this.dispatchEvent('lockscreen-request-unlock', detail);
+    this.dispatchEvent('lockscreen-request-unlock', this._unlockingMessage);
     this.dispatchEvent('secure-modeoff');
     this.overlay.classList.add('unlocked');
 
@@ -720,8 +536,6 @@
     // these are run in transitioned callback.
     if (instant) {
       this.overlay.hidden = true;
-    } else {
-      this.unlockDetail = detail;
     }
     // Clear the state after we send the request.
     this._unlockingMessage = {};
@@ -763,6 +577,11 @@
       if(this._checkGenerateMaskedBackgroundColor()){
         this._generateMaskedBackgroundColor();
       }
+      // Remove Masked Background if there are no
+      // notifications
+      if (this.maskedBackground.classList.contains('blank')) {
+        this.maskedBackground.style.backgroundColor = 'transparent';
+      }
     }
   };
 
@@ -791,7 +610,6 @@
         }
 
         delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
         break;
 
       case 'main':
@@ -1075,15 +893,15 @@
    * Check if the timeout has been expired and we need to check the passcode.
    */
   LockScreen.prototype.checkPassCodeTimeout =
-    function ls_checkPassCodeTimeout() {
-      var timeout = this.passCodeRequestTimeout * 1000;
+    function ls_checkPassCodeTimeout(timeoutSetting) {
+      var timeout = timeoutSetting * 1000;
       var lockedInterval = this.fetchLockedInterval();
       var unlockedInterval = this.fetchUnlockedInterval();
 
       // If user set timeout, then
       // - if timeout expired, do check
       // - if timeout is valid, do not check
-      if (0 !== this.passCodeRequestTimeout) {
+      if (0 !== timeoutSetting) {
         if (lockedInterval > timeout ||
             unlockedInterval > timeout ) {
           return true;
@@ -1096,25 +914,47 @@
     };
 
   /**
+   * Reset lock/unlock time stamps such that checkPassCodeTimeout
+   * will return that pass code must be checked.
+   */
+  LockScreen.prototype.resetTimeoutForcibly =
+    function ls_resetTimeoutForcibly() {
+      // Pass code unlock requirement is checked against timeout of
+      // either timestamp. Resetting these to epoch 0 ensures that both
+      // will timeout even if one timestamp is set to Date.now()
+      // due to lockscreen activation or deactivation in a different
+      // code path, avoiding a potential race condition. The respective
+      // pre-calculated intervals are adjusted accordingly.
+      // Fixes bug 1186100
+      var now = Date.now();
+      this._lastLockedTimeStamp = 0;
+      this._lastLockedInterval = now;
+      this._lastUnlockedTimeStamp = 0;
+      this._lastUnlockedInterval = now;
+    };
+
+  /**
    * When validation failed, do UI change.
    */
   LockScreen.prototype.onPasscodeValidationFailed =
     function ls_onPasscodeValidationFailed() {
       this.overlay.dataset.passcodeStatus = 'error';
-      // To let passcode pad handle it.
-      window.dispatchEvent(new CustomEvent(
-        'lockscreen-notify-passcode-validationfailed'));
-
       this.kPassCodeErrorCounter++;
       //double delay if >5 failed attempts
       if (this.kPassCodeErrorCounter > 5) {
         this.kPassCodeErrorTimeout = 2 * this.kPassCodeErrorTimeout;
       }
+      // have inputpad display the error
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notify-passcode-validationfailed'));
       if ('vibrate' in navigator) {
         navigator.vibrate([50, 50, 50]);
       }
       setTimeout(() => {
         delete this.overlay.dataset.passcodeStatus;
+        // tell inputpad that error delay has passed
+        window.dispatchEvent(new CustomEvent(
+          'lockscreen-notify-passcode-validationreset'));
       }, this.kPassCodeErrorTimeout);
     };
 
@@ -1123,12 +963,11 @@
    */
   LockScreen.prototype.onPasscodeValidationSuccess =
     function ls_onPasscodeValidationSuccess() {
-      window.dispatchEvent(new CustomEvent(
-        'lockscreen-notify-passcode-validationsuccess'));
-      this.passCodeError = 0;
       this.kPassCodeErrorTimeout = 500;
       this.kPassCodeErrorCounter = 0;
       // delegate the unlocking function call to panel state.
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notify-passcode-validationsuccess'));
     };
 
   LockScreen.prototype.createClockWidget = function() {

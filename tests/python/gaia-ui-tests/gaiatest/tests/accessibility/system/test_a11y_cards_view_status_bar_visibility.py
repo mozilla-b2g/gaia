@@ -27,7 +27,7 @@ class TestCardsViewStatusbarVisibilityAccessibility(GaiaTestCase):
         cards_view.wait_for_cards_view()
 
         # Wait for the app card ready
-        cards_view.wait_for_card_ready('Calendar')
+        cards_view.cards[0].wait_for_centered()
 
         # Statusbar icons should be invisible to the screen reader.
         self.wait_for_condition(lambda m: status_bar.is_status_bar_maximized_wrapper_a11y_hidden)

@@ -10,8 +10,6 @@ require([
       return iccManager.getIccById(iccId);
     }
 
-    var _ = navigator.mozL10n.get;
-
     // Consts
     // 3GPP spec: TS 11.14
     // 13.4 Type of Command and Next Action Indicator
@@ -60,6 +58,27 @@ require([
     var _visibilityChangeHandler = null;
     var _backHandler = null;
     init();
+
+
+    /**
+     * This is a helper for localizing DOM Elements using L10nID.
+     * Second argument may take one of the following forms:
+     * a string -> l10nId
+     * an object -> {id: l10nId, args: l10nArgs}
+     * an object -> {raw: string}
+     *
+     * Read more at MDN: http://mzl.la/1A76Fby
+     */
+    function localizeElement(element, l10n) {
+      if (typeof(l10n) === 'string') {
+        element.setAttribute('data-l10n-id', l10n);
+      } else if (l10n.raw) {
+        element.removeAttribute('data-l10n-id');
+        element.textContent = l10n.raw;
+      } else {
+        navigator.mozL10n.setAttributes(element, l10n.id, l10n.attrs);
+      }
+    }
 
     function sendVisibilityChangeEvent() {
       navigator.mozApps.getSelf().onsuccess = function(evt) {
@@ -251,7 +270,7 @@ require([
       window.DUMP('STK Main App Menu default item: ' +
         menu.entries.defaultItem);
 
-      showTitle(menu.entries.title);
+      showTitle({raw: menu.entries.title});
       menu.entries.items.forEach(function(menuItem, index) {
         window.DUMP('STK Main App Menu item: ' + menuItem.text + ' # ' +
               menuItem.identifier);
@@ -267,8 +286,8 @@ require([
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
           icon: icon,
-          text: menuItem.text,
-          nai: _(nextActionString),
+          text: {raw: menuItem.text},
+          nai: nextActionString,
           onclick: onMainMenuItemClick,
           attributes: [
             ['stk-menu-item-identifier', menuItem.identifier],
@@ -281,7 +300,7 @@ require([
       if (menu.entries.isHelpAvailable) {
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-helpmenuitem',
-          text: _('operatorServices-helpmenu'),
+          text: 'operatorServices-helpmenu',
           onclick: function __onHelpClick__(event) {
             showHelpMenu(menu, event);
           },
@@ -315,7 +334,7 @@ require([
 
       clearList();
 
-      showTitle(_('operatorServices-helpmenu'));
+      showTitle('operatorServices-helpmenu');
       menu.entries.items.forEach(function(menuItem) {
         window.DUMP('STK Main App Help item: ' + menuItem.text + ' # ' +
               menuItem.identifier);
@@ -325,7 +344,7 @@ require([
         }
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-helpitem-' + menuItem.identifier,
-          text: menuItem.text,
+          text: {raw: menuItem.text},
           icon: icon,
           onclick: onMainMenuHelpItemClick,
           attributes: [
@@ -360,7 +379,7 @@ require([
       window.DUMP('STK App Menu title: ' + menu.title);
       window.DUMP('STK App Menu default item: ' + menu.defaultItem);
 
-      showTitle(menu.title);
+      showTitle({raw: menu.title});
       menu.items.forEach(function(menuItem, index) {
         window.DUMP('STK App Menu item: ' + menuItem.text + ' # ' +
           menuItem.identifier);
@@ -372,9 +391,9 @@ require([
         }
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
-          text: menuItem.text,
+          text: {raw: menuItem.text},
           icon: icon,
-          nai: _(nextActionString),
+          nai: nextActionString,
           onclick: function onSelectOptionClick(event) {
             document.removeEventListener('visibilitychange',
               _visibilityChangeHandler, false);
@@ -388,7 +407,7 @@ require([
       if (menu.isHelpAvailable) {
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-helpmenuitem',
-          text: _('operatorServices-helpmenu'),
+          text: 'operatorServices-helpmenu',
           onclick: function __onHelpClick__(event) {
             showHelpSelection(message, event);
           },
@@ -417,7 +436,7 @@ require([
 
       clearList();
 
-      showTitle(_('operatorServices-helpmenu'));
+      showTitle('operatorServices-helpmenu');
       menu.items.forEach(function(menuItem) {
         window.DUMP('STK Main App Help item: ' + menuItem.text + ' # ' +
               menuItem.identifier);
@@ -427,7 +446,7 @@ require([
         }
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-helpitem-' + menuItem.identifier,
-          text: menuItem.text,
+          text: {raw: menuItem.text},
           icon: icon,
           onclick: function onSelectOptionClick(event) {
             onSelectionHelpItemClick(message, event);
@@ -456,20 +475,20 @@ require([
     /**
      * Auxiliar methods
      */
-    function showTitle(title) {
+    function showTitle(titleL10n) {
       // If the application is automatically opened (no come from main menu)
       if (!stkOpenAppName) {
-        stkOpenAppName = title;
+        stkOpenAppName = titleL10n;
       }
-      iccStkHeader.textContent = stkOpenAppName;
+      localizeElement(iccStkHeader, stkOpenAppName);
 
       // Show section
-      if (stkOpenAppName != title) {
-        iccStkSubheader.textContent = title;
+      if (stkOpenAppName != titleL10n) {
+        localizeElement(iccStkSubheader, titleL10n);
         iccStkSubheader.parentNode.classList.remove('hiddenheader');
         iccStkSubheader.classList.remove('hidden');
       } else {
-        iccStkSubheader.textContent = '';
+        localizeElement(iccStkSubheader, {raw: ''});
         iccStkSubheader.parentNode.classList.add('hiddenheader');
         iccStkSubheader.classList.add('hidden');
       }
@@ -486,7 +505,7 @@ require([
 
       if (entry.nai) {
         var small = document.createElement('small');
-        small.textContent = entry.nai;
+        localizeElement(small, entry.nai);
         li.appendChild(small);
       }
 
@@ -501,7 +520,7 @@ require([
       entry.attributes.forEach(function attrIterator(attr) {
         a.setAttribute(attr[0], attr[1]);
       });
-      a.textContent = entry.text;
+      localizeElement(a, entry.text);
       a.onclick = entry.onclick;
       a.href = '#icc';
       li.appendChild(a);

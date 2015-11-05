@@ -4,6 +4,7 @@ Keyboards['bn-Probhat'] = {
   menuLabel: 'বাংলা - প্রভাত',
   alternateLayoutKey: '?১২',
   basicLayoutKey: 'কখগ',
+  specificCssRule: true,
   types: ['text', 'url', 'email'],
   lang: 'bn',
   keys: [

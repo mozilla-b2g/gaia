@@ -38,7 +38,9 @@ System.Selector = Object.freeze({
   appChromeContextNewPrivate: '.appWindow.active [data-id=new-private-window]',
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
+  appChromeContextMenuPin: '.appWindow.active [data-id=pin-to-home-screen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
+  appChromeContextMenuCancel: '.appWindow.active #ctx-cancel-button',
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
   appChromeStopButton: '.appWindow.active .controls .stop-button',
   appChromeWindowsButton: '.appWindow.active .controls .windows-button',
@@ -60,10 +62,9 @@ System.Selector = Object.freeze({
   statusbarShadow: '.appWindow.active > .titlebar .statusbar-shadow',
   statusbarShadowTray: '#statusbar-tray',
   statusbarShadowActivity: '.activityWindow.active .statusbar-shadow',
-  statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
-  statusbarMinimizedWrapper: '#statusbar-minimized-wrapper',
+  statusbarIcons: '#statusbar-icons',
   statusbarOperator: '.statusbar-operator',
-  systemBanner: '.banner.generic-dialog',
+  systemBanner: '#screen > gaia-toast.banner',
   topPanel: '#top-panel',
   trustedWindow: '.appWindow.active.trustedwindow',
   trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',
@@ -71,6 +72,7 @@ System.Selector = Object.freeze({
   rightPanel: '#right-panel',
   siteIcon: '.appWindow.active .chrome .site-icon',
   utilityTray: '#utility-tray',
+  utilityTrayMotion: '#utility-tray-motion',
   visibleForm: '#action-menu > form.visible',
   cancelActivity: '#action-menu form.visible button[data-action="cancel"]',
   nfcIcon: '.statusbar-nfc',
@@ -180,6 +182,11 @@ System.prototype = {
       System.Selector.appChromeContextMenuBookmark);
   },
 
+  get appChromeContextMenuPin() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuPin);
+  },
+
   get appChromeContextMenuShare() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenuShare);
@@ -193,6 +200,11 @@ System.prototype = {
   get appChromeStopButton() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeStopButton);
+  },
+
+  get appChromeContextMenuCancel() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuCancel);
   },
 
   get appChromeProgressBar() {
@@ -255,12 +267,8 @@ System.prototype = {
     return this.client.findElement(System.Selector.statusbar);
   },
 
-  get statusbarMaximizedWrapper() {
-    return this.client.findElement(System.Selector.statusbarMaximizedWrapper);
-  },
-
-  get statusbarMinimizedWrapper() {
-    return this.client.findElement(System.Selector.statusbarMinimizedWrapper);
+  get statusbarIcons() {
+    return this.client.helper.waitForElement(System.Selector.statusbarIcons);
   },
 
   get statusbarOperator() {
@@ -283,6 +291,10 @@ System.prototype = {
 
   get utilityTray() {
     return this.client.findElement(System.Selector.utilityTray);
+  },
+
+  get utilityTrayMotion() {
+    return this.client.findElement(System.Selector.utilityTrayMotion);
   },
 
   get topPanel() {
@@ -477,13 +489,6 @@ System.prototype = {
     });
   },
 
-  stopStatusbar: function() {
-    this.client.executeScript(function() {
-      window.wrappedJSObject.Service.request('Statusbar:pauseUpdate',
-        'marionette');
-    });
-  },
-
   stopDevtools: function() {
     this.client.executeScript(function() {
       window.wrappedJSObject.Service.request('DeveloperHud:stop');
@@ -500,6 +505,11 @@ System.prototype = {
           'matrix(1, 0, 0, 1, 0, 0)';
       });
     });
+  },
+
+  waitForBrowser: function waitForBrowser(url) {
+    return this.client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
   },
 
   // It looks for an activity menu, and returns the first

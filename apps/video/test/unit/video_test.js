@@ -5,39 +5,46 @@
   pendingUpdateTitleText:true,controlShowing:true,touchStartID:true,
   selectedFileNames:true,selectedFileNamesToBlobs:true,dragging:true,
   sliderRect:true,updateVideoControlSlider:true,setControlsVisibility:true,
-  controlFadeTimeout:true,handleSliderTouchMove:true */
+  controlFadeTimeout:true,handleSliderTouchMove:true,seeker:true */
 /* global handleScreenLayoutChange,HAVE_NOTHING,handleSliderKeypress,
   hideOptionsView,MockLazyLoader,MockVideoPlayer,ThumbnailList,
   toggleVideoControls,showOptionsView,ScreenLayout,MocksHelper,dom,
-  MockThumbnailGroup,MediaUtils,showInfoView,hideInfoView,
+  MockThumbnailGroup,l10nAssert,showInfoView,hideInfoView,
   updateSelection,setButtonPaused,handleSliderTouchStart,MockMediaDB,
   handleSliderTouchEnd,loadingChecker,MockL10n,VideoUtils,
-  updateDialog,LAYOUT_MODE,showPlayer,hidePlayer,MockThumbnailItem */
+  updateDialog,LAYOUT_MODE,showPlayer,hidePlayer,MockThumbnailItem,
+  MockThumbnailGroup,MockForwardRewindController,MockIntlHelper,captions */
 'use strict';
 
 require('/shared/js/lazy_loader.js');
-require('/shared/js/l10n.js');
-require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_screen_layout.js');
 require('/shared/test/unit/mocks/mock_video_stats.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks//mock_intl_helper.js');
 requireApp('/video/js/video_utils.js');
-requireApp('/video/test/unit/mock_l10n.js');
 requireApp('/video/test/unit/mock_metadata.js');
 requireApp('/video/test/unit/mock_mediadb.js');
+requireApp('/video/test/unit/mock_forward_rewind_controller.js');
 requireApp('/video/test/unit/mock_thumbnail_group.js');
 requireApp('/video/test/unit/mock_thumbnail_item.js');
 requireApp('/video/test/unit/mock_video_loading_checker.js');
 requireApp('/video/test/unit/mock_video_player.js');
 requireApp('/video/js/thumbnail_list.js');
+requireApp('/video/js/seeker.js');
 
 // Declare variables used in video.js that are declared in other
 // javascript files (that we don't want to pull in).
 var videodb;              // Declared in db.js
 var startParsingMetadata; // Declared in metadata.js
 var ThumbnailItem;
+var ThumbnailDateGroup;
+var ForwardRewindController;
+var IntlHelper;
+var initDB;
+var init;
 
 function containsClass(element, value) {
   return element.classList.contains(value);
@@ -62,6 +69,12 @@ function testOverlayVisibility(expected) {
   assert.equal(dom.overlay.classList.contains('hidden'), !expected);
 }
 
+function MockCaptions(player) {
+  this.player = player;
+  this.remove = sinon.stub();
+  this.findAndDisplay = sinon.stub();
+}
+
 suite('Video App Unit Tests', function() {
   var nativeMozL10n;
   var videoName = 'video name';
@@ -75,11 +88,26 @@ suite('Video App Unit Tests', function() {
 
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    MediaUtils._ = MockL10n.get;
+    IntlHelper = MockIntlHelper;
+
+    ThumbnailItem = MockThumbnailItem;
+    ThumbnailDateGroup = MockThumbnailGroup;
+
+    init = sinon.stub();
+    initDB = sinon.stub();
+    ForwardRewindController = MockForwardRewindController;
+
+    window.Captions = MockCaptions;
+
+    // we don't want to trigger once/ready callbacks
+    sinon.stub(navigator.mozL10n, 'once');
+    sinon.stub(navigator.mozL10n, 'ready');
     requireApp('/video/js/video.js', done);
   });
 
   suiteTeardown(function() {
+    navigator.mozL10n.once.restore();
+    navigator.mozL10n.ready.restore();
     navigator.mozL10n = nativeMozL10n;
   });
 
@@ -98,18 +126,19 @@ suite('Video App Unit Tests', function() {
       };
     });
 
-    test('#Test Video details', function() {
-      showInfoView();
-      assert.equal(document.getElementById('info-name').textContent,
-        'Small webm');
-      assert.equal(document.getElementById('info-length').textContent,
-        '00:06');
-      assert.equal(document.getElementById('info-type').textContent,
-        'webm');
-      assert.equal(document.getElementById('info-date').textContent,
-        '08/07/2013');
-      assert.equal(document.getElementById('info-resolution').textContent,
-        '560x320');
+    test('#Test Video details', function(done) {
+      showInfoView().then(() => {
+        assert.equal(document.getElementById('info-name').textContent,
+          'Small webm');
+        assert.equal(document.getElementById('info-length').textContent,
+          '00:06');
+        assert.equal(document.getElementById('info-type').textContent,
+          'webm');
+        assert.equal(document.getElementById('info-date').textContent,
+          '8/7/2013');
+        assert.equal(document.getElementById('info-resolution').textContent,
+          '560x320');
+      }).then(done, done);
     });
 
     test('#Test show info view', function() {
@@ -141,27 +170,29 @@ suite('Video App Unit Tests', function() {
 
   suite('#Video Format Date', function() {
 
-    test('#Test Video created date', function() {
+    test('#Test Video created date', function(done) {
       currentVideo = {
         metadata: {
           title: 'My test video'
         },
         date: 1376909940000
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-date').textContent,
-        '08/19/2013');
+      showInfoView().then(() => {
+        assert.equal(document.getElementById('info-date').textContent,
+          '8/19/2013');
+      }).then(done, done);
     });
 
-    test('#Test Video date null', function() {
+    test('#Test Video date null', function(done) {
       currentVideo = {
         metadata: {
           title: 'Lorem Ipsum'
         },
         date: null
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-date').textContent, '');
+      showInfoView().then(() => {
+        assert.equal(document.getElementById('info-date').textContent, '');
+      }).then(done, done);
     });
 
     test('#Test Video date empty', function() {
@@ -178,16 +209,20 @@ suite('Video App Unit Tests', function() {
 
   suite('#Video Format Size', function() {
 
-    test('#Test Video size', function() {
+    test('#Test Video size', function(done) {
       currentVideo = {
         metadata: {
           title: 'My test video'
         },
         size: 229455
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-size').textContent,
-        '224 byteUnit-KB');
+      showInfoView().then(() => {
+        l10nAssert(
+          document.getElementById('info-size'),
+          'fileSize',
+          {size: '224', unit: 'KB'}
+        );
+      }).then(done, done);
     });
 
     test('#Test Video size null', function() {
@@ -201,28 +236,36 @@ suite('Video App Unit Tests', function() {
       assert.equal(document.getElementById('info-size').textContent, '');
     });
 
-    test('#Test Video size 3.9MB', function() {
+    test('#Test Video size 3.9MB', function(done) {
       currentVideo = {
         metadata: {
           title: 'Video large size'
         },
         size: 4110000
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-size').textContent,
-        '3.9 byteUnit-MB');
+      showInfoView().then(() => {
+        l10nAssert(
+          document.getElementById('info-size'),
+          'fileSize',
+          {size: '3.9', unit: 'MB'}
+        );
+      }).then(done, done);
     });
 
-    test('#Test Video size 4MB', function() {
+    test('#Test Video size 4MB', function(done) {
       currentVideo = {
         metadata: {
           title: 'Video large size'
         },
         size: 4 * 1024 * 1024
       };
-      showInfoView();
-      assert.equal(document.getElementById('info-size').textContent,
-        '4 byteUnit-MB');
+      showInfoView().then(() => {
+        l10nAssert(
+          document.getElementById('info-size'),
+          'fileSize',
+          {size: '4', unit: 'MB'}
+        );
+      }).then(done, done);
     });
   });
 
@@ -990,6 +1033,27 @@ suite('Video App Unit Tests', function() {
       assert.equal(dom.player.currentTime, 0);
       assert.equal(dom.videoTitle.textContent, selectedVideo.title);
     });
+
+    test('#showPlayer() removes captions and looks for new ones', function() {
+
+      selectedVideo = {
+        'name': 'test-video.webm',
+        'type': 'video\/webm',
+        'size': '19565',
+        'date': '1395088917000',
+        'title': 'test-video1'
+      };
+
+      captions.remove.reset();
+      captions.findAndDisplay.reset();
+
+      showPlayer(selectedVideo, false, false, true);
+
+      assert.ok(captions.remove.calledOnce);
+      assert.ok(captions.findAndDisplay.calledOnce);
+      assert.equal(captions.findAndDisplay.args[0][0], selectedVideo.name);
+    });
+
   });
 
   suite('hidePlayer flows', function() {
@@ -1445,6 +1509,15 @@ suite('Video App Unit Tests', function() {
       assert.isFalse(setWatchedSpy.calledOnce);
       assert.isFalse(updateMetadataDbSpy.calledOnce);
     });
+
+    test('#hidePlayer: removes captions', function(done) {
+      playerShowing = true;
+      captions.remove.reset();
+      hidePlayer(false, function() {
+        assert.ok(captions.remove.calledOnce);
+        done();
+      });
+    });
   });
 
   suite('handleScreenLayoutChange flows', function() {
@@ -1650,12 +1723,19 @@ suite('Video App Unit Tests', function() {
 
   suite('handleSliderKeypress', function() {
     var keyEvent;
+    var realSeeker;
 
     setup(function() {
       dom.player.currentTime = 0;
       dom.player.duration = 10;
       dom.player.currentTime = 5;
       keyEvent = document.createEvent('KeyboardEvent');
+      realSeeker = seeker;
+      seeker = { seekTo: sinon.spy() };
+    });
+
+    teardown(function() {
+      seeker = realSeeker;
     });
 
     test('test seek up and seek down based on key up and key down', function() {
@@ -1665,7 +1745,7 @@ suite('Video App Unit Tests', function() {
         keyEvent.initKeyEvent('keypress', true, true, window, false, false,
           false, false, testSpec.key, 0);
         handleSliderKeypress(keyEvent);
-        assert.equal(dom.player.currentTime, currentTime + testSpec.step);
+        assert.ok(seeker.seekTo.calledWith(currentTime + testSpec.step));
       });
     });
   });
@@ -1913,9 +1993,11 @@ suite('Video App Unit Tests', function() {
       thumbnail.htmlNode.setAttribute('aria-selected', false);
 
       updateSelection(videodata);
-      assert.equal(dom.thumbnailsNumberSelected.textContent,
-                   'number-selected2{"n":1}',
-                   'there should be one thumbnail selected');
+      l10nAssert(
+        dom.thumbnailsNumberSelected,
+        'number-selected2',
+        {n: 1}
+      );
       assert.isFalse(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
                      'thumbnail delete button should be enabled');
       assert.isFalse(containsClass(dom.thumbnailsShareButton, 'disabled'),
@@ -1932,9 +2014,11 @@ suite('Video App Unit Tests', function() {
       thumbnail.htmlNode.setAttribute('aria-selected', true);
 
       updateSelection(videodata);
-      assert.equal(dom.thumbnailsNumberSelected.textContent,
-                   'number-selected2{"n":0}',
-                   'there shouldnt be any thumbnails selected');
+      l10nAssert(
+        dom.thumbnailsNumberSelected,
+        'number-selected2',
+        {n: 0}
+      );
       assert.isTrue(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
                     'thumbnail delete button should be disabled');
       assert.isTrue(containsClass(dom.thumbnailsShareButton, 'disabled'),
@@ -2045,8 +2129,8 @@ suite('Video App Unit Tests', function() {
                    'touch start id should come from event');
       assert.isTrue(handleSliderTouchMoveSpy.calledOnce,
                    'handleSliderTouchMove is called once');
-      assert.isTrue(playerPauseSpy.calledOnce,
-                   'dom.player.pause is called');
+      assert.equal(playerPauseSpy.callCount, 0,
+                   'dom.player.pause is not called');
       assert.equal(sliderRect.width, width);
       assert.equal(sliderRect.height, height);
       assert.equal(sliderRect.right, sliderRect.left + width);
@@ -2055,7 +2139,7 @@ suite('Video App Unit Tests', function() {
   });
 
   suite('handleSliderTouchMove flows', function() {
-    var fastSeekSpy;
+    var seekerStub;
 
     var clientX = 110;
     var touch = {'clientX': clientX};
@@ -2073,29 +2157,48 @@ suite('Video App Unit Tests', function() {
                          {'identifiedTouch': identifiedTouchFailure} };
 
     suiteSetup(function() {
-      fastSeekSpy = sinon.spy(dom.player, 'fastSeek');
+      seekerStub = sinon.stub(seeker, 'seekTo');
       sliderRect = {'left': 10,
-                    'width': 200};
+                    'width': 200,
+                    'right': 190};
     });
 
     setup(function() {
-      fastSeekSpy.reset();
+      seekerStub.reset();
       dragging = true;
       dom.playHead.classList.remove('active');
     });
 
     suiteTeardown(function() {
-      fastSeekSpy.restore();
+      seekerStub.restore();
     });
 
-    test('#handleSliderTouchMove: update the slider', function() {
+    test('#handleSliderTouchMove: update the slider (ltr)', function() {
 
+      document.documentElement.dir = 'ltr';
+      dom.playHead.style.left = '';
+      dom.playHead.style.right = '';
       handleSliderTouchMove(successEvent);
 
       assert.isTrue(containsClass(dom.playHead, 'active'));
       assert.equal(dom.playHead.style.left, '50%');
+      assert.equal(dom.playHead.style.right, '');
       assert.equal(dom.elapsedTime.style.width, '50%');
-      assert.isTrue(fastSeekSpy.calledOnce);
+      assert.isTrue(seekerStub.calledOnce);
+    });
+
+    test('#handleSliderTouchMove: update the slider (rtl)', function() {
+
+      document.documentElement.dir = 'rtl';
+      dom.playHead.style.left = '';
+      dom.playHead.style.right = '';
+      handleSliderTouchMove(successEvent);
+
+      assert.isTrue(containsClass(dom.playHead, 'active'));
+      assert.equal(dom.playHead.style.right, '40%');
+      assert.equal(dom.playHead.style.left, '');
+      assert.equal(dom.elapsedTime.style.width, '40%');
+      assert.isTrue(seekerStub.calledOnce);
     });
 
     test('#handleSliderTouchMove: not dragging', function() {
@@ -2104,7 +2207,7 @@ suite('Video App Unit Tests', function() {
       handleSliderTouchMove(successEvent);
 
       assert.isFalse(containsClass(dom.playHead, 'active'));
-      assert.equal(fastSeekSpy.callCount, 0);
+      assert.equal(seekerStub.callCount, 0);
     });
 
     test('#handleSliderTouchMove: no touch start event', function() {
@@ -2113,7 +2216,7 @@ suite('Video App Unit Tests', function() {
       handleSliderTouchMove(failureEvent);
 
       assert.isFalse(containsClass(dom.playHead, 'active'));
-      assert.equal(fastSeekSpy.callCount, 0);
+      assert.equal(seekerStub.callCount, 0);
     });
   });
 
@@ -2196,7 +2299,7 @@ suite('Video App Unit Tests', function() {
       assert.isNull(touchStartID);
       assert.isFalse(containsClass(dom.playHead, 'active'));
       assert.equal(playerPauseSpy.callCount, 0);
-      assert.isTrue(playerPlaySpy.calledOnce);
+      assert.equal(playerPlaySpy.callCount, 0);
     });
   });
 });

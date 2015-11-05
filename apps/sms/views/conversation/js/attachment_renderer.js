@@ -70,7 +70,9 @@
 
           var contentDocument = attachmentContainer.contentDocument;
           var documentElement = contentDocument.documentElement;
-          navigator.mozL10n.translateFragment(documentElement);
+          documentElement.lang = document.documentElement.getAttribute('lang');
+          documentElement.dir = document.documentElement.getAttribute('dir');
+          document.l10n.translateFragment(documentElement);
 
           // Attach click listeners and fire the callback when rendering is
           // complete: we can't bind `readyCallback' to the `load' event
@@ -116,11 +118,11 @@
       },
 
       setL10nAttributes: function(element, l10nId, l10nArgs) {
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           element, l10nId, l10nArgs
         );
         // l10n library can't see changes inside iframes yet
-        navigator.mozL10n.translateFragment(element);
+        document.l10n.translateFragment(element);
       }
     },
 
@@ -141,7 +143,7 @@
       },
 
       setL10nAttributes: function(element, l10nId, l10nArgs) {
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           element, l10nId, l10nArgs
         );
       }

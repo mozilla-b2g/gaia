@@ -2,7 +2,9 @@
          loadBodyHTML, ConversationView, Threads, MessageManager,
          InboxView, Contacts, MockContact, MockThreadList,
          MockThreadMessages, getMockupedDate, Utils,
-         Threads */
+         Threads,
+         TaskRunner
+*/
 /*
   InboxView Tests
 */
@@ -14,26 +16,29 @@ require('/shared/js/lazy_loader.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 
 require('/views/shared/test/unit/mock_contact.js');
 require('/views/shared/test/unit/mock_time_headers.js');
 require('/views/shared/test/unit/mock_information.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
+require('/views/shared/test/unit/mock_app.js');
+require('/services/test/unit/activity/mock_activity_client.js');
 require('/views/shared/test/unit/utils_mockup.js');
 require('/views/shared/test/unit/messages_mockup.js');
 require('/views/shared/test/unit/thread_list_mockup.js');
 
+require('/views/shared/js/utils.js');
 require('/views/shared/js/selection_handler.js');
 require('/views/shared/js/navigation.js');
 require('/views/conversation/js/link_helper.js');
 require('/services/js/drafts.js');
 require('/views/shared/js/contacts.js');
-require('/views/shared/js/utils.js');
 require('/views/conversation/js/subject_composer.js');
 require('/views/conversation/js/compose.js');
 require('/services/js/threads.js');
@@ -48,13 +53,16 @@ require('/views/shared/js/task_runner.js');
 
 
 var MocksHelperForSmsUnitTest = new MocksHelper([
+  'ActivityClient',
+  'App',
   'asyncStorage',
   'Settings',
   'TimeHeaders',
   'Information',
   'ContactPhotoHelper',
   'InterInstanceEventDispatcher',
-  'LazyLoader'
+  'LazyLoader',
+  'MultiSimActionButton'
 ]).init();
 
 suite('SMS App Unit-Test', function() {
@@ -79,17 +87,17 @@ suite('SMS App Unit-Test', function() {
     return nfn;
   }
 
-  var nativeMozL10n = navigator.mozL10n;
+  var nativeMozL10n = document.l10n;
   var realGestureDetector;
 
   suiteSetup(function() {
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     realGestureDetector = window.GestureDetector;
     window.GestureDetector = MockGestureDetector;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
+    document.l10n = nativeMozL10n;
     window.GestureDetector = realGestureDetector;
   });
 
@@ -114,7 +122,7 @@ suite('SMS App Unit-Test', function() {
     return elements;
   }
 
-  function threadSetupAppend() {
+  function threadSetup() {
     var thread = {
       participants: ['287138'],
       body: 'Recibidas!',
@@ -125,8 +133,8 @@ suite('SMS App Unit-Test', function() {
     };
 
     Threads.set(9999, thread);
-    InboxView.appendThread(thread);
-    Threads.currentId = 9999;
+
+    return Threads.get(9999);
   }
 
   // Previous setup
@@ -192,7 +200,7 @@ suite('SMS App Unit-Test', function() {
         return Promise.resolve(MockContact.list());
       }
 
-      return Promise.resolve(null);
+      return Promise.resolve([]);
     });
 
     this.sinon.stub(Contacts, 'findByPhoneNumber', function(tel) {
@@ -201,7 +209,7 @@ suite('SMS App Unit-Test', function() {
         return Promise.resolve(MockContact.list());
       }
 
-      return Promise.resolve(null);
+      return Promise.resolve([]);
     });
   });
 
@@ -324,6 +332,13 @@ suite('SMS App Unit-Test', function() {
         assertNumberOfElementsInContainerByTag(container, 5, 'input');
       });
 
+      test('Sets up the gaia header for the edit form', function() {
+        var editHeader = document.getElementById('threads-edit-header');
+        assert.isTrue(editHeader.hasAttribute('no-font-fit'));
+        InboxView.startEdit();
+        assert.isFalse(editHeader.hasAttribute('no-font-fit'));
+      });
+
       test('Select all/Deselect All buttons', function() {
         var i;
 
@@ -435,7 +450,7 @@ suite('SMS App Unit-Test', function() {
           }).length, 'All items should be checked');
 
         // now a new message comes in for a new thread...
-        threadSetupAppend();
+        InboxView.appendThread(threadSetup());
 
         checkboxes =
           InboxView.container.querySelectorAll('input[type=checkbox]');
@@ -457,7 +472,7 @@ suite('SMS App Unit-Test', function() {
         InboxView.startEdit();
         InboxView.updateSelectionStatus = stub();
 
-        threadSetupAppend();
+        InboxView.appendThread(threadSetup());
 
         assert.equal(InboxView.updateSelectionStatus.callCount, 1);
         done();
@@ -468,7 +483,7 @@ suite('SMS App Unit-Test', function() {
         InboxView.cancelEdit();
         InboxView.updateSelectionStatus = stub();
 
-        threadSetupAppend();
+        InboxView.appendThread(threadSetup());
 
         assert.equal(InboxView.updateSelectionStatus.callCount, 0);
         done();
@@ -486,8 +501,21 @@ suite('SMS App Unit-Test', function() {
     var _tci;
     // Setup for getting all messages rendered before every test
     setup(function(done) {
-      ConversationView.renderMessages(1, done);
-      _tci = ConversationView.updateSelectionStatus;
+      this.sinon.spy(TaskRunner.prototype, 'push');
+
+      var transitionArgs = {
+        id: '1',
+        meta: { next: { panel: 'thread', id: '1'}}
+      };
+      ConversationView.beforeEnter(transitionArgs).then(
+        () => ConversationView.afterEnter(transitionArgs)
+      ).then(() => {
+        ConversationView.renderMessages(1);
+
+        _tci = ConversationView.updateSelectionStatus;
+
+        return TaskRunner.prototype.push.lastCall.returnValue;
+      }).then(done, done);
     });
 
     suite('Thread-messages rendering (bubbles view)', function() {
@@ -515,21 +543,25 @@ suite('SMS App Unit-Test', function() {
 
     suite('Thread-messages Edit mode (bubbles view)', function() {
       // Setup for getting all messages rendered before every test
-      setup(function(done) {
+      setup(function() {
         this.sinon.spy(ConversationView, 'updateSelectionStatus');
         this.sinon.stub(InboxView, 'setContact');
-        ConversationView.renderMessages(1, function() {
-          ConversationView.startEdit();
-          done();
-        });
-
       });
 
       teardown(function() {
+        ConversationView.activeThread = null;
         ConversationView.cancelEdit();
       });
 
+      test('Sets up the gaia header for the edit form', function() {
+        var editHeader = document.getElementById('messages-edit-header');
+        assert.isTrue(editHeader.hasAttribute('no-font-fit'));
+        ConversationView.startEdit();
+        assert.isFalse(editHeader.hasAttribute('no-font-fit'));
+      });
+
       test('Check edit mode form', function() {
+        ConversationView.startEdit();
         assertNumberOfElementsInContainerByTag(
           ConversationView.container, 5, 'input'
         );
@@ -538,6 +570,8 @@ suite('SMS App Unit-Test', function() {
       test('Select/Deselect all', function() {
         var i;
         var inputs = ConversationView.container.getElementsByTagName('input');
+
+        ConversationView.startEdit();
         // Activate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
@@ -566,8 +600,32 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all while receiving new message', function(done) {
+        // now a new message comes in...
+        var incomingMessage = {
+          sender: '197746797',
+          body: 'Recibidas!',
+          delivery: 'received',
+          id: 9999,
+          threadId: 1,
+          timestamp: Date.now(),
+          type: 'sms',
+          channel: 'sms'
+        };
+
         this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
-        this.sinon.stub(Threads, 'unregisterMessage');
+        this.sinon.stub(MessageManager, 'deleteMessages').returns(
+          Promise.resolve()
+        );
+        this.sinon.stub(MessageManager, 'getMessage').returns(
+          Promise.resolve(incomingMessage)
+        );
+
+        ConversationView.startEdit();
+
+        ConversationView.activeThread.messages.set(
+          incomingMessage.id, incomingMessage
+        );
+
         var checkboxes = Array.from(ConversationView.container.querySelectorAll(
           'input[type=checkbox]'
         ));
@@ -587,17 +645,6 @@ suite('SMS App Unit-Test', function() {
           checkboxes.filter((item) => item.checked).length,
           'All items should be checked'
         );
-        // now a new message comes in...
-        var incomingMessage = {
-          sender: '197746797',
-          body: 'Recibidas!',
-          delivery: 'received',
-          id: 9999,
-          threadId: 1,
-          timestamp: Date.now(),
-          type: 'sms',
-          channel: 'sms'
-        };
 
         ConversationView.appendMessage(incomingMessage).then(() => {
           // new checkbox should have been added
@@ -614,16 +661,8 @@ suite('SMS App Unit-Test', function() {
             'Check-Uncheck all enabled'
           );
 
-          // now delete the selected messages...
-          this.sinon.stub(MessageManager, 'deleteMessages').yields();
-
-          var getMessageReq = {
-            result: incomingMessage
-          };
-          this.sinon.stub(MessageManager, 'getMessage').returns(getMessageReq);
 
           return ConversationView.delete().then(() => {
-            getMessageReq.onsuccess();
             sinon.assert.calledOnce(MessageManager.deleteMessages);
             assert.equal(MessageManager.deleteMessages.args[0][0].length, 5);
             assert.equal(
@@ -648,10 +687,11 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
+          threadId: 1,
           timestamp: Date.now(),
           channel: 'sms'
         }).then(() => {
-          assert.ok(ConversationView.updateSelectionStatus.called);
+          sinon.assert.called(ConversationView.updateSelectionStatus);
         }).then(done, done);
       });
 
@@ -665,7 +705,7 @@ suite('SMS App Unit-Test', function() {
           sender: '197746797',
           body: 'Recibidas!',
           delivery: 'received',
-          id: 9999,
+          id: 1,
           timestamp: Date.now(),
           channel: 'sms'
         }).then(() => {

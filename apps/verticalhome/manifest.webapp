@@ -1,6 +1,6 @@
 {
-  "name": "Homescreen",
-  "description": "Gaia Homescreen",
+  "name": "Legacy Home Screen",
+  "description": "Gaia Home Screen.",
   "launch_path": "/index.html",
   "type": "certified",
   "role": "homescreen",
@@ -12,27 +12,16 @@
     "themeable":{},
     "mobileconnection":{},
     "open-remote-window":{},
-    "webapps-manage": {},
+    "homescreen-webapps-manage": {},
     "systemXHR": {},
-    "settings":{ "access": "readwrite" }
+    "settings":{ "access": "readwrite" },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "default_locale": "en-US",
   "locales": {
-    "ar": {
-      "name": "الشاشة الرئيسية",
-      "description": "Gaia الشاشة الرئيسية"
-    },
     "en-US": {
-      "name": "Homescreen",
-      "description": "Gaia Homescreen"
-    },
-    "fr": {
-      "name": "Écran d’accueil",
-      "description": "Écran d’accueil Gaia"
-    },
-    "zh-TW": {
-      "name": "主畫面",
-      "description": "Gaia 主畫面"
+      "name": "Legacy Home Screen",
+      "description": "Gaia Home Screen."
     }
   },
   "icons": {
@@ -43,22 +32,29 @@
     "284": "/style/icons/vertical_284.png"
   },
   "orientation": "default",
-  "activities": {},
-  "messages": [],
   "datastores-access": {
     "bookmarks_store": {
       "readonly": false,
       "description": "Display bookmarks"
-    },
-    "collections_store": {
-      "readonly": false,
-      "description": "Display collections"
     }
   },
   "datastores-owned": {
     "vertical_preferences_store": {
       "access": "readwrite",
       "description": "Stores preferences"
+    },
+    "verticalhome_items_migration": {
+      "access": "readwrite",
+      "description": "Stores grid item configuration"
+    }
+  },
+  "connections": {
+    "verticalhome-migrate": {
+      "handler_path": "/index.html",
+      "description": "Exports settings and switches home screen",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   }
 }

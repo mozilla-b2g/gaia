@@ -334,7 +334,7 @@ var icc = {
       Service.query('SoftwareButtonManager.height') + 'px';
   },
 
-  alert: function icc_alert(stkMessage, message, icons) {
+  alert: function icc_alert(stkMessage, messageL10n, icons) {
     if (!this.icc_alert) {
       this.icc_alert = document.getElementById('icc-alert');
       this.icc_alert_subtitle = document.getElementById('icc-alert-subtitle');
@@ -365,7 +365,7 @@ var icc = {
       delete this.icc_alert.dataset.icons;
     }
 
-    this.icc_alert_msg.textContent = message;
+    this.localizeElement(this.icc_alert_msg, messageL10n);
     this._screen.classList.add('icc');
     this.icc_alert.classList.add('visible');
     this.icc_view.classList.add('visible');
@@ -379,7 +379,7 @@ var icc = {
   /**
    * callback responds with "userCleared"
    */
-  confirm: function(stkMessage, message, icons, timeout, callback) {
+  confirm: function(stkMessage, messageL10n, icons, timeout, callback) {
     if (!this.icc_confirm) {
       this.icc_confirm = document.getElementById('icc-confirm');
       this.icc_confirm_subtitle =
@@ -444,14 +444,14 @@ var icc = {
       delete this.icc_confirm.dataset.icons;
     }
 
-    this.icc_confirm_msg.textContent = message;
+    this.localizeElement(this.icc_confirm_msg, messageL10n);
     this._screen.classList.add('icc');
     this.icc_confirm.classList.add('visible');
     this.icc_view.classList.add('visible');
     this.resize();
   },
 
-  asyncConfirm: function(stkMessage, message, icons, callback) {
+  asyncConfirm: function(stkMessage, messageL10n, icons, callback) {
     if (typeof callback != 'function') {
       callback = function() {};
     }
@@ -507,7 +507,7 @@ var icc = {
       delete this.icc_asyncconfirm.dataset.icons;
     }
 
-    this.icc_asyncconfirm_msg.textContent = message;
+    this.localizeElement(this.icc_asyncconfirm_msg, messageL10n);
     this._screen.classList.add('icc');
     this.icc_asyncconfirm.classList.add('visible');
     this.icc_view.classList.add('visible');
@@ -517,7 +517,7 @@ var icc = {
   /**
    * Open URL
    */
-  showURL: function(stkMessage, url, icons, confirmMessage) {
+  showURL: function(stkMessage, url, icons, messageL10n) {
     function openURL(url) {
       // Sanitise url just in case it doesn't start with http or https
       // the web activity won't work, so add by default the http protocol
@@ -536,8 +536,8 @@ var icc = {
     }
     DUMP('Final URL to open: ' + url);
     if (url !== null || url.length !== 0) {
-      if (icons || confirmMessage) {
-        this.asyncConfirm(stkMessage, confirmMessage, icons, function(res) {
+      if (icons || messageL10n.raw !== '') {
+        this.asyncConfirm(stkMessage, messageL10n, icons, function(res) {
           if (res) {
             openURL(url);
           }
@@ -548,7 +548,7 @@ var icc = {
     }
   },
 
-  input: function(stkMessage, message, icons, timeout, options, callback) {
+  input: function(stkMessage, messageL10n, icons, timeout, options, callback) {
     var self = this;
     var timeoutId = null;
     /**
@@ -603,6 +603,16 @@ var icc = {
       }
     }
 
+    function formatL10n(l10n) {
+      if (typeof(l10n) === 'string') {
+        return navigator.mozL10n.formatValue(l10n);
+      } else if (l10n.hasOwnProperty('raw')) {
+        return Promise.resolve(l10n.raw);
+      } else {
+        return navigator.mozL10n.formatValue(l10n.id, l10n.args);
+      }
+    }
+
     if (!this.icc_input) {
       this.icc_input = document.getElementById('icc-input');
       this.icc_input_maintitle = document.getElementById('icc-input-maintitle');
@@ -649,7 +659,9 @@ var icc = {
           self.icc_input_box.value.length, options.minLength,
           options.maxLength);
       }, 500);
-      this.icc_input_box.placeholder = message;
+      formatL10n(messageL10n).then(str => {
+        this.icc_input_box.placeholder = str;
+      });
       this.icc_input_box.type = options.isAlphabet ? 'text' : 'tel';
       if (options.hideInput) {
         this.icc_input_box.type = 'password';
@@ -706,8 +718,8 @@ var icc = {
 
     this.icc_input_box.value = '';
 
-    this.icc_input_msg.classList.toggle('stk-no-text', !message);
-    this.icc_input_msg.textContent = message;
+    this.icc_input_msg.classList.toggle('stk-no-text', messageL10n.raw === '');
+    this.localizeElement(this.icc_input_msg, messageL10n);
     this._screen.classList.add('icc');
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
@@ -766,6 +778,17 @@ var icc = {
   drawMessageIcons: function(container, icons) {
     for (var i = 0; i < icons.length; i++) {
       container.appendChild(STKHelper.getIconCanvas(icons[i]));
+    }
+  },
+
+  localizeElement: function(elem, l10n) {
+    if (typeof(l10n) === 'string') {
+      elem.setAttribute('data-l10n-id', l10n);
+    } else if (l10n.hasOwnProperty('raw')) {
+      elem.removeAttribute('data-l10n-id');
+      elem.textContent = l10n.raw;
+    } else {
+      navigator.mozL10n.setAttributes(elem, l10n.id, l10n.args);
     }
   }
 };

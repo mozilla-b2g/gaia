@@ -8,10 +8,12 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "messages": [
+    { "alarm": "/index.html" },
     { "notification": "/index.html" },
     { "request-sync": "/index.html" }
   ],
   "permissions": {
+    "alarms":{},
     "themeable":{},
     "browser": {},
     "audio-channel-notification":{},
@@ -20,7 +22,8 @@
     "downloads":{},
     "device-storage:sdcard":{ "access": "readcreate" },
     "systemXHR":{},
-    "tcp-socket":{}
+    "tcp-socket":{},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "locales": {
     "ar": {

@@ -7,7 +7,8 @@ For new settings key that will be used in system, please do the key migration in
 
 To change the default settings value, edit `build/config/common-settings.json` in gaia folder.
 
-## Current Status
+
+## Architecture
 
 The settings app architecture is to ensure that each panel loads only the required scripts. Settings app breaks modules into smaller and reusable ones. Large scripts should also be splited into modules. By doing this we could achieve:
 
@@ -16,8 +17,6 @@ The settings app architecture is to ensure that each panel loads only the requir
 3. Inline activities
 4. View/logic separation
 
-
-## Architecture
 ### Modules
 We are using [AMD](http://en.wikipedia.org/wiki/Asynchronous_module_definition) modules, loaded using 'Alemeda' (a lighter version of [RequireJS](http://requirejs.org)) and building/optimizing using ['r.js'](http://requirejs.org/docs/optimization.html) (the RequireJS optimizer). We have dependencies on files (`shared/js`) which aren't AMD modules. For those we use the ['shim'](http://requirejs.org/docs/api.html#config-shim) options in our [`requirejs_config.js`](js/config/require.js)
 
@@ -101,12 +100,13 @@ Add the following `section` tag in the body element of index.html. Typically `pa
 <section is="{panel_name}" role="region" id="{panel_id}"></section>
 ```
 
+
 ### How to load scripts for a panel?
 #### 1. Define an AMD module for the panel
 All dependent scripts should be loaded following the AMD pattern. Usually a panel module is extended from `SettingsPanel` to have the ability of automatic binding to the settings database. You can choose to extend from `Panel` if you would like to handing the binding by yourself or the panel does not need the database at all. Require other depedent modules in the modeul definition. A simple module looks like:
 
 ```js
-define(function(require) {
+define(function(require) { // use this exact syntax, or the r.js compiler might not work well
   var SettingsPanel = require('modules/SettingsPanel');
   var Module1 = require('modules/Module1');
   var Module2 = require('modules/Module2');
@@ -144,6 +144,9 @@ Note that there should be only one panel module specified in the template. All o
 
 All panels should be defined in the folder under `panels/` with the name identical to the panel's name. ex: battery panel should be defined in `panels/battery` folder.
 
+Before set review for a new panel, you MUST use `reset-gaia` instead of `install-gaia` to check if it works after `r.js` compiles panel modules into a single file. Some shared modules should be excluded in `settings/js/config/require.js`.
+
+
 ###How to port an existing panel to follow the new architecture design?
 Basically this could be done by following the previous two sections. Create a panel module and require the dependent modules converted from the original scripts, then add the panel module to the HTML template. Details are explained in the following.
 
@@ -157,7 +160,7 @@ Examine all dependent scripts carefully and convert them to reusable modules. Re
 The panel module created in the first step is the start point of each panel and it should be responsible for loading all dependent modules. Note that we should use [sugared syntax](http://requirejs.org/docs/whyamd.html#sugar) when loading the modules and avoid naming the module explicitly.
 
 #### 4. Configure module settings
-Settings app utilizes r.js in the build process. It produces module scripts based on the configuration file, `settings/js/config/require.js`. The following object in the `modules` array in the configuration file specifies a module:   
+Settings app utilizes `r.js` in the build process. It produces module scripts based on the configuration file, `settings/js/config/require.js`. The following object in the `modules` array in the configuration file specifies a module:
 
 ```js
 {
@@ -214,3 +217,19 @@ return SettingsPanel({
   }
 });
 ```
+
+### How to define dialogs in settings?
+
+Please use `DialogService` in settings for dialogs. `DialogService` maintain dialog style between different form factors, handles transition, show/hide * dialogs, and provide promise style callbacks.
+
+### How to deal with CSS that compatible with RTL?
+
+In short, please don't use left/right in CSS, use -start/-end instead.
+Please take a look at https://wiki.mozilla.org/Gaia/CSS_Guidelines
+
+### Where to put panel styles?
+
+Put settings core and root panel style in `settings.css`.
+Put form-factor (phone or tablet..) specific styles in `settings_{phone}.css`.
+If there's not much styles for your panel, put it in `app.css`, which will lazy loaded automatically.
+If you create a separate css, you need include it in `index.html`, `panel_cache.js` to make it lazy loaded properly.

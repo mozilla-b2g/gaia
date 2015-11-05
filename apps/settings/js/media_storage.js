@@ -938,5 +938,5 @@ require([
     };
   };
 
-  navigator.mozL10n.once(MediaStorage.init.bind(MediaStorage));
+  MediaStorage.init();
 });

@@ -21,12 +21,12 @@ class TestLaunchApp(GaiaTestCase):
 
         self.test_data = {
             'name': 'packagedapp1',
-            'url': self.marionette.absolute_url('webapps/packaged1/manifest.webapp'),
+            'manifest': self.marionette.absolute_url('webapps/packaged1/manifest.webapp'),
             'title': 'Packaged app1'}
 
         # Install app
         self.marionette.execute_script(
-            'navigator.mozApps.installPackage("%s")' % self.test_data['url'])
+            'navigator.mozApps.installPackage("%s")' % self.test_data['manifest'])
 
         # Confirm the installation and wait for the app icon to be present
         confirm_install = ConfirmInstall(self.marionette)
@@ -38,17 +38,17 @@ class TestLaunchApp(GaiaTestCase):
         system.wait_for_system_banner_not_displayed()
 
         self.apps.switch_to_displayed_app()
-        self.homescreen.wait_for_app_icon_present(self.test_data['name'])
+        self.homescreen.wait_for_app_icon_present(self.test_data['manifest'])
 
     def test_launch_app(self):
         """https://moztrap.mozilla.org/manage/case/6116/"""
         # Verify that the app icon is visible on one of the homescreen pages
         self.assertTrue(
-            self.homescreen.is_app_installed(self.test_data['name']),
-            'App %s not found on homescreen' % self.test_data['name'])
+            self.homescreen.is_app_installed(self.test_data['manifest']),
+            'App %s not found on homescreen' % self.test_data['manifest'])
 
         # Click icon and wait for h1 element displayed
-        self.homescreen.installed_app(self.test_data['name']).tap_icon()
+        self.homescreen.installed_app(self.test_data['manifest']).tap_icon()
         Wait(self.marionette).until(
             lambda m: m.title == self.test_data['title'])
 

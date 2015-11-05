@@ -140,7 +140,7 @@
       // need to ensure that all events are properly fired so that the chrome
       // collapses. If for example we early exit, currently the chrome will
       // not collapse.
-      if (UtilityTray.active || UtilityTray.shown) {
+      if (UtilityTray.shown) {
         this._activateCall
           .then(this._closeSearch.bind(this));
       }
@@ -311,6 +311,7 @@
             this.handleCancel(e);
           } else if (e.target == this.clearBtn) {
             this.clear();
+            this.focus();
           } else if (e.target == this.backdrop) {
             this._closeSearch();
           }
@@ -341,13 +342,7 @@
           if (app && !app.isBrowser()) {
             afterActivate = this.focus.bind(this);
           } else {
-            // Clear the input if the URL starts with a system page.
-            if (app.config.url.startsWith('app://system.gaiamobile.org')) {
-              this.setInput('');
-            } else {
-              // Set the input to be the URL in the case of a normal browser.
-              this.setInput(app.config.url);
-            }
+            this.setInput(app.config.url);
 
             afterActivate = () => {
               this.hideResults();
@@ -505,14 +500,17 @@
      * is the current top most UI by HierarchyManager.
      * @param  {Object} evt Event object
      */
-    '_handle_mozChromeEvent': function(evt) {
-      if (!evt.detail || evt.detail.type !== 'inputmethod-contextchange') {
-        return true;
-      }
+    '_handle_inputfocus': function(evt) {
       if (this.searchWindow) {
         this.searchWindow.getTopMostWindow()
-            .broadcast('inputmethod-contextchange',
-          evt.detail);
+          .broadcast('inputfocus', evt.detail);
+        return false;
+      }
+      return true;
+    },
+    '_handle_inputblur': function(evt) {
+      if (this.searchWindow) {
+        this.searchWindow.getTopMostWindow().broadcast('inputblur');
         return false;
       }
       return true;
@@ -554,7 +552,7 @@
 
       this.rocketbar.classList.toggle('has-text', input.length);
 
-      if (UtilityTray.active || UtilityTray.shown) {
+      if (UtilityTray.shown) {
         this._closeSearch();
         return;
       }

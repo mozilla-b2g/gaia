@@ -316,7 +316,7 @@ suite('STK (icc) >', function() {
 
   test('UI: Display Text (contents)', function() {
     var testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
-    window.icc.confirm(testCmd, testCmd.command.options.text, null, 0,
+    window.icc.confirm(testCmd, { raw: testCmd.command.options.text }, null, 0,
       function() {});
     assert.equal(document.getElementById('icc-confirm-msg').textContent,
       testCmd.command.options.text);
@@ -338,7 +338,7 @@ suite('STK (icc) >', function() {
 
   test('UI: Input (contents)', function() {
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
-    window.icc.input(testCmd, testCmd.command.options.text, null, 0,
+    window.icc.input(testCmd, { raw: testCmd.command.options.text }, null, 0,
       stkTestCommands.STK_CMD_GET_INPUT.command.options, function() {});
 
     assert.equal(document.getElementById('icc-input-msg').textContent,

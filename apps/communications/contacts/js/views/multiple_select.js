@@ -131,8 +131,9 @@ Contacts.MultipleSelect = (function() {
 
       if (Array.isArray(contact.photo) && contact.photo[0] instanceof Blob) {
         var picture = clone.querySelector('aside span');
-        picture.style.background = 'url(' +
-                            window.URL.createObjectURL(contact.photo[0]) + ')';
+        picture.style.backgroundImage = 'url(' +
+                            window.URL.createObjectURL(contact.photo[0]) +
+                           ')';
       }
 
       contactsToImport.push(contact);

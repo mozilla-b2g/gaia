@@ -3,7 +3,7 @@
 /**
  * Helper object to find all supported languages;
  *
- * (Needs mozL10n and the settings permission)
+ * (Needs l10n.js or l20n.js, and the settings permission)
  */
 
 (function(exports) {
@@ -51,33 +51,38 @@ exports.LanguageList = {
   _readFile: readFile,
   _readSetting: readSetting,
 
-  _extendPseudo: function(languages, currentLang, qpsEnabled) {
-    var lang;
-    var isCurrent;
-
-    if (!qpsEnabled) {
-      // remove buildtime pseudolocales
-      for (lang in languages) {
-        isCurrent = (lang === currentLang);
-        if (lang.indexOf('qps') === 0 && !isCurrent) {
-          delete languages[lang];
+  _extendPseudo: function(languages, currentLang, pseudoEnabled) {
+    // 1. remove buildtime pseudolocales is pseudo is disabled
+    if (!pseudoEnabled) {
+      for (var code in languages) {
+        var isCurrent = (code === currentLang);
+        if (code.indexOf('-x-ps') > -1 && !isCurrent) {
+          delete languages[code];
         }
       }
     }
 
-    if (navigator.mozL10n) {
-      // add runtime pseudolocales
-      for (lang in navigator.mozL10n.qps) {
-        if (lang in languages) {
-          continue;
-        }
-        isCurrent = (lang === currentLang);
-        if (isCurrent || qpsEnabled) {
-          languages[lang] = navigator.mozL10n.qps[lang].name;
-        }
-      }
+    if (!document.l10n) {
+      return Promise.resolve(languages);
     }
 
+    // 2. add the remaining runtime pseudolocales if pseudo enabled
+    var runtimePseudoCodes = Object.keys(document.l10n.pseudo).filter(
+      code => !(code in languages) && (code === currentLang || pseudoEnabled));
+
+    function obj(arr1, arr2) {
+      // JSHint doesn't work with array comprehensions 
+      /* jshint ignore: start */
+      const zipped = [for (x of arr1) for (y of arr2) [x, y]];
+      return zipped.reduce(
+        (obj, [x, y]) => Object.assign(obj, { [x]: y }), {});
+      /* jshint ignore: end */
+    }
+
+    return Promise.all(
+      runtimePseudoCodes.map(
+        code => document.l10n.pseudo[code].getName())).then(
+      names => Object.assign(languages, obj(runtimePseudoCodes, names)));
   },
 
   _extendAdditional: function(languages, ver, additional) {
@@ -88,6 +93,18 @@ exports.LanguageList = {
         if (locale.target === ver) {
           languages[lang] = locale.name;
           break;
+        }
+      }
+    }
+  },
+
+  _removeWithNoSpeech: function(languages, srEnabled) {
+    if (srEnabled) {
+      var speechLangs = new Set(
+        [for (v of window.speechSynthesis.getVoices()) v.lang.split('-')[0]]);
+      for (var langName in languages) {
+        if (!speechLangs.has(langName.split('-')[0])) {
+          delete languages[langName];
         }
       }
     }
@@ -108,17 +125,22 @@ exports.LanguageList = {
   _build: function() {
     return Promise.all([
       this._languages || (this._languages = this._readFile(LOCALES_FILE)),
-      this._readSetting('deviceinfo.os'),
       this._readSetting('language.current'),
-      this._readSetting('devtools.qps.enabled'),
-      navigator.mozApps.getAdditionalLanguages()
-    ]).then(function([langsFromFile, ver, current, qpsEnabled, addl]) {
+      this._readSetting('devtools.pseudolocalization.enabled')
+    ]).then(([langsFromFile, current, pseudoEnabled]) => {
       var langs = this._copyObj(langsFromFile);
-      this._extendPseudo(langs, current, qpsEnabled);
+      return Promise.all([
+        this._extendPseudo(langs, current, pseudoEnabled),
+        this._readSetting('deviceinfo.os'),
+        current,
+        this._readSetting('accessibility.screenreader'),
+        navigator.mozApps.getAdditionalLanguages()
+      ]);
+    }).then(([langs, ver, current, srEnabled, addl]) => {
       this._extendAdditional(langs, this._parseVersion(ver), addl);
+      this._removeWithNoSpeech(langs, srEnabled);
       return [langs, current];
-    }.bind(this));
-
+    });
   },
 
   get: function(callback) {
@@ -132,8 +154,8 @@ exports.LanguageList = {
   wrapBidi: function(langCode, langName) {
     // Right-to-Left (RTL) languages:
     // (http://www.w3.org/International/questions/qa-scripts)
-    // Arabic, Hebrew, Farsi, Pashto, Mirrored English (pseudo), Urdu
-    var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
+    // Arabic, Hebrew, Farsi, Pashto, Bidi English (pseudo), Urdu
+    var rtlList = ['ar', 'he', 'fa', 'ps', 'ar-x-psbidi', 'ur'];
     // Use script direction control-characters to wrap the text labels
     // since markup (i.e. <bdo>) does not work inside <option> tags
     // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup

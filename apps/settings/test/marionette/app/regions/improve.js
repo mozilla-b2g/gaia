@@ -19,9 +19,6 @@ ImprovePanel.Selectors = {
   'feedbackEntryButton':
     '#improveBrowserOS-chooseFeedback',
 
-  'submitPerfData':
-    '#menuItem-sharePerformanceData gaia-checkbox',
-
   'alwaysSendReport':
     '#menuItem-alwaysSendReport gaia-radio',
 
@@ -39,12 +36,6 @@ ImprovePanel.prototype = {
 
   __proto__: Base.prototype,
 
-  get isSubmitPerfData() {
-    return this.findElement('submitPerfData').scriptWith(function(el) {
-      return el.wrappedJSObject.checked;
-    });
-  },
-
   selectedReport: function(type) {
     this.client.waitFor(function() {
       var eles = this.findElements('reportCrashes');
@@ -55,15 +46,6 @@ ImprovePanel.prototype = {
           return true;
         }
       }
-    }.bind(this));
-  },
-
-  enableSubmitPerfData: function() {
-    var initialState = this.isSubmitPerfData;
-    this.waitForElement('submitPerfData').click();
-    this.client.waitFor(function() {
-      // Ensure tapping the element changed its state
-      return this.isSubmitPerfData !== initialState;
     }.bind(this));
   },
 

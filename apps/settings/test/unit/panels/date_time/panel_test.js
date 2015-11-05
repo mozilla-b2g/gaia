@@ -1,12 +1,10 @@
 /* globals loadBodyHTML*/
 'use strict';
 
-requireApp('settings/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('Date & Time panel > ', function() {
-  var realL10n;
   var modules = [
-    'shared_mocks/mock_l10n',
     'panels/date_time/panel'
   ];
   var map = {
@@ -33,7 +31,8 @@ suite('Date & Time panel > ', function() {
       setClockAutoAvailable: function() {},
       setTimezoneAutoAvailable: function() {},
       observe: function() {},
-      unobserve: function() {}
+      unobserve: function() {},
+      getHour12ForCurrentLocale: function() {}
     };
     define('MockDateTime', function() {
       return that.MockDateTime;
@@ -50,19 +49,11 @@ suite('Date & Time panel > ', function() {
       };
     });
 
-    requireCtx(modules, function(MockL10n, module) {
-      // mock l10n
-      realL10n = window.navigator.mozL10n;
-      window.navigator.mozL10n = MockL10n;
-
+    requireCtx(modules, function(module) {
       that.panel = module();
       that.panel.init(document.body);
       done();
     });
-  });
-
-  teardown(function() {
-    window.navigator.mozL10n = realL10n;
   });
 
   suite('handle lifecycle', function() {
@@ -139,6 +130,43 @@ suite('Date & Time panel > ', function() {
         assert.isFalse(timezonePickers[i].hidden, 'timezone picker is visible');
       }
       assert.isTrue(timezoneInfo.hidden, 'timezone info is invisible');
+    });
+  });
+
+  suite.only('Time Format', function() {
+    var timeFormatBlock, timeFormatSwitch, timeFormatSelect;
+
+    setup(function() {
+      timeFormatBlock = document.querySelector('.timeformat');
+      timeFormatSwitch =
+        document.querySelector('.time-format-auto gaia-switch');
+      timeFormatSelect = document.querySelector('.time-format-time');
+    });
+
+    test('initially, default time format is set', function() {
+      this.panel.beforeShow();
+
+      assert.isTrue(timeFormatBlock.classList.contains('disabled'));
+      assert.isTrue(timeFormatSwitch.checked);
+      assert.equal(timeFormatSelect.value, 'ampm');
+    });
+
+    test('the UI is properly updated if locale.hour12 is true', function() {
+      this.MockDateTime.currentHour12 = true;
+      this.panel.beforeShow();
+
+      assert.isFalse(timeFormatBlock.classList.contains('disabled'));
+      assert.isFalse(timeFormatSwitch.checked);
+      assert.equal(timeFormatSelect.value, 'ampm');
+    });
+
+    test('the UI is properly updated if locale.hour12 is false', function() {
+      this.MockDateTime.currentHour12 = false;
+      this.panel.beforeShow();
+
+      assert.isFalse(timeFormatBlock.classList.contains('disabled'));
+      assert.isFalse(timeFormatSwitch.checked);
+      assert.equal(timeFormatSelect.value, '24');
     });
   });
 });

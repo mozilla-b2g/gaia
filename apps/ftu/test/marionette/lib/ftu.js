@@ -30,15 +30,6 @@ Ftu.Selectors = {
 };
 
 Ftu.prototype = {
-  waitForL10nReady: function() {
-    this.client.helper.waitFor(function() {
-      return this.client.executeScript(function() {
-        return window.wrappedJSObject.navigator.mozL10n
-               .readyState === 'complete';
-      });
-    }.bind(this));
-  },
-
   getPanel: function(panel) {
     return this.client.helper.waitForElement(
       Ftu.Selectors[panel + 'Panel']);
@@ -65,7 +56,6 @@ Ftu.prototype = {
     }.bind(this));
   },
   selectLanguage: function(language) {
-    this.waitForL10nReady();
     this.waitForLanguagesToLoad();
     this.client.helper.waitForElement('#languages');
     var item = this.client.findElement(

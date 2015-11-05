@@ -3,7 +3,7 @@
 /* global module */
 
 var SELECTORS = Object.freeze({
-  main: '#thread-list',
+  main: '.panel-InboxView',
   conversation: '.threadlist-item',
   smsConversation: '.threadlist-item[data-last-message-type="sms"]',
   mmsConversation: '.threadlist-item[data-last-message-type="mms"]',
@@ -38,6 +38,10 @@ InboxAccessor.prototype = {
     );
   },
 
+  findConversation: function(id) {
+    return this.client.findElement('#thread-' + id);
+  },
+
   getConversationTitle: function(conversation) {
     return conversation.findElement(SELECTORS.conversationTitle);
   },
@@ -50,6 +54,10 @@ InboxAccessor.prototype = {
   // TODO: bug 1167103
   navigateToComposer: function() {
     this.createNewMessageButton.tap();
+  },
+
+  doubleTapOnFirstConversation: function() {
+    this.client.loader.getActions().doubleTap(this.firstConversation).perform();
   }
 };
 

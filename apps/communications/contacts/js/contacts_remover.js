@@ -1,4 +1,4 @@
-/* globals mozContact, fb, ContactsService */
+/* globals mozContact, ContactsService */
 'use strict';
 
 /*
@@ -17,7 +17,6 @@ function contactsRemover() {
   /*jshint validthis:true */
   var self = this;
   var ids;
-  var fbData = Object.create(null);
 
   this.init = function(cIds, cb) {
     if (cIds === null || cIds.length === 0) {
@@ -25,21 +24,7 @@ function contactsRemover() {
     }
     ids = cIds;
 
-    // In order to properly delete FB Contacts we need to obtain their data
-    // Take into account that we are querying all FB Contacts but we don't know
-    // beforehand if there will be any of them to be deleted
-    var req = fb.utils.getAllFbContacts();
-    req.onsuccess = function() {
-      var fbContacts = req.result;
-      fbContacts.forEach(function(aFbContact) {
-        fbData[aFbContact.id] = aFbContact;
-      });
-      cb();
-    };
-    req.onerror = function() {
-      console.error('Error while retrieving FB Contacts: ', req.error.name);
-      cb();
-    };
+    if (cb && typeof cb === 'function') { cb(); }
   };
 
   this.start = function() {

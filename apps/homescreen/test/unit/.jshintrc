@@ -1,0 +1,19 @@
+{
+  "extends": "../../../../.jshintrc",
+  "predef": [
+    "assert",
+    "suite",
+    "test",
+    "setup",
+    "teardown",
+    "suiteSetup",
+    "suiteTeardown",
+    "suiteTemplate",
+    "require",
+    "requireApp",
+    "requireElements",
+    "sinon",
+    "mocha",
+    "loadBodyHTML"
+  ]
+}

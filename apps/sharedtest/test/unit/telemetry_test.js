@@ -1,12 +1,13 @@
 'use strict';
 
 /* global TelemetryRequest, MockasyncStorage, MockNavigatorMozTelephony,
-          MockNavigatorSettings */
+          MockNavigatorSettings, MockNavigatorMozWifiManager */
 
 require('/shared/js/telemetry.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 
 const DOGFOOD_KEY = 'debug.performance_data.dogfooding';
 const FAKE_STORAGE_KEY = 'my.asynch.fake';
@@ -26,15 +27,17 @@ function stubDial(self, retVal) {
 
 suite('Telemetry:', function() {
   var xhr, XHR;
-  var realMozSettings, realMozTelephony;
+  var realMozSettings, realMozTelephony, realMozWifiManager;
 
   suiteSetup(function () {
     realMozSettings = navigator.mozSettings;
     realMozTelephony = navigator.mozTelephony;
+    realMozWifiManager = navigator.mozWifiManager;
 
     window.asyncStorage = MockasyncStorage;
     navigator.mozSettings = MockNavigatorSettings;
     navigator.mozTelephony = MockNavigatorMozTelephony;
+    navigator.mozWifiManager = MockNavigatorMozWifiManager;
 
     XHR = sinon.useFakeXMLHttpRequest();
     XHR.onCreate = function (instance) {
@@ -45,6 +48,7 @@ suite('Telemetry:', function() {
   suiteTeardown(function () {
     navigator.mozSettings = realMozSettings;
     navigator.mozTelephony = realMozTelephony;
+    navigator.mozWifiManager = realMozWifiManager;
     delete window.asyncStorage;
 
     XHR.restore();
@@ -168,7 +172,7 @@ suite('Telemetry:', function() {
       MockasyncStorage.mTeardown();
     });
 
-    test('Should reject if not a dogfooder and no stored key',
+    test('Should reject if non-dogfooder and no stored key',
     function (done) {
       MockNavigatorSettings.mSettings[DOGFOOD_KEY] = false;
 
@@ -185,6 +189,7 @@ suite('Telemetry:', function() {
     function (done) {
       MockNavigatorSettings.mSettings[DOGFOOD_KEY] = false;
       MockasyncStorage.mItems[FAKE_STORAGE_KEY] = '123434';
+      MockNavigatorSettings.mSettings['deviceinfo.mac'] = '00:0a:f5:cb:63:dc';
 
       stubDial(this, 'fake');
       TelemetryRequest.getDeviceID(FAKE_STORAGE_KEY).then(function(value) {
@@ -196,8 +201,11 @@ suite('Telemetry:', function() {
       });
     });
 
-    test('Should resolve if a dogfooder and dial succeeds', function (done) {
+    test('Should resolve to IMEI if a dogfooder and dial succeeds',
+    function (done) {
       MockNavigatorSettings.mSettings[DOGFOOD_KEY] = true;
+      MockasyncStorage.mItems[FAKE_STORAGE_KEY] = '123434';
+      MockNavigatorSettings.mSettings['deviceinfo.mac' ] = '00:0a:f5:cb:63:dc';
 
       stubDial(this, 'fake');
       TelemetryRequest.getDeviceID(FAKE_STORAGE_KEY).then(function(value) {
@@ -220,12 +228,48 @@ suite('Telemetry:', function() {
         });
       });
 
+      MockasyncStorage.mItems[FAKE_STORAGE_KEY] = '123434';
       MockNavigatorSettings.mSettings[DOGFOOD_KEY] = true;
+      MockNavigatorSettings.mSettings['deviceinfo.mac'] = '00:0a:f5:cb:63:dc';
 
       TelemetryRequest.getDeviceID(FAKE_STORAGE_KEY).then(function(value) {
       }).catch(function(value) {
         assert.equal(value.statusMessage, 'error');
         done();
+      });
+    });
+
+    test('Should hash imei with wifi mac for non dogfooder', function() {
+      MockNavigatorSettings.mSettings[DOGFOOD_KEY] = false;
+      MockNavigatorMozWifiManager.setMacAddress('00:0a:f5:cb:63:dc');
+      // Simulate a 15 digit IMEI
+      stubDial(this, '012345678901234');
+      TelemetryRequest.getDeviceID().then(function(value) {
+        assert.equal(value, '5E375E21');
+      }).catch(function(value) {
+        assert(0);
+      });
+    });
+  });
+
+  /*
+   * Test that the getSettings() utility function works as expected.
+   * This is required for proper configuration of the module and for
+   * gathering the settings that are sent along with usage data.
+   */
+  suite('getSettings():', function() {
+    suiteSetup(function() {
+      TelemetryRequest.DEBUG = false; // Shut up console output in test logs
+      TelemetryRequest.getSettings;
+
+      var mockSettings = MockNavigatorSettings.mSettings;
+      mockSettings.x = '1';
+      mockSettings.y = '2';
+    });
+
+    test('getSettings()', function(done) {
+      TelemetryRequest.getSettings({x: '3', y: '4', z: '5'}, function(result) {
+        done(assert.deepEqual(result, {x: '1', y: '2', z: '5'}));
       });
     });
   });

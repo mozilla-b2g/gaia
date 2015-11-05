@@ -21,6 +21,19 @@ suite('GaiaCheckbox', function() {
     assert.equal(element.checked, false);
   });
 
+  test('ClassName is proxied to shadow dom', function() {
+    this.container.innerHTML = '';
+
+    var element = document.createElement('gaia-checkbox');
+    element.className = 'inline';
+    this.container.appendChild(element);
+    var wrapper = element.shadowRoot.querySelector('#checkbox');
+    assert.equal(wrapper.classList.contains('inline'),  true);
+
+    element.className = '';
+    assert.equal(wrapper.classList.contains('inline'), false);
+  });
+
   test('Checks the element based on checked attr', function() {
     this.container.innerHTML =
       '<gaia-checkbox checked></gaia-checkbox>';

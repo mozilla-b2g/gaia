@@ -3,42 +3,31 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-class GaiaImageCompareOptionsMixin(object):
+class GaiaImageCompareArguments(object):
+    name = 'Gaia Image Compare'
+    args = [
+        [['--store-reference-image'],
+         {'action': 'store_true',
+          'default': False,
+          'help': 'Store the captured screenshots as reference images',
+          }],
+        [['--fuzz-factor'],
+         {'type': int,
+          'default': 15,
+          'metavar': int,
+          'help': 'fuzz value supplied to ImageMagick call, in percentage. Default value is %(default)s percent.',
+          }],
+        [['--reference-path'],
+         {'default': 'reference_images',
+          'help': 'Location of reference images, relative to the current location, Default folder is %(default)s',
+          }],
+        [['--screenshots-path'],
+         {'default': 'screenshots',
+          'help': 'Path of screenshot images, relative to the current location, Default folder is %(default)s',
+          }]
+    ]
 
     # verify_usage
-    def check_fuzz_factor(self, options, test):
-        if not 0 <= options.fuzz_factor <= 100:
+    def verify_usage_handler(self, args):
+        if not 0 <= args.fuzz_factor <= 100:
             raise ValueError('fuzz_factor must be between 0 and 100')
-
-    # Inheriting object must call this __init__ to set up option handling
-    def __init__(self, **kwargs):
-        group = self.add_option_group('imagecompare')
-
-        group.add_option('--store-reference-image',
-                         action='store_true',
-                         default=False,
-                         help='Store the captured screenshots as reference images')
-
-        group.add_option('--fuzz-factor',
-                         type='int',
-                         default=15,
-                         metavar='int',
-                         help='fuzz value supplied to ImageMagick call, in percentage. '
-                              'Default value is %default percent.')
-
-        group.add_option("--reference-path",
-                         default="reference_images",
-                         help="Location of reference images, relative to the current location, "
-                              "Default folder is %default")
-
-        group.add_option('--screenshots-path',
-                         default="screenshots",
-                         help="Path for screenshot images, relative to the current location, "
-                              "Default folder is %default")
-
-        group.add_option('--locale',
-                         default = "undefined",
-                         help = "locale for the device, "
-                                "When not defined, will use the value from testvars.json file")
-
-        self.verify_usage_handlers.append(self.check_fuzz_factor)

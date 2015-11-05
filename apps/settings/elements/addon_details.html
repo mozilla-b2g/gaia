@@ -6,13 +6,19 @@
     </gaia-header>
 
     <div class="addon-details-body" hidden>
+      <ul role="status" class="addon-obsolete-status" hidden>
+        <li class="addon-obsolete" role="presentation">
+          <i class="addon-obsolete-icon" data-icon="exclamation" aria-hidden="true"></i>
+          <p class="addon-obsolete-info"></p>
+        </li>
+      </ul>
+
       <ul>
         <li>
-          <label class="pack-switch">
-            <input class="addon-enabled" type="checkbox">
-            <span data-l10n-id="addon"></span>
-            <small class="addon-enabled-state"></small>
-          </label>
+          <gaia-switch class="addon-enabled">
+            <label data-l10n-id="addon"></label>
+            <details></details>
+          </gaia-switch>
         </li>
       </ul>
 
@@ -23,6 +29,7 @@
             <span class="addon-details-name"></span>
             <small class="addon-developer"></small>
           </label>
+          <p class="addon-details-version"></p>
           <p class="addon-description-text addon-paragraph"></p>
           <button data-l10n-id="addon-rename" class="addon-rename"></button>
         </li>

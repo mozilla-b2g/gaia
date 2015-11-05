@@ -39,13 +39,17 @@
       include: [
         'alameda',
         'l10nbase',
-        'l10ndate',
+        'moz_intl',
         'tmpl',
         'text',
         'value_selector',
         'folder_depth_classes',
         'iframe_shims',
         'cards/editor_mixins',
+
+        // gesture_detector used by both compose and message_reader layer, so
+        // just include it in the base layer.
+        'shared/js/gesture_detector',
 
         // Bundle most likely card
         'cards/message_list'

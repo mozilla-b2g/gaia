@@ -11,6 +11,7 @@
   "permissions": {
     "themeable":{},
     "alarms": {},
+    "system-app-only-audio-channels-in-app": {},
     "browser":{},
     "power":{},
     "webapps-manage":{},
@@ -29,9 +30,13 @@
     "permissions":{},
     "audio-channel-notification":{},
     "audio-channel-content":{},
+    "input": {},
     "input-manage":{},
     "systemXHR":{},
-    "feature-detection": {}
+    "feature-detection": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "presentation-device-manage": {},
+    "moz-firefox-accounts": {}
   },
   "locales": {
     "ar": {
@@ -79,7 +84,8 @@
      { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
      { "bluetooth-opp-transfer-start": "/index.html" },
      { "bluetooth-pairing-request": "/index.html" },
-     { "notification": "/index.html" }
+     { "notification": "/index.html" },
+     { "request-sync": "/index.html" }
   ],
   "connections": {
     "search-results": {
@@ -111,6 +117,18 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "fxa-mgmt": {
+      "description": "Firefox Accounts management API",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
+    },
+    "gaia-sync-management": {
+      "description": "Firefox Sync management API",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {
@@ -118,15 +136,13 @@
       "access": "readwrite",
       "description": "Stores successful downloads"
     },
+    "bookmarks_store": {
+      "access": "readwrite",
+      "description": "Stores data about browsing history."
+    },
     "places": {
       "access": "readwrite",
       "description": "Stores data about browsing history."
-    }
-  },
-  "datastores-access": {
-    "bookmarks_store": {
-      "readonly": false,
-      "description": "View and modify bookmarks"
     }
   }
 }

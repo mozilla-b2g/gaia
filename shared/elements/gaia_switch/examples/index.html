@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8" />
   <title>GaiaSwitch Demo</title>
@@ -15,20 +15,36 @@
     }
     section {
       text-align: center;
+      margin-bottom: 10px;
     }
   </style>
   <script src="../../../js/component_utils.js"></script>
   <script>window.GaiaSwitchBaseurl = '../';</script>
   <script src="../script.js"></script>
   <script defer src="example.js"></script>
+  <script>
+    window.onload = function() {
+      document.getElementById('dir').checked = false;
+    };
+  </script>
 </head>
 <body role="application">
-  <section>
-    <gaia-switch checked></gaia-switch>
-  </section>
+  <p dir="ltr">
+    <label>
+      <input id="dir" type="checkbox"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
   <section>
     <gaia-switch>
       <label>With a label</label>
+    </gaia-switch>
+  </section>
+  <section>
+    <gaia-switch>
+      <label>With a different label</label>
+      <details dir="auto">Sometimes a gaia switch can have an explanation. Sometimes a gaia switch can have an explanation. Sometimes a gaia switch can have an explanation. </details>
     </gaia-switch>
   </section>
   <div id="result"></div>

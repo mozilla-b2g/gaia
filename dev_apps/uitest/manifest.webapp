@@ -17,7 +17,11 @@
     }
   },
   "icons": {
-    "120": "/style/icons/Uitest.png"
+    "84": "/style/icons/ui-test_84.png",
+    "126": "/style/icons/ui-test_126.png",
+    "142": "/style/icons/ui-test_142.png",
+    "189": "/style/icons/ui-test_189.png",
+    "284": "/style/icons/ui-test_284.png"
   },
   "permissions": {
     "fmradio":{},

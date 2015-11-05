@@ -43,25 +43,24 @@ marionette('Messages as share target', function() {
         messagesApp.switchTo();
       });
 
-      test('Should close activity if in Composer panel', function() {
+      test('Should close activity if in NewMessage view', function() {
         assert.equal(
-          messagesApp.Composer.header.getAttribute('action'), 'close',
+          messagesApp.NewMessage.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
         // Exit from activity and verify that Messages is dismissed
         messagesApp.performHeaderAction();
-        messagesApp.selectAppMenuOption('Delete Draft');
         messagesApp.waitForAppToDisappear();
       });
 
-      test('Should close activity if in Conversation panel', function() {
+      test('Should close activity if in Conversation view', function() {
         // Send message to be forwarded to Conversation panel afterwards
         messagesApp.addRecipient('+1');
         messagesApp.send();
 
         assert.equal(
-          messagesApp.Composer.header.getAttribute('action'), 'close',
+          messagesApp.NewMessage.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -77,11 +76,11 @@ marionette('Messages as share target', function() {
 
         // Go to the Report panel
         messagesApp.contextMenu(messagesApp.Conversation.message);
-        messagesApp.selectAppMenuOption('View message report');
-        client.helper.waitForElement(messagesApp.Report.main);
+        messagesApp.Menu.selectAppMenuOption('View message report');
+        messagesApp.Report.waitToAppear();
 
         assert.equal(
-          messagesApp.Composer.header.getAttribute('action'), 'close',
+          messagesApp.Report.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -90,7 +89,7 @@ marionette('Messages as share target', function() {
         client.helper.waitForElement(messagesApp.Conversation.message);
 
         assert.equal(
-          messagesApp.Composer.header.getAttribute('action'), 'close',
+          messagesApp.NewMessage.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -115,10 +114,10 @@ marionette('Messages as share target', function() {
 
         // Go to Participants panel
         messagesApp.Conversation.headerTitle.tap();
-        client.helper.waitForElement(messagesApp.Participants.main);
+        messagesApp.Participants.waitToAppear();
 
         assert.equal(
-          messagesApp.Composer.header.getAttribute('action'), 'close',
+          messagesApp.Participants.header.getAttribute('action'), 'back',
           'Close activity button should be visible'
         );
 
@@ -127,7 +126,7 @@ marionette('Messages as share target', function() {
         client.helper.waitForElement(messagesApp.Conversation.message);
 
         assert.equal(
-          messagesApp.Composer.header.getAttribute('action'), 'close',
+          messagesApp.NewMessage.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 

@@ -7,6 +7,10 @@ gaia-progress {
   position: relative;
 }
 
+gaia-progress:-moz-dir(rtl) {
+  transform: scaleX(-1);
+}
+
 #progress {
   height: 0.4rem;
   /* Since we animate, we need to extend the width to 100% + 1 full animation */

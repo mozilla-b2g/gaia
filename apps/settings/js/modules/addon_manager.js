@@ -1,3 +1,5 @@
+/* global MatchPattern */
+
 define(function(require) {
   'use strict';
 
@@ -42,10 +44,17 @@ define(function(require) {
      * @memberOf AddonManager.prototype
      */
     _bindEvents: function() {
-      AppsCache.addEventListener('oninstall', this._updateAddons.bind(this));
-      AppsCache.addEventListener('onuninstall', this._updateAddons.bind(this));
-      mozApps.mgmt.addEventListener('enabledstatechange',
-        this._updateAddons.bind(this));
+      var _boundUpdateAddons = this._updateAddons.bind(this);
+      // Bug 1215546 & 1218298
+      // The 'oninstall' event is fired when user started installing the
+      // app, but manifest is not available yet. In order to get the
+      // manifest, we need to listen to 'downloadsuccess' on the app
+      // (not mozApps.mgmt), and that's when manifest will be ready.
+      AppsCache.addEventListener('oninstall', (evt) => {
+        evt.application.addEventListener('downloadsuccess', _boundUpdateAddons);
+      });
+      AppsCache.addEventListener('onuninstall', _boundUpdateAddons);
+      mozApps.mgmt.addEventListener('enabledstatechange', _boundUpdateAddons);
     },
 
     /**
@@ -61,7 +70,7 @@ define(function(require) {
       var index;
 
       if (this._isAddon(app)) {
-        if (type === 'install' && !this._alreadyExists(app)) {
+        if (type === 'downloadsuccess' && !this._alreadyExists(app)) {
           this._addons.push(App(app));
         } else if (type === 'uninstall') {
           index = this._findAddonIndex(app);
@@ -118,8 +127,7 @@ define(function(require) {
       var appManifest = this._getManifest(app);
       return addonManifest.type === appManifest.type ||
         addonManifest.type === 'certified' ||
-        (addonManifest.type === 'privileged' &&
-         appManifest.type !== 'certified');
+        addonManifest.type === 'privileged';
     },
 
     /**
@@ -140,17 +148,16 @@ define(function(require) {
      * @access private
      * @memberOf AddonManager.prototype
      * @param {DOMApplication} app
-     * @param {Array} customizations
+     * @param {Array} contentScripts
      * @returns {Boolean}
      */
-    _needsReboot: function({app, customizations}) {
+    _needsReboot: function({app, contentScripts}) {
       var manifest = this._getManifest(app);
       var role = manifest.role;
       // If the addon affects a system app
       if (role === 'system' || role === 'homescreen') {
         // and the app is customized with a script, then we need reboot
-        return customizations.some(
-          (c) => c.scripts.length > 0);
+        return contentScripts.some(c => c.js.length > 0);
       } else {
         return false;
       }
@@ -162,11 +169,11 @@ define(function(require) {
      * @access private
      * @memberOf AddonManager.prototype
      * @param {DOMApplication} app
-     * @param {Array} customizations
+     * @param {Array} contentScripts
      * @returns {Boolean}
      */
-    _needsRestart: function({app, customizations}) {
-      return customizations.some((c) => c.scripts.length > 0);
+    _needsRestart: function({app, contentScripts}) {
+      return contentScripts.some(c => c.js.length > 0);
     },
 
     /**
@@ -184,32 +191,57 @@ define(function(require) {
 
     /**
      * This internal utility function returns an array of objects describing
-     * the aps that are affected by this addon (see _getAddonAppCustomizations).
-     *
-     * We need to keep this code in sync with the matching gecko
-     * code in dom/apps/UserCustomizations.jsm so that our list of
-     * targeted apps actually matches the apps that Gecko injects
-     * the addon into.
+     * the apps that are affected by the given addon.
      *
      * @access private
      * @memberOf AddonManager.prototype
      * @param {DOMApplication} addon
      * @returns {Boolean}
      */
-    _getCustomizedApps: function(addon) {
+    _getAffectedApps: function(addon) {
       if (!this._isAddon(addon)) {
         return Promise.reject('not an addon');
       }
 
-      var customizations;
-      return AppsCache.apps().then(apps => [for (app of apps)
-        if (customizations = this._getAddonAppCustomizations(addon, app)) {
-          app: app, customizations: customizations
-        }]);
+      var manifest = this._getManifest(addon);
+      var customizations = manifest && manifest.customizations;
+      // content_scripts field is internally copied from manifest.json to
+      // manifest.webapp
+      var contentScripts = manifest && manifest.content_scripts;
+
+      // If the addon specifies customizations, then it is obsolete and does not
+      // work
+      if (customizations) {
+        return Promise.resolve([]);
+      }
+
+      // If there are no content scripts or content scripts list is empty, the
+      // addon does not affect any apps.
+      if (!contentScripts || contentScripts.length === 0) {
+        return Promise.resolve([]);
+      }
+
+      var matched;
+      return AppsCache.apps()
+        .then(apps => apps.filter(app => {
+          var manifest = this._getManifest(app);
+          // Ignore apps that are themselves add-ons or if the addon doesn't
+          // have high enough privileges to affect this app then we can just
+          // return now.
+          return manifest.role !== 'addon' &&
+            this._privilegeCheck(addon, app);
+        }))
+        // Match apps based on add-on's content sctipts.
+        .then(apps =>
+          [for (app of apps)
+            if (matched = this._matchContentScripts(contentScripts, app))
+              { app: app, contentScripts: matched }
+        ])
+        .catch(() => []);
     },
 
     /**
-     * Returns a list of customizations (from an addon manifest), if available,
+     * Returns a list of content scripts (from an addon manifest), if available,
      * that affect the app by a given addon. We implement getAddonTargets()
      * using this information , derive the 'reboot' and 'restart' return
      * values of disableAddon() from it and also use this function to apply
@@ -219,59 +251,42 @@ define(function(require) {
      * @memberOf AddonManager.prototype
      * @param {DOMApplication} addon
      * @param {DOMApplication} app
-     * @returns {Array?} appliedCustomizations if available
+     * @returns {Array?} appliedContentScripts if available
      */
-    _getAddonAppCustomizations: function(addon, app) {
-      var addonManifest = this._getManifest(addon);
-      var customizations = addonManifest && addonManifest.customizations;
-
-      // If the addon does not specify any customizations, then we know
-      // that it does not target any apps
-      if (!customizations || customizations.length === 0) {
-        return;
-      }
-
+    _matchContentScripts: function(contentScripts, app) {
       var manifest = this._getManifest(app);
-
-      // Ignore apps that are themselves add-ons
-      // XXX: Will themes have a role, and should we ignore them too?
-      if (manifest.role === 'addon') {
-        return;
-      }
-
-      // If the addon doesn't have high enough privileges to affect this app
-      // then we can just return now.
-      if (!this._privilegeCheck(addon, app)) {
-        return;
-      }
-
       // Get the URL of the app origin plus its launch path to
       // compare against each of the filters.
       // XXX: Note that we and do not check the paths used by
       // activity handlers or any other paths in the manifest.
       var launchPath = manifest.launch_path || '';
-      var launchURL = new URL(launchPath, app.origin).href;
+      var launchURL = new URL(launchPath, app.origin);
 
-      // For each customization, compile the filter string into a regexp
-      var filters = customizations.map(customization =>
-        new RegExp(customization.filter));
+      // For each content script, compile the pattern string MatchPattern
+      var patterns = contentScripts.map(contentScript => {
+        return {
+          matches: new MatchPattern(contentScript.matches),
+          excludeMatches: new MatchPattern(contentScript.exclude_matches)
+        };
+      });
 
-      var appliedCustomizations = [];
+      var appliedContentScripts = [];
 
-      // Now loop through the filters to see what customizations are
-      // applied to this app
-      for(var i = 0; i < filters.length; i++) {
-        var filter = filters[i];
-        if (filter.test(launchURL)) {
-          appliedCustomizations.push(customizations[i]);
+      // Now loop through the patterns to see what content scripts are applied
+      // to this app
+      for(var i = 0; i < patterns.length; i++) {
+        var pattern = patterns[i];
+        if (!pattern.excludeMatches.matches(launchURL) &&
+             pattern.matches.matches(launchURL)) {
+          appliedContentScripts.push(contentScripts[i]);
           break;
         }
       }
 
-      // If any customizations were applied to this app, return the list of
-      // appliedCustomizations
-      if (appliedCustomizations.length > 0) {
-        return appliedCustomizations;
+      // If any content scripts were applied to this app, return the list of
+      // appliedContentScripts
+      if (appliedContentScripts.length > 0) {
+        return appliedContentScripts;
       }
     },
 
@@ -546,7 +561,7 @@ define(function(require) {
 
     /**
      * Return an array of the apps that are targeted by any of this
-     * addon's customizations. Note, however, that addons can also target
+     * addon's content scripts. Note, however, that addons can also target
      * arbitrary web pages and hosted apps. This test only applies to
      * installed packaged apps and so may be of limited utility.
      *
@@ -556,8 +571,8 @@ define(function(require) {
      * @returns {Promise}
      */
     getAddonTargets: function(addon) {
-      return this._getCustomizedApps(addon.instance).then((customizedApps) => {
-        return customizedApps.map((x) => x.app);
+      return this._getAffectedApps(addon.instance).then((affectedApps) => {
+        return affectedApps.map((x) => x.app);
       });
     },
 
@@ -571,13 +586,13 @@ define(function(require) {
      * @returns {Promise.<String>}
      */
     getAddonDisableType: function(addon) {
-      return this._getCustomizedApps(addon.instance).then((customizedApps) => {
-        var needsReboot = customizedApps.some(this._needsReboot.bind(this));
+      return this._getAffectedApps(addon.instance).then((affectedApps) => {
+        var needsReboot = affectedApps.some(this._needsReboot.bind(this));
         if (needsReboot) {
           return 'reboot';
         }
 
-        var needsRestart = customizedApps.some(this._needsRestart.bind(this));
+        var needsRestart = affectedApps.some(this._needsRestart.bind(this));
         if (needsRestart) {
           return 'restart';
         }
@@ -620,10 +635,30 @@ define(function(require) {
         return Promise.reject('not an addon');
       }
 
-      return AppsCache.apps().then(apps =>
-        apps.find(app => app.manifestURL === manifestURL)).then(app =>
-          app ? this._getAddonAppCustomizations(addon.instance, app) :
-            undefined).then(customizations => !!customizations);
+      var manifest = this._getManifest(addon.instance);
+      var customizations = manifest && manifest.customizations;
+      // content_scripts field is internally copied from manifest.json to
+      // manifest.webapp
+      var contentScripts = manifest && manifest.content_scripts;
+
+      // If the addon specifies customizations, then it is obsolete and does not
+      // work
+      if (customizations) {
+        return Promise.resolve(false);
+      }
+
+      // If there are no content scripts or content scripts list is empty, the
+      // addon does not affect any apps.
+      if (!contentScripts || contentScripts.length === 0) {
+        return Promise.resolve(false);
+      }
+
+      return AppsCache.apps()
+        .then(apps => apps.find(app => app.manifestURL === manifestURL))
+        .then(app => app ?
+          this._matchContentScripts(contentScripts, app) : undefined)
+        .then(appliedContentScripts => !!appliedContentScripts)
+        .catch(() => false);
     },
 
     get length() {

@@ -1,0 +1,19 @@
+{
+  "extends": "../../../../.jshintrc",
+  "predef": [
+    "__dirname",
+    "module",
+    "suite",
+    "test",
+    "setup",
+    "teardown",
+    "suiteSetup",
+    "suiteTeardown",
+    "marionette",
+    "marionetteScriptFinished",
+    "require",
+    "define",
+    "requireApp",
+    "sinon"
+  ]
+}

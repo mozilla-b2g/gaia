@@ -1,13 +1,10 @@
 'use strict';
 
 suite('SettingsService', function() {
-  var realL10n;
-
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();
 
     var modules = [
-      'shared_mocks/mock_l10n',
       'modules/settings_service',
       'modules/panel_cache',
       'unit/mock_settings_panel',
@@ -28,7 +25,7 @@ suite('SettingsService', function() {
     };
 
     testRequire(modules, map,
-      (function(MockL10n, SettingsService, PanelCache,
+      (function(SettingsService, PanelCache,
         MockSettingsPanel, MockSettings) {
           this.SettingsService = SettingsService;
           this.PanelCache = PanelCache;
@@ -36,14 +33,8 @@ suite('SettingsService', function() {
           this.MockSettingsPanel = MockSettingsPanel;
           this.MockSettings = MockSettings;
 
-          realL10n = window.navigator.mozL10n;
-          window.navigator.mozL10n = MockL10n;
           done();
     }).bind(this));
-  });
-
-  suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
   });
 
   setup(function() {

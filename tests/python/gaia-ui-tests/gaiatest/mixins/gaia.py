@@ -8,20 +8,24 @@ import textwrap
 import time
 
 
-class GaiaOptionsMixin(object):
-
-    def __init__(self, **kwargs):
-        # Inheriting object must call this __init__ to set up option handling
-        group = self.add_option_group('gaiatest')
-        group.add_option('--restart',
-                         action='store_true',
-                         dest='restart',
-                         default=False,
-                         help='restart target instance between tests')
+class GaiaArguments(object):
+    name = 'Gaia Arguments'
+    args = [
+        [['--restart'],
+         {'action': 'store_true',
+          'dest': 'restart',
+          'default': False,
+          'help': 'restart target instance between tests',
+          }],
+        [['--locale'],
+         {'default': "undefined",
+          'help': 'locale for the device, This value overrides the value from testvars.json file',
+          }],
+    ]
 
 
 class GaiaTestRunnerMixin(object):
-
+    
     def __init__(self, **kwargs):
         width = 80
         if not (self.testvars.get('acknowledged_risks') is True or os.environ.get('GAIATEST_ACKNOWLEDGED_RISKS')):
@@ -54,4 +58,3 @@ class GaiaTestRunnerMixin(object):
                 print '\nTest run aborted by user.'
                 sys.exit(1)
             print 'Continuing with test run...\n'
-

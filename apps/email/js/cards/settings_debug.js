@@ -17,7 +17,8 @@ if (!_secretDebug) {
 }
 
 return [
-  require('./base')(require('template!./settings_debug.html')),
+  require('./base_card')
+         (require('template!./settings_debug.html')),
   {
     createdCallback: function() {
       this.loggingSelect.value = MailAPI.config.debugLogging || '';
@@ -42,32 +43,7 @@ return [
     },
 
     fastSync: function() {
-      _secretDebug.fastSync = [100000, 200000];
-    },
-
-    showSyncs: function() {
-      var navSync = navigator.sync;
-      if (!navSync) {
-        console.error('navigator.sync not available');
-        return;
-      }
-
-      navSync.registrations().then(function(regs) {
-        console.log('navigator.sync registrations count: ', regs.length);
-        regs.forEach(function(reg) {
-          console.log('Registered task: ' + reg.task);
-          Object.keys(reg).forEach(function(key) {
-            if (key === 'data') {
-              console.log(key + ': ' + JSON.stringify(reg[key]));
-            } else {
-              console.log(key + ': ' + reg[key]);
-            }
-          });
-          console.log('-----------');
-        });
-      }, function(err) {
-        console.error('navigator.sync.registrations failed: ', err);
-      });
+      _secretDebug.fastSync = [20000, 60000];
     },
 
     resetStartupCache: function() {

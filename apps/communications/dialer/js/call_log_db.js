@@ -261,10 +261,18 @@ var CallLogDBManager = {
     next();
   },
   /**
+   * Helper function to get the current day without the hour/minute/second.
+   */
+  _getDayDate: function getDayDate(timestamp) {
+    var time = new Date(+timestamp);
+    time.setHours(0, 0, 0, 0);
+    return time.getTime();
+  },
+  /**
    * Helper function to get the group ID from a recent call object.
    */
   _getGroupId: function getGroupId(recentCall) {
-    var groupId = [Utils.getDayDate(recentCall.date),
+    var groupId = [this._getDayDate(recentCall.date),
                    (recentCall.number || ''), recentCall.type];
     if (recentCall.status && recentCall.type === 'incoming') {
       groupId.push(recentCall.status);

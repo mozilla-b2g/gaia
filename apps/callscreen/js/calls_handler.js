@@ -1,12 +1,11 @@
-/* globals AudioCompetingHelper, BluetoothHelper, CallScreen,
+/* globals BluetoothHelper, CallScreen,
            ConferenceGroupHandler, Contacts, HandledCall, KeypadManager,
            SimplePhoneMatcher, TonePlayer, Utils */
 
 'use strict';
 
 /* globals BluetoothHelper, CallScreen, Contacts, FontSizeManager, HandledCall,
-           KeypadManager, SimplePhoneMatcher, TonePlayer, Utils,
-           AudioCompetingHelper */
+           KeypadManager, SimplePhoneMatcher, TonePlayer, Utils */
 
 var CallsHandler = (function callsHandler() {
   // Changing this will probably require markup changes
@@ -75,9 +74,6 @@ var CallsHandler = (function callsHandler() {
 
     navigator.mozSetMessageHandler('headset-button', handleHSCommand);
     navigator.mozSetMessageHandler('bluetooth-dialer-command', handleBTCommand);
-
-    AudioCompetingHelper.clearListeners();
-    AudioCompetingHelper.addListener('mozinterruptbegin', onMozInterrupBegin);
   }
 
   /* === Handled calls === */
@@ -95,7 +91,9 @@ var CallsHandler = (function callsHandler() {
 
     // Make sure we play the busy tone when appropriate
     if (telephony.active) {
-      telephony.active.addEventListener('error', handleBusyErrorAndPlayTone);
+      telephony.active.addEventListener(
+        'disconnected', handleDisconnectAndPlayBusyTone
+      );
     }
 
     // Adding any new calls to handledCalls
@@ -163,6 +161,7 @@ var CallsHandler = (function callsHandler() {
     // First incoming or outgoing call, reset mute and speaker.
     if (handledCalls.length === 0) {
       CallScreen.unmute();
+      CallScreen.enableKeypadButton();
 
       /**
        * Do not connect bluetooth SCO for first incoming/outgoing call.
@@ -209,6 +208,7 @@ var CallsHandler = (function callsHandler() {
     handledCalls.splice(index, 1);
 
     if (handledCalls.length === 0) {
+      CallScreen.disableKeypadButton();
       return;
     }
 
@@ -247,15 +247,15 @@ var CallsHandler = (function callsHandler() {
   }
 
   /**
-   * Play the busy tone in response to the corresponding error being triggered
-   * at the end of a call. Once the tone has finished this will also
-   * automatically close the callscreen.
+   * Play the busy tone in response to a disconnected event with the
+   * appropriate reason set. Once the tone has finished this will also
+   * automatically close the callscreen if no more calls are present.
    *
-   * @param evt {Object} The event delivered in the TelephonyCall.onerror
-   *        event-handler.
+   * @param evt {Object} The event delivered in the
+   *        TelephonyCall.ondisconnected event-handler.
    */
-  function handleBusyErrorAndPlayTone(evt) {
-    if (evt.call.error.name === 'BusyError') {
+  function handleDisconnectAndPlayBusyTone(evt) {
+    if (evt.call.disconnectedReason === 'Busy') {
       // ANSI call waiting tone for a 3 seconds window.
       var sequence = [[480, 620, 500], [0, 0, 500],
                       [480, 620, 500], [0, 0, 500],
@@ -297,11 +297,19 @@ var CallsHandler = (function callsHandler() {
       if (contact && contact.name) {
         CallScreen.incomingInfo.classList.add('additionalInfo');
         CallScreen.incomingNumber.textContent = contact.name;
-        CallScreen.incomingNumberAdditionalTelType.textContent =
+
+        var additionalL10n =
           Utils.getPhoneNumberAdditionalInfo(matchingTel);
+        navigator.mozL10n.setAttributes(
+          CallScreen.incomingNumberAdditionalTelType,
+          additionalL10n.id,
+          additionalL10n.args);
         CallScreen.incomingNumberAdditionalTel.textContent = number;
       } else {
+        CallScreen.incomingInfo.classList.remove('additionalInfo');
         CallScreen.incomingNumber.textContent = number;
+        CallScreen.incomingNumberAdditionalTelType.removeAttribute(
+          'data-l10n-id');
         CallScreen.incomingNumberAdditionalTelType.textContent = '';
         CallScreen.incomingNumberAdditionalTel.textContent = '';
       }
@@ -812,29 +820,6 @@ var CallsHandler = (function callsHandler() {
   /* === Telephony audio channel competing functions ===*/
 
   /**
-   * Helper function. Force the callscreen app to win the competion for the use
-   * of the telephony audio channel.
-   */
-  function forceAnAudioCompetitionWin() {
-    AudioCompetingHelper.leaveCompetition();
-    AudioCompetingHelper.compete();
-  }
-
-  /**
-   * onmozinterrupbegin event handler.
-   */
-  function onMozInterrupBegin() {
-    // If there are multiple calls handled by the callscreen app and it is
-    // interrupted by another app which uses the telephony audio channel the
-    // callscreen wins.
-    if (numOpenLines() !== 1) {
-     forceAnAudioCompetitionWin();
-      return;
-    }
-    holdOrResumeSingleCall();
-  }
-
-  /**
    * Check if a call is being established.
    *
    * @returns true if a call is being established, false otherwise
@@ -880,7 +865,7 @@ var CallsHandler = (function callsHandler() {
    * connected yet.
    */
   function updatePlaceNewCall() {
-    if (isEstablishingCall()) {
+    if (isEstablishingCall() || (numOpenLines() === 0)) {
       CallScreen.disablePlaceNewCallButton();
     } else {
       CallScreen.enablePlaceNewCallButton();
@@ -900,7 +885,11 @@ var CallsHandler = (function callsHandler() {
   function updateMergeAndOnHoldStatus() {
     var isEstablishing = isEstablishingCall();
 
-    if (numOpenLines() > 1 && !isEstablishing) {
+    if (numOpenLines() === 0) {
+      /* If no calls are currently present just disable the button hold button
+       * but do not hide it.*/
+      CallScreen.disableOnHoldButton();
+    } else if (numOpenLines() > 1 && !isEstablishing) {
       /* If more than one call has been established show only the merge
        * button or no button at all if the calls are not mergeable. */
       CallScreen.hideOnHoldButton();

@@ -122,6 +122,7 @@ suite('system/AppInstallManager >', function() {
             '</td>',
           '</tr>',
         '</table>',
+        '<div id="system-addon-warning"></div>',
         '<menu>',
           '<button id="app-install-cancel-button" type="reset"' +
           ' data-l10n-id="cancel">Cancel</button>',
@@ -215,6 +216,8 @@ suite('system/AppInstallManager >', function() {
   });
 
   teardown(function() {
+    AppInstallManager.stop();
+
     fakeDialog.parentNode.removeChild(fakeDialog);
     fakeInstallCancelDialog.parentNode.removeChild(fakeInstallCancelDialog);
     fakeDownloadCancelDialog.parentNode.removeChild(fakeDownloadCancelDialog);
@@ -493,8 +496,9 @@ suite('system/AppInstallManager >', function() {
             assert.equal('', AppInstallManager.dialog.className);
           });
 
-          test('should remove the callback', function() {
+          test('should remove the callbacks', function() {
             assert.equal(null, AppInstallManager.installCallback);
+            assert.equal(null, AppInstallManager.installCancelCallback);
           });
         });
 
@@ -551,8 +555,9 @@ suite('system/AppInstallManager >', function() {
             assert.equal('', AppInstallManager.installCancelDialog.className);
           });
 
-          test('should remove the callback', function() {
+          test('should remove the callbacks', function() {
             assert.equal(null, AppInstallManager.installCancelCallback);
+            assert.equal(null, AppInstallManager.installCallback);
           });
         });
       });
@@ -1717,5 +1722,69 @@ suite('system/AppInstallManager >', function() {
       assert.isFalse(AppInstallManager.
                       imeLayoutDialog.classList.contains('visible'));
     });
+  });
+
+  suite('Late Customization', function() {
+    var dummyCustomizationApp = {
+      manifestURL: 'http://pie.testmanifest.com/manifest.webapp',
+      manifest: {
+        name: 'Fake Late Customization app',
+        size: 5245678,
+        developer: {
+          name: 'Fake dev',
+          url: 'http://fakesoftware.com'
+        }
+      }
+    };
+    var dummyNormalApp = {
+      manifestURL: 'http://koala.testmanifest.com/manifest.webapp',
+      manifest: {
+        name: 'Fake app',
+        size: 5245678,
+        developer: {
+          name: 'Fake dev',
+          url: 'http://fakesoftware.com'
+        }
+      }
+    };
+
+    test('intercept ask-install events', function() {
+      MockService.mockQueryWith('ftuCustomizationContains', true);
+      var querySpy = this.sinon.spy(Service, 'query');
+      var dispatchSpy = this.sinon.spy(window, 'dispatchEvent');
+      this.sinon.stub(AppInstallManager, 'handleAppInstallPrompt');
+
+      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'webapps-ask-install',
+          id: 42,
+          app: dummyCustomizationApp
+        }
+      }));
+      assert.ok(querySpy.calledOnce);
+      assert.equal(querySpy.firstCall.args[1],
+                  dummyCustomizationApp.manifestURL);
+      // should have caused a mozContentEvent to be dispatched
+      var contentEvent = dispatchSpy.getCall(1).args[0];
+      assert.ok(contentEvent &&
+                contentEvent.detail.type == 'webapps-install-granted');
+      assert.equal(contentEvent.detail.id, 42);
+      assert.ok(!AppInstallManager.handleAppInstallPrompt.called);
+    });
+
+    test('pass thru non-customization install requests', function() {
+      this.sinon.stub(AppInstallManager, 'handleAppInstallPrompt');
+      MockService.mockQueryWith('ftuCustomizationContains', false);
+
+      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'webapps-ask-install',
+          id: 13,
+          app: dummyNormalApp
+        }
+      }));
+      assert.ok(AppInstallManager.handleAppInstallPrompt.calledOnce);
+    });
+
   });
 });

@@ -1,8 +1,8 @@
 'use strict';
 
-/* global CallHandler, KeypadManager, MockNavigatorMozTelephony, MocksHelper,
-          Promise, MockICEContacts, MockSimSettingsHelper, CustomElementsHelper
-*/
+/* global CallHandler, CustomElementsHelper, KeypadManager, MockICEContacts,
+          MockNavigatorMozTelephony, MocksHelper, MockSimSettingsHelper,
+          MockTelephonyMessages, Promise */
 
 require('/test/unit/mock_keypad.js');
 require('/test/unit/mock_ice_contacts.js');
@@ -10,6 +10,7 @@ require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
+require('/shared/test/unit/mocks/dialer/mock_telephony_messages.js');
 require(
   '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
 
@@ -20,7 +21,8 @@ var mocksHelperForDialer = new MocksHelper([
   'KeypadManager',
   'ICEContacts',
   'LazyLoader',
-  'SimSettingsHelper'
+  'SimSettingsHelper',
+  'TelephonyMessages'
 ]).init();
 
 var customElementsForDialer = new CustomElementsHelper([
@@ -96,8 +98,23 @@ suite('Emergency Dialer', function() {
     test('> clears the keypad on disconnected', function(done) {
       this.sinon.spy(KeypadManager, 'updatePhoneNumber');
       mockPromise.then(function() {
-        mockCall.ondisconnected();
+        mockCall.ondisconnected({
+          call: { disconnectedReason: 'NormalCallClearing' }
+        });
         sinon.assert.calledWith(KeypadManager.updatePhoneNumber, '');
+      }).then(done, done);
+    });
+
+    test('> displays an appropriate message on disconnected', function(done) {
+      this.sinon.spy(MockTelephonyMessages, 'handleDisconnect');
+      mockPromise.then(function() {
+        mockCall.ondisconnected({
+          call: { disconnectedReason: 'NormalCallClearing' }
+        });
+        sinon.assert.calledOnce(MockTelephonyMessages.handleDisconnect);
+        sinon.assert.calledWith(
+          MockTelephonyMessages.handleDisconnect, 'NormalCallClearing', num
+        );
       }).then(done, done);
     });
   });

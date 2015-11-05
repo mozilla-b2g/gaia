@@ -48,6 +48,10 @@
     }
   ];
 
+  /**
+   * PromotionList controls everything on the upper half of AppDeck
+   * @class PromotionList
+   */
   function PromotionList() {}
 
   var proto = PromotionList.prototype;

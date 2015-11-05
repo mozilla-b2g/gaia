@@ -3,14 +3,19 @@
 suite('Languages Panel > ', function() {
 
   var modules = [
-    'panels/languages/panel'
+    'panels/languages/panel',
+    'unit/mock_settings',
+    'unit/mock_navigator_settings',
   ];
   var map = {
     '*': {
       'panels/languages/languages': 'MockLanguages',
-      'modules/settings_panel': 'MockSettingsPanel'
+      'modules/settings_panel': 'MockSettingsPanel',
+      'settings': 'unit/mock_settings'
     }
   };
+
+  var MockSettings;
 
   suiteSetup(function(done) {
     // Create a new requirejs context
@@ -39,8 +44,10 @@ suite('Languages Panel > ', function() {
       };
     });
 
-    requireCtx(modules, function(LanguagePanel) {
+    requireCtx(modules, function(LanguagePanel, Settings) {
       that.panel = LanguagePanel();
+      Settings.mSuiteSetup();
+      MockSettings = Settings;
       done();
     });
   });
@@ -82,6 +89,20 @@ suite('Languages Panel > ', function() {
       document.dispatchEvent(new CustomEvent('additionallanguageschange'));
       assert.ok(
         this.mockLanguages.buildList.called, 'buildList was called');
+    });
+  });
+
+  suite('screen reader was started', function() {
+    setup(function() {
+      this.panel.onBeforeShow();
+    });
+
+    test('language list updated', function() {
+      this.mockLanguages.buildList.reset();
+      MockSettings.mozSettings.mTriggerObservers(
+        'accessibility.screenreader', { settingValue: true });
+      assert.isTrue(
+        this.mockLanguages.buildList.called, 'buildList was never called');
     });
   });
 

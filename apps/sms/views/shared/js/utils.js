@@ -4,8 +4,7 @@
 /* globals ContactPhotoHelper,
            Dialog,
            Notification,
-           Settings,
-           Threads
+           Settings
 */
 
 (function(exports) {
@@ -127,7 +126,7 @@
 
       if (dayDiff === 0) {
         if (withTime) {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             element, 'todayWithTime', {
               time: this.getFormattedHour(this.date.shared)
             });
@@ -136,7 +135,7 @@
         }
       } else if (dayDiff === 1) {
         if (withTime) {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             element, 'yesterdayWithTime', {
               time: this.getFormattedHour(this.date.shared)
             });
@@ -555,9 +554,33 @@
     params: function(input) {
       var parsed = {};
       input.replace(rparams, function($0, $1, $2) {
+        if ($2 === 'true') {
+          $2 = true;
+        } else if ($2 === 'false') {
+          $2 = false;
+        }
         parsed[$1] = $2;
       });
       return parsed;
+    },
+    url(base, params) {
+      if (base.indexOf('?') === -1) {
+        base += '?';
+      } else {
+        base += '&';
+      }
+
+      for (var key in params) {
+        if (params[key] == null) { // null or undefined
+          continue;
+        }
+
+        base +=
+          encodeURIComponent(key) + '=' +
+          encodeURIComponent(params[key]) + '&';
+      }
+
+      return base.slice(0, -1);
     },
     basicContact: function(number, records) {
       var record;
@@ -637,17 +660,14 @@
     isEmailAddress: function(email) {
       return rmail.test(email);
     },
-    /*
-      Helper function for removing notifications. It will fetch the notification
-      using the current threadId or the parameter if provided, and close them
-       from the returned list.
-    */
-    closeNotificationsForThread: function ut_closeNotificationsForThread(tid) {
-      var threadId = tid ? tid : Threads.currentId;
-      if (!threadId) {
-        return;
-      }
-
+    /**
+     * Helper function for removing notifications. It will fetch notification
+     * using threadId, and close them from the returned list.
+     * @param {String|Number} threadId of the target message.
+     * @returns {Promise.<undefined>} Return always successfully resolved
+     *  Promise with notification.close method called or console.error message.
+     */
+    closeNotificationsForThread: function(threadId) {
       var targetTag = 'threadId:' + threadId;
 
       return Notification.get({tag: targetTag})
@@ -687,6 +707,59 @@
         }
 
         timeout = setTimeout(executeLater, waitTime);
+      };
+    },
+
+    /**
+     * Returns a rate limited function, useful to reduce the number of function
+     * calls when listening to user input (keypress) or browser events.
+     * @params {function} func - The function that should be rate-limited
+     * @params {number=300} delay - Min amount of time (ms) between two calls
+     * @params {Object} options - Parameters for managing edge calls.
+     * Attention : when both preventFirstCall and preventLastCall are set to
+     * true, `func` may never be called.
+     * @param {Boolean=false} options.preventFirstCall - Prevent first
+     * call when true.
+     * @param {Boolean=false} options.preventLastCall - Prevent last trailing
+     * call when true.
+     * @returns {function} - The rate limited function that will call the
+     *  original function
+     */
+    throttle: function(func, delay = 300, options = {}) {
+      var timeout = null;
+      var previous = 0;
+      var preventFirstCall = !!options.preventFirstCall;
+      var preventLastCall = !!options.preventLastCall;
+
+      if(typeof func !== 'function'){
+        throw new Error('func must be a Function');
+      }
+
+      if(typeof delay !== 'number' || delay < 0){
+        throw new Error('delay must be a positive number');
+      }
+
+      return function(...args) {
+        var now = Date.now();
+        if (!previous && preventFirstCall){
+          previous = now;
+        }
+        var remaining = delay - (now - previous);
+        if (remaining <= 0) {
+          if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+          }
+          previous = now;
+          func.apply(this, args);
+        } else if (!timeout && !preventLastCall) {
+          timeout = setTimeout(() => {
+            previous = preventFirstCall ? 0 : Date.now();
+            timeout = null;
+
+            func.apply(this, args);
+          }, remaining);
+        }
       };
     },
 
@@ -775,9 +848,17 @@
      */
     Promise: {
       /**
+       * The Defer type is useful when creating promises.
+       * @typedef {Object} Defer
+       * @property {function(*)} resolve The Promise's resolve function.
+       * @property {function(*)} reject The Promise's reject function.
+       * @property {Promise} promise The actual promise.
+       */
+
+      /**
        * Returns object that contains promise and related resolve\reject methods
        * to avoid wrapping long or complex code into single Promise constructor.
-       * @returns {{promise: Promise, resolve: function, reject: function}}
+       * @returns {Defer}
        */
       defer: function() {
         var deferred = {};
@@ -795,8 +876,8 @@
        * flow is paused until yielded Promise is resolved, so that consumer gets
        * Promise result instead of Promise instance itself.
        * See https://www.promisejs.org/generators/ as the reference.
-       * @param {function*} generatorFunction Generator function that yields
-       * Promises.
+       * @param {function(...*): Iterator} generatorFunction Generator function
+       * that yields Promises.
        * @return {function}
        */
       async: function(generatorFunction) {
@@ -838,7 +919,50 @@
         return Promise.resolve('');
       }
 
-      return navigator.mozL10n.formatValue('sim-id-label', { id: index + 1 });
+      return document.l10n.formatValue('sim-id-label', { id: index + 1 });
+    },
+
+    /**
+     * Initializes shim host iframe with the current app instance id.
+     * @param {string} appInstanceId Unique identifier of the app instance.
+     * @return {Promise.<void>} Resolves once shim host is initialized.
+     */
+    initializeShimHost(appInstanceId) {
+      var shimHostIframe = document.querySelector('.shim-host');
+
+      var promise = shimHostIframe.contentDocument.readyState === 'complete' ?
+        Promise.resolve() :
+        new Promise((resolve) => {
+          shimHostIframe.addEventListener('load', function onLoad() {
+            shimHostIframe.removeEventListener('load', onLoad);
+            resolve();
+          });
+        });
+
+      return promise.then(
+        () => shimHostIframe.contentWindow.bootstrap(appInstanceId)
+      );
+    },
+
+    /**
+     * Returns Promise instance that is resolved instantly if document is
+     * visible (document.hidden === false), othewise it's resolved only once
+     * `visibilitychange` event is fired.
+     * @returns {Promise.<void>}
+     */
+    onceDocumentIsVisible() {
+      if (!document.hidden) {
+        return Promise.resolve();
+      }
+
+      var defer = this.Promise.defer();
+
+      document.addEventListener('visibilitychange', function waitVisibility() {
+        document.removeEventListener('visibilitychange', waitVisibility);
+        defer.resolve();
+      });
+
+      return defer.promise;
     }
   };
 

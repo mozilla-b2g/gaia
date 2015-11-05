@@ -1,4 +1,4 @@
-/* global MocksHelper, MockL10n, MockDownload, DownloadUI, DownloadFormatter */
+/* global MocksHelper, MockDownload, DownloadUI, DownloadFormatter */
 
 
 'use strict';
@@ -7,7 +7,6 @@ requireApp('settings/test/unit/mock_mime_mapper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/test/unit/mocks/mock_download_formatter.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 
 require('/shared/js/download/download_ui.js');
 
@@ -18,7 +17,7 @@ var mocksHelperForDownloadUI = new MocksHelper([
 ]).init();
 
 suite('DownloadUI', function() {
-  var realL10n, download, dialogSelector = '#downloadConfirmUI',
+  var download, dialogSelector = '#downloadConfirmUI',
       dialogButtonsSelector = '#downloadConfirmUI button',
       actionMenuSelector = '#downloadActionMenuUI',
       actionMenuButtonsSelector = '#downloadActionMenuUI button',
@@ -28,17 +27,11 @@ suite('DownloadUI', function() {
 
   mocksHelperForDownloadUI.attachTestHelpers();
 
-  suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-  });
-
   suiteTeardown(function() {
     var screen = document.getElementById('screen');
-    document.body.removeChild(screen);
-
-    navigator.mozL10n = realL10n;
-    realL10n = null;
+    if (screen) {
+      document.body.removeChild(screen);
+    }
   });
 
   setup(function() {
@@ -144,6 +137,16 @@ suite('DownloadUI', function() {
     this.sinon.clock.tick(0);
     DownloadUI.hide();
     assert.equal(document.querySelector(actionMenuSelector).innerHTML, '');
+  });
+
+  test('Appends to the body when screen is not present ', function() {
+    document.body.innerHTML = '';
+
+    DownloadUI.show(DownloadUI.TYPE.STOP, download);
+    this.sinon.clock.tick(0);
+
+    var dialog = document.querySelector(dialogSelector);
+    assert.equal(dialog.parentNode, document.body);
   });
 
 

@@ -276,7 +276,7 @@ suite('Distribution mechanism', function() {
 
   function validateHomescreen() {
     var appZip = new AdmZip(path.join(process.cwd(), 'profile',
-      'webapps', 'verticalhome.gaiamobile.org', 'application.zip'));
+      'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
     var config = JSON.parse(appZip.readAsText(appZip.getEntry('js/init.json')));
 
     assert.equal(config.grid[0][0].name, 'Camera');
@@ -284,12 +284,7 @@ suite('Distribution mechanism', function() {
     assert.equal(config.grid[0][2].name, 'Messages');
     assert.equal(config.grid[0][3].name, 'Marketplace');
 
-    // Collections
-    assert.equal(config.grid[1][0].id, 289); // social
-    assert.equal(config.grid[1][1].id, 207); // games
-    assert.equal(config.grid[1][2].id, 142); // music
-
-    assert.equal(config.grid[2][0].name, 'Gallery');
+    assert.equal(config.grid[2][0].name, 'Calendar');
 
     assert.isTrue(fs.existsSync(path.join(process.cwd(), 'profile',
       'svoperapps', 'Twitter')),

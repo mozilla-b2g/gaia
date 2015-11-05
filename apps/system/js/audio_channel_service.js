@@ -31,6 +31,8 @@
     _isSystemMuted: false,
     // A map contains playing audio channels.
     _activeAudioChannels: null,
+    // A map contains audio channels' weights.
+    _audioChannelWeights: null,
     // An array contains audio channels could be resumed
     // when any other audio channel ends.
     _interruptedAudioChannels: null,
@@ -42,6 +44,11 @@
      */
     _start: function() {
       this._activeAudioChannels = new Map();
+      this._audioChannelWeights = new Map([
+        ['none', 0], ['system', 1], ['normal', 2], ['content', 3],
+        ['alarm', 4], ['ringer', 5], ['telephony', 6],
+        ['notification', 7], ['publicNotification', 8]
+      ]);
       this._interruptedAudioChannels = [];
       this._muteSystemAudioChannels();
       this.debug('Start Audio Channel Manager');
@@ -73,18 +80,9 @@
     },
 
     /**
-     * Handle the audio chanel when the app is in foreground or background.
+     * Handle the audio chanel when the app is in foreground.
      */
     _handle_hierarchytopmostwindowchanged: function() {
-      if (this._topMostWindow && this._topMostWindow.audioChannels) {
-        // Normal channel could not play in background.
-        this.debug(this._topMostWindow.name + ' is closed');
-        var audioChannel = this._topMostWindow.audioChannels.get('normal');
-        if (audioChannel && audioChannel.isPlaying()) {
-          audioChannel.setPolicy({ isAllowedToPlay: false });
-          this._handleAudioChannel(audioChannel);
-        }
-      }
       this._topMostWindow = Service.query('getTopMostWindow');
       if (this._topMostWindow) {
         this.debug(this._topMostWindow.name + ' is opened');
@@ -106,23 +104,21 @@
      */
     _manageAudioChannels: function(audioChannel) {
       if (audioChannel.isActive()) {
-        var isBackground = this._isAudioChannelInBackground(audioChannel);
         this.audioChannelPolicy.applyPolicy(
           audioChannel,
-          this._activeAudioChannels,
-          {
-            isNewAudioChannelInBackground: isBackground
-          }
+          this._activeAudioChannels
         );
         this._activeAudioChannels.forEach((audioChannel) => {
           this._handleAudioChannel(audioChannel);
         });
         this._handleAudioChannel(audioChannel);
-        var channel = { channel: audioChannel.name };
-        if (!isBackground) {
-          this.publish('visibleaudiochannelchanged', channel);
+        if (!this._isAudioChannelInBackground(audioChannel)) {
+          this.publish('visibleaudiochannelchanged', {
+            channel: audioChannel.name
+          });
         }
-        this.publish('audiochannelchangedasactive', channel);
+        var channel = this._getTopPriorityAudioChannel();
+        this.publish('audiochannelchanged', { channel: channel });
       } else {
         this._resetAudioChannel(audioChannel);
         this._resumeAudioChannels();
@@ -185,12 +181,13 @@
       // FIXME: The `app` param should always have `audioChannels`,
       // then we don't need to check it.
       // Resume the app's audio channels.
-      app && app.audioChannels && app.audioChannels.forEach((audioChannel) => {
-        audioChannel.isActive() && this._manageAudioChannels(audioChannel);
-        if (audioChannel.isPlaying()) {
-          this._deleteAudioChannelFromInterruptedAudioChannels(audioChannel);
-        }
-      });
+      if (app) {
+        app.audioChannels && app.audioChannels.forEach((audioChannel) => {
+          audioChannel.isActive() && this._manageAudioChannels(audioChannel);
+          audioChannel.isPlaying() &&
+            this._deleteAudioChannelFromInterruptedAudioChannels(audioChannel);
+        });
+      }
       // Resume the latest interrupted audio channel.
       var audioChannel;
       var length = this._interruptedAudioChannels.length;
@@ -200,6 +197,25 @@
         this._handleAudioChannel(audioChannel);
         audioChannel.isPlaying() && this._interruptedAudioChannels.pop();
       }
+      // Send audiochannelchanged evnet to SoundManager.
+      var channel = this._getTopPriorityAudioChannel();
+      this.publish('audiochannelchanged', { channel: channel });
+    },
+
+    /**
+     * Get the top priority audio channel from activeAudioChannels.
+     *
+     * @return {String}
+     */
+    _getTopPriorityAudioChannel: function() {
+      var channel = 'none';
+      this._activeAudioChannels.forEach((audioChannel) => {
+        if (this._audioChannelWeights.get(audioChannel.name) >
+            this._audioChannelWeights.get(channel)) {
+          channel = audioChannel.name;  
+        }
+      });
+      return channel;
     },
 
     /**
@@ -221,7 +237,7 @@
      * Check the audio channel is in background or not.
      *
      * @param {AudioChannelController} audioChannel The audio channel.
-     * @retrun {Boolean}
+     * @return {Boolean}
      */
     _isAudioChannelInBackground: function(audioChannel) {
       var isAudioChannelInBackground = true;
@@ -236,24 +252,13 @@
     _muteSystemAudioChannels: function() {
       var audioChannels = this.service.query('SystemWindow.getAudioChannels');
       if (!this._isSystemMuted && audioChannels && audioChannels.size) {
-        audioChannels.forEach((audioChannel, name) => {
-          this._sendContentEvent({
-            type: 'system-audiochannel-mute', name: name, isMuted: true
-          });
+        audioChannels.forEach((audioChannel) => {
+          audioChannel
+            .setPolicy({ isAllowedToPlay: false })
+            .proceedPolicy();
         });
         this._isSystemMuted = true;
       }
-    },
-
-    /**
-     * Send MozContentEvent to control the audio chanenl in System app.
-     *
-     * @param {Object} detail The arguments for passing to Gecko.
-     * @param {Object} detail.type The operation for the audio channel.
-     */
-    _sendContentEvent: function(detail) {
-      var evt = new CustomEvent('mozContentEvent', { detail: detail });
-      window.dispatchEvent(evt);
     }
   });
 }());

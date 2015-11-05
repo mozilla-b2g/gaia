@@ -185,10 +185,20 @@
       // The rocketbar currently handles the management of normal search app
       // launches. Requests for the 'newtab' page will continue to filter
       // through and publish the launchapp event.
-      if (config.manifest && config.manifest.role === 'search' &&
-          config.url.indexOf('newtab.html') === -1) {
-        return;
+      if (this._isSearch(config)) {
+        if (config.url.indexOf('newtab.html') === -1) {
+          return;
+        }
+
+        // In case of the Browser, oppen an already open
+        // instance instead of creating a new one
+        var openInstance = this._findBrowserInstance(config);
+        if (openInstance) {
+          openInstance.requestOpen();
+          return;
+        }
       }
+
       var app = Service.query('getApp', config.origin, config.manifestURL);
       if (app) {
         if (config.evtType == 'appopenwindow') {
@@ -236,6 +246,38 @@
 
     isLaunchingWindow: function() {
       return !!this._launchingApp;
+    },
+
+    /**
+     * Returns an appWindow instace that matches
+     * the criteria given by the config
+     * @param  {Object} detail The data passed when initializing the event.
+     * @memberof AppWindowFactory.prototype
+     */
+    _findBrowserInstance: function(config) {
+      // Special case for the browser. Openning the last instance
+      // of any unpinned window, if it exists.
+      var activeApp = Service.query('AppWindowManager.getActiveApp');
+      if (!this._isSearch(config) || activeApp.isBrowser()) {
+        return;
+      }
+
+      var unpinned = Service.query('AppWindowManager.getUnpinnedWindows');
+      if (unpinned.length) {
+        return unpinned.sort(function(app1, app2) {
+          return app2.launchTime - app1.launchTime;
+        })[0];
+      }
+    },
+
+    /**
+     * Determines if the current app to be opened
+     * is the Browser app
+     * @param  {Object} detail The data passed when initializing the event.
+     * @memberof AppWindowFactory.prototype
+     */
+    _isSearch: function(config) {
+      return (config.manifest && config.manifest.role === 'search');
     },
 
     /**

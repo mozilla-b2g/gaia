@@ -1,5 +1,5 @@
-/* global MocksHelper, MockL10n, AppWindow, BaseModule,
-          MockMozActivity, MozActivity, MockAppWindowHelper */
+/* global MocksHelper, MockL10n, AppWindow, BaseModule, MockNavigatorSettings,
+          MockMozActivity, MozActivity, MockAppWindowHelper, MockService */
 
 'use strict';
 
@@ -10,21 +10,38 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_context_menu_view.js');
+requireApp('system/test/unit/mock_pin_page_system_dialog.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/js/browser_config_helper.js');
 require('/js/service.js');
 require('/js/base_module.js');
 
+const PINNING_PREF = 'dev.gaia.pinning_the_web';
+
 var mocksForAppModalDialog = new MocksHelper([
-  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView'
+  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView',
+  'Service'
 ]).init();
 
 suite('system/BrowserContextMenu', function() {
-  var stubById, realL10n, stubQuerySelector, realMozActivity;
+  var stubById, realL10n, stubQuerySelector, realMozActivity,
+      realMozSettings;
+
   mocksForAppModalDialog.attachTestHelpers();
-  setup(function(done) {
+
+  suiteSetup(function() {
     realL10n = navigator.mozL10n;
+    realMozSettings = navigator.mozSettings;
     navigator.mozL10n = MockL10n;
+    navigator.mozSettings = MockNavigatorSettings;
+  });
+
+  setup(function(done) {
+    MockNavigatorSettings.mSetup();
+    MockNavigatorSettings.mSyncRepliesOnly = true;
+    MockService.mockQueryWith('isFtuRunning', false);
 
     stubById = this.sinon.stub(document, 'getElementById');
     var e = document.createElement('div');
@@ -52,8 +69,13 @@ suite('system/BrowserContextMenu', function() {
     MozActivity.mSetup();
   });
 
-  teardown(function() {
+  suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    navigator.mozSettings = realMozSettings;
+  });
+
+  teardown(function() {
+    MockNavigatorSettings.mTeardown();
     stubById.restore();
     stubQuerySelector.restore();
     MozActivity.mTeardown();
@@ -94,7 +116,8 @@ suite('system/BrowserContextMenu', function() {
         items: [{
           label: 'test0',
           icon: 'test'
-        }]
+        }],
+        customized: true
       }
     }
   };
@@ -119,7 +142,8 @@ suite('system/BrowserContextMenu', function() {
       stopPropagation: function() {},
       detail: {
         contextmenu: {
-          items: []
+          items: [],
+          customized: false
         },
         systemTargets: [{
           nodeName: type,
@@ -148,17 +172,29 @@ suite('system/BrowserContextMenu', function() {
     },
     detail: {
       contextmenu: {
-        items: []
+        items: [],
+        customized: false
       }
     }
   };
 
-  test('New', function() {
+  test('start', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
     md1.start();
     assert.isDefined(md1);
     assert.isDefined(md1.contextMenuView);
+  });
+
+  test('stop', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+    this.sinon.spy(md1.contextMenuView, 'destroy');
+    md1.stop();
+    assert.isTrue(md1.contextMenuView.destroy.calledOnce);
+    assert.isNull(md1.containerElement);
+    assert.isNull(md1.app);
   });
 
   test('launch menu', function() {
@@ -169,10 +205,18 @@ suite('system/BrowserContextMenu', function() {
 
     var stubStopPropagation =
       this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
+    var stubPreventDefault =
+      this.sinon.stub(fakeContextMenuEvent, 'preventDefault');
 
     md1.handleEvent(fakeContextMenuEvent);
-    assert.isTrue(md1.contextMenuView.show.called);
+
+    // Checking that we stop propagation *before* getting
+    // the pinning setting
     assert.isTrue(stubStopPropagation.called);
+    assert.isTrue(stubPreventDefault.called);
+
+    MockNavigatorSettings.mReplyToRequests();
+    assert.isTrue(md1.contextMenuView.show.called);
   });
 
   suite('manually launch menu', function() {
@@ -185,14 +229,26 @@ suite('system/BrowserContextMenu', function() {
       md1.showDefaultMenu();
     });
 
-    test('Conext Menu is shown', function() {
+    test('Context Menu is shown', function() {
+      MockNavigatorSettings.mReplyToRequests();
       assert.isTrue(md1.isShown());
     });
 
-    test('Conext Menu is not shown', function() {
+    test('Context Menu is not shown', function() {
       md1.hide();
       assert.isFalse(md1.isShown());
     });
+  });
+
+  test('Context Menu is not shown during FTU', function() {
+    var app1 = new AppWindow(fakeBrowserConfig);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+    this.sinon.stub(md1, 'show');
+    MockService.mockQueryWith('isFtuRunning', true);
+
+    md1.handleEvent(fakeSystemContextMenuEvents[0]);
+    assert.isFalse(md1.show.called);
   });
 
   test('Check that a context menu containing items is prevented', function() {
@@ -222,6 +278,40 @@ suite('system/BrowserContextMenu', function() {
     assert.isTrue(!fakeNoItemsContextMenuEvent.defaultPrevented);
   });
 
+  test('System menu with invalid items is not prevented', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+
+    app1.isBrowser = function() {
+      return true;
+    };
+
+    var fakeEvent = {
+      type: 'mozbrowsercontextmenu',
+      defaultPrevented: false,
+      preventDefault: function() {
+        this.defaultPrevented = true;
+      },
+      stopPropagation: function() {},
+      detail: {
+        contextmenu: {
+          items: [],
+          customized: false
+        },
+        systemTargets: [{
+          nodeName: 'INPUT',
+          data: {
+            uri: 'http://fake.com'
+          }
+       }]
+      }
+    };
+    md1.handleEvent(fakeEvent);
+    MockNavigatorSettings.mReplyToRequests();
+    assert.isFalse(fakeEvent.defaultPrevented);
+  });
+
 
   test('Check that a system menu without items is prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
@@ -235,10 +325,44 @@ suite('system/BrowserContextMenu', function() {
     for (var i = 0; i < fakeSystemContextMenuEvents.length; i++) {
       var event = fakeSystemContextMenuEvents[i];
       md1.handleEvent(event);
+      MockNavigatorSettings.mReplyToRequests();
       assert.isTrue(event.defaultPrevented);
     }
   });
 
+  suite('Pinning the web', function() {
+    var app1, md1;
+
+    setup(function() {
+      app1 = new AppWindow(fakeAppConfig1);
+      md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+      md1.start();
+    });
+
+    test('Shows pinning option when pref enabled', function(done) {
+      this.sinon.stub(md1.contextMenuView, 'show', function(items) {
+        assert.isTrue(items[2].id === 'pin-to-home-screen');
+        done();
+      });
+      var settingObj = {};
+      settingObj[PINNING_PREF] = true;
+      MockNavigatorSettings.mSet(settingObj);
+      md1.handleEvent(fakeSystemContextMenuEvents[0]);
+      MockNavigatorSettings.mReplyToRequests();
+    });
+
+    test('Shows bookmark option when pref enabled', function(done) {
+      this.sinon.stub(md1.contextMenuView, 'show', function(items) {
+        assert.isTrue(items[2].id === 'add-to-homescreen');
+        done();
+      });
+      var settingObj = {};
+      settingObj[PINNING_PREF] = false;
+      MockNavigatorSettings.mSet(settingObj);
+      md1.handleEvent(fakeSystemContextMenuEvents[0]);
+      MockNavigatorSettings.mReplyToRequests();
+    });
+  });
 
   test('Check that an app with system menu is not prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
@@ -282,12 +406,14 @@ suite('system/BrowserContextMenu', function() {
       md1.showDefaultMenu(),
       md2.showDefaultMenu()
     ]).then(() => {
+      MockNavigatorSettings.mReplyToRequests();
       var md1Items = md1ShowStub.getCall(0).args[0];
       var md2Items = md2ShowStub.getCall(0).args[0];
       // We should not show the bookmark or share buttons.
       assert.equal(md2Items.length - md1Items.length, 2);
       done();
     });
+    MockNavigatorSettings.mReplyToRequests();
   });
 
 

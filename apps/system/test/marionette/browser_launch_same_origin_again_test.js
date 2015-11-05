@@ -27,7 +27,7 @@ marionette('Browser - Launch the same origin after navigating away',
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
@@ -54,10 +54,7 @@ marionette('Browser - Launch the same origin after navigating away',
     var browsingFrames = client.findElements('iframe[src*="http://localhost"]');
     assert.equal(browsingFrames.length, 1, 'should have one browser windows');
 
-    // Try navigating to the same url again.
-    client.executeScript(function() {
-      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
-    });
+    home.pressHomeButton();
     rocketbar.homescreenFocus();
     rocketbar.enterText(url1, true);
 

@@ -6,7 +6,7 @@
 var BookmarkEditor = {
   BOOKMARK_ICON_SIZE: 60,
   APP_ICON_SIZE: 60,
-  
+
   init: function bookmarkEditor_show(options) {
     this.data = options.data;
     this.onsaved = options.onsaved;
@@ -22,12 +22,11 @@ var BookmarkEditor = {
   },
 
   _init: function bookmarkEditor_init(mode) {
-    var _ = navigator.mozL10n.get;
     this.mode = document.body.dataset.mode = mode;
     this.bookmarkTitle = document.getElementById('bookmark-title');
     this.bookmarkURL = document.getElementById('bookmark-url');
     this.bookmarkIcon = document.getElementById('bookmark-icon');
-    this.cancelButton = document.getElementById('cancel-button');
+    this.header = document.getElementById('header');
     this.saveButton = document.getElementById('done-button');
     this.appInstallationSection = document.getElementById('app-installation');
     this.appIcon = document.getElementById('app-icon');
@@ -35,14 +34,14 @@ var BookmarkEditor = {
     this.appNameText = document.getElementById('app-name');
     this.installAppButton = document.getElementById('install-app-button');
 
-    this.cancelButton.addEventListener('click', this.close.bind(this));
+    this.header.addEventListener('action', this.close.bind(this));
     this.saveListener = this.save.bind(this);
     this.saveButton.addEventListener('click', this.saveListener);
 
     this.bookmarkTitle.value = this.data.name || '';
 
     this.bookmarkURL.textContent = this.data.url;
-    
+
     this._renderIcon();
 
     if (this.data.manifestURL) {
@@ -59,9 +58,9 @@ var BookmarkEditor = {
     this.clearButton.addEventListener(touchstart, this._clearTitle.bind(this));
     if (mode === 'put') {
       this._onEditMode();
-      this.saveButton.textContent = _('done-action');
+      this.saveButton.setAttribute('data-l10n-id', 'done-action');
     } else {
-      this.saveButton.textContent = _('add-action');
+      this.saveButton.setAttribute('data-l10n-id', 'add-action');
     }
 
     // We're appending new elements to DOM so to make sure headers are
@@ -88,16 +87,16 @@ var BookmarkEditor = {
     this.appIcon.addEventListener('load', this.appIconListener);
     this.appIcon.setAttribute('src', iconURL);
   },
-  
+
   _handleAppIconLoad: function _handleAppIconLoad() {
     this.appIconPlaceholder.classList.add('hidden');
     this.appIcon.classList.remove('hidden');
     this.appIcon.removeEventListener('load', this.appIconListener);
   },
-  
+
   _fetchManifest: function bookmarkEditor_fetchManifest(manifestURL) {
     var manifestPromise = window.WebManifestHelper.getManifest(manifestURL);
-    
+
     manifestPromise.then((function(manifestData) {
       if (manifestData) {
         this.installAppButtonListener = this._installApp.bind(this);
@@ -111,7 +110,7 @@ var BookmarkEditor = {
     }).bind(this)).catch(function(error) {
       console.error('Unable to get web manifest: ' + error);
     });
-    
+
     return manifestPromise;
   },
 
@@ -147,7 +146,7 @@ var BookmarkEditor = {
     var title = this.bookmarkTitle.value.trim();
     this.saveButton.disabled = title === '';
   },
-  
+
   _installApp: function bookmarkEditor_installApp() {
     window.navigator.mozApps.install(this.manifestURL);
   },

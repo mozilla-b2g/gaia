@@ -51,7 +51,7 @@ Settings.prototype = {
     element: '#settings',
     calendars: '#settings .calendars',
     calendarName: '.name',
-    toolbar: '#settings [role="toolbar"]',
+    toolbar: '#settings [role="tablist"]',
     header: '#settings-header',
     headerTitle: '#settings-header h1',
 

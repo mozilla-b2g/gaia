@@ -7,10 +7,10 @@
 require('/shared/js/settings_listener.js');
 require('/shared/js/telemetry.js');
 require('/shared/js/uuid.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/app_usage_metrics.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
@@ -121,6 +121,7 @@ suite('AppUsageMetrics:', function() {
   suite('UsageData:', function() {
     var UsageData, clock;
     var app1, app2, app3;
+    var notAddonApp, addOnApp, nonMarketPlaceAddOn;
 
     suiteSetup(function() {
       UsageData = AppUsageMetrics.UsageData;
@@ -132,6 +133,26 @@ suite('AppUsageMetrics:', function() {
       app2 = new MockApp({ manifest: { type: 'certified' } });
       app3 = new MockApp({ manifest: { type: 'certified' } });
       MockAppsMgmt.mApps = [app1, app2, app3];
+      notAddonApp = new MockApp({
+        manifestURL: 'https://marketplace.firefox.com/app/1-2-3-4',
+        manifest: {
+          type: 'certified',
+          role: 'someapp'
+        }
+      });
+      addOnApp = new MockApp({
+        manifestURL: 'https://marketplace.firefox.com/addOn/1-2-3-4',
+        manifest: {
+          type: 'certified',
+          role: 'addon'
+        }
+      });
+      nonMarketPlaceAddOn = new MockApp({
+        manifestURL: 'https://hackerplace.com/addOn/1-2-3-4',
+        manifest: {
+          installOrigin: 'http://www.foo.com'
+        }
+      });
     });
 
     function getUsage(metrics, app) {
@@ -380,6 +401,57 @@ suite('AppUsageMetrics:', function() {
 
       metrics.recordSearch('provider2');
       assert.equal(metrics.getSearchCounts('provider2').count, 2);
+    });
+
+    test('not addonn', function() {
+      var metrics = new UsageData();
+      metrics.recordInstall(notAddonApp);
+      assert.equal(metrics.getAppUsage(notAddonApp).installs, 1);
+      assert.equal(metrics.getAppUsage(notAddonApp).addOn, false);
+    });
+
+    test('addonn installs', function() {
+      var metrics = new UsageData();
+      metrics.recordInstall(addOnApp);
+      assert.equal(metrics.getAppUsage(addOnApp).installs, 1);
+      assert.equal(metrics.getAppUsage(addOnApp).addOn, true);
+    });
+
+    test('addonn uninstalls', function() {
+      var metrics = new UsageData();
+      metrics.recordUninstall(addOnApp);
+      assert.equal(metrics.getAppUsage(addOnApp).uninstalls, 1);
+      assert.equal(metrics.getAppUsage(addOnApp).addOn, true);
+    });
+
+    test('addonn enables', function() {
+      var metrics = new UsageData();
+      metrics.recordEnabled(addOnApp);
+      assert.equal(metrics.getAppUsage(addOnApp).enables, 1);
+      assert.equal(metrics.getAppUsage(addOnApp).addOn, true);
+    });
+
+    test('addonn disables', function() {
+      var metrics = new UsageData();
+      metrics.recordDisabled(addOnApp);
+      assert.equal(metrics.getAppUsage(addOnApp).disables, 1);
+      assert.equal(metrics.getAppUsage(addOnApp).addOn, true);
+    });
+
+    test('non marketplace addon', function() {
+      var metrics = new UsageData();
+      var recorded = metrics.recordInstall(nonMarketPlaceAddOn);
+      assert.equal(metrics.getAppUsage(nonMarketPlaceAddOn).installs, 0);
+      assert.ok(!recorded);
+      recorded = metrics.recordUninstall(nonMarketPlaceAddOn);
+      assert.equal(metrics.getAppUsage(nonMarketPlaceAddOn).uninstalls, 0);
+      assert.ok(!recorded);
+      recorded = metrics.recordEnabled(nonMarketPlaceAddOn);
+      assert.equal(metrics.getAppUsage(nonMarketPlaceAddOn).enables, 0);
+      assert.ok(!recorded);
+      recorded = metrics.recordDisabled(nonMarketPlaceAddOn);
+      assert.equal(metrics.getAppUsage(nonMarketPlaceAddOn).disables, 0);
+      assert.ok(!recorded);
     });
   });
 
@@ -723,34 +795,6 @@ suite('AppUsageMetrics:', function() {
     });
   });
 
-  /*
-   * Test that the getSettings() utility function works as expected.
-   * This is required for proper configuration of the module and for
-   * gathering the settings that are sent along with usage data.
-   */
-  suite('getSettings():', function() {
-    var getSettings;
-
-    suiteSetup(function() {
-      AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
-      getSettings = AppUsageMetrics.getSettings;
-
-      var mockSettings = MockNavigatorSettings.mSettings;
-      mockSettings.x = '1';
-      mockSettings.y = '2';
-    });
-
-    setup(function() {
-      stubDial(this);
-    });
-
-    test('getSettings()', function(done) {
-      getSettings({x: '3', y: '4', z: '5'}, function(result) {
-        done(assert.deepEqual(result, {x: '1', y: '2', z: '5'}));
-      });
-    });
-  });
-
   suite('settings', function() {
     var aum, mockSettings;
     setup(function() {
@@ -822,8 +866,17 @@ suite('AppUsageMetrics:', function() {
       aum.stop();
     });
 
-    test('starts immediately if enabled', function(done) {
-      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = true;
+    test('starts immediately if enabled for Basic', function(done) {
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Basic';
+      aum.start();
+      setTimeout(function() {
+        assert.equal(stopspy.callCount, 0);
+        done(assert.ok(startspy.calledOnce));
+      });
+    });
+
+    test('starts immediately if enabled for Enhanced', function(done) {
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Enhanced';
       aum.start();
       setTimeout(function() {
         assert.equal(stopspy.callCount, 0);
@@ -832,7 +885,7 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('does not start if not enabled', function(done) {
-      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'None';
       aum.start();
       setTimeout(function() {
         assert.ok(stopspy.calledOnce);
@@ -841,42 +894,41 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('starts when enabled', function(done) {
-      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = false;
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'None';
       aum.start();
       setTimeout(function() {
         assert.equal(startspy.callCount, 0);
         assert.equal(stopspy.callCount, 1);
 
-        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = true;
+        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Basic';
         MockNavigatorSettings.mTriggerObservers(
-          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: true });
+          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: 'Basic' });
 
         assert.equal(startspy.callCount, 1);
 
-        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = false;
+        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'None';
         MockNavigatorSettings.mTriggerObservers(
-          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: false });
-
+          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: 'None' });
         done(assert.equal(stopspy.callCount, 2));
       });
     });
 
     test('stops when disabled and starts again', function(done) {
-      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = true;
+      mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Basic';
       aum.start();
       setTimeout(function() {
         assert.equal(stopspy.callCount, 0);
         assert.ok(startspy.calledOnce);
 
-        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = false;
+        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'None';
         MockNavigatorSettings.mTriggerObservers(
-          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: false });
+          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: 'None' });
 
         assert.equal(stopspy.callCount, 1);
 
-        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = true;
+        mockSettings[AppUsageMetrics.TELEMETRY_ENABLED_KEY] = 'Basic';
         MockNavigatorSettings.mTriggerObservers(
-          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: true });
+          AppUsageMetrics.TELEMETRY_ENABLED_KEY, { settingValue: 'Basic' });
 
         done(assert.ok(startspy.calledTwice));
       });

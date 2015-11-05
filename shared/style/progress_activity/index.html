@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
     <meta charset="utf-8">
 
@@ -11,8 +11,9 @@
     <link rel="stylesheet" href="../progress_activity.css">
 
     <!--
-      This <style> and <link> is only used for the example code, is no needed for the real case use
-    -->
+      - These <style> and <script> elements are only used for the example code,
+      - they are not needed for the real use case.
+      -->
     <style>
       html, body {
         margin: 0;
@@ -30,7 +31,8 @@
         color: #666;
         margin: 10px 0;
         background-color: #f5f5f5;
-        padding: 0.4rem 0.4rem 0.4rem 3rem;
+        padding: 0.4rem;
+        padding-inline-start: 3rem;
         border: solid 1px #e8e8e8;
       }
 
@@ -48,10 +50,21 @@
         transform: translateX(100%);
       }
     </style>
+    <script>
+      window.onload = function(){
+        document.getElementById('dir').checked = false;
+      };
+    </script>
 </head>
 
 <body role="application">
-
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox" checked="false"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
   <section role="region">
     <h2 class="bb-docs">Spinner</h2>
     <div style="text-align: center">

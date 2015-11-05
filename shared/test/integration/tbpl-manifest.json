@@ -2,6 +2,7 @@
   "blacklist": {
     "apps/calendar/test/marionette/alarm_test.js": "Bug 994976 - Perma-red TBPL test, alarm > without alarm mocks create two events with simultaneous reminders",
     "apps/calendar/test/marionette/caldav_test.js": "Bug 972631 - CalDAV setup causing tbpl timeouts",
+    "apps/calendar/test/marionette/create_event_test.js": "Bug 1175744 - Intermittent create_event_test.js",
     "apps/calendar/test/marionette/day_view_test.js": "Bug 1076716 - TEST-UNEXPECTED-FAIL | day view before each hook",
     "apps/calendar/test/marionette/month_view_test.js": "Bug 1179906 - Perma-fail month_view_test.js | month view should show event dots",
     "apps/calendar/test/marionette/server_test.js": "",
@@ -11,6 +12,7 @@
     "apps/camera/test/marionette/settings_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/zoom_test.js": "device only - missing desktop shims",
     "apps/clock/test/marionette/alarm_test.js": "Bug 1035930 - TEST-UNEXPECTED-FAIL | Alarm System statusbar shows an icon when an alarm is active",
+    "apps/clock/test/marionette/hour_format_test.js": "Bug 1197989",
     "apps/communications/contacts/test/marionette/ice_test.js": "Bug 1147601 - Intermittent failures",
     "apps/email/test/marionette/activity_create_email_account_complete_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/local_drafts_test.js": "Bug 975588 - Re-enable email marionette js tests",
@@ -26,7 +28,6 @@
     "apps/email/test/marionette/search_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/send_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/ftu/test/marionette/statusbar_test.js": "Bug 1117976 - Intermittent statusbar_test.js | First Time Use > statusbar icons should change",
-    "apps/privacy-panel/test/unit/apps_list_test.js": "Bug 1190591 - Gaia Integration - TEST-UNEXPECTED-FAIL | null | [privacy-panel-test/unit/app_list_test.js] AppList should get path to app icon TypeError: fakeApp1 is undefined",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
@@ -44,10 +45,9 @@
     "apps/system/test/marionette/statusbar_home_button_test.js": "Bug 1154405 - TEST-UNEXPECTED-FAIL | Closing statusbar via home button > Home screen keeps scroll position AssertionError: false == true",
     "apps/system/test/marionette/statusbar_icon_color_test.js": "Bug 1134018",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
-    "apps/verticalhome/test/marionette/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
-    "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
     "apps/verticalhome/test/marionette/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group",
     "tests/jsmarionette/plugins/marionette-helper/test/index_test.js": "Bug 1165660",
-    "tests/jsmarionette/plugins/marionette-helper/test/input_select_test.js": "Bug 1189608 - Intermittent TEST-UNEXPECTED-FAIL | MarionetteHelper.fillInputFieldAndtapSelectOption should set date on input"
+    "tests/jsmarionette/plugins/marionette-helper/test/input_select_test.js": "Bug 1189608 - Intermittent TEST-UNEXPECTED-FAIL | MarionetteHelper.fillInputFieldAndtapSelectOption should set date on input",
+    "apps/communications/contacts/test/marionette/form_test.js": "Bug 1205896 - Intermittent form_test.js | Contacts > Form > Edit Contact Simple edition of contact details. ORG field"
   }
 }

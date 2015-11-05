@@ -21,18 +21,14 @@ class TestAirplaneMode(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
-        settings.wait_for_airplane_toggle_ready()
-
-        # Switch on Airplane mode
-        settings.toggle_airplane_mode()
+        settings.enable_airplane_mode()
 
         # wait for wifi to be disabled, this takes the longest when airplane mode is switched on
         self.wait_for_condition(lambda s: 'Disabled' in settings.wifi_menu_item_description)
 
         # wait for airplane mode icon is diaplayed on status bar
-        self.marionette.switch_to_default_content()
         system_app = System(self.marionette)
-        system_app.wait_for_airplane_mode_icon_displayed()
+        system_app.status_bar.wait_for_airplane_mode_icon_displayed()
 
         # check Wifi is disabled
         self.assertFalse(self.data_layer.is_wifi_connected(self.testvars['wifi']), "WiFi was still connected after switching on Airplane mode")
@@ -46,9 +42,7 @@ class TestAirplaneMode(GaiaTestCase):
         # switch back to app frame
         self.apps.switch_to_displayed_app()
 
-        # Switch off Airplane mode
-        settings.wait_for_airplane_toggle_ready()
-        settings.toggle_airplane_mode()
+        settings.disable_airplane_mode()
 
         # Wait for wifi to be connected, because this takes the longest to connect after airplane mode is switched off
         self.wait_for_condition(lambda s: 'Connected to ' + self.testvars['wifi']['ssid'] in settings.wifi_menu_item_description, timeout=40)

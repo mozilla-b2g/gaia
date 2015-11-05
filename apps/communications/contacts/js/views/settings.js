@@ -18,6 +18,9 @@
 /* global ContactsService */
 /* global ExtServices */
 /* global Loader */
+/* global BulkDelete */
+/* global ICE */
+/* global Telemetry */
 
 var contacts = window.contacts || {};
 
@@ -167,10 +170,12 @@ contacts.Settings = (function() {
 
   function importContactsHandler() {
       // Hide elements for export and transition
-      importSettingsPanel.classList.remove('export');
-      importSettingsPanel.classList.add('import');
-      updateImportTitle('importContactsTitle');
-      navigationHandler.go('import-settings', 'right-left');
+      LazyLoader.load(['/contacts/js/utilities/telemetry.js'], () => {
+        importSettingsPanel.classList.remove('export');
+        importSettingsPanel.classList.add('import');
+        updateImportTitle('importContactsTitle');
+        navigationHandler.go('import-settings', 'right-left');
+      });
   }
 
   function exportContactsHandler() {
@@ -192,7 +197,7 @@ contacts.Settings = (function() {
       '/contacts/js/utilities/ice_data.js',
       '/contacts/js/views/ice_settings.js',
       '/shared/js/contacts/utilities/ice_store.js'], function(){
-      contacts.ICE.refresh();
+      ICE.refresh();
       navigationHandler.go('ice-settings', 'right-left');
       if (typeof cb === 'function') {
         cb();
@@ -211,6 +216,10 @@ contacts.Settings = (function() {
     return source;
   }
 
+  function logImportUsage(name) {
+    return Telemetry.logImportUsage(name);
+  }
+
   function importOptionsHandler(e) {
     /* jshint validthis:true */
 
@@ -225,9 +234,11 @@ contacts.Settings = (function() {
         window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
         break;
       case 'gmail':
+        ExtServices.onContactsImported = logImportUsage.bind(null, 'gmail');
         ExtServices.importGmail();
         break;
       case 'live':
+        ExtServices.onContactsImported = logImportUsage.bind(null, 'live');
         ExtServices.importLive();
         break;
     }
@@ -243,7 +254,7 @@ contacts.Settings = (function() {
         Loader.view('search', function() {
           contacts.List.selectFromList(_('DeleteTitle'),
             function onSelectedContacts(promise, done) {
-              contacts.BulkDelete.performDelete(promise, done);
+              BulkDelete.performDelete(promise, done);
             },
             null,
             navigationHandler,
@@ -448,9 +459,7 @@ contacts.Settings = (function() {
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
     newOrderByLastName = orderCheckBox.checked;
-    utils.cookie.update({order: newOrderByLastName});
     updateOrderingUI();
-    Cache.evict();
   };
 
   // Import contacts from SIM card and updates ui
@@ -519,6 +528,8 @@ contacts.Settings = (function() {
               numDups: numDupsMerged
             }
           });
+        } else {
+          logImportUsage('sim');
         }
 
         typeof done === 'function' && done();
@@ -563,7 +574,10 @@ contacts.Settings = (function() {
     var cancelled = false;
     var importer = null;
     var progress = Contacts.showOverlay(
-      'memoryCardContacts-reading', 'activityBar');
+      'memoryCardContacts-importing',
+      'activityBar',
+      'infiniteProgress'
+    );
     utils.overlay.showMenu();
     utils.overlay.oncancel = function() {
       cancelled = true;
@@ -590,67 +604,81 @@ contacts.Settings = (function() {
       }
 
       if (fileArray.length) {
-        utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
+        var promises = [];
+        fileArray.forEach(file => {
+          promises.push(utils.sdcard.getTextFromFile(file, onContacts));
+        });
+        Promise.all(promises).then(results => {
+          var numDupsMerged = results.reduce((sum, current) => {
+            return sum + current;
+          });
+          window.setTimeout(() => {
+            utils.misc.setTimestamp('sd', () => {
+              // Once the timestamp is saved, update the list
+              updateTimestamps();
+              checkNoContacts();
+              resetWait(wakeLock);
+
+              if (!cancelled) {
+                var msg1 = {
+                  id: 'memoryCardContacts-imported3',
+                  args: {
+                    n: importedContacts
+                  }
+                };
+                var msg2 = !numDupsMerged ? null : {
+                  id: 'contactsMerged',
+                  args: {
+                    numDups: numDupsMerged
+                  }
+                };
+
+                utils.status.show(msg1, msg2);
+
+                logImportUsage('sd');
+
+                if (typeof cb === 'function') {
+                  cb();
+                }
+              }
+            });
+          }, DELAY_FEEDBACK);
+        }).catch(error => {
+          import_error(error);
+        });
       } else {
         import_error('No contacts were found.', cb);
       }
     });
 
-    function onFiles(err, text) {
-      if (err) {
-        return import_error(err, cb);
-      }
-
+    function onContacts(text) {
       if (cancelled) {
-        return;
+        return Promise.reject();
       }
+      return new Promise((resolve, reject) => {
+        importer = new VCFReader(text);
+        if (!text || !importer) {
+          var error = 'No contacts were found';
+          import_error(error);
+          reject(error);
+          return;
+        }
 
-      importer = new VCFReader(text);
-      if (!text || !importer) {
-        return import_error('No contacts were found.', cb);
-      }
+        importer.onimported = imported_contact;
+        importer.onerror = error => {
+          import_error(error);
+          reject(error);
+        };
 
-      importer.onread = import_read;
-      importer.onimported = imported_contact;
-      importer.onerror = import_error;
-
-      importer.process(function import_finish(total, numDupsMerged) {
-        window.setTimeout(function onfinish_import() {
-          utils.misc.setTimestamp('sd', function() {
-            // Once the timestamp is saved, update the list
-            updateTimestamps();
-            checkNoContacts();
-            resetWait(wakeLock);
-
-            if (!cancelled) {
-              var msg1 = {
-                id: 'memoryCardContacts-imported3',
-                args: {
-                  n: importedContacts
-                }
-              };
-              var msg2 = !numDupsMerged ? null : {
-                id: 'contactsMerged',
-                args: {
-                  numDups: numDupsMerged
-                }
-              };
-
-              utils.status.show(msg1, msg2);
-
-              if (typeof cb === 'function') {
-                cb();
-              }
-            }
-          });
-        }, DELAY_FEEDBACK);
+        importer.process((unused, numDupsMerged) => {
+          if (cancelled) {
+            reject('Cancelled');
+            Contacts.hideOverlay();
+            return;
+          }
+          resolve(numDupsMerged);
+        });
       });
-    }
-
-    function import_read(n) {
-      progress.setClass('progressBar');
-      progress.setHeaderMsg('memoryCardContacts-importing');
-      progress.setTotal(n);
     }
 
     function imported_contact() {
@@ -689,6 +717,8 @@ contacts.Settings = (function() {
     if (newOrderByLastName != null &&
         newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
+      utils.cookie.update({order: newOrderByLastName});
+      Cache.evict();
       // Force the reset of the dom, we know that we changed the order
       contacts.List.load(null, true);
       orderByLastName = newOrderByLastName;

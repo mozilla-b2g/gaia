@@ -55,6 +55,7 @@ suite('views/controls', function() {
 
     this.sandbox.stub(this.view.els.thumbnail);
     this.sandbox.spy(this.view, 'set');
+    this.sandbox.spy(this.view, 'unset');
     this.sandbox.spy(this.view, 'emit');
   });
 
@@ -235,6 +236,18 @@ suite('views/controls', function() {
       // Changed
       this.view.onSwitchSnapped({ x: 'right' });
       assert.isTrue(this.view.emit.calledWith('modechanged'));
+    });
+  });
+
+  suite('ControlsView#suspendModeSwitch()', function() {
+    test('It ignores user input on switch when suspended', function() {
+      this.view.suspendModeSwitch(true);
+      assert.ok(this.view.set.calledWith('switch-toggle-disabled'));
+    });
+
+    test('It accepts user input on switch when unsuspended', function() {
+      this.view.suspendModeSwitch(false);
+      assert.ok(this.view.unset.calledWith('switch-toggle-disabled'));
     });
   });
 

@@ -61,15 +61,6 @@
 
 <!-- The keyboard itself should be "ltr", to override the attribute set at documentElement by l10n.js -->
 <body dir="ltr">
-  <div id="keyboard" data-hidden="true">
-    <span id="keyboard-key-highlight"></span>
-  </div>
-  <!-- This is to pre-load styles for keys avoiding flickering -->
-  <div class="cache">
-    <button class="keyboard-key"><span class="visual-wrapper"><span>C</span></span></button>
-    <button class="keyboard-key highlighted"><span class="visual-wrapper"><span>C</span></span></button>
-    <button class="keyboard-key special-key"><span class="visual-wrapper"><span>C</span></span></button>
-    <button class="keyboard-key special-key kbr-key-hold"><span class="visual-wrapper"><span>C</span></span></button>
-  </div>
+  <div id="keyboard"></div>
 </body>
 </html>

@@ -7,15 +7,8 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('storage');
 var bindAll = require('lib/bind-all');
-var dcf = require('lib/dcf');
 var events = require('evt');
 var storageSingleton;
-
-/**
- * Locals
- */
-
-var createFilename = dcf.createDCFFilename;
 
 /**
  * Expose `Storage`
@@ -42,15 +35,29 @@ function Storage(options) {
   bindAll(this);
   this.maxFileSize = 0;
   options = options || {};
-  this.createFilename = options.createFilename || createFilename; // test hook
-  this.dcf = options.dcf || dcf;
-  this.dcf.init();
+  this.dcf = options.dcf;
+  if (this.dcf) {
+    this.dcf.init();
+  }
+  this.require = options.require || require;
   navigator.mozSettings.addObserver(
     'device.storage.writable.name',
     this.onStorageVolumeChanged);
   this.configure();
   debug('initialized');
 }
+
+Storage.prototype.createFilename = function(storage, type, done) {
+  var self = this;
+  this.require(['asyncStorage', 'lib/dcf'], function(as, dcf) {
+    if (!self.dcf) {
+      self.dcf = dcf;
+      self.dcf.init();
+    }
+
+    self.dcf.createDCFFilename(storage, type, done);
+  });
+};
 
 /**
  * Save the image Blob to DeviceStorage
@@ -355,9 +362,11 @@ Storage.prototype.deletePicture = function(filepath, done) {
     done(message);
   };
 
-  req.onsuccess = function() {
-    done(null);
-  };
+  if (done) {
+    req.onsuccess = function() {
+      done(null);
+    };
+  }
 };
 
 /**

@@ -59,9 +59,10 @@ class NewEvent(Calendar):
         return datetime.strptime(event_start_time + event_start_date, '%I:%M %p%m/%d/%Y')
 
     def tap_save_event(self):
-        event_start_time = self.marionette.find_element(*self._event_start_time_value_locator).text
-        event_start_date = self.marionette.find_element(*self._event_start_date_value_locator).text
+        date_str = self.marionette.find_element(*self._event_start_date_value_locator).get_attribute('data-date')
         el = self.marionette.find_element(*self._modify_event_view_locator)
         self.marionette.find_element(*self._save_event_button_locator).tap()
         Wait(self.marionette).until(expected.element_not_displayed(el))
-        return datetime.strptime(event_start_time + event_start_date, '%I:%M %p%m/%d/%Y')
+
+        date_list = date_str.split()
+        return date_list[1] + ' ' + date_list[2]

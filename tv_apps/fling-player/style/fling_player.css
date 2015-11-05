@@ -36,7 +36,6 @@ article, section, video {
 }
 
 #loading-section {
-  background-color: rgba(0, 0, 0, 0.75);
   text-align: center;
   top: calc(50% - 20rem);
   left: calc(50% - 15rem);
@@ -45,25 +44,142 @@ article, section, video {
 }
 
 #loading-section span{
-  color: white;
+  color: #fff;
   line-height: 5rem;
   font-size: 2.4rem;
   font-style: italic;
   display: inline-block;
 }
 
-.control-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.75);
+#initial-message-section {
+  width: auto;
+  height: 11rem;
+  line-height: 11rem;
+  border-radius: 5.5rem;
+  padding: 0 6rem;
+  top: auto;
+  bottom: 30rem;
+  left: 50%;
+  transform: translate(-50%, 0);
+  color: #fff;
+  font-size: 5rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
   opacity: 1;
-  visibility: visible;
+  transition: opacity 1s ease;
+}
+
+#initial-message-section.fade-out {
+  opacity: 0;
+}
+
+.control-panel {
+  position: absolute;
+  left: 19.5rem;
+  right: 19.5rem;
+  bottom: 4rem;
+  opacity: 1;
   transition: all 1s ease;
 }
 
-.control-bar.fade-out {
+.control-panel.fade-out {
   opacity: 0;
-  visibility: hidden;
+}
+
+#video-time-progress {
+  height: 8rem;
+  border-radius: 4rem;
+  left: 34.8rem;
+  right: 0;
+  top: 0;
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#time-progress {
+  height: 8rem;
+  left: 0;
+  right: 0;
+  flex-grow: 1;
+}
+
+.time-bar {
+  width: 100%;
+  height: 0.6rem;
+  background: #6d7177;
+  top: 4rem;
+  position: relative;
+  transform: translate(0, -50%);
+}
+
+#elapsed-time-bar {
+  width: 0;
+  top: 2.8rem;
+  background: #71c9f0;
+}
+
+#buffered-time-bar {
+  width: 0;
+  top: 3.4rem;
+  background: #fff;
+}
+
+.time-text {
+  font-size: 3.2rem;
+  height: 8rem;
+  line-height: 8rem;
+  font-style : italic;
+  color : #ffffff;
+}
+
+#elapsed-time {
+  margin-left: 4.2rem;
+  margin-right: 3rem;
+}
+
+#duration-time {
+  margin-left: 3rem;
+  margin-right: 4.2rem;
+}
+
+#video-control-buttons {
+  width: 31.8rem;
+  height: 8rem;
+  margin-right: 0;
+  display: inline-block;
+  position: relative;
+}
+
+#video-control-buttons > smart-button {
+  font-size: 5rem;
+  color: #fff;
+  position: absolute;
+}
+
+#play-button {
+  width: 9.8rem;
+  height: 9.8rem;
+  margin-top: -0.9rem;
+  left: 11rem;
+}
+
+#forward-button {
+  left: 23.8rem;
+}
+
+#video-control-buttons > smart-button[data-icon]::before {
+  top: -0.1rem;
+}
+
+#play-button[data-icon]::before,
+#play-button.focused[data-icon]::before {
+  left: 2.2rem;
+  line-height: 9.8rem;
+  transform: scale(1.33);
+}
+
+#play-button.focused[data-icon]::before {
+  transform: scale(1.6);
 }

@@ -3,7 +3,7 @@
 /* global Overlay, isPhone, doNotScanInBackgroundHack, fullscreenButtons */
 /* global launchCameraApp, deleteSelectedItems, shareSelectedItems */
 /* global resizeHandler, currentFrame, showFile, fileCreated, fileDeleted */
-/* global files, thumbnailClickHandler */
+/* global files, thumbnailClickHandler, exitEdit */
 
 (function startup() {
   'use strict';
@@ -93,6 +93,12 @@
       // If we were viewing or editing an image it might not be there
       // anymore when the MediaDB becomes available again.
       if (!picking) {
+        // If we are editing image, call exitEdit to revoke blob URLs
+        // and close the editor object. This is a known case where the
+        // user can lose their work. See Bug 1148347
+        if (currentView === LAYOUT_MODE.edit) {
+          exitEdit();
+        }
         setView(LAYOUT_MODE.list);
       } else {
         Pick.restart();
@@ -265,6 +271,13 @@
       // and is ready to interact with.
       window.performance.mark('visuallyLoaded');
       window.performance.mark('contentInteractive');
+
+      // Remove the attribute to trigger gaia header font-fit logic, defer it
+      // til now to postpone the overhead.
+      var headers = document.querySelectorAll('gaia-header');
+      for (var i = 0; i < headers.length; ++i) {
+        headers[i].removeAttribute('no-font-fit');
+      }
     });
 
     // When all the thumbnails have been created, we can start a scan

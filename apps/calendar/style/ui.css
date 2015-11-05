@@ -15,7 +15,7 @@ p {
   line-height: 130%;
 }
 
-menu[type="toolbar"] a {
+menu[type="tablist"] a {
   text-decoration: none;
 }
 
@@ -47,8 +47,8 @@ ol.link-list li:only-child a {
   position: absolute;
   font-size: 3rem;
   line-height: 4.2rem;
-  left: 50%;
-  transform: translateX(-52%);
+  offset-inline-start: 50%;
+  transform: translateX(-52%); /* BiDi-proof */
 }
 
 #time-views {
@@ -63,7 +63,7 @@ body[data-path="/settings/"] #time-views {
 }
 
 #view-selector > .today {
-  border-right: 0.1rem solid #F2F2F2;
+  border-inline-end: 0.1rem solid #F2F2F2;
 }
 
 #view-selector a[aria-selected="true"] {
@@ -166,9 +166,12 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 
 #throbber {
   height: 5.2rem;
-  background: url('ui/progress.png') repeat-x left bottom / 32rem !important;
+  background: url('ui/progress.png') repeat-x;
+  background-size: 32rem;
   animation: .5s throb infinite steps(12);
 }
+html[dir="ltr"] #throbber { background-position: left bottom; }
+html[dir="rtl"] #throbber { background-position: right bottom; }
 
 @keyframes throb {
   from {
@@ -209,7 +212,7 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 }
 
 #advanced-settings-view .settings-list label span:first-child {
-  -moz-padding-start: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 #advanced-settings-view .settings-list label,
@@ -231,8 +234,16 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 }
 
 #advanced-settings-view .account-list .error a {
-  background: transparent url('icons/accountwarning.png') no-repeat left / 2rem auto;
-  -moz-padding-start: 2.7rem;
+  background: transparent url('icons/accountwarning.png') no-repeat;
+  background-size: 2rem auto;
+}
+html[dir="ltr"] #advanced-settings-view .account-list .error a {
+  background-position: left;
+  padding-left: 2.7rem;
+}
+html[dir="rtl"] #advanced-settings-view .account-list .error a {
+  background-position: right;
+  padding-right: 2.7rem;
 }
 
 #advanced-settings-view .preset:after {
@@ -328,20 +339,4 @@ gaia-header > a > span {
 .icon-calendar-today:before,
 .icon-calendar-eventalarm:before {
   font-size: 3.2rem;
-}
-
-/* RTL View */
-
-html[dir="rtl"] #view-selector > .today {
-  border-left: 0.1rem solid #F2F2F2;
-  border-right: unset;
-}
-
-html[dir="rtl"] #advanced-settings-view .account-list li {
-  /* text is always right aligned on RTL even if text direction is still LTR */
-  text-align: right;
-}
-
-html[dir="rtl"] #advanced-settings-view .account-list .error a {
-  background-position: right;
 }

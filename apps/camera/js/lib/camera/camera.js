@@ -219,8 +219,19 @@ Camera.prototype.requestCamera = function(camera, config) {
 
     // If the camera was configured in the
     // `mozCamera.getCamera()` call, we can
-    // fire the 'configured' event now.
-    if (self.configured) { self.emit('configured'); }
+    // fire the 'configured' event now. We
+    // can also start the preview because
+    // gecko ensures that configuration only
+    // completes after the preview has been
+    // started. While we will get a preview
+    // started event after this, we can often
+    // save ourselves getting delayed by an
+    // extra refresh by configuring the
+    // viewfinder now.
+    if (self.configured) {
+      self.emit('configured');
+      self.onPreviewStateChange({newState: 'started'});
+    }
 
     self.ready();
   }
@@ -238,7 +249,7 @@ Camera.prototype.requestCamera = function(camera, config) {
   function onError(err) {
     debug('error requesting camera', err);
 
-    if (err === 'HardwareClosed' && attempts) {
+    if (err.name === 'NS_ERROR_NOT_INITIALIZED' && attempts) {
       self.cameraRequestTimeout = setTimeout(request, 1000);
       return;
     }
@@ -279,6 +290,7 @@ Camera.prototype.setupNewCamera = function(mozCamera) {
                                   this.onPreviewStateChange);
   this.mozCamera.addEventListener('recorderstatechange',
                                   this.onRecorderStateChange);
+  this.mozCamera.addEventListener('poster', this.onPoster);
 
   this.capabilities = this.formatCapabilities(capabilities);
 
@@ -761,17 +773,15 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function onError(error) {
-    var title = navigator.mozL10n.get('error-saving-title');
-    var text = navigator.mozL10n.get('error-saving-text');
-
     // if taking a picture fails because there's
     // already a picture being taken we ignore it.
-    if (error === 'TakePictureAlreadyInProgress') {
+    if (error.name === 'NS_ERROR_IN_PROGRESS') {
       complete();
     } else {
-      alert(title + '. ' + text);
-      debug('error taking picture');
-      complete();
+      navigator.mozL10n.formatValue('error-saving').then((value) => {
+        alert(value);
+        complete();
+      });
     }
   }
 
@@ -805,8 +815,8 @@ Camera.prototype.updateFocusArea = function(rect, done) {
  * @param  {Object} options
  */
 Camera.prototype.toggleRecording = function(options) {
-  var recording = this.get('recording');
-  if (recording) { this.stopRecording(); }
+  var state = this.get('recording');
+  if (state && state !== 'stopped') { this.stopRecording(); }
   else { this.startRecording(options); }
 };
 
@@ -817,7 +827,6 @@ Camera.prototype.toggleRecording = function(options) {
  */
 Camera.prototype.setStorage = function(storage) {
   this.storage.video = storage.video;
-  this.storage.picture = storage.picture;
 };
 
 /**
@@ -836,7 +845,7 @@ Camera.prototype.startRecording = function(options) {
   // Rotation is flipped for front camera
   if (frontCamera) { rotation = -rotation; }
 
-  this.set('recording', true);
+  this.set('recording', 'starting');
   this.busy();
 
   // Lock orientation during video recording
@@ -864,7 +873,7 @@ Camera.prototype.startRecording = function(options) {
   this.getFreeVideoStorageSpace(gotStorageSpace);
 
   function gotStorageSpace(err, freeBytes) {
-    if (self.stopRecordPending) {
+    if (self.get('recording') === 'stopping') {
       debug('start recording interrupted (getFreeVideoStorageSpace)');
       return self.stoppedRecording();
     }
@@ -887,13 +896,14 @@ Camera.prototype.startRecording = function(options) {
     // pass in orientation
     var config = {
       rotation: rotation,
-      maxFileSizeBytes: maxFileSizeBytes
+      maxFileSizeBytes: maxFileSizeBytes,
+      createPoster: true
     };
 
     self.createVideoFilepath(createVideoFilepathDone);
 
     function createVideoFilepathDone(errorMsg, filepath) {
-      if (self.stopRecordPending) {
+      if (self.get('recording') === 'stopping') {
         debug('start recording interrupted (createVideoFilepath)');
         return self.stoppedRecording();
       }
@@ -904,9 +914,6 @@ Camera.prototype.startRecording = function(options) {
       }
 
       video.filepath = filepath;
-      video.poster.filepath = filepath.replace('.3gp', '.jpg');
-      config.posterFilepath = video.poster.filepath;
-      config.posterStorageArea = self.storage.picture;
       self.emit('willrecord');
       self.mozCamera.startRecording(config, storage, filepath)
         .then(onSuccess, onError);
@@ -952,6 +959,7 @@ Camera.prototype.startRecording = function(options) {
 Camera.prototype.startedRecording = function() {
   debug('started recording');
   this.startVideoTimer();
+  this.set('recording', 'started');
 };
 
 /**
@@ -971,17 +979,18 @@ Camera.prototype.startedRecording = function() {
 Camera.prototype.stopRecording = function() {
   debug('stop recording');
 
-  var notRecording = !this.get('recording');
+  var state = this.get('recording');
 
   // Even if we have requested a recording to stop, that doesn't
   // mean it has finished yet, as we need to wait for the recorder
   // state change event.
-  if (notRecording || this.stopRecordPending) {
+  if (!state || state === 'stopping' || state === 'stopped' ||
+                state === 'error') {
     debug('not recording or stop pending');
     return;
   }
 
-  this.stopRecordPending = true;
+  this.set('recording', 'stopping');
   this.busy();
   this.mozCamera.stopRecording();
 };
@@ -989,8 +998,10 @@ Camera.prototype.stopRecording = function() {
 Camera.prototype.stoppedRecording = function(recorded) {
   debug('stopped recording');
   this.stopVideoTimer();
-  this.stopRecordPending = false;
-  this.set('recording', false);
+  if (!recorded) {
+    this.set('recording', 'error');
+  }
+  this.set('recording', 'stopped');
 
   // Unlock orientation when stopping video recording.
   // REVIEW:WP This logic is out of scope of the
@@ -999,20 +1010,15 @@ Camera.prototype.stoppedRecording = function(recorded) {
   this.orientation.start();
 
   var self = this;
-  var videoReq;
-  var posterReq;
   var video;
 
   if (recorded) {
     video = mix({}, this.video);
+    video.poster = mix({}, video.poster);
 
     // Re-fetch the blobs from storage
-    videoReq = this.storage.video.get(video.filepath);
-    posterReq = this.storage.picture.get(video.poster.filepath);
-
-    Promise.all([videoReq.then(), posterReq.then()]).then(function() {
-      video.blob = videoReq.result;
-      video.poster.blob = posterReq.result;
+    this.storage.video.get(video.filepath).then(function(blob) {
+      video.blob = blob;
       // Tell the app the new video is ready
       self.emit('newvideo', video);
       self.ready();
@@ -1028,10 +1034,11 @@ Camera.prototype.stoppedRecording = function(recorded) {
 // TODO: This is UI stuff, so
 // shouldn't be handled in this file.
 Camera.prototype.onRecordingError = function(id) {
-  id = id && id !== 'FAILURE' ? id : 'error-recording';
-  var title = navigator.mozL10n.get(id + '-title');
-  var text = navigator.mozL10n.get(id + '-text');
-  alert(title + '. ' + text);
+  if (id) {
+    navigator.mozL10n.formatValue(id).then((value) => {
+      alert(value);
+    });
+  }
   this.ready();
 };
 
@@ -1044,9 +1051,8 @@ Camera.prototype.onStartRecordingError = function(id) {
 Camera.prototype.onStopRecordingError = function(video) {
   debug('stop record error');
 
-  // These files may or may not exist, delete them just in case
+  // This file may or may not exist, delete it just in case
   this.storage.video.delete(video.filepath);
-  this.storage.picture.delete(video.poster.filepath);
 
   // If the time between start/stop was really short, suppress the
   // error dialog to the user -- they wouldn't have expected to
@@ -1092,6 +1098,7 @@ Camera.prototype.onClosed = function(e) {
 Camera.prototype.onPreviewStateChange = function(e) {
   var state = e.newState;
   debug('preview state change: %s', state);
+  if (state === this.previewState) { return; }
   this.previewState = state;
   this.emit('preview:' + state);
 };
@@ -1126,6 +1133,16 @@ Camera.prototype.onRecorderStateChange = function(e) {
     this.stopRecordError = true;
     this.stopRecording();
   }
+};
+
+/**
+ * Requested poster got created while recording a video.
+ *
+ * @private
+ */
+Camera.prototype.onPoster = function(e) {
+  debug('poster created');
+  this.video.poster.blob = e.data;
 };
 
 /**
@@ -1343,6 +1360,9 @@ Camera.prototype.setSceneMode = function(value){
  * @return {Boolean}
  */
 Camera.prototype.isZoomSupported = function() {
+  if (!this.mozCamera) {
+    return false;
+  }
   return this.mozCamera.capabilities.zoomRatios.length > 1;
 };
 

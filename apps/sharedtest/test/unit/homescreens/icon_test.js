@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Icon, GridIconRenderer, MocksHelper, devicePixelRatio */
+/* global Icon, GridIconRenderer, MocksHelper */
 /* global require, suite, test, assert, sinon */
 
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
@@ -22,7 +22,7 @@ suite('icon.js >', function() {
     subject.render();
 
     var backgroundSize = element.style.backgroundSize;
-    assert.isTrue(backgroundSize.contains(subject.size * devicePixelRatio));
+    assert.isTrue(backgroundSize.contains(subject.size / 10));
   });
 
   test('it sets the background image when there is an icon', function() {

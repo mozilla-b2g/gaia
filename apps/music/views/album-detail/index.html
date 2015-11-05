@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html class="theme-media">
+<head>
+  <meta charset="utf-8">
+  <title data-l10n-id="albums">Albums</title>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+  <!-- Localization -->
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="en-US">
+  <link rel="localization" href="/locales/music.{locale}.properties">
+  <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/components/gaia-icons/gaia-icons.css">
+  <link rel="stylesheet" href="/components/gaia-theme/gaia-theme.css">
+  <link rel="stylesheet" href="/css/view.css">
+  <!-- Deferred Scripts -->
+  <script defer src="/components/bridge/client.js"></script>
+  <script defer src="/shared/js/intl/l20n-client.js"></script>
+  <script defer src="/shared/js/intl_helper.js"></script>
+  <script defer src="/components/dom-scheduler/lib/dom-scheduler.js"></script>
+  <script defer src="/components/fast-list/fast-list.js"></script>
+  <script defer src="/components/poplar/poplar.js"></script>
+  <script defer src="/components/gaia-component/gaia-component.js"></script>
+  <script defer src="/components/gaia-fast-list/gaia-fast-list.js"></script>
+  <script defer src="/js/config.js"></script>
+  <script defer src="/js/view.js"></script>
+  <script defer src="view.js"></script>
+</head>
+<body role="application">
+  <gaia-fast-list id="list" top="50" bottom="0">
+    <template>
+      <a href="/player" data-file-path="${name}">
+        <em>${index}</em>
+        <h3>${title}</h3>
+      </a>
+    </template>
+  </gaia-fast-list>
+</body>
+</html>

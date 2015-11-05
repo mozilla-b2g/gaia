@@ -22,7 +22,6 @@ function LayoutPageView(layout, options, viewManager) {
   //}
 
   this.candidatePanel = null;
-  this.candidatePanelHeight = 3.2;
 
   // Cache the visual data here
   this.keyArrays = new Map();
@@ -63,6 +62,14 @@ LayoutPageView.prototype.render = function render() {
     handwritingPadView.render();
     content.appendChild(handwritingPadView.element);
     this.handwritingPadView = handwritingPadView;
+  }
+
+  container.classList.add('rows-' + layout.keys.length);
+
+  if (layout.keys.length !== 4 &&
+      layout.keys.length !== 5) {
+    console.warn('LayoutPageView: Layout to render is neither 4 or 5 rows; ' +
+      'might not be render with expected height.', layout.keys.length);
   }
 
   layout.keys.forEach((function buildKeyboardRow(row, nrow) {
@@ -116,9 +123,7 @@ LayoutPageView.prototype.render = function render() {
         options.outerRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
       }
 
-      if (layout.secondLayout) {
-        options.altOutputChar = key.value;
-      }
+      options.altOutputChar = key.value;
 
       var keyView = new KeyView(target, options, this.viewManager);
       keyView.render();
@@ -151,8 +156,8 @@ LayoutPageView.prototype.render = function render() {
 LayoutPageView.prototype.setUpperCaseLock = function setUpperCaseLock(state) {
   this.isUpperCase = (state.isUpperCase || state.isUpperCaseLocked);
 
-  // Toggle the entire container in case this layout require different
-  // rendering for upper case state, i.e. |secondLayout = true|.
+  // Toggle the entire container to trigger different rendering
+  // for upper case state.
   var container = this.element;
   container.classList.toggle('lowercase', !this.isUpperCase);
 
@@ -262,7 +267,6 @@ LayoutPageView.prototype.createCandidatePanel = function(inputMethodName) {
     case 'latin':
       candidatePanel =
         new LatinCandidatePanelView(target, options, this.viewManager);
-      this.candidatePanelHeight = 3.1;
       break;
 
     case 'vietnamese':
@@ -309,22 +313,42 @@ LayoutPageView.prototype.getNumberOfCandidatesPerRow = function() {
     return;
   }
 
-  return this.candidatePanel.countPerRow;
+  return this.candidatePanel.COUNT_PER_ROW;
 };
 
 LayoutPageView.prototype.getHeight = function() {
-  var totalWidth = this.options.totalWidth;
-  var scale = this.viewManager.screenInPortraitMode() ?
-              totalWidth / 32 :
-              totalWidth / 64;
-
-  var height = this.rows.size * (5.1 * scale);
+  var height = this.rows.size * this.getKeyHeight();
 
   if (this.candidatePanel) {
-    height += (this.candidatePanelHeight * scale);
+    height += this.candidatePanel.getHeight();
   }
 
   return height;
+};
+
+LayoutPageView.prototype.getKeyHeight = function() {
+  // Start with top & bottom margin height
+  var keyHeightInRem = 0.8;
+
+  /**
+   * There are 4 different heights we are using here.
+   * See CSS variable '--key-height' in keyboard.css.
+   */
+  if (this.viewManager.screenInPortraitMode()) {
+    if (this.layout.keys.length === 5) {
+      keyHeightInRem += 3.4;
+    } else {
+      keyHeightInRem += 4.5;
+    }
+  } else {
+    if (this.layout.keys.length === 5) {
+      keyHeightInRem += 2.85;
+    } else {
+      keyHeightInRem += 3.8;
+    }
+  }
+
+  return keyHeightInRem * this.viewManager.getRemToPx();
 };
 
 exports.LayoutPageView = LayoutPageView;

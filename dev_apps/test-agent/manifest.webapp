@@ -17,7 +17,11 @@
     "name": "The Gaia Team"
   },
   "icons": {
-    "120": "/style/icons/Test-agent.png"
+    "84": "/style/icons/test-agent_84.png",
+    "126": "/style/icons/test-agent_126.png",
+    "142": "/style/icons/test-agent_142.png",
+    "189": "/style/icons/test-agent_189.png",
+    "284": "/style/icons/test-agent_284.png"
   },
   "orientation": "portrait-primary"
 }

@@ -268,9 +268,20 @@ suite('InputWindowManager', function() {
 
     suite('External events for hideInputWindowImmediately', function() {
       var stubHideInputWindowImmediately;
+      var realInputMethod;
+
       setup(function() {
         stubHideInputWindowImmediately =
           this.sinon.stub(manager, 'hideInputWindowImmediately');
+
+        realInputMethod = window.navigator.mozInputMethod;
+        navigator.mozInputMethod = {
+          removeFocus: this.sinon.stub()
+        };
+      });
+
+      teardown(function() {
+        navigator.mozInputMethod = realInputMethod;
       });
 
       var testForHideImmeidately = function(evtType) {
@@ -278,6 +289,7 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isTrue(stubHideInputWindowImmediately.called);
+          assert.isTrue(navigator.mozInputMethod.removeFocus.called);
         });
       };
 

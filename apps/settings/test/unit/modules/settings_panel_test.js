@@ -6,21 +6,14 @@ suite('SettingsPanel', function() {
       'modules/settings_panel',
       'modules/panel_utils',
       'modules/settings_cache',
-      'shared_mocks/mock_l10n'
-    ], (function(settingsPanelFunc, PanelUtils, SettingsCache, MockL10n) {
+    ], (function(settingsPanelFunc, PanelUtils, SettingsCache) {
       this.realL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
 
       this.PanelUtils = PanelUtils;
       this.SettingsCache = SettingsCache;
       this.SettingsPanel = settingsPanelFunc;
       done();
     }).bind(this));
-  });
-
-  suiteTeardown(function() {
-    navigator.mozL10n = this.realL10n;
-    this.realL10n = null;
   });
 
   suite('Basic functions', function() {

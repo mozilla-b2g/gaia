@@ -240,6 +240,17 @@ suite('system/BrowserKeyEventManager', function() {
       assert.isFalse(evt.preventDefault.called);
     });
 
+  test('defaultPrevented called for VolumeDown in key combinations',
+    function() {
+      var evt = this.sinon.stub(
+        createHardwareKeyEvent('mozbrowserbeforekeydown', 'VolumeDown', false));
+      assert.isFalse(evt.preventDefault.called);
+      var actualTranslatedType =
+        browserKeyEventManager.getButtonEventType(evt, true);
+      assert.isUndefined(actualTranslatedType);
+      assert.isTrue(evt.preventDefault.called);
+    });
+
   test('translate (keydown, VolumeDown) into volume-down-button-press',
     function() {
       var evt = this.sinon.stub(
@@ -269,6 +280,17 @@ suite('system/BrowserKeyEventManager', function() {
       assert.isFalse(evt.preventDefault.called);
       var actualTranslatedType = browserKeyEventManager.getButtonEventType(evt);
       assert.isUndefined(actualTranslatedType);
+      assert.isFalse(evt.preventDefault.called);
+    });
+
+  test('ignore embeddedCancelled for VolumeDown in key combination',
+    function() {
+      var evt = this.sinon.stub(
+        createHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeDown', true));
+      assert.isFalse(evt.preventDefault.called);
+      var actualTranslatedType =
+        browserKeyEventManager.getButtonEventType(evt, true);
+      assert.equal(actualTranslatedType, 'volume-down-button-press');
       assert.isFalse(evt.preventDefault.called);
     });
 

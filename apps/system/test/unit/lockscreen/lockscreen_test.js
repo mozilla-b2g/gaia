@@ -35,6 +35,7 @@ suite('system/LockScreen >', function() {
   var domOverlay;
   var domPasscodeCode;
   var domMainScreen;
+  var domMaskedBackground;
   var domCamera;
   var stubById;
   var domMessage;
@@ -100,6 +101,8 @@ suite('system/LockScreen >', function() {
     domPasscodeCode = document.createElement('div');
     document.body.appendChild(domPasscodePad);
     domMainScreen = document.createElement('div');
+    domMaskedBackground = document.createElement('div');
+    domMaskedBackground.id = 'lockscreen-masked-background';
     subject.passcodePad = domPasscodePad;
     domMessage = document.createElement('div');
     subject.message = domMessage;
@@ -115,6 +118,7 @@ suite('system/LockScreen >', function() {
 
     subject.overlay = domOverlay;
     subject.mainScreen = domMainScreen;
+    subject.maskedBackground = domMaskedBackground;
     subject.camera = domCamera;
     subject.lock();
   });
@@ -149,7 +153,6 @@ suite('system/LockScreen >', function() {
   function() {
     var method = window.LockScreen.prototype.checkPassCodeTimeout;
     var mockThis = {
-      passCodeRequestTimeout: 60,
       fetchLockedInterval: function() {},
       fetchUnlockedInterval: function() {}
     };
@@ -157,17 +160,17 @@ suite('system/LockScreen >', function() {
     var stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
     mockThis.fetchLockedInterval = stubFetchLockedInterval;
     mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
-    assert.isTrue(method.call(mockThis));
+    assert.isTrue(method.call(mockThis, 60));
     stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
     stubFetchUnlockedInterval = this.sinon.stub().returns(61 * 1000);
     mockThis.fetchLockedInterval = stubFetchLockedInterval;
     mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
-    assert.isTrue(method.call(mockThis));
+    assert.isTrue(method.call(mockThis, 60));
     stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
     stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
     mockThis.fetchLockedInterval = stubFetchLockedInterval;
     mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
-    assert.isFalse(method.call(mockThis));
+    assert.isFalse(method.call(mockThis, 60));
   });
 
   test('Fetch locked interval update the interval when it\'s still locked',
@@ -295,6 +298,65 @@ suite('system/LockScreen >', function() {
     subject.checkPassCode('0000');
     assert.isTrue(StubPasscodeHelper.called,
       'lockscreen did not call PasscodeHelper to validate passcode');
+  });
+
+  suite('Pass code validation >', function() {
+
+    setup(function() {
+      subject.init();
+    });
+
+    test('validation fail increases error count and timeout', function() {
+      subject.kPassCodeErrorCounter = 20;
+      var oldTimeout = 1;
+      subject.kPassCodeErrorTimeout = oldTimeout;
+      subject.overlay.dataset.passcodeStatus = 'foofoo';
+      subject.onPasscodeValidationFailed();
+      assert.isTrue(subject.kPassCodeErrorTimeout > oldTimeout,
+        'validation fail does not increase error timeout');
+      assert.isTrue(subject.kPassCodeErrorCounter == 21,
+        'validation fail does not increase error counter');
+      assert.isTrue(subject.overlay.dataset.passcodeStatus !== 'foofoo',
+        'validation fail does not change pass code error status');
+    });
+
+    test('validation success resets error count and timeout', function() {
+      subject.kPassCodeErrorCounter = 20;
+      var oldTimeout = 100000;
+      subject.kPassCodeErrorTimeout = oldTimeout;
+      subject.onPasscodeValidationSuccess();
+      assert.isTrue(subject.kPassCodeErrorTimeout < oldTimeout/10,
+        'validation success does not reset error timeout');
+      assert.isTrue(subject.kPassCodeErrorCounter === 0,
+        'validation success does not reset error counter');
+    });
+
+    test('validation fail triggers validationfailed/reset events', function() {
+      subject.enabled = true;
+      subject.lock();
+      subject.kPassCodeErrorCounter = 0;
+      subject.kPassCodeErrorTimeout = 1;
+      var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+      // Force setTimeout to run in sync
+      var setTimeoutStub = this.sinon.stub(window, 'setTimeout', function(f){
+        f();
+      });
+      subject.onPasscodeValidationFailed();
+      assert.isTrue(stubDispatch.firstCall.calledWithMatch(sinon.match(
+          function(e) {
+            return e.type ===
+              'lockscreen-notify-passcode-validationfailed';
+          })),
+        'validation fail does not trigger validationfailed as 1st event');
+      assert.isTrue(stubDispatch.secondCall.calledWithMatch(sinon.match(
+          function(e) {
+            return e.type ===
+              'lockscreen-notify-passcode-validationreset';
+          })),
+        'validation fail does not trigger validationreset as 2nd event');
+      stubDispatch.restore();
+      setTimeoutStub.restore();
+    });
   });
 
   test('Unlock: would destroy the clock widget', function() {
@@ -497,12 +559,6 @@ suite('system/LockScreen >', function() {
       stubDispatch.restore();
     });
 
-  test('When lockscreen is on, holdcamera starts camera app', function() {
-    var spy = this.sinon.spy(subject, '_activateCamera');
-    subject.handleEvent({ type: 'holdcamera' });
-    assert.isTrue(spy.called);
-  });
-
   test('Message: message should appear on screen when set', function() {
     var message = 'message';
     subject.setLockMessage(message);
@@ -516,11 +572,48 @@ suite('system/LockScreen >', function() {
     assert.equal(subject.message.hidden, true);
   });
 
-  test('Lock when asked via lock-immediately setting', function() {
-    window.MockNavigatorSettings.mTriggerObservers(
-      'lockscreen.lock-immediately', {settingValue: true});
-    assert.isTrue(subject.locked,
-      'it didn\'t lock after the lock-immediately setting got changed');
+  suite('lockscreen.lock-immediately settings observer >', function() {
+
+    setup(function() {
+      subject.init();  // to register observers
+    });
+
+    test('Locks when lock-immediately setting is set to true', function () {
+      var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+      subject.enabled = true;
+      subject.unlock();  // or lock screen is already enabled
+      window.MockSettingsListener.mTriggerCallback(
+        'lockscreen.lock-immediately', true);
+      assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
+          function(e) {
+            return e.type === 'lockscreen-request-lock';
+          })),
+        'does not request lock after lock-immediately setting is changed');
+      stubDispatch.restore();
+    });
+
+    test('resets lock/unlock timestamps', function () {
+      subject.enabled = true;
+      subject.passCodeEnabled = true;
+      var spy = this.sinon.spy(subject, 'resetTimeoutForcibly');
+      window.MockSettingsListener.mTriggerCallback(
+        'lockscreen.lock-immediately', true);
+      assert.isTrue(spy.called,
+        'lock-immediately does not reset timestamps');
+    });
+  });
+
+  test('resetTimeoutForcibly triggers password check after lock', function () {
+    subject.enabled = true;
+    subject.passCodeEnabled = true;
+    subject.passCodeRequestTimeout = 60 * 1000;  // 60 seconds
+    subject.unlock();  // or .lock() won't update timestamps
+    subject.lock();
+    assert.isFalse(subject.checkPassCodeTimeout(subject.passCodeRequestTimeout),
+      'pass code timeout check triggers right after lock');
+    subject.resetTimeoutForcibly();
+    assert.isTrue(subject.checkPassCodeTimeout(subject.passCodeRequestTimeout),
+      'resetTimeoutForcibly does not trigger pass code after lock');
   });
 
   test('Locks the screen: the overlay would be set as locked', function() {
@@ -530,6 +623,7 @@ suite('system/LockScreen >', function() {
       locked: false,
       overlayLocked: stubOverlayLocked,
       mainScreen: document.createElement('div'),
+      maskedBackground : document.createElement('div'),
       createClockWidget: function() {},
       dispatchEvent: function() {},
       _checkGenerateMaskedBackgroundColor: function() {
@@ -638,6 +732,26 @@ suite('system/LockScreen >', function() {
       subject._shouldRegenerateMaskedBackgroundColor = false;
       subject._regenerateMaskedBackgroundColorFrom = undefined;
       assert.isFalse(subject._checkGenerateMaskedBackgroundColor());
+    });
+
+    test('Lock : Removes masked Overlay if there are no notifications',
+      function() {
+      var method = window.LockScreen.prototype.lock;
+      subject.maskedBackground.classList.add('blank');
+      var mockThis = {
+        locked: false,
+        overlayLocked: function() {},
+        mainScreen: document.createElement('div'),
+        maskedBackground : subject.maskedBackground,
+        createClockWidget: function() {},
+        dispatchEvent: function() {},
+        _checkGenerateMaskedBackgroundColor: function() {
+          return false;
+        }
+      };
+      method.call(mockThis);
+      assert.strictEqual(subject.maskedBackground.style.backgroundColor,
+        'transparent');
     });
 
     suite('generateMaskedBackgroundColor', function() {

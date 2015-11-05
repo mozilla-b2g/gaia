@@ -21,7 +21,6 @@ requirejs.config({
     },
     'shared/js/accessibility_helper': {
       exports: 'AccessibilityHelper'
-    },
-    'shared/js/l10n_date': ['shared/js/l10n']
+    }
   }
 });

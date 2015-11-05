@@ -28,7 +28,8 @@ suite('controllers/settings', function() {
     var self = this;
 
     this.app = sinon.createStubInstance(this.App);
-    this.app.l10ngGet = sinon.stub();
+    this.app.require = sinon.stub();
+    this.app.require.callsArgWith(1, this.SettingsView);
 
     // Settings
     this.app.el = {};
@@ -101,9 +102,11 @@ suite('controllers/settings', function() {
         .withArgs('exclude')
         .returns(this.exclude);
 
-      this.app.l10nGet
-        .withArgs('mp')
-        .returns('mp');
+      navigator.mozL10n = {
+        formatValue: function(id, args) {
+          return Promise.resolve();
+        }
+      };
 
       // Run it
       this.controller.configurePictureSizes(this.pictureSizes);
@@ -358,7 +361,7 @@ suite('SettingsController#configureRecorderProfiles()', function() {
 
 
   suite('SettingsController#formatPictureSizeTitles()', function() {
-    setup(function() {
+    setup(function(done) {
       this.options = [
         {
           key: '400x300',
@@ -394,10 +397,17 @@ suite('SettingsController#configureRecorderProfiles()', function() {
         .returns(this.options);
 
       this.app.localized.returns(true);
-      this.controller.l10nGet.withArgs('mp').returns('MP');
+
+      navigator.mozL10n = {
+        formatValue: function(id, args) {
+          return Promise.resolve('MP');
+        }
+      };
 
       // Call the test subject
-      this.controller.formatPictureSizeTitles();
+      this.controller.formatPictureSizeTitles().then(() => {
+        done();
+      });
     });
 
     test('Should include the apect ratio', function() {
@@ -414,12 +424,14 @@ suite('SettingsController#configureRecorderProfiles()', function() {
     });
 
     test('Should use localized \'MP\' string', function() {
-      this.controller.l10nGet
-        .withArgs('mp')
-        .returns('MP-LOCALIZED');
+      navigator.mozL10n = {
+        formatValue: function(id, args) {
+          return Promise.resolve('MP');
+        }
+      };
 
       this.controller.formatPictureSizeTitles();
-      assert.isTrue(this.options[2].title.indexOf('MP-LOCALIZED') > -1, this.options[2].title);
+      assert.isTrue(this.options[2].title.indexOf('MP') > -1, this.options[2].title);
     });
 
     test('Should not run if app isn\'t localized yet', function() {

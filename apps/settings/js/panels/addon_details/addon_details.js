@@ -53,7 +53,8 @@ define(function(require) {
     }
 
     var l10n = navigator.mozL10n;
-    this.noRename = !isActivity || !AddonManager.canDelete(app);
+    var canDelete = AddonManager.canDelete(app);
+    this.noRename = !isActivity || !canDelete;
     var manifest =
       new ManifestHelper(app.instance.manifest || app.instance.updateManifest);
 
@@ -66,6 +67,11 @@ define(function(require) {
     }).catch(() => {
       this._elements.icon.src = '../style/images/default.png';
     });
+
+    // Display the add-on version
+    if (manifest.version) {
+      this._elements.version.textContent = 'v' + manifest.version;
+    }
 
     // Display the add-on description if there is one
     if (manifest.description) {
@@ -84,6 +90,15 @@ define(function(require) {
     l10n.setAttributes(this._elements.developer, 'addon-developer-name', {
       developerName: developerName || ''
     });
+
+    // Old add-on format had 'customizations' field, it is now moved to
+    // 'content_scripts' field
+    var oldAddonFormat = !!manifest.customizations;
+    if (oldAddonFormat) {
+      l10n.setAttributes(this._elements.obsoleteStatusInfo,
+        canDelete ? 'addon-obsolete-can-delete' : 'addon-obsolete');
+    }
+    this._elements.obsoleteStatus.hidden = !oldAddonFormat;
 
     // Get the list of targeted apps
     this._elements.targetsList.textContent = '';  // Clear any old content here

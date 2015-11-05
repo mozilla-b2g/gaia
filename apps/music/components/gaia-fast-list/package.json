@@ -1,0 +1,29 @@
+{
+  "name": "gaia-fast-list",
+  "main": "gaia-fast-list.js",
+  "version": "0.2.1",
+  "devDependencies": {
+    "bower": "^1.5.2",
+    "jshint": "^2.7.0",
+    "karma": "^0.12.31",
+    "karma-chrome-launcher": "^0.1.4",
+    "karma-firefox-launcher": "^0.1.4",
+    "karma-mocha": "^0.2.0",
+    "karma-sinon-chai": "^0.3.0",
+    "mozilla-download": "^1.1.1"
+  },
+  "scripts": {
+    "postinstall": "bower install",
+    "test-lint": "./node_modules/jshint/bin/jshint gaia-fast-list.js",
+    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf",
+    "test-unit": "./node_modules/karma/bin/karma start test/karma.conf --single-run",
+    "test": "npm run test-unit && npm run test-lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gaia-components/gaia-fast-list.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gaia-components/gaia-fast-list/issues"
+  }
+}

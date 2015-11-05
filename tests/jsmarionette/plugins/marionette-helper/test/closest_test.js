@@ -26,12 +26,11 @@ suite('MarionetteHelper.closest', function() {
     }
   });
 
-  setup(function(done) {
+  setup(function() {
     helper = client.helper;
     fakeApp = new FakeApp(client, 'app://' + FAKE_APP_ORIGIN);
     fakeApp.launch();
     testTime = new Date();
-    setTimeout(done, 2500);  // Instead of using the BootWatcher.
   });
 
 

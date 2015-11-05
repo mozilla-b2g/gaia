@@ -279,6 +279,9 @@
       if (activeApp.isPrivateBrowser() &&
         activeApp.config.url.startsWith('app://')) {
         return;
+      } else if (activeApp.isBrowser() && document.mozFullScreen) {
+        // If it is a browser and in fullscreen mode, don't share it.
+        return;
       }
 
       nfc.checkP2PRegistration(manifestURL).then(result => {

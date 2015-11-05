@@ -14,57 +14,146 @@ module.exports = Music;
 Music.DEFAULT_ORIGIN = 'music.gaiamobile.org';
 
 Music.Selector = Object.freeze({
-  messageOverlay: '#overlay',
+  viewFrame: '#view-stack iframe',
+  secondaryViewFrame: '#view-stack iframe:nth-child(2)',
+  activeViewFrame: '#view-stack iframe.active',
+  homeViewFrame: 'iframe[src*="/views/home/index.html"]',
+  songsViewFrame: 'iframe[src*="/views/songs/index.html"]',
+  artistsViewFrame: 'iframe[src*="/views/artists/index.html"]',
+  artistDetailViewFrame: 'iframe[src*="/views/artist-detail/index.html"]',
+  albumsViewFrame: 'iframe[src*="/views/albums/index.html"]',
+  albumDetailViewFrame: 'iframe[src*="/views/album-detail/index.html"]',
+  playlistsViewFrame: 'iframe[src*="/views/playlists/index.html"]',
+  playlistDetailViewFrame: 'iframe[src*="/views/playlist-detail/index.html"]',
+  playerViewFrame: 'iframe[src*="/views/player/index.html"]',
+
+  homeViewFrameActive:
+    'iframe.active[src*="/views/home/index.html"]',
+  songsViewFrameActive:
+    'iframe.active[src*="/views/songs/index.html"]',
+  artistsViewFrameActive:
+    'iframe.active[src*="/views/artists/index.html"]',
+  artistDetailViewFrameActive:
+    'iframe.active[src*="/views/artist-detail/index.html"]',
+  albumsViewFrameActive:
+    'iframe.active[src*="/views/albums/index.html"]',
+  albumDetailViewFrameActive:
+    'iframe.active[src*="/views/album-detail/index.html"]',
+  playlistsViewFrameActive:
+    'iframe.active[src*="/views/playlists/index.html"]',
+  playlistDetailViewFrameActive:
+    'iframe.active[src*="/views/playlist-detail/index.html"]',
+  playerViewFrameActive:
+    'iframe.active[src*="/views/player/index.html"]',
+
+  messageOverlay: '#empty-overlay',
   firstTile: '.tile',
-  playlistsTab: '#tabs-playlists',
-  artistsTab: '#tabs-artists',
-  songsTab: '#tabs-songs',
-  albumsTab: '#tabs-albums',
-  playerCover: '#player-cover',
+  tabBar: '#tab-bar',
+  playlistsTab: '#tab-bar button[value="playlists"]',
+  artistsTab: '#tab-bar button[value="artists"]',
+  albumsTab: '#tab-bar button[value="albums"]',
+  songsTab: '#tab-bar button[value="songs"]',
+  playerCover: '#artwork',
 
   // search fields
-  searchField: '#views-search-input',
-  searchTiles: '#views-tiles-search',
-  searchTilesField: '#views-tiles-search-input',
-  searchList: '#views-list-search',
-  searchListField: '#views-list-search-input',
+  searchBox: 'music-search-box',
+  searchResults: 'music-search-results',
+  searchField: '#input',
   // search results
   searchArtists: '#views-search-artists',
   searchAlbums: '#views-search-albums',
   searchTitles: '#views-search-titles',
   searchNoResult: '#views-search-no-result',
 
-  tilesView: '#views-tiles',
-  listView: '#views-list',
-  viewsList: '#views-list-anchor',
-  sublistView: '#views-sublist',
-  viewsSublist: '#views-sublist-anchor',
-  firstListItem: '.list-item',
-  firstSong: '.list-item',
-  firstSongSublist: '#views-sublist .list-item',
-  playerView: '#views-player',
+  tilesView: '#tiles',
+  listItem: '#list .gfl-item',
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
-  shareButton: '#player-cover-share',
-  ratingBar: '#player-album-rating',
-  ratingStarsOn: 'button.star-on',
+  shareButton: 'button[data-action="share"]',
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
-  header: '#title',
-  titleText: '#title-text',
+  header: '#header',
+  titleText: '#header-title',
   sublistShuffleButton: '#views-sublist-controls-shuffle',
-  playerIcon: '#title-player'
+  playerIcon: '#player-button'
 });
 
 Music.prototype = {
   client: null,
+
+  // debug function.
+  debugDocument: function() {
+    var debug = this.client.executeScript(function() {
+      return document.documentElement.innerHTML;
+    });
+    console.log('debug', debug);
+  },
+
+  debugShadowRootDocument: function(element) {
+    var debug = this.client.executeScript(function(element) {
+      return element.shadowRoot.innerHTML;
+    }, [element]);
+    console.log('debug', debug);
+  },
+
+  get viewFrame() {
+    return this.client.findElement(Music.Selector.viewFrame);
+  },
+
+  get secondaryViewFrame() {
+    return this.client.findElement(Music.Selector.secondaryViewFrame);
+  },
+
+  get activeViewFrame() {
+    return this.client.findElement(Music.Selector.activeViewFrame);
+  },
+
+  get homeViewFrame() {
+    return this.client.findElement(Music.Selector.homeViewFrame);
+  },
+
+  get artistsViewFrame() {
+    return this.client.findElement(Music.Selector.artistsViewFrame);
+  },
+
+  get artistDetailViewFrame() {
+    return this.client.findElement(Music.Selector.artistDetailViewFrame);
+  },
+
+  get albumsViewFrame() {
+    return this.client.findElement(Music.Selector.albumsViewFrame);
+  },
+
+  get albumDetailViewFrame() {
+    return this.client.findElement(Music.Selector.albumDetailViewFrame);
+  },
+
+  get songsViewFrame() {
+    return this.client.findElement(Music.Selector.songsViewFrame);
+  },
+
+  get playlistsViewFrame() {
+    return this.client.findElement(Music.Selector.playlistsViewFrame);
+  },
+
+  get playlistDetailViewFrame() {
+    return this.client.findElement(Music.Selector.playlistDetailViewFrame);
+  },
+
+  get playerViewFrame() {
+    return this.client.findElement(Music.Selector.playerViewFrame);
+  },
 
   get messageOverlay() {
     return this.client.findElement(Music.Selector.messageOverlay);
   },
 
   get firstTile() {
-    return this.client.findElement(Music.Selector.firstTile);
+    var homeView = this.homeViewFrame;
+    this.client.switchToFrame(homeView);
+    var element = this.client.findElement(Music.Selector.firstTile);
+    this.switchToMe();
+    return element;
   },
 
   get playlistsTab() {
@@ -75,45 +164,140 @@ Music.prototype = {
     return this.client.helper.waitForElement(Music.Selector.artistsTab);
   },
 
-  get songsTab() {
-    return this.client.helper.waitForElement(Music.Selector.songsTab);
-  },
-
   get albumsTab() {
     return this.client.helper.waitForElement(Music.Selector.albumsTab);
   },
 
-  get firstSong() {
-    return this.client.helper.waitForElement(Music.Selector.firstSong);
+  get songsTab() {
+    return this.client.helper.waitForElement(Music.Selector.songsTab);
   },
 
-  get firstSongSublist() {
-    return this.client.helper.waitForElement(Music.Selector.firstSongSublist);
+  // get the first song from the active frame.
+  get firstSong() {
+    return this.client.helper.waitForElement(Music.Selector.listItem);
+  },
+
+  getStarRating: function() {
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+
+    this.client.switchToFrame(frame);
+
+    this.client.switchToShadowRoot(
+      this.client.findElement(Music.Selector.playerCover));
+    var ratingEl = this.client.findElement('#rating');
+    this.client.switchToShadowRoot(ratingEl);
+    var container = this.client.findElement('#container');
+    var value = container.getAttribute('data-value');
+    this.client.switchToShadowRoot();
+    this.client.switchToShadowRoot();
+
+    this.switchToMe();
+
+    return value ? parseInt(value, 10) : 0;
+  },
+
+  getShuffleSetting: function() {
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+
+    this.client.switchToFrame(frame);
+
+    var artwork = this.client.findElement(Music.Selector.playerCover);
+    this.client.switchToShadowRoot(artwork);
+    assert.ok(artwork);
+
+    var shuffleBtn = this.client.findElement(
+      '#controls button[data-action="shuffle"]');
+    assert.ok(shuffleBtn);
+
+    var value = shuffleBtn.getAttribute('data-value');
+    assert.ok(value);
+
+    this.client.switchToShadowRoot();
+    this.switchToMe();
+
+    return value;
   },
 
   // Helper for the getter.
-  _getListItems: function(selector) {
-    this.waitForAList(selector);
 
-    var list = this.client.findElement(selector);
-    assert.ok(list, 'Couldn\'t find element ' + selector);
+  parseListItemsData: function(elements) {
+      var elementsData = [];
+      for(var i = 0; i < elements.length; i++) {
+        var data = {};
+        var a = elements[i];
+        data.filePath = a.dataset.filePath;
+        data.href = a.href;
+        data.section = a.dataset.section;
+        var em = elements[i].getElementsByTagName('em');
+        if (em.length) {
+          data.index = em[0].textContent;
+        }
+        var h3 = elements[i].getElementsByTagName('h3');
+        if (h3.length) {
+          data.title = h3[0].textContent;
+        }
+        var p = elements[i].getElementsByTagName('p');
+        if (p.length) {
+          data.text = p[0].textContent;
+        }
+        var img = elements[i].getElementsByTagName('img');
+        if (img.length) {
+          data.img = img[0].src;
+        }
+        elementsData.push(data);
+      }
+      return elementsData;
+  },
 
-    var list_items = list.findElements('li.list-item', 'css selector');
-    assert.ok(list_items, 'Coudln\'t find list-items for ' + selector);
+  _getListItemsData: function(frame) {
+    var client = this.client;
 
-    return list_items;
+    assert.ok(frame, 'Frame must be valid.' + frame);
+
+    this.client.switchToFrame(frame);
+
+    // Not all lists have have images
+    var hasImages = client.executeScript(
+      'var elements = document.querySelectorAll(\'.gfl-item img\');' +
+      'return !!elements.length'
+    );
+
+    // Wait for images to be displayed
+    // before to reading their src.
+    if (hasImages) {
+      this.client.helper.waitForElement('.gfl-item img');
+    }
+
+    var listItems = this.client.executeScript(
+      'var parse = ' + this.parseListItemsData.toString() + '\n' +
+      'var elements = document.querySelectorAll(\'.gfl-item\');\n' +
+      'return parse(elements);\n'
+    );
+
+    this.switchToMe();
+    return listItems;
   },
 
   get firstListItem() {
     return this.client.helper.waitForElement(Music.Selector.firstListItem);
   },
 
-  get listItems() {
-    return this._getListItems(Music.Selector.viewsList);
+  get albumsListItemsData() {
+    return this._getListItemsData(this.albumsViewFrame);
+  },
+
+  get artistsListItemsData() {
+    return this._getListItemsData(this.artistsViewFrame);
+  },
+
+  get songsListItemsData() {
+    return this._getListItemsData(this.songsViewFrame);
   },
 
   get songs() {
-    return this._getListItems(Music.Selector.viewsSublist);
+    return this._getListItemsData(this.activeViewFrame);
   },
 
   get playButton() {
@@ -193,12 +377,33 @@ Music.prototype = {
     }
   },
 
-  waitForListEnumerate: function() {
+  waitForListEnumerate: function(frameSelector) {
+    var frame = this.client.findElement(frameSelector);
+    assert.ok(frame, 'Frame must be valid.' + frameSelector);
+
+    this.client.waitFor(function() {
+      var selector = frameSelector;
+      return this.client.executeScript(function(selector) {
+        return document.querySelector(selector);
+      }, [selector]);
+    }.bind(this));
+
+    this.client.switchToFrame(frame);
+
     this.client.waitFor(function() {
       return this.client.executeScript(function() {
-        return window.wrappedJSObject.ListView.handle.state === 'complete';
+        return document.readyState === 'complete';
       });
     }.bind(this));
+
+    this.client.waitFor(function() {
+      return this.client.executeScript(function() {
+        var el = document.querySelector('#list');
+        return el; //.state === 'complete';
+      });
+    }.bind(this));
+
+    this.switchToMe();
   },
 
   waitFinishedScanning: function() {
@@ -210,20 +415,27 @@ Music.prototype = {
   },
 
   waitForFirstTile: function() {
+    this.client.switchToFrame(this.homeViewFrame);
     this.client.helper.waitForElement(Music.Selector.firstTile);
+    this.switchToMe();
   },
 
   waitForMessageOverlayShown: function(shouldBeShown) {
     this.client.waitFor(function() {
-      var volumeShown = this.messageOverlay.displayed();
-      return volumeShown === shouldBeShown;
+      var shown = this.messageOverlay.displayed();
+      return shown === shouldBeShown;
     }.bind(this));
   },
 
-  waitForAList: function(selector) {
+  waitForAList: function(frame) {
+    assert.ok(frame, 'Frame must be valid ' + frame);
+    this.client.switchToFrame(frame);
     this.client.waitFor(function() {
-      return this.client.findElement(selector).displayed();
+      return this.client.executeScript(function() {
+        return document.querySelector('#list');
+      });
     }.bind(this));
+    this.switchToMe();
   },
 
   // In sublist view.
@@ -236,43 +448,91 @@ Music.prototype = {
   },
 
   waitForListView: function() {
-    this.client.helper.waitForElement(Music.Selector.listView);
+    this.client.helper.waitForElement(Music.Selector.viewFrame);
   },
 
-  waitForSubListView: function() {
-    this.client.helper.waitForElement(Music.Selector.sublistView);
+  waitForSecondaryListView: function() {
+    this.client.helper.waitForElement(Music.Selector.secondaryViewFrame);
+  },
+
+  waitForSongsView: function() {
+    this.client.helper.waitForElement(
+      Music.Selector.songsViewFrameActive);
+  },
+
+  waitForArtistsView: function() {
+    this.client.helper
+      .waitForElement(Music.Selector.artistsViewFrameActive);
+  },
+
+  waitForArtistDetailView: function() {
+    this.client.helper.waitForElement(
+      Music.Selector.artistDetailViewFrameActive);
+  },
+
+  waitForAlbumsView: function() {
+    this.client.helper.waitForElement(
+      Music.Selector.albumsViewFrameActive);
+  },
+
+  waitForAlbumDetailView: function() {
+    this.client.helper.waitForElement(
+      Music.Selector.albumDetailViewFrameActive);
+  },
+
+  waitForPlaylistsView: function() {
+    this.client.helper.waitForElement(
+      Music.Selector.playlistsViewFrameActive);
+  },
+
+  waitForPlaylistDetailView: function() {
+    this.client.helper.waitForElement(
+      Music.Selector.playlistDetailViewFrameActive);
   },
 
   waitForPlayerView: function() {
-    this.client.helper.waitForElement(Music.Selector.playerView);
+    this.client.helper.waitForElement(
+      Music.Selector.playerViewFrameActive);
   },
 
-  // Because bug 862156 so we couldn't get the correct displayed value for the
-  // player icon, instead we use the display property to check the visibility
-  // of the player icon.
+  // we check for the attribute "hidden"
   checkPlayerIconShown: function(shouldBeShown) {
-    var display = this.playerIcon.cssProperty('display');
-    var result = (display !== 'none');
+    var hidden = this.playerIcon.getAttribute('hidden');
+    var result = (hidden === 'false');
     assert.equal(shouldBeShown, result);
   },
 
   showSearchInput: function(viewSelector) {
-    var tilesView = this.client.findElement(viewSelector);
-    var chain = this.actions.press(tilesView, 10, 10).perform();
+    var frame = this.activeViewFrame;
+    assert.ok(frame);
+    this.client.switchToFrame(frame);
+
+    var view = this.client.findElement(viewSelector);
+    var chain = this.actions.press(view, 10, 10).perform();
     chain.moveByOffset(0, 110).perform();
     chain.release().perform();
+
+    this.switchToMe();
   },
 
   searchArtists: function(searchTerm) {
-    this.search(Music.Selector.searchList, searchTerm);
+    this.search(Music.Selector.artistsViewFrame, searchTerm);
   },
 
   searchTiles: function(searchTerm) {
-    this.search(Music.Selector.searchTiles, searchTerm);
+    this.search(Music.Selector.homeViewFrame, searchTerm);
   },
 
   search: function(viewSelector, searchTerm) {
-    this.client.findElement(viewSelector).tap();
+
+    assert.ok(viewSelector, 'Not a valid selector. Fix your test.');
+
+    var frame = this.client.findElement(viewSelector);
+    assert.ok(frame, viewSelector, 'can\'t be foun.');
+    this.client.switchToFrame(frame);
+
+    var searchBox = this.client.helper.waitForElement(Music.Selector.searchBox);
+    this.client.switchToShadowRoot(searchBox);
 
     var input = this.client.helper.waitForElement(Music.Selector.searchField);
     assert.ok(input);
@@ -280,59 +540,84 @@ Music.prototype = {
     input.clear();
     this.client.waitFor(input.displayed.bind(input));
     input.sendKeys(searchTerm);
+
+    this.client.switchToShadowRoot();
+
+    this.switchToMe();
   },
 
   switchToArtistsView: function() {
     this.artistsTab.tap();
+    this.waitForArtistsView();
   },
 
   switchToSongsView: function() {
     this.songsTab.tap();
+    this.waitForSongsView();
   },
 
   switchToAlbumsView: function() {
     this.albumsTab.tap();
+    this.waitForAlbumsView();
   },
 
   switchToPlaylistsView: function() {
     this.playlistsTab.tap();
+    this.waitForPlaylistsView();
+  },
+
+  _selectItem: function(name, frame) {
+    assert.ok(frame, 'expected a valid frame');
+    this.client.switchToFrame(frame);
+
+    var elements = this.client.findElements('#list .gfl-item');
+    assert.ok(elements.length > 0);
+
+    var matching = elements.filter(function (element) {
+      return element.findElement('h3').text() === name;
+    });
+
+    assert.ok(matching.length > 0);
+    matching[0].tap();
+
+    this.switchToMe();
   },
 
   selectAlbum: function(name) {
-    var list_items = this.listItems;
-
-    list_items.filter(function (element) {
-      return element.findElement('.list-main-title', 'css selector')
-        .text() === name;
-    })[0].tap();
+    this._selectItem(name, this.albumsViewFrame);
   },
 
   selectArtist: function(name) {
-    var list_items = this.listItems;
-
-    list_items.filter(function (element) {
-      return element.findElement('.list-single-title', 'css selector')
-        .text() === name;
-    })[0].tap();
+    this._selectItem(name, this.artistsViewFrame);
   },
 
   selectPlaylist: function(name) {
-    var list_items = this.listItems;
-
-    list_items.filter(function (element) {
-      return element.findElement('.list-playlist-title', 'css selector')
-        .text() === name;
-    })[0].tap();
+    this._selectItem(name, this.playlistsViewFrame);
   },
 
   // only from a list (song list)
   playFirstSong: function() {
+    this.client.switchToFrame(this.songsViewFrame);
     this.firstSong.click();
+    this.switchToMe();
   },
 
-  // only from a sublist (artist, albums, playlists)
-  playFirstSongSublist: function() {
-    this.firstSongSublist.click();
+  playFirstSongByArtist: function() {
+    this.client.switchToFrame(this.artistDetailViewFrame);
+    this.firstSong.click();
+    this.switchToMe();
+  },
+
+  playFirstSongByAlbum: function() {
+    this.client.switchToFrame(this.albumDetailViewFrame);
+    this.firstSong.click();
+    this.switchToMe();
+  },
+
+  playFirstSongByPlaylist: function() {
+    this.client.switchToFrame(this.playlistDetailViewFrame);
+    this.firstSong.click();
+    this.switchToMe();
   },
 
   tapPlayButton: function() {
@@ -344,13 +629,55 @@ Music.prototype = {
   },
 
   showSongInfo: function() {
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+    this.client.switchToFrame(frame);
+
     this.client.helper.waitForElement(Music.Selector.playerCover).click();
+
+    this.switchToMe();
+  },
+
+  waitForRatingOverlayHidden: function() {
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+    this.client.switchToFrame(frame);
+
+    this.client.waitFor(function() {
+      var cover = this.client.findElement(Music.Selector.playerCover);
+      assert.ok(cover);
+      this.client.switchToShadowRoot(cover);
+      var container = this.client.findElement('#container');
+      assert.ok(container);
+      var isHidden = (container.getAttribute('class').split(' ').
+                      indexOf('show-overlay') === -1);
+      this.client.switchToShadowRoot();
+      return isHidden;
+    }.bind(this));
+
+    this.switchToMe();
   },
 
   tapRating: function(rating) {
     this.showSongInfo();
-    this.client.helper.waitForElement('button.rating-star[data-rating="' +
-                                      rating + '"]').tap();
+
+    var frame = this.playerViewFrame;
+    assert.ok(frame);
+    this.client.switchToFrame(frame);
+
+    var cover = this.client.findElement(Music.Selector.playerCover);
+    this.client.switchToShadowRoot(cover);
+    assert.ok(cover);
+    var ratingEl = this.client.findElement('#rating');
+    assert.ok(rating);
+    this.client.switchToShadowRoot(ratingEl);
+    var star = this.client.findElement('button[value="' + rating + '"]');
+    assert.ok(star);
+    star.click();
+    this.client.switchToShadowRoot();
+    this.client.switchToShadowRoot();
+
+    this.switchToMe();
   },
 
   shareWith: function(appName) {
@@ -365,10 +692,20 @@ Music.prototype = {
     // Try to click the cover image followed by the share button in the case
     // that it hides before we get a chance to click it.
     this.client.waitFor(function() {
-      this.showSongInfo();
+      var frame = this.playerViewFrame;
+      assert.ok(frame);
+      this.client.switchToFrame(frame);
+
+      var cover = this.client.findElement(Music.Selector.playerCover);
+      this.client.switchToShadowRoot(cover);
+      assert.ok(cover);
+
       this.shareButton.tap();
 
+      this.client.switchToShadowRoot();
+      this.client.switchToShadowRoot();
       this.client.switchToFrame();
+
       try {
         shareMenu = quickly.findElement(Music.Selector.shareMenu);
       } catch(e) {

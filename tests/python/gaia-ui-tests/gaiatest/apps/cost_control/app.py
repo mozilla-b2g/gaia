@@ -4,6 +4,7 @@
 
 from marionette_driver import expected, By, Wait
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class CostControl(Base):
@@ -29,17 +30,25 @@ class CostControl(Base):
 
     @property
     def is_mobile_data_tracking_on(self):
-        # The following should work, but doesn't, see bug 1113742. We use execute_script instead, for now
-        # mobileswitch = self.marionette.find_element(*self._mobile_data_tracking_locator)
-        # return mobileswitch.is_selected()
-        return self.marionette.execute_script("""
-            return window.wrappedJSObject.document.getElementById('mobileCheck').checked;
-        """)
+        return self._mobile_tracking_switch.is_checked
+
+    def disable_mobile_data_tracking(self):
+        self._mobile_tracking_switch.disable()
+
+    @property
+    def _mobile_tracking_switch(self):
+        return GaiaBinaryControl(self.marionette, self._mobile_data_tracking_locator)
 
     @property
     def is_wifi_data_tracking_on(self):
-        wifiswitch = self.marionette.find_element(*self._wifi_data_tracking_locator)
-        return wifiswitch.is_selected()
+        return self._wifi_tracking_switch.is_checked
+
+    def enable_wifi_data_tracking(self):
+        self._wifi_tracking_switch.enable()
+
+    @property
+    def _wifi_tracking_switch(self):
+        return GaiaBinaryControl(self.marionette, self._wifi_data_tracking_locator)
 
     @property
     def mobile_data_usage_figure(self):
@@ -64,14 +73,6 @@ class CostControl(Base):
         settings.tap()
         from gaiatest.apps.cost_control.regions.settings import Settings
         return Settings(self.marionette)
-
-    def toggle_mobile_data_tracking(self, value):
-        if self.is_mobile_data_tracking_on is not value:
-            self.marionette.find_element(*self._mobile_data_label_locator).tap()
-
-    def toggle_wifi_data_tracking(self, value):
-        if self.is_wifi_data_tracking_on is not value:
-            self.marionette.find_element(*self._wifi_data_label_locator).tap()
 
     def switch_to_ftu(self):
         ftu_iframe = self.marionette.find_element(*self._ftu_frame_locator)

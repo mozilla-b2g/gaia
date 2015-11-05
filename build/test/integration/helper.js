@@ -57,10 +57,15 @@ function checkWebappsScheme(webapps) {
       assert.equal((configKey in webapp), true,
         key + ' of webapps.json has not defined ' + configKey);
     });
-    var scheme =
-      webapp.origin.indexOf('mochi.test') !== -1 ?
-      'http' : 'app';
-    assert.equal(webapp.origin.indexOf(scheme), 0);
+    var schemes = ['app'];
+    // Allow mochitest apps and hosted apps to use the "http(s)?://" scheme.
+    if (webapp.origin.indexOf('mochi.test') !== -1 ||
+        webapp.appStatus === 1) {
+      schemes.push('http');
+    }
+    assert.isTrue(schemes.some(function(scheme) {
+      return webapp.origin.indexOf(scheme) === 0;
+    }));
   });
 }
 
@@ -119,7 +124,7 @@ function matchFileContentInZip(zipPath, pathInZip, matchPattern) {
 
 function exec(command, options, callback) {
   var opts = {
-    maxBuffer: 400 * 1024
+    maxBuffer: 4096 * 1024
   };
   if (typeof options !== 'function') {
     for (var key in options) {

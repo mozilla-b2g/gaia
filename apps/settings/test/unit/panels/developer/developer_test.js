@@ -12,14 +12,16 @@ suite('Developer > ', function() {
     'shared_mocks/mock_screen_layout',
     'unit/mock_settings_cache',
     'shared_mocks/mock_navigator_moz_power',
-    'panels/developer/developer'
+    'panels/developer/developer',
+    'unit/mock_homescreen_settings'
   ];
   var maps = {
     'panels/developer/developer': {
       'modules/dialog_service': 'MockDialogService',
       'modules/apps_cache': 'unit/mock_apps_cache',
       'shared/screen_layout': 'shared_mocks/mock_screen_layout',
-      'modules/settings_cache': 'unit/mock_settings_cache'
+      'modules/settings_cache': 'unit/mock_settings_cache',
+      'shared/homescreens/homescreen_settings': 'unit/mock_homescreen_settings'
     }
   };
   var developer, realMozPower, mozPower, dialogService, settingsCache;
@@ -52,7 +54,8 @@ suite('Developer > ', function() {
         resetSwitch: panel.querySelector('.reset-devtools'),
         ftuLauncher: panel.querySelector('.ftuLauncher'),
         softwareHomeButton: panel.querySelector('.software-home-button'),
-        homegesture: panel.querySelector('.homegesture')
+        homegesture: panel.querySelector('.homegesture'),
+        homescreenPaging: panel.querySelector('.homescreen-paging')
       });
       done();
     });

@@ -76,6 +76,8 @@
   const IDLE = 'idle';
   const ACTIVE = 'active';
   const IACMETRICS = 'iac-app-metrics';
+  const ENABLED = 'applicationenabled';
+  const DISABLED = 'applicationdisabled';
 
   // This is the list of event types we register handlers for
   const EVENT_TYPES = [
@@ -92,7 +94,9 @@
     TIMECHANGE,
     ATTENTIONOPENED,
     ATTENTIONCLOSED,
-    IACMETRICS
+    IACMETRICS,
+    ENABLED,
+    DISABLED
   ];
 
 
@@ -131,7 +135,7 @@
 
   // What setting do we listen to to turn app usage metrics on or off.
   // This default value is the same setting that turns telemetry on and off.
-  AUM.TELEMETRY_ENABLED_KEY = 'debug.performance_data.shared';
+  AUM.TELEMETRY_ENABLED_KEY = 'metrics.selectedMetrics.level';
 
   // For Dogfooders
   AUM.ISDOGFOODER = false;
@@ -188,7 +192,7 @@
       // That happens in the startCollecting() method which is only called if
       // telemetry is actually enabled
       this.metricsEnabledListener = function metricsEnabledListener(enabled) {
-        if (enabled) {
+        if (enabled === 'Enhanced' || enabled === 'Basic') {
           this.startCollecting();
         }
         else {
@@ -319,7 +323,7 @@
         'metrics.appusage.retryInterval': AUM.RETRY_INTERVAL
       };
 
-      AUM.getSettings(query, function(result) {
+      TelemetryRequest.getSettings(query, function(result) {
         AUM.REPORT_URL = result['metrics.appusage.reportURL'] ||
                          result['ftu.pingURL'];
 
@@ -546,6 +550,14 @@
       this.metrics.recordUninstall(e.detail.application);
       break;
 
+    case ENABLED:
+      this.metrics.recordEnabled(e.detail.application);
+      break;
+
+    case DISABLED:
+      this.metrics.recordDisabled(e.detail.application);
+      break;
+
     case IDLE:
       this.idle = true;
       break;
@@ -665,13 +677,13 @@
     };
 
     // Query the settings db to get some more device-specific information
-    AUM.getSettings(deviceInfoQuery, function(deviceInfo) {
+    TelemetryRequest.getSettings(deviceInfoQuery, function(deviceInfo) {
       data.deviceinfo = deviceInfo;
       data.simInfo = getSIMInfo();
     });
 
     // Query the settings db for parameters for hte URL
-    AUM.getSettings(urlInfoQuery, function(urlInfoResponse) {
+    TelemetryRequest.getSettings(urlInfoQuery, function(urlInfoResponse) {
       // Now transmit the data
       send(data, urlInfoResponse);
     });
@@ -788,7 +800,17 @@
   /*
    * Get app usage for the current date
    */
-  UsageData.prototype.getAppUsage = function(manifestURL, dayKey) {
+  UsageData.prototype.getAppUsage = function(app, dayKey) {
+    var manifestURL;
+    var addOn = false;
+
+    if (app !== null && typeof app === 'object') {
+      manifestURL = app.manifestURL;
+      addOn = (app.manifest.role === 'addon');
+    } else {
+      manifestURL = app;
+    }
+
     var usage = this.data.apps[manifestURL];
     dayKey = dayKey || this.getDayKey();
 
@@ -804,10 +826,18 @@
         invocations: 0,
         installs: 0,
         uninstalls: 0,
-        activities: {}
+        enables: 0,
+        disables: 0,
+        activities: {},
+        addOn: addOn
       };
       this.data.apps[manifestURL] = usage;
     }
+
+    // Set 'add-on' attribute here so that existing usage metrics
+    // (usage metrics recorded before we started identifying add-ons
+    //  -- bug 1198346) get the 'add-on' attribute.
+    dayUsage.addOn = addOn;
     return dayUsage;
   };
 
@@ -900,7 +930,7 @@
     // lockscreen right before sleeping, for example.)
     time = Math.round(time / 1000);
     if (time > 0) {
-      var usage = this.getAppUsage(app.manifestURL);
+      var usage = this.getAppUsage(app);
       usage.invocations++;
       usage.usageTime += time;
       this.needsSave = true;
@@ -932,7 +962,7 @@
       return false;
     }
 
-    var usage = this.getAppUsage(app.manifestURL);
+    var usage = this.getAppUsage(app);
     usage.installs++;
     this.needsSave = true;
     debug(app.manifestURL, 'installed');
@@ -944,10 +974,34 @@
       return false;
     }
 
-    var usage = this.getAppUsage(app.manifestURL);
+    var usage = this.getAppUsage(app);
     usage.uninstalls++;
     this.needsSave = true;
     debug(app.manifestURL, 'uninstalled');
+    return true;
+  };
+
+  UsageData.prototype.recordEnabled = function(app) {
+    if (!this.shouldTrackApp(app)) {
+      return false;
+    }
+
+    var usage = this.getAppUsage(app);
+    usage.enables++;
+    this.needsSave = true;
+    debug(app.manifestURL, 'enabled');
+    return true;
+  };
+
+  UsageData.prototype.recordDisabled = function(app) {
+    if (!this.shouldTrackApp(app)) {
+      return false;
+    }
+
+    var usage = this.getAppUsage(app);
+    usage.disables++;
+    this.needsSave = true;
+    debug(app.manifestURL, 'disabled');
     return true;
   };
 
@@ -956,7 +1010,7 @@
       return false;
     }
 
-    var usage = this.getAppUsage(app.manifestURL);
+    var usage = this.getAppUsage(app);
     var count = usage.activities[url] || 0;
     usage.activities[url] = ++count;
     this.needsSave = true;
@@ -987,6 +1041,8 @@
         oldusage.invocations += newusage.invocations;
         oldusage.installs += newusage.installs;
         oldusage.uninstalls += newusage.uninstalls;
+        oldusage.enables += newusage.enables;
+        oldusage.disables += newusage.disables;
 
         for (var url in newusage.activities) {
           var newcount = newusage.activities[url];
@@ -1049,39 +1105,6 @@
       }
       callback(usage);
     });
-  };
-
-  /*
-   * A utility function get values for all of the specified settings.
-   * settingKeysAndDefaults is an object that maps settings keys to default
-   * values. We query the value of each of those settings and then create an
-   * object that maps keys to values (or to the default values) and pass
-   * that object to the callback function.
-   */
-  AUM.getSettings = function getSettings(settingKeysAndDefaults, callback) {
-    var pendingQueries = 0;
-    var results = {};
-    var lock = window.navigator.mozSettings.createLock();
-    for (var key in settingKeysAndDefaults) {
-      var defaultValue = settingKeysAndDefaults[key];
-      query(key, defaultValue);
-      pendingQueries++;
-    }
-
-    function query(key, defaultValue) {
-      var request = lock.get(key);
-      request.onsuccess = function() {
-        var value = request.result[key];
-        if (value === undefined || value === null) {
-          value = defaultValue;
-        }
-        results[key] = value;
-        pendingQueries--;
-        if (pendingQueries === 0) {
-          callback(results);
-        }
-      };
-    }
   };
 
   // The AppUsageMetrics constructor is the single value we export.

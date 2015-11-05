@@ -26,7 +26,7 @@ marionette('Vertical - Localization', function() {
 
     client.executeScript(function() {
       navigator.mozSettings.createLock().set({
-        'language.current': 'qps-ploc'
+        'language.current': 'fr-x-psaccent'
       });
     });
 
@@ -34,7 +34,7 @@ marionette('Vertical - Localization', function() {
     client.waitFor(function() {
       settingsIcon = home.getIcon(settingsManifestUrl);
       return settingsIcon.text() ===
-        home.localizedAppName('settings', 'qps-ploc');
+        home.localizedAppName('settings', 'fr-x-psaccent');
     });
   });
 
@@ -44,7 +44,7 @@ marionette('Vertical - Localization', function() {
     // Change the language to french
     client.executeAsyncScript(function() {
       var req = navigator.mozSettings.createLock().set({
-        'language.current': 'qps-ploc'
+        'language.current': 'fr-x-psaccent'
       });
 
       req.onsuccess = function() {

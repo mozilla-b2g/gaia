@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Title of the document</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="js/binary.js"></script>
+  <script src="js/recorder.js"></script>
+  <script src="js/recorderWorker.js"></script>
+</head>
+<body>
+
+<div id="optincard" class="optincard">
+  <p> <br> This is an internal app for the Mozilla engineering team. It is intended to collect speech from users to improve our speech recognition engine. <br> <br> <br>  By using it, you agree to donate your speech captures to a server run by Mozilla for this purpose.</p> <br>
+  <center><input type="button" id="agreebtn" value="I agree" class="agreebtn"/></center>
+</div>
+
+<div id="maindiv" class='maindiv'>
+  <div id="listening" style="display:none">
+    <div style="width:400px;background-color:#1BA1E2;margin:auto;position:relative;display:block" id="ringdiv1" >
+    <div id="r1" class="ring"></div>
+    <div id="r2" class="ring"></div>
+    <div id="r3" class="ring"></div>
+    <div id="r4" class="ring"></div>
+    </div>
+
+    <div style="width:400px;background-color:#1BA1E2;margin:auto;position:relative;display:block" id="ringdiv2">
+    <div class="sbringr"></div>
+    <div id="r1" class="ringr"></div>
+    <div id="r2r" class="ringr"></div>
+    <div id="r3r" class="ringr"></div>
+    <div id="r4r" class="ringr"></div>
+    </div>
+  </div>
+
+   <div id="fox" style="display:block">
+      <br>
+      <img src="img/ff.png" width="30%" height="30%"/>
+  </div>
+
+
+  <div style="left:30px; display:block;font-style: italic ; font-weight: normal; font-size: 1.6rem; text-align:center; width:80%; position:absolute;bottom:200px;" id="lblstatus">Please, wait. We're connecting...</div>
+  <br>
+    <div id="divsendbtn"> <center> <p><h2>If you spoke correctly, press submit to send to the server. </h2></p>  <input type="button" id="sendbtn" style="width:350px" value="Touch this button if you spoke correctly" class="agreebtn"/><br><br><input type="button" id="cancelbtn" style="width:350px" value="Or touch here to speak again" class="agreebtn"/></center> <br><div style="font-size: medium" id="msgsamples"></div></div><br>
+  <div id="mic" style="width:100%;display:block">
+     <img id="speak" class="speak" src="img/mic.png"/>
+  </div>
+</div>
+  <script src="recorder.js"></script>
+  <script src="js/vdialer.js" type="text/javascript" >  </script>
+</body>
+</html>

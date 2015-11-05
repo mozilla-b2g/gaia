@@ -93,6 +93,11 @@
           </gaia-checkbox>
         </li>
         <li>
+          <gaia-checkbox name="layout.display-list.dump">
+            <label data-l10n-id="dumps-display-list"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
           <gaia-checkbox name="gfx.layerscope.enabled">
             <label data-l10n-id="dumps-layerscope"></label>
           </gaia-checkbox>
@@ -148,8 +153,8 @@
       </header>
       <ul>
         <li>
-          <gaia-checkbox name="devtools.qps.enabled">
-            <label data-l10n-id="devtools-qps"></label>
+          <gaia-checkbox name="devtools.pseudolocalization.enabled">
+            <label data-l10n-id="devtools-pseudolocalization"></label>
           </gaia-checkbox>
         </li>
         <li>
@@ -243,6 +248,16 @@
           </gaia-checkbox>
         </li>
         <li>
+          <gaia-checkbox name="dev.gaia.view_source">
+            <label data-l10n-id="view-source"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
+          <gaia-checkbox class="homescreen-paging">
+            <label data-l10n-id="homescreen-paging"></label>
+          </gaia-checkbox>
+        </li>
+        <li>
           <button class="ftuLauncher" data-l10n-id="launch-ftu"></button>
         </li>
       </ul>
@@ -251,10 +266,9 @@
       </header>
       <ul>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" name="devtools.unrestricted" class="reset-devtools">
-            <span data-l10n-id="full-devtools"></span>
-          </label>
+          <gaia-switch name="devtools.unrestricted" class="reset-devtools">
+            <label data-l10n-id="full-devtools"></label>
+          </gaia-switch>
         </li>
       </ul>
       <header>

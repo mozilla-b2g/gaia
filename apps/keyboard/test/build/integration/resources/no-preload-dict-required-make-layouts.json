@@ -196,6 +196,21 @@
     "dictFilePath": "dictionaries/de.dict"
   },
   {
+    "id": "de-Neo",
+    "name": "Deutsch - Neo",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 2344627,
+    "preloaded": false,
+    "dictFilename": "de.dict",
+    "dictFilePath": "dictionaries/de.dict"
+  },
+  {
     "id": "dz-BT",
     "name": "རྫོང་ཁ",
     "types": [
@@ -298,7 +313,7 @@
   },
   {
     "id": "en-Neo",
-    "name": "Neo",
+    "name": "English - Neo",
     "imEngineId": "latin",
     "types": [
       "email",

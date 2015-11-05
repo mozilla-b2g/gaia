@@ -124,7 +124,10 @@
       this.elements.list.appendChild(action);
     }, this);
 
-    this.elements.list.appendChild(this.elements.cancel);
+    var lastButtonWrapper = document.createElement('span');
+    lastButtonWrapper.className = 'last-button-container';
+    this.elements.list.appendChild(lastButtonWrapper);
+    lastButtonWrapper.appendChild(this.elements.cancel);
   };
 
   ContextMenuView.prototype.focus = function() {

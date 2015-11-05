@@ -19,13 +19,13 @@
              data-l10n-id="spinner-overlay"><div id="spinner"></div></div>
     <section role="region" id="player-view" class="video-controls-hidden">
       <!-- video controls header -->
-      <gaia-header id="player-header" action="back" class="video-controls">
+      <gaia-header ignore-dir id="player-header" action="back" class="video-controls">
         <h1 id="video-title"></h1>
         <button id="save" data-l10n-id="save" hidden></button>
       </gaia-header>
       <!-- In order for the screen reader to be able to activate the container
              to toggle controls, it must have the semantics of the button -->
-      <div id="video-container" role="button">
+      <div id="video-container" role="button" tabindex="0">
         <!-- Hiding the video element from the screen reader since the
              controls are implemented elsewhere. -->
         <video id="player" preload="metadata" aria-hidden="true"></video>
@@ -96,6 +96,7 @@
     <script defer src="js/video_loading_checker.js"></script>
     <script defer src="js/video_utils.js"></script>
     <script defer src="js/forward_rewind_controller.js"></script>
-    <script src="js/view.js"></script>
+    <script defer src="js/seeker.js"></script>
+    <script defer src="js/view.js"></script>
   </body>
 </html>

@@ -1,5 +1,8 @@
 define(function(require) {
 'use strict';
+/* global MockMozIntl */
+
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 var Factory = require('test/support/factory');
 var mockRequestWakeLock = require('test/support/mock_request_wake_lock');
@@ -16,6 +19,7 @@ suite('controllers/notifications', function() {
   var storeFactory;
 
   setup(function() {
+    window.mozIntl = MockMozIntl;
     mockRequestWakeLock.setup();
     sendNotification = sinon.spy(notification, 'sendNotification');
   });
@@ -103,7 +107,8 @@ suite('controllers/notifications', function() {
       return waitFor(function() {
         // Notably, even though our event description was null, we don't pass on
         // 'null' to the notification body.
-        return sendNotification.calledWith('Birthday started just now', '');
+        return sendNotification.calledWith(
+          'Birthday started pretty date', '');
       });
     });
   });

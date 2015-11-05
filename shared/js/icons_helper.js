@@ -1,3 +1,4 @@
+/* globals Icon */
 /* exported IconsHelper */
 'use strict';
 
@@ -59,7 +60,8 @@
     // Then look for an icon in the Firefox manifest.
     if (!iconUrl && siteObj.manifest) {
       iconUrl = getBestIconFromWebManifest({
-        icons: _convertToWebManifestIcons(siteObj.manifest)
+        icons: _convertToWebManifestIcons(siteObj.manifest,
+          siteObj.origin || siteObj.manifest.origin)
       }, iconTargetSize);
       if (DEBUG && iconUrl) {
         console.log('Icon from Firefox App Manifest');
@@ -90,7 +92,6 @@
     });
   }
 
-
   /**
    * Same as above except the promise resolves as an object containing the blob
    * of the icon and its size in pixels.
@@ -110,14 +111,29 @@
             iconStore.get(iconUrl).then(iconObj => {
               if (!iconObj || !iconObj.timestamp ||
                 Date.now() - iconObj.timestamp >= ICON_CACHE_PERIOD) {
-                return fetchIcon(iconUrl)
-                  .then(iconObject => {
-                    // We resolve here to avoid I/O blocking on dataStore and
-                    // quicker display.
-                    // Persisting to the dataStore takes place subsequently.
-                    resolve(iconObject);
+                return fetchIconBlob(iconUrl)
+                  .then(iconBlob => {
+                    var img = document.createElement('img');
+                    var icon = new Icon(img, uri);
+                    icon.renderBlob(iconBlob, {
+                      size: iconTargetSize,
+                      onLoad: function(blob) {
+                        var iconObj = {
+                          blob: blob,
+                          originalUrl: iconUrl.toString(),
+                          timestamp: Date.now()
+                        };
+                        // We resolve here to avoid I/O blocking on
+                        // dataStore and quicker display.
+                        // Persisting to the dataStore takes place subsequently.
+                        resolve(iconObj);
 
-                    iconStore.add(iconObject, iconUrl);
+                        iconStore.add(iconObj, iconUrl);
+                      },
+                      onerror: function(e) {
+                        reject(`Failed to fetch icon ${iconUrl}`);
+                      }
+                    });
                   })
                   .catch(err => {
                     reject(`Failed to fetch icon ${iconUrl}: ${err}`);
@@ -135,6 +151,32 @@
           });
         });
     });
+  }
+
+  /**
+   * Same as above but set the image as the icon property of a gaia-app-icon
+   * element.
+   *
+   * @param icon {Object?}
+   * @param targetSize {number}
+   * @returns {Promise}
+   */
+  function setElementIcon(icon, targetSize) {
+    getIconBlob(icon.bookmark.url, targetSize, icon.bookmark, icon.bookmark)
+      .then(iconObj => {
+        if (iconObj.blob) {
+          icon.icon = iconObj.blob;
+        } else if (icon.bookmark.icon) {
+          // We fallback to the bookmark.icon property if no icons were found.
+          fetchIconBlob(icon.bookmark.icon)
+            .then(iconBlob => {
+              icon.icon = iconBlob;
+            });
+        }
+      })
+      .catch((e) => {
+        console.error('The icon image could not be set to the element.', e);
+      });
   }
 
   function getBestIconFromWebManifest(webManifest, iconSize) {
@@ -162,14 +204,14 @@
         bestSize = nearestSize;
       }
     });
-    return iconURL ? iconURL.href : null;
+    return iconURL ? iconURL : null;
   }
 
-  function _convertToWebManifestIcons(manifest) {
+  function _convertToWebManifestIcons(manifest, origin) {
     return Object.keys(manifest.icons).map(function(size) {
       var url = manifest.icons[size];
-      var sizes = new Set().add(size + 'x' + size);
-      url = url.indexOf('http') > -1 ? url : manifest.origin + url;
+      var sizes = [size + 'x' + size];
+      url = url.indexOf('http') > -1 ? url : origin + url;
 
       return {
         src: new URL(url),
@@ -297,13 +339,49 @@
 
 
   /**
-   * Return a promise that resolves to an object containing the blob and size
+   * Return a promise that resolves to an object containing the blob url
    * in pixels of an icon given its URL `iconUrl`.
    *
    * @param {string} iconUrl
    * @returns {Promise}
    */
   function fetchIcon(iconUrl) {
+    return new Promise((resolve, reject) => {
+      fetchIconBlob(iconUrl)
+        .then((iconBlob) => {
+          var img = document.createElement('img');
+
+          img.src = URL.createObjectURL(iconBlob);
+
+          img.onload = () => {
+            var iconSize = Math.max(img.naturalWidth, img.naturalHeight);
+
+            resolve({
+              blob: iconBlob,
+              url: iconUrl,
+              size: iconSize,
+              timestamp: Date.now()
+            });
+          };
+
+          img.onerror = () => {
+            reject(new Error(`Error while loading image.`));
+          };
+        })
+        .catch((e) => {
+          reject(new Error(`Error while loading image: ${e}`));
+        });
+    });
+  }
+
+  /**
+   * Return a promise that resolves to an object containing the blob
+   * given its URL `iconUrl`.
+   *
+   * @param {string} iconUrl
+   * @returns {Promise}
+   */
+  function fetchIconBlob(iconUrl) {
     return new Promise((resolve, reject) => {
       var xhr = new XMLHttpRequest({
         mozAnon: true,
@@ -321,24 +399,7 @@
       xhr.onload = () => {
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
           var iconBlob = xhr.response;
-          var img = document.createElement('img');
-
-          img.src = URL.createObjectURL(iconBlob);
-
-          img.onload = () => {
-            var iconSize = Math.max(img.naturalWidth, img.naturalHeight);
-
-            resolve({
-              url: iconUrl,
-              blob: iconBlob,
-              size: iconSize,
-              timestamp: Date.now()
-            });
-          };
-
-          img.onerror = () => {
-            reject(new Error(`Error while loading image.`));
-          };
+          resolve(iconBlob);
 
           return;
         }
@@ -357,10 +418,13 @@
     getIcon: getIcon,
     getIconBlob: getIconBlob,
 
+    setElementIcon: setElementIcon,
+
     getBestIconFromWebManifest: getBestIconFromWebManifest,
     getBestIconFromMetaTags: getBestIconFromMetaTags,
 
     fetchIcon: fetchIcon,
+    fetchIconBlob: fetchIconBlob,
 
     get defaultIconSize() {
       return getDefaultIconSize();

@@ -27,7 +27,6 @@ var MockCompose = {
   showSubject: function() {},
   hideSubject: function() {},
   fromDraft: function() {},
-  fromMessage: function() {},
 
   mSetup: function() {
     this.size = null;

@@ -31,12 +31,11 @@ suite('MarionetteHelper.fillInputFieldAndtapSelectOption', function() {
     return num >= 10 ? num : ('0' + num);
   }
 
-  setup(function(done) {
+  setup(function() {
     helper = client.helper;
     fakeApp = new FakeApp(client, 'app://' + FAKE_APP_ORIGIN);
     fakeApp.launch();
     testTime = new Date();
-    setTimeout(done, 2500);  // Instead of using the BootWatcher.
   });
 
   test('should set on option', function() {

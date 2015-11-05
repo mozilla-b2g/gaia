@@ -43,6 +43,10 @@
   ChildWindowFactory.prototype.handleEvent =
     function cwf_handleEvent(evt) {
       this.app.debug('[cwf] handling ' + evt.type);
+
+      // Prevent Gecko's default handler from opening the window.
+      evt.preventDefault();
+
       // Handle event from child window.
       if (evt.detail && evt.detail.instanceID &&
           evt.detail.instanceID !== this.app.instanceID) {
@@ -88,6 +92,11 @@
             caught = this.launchActivity(evt);
           }
           break;
+        case 'alwaysLowered':
+          if (this.app.hasPermission('open-hidden-window')) {
+            caught = this.createPopupWindow(evt);
+          }
+          break;
         case 'attention':
           // Open attentionWindow
           if (!this.createAttentionWindow(evt)) {
@@ -123,15 +132,20 @@
           this.app.frontWindow.isActive())) {
       return false;
     }
+    var stayBackground = evt.detail.features.indexOf('alwaysLowered') >= 0;
     var configObject = {
       url: evt.detail.url,
       name: this.app.name,
       iframe: evt.detail.frameElement,
       origin: this.app.origin,
-      rearWindow: this.app
+      rearWindow: this.app,
+      stayBackground: stayBackground
     };
     var childWindow = new PopupWindow(configObject);
-    childWindow.element.addEventListener('_closing', this);
+    if (!stayBackground) {
+      childWindow.element.addEventListener('_opened', this);
+      childWindow.element.addEventListener('_closing', this);
+    }
     childWindow.open();
     return true;
   };
@@ -146,10 +160,20 @@
     if (!this.app.isActive() || this.app.isTransitioning()) {
       return false;
     }
+
+    var parentAllowFullscreenAttr =
+      evt.target.getAttribute('mozallowfullscreen');
+    var iframe = evt.detail.frameElement;
+
+    // This new window should be allowed to go full screen.
+    if (parentAllowFullscreenAttr) {
+      iframe.setAttribute('mozallowfullscreen', parentAllowFullscreenAttr);
+    }
+
     var configObject = {
       url: evt.detail.url,
       name: evt.detail.name,
-      iframe: evt.detail.frameElement,
+      iframe: iframe,
       isPrivate: this.app.isPrivateBrowser()
     };
     window.dispatchEvent(new CustomEvent('openwindow', {
@@ -283,6 +307,7 @@
     var configuration = evt.detail;
     var top = this.app.getTopMostWindow();
     var trusted = new TrustedWindow(configuration, top);
+    trusted.element.addEventListener('_opened', this);
     trusted.element.addEventListener('_closing', this);
     trusted.open();
   };

@@ -7,7 +7,6 @@ import time
 from marionette_driver import By, Wait
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-from gaiatest.apps.music.regions.tile_view import TileView
 from gaiatest.apps.music.app import Music
 
 
@@ -43,7 +42,7 @@ class TestFullPlayMusic(GaiaImageCompareTestCase):
             message='song did not reach the end')
 
         # wait until next song kicks in (elapsed time will reset)
-        Wait(self.marionette, timeout = 30).until(
+        Wait(self.marionette, timeout=30).until(
             lambda m: from_list_player_view.player_elapsed_time < play_time,
             message='next song did not start')
 

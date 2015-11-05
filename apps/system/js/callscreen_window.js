@@ -104,7 +104,6 @@
     this.browserContainer.insertBefore(this.browser.element, null);
     this.frame = this.element;
     this.iframe = this.browser.element;
-    this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
 
     this._registerEvents();
     this.installSubComponents();
@@ -130,7 +129,7 @@
     }
     this._terminated = true;
     this.publish('terminated');
-    if (this.isActive()) {
+    if (this.isActive() || this._requestedOpen) {
       var self = this;
       this.element.addEventListener('_closed', function onclosed() {
         // XXX: We will have trouble if the second call comes during closing.

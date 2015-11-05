@@ -33,21 +33,53 @@ function showFileInformation(fileinfo) {
   document.body.classList.add('showing-dialog');
 
   function populateMediaInfo(fileinfo) {
-    var data = {
-      //set the video filename using metadata
-      'info-name': getFileName(fileinfo.metadata.video || fileinfo.name),
-      'info-size': MediaUtils.formatSize(fileinfo.size),
-      'info-type': fileinfo.type,
-      'info-date': MediaUtils.formatDate(fileinfo.date),
-      'info-resolution':
-        fileinfo.metadata.width + 'x' + fileinfo.metadata.height
-    };
+    MediaUtils.getLocalizedSizeTokens(fileinfo.size).then((args) => {
+      var data = {
+        //set the video filename using metadata
+        'info-name': {
+          raw: getFileName(fileinfo.metadata.video || fileinfo.name)
+        },
+        'info-size': {
+          id: 'fileSize',
+          args: args
+        },
+        'info-type': {raw: fileinfo.type},
+        'info-date': {raw: MediaUtils.formatDate(fileinfo.date)},
+        'info-resolution': {
+          raw: fileinfo.metadata.width + 'x' + fileinfo.metadata.height
+        }
+      };
 
-    // Populate info overlay view
-    MediaUtils.populateMediaInfo(data);
+      // Populate info overlay view
+      MediaUtils.populateMediaInfo(data);
+      // Hide Resolution for video files. See Bug 1217989
+      fileinfo.metadata.video ? setFieldVisibility('info-resolution', false) :
+                                setFieldVisibility('info-resolution', true);
+
+    });
   }
 
   function getFileName(path) {
     return path.split('/').pop();
   }
+
+  function setFieldVisibility(id, visible) {
+    // Field label in info view
+    var label = $(id).previousElementSibling;
+
+    // If not visible, hide respective field label and
+    // its value and remove bottom border from the previous field.
+    if (visible) {
+      $(id).style.display = 'block';
+      label.style.display = 'block';
+      label.previousElementSibling.classList.remove('no-border');
+    } else {
+      $(id).style.display = 'none';
+      label.style.display = 'none';
+      if ($(id).nextElementSibling === null) {
+        label.previousElementSibling.classList.add('no-border');
+      }
+    }
+  }
+
 }

@@ -117,13 +117,20 @@ suite('controllers/controls', function() {
       });
     });
 
-    test('Should hide the controls when the timer is started', function() {
-      sinon.assert.calledWith(this.app.on, 'timer:started', this.controller.onTimerStarted);
+    test('Should hide the controls when the countdown is started', function() {
+      sinon.assert.calledWith(
+        this.app.on,
+        'countdown:started',
+        this.controller.onCountdownStarted
+      );
     });
 
-    test('Should restore the controls when the timer is cleared', function() {
-      sinon.assert.calledWith(this.app.on, 'timer:cleared', this.controller.onTimerStopped);
-      sinon.assert.calledWith(this.app.on, 'timer:ended', this.controller.onTimerStopped);
+    test('Should restore the controls when the countdown is cleared', function() {
+      sinon.assert.calledWith(
+        this.app.on,
+        'countdown:ended',
+        this.controller.onCountdownStopped
+      );
     });
 
     test('Should disable the view intitially until camera is ready', function() {
@@ -171,6 +178,20 @@ suite('controllers/controls', function() {
 
     test('Should fire a \'capture\' event on the app', function() {
       assert.isTrue(this.app.emit.calledWith('capture'));
+    });
+  });
+
+  suite('ControlsController#onCameraWillChange', function() {
+    test('When camera is reconfiguring it suspends the mode switch', function() {
+      this.controller.onCameraWillChange();
+      assert.isTrue(this.view.suspendModeSwitch.calledWith(true));
+    });
+  });
+
+  suite('ControlsController#onCameraConfigured', function() {
+    test('When camera is configured it unsuspends the mode switch', function() {
+      this.controller.onCameraConfigured();
+      assert.isTrue(this.view.suspendModeSwitch.calledWith(false));
     });
   });
 

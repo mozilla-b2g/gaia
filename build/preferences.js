@@ -143,7 +143,7 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.userPrefs['dom.mozInputMethod.enabled'] = true;
   this.userPrefs['layout.css.scroll-behavior.enabled'] = true;
   this.userPrefs['layout.css.sticky.enabled'] = true;
-  this.userPrefs['intl.uidirection.qps-plocm'] = 'rtl';
+  this.userPrefs['intl.uidirection.ar-x-psbidi'] = 'rtl';
 
   // For https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
   // what prefs is for ril debugging

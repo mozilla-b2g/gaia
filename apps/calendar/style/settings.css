@@ -88,7 +88,7 @@ not actually shown since the top header should be transparent.
 }
 
 #settings .calendars li:active,
-#settings .toolbar-item:active {
+#settings li:active {
   color: white;
   background-color: #00caf2;
 }
@@ -104,7 +104,7 @@ not actually shown since the top header should be transparent.
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 2rem);
+  width: calc(100% - 2rem);
   height: 100%;
   /* !important needed to override component scoped style to match legacy styles */
   font-size: 1.7rem !important;
@@ -113,8 +113,16 @@ not actually shown since the top header should be transparent.
 }
 
 #settings .calendars .error label {
-  background: transparent url('icons/accountwarning.png') no-repeat 2.3rem center / 2rem auto;
-  -moz-padding-start: 4.5rem;
+  background: transparent url('icons/accountwarning.png') no-repeat;
+  background-size: 2rem auto;
+}
+html[dir="ltr"] #settings .calendars .error label {
+  background-position: left 2.3rem center;
+  padding-left: 4.5rem;
+}
+html[dir="rtl"] #settings .calendars .error label {
+  background-position: right 2.3rem center;
+  padding-right: 4.5rem;
 }
 
 #settings .calendars label {
@@ -136,7 +144,7 @@ not actually shown since the top header should be transparent.
 #settings .calendars .icon-calendar-dot:before {
   font-size: 5rem;
   line-height: 5rem;
-  -moz-margin-start: -1rem;
+  margin-inline-start: -1rem;
 }
 
 #settings > menu {
@@ -147,24 +155,25 @@ not actually shown since the top header should be transparent.
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-#settings [role="toolbar"] {
+#settings [role="tablist"] {
   position: absolute;
   bottom: 0;
 }
 
-#settings [role="toolbar"] .toolbar-item {
-  border-left: 0.1rem solid #e5e5e5;
+#settings [role="tablist"] li {
+  border-inline-start: 0.1rem solid #e5e5e5;
+  position: relative;
 }
 
-#settings [role="toolbar"] .toolbar-item:first-child {
-  border-left: 0;
+#settings [role="tablist"] li:first-child {
+  border-inline-start: 0;
 }
 
-#settings [role="toolbar"].noaccount .settings {
+#settings [role="tablist"].noaccount .settings {
   width: 100%;
 }
 
-#settings [role="toolbar"] .settings:after {
+#settings [role="tablist"] .settings:after {
   content: '';
   position: absolute;
   top: 0;
@@ -174,11 +183,11 @@ not actually shown since the top header should be transparent.
   background: url("icons/settings_icon.png") no-repeat 50% 50% / 3rem auto;
 }
 
-#settings [role="toolbar"] .settings:active:after {
+#settings [role="tablist"] .settings:active:after {
   background-image: url("icons/settings_icon_press.png");
 }
 
-#settings [role="toolbar"] .sync:after {
+#settings [role="tablist"] .sync:after {
   content: '';
   position: absolute;
   top: 0;
@@ -187,19 +196,19 @@ not actually shown since the top header should be transparent.
   height: 4.5rem;
 }
 
-#settings [role="toolbar"] .sync .icon {
+#settings [role="tablist"] .sync .icon {
   display: block;
   width: 3rem;
-  height: 3rem;
+  height: 4.5rem;
   margin: 0 auto;
   background: url("icons/refresh.png") no-repeat 50% 50% / 3rem auto;
 }
 
-#settings [role="toolbar"] .sync:active .icon {
+#settings [role="tablist"] .sync:active .icon {
   background-image: url("icons/refresh_press.png");
 }
 
-.pending-operation #settings [role="toolbar"] .sync .icon {
+.pending-operation #settings [role="tablist"] .sync .icon {
   animation: 0.9s msg-refresh-rotate infinite steps(30);
 }
 
@@ -216,7 +225,7 @@ not actually shown since the top header should be transparent.
   visibility: visible;
 }
 
-#settings [role="toolbar"].noaccount .sync {
+#settings [role="tablist"].noaccount .sync {
   display: none;
 }
 
@@ -225,7 +234,12 @@ not actually shown since the top header should be transparent.
 }
 
 #settings .calendars gaia-checkbox {
- display: none;
+  display: none;
+}
+
+#settings .calendars gaia-checkbox label,
+#settings .calendars gaia-checkbox[checked] label:after {
+  padding-top: 1rem;
 }
 
 #settings .calendars gaia-checkbox[checked] label:after {
@@ -233,36 +247,23 @@ not actually shown since the top header should be transparent.
   position: absolute;
   width: 2.2rem;
   height: 1.9rem;
-  background: transparent url('/style/icons/check_mark_on.png') no-repeat center / 1.4rem;
+  background: transparent url('/style/icons/check_mark_on.png') no-repeat center 1.2rem / 1.4rem;
 }
 
 #settings .calendars li:active gaia-checkbox[checked] label:after {
-  background: transparent url('/style/icons/check_mark_press.png') no-repeat center / 1.4rem;
+  background: transparent url('/style/icons/check_mark_press.png') no-repeat center 1.2rem / 1.4rem;
 }
 
 #settings .calendars gaia-checkbox label:after {
-  left: auto;
   top: 0.7rem;
-  right: 1.3rem;
   background: none;
   margin: 0;
 }
-
-/* RTL View */
-html[dir="rtl"] #settings [role="toolbar"] .toolbar-item {
-  border-left: unset;
+html[dir="ltr"] #settings .calendars gaia-checkbox label:after {
+  left: auto;
+  right: 1.3rem;
 }
-
-html[dir="rtl"] #settings [role="toolbar"] .toolbar-item:first-child {
-  border-left: unset;
-  border-right: 0.1rem solid #e5e5e5;
-}
-
 html[dir="rtl"] #settings .calendars gaia-checkbox label:after {
   left: 1.3rem;
   right: auto;
-}
-
-html[dir="rtl"] #settings .calendars .icon-calendar-dot:before {
-  right: 0;
 }

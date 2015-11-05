@@ -193,14 +193,10 @@ define(function(require) {
   DateTime.prototype.handleEvent = function(evt) {
     switch (evt.type) {
       case 'moztimechange':
-        navigator.mozL10n.ready((function _updateTime() {
-          this._autoUpdateDateTime();
-        }).bind(this));
+        this._autoUpdateDateTime();
         break;
       case 'localized':
         var d = new Date();
-        // update time format while language changed
-        this._updateTimeFormat();
         this._date = this._formatDate(d);
         this._time = this._formatTime(d);
         break;
@@ -219,7 +215,6 @@ define(function(require) {
       this._clockAutoAvailable = results[_kClockAutoAvailable];
       this._timezoneAutoAvailable = results[_kTimezoneAutoAvailable];
       this._timezone = results[_kTimezone];
-      this._userSelectedTimezone = results[_kUserSelected];
       this._currentHour12 = results[_kLocaleTime];
       // render date/time after get proper format
       this._autoUpdateDateTime();
@@ -273,7 +268,7 @@ define(function(require) {
     var d = new Date();
     this._time = this._formatTime(d);
 
-    var remainMillisecond = (59 - d.getSeconds()) * 1000;
+    var remainMillisecond = (60 - d.getSeconds()) * 1000;
     _updateTimeTimeout = window.setTimeout(
       function updateTimeTimeout() {
         this._autoUpdateTime();
@@ -290,13 +285,15 @@ define(function(require) {
    * @returns {String}
    */
   DateTime.prototype._formatDate = function(d, iso) {
-    var _ = navigator.mozL10n.get;
     if (d instanceof Date) {
       if (iso) {
         return d.toLocaleFormat('%Y-%m-%d');
       } else {
-        var f = new navigator.mozL10n.DateTimeFormat();
-        return f.localeFormat(d, _('shortDateFormat'));
+        return d.toLocaleString(navigator.languages, {
+          year: 'numeric',
+          month: 'long',
+          day: '2-digit',
+        });
       }
     } else {
       return d;
@@ -313,17 +310,17 @@ define(function(require) {
    * @returns {String}
    */
   DateTime.prototype._formatTime = function(d, iso) {
-    var _ = navigator.mozL10n.get;
     if (d instanceof Date) {
       var format;
       if (iso) {
         format = '%H:%M';
         return d.toLocaleFormat(format);
       } else {
-        var f = new navigator.mozL10n.DateTimeFormat();
-        format = (this._currentHour12 === true) ?
-           _('shortTimeFormat12') : _('shortTimeFormat24');
-        return f.localeFormat(d, format);
+        return d.toLocaleString(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric',
+        });
       }
     } else {
       if (d.indexOf(':') == 1) {  // Format: 8:05 --> 08:05
@@ -399,18 +396,11 @@ define(function(require) {
     settings.createLock().set(cset);
   };
 
-  /**
-   * If language changed (in FTU or settings),
-   * set hour12 based on language locale properties.
-   *
-   * @access private
-   * @memberOf DateTime
-   */
-  DateTime.prototype._updateTimeFormat = function() {
-    var _ = navigator.mozL10n.get;
-    var localeTimeFormat = _('shortTimeFormat');
-    var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
-    this.setCurrentHour12(is12hFormat);
+  DateTime.prototype.getHour12ForCurrentLocale = function() {
+    var format = new Intl.DateTimeFormat(navigator.languages, {
+      hour: 'numeric'
+    });
+    return format.resolvedOptions().hour12;
   };
 
   return DateTime();

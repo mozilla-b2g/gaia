@@ -18,14 +18,16 @@ points for each layout.
 Configuration is done with the GAIA_KEYBOARD_LAYOUTS environment
 variable, and there is a default value defined in the Makefile.
 
-By default, all dictionaries associated to layouts included in
-GAIA_KEYBOARD_LAYOUTS will be preloaded into the build. You may instead
-preload only a few dictionaries and have all other dictionaries offered
-to user as a download, by only setting the dictionaries of the layouts
-you want to include with GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS variable.
+All dictionaries associated to layouts included in GAIA_KEYBOARD_LAYOUTS
+will be preloaded into the build. Additional layouts will not be made available
+in the build unless you set these layouts in GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS
+variable. Layout set in that variable will be offered as downloadable layouts
+in Settings > Built-in Keyboards.
 
-Downloadable dictionaries only works with Latin IME for now.
-Layouts with non-Latin IMEs are always preloaded with their dictionaries.
+GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS is default to "noPreloadDictRequired", which
+is the special keyword match all the layout that can be downloaded, layout with
+no dictionary required. The other keyword is "*", which simply packages all of
+the layouts.
 
 The build happens in gaia/build_stage.
 The actual configuration code is in build/layout_configurator.js.

@@ -40,6 +40,9 @@
 
   ChildWindowFactory.prototype.handleEvent =
     function cwf_handleEvent(evt) {
+      // Prevent Gecko's default handler from opening the window.
+      evt.preventDefault();
+
       // ChildWindowFactory handles window.open and activities. It listens the
       // closing event on the element of PopupWindow and ActivityWindow. Once
       // receiving _closing event, we can say this event is fired by one of

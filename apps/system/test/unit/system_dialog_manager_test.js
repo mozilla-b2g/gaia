@@ -1,33 +1,50 @@
-/* global MockAppWindow */
+/* global MockAppWindow, MockNavigatorSettings, LazyLoader */
 (function() {
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_system_dialog.js');
+requireApp('system/test/unit/mock_tracking_notice.js');
 requireApp('system/test/unit/mock_system_simcard_dialog.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/js/system_dialog_manager.js');
 requireApp('system/js/service.js');
 
 var mocksForSystemDialogManager = new window.MocksHelper([
   'SystemDialog',
-  'SimPinSystemDialog'
+  'SimPinSystemDialog',
+  'LazyLoader',
+  'TrackingNotice'
 ]).init();
 
 suite('system/SystemDialogManager', function() {
   mocksForSystemDialogManager.attachTestHelpers();
+  var realMozSettings;
   var dialogFake,
       optionsFake = {
         onShow: function() {},
         onHide: function() {}
-      }, mozChromeEventFake = {
-        type: 'mozChromeEvent',
+      }, fakeInputFocusEvent = {
+        type: 'inputfocus',
         detail: {
-          type: 'inputmethod-contextchange',
+          type: 'input',
           inputType: 'date'
         }
       };
 
+  suiteSetup(function() {
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
+  });
+
   setup(function() {
+    MockNavigatorSettings.mSetup();
+    MockNavigatorSettings.mSyncRepliesOnly = true;
     this.sinon.stub(document, 'getElementById').returns(
       document.createElement('div'));
 
@@ -38,6 +55,7 @@ suite('system/SystemDialogManager', function() {
   });
 
   teardown(function() {
+    MockNavigatorSettings.mTeardown();
     window.systemDialogManager.states.activeDialog = null;
   });
 
@@ -69,6 +87,30 @@ suite('system/SystemDialogManager', function() {
       assert.isTrue(window.systemDialogManager.elements.containerElement
                     .classList.contains('fullscreen'));
       assert.isTrue(dialogFake.resize.called);
+    });
+  });
+
+  suite('Tracking Notice', function() {
+    const TRACKING_NOTICE_KEY = 'privacy.trackingprotection.shown';
+    setup(function() {
+      this.sinon.stub(LazyLoader, 'load');
+    });
+
+    test('it includes tracking notice code if not already shown', function() {
+      var settingObj = {};
+      settingObj[TRACKING_NOTICE_KEY] = false;
+      navigator.mozSettings.mSet(settingObj);
+      window.systemDialogManager._initTrackingNotice();
+      navigator.mozSettings.mReplyToRequests();
+      assert.isTrue(LazyLoader.load.called);
+    });
+
+    test('it does not include tracking notice if already shown', function() {
+      var settingObj = {};
+      settingObj[TRACKING_NOTICE_KEY] = true;
+      navigator.mozSettings.mSet(settingObj);
+      window.systemDialogManager._initTrackingNotice();
+      assert.isFalse(LazyLoader.load.called);
     });
   });
 
@@ -119,7 +161,7 @@ suite('system/SystemDialogManager', function() {
 
   suite('Handle events', function() {
     test('Dialog created', function() {
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       assert.isNull(window.systemDialogManager.states.activeDialog,
         'the dialog should not be activated');
@@ -130,8 +172,22 @@ suite('system/SystemDialogManager', function() {
         'the dialog was not registered in the maanger');
     });
 
+    test('Dialog stopped', function() {
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent({type: 'system-dialog-show',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent({type: 'system-dialog-stopped',
+        detail: dialogFake});
+      assert.isNull(window.systemDialogManager.states.activeDialog,
+        'the dialog was not deactivated from the manager');
+      assert.isUndefined(
+        window.systemDialogManager.states.runningDialogs[dialogFake.instanceID],
+        'the dialog was not unregistered from the manager');
+    });
+
     test('Dialog request show', function() {
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
@@ -145,7 +201,7 @@ suite('system/SystemDialogManager', function() {
 
     test('Dialog request hide', function() {
       var stubOnHide = this.sinon.stub(dialogFake, 'onHide');
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
@@ -161,7 +217,7 @@ suite('system/SystemDialogManager', function() {
     });
 
     test('Resize dialog while received "system-resize" event', function() {
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
@@ -177,7 +233,7 @@ suite('system/SystemDialogManager', function() {
 
     test('Deactivate dialog while received ' +
          '"home" or "holdhome" event', function() {
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
@@ -207,12 +263,12 @@ suite('system/SystemDialogManager', function() {
     test('A dialog is active, ' +
          'then another dialog create and request show', function() {
       var stubOnHide = this.sinon.stub(dialogFake, 'onHide');
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
       var simPinSystemDialogFake = new window.SimPinSystemDialog(optionsFake);
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: simPinSystemDialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: simPinSystemDialogFake});
@@ -240,17 +296,17 @@ suite('system/SystemDialogManager', function() {
       stubOnHide.restore();
     });
 
-    test('valid mozChromeEvent', function() {
+    test('valid inputfocus event', function() {
       var stubBroadcast = this.sinon.stub(dialogFake, 'broadcast');
-      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+      window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
-      window.systemDialogManager.respondToHierarchyEvent(mozChromeEventFake);
+      window.systemDialogManager.respondToHierarchyEvent(fakeInputFocusEvent);
       assert.isTrue(stubBroadcast.called, 'broadcast was called for an ' +
         'active dialog');
-      assert.isTrue(stubBroadcast.calledWith('inputmethod-contextchange',
-        mozChromeEventFake.detail), 'broadcast arguments are correct');
+      assert.isTrue(stubBroadcast.calledWith('inputfocus',
+        fakeInputFocusEvent.detail), 'broadcast arguments are correct');
     });
   });
 });

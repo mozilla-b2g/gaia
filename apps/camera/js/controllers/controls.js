@@ -42,6 +42,8 @@ ControlsController.prototype.bindEvents = function() {
   // App
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
+  this.app.on('camera:willchange', this.onCameraWillChange);
+  this.app.on('camera:configured', this.onCameraConfigured);
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.once('loaded', this.onceAppLoaded);
   this.app.on('busy', this.onCameraBusy);
@@ -54,9 +56,8 @@ ControlsController.prototype.bindEvents = function() {
   this.view.on('click:capture', this.onCaptureClick);
 
   // Timer
-  this.app.on('timer:started', this.onTimerStarted);
-  this.app.on('timer:cleared', this.onTimerStopped);
-  this.app.on('timer:ended', this.onTimerStopped);
+  this.app.on('countdown:started', this.onCountdownStarted);
+  this.app.on('countdown:ended', this.onCountdownStopped);
 
   // Settings
   this.app.on('settings:opened', this.onSettingsOpened);
@@ -145,6 +146,21 @@ ControlsController.prototype.onCaptureClick = function() {
 };
 
 /**
+ * Prevent the mode switch from being changed
+ * by the user when we are in the process of
+ * configuring the camera.
+ *
+ * @private
+ */
+ControlsController.prototype.onCameraWillChange = function() {
+  this.view.suspendModeSwitch(true);
+};
+
+ControlsController.prototype.onCameraConfigured = function() {
+  this.view.suspendModeSwitch(false);
+};
+
+/**
  * Set the recording attribute on
  * the view to allow it to style
  * accordingly.
@@ -186,26 +202,26 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
 
 /**
  * Forces the capture button to
- * look pressed while the timer is
+ * look pressed while the countdown is
  * counting down and hides controls.
  *
  * @private
  */
-ControlsController.prototype.onTimerStarted = function() {
+ControlsController.prototype.onCountdownStarted = function() {
   this.captureHighlightOn();
-  this.view.set('timer', 'active');
+  this.view.set('countdown', 'active');
 };
 
 /**
  * Forces the capture button to
- * look unpressed when the timer
+ * look unpressed when the countdown
  * stops and shows controls.
  *
  * @private
  */
-ControlsController.prototype.onTimerStopped = function() {
+ControlsController.prototype.onCountdownStopped = function() {
   this.captureHighlightOff();
-  this.view.set('timer', 'inactive');
+  this.view.set('countdown', 'inactive');
 };
 
 /**

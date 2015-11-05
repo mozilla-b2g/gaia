@@ -9,8 +9,6 @@ define(function(require) {
 
   var ListView = require('modules/mvvm/list_view');
 
-  var _ = navigator.mozL10n.get;
-
   /**
    * @alias module:keyboard_add_layouts/core
    * @class KeyboardAddLayoutsCore
@@ -77,20 +75,22 @@ define(function(require) {
      */
     _showEnabledDefaultDialog: function kal_showDialog(layout, missingType) {
       require(['modules/dialog_service'], function(DialogService) {
-        var type = _('keyboardType-' + missingType);
-        DialogService.alert({
-          id: 'defaultKeyboardEnabled',
-          args: {
-            layoutName: layout.inputManifest.name,
-            appName: layout.manifest.name
-          }
-        }, {
-          title: {
-            id: 'mustHaveOneKeyboard',
-            args: {
-              type: type
-            }
-          }
+        navigator.mozL10n.formatValue('keyboardType-' + missingType).then(
+          type => {
+            DialogService.alert({
+              id: 'defaultKeyboardEnabled',
+              args: {
+                layoutName: layout.inputManifest.name,
+                appName: layout.manifest.name
+              }
+            }, {
+              title: {
+                id: 'mustHaveOneKeyboard',
+                args: {
+                  type: type
+                }
+              }
+            });
         });
       });
     },

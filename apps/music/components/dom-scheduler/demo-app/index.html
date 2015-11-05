@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+
+    <link rel="stylesheet" href="css/h1.css">
+    <link rel="stylesheet" href="css/ul.css">
+    <link rel="stylesheet" href="css/app.css">
+
+    <!-- Component Style -->
+    <link rel="stylesheet" type="text/css" href="bower_components/base/base.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/gaia-theme/gaia-theme.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/gaia-fonts/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/gaia-icons/gaia-icons.css">
+
+    <!-- Dependencies -->
+    <script type="text/javascript" src="lib/dom-scheduler.js" defer></script>
+    <script src="bower_components/gaia-component/gaia-component.js" defer></script>
+    <script src="bower_components/gaia-button/gaia-button.js" defer></script>
+    <script src="bower_components/gaia-text-input/gaia-text-input.js" defer></script>
+
+
+    <!-- Libs -->
+    <script src="bower_components/gaia-dialog/gaia-dialog.js" defer></script>
+    <script src="bower_components/gaia-dialog/gaia-dialog-alert.js" defer></script>
+    <script src="bower_components/fast-list/fast-list.js" defer></script>
+
+    <!-- App -->
+    <script type="text/javascript" src="js/bacon-source.js" async></script>
+    <script type="text/javascript" src="js/app.js" async></script>
+
+    <title>Dom Scheduler Demo</title>
+  </head>
+
+  <body>
+    <h1>
+      Main List
+    </h1>
+    <div id="h1-after"></div>
+    <button>
+      Edit
+    </button>
+    <section>
+      <ul>
+        <section
+          ><h2> </h2
+          ><div class="background"
+            ></div
+            ></section>
+        <li
+          ><h3> </h3
+          ><p> </p
+          ><div class="overlay"
+            ><div class="cursor">↕︎</div></div
+          ></li>
+      </ul>
+    </section>
+
+    <gaia-dialog-alert id="mine">List item clicked!</gaia-dialog-alert>
+  </body>
+
+</html>

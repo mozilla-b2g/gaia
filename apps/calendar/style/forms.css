@@ -33,7 +33,7 @@ form li {
   /* pass the events from <span> to <input> */
   pointer-events: none;
   position: absolute;
-  left: 1.5rem;
+  offset-inline-start: 1.5rem;
   font-weight: normal;
 }
 
@@ -48,10 +48,4 @@ form li {
                   on the input field, so we let the cursor out of the screen to
                   prevent it. */
   text-indent: 110%;
-}
-
-/* RTL View */
-html[dir="rtl"] .datetime {
-  left: unset;
-  right: 1.5rem;
 }

@@ -115,7 +115,7 @@
     return `<div class="chrome" id="${className}">
             <gaia-progress></gaia-progress>
             <section role="region" class="bar">
-              <gaia-header action="close">
+              <gaia-header ignore-dir action="close">
                 <h1 class="title"></h1>
               </gaia-header>
             </section>

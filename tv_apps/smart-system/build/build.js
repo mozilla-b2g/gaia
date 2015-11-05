@@ -2,6 +2,7 @@
 
 /* global require, exports */
 var utils = require('utils');
+var preprocessor = require('preprocessor');
 
 var SystemAppBuilder = function() {
 };
@@ -26,12 +27,29 @@ SystemAppBuilder.prototype.addCustomizeFiles = function() {
   });
 };
 
+SystemAppBuilder.prototype.enableFirefoxSync = function(options) {
+  var fileList = {
+    process: [
+      ['index.html'],
+      ['js/fx_accounts_client.js']
+    ],
+    remove: [
+      ['js', 'sync_manager.js'],
+      ['js', 'sync_state_machine.js'],
+      ['test', 'unit', 'sync_manager_test.js'],
+      ['test', 'unit', 'sync_state_machine_test.js']
+    ]
+  };
+  preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
+};
+
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.setOptions(options);
   if (this.distDirPath) {
     this.addCustomizeFiles();
   }
+  this.enableFirefoxSync(options);
 };
 
 exports.execute = function(options) {

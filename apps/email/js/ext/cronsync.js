@@ -10,7 +10,7 @@
  *    server for general responsiveness and so the user can use the device
  *    offline.
  *
- * We use navigator.sync to schedule ourselves to wake up when our next
+ * We use mozAlarm to schedule ourselves to wake up when our next
  * synchronization should occur.
  *
  * All synchronization occurs in parallel because we want the interval that we
@@ -166,9 +166,9 @@ function CronSync(universe) {
   this.sendCronSync = $router.registerSimple('cronsync', function(data) {
     var args = data.args;
     switch (data.cmd) {
-      case 'requestSync':
-        debug('received a requestSync via a message handler');
-        this.onRequestSync.apply(this, args);
+      case 'alarm':
+        debug('received an alarm via a message handler');
+        this.onAlarm.apply(this, args);
         break;
       case 'syncEnsured':
         debug('received an syncEnsured via a message handler');
@@ -195,7 +195,7 @@ CronSync.prototype = {
    */
   ensureSync: function() {
     // Only execute ensureSync if it is not already in progress. Otherwise, due
-    // to async timing of navigator.sync setting, could end up with two sync
+    // to async timing of mozAlarm setting, could end up with two sync
     // tasks for the same ID.
     if (!this._completedEnsureSync)
       return;
@@ -354,8 +354,8 @@ CronSync.prototype = {
     }.bind(this));
   },
 
-  onRequestSync: function(accountIds) {
-    logic(this, 'requestSyncFired', { accountIds: accountIds });
+  onAlarm: function(accountIds) {
+    logic(this, 'alarmFired', { accountIds: accountIds });
 
     if (!accountIds)
       return;
@@ -369,7 +369,7 @@ CronSync.prototype = {
     this._universe.__notifyStartedCronSync(accountIds);
 
     // Make sure the acount IDs are still valid. This is to protect agains
-    // an account deletion that did not clean up any sync tasks correctly.
+    // an account deletion that did not clean up any alarms correctly.
     accountIds.forEach(function(id) {
       accounts.some(function(account) {
         if (account.id === id) {
@@ -383,10 +383,10 @@ CronSync.prototype = {
     // Flip switch to say account syncing is in progress.
     this._syncAccountsDone = false;
 
-    // Make sure next sync is set up. In the case of a cold start
+    // Make sure next alarm is set up. In the case of a cold start
     // background sync, this is a bit redundant in that the startup
     // of the mailuniverse would trigger this work. However, if the
-    // app is already running, need to be sure next sync is set up,
+    // app is already running, need to be sure next alarm is set up,
     // so ensure the next sync is set up here. Do it here instead of
     // after a sync in case an error in sync would prevent the next
     // sync from getting scheduled.
@@ -446,7 +446,7 @@ CronSync.prototype = {
 
   /**
    * Checks for "sync all done", which means the ensureSync call completed, and
-   * new sync tasks for next sync are set, and the account syncs have finished.
+   * new alarms for next sync are set, and the account syncs have finished.
    * If those two things are true, then notify the universe that the sync is
    * done.
    */
@@ -465,9 +465,9 @@ CronSync.prototype = {
 
   /**
    * Called from cronsync-main once ensureSync as set
-   * any sync tasks needed. Need to wait for it before
+   * any alarms needed. Need to wait for it before
    * signaling sync is done because otherwise the app
-   * could get closed down before the sync task additions
+   * could get closed down before the alarm additions
    * succeed.
    */
   onSyncEnsured: function() {

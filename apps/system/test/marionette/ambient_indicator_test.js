@@ -38,30 +38,22 @@ marionette('Ambient indicator', function() {
     test('is shown when a notification arrives', function() {
       assert.ok(ambientIndicator.displayed === false);
       notification = new NotificationTest(client, details);
-      client.waitFor(function() {
-        return ambientIndicator.displayed;
-      });
+      ambientIndicator.waitForDisplayed();
     });
 
     test('gets cleared when opening the tray', function() {
       assert.ok(ambientIndicator.displayed === false);
       notification = new NotificationTest(client, details);
       utilityTray.open();
-      client.waitFor(function() {
-        return !ambientIndicator.displayed;
-      });
+      ambientIndicator.waitForHidden();
     });
 
     test('gets cleared when externaly removing the notification', function() {
       assert.ok(ambientIndicator.displayed === false);
       notification = new NotificationTest(client, details);
-      client.waitFor(function() {
-        return ambientIndicator.displayed;
-      });
+      ambientIndicator.waitForDisplayed();
       notification.close();
-      client.waitFor(function() {
-        return !ambientIndicator.displayed;
-      });
+      ambientIndicator.waitForHidden();
     });
   });
 

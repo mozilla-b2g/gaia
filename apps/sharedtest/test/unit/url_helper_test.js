@@ -44,4 +44,14 @@ suite('URL Helper', function() {
       assert.ok(!UrlHelper.isNotURL(input));
     });
   });
+
+  test('resolveUrl', function() {
+    var result = UrlHelper.resolveUrl('/bar', 'http://foo.com/');
+    assert.equal(result, 'http://foo.com/bar');
+  });
+
+  test('getHostname', function() {
+    var result = UrlHelper.getHostname('http://example.com');
+    assert.equal(result, 'example.com');
+  });
 });

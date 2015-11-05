@@ -48,7 +48,8 @@
     },
     "feature-detection": {
       "description": "For dev mode pref"
-    }
+    },
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "icons": {
     "84": "/icons/sharing_84.png",

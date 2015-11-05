@@ -1,0 +1,36 @@
+{
+  "camelcase": false,
+  "forin": false,
+  "newcap": false,
+  "noarg": true,
+  "quotmark": "single",
+  "undef": true,
+  "unused": "vars",
+  "trailing": true,
+  "maxlen": 80,
+  "laxbreak": true,
+
+  "eqnull": true,
+  "esnext": true,
+  "expr": true,
+
+  "maxerr": 1000,
+  "regexdash": true,
+  "laxcomma": true,
+  "laxbreak": true,
+  "proto": true,
+
+  "node": true,
+  "browser": true,
+  "devel": true,
+  "nonstandard": true,
+  "worker": true,
+  "boss": true,
+
+  "-W078": true,
+
+  "globals": {
+    "define": false,
+    "BroadcastChannel": false
+  }
+}

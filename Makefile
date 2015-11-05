@@ -85,6 +85,8 @@ SCREEN_TIMEOUT?=-1
 PRODUCTION?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
+NGA_SERVICE_WORKERS?=0
+FIREFOX_SYNC?=0
 
 # Parallel build for multicores CPU
 P?=1
@@ -120,6 +122,9 @@ BUILD_DEBUG?=0
 
 # Enable PerformanceTiming logs
 PERF_LOGGING?=0
+
+# Are we building for RAPTOR?
+RAPTOR?=0
 
 # Enable hardware composing by default
 HARDWARE_COMPOSER?=1
@@ -336,7 +341,11 @@ endif # Firefox build workaround
 # XULRUNNERSDK used to be run-mozilla.sh, but some builds don't include it
 # Without that, Linux needs to reference the directory containing libxul.so
 ifeq (,$(XULRUNNERSDK)$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
+ifeq (,$(LD_LIBRARY_PATH))
 XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
+else
+XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK)):$(LD_LIBRARY_PATH)"
+endif
 endif
 
 # It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
@@ -402,7 +411,6 @@ ifdef GAIA_DISTRIBUTION_DIR
   ifneq ($(wildcard $(DISTRIBUTION_EMAIL_SERVICES)),)
     EMAIL_SERVICES_PATH := $(DISTRIBUTION_EMAIL_SERVICES)
   endif
-  EXECUTE_PRELOAD_APP := $(shell $(call run-js-command,preload, GAIA_DIR="$(GAIA_DIR)" GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)"))
 endif
 
 # Read the file specified in $GAIA_APP_CONFIG and turn them into $GAIA_APPDIRS,
@@ -474,14 +482,14 @@ endif
 # Test agent setup
 TEST_COMMON=dev_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
-  NODEJS := `which node`
+  NODEJS := $(shell which node)
 endif
 ifeq ($(strip $(NODEJS)),)
-  NODEJS := `which nodejs`
+  NODEJS := $(shell which nodejs)
 endif
 
 ifeq ($(strip $(NPM)),)
-  NPM := `which npm`
+  NPM := $(shell which npm)
 endif
 
 TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
@@ -490,7 +498,7 @@ TEST_AGENT_COVERAGE="./build/config/test-agent-coverage.json"
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
-PYTHON_27 := `which python`
+PYTHON_27 := $(shell which python)
 endif
 PYTHON_FULL := $(wordlist 2,4,$(subst ., ,$(shell $(PYTHON_27) --version 2>&1)))
 PYTHON_MAJOR := $(word 1,$(PYTHON_FULL))
@@ -561,8 +569,11 @@ define BUILD_CONFIG
   "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
   "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
   "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)", \
+  "RAPTOR": "$(RAPTOR)", \
   "RAPTOR_TRANSFORM": "$(RAPTOR_TRANSFORM)", \
-  "RAPTOR_TRANSFORMER_PATH": "$(RAPTOR_TRANSFORMER_PATH)" \
+  "RAPTOR_TRANSFORMER_PATH": "$(RAPTOR_TRANSFORMER_PATH)", \
+  "NGA_SERVICE_WORKERS": "$(NGA_SERVICE_WORKERS)", \
+  "FIREFOX_SYNC": "$(FIREFOX_SYNC)" \
 }
 endef
 
@@ -584,7 +595,7 @@ build-app: app
 	@$(call $(BUILD_RUNNER),update-webapps-json)
 
 .PHONY: app
-app: b2g_sdk profile-dir
+app: b2g_sdk preload-app profile-dir
 	@$(call $(BUILD_RUNNER),app)
 
 .PHONY: pre-app
@@ -604,6 +615,10 @@ webapp-optimize: app
 .PHONY: webapp-zip
 webapp-zip: app
 
+.PHONY: preload-app
+preload-app:
+	$(call $(BUILD_RUNNER),preload,GAIA_DIR="$(GAIA_DIR)" GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)")
+
 # Get additional extensions
 $(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
 ifeq ($(DESKTOP),1)
@@ -612,6 +627,12 @@ endif
 
 profile-dir:
 	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
+ifeq ($(GAIA_DEVICE_TYPE), tv)
+	@test -d $(PROFILE_FOLDER)/dummy || mkdir -p $(PROFILE_FOLDER)/dummy
+	@cp $(GAIA_DIR)/build/config/tv/simulator/settings.json $(PROFILE_FOLDER)/dummy/
+	@cp $(GAIA_DIR)/test_media/Movies/gizmo2.mp4 $(PROFILE_FOLDER)/dummy/
+	@cp $(GAIA_DIR)/test_media/Movies/elephants-dream.webm $(PROFILE_FOLDER)/dummy/
+endif
 
 # Copy preload contacts to profile
 contacts: profile-dir
@@ -755,19 +776,19 @@ git-gaia-node-modules: gaia_node_modules.revision
 #
 npm-cache:
 	@echo "Using pre-deployed cache."
-	npm install
+	$(NPM) install
 	touch -c node_modules
 #	@echo $(shell $(NODEJS) --version |awk -F. '{print $1, $2}')
 
 node_modules: package.json
-ifneq ($(NODEJS),)
+ifneq ($(strip $(NODEJS)),)
 ifneq ($(NODE_VERSION),$(shell $(NODEJS) --version | awk -F. '{print $$1"."$$2}'))
 	@printf '\033[0;33mPlease use $(NODE_VERSION) of nodejs or it may cause unexpected error.\033[0m\n'
 endif
 endif
 	# TODO: Get rid of references to gaia-node-modules stuff.
-	npm install
-	npm run refresh
+	$(NPM) install
+	$(NPM) run refresh
 
 ###############################################################################
 # Tests                                                                       #
@@ -786,9 +807,9 @@ ifndef APPS
   endif
 endif
 
-b2g: node_modules
+mulet: node_modules
 	DEBUG=* ./node_modules/.bin/mozilla-download \
-	--product b2g-desktop \
+	--product mulet \
 	--branch mozilla-central \
 	$(shell pwd)
 	touch -c $@
@@ -805,16 +826,16 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test: b2g node_modules
-	TEST_MANIFEST=$(TEST_MANIFEST) npm run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
+test-integration-test: mulet node_modules
+	TEST_MANIFEST=$(TEST_MANIFEST) $(NPM) run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
 
 .PHONY: jsmarionette-unit-tests
-jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
+jsmarionette-unit-tests: mulet node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
 	PROFILE_FOLDER=$(PROFILE_FOLDER) ./tests/jsmarionette/run_tests.js
 
 tests/jsmarionette/runner/marionette-js-runner/venv:
 	# Install virtualenv
-	cd tests/jsmarionette/runner/marionette-js-runner && npm install
+	cd tests/jsmarionette/runner/marionette-js-runner && $(NPM) install
 	# Still want to use $GAIA/node_modules
 	rm -rf tests/jsmarionette/runner/marionette-js-runner/node_modules
 
@@ -828,7 +849,19 @@ caldav-server-install:
 
 .PHONY: raptor
 raptor: node_modules
-	PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
+ifneq ($(APP),)
+	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 APP=$(APP) make install-gaia
+else
+	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
+endif
+
+.PHONY: raptor-transformer
+raptor-transformer: node_modules
+ifeq ($(RAPTOR_TRANSFORM_RULES),)
+	@(echo "Please ensure you specify the 'RAPTOR_TRANSFORM_RULES=<directory with the *.esp files>'" && exit 1)
+endif
+	@test -d $(RAPTOR_TRANSFORM_RULES) || (echo "Please ensure the '$(RAPTOR_TRANSFORM_RULES)' directory exists" && exit 1)
+	RAPTOR_TRANSFORM=1 RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
 
 .PHONY: tests
 tests: app offline
@@ -1068,7 +1101,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules mulet firefox/ modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true

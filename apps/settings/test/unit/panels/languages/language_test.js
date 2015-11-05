@@ -51,10 +51,14 @@ suite('Languages > ', function() {
       // mock SettingsCache
       that.MockSettingsCache = MockSettingsCache;
       MockSettingsCache.mockSettings({
-        'deviceinfo.os': OSVersion
+        'langpack.channel': OSVersion
       });
 
       languages = Languages();
+      languages.onInit({}, {
+        moreLanguages: document.createElement('a'),
+        langSel: document.createElement('select')
+      });
       done();
     });
   });

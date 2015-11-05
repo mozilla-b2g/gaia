@@ -79,12 +79,16 @@
     justUpgraded: function() {
       return this._isUpgrade;
     },
-    checkUpgrading: function(prev, curr) {
+    checkUpgrading: function(currStr='', prevStr='') {
       var isUpgrade = false;
       // dont treat lack of previous version info as an upgrade
-      if (prev && curr) {
-        isUpgrade = curr.major > prev.major || curr.minor > prev.minor;
+      if (prevStr && currStr) {
+        var [prevMajor, prevMinor] = prevStr.split('.').map(p => parseInt(p));
+        var [currMajor, currMinor] = currStr.split('.').map(p => parseInt(p));
+        isUpgrade = currMajor > prevMajor || currMinor > prevMinor;
       }
+      this.debug('checkUpgrading, prev: ' + prevStr, 'currStr: ' + currStr,
+                 isUpgrade);
       this._isUpgrade = isUpgrade;
       return isUpgrade;
     },

@@ -1,4 +1,4 @@
-/* globals MockL10n, MocksHelper, MockService, Statusbar, MockBaseIcon,
+/* globals MockL10n, MocksHelper, MockService, Statusbar,
            UtilityTray, MockAppWindow */
 'use strict';
 
@@ -32,7 +32,9 @@ suite('system/Statusbar', function() {
   var fakeStatusbarNode, fakeTopPanel, fakeStatusbarIconsMax,
       fakeStatusbarIcons, fakeStatusbarIconsMaxWrapper,
       fakeStatusbarIconsMinWrapper, fakeStatusbarIconsMin;
-  var realMozL10n, realService;
+  var realMozL10n, realService, clientWidth, icons;
+
+  var ICONS_LIMIT = 7;
 
   // XXX: Use MockAppWindow
   function getApp(light, maximized, fullscreen, fullscreenLayout) {
@@ -55,6 +57,26 @@ suite('system/Statusbar', function() {
         }
       }
     };
+  }
+
+  function showIcons(number) {
+    for (var i = number - 1; i >= 0; i--) {
+      var detail = {
+        dashPureName: Math.floor(Math.random() * 100000000).toString()
+      };
+      window.dispatchEvent(new CustomEvent('iconshown', {detail: detail}));
+      icons.push(detail.dashPureName);
+    }
+  }
+
+  function hideIcons(number) {
+    number = number || icons.length;
+    for (var i = 0; i < number; i++) {
+      var detail = {
+        dashPureName: icons.pop()
+      };
+      window.dispatchEvent(new CustomEvent('iconhidden', {detail: detail}));
+    }
   }
 
   function prepareDOM() {
@@ -90,6 +112,7 @@ suite('system/Statusbar', function() {
   mocksForStatusbar.attachTestHelpers();
 
   setup(function(done) {
+    icons = [];
     this.sinon.useFakeTimers();
 
     realService = window.Service;
@@ -102,10 +125,14 @@ suite('system/Statusbar', function() {
     requireApp('system/js/statusbar.js', statusBarReady);
 
     function statusBarReady() {
+      clientWidth = 320;
       // executing init again
       Statusbar.start();
+      Object.defineProperty(Statusbar.element, 'clientWidth', {
+        configurable: true,
+        get: function() { return clientWidth; }
+      });
       Statusbar.finishInit();
-      Statusbar._paused = 0;
       done();
     }
   });
@@ -172,10 +199,16 @@ suite('system/Statusbar', function() {
   });
 
   suite('Statusbar should reflect fullscreen state', function() {
-    var app;
+    var app, appChromeElementId = 'test';
 
     setup(function() {
-      app = new MockAppWindow();
+      app = new MockAppWindow({
+        appChrome: {
+          element: { id: appChromeElementId },
+          isMaximized: this.sinon.spy(),
+          useLightTheming: this.sinon.spy()
+        }
+      });
       MockService.mockQueryWith('getTopMostWindow', app);
     });
 
@@ -188,24 +221,30 @@ suite('system/Statusbar', function() {
       this.sinon.stub(app, 'isFullScreen').returns(false);
       Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
       assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
+      assert.equal(Statusbar.element.getAttribute('aria-owns'),
+        appChromeElementId);
     });
 
     test('Launch a fullscreen app', function() {
       this.sinon.stub(app, 'isFullScreen').returns(true);
       Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
       assert.isTrue(Statusbar.element.classList.contains('fullscreen'));
+      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a fullscreen-layout app', function() {
       this.sinon.stub(app, 'isFullScreenLayout').returns(true);
       Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
       assert.isTrue(Statusbar.element.classList.contains('fullscreen-layout'));
+      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a non-fullscreen-layout app', function() {
       this.sinon.stub(app, 'isFullScreenLayout').returns(false);
       Statusbar.handleEvent(new CustomEvent('appopened', {detail: app}));
       assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
+      assert.equal(Statusbar.element.getAttribute('aria-owns'),
+        appChromeElementId);
     });
 
     test('Back to home should remove fullscreen state', function() {
@@ -217,6 +256,7 @@ suite('system/Statusbar', function() {
         { detail: home }));
       assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
       assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
+      assert.isFalse(Statusbar.element.hasAttribute('aria-owns'));
     });
 
     test('Launch a fullscreen activity', function() {
@@ -235,15 +275,6 @@ suite('system/Statusbar', function() {
         {detail: app}));
       assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
       assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
-    });
-
-    test('stackchanged', function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
-      var event = new CustomEvent('stackchanged');
-      Statusbar.handleEvent(event);
-      assert.isTrue(Statusbar.element.classList.contains('fullscreen'));
-      assert.isTrue(Statusbar.element.classList.contains('fullscreen-layout'));
     });
   });
 
@@ -358,210 +389,41 @@ suite('system/Statusbar', function() {
       });
 
       test('it should not forward events when the tray is opened', function() {
-        UtilityTray.active = true;
+        UtilityTray.shown = true;
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
 
         assert.isFalse(app.handleStatusbarTouch.called);
-        UtilityTray.active = false;
+        UtilityTray.shown = false;
       });
     });
   });
 
   suite('Icons', function() {
-    test('visibility should be updated on screen resize', function() {
-      var spyUpdateIconVisibility =
-        this.sinon.spy(Statusbar, '_updateIconVisibility');
-
-      var evt = new CustomEvent('system-resize');
-      Statusbar.handleEvent(evt);
-      assert.isTrue(spyUpdateIconVisibility.called);
-    });
-
-    test('visibility update should get the status bars width', function() {
-      var spyGetMaximizedStatusbarWidth =
-        this.sinon.spy(Statusbar, '_getMaximizedStatusbarWidth');
-
-      Statusbar._updateIconVisibility();
-      assert.isTrue(spyGetMaximizedStatusbarWidth.called);
-    });
-
     test('it sets the order when an icon is rendered', function() {
       var priority1 = Object.keys(Statusbar.PRIORITIES)[0];
-      var order = Statusbar.PRIORITIES[priority1].order;
+      var order = Statusbar.PRIORITIES.indexOf(priority1);
       var mockIcon = {
         dashPureName: priority1,
         setOrder: this.sinon.stub()
       };
-      this.sinon.stub(Statusbar, '_updateIconVisibility');
       window.dispatchEvent(new CustomEvent('iconrendered', {detail: mockIcon}));
       assert.isTrue(mockIcon.setOrder.calledWith(order));
-      assert.isTrue(Statusbar._updateIconVisibility.called);
-    });
-
-    suite('when only 2 icons fit in the maximized status bar', function() {
-      var iconWithPriority1;
-      var iconWithPriority2;
-      var iconWithPriority3;
-      var getMaximizedStatusbarWidthStub;
-      var priorities;
-
-      setup(function() {
-        priorities = [];
-        // Reset all the icons to be hidden.
-
-        Object.keys(Statusbar.PRIORITIES).forEach(function(iconId) {
-          priorities.push(iconId);
-          Statusbar.PRIORITIES[iconId].icon =
-            new MockBaseIcon(Statusbar.toClassName(iconId) + 'Icon');
-        });
-
-        iconWithPriority1 = Statusbar.PRIORITIES[priorities[0]].icon;
-        iconWithPriority2 = Statusbar.PRIORITIES[priorities[1]].icon;
-        iconWithPriority3 = Statusbar.PRIORITIES[priorities[2]].icon;
-
-        this.sinon.stub(iconWithPriority1, 'isVisible').returns(true);
-        this.sinon.stub(iconWithPriority2, 'isVisible').returns(true);
-        this.sinon.stub(iconWithPriority3, 'isVisible').returns(true);
-
-        // The maximized status bar can fit icons with priority 1 and 2.
-        getMaximizedStatusbarWidthStub = sinon.stub(Statusbar,
-          '_getMaximizedStatusbarWidth', function() {
-            var first = priorities[0];
-            var second = priorities[1];
-            return Statusbar._getIconWidth(Statusbar.PRIORITIES[first]) +
-              Statusbar._getIconWidth(Statusbar.PRIORITIES[second]);
-          });
-        // The minimized status bar can only fit the highest priority icon.
-        Statusbar._minimizedStatusbarWidth = Statusbar._getIconWidth(
-          Statusbar.PRIORITIES[priorities[0]]);
-
-        Statusbar._updateIconVisibility();
-      });
-
-      teardown(function() {
-        getMaximizedStatusbarWidthStub.restore();
-      });
-
-      test('the maximized status bar should hide icon #3', function() {
-        Statusbar._updateIconVisibility();
-
-        // Icon #1 is always visible.
-        assert.isFalse(Statusbar.statusbarIcons.classList
-          .contains('sb-hide-' + priorities[0]));
-        // Icon #2 is visible in the maximized status bar.
-        assert.isFalse(Statusbar.statusbarIcons.classList
-          .contains('sb-hide-' + priorities[1]));
-        // Icon #3 is hidden in the maximized status bar.
-        assert.isTrue(Statusbar.statusbarIcons.classList
-          .contains('sb-hide-' + priorities[2]));
-      });
-
-      test('the minimized status bar should hide icon #2', function() {
-        Statusbar._updateIconVisibility();
-
-        // Icon #1 is always visible.
-        assert.isFalse(Statusbar.statusbarIconsMin.classList
-          .contains('sb-hide-' + priorities[0]));
-        // Icon #2 is hidden in the minimized status bar.
-        assert.isTrue(Statusbar.statusbarIconsMin.classList
-          .contains('sb-hide-' + priorities[1]));
-        // Icon #2 is not hidden in the minimized status bar.
-        assert.isFalse(Statusbar.statusbarIconsMin.classList
-          .contains('sb-hide-' + priorities[2]));
-      });
-    });
-  });
-
-  suite('_getIconWidth', function() {
-    setup(function() {
-      Object.keys(Statusbar.PRIORITIES).forEach(function(iconId) {
-        Statusbar.PRIORITIES[iconId].icon =
-          new MockBaseIcon(Statusbar.toClassName(iconId) + 'Icon');
-      });
-    });
-    test('should return the stored value for fixed size icons', function() {
-      // Get the index of emergency cb icon in Statusbar.PRIORITIES.
-      var iconIndex;
-      Object.keys(Statusbar.PRIORITIES).some(function(iconId) {
-        if (iconId === 'emergency-callback') {
-          iconIndex = iconId;
-          return true;
-        }
-        return false;
-      });
-
-      var emergencyIcon = Statusbar.PRIORITIES['emergency-callback'].icon;
-      this.sinon.stub(emergencyIcon, 'isVisible').returns(true);
-
-      assert.ok(Statusbar.PRIORITIES[iconIndex].width);
-      assert.equal(Statusbar.PRIORITIES[iconIndex].width, 16 + 4);
-    });
-
-    test('should compute the width of variable size icons', function() {
-      // Get the index of time icon in Statusbar.PRIORITIES.
-      var iconIndex;
-      Object.keys(Statusbar.PRIORITIES).some(function(iconId) {
-        if (iconId === 'time') {
-          iconIndex = iconId;
-          return true;
-        }
-        return false;
-      });
-
-      var timeIcon = Statusbar.PRIORITIES.time.icon;
-      this.sinon.stub(timeIcon, 'isVisible').returns(true);
-
-      assert.equal(Statusbar._getIconWidth(Statusbar.PRIORITIES[iconIndex]),
-        timeIcon.element.clientWidth);
-    });
-  });
-
-  suite('_updateMinimizedStatusbarWidth', function() {
-    var app;
-    setup(function() {
-      app = getMockApp();
-      MockService.mockQueryWith('getTopMostWindow', app);
-    });
-
-    test('does not update minimizedWidth when maximized', function() {
-      var unchangedValue = '#';
-      Statusbar._minimizedStatusbarWidth = unchangedValue;
-      this.sinon.stub(Statusbar, '_updateIconVisibility');
-      MockService.mockQueryWith('getTopMostWindow', app);
-      Statusbar._updateMinimizedStatusbarWidth();
-      assert.equal(unchangedValue, Statusbar._minimizedStatusbarWidth);
-      assert.isTrue(Statusbar._updateIconVisibility.calledOnce);
-    });
-
-    test('minimizedWidth when minimized when rocketbar', function() {
-      var mockedWidth = 100;
-      this.sinon.stub(app.appChrome, 'isMaximized')
-        .returns(false);
-      app.element = getMockChrome(mockedWidth);
-      Statusbar._updateMinimizedStatusbarWidth();
-      assert.equal(Statusbar._minimizedStatusbarWidth, mockedWidth);
-    });
-
-    test('minimizedWidth when minimized without rocketbar', function() {
-      var mockedWidth = 1234;
-      this.sinon.stub(app.appChrome, 'isMaximized')
-        .returns(false);
-      this.sinon.stub(Statusbar, '_getMaximizedStatusbarWidth')
-        .returns(mockedWidth);
-      MockService.mockQueryWith('getTopMostWindow', app);
-      Statusbar._updateMinimizedStatusbarWidth();
-      assert.equal(Statusbar._minimizedStatusbarWidth, mockedWidth);
     });
   });
 
   suite('setAppearance', function() {
     var app;
     setup(function() {
-      Statusbar.element.classList.remove('light');
-      Statusbar.element.classList.remove('maximized');
       app = getMockApp();
       MockService.mockQueryWith('getTopMostWindow', app);
+      showIcons(10);
+      Statusbar.element.classList.remove('light');
+      Statusbar.element.classList.remove('maximized');
+    });
+
+    teardown(function() {
+      hideIcons();
     });
 
     test('setAppearance light and maximized', function() {
@@ -645,6 +507,32 @@ suite('system/Statusbar', function() {
       assert.isTrue(Statusbar.element.classList.contains('fullscreen-layout'));
       assert.isTrue(stub.calledOnce);
     });
+
+    test('setAppearance maximized with fewIcons', function() {
+      hideIcons();
+      showIcons(5);
+      Statusbar.setAppearance();
+      assert.isFalse(Statusbar.element.classList.contains('maximized'));
+    });
+
+    test('maximized when iconshown and fewIcons', function() {
+      hideIcons();
+      showIcons(ICONS_LIMIT - 1);
+      Statusbar.setAppearance();
+      assert.isFalse(Statusbar.element.classList.contains('maximized'));
+      showIcons(1);
+      assert.isTrue(Statusbar.element.classList.contains('maximized'));
+    });
+
+    test('not maximized when iconhidden and fewIcons', function() {
+      hideIcons();
+      showIcons(ICONS_LIMIT);
+      Statusbar.setAppearance();
+      assert.isTrue(Statusbar.element.classList.contains('maximized'));
+      hideIcons(1);
+      Statusbar.setAppearance();
+      assert.isFalse(Statusbar.element.classList.contains('maximized'));
+    });
   });
 
   suite('setAppearance with no top most window', function() {
@@ -669,53 +557,15 @@ suite('system/Statusbar', function() {
     });
   });
 
-  suite('Icon events', function() {
-    setup(function() {
-      this.sinon.stub(Statusbar, '_updateIconVisibility');
-      this.sinon.stub(Statusbar, 'cloneStatusbar');
-    });
-
-    test('icon is created', function() {
-      var icon = new MockBaseIcon('MobileConnectionIcon');
-      window.dispatchEvent(new CustomEvent('iconcreated', {
-        detail: icon
-      }));
-      assert.ok(Statusbar.PRIORITIES['mobile-connection'].icon);
-    });
-
-    test('icon is shown', function() {
-      var icon = new MockBaseIcon('MobileConnectionIcon');
-      window.dispatchEvent(new CustomEvent('iconshown', {
-        detail: icon
-      }));
-      assert.isTrue(Statusbar._updateIconVisibility.called);
-    });
-
-    test('icon is hidden', function() {
-      var icon = new MockBaseIcon('MobileConnectionIcon');
-      window.dispatchEvent(new CustomEvent('iconhidden', {
-        detail: icon
-      }));
-      assert.isTrue(Statusbar._updateIconVisibility.called);
-    });
-
-    test('icon is changed', function() {
-      var icon = new MockBaseIcon('MobileConnectionIcon');
-      window.dispatchEvent(new CustomEvent('iconchanged', {
-        detail: icon
-      }));
-      assert.isTrue(Statusbar.cloneStatusbar.called);
-    });
-  });
-
   suite('lockscreen support', function() {
-    var lockscreenApp, app, cloneStatusbarStub;
+    var lockscreenApp, app;
 
     function lockScreen() {
       MockService.mockQueryWith('getTopMostWindow', lockscreenApp);
       var evt = new CustomEvent('hierarchytopmostwindowchanged', {
         detail: lockscreenApp
       });
+      showIcons(10);
       Statusbar.handleEvent(evt);
     }
 
@@ -726,18 +576,13 @@ suite('system/Statusbar', function() {
       Statusbar.handleEvent(evt);
     }
 
-    function emitStatusbarEvent(evtType) {
-      window.dispatchEvent(new CustomEvent(evtType));
-    }
-
     setup(function() {
       lockscreenApp = getApp(false, true);
       app = getApp(false, false);
-      cloneStatusbarStub = this.sinon.spy(Statusbar, 'cloneStatusbar');
     });
 
     teardown(function() {
-      cloneStatusbarStub.restore();
+      hideIcons();
     });
 
     test('should set the lockscreen icons color', function() {
@@ -746,31 +591,11 @@ suite('system/Statusbar', function() {
       assert.isTrue(Statusbar.element.classList.contains('maximized'));
       unlockScreen();
     });
-
-    test('Locking screen while opening utility tray should not block the ' +
-      'status bar', function() {
-      emitStatusbarEvent('utilitytraywillshow');
-      assert.isFalse(cloneStatusbarStub.called);
-
-      emitStatusbarEvent('utility-tray-abortopen');
-      assert.isTrue(cloneStatusbarStub.called);
-    });
-
-    test('Locking screen while closing utility tray should not block the ' +
-      'status bar', function() {
-      emitStatusbarEvent('utilitytraywillhide');
-      assert.isFalse(cloneStatusbarStub.called);
-
-      emitStatusbarEvent('utility-tray-abortclose');
-      assert.isTrue(cloneStatusbarStub.called);
-    });
   });
 
   suite('handle events', function() {
     var app;
     var setAppearanceStub;
-    var pauseUpdateStub;
-    var resumeUpdateStub;
 
     function testEventThatHides(event) {
       var evt = new CustomEvent(event);
@@ -779,95 +604,25 @@ suite('system/Statusbar', function() {
       assert.isTrue(Statusbar.element.classList.contains('hidden'));
     }
 
-    function triggerEvent(event) {
-      // XXX: Use MockAppWindow instead
-      var currentApp = {
-        getTopMostWindow: function getTopMostWindow() {
-          return this;
-        },
-        isFullScreen: function() {},
-        isFullScreenLayout: function() {}
-      };
+    function triggerEvent(event, config) {
+      var currentApp = new MockAppWindow(config);
       MockService.mockQueryWith('getTopMostWindow', currentApp);
       var evt = new CustomEvent(event, {detail: currentApp});
       Statusbar.element.classList.add('hidden');
       Statusbar.handleEvent(evt);
     }
 
-    function testEventThatShows(event) {
-      triggerEvent(event);
+    function testEventThatShows(event, config) {
+      triggerEvent(event, config);
       assert.isTrue(setAppearanceStub.called);
-      assert.isFalse(Statusbar.element.classList.contains('hidden'));
-    }
-
-    function testEventThatNotShowsIfSwipeDetected(event) {
-      var currentApp = {
-        getTopMostWindow: function getTopMostWindow() {
-          return this;
-        }
-      };
-      MockService.mockQueryWith('getTopMostWindow', currentApp);
-      var evt = new CustomEvent(event, {detail: currentApp});
-      Statusbar.element.classList.add('hidden');
-      Statusbar.handleEvent(evt);
-      assert.isTrue(setAppearanceStub.called);
-      assert.isTrue(Statusbar.element.classList.contains('hidden'));
-    }
-
-    function dispatchEdgeSwipeEvent(event) {
-      var evt = new CustomEvent(event);
-      Statusbar.handleEvent(evt);
-    }
-
-    function testEventThatPause(event) {
-      var evt = new CustomEvent(event);
-      Statusbar.handleEvent(evt);
-      assert.isTrue(pauseUpdateStub.called);
-      assert.equal(pauseUpdateStub.args[0], event);
-
-      Statusbar.resumeUpdate();
-    }
-
-    function testEventThatResume(event) {
-      Statusbar.pauseUpdate();
-
-      var evt = new CustomEvent(event);
-      Statusbar.handleEvent(evt);
-      assert.isTrue(resumeUpdateStub.called);
-      assert.equal(resumeUpdateStub.args[0], event);
-      assert.isFalse(Statusbar.isPaused());
-    }
-
-    function testEventThatResumeIfNeeded(event) {
-      var evt = new CustomEvent(event);
-      Statusbar.handleEvent(evt);
-      assert.isTrue(resumeUpdateStub.called);
-      assert.equal(resumeUpdateStub.args[0], event);
       assert.isFalse(Statusbar.element.classList.contains('hidden'));
     }
 
     setup(function() {
-      app = {
-        isFullScreen: function() {},
-        isFullScreenLayout: function() {}
-      };
+      app = new MockAppWindow();
       MockService.mockQueryWith('getTopMostWindow', app);
       setAppearanceStub = this.sinon.stub(Statusbar, 'setAppearance');
-      pauseUpdateStub = this.sinon.stub(Statusbar, 'pauseUpdate');
-      resumeUpdateStub = this.sinon.stub(Statusbar, 'resumeUpdate');
       Statusbar._pausedForGesture = false;
-    });
-
-    test('stackchanged', function() {
-      this.sinon.stub(app, 'isFullScreen').returns(false);
-      this.sinon.stub(app, 'isFullScreenLayout').returns(false);
-      Statusbar.element.classList.add('hidden');
-      var event = new CustomEvent('stackchanged');
-      Statusbar.handleEvent(event);
-      assert.isFalse(Statusbar.element.classList.contains('hidden'));
-      assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
-      assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
-      assert.isTrue(setAppearanceStub.called);
     });
 
     test('sheets-gesture-end', function() {
@@ -894,19 +649,27 @@ suite('system/Statusbar', function() {
     });
 
     test('appopened', function() {
-      testEventThatShows.bind(this)('appopened');
-      assert.isTrue(resumeUpdateStub.called);
+      testEventThatShows.bind(this)('appopened', {
+        appChrome: {
+          element: { id: 'test' },
+          isMaximized: this.sinon.spy(),
+          useLightTheming: this.sinon.spy()
+        }
+      });
     });
 
     test('appclosed', function() {
-      testEventThatShows.bind(this)('appopened');
-      assert.isTrue(resumeUpdateStub.called);
+      testEventThatShows.bind(this)('appopened', {
+        appChrome: {
+          element: { id: 'test' },
+          isMaximized: this.sinon.spy(),
+          useLightTheming: this.sinon.spy()
+        }
+      });
     });
 
     test('appchromecollapsed', function() {
-      var stub = this.sinon.spy(Statusbar, '_updateMinimizedStatusbarWidth');
       triggerEvent.bind(this)('appchromecollapsed');
-      assert.isTrue(stub.calledOnce);
       assert.isTrue(setAppearanceStub.calledOnce);
     });
 
@@ -921,210 +684,32 @@ suite('system/Statusbar', function() {
       testEventThatShows.bind(this)('appchromeexpanded');
     });
 
-    test('appchromeexpanded does not show if paused', function() {
-      this.sinon.stub(Statusbar, 'isPaused').returns(true);
-      triggerEvent.bind(this)('appchromeexpanded');
-      assert.isTrue(Statusbar.element.classList.contains('hidden'));
-    });
-
     test('apptitlestatechanged', function() {
       testEventThatShows.bind(this)('apptitlestatechanged');
     });
 
     test('activityopened', function() {
-      var stub = this.sinon.spy(Statusbar, '_updateMinimizedStatusbarWidth');
       testEventThatShows.bind(this)('activityopened');
-      assert.isTrue(stub.calledOnce);
-    });
-
-    test('activitydestroyed', function() {
-      var stub = this.sinon.spy(Statusbar, '_updateMinimizedStatusbarWidth');
-      triggerEvent('activitydestroyed');
-      assert.isTrue(stub.calledOnce);
     });
 
     test('utilitytraywillshow', function() {
-      testEventThatPause.bind(this)('utilitytraywillshow');
+      triggerEvent.bind(this)('utilitytraywillshow');
       assert.isTrue(setAppearanceStub.called);
     });
 
     test('utilitytraywillhide', function() {
-      testEventThatPause.bind(this)('utilitytraywillhide');
+      triggerEvent.bind(this)('utilitytraywillhide');
       assert.isTrue(setAppearanceStub.called);
     });
 
     test('cardviewshown', function() {
-      testEventThatPause.bind(this)('cardviewshown');
-      assert.isTrue(setAppearanceStub.called);
-    });
-
-    test('sheets-gesture-begin', function() {
-      testEventThatPause.bind(this)('sheets-gesture-begin');
-    });
-
-    test('sheets-gesture-end', function() {
-      dispatchEdgeSwipeEvent('sheets-gesture-begin');
-      testEventThatResume.bind(this)('sheets-gesture-end');
-    });
-
-    test('utility-tray-overlayopened', function() {
-      testEventThatResume.bind(this)('utility-tray-overlayopened');
-    });
-
-    test('utility-tray-overlayclosed', function() {
-      testEventThatResume.bind(this)('utility-tray-overlayclosed');
-    });
-
-    test('utility-tray-abortopen', function() {
-      testEventThatResume.bind(this)('utility-tray-abortopen');
-    });
-
-    test('utility-tray-abortclose', function() {
-      testEventThatResume.bind(this)('utility-tray-abortclose');
+      triggerEvent.bind(this)('cardviewshown');
+      assert.isTrue(Statusbar.element.classList.contains('hidden'));
     });
 
     test('cardviewclosed', function() {
-      testEventThatResume.bind(this)('cardviewclosed');
-    });
-
-    suite('handle events with swipe detected', function() {
-      setup(function() {
-        Statusbar.element.classList.add('hidden');
-        dispatchEdgeSwipeEvent('sheets-gesture-begin');
-        dispatchEdgeSwipeEvent('sheets-gesture-begin');
-        this.sinon.stub(Statusbar, 'isPaused', function() {
-          return true;
-        });
-      });
-
-      teardown(function() {
-        Statusbar.element.classList.remove('hidden');
-      });
-
-      test('apptitlestatechanged', function() {
-        testEventThatNotShowsIfSwipeDetected.bind(this)('apptitlestatechanged');
-      });
-
-      test('activitytitlestatechanged', function() {
-        testEventThatNotShowsIfSwipeDetected.
-          bind(this)('activitytitlestatechanged');
-      });
-
-      test('homescreenopened', function() {
-        testEventThatResumeIfNeeded.bind(this)('homescreenopened');
-      });
-    });
-  });
-
-  suite('resumeUpdate', function() {
-    var dispatchEvent = function(event) {
-      window.dispatchEvent(new CustomEvent(event));
-    };
-
-    test('should update icons only when not paused', function() {
-      this.sinon.stub(Statusbar, '_updateIconVisibility');
-      dispatchEvent('utilitytraywillhide');
-      dispatchEvent('utility-tray-overlayclosed');
-      assert.isFalse(Statusbar.isPaused());
-      assert.isTrue(Statusbar._updateIconVisibility.calledOnce);
-    });
-
-    test('should not update icons only when paused', function() {
-      this.sinon.stub(Statusbar, '_updateIconVisibility');
-      dispatchEvent('utilitytraywillshow');
-      dispatchEvent('utility-tray-overlayclosed');
-      assert.isTrue(Statusbar.isPaused());
-      assert.isFalse(Statusbar._updateIconVisibility.called);
-    });
-  });
-
-  suite('Non symmetrical events shouldn\'t call cloneStatusbar()', function() {
-    var dispatchEvent = function(event) {
-      window.dispatchEvent(new CustomEvent(event));
-    };
-
-    test('Sheet gestures', function() {
-      var cloneStatusbarStub = this.sinon.spy(Statusbar, 'cloneStatusbar');
-      dispatchEvent('sheets-gesture-begin');
-      dispatchEvent('iconshown');
-      assert.isFalse(cloneStatusbarStub.called);
-
-      dispatchEvent('sheets-gesture-begin');
-      dispatchEvent('sheets-gesture-end');
-      dispatchEvent('iconshown');
-      assert.isTrue(cloneStatusbarStub.called);
-      cloneStatusbarStub.restore();
-    });
-  });
-
-  suite('Label icon width', function() {
-    var labelIndex;
-    var realClientWidth;
-
-    setup(function() {
-      Object.keys(Statusbar.PRIORITIES).forEach(function(iconId) {
-        Statusbar.PRIORITIES[iconId].icon =
-          new MockBaseIcon(Statusbar.toClassName(iconId) + 'Icon');
-        if (iconId === 'operator') {
-          labelIndex = iconId;
-        }
-      });
-      realClientWidth = Object.getOwnPropertyDescriptor(
-        Statusbar.PRIORITIES.operator.icon.element,
-        'clientWidth');
-    });
-
-    teardown(function() {
-      if (realClientWidth) {
-        Object.defineProperty(Statusbar.PRIORITIES.operator.icon.element,
-          'clientWidth', realClientWidth);
-      } else {
-        delete Statusbar.PRIORITIES.operator.icon.element.clientWidth;
-      }
-    });
-
-    test('should have the cache invalidated when width changes', function() {
-      var label = Statusbar.PRIORITIES.operator.icon.element;
-
-      Object.defineProperty(label, 'clientWidth', {
-        configurable: true,
-        get: function() { return 10; }
-      });
-
-      Statusbar.handleEvent(new CustomEvent('iconwidthchanged', {
-        detail: Statusbar.PRIORITIES.operator.icon
-      }));
-
-      var originalWidth = Statusbar.PRIORITIES[labelIndex].width;
-
-      Object.defineProperty(label, 'clientWidth', {
-        configurable: true,
-        get: function() { return 20; }
-      });
-
-      Statusbar.handleEvent(new CustomEvent('iconwidthchanged', {
-        detail: Statusbar.PRIORITIES.operator.icon
-      }));
-
-      assert.notEqual(originalWidth, Statusbar.PRIORITIES[labelIndex].width);
-    });
-  });
-
-  suite('cloneStatusbar', function() {
-    test('should create a new DOM element for the status bar', function() {
-      var oldElement = Statusbar.statusbarIconsMin;
-      assert.equal(oldElement, Statusbar.statusbarIconsMin);
-
-      Statusbar.cloneStatusbar();
-      assert.notEqual(oldElement, Statusbar.statusbarIconsMin);
-    });
-
-    test('should conserve the CSS class names applied', function() {
-      var className = 'abc-DEF-' + Math.random();
-      Statusbar.statusbarIconsMin.className = className;
-
-      Statusbar.cloneStatusbar();
-      assert.equal(Statusbar.statusbarIconsMin.className, className);
+      triggerEvent.bind(this)('cardviewclosed');
+      assert.isFalse(Statusbar.element.classList.contains('hidden'));
     });
   });
 
@@ -1182,12 +767,10 @@ suite('system/Statusbar', function() {
     var wifiIcon;
 
     setup(function(done) {
-      var self = this;
       window.Service = realService;
       require('/apps/system/js/wifi_icon.js', function() {
         wifiIcon = new window.WifiIcon();
         requireApp('/apps/system/js/statusbar.js');
-        self.sinon.stub(Statusbar, 'onIconCreated');
         done();
       });
     });
@@ -1196,26 +779,11 @@ suite('system/Statusbar', function() {
       window.Service = MockService;
     });
 
-    test('icons loaded before the statusbar', function() {
-      assert.isFalse(Statusbar.onIconCreated.called);
-      Statusbar.finishInit();
-      assert.isTrue(Statusbar.onIconCreated.calledWith(wifiIcon));
-    });
-
-    test('statusbar does nothing with unknown icons', function() {
-      this.sinon.stub(wifiIcon, 'setOrder');
-      Statusbar.PRIORITIES.wifi = null;
-      Statusbar.finishInit();
-      assert.isNull(Statusbar.PRIORITIES.wifi);
-      window.dispatchEvent(new CustomEvent('iconrendered', {detail: wifiIcon}));
-      assert.isFalse(wifiIcon.setOrder.called);
-    });
-
     test('icon calls render before the statusbar is there', function(done) {
       wifiIcon.element = null;
       wifiIcon.render();
       assert.isNull(wifiIcon.element);
-      Statusbar.finishInit();
+      Statusbar.start();
       window.addEventListener('iconrendered', function() {
         assert.ok(wifiIcon.element);
         done();
@@ -1243,20 +811,5 @@ suite('system/Statusbar', function() {
         return false;
       }
     };
-  }
-
-  function getMockChrome(mockedWidth) {
-    var element = {
-      querySelector: function() {
-        return {
-          getBoundingClientRect: function() {
-            return {
-              width: mockedWidth
-            };
-          }
-        };
-      }
-    };
-    return element;
   }
 });

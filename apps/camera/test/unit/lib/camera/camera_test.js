@@ -24,20 +24,11 @@ suite('lib/camera/camera', function() {
       delete: sinon.stub()
     };
 
-    this.pictureStorage = {
-      get: sinon.stub(),
-      addEventListener: sinon.stub(),
-      removeEventListener: sinon.stub(),
-      delete: sinon.stub()
-    };
-
     if (!navigator.mozCameras) { navigator.mozCameras = mozCameras; }
     if (!navigator.getDeviceStorage) { navigator.getDeviceStorage = function() {}; }
 
     this.sandbox = sinon.sandbox.create();
-    var getDeviceStorage = this.sandbox.stub(navigator, 'getDeviceStorage')
-    getDeviceStorage.withArgs('videos').returns(this.videoStorage);
-    getDeviceStorage.withArgs('pictures').returns(this.pictureStorage);
+    this.sandbox.stub(navigator, 'getDeviceStorage').returns(this.videoStorage);
     this.sandbox.stub(navigator.mozCameras);
 
     navigator.mozCameras.getListOfCameras.returns([]);
@@ -51,14 +42,17 @@ suite('lib/camera/camera', function() {
       removeEventListener: sinon.stub()
     };
 
+    this.mozCamera.release.returns({
+      then: function(onSuccess) { setTimeout(onSuccess); }
+    });
+
     this.options = {
       configStorage: {
         setItem: sinon.stub(),
         getItem: sinon.stub()
       },
       storage: {
-        video: this.videoStorage,
-        picture: this.pictureStorage
+        video: this.videoStorage
       }
     };
 
@@ -142,7 +136,7 @@ suite('lib/camera/camera', function() {
 
     test('It flags the camera as \'recording\' straight away', function() {
       this.camera.startRecording();
-      sinon.assert.calledWith(this.camera.set, 'recording', true);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'starting');
     });
 
     test('Should error if not enough storage space', function() {
@@ -153,7 +147,7 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should error if stop recording requested', function() {
-      this.camera.stopRecordPending = true;
+      this.camera.get.withArgs('recording').returns('stopping');
       this.camera.startRecording();
       assert.ok(this.camera.stoppedRecording.called);
     });
@@ -239,13 +233,12 @@ suite('lib/camera/camera', function() {
       assert.ok(filepath === 'dir/my-video.3gp');
     });
 
-    test('Should pass the generated poster filepath and storage area', function() {
+    test('Should request poster creation', function() {
       this.camera.createVideoFilepath =
         sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       this.camera.startRecording();
       var config = this.camera.mozCamera.startRecording.args[0][0];
-      assert.ok(config.posterFilepath === 'dir/my-video.jpg');
-      assert.ok(config.posterStorageArea === this.camera.storage.picture);
+      assert.ok(config.createPoster === true);
     });
 
     test('Should call onStartRecordingError on error create video file', function() {
@@ -256,7 +249,7 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should call stoppedRecording if pending on create video file', function() {
-      this.camera.stopRecordPending = true;
+      this.camera.get.withArgs('recording').returns('stopping');
       this.camera.startRecording();
       assert.ok(this.camera.stoppedRecording.called);
     });
@@ -368,7 +361,7 @@ suite('lib/camera/camera', function() {
       this.video = {
         filepath: 'foo.3gp',
         poster: {
-          filepath: 'foo.jpg'
+          blob: '<poster-memory-blob>'
         }
       };
       this.camera.get.withArgs('videoElapsed').returns(2000);
@@ -377,7 +370,6 @@ suite('lib/camera/camera', function() {
     test('It calls delete', function() {
       this.camera.onStopRecordingError(this.video);
       sinon.assert.calledWith(this.videoStorage.delete, 'foo.3gp');
-      sinon.assert.calledWith(this.pictureStorage.delete, 'foo.jpg');
     });
 
     test('It calls onRecordingError for long videos', function() {
@@ -395,8 +387,9 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#stopRecording()', function() {
     setup(function() {
+      sinon.spy(this.camera, 'set');
       sinon.stub(this.camera, 'get');
-      this.camera.get.withArgs('recording').returns(true);
+      this.camera.get.withArgs('recording').returns('started');
 
       this.camera.mozCamera = {
         stopRecording: sinon.stub()
@@ -404,13 +397,13 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should not do anything if camera is not recording', function() {
-      this.camera.get.withArgs('recording').returns(false);
+      this.camera.get.withArgs('recording').returns('stopped');
       this.camera.stopRecording();
       sinon.assert.notCalled(this.camera.mozCamera.stopRecording);
     });
 
     test('Should not do anything if stop already pending', function() {
-      this.camera.stopRecordPending = true;
+      this.camera.get.withArgs('recording').returns('stopping');
       this.camera.stopRecording();
       sinon.assert.notCalled(this.camera.mozCamera.stopRecording);
     });
@@ -425,10 +418,9 @@ suite('lib/camera/camera', function() {
       sinon.assert.called(this.camera.mozCamera.stopRecording);
     });
 
-    test('Should set `stopRecordPending` flag to `true`', function() {
-      this.camera.stopRecordPending = false;
+    test('Should set `recording` to `stopping`', function() {
       this.camera.stopRecording();
-      assert.isTrue(this.camera.stopRecordPending);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'stopping');
     });
   });
 
@@ -486,15 +478,10 @@ suite('lib/camera/camera', function() {
       sinon.stub(this.camera, 'get');
     });
 
-    test('It sets `recording` to `false`', function() {
+    test('It sets `recording` to `stopped`', function() {
       this.camera.stoppedRecording();
-      sinon.assert.calledWith(this.camera.set, 'recording', false);
-    });
-
-    test('Should set `stopRecordPending` flag to `false`', function() {
-      this.camera.stopRecordPending = true;
-      this.camera.stoppedRecording();
-      assert.isFalse(this.camera.stopRecordPending);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'error');
+      sinon.assert.calledWith(this.camera.set, 'recording', 'stopped');
     });
 
     test('Should stop timer counting', function() {
@@ -506,15 +493,9 @@ suite('lib/camera/camera', function() {
     suite('Storage', function() {
       setup(function() {
         this.videoReq = {
-          result: '<videoblob>',
-          then: function() { return Promise.resolve(); }
-        };
-        this.posterReq = {
-          result: '<posterblob>',
-          then: function() { return Promise.resolve(); }
+          then: function(resolve, reject) { resolve('<videoblob>'); }
         };
         this.videoStorage.get.returns(this.videoReq);
-        this.pictureStorage.get.returns(this.posterReq);
         this.camera.get.withArgs('videoElapsed').returns(2000);
         this.camera.video = {
           filepath: 'foo/bar/baz.3gp',
@@ -522,7 +503,7 @@ suite('lib/camera/camera', function() {
           width: 400,
           height: 300,
           poster: {
-            filepath: 'foo/bar/baz.jpg',
+            blob: '<posterblob>',
             rotation: 180,
             width: 200,
             height: 150
@@ -530,12 +511,10 @@ suite('lib/camera/camera', function() {
         };
       });
 
-      test('Should call `get` on recorded video and poster', function() {
+      test('Should call `get` on recorded video', function() {
         this.camera.stoppedRecording(true);
         sinon.assert.calledWith(this.videoStorage.get, 'foo/bar/baz.3gp');
-        sinon.assert.calledWith(this.pictureStorage.get, 'foo/bar/baz.jpg');
         this.videoStorage.get.reset();
-        this.pictureStorage.get.reset();
       });
 
       test('Should emit a \'newvideo\' event including the additional metadata', function(done) {
@@ -550,7 +529,6 @@ suite('lib/camera/camera', function() {
             height: 300,
             poster: {
               blob: '<posterblob>',
-              filepath: 'foo/bar/baz.jpg',
               rotation: 180,
               width: 200,
               height: 150
@@ -566,7 +544,7 @@ suite('lib/camera/camera', function() {
         sinon.stub(this.camera, 'onStopRecordingError', function() {
           done();
         });
-        this.posterReq.then = function() { return Promise.reject(); };
+        this.videoReq.then = function(resolve, reject) { reject(); }
         this.camera.stoppedRecording(true);
       });
     });
@@ -715,6 +693,10 @@ suite('lib/camera/camera', function() {
         }),
         resumePreview: sinon.stub()
       };
+
+      this.navigatorMozl10n = navigator.mozL10n;
+      navigator.mozL10n = { get: sinon.stub() };
+      this.sandbox.stub(window, 'alert');
     });
 
     test('Should emit a `busy` when picture taking starts', function() {
@@ -819,6 +801,32 @@ suite('lib/camera/camera', function() {
       var config = args[0];
 
       assert.ok(config.rotation === -90);
+    });
+
+    test('Should report an error when take picture fails', function(done) {
+      this.camera.mozCamera.takePicture.returns({
+        then: function(onSuccess, onError) { onError({name: 'NS_ERROR_FAILURE'}); }
+      });
+      navigator.mozL10n = {
+        formatValue: function(id, args) {
+          return Promise.resolve(id);
+        }
+      };
+      this.camera.takePicture({});
+      
+      // We need to wait two microtasks to see the result
+      Promise.resolve().then(Promise.resolve).then(() => {
+        assert.isTrue(alert.called);
+        done();
+      });
+    });
+
+    test('Should not report an error when take picture interrupted', function() {
+      this.camera.mozCamera.takePicture.returns({
+        then: function(onSuccess, onError) { onError({name: 'NS_ERROR_IN_PROGRESS'}); }
+      });
+      this.camera.takePicture({});
+      assert.isFalse(alert.called);
     });
 
   });
@@ -988,10 +996,10 @@ suite('lib/camera/camera', function() {
       sinon.assert.calledWith(this.camera.emit, 'configured');
     });
 
-    test('It attempts to re-request the camera if \'HardwareClosed\'', function() {
+    test('It attempts to re-request the camera if \'NS_ERROR_NOT_INITIALIZED\'', function() {
       navigator.mozCameras.getCamera.returns({
         then: function(onSuccess, onError) {
-          onError('HardwareClosed');
+          onError({name: 'NS_ERROR_NOT_INITIALIZED'});
         }
       });
 
@@ -1269,7 +1277,7 @@ suite('lib/camera/camera', function() {
 
       navigator.mozCameras.getCamera.returns({
         then: function(onSuccess, onError) {
-          onError('HardwareClosed');
+          onError({name: 'NS_ERROR_NOT_INITIALIZED'});
         }
       });
 

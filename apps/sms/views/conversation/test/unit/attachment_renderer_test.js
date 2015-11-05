@@ -10,7 +10,7 @@ require('/views/conversation/js/attachment_renderer.js');
 require('/views/shared/js/utils.js');
 
 require('/shared/js/image_utils.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/views/shared/test/unit/mock_attachment.js');
 require('/views/shared/test/unit/mock_utils.js');
 
@@ -49,8 +49,8 @@ suite('AttachmentRenderer >', function() {
   }
 
   suiteSetup(function(done) {
-    this.realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    this.realMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
     // create a bogus image blob (should be rendered with a `corrupted' class)
     testImageBlob_bogus = new Blob(['This is an image message'], {
@@ -94,7 +94,7 @@ suite('AttachmentRenderer >', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = this.realMozL10n;
+    document.l10n = this.realMozL10n;
   });
 
   setup(function() {
@@ -480,7 +480,7 @@ suite('AttachmentRenderer >', function() {
     });
 
     test('updates size in iframes too', function(done) {
-      this.sinon.spy(navigator.mozL10n, 'translateFragment');
+      this.sinon.spy(document.l10n, 'translateFragment');
 
       var attachment = new Attachment(testImageBlob, {
         name: 'Image attachment',
@@ -503,7 +503,7 @@ suite('AttachmentRenderer >', function() {
         var newFileSize =  sizeInfo.dataset.l10nArgs;
         assert.notEqual(newFileSize, currentFileSize);
 
-        sinon.assert.calledWith(navigator.mozL10n.translateFragment, node);
+        sinon.assert.calledWith(document.l10n.translateFragment, node);
       }).then(done, done);
     });
 

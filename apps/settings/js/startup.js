@@ -1,5 +1,5 @@
-/* global LazyLoader, InitialPanelHandler, RootPanelHandler, AppStarter */
-/* exported InitialPanelHandler, RootPanelHandler, AppStarter */
+/* global LazyLoader, InitialPanelHandler, AppStarter */
+/* exported InitialPanelHandler, AppStarter */
 
 /**
  * InitialPanelHandler provides basic interaction including navigation and
@@ -15,11 +15,9 @@
    * @class InitialPanelHandler
    * @param {HTMLElement} rootElement
    *                      Root element of the panel.
-   * @param {Function} customPanelHandlerFunc
-   *                   Additional custom handler for the panel.
    * @returns {InitialPanelHandler}
    */
-  function InitialPanelHandler(rootElement, customPanelHandlerFunc) {
+  function InitialPanelHandler(rootElement) {
     this._rootElement = rootElement;
     this._pendingTargetPanel = null;
     this._anchors = [];
@@ -29,9 +27,6 @@
 
     if (this._settings) {
       this._init();
-      if (typeof customPanelHandlerFunc !== 'undefined') {
-        customPanelHandlerFunc(rootElement);
-      }
     }
   }
 
@@ -126,9 +121,9 @@
      * @access private
      * @memberOf InitialPanelHandler.prototype
      * @param {HTMLInputElement} input
-     * @param {Event} event                    
+     * @param {Event} event
      */
-    _onSettingChange: function uph_onSettingChange(input, event) {
+    _onSettingChange: function iph_onSettingChange(input, event) {
       this._updateInput(input, event.settingValue);
     },
 
@@ -137,9 +132,9 @@
      *
      * @access private
      * @memberOf InitialPanelHandler.prototype
-     * @param {Event} event                    
+     * @param {Event} event
      */
-    _onInputChange: function uph_onInputChange(event) {
+    _onInputChange: function iph_onInputChange(event) {
       var input = event.target;
       var type = input.type;
       var key = input.name;
@@ -191,9 +186,9 @@
      * @access private
      * @memberOf InitialPanelHandler.prototype
      * @param {HTMLInputElement} input
-     * @param {Object} value                  
+     * @param {Object} value
      */
-    _updateInput: function uph_updateInput(input, value) {
+    _updateInput: function iph_updateInput(input, value) {
       var i;
       var count;
 
@@ -226,7 +221,7 @@
      * Add listeners for click and input changes.
      *
      * @access private
-     * @memberOf InitialPanelHandler.prototype              
+     * @memberOf InitialPanelHandler.prototype
      */
     _init: function iph_init() {
       this._addClickListeners();
@@ -237,7 +232,7 @@
      * Release the control from the handler to the panel.
      *
      * @access public
-     * @memberOf InitialPanelHandler.prototype              
+     * @memberOf InitialPanelHandler.prototype
      */
     release: function iph_release() {
       this._removeClickListeners();
@@ -246,100 +241,8 @@
   };
 
   exports.InitialPanelHandler =
-    function ctor_InitialPanelHandler(rootElement, customPanelHandler) {
-      return new InitialPanelHandler(rootElement, customPanelHandler);
-  };
-})(window);
-
-
-/**
- * RootPanelHandler updates UI elements in the root panel. 
- *
- * @module RootPanelHandler
- */
-(function(exports) {
-  'use strict';
-
-  /**
-   * @class RootPanelHandler
-   * @param {HTMLElement} rootElement
-   *                      Root element of the panel.
-   * @returns {RootPanelHandler}
-   */
-  function RootPanelHandler(rootElement) {
-    this._rootElement = rootElement;
-    this._init();
-  }
-
-  RootPanelHandler.prototype = {
-    /**
-     * Update the sim related items based on mozMobileConnections.
-     *
-     * @access private
-     * @memberOf RootPanelHandler.prototype
-     */
-    _updateSimItems: function rph_refrehsSimItems() {
-      if (navigator.mozMobileConnections) {
-        if (navigator.mozMobileConnections.length === 1) { // single sim
-          document.getElementById('simCardManager-settings').hidden = true;
-        } else { // dsds
-          document.getElementById('simSecurity-settings').hidden = true;
-        }
-      } else {
-        // hide telephony panels
-        var elements = ['call-settings',
-                        'data-connectivity',
-                        'messaging-settings',
-                        'simSecurity-settings',
-                        'simCardManager-settings'];
-        elements.forEach(function(el) {
-          document.getElementById(el).hidden = true;
-        });
-      }
-    },
-
-    /**
-     * Update the developer menu item based on the preference.
-     *
-     * @access private
-     * @memberOf RootPanelHandler.prototype
-     */
-    _updateDeveloperMenuItem: function rph_refreshDeveloperMenuItem() {
-      var item = this._rootElement.querySelector(
-        '[data-show-name="developer.menu.enabled"]');
-      if (item && navigator.mozSettings) {
-        return navigator.mozSettings.createLock()
-          .get('developer.menu.enabled').then(
-            function(result) {
-              item.hidden = !result['developer.menu.enabled'];
-          }, function(error) {
-            console.error(error);
-          });
-      } else {
-        return Promise.resolve();
-      }
-    },
-
-    /**
-     * Process all UI elements here.
-     *
-     * @access private
-     * @memberOf RootPanelHandler.prototype              
-     */
-    _init: function rph_init() {
-      var nfcItem = this._rootElement.querySelector('.nfc-settings');
-      nfcItem.hidden = !navigator.mozNfc;
-
-      // Show proper SIM items.
-      this._updateSimItems();
-
-      // Show developer menu when necessary.
-      this._updateDeveloperMenuItem();
-    }
-  };
-
-  exports.RootPanelHandler = function ctor_rootPanelHandler(rootElement) {
-    return new RootPanelHandler(rootElement);
+    function ctor_InitialPanelHandler(rootElement) {
+      return new InitialPanelHandler(rootElement);
   };
 })(window);
 
@@ -394,7 +297,7 @@
      */
     _showInitialPanel: function as_showInitialPanel(initialPanelId) {
       var initialPanel = document.getElementById(initialPanelId);
-      // Use lazy loade because it handles the case in DEBUG mode.
+      // Use lazy loader because it handles the case in DEBUG mode.
       return LazyLoader.load([initialPanel]).then(() => {
         initialPanel.classList.add('current');
       });
@@ -474,16 +377,8 @@
         initialPanelId = panelId;
         return this._showInitialPanel(panelId);
       }).then(() => {
-        // XXX: This is an optimization for the root panel to avoid reflow that
-        //      could be observed by users.
-        var customPanelHandler;
-        if (initialPanelId === 'root') {
-          customPanelHandler = RootPanelHandler;
-        }
-
         var initialPanelHandler =
-          InitialPanelHandler(document.getElementById(initialPanelId),
-            customPanelHandler);
+          InitialPanelHandler(document.getElementById(initialPanelId));
 
         // Initial panel handler registers basic events for interaction so we
         // can fire the content interactive evnet here.

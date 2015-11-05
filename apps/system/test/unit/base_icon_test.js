@@ -7,7 +7,7 @@ requireApp('system/js/base_icon.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('system/BaseIcon', function() {
-  var subject, manager, realL10n;
+  var subject, manager, realL10n, container;
 
   var mocksForBaseIcon = new MocksHelper([
     'Service'
@@ -16,8 +16,8 @@ suite('system/BaseIcon', function() {
   mocksForBaseIcon.attachTestHelpers();
 
   setup(function() {
+    container = document.createElement('div');
     this.sinon.stub(Service, 'request', function() {
-      var container = document.createElement('div');
       return {
         then: function(callback) {
           callback(container);
@@ -64,6 +64,14 @@ suite('system/BaseIcon', function() {
       this.sinon.stub(document, 'getElementById').returns(
         document.createElement('div'));
       subject.start();
+    });
+
+    test('Should insert the element only once', function() {
+      subject.render();
+      var selector = '.BaseUI.active';
+      assert.isTrue(container.querySelectorAll(selector).length === 1);
+      subject.render();
+      assert.isTrue(container.querySelectorAll(selector).length === 1);
     });
 
     test('Should get the icon if it is lazily loaded', function(done) {

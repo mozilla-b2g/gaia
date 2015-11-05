@@ -7,6 +7,8 @@ from marionette_driver.keys import Keys
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
+from gaiatest.apps.system.app import System
 
 
 class Marketplace(Base):
@@ -16,13 +18,18 @@ class Marketplace(Base):
     _filter_locator = (By.ID, 'compat-filter')
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
     _search_toggle_locator = (By.CSS_SELECTOR, '.header--search-toggle')
-    name = 'Marketplace'
 
-    def search(self, term):
+    name = 'Marketplace'
+    manifest_url = 'https://marketplace.firefox.com/packaged.webapp'
+
+    def _switch_to_app(self):
         iframe = Wait(self.marionette).until(
             expected.element_present(*self._marketplace_iframe_locator))
         Wait(self.marionette).until(expected.element_displayed(iframe))
         self.marionette.switch_to_frame(iframe)
+
+    def search(self, term):
+        self._switch_to_app()
 
         # This sleep seems necessary, otherwise on device we get timeout failure on display search_box sometimes, see bug 1136791
         import time
@@ -46,6 +53,10 @@ class Marketplace(Base):
         search_box.send_keys(Keys.RETURN)
         return SearchResults(self.marionette)
 
+    def get_current_displayed_result(self):
+        self._switch_to_app()
+        return SearchResults(self.marionette)
+
 class SearchResults(Base):
 
     _search_results_loading_locator = (By.CSS_SELECTOR, '.loading')
@@ -67,5 +78,45 @@ class Result(PageRegion):
         self.root_element.find_element(*self._install_button_locator).tap()
         self.marionette.switch_to_frame()
 
+    def tap_open_app_button(self, app_title, _app_locator):
+        button = self.root_element.find_element(*self._install_button_locator)
+        Wait(self.marionette).until(lambda m: button.text == 'Open app')
+        button.tap()
+        self.apps.switch_to_displayed_app()
+        Wait(self.marionette).until(lambda m: m.title == app_title)
+        app_element = self.marionette.find_element(*_app_locator)
+        Wait(self.marionette).until(lambda m: app_element.is_displayed())
+
     def get_app_name(self):
         return self.root_element.find_element(*self._name_locator).text
+
+class MarketplaceDev(Marketplace):
+
+    name = 'Dev'
+    manifest_url = 'https://marketplace.firefox.com/app/bee10fbb-7829-4d99-8a9f-a6d0a905138e/manifest.webapp'
+
+    def install_addon(self, addon_name):
+        # Shortcut, go directly to the Addon page
+        self.marionette.navigate('https://marketplace-dev.allizom.org/addon/%s' % addon_name)
+
+        addon_page = AddonPage(self.marionette)
+        addon_page.install_link()
+
+class AddonPage(Base):
+
+    _addon_install_locator = (By.CSS_SELECTOR, 'button.install')
+
+    def install_link(self):
+        element = Wait(self.marionette, timeout=20, interval=1).until(
+            expected.element_present(*self._addon_install_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+
+        confirm_install = ConfirmInstall(self.marionette)
+        confirm_install.tap_confirm()
+
+        system = System(self.marionette)
+        system.wait_for_system_banner_displayed()
+        system.wait_for_system_banner_not_displayed()
+
+        self.apps.switch_to_displayed_app()

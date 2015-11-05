@@ -44,7 +44,7 @@
  */
 
 .focus[state="focusing"] {
-  animation: 0.35s ring-animation 1 ease-in forwards;
+  animation: 0.1s ring-animation 1 ease-in forwards;
 }
 
 /**
@@ -53,8 +53,9 @@
 
 .focus[state="focused"] {
   color: #afff3d;
-  transform: rotate(45deg) scale(0.8478);
-  transition-duration: 0.1s;
+
+  transition: transform 0.1s ease-in;
+  animation: 0.15s focuslocked ease-in forwards;
 }
 
 /**
@@ -63,8 +64,8 @@
 
 .focus[state="fail"] {
   color: #ff0000;
-  transform: rotate(45deg) scale(1);
-  transition-duration: 0.1s;
+  transform: rotate(45deg);
+  transition: transform 0.1s ease-in;
 }
 
 /** Icon Wrappers
@@ -147,6 +148,11 @@
 
 @keyframes ring-animation {
   0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(60deg) scale(1.1); }
   100% { transform: rotate(45deg) scale(1); }
+}
+
+@keyframes focuslocked {
+  0% { transform: rotate(45deg) scale(1); }
+  50% { transform: rotate(45deg) scale(0.8478); }
+  100% { transform: rotate(45deg) scale(0.95); }
 }

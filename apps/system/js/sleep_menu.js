@@ -50,6 +50,13 @@
     isSilentModeEnabled: false,
 
     /**
+     * Additional developer option to view source code of apps.
+     * @memberof @SleepMenu.prototype
+     * @type {Boolean}
+     */
+    isViewSourceEnabled: false,
+
+    /**
      * References to elements in the menu.
      * @memberof SleepMenu.prototype
      * @type {Object}
@@ -114,6 +121,10 @@
       SettingsListener.observe('audio.volume.notification', 7, function(value) {
         self.isSilentModeEnabled = (value === 0);
       });
+
+      SettingsListener.observe('dev.gaia.view_source', false, function(value) {
+        self.isViewSourceEnabled = value;
+      });
     },
 
     /**
@@ -147,6 +158,10 @@
         power: {
           label: _('power'),
           value: 'power'
+        },
+        viewSource: {
+          label: _('viewSource'),
+          value: 'viewSource'
         }
       };
 
@@ -176,6 +191,10 @@
             items.push(options[option + 'Off']);
           }
         }
+      }
+
+      if (this.isDeveloperMenuEnabled && this.isViewSourceEnabled) {
+        items.push(options.viewSource);
       }
 
       return items;
@@ -328,6 +347,12 @@
 
           break;
 
+        case 'viewSource':
+          this.hide();
+          this.viewSource();
+
+          break;
+
         default:
           break;
       }
@@ -341,6 +366,15 @@
      */
     startPowerOff: function sm_startPowerOff(reboot) {
       Service.request('poweroff', reboot);
+    },
+
+    /**
+     * Dispatches 'viewsource' event to display source of the current active
+     * app.
+     * @memberof SleepMenu.prototype
+     */
+    viewSource: function sm_viewSource() {
+      Service.request('viewsource');
     }
   };
 

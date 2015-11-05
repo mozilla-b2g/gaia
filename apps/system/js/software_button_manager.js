@@ -65,7 +65,7 @@
       if (value) {
         this._currentOrientation = Service.query('fetchCurrentOrientation');
         window.screen.addEventListener('mozorientationchange', this);
-        window.addEventListener('orientationchange', this);
+        window.addEventListener('appwindow-orientationchange', this);
 
         window.addEventListener('mozfullscreenchange', this);
         window.addEventListener('homegesture-enabled', this);
@@ -77,7 +77,7 @@
         window.addEventListener('hierachychanged', this);
       } else {
         window.screen.removeEventListener('mozorientationchange', this);
-        window.removeEventListener('orientationchange', this);
+        window.removeEventListener('appwindow-orientationchange', this);
 
         window.removeEventListener('mozfullscreenchange', this);
         window.removeEventListener('homegesture-enabled', this);
@@ -202,19 +202,13 @@
      * @memberof SoftwareButtonManager.prototype
      */
      resizeAndDispatchEvent: function() {
-       var element = this.element;
-       if (this.enabled) {
-         element.addEventListener('transitionend', function trWait() {
-           element.removeEventListener('transitionend', trWait);
-           // Delay posting the event until the transition is done, otherwise
-           // the screen will resize and the background will be visible.
-           window.dispatchEvent(new Event('software-button-enabled'));
-         });
-         element.classList.add('visible');
-       } else {
-         element.classList.remove('visible');
-         window.dispatchEvent(new Event('software-button-disabled'));
-       }
+        var element = this.element;
+        element.classList.toggle('visible', !!(this.enabled));
+        var previousState = this.enabled ? 'disabled' : 'enabled';
+        var currentState = this.enabled ? 'enabled' : 'disabled';
+        this.screenElement.classList.add('software-button-' + currentState);
+        this.screenElement.classList.remove('software-button-' + previousState);
+        window.dispatchEvent(new Event('software-button-' + currentState));
      },
 
     /**
@@ -240,9 +234,6 @@
       delete this._cacheWidth;
 
       if (this.enabled) {
-        this.screenElement.classList.add('software-button-enabled');
-        this.screenElement.classList.remove('software-button-disabled');
-
         this.element.addEventListener('mousedown', this._preventFocus);
         this.homeButtons.forEach(function sbm_addTouchListeners(b) {
           b.addEventListener('touchstart', this);
@@ -251,9 +242,6 @@
         }.bind(this));
         window.addEventListener('mozfullscreenchange', this);
       } else {
-        this.screenElement.classList.remove('software-button-enabled');
-        this.screenElement.classList.add('software-button-disabled');
-
         this.element.removeEventListener('mousedown', this._preventFocus);
         this.homeButtons.forEach(function sbm_removeTouchListeners(b) {
           b.removeEventListener('touchstart', this);
@@ -344,7 +332,7 @@
           // change after, so this is done to avoid animation of the soft button
           this.element.classList.add('no-transition');
           break;
-        case 'orientationchange':
+        case 'appwindow-orientationchange':
           this.element.classList.remove('no-transition');
           break;
         case 'hierachychanged':

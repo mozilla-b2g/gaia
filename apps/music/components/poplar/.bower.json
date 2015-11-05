@@ -1,0 +1,25 @@
+{
+  "name": "poplar",
+  "main": "poplar.js",
+  "homepage": "https://github.com/wilsonpage/poplar",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "e317f4a968",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "e317f4a9688e8c6265904d9c981a2460aded7e33"
+  },
+  "_source": "git://github.com/wilsonpage/poplar.git",
+  "_target": "*",
+  "_originalSource": "wilsonpage/poplar"
+}

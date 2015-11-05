@@ -5,6 +5,39 @@
   will-change: scroll-position;
 }
 
+/**
+ * message list cards: toggle card UI state based on show-edit class
+ */
+cards-message-list lst-edit-header,
+cards-message-list lst-edit-toolbar,
+cards-message-list-search lst-edit-header,
+cards-message-list-search lst-edit-toolbar {
+  display: none;
+}
+cards-message-list.show-edit lst-edit-header,
+cards-message-list.show-edit lst-edit-toolbar,
+cards-message-list-search.show-edit lst-edit-header,
+cards-message-list-search.show-edit lst-edit-toolbar {
+  display: block;
+}
+cards-message-list.show-edit .msg-list-header,
+cards-message-list.show-edit .msg-list-action-toolbar,
+cards-message-list-search.show-edit .msg-search-header,
+cards-message-list-search.show-edit .msg-list-action-toolbar {
+  display: none;
+}
+
+cards-message-list-search .msg-list-scrollouter {
+  height: calc(100% - 12rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  will-change: scroll-position;
+}
+
+cards-message-list-search.show-edit .msg-list-scrollouter {
+  height: calc(100% - 9.5rem);
+}
+
 .msg-list-scrollinner {
   /* Give it a z-index of 0 so that all its contents are forced into a single stacking
      context. This simplifies display list construction because our many positioned
@@ -36,12 +69,15 @@ section[role="region"] > header:first-child h1.msg-list-header-folder-label {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  /* Add some padding, Arabic in italics seems to get clipped otherwise.
+    Bug 1176832 */
+  padding: 0 0.2rem;
 }
 
 /* Display unread messages number */
 .msg-list-header-folder-unread {
   display: inline-block;
-  -moz-margin-start: 0.5rem;
+  margin-inline-start: 0.5rem;
   padding: 0 1rem;
   border-radius: 1.3rem;
   background-color: #E06F14;
@@ -58,10 +94,6 @@ section[role="region"] > header:first-child h1.msg-list-header-folder-label {
 cards-message-list-search .msg-search-header form,
 cards-message-list-search .msg-search-header .bb-tablist {
   z-index: 10;
-}
-
-cards-message-list-search .msg-search-tease-bar {
-  display: none;
 }
 
 /* For search filters, make sure the contents do not line break and overflow
@@ -125,7 +157,6 @@ reflows. Foreground/background colors should be safe.
 .msg-header-unread-section {
   position: absolute;
   top: 50%;
-  left: 1rem;
   display: inline-block;
   height: .9rem;
   width: .9rem;
@@ -134,9 +165,11 @@ reflows. Foreground/background colors should be safe.
   visibility: hidden;
 }
 
-html:-moz-dir(rtl) .msg-header-unread-section {
+html[dir="ltr"] .msg-header-unread-section {
+  left: 1rem;
+}
+html[dir="rtl"] .msg-header-unread-section {
   right: 1rem;
-  left: auto;
 }
 
 .msg-header-item.unread .msg-header-unread-section {
@@ -177,55 +210,52 @@ html:-moz-dir(rtl) .msg-header-unread-section {
 }
 
 .msg-header-details-section {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: absolute;
   top: 0;
-  left: 1.5rem;
   width: calc(100% - 3rem);
   height: 100%;
   font-size: 1.6rem;
   line-height: 2rem;
-  padding: 1rem 0 0 1.5rem;
+  padding: 1rem 0 0;
+  padding-inline-start: 1.5rem;
   border-bottom: 0.1rem solid #f2f2f1;
   display: inline-flex;
   flex-flow: row wrap;
   justify-content: space-between;
 }
 
-html:-moz-dir(rtl) .msg-header-details-section {
+html[dir="ltr"] .msg-header-details-section {
+  left: 1.5rem;
+}
+html[dir="rtl"] .msg-header-details-section {
   right: 1.5rem;
-  left: auto;
-  padding: 1rem 1.5rem 0 0;
 }
 
 .msg-header-icons-section {
   display: block;
   position: absolute;
   top: 0;
-  right: 2.8rem; /* The width of the avatar-section. */
   width: 2rem;
   height: 100%;
   padding-top: 2.5rem;
 }
-
-html:-moz-dir(rtl) .msg-header-icons-section {
+html[dir="ltr"] .msg-header-icons-section {
+  right: 2.8rem; /* The width of the avatar-section. */
+}
+html[dir="rtl"] .msg-header-icons-section {
   left: 2.8rem; /* The width of the avatar-section. */
-  right: auto;
 }
 
 .msg-header-avatar-section {
   display: block;
   position: absolute;
   top: 0;
-  right: 0;
   width: 2.8rem;
   height: 100%;
 }
-
-html:-moz-dir(rtl) .msg-header-avatar-section {
-  left: 0;
-  right: auto;
-}
+html[dir="ltr"] .msg-header-avatar-section { right: 0; }
+html[dir="rtl"] .msg-header-avatar-section { left: 0; }
 
 .msg-header-author {
   font-size: 1.9rem;
@@ -238,11 +268,6 @@ html:-moz-dir(rtl) .msg-header-avatar-section {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
-}
-
-html:-moz-dir(rtl) .msg-header-author {
-  text-align: right;
 }
 
 .msg-header-item.unread .msg-header-author {
@@ -250,7 +275,6 @@ html:-moz-dir(rtl) .msg-header-author {
 }
 
 .msg-header-date {
-  padding-left: 0.5rem;
   color: #8f8f8f;
   font-size: 1.5rem;
   font-weight: 400;
@@ -258,11 +282,8 @@ html:-moz-dir(rtl) .msg-header-author {
   order: 2;
   white-space: nowrap;
 }
-
-html:-moz-dir(rtl) .msg-header-date {
-  padding-left: unset;
-  padding-right: 0.5rem;
-}
+html[dir="ltr"] .msg-header-date { padding-left: 0.5rem; }
+html[dir="rtl"] .msg-header-date { padding-right: 0.5rem; }
 
 .msg-header-item.unread .msg-header-date {
   color: #008eab;
@@ -277,11 +298,6 @@ html:-moz-dir(rtl) .msg-header-date {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
-}
-
-html:-moz-dir(rtl) .msg-header-subject {
-  text-align: right;
 }
 
 .msg-header-snippet {
@@ -293,22 +309,16 @@ html:-moz-dir(rtl) .msg-header-subject {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
 }
 
-html:-moz-dir(rtl) .msg-header-snippet {
-  text-align: right;
-}
-
-/* Give space for icons on right if they need to be displayed. */
-.msg-header-subject.icon-short,
-.msg-header-snippet.icon-short {
+/* Give space for icons on end if they need to be displayed. */
+html[dir="ltr"] .msg-header-subject.icon-short,
+html[dir="ltr"] .msg-header-snippet.icon-short {
   margin-right: 1.6rem;
 }
-html:-moz-dir(rtl) .msg-header-subject.icon-short,
-html:-moz-dir(rtl) .msg-header-snippet.icon-short {
+html[dir="rtl"] .msg-header-subject.icon-short,
+html[dir="rtl"] .msg-header-snippet.icon-short {
   margin-left: 1.6rem;
-  margin-right: 0;
 }
 
 .msg-header-star {
@@ -321,17 +331,13 @@ html:-moz-dir(rtl) .msg-header-snippet.icon-short {
 .msg-header-star-starred {
   background: url("images/icons/message-list-star.png") no-repeat center / 2rem;
   position: absolute;
-  right: -2rem;
   width: 2rem;
   height: 2rem;
   top: 3rem;
   visibility: visible;
 }
-
-html:-moz-dir(rtl) .msg-header-star-starred {
-  left: -2rem;
-  right: auto;
-}
+html[dir="ltr"] .msg-header-star-starred { right: -2rem; }
+html[dir="rtl"] .msg-header-star-starred { left: -2rem; }
 
 .msg-header-attachments {
   display: block;
@@ -341,17 +347,14 @@ html:-moz-dir(rtl) .msg-header-star-starred {
 .msg-header-attachments-yes {
   background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
   position: absolute;
-  right: -2rem;
   width: 2rem;
   height: 2rem;
   top: 5rem;
   visibility: visible;
 }
 
-html:-moz-dir(rtl) .msg-header-attachments-yes {
-  left: -2rem;
-  right: auto;
-}
+html[dir="ltr"] .msg-header-attachments-yes { right: -2rem; }
+html[dir="rtl"] .msg-header-attachments-yes { left: -2rem; }
 
 .msg-envelope-bar {
   width: 100%;
@@ -406,14 +409,6 @@ html:-moz-dir(rtl) .msg-header-attachments-yes {
   word-wrap: break-word;
 }
 
-html:-moz-dir(rtl) .msg-envelope-subject {
-  text-align: right;
-}
-
-html:-moz-dir(ltr) .msg-envelope-subject {
-  text-align: left;
-}
-
 /* Copy/paste select all could reach across the whole DOM so only scope the
   selection to the center "active" card. Bug 1152172. */
 .center .msg-envelope-subject {
@@ -465,7 +460,7 @@ cards-message-reader .scrollregion-below-header {
 }
 
 .msg-attachments-container {
-  margin: 0.6rem 1.5rem 1.5rem 1.5rem;
+  margin: 0.6rem 1.5rem 1.5rem;
   padding: 0;
   border-bottom: 0.1rem solid #f2f2f1;
 }
@@ -482,14 +477,13 @@ cards-message-reader .scrollregion-below-header {
 
 .msg-attachment-icon {
   display: block;
-  background: url("images/icons/icon_default.png") no-repeat center left / 3rem auto;
+  background: url("images/icons/icon_default.png") no-repeat;
+  background-size: 3rem auto;
   width: 3.6rem;
   height: 4rem;
 }
-
-html:-moz-dir(rtl) .msg-attachment-icon {
-  background-position: center right;
-}
+html[dir="ltr"] .msg-attachment-icon { background-position: center left; }
+html[dir="rtl"] .msg-attachment-icon { background-position: center right; }
 
 .mime-image .msg-attachment-icon {
   background-image: url("images/icons/icon_image.png");
@@ -515,12 +509,6 @@ html:-moz-dir(rtl) .msg-attachment-icon {
   font-size: 1.4rem;
   font-weight: normal;
   color: #393d3e;
-  text-align: left;
-}
-
-html:-moz-dir(rtl) .msg-attachment-filename,
-html:-moz-dir(rtl) .msg-attachment-filesize {
-  text-align: right;
 }
 
 .msg-attachment-filesize {
@@ -580,49 +568,57 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
 }
 
 .msg-body-content {
+  unicode-bidi: -moz-plaintext;
+  text-align: initial;
   color: #333333;
   margin: 0.4rem 0;
 }
 .msg-body-signature {
+  unicode-bidi: -moz-plaintext;
+  text-align: initial;
   color: #808080;
   margin: 0.4rem 0;
 }
 .msg-body-leadin {
+  unicode-bidi: -moz-plaintext;
+  text-align: initial;
   color: gray;
   margin: 0.4rem 0;
 }
 .msg-body-q1, .msg-body-q2, .msg-body-q3, .msg-body-q4,
 .msg-body-q5, .msg-body-q6, .msg-body-q7, .msg-body-q8, .msg-body-q9 {
+  unicode-bidi: -moz-plaintext;
+  text-align: initial;
   color: #808080;
   padding: 0.2rem;
   margin: 0.4rem 0;
 }
 .msg-body-q1 {
-  border-left: 0.1rem solid gray;
+  border-inline-start: 0.1rem solid gray;
 }
 .msg-body-q2 {
-  border-left: 0.2rem solid gray;
+  border-inline-start: 0.2rem solid gray;
 }
 .msg-body-q3 {
-  border-left: 0.3rem solid gray;
+  border-inline-start: 0.3rem solid gray;
 }
 .msg-body-q4 {
-  border-left: 0.4rem solid gray;
+  border-inline-start: 0.4rem solid gray;
 }
 .msg-body-q5 {
-  border-left: 0.5rem solid gray;
+  border-inline-start: 0.5rem solid gray;
 }
 .msg-body-q6 {
-  border-left: 0.6rem solid gray;
+  border-inline-start: 0.6rem solid gray;
 }
 .msg-body-q7 {
-  border-left: 0.7rem solid gray;
+  border-inline-start: 0.7rem solid gray;
 }
 .msg-body-q8 {
-  border-left: 0.8rem solid gray;
+  border-inline-start: 0.8rem solid gray;
 }
 .msg-body-q9 {
-  border-left: 0.9rem solid gray;
+  border-inline-start: 0.9rem solid gray;
 }
 .msg-body-disclaimer, .msg-body-list, .msg-body-product, .msg-body-ads {
   color: gray;
@@ -636,7 +632,7 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
   align-items: center;
 
   margin: 1rem 1.5rem;
-  padding: .2rem 0 1rem 0;
+  padding: .2rem 0 1rem;
   border-bottom: 0.1rem solid #f2f2f1;
 
   font-size: 1.4rem;
@@ -649,7 +645,8 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
 
 .msg-reader-load-infobar-text {
   flex: 1;
-  margin: 0 1.5rem 0 0;
+  margin: 0;
+  margin-inline-end: 1.5rem;
 }
 
 .msg-reader-load-infobar-button {
@@ -684,7 +681,7 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
 }
 
 .bb-tablist li .icon {
-  background-position: 50% 50%;
+  background-position: center center;
 }
 
 .bb-tablist .msg-last-sync {
@@ -707,9 +704,14 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
 }
 
 .bb-tablist .icon.msg-edit-btn {
-  background-image: url("images/icons/edit-mode.png");
   background-position: 50% 45%;
   background-size: 3rem auto;
+}
+html[dir="ltr"] .bb-tablist .icon.msg-edit-btn {
+  background-image: url("images/icons/edit-mode.png");
+}
+html[dir="rtl"] .bb-tablist .icon.msg-edit-btn {
+  background-image: url("images/icons/edit-mode-rtl.png");
 }
 
 .bb-tablist .msg-star-btn {
@@ -730,8 +732,10 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
 /* Scrollable Area has to have a solid
   * opaque background to optimize Gecko.
   * See Bug 962699. */
-.msg-messages-container {
+lst-msg-vscroll,
+.msg-vscroll-container {
   position: relative;
+  display: block;
   background-color: #fff;
   overflow: hidden;
 }
@@ -753,47 +757,41 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
 }
 
 /* Message list edit mode layout control */
-.msg-messages-container label.negative {
+.msg-vscroll-container label.negative {
   height: 8rem;
   width: 4rem;
   display: none;
   pointer-events: none;
 }
-.msg-messages-container.show-edit label.negative {
+.show-edit .msg-vscroll-container label.negative {
   display: inline-block;
 }
 
-.msg-messages-container.show-edit .msg-header-unread-section {
+html[dir="ltr"] .show-edit .msg-vscroll-container .msg-header-unread-section {
   left: 3.9rem;
 }
-html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-unread-section {
+html[dir="rtl"] .show-edit .msg-vscroll-container .msg-header-unread-section {
   right: 3.9rem;
-  left: auto;
 }
 
-.msg-messages-container.show-edit .msg-header-syncing-section {
+html[dir="ltr"] .show-edit .msg-vscroll-container .msg-header-syncing-section {
   left: 3.5rem;
 }
-
-html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-syncing-section {
+html[dir="rtl"] .show-edit .msg-vscroll-container .msg-header-syncing-section {
   right: 3.5rem;
-  left: auto;
 }
 
-.msg-messages-container.show-edit .msg-header-details-section {
-  -moz-padding-start: 4.5rem;
+.show-edit .msg-vscroll-container .msg-header-details-section {
+  padding-inline-start: 4.5rem;
 }
 
 /*
   Empty message-list container
 */
 .msg-list-empty-container {
-  position: absolute;
-  top: 9rem;
-  left: 1.5rem;
-  right: 1.5rem;
   width: calc(100% - 3rem);
   height: 20rem;
+  margin: 0 auto;
 }
 
 .msg-list-empty-message-text {
@@ -808,7 +806,6 @@ html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-syncing-section
 }
 
 cards-message-list-search .msg-list-empty-message-text {
-  top: 0;
   border-top: 0;
 }
 
@@ -844,18 +841,23 @@ cards-message-list-search .msg-list-empty-message-text {
 
 .msg-messages-sync-more > span {
   margin: 0 auto;
-  -moz-padding-start: 3rem;
-  background: url("images/icons/download_trimmed.png") no-repeat center left / 2rem;
+  padding-inline-start: 3rem;
+  background: url("images/icons/download_trimmed.png") no-repeat;
+  background-size: 2rem;
 }
 
-html:-moz-dir(rtl) .msg-messages-sync-more > span {
+html[dir="ltr"] .msg-messages-sync-more > span {
+  background-position: center left;
+}
+html[dir="rtl"] .msg-messages-sync-more > span {
   background-position: center right;
 }
 
 .message-list-topbar {
   position: absolute;
   display: inline-block;
-  margin: 1.5rem 1.5rem 0 0;
+  margin: 1.5rem 0 0;
+  margin-inline-end: 1.5rem;
   opacity: .8;
   transform: translate(0, -6.5rem);
   transition-property: transform;
@@ -875,7 +877,6 @@ html:-moz-dir(rtl) .msg-messages-sync-more > span {
 
 .message-list-topbar[data-state="top"] {
   transform: translate(0, 0);
-  right: 0;
   width: 5rem;
   height: 5rem;
   border-radius: 5rem;
@@ -883,11 +884,8 @@ html:-moz-dir(rtl) .msg-messages-sync-more > span {
   font-size: 0;
 }
 
-html:-moz-dir(rtl) .message-list-topbar[data-state="top"] {
-  left: 0;
-  right: auto;
-  margin: 1.5rem 0 0 1.5rem;
-}
+html[dir="ltr"] .message-list-topbar[data-state="top"] { right: 0; }
+html[dir="rtl"] .message-list-topbar[data-state="top"] { left: 0; }
 
 .message-list-topbar.horiz-message,
 .message-list-topbar.closing[data-state="message"] {
@@ -895,6 +893,7 @@ html:-moz-dir(rtl) .message-list-topbar[data-state="top"] {
 }
 
 .message-list-topbar[data-state="message"] {
+  /* those 2 rules are BiDi-proof */
   transform: translate(-50%, 0);
   left: 50%;
   margin: 1.5rem auto;
@@ -908,22 +907,19 @@ html:-moz-dir(rtl) .message-list-topbar[data-state="top"] {
   opacity: .95;
 }
 
-.msg-reply-menu button:before {
+.msg-reply-menu menu > button:before {
   content: "";
   display: block;
-  float: left;
   width: 3rem;
   height: 3rem;
-  margin: 0.5rem 1rem 0 0;
+  margin: 0.5rem 0 0;
+  margin-inline-end: 1rem;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 3rem auto;
 }
-
-html:-moz-dir(rtl) .msg-reply-menu button:before {
-  float: right;
-  margin: 0.5rem 0 0 1rem;
-}
+html[dir="ltr"] .msg-reply-menu menu > button:before { float: left; }
+html[dir="rtl"] .msg-reply-menu menu > button:before { float: right; }
 
 .msg-reply-menu-reply:before {
   background-image: url("../shared/style/headers/images/icons/reply.png");

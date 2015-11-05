@@ -33,23 +33,22 @@
      * @chainable
      * @private
      * @param {Object} command marionette request.
-     * @param {String} responseKey key in the response to pass to callback.
      * @param {Function} callback callback function receives the result of
-     *                            response[responseKey] as its first argument.
+     *                            response[key] as its first argument.
+     * @param {String} key key in the response to pass to callback.
      *
      * @return {Object} self.
      */
-    _sendCommand: function(command, responseKey, callback) {
+    _sendCommand: function(command, callback, key) {
       if (!command.parameters) {
         command.parameters = {};
       }
-      if (typeof(command.parameters.id) === 'undefined') {
+      if (typeof command.parameters.id == 'undefined') {
         command.parameters.id = this.id;
       }
 
       var isSync = this.client.isSync;
-      var result =
-        this.client._sendCommand(command, responseKey, callback);
+      var result = this.client._sendCommand(command, callback, key);
 
       if (isSync)
         return result;
@@ -133,14 +132,14 @@
      * @return {String} the value of the Attribute.
      */
     getAttribute: function getAttribute(attr, callback) {
-      var cmd = {
+      var body = {
         name: 'getElementAttribute',
         parameters: {
-          name: attr
-        }
+          name: attr,
+        },
       };
 
-      return this._sendCommand(cmd, 'value', callback);
+      return this._sendCommand(body, callback, 'value');
     },
 
     /**
@@ -156,13 +155,13 @@
       if (!Array.isArray(input)) {
         input = [input];
       }
-      var cmd = {
+      var body = {
         name: 'sendKeysToElement',
         parameters: {
-          value: input
-        }
+          value: input,
+        },
       };
-      return this._sendCommand(cmd, 'ok', callback);
+      return this._sendCommand(body, callback);
     },
 
     /**
@@ -173,10 +172,8 @@
      * @return {Object} self.
      */
     click: function click(callback) {
-      var cmd = {
-        name: 'clickElement'
-      };
-      return this._sendCommand(cmd, 'ok', callback);
+      var body = {name: 'clickElement'};
+      return this._sendCommand(body, callback);
     },
 
     /**
@@ -187,10 +184,8 @@
      * @return {String} text of element.
      */
     text: function text(callback) {
-      var cmd = {
-        name: 'getElementText'
-      };
-      return this._sendCommand(cmd, 'value', callback);
+      var body = {name: 'getElementText'};
+      return this._sendCommand(body, callback, 'value');
     },
 
     /**
@@ -201,10 +196,8 @@
      * @return {String} tag name of element.
      */
     tagName: function tagName(callback) {
-      var cmd = {
-        name: 'getElementTagName'
-      };
-      return this._sendCommand(cmd, 'value', callback);
+      var body = {name: 'getElementTagName'};
+      return this._sendCommand(body, callback, 'value');
     },
 
     /**
@@ -218,20 +211,20 @@
      * @return {object} self
      */
     tap: function(x, y, callback) {
-      var cmd = {
+      var body = {
         name: 'singleTap',
-        parameters: {}
+        parameters: {},
       };
 
-      if (typeof(x) === 'number') {
-        cmd.parameters.x = x;
+      if (typeof x == 'number') {
+        body.parameters.x = x;
       }
 
-      if (typeof(y) === 'number') {
-        cmd.parameters.y = y;
+      if (typeof y == 'number') {
+        body.parameters.y = y;
       }
 
-      return this._sendCommand(cmd, 'value', callback);
+      return this._sendCommand(body, callback, 'value');
     },
 
     /**
@@ -242,25 +235,20 @@
      * @return {Object} self.
      */
     clear: function clear(callback) {
-      var cmd = {
-        name: 'clearElement'
-      };
-      return this._sendCommand(cmd, 'ok', callback);
+      var body = {name: 'clearElement'};
+      return this._sendCommand(body, callback);
     },
 
     /**
      * Checks if element is selected.
-     *
      *
      * @method selected
      * @param {Function} callback boolean argument.
      * @return {Object} self.
      */
     selected: function selected(callback) {
-      var cmd = {
-        name: 'isElementSelected'
-      };
-      return this._sendCommand(cmd, 'value', callback);
+      var body = {name: 'isElementSelected'};
+      return this._sendCommand(body, callback, 'value');
     },
 
     /**
@@ -271,25 +259,20 @@
      * @return {Object} self.
      */
     enabled: function enabled(callback) {
-      var cmd = {
-        name: 'isElementEnabled'
-      };
-      return this._sendCommand(cmd, 'value', callback);
+      var body = {name: 'isElementEnabled'};
+      return this._sendCommand(body, callback, 'value');
     },
 
     /**
      * Checks if element is displayed.
-     *
      *
      * @method displayed
      * @param {Function} callback boolean argument.
      * @return {Object} self.
      */
     displayed: function displayed(callback) {
-      var cmd = {
-        name: 'isElementDisplayed'
-      };
-      return this._sendCommand(cmd, 'value', callback);
+      var body = {name: 'isElementDisplayed'};
+      return this._sendCommand(body, callback, 'value');
     },
 
     /**
@@ -308,10 +291,9 @@
      * @return {Object} self.
      */
     size: function size(callback) {
-      var cmd = {
-        name: 'getElementRect'
-      };
-      return this._sendCommand(cmd, 'value', callback);
+      var body = {name: 'getElementRect'};
+      return this._sendCommand(
+          body, callback, this.client.protocol == 1 ? 'value' : undefined);
     },
 
     /**
@@ -330,25 +312,24 @@
      * @return {Object} self.
      */
     location: function location(callback) {
-      var cmd = {
-        name: 'getElementRect'
-      };
-      return this._sendCommand(cmd, 'value', callback);
+      var body = {name: 'getElementRect'};
+      return this._sendCommand(
+          body, callback, this.client.protocol == 1 ? 'value' : undefined);
     },
 
     /**
      * Returns the object with:
      *   x and y location of the element
      *   height and width of the element
+     *
      * @method rect
      * @param  {Function} callback [Error err, Object rect]
      * @return {Object} self.
      */
     rect: function rect (callback) {
-      var cmd = {
-        name: 'getElementRect'
-      };
-      return this._sendCommand(cmd, 'value', callback);
+      var body = {name: 'getElementRect'};
+      return this._sendCommand(
+          body, callback, this.client.protocol == 1 ? 'value' : undefined);
     },
 
     /**
@@ -360,13 +341,13 @@
      * @return {Object} self.
      */
      cssProperty: function cssProperty(property, callback) {
-       var cmd = {
+       var body = {
          name: 'getElementValueOfCssProperty',
          parameters: {
-           propertyName: property
-         }
+           propertyName: property,
+         },
        };
-       return this._sendCommand(cmd, 'value', callback);
+       return this._sendCommand(body, callback, 'value');
      }
   };
 

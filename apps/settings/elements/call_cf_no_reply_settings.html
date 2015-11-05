@@ -14,11 +14,10 @@
           <input type="tel" id="cf-noreply-number" data-setting="ril.cf.noreply.number"/>
         </li>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" data-setting="ril.cf.noreply.enabled">
-            <span data-l10n-id="callForwardingForward"></span>
-            <small data-l10n-id="callForwardingNoReplyShort"></small>
-          </label>
+          <gaia-switch data-setting="ril.cf.noreply.enabled">
+            <label data-l10n-id="callForwardingForward"></label>
+            <details data-l10n-id="callForwardingNoReplyShort"></details>
+          </gaia-switch>
         </li>
       </ul>
     </div>

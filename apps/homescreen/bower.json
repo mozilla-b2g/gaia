@@ -1,0 +1,24 @@
+{
+  "name": "Home screen",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/apps/homescreen",
+  "authors": [
+    "Chris Lord <chrislord.net@gmail.com>",
+    "Guillaume Marty <edo999@gmail.com>"
+  ],
+  "main": "index.html",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "base": "gaia-components/base#master",
+    "evt": "gaia-components/evt#master",
+    "gaia-container": "https://gitlab.com/Cwiiis/gaia-container.git",
+    "gaia-dialog": "gaia-components/gaia-dialog#master",
+    "pressed": "gaia-components/pressed#master"
+  }
+}

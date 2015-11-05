@@ -1,0 +1,19 @@
+{
+  "name": "bridge",
+  "version": "1.0.1",
+  "main": "bridge.js",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "README.md",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "docs",
+    "examples"
+  ]
+}

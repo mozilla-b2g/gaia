@@ -2,14 +2,13 @@
 'use strict';
 
 // handle Bluetooth settings
-navigator.mozL10n.once(function bluetoothSettings() {
+(function bluetoothSettings() {
   // Service ID for profiles
   var Profiles = {
     'HFP': 0x111E,
     'A2DP': 0x110D
   };
 
-  var _ = navigator.mozL10n.get;
   var settings = Settings.mozSettings;
   var bluetooth = navigator.mozBluetooth;
   var defaultAdapter = null;
@@ -104,12 +103,15 @@ navigator.mozL10n.once(function bluetoothSettings() {
       nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
 
       if (nameEntered.length > MAX_DEVICE_NAME_LENGTH) {
-        var wantToRetry = window.confirm(_('bluetooth-name-maxlength-alert',
-              { length: MAX_DEVICE_NAME_LENGTH }));
-
-        if (!wantToRetry) {
-          updateNameDialog.hidden = true;
-        }
+        navigator.mozL10n.formatValue('bluetooth-name-maxlength-alert', {
+          length: MAX_DEVICE_NAME_LENGTH
+        }).then((value) => {
+          var wantToRetry = window.confirm(value);
+        
+          if (!wantToRetry) {
+            updateNameDialog.hidden = true;
+          }
+        });
         return;
       }
 
@@ -664,13 +666,14 @@ navigator.mozL10n.once(function bluetoothSettings() {
         }
       } else {
         // show pair process fail.
-        var msg = _('error-pair-title');
+        var l10nId = 'error-pair-title';
         if (errorMessage === 'Repeated Attempts') {
-          msg = msg + '\n' + _('error-pair-toofast');
+          l10nId = 'error-pair-toofast';
         } else if (errorMessage === 'Authentication Failed') {
-          msg = msg + '\n' + _('error-pair-pincode');
+          l10nId = 'error-pair-pincode';
         }
-        window.alert(msg);
+        navigator.mozL10n.formatValue(l10nId).then(
+          msg => window.alert(msg));
 
         // rollback device status
         if (openList.index[workingAddress]) {
@@ -685,18 +688,25 @@ navigator.mozL10n.once(function bluetoothSettings() {
     }
 
     function setDeviceUnpair(device) {
-      if (device.address === connectedAddress) {
-        var msg = _('unpair-title') + '\n' + _('unpair-msg');
-        if (!window.confirm(msg)) {
-          return;
-        }
-        connectedAddress = null;
+      function unpairDevice() {
+        // backend takes responsibility to disconnect first.
+        var req = defaultAdapter.unpair(device.address);
+        req.onerror = function bt_pairError() {
+          showDevicePaired(true, null);
+        };
       }
-      // backend takes responsibility to disconnect first.
-      var req = defaultAdapter.unpair(device.address);
-      req.onerror = function bt_pairError() {
-        showDevicePaired(true, null);
-      };
+
+      if (device.address === connectedAddress) {
+        navigator.mozL10n.formatValue('unpair-confirm').then(msg => {
+          if (!window.confirm(msg)) {
+            return;
+          }
+          connectedAddress = null;
+          unpairDevice();
+        });
+      } else {
+        unpairDevice();
+      }
     }
 
     function setDeviceDisconnect(device, callback) {
@@ -741,7 +751,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
             small.removeAttribute('data-l10n-id');
             small.textContent = '';
             connectingAddress = null;
-            window.alert(_('error-connect-msg'));
+            navigator.mozL10n.formatValue('error-connect-msg').then(msg =>
+              window.alert(msg));
           }
         };
 
@@ -927,4 +938,4 @@ navigator.mozL10n.once(function bluetoothSettings() {
     gBluetoothCheckBox.removeAttribute('disabled');  // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
   });
-});
+})();

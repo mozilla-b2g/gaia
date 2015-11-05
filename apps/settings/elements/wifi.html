@@ -8,10 +8,9 @@
     <div>
       <ul>
         <li class="wifi-enabled">
-          <label class="pack-switch">
-            <input type="checkbox" data-ignore>
-            <span data-l10n-id="wifi"></span>
-          </label>
+          <gaia-switch data-ignore>
+            <label data-l10n-id="wifi"></label>
+          </gaia-switch>
         </li>
         <li hidden>
           <gaia-checkbox name="wifi.notification">
@@ -44,12 +43,11 @@
         <h2 data-l10n-id="advancedSettings"></h2>
       </header>
       <ul>
-        <li class="hint">
-          <label class="pack-switch">
-            <input type="checkbox" name="wifi.sleepMode">
-            <span data-l10n-id="wifi-sleep"></span>
-          </label>
-          <p data-l10n-id="wifi-sleep-description" class="explanation"></p>
+        <li>
+          <gaia-switch name="wifi.sleepMode">
+            <label data-l10n-id="wifi-sleep"></label>
+            <details data-l10n-id="wifi-sleep-description"></details>
+          </gaia-switch>
         </li>
         <li>
           <a class="menu-item" href="#wifi-manageNetworks">

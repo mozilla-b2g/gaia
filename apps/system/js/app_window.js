@@ -74,6 +74,7 @@
     }
     this.isCrashed = false;
     this.launchTime = Date.now();
+    this.metachangeDetails = [];
 
     return this;
   };
@@ -223,6 +224,26 @@
     this.getTopMostWindow()._setActive(enable);
   };
 
+  AppWindow.prototype.inScope = function(scope) {
+    if (!this.isBrowser() || !scope) {
+      return false;
+    }
+    // within-scope per http://www.w3.org/TR/appmanifest/#dfn-within-scope
+    // except we also support paths
+    var target = this.config.url;
+    var fullScopeUrl = new URL(scope, target).href;
+    return fullScopeUrl && target.startsWith(fullScopeUrl);
+  };
+
+  AppWindow.prototype.matchesOriginAndName = function(origin, name) {
+    if (!this.isBrowser()) {
+      return false;
+    }
+
+    var target = this.config.url;
+    return new URL(target).origin === origin && this.name === name;
+  };
+
   /**
    * In order to prevent flashing of unpainted frame
    * during switching from one to another,
@@ -260,6 +281,12 @@
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
         this._showFrame();
+
+        // Handle any pending scroll-area-changed (this is deferred when an
+        // app isn't visible).
+        if (this.appChrome) {
+          this.appChrome.handleScrollAreaChanged();
+        }
       } else {
         this._hideFrame();
       }
@@ -275,6 +302,12 @@
       if (!this.element) {
         return;
       }
+
+      // We need to let the screenreader reach the frontWindow if it's visible
+      if (this.frontWindow && this.frontWindow.isVisible()) {
+        visible = true;
+      }
+
       this.element.setAttribute('aria-hidden', !visible);
       this._setVisibleForScreenReader(visible);
     };
@@ -433,7 +466,7 @@
     this.inError = false;
     this.loading = false;
     this.loaded = false;
-    this.metachangeDetail = null;
+    this.metachangeDetails = [];
     this.suspended = true;
     this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
@@ -591,7 +624,7 @@
               <div class="identification-overlay">
                 <div>
                   <div class="icon"></div>
-                  <span class="title"></span>
+                  <span class="title" dir="auto"></span>
                 </div>
               </div>
               <div class="fade-overlay"></div>
@@ -759,7 +792,8 @@
       this.reConfig({
         url: url,
         title: url,
-        oop: true
+        oop: true,
+        isPrivate: this.isPrivate
       });
       this.appChrome && this.appChrome.reConfig();
       this.browserContainer.removeChild(this.browser.element);
@@ -805,7 +839,6 @@
     'modalDialog': 'AppModalDialog',
     'valueSelector': 'ValueSelector',
     'authDialog': 'AppAuthenticationDialog',
-    'contextmenu': 'BrowserContextMenu',
     'childWindowFactory': 'ChildWindowFactory',
     'statusbar': 'AppStatusbar',
     'textSelectionDialog': 'AppTextSelectionDialog'
@@ -846,20 +879,24 @@
         }
       }
 
-      if (this.constructor.SUB_MODULES) {
-        for (var propertyName in this.constructor.SUB_MODULES) {
-          var moduleName = this.constructor.SUB_MODULES[propertyName];
-          if (moduleName) {
-            this[propertyName] = BaseModule.instantiate(moduleName, this);
-            this[propertyName].start();
-          }
+      for (var propertyName in this.constructor.SUB_MODULES) {
+        var moduleName = this.constructor.SUB_MODULES[propertyName];
+        if (moduleName) {
+          this[propertyName] = BaseModule.instantiate(moduleName, this);
+          this[propertyName].start();
         }
       }
 
-      // Need to wait for mozbrowserloadend to get allowedAudioChannels.
-      this.browser.element.addEventListener('mozbrowserloadend', () => {
-        this._registerAudioChannels();
-      });
+      // Need to wait for mozbrowserloadstart to get allowedAudioChannels.
+      this.browser.element.addEventListener(
+        'mozbrowserloadstart',
+        function onloadstart() {
+          this.browser.element.removeEventListener(
+            'mozbrowserloadstart', onloadstart
+          );
+          this._registerAudioChannels();
+        }.bind(this)
+      );
 
       if (this.isInputMethod) {
         return;
@@ -880,9 +917,12 @@
             that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
             that.appChrome.handleEvent({type: '_loading'});
           }
-          if (that.metachangeDetail) {
-            that.appChrome.handleEvent({type: 'mozbrowsermetachange',
-                                        detail: that.metachangeDetail});
+          if (that.metachangeDetails && that.metachangeDetails.length) {
+            that.metachangeDetails.forEach(function(detail) {
+              that.appChrome.handleEvent({type: 'mozbrowsermetachange',
+                                          detail: detail});
+            });
+            that.metachangeDetails = [];
           }
         });
       } else {
@@ -897,6 +937,13 @@
           this[componentName].destroy();
         }
         this[componentName] = null;
+      }
+
+      for (var propertyName in this.constructor.SUB_MODULES) {
+        if (this[propertyName] && this[propertyName].stop) {
+          this[propertyName].stop();
+        }
+        this[propertyName] = null;
       }
 
       this._unregisterAudioChannels();
@@ -947,7 +994,8 @@
 
   AppWindow.prototype._handle__orientationchange = function(evt) {
     if (this.isActive()) {
-      this.frontWindow && this.frontWindow.broadcast('orientationchange');
+      this.frontWindow &&
+        this.frontWindow.broadcast('orientationchange');
 
       if (!this.isHomescreen) {
         this._resize(evt.detail);
@@ -1036,6 +1084,7 @@
       this.loading = true;
       this.inError = false;
       this._changeState('loading', true);
+      this.nameChanged = false;
       this.publish('loading');
     };
 
@@ -1094,23 +1143,24 @@
 
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
-      this.favicons = {};
-      this.webManifestURL = null;
-      this.webManifest = null;
-      this.config.url = evt.detail;
-      this.title = evt.detail;
-      if (!this.manifest) {
-        this.name = new URL(evt.detail).hostname;
-      }
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
+      if (this.config.url !== evt.detail) {
+        this.title = evt.detail;
+        this.favicons = {};
+        this.webManifestURL = null;
+        this.webManifest = null;
+        this.config.url = evt.detail;
+        if (!this.manifest && !this.nameChanged) {
+          this.name = new URL(evt.detail).hostname;
+        }
+      }
       this.publish('locationchange');
     };
 
 
   AppWindow.prototype._handle_mozbrowsericonchange =
     function aw__handle_mozbrowsericonchange(evt) {
-
       var href = evt.detail.href;
       var sizes = evt.detail.sizes;
 
@@ -1145,24 +1195,13 @@
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
 
-      var detail = this.metachangeDetail = evt.detail;
+      var detail = evt.detail;
+      if (!this.appChrome) {
+        this.metachangeDetails = this.metachangeDetails || [];
+        this.metachangeDetails.push(detail);
+      }
 
       switch (detail.name) {
-        case 'theme-color':
-          if (!detail.type) {
-            return;
-          }
-          // If the theme-color meta is removed, let's reset the color.
-          var color = '';
-
-          // Otherwise, set it to the color that has been asked.
-          if (detail.type !== 'removed') {
-            color = detail.content;
-          }
-          this.themeColor = color;
-
-          this.publish('themecolorchange');
-          break;
         case 'theme-group':
           if (!detail.type) {
             return;
@@ -1179,16 +1218,23 @@
             }
           }
 
-          this.publish('themecolorchange');
           break;
 
+        case 'og:site_name':
+          if (this.nameChanged) {
+            break;
+          }
+          /* falls through */
         case 'application-name':
           // Apps have a compulsory name field in their manifest
           // which takes precedence.
-          if (this.manifestURL || this.webManifestURL) {
+          var name = detail.content || '';
+          var emptyString = !(name.trim());
+          if (this.manifestURL || this.webManifestURL || emptyString) {
             return;
           }
-          this.name = detail.content;
+          this.name = name;
+          this.nameChanged = true;
           this.publish('namechanged');
           break;
       }
@@ -1388,6 +1434,12 @@
       // will be null if there is no blob
       var screenshotURL = this.requestScreenshotURL();
 
+      if (!screenshotURL) {
+        this.element.classList.add('no-screenshot');
+        this.screenshotOverlay.style.backgroundImage = 'none';
+        return Promise.resolve();
+      }
+
       //  return promise to make sure the image is ready
       var promise = new Promise((resolve) => {
          var image = document.createElement('img');
@@ -1396,9 +1448,9 @@
           }.bind(this);
           image.src = screenshotURL;
       });
-      this.screenshotOverlay.style.backgroundImage = screenshotURL ?
-          'url(' + screenshotURL + ')' : 'none';
-      this.element.classList.toggle('no-screenshot', !screenshotURL);
+      this.screenshotOverlay.style.backgroundImage =
+        'url(' + screenshotURL + ')';
+      this.element.classList.remove('no-screenshot');
       return promise;
     };
 
@@ -1679,7 +1731,7 @@
     this.debug('request RESIZE...active? ', this.isActive());
     var bottom = this.getBottomMostWindow();
     if (!bottom.shouldResize() || this.isTransitioning()) {
-      return;
+      return Promise.resolve();
     }
     if (this.frontWindow) {
       return Promise.all(
@@ -1823,7 +1875,7 @@
       } else {
         // origin might contain a pathname too, so need to parse it to find the
         // "real origin"
-        var url = this.config.origin.split('/');
+        var url = (this.config.origin || location.origin).split('/');
         var origin = url[0] + '//' + url[2];
         this._splash = origin + this._splash;
       }
@@ -1975,9 +2027,6 @@
     if (!this.element) {
       return;
     }
-    if (this._screenshotBlob) {
-      this._showScreenshotOverlay();
-    }
 
     this.debug('requesting to open');
 
@@ -2095,12 +2144,12 @@
 
   AppWindow.prototype._handle__closed = function aw_closed() {
     if (!this.loaded ||
-        (Service.query('isBusyLoading') &&
-          this.getBottomMostWindow().isHomescreen)) {
+        this.getBottomMostWindow().isHomescreen) {
       // We will eventually get screenshot when being requested from
       // task manager.
       return;
     }
+
     // Update screenshot blob here to avoid slowing down closing transitions.
     this.getScreenshot();
   };
@@ -2471,7 +2520,6 @@
     }
   };
 
-
   /**
    * Return a promise that resolves to an icon URL.
    *
@@ -2494,6 +2542,7 @@
       }
       siteObj.manifestUrl = this.manifestURL;
       siteObj.manifest = this.manifest;
+      siteObj.origin = new URL(this.origin).origin;
     }
 
     if (this.webManifestURL && !this.webManifest) {
@@ -2521,11 +2570,10 @@
       LazyLoader.load('/shared/js/icons_helper.js').then(() => {
         IconsHelper.getIconBlob(origin, iconSize, placeObj, siteObj)
           .then(iconObject => {
-            var iconUrl = URL.createObjectURL(iconObject.blob);
             resolve({
-              url: iconUrl,
-              isSmall: iconObject.size < iconSize,
-              originalUrl: iconObject.url
+              blob: iconObject.blob,
+              originalUrl: iconObject.originalUrl,
+              url: 'url(' + URL.createObjectURL(iconObject.blob) + ')'
             });
           })
           .catch(err => {

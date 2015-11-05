@@ -1,0 +1,42 @@
+{
+  "name": "gaia-fast-list",
+  "version": "0.2.1",
+  "homepage": "https://github.com/gaia-components/gaia-fast-list",
+  "authors": [
+    "Etienne Segonzac <etienne@segonzac.info>",
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "description": "No, really.",
+  "main": "gaia-fast-list.js",
+  "keywords": [
+    "web",
+    "performance",
+    "virtual",
+    "list"
+  ],
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "examples",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "fast-list": "gaia-components/fast-list#master",
+    "gaia-component": "gaia-components/gaia-component#~0.4.0",
+    "gaia-sub-header": "gaia-components/gaia-sub-header#~0.4.1",
+    "poplar": "wilsonpage/poplar"
+  },
+  "devDependencies": {
+    "gaia-header": "gaia-components/gaia-header#~0.8.4",
+    "gaia-icons": "gaia-components/gaia-icons#~0.9.2",
+    "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
+    "test-utils": "gaia-components/test-utils#~0.1.0"
+  },
+  "resolutions": {
+    "gaia-icons": "~0.9.2",
+    "gaia-component": "~0.4.0"
+  }
+}

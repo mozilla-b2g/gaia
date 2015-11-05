@@ -6,8 +6,6 @@
 /* exported UIManager */
 'use strict';
 
-var _;
-
 var UIManager = {
   // As in other Gaia apps, we store all the dom selectors in one
   // place and then camelCase them and attach to the main object,
@@ -100,7 +98,9 @@ var UIManager = {
     'skip-tutorial-button',
     'update-skip-tutorial-button',
     // Privacy Settings
-    'share-performance',
+    'metrics-basic',
+    'metrics-enhanced',
+    'metrics-none',
     'offline-error-dialog',
     // Browser privacy newsletter subscription
     'newsletter-form',
@@ -116,8 +116,6 @@ var UIManager = {
   LIGHT_THEME: '#eeeeee',
 
   init: function ui_init() {
-    _ = navigator.mozL10n.get;
-
     // Initialization of the DOM selectors
     this.domSelectors.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
@@ -147,11 +145,23 @@ var UIManager = {
     }
 
     var currentDate = new Date();
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var format = _('shortTimeFormat');
-    this.timeConfigurationLabel.innerHTML = f.localeFormat(currentDate, format);
-    this.dateConfigurationLabel.innerHTML = currentDate.
-      toLocaleFormat('%Y-%m-%d');
+    this.timeConfigurationLabel.textContent = currentDate.toLocaleString(
+      navigator.languages,
+      {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      }
+    );
+    this.dateConfigurationLabel.textContent = currentDate.toLocaleString(
+      navigator.languages,
+      {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      }
+    );
 
     // Add events to DOM
     this.simImportButton.addEventListener('click', this);
@@ -258,8 +268,10 @@ var UIManager = {
     this.letsGoButton.addEventListener('click', startTutorialAction);
     this.updateLetsGoButton.addEventListener('click', startTutorialAction);
 
-    // Enable sharing performance data (saving to settings)
-    this.sharePerformance.addEventListener('change', this);
+    // Enable saving metrics level choice to settings.
+    this.metricsBasic.addEventListener('change', this);
+    this.metricsEnhanced.addEventListener('change', this);
+    this.metricsNone.addEventListener('change', this);
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
                             this.onOfflineDialogButtonClick.bind(this));
@@ -416,10 +428,15 @@ var UIManager = {
         this.updateSetting(event.target.name, event.target.checked);
         break;
       // Privacy
-      case 'share-performance':
-        this.updateSetting(event.target.name, event.target.checked);
+      case 'metrics-enhanced':
+        this.updateSetting('hud.hide', (event.target.value === 'Enhanced'));
+        this.updateSetting('devtools.overlay',
+          (event.target.value === 'Enhanced'));
+        /* falls through */
+      case 'metrics-basic':
+      case 'metrics-none':
+        this.updateSetting('metrics.selectedMetrics.level', event.target.value);
         break;
-      // Fxa Intro
       case 'fxa-create-account':
         this.createFirefoxAccount();
         break;
@@ -455,7 +472,7 @@ var UIManager = {
     // bug 1113551. In any case, the user should be able to manage her account
     // from the Settings app afterwards.
     this.skipFxA = true;
-    FxAccountsIACHelper.getAccounts((account) => {
+    FxAccountsIACHelper.getAccount((account) => {
       this.skipFxA = false;
       this.onFxALogin(account);
     }, () => {
@@ -471,7 +488,7 @@ var UIManager = {
   },
 
   onFxAFlowDone: function ui_onFxAFlowDone() {
-    FxAccountsIACHelper.getAccounts((account) => {
+    FxAccountsIACHelper.getAccount((account) => {
       if (!account) {
         return;
       }
@@ -488,7 +505,7 @@ var UIManager = {
     UIManager.newsletterInput.value = account.email;
     // Update the string
     UIManager.fxaIntro.innerHTML = '';
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       UIManager.fxaIntro,
       account.verified ? 'fxa-signed-in' : 'fxa-email-sent',
       {
@@ -504,7 +521,7 @@ var UIManager = {
     // Clean fields
     UIManager.newsletterInput.value = '';
     // Reset the field
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       UIManager.fxaIntro,
       'fxa-upsell'
     );
@@ -516,7 +533,7 @@ var UIManager = {
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
     var dialog = this.offlineErrorDialog;
-    navigator.mozL10n.setAttributes(dialog.querySelector('small'),
+    document.l10n.setAttributes(dialog.querySelector('small'),
       'offline-dialog-text', { url: href });
     dialog.classList.add('visible');
     this.hideActivationScreenFromScreenReader();
@@ -570,9 +587,15 @@ var UIManager = {
     // Set date through API
     TimeManager.set(timeToSet);
     // Set DATE properly
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var format = _('shortTimeFormat');
-    timeLabel.innerHTML = f.localeFormat(timeToSet, format);
+    timeLabel.textContent = timeToSet.toLocaleString(
+      navigator.languages,
+      {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      }
+    );
   },
 
   setTimeZone: function ui_stz(timezone, needsConfirmation) {
@@ -582,7 +605,7 @@ var UIManager = {
     document.getElementById('time_zone_overlay').className =
       'UTC' + utcOffset.replace(/[+:]/g, '');
     var timezoneTitle = document.getElementById('time-zone-title');
-    navigator.mozL10n.setAttributes(timezoneTitle, 'timezoneTitle', {
+    document.l10n.setAttributes(timezoneTitle, 'timezoneTitle', {
       utcOffset: utcOffset,
       region: timezone.region,
       city: timezone.city
@@ -590,10 +613,17 @@ var UIManager = {
     document.getElementById('tz-region-label').textContent = timezone.region;
     document.getElementById('tz-city-label').textContent = timezone.city;
 
-    var f = new navigator.mozL10n.DateTimeFormat();
     var now = new Date();
     var timeLabel = document.getElementById('time-configuration-label');
-    timeLabel.innerHTML = f.localeFormat(now, _('shortTimeFormat'));
+    timeLabel.textContent = now.toLocaleString(
+      navigator.languages,
+      {
+        hour12: navigator.mozHour12,
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      }
+    );
   },
 
   updateDataConnectionStatus: function ui_udcs(status) {

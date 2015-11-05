@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump, TelemetryRequest,
+/* global MobileOperator, SIMSlotManager, dump, TelemetryRequest,
           LazyLoader */
 
 /**
@@ -14,7 +14,6 @@
 
   const FTU_PING_ACTIVATION = 'ftu.pingActivation';
   const FTU_PING_ENABLED = 'ftu.pingEnabled';
-  const FTU_PING_ID = 'ftu.pingID';
   const FTU_PING_MAX_NETWORK_FAILS = 'ftu.pingMaxNetworkFails';
   const FTU_PING_NETWORK_FAIL_COUNT = 'ftu.pingNetworkFailCount';
   const FTU_PING_URL = 'ftu.pingURL';
@@ -102,25 +101,6 @@
 
     initSettings: function fp_initSettings() {
       var self = this;
-
-      function getDeviceID() {
-        // The TelemetryRequest API rejects when device ID can't be found, which
-        // means we can't easily chain it to other promises, so we wrap it here
-        return new Promise(function(resolve, reject) {
-          var promise = TelemetryRequest.getDeviceID(FTU_PING_ID);
-          promise.then(function(deviceID) {
-            self.debug('Found deviceID: ' + deviceID);
-            self._pingData.pingID = deviceID;
-            resolve();
-          }).catch(function(error) {
-            self.debug('Generating deviceID: ' + error);
-            self._pingData.pingID = uuid();
-            window.asyncStorage.setItem(FTU_PING_ID, self._pingData.pingID);
-            resolve();
-          });
-        });
-      }
-
       function getAsyncItems() {
         return new Promise(function(resolve, reject) {
           self.getAsyncStorageItems([FTU_PING_ACTIVATION,
@@ -189,7 +169,7 @@
       self._pingData.screenWidth = window.screen.width;
       self._pingData.devicePixelRatio = window.devicePixelRatio;
 
-      return Promise.all([getDeviceID(), getAsyncItems(), getSettings()]);
+      return Promise.all([getAsyncItems(), getSettings()]);
     },
 
     initPreinstalledApps: function fp_initPreinstalledApps(callback) {
@@ -341,6 +321,7 @@
     },
 
     tryPing: function fp_tryPing() {
+      var self = this;
       try {
         this.checkMobileNetwork();
         if (this._networkFailCount >= this._maxNetworkFails) {
@@ -358,9 +339,13 @@
           this.debug('No OS information, holding off');
           return false;
         }
-
-        this.ping();
-        return true;
+        var promise = TelemetryRequest.getDeviceID();
+        promise.then(function(deviceID) {
+          self._pingData.pingID = deviceID;
+          self.ping();
+        }).catch(function(error) {
+          self.debug('Generating deviceID: ' + error);
+        });
       } catch (e) {
         this.debug('Error while trying FTU ping: ' + e);
         return false;

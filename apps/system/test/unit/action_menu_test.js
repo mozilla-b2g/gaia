@@ -7,6 +7,8 @@ requireApp('system/js/system_dialog.js');
 requireApp('system/js/action_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/js/event_safety.js');
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_checkbox/script.js');
 
 suite('ActionMenu', function() {
   var rafStub, realL10n, stubById, actionMenu, systemHideStub,
@@ -97,6 +99,14 @@ suite('ActionMenu', function() {
   });
 
   suite('Hide > ', function() {
+    test('Should force position:fixed during the transition', function() {
+      actionMenu.hide();
+      assert.equal(actionMenu.form.style.position, 'fixed');
+      var evt = new CustomEvent('transitionend');
+      actionMenu.form.dispatchEvent(evt);
+      assert.equal(actionMenu.form.style.position, '');
+    });
+
     test('Calls to parent .hide method after transition', function() {
       actionMenu.hide();
       var evt = new CustomEvent('transitionend');
@@ -129,7 +139,7 @@ suite('ActionMenu', function() {
       var items = actionMenu.menu.getElementsByTagName('button');
       var selector = '[data-action="set-default-action"]';
       var defaultInput = actionMenu.menu.querySelector(selector);
-      defaultInput.click();
+      defaultInput.checked = true;
       items[selected].click();
       assert.isTrue(controller.successCb.calledWith(selected, true));
     });

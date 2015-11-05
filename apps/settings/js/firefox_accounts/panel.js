@@ -4,8 +4,7 @@
 'use strict';
 
 var FxaPanel = (function fxa_panel() {
-  var _ = navigator.mozL10n.get,
-    fxaContainer,
+  var fxaContainer,
     loggedOutPanel,
     loggedInPanel,
     unverifiedPanel,
@@ -53,7 +52,7 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function refreshStatus() {
-    fxaHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
+    fxaHelper.getAccount(onFxAccountStateChange, onFxAccountError);
   }
 
   // if e == null, user is logged out.
@@ -122,13 +121,6 @@ var FxaPanel = (function fxa_panel() {
       'fxa-verification-email-sent-msg',
       {email: email}
     );
-    // dynamically construct the resend link
-    var dontSeeText = _('fxa-dont-see-email');
-    dontSeeText = dontSeeText.replace(
-      /{{\s*resend\s*}}/,
-      '<a href="#" id="fxa-resend">' + _('fxa-resend') + '</a>'
-    );
-    resendEmail.innerHTML = dontSeeText;
     resendLink = document.getElementById('fxa-resend');
     resendLink.onclick = _onResendClick;
   }
@@ -145,7 +137,7 @@ var FxaPanel = (function fxa_panel() {
     if (e.target.classList.contains('disabled')) {
       return;
     }
-    fxaHelper.getAccounts(function onGetAccounts(accts) {
+    fxaHelper.getAccount(function onGetAccounts(accts) {
       var email = accts && accts.email;
       if (!email) {
         return onFxAccountStateChange(accts);
@@ -156,13 +148,16 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function _onResend(email) {
-    var resendMsg = _('fxa-resend-alert', { email: email });
-    window.alert(resendMsg);
-    // disable link for 60 seconds, then reenable
-    resendLink.classList.add('disabled');
-    setTimeout(function enableResendLink() {
-      resendLink.classList.remove('disabled');
-    }, 60000);
+    return navigator.mozL10n.formatValue('fxa-resend-alert', {
+      email: email
+    }).then((msg) => {
+      window.alert(msg);
+      // disable link for 60 seconds, then reenable
+      resendLink.classList.add('disabled');
+      setTimeout(function enableResendLink() {
+        resendLink.classList.remove('disabled');
+      }, 60000);
+    });
   }
 
   function onLoginClick(e) {

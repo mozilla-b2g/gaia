@@ -12,7 +12,9 @@
     "themeable":{},
     "mobileconnection":{},
     "settings": { "access": "readwrite" },
-    "input": {}
+    "input": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{},
+    "audio-channel-system": {}
   },
   "inputs": {
     "number": {

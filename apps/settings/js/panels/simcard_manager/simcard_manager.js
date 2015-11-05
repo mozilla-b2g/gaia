@@ -9,7 +9,6 @@
 define(function(require) {
   'use strict';
 
-  var _ = window.navigator.mozL10n.get;
   var l10n = window.navigator.mozL10n;
   var Sanitizer = require('shared/sanitizer');
   var SimSettingsHelper = require('shared/sim_settings_helper');
@@ -152,15 +151,16 @@ define(function(require) {
         if (prevCardIndex !== newCardIndex) {
           // UX needs additional hint for users to make sure
           // they really want to change data connection
-          var wantToChange =
-            window.confirm(_('change-outgoing-data-confirm'));
+          l10n.formatValue('change-outgoing-data-confirm').then(msg => {
+            var wantToChange = window.confirm(msg);
 
-          if (wantToChange) {
-            SimSettingsHelper.setServiceOnCard('outgoingData',
-              newCardIndex);
-          } else {
-            this.selectedIndex = prevCardIndex;
-          }
+            if (wantToChange) {
+              SimSettingsHelper.setServiceOnCard('outgoingData',
+                newCardIndex);
+            } else {
+              this.selectedIndex = prevCardIndex;
+            }
+          });
         }
       });
     },

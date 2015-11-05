@@ -37,8 +37,7 @@
     'debugging': '.sb-icon-debugging',
 
     statusbar: '#statusbar',
-    statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
-    statusbarMinimizedWrapper: '#statusbar-minimized-wrapper'
+    statusbarIcons: '#statusbar-icons'
   });
 
   StatusBar.prototype = {
@@ -47,43 +46,28 @@
 
     get Icons() {
       return this.client.executeScript(function() {
-        var priorities = window.wrappedJSObject.Statusbar.PRIORITIES;
-        var icons = [];
-        Object.keys(priorities).forEach(function(iconId) {
-          var icon = priorities[iconId].icon;
-          if (icon) {
-            icons.push(iconId);
-          }
-        });
-        return icons;
+        return window.wrappedJSObject.Statusbar.PRIORITIES;
       });
     },
 
     get maximizedStatusbar() {
-      var statusbar = StatusBar.Selector.statusbarMaximizedWrapper;
-      return this.client.findElement(statusbar);
-    },
-
-    get minimizedStatusbar() {
-      var statusbar = StatusBar.Selector.statusbarMinimizedWrapper;
+      var statusbar = StatusBar.Selector.statusbarIcons;
       return this.client.findElement(statusbar);
     },
 
     showAllRunningIcons: function() {
-      this.client.executeScript(function() {
-        var priorities = window.wrappedJSObject.Statusbar.PRIORITIES;
-        Object.keys(priorities).forEach(function(iconId) {
-          var icon = priorities[iconId].icon;
-          if (icon) {
-            icon.element.hidden = false;
-          }
-        });
-      });
+      this.Icons.forEach(function(iconName) {
+        if (this[iconName].icon) {
+          this[iconName].icon.scriptWith(function(icon) {
+            icon.hidden = false;
+          });
+        }
+      }.bind(this));
     },
 
     isVisible: function() {
       var el = this.client.findElement(StatusBar.Selector.statusbar);
-      return el.displayed();
+      return el.displayed() && el.location().y === 0;
     },
 
     waitForAppear: function() {
@@ -184,30 +168,18 @@
       this.Icons.forEach(function(iconName) {
         this[iconName] = {
           get icon() {
-            return self.client.findElement('#statusbar-maximized ' +
+            try {
+              var client = self.client.scope({ searchTimeout: 100 });
+              return client.findElement('#statusbar-icons ' +
               StatusBar.Selector[iconName]);
+            } catch (e) {
+              return null;
+            }
           },
           show: showIconGenerator.call(this),
           hide: hideIconGenerator.call(this),
           waitForIconToAppear: waitForIconToAppearGenerator.call(this),
           waitForIconToDisappear: waitForIconToDisappearGenerator.call(this)
-        };
-
-        // Minimised status bar
-        this.minimised[iconName] = {
-          get selector() {
-            return StatusBar.Selector[iconName];
-          },
-          get icon() {
-            return self.client
-              .findElement('#statusbar-minimized ' + this.selector);
-          },
-          show: showIconGenerator.call(this.minimised),
-          hide: hideIconGenerator.call(this.minimised),
-          waitForIconToAppear: waitForIconToAppearGenerator
-            .call(this.minimised),
-          waitForIconToDisappear: waitForIconToDisappearGenerator
-            .call(this.minimised)
         };
       }.bind(this));
 

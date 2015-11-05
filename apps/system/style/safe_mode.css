@@ -1,0 +1,12 @@
+html {
+  font-size: 10px;
+}
+
+form[role="dialog"][data-type="confirm"] section p {
+  margin: 1rem 1.5rem;
+  padding: 1rem 0 0;
+}
+
+form[role="dialog"][data-type="confirm"] p[data-l10n-id="safemode-body2"] {
+  border-top: none;
+}

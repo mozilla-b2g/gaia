@@ -35,7 +35,8 @@
     "downloads":{},
     "nfc":{},
     "sms":{},
-    "firefox-accounts": {}
+    "firefox-accounts": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
   },
   "activities": {
     "configure": {
@@ -75,6 +76,12 @@
     "zh-TW": {
       "name": "設定",
       "description": "Gaia 設定"
+    }
+  },
+  "datastores-owned": {
+    "homescreen_settings": {
+      "access": "readwrite",
+      "description": "Stores home screen settings"
     }
   },
   "datastores-access": {

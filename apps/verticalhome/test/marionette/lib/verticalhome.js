@@ -31,9 +31,7 @@ VerticalHome.Selectors = {
   groupBackground: '#icons .group .background',
   groupToggle: '#icons .group .toggle',
   dividers: '#icons section.divider',
-  collections: '#icons .icon.collection',
   contextmenu: '#contextmenu-dialog',
-  removeCollectionConfirm: 'gaia-confirm',
   themeColor: 'head meta[name="theme-color"]',
   placeholders: '#icons .placeholder'
 };
@@ -60,15 +58,6 @@ VerticalHome.prototype = {
 
   get contextMenu() {
     return this.client.findElement(VerticalHome.Selectors.contextmenu);
-  },
-
-  get collections() {
-    return this.client.findElements(VerticalHome.Selectors.collections);
-  },
-
-  get removeCollectionConfirm() {
-    return this.client.findElement(
-      VerticalHome.Selectors.removeCollectionConfirm);
   },
 
   /**
@@ -156,6 +145,24 @@ VerticalHome.prototype = {
   },
 
   /**
+  Tap an app icon in the homescreen
+
+  @param {String} manifestURL full manifest url path.
+  */
+  launchApp: function(manifestURL) {
+    // switch back to the homescreen
+    this.client.switchToFrame();
+    this.client.switchToFrame(this.system.getHomescreenIframe());
+
+    // tap the app in the homescreen
+    var newApp = this.getIcon(manifestURL);
+    newApp.tap();
+
+    // go to the system app
+    this.client.switchToFrame();
+  },
+
+  /**
   Tap an app icon and switch to it's application iframe.
 
   @param {String} manifestURL full manifest url path.
@@ -164,17 +171,7 @@ VerticalHome.prototype = {
     var client = this.client.scope({ searchTimeout: 100 });
     var frame;
     client.waitFor(function() {
-      // switch back to the homescreen
-      client.switchToFrame();
-      client.switchToFrame(this.system.getHomescreenIframe());
-
-      // tap the app in the homescreen
-      var newApp = this.getIcon(manifestURL);
-      newApp.tap();
-
-      // go to the system app
-      client.switchToFrame();
-
+      this.launchApp(manifestURL);
       // wait for the app to show up
       try {
         frame = client.findElement(
@@ -293,7 +290,7 @@ VerticalHome.prototype = {
       return false;
     }
 
-    if (locale.indexOf('qps') === 0) {
+    if (locale.indexOf('-x-ps') > -1) {
       return this.client.executeScript(function(locale, name) {
         var mozL10n = window.wrappedJSObject.navigator.mozL10n;
         return mozL10n.qps[locale].translate(name);
@@ -319,16 +316,6 @@ VerticalHome.prototype = {
     return this.client.executeScript(function(selector, clazz) {
       return document.querySelector(selector).classList.contains(clazz);
     }, [selector, clazz]);
-  },
-
-  /**
-   * Waits for the system banner to go away and switches back to the homescreen
-   */
-  waitForSystemBanner: function() {
-    this.client.switchToFrame();
-    var banner = this.client.findElement('.banner.generic-dialog');
-    this.client.helper.waitForElementToDisappear(banner);
-    this.client.switchToFrame(this.system.getHomescreenIframe());
   },
 
   /**

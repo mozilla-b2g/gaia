@@ -5,13 +5,13 @@
 
 require('/views/shared/js/localization_helper.js');
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('LocalizationHelper >', function() {
   var navigatorMozL10n;
 
-  function onL10nReady() {
-    navigator.mozL10n.ready.yield();
+  function onDOMRetranslated() {
+    document.addEventListener.withArgs('DOMRetranslated').yield();
     return false;
   }
 
@@ -20,39 +20,63 @@ suite('LocalizationHelper >', function() {
     return true;
   }
 
-  setup(function() {
-    navigatorMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+  setup(function(done) {
+    navigatorMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
-    this.sinon.stub(navigator.mozL10n, 'ready');
-    this.sinon.stub(navigator.mozL10n, 'translateFragment');
+    this.sinon.stub(document.l10n, 'translateFragment');
     this.sinon.stub(window, 'addEventListener');
+    this.sinon.stub(document, 'addEventListener');
 
-    LocalizationHelper.init();
+    const getAttr = this.sinon.stub(document.documentElement, 'getAttribute');
+    getAttr.withArgs('lang').returns('be-BY');
+    getAttr.withArgs('dir').returns('rtl');
+
+    [
+      'attachment-container',
+      'attachment-container',
+      'custom'
+    ].forEach((iframeClassName) => {
+      var iframe = document.createElement('iframe');
+      iframe.className = iframeClassName;
+      document.body.appendChild(iframe);
+    });
+
+    var customIframeDocument = document.querySelector(
+      'iframe.custom'
+    ).contentDocument;
+    customIframeDocument.documentElement.lang = 'en-US';
+    customIframeDocument.documentElement.dir = 'ltr';
+
+    LocalizationHelper.init().then(
+      () => undefined).then(done, done);
   });
 
   teardown(function() {
-    navigator.mozL10n = navigatorMozL10n;
+    document.l10n = navigatorMozL10n;
   });
 
-  test('localizes iframes on l10n.ready', function() {
-    document.body.appendChild(document.createElement('iframe'));
-    document.body.appendChild(document.createElement('iframe'));
-
-    navigator.mozL10n.language.code = 'be-BY';
-    navigator.mozL10n.language.direction = 'rtl';
-    navigator.mozL10n.ready.yield();
-
-    sinon.assert.calledTwice(navigator.mozL10n.translateFragment);
-    Array.forEach(document.querySelectorAll('iframe'), (iframe) => {
+  test('localizes only attachment iframes', function() {
+    sinon.assert.calledTwice(document.l10n.translateFragment);
+    var attachmentContainers = document.querySelectorAll(
+      'iframe.attachment-container'
+    );
+    Array.forEach(attachmentContainers, (iframe) => {
       var doc = iframe.contentDocument;
       assert.equal(doc.documentElement.lang, 'be-BY');
       assert.equal(doc.documentElement.dir, 'rtl');
-      sinon.assert.calledWith(navigator.mozL10n.translateFragment, doc.body);
+      sinon.assert.calledWith(document.l10n.translateFragment, doc.body);
     });
+
+    // Custom iframe should stay untouched.
+    var customIframeDocument = document.querySelector(
+      'iframe.custom'
+    ).contentDocument;
+    assert.equal(customIframeDocument.documentElement.lang, 'en-US');
+    assert.equal(customIframeDocument.documentElement.dir, 'ltr');
   });
 
-  [onL10nReady, onTimeFormatChange].forEach(function(forceUpdateMethod) {
+  [onDOMRetranslated, onTimeFormatChange].forEach(function(forceUpdateMethod) {
     suite('localizes date & time ' + forceUpdateMethod.name +' >', function() {
       var node;
 
@@ -148,7 +172,7 @@ suite('LocalizationHelper >', function() {
           var formatter =
             new Intl.DateTimeFormat(navigator.languages, options);
 
-          var l10nAttributes = navigator.mozL10n.getAttributes(node);
+          var l10nAttributes = document.l10n.getAttributes(node);
           // In case of time format change date-only elements aren't updated
           if (doNotFormat) {
             assert.deepEqual(l10nAttributes.args, {
@@ -165,7 +189,7 @@ suite('LocalizationHelper >', function() {
           assert.equal(node.textContent, 'not-changed-content');
         }
 
-        navigator.mozL10n.setAttributes(node, 'custom', {
+        document.l10n.setAttributes(node, 'custom', {
           data: 'custom'
         });
         node.dataset.l10nDate = timestamp;

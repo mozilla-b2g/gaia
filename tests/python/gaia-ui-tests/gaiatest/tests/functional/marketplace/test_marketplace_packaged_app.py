@@ -15,6 +15,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
     app_search = 'test-webapi-permissions :packaged'
     app_title = 'Privileged App Test'
     app_name = 'premium packaged app'
+    app_manifest = 'https://marketplace.firefox.com/app/9b628257-c986-47aa-bdb9-a654ec355108/manifest.webapp'
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -40,9 +41,9 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
 
         # Check that the icon of the app is on the homescreen
         homescreen = Homescreen(self.marionette)
-        homescreen.wait_for_app_icon_present(self.app_name)
+        homescreen.wait_for_app_icon_present(self.app_manifest)
 
-        installed_app = homescreen.installed_app(self.app_name)
+        installed_app = homescreen.installed_app(self.app_manifest)
         installed_app.tap_icon()
 
         Wait(self.marionette).until(lambda m: m.title == self.app_title)

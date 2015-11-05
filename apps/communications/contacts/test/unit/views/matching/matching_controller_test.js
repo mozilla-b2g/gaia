@@ -127,7 +127,9 @@ suite('MatchingController', function() {
         assert.isTrue(showSpy.calledOnce);
         assert.isTrue(getContactStub.calledOnce);
         assert.isTrue(matchStub.calledOnce);
-      });
+      // Add the extra time we add in matching_controller.js
+      // in the start function
+      }, 2000);
     });
   });
 

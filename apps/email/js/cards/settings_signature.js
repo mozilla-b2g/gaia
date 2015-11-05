@@ -5,7 +5,7 @@ var backFormNode = require('tmpl!./sig/save_signature.html'),
     trailingRegExp = /\s+$/;
 
 return [
-  require('./base')(require('template!./settings_signature.html')),
+  require('./base_card')(require('template!./settings_signature.html')),
   require('./editor_mixins'),
 
   {

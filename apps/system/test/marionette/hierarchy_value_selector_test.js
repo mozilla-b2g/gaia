@@ -33,7 +33,15 @@
         lockscreen.unlock();
       });
 
-      test('Focus a date input in an app should trigger value selector',
+      test('Focus a <select> in an app should trigger value selector',
+        function() {
+          activitycaller.launch();
+          activitycaller.focusSelect();
+
+          client.helper.waitForElement('.appWindow .value-selector');
+        });
+
+      test('Focus a <input type=date> in an app should trigger value selector',
         function() {
           activitycaller.launch();
           activitycaller.focusDateInput();
@@ -41,8 +49,8 @@
           client.helper.waitForElement('.appWindow .value-selector');
         });
 
-      test('Focus a date input in system dialog should trigger value selector',
-        function() {
+      test('Focus a <select> in FxA system dialog ' +
+        'should trigger value selector', function() {
           activitycaller.launch();
           fxASystemDialog.show();
           fxASystemDialog.goToCOPPA();

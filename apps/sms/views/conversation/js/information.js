@@ -15,6 +15,13 @@
 (function(exports) {
 'use strict';
 
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const MONTH = 30 * DAY;
+const LATENESS_DISPLAY_LOWER_LIMIT = 5 * MINUTE;
+
 /*
   Information view module is a subpanel belongs to TheadUI panel. This
   module provide some default  method for thiw view module:
@@ -90,10 +97,11 @@ const reportDateTimeFormatOptions = {
 };
 
 function completeLocaleFormat(timestamp) {
-  return new Date(+timestamp).toLocaleString(
-    navigator.languages,
-    reportDateTimeFormatOptions
-  );
+  var options = Object.assign(
+    { hour12: navigator.mozHour12 },
+    reportDateTimeFormatOptions);
+
+  return new Date(+timestamp).toLocaleString(navigator.languages, options);
 }
 
 function l10nContainsDateSetup(element, timestamp) {
@@ -163,7 +171,7 @@ function showSimInfo(element, iccId) {
   var simId = Settings.getServiceIdByIccId(iccId);
 
   if (simId === null) {
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       simInfoElement,
       'dsds-unknown-sim'
     );
@@ -182,7 +190,7 @@ function showSimInfo(element, iccId) {
     var detailString = info.join(', ');
     l10nId = info.length ?  'sim-detail' : 'sim-id-label';
     data = { id: simId + 1, detailString: detailString };
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       simInfoElement,
       l10nId,
       data
@@ -227,19 +235,20 @@ function getOperatorByServiceId(index) {
 
 var VIEWS = {
   group: {
-    name: 'participants',
+    name: 'group-view',
+    selector: '.panel-GroupView',
     contactFlavor: 'group-view',
 
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.headerText, 'participant', { n:participants.length }
       );
     },
 
     setEventListener: function setEventListener() {
-      this.contactList.addEventListener('click', function onListClick(event) {
+      this.contactList.addEventListener('click', (event) => {
         event.stopPropagation();
         event.preventDefault();
 
@@ -247,14 +256,17 @@ var VIEWS = {
 
         ConversationView.promptContact({
           number: target.dataset.number
-        });
+        }).then(
+          () => Navigation.toPanel('thread', { id: this.id })
+        );
       });
     },
 
     elements: ['contact-list', 'header', 'header-text']
   },
   report: {
-    name: 'report',
+    name: 'report-view',
+    selector: '.panel-ReportView',
     contactFlavor: 'report-view',
 
     init: function() {
@@ -262,19 +274,23 @@ var VIEWS = {
     },
 
     beforeEnter: function() {
+      this.constructor.prototype.beforeEnter.apply(this, arguments);
+
       MESSAGE_EVENTS.forEach((event) => {
         MessageManager.on(event, this.onStatusChanged);
       });
     },
 
     afterLeave: function() {
+      this.constructor.prototype.afterLeave.apply(this, arguments);
+
       MESSAGE_EVENTS.forEach((event) => {
         MessageManager.off(event, this.onStatusChanged);
       });
     },
 
     render: function renderReport() {
-      var setL10nAttributes = navigator.mozL10n.setAttributes;
+      var setL10nAttributes = document.l10n.setAttributes;
       var request = MessageManager.getMessage(this.id);
 
       // Hide these dynamic fields to avoid incorrect info displayed at first
@@ -313,6 +329,8 @@ var VIEWS = {
           }
         }
         this.container.dataset.delivery = delivery;
+        this.container.classList.toggle('incoming-message', isIncoming);
+        this.container.classList.toggle('outgoing-message', !isIncoming);
 
         // If incoming message is migrated from the database where sentTimestamp
         // hadn't been supported yet then we won't have valid value for it.
@@ -330,6 +348,8 @@ var VIEWS = {
           l10nContainsDateSetup(this.receivedTimestamp, message.timestamp);
           l10nContainsDateSetup(this.sentTimestamp, message.sentTimestamp);
           setL10nAttributes(this.sentTitle, 'message-sent');
+          this.renderLateArrivalMsg(message);
+
         } else {
           if (delivery === 'sending' || delivery === 'sent') {
             setL10nAttributes(this.sentTitle, 'message-' + delivery);
@@ -346,6 +366,48 @@ var VIEWS = {
         // report information.
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
+    },
+
+    renderLateArrivalMsg: function report_renderLateArrivalMsg(message) {
+      var latenessBlock = this.panel.querySelector('.lateness-block');
+      var lateness = message.timestamp - message.sentTimestamp;
+      var showLatenessNotice = message.timestamp &&
+        message.sentTimestamp &&
+        lateness >= LATENESS_DISPLAY_LOWER_LIMIT;
+
+      if (showLatenessNotice) {
+        var units = [
+          { unit: 'month', unitVal: MONTH },
+          { unit: 'day', unitVal: DAY },
+          { unit: 'hour', unitVal: HOUR },
+          { unit: 'minute', unitVal: MINUTE },
+          { unit: 'second', unitVal: SECOND }
+        ];
+
+        units.forEach(({unit, unitVal}) => {
+          var output;
+          var unitElement = this.panel.querySelector(`.lateness-${unit}`);
+
+          if (lateness >= unitVal) {
+            // Compute integer value for the current unit output 
+            // and get the rest for the next smaller unit
+            output = Math.floor(lateness / unitVal);
+            lateness = lateness % unitVal;
+
+            document.l10n.setAttributes(
+              unitElement,
+              `duration-${unit}-narrow`,
+              { value: output }
+            );
+            unitElement.classList.remove('hide');
+          } else {
+            unitElement.classList.add('hide');
+          }
+        });
+        latenessBlock.classList.remove('hide');
+      } else {
+        latenessBlock.classList.add('hide');
+      }
     },
 
     // Set this flag to true only when resend is triggered.
@@ -390,7 +452,7 @@ var Information = function(type) {
     this.init();
   }
 
-  this.panel = document.getElementById('information-' + this.name);
+  this.panel = document.querySelector(this.selector);
 
   this.elements.forEach(function(name) {
     this[Utils.camelCase(name)] = this.panel.querySelector('.' + name);
@@ -407,30 +469,28 @@ var Information = function(type) {
 Information.prototype = {
   constructor: Information,
 
-  afterEnter: function(args) {
-    this.id = args.id;
+  beforeEnter: function(args) {
+    this.id = +args.id;
+    this.header.removeAttribute('no-font-fit');
     this.show();
   },
 
-  beforeLeave: function() {
+  afterLeave: function() {
     this.reset();
     this.id = null;
   },
 
   show: function() {
-    this.panel.classList.remove('hide');
     this.render();
   },
 
   refresh: function() {
-    if (!this.panel.classList.contains('hide')) {
+    if (Navigation.isCurrentPanel(this.name)) {
       this.render();
     }
   },
 
   reset: function() {
-    this.panel.classList.add('hide');
-
     // Remove all LIs
     if (this.contactList) {
       this.contactList.textContent = '';
@@ -438,7 +498,7 @@ Information.prototype = {
   },
 
   backOrClose: function() {
-    Navigation.toPanel('thread', { id: Threads.currentId });
+    Navigation.back();
   },
 
   // Incrementing ID for each rendering request to avoid possible race when next

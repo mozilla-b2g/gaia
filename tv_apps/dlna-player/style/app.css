@@ -54,21 +54,26 @@ section[role="region"] {
   visibility: visible;
 }
 
-section[role="region"] [role="toolbar"]{
+section[role="region"] [role="tablist"] {
   position: absolute;
   background-color: #212121;
 }
 
-#controlButtons[role="toolbar"] button {
+#controlButtons[role="tablist"] li,
+section[role="region"] [role="tablist"] li {
+  background-color: #454545;
+}
+
+#controlButtons[role="tablist"] button {
   width: calc(100% / 7 - 0.5rem);
 }
 
-[role="toolbar"] button {
+[role="tablist"] button {
   font-size: 1.5rem;
   color: #919191;
   font-style: normal;
 }
-[role="toolbar"] {
+[role="tablist"] {
   position: absolute;
   bottom: 0px;
 }

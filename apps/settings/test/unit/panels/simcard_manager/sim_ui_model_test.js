@@ -1,21 +1,8 @@
-/* global MockL10n */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
-
 suite('SimUIModel', function() {
-  var realL10n;
   var fakeSimcard;
   var fakeSimcardIndex = 0;
-
-  suiteSetup(function() {
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
-  });
-
-  suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
-  });
 
   setup(function(done) {
     testRequire([

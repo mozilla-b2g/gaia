@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>TV remote control</title>
+  <link rel="stylesheet" type="text/css" href="style/main.css">
+  <script src="js/main.js"></script>
+  <script src="js/panel_element.js"></script>
+  <script src="js/client.js"></script>
+  <script src="bower_components/l20n/dist/webcompat/l20n.js"></script>
+  <!-- L10n properties -->
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="en-US">
+  <link rel="localization" href="locales/remote-control-client.{locale}.properties">
+</head>
+<body>
+  <h1 data-l10n-id="client-title"></h1>
+  <section id="section-input">
+    <input id="input-string" type="text" placeholder="type here and send">
+    <div id="send-string" class="button" data-l10n-id="send"></div>
+  </section>
+  <section id="section-touch-panel">
+    <div id="touch-panel" class="panel"></div>
+    <div id="scroll-panel" class="panel"><div id="scroll-panel-mask"></div></div>
+  </section>
+  <section id="section-buttons">
+    <div class="button" data-key="DOM_VK_ESCAPE" data-l10n-id="back"></div>
+    <div class="button" data-key="DOM_VK_HOME" data-l10n-id="home"></div>
+    <div class="button" data-key="DOM_VK_CONTEXT_MENU" data-l10n-id="option"></div>
+  </section>
+</body>
+</html>

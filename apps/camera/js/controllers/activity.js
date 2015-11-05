@@ -7,7 +7,6 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('controller:activity');
 var bytesToPixels = require('lib/bytes-to-pixels');
-var resizeImageAndSave = require('lib/resize-image-and-save');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -289,18 +288,20 @@ ActivityController.prototype.onActivityConfirmed = function(newMedia) {
     // image before returning it from the pick activity. If the image
     // does not need to be resized or rotated, then resizeImageAndSave
     // will return it unchanged, and will not re-save it.
-    resizeImageAndSave(
-      {
-        blob: newMedia.blob,
-        width: activity.source.data.width,
-        height: activity.source.data.height
-      },
-      function onImageResized(resizedBlob) {
-        media.blob = resizedBlob;
-        activity.postResult(media);
-        self.app.clearSpinner();
-      }
-    );
+    require(['lib/resize-image-and-save'], function(resizeImageAndSave) {
+      resizeImageAndSave(
+        {
+          blob: newMedia.blob,
+          width: activity.source.data.width,
+          height: activity.source.data.height
+        },
+        function onImageResized(resizedBlob) {
+          media.blob = resizedBlob;
+          activity.postResult(media);
+          self.app.clearSpinner();
+        }
+      );
+    });
   }
 };
 

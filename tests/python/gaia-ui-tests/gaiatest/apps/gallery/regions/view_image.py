@@ -5,6 +5,7 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.header import GaiaHeader
 
 
 class ViewImage(Base):
@@ -13,12 +14,13 @@ class ViewImage(Base):
     _banner_message_locator = (By.ID, 'message')
     _save_image_button_locator = (By.ID, 'save')
     _image_locator = (By.CSS_SELECTOR, 'img.image-view')
+    manifest_url = '{}gallery{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == 'Gallery')
+        from gaiatest.apps.gallery.app import Gallery
+        Gallery(self.marionette).wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
-
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._image_locator))))
@@ -35,14 +37,7 @@ class ViewImage(Base):
         return element.text
 
     def tap_back_button(self):
-        header = self.marionette.find_element(*self._header_locator)
-        # TODO: replace this condition with tap on the back button, after Bug 1061698 is fixed
-        header.tap(x=20)
-
-        # wait for the frame to close
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != 'Gallery')
-
-        self.apps.switch_to_displayed_app()
+        GaiaHeader(self.marionette, self._header_locator).go_back(exit_app=True, app=self)
 
     def tap_save_image(self):
         self.marionette.find_element(*self._save_image_button_locator).tap()

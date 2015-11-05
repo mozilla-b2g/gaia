@@ -384,7 +384,7 @@ JSZhuyinDataPackStorage.prototype.getIncompleteMatched = function(key) {
  * matches the code with BopomofoEncoder.isIncompletionOf().
  * @param  {number}   code            code of the character.
  * @param  {numbber}  byteOffset      Byte offset of the block.
- * @return {[array(number), array(number)]}  array of code and byte offsets
+ * @return {array}  array of code and byte offsets in number[] format.
  */
 JSZhuyinDataPackStorage.prototype._getIncompleteMatchedCodesInBlock =
 function jdps__getIncompleteMatchedCodesInBlock(code, byteOffset) {

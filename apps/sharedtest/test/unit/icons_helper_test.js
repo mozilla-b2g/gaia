@@ -110,6 +110,23 @@ suite('Icons Helper', () => {
         });
     });
 
+    test('Works with overridden siteObj.origin', done => {
+      var origin = 'http://origin.com';
+      var path = '/test.png';
+      siteObj.webManifest = null;
+      siteObj.manifest = {
+        origin: origin,
+        icons: {
+          '32': path
+        }
+      };
+      siteObj.origin = 'https://realorigin.com';
+      IconsHelper.getIcon('http://example.com', 32, placeObj, siteObj)
+        .then(iconUrl => {
+          assert.equal((new URL(iconUrl)).href, siteObj.origin + path);
+          done();
+        });
+    });
 
     test('Works with external icons', done => {
       var origin = 'http://origin.com';
@@ -555,7 +572,7 @@ suite('Icons Helper', () => {
         .then((iconObject) => {
           assert.isTrue(createObjectURLStub.calledOnce);
           assert.isObject(iconObject);
-          assert.equal(iconObject.blob, 'abc');
+          assert.equal(iconObject.blob.content, 'abc');
           assert.equal(iconObject.size, '32');
           done();
         })
@@ -564,7 +581,9 @@ suite('Icons Helper', () => {
           done();
         });
       MockXMLHttpRequest.mSendReadyState();
-      MockXMLHttpRequest.mSendOnLoad({response: 'abc'});
+      MockXMLHttpRequest.mSendOnLoad({
+        response: { content: 'abc', type: 'image/png' }
+      });
     });
 
     test('Should return the largest side of the image', done => {
@@ -579,7 +598,9 @@ suite('Icons Helper', () => {
           done();
         });
       MockXMLHttpRequest.mSendReadyState();
-      MockXMLHttpRequest.mSendOnLoad({response: 'abc'});
+      MockXMLHttpRequest.mSendOnLoad({
+        response: { content: 'abc', type: 'image/png' }
+      });
     });
 
     test('getBestIconFromWebManifest', function() {

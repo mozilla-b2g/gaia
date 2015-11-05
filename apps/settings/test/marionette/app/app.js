@@ -6,8 +6,10 @@ var Base = require('./base');
 var BatteryPanel = require('./regions/battery');
 var BluetoothPanel = require('./regions/bluetooth');
 var DateTimePanel = require('./regions/date_time');
+var DeviceInfoPanel = require('./regions/device_info');
 var DisplayPanel = require('./regions/display');
 var DoNotTrackPanel = require('./regions/do_not_track');
+var BrowsingPrivacyPanel = require('./regions/browsing_privacy');
 var FeedbackPanel = require('./regions/feedback');
 var HotspotPanel = require('./regions/hotspot');
 var HotspotSettingsPanel = require('./regions/hotspot_settings');
@@ -21,7 +23,7 @@ var RootPanel = require('./regions/root');
 var ScreenLockPanel = require('./regions/screen_lock');
 var SoundPanel = require('./regions/sound');
 var SupportPanel = require('./regions/support');
-var DeviceInfoPanel = require('./regions/device_info');
+var UsbStoragePanel = require('./regions/usb_storage');
 
 /**
  * Abstraction around settings app
@@ -43,6 +45,7 @@ Settings.Selectors = {
   'menuItemsSection': '#root',
   'bluetoothMenuItem': '.menuItem-bluetooth',
   'doNotTrackMenuItem': '#menuItem-doNotTrack',
+  'browsingPrivacyMenuItem': '#menuItem-browsingPrivacy',
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
@@ -62,7 +65,8 @@ Settings.Selectors = {
   'mediaStorageMenuItem': '.menuItem-mediaStorage',
   'keyboardMenuItem': '#menuItem-keyboard',
   'messageMenuItem': '#menuItem-messagingSettings',
-  'deviceInfoMenuItem': '#menuItem-deviceInfo'
+  'deviceInfoMenuItem': '#menuItem-deviceInfo',
+  'usbStorageMenuItem': '.menuItem-enableStorage'
 };
 
 Settings.prototype = {
@@ -87,6 +91,13 @@ Settings.prototype = {
     this._doNotTrackPanel = this._doNotTrackPanel ||
       new DoNotTrackPanel(this.client);
     return this._doNotTrackPanel;
+  },
+
+  get browsingPrivacyPanel() {
+    this.openPanel('browsingPrivacyMenuItem');
+    this._browsingPrivacyPanel = this._browsingPrivacyPanel ||
+      new BrowsingPrivacyPanel(this.client);
+    return this._browsingPrivacyPanel;
   },
 
   get hotspotPanel() {
@@ -213,6 +224,13 @@ Settings.prototype = {
     return this._aboutPanel;
   },
 
+  get usbStoragePanel() {
+    this.openPanel('usbStorageMenuItem');
+    this._usbStoragePanel = this._usbStoragePanel ||
+      new UsbStoragePanel(this.client);
+    return this._usbStoragePanel;
+  },
+
   set currentLanguage(value) {
     // open the language panel
     var languagePanel = this.languagePanel;
@@ -233,6 +251,9 @@ Settings.prototype = {
       return this.findElement('messageMenuItem').enabled();
     }.bind(this));
 
+    menuItem.scriptWith(function(el) {
+      el.scrollIntoView(false);
+    });
     menuItem.tap();
     this.client.waitFor(function() {
       var loc = parentSection.location();

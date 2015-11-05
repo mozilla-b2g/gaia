@@ -55,8 +55,8 @@ define(function(require) {
      * }
      */
     function _updateCallBarringItem(item, newStatus) {
-      var descText = item.querySelector('small');
-      var input = item.querySelector('input');
+      var descText = item.querySelector('details');
+      var input = item.querySelector('gaia-switch');
 
       // disable the item
       if (typeof newStatus.disabled === 'boolean') {
@@ -96,19 +96,29 @@ define(function(require) {
       // Show passcode screen
       _passcodeScreen.show().then(function confirmed(passcode) {
         // passcode screen confirmed
-        var inputID = input.parentNode.parentNode.id;
+        var inputID = input.parentNode.id;
 
         var setting = inputID.substring(6);
         _updateMobileConnection();
         _callBarring.set(_mobileConnection, setting, passcode).catch(
           function error(err) {
           // err = { name, message }
-          var toast = {
-            messageL10nId: 'callBarring-update-item-error',
-            messageL10nArgs: {'error': err.name || 'unknown'},
-            latency: 2000,
-            useTransition: true
-          };
+          var toast;
+          if (err.name === 'GenericFailure') {
+            // show more user friendly string
+            toast = {
+              messageL10nId: 'callBarring-update-generic-error',
+              latency: 2000,
+              useTransition: true
+            };
+          } else {
+            toast = {
+              messageL10nId: 'callBarring-update-item-error',
+              messageL10nArgs: {'error': err.name || 'unknown'},
+              latency: 2000,
+              useTransition: true
+            };
+          }
           Toaster.showToast(toast);
         });
       }).catch(function canceled() {
@@ -127,7 +137,7 @@ define(function(require) {
         };
 
         for (var i in _cbSettings) {
-          _cbSettings[i].querySelector('input').
+          _cbSettings[i].querySelector('gaia-switch').
             addEventListener('click', _callBarringClick);
         }
 

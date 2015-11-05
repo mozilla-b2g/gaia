@@ -103,21 +103,20 @@ Abstract.prototype = {
     var putReq;
     var reqType = this._detectPersistType(object);
 
-    // determine type of event
-    if (reqType === 'update') {
-      putReq = store.put(data);
-    } else {
-      this._assignId(data);
-      putReq = store.add(data);
-    }
-
     trans.addEventListener('error', function(event) {
       if (callback) {
         callback(event);
       }
     });
 
-    this._addDependents(object, trans);
+    // determine type of event
+    if (reqType === 'update') {
+      putReq = store.put(data);
+    } else {
+      this._assignId(data);
+      putReq = store.add(data);
+      this._addDependents(object, trans);
+    }
 
     // when we have the id we can add the model to the cache.
     if (data._id) {

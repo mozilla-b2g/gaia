@@ -2,19 +2,25 @@
 (function(module, ns) {
   'use strict';
 
-  function merge() {
-    var args = Array.prototype.slice.call(arguments),
-        result = {};
-
-    args.forEach(function(object) {
-      var key;
-      for (key in object) {
-        if (object.hasOwnProperty(key)) {
-          result[key] = object[key];
+  function deepmerge(d) {
+    for (var i = 1; i < arguments.length; ++i) {
+      var o = arguments[i];
+      for (var k in o) {
+        var v = o[k];
+        if (typeof v == 'object') {
+          d[k] = deepmerge(d[k], v);
+        } else {
+          if (Array.isArray(d)) {
+            if (d.indexOf(v) < 0) {
+              d.push(v);
+            }
+          } else {
+            d[k] = v;
+          }
         }
       }
-    });
-    return result;
+    }
+    return d;
   }
 
   function cmd(defaults) {
@@ -22,113 +28,96 @@
       if (typeof(override) === 'undefined') {
         override = {};
       }
-      return merge(defaults, override);
+      return deepmerge(defaults, override);
     };
   }
 
   module.exports = {
-    connect: cmd(
-      { from: 'root', applicationType: 'gecko', traits: [] }
-    ),
+    connectProto1: cmd({from: 'root', applicationType: 'gecko', traits: []}),
+    connectProto2: cmd({applicationType: 'gecko', marionetteProtocol: 2}),
 
-    getMarionetteID: cmd(
-      { type: 'getMarionetteID' }
-    ),
+    getMarionetteID: cmd({type: 'getMarionetteID'}),
+    getMarionetteIDResponse: cmd({from: 'root', id: 'con1'}),
 
-    getMarionetteIDResponse: cmd(
-      { from: 'root', id: 'con1' }
-    ),
+    newSession: cmd({type: 'newSession'}),
+    newSessionResponseProto1: cmd({
+      from: 'actor',
+      value: 'b2g-7',
+    }),
+    newSessionResponseProto2: cmd({
+      sessionId: '{2dddca75-7f78-415f-a7de-63eb2bc9412b}',
+      capabilities: {browserName: 'firefox'},
+    }),
 
-    newSession: cmd(
-      { type: 'newSession' }
-    ),
+    getWindow: cmd({name: 'getWindow'}),
+    getWindowResponse: cmd({value: '3-b2g'}),
 
-    newSessionResponse: cmd(
-      { from: 'actor', value: 'b2g-7' }
-    ),
+    getWindows: cmd({name: 'getWindows'}),
+    getWindowsResponseProto1: cmd({from: 'actor', value: ['1-b2g', '2-b2g']}),
+    getWindowsResponseProto2: cmd(['1-b2g', '2-b2g']),
 
-    getWindow: cmd(
-      { type: 'getWindow' }
-    ),
+    getUrl: cmd({name: 'getUrl'}),
+    getUrlResponse: cmd({value: 'http://localhost/'}),
 
-    getWindows: cmd(
-      { type: 'getWindows' }
-    ),
+    getLogsResponseProto1: cmd({
+      from: 'actor',
+      value: [
+        ['debug', 'wow', 'Fri Apr 27 2012 11:00:32 GMT-0700 (PDT)'],
+      ],
+    }),
+    getLogsResponseProto2: cmd([
+      ['debug', 'wow', 'Fri Apr 27 2012 11:00:32 GMT-0700 (PDT)'],
+    ]),
 
-    getWindowsResponse: cmd(
-      { from: 'actor', value: ['1-b2g', '2-b2g'] }
-    ),
+    screenshotResponse: cmd({
+      value: 'data:image/png;base64,iVBOgoAAAANSUhEUgAAAUAAAAHMCAYAAACk4nEJA',
+    }),
 
-    getWindowResponse: cmd(
-      { from: 'actor', value: '3-b2g' }
-    ),
-
-    getUrl: cmd(
-      { type: 'getUrl' }
-    ),
-
-    getUrlResponse: cmd(
-      { from: 'actor', value: 'http://localhost/' }
-    ),
-
-    getLogsResponse: cmd(
-      {
-        from: 'actor',
-        value: [
-          //log, level, time
-          ['debug', 'wow', 'Fri Apr 27 2012 11:00:32 GMT-0700 (PDT)']
-        ]
-      }
-    ),
-
-    screenshotResponse: cmd(
-      {
-        from: 'actor',
-        value: 'data:image/png;base64,iVBOgoAAAANSUhEUgAAAUAAAAHMCAYAAACk4nEJA'
-      }
-    ),
-
-    elementEqualsResponse: cmd(
-      { from: 'actor', value: false }
-    ),
+    elementEqualsResponse: cmd({value: false}),
 
     findElementResponse: cmd(
-      { from: 'actor', value: '{some-uuid}' }
-    ),
+        {value: {ELEMENT: '{8056e6f7-2213-41d4-9db6-ad77ac7a96d3}'}}),
+    findElementsResponseProto1: cmd({
+      from: 'actor',
+      value: [
+        {ELEMENT: '{46982c9e-bb0c-486e-a514-d1cf20b42641}'},
+        {ELEMENT: '{585e70ee-e088-43cc-9b07-a4b078c1b8db}'},
+      ],
+    }),
+    findElementsResponseProto2: cmd([
+      {ELEMENT: '{46982c9e-bb0c-486e-a514-d1cf20b42641}'},
+      {ELEMENT: '{585e70ee-e088-43cc-9b07-a4b078c1b8db}'},
+    ]),
 
-    findElementsResponse: cmd(
-      { from: 'actor', value: ['{some-uuid}', '{some-other-uuid}'] }
-    ),
+    numberError: cmd({
+      from: 'actor',
+      error: {
+        message: 'you fail',
+        status: 7,
+        stacktrace: 'fail@url\nother:300',
+      },
+    }),
+    stringError: cmd({
+      from: 'actor',
+      error: {
+        message: 'you fail',
+        status: 'no such element',
+        stacktrace: 'fail@url\nother:300',
+      },
+    }),
+    modernError: cmd({
+      error: 'no such element',
+      message: 'you fail',
+      stacktrace: 'fail@url\nother:300',
+    }),
 
-    numberError: cmd(
-      {
-        from: 'actor',
-        error: {
-          message: 'you fail',
-          status: 7,
-          stacktrace: 'fail@url\nother:300'
-        }
-      }
-    ),
+    //valueProto1: cmd({from: 'actor', value: 'zomg'}),
+    value: cmd({value: 'zomg'}),
 
-    stringError: cmd(
-      {
-        from: 'actor',
-        error: {
-          message: 'you fail',
-          status: 'no such element',
-          stacktrace: 'fail@url\nother:300'
-        }
-      }
-    ),
+    capabilities: cmd({capabilities: {browserName: 'firefox'}}),
 
-    value: cmd(
-      { from: 'actor', value: 'zomg' }
-    ),
-
-    ok: cmd(
-      { from: 'actor', ok: true }
-    )
+    //okProto1: cmd({from: 'actor', ok: true}),
+    ok: cmd({}),
   };
 
 }.apply(

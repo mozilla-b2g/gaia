@@ -64,11 +64,13 @@ Keyboard.prototype = {
     } else if (key >= 'A' && key <= 'Z') {
       this.switchToPage(0);
       this.switchCase(true);
-      keySelector  = Keyboard.Selector.upperCaseKey;
+      keySelector = Keyboard.Selector.upperCaseKey;
     } else if ((key >= 'a' && key <= 'z') ||
                key == ' ') {
       this.switchToPage(0);
       this.switchCase(false);
+    } else if (key === ' ' || key === '\u0008' || key === '\u000d') {
+      // No need to switch -- should be on every page and every case.
     } else {
       var index = this.getSymbolPageIndex(key);
       this.switchToPage(index);
@@ -102,7 +104,7 @@ Keyboard.prototype = {
 
     var shiftKey = this.shiftKey;
 
-    shiftKey.click();
+    shiftKey.tap();
     this.client.waitFor(function() {
       var expected = upperCase ? 'true' : 'false';
       return (shiftKey.getAttribute('aria-pressed') === expected);
@@ -110,13 +112,13 @@ Keyboard.prototype = {
   },
 
   switchToPage: function(index) {
-    var pageIndex= this.getCurrentPageIndex();
+    var pageIndex = this.getCurrentPageIndex();
     if (pageIndex === index) {
       return;
     }
 
     var pageSwitchingKey = this.getPageSwitchingKey(index);
-    pageSwitchingKey.click();
+    pageSwitchingKey.tap();
   },
 
   getCurrentPageIndex: function() {
@@ -145,8 +147,62 @@ Keyboard.prototype = {
 
   type: function(string) {
     string.split('').forEach(function(char) {
-      var keyElement = this.getKey(char);
-      keyElement.click();
+      var middleChar = this.getLongPressCharMiddleChar(char);
+      var keyElement;
+      if (!middleChar) {
+        // Does not need long press
+        keyElement = this.getKey(char);
+        keyElement.tap();
+      } else {
+        // This is the key to long press.
+        keyElement = this.getKey(middleChar);
+        var chain = this.actions.press(keyElement).wait(1).perform();
+
+        var longPressKeyElement = this.client.findElement(
+          Keyboard.Selector.key.replace(/%s/g, char.charCodeAt(0)));
+        chain.move(longPressKeyElement).release().perform();
+      }
     }, this);
+  },
+
+  LONGPRESS_CHARS: Object.freeze({
+    '0': 'º',
+    '?': '¿',
+    '$': '€£¥',
+    '!': '¡',
+    'a': 'áàâäåãāæ',
+    'c': 'çćč',
+    'e': 'éèêëēę€ɛ',
+    'i': 'įīîìíï',
+    'l': '£ł',
+    'n': 'ńñ',
+    'o': 'ɵøœōôòóö',
+    's': 'ßśš$',
+    'u': 'ūûùúü',
+    'y': '¥ÿ',
+    'z': 'žźż',
+    'A': 'ÁÀÂÄÅÃĀÆ',
+    'C': 'ÇĆČ',
+    'E': 'ÉÈÊËĒĘ€Ɛ',
+    'I': 'ĮĪÎÌÍÏ',
+    'L': '£Ł',
+    'N': 'ŃÑ',
+    'O': 'ƟØŒŌÔÒÓÖ',
+    'S': 'ŚŠŞ',
+    'U': 'ŪÛÙÚÜ',
+    'Y': '¥Ÿ',
+    'Z': 'ŽŹŻ'
+  }),
+
+  getLongPressCharMiddleChar: function(char) {
+    var chars = this.LONGPRESS_CHARS;
+
+    for (var middleChar in chars) {
+      if (chars[middleChar].indexOf(char) !== -1) {
+        return middleChar;
+      }
+    }
+
+    return undefined;
   }
 };

@@ -5,23 +5,28 @@
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
-from gaiatest.apps.system.regions.activities import Activities
 
 
 class Display(Base):
 
-    _wallpaper_preview_locator = (By.CSS_SELECTOR, '.wallpaper-preview')
-    _wallpaper_pick_locator = (By.CSS_SELECTOR, '.wallpaper')
-    _stock_wallpapers_locator = (By.CSS_SELECTOR, "div[class='wallpaper']")
-    _wallpaper_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://wallpaper'][src$='pick.html']")
+    _page_locator = (By.ID, 'display')
+    _timeout_selector_locator = (By.NAME, "screen.timeout")
+    _timeout_confirmation_button_locator = (By.CLASS_NAME, "value-option-confirm")
 
     @property
-    def wallpaper_preview_src(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(*self._wallpaper_preview_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        return element.get_attribute('src')
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
-    def pick_wallpaper(self):
-        self.marionette.find_element(*self._wallpaper_pick_locator).tap()
-        return Activities(self.marionette)
+    def tap_timeout_selector(self):
+        self.marionette.find_element(*self._timeout_selector_locator).tap()
+        self.marionette.switch_to_frame()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._timeout_confirmation_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+
+    def tap_timeout_confirmation(self):
+        self.marionette.find_element(*self._timeout_confirmation_button_locator).tap()
+        self.apps.switch_to_displayed_app()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._timeout_selector_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))

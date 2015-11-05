@@ -1,5 +1,5 @@
 /* global ScreenLayout, Promise,
-          Utils, FinishScreen, LazyLoader */
+          Utils, FinishScreen, LazyLoader, TutorialUtils */
 /* exported Tutorial */
 
 (function(exports) {
@@ -12,53 +12,9 @@
   var dom = {};
 
   /**
-   * Helper function to load imagaes and video
-   * @param {DOMNode} mediaElement  video or image to assign new src to
-   * @param {String} src  URL for video/image resource
-   * @returns {Promise}
+   * Manages and controls the configuration, content and state of the tutorial
+   * @module Tutorial
    */
-  function _loadMedia(mediaElement, src) {
-    var isVideo = (mediaElement.nodeName === 'VIDEO');
-    return new Promise(function(resolve, reject) {
-      function onMediaLoadOrError(evt) {
-        evt.target.removeEventListener('error', onMediaLoadOrError);
-        if (isVideo) {
-          evt.target.removeEventListener('canplay', onMediaLoadOrError);
-        } else {
-          evt.target.removeEventListener('load', onMediaLoadOrError);
-        }
-        // Dont block progress on failure to load media
-        if (evt.type === 'error') {
-          console.error('Failed to load tutorial media: ' + src);
-        }
-        resolve(evt);
-      }
-      function onVideoUnloaded(evt) {
-        mediaElement.removeEventListener('emptied', onVideoUnloaded);
-        mediaElement.removeEventListener('abort', onVideoUnloaded);
-        mediaElement.addEventListener('canplay', onMediaLoadOrError);
-        mediaElement.src = src;
-        mediaElement.load();
-      }
-      if (isVideo) {
-        // must unload video and force load before switching to new source
-        mediaElement.addEventListener('error', onMediaLoadOrError);
-        if (mediaElement.src) {
-          mediaElement.addEventListener('emptied', onVideoUnloaded, false);
-          mediaElement.addEventListener('abort', onVideoUnloaded, false);
-          mediaElement.removeAttribute('src');
-          mediaElement.load();
-        } else {
-          onVideoUnloaded();
-        }
-      } else {
-        mediaElement.addEventListener('load', onMediaLoadOrError, false);
-        mediaElement.addEventListener('error', onMediaLoadOrError, false);
-        mediaElement.src = src;
-      }
-    });
-  }
-
   var elementIDs = [
     'tutorial',
     'tutorial-step-title',
@@ -69,10 +25,6 @@
     'back-tutorial'
   ];
 
-  /**
-   * Manages and controls the configuration, content and state of the tutorial
-   * @module Tutorial
-   */
   var Tutorial = {
     // A configuration object.
     config: null,
@@ -108,7 +60,7 @@
         return;
       }
 
-      var initTasks = this._initialization = new Sequence(
+      var initTasks = this._initialization = new TutorialUtils.Sequence(
         // config should load or already be loaded.
         // failure should abort
         this.loadConfig.bind(this),
@@ -127,6 +79,47 @@
       }, this);
 
       initTasks.next();
+
+      // watch a ton of video events as context for the tutorial
+      // media loading/playing
+      var mediaEvents = this._mediaEvents = ['abort',
+                         'canplay',
+                         'canplaythrough',
+                         'durationchange',
+                         'emptied',
+                         'ended',
+                         'error',
+                         'interruptbegin',
+                         'interruptend',
+                         'loadeddata',
+                         'loadedmetadata',
+                         'loadstart',
+                         'mozaudioavailable',
+                         'pause',
+                         'play',
+                         'playing',
+                         'stalled',
+                         'suspend',
+                         'waiting'];
+
+      this._debugEventHandler = {
+        handleEvent: function(evt) {
+          var errCodes = {
+            '1': 'MEDIA_ERR_ABORTED',
+            '2': 'MEDIA_ERR_NETWORK',
+            '3': 'MEDIA_ERR_DECODE',
+            '4': 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+          };
+          console.log('TUTORIAL: media-event: '+ evt.type);
+          if (evt.type == 'error') {
+            var errtype = errCodes[evt.target.error.code] || 'unknown';
+            console.log('TUTORIAL: media-event, ' + errtype + ' error');
+          }
+        }
+      };
+      mediaEvents.forEach(name => {
+        dom.tutorialStepVideo.addEventListener(name, this._debugEventHandler);
+      });
     },
 
     /**
@@ -147,13 +140,14 @@
         initInProgress = true;
       } else {
         // init already complete, create new sequence
-        this._initialization = sequence = new Sequence();
+        this._initialization = sequence = new TutorialUtils.Sequence();
         sequence.onabort = this._onAbortInitialization.bind(this);
         sequence.oncomplete =
           this._onCompleteInitialization.bind(this);
       }
       sequence.push(function setInitialStep() {
         // setStep should return promise given by _loadMedia
+        console.log('TUTORIAL: setInitialStep');
         return this._setStep();
       }.bind(this));
 
@@ -162,6 +156,7 @@
         dom.tutorial.classList.add('show');
         // Custom event that can be used to apply (screen reader) visibility
         // changes.
+        console.log('TUTORIAL: dispatching tutorialinitialized');
         window.dispatchEvent(new CustomEvent('tutorialinitialized'));
       });
 
@@ -230,7 +225,7 @@
       dom.tutorial.dataset.step = this._currentStep;
 
       // Internationalize
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         dom.tutorialStepTitle,
         stepData.l10nKey
       );
@@ -241,14 +236,15 @@
 
       var stepPromise;
       if (stepData.video) {
-        stepPromise = _loadMedia(videoElement, stepData.video).then(function(){
-          videoElement.play();
+        stepPromise = TutorialUtils.getBestAssetForDirection(stepData.video)
+        .then((bestSrc) => {
+          return TutorialUtils.loadAndPlayMedia(videoElement, bestSrc);
         });
         videoElement.hidden = false;
         imgElement.hidden = true;
       } else {
         imgElement.hidden = false;
-        stepPromise = _loadMedia(imgElement, stepData.image);
+        stepPromise = TutorialUtils.loadMedia(imgElement, stepData.image);
         imgElement.hidden = false;
         videoElement.hidden = true;
       }
@@ -347,6 +343,25 @@
      * @memberof Tutorial
      */
     reset: function() {
+      var resetPromise = Promise.resolve();
+      if (dom.tutorialStepVideo) {
+        this._mediaEvents.forEach(name => {
+          dom.tutorialStepVideo.removeEventListener(
+            name,
+            this._debugEventHandler
+          );
+        });
+        dom.tutorialStepVideo.hidden = true;
+        if (dom.tutorialStepVideo.src) {
+          resetPromise = new Promise((resolve, reject) => {
+            dom.tutorialStepVideo.addEventListener('emptied', () => {
+              resolve();
+            });
+            dom.tutorialStepVideo.removeAttribute('src');
+            dom.tutorialStepVideo.load();
+          });
+        }
+      }
       if (this._initialization) {
         this._initialization.abort();
         this._initialization = null;
@@ -358,66 +373,10 @@
         dom.tutorial.classList.remove('show');
         this._initialized = false;
       }
+      document.getElementById('tutorial').classList.remove('show');
+      return resetPromise;
     }
   };
-
-  /**
-   * Private helper class to manage a series of sync or async functions
-   *
-   * The array may be manipulated using standard array methods while the
-   * sequence runs. The sequence completes when there are no more functions or
-   * an exception is raised.
-   * At the end of the sequence, any 'oncomplete' assigned will be called with
-   * the return value from the last function
-   * Functions may return a 'thenable' to indicate async return
-   * Exceptions will be passed into the oncomplete function
-   * A Sequence may be cleanly aborted by calling abort() - no callbacks will
-   * be fired
-   * @class Sequence
-   */
-  function Sequence() {
-    var sequence = Array.slice(arguments);
-    var aborted = false;
-    sequence.abort = function() {
-      aborted = true;
-      this.length = 0;
-      if (typeof this.onabort === 'function') {
-        this.onabort();
-      }
-    };
-    sequence.complete = function(result) {
-      if(!aborted && typeof this.oncomplete === 'function') {
-        this.oncomplete(result);
-      }
-    };
-    sequence.fail = function(reason) {
-      this.complete(reason);
-    };
-    sequence.next = function(previousTaskResult) {
-      var result, exception;
-      if (aborted) {
-        return;
-      }
-      var task = this.shift();
-      if (task) {
-        try {
-          result = task.apply(null, arguments);
-        } catch(e) {
-          exception = e;
-        }
-        if (exception) {
-          this.fail(exception);
-        } else if (result && typeof result.then === 'function') {
-          result.then(this.next.bind(this), this.fail.bind(this));
-        } else {
-          this.next(result);
-        }
-      } else {
-        this.complete(previousTaskResult);
-      }
-    };
-    return sequence;
-  }
 
   exports.Tutorial = Tutorial;
 

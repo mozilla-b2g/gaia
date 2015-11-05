@@ -472,6 +472,10 @@ var VCFReader = (function _VCFReader() {
 
       var v = vcardObj[field][0];
 
+      if (!v || !Array.isArray(v.value) || v.value.length === 0) {
+        return;
+      }
+
       var dateValue;
       if (field === 'bday') {
         dateValue = v.value[0];

@@ -20,7 +20,7 @@
   height: 4rem;
   margin: 0 0 1rem;
   padding: 0 1.2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   /*display: inline-block;*/
   vertical-align: middle;
   text-overflow: ellipsis;
@@ -65,7 +65,7 @@
   position: absolute;
   top: 50%;
   margin-top: -1.5rem;
-  right: 1.5rem;
+  offset-inline-end: 1.5rem;
   line-height: 3rem;
 }
 
@@ -146,7 +146,7 @@ li .activity[aria-disabled="true"] {
 
 /* Icons */
 li .activity.icon {
-  -moz-padding-end: 4rem;
+  padding-inline-end: 4rem;
 }
 
 li .activity.icon:before {
@@ -155,7 +155,7 @@ li .activity.icon:before {
   height: 3rem;
   position: absolute;
   top: 50%;
-  right: 0.5rem;
+  offset-inline-end: 0.5rem;
   margin-top: -1.5rem;
   background: transparent no-repeat center center / 100% auto;
   pointer-events: none;
@@ -166,13 +166,12 @@ li .activity.icon-view:active {
 }
 
 li .activity.icon-view:before {
-  background-image: url(buttons/images/forward-light.svg);
   background-size: 3rem;
-  right: 0;
+  offset-inline-end: 0;
 }
 
 li .activity[data-icon]:before {
-  right: 1rem;
+  offset-inline-end: 1rem;
 }
 
 li .activity[data-icon="expand"]:before {
@@ -191,24 +190,24 @@ li .activity[data-icon="forward"]:before {
 
 /* Getting more space for text, as icon is shorter */
 li .activity.icon-dialog {
-  -moz-padding-end: 3rem;
+  padding-inline-end: 3rem;
 }
 
 li .activity.icon-dialog:before {
   width: 0;
   height: 0;
   top: auto;
-  right: 0.8rem;
+  offset-inline-end: 0.8rem;
   bottom: 0.5rem;
   border-top: 0.7rem solid transparent;
   border-bottom: 0.7rem solid transparent;
-  border-left: 0.7rem solid #00aac5;
+  border-inline-start: 0.7rem solid #00aac5;
   transform: rotate(45deg);
   z-index: 1;
 }
 
 li .activity[aria-disabled="true"].icon-dialog:before {
-  border-left: 0.7rem solid #a9a9a9;
+  border-inline-start: 0.7rem solid #a9a9a9;
 }
 
 /* ----------------------------------
@@ -231,7 +230,7 @@ li .activity[aria-disabled="true"].icon-dialog:before {
 }
 
 .skin-dark li .activity.icon-dialog:active:before {
-  border-left: 0.7rem solid #b2f2ff;
+  border-inline-start: 0.7rem solid #b2f2ff;
 }
 
 .skin-dark li .activity[aria-disabled="true"] {
@@ -248,14 +247,14 @@ body[role="application"] .activity input {
 /* select */
 select {
   width: 100%;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
   font-size: 1.6rem;
   color: #333;
   margin: 0 0 1rem;
   padding: 0;
-  -moz-padding-start: 1.1rem;
+  padding-inline-start: 1.1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -285,12 +284,12 @@ select:-moz-focusring {
 .activity[data-icon] select {
   position: absolute;
   top: -0.6rem;
-  left: 0;
+  offset-inline-start: 0;
   width: calc(100% + 3rem);
   height: 100%;
   margin: 0;
   padding: 0;
-  -moz-padding-end: 5rem;
+  padding-inline-end: 5rem;
   text-indent: 0;
   font-weight: 400;
   font-size: 1.7rem;
@@ -299,9 +298,16 @@ select:-moz-focusring {
     We put a text shadow with needed offset and no blur, so that replaces the text.
   */
   color: rgba(0,0,0,0);
-  text-shadow: 1rem 0.5rem 0 #333;
   border: none;
   background: none;
+}
+html[dir="ltr"] .activity.icon select,
+html[dir="ltr"] .activity[data-icon] select {
+  text-shadow: 1rem 0.5rem 0 #333;
+}
+html[dir="rtl"] .activity.icon select,
+html[dir="rtl"] .activity[data-icon] select {
+  text-shadow: -1rem 0.5rem 0 #333;
 }
 
 .activity.icon select option,
@@ -316,62 +322,11 @@ select:-moz-focusring {
   overflow: hidden;
 }
 
-.skin-dark .activity.icon select,
-.skin-dark .activity[data-icon] select {
+html[dir="ltr"] .skin-dark .activity.icon select,
+html[dir="ltr"] .skin-dark .activity[data-icon] select {
   text-shadow: 1rem 0.5rem 0 #fff;
 }
-
-/******************************************************************************
- * Right-To-Left layout
- */
-
-html[dir="rtl"] .activity[data-icon]:before {
-  left: 1.5rem;
-  right: unset;
-  transform: scale(-1, 1);
-}
-
-html[dir="rtl"] li .activity.icon-view:before {
-  left: 0;
-  right: unset;
-  transform: rotate(180deg);
-}
-
-html[dir="rtl"] li .activity[data-icon]:before {
-  left: 1rem;
-  right: unset;
-}
-
-
-html[dir="rtl"] li .activity.icon:before {
-  left: 0.5rem;
-  right: unset;
-}
-
-
-html[dir="rtl"] li .activity.icon-dialog:before {
-  left: 0.8rem;
-  right: unset;
-  transform: rotate(315deg);
-  border-left: unset;
-  border-right: 0.7rem solid #00aac5;
-}
-
-html[dir="rtl"] li .activity[aria-disabled="true"].icon-dialog:before {
-  border-left: unset;
-  border-right: 0.7rem solid #a9a9a9;
-}
-
-html[dir="rtl"] .skin-dark li .activity.icon-dialog:active:before {
-  border-left: unset;
-  border-right: 0.7rem solid #b2f2ff;
-}
-
-
-/* Hides dropdown arrow until bug #649849 is fixed */
-html[dir="rtl"] .activity.icon-dialog select,
-html[dir="rtl"] .activity[data-icon] select {
-  left: unset;
-  right: 0.3rem; /* .3rem space because of italic */
-  text-indent: 1rem;
+html[dir="rtl"] .skin-dark .activity.icon select,
+html[dir="rtl"] .skin-dark .activity[data-icon] select {
+  text-shadow: -1rem 0.5rem 0 #fff;
 }

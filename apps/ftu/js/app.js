@@ -1,6 +1,6 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
           UIManager, WifiManager, ImportIntegration, Tutorial,
-          VersionHelper, LanguageManager */
+          VersionHelper, LanguageManager, eventSafety */
 /* exported AppManager */
 'use strict';
 
@@ -22,33 +22,46 @@ function notifyCollection() {
     } else {
       console.error ('mozApps does not have a connect method. ' +
                      'Cannot launch the collection preload process.');
-
     }
   };
 }
 
 var AppManager = {
+  EVENT_PREFIX: 'ftu-',
 
   init: function init(versionInfo) {
+    window.performance.mark('initialize');
     this.isInitialized = true;
 
     LanguageManager.init();
     UIManager.init();
     Navigation.init();
 
+    window.performance.mark('navigationLoaded');
     // Send message to populate preinstalled collections.
     // This needs to be done for both upgrade and non-upgrade flows.
     notifyCollection();
+    this.publish('setup');
 
-    UIManager.splashScreen.addEventListener('transitionend', function onEnd() {
-      UIManager.splashScreen.removeEventListener('transitionend', onEnd);
+    var splashTimeout = 1025;
+    var splashScreenHidden = this.whenEvent(UIManager.splashScreen,
+                                            'transitionend',
+                                            splashTimeout).then(() => {
       UIManager.container.removeAttribute('aria-hidden');
+      window.performance.mark('visuallyLoaded');
+    });
+
+    var languageListReady = this.whenEvent(window, 'languagelistready');
+
+    Promise.all([splashScreenHidden, languageListReady]).then(() => {
+      window.performance.mark('fullyLoaded');
     });
 
     // if it's an upgrade we can jump to tutorial directly
     if (versionInfo && versionInfo.isUpgrade()) {
       var stepsKey = versionInfo.delta();
       // Play the FTU Tuto steps directly on update
+      UIManager.changeStatusBarColor(UIManager.DARK_THEME);
       UIManager.splashScreen.classList.remove('show');
       UIManager.activationScreen.classList.remove('show');
       UIManager.updateScreen.classList.add('show');
@@ -81,6 +94,8 @@ var AppManager = {
         window.location.hash = '#languages';
 
         UIManager.splashScreen.classList.remove('show');
+        window.performance.mark('navigationInteractive');
+        window.performance.mark('contentInteractive');
       }, kSplashTimeout);
       return;
     }
@@ -93,12 +108,26 @@ var AppManager = {
       UIManager.activationScreen.classList.add('show');
       // Remove the splash
       UIManager.splashScreen.classList.remove('show');
+      window.performance.mark('navigationInteractive');
+      window.performance.mark('contentInteractive');
     }, kSplashTimeout);
+  },
+  whenEvent: function (target, name, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      eventSafety(target, name, resolve, timeoutMs || 1000);
+    });
+  },
+  publish: function(name, detail) {
+    var evt = new CustomEvent(this.EVENT_PREFIX + name,
+    {
+      bubbles: true,
+      detail: detail || this
+    });
+    window.dispatchEvent(evt);
   }
 };
 
-navigator.mozL10n.ready(function showBody() {
-
+function init() {
   VersionHelper.getVersionInfo().then(function(versionInfo) {
     if (!AppManager.isInitialized) {
       AppManager.init(versionInfo);
@@ -109,4 +138,13 @@ navigator.mozL10n.ready(function showBody() {
       }
     }
   });
+}
+
+
+init();
+document.addEventListener('DOMRetranslated', init);
+
+document.l10n.ready.then(() => {
+  window.performance.mark('l10nready');
 });
+

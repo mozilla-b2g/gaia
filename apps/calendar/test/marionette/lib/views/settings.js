@@ -14,13 +14,13 @@ Settings.prototype = {
 
   setupAdvancedSettings: function() {
     this.client
-      .findElement('button.settings')
+      .findElement('li.settings')
       .click();
   },
 
   sync: function() {
     this
-      .findElement('[role="toolbar"] .sync')
+      .findElement('[role="tablist"] .sync')
       .click();
   },
 

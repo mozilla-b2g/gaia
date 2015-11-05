@@ -1,10 +1,13 @@
 /* global MozActivity, IconsHelper, LazyLoader */
-/* global applications, BaseModule */
+/* global BaseModule, Service */
 
 (function(window) {
   'use strict';
 
   var _ = navigator.mozL10n.get;
+  const PINNING_PREF = 'dev.gaia.pinning_the_web';
+  const SITE_ICON_SIZE = 72;
+
   /**
    * The ContextMenu of the AppWindow.
    *
@@ -29,7 +32,9 @@
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'mozbrowsercontextmenu':
-          this.show(evt);
+          if (!Service.query('isFtuRunning')) {
+            this.show(evt);
+          }
           break;
       }
     },
@@ -38,7 +43,8 @@
       var detail = evt.detail;
 
       var hasContextMenu = detail.contextmenu &&
-        detail.contextmenu.items.length > 0;
+        detail.contextmenu.items.length > 0 &&
+        detail.contextmenu.customized;
       var hasSystemTargets = detail.systemTargets &&
         detail.systemTargets.length > 0;
 
@@ -54,15 +60,23 @@
       }
 
       var items = this._listItems(detail);
-
       if (!items.length) {
         return;
       }
 
-      // Notify the embedder we are handling the context menu
       evt.preventDefault();
       evt.stopPropagation();
-      this.contextMenuView.show(items);
+
+      // This temporary check will be removed as soon as
+      // Pinning the Web lands without a Setting. We won't need
+      // the second call to _listItems anymore then.
+      this._getPinningEnabled(function(value) {
+        this.pinningEnabled = value;
+        items = this._listItems(detail);
+
+        // Notify the embedder we are handling the context menu
+        this.contextMenuView.show(items);
+      }.bind(this));
     },
 
     _listItems: function(detail) {
@@ -70,16 +84,30 @@
       var items = [];
 
       // contextmenu.items are specified by the web content via html5
-      // context menu api
+      // context menu api and a specific system command, copy-image.
       if (detail.contextmenu && detail.contextmenu.items.length) {
         detail.contextmenu.items.forEach(function(choice, index) {
-          items.push({
-            label: choice.label,
-            icon: choice.icon,
-            callback: function() {
-              detail.contextMenuItemSelected(choice.id);
-            }
-          });
+          var itemObj = null;
+          switch (choice.id) {
+            case 'copy-image':
+            case 'copy-link':
+              itemObj = {
+                id: choice.id,
+                label: _(choice.id),
+              };
+              break;
+
+            default:
+              // Customized menu items
+              itemObj = {
+                label: choice.label,
+                icon: choice.icon,
+              };
+          }
+          itemObj.callback = () => {
+            detail.contextMenuItemSelected(choice.id);
+          };
+          items.push(itemObj);
         }, this);
       }
 
@@ -92,6 +120,17 @@
       }
 
       return items;
+    },
+
+    _getPinningEnabled: function(callback) {
+      var req = navigator.mozSettings.createLock().get(PINNING_PREF);
+      req.onsuccess = () => {
+        callback(req.result[PINNING_PREF]);
+      };
+
+      req.onerror = () => {
+        callback(false);
+      };
     },
 
     isShown: function() {
@@ -129,6 +168,22 @@
       });
     },
 
+    _getSaveUrlItem: function(url, name) {
+      if (this.pinningEnabled) {
+        return {
+          id: 'pin-to-home-screen',
+          label: _('pin-to-home-screen'),
+          callback: this.pinUrl.bind(this, url, name)
+        };
+      }
+
+      return {
+        id: 'add-to-homescreen',
+        label: _('add-link-to-home-screen'),
+        callback: this.bookmarkUrl.bind(this, url, name)
+      };
+    },
+
     bookmarkUrl: function(url, name) {
       var favicons = this.app.favicons;
 
@@ -157,16 +212,39 @@
       }));
     },
 
+    pinUrl: function(url, name) {
+      var data = {
+        name: name,
+        type: 'url',
+        url: url,
+        iconable: false,
+        title: this.app.title,
+        themeColor: this.app.themeColor
+      };
+
+      this.app.getScreenshot(function() {
+        data.screenshot = this.app._screenshotBlob;
+        this.app.getSiteIconUrl(SITE_ICON_SIZE)
+        .then(iconObject => {
+          if (iconObject) {
+            data.icon = iconObject.blob;
+          }
+          this.publish('pin-page-dialog-requestopen', data);
+        })
+        .catch((err) => {
+          this.app.debug('bookmarkUrl, error from getSiteIcon: %s', err);
+          this.publish('pin-page-dialog-requestopen', data);
+        });
+      }.bind(this));
+    },
+
     newWindow: function(manifest, isPrivate) {
       // For private windows we create an empty private app window.
       if (isPrivate) {
         window.dispatchEvent(new CustomEvent('new-private-window'));
-        return;
+      } else {
+        window.dispatchEvent(new CustomEvent('new-non-private-window'));
       }
-
-      // Else we open up the browser.
-      var newTabApp = applications.getByManifestURL(manifest);
-      newTabApp.launch();
     },
 
     showWindows: function(manifest) {
@@ -192,11 +270,9 @@
             id: 'open-in-new-private-window',
             label: _('open-in-new-private-window'),
             callback: this.openUrl.bind(this, uri, true)
-          }, {
-            id: 'bookmark-link',
-            label: _('add-link-to-home-screen'),
-            callback: this.bookmarkUrl.bind(this, uri, text)
-          }, {
+          },
+            this._getSaveUrlItem(uri, text),
+          {
             id: 'save-link',
             label: _('save-link'),
             callback: this.app.browser.element.download.bind(
@@ -238,54 +314,60 @@
 
     showDefaultMenu: function(manifest, name) {
       return new Promise((resolve) => {
-        var config = this.app.config;
-        var menuData = [];
+        this._getPinningEnabled(function(value) {
+          this.pinningEnabled = value;
+          var config = this.app.config;
+          var menuData = [];
 
-        var finish = () => {
-          this.contextMenuView.show(menuData);
-          resolve();
-        };
+          var finish = () => {
+            this.contextMenuView.show(menuData);
+            resolve();
+          };
 
-        menuData.push({
-          id: 'new-window',
-          label: _('new-window'),
-          callback: this.newWindow.bind(this, manifest)
-        });
+          menuData.push({
+            id: 'new-window',
+            label: _('new-window'),
+            callback: this.newWindow.bind(this, manifest)
+          });
 
-        menuData.push({
-          id: 'new-private-window',
-          label: _('new-private-window'),
-          callback: this.newWindow.bind(this, manifest, true)
-        });
+          menuData.push({
+            id: 'new-private-window',
+            label: _('new-private-window'),
+            callback: this.newWindow.bind(this, manifest, true)
+          });
 
-        menuData.push({
-          id: 'show-windows',
-          label: _('show-windows'),
-          callback: this.showWindows.bind(this)
-        });
+          menuData.push({
+            id: 'show-windows',
+            label: _('show-windows'),
+            callback: this.showWindows.bind(this)
+          });
 
-        // Do not show the bookmark/share buttons if the url starts with app.
-        // This is because in some cases we use the app chrome to view system
-        // pages. E.g., private browsing.
-        if (config.url.startsWith('app')) {
+          // Do not show the bookmark/share buttons if the url starts with app.
+          // This is because in some cases we use the app chrome to view system
+          // pages. E.g., private browsing.
+          if (config.url.startsWith('app')) {
+            finish();
+            return;
+          }
+
+          menuData.push(this._getSaveUrlItem(config.url, name));
+
+          menuData.push({
+            id: 'share',
+            label: _('share'),
+            callback: this.shareUrl.bind(this, config.url)
+          });
+
           finish();
-          return;
-        }
-
-        menuData.push({
-          id: 'add-to-homescreen',
-          label: _('add-to-home-screen'),
-          callback: this.bookmarkUrl.bind(this, config.url, name)
-        });
-
-        menuData.push({
-          id: 'share',
-          label: _('share'),
-          callback: this.shareUrl.bind(this, config.url)
-        });
-
-        finish();
+        }.bind(this));
       });
+    },
+
+    _stop: function() {
+      this.contextMenuView.destroy();
+      this.app.element.removeEventListener('mozbrowsercontextmenu', this);
+      this.containerElement = null;
+      this.app = null;
     }
   });
 

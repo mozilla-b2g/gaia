@@ -10,13 +10,16 @@
  *
  * @typedef {Object} Metadata
  * @property {String} tag_format The format of the tag (e.g. id3v2.4).
- * @property {string} artist The track's artist.
- * @property {string} album The track's album.
- * @property {number} tracknum The number of the track on the album.
- * @property {string} title The track's title.
+ * @property {String} artist The track's artist.
+ * @property {String} album The track's album.
+ * @property {String} title The track's title.
+ * @property {Number} [tracknum] The number of the track on the album.
+ * @property {Number} [trackcount] The total number of tracks in the album.
+ * @property {Number} [discnum] The number of the disc on the album.
+ * @property {Number} [disccount] The total number of discs in the album.
  * @property {Picture} [picture] The cover art, if any.
- * @property {number} rated The track's rating; starts at 0.
- * @property {number} played The track's play count; starts at 0.
+ * @property {Number} rated The track's rating; starts at 0.
+ * @property {Number} played The track's play count; starts at 0.
  */
 
 /**
@@ -27,10 +30,14 @@ var AudioMetadata = (function() {
    * Parse the specified blob and return a Promise with the metadata.
    *
    * @param {Blob} blob The audio file to parse.
+   * @param {String} [filename] The name of the file, used as a fallback if
+   *   the metadata has no title field.
    * @return {Promise} A Promise returning the parsed metadata object.
    */
-  function parse(blob) {
-    var filename = blob.name;
+  function parse(blob, filename = null) {
+    if (!filename) {
+      filename = blob.name;
+    }
 
     // If blob.name exists, it should be an audio file from system
     // otherwise it should be an audio blob that probably from network/process
@@ -134,7 +141,20 @@ var AudioMetadata = (function() {
         var url = URL.createObjectURL(blob);
         player.src = url;
 
+        // XXX: There seems to have been a gecko regression, and error events
+        // are no longer being fired when we try to play some invalid audio
+        // files. To work around this, we use a timeout to assume the file is
+        // unplayable if we nave not gotten any events within a reasonable
+        // amount of time. See also bugs 1208331 and 1198169.
+        const CANPLAY_TIMEOUT = 3000;
+        var timeoutId = setTimeout(() => {
+          console.error('No oncanplay or error events seen yet.',
+                        'Assuming file is corrupt:', blob.name);
+          player.onerror();
+        }, CANPLAY_TIMEOUT);
+
         player.onerror = function() {
+          clearTimeout(timeoutId);
           URL.revokeObjectURL(url);
           player.removeAttribute('src');
           player.load();
@@ -142,6 +162,7 @@ var AudioMetadata = (function() {
         };
 
         player.oncanplay = function() {
+          clearTimeout(timeoutId);
           URL.revokeObjectURL(url);
           player.removeAttribute('src');
           player.load();

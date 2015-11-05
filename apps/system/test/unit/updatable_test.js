@@ -10,6 +10,7 @@
    MockCustomDialog,
    MockNavigatorBattery,
    MockNavigatorSettings,
+   MockNotificationHelper,
    MockService,
    MockUpdateManager,
    MockUtilityTray,
@@ -29,6 +30,8 @@ requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/mock_notification.js');
 
 var mocksHelperForUpdatable = new MocksHelper([
   'CustomDialog',
@@ -36,6 +39,8 @@ var mocksHelperForUpdatable = new MocksHelper([
   'AppWindowManager',
   'UtilityTray',
   'ManifestHelper',
+  'Notification',
+  'NotificationHelper',
   'asyncStorage',
   'Service'
 ]).init();
@@ -299,6 +304,32 @@ suite('system/Updatable', function() {
         assert.isFalse(subject.downloading);
       });
     });
+
+    suite('signal system update ready', function() {
+      var addEventListenerSpy, dispatchEventSpy;
+
+      setup(function() {
+        asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
+        dispatchEventSpy    = this.sinon.spy(SystemUpdatable.prototype,
+                                             '_dispatchEvent');
+        addEventListenerSpy = this.sinon.spy(window, 'addEventListener');
+        subject = new SystemUpdatable(42);
+      });
+
+      test('should add event listener', function() {
+        sinon.assert.calledOnce(addEventListenerSpy);
+        sinon.assert.calledWith(addEventListenerSpy, 'mozChromeEvent');
+      });
+
+      test('should send ready message', function() {
+        sinon.assert.calledOnce(dispatchEventSpy);
+        sinon.assert.calledWith(dispatchEventSpy, 'update-prompt-ready');
+      });
+
+      test('should have proper ordering', function() {
+        sinon.assert.callOrder(addEventListenerSpy, dispatchEventSpy);
+      });
+    });
   });
 
   suite('events', function() {
@@ -496,6 +527,21 @@ suite('system/Updatable', function() {
     });
 
     suite('system update events', function() {
+      var errorObject = {
+        appVersion: '99.0',
+        buildID: '20151008155421',
+        detailsURL: 'http://www.mozilla.com/test/sample-details.html',
+        displayVersion: '99.0',
+        errorCode: '80',
+        isOSUpdate: true,
+        platformVersion: null,
+        previousAppVersion: '44.0a1',
+        state: 'failed',
+        statusText: 'Install Failed',
+        size: 225860143,
+        updateType: 'complete',
+        type: 'update-error'
+      };
 
       function forceBatteryThresholdToMidCharge() {
         return {
@@ -530,6 +576,12 @@ suite('system/Updatable', function() {
           assert.isTrue(MockUpdateManager.mDownloadedCalled);
         });
 
+        test('should remove the system download from the queue', function() {
+          assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
+          assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
+          assert.equal(MockUpdateManager.mDownloads.length, 0);
+        });
+
         test('should reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
           assert.isUndefined(
             asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
@@ -559,14 +611,20 @@ suite('system/Updatable', function() {
       suite('update-error', function() {
         setup(function() {
           subject = new SystemUpdatable(42);
-          var event = new MockChromeEvent({
-            type: 'update-error'
-          });
+          var event = new MockChromeEvent(errorObject);
           subject.handleEvent(event);
         });
 
-        test('should request error banner', function() {
-          assert.isTrue(MockUpdateManager.mErrorBannerRequested);
+        test('should send error notification', function() {
+          assert.equal(MockNotificationHelper.mTitleL10n,
+                       'systemUpdateError');
+          assert.equal(MockNotificationHelper.mOptions.bodyL10n,
+                       'systemUpdateErrorDetails');
+          assert.equal(MockNotificationHelper.mOptions.tag,
+                       'systemUpdateError');
+          assert.equal(MockNotificationHelper.mOptions.mozbehavior.showOnlyOnce,
+                       true);
+          assert.equal(MockNotificationHelper.mOptions.closeOnClick, false);
         });
 
         test('should remove self from active downloads', function() {
@@ -576,6 +634,48 @@ suite('system/Updatable', function() {
 
         test('should remove the downloading flag', function() {
           assert.isFalse(subject.downloading);
+        });
+      });
+
+      suite('update error notification details', function() {
+        setup(function() {
+          subject = new SystemUpdatable(42);
+          var event = new MockChromeEvent(errorObject);
+          subject.showUpdateErrorDetails(event);
+        });
+
+        test('utility tray hidden', function() {
+          assert.isTrue(MockService.request.calledWith('UtilityTray:hide'));
+        });
+
+        test('show custom dialog', function() {
+          assert.isTrue(MockService.request.calledWith(
+            'showCustomDialog', 'systemUpdateError'));
+          assert.equal(MockService.request.lastCall.args[2].id,
+                       'wantToReportNow');
+          assert.equal(MockService.request.lastCall.args[3].title,
+                       'later');
+          assert.equal(MockService.request.lastCall.args[4].title,
+                       'report');
+        });
+
+        test('custom dialog cancel callback', function() {
+          var cancel = MockService.request.lastCall.args[3].callback;
+          cancel();
+
+          assert.isTrue(MockService.request.calledWith('hideCustomDialog'));
+        });
+
+        test('custom dialog report callback', function() {
+          var dispatchSpy = this.sinon.spy(window, 'dispatchEvent');
+          var report = MockService.request.lastCall.args[4].callback;
+          report();
+
+          assert.isTrue(MockService.request.calledWith('hideCustomDialog'));
+          sinon.assert.calledOnce(dispatchSpy);
+
+          var contentEvent = dispatchSpy.lastCall.args[0];
+          assert.equal(contentEvent.type, 'requestSystemLogs');
         });
       });
 
@@ -764,14 +864,6 @@ suite('system/Updatable', function() {
 
       assert.equal('update-prompt-apply-result', lastDispatchedEvent.type);
       assert.equal('wait', lastDispatchedEvent.value);
-    });
-
-    test('canceling should remove from downloads queue', function() {
-      subject.declineInstallWait();
-
-      assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-      assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
-      assert.equal(MockUpdateManager.mDownloads.length, 0);
     });
 
     test('apply prompt confirm callback', function() {

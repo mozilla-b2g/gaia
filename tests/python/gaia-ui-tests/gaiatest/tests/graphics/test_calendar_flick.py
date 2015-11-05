@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import datetime
+import time
 
 from gaiatest.apps.calendar.app import Calendar
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
@@ -37,33 +38,44 @@ class TestCalendar(GaiaImageCompareTestCase):
         self.take_screenshot()
 
         calendar.tap_week_display_button()
+        time.sleep(3)  # auto-scrolls when week view is entered, wait until scroll bar disappears
         self.take_screenshot()
         GaiaImageCompareTestCase.scroll(self.marionette, 'down',
                                         300, locator=calendar._week_view_locator)
+        time.sleep(1)  # wait until scroll bar disappears
+
         self.take_screenshot()
         GaiaImageCompareTestCase.scroll(self.marionette, 'up',
                                         300, locator=calendar._week_view_locator)
+        time.sleep(1)  # wait until scroll bar disappears
         self.take_screenshot()
         GaiaImageCompareTestCase.scroll(self.marionette, 'right',
                                         100, locator=calendar._week_view_locator)
+        time.sleep(1)  # wait until scroll bar disappears
         self.take_screenshot()
         GaiaImageCompareTestCase.scroll(self.marionette, 'left',
                                         100, locator=calendar._week_view_locator)
+        time.sleep(1)  # wait until scroll bar disappears
         self.take_screenshot()
 
         calendar.tap_day_display_button()
+        time.sleep(1)  # wait until scroll bar disappears
         self.take_screenshot()
         GaiaImageCompareTestCase.scroll(self.marionette, 'down',
                                         300, locator=calendar._day_view_locator)
+        time.sleep(1)  # wait until scroll bar disappears
         self.take_screenshot()
         GaiaImageCompareTestCase.scroll(self.marionette, 'up',
                                         300, locator=calendar._day_view_locator)
+        time.sleep(1)  # wait until scroll bar disappears
         self.take_screenshot()
         GaiaImageCompareTestCase.scroll(self.marionette, 'right',
                                         100, locator=calendar._day_view_locator)
+        time.sleep(1)  # wait until scroll bar disappears
         self.take_screenshot()
         GaiaImageCompareTestCase.scroll(self.marionette, 'left',
                                         100, locator=calendar._day_view_locator)
         GaiaImageCompareTestCase.scroll(self.marionette, 'left',
                                         100, locator=calendar._day_view_locator)
+        time.sleep(1)  # wait until scroll bar disappears
         self.take_screenshot()

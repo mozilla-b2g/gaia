@@ -36,11 +36,11 @@ window.startupOnModelLoaded = null;
  * exists to help us be efficient on closing the app in the case of notification
  * close events. If the notification system improved so that the app could tell
  * it not to notify us on close events, this could be removed. It is a global
- * so that cronsync-main can set it for request-sync operations. This file does
- * not track request-sync setMozMessageHandler messages directly, since they
- * need to acquire wake locks in the event turn the message is received. Since
- * that is a bit complicated, the back-end handles it, since it also knows more
- * about the sync details.
+ * so that cronsync-main can set it for alarm operations. This file does not
+ * track alarm setMozMessageHandler messages directly, since they need to
+ * acquire wake locks in the event turn the message is received. Since that is a
+ * bit complicated, the back-end handles it, since it also knows more about the
+ * sync details.
  */
 window.appDispatchedMessage = false;
 
@@ -51,7 +51,7 @@ window.appDispatchedMessage = false;
   // for the pending message type is received, this variable is cleared,
   // opening the way for other mozSetMessageHandler messages to be processed.
   // This is only important to track for messages that have UI impact, like
-  // inserting cards. Data messages, like request-sync are fine to pass through
+  // inserting cards. Data messages, like alarm are fine to pass through
   // unblocked.
   var pendingUiMessageType = null;
 
@@ -74,7 +74,7 @@ window.appDispatchedMessage = false;
     model.latestOnce('acctsSlice', function(acctsSlice) {
       // At this point, model will have set up 'data_has_account', so the the
       // final view can be set and the rest of the world can start turning.
-      // Note that request-sync can get kicked off before this is all done,
+      // Note that alarm can get kicked off before this is all done,
       // since the worker will have started up and registered to get those
       // messages. It is OK though since not showing any UI. If this case is
       // triggered, it will result in a UI display in that case, but that is OK,
@@ -299,9 +299,9 @@ window.appDispatchedMessage = false;
     // system app will also notify this method of any close events for
     // notifications, which are not at all interesting.
     if (!msg.clicked) {
-      // If a request-sync is waiting right behind this notification message,
-      // that sync would will be lost when the application closes. It is an edge
-      // case though, and recoverable on the next sync, where trying to be
+      // If a alarm is waiting right behind this notification message, that sync
+      // would will be lost when the application closes. It is an edge case
+      // though, and recoverable on the next sync, where trying to be
       // accommodating to it here would add more code complexity, and it would
       // still have a failure window where the app just starts up with a
       // notification, but just after that, after startup is finished but before
@@ -312,7 +312,7 @@ window.appDispatchedMessage = false;
       // closing a notification.
 
       // Only close if entry was a notification and no other messages, like a
-      // request-sync or a UI-based message, have been dispatched.
+      // alarm or a UI-based message, have been dispatched.
       if (startupData.entry === 'notification' &&
           !window.appDispatchedMessage) {
         console.log('App only started for notification close, closing app.');
@@ -443,12 +443,37 @@ window.appDispatchedMessage = false;
 
     if (pendingUiMessageType) {
       startupData.entry = pendingUiMessageType;
-    } else if (navigator.mozHasPendingMessage('request-sync')) {
-      // While request-sync is not important for the pendingUiMessageType
+    } else if (navigator.mozHasPendingMessage('alarm')) {
+      // While alarm is not important for the pendingUiMessageType
       // gateway, it still should be indicated that the entry point was not the
       // default entry point, so that the UI is not fully started if this is a
       // background sync.
-      startupData.entry = 'request-sync';
+      startupData.entry = 'alarm';
+    } else if (navigator.mozHasPendingMessage('request-sync')) {
+      // Be nice and consume the message so that request-sync feels like it
+      // completed its mission, but ignore the actual message.
+      if (navigator.mozSetMessageHandler) {
+        navigator.mozSetMessageHandler('request-sync', function (e) {
+          console.log('Received legacy request-sync message, ignoring.');
+        });
+      }
+
+      // Legacy request-sync trigger. Just clear all request-sync tasks, and
+      // allow the UI to go to a normal view this time. When back end starts up
+      // it will ensure the sync alarms are set properly for the next sync, so
+      // in this legacy case we will just miss one sync pass.
+      var navSync = navigator.sync;
+      if (navSync) {
+        navSync.registrations().then(function(regs) {
+          regs.forEach(function(reg) {
+            console.log('Unregistering legacy request sync...');
+            navSync.unregister(reg.task);
+            console.log('Unregister done!');
+          });
+        }, function(err) {
+          console.error('navigator.sync.registrations failed: ', err);
+        });
+      }
     }
   }
 
@@ -463,7 +488,7 @@ window.appDispatchedMessage = false;
   if (window.startupOnModelLoaded) {
     finishStartup();
   } else if (startupData.entry === 'default' ||
-             startupData.entry === 'request-sync') {
+             startupData.entry === 'alarm') {
     hydrateHtml(startupData.view);
     finishStartup();
   }

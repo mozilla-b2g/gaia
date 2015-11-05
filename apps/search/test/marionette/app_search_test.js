@@ -3,13 +3,18 @@
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 
 marionette('Search - App search', function() {
+  var profile = require(__dirname + '/client_options.js');
+  // Causing a crash in this test, so disable apz.
+  profile.prefs = {
+    'layers.async-pan-zoom.enabled': false
+  };
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: profile
   });
   var home, search, rocketbar, system;
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -18,7 +23,7 @@ marionette('Search - App search', function() {
 
   test('Search apps from Rocketbar', function() {
     home.waitForLaunch();
-    home.focusRocketBar();
+    rocketbar.homescreenFocus();
     rocketbar.enterText('calendar');
     search.goToResults();
     var calendarIdentifier = 'app://calendar.gaiamobile.org/manifest.webapp';
@@ -29,7 +34,7 @@ marionette('Search - App search', function() {
 
   test('Search for app with entry point', function() {
     home.waitForLaunch();
-    home.focusRocketBar();
+    rocketbar.homescreenFocus();
     rocketbar.enterText('Phone');
     search.goToResults();
     var phoneIdentifier =

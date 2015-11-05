@@ -1,4 +1,4 @@
-/* global AppUpdatable, LazyLoader, NotificationScreen, Service,
+/* global AppUpdatable, LazyLoader, MozActivity, NotificationScreen, Service,
           SettingsListener, SystemBanner, SystemUpdatable */
 
 'use strict';
@@ -143,7 +143,7 @@
 
       var checkValues = {};
       var dialog = this.downloadDialogList;
-      var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+      var checkboxes = dialog.querySelectorAll('gaia-checkbox');
       for (var i = 0; i < checkboxes.length; i++) {
         var checkbox = checkboxes[i];
         checkValues[checkbox.dataset.position] = checkbox.checked;
@@ -180,12 +180,11 @@
         return;
       }
 
-      var _ = navigator.mozL10n.get;
       var self = this;
       this._errorTimeout = setTimeout(function waitForMore() {
         LazyLoader.load(['js/system_banner.js']).then(function() {
           var systemBanner = new SystemBanner();
-          systemBanner.show(_('downloadError'));
+          systemBanner.show('downloadError');
           self._errorTimeout = null;
         })['catch'](function(err) {
           console.error(err);
@@ -372,42 +371,69 @@
       this.downloadDialogList.innerHTML = '';
       this.updatesQueue.forEach(function updatableIterator(updatable, index) {
         var listItem = document.createElement('li');
+        var nameDetails;
 
         // The user can choose not to update an app
-        var checkContainer = document.createElement('label');
         if (updatable instanceof SystemUpdatable) {
+          var checkContainer = document.createElement('label');
           _localize(checkContainer, 'required');
           checkContainer.classList.add('required');
           this._systemUpdateDisplayed = true;
+          listItem.appendChild(checkContainer);
+          nameDetails = listItem;
         } else {
-          var checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
+          var checkbox = document.createElement('gaia-checkbox');
           checkbox.dataset.position = index;
           checkbox.checked = true;
 
-          var span = document.createElement('span');
+          var label = document.createElement('label');
+          nameDetails = label;
 
-          checkContainer.classList.add('pack-checkbox');
-          checkContainer.appendChild(checkbox);
-          checkContainer.appendChild(span);
+          checkbox.appendChild(label);
+          listItem.appendChild(checkbox);
         }
-        listItem.appendChild(checkContainer);
 
-        var name = document.createElement('div');
+        var name = document.createElement('span');
         name.classList.add('name');
         if (updatable.nameL10nId) {
-          _localize(name, updatable.nameL10nId);
+          _localize(name, updatable.nameL10nId, updatable.nameL10nArgs);
         } else {
           name.textContent = updatable.name;
         }
-        listItem.appendChild(name);
+        nameDetails.appendChild(name);
 
         if (updatable.size) {
-          var sizeItem = document.createElement('div');
+          var sizeItem = document.createElement('span');
           sizeItem.textContent = this._humanizeSize(updatable.size);
-          listItem.appendChild(sizeItem);
+          nameDetails.appendChild(sizeItem);
         } else {
-          listItem.classList.add('nosize');
+          nameDetails.classList.add('nosize');
+        }
+
+        if (updatable.buildID) {
+          var buildId = document.createElement('span');
+          buildId.classList.add('font-light');
+          _localize(buildId, 'build-id', { buildid: updatable.buildID });
+          listItem.appendChild(buildId);
+        }
+
+        if (updatable.detailsURL && (updatable.detailsURL !== 'about:blank')) {
+          var detailsUrl = document.createElement('a');
+          _localize(detailsUrl, 'view-release-notes');
+          listItem.appendChild(detailsUrl);
+          listItem.onclick = (function(event) {
+            event.preventDefault();
+
+            var activity = new MozActivity({
+              name: 'view',
+              data: {
+                type: 'url',
+                url: updatable.detailsURL
+              }
+            });
+
+            activity.onsuccess = this.cancelPrompt.bind(this);
+          }).bind(this);
         }
 
         this.downloadDialogList.appendChild(listItem);
@@ -427,14 +453,13 @@
       var disabled = true;
 
       var dialog = this.downloadDialogList;
-      var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+      var checkboxes = dialog.querySelectorAll('gaia-checkbox');
       for (var i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i].checked) {
           disabled = false;
           break;
         }
       }
-
       this.downloadButton.disabled = disabled;
     },
 
@@ -551,8 +576,14 @@
 
     render: function um_render() {
       var _localize = navigator.mozL10n.setAttributes;
+      var l10nId = 'updateAvailableInfo';
 
-      _localize(this.toasterMessage, 'updateAvailableInfo', {
+      if ((this.updatesQueue.length === 1) &&
+          (this.updatesQueue[0] instanceof SystemUpdatable)) {
+        l10nId = 'systemUpdateAvailableInfo';
+      }
+
+      _localize(this.toasterMessage, l10nId, {
         n: this.updatesQueue.length - this.lastUpdatesAvailable
       });
 
@@ -565,9 +596,7 @@
           });
         }
       } else {
-        _localize(this.message, 'updateAvailableInfo', {
-          n: this.updatesQueue.length
-        });
+        _localize(this.message, l10nId, { n: this.updatesQueue.length });
       }
 
       var css = this.container.classList;
@@ -790,6 +819,9 @@
 
       if (detail.type && detail.type === 'update-available') {
         this.systemUpdatable.size = detail.size;
+        this.systemUpdatable.buildID = detail.buildID;
+        this.systemUpdatable.detailsURL = detail.detailsURL;
+        this.systemUpdatable.nameL10nArgs = { version: detail.displayVersion };
         this.systemUpdatable.rememberKnownUpdate();
         this.addToUpdatesQueue(this.systemUpdatable);
       }

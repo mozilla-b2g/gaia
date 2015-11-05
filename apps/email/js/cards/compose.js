@@ -17,7 +17,6 @@ var cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
     evt = require('evt'),
     htmlCache = require('html_cache'),
     toaster = require('toaster'),
-    model = require('model'),
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
     mozL10n = require('l10n!'),
@@ -26,6 +25,7 @@ var cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
     ConfirmDialog = require('confirm_dialog'),
     mimeToClass = require('mime_to_class'),
     fileDisplay = require('file_display'),
+    addrPropNames = ['to', 'cc', 'bcc'],
     dataIdCounter = 0;
 
 /**
@@ -70,7 +70,7 @@ function focusInputAndPositionCursorFromContainerClick(event, input) {
 
 
 return [
-  require('./base')(require('template!./compose.html')),
+  require('./base_card')(require('template!./compose.html')),
   require('./editor_mixins'),
   {
     createdCallback: function() {
@@ -123,12 +123,29 @@ return [
       var dataId = module.id + '-' + (dataIdCounter += 1);
       this._dataIdSaveDraft = dataId + '-saveDraft';
       this._dataIdSendEmail = dataId + '-sendEmail';
+
+      // Set up filter for the autocomplete results to avoid dupes in addresses.
+      this.autocomplete.getExistingEntries =
+                              this.getExistingEntriesForAutocomplete.bind(this);
     },
 
     onArgs: function(args) {
       this.composer = args.composer;
       this.composerData = args.composerData || {};
       this.activity = args.activity;
+      this.model = args.model;
+    },
+
+    onCardVisible: function() {
+      // Once the card is visible, tell the autocomplete about some extra space
+      // to use when positioning the autocomplete so that there is nice space
+      // around the + button and there are not small scroll janks when
+      // positioning and scrolling the input to the top of the view.
+      var props = getComputedStyle(this.firstEnvelopeLine),
+          space = parseInt(props['padding-top'], 10) +
+                  parseInt(props['margin-top'], 10);
+
+      this.autocomplete.verticalSpace = space;
     },
 
     /**
@@ -194,7 +211,9 @@ return [
         if (this.composer) {
           this._loadStateFromComposer();
         } else {
-          var data = this.composerData;
+          var data = this.composerData,
+              model = this.model;
+
           model.latestOnce('folder', function(folder) {
             this.composer = model.api.beginMessageComposition(data.message,
                                                               folder,
@@ -319,7 +338,7 @@ return [
       // An address is valid if model.api.parseMailbox thinks it
       // contains a valid address. (It correctly classifies names that
       // are not valid addresses.)
-      var mailbox = model.api.parseMailbox(address);
+      var mailbox = this.model.api.parseMailbox(address);
       return mailbox && mailbox.address;
     },
 
@@ -341,7 +360,7 @@ return [
           addrList.push({ name: dataSet.name, address: dataSet.address });
         }
         if (node.value.trim().length !== 0) {
-          var mailbox = model.api.parseMailbox(node.value);
+          var mailbox = this.model.api.parseMailbox(node.value);
           addrList.push({ name: mailbox.name, address: mailbox.address });
         }
         addrList.forEach(function(addr) {
@@ -451,6 +470,33 @@ return [
       return bubble;
     },
 
+    getExistingEntriesForAutocomplete: function() {
+      var addrs = this.extractAddresses(),
+          all = [];
+
+      addrPropNames.forEach(function(prop) {
+        var ary = addrs[prop];
+        if (ary.length) {
+          all = all.concat(ary);
+        }
+      });
+
+      return all;
+    },
+
+    autocompleteSelected: function(event) {
+      var match = event.detail.match,
+          inputNode = event.detail.inputNode;
+      this.addFromEntry(match, inputNode);
+    },
+
+    addFromEntry: function(match, inputNode) {
+      inputNode.style.width = '0.5rem';
+      this.insertBubble(inputNode, match.name, match.address);
+      inputNode.value = '';
+      inputNode.focus();
+    },
+
     /**
      * insertBubble: We can set the input text node, name and address to
      *               insert a bubble before text input.
@@ -518,6 +564,9 @@ return [
         //delete bubble
         var previousBubble = node.previousElementSibling;
         this.deleteBubble(previousBubble);
+        // Deleting a bubble changes the positions of the inputs, let the
+        // autocomplete know about it.
+        this.autocomplete.onInput();
       }
     },
 
@@ -527,6 +576,7 @@ return [
     onAddressInput: function(evt) {
       var node = evt.target;
 
+      var entryMatch;
       var makeBubble = false;
       // When do we want to tie off this e-mail address, put it into a bubble
       // and clear the input box so the user can type another address?
@@ -551,13 +601,12 @@ return [
           makeBubble = true;
           break;
       }
+
       if (makeBubble) {
-        // TODO: Need to match the email with contact name.
-        node.style.width = '0.5rem';
-        var mailbox = model.api.parseMailbox(node.value);
-        this.insertBubble(node, mailbox.name, mailbox.address);
-        node.value = '';
+        entryMatch = this.model.api.parseMailbox(node.value);
+        this.addFromEntry(entryMatch, node);
       }
+
       // XXX: Workaround to get the length of the string. Here we create a dummy
       //      div for computing actual string size for changing input
       //      size dynamically.

@@ -22,8 +22,21 @@
   <script src="../script.js" type="text/javascript"></script>
   <link rel="stylesheet" href="../style/external.css">
   <script src="./example.js" defer></script>
+  <script>
+    window.onload = function(){
+      document.getElementById('dir').checked = false;
+    };
+  </script>
 </head>
 <body>
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox" checked="false"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
+
   <gaia-progress></gaia-progress>
   <gaia-progress id="progress2" animated></gaia-progress>
   <button id="toggle">toggle</button>

@@ -25,7 +25,7 @@ function execute(options) {
       'common-settings.json');
   var settings = utils.getJSON(settingsFile);
 
-  manifest.version = settings['moz.b2g.version'];
+  manifest.version = settings['langpack.channel'];
 
   utils.writeContent(buildManifestFile, JSON.stringify(manifest));
 }

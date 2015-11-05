@@ -1,0 +1,29 @@
+{
+  "name": "gaia-container",
+  "version": "0.0.0",
+  "description": "Gaia Container is a drop-in replacement for generic container elements that provides convenience methods and behaviour for animations and drag-and-drop functionality.",
+  "main": "script.js",
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.com:Cwiiis/gaia-container.git"
+  },
+  "devDependencies": {
+    "karma": "^0.12.37",
+    "karma-firefox-launcher": "^0.1.6",
+    "karma-mocha": "^0.2.0",
+    "karma-sinon-chai": "^1.0.0",
+    "mocha": "^2.2.5",
+    "mozilla-download": "^1.1.1"
+  },
+  "keywords": [
+    "container",
+    "homescreen",
+    "B2G",
+    "Firefox OS"
+  ],
+  "license": "MIT"
+}

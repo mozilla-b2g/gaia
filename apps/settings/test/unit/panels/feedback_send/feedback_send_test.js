@@ -1,19 +1,16 @@
 'use strict';
 suite('sendFeedback > ', function() {
   var SendFeedback;
-  var MockL10n, RealL10n;
   var MockAsyncStorage, RealAsyncStorage;
   var MockXMLHttpRequest, RealXMLHttpRequest;
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();
     testRequire([
-        'shared_mocks/mock_l10n',
         'unit/mock_async_storage',
         'unit/mock_xml_http_request',
         'panels/feedback_send/feedback_send'
       ],
-      function(mockL10n, mockAsyncStorage, mockXMLHttpRequest, module) {
-        MockL10n = mockL10n;
+      function(mockAsyncStorage, mockXMLHttpRequest, module) {
         MockAsyncStorage = mockAsyncStorage;
         MockXMLHttpRequest = mockXMLHttpRequest;
         SendFeedback = module;
@@ -84,8 +81,6 @@ suite('sendFeedback > ', function() {
     var sendFeedback;
     setup(function() {
       sendFeedback = SendFeedback();
-      RealL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
       RealAsyncStorage = window.asyncStorage;
       window.asyncStorage = MockAsyncStorage;
       RealXMLHttpRequest = window.XMLHttpRequest;
@@ -106,7 +101,6 @@ suite('sendFeedback > ', function() {
       sendFeedback.elements = null;
       sendFeedback.options = null;
       sendFeedback._sendData = {};
-      navigator.mozL10n = RealL10n;
       window.asyncStorage = RealAsyncStorage;
       window.XMLHttpRequest = RealXMLHttpRequest;
     });

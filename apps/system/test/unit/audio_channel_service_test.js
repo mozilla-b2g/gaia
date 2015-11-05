@@ -9,22 +9,24 @@ requireApp('system/js/audio_channel_service.js');
 
 suite('system/AudioChannelService', function() {
   var subject;
+  var audioChannels;
 
   setup(function() {
     subject = BaseModule.instantiate('AudioChannelService');
     subject.audioChannelPolicy = {
       applyPolicy: function() {}
     };
-    var audioChannels = new Map();
-    ['normal', 'notification', 'telephony'].forEach(function(name) {
+    audioChannels = new Map();
+    ['normal', 'notification', 'telephony'].forEach((name) => {
       var audioChannel = new MockAudioChannelController(
         { instanceID: 'appID' }, { name: name }
       );
       audioChannels.set(name, audioChannel);
+      this.sinon.spy(audioChannel, 'setPolicy');
+      this.sinon.spy(audioChannel, 'proceedPolicy');
     });
     subject.service = MockService;
     MockService.mockQueryWith('SystemWindow.getAudioChannels', audioChannels);
-    this.sinon.spy(subject, '_sendContentEvent');
     subject.start();
   });
 
@@ -39,16 +41,10 @@ suite('system/AudioChannelService', function() {
   });
 
   test('Set all audio channels belonged to System app as muted', function() {
-    assert.ok(subject._sendContentEvent.calledThrice);
-    ['normal', 'notification', 'telephony'].forEach(function(name , i) {
-      assert.deepEqual(
-        subject._sendContentEvent.args[i][0],
-        {
-          type: 'system-audiochannel-mute',
-          name: name,
-          isMuted: true
-        }
-      );
+    audioChannels.forEach(function(audioChannel) {
+      assert.ok(audioChannel.setPolicy.calledOnce);
+      assert.ok(audioChannel.setPolicy.calledWith({ isAllowedToPlay: false }));
+      assert.ok(audioChannel.proceedPolicy.calledOnce);
     });
   });
 
@@ -109,16 +105,6 @@ suite('system/AudioChannelService', function() {
       delete window.Service;
     });
 
-    test('Pause normal audio channel when it is in background', function() {
-      this.sinon.spy(subject, '_handleAudioChannel');
-      subject._topMostWindow = app;
-      window.dispatchEvent(event);
-      assert.deepEqual(
-        subject._topMostWindow.audioChannels.get('normal')._policy,
-        { isAllowedToPlay: false }
-      );
-    });
-
     test('Resume all active audio channels in the app', function() {
       this.sinon.spy(subject, '_resumeAudioChannels');
       window.dispatchEvent(event);
@@ -160,6 +146,17 @@ suite('system/AudioChannelService', function() {
         .withArgs(audioChannel).calledOnce);  
     });
 
+    test('Handle inactive audio channel ', function() {
+      this.sinon.stub(audioChannel, 'isActive', function() {
+        return false;
+      });
+      this.sinon.spy(subject, 'publish');
+      subject._manageAudioChannels(audioChannel);
+      var channel = { channel: 'none' };
+      assert.ok(subject.publish
+        .withArgs('audiochannelchanged', channel).calledOnce);
+    });
+
     suite('Foreground/background audio channel', function() {
       setup(function() {
         this.sinon.stub(audioChannel, 'isActive', function() {
@@ -169,27 +166,33 @@ suite('system/AudioChannelService', function() {
       });
 
       test('In foreground', function() {
+        var channel = { channel: 'content' };
         this.sinon.stub(subject, '_isAudioChannelInBackground', function() {
           return false;
         });
+        this.sinon.stub(subject, '_getTopPriorityAudioChannel', function() {
+          return channel.channel;
+        });
         subject._manageAudioChannels(audioChannel);
-        var channel = { channel: 'content' };
         assert.ok(subject.publish
           .withArgs('visibleaudiochannelchanged', channel).calledOnce);
         assert.ok(subject.publish
-          .withArgs('audiochannelchangedasactive', channel).calledOnce);
+          .withArgs('audiochannelchanged', channel).calledOnce);
       });
 
       test('In background', function() {
+        var channel = { channel: 'content' };
         this.sinon.stub(subject, '_isAudioChannelInBackground', function() {
           return true;
         });
+        this.sinon.stub(subject, '_getTopPriorityAudioChannel', function() {
+          return channel.channel;
+        });
         subject._manageAudioChannels(audioChannel);
-        var channel = { channel: 'content' };
         assert.ok(subject.publish
           .withArgs('visibleaudiochannelchanged', channel).notCalled);
         assert.ok(subject.publish
-          .withArgs('audiochannelchangedasactive', channel).calledOnce);
+          .withArgs('audiochannelchanged', channel).calledOnce);
       });
     });
 
@@ -376,6 +379,40 @@ suite('system/AudioChannelService', function() {
       test('Top most window is not changed', function() {
         assert.equal(subject._isAudioChannelInBackground(audioChannel), true);
       });
+    });
+  });
+
+  suite('_getTopPriorityAudioChannel', function() {
+    test('No top priority audio channel', function() {
+      assert.equal(subject._getTopPriorityAudioChannel(), 'none');
+    });
+
+    test('Only one audio channel is active', function() {
+      var audioChannel = new MockAudioChannelController(
+        { instanceID: 'appID' }, { name: 'content' }
+      );
+      subject._activeAudioChannels.set(audioChannel.instanceID, audioChannel);
+      assert.equal(subject._getTopPriorityAudioChannel(), 'content');
+    });
+
+    test('Multiple audio channels are active', function() {
+      var audioChannels = [
+        new MockAudioChannelController(
+          { instanceID: 'appID' }, { name: 'content' }
+        ),
+        new MockAudioChannelController(
+          { instanceID: 'appID' }, { name: 'ringer' }
+        ),
+        new MockAudioChannelController(
+          { instanceID: 'appID' }, { name: 'notification' }
+        )
+      ];
+      audioChannels.forEach(function(audioChannel) {
+        subject._activeAudioChannels.set(
+          audioChannel.instanceID, audioChannel
+        );
+      });
+      assert.equal(subject._getTopPriorityAudioChannel(), 'notification');
     });
   });
 });

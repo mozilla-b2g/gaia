@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 class VideoPlayer(Base):
 
     name = 'Video'
+    manifest_url = '{}video{}/manifest.webapp'.format(Base.DEFAULT_PROTOCOL,Base.DEFAULT_APP_HOSTNAME)
 
     _thumbnails_locator = (By.ID, 'thumbnails')
 

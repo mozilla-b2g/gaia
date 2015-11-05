@@ -17,9 +17,11 @@
     'holdhome',
     'system-resize',
     'launchactivity',
-    'mozChromeEvent',
+    'inputfocus',
+    'inputblur',
     'windowopened',
-    'windowclosed'
+    'windowclosed',
+    'cardviewclosed'
   ];
   BaseModule.create(HierarchyManager, {
     name: 'HierarchyManager',
@@ -158,14 +160,11 @@
       switch (evt.type) {
         case 'windowopened':
         case 'windowclosed':
+        case 'cardviewclosed':
           this.updateTopMostWindow();
           break;
-        case 'mozChromeEvent':
-          if (!evt.detail ||
-              evt.detail.type !== 'inputmethod-contextchange') {
-            break;
-          }
-          /* falls through */
+        case 'inputfocus':
+        case 'inputblur':
         case 'home':
         case 'holdhome':
         case 'launchactivity':

@@ -40,25 +40,25 @@ LanguagePanel.prototype = {
       label: 'Ŀȧȧƞɠŭŭȧȧɠḗḗ',
       desc: '\u202aƤȧȧƈķȧȧɠḗḗḓ Ȧȧƈƈḗḗƞŧḗḗḓ\u202c',
       dayRules: new RegExp(
-        'Ḿǿǿƞḓȧȧẏ|' +
-        'Ŧŭŭḗḗşḓȧȧẏ|' +
-        'Ẇḗḗḓƞḗḗşḓȧȧẏ|' +
-        'Ŧħŭŭřşḓȧȧẏ|' +
-        'Ƒřīīḓȧȧẏ|' +
-        'Şȧȧŧŭŭřḓȧȧẏ|' +
-        'Şŭŭƞḓȧȧẏ')
+        'lundi|' +
+        'mardi|' +
+        'mercredi|' +
+        'jeudi|' +
+        'vendredi|' +
+        'samedi|' +
+        'dimanche')
     },
-    mirrored: {
+    bidi: {
       label: '\u202e˥ɐuƃnɐƃǝ\u202c',
-      desc: '\u202b\u202eԀɐɔʞɐƃǝp\u202c \u202eWıɹɹoɹǝp\u202c\u202c',
+      desc: '\u202b\u202eԀɐɔʞɐƃǝp\u202c \u202eԐıpı\u202c\u202c',
       dayRules: new RegExp(
-        '\u202eWoupɐʎ\u202c|' +
-        '\u202e⊥nǝspɐʎ\u202c|' +
-        '\u202eＭǝpuǝspɐʎ\u202c|' +
-        '\u202e⊥ɥnɹspɐʎ\u202c|' +
-        '\u202eɟɹıpɐʎ\u202c|' +
-        '\u202eSɐʇnɹpɐʎ\u202c|' +
-        '\u202eSnupɐʎ\u202c')
+        'الاثنين|' +
+        'الثلاثاء|' +
+        'الأربعاء|' +
+        'الخميس|' +
+        'الجمعة|' +
+        'السبت|' +
+        'الأحد')
     }
   },
 
@@ -121,7 +121,9 @@ LanguagePanel.prototype = {
     var parentSection = this.waitForElement('languagePanel');
     var bodyWidth = this.findElement('body').size().width;
 
-    this.findElement('header').tap(25, 25);
+    this.client.switchToShadowRoot(this.findElement('header'));
+    this.client.findElement('[action="back"] button').tap();
+    this.client.switchToShadowRoot();
 
     this.client.waitFor(function() {
       var loc = parentSection.location();

@@ -2,18 +2,27 @@
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="transferProtocol-header"></h1>
+      <h1 data-l10n-id="enableUSBStorage1"></h1>
     </gaia-header>
 
     <ul>
+      <li>
+        <gaia-switch class="ums-switch" data-ignore>
+          <label data-l10n-id="enableUSBStorage1"></label>
+          <details class="ums-switch-desc"></details>
+        </gaia-switch>
+      </li>
+      <header>
+        <h2 data-l10n-id="transferProtocol-header"></h2>
+      </header>
       <li class="description">
         <gaia-radio name="usb.transfer" value="1">
-          <label data-l10n-id="protocol-mtp"></label>
+          <label dir="auto" data-l10n-id="protocol-mtp"></label>
         </gaia-radio>
       </li>
       <li class="description">
         <gaia-radio name="usb.transfer" value="0">
-          <label data-l10n-id="protocol-ums"></label>
+          <label dir="auto" data-l10n-id="protocol-ums"></label>
         </gaia-radio>
       </li>
     </ul>

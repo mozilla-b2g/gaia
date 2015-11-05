@@ -1,6 +1,8 @@
 /* global loadBodyHTML, MockL10n, MockNavigatorMozMobileConnections */
 'use strict';
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -71,7 +73,7 @@ suite('Call Barring Panel >', function() {
     return element.getAttribute('aria-disabled') === 'true';
   }
   function isItemChecked(element) {
-    return element.querySelector('input').checked || false;
+    return element.querySelector('gaia-switch').checked || false;
   }
 
   setup(function(done) {
@@ -150,14 +152,14 @@ suite('Call Barring Panel >', function() {
       ];
     // activate all before testing
     targets.forEach(function(element) {
-      element.querySelector('input').checked = true;
+      element.querySelector('gaia-switch').checked = true;
     });
 
     this.panel.init(document.body);
     this.panel.beforeShow(document.body);
 
     targets.forEach(function(element) {
-      var input = element.querySelector('input');
+      var input = element.querySelector('gaia-switch');
       assert.isFalse(input.checked);
     });
   });
@@ -261,7 +263,7 @@ suite('Call Barring Panel >', function() {
       ];
 
       targets.forEach(function(element) {
-        var input = element.querySelector('input');
+        var input = element.querySelector('gaia-switch');
         input.click();
         assert.isFalse(input.checked, 'state doesn\'t change on click');
         assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
@@ -304,15 +306,76 @@ suite('Call Barring Panel >', function() {
         baicRElement
       ];
 
+      var toastContent = {
+        messageL10nId: 'callBarring-update-item-error',
+        messageL10nArgs: {'error': 'wrong_password'},
+        latency: 2000,
+        useTransition: true
+      };
+
       targets.forEach(function(element) {
-        var input = element.querySelector('input');
+        var input = element.querySelector('gaia-switch');
         input.click();
         assert.isFalse(input.checked, 'state doesn\'t change on click');
         assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
         setTimeout(function() {
           assert.isTrue(this.mockCallBarring.set.called,
             'try to set a new value');
-          assert.isTrue(this.mockToaster.showToast.called, 'should show error');
+          assert.isTrue(this.mockToaster.showToast.calledWith(toastContent),
+            'should show error');
+          assert.isFalse(input.checked, 'state remains the same');
+        }.bind(this));
+      }.bind(this));
+    });
+  });
+
+  suite('Click on item, insert wrong password and got GenericFailure >',
+    function() {
+    setup(function() {
+      resetHTML();
+      this.panel.init(document.body);
+
+      this.sinon.stub(this.mockPasscode, 'show', function() {
+        return Promise.resolve('0000');
+      });
+      this.sinon.stub(this.mockCallBarring, 'set', function() {
+        return Promise.reject({
+          'name': 'GenericFailure',
+          'message': ''
+        });
+      });
+      this.sinon.stub(this.mockToaster, 'showToast');
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+    });
+
+    test('click on each item > ', function() {
+      var targets = [
+        baocElement,
+        boicElement,
+        boicExhcElement,
+        baicElement,
+        baicRElement
+      ];
+
+      var toastContent = {
+        messageL10nId: 'callBarring-update-generic-error',
+        latency: 2000,
+        useTransition: true
+      };
+
+      targets.forEach(function(element) {
+        var input = element.querySelector('gaia-switch');
+        input.click();
+        assert.isFalse(input.checked, 'state doesn\'t change on click');
+        assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
+        setTimeout(function() {
+          assert.isTrue(this.mockCallBarring.set.called,
+            'try to set a new value');
+          assert.isTrue(this.mockToaster.showToast.calledWith(toastContent),
+            'should show error');
           assert.isFalse(input.checked, 'state remains the same');
         }.bind(this));
       }.bind(this));
@@ -348,7 +411,7 @@ suite('Call Barring Panel >', function() {
       ];
 
       targets.forEach(function(element) {
-        var input = element.querySelector('input');
+        var input = element.querySelector('gaia-switch');
         input.click();
         assert.isFalse(input.checked, 'state doesn\'t change on click');
         assert.isTrue(this.mockPasscode.show.called, 'show passcode screen');
@@ -414,7 +477,7 @@ suite('Call Barring Panel >', function() {
       ];
 
       targets.forEach(function(element) {
-        element.querySelector('input').checked = true;
+        element.querySelector('gaia-switch').checked = true;
       });
       this.mockCallBarring.baoc = false;
       this.mockCallBarring.boic = false;

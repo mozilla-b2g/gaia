@@ -3,18 +3,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 from marionette_driver import expected, By, Wait
-
 from gaiatest.apps.base import Base
+from gaiatest.form_controls.header import GaiaHeader
+from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 
 class Settings(Base):
-
     name = 'Settings'
 
-    _bluetooth_l10n_locator = (By.CSS_SELECTOR, '[data-l10n-id="bt-status-turnoff"]')
-
     _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
-    _non_gaia_header_locator = (By.CSS_SELECTOR, '.current header')
     _page_locator = (By.ID, 'root')
 
     _header_text_locator = (By.CSS_SELECTOR, '#root > gaia-header > h1')
@@ -29,13 +26,12 @@ class Settings(Base):
     _bluetooth_text_locator = (By.CSS_SELECTOR, '.bluetooth-desc')
 
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
-    _airplane_switch_locator = (By.XPATH, "//input[contains(@class, 'airplaneMode-input')]/..")
-    _airplane_checkbox_locator = (By.CSS_SELECTOR, ".airplaneMode-input")
+    _airplane_switch_locator = (By.CSS_SELECTOR, 'gaia-switch.airplaneMode-input')
     _usb_storage_switch_locator = (By.CSS_SELECTOR, ".pack-split.usb-item .pack-switch")
     _usb_storage_checkbox_locator = (By.CSS_SELECTOR, ".usb-switch")
     _usb_storage_confirm_button_locator = (By.CSS_SELECTOR, "button.ums-confirm-option")
-    _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
-    _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
+    _usb_storage_cancel_button_locator = (By.CSS_SELECTOR, "button.ums-cancel-option")
+    _gps_switch_locator = (By.CSS_SELECTOR, 'gaia-switch[name="geolocation.enabled"]')
 
     # Following menu item list matches the menu item order in the settings app
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
@@ -48,7 +44,7 @@ class Settings(Base):
 
     _sound_menu_item_locator = (By.ID, 'menuItem-sound')
     _display_menu_item_locator = (By.ID, 'menuItem-display')
-    _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreen')
+    _homescreen_menu_item_locator = (By.ID, 'menuItem-homescreens')
     _search_menu_item_locator = (By.ID, 'menuItem-search')
     _navigation_menu_item_locator = (By.ID, 'menuItem-navigation')
     _notification_menu_item_locator = (By.ID, 'menuItem-notifications')
@@ -66,6 +62,8 @@ class Settings(Base):
     _app_permission_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
     _browsing_privacy_item_locator = (By.ID, 'menuItem-browsingPrivacy')
+    _privacy_controls_item_locator = (By.ID, 'menuItem-privacyPanel')
+    _usb_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-enableStorage')
     _media_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-mediaStorage')
     _application_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-applicationStorage')
 
@@ -79,6 +77,9 @@ class Settings(Base):
 
     _main_title_locator = (By.ID, 'main-list-title')
 
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+
     def launch(self):
         Base.launch(self)
         Wait(self.marionette).until(
@@ -86,57 +87,38 @@ class Settings(Base):
 
         # this is located at the end of the page.  If this is shown, everything is rendered.
         Wait(self.marionette).until(
-            expected.element_present(*self._bluetooth_l10n_locator))
+            expected.element_present(*self._bluetooth_menu_item_locator))
 
     def switch_to_settings_app(self):
-        Wait(self.marionette).until(
-            lambda m: self.apps.displayed_app.name == self.name)
+        self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
 
-    def wait_for_airplane_toggle_ready(self):
-        self._wait_for_toggle_ready(*self._airplane_checkbox_locator)
+    def enable_airplane_mode(self):
+        self._airplane_checkbox.enable()
 
-    def toggle_airplane_mode(self):
-        checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
-        label = self.marionette.find_element(*self._airplane_switch_locator)
-        state = checkbox.is_selected()
-        label.tap()
-        Wait(self.marionette).until(lambda m: state is not checkbox.is_selected())
+    def disable_airplane_mode(self):
+        self._airplane_checkbox.disable()
 
-    def wait_for_usb_storage_toggle_ready(self):
-        self._wait_for_toggle_ready(*self._usb_storage_checkbox_locator)
-
-    def toggle_usb_storage(self):
-        # The left hand side of the usb storage switch is overlayed by menuItem-enableStorage
-        # So we do the tapping on the right hand side
-        element = self.marionette.find_element(*self._usb_storage_switch_locator)
-        element.tap(x=(element.size['width']-5))
+    def wait_for_airplane_mode_ready(self):
+        self._airplane_checkbox.wait_to_be_ready()
 
     @property
-    def is_usb_storage_enabled(self):
-        return self.marionette.find_element(*self._usb_storage_checkbox_locator).is_selected()
+    def is_airplane_mode_displayed(self):
+        return self._airplane_checkbox.is_displayed
 
-    def confirm_usb_storage(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(
-                *self._usb_storage_confirm_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        element.tap()
+    @property
+    def _airplane_checkbox(self):
+        return GaiaBinaryControl(self.marionette, self._airplane_switch_locator)
 
     def enable_gps(self):
-        self.marionette.find_element(*self._gps_switch_locator).tap()
-        checkbox = self.marionette.find_element(*self._gps_enabled_locator)
-        Wait(self.marionette).until(expected.element_selected(checkbox))
+        return self._gps_checkbox.enable()
 
     def disable_gps(self):
-        self.marionette.find_element(*self._gps_switch_locator).tap()
-        checkbox = self.marionette.find_element(*self._gps_enabled_locator)
-        Wait(self.marionette).until(expected.element_not_selected(checkbox))
+        return self._gps_checkbox.disable()
 
     @property
-    def is_gps_enabled(self):
-        return self.marionette.find_element(
-            *self._gps_enabled_locator).is_selected()
+    def _gps_checkbox(self):
+        return GaiaBinaryControl(self.marionette, self._gps_switch_locator)
 
     @property
     def header_text(self):
@@ -186,6 +168,10 @@ class Settings(Base):
     def title(self):
         return self.marionette.find_element(*self._main_title_locator)
 
+    @property
+    def current_view(self):
+        return self.marionette.find_element(By.CLASS_NAME, 'current').get_attribute('id')
+
     def open_wifi(self):
         return self._open_subpage(self._wifi_menu_item_locator, 'wifi', 'Wifi')
 
@@ -193,19 +179,22 @@ class Settings(Base):
         return self._open_subpage(self._sim_manager_menu_item_locator, 'sim_manager', 'SimManager')
 
     def open_call(self):
-        return self._open_subpage(self._call_settings_menu_item_locator)
+        return self._open_subpage(self._call_settings_menu_item_locator, 'call_settings', 'CallSettings')
 
     def open_message(self):
-        return self._open_subpage(self._message_settings_menu_item_locator)
+        return self._open_subpage(self._message_settings_menu_item_locator, 'message', 'Message')
 
     def open_cell_and_data(self):
         return self._open_subpage(self._cell_data_menu_item_locator, 'cell_data', 'CellData')
+
+    def open_cell_and_data_dual_sim(self):
+        return self._open_subpage(self._cell_data_menu_item_locator, 'cell_data', 'CellDataDualSim')
 
     def open_bluetooth(self):
         return self._open_subpage(self._bluetooth_menu_item_locator, 'bluetooth', 'Bluetooth')
 
     def open_internet_sharing(self):
-        return self._open_subpage(self._internet_sharing_menu_item_locator)
+        return self._open_subpage(self._internet_sharing_menu_item_locator, 'internet_sharing', 'InternetSharing')
 
     def open_sound(self):
         return self._open_subpage(self._sound_menu_item_locator, 'sound', 'Sound')
@@ -215,16 +204,16 @@ class Settings(Base):
 
     def open_homescreen(self):
         return self._open_subpage(self._homescreen_menu_item_locator, 'homescreen_settings',
-                                           'HomescreenSettings')
+                                  'HomescreenSettings')
 
     def open_search(self):
-        return self._open_subpage(self._search_menu_item_locator)
+        return self._open_subpage(self._search_menu_item_locator, 'search', 'Search')
 
     def open_navigation(self):
-        return self._open_subpage(self._navigation_menu_item_locator)
+        return self._open_subpage(self._navigation_menu_item_locator, 'navigation', 'Navigation')
 
     def open_notification(self):
-        return self._open_subpage(self._notification_menu_item_locator)
+        return self._open_subpage(self._notification_menu_item_locator, 'notifications', 'Notifications')
 
     def open_date_and_time(self):
         return self._open_subpage(self._date_and_time_menu_item_locator, 'date_and_time', 'DateAndTime')
@@ -238,10 +227,10 @@ class Settings(Base):
         return self._open_subpage(self._keyboard_menu_item_locator, 'keyboard', 'Keyboard')
 
     def open_themes(self):
-        return self._open_subpage(self._theme_menu_item_locator)
+        return self._open_subpage(self._theme_menu_item_locator, 'themes', 'Themes')
 
     def open_addons(self):
-        return self._open_subpage(self._addon_menu_item_locator)
+        return self._open_subpage(self._addon_menu_item_locator, 'addons', 'Addons')
 
     def open_achievements(self):
         return self._open_subpage(self._achievements_menu_item_locator)
@@ -256,13 +245,19 @@ class Settings(Base):
         return self._open_subpage(self._screen_lock_menu_item_locator, 'screen_lock', 'ScreenLock')
 
     def open_app_permissions(self):
-        return self._open_subpage(self._app_permission_menu_item_locator)
+        return self._open_subpage(self._app_permission_menu_item_locator, 'app_permission', 'AppPermission')
 
     def open_do_not_track(self):
         return self._open_subpage(self._do_not_track_menu_item_locator, 'do_not_track', 'DoNotTrack')
 
     def open_browsing_privacy(self):
         return self._open_subpage(self._browsing_privacy_item_locator, 'browsing_privacy', 'BrowsingPrivacy')
+
+    def open_privacy_controls(self):
+        return self._open_subpage(self._privacy_controls_item_locator, 'privacy_controls', 'PrivacyControls')
+
+    def open_usb_storage(self):
+        return self._open_subpage(self._usb_storage_menu_item_locator, 'usb_storage', 'USBStorage')
 
     def open_media_storage(self):
         return self._open_subpage(self._media_storage_menu_item_locator, 'media_storage', 'MediaStorage')
@@ -274,7 +269,7 @@ class Settings(Base):
         return self._open_subpage(self._device_info_menu_item_locator, 'device_info', 'DeviceInfo')
 
     def open_downloads(self):
-        return self._open_subpage(self._downloads_menu_item_locator)
+        return self._open_subpage(self._downloads_menu_item_locator, 'downloads', 'Downloads')
 
     def open_battery(self):
         return self._open_subpage(self._battery_menu_item_locator, 'battery', 'Battery')
@@ -286,27 +281,23 @@ class Settings(Base):
         return self._open_subpage(self._developer_menu_item_locator)
 
     def open_improve(self):
-        return self._open_subpage(self._improve_menu_item_locator)
+        return self._open_subpage(self._improve_menu_item_locator, 'improve', 'Improve')
 
     def open_help(self):
         return self._open_subpage(self._help_menu_item_locator)
 
-    def _open_subpage(self, locator, file_name=None, class_name=None):
+    def _open_subpage(self, locator, file_name = None, class_name = None):
         self._tap_menu_item(locator)
         class_object = self._get_class_by_name(file_name, class_name)
         if class_object is not None:
             return class_object(self.marionette)
 
-    def _get_class_by_name(self, file_name=None, class_name=None):
+    def _get_class_by_name(self, file_name = None, class_name = None):
         if file_name is not None:
             package_path = 'gaiatest.apps.settings.regions.{}'.format(file_name.lower())
-            mod = __import__(package_path, fromlist=[class_name])
+            mod = __import__(package_path, fromlist = [class_name])
             class_defn = getattr(mod, class_name)
             return class_defn
-
-    @property
-    def is_airplane_mode_visible(self):
-        return self.is_element_displayed(*self._airplane_switch_locator)
 
     @property
     def is_wifi_menu_visible(self):
@@ -329,28 +320,22 @@ class Settings(Base):
     def _wait_for_parent_section_not_displayed(self, menu_item):
         section = menu_item.find_element(By.XPATH, 'ancestor::section')
         Wait(self.marionette).until(
-            lambda m: section.location['x'] + section.size['width'] == 0)
+            lambda m: abs(section.location['x']) == abs(section.size['width']))
 
     def _tap_menu_item(self, menu_item_locator):
         menu_item = self._wait_for_menu_item(menu_item_locator)
         menu_item.tap()
-        self._wait_for_parent_section_not_displayed(menu_item)
+        if menu_item_locator != self._privacy_controls_item_locator:
+            self._wait_for_parent_section_not_displayed(menu_item)
 
     def _a11y_click_menu_item(self, menu_item_locator):
         menu_item = self._wait_for_menu_item(menu_item_locator)
         self.accessibility.click(menu_item)
         self._wait_for_parent_section_not_displayed(menu_item)
 
-    def _wait_for_toggle_ready(self, by, locator):
-        checkbox = self.marionette.find_element(by, locator)
-        Wait(self.marionette).until(expected.element_enabled(checkbox))
+    def return_to_prev_menu(self, parent_view, exit_view):
+        GaiaHeader(self.marionette, exit_view.find_element(*self._header_locator)).go_back()
 
-    # this method is a copy of go_back() method in regions/keyboard.py
-    def return_to_prev_menu(self, parent_view, gaia_header=True):
-
-        # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        if gaia_header:
-            self.marionette.find_element(*self._header_locator).tap(25, 25)
-        else:
-            self.marionette.find_element(*self._non_gaia_header_locator).tap(25, 25)
-        Wait(self.marionette).until(expected.element_displayed(parent_view))
+        Wait(self.marionette).until(lambda m: 'current' not in exit_view.get_attribute('class'))
+        Wait(self.marionette).until(lambda m: parent_view.rect['x'] == 0)
+        Wait(self.marionette).until(lambda m: 'current' in parent_view.get_attribute('class'))

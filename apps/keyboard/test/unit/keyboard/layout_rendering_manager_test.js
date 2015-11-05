@@ -74,7 +74,7 @@ suite('LayoutRenderingManager', function() {
 
     teardown(function(done) {
       viewManager.render.getCall(0).args[2].call(window);
-      assert.isTrue(window.resizeTo.calledWith(600, 401));
+      assert.isTrue(window.resizeTo.calledWith(600, 400));
 
       p.then(function() {
         assert.equal(
@@ -244,7 +244,7 @@ suite('LayoutRenderingManager', function() {
           keyHeight: 12
         }));
 
-      assert.isTrue(window.resizeTo.calledWith(600, 401));
+      assert.isTrue(window.resizeTo.calledWith(600, 400));
     });
 
     test('updateCandidatesRendering', function() {

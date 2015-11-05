@@ -1,9 +1,7 @@
 'use strict';
 
 suite('PanelUtils', function() {
-  var realL10n;
   var modules = [
-    'shared_mocks/mock_l10n',
     'modules/panel_utils'
   ];
 
@@ -14,17 +12,11 @@ suite('PanelUtils', function() {
   };
 
   suiteSetup(function(done) {
-    testRequire(modules, map, (function(MockL10n, PanelUtils) {
+    testRequire(modules, map, (function(PanelUtils) {
       this.PanelUtils = PanelUtils;
 
-      realL10n = window.navigator.mozL10n;
-      window.navigator.mozL10n = MockL10n;
       done();
     }).bind(this));
-  });
-
-  suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
   });
 
   suite('activate', function() {

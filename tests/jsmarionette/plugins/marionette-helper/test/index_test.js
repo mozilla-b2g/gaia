@@ -4,19 +4,25 @@ var assert = require('assert');
 marionette('MarionetteHelper', function() {
   var subject;
 
-  var client = marionette.client();
   marionette.plugin('helper', require('../index'));
+  marionette.plugin('apps', require('marionette-apps'));
 
-  setup(function(done) {
+  var client = marionette.client({
+    profile: {
+      settings: {
+        'ftu.manifestURL': null,
+        'lockscreen.enabled': false
+      },
+    }
+  });
+
+  setup(function() {
     subject = client.helper;
     client.setSearchTimeout(2000);
-    setTimeout(function() {
-      client.executeScript(function() {
-        // start with a clean slate
-        document.body.innerHTML = '';
-      });
-      done();
-    }, 2500); // In the stead of using the BootWatcher.
+    client.executeScript(function() {
+      // start with a clean slate
+      document.body.innerHTML = '';
+    });
   });
 
   suite('#wait', function() {

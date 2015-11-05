@@ -16,15 +16,18 @@ define(function(require) {
           body: panel.querySelector('.addon-details-body'),
           header: panel.querySelector('.addon-details-header'),
           gaiaHeader: panel.querySelector('gaia-header'),
-          enabledState: panel.querySelector('.addon-enabled-state'),
+          enabledState: panel.querySelector('.addon-enabled details'),
           name: panel.querySelector('.addon-details-name'),
           icon: panel.querySelector('.addon-details-icon'),
+          version: panel.querySelector('.addon-details-version'),
           description: panel.querySelector('.addon-description-text'),
           developer: panel.querySelector('.addon-developer'),
           targetsList: panel.querySelector('.addon-targets'),
           toggle: panel.querySelector('.addon-enabled'),
           deleteButton: panel.querySelector('.addon-delete'),
-          renameButton: panel.querySelector('.addon-rename')
+          renameButton: panel.querySelector('.addon-rename'),
+          obsoleteStatus: panel.querySelector('.addon-obsolete-status'),
+          obsoleteStatusInfo: panel.querySelector('.addon-obsolete-info')
         };
         this._details = AddonDetails(this._elements);
         this._boundOnAppEnabledChange = this._onAppEnabledChange.bind(this);

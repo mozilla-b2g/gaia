@@ -20,5 +20,8 @@ var MockWifiHelper = {
   },
   isEap: function(network) {
     return false;
+  },
+  getNetworkStatus: function(network) {
+    return 'disconnected';
   }
 };

@@ -135,9 +135,14 @@ suite('SimCardManager > ', function() {
         select.selectedIndex = 1;
         triggerEventOnSelect('blur');
       });
-      test('we would set the select back to original value', function() {
-        assert.equal(select.selectedIndex, 0);
-        assert.isFalse(mockSimSettingsHelper.setServiceOnCard.called);
+      test('we would set the select back to original value', function(done) {
+        // the confirm takes a promised l10n value so we need to delay the
+        // check.
+        Promise.resolve().then(() => {
+          assert.equal(select.selectedIndex, 0);
+          assert.isFalse(mockSimSettingsHelper.setServiceOnCard.called);
+          done();
+        });
       });
     });
 
@@ -151,9 +156,12 @@ suite('SimCardManager > ', function() {
         select.selectedIndex = 1;
         triggerEventOnSelect('blur');
       });
-      test('we would set cardIndex on mozSettings', function() {
+      test('we would set cardIndex on mozSettings', function(done) {
         assert.equal(select.selectedIndex, 1);
-        assert.isTrue(mockSimSettingsHelper.setServiceOnCard.called);
+        Promise.resolve().then(() => {
+          assert.isTrue(mockSimSettingsHelper.setServiceOnCard.called);
+          done();
+        });
       });
     });
   });

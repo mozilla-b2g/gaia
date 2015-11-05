@@ -30,17 +30,25 @@ define(function(require) {
       // update the date and time samples in the 'languages' panel
       if (this.panel.children.length) {
         var d = new Date();
-        var f = new navigator.mozL10n.DateTimeFormat();
-        var _ = navigator.mozL10n.get;
-        this.panel.querySelector('#region-date').textContent =
-          f.localeFormat(d, _('longDateFormat'));
-        this.panel.querySelector('#region-time').textContent =
-          f.localeFormat(d, _('shortTimeFormat'));
+        var dateString = d.toLocaleString(navigator.languages, {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+        var timeString = d.toLocaleString(navigator.languages, {
+          hour12: navigator.mozHour12,
+          hour: 'numeric',
+          minute: 'numeric'
+        });
+        this.panel.querySelector('#region-date').textContent = dateString;
+        this.panel.querySelector('#region-time').textContent = timeString;
       }
     },
     showMoreLanguages: function() {
+      this.elements.moreLanguages.blur();
       SettingsCache.getSettings(function(result) {
-        var version = result['deviceinfo.os'];
+        var version = result['langpack.channel'];
         /* jshint nonew: false */
         new window.MozActivity({
           name: 'marketplace-category',
@@ -60,9 +68,11 @@ define(function(require) {
       // see https://bugzil.la/1124098.  On other device types the link to the
       // Marketpace is hidden.  Don't set the handler if it's display: none.
       if (this.elements.moreLanguages.offsetParent) {
-        this.elements.moreLanguages.onclick = this.showMoreLanguages;
+        this.elements.moreLanguages.addEventListener('click',
+          this.showMoreLanguages.bind(this));
       }
-      this.elements.langSel.onblur = this.buildList.bind(this);
+      this.elements.langSel.addEventListener('blur',
+        this.buildList.bind(this));
     },
     onLocalized: function() {
       // update keyboard layout

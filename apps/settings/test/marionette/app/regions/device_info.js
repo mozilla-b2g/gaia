@@ -22,8 +22,7 @@ DeviceInfoPanel.Selectors = {
   'resetPhoneBtn': '#about button.reset-phone',
   'resetPhoneDialog': '.reset-phone-dialog',
   'cancelResetPhoneBtn': '.cancel-reset-phone',
-  'developerMenuCheckbox': 'input[name="developer.menu.enabled"]',
-  'developerMenuLabel': 'span[data-l10n-id="developer-menu"]',
+  'developerMenuCheckbox': 'gaia-switch[name="developer.menu.enabled"]',
   'openSourceNoticesLink': 'a[href="#about-licensing"]',
   'obtainingSourceCodeLink': 'a[href="#about-source-code"]',
   'privacyLink': 'a.privacy-browserOS',
@@ -79,7 +78,7 @@ DeviceInfoPanel.prototype = {
   },
 
   triggerDevelopMenu: function() {
-    this.waitForElement('developerMenuLabel').tap();
+    this.waitForElement('developerMenuCheckbox').click();
     this.client.waitFor(function() {
       return this.isDevelopMenuEnabled;
     }.bind(this));
@@ -87,7 +86,9 @@ DeviceInfoPanel.prototype = {
 
   get isDevelopMenuEnabled() {
     return this.findElement('developerMenuCheckbox')
-      .getAttribute('checked');
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   tapMoreInfoBackBtn: function() {

@@ -463,7 +463,9 @@ var frequencyDialer = {
   },
 
   _updateUI: function(frequency, ignoreDialer) {
-    $('frequency').textContent = frequency.toFixed(1);
+    document.l10n.setAttributes($('frequency'), 'frequency-MHz', {
+      value: frequency.toFixed(1)
+    });
     if (true !== ignoreDialer) {
       this._translateX = (this._minFrequency - frequency) * this._space;
       var dialer = $('frequency-dialer');
@@ -619,12 +621,17 @@ var favoritesList = {
     elem.id = this._getUIElemId(item);
     elem.className = 'fav-list-item';
     elem.setAttribute('role', 'option');
-    var html = '';
-    html += '<div class="fav-list-frequency">';
-    html += item.frequency.toFixed(1);
-    html += '</div>';
-    html += '<div class="fav-list-remove-button"></div>';
-    elem.innerHTML = html;
+
+    var subElem = document.createElement('div');
+    subElem.className = 'fav-list-frequency';
+    document.l10n.setAttributes(subElem, 'fav-frequency-MHz', {
+      value: item.frequency.toFixed(1)
+    });
+    elem.appendChild(subElem);
+
+    subElem = document.createElement('div');
+    subElem.className = 'fav-list-remove-button';
+    elem.appendChild(subElem);
 
     // keep list ascending sorted
     if (container.childNodes.length === 0) {
@@ -663,9 +670,9 @@ var favoritesList = {
   },
 
   _getElemFreq: function(elem) {
-    var isParentListItem = elem.parentNode.classList.contains('fav-list-item');
-    var listItem = isParentListItem ? elem.parentNode : elem;
-    return parseFloat(listItem.id.substring(listItem.id.indexOf('-') + 1));
+    // ensure we get the closest list-item.
+    elem = elem.closest('.fav-list-item');
+    return parseFloat(elem.id.substring(elem.id.indexOf('-') + 1));
   },
 
   forEach: function(callback) {
@@ -876,12 +883,11 @@ function init() {
   });
 }
 
-document.addEventListener('DOMLocalized', function onDOMLocalized(e) {
+document.l10n.ready.then(function() {
   // PERFORMANCE MARKER (1): navigationLoaded
   // Designates that the app's *core* chrome or navigation interface
   // exists in the DOM and is marked as ready to be displayed.
   window.performance.mark('navigationLoaded');
-  document.removeEventListener('DOMLocalized', onDOMLocalized);
 
   AirplaneModeHelper.ready(function() {
     airplaneModeEnabled = AirplaneModeHelper.getStatus() == 'enabled';

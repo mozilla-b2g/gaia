@@ -7,6 +7,8 @@ var EmailData = require('./lib/email_data');
 var assert = require('assert');
 var serverHelper = require('./lib/server_helper');
 
+var SHARED_PATH = __dirname + '/../../../../shared/test/integration';
+
 marionette('email notifications, set interval', function() {
   var app,
       client = marionette.client(),
@@ -17,8 +19,24 @@ marionette('email notifications, set interval', function() {
                   }
                 }, this);
 
+
+  function getAlarms(client) {
+    var alarms;
+    client.waitFor(function() {
+      alarms = client.executeScript(function() {
+        var alarms = window.wrappedJSObject.navigator.__mozFakeAlarms;
+        if (alarms && alarms.length) {
+            return alarms;
+        }
+       });
+      return alarms;
+    });
+    return alarms;
+  }
+
   setup(function() {
     app = new Email(client);
+    client.contentScript.inject(SHARED_PATH + '/mock_navigator_mozalarms.js');
     app.launch();
   });
 
@@ -36,6 +54,12 @@ marionette('email notifications, set interval', function() {
     // change.
     var emailData = new EmailData(client);
     emailData.waitForCurrentAccountUpdate('syncInterval', 3600000);
+
+    // Make sure an alarm was set.
+    var alarms = getAlarms(client);
+    assert(alarms.length === 1, 'have one alarm');
+    var alarm = alarms[0];
+    assert(alarm.interval === 3600000, 'has correct interval value');
 
     // Close the app, relaunch and make sure syncInterval was
     // persisted correctly

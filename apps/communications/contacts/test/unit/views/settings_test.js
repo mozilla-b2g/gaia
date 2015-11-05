@@ -15,6 +15,7 @@
 /* global MockSdCard */
 /* global MockLoader */
 /* global utils */
+/* global ICE */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/import/utilities/misc.js');
@@ -22,6 +23,7 @@ require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
+require('/shared/test/unit/mocks/mock_sdcard.js');
 requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_service_extensions.js');
 requireApp('communications/contacts/test/unit/mock_cache.js');
@@ -32,7 +34,6 @@ requireApp('communications/contacts/test/unit/mock_import_status_data.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
-requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
 requireApp('communications/contacts/test/unit/mock_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
@@ -492,7 +493,7 @@ suite('Contacts settings >', function() {
       }
     });
 
-    function assertContactsImportedFrom(source, done, extraString) {
+    function assertContactsImportedFrom(source, done, withTime) {
       var importElm = document.getElementById('import-' + source + '-option');
       var time = importElm.querySelector('time');
 
@@ -500,8 +501,14 @@ suite('Contacts settings >', function() {
         assert.equal(time.getAttribute('datetime'),
             (new Date(timestamps[source])).toLocaleString());
         assert.equal(time.textContent, utils.time.pretty(timestamps[source]));
-        if (extraString) {
-          assert.isTrue(time.textContent.indexOf(extraString) != -1);
+        if (withTime) {
+          var timeString = new Date(timestamps[source]).toLocaleString(
+            navigator.languages, {
+              hour12: navigator.mozHour12,
+              hour: 'numeric',
+              minute: 'numeric',
+            });
+          assert.isTrue(time.textContent.indexOf(timeString) != -1);
         }
         observer.disconnect();
       };
@@ -537,14 +544,14 @@ suite('Contacts settings >', function() {
     });
 
     test('Test check 12 hour format', function(done) {
-      assertContactsImportedFrom('gmail', done, 'shortTimeFormat12');
+      assertContactsImportedFrom('gmail', done, true);
     });
 
     test('Test check 24 hour format', function(done) {
       navigator.mozSettings.mSettings['locale.hour12'] = false;
       navigator.mozSettings.mTriggerObservers('locale.hour12',
        {'settingValue': false});
-      assertContactsImportedFrom('gmail', done, 'shortTimeFormat24');
+      assertContactsImportedFrom('gmail', done, true);
     });
   });
 
@@ -673,7 +680,7 @@ suite('Contacts settings >', function() {
           contacts.Settings.navigation.currentView(),
           'ice-settings'
         );
-        assert.ok(contacts.ICE.initialized);
+        assert.ok(ICE.initialized);
         done();
       });
     });

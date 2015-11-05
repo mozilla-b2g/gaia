@@ -153,10 +153,10 @@ marionette('Text selection >', function() {
           textSelectionLocation.y,
           'dialog should be placed lower than the input field'
         );
-        assert.equal(
-          Math.round(fakeTextselectionApp.width -
-          (textSelectionLocation.x + fakeTextselectionApp.textSelection.width)),
-          5, 'dialog should be placed near right boundary'
+        assert.ok(
+          Math.abs(fakeTextselectionApp.width -
+          (textSelectionLocation.x + fakeTextselectionApp.textSelection.width) -
+          5) < 1, 'dialog should be placed near right boundary'
         );
       });
 
@@ -184,10 +184,10 @@ marionette('Text selection >', function() {
           fakeTextselectionApp.DialogPositionBottomRightInput.location.y,
           'dialog should be placed higher than the input field'
         );
-        assert.equal(
-          Math.round(fakeTextselectionApp.width -
-          (textSelectionLocation.x + fakeTextselectionApp.textSelection.width)),
-          5, 'dialog should be placed near right boundary'
+        assert.ok(
+          Math.abs(fakeTextselectionApp.width -
+          (textSelectionLocation.x + fakeTextselectionApp.textSelection.width) -
+          5) < 1, 'dialog should be placed near right boundary'
         );
       });
     });

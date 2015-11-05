@@ -21,7 +21,7 @@ function denodeify(fn) {
     // We need the defer style promise api here since we don't want to
     // accidentily step on functions that return things like DOMRequests...
     var deferred = defer();
-    args.push((err, result) => {
+    args.push(function(err, result) {
       if (err) {
         return deferred.reject(err);
       }

@@ -1,3 +1,9 @@
+# 1.9.0
+  - Bug 1200400 - Add support for switchToShadowRoot
+
+# 1.8.0
+  - Bug 1168396 - Adjust Marionette JS client to protocol changes
+
 # 1.5.4
   - Bug 1121223 - Use sockit-to-me built in timeout for connect call. Adjusted default interval, timeout and added separate socketTimeout.
 

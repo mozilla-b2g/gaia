@@ -6,6 +6,7 @@
   NotificationScreen,
   MockNavigatorMozTelephony,
   MockCall,
+  MockMozIntl,
   MockService
  */
 
@@ -23,6 +24,7 @@ require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_audio.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 var mocksForNotificationScreen = new MocksHelper([
   'Audio',
@@ -31,7 +33,7 @@ var mocksForNotificationScreen = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'Service',
-  'LazyLoader'
+  'LazyLoader',
 ]).init();
 
 suite('system/NotificationScreen >', function() {
@@ -40,7 +42,7 @@ suite('system/NotificationScreen >', function() {
     fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator,
     fakeNotifContainer;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
-  var realMozL10n;
+  var realMozL10n, realMozIntl;
   var isDocumentHidden;
 
   function sendChromeNotificationEvent(detail) {
@@ -74,6 +76,7 @@ suite('system/NotificationScreen >', function() {
     return {
       timeStamp: Date.now(),
       preventDefault: function() {},
+      stopPropagation: function() {},
       touches: [{
         target: target,
         pageX: x,
@@ -130,21 +133,9 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeToasterDetail);
 
     realMozL10n = navigator.mozL10n;
-    MockL10n.DateTimeFormat = function() {
-      return {
-        fromNow: function(time, compact) {
-          var retval;
-          var delta = new Date().getTime() - time.getTime();
-          if (delta >= 0 && delta < 60 * 1000) {
-            retval = 'now';
-          } else if (delta >= 60 * 1000) {
-            retval = '1m ago';
-          }
-          return retval;
-        }
-      };
-    };
+    realMozIntl = window.mozIntl;
     navigator.mozL10n = MockL10n;
+    window.mozIntl = MockMozIntl;
 
     isDocumentHidden = false;
     Object.defineProperty(document, 'hidden', {
@@ -170,6 +161,7 @@ suite('system/NotificationScreen >', function() {
     fakeButton.parentNode.removeChild(fakeButton);
 
     navigator.mozL10n = realMozL10n;
+    window.mozIntl = realMozIntl;
   });
 
   suite('chrome events >', function() {
@@ -332,6 +324,31 @@ suite('system/NotificationScreen >', function() {
       assert.deepEqual(l10nAttrs.args, { n : 1 });
     });
 
+    test('should update timestamps properly', function() {
+      var callCount = 0;
+
+      sinon.stub(window.mozIntl._gaia, 'RelativeDate', function() {
+        return {
+          formatElement: function() {
+            callCount++;
+          }
+        };
+      });
+
+      var imgpath = 'http://example.com/test.png';
+      var detail = {
+        id: 'my-id',
+        icon: imgpath,
+        title: 'title',
+        detail: 'detail'
+      };
+      NotificationScreen.addNotification(detail);
+
+      callCount = 0;
+      NotificationScreen.updateTimestamps();
+      assert.equal(callCount, 1);
+    });
+
   });
 
   suite('addUnreadNotification', function() {
@@ -376,37 +393,34 @@ suite('system/NotificationScreen >', function() {
       NotificationScreen.updateNotificationIndicator.restore();
     });
 
-    function testNotificationWithDirection(dir) {
-      var toaster = NotificationScreen.toaster;
+    function testNotificationWithDirection(dir, expectedDir) {
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath,
                     title: 'title',
                     detail: 'detail',
                     dir: dir};
       NotificationScreen.addNotification(detail);
-      assert.equal(dir, toaster.dir);
-      var notificationNode =
-        document.getElementsByClassName('notification')[0];
       var notificationNodeTitle =
         document.querySelector('.notification .title-container .title');
       var notificationNodeDetail =
         document.querySelector('.notification .detail');
-      assert.equal(dir, notificationNode.dataset.predefinedDir);
-      assert.equal('auto', notificationNodeTitle.dir);
-      assert.equal('auto', notificationNodeDetail
-        .querySelector('.detail-content').dir);
+      assert.equal(notificationNodeTitle.dir, expectedDir);
+      assert.equal(notificationNodeDetail
+        .querySelector('.detail-content').dir, expectedDir);
+      assert.equal(NotificationScreen.toasterTitle.dir, expectedDir);
+      assert.equal(NotificationScreen.toasterDetail.dir, expectedDir);
     }
 
     test('calling addNotification with rtl direction', function() {
-      testNotificationWithDirection('rtl');
+      testNotificationWithDirection('rtl', 'rtl');
     });
 
     test('calling addNotification with ltr direction', function() {
-      testNotificationWithDirection('ltr');
+      testNotificationWithDirection('ltr', 'ltr');
     });
 
     test('calling addNotification with auto direction', function() {
-      testNotificationWithDirection('');
+      testNotificationWithDirection('', 'auto');
     });
 
     test('calling addNotification without direction', function() {
@@ -570,26 +584,6 @@ suite('system/NotificationScreen >', function() {
     });
   });
 
-  suite('prettyDate() behavior >', function() {
-    test('converts timestamp to string', function() {
-      var timestamp = new Date();
-      var date = NotificationScreen.prettyDate(timestamp);
-      assert.isTrue(typeof date === 'string');
-    });
-
-    test('shows now', function() {
-      var timestamp = new Date();
-      var date = NotificationScreen.prettyDate(timestamp);
-      assert.equal(date, 'now');
-    });
-
-    test('shows 1m ago', function() {
-      var timestamp = new Date(new Date().getTime() - 61 * 1000);
-      var date = NotificationScreen.prettyDate(timestamp);
-      assert.equal(date, '1m ago');
-    });
-  });
-
   suite('special notification handling for special apps', function() {
     var CALENDAR_MANIFEST = 'app://calendar.gaiamobile.org/manifest.webapp';
     var EMAIL_MANIFEST = 'app://email.gaiamobile.org/manifest.webapp';
@@ -725,6 +719,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('should disable scrolling during a swipe', function() {
+      MockService.mockQueryWith('UtilityTray.shown', true);
       var overflow = NotificationScreen.notificationsContainer.style.overflow;
       assert.equal(overflow, '');
 
@@ -739,6 +734,8 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('should account for speed when dismissing', function() {
+      MockService.mockQueryWith('UtilityTray.shown', true);
+
       // Short but fast swipe
       var close = this.sinon.stub(NotificationScreen, 'swipeCloseNotification');
       NotificationScreen.touchstart(fakeEvt(notificationNode, 1, 1));
@@ -781,7 +778,17 @@ suite('system/NotificationScreen >', function() {
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
+    test('tapping on notification disabled when tray not shown', function() {
+      MockService.mockQueryWith('UtilityTray.shown', false);
+      NotificationScreen.touchstart(fakeEvt(notificationNode, 10, 10));
+      NotificationScreen.touchmove(fakeEvt(notificationNode, 10, 10));
+      NotificationScreen.touchend(fakeEvt(notificationNode, 10, 10));
+
+      sinon.assert.notCalled(notifClickedStub);
+    });
+
     test('tapping on the notification', function() {
+      MockService.mockQueryWith('UtilityTray.shown', true);
       NotificationScreen.touchstart(fakeEvt(notificationNode, 10, 10));
       NotificationScreen.touchmove(fakeEvt(notificationNode, 10, 10));
       NotificationScreen.touchend(fakeEvt(notificationNode, 10, 10));

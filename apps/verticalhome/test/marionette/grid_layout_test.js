@@ -43,13 +43,13 @@ marionette('Vertical - grid', function() {
     var communicationManifestUrl =
       'app://communications.gaiamobile.org/manifest.webapp';
 
-    client.settings.set('language.current', 'qps-plocm');
+    client.settings.set('language.current', 'ar-x-psbidi');
 
     // Localization can be async, wait for the content to update
     client.waitFor(function() {
       var phoneIcon = home.getIcon(communicationManifestUrl, 'dialer');
       return phoneIcon.text() ===
-        home.localizedAppName('communications', 'dialer', 'qps-plocm');
+        home.localizedAppName('communications', 'dialer', 'ar-x-psbidi');
     });
 
     var app1Location = home.getNthIcon(1).location();

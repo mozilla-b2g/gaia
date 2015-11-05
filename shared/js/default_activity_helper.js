@@ -132,7 +132,11 @@
     ];
 
   var DefaultActivityHelper = {
-
+    _helper: null,
+    getHelper: function(config) {
+      this._helper = this._helper || SettingsHelper(config.settingsId, null);
+      return this._helper;
+    },
     /**
      * Looks for an activity on the list given the name and the type
      * @parameter {String} name Activity name
@@ -160,7 +164,7 @@
           resolve(null);
         }
 
-        SettingsHelper(config.settingsId, null).get((value) => {
+        this.getHelper(config).get((value) => {
           resolve(value);
         });
       });
@@ -178,7 +182,7 @@
         return;
       }
 
-      SettingsHelper(config.settingsId, null).set(choice);
+      this.getHelper(config).set(choice);
     }
   };
 
