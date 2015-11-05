@@ -115,6 +115,8 @@
     // since it would take a longer round-trip to receive focuschange
     // Also in Bug 856692 we realise that we need to close the keyboard
     // when an inline activity goes away.
+    window.addEventListener('actionmenuopening', this);
+    window.addEventListener('actionmenuhide', this);
     window.addEventListener('activityrequesting', this);
     window.addEventListener('activityopening', this);
     window.addEventListener('activityclosing', this);
@@ -147,7 +149,6 @@
     window.removeEventListener('input-appready', this);
     window.removeEventListener('input-appheightchanged', this);
     window.removeEventListener('input-appterminated', this);
-    window.removeEventListener('activityrequesting', this);
     window.removeEventListener('activityopening', this);
     window.removeEventListener('activityclosing', this);
     window.removeEventListener('attentionrequestopen', this);
@@ -226,17 +227,29 @@
           KeyboardManager._onKeyboardKilled(manifestURL);
         }
         break;
-      case 'activityrequesting':
-      case 'activityopening':
+
+      // We want to avoid the keyboard showing while opening
+      // an actionmenu/attention. These are the event
+      // pairs:
+      // actionmenuopening - actionmenuhide
+      // attentionopening - attentionopened
+      case 'actionmenuopening':
+      case 'attentionopening':
+        this.blockInput = true;
+        this.hideInputWindowImmediately();
+        navigator.mozInputMethod.removeFocus();
+        break;
+      case 'actionmenuhide':
       case 'activityclosing':
       case 'attentionrequestopen':
       case 'attentionrecovering':
-      case 'attentionopening':
+      case 'activityopening':
       case 'attentionclosing':
       case 'attentionopened':
       case 'attentionclosed':
       case 'notification-clicked':
       case 'applicationsetupdialogshow':
+        this.blockInput = false;
         this.hideInputWindowImmediately();
 
         // Ensure the actual focus is lost too in case the dispatcher of
@@ -402,6 +415,11 @@
 
   InputWindowManager.prototype.showInputWindow =
   function iwm_showInputWindow(layout) {
+    if (this.blockInput) {
+      navigator.mozInputMethod.removeFocus();
+      return;
+    }
+
     var configs = this._extractLayoutConfigs(layout);
 
     // see if we can reuse an InputWindow...
