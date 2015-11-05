@@ -138,6 +138,94 @@
       }
     },
 
+
+    /**
+     * Get cache data by index. If index out of currant cache range, traverse
+     * new cache.
+     * @param  {Number} index - cache index
+     */
+    getCache: function(index){
+      var self = this;
+      return new Promise(resolve => {
+        var history = null;
+//IFNDEF_FIREFOX_SYNC
+        if(self.cacheIndexStartAt <= index <= self.cacheIndexEndAt) {
+          history = self.cache.get(index);
+          resolve(history);
+        } else {
+          resolve(null);
+        }
+//ENDIF_FIREFOX_SYNC
+
+//IFDEF_FIREFOX_SYNC
+
+        /**
+         * traverse next history cache which timestamp laster than current
+         * cache.
+         * @param  {Number} index - cache index
+         */
+        function traverseNextCache(index) {
+          var start = self.cache.get(self.cacheIndexStartAt).timestamp;
+          SyncBrowserDB.getHistoryTimestamp(start, 'next', false,
+            timestamp => {
+              if(timestamp) {
+                self.updateCacheByNextHistory(timestamp).then(() => {
+                  history = self.cache.get(index);
+                  if(!history) {
+                    traverseNextCache(index);
+                  } else {
+                    resolve(history);
+                  }
+                });
+              } else {
+                resolve(null);
+              }
+            }
+          );
+        }
+
+        /**
+         * traverse previous history cache which timestamp is earlier than
+         * current cache.
+         * @param  {Number} index - cache index
+         */
+        function traversePreviousCache(index) {
+          var start = self.cache.get(self.cacheIndexEndAt).timestamp;
+          SyncBrowserDB.getHistoryTimestamp(start, 'prev', false,
+            timestamp => {
+              if(timestamp) {
+                self.updateCacheByPreviousHistory(timestamp).then(() => {
+                  history = self.cache.get(index);
+                  if(!history) {
+                    traversePreviousCache(index);
+                  } else {
+                    resolve(history);
+                  }
+                });
+              } else {
+                self.lastDataIndex = self.cacheIndexEndAt;
+                resolve(null);
+              }
+            }
+          );
+        }
+
+        if(index < self.cacheIndexStartAt) {
+          traverseNextCache(index);
+        } else if (index > self.cacheIndexEndAt) {
+          if(self.lastDataIndex && index > self.lastDataIndex) {
+            resolve(history);
+          } else {
+            traversePreviousCache(index);
+          }
+        } else {
+          history = self.cache.get(index);
+          resolve(history);
+        }
+//ENDIF_FIREFOX_SYNC
+      });
+    },
+
     /**
      * Get history cache by index.
      * If the index out of current cache index range, traverse new cache until
@@ -147,95 +235,13 @@
      * @param  {Function} cb - callback function with history cache as parameter
      */
     getByIndex: function (index, folderId, cb) {
-      var self = this;
-      function getCache(){
-        return new Promise(resolve => {
-          var history = null;
-//IFNDEF_FIREFOX_SYNC
-          if(self.cacheIndexStartAt <= index <= self.cacheIndexEndAt) {
-            history = self.cache.get(index);
-            resolve(history);
-          } else {
-            resolve(null);
-          }
-//ENDIF_FIREFOX_SYNC
-
-//IFDEF_FIREFOX_SYNC
-
-          /**
-           * traverse next history cache which timestamp laster than current
-           * cache.
-           * @param  {Number} index - cache index
-           */
-          function traverseNextCache(index) {
-            var start = self.cache.get(self.cacheIndexStartAt).timestamp;
-            SyncBrowserDB.getHistoryTimestamp(start, 'next', false,
-              timestamp => {
-                if(timestamp) {
-                  self.updateCacheByNextHistory(timestamp).then(() => {
-                    history = self.cache.get(index);
-                    if(!history) {
-                      traverseNextCache(index);
-                    } else {
-                      resolve(history);
-                    }
-                  });
-                } else {
-                  resolve(null);
-                }
-              }
-            );
-          }
-
-          /**
-           * traverse previous history cache which timestamp is earlier than
-           * current cache.
-           * @param  {Number} index - cache index
-           */
-          function traversePreviousCache(index) {
-            var start = self.cache.get(self.cacheIndexEndAt).timestamp;
-            SyncBrowserDB.getHistoryTimestamp(start, 'prev', false,
-              timestamp => {
-                if(timestamp) {
-                  self.updateCacheByPreviousHistory(timestamp).then(() => {
-                    history = self.cache.get(index);
-                    if(!history) {
-                      traversePreviousCache(index);
-                    } else {
-                      resolve(history);
-                    }
-                  });
-                } else {
-                  self.lastDataIndex = self.cacheIndexEndAt;
-                  resolve(null);
-                }
-              }
-            );
-          }
-
-          if(index < self.cacheIndexStartAt) {
-            traverseNextCache(index);
-          } else if (index > self.cacheIndexEndAt) {
-            if(self.lastDataIndex && index > self.lastDataIndex) {
-              resolve(history);
-            } else {
-              traversePreviousCache(index);
-            }
-          } else {
-            history = self.cache.get(index);
-            resolve(history);
-          }
-//ENDIF_FIREFOX_SYNC
-        });
-      }
-
       if(folderId !== this.currentFolder) {
         this.currentFolder = folderId;
         this.fetchCache()
-          .then(getCache)
+          .then(() => this.getCache(index))
           .then(cb);
       } else {
-        getCache()
+        this.getCache(index)
           .then(cb);
       }
     },
