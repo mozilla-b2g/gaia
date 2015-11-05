@@ -106,45 +106,46 @@
     },
 
     /**
-     * Get specific number of history cache from start index
-     * @param  {Number}   start - query start index
-     * @param  {Number}   num - query length
+     * get the latest cache based on maxNum
+     * @param  {Number} maxNum - max query length
+     */
+    _getCaches: function(maxNum) {
+      var self = this;
+      return new Promise(resolve => {
+        var length = maxNum > self.cache.size ? self.cache.size : maxNum;
+        var result = [];
+
+        for(var i = 0; i < length; i++) {
+          result.push(self.cache.get(i));
+        }
+        resolve(result);
+      });
+    },
+
+    /**
+     * Get specific number of the latest history cache
+     * @param  {Number}   maxNum - max query length
      * @param  {String}   folderId - folder id
      * @param  {Function} cb - callback function with history cache as parameter
      */
-    getByRange: function (start, num, folderId, cb) {
-      var self = this;
-      function getCaches() {
-        return new Promise(resolve => {
-          var length = (start + num) > self.cache.size ?
-            (self.cache.size - start) : (start + num);
-          var result = [];
-
-          for(var i = start; i < length; i++) {
-            result.push(self.cache.get(i));
-          }
-          resolve(result);
-        });
-      }
-
+    getByNumber: function (maxNum, folderId, cb) {
       if(folderId !== this.currentFolder) {
         this.currentFolder = folderId;
         this.fetchCache()
-          .then(getCaches)
+          .then(() => this._getCaches(maxNum))
           .then(cb);
       } else {
-        getCaches()
+        this._getCaches(maxNum)
           .then(cb);
       }
     },
-
 
     /**
      * Get cache data by index. If index out of currant cache range, traverse
      * new cache.
      * @param  {Number} index - cache index
      */
-    getCache: function(index){
+    _getCache: function(index){
       var self = this;
       return new Promise(resolve => {
         var history = null;
@@ -169,7 +170,7 @@
           SyncBrowserDB.getHistoryTimestamp(start, 'next', false,
             timestamp => {
               if(timestamp) {
-                self.updateCacheByNextHistory(timestamp).then(() => {
+                self._updateCacheByNextHistory(timestamp).then(() => {
                   history = self.cache.get(index);
                   if(!history) {
                     traverseNextCache(index);
@@ -194,7 +195,7 @@
           SyncBrowserDB.getHistoryTimestamp(start, 'prev', false,
             timestamp => {
               if(timestamp) {
-                self.updateCacheByPreviousHistory(timestamp).then(() => {
+                self._updateCacheByPreviousHistory(timestamp).then(() => {
                   history = self.cache.get(index);
                   if(!history) {
                     traversePreviousCache(index);
@@ -238,10 +239,10 @@
       if(folderId !== this.currentFolder) {
         this.currentFolder = folderId;
         this.fetchCache()
-          .then(() => this.getCache(index))
+          .then(() => this._getCache(index))
           .then(cb);
       } else {
-        this.getCache(index)
+        this._getCache(index)
           .then(cb);
       }
     },
@@ -352,7 +353,7 @@
      * history cache.
      * @param  {Number} start - start timestamp
      */
-    updateCacheByNextHistory: function (start) {
+    _updateCacheByNextHistory: function (start) {
       var promise = new Promise(resolve => {
         var end = start + DAY_IN_MILLI_SECOND;
 
@@ -384,7 +385,7 @@
      * current history cache.
      * @param  {Number} start - start timestamp
      */
-    updateCacheByPreviousHistory: function (end) {
+    _updateCacheByPreviousHistory: function (end) {
       var promise = new Promise(resolve => {
         var start = end - DAY_IN_MILLI_SECOND;
 

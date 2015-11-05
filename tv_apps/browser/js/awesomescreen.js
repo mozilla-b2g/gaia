@@ -180,11 +180,10 @@ var Awesomescreen = {
       Browser.switchCursorMode(true);
     }).bind(this));
 
-    this.bookmark.addEventListener('loadDataByRange', (function(e){
+    this.bookmark.addEventListener('loadDataByNumber', (function(e){
       var detail = e.detail;
-      BookmarkStore.getByRange(
-        detail.startAt,
-        detail.number,
+      BookmarkStore.getByNumber(
+        detail.maxNumber,
         detail.folderId,
         detail.callback
       );
@@ -238,11 +237,10 @@ var Awesomescreen = {
       Browser.switchCursorMode(true);
     }).bind(this));
 
-    this.history.addEventListener('loadDataByRange', (function(e){
+    this.history.addEventListener('loadDataByNumber', (function(e){
       var detail = e.detail;
-      HistoryStore.getByRange(
-        detail.startAt,
-        detail.number,
+      HistoryStore.getByNumber(
+        detail.maxNumber,
         detail.folderId,
         detail.callback
       );
@@ -677,7 +675,7 @@ var Awesomescreen = {
    */
   selectBookmarksTab: function awesomescreen_selectBookmarksTab() {
     BookmarkStore.reset().then(() => {
-      BookmarkStore.updateCache().then(() => {
+      BookmarkStore.fetchCache().then(() => {
         this.bookmarkList.open();
       });
     });
@@ -1551,7 +1549,7 @@ var Awesomescreen = {
         BrowserDB.removeBookmark(
           listUrl,
           function(){
-            BookmarkStore.updateCache().then(() => {
+            BookmarkStore.fetchCache().then(() => {
               this.bookmarkList.removeFocusItem();
               Browser.refreshBrowserParts();
             });
@@ -1610,7 +1608,7 @@ var Awesomescreen = {
         listUrl,
         bmTitle,
         function(){
-          BookmarkStore.updateCache().then(() => {
+          BookmarkStore.fetchCache().then(() => {
             this.bookmarkList.updateFocusItemTitle(bmTitle);
           });
         }.bind(this)
