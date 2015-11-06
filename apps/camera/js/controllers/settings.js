@@ -310,13 +310,14 @@ SettingsController.prototype.notify = function(setting, flashDeactivated) {
   var dontNotify = setting.get('notifications') === false;
   if (dontNotify) { return; }
 
-  var localizeOption = setting.get('optionsLocalizable') !== false;
+  var localizable = setting.get('optionsLocalizable') !== false;
   var title = '<span data-l10n-id="' + setting.get('title') + '"></span>';
-  // Localize option title only if not specified in the config
-  var optionTitle = localizeOption ? 
-    '<span data-l10n-id="' + setting.selected('title') + '"></span>' :
-    '<span>' + optionTitle + '</span>';
   var html;
+
+  // Localize option title only if not specified in the config
+  var optionTitle = localizable ?
+    '<span data-l10n-id="' + setting.selected('title') + '"></span>' :
+    '<span>' + setting.selected('title') + '</span>';
 
   // Check if the `flashMode` setting is going to be deactivated as part
   // of the change in the `hdr` setting and display a specialized
@@ -328,7 +329,7 @@ SettingsController.prototype.notify = function(setting, flashDeactivated) {
     html = title + '<br/>' + optionTitle;
   }
 
-  this.notification.display({ text: {html: html} });
+  this.notification.display({ text: { html: html }});
 };
 
 /**
@@ -342,15 +343,16 @@ SettingsController.prototype.notify = function(setting, flashDeactivated) {
  *
  * @param  {Object} capabilities
  */
-SettingsController.prototype.onNewCamera = function(capabilities) {
+SettingsController.prototype.onNewCamera = function(camera) {
   debug('new capabilities');
+  var capabilities = camera.capabilities;
 
   this.settings.hdr.filterOptions(capabilities.hdr);
   this.settings.flashModesPicture.filterOptions(capabilities.flashModes);
   this.settings.flashModesVideo.filterOptions(capabilities.flashModes);
 
-  this.configurePictureSizes(capabilities.pictureSizes);
-  this.configureRecorderProfiles(capabilities.recorderProfiles);
+  this.configurePictureSizes(camera);
+  this.configureRecorderProfiles(camera);
 
   // Let the rest of the app know we're good to go.
   this.app.emit('settings:configured');
@@ -365,19 +367,31 @@ SettingsController.prototype.onNewCamera = function(capabilities) {
  *
  * @param  {Array} sizes
  */
-SettingsController.prototype.configurePictureSizes = function(sizes) {
+SettingsController.prototype.configurePictureSizes = function(camera) {
   debug('configuring picture sizes');
-  var setting = this.settings.pictureSizes;
   var maxPixelSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
-  var exclude = setting.get('exclude');
+  var sizes = camera.capabilities.pictureSizes;
+  var setting = this.settings.pictureSizes;
+  var currentSize = camera.pictureSize;
+  var currentSizeKey = currentSize.width + 'x' + currentSize.height;
   var options = {
-    exclude: exclude,
+    exclude: setting.get('exclude'),
+    include: setting.get('include'),
     maxPixelSize: maxPixelSize
   };
 
   var formatted = this.formatPictureSizes(sizes, options);
   setting.resetOptions(formatted);
+
+  // If the setting has no stored default
+  // set the setting to match the current
+  // mozCamera setting.
+  if (!setting.current().fetched) {
+    setting.select(currentSizeKey, { silent: true });
+  }
+
   this.formatPictureSizeTitles();
+
   debug('configured pictureSizes', setting.selected('key'));
 };
 
@@ -389,18 +403,26 @@ SettingsController.prototype.configurePictureSizes = function(sizes) {
  *
  * @param  {Array} sizes
  */
-SettingsController.prototype.configureRecorderProfiles = function(sizes) {
+SettingsController.prototype.configureRecorderProfiles = function(camera) {
+  var sizes = camera.capabilities.recorderProfiles;
+  var currentProfile = camera.recorderProfile;
   var setting = this.settings.recorderProfiles;
   var maxFileSize = setting.get('maxFileSizeBytes');
   var exclude = setting.get('exclude');
   var options = { exclude: exclude };
-  var formatted = this.formatRecorderProfiles(sizes, options);
+  var items = this.formatRecorderProfiles(sizes, options);
 
   // If a file size limit has been imposed,
   // pick the lowest-res (last) profile only.
-  if (maxFileSize) { formatted = [formatted[formatted.length - 1]]; }
+  if (maxFileSize) { items = [items[items.length - 1]]; }
 
-  setting.resetOptions(formatted);
+  setting.resetOptions(items);
+
+  // Set the recorder profile to match
+  // the currently selected mozCamera profile
+  if (!maxFileSize && !setting.current().fetched) {
+    setting.select(currentProfile, { silent: true });
+  }
 };
 
 /**
@@ -424,7 +446,7 @@ SettingsController.prototype.formatPictureSizeTitles = function() {
     options.forEach(function(size) {
       var data = size.data;
       var mp = data.mp ? data.mp + value + ' ' : '';
-      size.title = mp + data.width + 'x' + data.height + ' ' + data.aspect;
+      size.title = mp + size.key;
     });
 
     debug('picture size titles formatted');

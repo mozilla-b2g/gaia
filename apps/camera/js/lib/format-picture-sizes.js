@@ -2,6 +2,12 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
+ * Dependencies
+ */
+
+var getAspect = require('./get-aspect');
+
+/**
  * Returns a formatted list of picture
  * sizes ready to be set as setting options.
  *
@@ -17,7 +23,9 @@ define(function(require, exports, module) {
 module.exports = function(sizes, options) {
   var maxPixelSize = options && options.maxPixelSize;
   var exclude = options && options.exclude || {};
+  var include = options && options.include;
   var formatted = [];
+  var hash = {};
 
   exclude.aspects = exclude.aspects || [];
   exclude.keys = exclude.keys || [];
@@ -28,17 +36,24 @@ module.exports = function(sizes, options) {
     var key = w + 'x' + h;
     var pixelSize = w * h;
 
+    if (hash[key]) { return; }
+
     size.aspect = getAspect(w, h);
 
     // Don't include pictureSizes above the maxPixelSize limit
     if (maxPixelSize && pixelSize > maxPixelSize) { return; }
 
-    // Don't include picture size if marked as excluded
+    if (include) {
+      if (include.keys && !~include.keys.indexOf(key)) { return; }
+      if (include.aspects && !~include.aspects.indexOf(size.aspect)) { return; }
+    }
+
+
     if (exclude.keys.indexOf(key) > -1) { return; }
     if (exclude.aspects.indexOf(size.aspect) > -1) { return; }
 
-
     size.mp = getMP(w, h);
+    hash[key] = true;
 
     formatted.push({
       key: key,
@@ -61,22 +76,6 @@ module.exports = function(sizes, options) {
  */
 function getMP(w, h) {
   return Math.round((w * h) / 1000000);
-}
-
-/**
- * Returns aspect ratio string.
- *
- * Makes use of Euclid's GCD algorithm,
- * http://en.wikipedia.org/wiki/Euclidean_algorithm
- *
- * @param  {Number} w
- * @param  {Number} h
- * @return {String}
- */
-function getAspect(w, h) {
-  var gcd = function(a, b) { return (b === 0) ? a : gcd(b, a % b); };
-  var divisor = gcd(w, h);
-  return (w / divisor) + ':' + (h / divisor);
 }
 
 });
