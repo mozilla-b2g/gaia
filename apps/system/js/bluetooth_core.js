@@ -1,5 +1,5 @@
 /* exported BluetoothCore */
-/* global BaseModule, LazyLoader, Bluetooth1, Bluetooth2 */
+/* global BaseModule, LazyLoader, Bluetooth2 */
 'use strict';
 
 (function() {
@@ -17,19 +17,10 @@
     name: 'BluetoothCore',
 
     _start: function() {
-      // Init Bluetooth module by API version.
-      if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
-        'undefined') { // APIv1
-        return LazyLoader.load(['js/bluetooth.js']).then(function() {
-          window.Bluetooth = Bluetooth1;
-          return window.Bluetooth.start();
-        });
-      } else { // APIv2
-        return LazyLoader.load(['js/bluetooth_v2.js']).then(function() {
-          window.Bluetooth = new Bluetooth2();
-          return window.Bluetooth.start();
-        });
-      }
+      return LazyLoader.load(['js/bluetooth_v2.js']).then(function() {
+        window.Bluetooth = new Bluetooth2();
+        return window.Bluetooth.start();
+      });
     }
   });
 }());
