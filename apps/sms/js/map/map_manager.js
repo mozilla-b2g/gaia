@@ -61,20 +61,22 @@ const MAP_LISTING_FOOT = '</MAP-msg-listing>\n';
 (function (exports) {
 var MapManager = {
   init() {
-/*
-    var req = managerBt.getDefaultAdapter();
-    req.onsuccess = function bt_getAdapterSuccess() {
-      adapter = req.result;
+    if (managerBt.defaultAdapter) {
+      adapter = managerBt.defaultAdapter;
       adapter.addEventListener('mapmessageslistingreq',
-        this.mapmessageslistingreq);
-    };
-    req.onerror = function bt_getAdapterFailed() {
-      console.error('MAP', 'ERROR adapter');
-    };
-*/
-    adapter = managerBt.defaultAdapter;
-    adapter.addEventListener('mapmessageslistingreq',
-      this.mapmessageslistingreq.bind(this));
+        this.mapmessageslistingreq.bind(this));
+    } else {
+      var req = managerBt.getDefaultAdapter();
+      req.onsuccess = function bt_getAdapterSuccess() {
+        adapter = req.result;
+        adapter.addEventListener('mapmessageslistingreq',
+          this.mapmessageslistingreq);
+      };
+      req.onerror = function bt_getAdapterFailed() {
+        console.error('MAP', 'ERROR adapter');
+      };
+    }
+
     MessageManager.on('message-sent', this.onSendingSuccess.bind(this));
     MessageManager.on('message-delivered', this.onDeliverySuccess.bind(this));
     MessageManager.on('message-received', this.onNewMessage.bind(this));
