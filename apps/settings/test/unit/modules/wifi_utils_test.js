@@ -97,7 +97,7 @@ suite('WifiUtils', function() {
       test('activeItemDOM is cleaned up to normal status', function() {
         assert.isFalse(fakeActiveItemDOM.classList.contains('active'));
         assert.equal(fakeActiveItemDOM.querySelector('small').dataset.l10nId,
-          'shortStatus-disconnected');
+          'short-status-disconnected');
         assert.isFalse(fakeActiveItemDOM.querySelector(
           'aside').classList.contains('connecting'));
         assert.isFalse(fakeActiveItemDOM.querySelector(
@@ -107,7 +107,7 @@ suite('WifiUtils', function() {
       test('listItemDOM is in right status', function() {
         assert.isTrue(fakeListItemDOM.classList.contains('active'));
         assert.equal(fakeListItemDOM.querySelector('small').dataset.l10nId,
-          'shortStatus-connecting');
+          'short-status-connecting');
         assert.isTrue(fakeListItemDOM.querySelector(
           'aside').classList.contains('connecting'));
         assert.isFalse(fakeListItemDOM.querySelector(
@@ -128,7 +128,7 @@ suite('WifiUtils', function() {
       test('listItemDOM is in right status', function() {
         assert.isTrue(fakeListItemDOM.classList.contains('active'));
         assert.equal(fakeListItemDOM.querySelector('small').dataset.l10nId,
-          'shortStatus-connected');
+          'short-status-connected');
         assert.isTrue(fakeListItemDOM.querySelector(
           'aside').classList.contains('connected'));
         assert.isFalse(fakeListItemDOM.querySelector(
@@ -238,7 +238,7 @@ suite('WifiUtils', function() {
     ];
 
     // the total options would be one default item and certificates
-    var expectedLengthOfOptions = 
+    var expectedLengthOfOptions =
       1 + MockNavigatorMozWifiManager._certificateList.length;
 
     this.sinon.spy(selectDOM, 'remove');

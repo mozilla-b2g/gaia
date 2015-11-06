@@ -135,7 +135,7 @@ suite('WifiContext', function() {
       wifiManager.enabled = true;
       wifiManager.connection.status = 'disconnected';
       wifiManager.onstatuschange();
-      assert.equal(wifiContext.wifiStatusText.id, 'fullStatus-disconnected');
+      assert.equal(wifiContext.wifiStatusText.id, 'full-status-disconnected');
     });
 
     test('wifiManager is disabled, get disabled string', function() {
