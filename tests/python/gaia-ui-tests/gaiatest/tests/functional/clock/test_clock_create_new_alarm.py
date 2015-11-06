@@ -56,14 +56,13 @@ class TestClockCreateNewAlarm(GaiaTestCase):
                         'Alarms count did not increment')
 
         # verify the label of alarm
-        alarms = alarm_view.alarm_items
-        self.assertEqual(len(alarms), 1)
-        self.assertEqual(alarms[0].label, alarm_label_text)
+        self.assertEqual(len(alarm_view.alarm_items), 1)
+        self.assertEqual(alarm_view.alarm_items[0].label, alarm_label_text)
 
         alarm_time = alarm_view.alarm_items[0].time
 
         # tap to Edit alarm
-        edit_alarm = alarms[0].tap()
+        edit_alarm = alarm_view.alarm_items[0].tap()
 
         # Set the alarm time to 1 min more than the current time
         time_picker = edit_alarm.tap_time()
@@ -85,12 +84,6 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         alarm_view.alarm_items[0].wait_for_checkbox_to_change_state(True)
         alarm_view.dismiss_banner()
         self.assertTrue(alarm_view.alarm_items[0].is_alarm_active, 'user should be able to turn off the alarm.')
-        alarm_view.alarms[0].disable()
-        self.assertFalse(alarm_view.alarms[0].is_alarm_active, 'user should be able to turn on the alarm.')
-
-        alarm_view.alarms[0].enable()
-        alarm_view.dismiss_banner()
-        self.assertTrue(alarm_view.alarms[0].is_alarm_active, 'user should be able to turn off the alarm.')
 
         self.device.touch_home_button()
         self.marionette.switch_to_frame()
