@@ -507,7 +507,8 @@
     handleUnfocus: function(elem) {
       if (this.mode === 'edit' && elem === this.currentScrollable) {
         this._concealPanel(this.currentScrollable, this.currentNode);
-        this.currentScrollable.spatialNavigator.focusSilently(
+        // Make sure we leave focus on item itself rather than any panel buttons
+        this.currentScrollable.silentFocus(
           this.currentScrollable.getItemFromNode(this.currentNode));
       }
     },

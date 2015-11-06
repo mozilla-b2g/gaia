@@ -107,6 +107,13 @@
     navigableFilter: null,
 
     /**
+     * setting this property true prevents spatialNavigator from emitting any
+     * events.
+     * @type {Boolean}
+     */
+    silent: false,
+
+    /**
      * Rect represents position and dimension of a 2D object.
      * @typedef {Object} Rect
      * @property {Integer} left     Left position
@@ -566,30 +573,12 @@
      * @memberof SpatialNavigator.prototype
      */
     focus: function snFocus(elem) {
+      // If no arguments are received, let current focused element be the
+      // default.
       if (!elem && this._focus && this._isNavigable(this._focus)) {
         elem = this._focus;
       }
 
-      if (this.focusSilently(elem)) {
-        this.fire('focus', this._focus);
-        return true;
-      } else {
-        return false;
-      }
-    },
-
-    /**
-     * Move focus to an existing element but without firing any events. Can be
-     * used on initializing.
-     *
-     * @param  {SpatialNavigatorElement} [elem]
-     *         when omitted, it focuses the first navigable element.
-     *
-     * @return {Boolean} true if succeed. false if element doesn't exist.
-     *
-     * @memberof SpatialNavigator.prototype
-     */
-    focusSilently: function snFocusSliently(elem) {
       if (!this._collection) {
         return false;
       }
@@ -607,6 +596,10 @@
 
       this.unfocus();
       this._focus = elem;
+
+      if (!this.silent) {
+        this.fire('focus', this._focus);
+      }
       return true;
     },
 
@@ -624,7 +617,9 @@
       if (this._focus) {
         var elem = this._focus;
         this._focus = null;
-        this.fire('unfocus', elem);
+        if (!this.silent) {
+          this.fire('unfocus', elem);
+        }
       }
       return true;
     },

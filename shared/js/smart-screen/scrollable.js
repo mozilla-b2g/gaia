@@ -203,7 +203,7 @@
       // Determine initial focus (depends on reversed or not)
       var initNode = this.getItemFromNode(
                      this.getNode(this._isReversed ? this.length - 1 : 0));
-      this.spatialNavigator.focusSilently(initNode);
+      this.silentFocus(initNode);
 
       // Calculate initial position with respect to reference element. The
       // initNode should get its center aligned with reference element
@@ -452,7 +452,7 @@
         var hoveringItem = this.hoveringItem;
         var hoveredItem = this.hoveredItem;
         this._colspanOnFocus = 1;
-        this.spatialNavigator.focusSilently(this.hoveredItem);
+        this.silentFocus(this.hoveredItem);
         this.unhoverSilently();
         this._setNodesPosition();
         this.fire('hovering-node-removed', hoveringItem, hoveredItem);
@@ -682,6 +682,12 @@
         item = this.currentItem || 0;
       }
       this.spatialNavigator.focus(item);
+    },
+
+    silentFocus: function(item) {
+      this.spatialNavigator.silent = true;
+      this.focus(item);
+      this.spatialNavigator.silent = false;
     },
 
     move: function(direction) {

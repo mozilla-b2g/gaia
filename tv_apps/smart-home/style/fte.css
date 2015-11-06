@@ -1,0 +1,76 @@
+#fte {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: RGBA(0, 0, 0, 0.3);
+  opacity: 1;
+  transition: opacity 0.5s linear;
+}
+
+#fte.finish {
+  opacity: 0;
+}
+
+.fte-page {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: url(images/fte_bg.png) 100%;
+  font-size: 3.6rem;
+  color: white;
+  font-style: italic;
+}
+
+.fte-content-image {
+  position: absolute;
+  left: calc(50vw - 74.9rem);
+  top: calc(50vh - 42.1rem);
+  width: 149.8rem;
+  height: 84.2rem;
+  background: url(images/fte_content_image.png) 100%;
+}
+
+.fte-panel {
+  position: absolute;
+  bottom: calc(50vh - 42.1rem - 4rem);
+  text-align: center;
+  width: 100%;
+}
+
+.fte-panel > .fte-button[data-behavior="finish"] {
+  width: 30.4rem;
+  position: relative;
+}
+
+#fte-tvdeck-detail {
+  position: relative;
+}
+
+.fte-content-image > div {
+  position: absolute;
+  font-weight: 400;
+}
+
+#fte-tvdeck-detail {
+  left: 13.6rem;
+  top: 15.9rem;
+}
+
+#fte-appdeck-detail {
+  left: 45.6rem;
+  bottom: 16.5rem;
+}
+
+#fte-devicedeck-detail {
+  left: 70.2rem;
+  top: 15.9rem;
+}
+
+#fte-browser-detail {
+  left: 105.9rem;
+  bottom: 16.5rem;
+}
