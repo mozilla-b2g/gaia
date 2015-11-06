@@ -735,8 +735,8 @@ window.GaiaContainer = (function(exports) {
   var template = document.createElement('template');
 
   template.innerHTML =
-    `<style>gaia-container { position: relative; display: block; }</style>
-     <content select='*'></content>`;
+    `<style>gaia-container { position: relative; display: block; }</style>` +
+    `<content select='*'></content>`;
 
   function GaiaContainerChild(element) {
     this._element = element;
