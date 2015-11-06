@@ -135,16 +135,11 @@
 
       this.speechSynthesizer = speechSynthesizer;
 
-      window.addEventListener('mozChromeEvent', this);
       window.addEventListener('volumeup', this);
       window.addEventListener('volumedown', this);
       window.addEventListener('logohidden', this);
       window.addEventListener('screenchange', this);
       window.addEventListener('iac-ftucomms', this);
-      window.addEventListener('appwillopen', this);
-      window.addEventListener('appopened', this);
-      window.addEventListener('homescreenopening', this);
-      window.addEventListener('homescreenopened', this);
       this.FTUStartedTimeout = null;
       this.appOpening = false;
 
@@ -162,6 +157,17 @@
                     'accessibility.screenreader-show-settings': true
                   });
                   this.setToSupportedLanguage();
+                  window.addEventListener('mozChromeEvent', this);
+                  window.addEventListener('appwillopen', this);
+                  window.addEventListener('appopened', this);
+                  window.addEventListener('homescreenopening', this);
+                  window.addEventListener('homescreenopened', this);
+                } else {
+                  window.removeEventListener('mozChromeEvent', this);
+                  window.removeEventListener('appwillopen', this);
+                  window.removeEventListener('appopened', this);
+                  window.removeEventListener('homescreenopening', this);
+                  window.removeEventListener('homescreenopened', this);
                 }
                 if (this.settings['accessibility.screenreader-shade']) {
                   this.toggleShade(aValue, !aValue);
