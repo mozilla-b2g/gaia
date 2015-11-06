@@ -32,6 +32,7 @@ form.search {
 
 form.search p {
   flex-basis: 100%;
+  flex-grow: 1;
 }
 
 #search-view.insearchmode form.search p {
