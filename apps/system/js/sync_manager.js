@@ -255,7 +255,9 @@
 
       // Go back to default settings, so new users won't inherit old users'
       // preferences.
-      this.restoreDefaultSettings().then(() => {
+      this.saveUserSettings().then(() => {
+        return this.restoreDefaultSettings();
+      }).then(() => {
         Service.request('SyncStateMachine:success');
       });
     },
@@ -322,6 +324,8 @@
         // default values when the user logs out from Sync. So new users don't
         // inherit old users' preferences.
         return this.saveDefaultSettings();
+      }).then(() => {
+        return this.restoreUserSettings();
       }).then(() => {
         Service.request('SyncStateMachine:success');
       }).catch(error => {
@@ -727,36 +731,53 @@
       });
     },
 
-    saveDefaultSettings() {
-      var saveDefaultSetting = setting => {
+    saveSettings(prefix) {
+      var saveSetting = setting => {
         return new Promise(resolve => {
-          asyncStorage.getItem(setting, value => {
+          asyncStorage.getItem(prefix + setting, value => {
             if (value !== null) {
-              this.debug('Default setting value already saved', setting);
+              this.debug('Setting value already saved', setting);
               resolve();
               return;
             }
-            this.debug('Saving default setting value', setting);
-            asyncStorage.setItem(setting, this._settings[setting], resolve);
+            this.debug('Saving setting', prefix + setting,
+                       this._settings[setting]);
+            asyncStorage.setItem(prefix + setting, this._settings[setting],
+                                 resolve);
           });
         });
       };
 
       var promises = [];
       SyncManager.SETTINGS.forEach(setting => {
-        promises.push(saveDefaultSetting(setting));
+        promises.push(saveSetting(setting));
       });
 
       return Promise.all(promises);
     },
 
-    restoreDefaultSettings() {
+    saveDefaultSettings() {
+      this.debug('Saving default settings');
+      return this.saveSettings('');
+    },
+
+    saveUserSettings() {
+      this.debug('Saving user settings');
+      return this.saveSettings(this.user + '.');
+    },
+
+    restoreSettings(prefix) {
       var revertSetting = setting => {
         return new Promise((resolve, reject) => {
-          asyncStorage.getItem(setting, value => {
+          asyncStorage.getItem(prefix + setting, value => {
+            this.debug('Restoring setting ' + prefix + setting, value);
+            if (value === null) {
+              resolve();
+              return;
+            }
             // We need to remove the setting from asyncStorage to allow
             // default setting changes within OTA updates.
-            asyncStorage.removeItem(setting, () => {
+            asyncStorage.removeItem(prefix + setting, () => {
               var settingObject = {};
               settingObject[setting] = value;
               var req = navigator.mozSettings.createLock().set(settingObject);
@@ -776,6 +797,16 @@
       });
 
       return Promise.all(promises);
+    },
+
+    restoreDefaultSettings() {
+      this.debug('Restoring default settings');
+      return this.restoreSettings('');
+    },
+
+    restoreUserSettings() {
+      this.debug('Restoring user settings');
+      return this.restoreSettings(this.user + '.');
     }
   }, {
     state: {

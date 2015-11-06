@@ -1475,24 +1475,21 @@ suite('smart-system/SyncManager >', () => {
     });
   });
 
-  suite('Default settings', () => {
+  suite('User settings', () => {
     var syncManager;
-    var successDeferred = {
-      fulfilled: false
-    };
-    successDeferred.promise = new Promise(resolve => {
-      successDeferred.resolve = () => {
-        successDeferred.fulfilled = true;
-        resolve();
-      };
-    });
 
-    var disableSuccessDeferred = {};
-    disableSuccessDeferred.promise = new Promise(resolve => {
-      disableSuccessDeferred.resolve = resolve;
-    });
+    var currentDeferred;
+
+    function getDeferred() {
+      var deferred = {};
+      deferred.promise = new Promise(resolve => {
+        deferred.resolve = resolve;
+      });
+      return deferred;
+    }
 
     var _defaults = {};
+    var _user = {};
 
     var promiseResolve = () => {
       return Promise.resolve();
@@ -1511,8 +1508,7 @@ suite('smart-system/SyncManager >', () => {
       this.sinon.stub(syncManager, 'trySync', promiseResolve);
       this.sinon.stub(syncManager, 'getAccount', promiseResolve);
       this.sinon.stub(SyncStateMachine, 'success', () => {
-        successDeferred.fulfilled ? disableSuccessDeferred.resolve()
-                                  : successDeferred.resolve();
+        currentDeferred.resolve();
       });
 
       SyncManagerSettings.forEach(setting => {
@@ -1525,9 +1521,13 @@ suite('smart-system/SyncManager >', () => {
       syncManager.stop();
     });
 
-    test('should save and restore default settings on login/logout', done => {
+    test('should save and restore user settings on login/logout', done => {
+      var user = 'user@mozilla.org';
+      syncManager.user = user;
       SyncStateMachine.enable();
-      successDeferred.promise.then(() => {
+      currentDeferred = getDeferred();
+      currentDeferred.promise.then(() => {
+        // Enabling should save default settings into asyncStorage.
         return Promise.all(SyncManagerSettings.map(setting => {
           return new Promise(resolve => {
             asyncStorage.getItem(setting, value => {
@@ -1537,29 +1537,76 @@ suite('smart-system/SyncManager >', () => {
           });
         }));
       }).then(() => {
+        // Local changes to settings.
         return Promise.all(SyncManagerSettings.map(setting => {
           return new Promise(resolve => {
-            MockNavigatorSettings.mSettings[setting] = Date.now();
+            _user[setting] = Date.now();
+            MockNavigatorSettings.mSettings[setting] = _user[setting];
             resolve();
           });
         }));
       }).then(() => {
         SyncStateMachine.state = 'enabled';
+        syncManager.user = user;
         SyncStateMachine.disable();
-        return disableSuccessDeferred.promise;
+        currentDeferred = getDeferred();
+        return currentDeferred.promise;
       }).then(() => {
+        // Disabling should restore default setting from asyncStorage.
+        // And save user settings.
         return Promise.all(SyncManagerSettings.map(setting => {
           return new Promise(resolve => {
             asyncStorage.getItem(setting, value => {
               expect(value).to.equal(null);
               expect(MockNavigatorSettings.mSettings[setting])
                 .to.equal(_defaults[setting]);
-              resolve();
+              asyncStorage.getItem(user + '.' + setting, value => {
+                expect(value).to.equal(_user[setting]);
+                resolve();
+              });
             });
           });
         }));
       }).then(() => {
+        // Login with the same user should restore user settings.
+        SyncStateMachine.state = 'disabled';
+        syncManager.user = user;
+        SyncStateMachine.enable();
+        currentDeferred = getDeferred();
+        return currentDeferred.promise;
+      }).then(() => {
+        return Promise.all(SyncManagerSettings.map(setting => {
+          return new Promise(resolve => {
+            expect(MockNavigatorSettings.mSettings[setting])
+              .to.equal(_user[setting]);
+            resolve();
+          });
+        }));
+      }).then(() => {
+        SyncStateMachine.state = 'enabled';
+        syncManager.user = user;
+        SyncStateMachine.disable();
+        currentDeferred = getDeferred();
+        return currentDeferred.promise;
+      }).then(() => {
+        // Login with a new user should restore default settings.
+        SyncStateMachine.state = 'disabled';
+        syncManager.user = 'newuser@mozilla.org';
+        SyncStateMachine.enable();
+        currentDeferred = getDeferred();
+        return currentDeferred.promise;
+      }).then(() => {
+        return Promise.all(SyncManagerSettings.map(setting => {
+          return new Promise(resolve => {
+            expect(MockNavigatorSettings.mSettings[setting])
+              .to.equal(_defaults[setting]);
+            resolve();
+          });
+        }));
+      }).then(() => {
         done();
+      }).catch(error => {
+        assert.ok(false, error);
       });
     });
   });
