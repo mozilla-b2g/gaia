@@ -15,6 +15,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
 
         self.clock = Clock(self.marionette)
         self.clock.launch()
+        self.data_layer.set_setting('time.clock.automatic-update.enabled', False)
 
     def test_clock_create_new_alarm(self):
         """ Add an alarm and set label of the new alarm
