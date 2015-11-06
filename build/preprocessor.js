@@ -106,10 +106,16 @@ function processFiles(flag, enable, list, stagePath) {
       ['index.html'],
       ['elements', 'root.html']
     ],
-    remove:[ // Remove all files in the array when the flag is disabled.
-      ['js', 'example.js'],
-      ['elements', 'example.html']
-    ]
+    remove: {
+      "ifndef": [ // Remove all files in the array when the flag is disabled.
+        ['js', 'example.js'],
+        ['elements', 'example.html']
+      ],
+      "ifdef": [ // Remove all the files in the array when the flag is enabled.
+        ['js', 'other_example.js'],
+        ['elements', 'other_example.html']
+      ]
+    }
   };
 
   // Enable:
@@ -123,7 +129,24 @@ exports.execute = function(options, flag, list) {
 
   processFiles(flag, enable, list.process, stagePath);
 
-  if (!enable && list.remove) {
-    removeFiles(stagePath, list.remove);
+  if (list.remove) {
+
+    // For backwards compatibility - if the the remove list is an array, remove
+    // if the flag is NOT enabled.
+    if (Array.isArray(list.remove)) {
+      if (!enable) {
+        removeFiles(stagePath, list.remove);
+      }
+    } else {
+      if (enable) {
+        if (list.remove.ifdef) {
+          removeFiles(stagePath, list.remove.ifdef);
+        }
+      } else {
+        if (list.remove.ifndef) {
+          removeFiles(stagePath, list.remove.ifndef);
+        }
+      }
+    }
   }
 };
