@@ -15,9 +15,11 @@ var BookmarkRemover = {
       var ttl = document.getElementById('title');
       var msg = document.getElementById('message');
       ttl.setAttribute('data-l10n-id', 'remove-title');
-      ttl.setAttribute('data-l10n-args', `{ "name": "${bookmark.name}" }`);
+      ttl.setAttribute('data-l10n-args',
+                       JSON.stringify({ name: bookmark.name }));
       msg.setAttribute('data-l10n-id', 'remove-message');
-      msg.setAttribute('data-l10n-args', `{ "name": "${bookmark.name}" }`);
+      msg.setAttribute('data-l10n-args',
+                       JSON.stringify({ name: bookmark.name }));
 
       // Action handlers
       document.getElementById('cancel-action').addEventListener('click',
