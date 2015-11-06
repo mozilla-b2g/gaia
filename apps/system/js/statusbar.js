@@ -128,6 +128,8 @@
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('iconshown', this);
       window.addEventListener('iconhidden', this);
+      window.addEventListener('systemdialogmanager-activated', this);
+      window.addEventListener('systemdialogmanager-deactivated', this);
 
       window.addEventListener('attentionopened', this);
       window.addEventListener('appwillopen', this);
@@ -211,6 +213,8 @@
 
         case 'utilitytraywillshow':
         case 'utilitytraywillhide':
+        case 'systemdialogmanager-activated':
+        case 'systemdialogmanager-deactivated':
         case 'appstatusbar-fullscreen-statusbar-set-appearance':
         case 'utility-tray-overlayopened':
         case 'utility-tray-overlayclosed':
@@ -267,10 +271,13 @@
         return;
       }
 
+      var lightApp = app.appChrome && app.appChrome.useLightTheming();
       var isFullScreen = app.isFullScreen() || document.mozFullScreen;
+      var dialogShown = Service.query('SystemDialogManager.isActive');
+      console.log(dialogShown);
 
       this.element.classList.toggle('light',
-        !!(app.appChrome && app.appChrome.useLightTheming()) && !isFullScreen
+        !!((lightApp && !isFullScreen) || dialogShown)
       );
 
       this.element.classList.toggle('fullscreen', isFullScreen);

@@ -477,6 +477,27 @@ suite('system/Statusbar', function() {
       assert.isFalse(Statusbar.element.classList.contains('maximized'));
     });
 
+    test('light when dialog is shown', function() {
+      MockService.mockQueryWith('getTopMostWindow', {
+        isFullScreen: function isFullScreen() {
+          return false;
+        },
+        isFullScreenLayout: function isFullScreenLayout() {
+          return false;
+        },
+        getTopMostWindow: function getTopMostWindow() {
+          return this;
+        },
+        isHomescreen: false,
+        isLockscreen: false
+      });
+      MockService.mockQueryWith('SystemDialogManager.isActive', true);
+      Statusbar.setAppearance();
+      assert.isTrue(Statusbar.element.classList.contains('light'));
+      assert.isFalse(Statusbar.element.classList.contains('maximized'));
+      MockService.mockQueryWith('activeDialog', false);
+    });
+
     test('setAppearance homescreen', function() {
       MockService.mockQueryWith('getTopMostWindow', {
         isHomescreen: true,

@@ -244,6 +244,7 @@
       self.addEventListener(type, this);
     }).bind(this));
     Service.request('registerHierarchy', this);
+    Service.registerState('isActive', this);
     this._initTrackingNotice();
   };
 
