@@ -1,5 +1,7 @@
 'use strict';
-/* global ItemStore, LazyLoader, Configurator, groupEditor, PinNavigation */
+/* global ItemStore, LazyLoader, Configurator,
+          groupEditor, PinAppNavigation, Clock,
+          PinAppManager, MoreAppsNavigation */
 /* global requestAnimationFrame */
 
 (function(exports) {
@@ -45,8 +47,6 @@
     window.performance.mark('navigationInteractive');
     window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
-    var moreAppsButton = document.getElementById('moreAppsButton');
-    moreAppsButton.addEventListener('click', this.showMoreApps);
   }
 
   App.prototype = {
@@ -133,10 +133,17 @@
       }.bind(this));
 
       this.pinManager = new PinAppManager();
+
+      /**
+       * After data about applications was loaded to screen it should be
+       * initialized main screen's timer for clock, manager for main screen
+       * and navigation for main screen.
+       */
       window.addEventListener('pin-app-loaded', function(e) {
         this.pinManager.init();
         this.clock.start();
-        this.pinNavigation = new PinAppNavigation(document.getElementById('pin-apps-list'));
+        var pinApps = document.getElementById('pin-apps-list');
+        this.pinNavigation = new PinAppNavigation(pinApps);
         this.pinNavigation.points_selector = '#pin-apps-list .pin-app-item';
       }.bind(this));
 
@@ -172,17 +179,17 @@
 
     showMoreApps: function() {
       this.inMoreApps = true;
-      console.log("inMoreApps is : " + this.inMoreApps);
-      document.getElementById("main-screen").classList.add('hidden');
-      document.getElementById("more-apps-screen").classList.remove('hidden');;
+      console.log('inMoreApps is : ' + this.inMoreApps);
+      document.getElementById('main-screen').classList.add('hidden');
+      document.getElementById('more-apps-screen').classList.remove('hidden');
       MoreAppsNavigation.reset();
     },
 
     hideMoreApps: function() {
       this.inMoreApps = false;
-      console.log("inMoreApps is : " + this.inMoreApps);
-      document.getElementById("main-screen").classList.remove('hidden');
-      document.getElementById("more-apps-screen").classList.add('hidden');
+      console.log('inMoreApps is : ' + this.inMoreApps);
+      document.getElementById('main-screen').classList.remove('hidden');
+      document.getElementById('more-apps-screen').classList.add('hidden');
       MoreAppsNavigation.stopListeningKeydownEvents();
     },
 
@@ -200,17 +207,8 @@
         item.updateTitle();
       });
       this.renderGrid();
+      app.pinManager.items.forEach(item => item.render());
     },
-
-
-    /**
-     * Called when we press 'Done' to exit edit mode.
-     * Fires a custom event to use the same path as pressing the home button.
-     */
-//    exitEditMode: function(e) {
-//      e.preventDefault();
-//      window.dispatchEvent(new CustomEvent('hashchange'));
-//    },
 
     /**
      * General event handler.

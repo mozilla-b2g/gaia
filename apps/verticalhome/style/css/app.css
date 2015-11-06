@@ -26,6 +26,9 @@ body {
   transition: all 0.5s ease 0s;
   opacity: 1;
   visibility: visible;
+}
+
+#more-apps-screen {
   height: 100%;
 }
 
@@ -35,37 +38,6 @@ body {
   color: white;
   text-align: center;
   font-size: 16pt;
-}
-
-gaia-grid-rs {
-  display: block;
-  height: 20rem !important;
-  overflow-y: auto;
-  position: fixed;
-  padding-bottom: 5rem;
-  transition: height 0s 0.5s;
-}
-
-gaia-grid-rs .icon {
-  background-position: center !important;
-  background-size: 50px !important;
-  transition: all 0.5s ease 0s !important;
-}
-
-gaia-grid-rs .icon.selected {
-  background-position: top !important;
-  background-size: 75px !important;
-  transition: all 0.5s ease 0s !important;
-}
-
-gaia-grid-rs .icon p {
-  visibility: hidden;
-  margin-top: 75px !important;
-}
-
-gaia-grid-rs .icon.selected p {
-  visibility: visible;
-  margin-top: 75px !important;
 }
 
 #curtain {
@@ -115,6 +87,11 @@ body.edit-group {
   overflow: hidden;
 }
 
+.not-visible{
+  opacity: 0;
+}
+
+
 #clock {
   width: 20rem;
   margin: 0 auto;
@@ -139,6 +116,3 @@ body.edit-group {
   font-weight: 300;
 }
 
-.not-visible{
-  opacity: 0 !important;
-}

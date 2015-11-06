@@ -1,10 +1,4 @@
 'use strict';
-/* global ApplicationSource */
-/* global BookmarkSource */
-/* global CollectionSource */
-/* global configurator */
-/* global dispatchEvent */
-/* global GaiaGrid */
 
 (function(exports) {
 
@@ -15,14 +9,14 @@
    */
   function PinAppNavigation(list) {
     if (!list && typeof list !== 'object') {
-      console.log('List of pin apps must be an object');
+      console.error('List of pin apps must be an object');
       return;
     }
 
     this.elemList = list;
     window.removeEventListener('keydown', this);
     window.addEventListener('keydown', this);
-  };
+  }
 
 
   PinAppNavigation.prototype = {
@@ -42,6 +36,9 @@
      * @return {[nothing]} [nothing]
      */
     reset: function reset() {
+
+      window.addEventListener('keydown', this);
+
       this.elements.sort(function(elem1, elem2) {
         if (!elem1.dataset.index || !elem2.dataset.index) {
           return 1;
@@ -53,7 +50,7 @@
       var selected = this.elemList.querySelector('.selected');
 
       if (selected) {
-        selected.classList.remove('selected')
+        selected.classList.remove('selected');
       }
 
       this.selectedElemIndex = 0;
@@ -78,8 +75,6 @@
         toRemoveOutFocus.classList.remove('out-focus');
       }
 
-      window.removeEventListener('keydown', this);
-      window.addEventListener('keydown', this);
     },
 
 
@@ -89,20 +84,21 @@
      */
     refresh: function refresh() {
       if (!this.selector) {
-        console.log('Can not work without selector');
+        console.error('Can not work without selector');
         return;
       }
 
-      this.elements = Array.prototype.slice.call(document.querySelectorAll(this.selector));
+      var allItems = document.querySelectorAll(this.selector);
+      this.elements = Array.prototype.slice.call(allItems);
 
       if (!this.elements && !this.elements.length) {
-        console.log('Can not find any elements by this selector');
+        console.error('Can not find any elements by this selector');
         return;
       }
 
       this.elements[this.selectedElemIndex].classList.add('selected');
-        this.elements[this.selectedElemIndex].classList.add('middle');
-        this.middleElem = true;
+      this.elements[this.selectedElemIndex].classList.add('middle');
+      this.middleElem = true;
     },
 
 
@@ -113,51 +109,54 @@
      */
     handleEvent: function(e) {
 
+      var self = this;
+
       function cycleElements(index) {
 
-        var removed = this.elements.splice(-index, index);
+        var removed = self.elements.splice(-index, index);
 
         for (var i = 0; i < removed.length; i++) {
 
-          this.elemList.insertBefore(removed[i], this.elements[0 + i]);
-          this.elements.splice(0 + i, 0, removed[i]);
+          self.elemList.insertBefore(removed[i], self.elements[i]);
+          self.elements.splice(i, 0, removed[i]);
 
         }
 
-      };
+      }
 
       if (this.preventDef) {
         e.preventDefault();
       }
 
       function preVerticalNavigation () {
-        if (this.middleElem) {
+        if (self.middleElem) {
           document.querySelector('.middle').classList.remove('middle');
-          this.middleElem = false;
+          self.middleElem = false;
         }
 
 
-        var toRemoved = this.elemList.querySelector('.removed');
-        var toRemoveOutFocus = this.elemList.querySelector('.out-focus');
+        var toRemoved = self.elemList.querySelector('.removed');
+        var toRemoveOutFocus = self.elemList.querySelector('.out-focus');
 
         if (toRemoved) {
-          this.elemList.removeChild(toRemoved);
+          self.elemList.removeChild(toRemoved);
         }
 
         if (toRemoveOutFocus) {
           toRemoveOutFocus.classList.remove('out-focus');
         }
-      };
+      }
 
       if (this.preventDef){
         e.preventDefault();
       }
 
+      var topStyle = null;
 
       switch(e.key) {
         case 'ArrowUp':
 
-          preVerticalNavigation.call(this);
+          preVerticalNavigation();
           document.getElementById('clock').classList.add('not-visible');
 
           if (this.elemList.dataset.scrollup) {
@@ -172,8 +171,9 @@
           this.elements[this.selectedElemIndex].classList.remove('selected');
           if (this.selectedElemIndex >= 0 && this.selectedElemIndex < 4) {
 
-            cycleElements.call(this, (deltaElemsToStartScroll - this.selectedElemIndex));
-            this.selectedElemIndex += deltaElemsToStartScroll - this.selectedElemIndex;
+            var cycledElem = deltaElemsToStartScroll - this.selectedElemIndex;
+            cycleElements(cycledElem);
+            this.selectedElemIndex += cycledElem;
 
             this.selectedElemIndex--;
             this.elements[this.selectedElemIndex].classList.add('selected');
@@ -184,7 +184,8 @@
             this.elements[this.selectedElemIndex].classList.add('selected');
 
             if (this.selectedElemIndex > 3) {
-              this.elemList.style.top = parseFloat(this.elemList.style.top) + 6 + 'rem';
+              topStyle = parseFloat(this.elemList.style.top);
+              this.elemList.style.top =  topStyle + 6 + 'rem';
               this.elemList.dataset.scrollup = this.elemList.style.top;
             }
 
@@ -195,8 +196,16 @@
 
 
           this.elemList.insertBefore(clonedElem, this.elements[0]);
+
+          if (app.pinManager.items[+clonedElem.dataset.index]){
+            app.pinManager.
+                items[+clonedElem.dataset.index].
+                refreshDomElem(clonedElem);
+          }
+
           this.elements.splice(0, 0, clonedElem);
           this.elements[0].classList.add('out-focus');
+
           this.selectedElemIndex++;
 
           lastElem.classList.add('removed');
@@ -209,13 +218,14 @@
 
         case 'ArrowDown':
 
-          preVerticalNavigation.call(this);
+          preVerticalNavigation();
           document.getElementById('clock').classList.add('not-visible');
 
           this.elements[this.selectedElemIndex].classList.remove('selected');
           if (this.selectedElemIndex == (this.elements.length - 3)) {
             if (!this.elemList.dataset.scrolldown) {
-              this.elemList.style.top = parseFloat(this.elemList.style.top) - 6 + 'rem';
+              topStyle = parseFloat(this.elemList.style.top);
+              this.elemList.style.top = topStyle - 6 + 'rem';
               this.elemList.dataset.scrolldown = this.elemList.style.top;
             }
 
@@ -228,6 +238,13 @@
             removed[0].classList.add('removed');
 
             this.elemList.appendChild(cloned);
+
+            if (app.pinManager.items[+cloned.dataset.index]){
+              app.pinManager.
+                  items[+cloned.dataset.index].
+                  refreshDomElem(cloned);
+            }
+
             this.elements[this.elements.length] = cloned;
 
             this.selectedElemIndex++;
@@ -238,7 +255,8 @@
             this.selectedElemIndex++;
             this.elements[this.selectedElemIndex].classList.add('selected');
 
-            this.elemList.style.top = parseFloat(this.elemList.style.top) - 6 + 'rem';
+            topStyle = parseFloat(this.elemList.style.top);
+            this.elemList.style.top = topStyle - 6 + 'rem';
             this.elemList.dataset.scrolldown = this.elemList.style.top;
           }
 
@@ -254,10 +272,12 @@
 
           window.removeEventListener('keydown', this);
 
-          if (this.elements[this.selectedElemIndex].getAttribute('id') == "moreApps") {
+          var elemId = this.elements[this.selectedElemIndex].getAttribute('id');
+          if ( elemId === 'moreApps') {
             app.showMoreApps();
           } else {
-            app.getAppByURL(this.elements[this.selectedElemIndex].dataset.manifesturl).launch();
+
+            this.elements[this.selectedElemIndex].click();
           }
 
           break;
@@ -277,8 +297,9 @@
 
     /**
      * Setter for preventDefault parameter. Default value is false.
-     * @param  {[boolean]} value [if true  preventDefault() function will be called there]
-     * @return {[nothing]}       [nothing]
+     * @param  {boolean} value  if true preventDefault()
+     *                          function will be called there
+     * @return {nothing}
      */
     set prevent(value) {
       if (typeof value === 'boolean') {
