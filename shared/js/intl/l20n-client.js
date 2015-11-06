@@ -1,4 +1,9 @@
-(function () { 'use strict';
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+(function () {
+  'use strict';
 
   /* global bridge, BroadcastChannel */
 
@@ -10,25 +15,21 @@
   const reOverlay = /<|&#?\w+;/;
 
   const allowed = {
-    elements: [
-      'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data',
-      'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u',
-      'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'
-    ],
+    elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
     attributes: {
-      global: [ 'title', 'aria-label', 'aria-valuetext', 'aria-moz-hint' ],
-      a: [ 'download' ],
-      area: [ 'download', 'alt' ],
+      global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
+      a: ['download'],
+      area: ['download', 'alt'],
       // value is special-cased in isAttrAllowed
-      input: [ 'alt', 'placeholder' ],
-      menuitem: [ 'label' ],
-      menu: [ 'label' ],
-      optgroup: [ 'label' ],
-      option: [ 'label' ],
-      track: [ 'label' ],
-      img: [ 'alt' ],
-      textarea: [ 'placeholder' ],
-      th: [ 'abbr']
+      input: ['alt', 'placeholder'],
+      menuitem: ['label'],
+      menu: ['label'],
+      optgroup: ['label'],
+      option: ['label'],
+      track: ['label'],
+      img: ['alt'],
+      textarea: ['placeholder'],
+      th: ['abbr']
     }
   };
 
@@ -74,7 +75,7 @@
     // the allowed list or try to match it with a corresponding element
     // in the source
     let childElement;
-    while ((childElement = translationElement.childNodes[0])) {
+    while (childElement = translationElement.childNodes[0]) {
       translationElement.removeChild(childElement);
 
       if (childElement.nodeType === childElement.TEXT_NODE) {
@@ -92,17 +93,14 @@
       }
 
       if (isElementAllowed(childElement)) {
-        const sanitizedChild = childElement.ownerDocument.createElement(
-          childElement.nodeName);
+        const sanitizedChild = childElement.ownerDocument.createElement(childElement.nodeName);
         overlay(sanitizedChild, childElement);
         result.appendChild(sanitizedChild);
         continue;
       }
 
       // otherwise just take this child's textContent
-      result.appendChild(
-        translationElement.ownerDocument.createTextNode(
-          childElement.textContent));
+      result.appendChild(translationElement.ownerDocument.createTextNode(childElement.textContent));
     }
 
     // clear `sourceElement` and append `result` which by this time contains
@@ -115,7 +113,7 @@
     // XXX attributes previously set here for another language should be
     // cleared if a new language doesn't use them; https://bugzil.la/922577
     if (translationElement.attributes) {
-      for (k = 0, attr; (attr = translationElement.attributes[k]); k++) {
+      for (k = 0, attr; attr = translationElement.attributes[k]; k++) {
         if (isAttrAllowed(attr, sourceElement)) {
           sourceElement.setAttribute(attr.name, attr.value);
         }
@@ -162,8 +160,7 @@
     /* jshint boss:true */
     let nthOfType = 0;
     for (let i = 0, child; child = context.children[i]; i++) {
-      if (child.nodeType === child.ELEMENT_NODE &&
-          child.tagName === element.tagName) {
+      if (child.nodeType === child.ELEMENT_NODE && child.tagName === element.tagName) {
         if (nthOfType === index) {
           return child;
         }
@@ -177,7 +174,7 @@
   function getIndexOfType(element) {
     let index = 0;
     let child;
-    while ((child = element.previousElementSibling)) {
+    while (child = element.previousElementSibling) {
       if (child.tagName === element.tagName) {
         index++;
       }
@@ -191,24 +188,20 @@
       return 'aria-valuetext';
     }
 
-    return string
-      .replace(/[A-Z]/g, function (match) {
-        return '-' + match.toLowerCase();
-      })
-      .replace(/^-/, '');
+    return string.replace(/[A-Z]/g, function (match) {
+      return '-' + match.toLowerCase();
+    }).replace(/^-/, '');
   }
 
   const reHtml = /[&<>]/g;
   const htmlEntities = {
     '&': '&amp;',
     '<': '&lt;',
-    '>': '&gt;',
+    '>': '&gt;'
   };
 
   function getResourceLinks(head) {
-    return Array.prototype.map.call(
-      head.querySelectorAll('link[rel="localization"]'),
-      el => el.getAttribute('href'));
+    return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), el => el.getAttribute('href'));
   }
 
   function setAttributes(element, id, args) {
@@ -228,8 +221,7 @@
   function getTranslatables(element) {
     const nodes = Array.from(element.querySelectorAll('[data-l10n-id]'));
 
-    if (typeof element.hasAttribute === 'function' &&
-        element.hasAttribute('data-l10n-id')) {
+    if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
       nodes.push(element);
     }
 
@@ -267,7 +259,7 @@
     translateElements(view, langs, Array.from(targets));
   }
 
-  function translateFragment(view, langs, frag) {
+  function _translateFragment(view, langs, frag) {
     return translateElements(view, langs, getTranslatables(frag));
   }
 
@@ -275,18 +267,14 @@
     const keys = elems.map(elem => {
       const id = elem.getAttribute('data-l10n-id');
       const args = elem.getAttribute('data-l10n-args');
-      return args ? [
-        id,
-        JSON.parse(args.replace(reHtml, match => htmlEntities[match]))
-      ] : id;
+      return args ? [id, JSON.parse(args.replace(reHtml, match => htmlEntities[match]))] : id;
     });
 
     return view._resolveEntities(langs, keys);
   }
 
   function translateElements(view, langs, elements) {
-    return getElementsTranslation(view, langs, elements).then(
-      translations => applyTranslations(view, elements, translations));
+    return getElementsTranslation(view, langs, elements).then(translations => applyTranslations(view, elements, translations));
   }
 
   function applyTranslations(view, elems, translations) {
@@ -321,8 +309,7 @@
   // Intl.Locale
   function getDirection(code) {
     const tag = code.split('-')[0];
-    return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ?
-      'rtl' : 'ltr';
+    return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ? 'rtl' : 'ltr';
   }
 
   const observerConfig = {
@@ -335,16 +322,17 @@
 
   const readiness = new WeakMap();
 
-  class View {
-    constructor(client, doc) {
+  let View = (function () {
+    function View(client, doc) {
+      _classCallCheck(this, View);
+
       this._doc = doc;
       this.pseudo = {
         'fr-x-psaccent': createPseudo(this, 'fr-x-psaccent'),
         'ar-x-psbidi': createPseudo(this, 'ar-x-psbidi')
       };
 
-      this._interactive = documentReady().then(
-        () => init(this, client));
+      this._interactive = documentReady().then(() => init(this, client));
 
       const observer = new MutationObserver(onMutations.bind(this));
       this._observe = () => observer.observe(doc, observerConfig);
@@ -352,96 +340,93 @@
 
       const translateView = langs => translateDocument(this, langs);
       client.on('translateDocument', translateView);
-      this.ready = this._interactive.then(
-        client => client.method('resolvedLanguages')).then(
-        translateView);
+      this.ready = this._interactive.then(client => client.method('resolvedLanguages')).then(translateView);
     }
 
-    requestLanguages(langs, global) {
-      return this._interactive.then(
-        client => client.method('requestLanguages', langs, global));
-    }
+    _createClass(View, [{
+      key: 'requestLanguages',
+      value: function requestLanguages(langs, global) {
+        return this._interactive.then(client => client.method('requestLanguages', langs, global));
+      }
+    }, {
+      key: '_resolveEntities',
+      value: function _resolveEntities(langs, keys) {
+        return this._interactive.then(client => client.method('resolveEntities', client.id, langs, keys));
+      }
+    }, {
+      key: 'formatValue',
+      value: function formatValue(id, args) {
+        return this._interactive.then(client => client.method('formatValues', client.id, [[id, args]])).then(values => values[0]);
+      }
+    }, {
+      key: 'formatValues',
+      value: function formatValues(...keys) {
+        return this._interactive.then(client => client.method('formatValues', client.id, keys));
+      }
+    }, {
+      key: 'translateFragment',
+      value: function translateFragment(frag) {
+        return this._interactive.then(client => client.method('resolvedLanguages')).then(langs => _translateFragment(this, langs, frag));
+      }
+    }]);
 
-    _resolveEntities(langs, keys) {
-      return this._interactive.then(
-        client => client.method('resolveEntities', client.id, langs, keys));
-    }
-
-    formatValue(id, args) {
-      return this._interactive.then(
-        client => client.method('formatValues', client.id, [[id, args]])).then(
-        values => values[0]);
-    }
-
-    formatValues(...keys) {
-      return this._interactive.then(
-        client => client.method('formatValues', client.id, keys));
-    }
-
-    translateFragment(frag) {
-      return this._interactive.then(
-        client => client.method('resolvedLanguages')).then(
-        langs => translateFragment(this, langs, frag));
-    }
-  }
+    return View;
+  })();
 
   View.prototype.setAttributes = setAttributes;
   View.prototype.getAttributes = getAttributes;
 
   function createPseudo(view, code) {
     return {
-      getName: () => view._interactive.then(
-        client => client.method('getName', code)),
-      processString: str => view._interactive.then(
-        client => client.method('processString', code, str)),
+      getName: () => view._interactive.then(client => client.method('getName', code)),
+      processString: str => view._interactive.then(client => client.method('processString', code, str))
     };
   }
 
   function init(view, client) {
     view._observe();
-    return client.method(
-      'registerView', client.id, getResourceLinks(view._doc.head)).then(
-        () => client);
+    return client.method('registerView', client.id, getResourceLinks(view._doc.head)).then(() => client);
   }
 
   function onMutations(mutations) {
-    return this._interactive.then(
-      client => client.method('resolvedLanguages')).then(
-      langs => translateMutations(this, langs, mutations));
+    return this._interactive.then(client => client.method('resolvedLanguages')).then(langs => translateMutations(this, langs, mutations));
   }
 
   function translateDocument(view, langs) {
     const html = view._doc.documentElement;
 
     if (readiness.has(html)) {
-      return translateFragment(view, langs, html).then(
-        () => setDOMAttrsAndEmit(html, langs));
+      return _translateFragment(view, langs, html).then(() => setAllAndEmit(html, langs));
     }
 
     const translated =
-      // has the document been already pre-translated?
-      langs[0].code === html.getAttribute('lang') ?
-        Promise.resolve() :
-        translateFragment(view, langs, html).then(
-          () => setDOMAttrs(html, langs));
+    // has the document been already pre-translated?
+    langs[0].code === html.getAttribute('lang') ? Promise.resolve() : _translateFragment(view, langs, html).then(() => setLangDir(html, langs));
 
-    return translated.then(
-      () => readiness.set(html, true));
+    return translated.then(() => {
+      setLangs(html, langs);
+      readiness.set(html, true);
+    });
   }
 
-  function setDOMAttrsAndEmit(html, langs) {
-    setDOMAttrs(html, langs);
-    html.parentNode.dispatchEvent(new CustomEvent('DOMRetranslated', {
-      bubbles: false,
-      cancelable: false,
-    }));
-  }
-
-  function setDOMAttrs(html, langs) {
+  function setLangs(html, langs) {
     const codes = langs.map(lang => lang.code);
     html.setAttribute('langs', codes.join(' '));
-    html.setAttribute('lang', codes[0]);
-    html.setAttribute('dir', getDirection(codes[0]));
+  }
+
+  function setLangDir(html, langs) {
+    const code = langs[0].code;
+    html.setAttribute('lang', code);
+    html.setAttribute('dir', getDirection(code));
+  }
+
+  function setAllAndEmit(html, langs) {
+    setLangDir(html, langs);
+    setLangs(html, langs);
+    html.parentNode.dispatchEvent(new CustomEvent('DOMRetranslated', {
+      bubbles: false,
+      cancelable: false
+    }));
   }
 
   const client = new Client({
@@ -466,7 +451,6 @@
     ready: cb => document.l10n.ready.then(() => {
       document.addEventListener('DOMRetranslated', cb);
       cb();
-    }),
+    })
   };
-
 })();
