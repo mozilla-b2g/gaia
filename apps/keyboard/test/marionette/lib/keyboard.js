@@ -4,12 +4,15 @@
  * A helper module for the built-in keyboard app.
  */
 
+var Base = require('./base');
 var Marionette = require('marionette-client');
 
 function Keyboard(client) {
-  this.client = client.scope({ searchTimeout: 20000 });
+  Base.call(this, client, Keyboard.ORIGIN, null);
+
   this.actions = new Marionette.Actions(client);
 }
+
 module.exports = Keyboard;
 
 Keyboard.ORIGIN =  'app://keyboard.gaiamobile.org';
@@ -20,6 +23,8 @@ Keyboard.Selector = Object.freeze({
   currentPanel: '.keyboard-type-container[data-active]',
   imeSwitchingKey: '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-keycode="-3"]',
+  backspaceKey: '.keyboard-type-container[data-active] ' +
+    '.keyboard-key[data-keycode="8"]',
   returnKey: '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-l10n-id="returnKey2"]',
   dismissSuggestionsButton: '.keyboard-type-container[data-active] ' +
@@ -33,10 +38,26 @@ Keyboard.Selector = Object.freeze({
   upperCaseKey: '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-keycode-upper="%s"]',
   pageSwitchingKey: '.keyboard-type-container[data-active] ' +
-    'button.keyboard-key[data-target-page="%s"]'
+    'button.keyboard-key[data-target-page="%s"]',
+  activeKeyboardFrame: '#keyboards .inputWindow.active iframe',
+  predictiveWord: '.autocorrect',
+  suggestionKey: '.suggestions-container span[data-data="%s"]'
 });
 
+Keyboard.TypeGroupMap = {
+  'text': 'text',
+  'textarea': 'text',
+  'url': 'url',
+  'email': 'email',
+  'password': 'password',
+  'search': 'text',
+  'number': 'number',
+  'tel': 'number'
+};
+
 Keyboard.prototype = {
+   __proto__: Base.prototype,
+
   // getters for DOM elements in keyboard app
   get imeSwitchingKey() {
     return this.client.findElement(Keyboard.Selector.imeSwitchingKey);
@@ -56,11 +77,30 @@ Keyboard.prototype = {
     return this.client.findElement(Keyboard.Selector.shiftKey);
   },
 
+  get backspaceKey() {
+    return this.client.findElement(Keyboard.Selector.backspaceKey);
+  },
+
+  get activeKeyboardFrame() {
+    return this.client.findElement(Keyboard.Selector.activeKeyboardFrame);
+  },
+
+  get autoCorrect() {
+    return this.client.settings.get('keyboard.autocorrect'); 
+  },
+
+  get predictiveWord() {
+    return this.client.findElement(Keyboard.Selector.predictiveWord);
+  },
+
   getKey: function getKey(key) {
     var keySelector = Keyboard.Selector.key;
 
     if (key >= '0' && key <='9') {
-      this.switchToPage(1);
+      if (this.getCurrentInputType() !== 'number' && 
+          this.getCurrentInputMode() !== 'numeric') {
+        this.switchToPage(1);
+      }
     } else if (key >= 'A' && key <= 'Z') {
       this.switchToPage(0);
       this.switchCase(true);
@@ -97,28 +137,25 @@ Keyboard.prototype = {
     return 2;
   },
 
-  switchCase: function switchCase(upperCase) {
-    if (this.isUpperCase() === upperCase) {
-      return;
-    }
-
-    var shiftKey = this.shiftKey;
-
-    shiftKey.tap();
-    this.client.waitFor(function() {
-      var expected = upperCase ? 'true' : 'false';
-      return (shiftKey.getAttribute('aria-pressed') === expected);
-    });
+  getSuggestionKey: function(word) {
+    var selector = Keyboard.Selector.suggestionKey.replace(/%s/, word);
+    return this.client.findElement(selector);
   },
 
-  switchToPage: function(index) {
-    var pageIndex = this.getCurrentPageIndex();
-    if (pageIndex === index) {
-      return;
-    }
+  getCurrentKeyboard: function() {
+    var activeFrame = this.activeKeyboardFrame;
 
-    var pageSwitchingKey = this.getPageSwitchingKey(index);
-    pageSwitchingKey.tap();
+    return activeFrame.getAttribute('data-frame-name');
+  },
+
+  getCurrentInputType: function () {
+    return this.client.executeScript(
+      'return window.wrappedJSObject.app.getBasicInputType();');
+  },
+
+  getCurrentInputMode: function () {
+    return this.client.executeScript(
+      'return window.wrappedJSObject.app.inputContext.inputMode;');
   },
 
   getCurrentPageIndex: function() {
@@ -145,6 +182,36 @@ Keyboard.prototype = {
     return true;
   },
 
+  isKeyPresent: function (key) {
+    var keySelector = Keyboard.Selector.key;
+
+    return this.isElementPresent(keySelector.replace(/%s/g, key.charCodeAt(0)));
+  },
+  
+  switchCase: function switchCase(upperCase) {
+    if (this.isUpperCase() === upperCase) {
+      return;
+    }
+
+    var shiftKey = this.shiftKey;
+
+    shiftKey.tap();
+    this.client.waitFor(function() {
+      var expected = upperCase ? 'true' : 'false';
+      return (shiftKey.getAttribute('aria-pressed') === expected);
+    });
+  },
+
+  switchToPage: function(index) {
+    var pageIndex = this.getCurrentPageIndex();
+    if (pageIndex === index) {
+      return;
+    }
+
+    var pageSwitchingKey = this.getPageSwitchingKey(index);
+    pageSwitchingKey.tap();
+  },
+
   type: function(string) {
     string.split('').forEach(function(char) {
       var middleChar = this.getLongPressCharMiddleChar(char);
@@ -163,6 +230,22 @@ Keyboard.prototype = {
         chain.move(longPressKeyElement).release().perform();
       }
     }, this);
+  },
+
+  tapBackspaceKey: function(word) {
+    this.backspaceKey.tap();
+  },
+
+  tapFirstPredictiveWord: function() {
+    this.client.waitFor(function() {
+      return this.predictiveWord.displayed();
+    }.bind(this));
+
+    this.predictiveWord.tap();
+  },
+
+  tapSuggestionKey: function(word) {
+    this.getSuggestionKey(word).tap();  
   },
 
   LONGPRESS_CHARS: Object.freeze({
@@ -204,5 +287,13 @@ Keyboard.prototype = {
     }
 
     return undefined;
+  },
+
+  switchTo: function() {
+    var systemInputMgmt = this.client.loader.getAppClass(
+      'system', 'input_management');
+
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    systemInputMgmt.switchToActiveKeyboardFrame();
   }
 };
