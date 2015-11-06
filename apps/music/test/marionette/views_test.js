@@ -79,4 +79,54 @@ marionette('Music views', function() {
     }
   });
 
+
+  // ported from GiP test_music_album_mp3.py
+  test('Check album view. moztrap:3755', function() {
+    try {
+      music.switchToAlbumsView();
+
+      var list = music.albumsListItemsData;
+
+      var album = list[0].title;
+      assert.equal(album, 'We crash computers');
+      music.selectAlbum(album);
+      music.playFirstSongByAlbum();
+      music.waitForPlayerView();
+    } catch(e) {
+      assert.ok(false, e.stack);
+    }
+  });
+
+  // ported from GiP test_music_artist_mp3.py
+  test('Check artist view. moztrap:4031', function() {
+    try {
+      music.switchToArtistsView();
+
+      var list = music.artistsListItemsData;
+
+      var artist = list[0].title;
+      assert.equal(artist, 'The Angry Programmers');
+      music.selectArtist(artist);
+      music.playFirstSongByArtist();
+      music.waitForPlayerView();
+    } catch(e) {
+      assert.ok(false, e.stack);
+    }
+  });
+
+  // ported from GiP test_music_songs_mp3.py
+  test('Check songs view. moztrap:4031', function() {
+    try {
+      music.switchToSongsView();
+
+      var list = music.songsListItemsData;
+
+      assert.equal(list[0].title, 'Abort');
+      music.playFirstSong();
+      music.waitForPlayerView();
+    } catch(e) {
+      assert.ok(false, e.stack);
+    }
+  });
+
 });
