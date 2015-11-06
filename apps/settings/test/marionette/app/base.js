@@ -33,6 +33,13 @@ Base.prototype = {
   },
 
   /**
+   * Close settings app.
+   */
+  close: function() {
+    this.client.apps.close(this.origin);
+  },
+
+  /**
    * @protected
    * @param {String} name of selector [its a key in Settings.Selectors].
    */

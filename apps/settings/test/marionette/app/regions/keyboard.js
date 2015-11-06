@@ -16,7 +16,10 @@ module.exports = KeyboardPanel;
 KeyboardPanel.Selectors = {
   keyboardList: '.allKeyboardList li',
   header: '#keyboard gaia-header',
-  panel: '#keyboard'
+  panel: '#keyboard',
+  selectKeyboards: '#keyboard a[href="#keyboard-selection-addMore"]',
+  builtinKeyboardList: '#keyboard-selection-addMore .keyboardAppContainer ul',
+  backButton: '#keyboard-selection-addMore gaia-header'
 };
 
 KeyboardPanel.prototype = {
@@ -29,6 +32,26 @@ KeyboardPanel.prototype = {
 
   tapBuiltInKeyboardItem: function() {
     this.waitForElement('keyboardList').tap();
+  },
+
+  tapSelectKeyboards: function() {
+    this.waitForElement('selectKeyboards').tap();
+  },
+
+  selectLayout: function(layoutLabel) {
+    var builtinKeyboardList = this.waitForElement('builtinKeyboardList');
+    var layout = builtinKeyboardList.scriptWith(function(list, layoutLabel) {
+      var langs = list.querySelectorAll('bdi');
+      return [].filter.call(langs, function(lang) {
+        return (lang.innerHTML === layoutLabel);
+      })[0];
+    }, [layoutLabel]);
+    layout.tap();
+  },
+
+  tapBackButton: function() {
+    var header = this.waitForElement('backButton');
+    header.tap(25, 25);
   },
 
   isDialog: function() {
