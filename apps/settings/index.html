@@ -166,7 +166,9 @@
     <link rel="import" href="/elements/operator_settings.html">
     <link rel="import" href="/elements/carrier_detail.html">
     <link rel="import" href="/elements/carrier.html">
+<!--IFNDEF_NO_BLUETOOTH--
     <link rel="import" href="/elements/bluetooth.html">
+ENDIF_NO_BLUETOOTH-->
     <link rel="import" href="/elements/hotspot_wifi_settings.html">
     <link rel="import" href="/elements/hotspot.html">
     <link rel="import" href="/elements/sound.html">
@@ -321,8 +323,10 @@
     <section role="region" is="carrier-detail" id="carrier-detail"></section>
     <!-- Connectivity :: Cellular & Data -->
     <section role="region" is="carrier" id="carrier" data-require-sub-panels="true"></section>
+<!--IFNDEF_NO_BLUETOOTH--
     <!-- Connectivity :: Bluetooth -->
     <section role="region" is="bluetooth" id="bluetooth"></section>
+ENDIF_NO_BLUETOOTH-->
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
     <section role="region" class="dialog" is="hotspot-wifiSettings" id="hotspot-wifiSettings"></section>
     <!-- Connectivity :: Internet Sharing -->

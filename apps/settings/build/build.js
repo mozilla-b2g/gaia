@@ -195,6 +195,29 @@ SettingsAppBuilder.prototype.enableDataSync = function(options) {
   preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
 };
 
+SettingsAppBuilder.prototype.disableBluetoothSettings = function(options) {
+  var fileList = {
+    process: [
+      ['index.html'],
+      ['elements', 'root.html']
+    ],
+    remove: {
+      'ifdef': [
+        ['elements', 'templates', 'bluetooth.html'],
+        ['js', 'modules', 'bluetooth'],
+        ['js', 'panels', 'bluetooth'],
+        ['panels', 'bluetooth'],
+        ['test', 'marionette', 'app', 'regions', 'bluetooth.js'],
+        ['test', 'marionette', 'tests', 'bluetooth_settings_test.js'],
+        ['test', 'unit', 'modules', 'bluetooth'],
+        ['test', 'unit', 'panels', 'root', 'bluetoo_item_test.js']
+      ]
+    }
+  };
+
+  preprocessor.execute(options, 'NO_BLUETOOTH', fileList);
+};
+
 SettingsAppBuilder.prototype.execute = function(options) {
   this.writeGitCommit(options);
   this.writeDeviceFeaturesJSON(options);
@@ -204,6 +227,7 @@ SettingsAppBuilder.prototype.execute = function(options) {
 
   return this.executeRjs(options).then(function() {
     this.enableDataSync(options);
+    this.disableBluetoothSettings(options);
     this.executeJsmin(options);
   }.bind(this));
 };
