@@ -41,7 +41,7 @@ function ActionsMenu(client) {
 }
 
 ActionsMenu.Selectors = Object.freeze({
-  menu: 'form#ringtone-actions',
+  menu: 'gaia-menu#ringtone-actions',
   shareButton: 'button[data-action="share"]',
   deleteButton: 'button[data-action="delete"]',
   cancelButton: 'button[data-action="cancel"]',

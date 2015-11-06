@@ -15,11 +15,9 @@ function ActionsMenu(menuElement) {
     return menuElement.querySelector('button[data-action="' + action + '"]');
   }
 
-  this._cancelButton = getButton('cancel');
   this._shareButton = getButton('share');
   this._deleteButton = getButton('delete');
 
-  this._cancelButton.addEventListener('click', this._cancel.bind(this));
   this._shareButton.addEventListener('click', this._share.bind(this));
   this._deleteButton.addEventListener('click', this._delete.bind(this));
 }
@@ -53,30 +51,13 @@ ActionsMenu.prototype = {
   },
 
   /**
-   * Close the actions menu.
-   */
-  close: function() {
-    this._menuElement.hidden = true;
-  },
-
-  /**
-   * Handle clicking the "cancel" button.
-   *
-   * @param {Event} event The event.
-   */
-  _cancel: function(event) {
-    this.close();
-    this._finish('cancel');
-  },
-
-  /**
    * Handle clicking the "share" button.
    *
    * @param {Event} event The event.
    */
   _share: function(event) {
     var self = this;
-    this.close();
+    this._menuElement.hide();
 
     this._tone.getBlob().then(function(blob) {
       var activity = new MozActivity({
@@ -110,7 +91,7 @@ ActionsMenu.prototype = {
    */
   _delete: function(event) {
     var self = this;
-    this.close();
+    this._menuElement.hide();
 
     var messageKey = 'delete-message';
     if (self._inUseAs.length) {
