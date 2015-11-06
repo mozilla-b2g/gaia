@@ -28,12 +28,12 @@ input[type="checkbox"].settings-list-checkbox:disabled ~ span {
 }
 
 input[type="checkbox"].settings-list-checkbox:checked + label::after {
-  font-family: "gaia-icons";
+  font-family: "smart-icons";
   font-style: normal;
   font-weight: 500;
   font-size: 3rem;
   text-rendering: optimizelegibility;
-  content: "tick";
+  content: "check";
   color: #00caf2;
 }
 
