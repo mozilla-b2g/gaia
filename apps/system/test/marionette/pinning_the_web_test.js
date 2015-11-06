@@ -7,18 +7,7 @@ var assert = require('assert');
 
 marionette('Pinning the Web', function() {
 
-  var client = marionette.client({
-    profile: {
-      prefs: {
-        // APZ was causing a crash, so we disable it for this test.
-        // see https://bugzilla.mozilla.org/show_bug.cgi?id=1200580
-        'layers.async-pan-zoom.enabled': false
-      },
-      settings: {
-        'dev.gaia.pinning_the_web': true
-      }
-    }
-  });
+  var client = marionette.client();
 
   var rocketbar, server, system, actions, home, pinTheWeb;
 
@@ -238,7 +227,7 @@ marionette('Pinning the Web', function() {
     var url = server.url('windowopen.html');
     var url2 = server.url('darkpage.html');
 
-    rocketbar.homescreenFocus();
+    rocketbar.appTitleFocus();
     rocketbar.enterText(url, true);
     system.gotoBrowser(url);
     client.helper.waitForElement('#trigger3').tap();
@@ -296,7 +285,7 @@ marionette('Pinning the Web', function() {
       return home.visibleCards.length === 1;
     });
 
-    system.tapHome();
+    client.switchToFrame();
     pinTheWeb.openAndPinPage(url);
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
