@@ -41,6 +41,7 @@
     <script defer src="shared/js/date_time_helper.js"></script>
     <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
     <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+    <script defer src="shared/js/smart-screen/f_t_e_wizard.js"></script>
 
     <script defer src="js/service.js"></script>
     <script defer src="js/base_ui.js"></script>
@@ -282,6 +283,7 @@
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
     <link rel="stylesheet" type="text/css" href="style/browser_context_menu/browser_context_menu.css">
+    <link rel="stylesheet" type="text/css" href="style/fte/fte.css">
     <script defer src="js/base_ui.js"></script>
     <script defer src="shared/js/smart-screen/scrollable.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
@@ -764,7 +766,22 @@
       <div id="left-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
       <div id="right-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
       <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
-
+      <div id="fte_template" hidden>
+        <!--
+        <section class="fte-page">
+          <section class="fte-content">
+            <smart-button class="focused" type="contextmenu">
+              <div class="icon"></div>
+              <span data-l10n-id="pin-to-home"></span>
+            </smart-button>
+            <div class="fte-description" data-l10n-id="fte-pin-to-home-description"></div>
+          </section>
+          <section class="fte-panel">
+            <smart-button data-behavior="finish" type="rounded-corner-text" class="fte-button primary" data-l10n-id="ok"></smart-button>
+          </section>
+        </section>
+        -->
+      </div>
     </div> <!-- end of #screen -->
   </body>
 </html>
