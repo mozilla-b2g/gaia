@@ -100,7 +100,9 @@
     <link rel="stylesheet" type="text/css" href="style/notifications/downloads.css">
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
 
+<!--IFNDEF_NO_BLUETOOTH
     <link rel="stylesheet" type="text/css" href="style/bluetooth_transfer/bluetooth_transfer.css">
+ENDIF_NO_BLUETOOTH-->
     <link rel="stylesheet" type="text/css" href="style/update_manager/update_manager.css">
     <link rel="stylesheet" type="text/css" href="style/media_recording/media_recording.css">
 
@@ -280,9 +282,11 @@
                 <!-- App install manager notification -->
                 <div id="install-manager-notification-container">
                 </div>
+<!--IFNDEF_NO_BLUETOOTH
                 <!-- Bluetooth transfer -->
                 <div id="bluetooth-transfer-status-list">
                 </div>
+ENDIF_NO_BLUETOOTH-->
                 <!-- IME list -->
                 <div id="keyboard-show-ime-list">
                   <div class="fake-notification" role="link">
@@ -328,7 +332,9 @@
                 <ul>
                   <li><a href="#" id="quick-settings-wifi" class="icon bb-button" data-icon="wifi-4" role="button" data-l10n-id="quick-settings-wifiButton-off"></a></li>
                   <li><a href="#" id="quick-settings-airplane-mode" class="icon bb-button" data-icon="airplane" role="button" data-l10n-id="quick-settings-airplaneMode-off"></a></li>
+<!--IFNDEF_NO_BLUETOOTH
                   <li><a href="#" id="quick-settings-bluetooth" class="icon bb-button" data-icon="bluetooth" role="button" data-l10n-id="quick-settings-bluetoothButton-off"></a></li>
+ENDIF_NO_BLUETOOTH-->
                   <li><a href="#" id="quick-settings-data" class="icon bb-button" data-icon="data" role="button" data-l10n-id="quick-settings-dataButton-off"></a></li>
                   <li><a href="#" id="quick-settings-full-app" class="icon bb-button" data-icon="settings" role="button" data-l10n-id="settingsButton"></a></li>
                 </ul>

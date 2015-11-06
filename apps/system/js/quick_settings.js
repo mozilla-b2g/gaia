@@ -184,9 +184,11 @@
      * @memberof QuickSettings.prototype
      */
     monitorBluetoothChange: function() {
+//IFNDEF_NO_BLUETOOTH
       // Bluetooth module is loaded after quicksettings.
       window.addEventListener('bluetooth-enabled', this);
       window.addEventListener('bluetooth-disabled', this);
+//ENDIF_NO_BLUETOOTH
     },
 
     /**
@@ -314,7 +316,7 @@
                 }
               }
               break;
-
+//IFNDEF_NO_BLUETOOTH
             case this.bluetooth:
               // do nothing if bluetooth isn't ready or
               // airplaneMode is switching to another mode.
@@ -333,7 +335,7 @@
               }
               this.bluetooth.dataset.initializing = 'true';
               break;
-
+//ENDIF_NO_BLUETOOTH
             case this.airplaneMode:
               if (this.airplaneModeSwitching) {
                 return;
@@ -360,6 +362,7 @@
         case 'utilitytrayshow':
           break;
 
+//IFNDEF_NO_BLUETOOTH
           // unlock bluetooth toggle
         case 'bluetooth-enabled':
           this.setSettingEnabled('bluetooth', true);
@@ -371,6 +374,7 @@
           delete this.bluetooth.dataset.initializing;
           this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
           break;
+//ENDIF_NO_BLUETOOTH
           // unlock wifi toggle
         case 'wifi-enabled':
           delete this.wifi.dataset.initializing;

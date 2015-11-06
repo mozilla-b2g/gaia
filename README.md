@@ -169,3 +169,17 @@ You could generate single app doc with this:
 ```sh
 $ gulp jsdoc:system
 ```
+
+## Preprocessor Parameters
+
+HTML, JavaScript and CSS can be preprocessed using `build/preprocessor.js`.
+Check the example usage in `build/preprocessor.js` or `apps/system/build/build.js`.
+
+You can customize the build for a specific distro using these flags in a
+`distro.mk` file in the `distros/<distro_name>` directory.
+
+ Flag           | Description
+----------------|----------------------------------------
+FIREFOX_SYNC    | Enable Firefox Sync for FxOS
+NO_BLUETOOTH    | Disable Bluetooth UIs
+NO_LOCK_SCREEN  | Disable the Gaia lockscreen by default

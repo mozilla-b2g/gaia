@@ -146,6 +146,32 @@ SystemAppBuilder.prototype.enableFirefoxSync = function(options) {
   preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
 };
 
+SystemAppBuilder.prototype.disableBluetoothFeatures = function(options) {
+  var fileList = {
+    process: [
+      ['index.html'],
+      ['js', 'quick_settings.js']
+    ],
+    remove: {
+      'ifdef': [
+        ['js', 'bluetooth_core.js'],
+        ['js', 'bluetooth_headphone_icon.js'],
+        ['js', 'bluetooth_icon.js'],
+        ['js', 'bluetooth_transfer.js'],
+        ['js', 'bluetooth_transfer_icon.js'],
+        ['js', 'bluetooth_v2.js'],
+        ['test', 'unit', 'bluetooth_core_v2_test.js'],
+        ['test', 'unit', 'bluetooth_headphone_icon_test.js'],
+        ['test', 'unit', 'bluetooth_icon_test.js'],
+        ['test', 'unit', 'bluetooth_transfer_icon_test.js'],
+        ['test', 'unit', 'bluetooth_transfer_test.js'],
+        ['test', 'unit', 'bluetooth_v2_test.js']
+      ]
+    }
+  };
+  preprocessor.execute(options, 'NO_BLUETOOTH', fileList);
+};
+
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.setOptions(options);
@@ -154,6 +180,7 @@ SystemAppBuilder.prototype.execute = function(options) {
     this.addCustomizeFiles();
   }
   this.enableFirefoxSync(options);
+  this.disableBluetoothFeatures(options);
   this.integrateLockScreen(options);
   this.integrateLockScreenInputpad(options);
   this.inlineDeviceType(options);

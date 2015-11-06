@@ -12,3 +12,14 @@ Generated jsdoc is hosted on [http://mozilla-b2g.github.io/gaia/system/](http://
 ```
 $ gulp jsdoc:system
 ```
+
+## Preprocessor Parameters
+
+Preprocessor parameters affecting this app.  See the main README for more
+info relating to preprocessing.
+
+ Flag           | Description
+----------------|----------------------------------------
+FIREFOX_SYNC    | Enable Firefox Sync for FxOS
+NO_BLUETOOTH    | Disable Bluetooth UIs
+NO_LOCK_SCREEN  | Disable the Gaia lockscreen by default
