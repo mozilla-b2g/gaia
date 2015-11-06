@@ -5,7 +5,9 @@
    ManifestHelper,
    NotificationHelper,
    Service,
-   UpdateManager
+   UpdateManager,
+   IconsHelper,
+   MozActivity
  */
 
 /*
@@ -18,6 +20,50 @@
  * - download() to start the download
  * - cancelDownload() to cancel it
  */
+
+// Wrapper to read a settings value
+var setting = (function() {
+  var values = {};
+  return key => {
+
+    if (key in values) {
+      return values[key];
+    }
+
+    // Cache the promise straight away so multiple callers dont
+    // create multiple listeners
+    values[key] = new Promise(resolve => {
+      // We store the value of the setting and the observer is
+      // in charge of keeping it up to date
+      function cacheAndResolve() {
+        var result = (key in req.result) ? req.result[key] : undefined;
+        values[key] = Promise.resolve(result);
+        resolve(result);
+      }
+
+      var lock = navigator.mozSettings.createLock();
+      var req = lock.get(key);
+
+      req.onerror = cacheAndResolve;
+      req.onsuccess = cacheAndResolve;
+
+      navigator.mozSettings.addObserver(key, e => {
+        values[key] = Promise.resolve(e.settingValue);
+      });
+    });
+
+    return values[key];
+  };
+})();
+
+// Should we automatically update?
+AppUpdatable.AUTO_UPDATE = 'addons.auto_update';
+
+// Notify the users after we have auto updated?
+AppUpdatable.NOTIFY_UPDATE = 'addons.update_notify';
+
+// Notify the user about auto updates on first update
+AppUpdatable.AUTO_UPDATES_NOTIFIED = 'notified-autoupdate';
 
 /* === App Updates === */
 function AppUpdatable(app) {
@@ -68,18 +114,123 @@ AppUpdatable.prototype.clean = function() {
 };
 
 AppUpdatable.prototype.availableCallBack = function() {
+
   this.size = this.app.downloadSize;
 
-  if (this.app.installState === 'installed') {
-    UpdateManager.addToUpdatesQueue(this);
-
-    // we add these callbacks only now to prevent interfering
-    // with other modules (especially the AppInstallManager)
-    this.app.ondownloaderror = this.errorCallBack.bind(this);
-    this.app.ondownloadsuccess = this.successCallBack.bind(this);
-    this.app.ondownloadapplied = this.appliedCallBack.bind(this);
-    this.app.onprogress = this.progressCallBack.bind(this);
+  if (this.app.installState !== 'installed') {
+    return;
   }
+
+  // If its not an addon, add it to the update queue
+  if (this.app.manifest.role !== 'addon') {
+    this.queueUpdate();
+    return;
+  }
+
+  let settings = [
+    setting(AppUpdatable.AUTO_UPDATE),
+    setting(AppUpdatable.NOTIFY_UPDATE)
+  ];
+
+  Promise.all(settings).then(results => {
+
+    var autoAddonUpdates = results[0];
+    var notifyAddonUpdates = results[1];
+
+    // If we have autoUpdates turned off for addons, they
+    // go via the usual install flow
+    if (!autoAddonUpdates) {
+      this.queueUpdate();
+      return;
+    }
+
+    // We fail silently, the addon will be updated next time
+    // we check for updates
+    this.app.ondownloaderror = err => {
+      console.error('failed to auto update', this.name,
+                    err.application.downloadError.name);
+    };
+
+    this.app.ondownloadsuccess = this.applyUpdate.bind(this);
+    this.app.onprogress = null;
+    this.app.ondownloadapplied = null;
+
+    if (notifyAddonUpdates) {
+      this.app.ondownloadapplied = this.notifyAutoUpdate.bind(this);
+    }
+
+    this.app.download();
+    this.maybeNotifyUpdate();
+  });
+};
+
+AppUpdatable.prototype.queueUpdate = function() {
+  UpdateManager.addToUpdatesQueue(this);
+
+  // we add these callbacks only now to prevent interfering
+  // with other modules (especially the AppInstallManager)
+  this.app.ondownloaderror = this.errorCallBack.bind(this);
+  this.app.ondownloadsuccess = this.successCallBack.bind(this);
+  this.app.ondownloadapplied = this.appliedCallBack.bind(this);
+  this.app.onprogress = this.progressCallBack.bind(this);
+};
+
+AppUpdatable.prototype.notifyAutoUpdate = function(iconUrl) {
+  IconsHelper.getIcon(this.app.origin, 32, null, this.app).then(iconUrl => {
+    var title = {id: 'addonUpdated', args: { name: this.name}};
+    var opts = {
+      tag: 'addonUpdated-' + this.name,
+      bodyL10n: 'addonUpdatedDetails',
+      mozbehavior: {showOnlyOnce: true },
+      icon: iconUrl,
+      closeOnClick: true
+    };
+    NotificationHelper.send(title, opts).then(n => {
+      n.addEventListener('click', () => {
+        /*jshint -W031 */
+        new MozActivity({
+          name: 'configure',
+          data: {
+            target: 'device',
+            section: 'addon-details',
+            options: {
+              manifestURL: this.app.manifestURL
+            }
+          }
+        });
+      });
+    });
+  });
+};
+
+// If this is the first auto update to addons, notify the
+// user that updates are being installed automatically
+AppUpdatable.prototype.maybeNotifyUpdate = function() {
+  asyncStorage.getItem(AppUpdatable.AUTO_UPDATES_NOTIFIED, val => {
+    if (val) {
+      return;
+    }
+    // Ensure we dont show the notification again
+    asyncStorage.setItem(AppUpdatable.AUTO_UPDATES_NOTIFIED, true);
+
+    var opts = {
+      bodyL10n: 'addonUpdateDetails',
+      tag: 'addonUpdate',
+      mozbehavior: {showOnlyOnce: true },
+      closeOnClick: true,
+      icon: '/style/notifications/images/download.png'
+    };
+
+    NotificationHelper.send('addonUpdate', opts).then(n => {
+      n.addEventListener('click', function() {
+        /*jshint -W031 */
+        new MozActivity({
+          name: 'configure',
+          data: {target: 'device', section: 'about'}
+        });
+      });
+    });
+  });
 };
 
 AppUpdatable.prototype.successCallBack = function() {

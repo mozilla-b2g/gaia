@@ -25,7 +25,8 @@ define(function(require) {
           checkUpdateNow: panel.querySelector('.check-update-now'),
           lastUpdateDate: panel.querySelector('.last-update-date'),
           updateStatus: panel.querySelector('.update-status'),
-          systemStatus: panel.querySelector('.system-update-status')
+          systemStatus: panel.querySelector('.system-update-status'),
+          addonUpdateNotify: panel.querySelector('.addon-update-notify')
         });
 
         factoryReset.init({

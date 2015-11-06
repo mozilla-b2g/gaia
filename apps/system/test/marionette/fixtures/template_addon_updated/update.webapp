@@ -1,0 +1,6 @@
+{
+  "name" : "Hello World",
+  "description": "testing",
+  "package_path": "helloworld.zip",
+  "version": "2"
+}

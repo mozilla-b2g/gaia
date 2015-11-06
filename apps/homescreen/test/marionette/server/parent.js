@@ -161,6 +161,10 @@ AppServer.prototype = {
 
   get packageManifestURL() {
     return this.url + '/package.manifest';
+  },
+
+  get webappUpdateURL() {
+    return this.url + '/update.webapp';
   }
 };
 
