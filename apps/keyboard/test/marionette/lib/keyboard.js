@@ -20,6 +20,8 @@ Keyboard.Selector = Object.freeze({
   currentPanel: '.keyboard-type-container[data-active]',
   imeSwitchingKey: '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-keycode="-3"]',
+  backspaceKey: '.keyboard-type-container[data-active] ' +
+    '.keyboard-key[data-keycode="8"]',
   returnKey: '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-l10n-id="returnKey2"]',
   dismissSuggestionsButton: '.keyboard-type-container[data-active] ' +
@@ -33,7 +35,10 @@ Keyboard.Selector = Object.freeze({
   upperCaseKey: '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-keycode-upper="%s"]',
   pageSwitchingKey: '.keyboard-type-container[data-active] ' +
-    'button.keyboard-key[data-target-page="%s"]'
+    'button.keyboard-key[data-target-page="%s"]',
+  activeKeyboardFrame: '#keyboards .inputWindow.active iframe',
+  predictiveWord: '.autocorrect',
+  suggestionKey: '.suggestions-container span[data-data="%s"]'
 });
 
 Keyboard.prototype = {
@@ -56,11 +61,36 @@ Keyboard.prototype = {
     return this.client.findElement(Keyboard.Selector.shiftKey);
   },
 
+  get backspaceKey() {
+    return this.client.findElement(Keyboard.Selector.backspaceKey);
+  },
+
+  get activeKeyboardFrame() {
+    return this.client.findElement(Keyboard.Selector.activeKeyboardFrame);
+  },
+
+  get autoCorrect() {
+    return this.client.settings.get('keyboard.autocorrect');
+  },
+
+  get predictiveWord() {
+    return this.client.findElement(Keyboard.Selector.predictiveWord);
+  },
+
+  set autoCorrect(val) {
+    this.client.settings.set('settings-write', true);
+    this.client.settings.set('settings-api-write', true);
+    this.client.settings.set('keyboard.autocorrect', val);
+  },
+
   getKey: function getKey(key) {
     var keySelector = Keyboard.Selector.key;
 
     if (key >= '0' && key <='9') {
-      this.switchToPage(1);
+      if (this.getCurrentInputType() !== 'number' && 
+          this.getCurrentInputMode() !== 'numeric') {
+        this.switchToPage(1);
+      }
     } else if (key >= 'A' && key <= 'Z') {
       this.switchToPage(0);
       this.switchCase(true);
@@ -97,28 +127,25 @@ Keyboard.prototype = {
     return 2;
   },
 
-  switchCase: function switchCase(upperCase) {
-    if (this.isUpperCase() === upperCase) {
-      return;
-    }
-
-    var shiftKey = this.shiftKey;
-
-    shiftKey.tap();
-    this.client.waitFor(function() {
-      var expected = upperCase ? 'true' : 'false';
-      return (shiftKey.getAttribute('aria-pressed') === expected);
-    });
+  getSuggestionKey: function(word) {
+    var selector = Keyboard.Selector.suggestionKey.replace(/%s/, word);
+    return this.client.findElement(selector);
   },
 
-  switchToPage: function(index) {
-    var pageIndex = this.getCurrentPageIndex();
-    if (pageIndex === index) {
-      return;
-    }
+  getCurrentKeyboard: function() {
+    var activeFrame = this.activeKeyboardFrame;
 
-    var pageSwitchingKey = this.getPageSwitchingKey(index);
-    pageSwitchingKey.tap();
+    return activeFrame.getAttribute('data-frame-name');
+  },
+
+  getCurrentInputType: function () {
+    return this.client.executeScript(
+      'return window.wrappedJSObject.app.getBasicInputType();');
+  },
+
+  getCurrentInputMode: function () {
+    return this.client.executeScript(
+      'return window.wrappedJSObject.app.inputContext.inputMode;');
   },
 
   getCurrentPageIndex: function() {
@@ -144,6 +171,30 @@ Keyboard.prototype = {
 
     return true;
   },
+  
+  switchCase: function switchCase(upperCase) {
+    if (this.isUpperCase() === upperCase) {
+      return;
+    }
+
+    var shiftKey = this.shiftKey;
+
+    shiftKey.tap();
+    this.client.waitFor(function() {
+      var expected = upperCase ? 'true' : 'false';
+      return (shiftKey.getAttribute('aria-pressed') === expected);
+    });
+  },
+
+  switchToPage: function(index) {
+    var pageIndex = this.getCurrentPageIndex();
+    if (pageIndex === index) {
+      return;
+    }
+
+    var pageSwitchingKey = this.getPageSwitchingKey(index);
+    pageSwitchingKey.tap();
+  },
 
   type: function(string) {
     string.split('').forEach(function(char) {
@@ -163,6 +214,22 @@ Keyboard.prototype = {
         chain.move(longPressKeyElement).release().perform();
       }
     }, this);
+  },
+
+  tapBackspaceKey: function(word) {
+    this.backspaceKey.tap();
+  },
+
+  tapFirstPredictiveWord: function() {
+    this.client.waitFor(function() {
+      return this.predictiveWord.displayed();
+    }.bind(this));
+
+    this.predictiveWord.tap();
+  },
+
+  tapSuggestionKey: function(word) {
+    this.getSuggestionKey(word).tap();  
   },
 
   LONGPRESS_CHARS: Object.freeze({
