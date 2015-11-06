@@ -58,7 +58,7 @@
     }
 
     // Then look for an icon in the Firefox manifest.
-    if (!iconUrl && siteObj.manifest) {
+    if (!iconUrl && siteObj.manifest && siteObj.manifest.icons) {
       iconUrl = getBestIconFromWebManifest({
         icons: _convertToWebManifestIcons(siteObj.manifest,
           siteObj.origin || siteObj.manifest.origin)
@@ -69,7 +69,7 @@
     }
 
     // Otherwise, look into the meta tags.
-    if (!iconUrl && placeObj.icons) {
+    if (!iconUrl && placeObj && placeObj.icons) {
       iconUrl = getBestIconFromMetaTags(placeObj.icons, iconTargetSize);
       if (DEBUG && iconUrl) {
         console.log('Icon from Meta tags');
