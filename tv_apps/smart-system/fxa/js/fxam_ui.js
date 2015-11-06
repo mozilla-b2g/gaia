@@ -62,11 +62,7 @@ var FxaModuleUI = {
       }, OFFLINE_TIMEOUT);
     });
 
-    window.addEventListener('keypress', function onkeypress(e) {
-      if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-        FxaModuleNavigation.back();
-      }
-    });
+    this.enableEscapeButton();
 
     FxaModuleNavigation.init(flow);
   },
@@ -181,6 +177,17 @@ var FxaModuleUI = {
   },
   enableDoneButton: function() {
     this.fxaModuleDone.removeAttribute('disabled');
+  },
+  onkeypress: function(e) {
+    if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+      FxaModuleNavigation.back();
+    }
+  },
+  disableEscapeButton: function() {
+    window.removeEventListener('keypress', this.onkeypress);
+  },
+  enableEscapeButton: function() {
+    window.addEventListener('keypress', this.onkeypress);
   },
   focusDoneButton: function() {
     document.activeElement.blur();
