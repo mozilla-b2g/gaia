@@ -21,7 +21,6 @@
     'shared/airplane_mode_helper': 'empty:',
     'shared/apn_helper': 'empty:',
     'shared/async_storage': 'empty:',
-    'shared/bluetooth_helper': 'empty:',
     'shared/device_storage/enumerate_all': 'empty:',
     'shared/homescreens/homescreen_settings': 'empty:',
     'shared/icc_helper': 'empty:',

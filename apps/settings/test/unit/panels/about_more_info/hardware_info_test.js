@@ -3,8 +3,7 @@
 suite('about hardware info >', function() {
   var hardwareInfo;
   var MockVersionDetector;
-  var MockBluetooth1;
-  var MockBluetooth2;
+  var MockBluetooth;
   var realSettingsListener;
 
   var modules = [
@@ -15,9 +14,7 @@ suite('about hardware info >', function() {
   var maps = {
     '*': {
       'shared/settings_listener': 'shared_mocks/mock_settings_listener',
-      'modules/bluetooth/version_detector': 'MockVersionDetector',
-      'modules/bluetooth/bluetooth_v1': 'MockBluetooth1',
-      'modules/bluetooth/bluetooth_context': 'MockBluetooth2'
+      'modules/bluetooth/bluetooth_context': 'MockBluetooth'
     }
   };
 
@@ -29,27 +26,16 @@ suite('about hardware info >', function() {
   setup(function(done) {
     var requireCtx = testRequire([], maps, function() {});
 
-    MockVersionDetector = {
-      getVersion: function() {}
-    };
     define('MockVersionDetector', function() {
       return MockVersionDetector;
     });
 
-    MockBluetooth1 = {
+    MockBluetooth = {
       observe: function() {},
       address: ''
     };
-    define('MockBluetooth1', function() {
-      return MockBluetooth1;
-    });
-
-    MockBluetooth2 = {
-      observe: function() {},
-      address: ''
-    };
-    define('MockBluetooth2', function() {
-      return MockBluetooth2;
+    define('MockBluetooth', function() {
+      return MockBluetooth;
     });
 
     requireCtx(modules, function(MockSettingsListener, HardwareInfo) {
@@ -80,59 +66,33 @@ suite('about hardware info >', function() {
   });
 
   suite('loadBluetoothAddress >', function() {
-    test('should show bluetooth address', function(done) {
+    test('should show bluetooth address', function() {
       var fakeAddress = 'fakeAddress';
-      MockBluetooth1.address = fakeAddress;
-      this.sinon.stub(MockBluetooth1, 'observe');
-      this.sinon.stub(MockVersionDetector, 'getVersion').returns(1);
+      MockBluetooth.address = fakeAddress;
+      this.sinon.stub(MockBluetooth, 'observe');
       this.sinon.spy(hardwareInfo, '_refreshBluetoothAddress');
 
-      hardwareInfo._loadBluetoothAddress().then(function() {
-        sinon.assert.calledWith(MockBluetooth1.observe, 'address');
-        assert.equal(hardwareInfo._refreshBluetoothAddress.args[0][0],
-          fakeAddress);
+      hardwareInfo._loadBluetoothAddress();
+      assert.ok(MockBluetooth.observe.calledWith('address'));
+      assert.equal(hardwareInfo._refreshBluetoothAddress.args[0][0],
+        fakeAddress);
 
-        // Ensure the observer works
-        var fakeAddress2 = 'fakeAddress2';
-        MockBluetooth1.observe.args[0][1](fakeAddress2);
-        assert.equal(hardwareInfo._refreshBluetoothAddress.args[1][0],
-          fakeAddress2);
-      }, function() {
-        // This function does not reject.
-        assert.isTrue(false);
-      }).then(done, done);
+      // Ensure the observer works
+      var fakeAddress2 = 'fakeAddress2';
+      MockBluetooth.observe.args[0][1](fakeAddress2);
+      assert.equal(hardwareInfo._refreshBluetoothAddress.args[1][0],
+        fakeAddress2);
     });
 
     suite('should use correct bluetooth module', function() {
       setup(function() {
-        this.sinon.stub(MockBluetooth1, 'observe');
-        this.sinon.stub(MockBluetooth2, 'observe');
+        this.sinon.stub(MockBluetooth, 'observe');
       });
 
-      test('bluetooth version 1', function(done) {
-        this.sinon.stub(MockVersionDetector, 'getVersion').returns(1);
-
-        hardwareInfo._loadBluetoothAddress().then(function() {
-          assert.isTrue(MockBluetooth1.observe.called);
-          assert.isTrue(MockBluetooth2.observe.notCalled);
-        }, function() {
-          // This function does not reject.
-          assert.isTrue(false);
-        }).then(done, done);
-      });
-
-      test('bluetooth version 2', function(done) {
-        this.sinon.stub(MockVersionDetector, 'getVersion').returns(2);
-
-        hardwareInfo._loadBluetoothAddress().then(function() {
-          assert.isTrue(MockBluetooth1.observe.notCalled);
-          assert.isTrue(MockBluetooth2.observe.called);
-        }, function() {
-          // This function does not reject.
-          assert.isTrue(false);
-        }).then(done, done);
+      test('bluetooth', function() {
+        hardwareInfo._loadBluetoothAddress();
+        assert.isTrue(MockBluetooth.observe.called);
       });
     });
   });
 });
-

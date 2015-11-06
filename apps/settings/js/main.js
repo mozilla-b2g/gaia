@@ -27,33 +27,13 @@ require(['config/require'], function() {
         return;
       }
 
-      var bluetoothMenuItem =
-        document.querySelector('#root .menuItem-bluetooth');
-      if (bluetoothMenuItem) {
-        bluetoothMenuItem.setAttribute('href', '#');
-      }
-
       var initialPanelHandler = window.LaunchContext.initialPanelHandler;
       if (initialPanelHandler) {
         initialPanelHandler.release();
         var pendingTargetPanel = initialPanelHandler.pendingTargetPanel;
-        // XXX: In bluetooth and call item,
+        // XXX: In call item,
         // we need special logic for navigating to specific panels.
-
         switch (pendingTargetPanel) {
-          case 'bluetooth':
-            require(['modules/bluetooth/version_detector'],
-              (versionDetector) => {
-              var version = versionDetector.getVersion();
-              if (version === 1) {
-                // navigate old bluetooth panel..
-                SettingsService.navigate('bluetooth');
-              } else if (version === 2) {
-                // navigate new bluetooth panel..
-                SettingsService.navigate('bluetooth_v2');
-              }
-            });
-            break;
           case 'call':
             var mozMobileConnections = navigator.mozMobileConnections;
             // If DSDS phone, we have to let users choose simcard

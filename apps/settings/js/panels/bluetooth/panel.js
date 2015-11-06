@@ -1,7 +1,7 @@
 /**
  * The Bluetooth panel
  *
- * Bluetooth v2 panel, still on working..
+ * Bluetooth v2 panel.
  */
 define(function(require) {
   'use strict';
