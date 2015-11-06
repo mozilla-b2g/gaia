@@ -27,8 +27,8 @@ suite('bookmark_remover.js >', function() {
   suiteSetup(function() {
     getStub = sinon.stub(BookmarksDatabase, 'get', function(purl) {
       return {
-        then: function(resolve, refect) {
-          databaseInError ? refect('refected') :
+        then: function(resolve, reject) {
+          databaseInError ? reject('rejected') :
                             resolve (purl === url ? bookmark : null);
         }
       };
@@ -61,6 +61,19 @@ suite('bookmark_remover.js >', function() {
       .contains(name));
   });
 
+  test('Handles quotes in bookmark name >', function() {
+    bookmark.name = name = 'Mozilla"\'';
+    BookmarkRemover.init({
+      id: bookmark.url
+    });
+    var titleArgs =
+      JSON.parse(document.getElementById('title').dataset.l10nArgs);
+    var messageArgs =
+      JSON.parse(document.getElementById('message').dataset.l10nArgs);
+    assert.equal(titleArgs.name, name);
+    assert.equal(messageArgs.name, name);
+  });
+
   test('Bookmark does not exist >', function(done) {
     BookmarkRemover.init({
       id: bookmark.url + 'blabla',
@@ -76,7 +89,7 @@ suite('bookmark_remover.js >', function() {
     BookmarkRemover.init({
       id: bookmark.url,
       oncancelled: function(e) {
-        assert.equal(e, 'refected');
+        assert.equal(e, 'rejected');
         done();
       }
     });
