@@ -208,9 +208,9 @@ suite('system/Accessibility', function() {
     });
 
     test('handleFTUStarted screen reader turned on', function() {
-      var stubAddEventListener = this.sinon.stub(window, 'addEventListener');
       SettingsListener.mTriggerCallback('accessibility.screenreader', true);
 
+      var stubAddEventListener = this.sinon.stub(window, 'addEventListener');
       accessibility.handleFTUStarted();
       assert.isFalse(stubAddEventListener.called);
       // Turn the screen reader back off.
