@@ -44,10 +44,6 @@
     return isNaN(s) ? 0 : s;
   };
 
-  proto.addEventListener = function (type, handle) {
-    return this._video.addEventListener(type, handle);
-  };
-
   proto.show = function () {
     this._video.hidden = false;
   };
