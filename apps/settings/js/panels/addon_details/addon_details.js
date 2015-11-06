@@ -138,7 +138,8 @@ define(function(require) {
     l10n.setAttributes(
       this._elements.name, 'addon-details-header1', appnameArgs);
     // Put text description for an icon
-    l10n.setAttributes(this._elements.icon, 'accessible-app-icon', appnameArgs);
+    l10n.setAttributes(
+      this._elements.icon, 'accessibility-app-icon', appnameArgs);
   };
 
   return function ctor_addon_details(panel) {
