@@ -30,7 +30,8 @@ PinningTheWeb.prototype = {
   },
 
   _openUrl: function openUrl(url) {
-    this.rocketbar.homescreenFocus();
+    this.client.switchToFrame();
+    this.rocketbar.appTitleFocus();
     this.rocketbar.enterText(url, true);
     this.rocketbar.switchToBrowserFrame(url);
     this.client.switchToFrame();
@@ -38,10 +39,10 @@ PinningTheWeb.prototype = {
 
   // Open a URL, tap on the site icon and tap the pin site button.
   openAndPinSite: function openAndPinSite(url) {
-    this.rocketbar.homescreenFocus();
+    this.client.switchToFrame();
+    this.rocketbar.appTitleFocus();
     this.rocketbar.enterText(url, true);
     this.system.gotoBrowser(url);
-    this.client.switchToFrame();
     this.client.scope({ searchTimeout: 100 }).waitFor(function() {
       this.client.switchToFrame();
       try {
