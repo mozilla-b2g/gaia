@@ -13,9 +13,9 @@ class TestClockCreateNewAlarm(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
+
         self.clock = Clock(self.marionette)
         self.clock.launch()
-        self.data_layer.set_setting('time.clock.automatic-update.enabled', False)
 
     def test_clock_create_new_alarm(self):
         """ Add an alarm and set label of the new alarm
@@ -57,13 +57,14 @@ class TestClockCreateNewAlarm(GaiaTestCase):
                         'Alarms count did not increment')
 
         # verify the label of alarm
-        self.assertEqual(len(alarm_view.alarm_items), 1)
-        self.assertEqual(alarm_view.alarm_items[0].label, alarm_label_text)
+        alarms = alarm_view.alarm_items
+        self.assertEqual(len(alarms), 1)
+        self.assertEqual(alarms[0].label, alarm_label_text)
 
         alarm_time = alarm_view.alarm_items[0].time
 
         # tap to Edit alarm
-        edit_alarm = alarm_view.alarm_items[0].tap()
+        edit_alarm = alarms[0].tap()
 
         # Set the alarm time to 1 min more than the current time
         time_picker = edit_alarm.tap_time()
@@ -75,6 +76,7 @@ class TestClockCreateNewAlarm(GaiaTestCase):
 
         self.assertNotEqual(alarm_view.alarm_items[0].time, alarm_time)
 
+<<<<<<< HEAD
         # turn off the alarm
         alarm_view.alarm_items[0].tap_checkbox()
         alarm_view.alarm_items[0].wait_for_checkbox_to_change_state(False)
@@ -85,6 +87,14 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         alarm_view.alarm_items[0].wait_for_checkbox_to_change_state(True)
         alarm_view.dismiss_banner()
         self.assertTrue(alarm_view.alarm_items[0].is_alarm_active, 'user should be able to turn off the alarm.')
+=======
+        self.clock.alarms[0].disable()
+        self.assertFalse(self.clock.alarms[0].is_alarm_active, 'user should be able to turn on the alarm.')
+
+        self.clock.alarms[0].enable()
+        self.clock.dismiss_banner()
+        self.assertTrue(self.clock.alarms[0].is_alarm_active, 'user should be able to turn off the alarm.')
+>>>>>>> 11e4c572e3a2690e4ef1e8436beba55587ffed6d
 
         self.device.touch_home_button()
         self.marionette.switch_to_frame()
