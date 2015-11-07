@@ -4,28 +4,6 @@
 /* exported AppManager */
 'use strict';
 
-function notifyCollection() {
-  navigator.mozApps.getSelf().onsuccess = function(evt) {
-    var app = evt.target.result;
-    if (app.connect) {
-      app.connect('setup').then(function onConnAccepted(ports) {
-        // Get the token data info to attach to message
-        var message = {
-          txt: 'setup'
-        };
-        ports.forEach(function(port) {
-          port.postMessage(message);
-        });
-      }, function onConnRejected(reason) {
-        console.error('Cannot notify collection: ', reason);
-      });
-    } else {
-      console.error ('mozApps does not have a connect method. ' +
-                     'Cannot launch the collection preload process.');
-    }
-  };
-}
-
 var AppManager = {
   EVENT_PREFIX: 'ftu-',
 
@@ -38,9 +16,6 @@ var AppManager = {
     Navigation.init();
 
     window.performance.mark('navigationLoaded');
-    // Send message to populate preinstalled collections.
-    // This needs to be done for both upgrade and non-upgrade flows.
-    notifyCollection();
     this.publish('setup');
 
     var splashTimeout = 1025;

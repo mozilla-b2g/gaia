@@ -119,11 +119,11 @@
               port.postMessage(message);
             });
           }, function onConnRejected(reason) {
-            console.error('Cannot notify collection: ', reason);
+            console.error('Cannot connect to comms channel: ', reason);
           });
         } else {
           console.error ('mozApps does not have a connect method. ' +
-                         'Cannot launch the collection preload process.');
+                         'Cannot connect to the comms channel.');
         }
       };
     },
