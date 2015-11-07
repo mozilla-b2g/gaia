@@ -318,4 +318,4 @@ gaia-grid {
   direction: ltr;
 }
 html[dir="ltr"] #places .meta { text-align: left; }
-html[dir="ltr"] #places .meta { text-align: right; }
+html[dir="rtl"] #places .meta { text-align: right; }
