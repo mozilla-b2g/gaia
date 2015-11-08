@@ -10,6 +10,7 @@
   "permissions": {
     "themeable":{},
     "sms":{},
+    "bluetooth":{},
     "mobileconnection":{},
     "alarms":{},
     "contacts":{ "access": "readonly" },
