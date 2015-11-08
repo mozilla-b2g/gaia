@@ -39,7 +39,8 @@ System.Selector = Object.freeze({
   appChromeContextMenu: '.appWindow.active .contextmenu',
   appChromeContextNewPrivate: '.appWindow.active [data-id=new-private-window]',
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
-  appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
+  appChromeContextMenuBookmark:
+    '.appWindow.active:not(.homescreen) [data-id=add-to-homescreen]',
   appChromeContextMenuPin: '.appWindow.active [data-id=pin-to-home-screen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
   appChromeContextMenuCancel: '.appWindow.active #ctx-cancel-button',
