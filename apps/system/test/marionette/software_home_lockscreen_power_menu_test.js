@@ -2,6 +2,8 @@
 
 marionette('Software Home Button - Lockscreen Power Menu', function() {
 
+  var lockScreenFrameId = '#lockscreen-frame';
+
   var client = marionette.client({
     profile: {
       prefs: {
@@ -39,10 +41,13 @@ marionette('Software Home Button - Lockscreen Power Menu', function() {
   });
 
   test('Leaves room for the SHB in secure-app mode', function() {
+    var lockscreen = client.findElement(lockScreenFrameId);
     client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(
         new CustomEvent('lockscreenslide-activate-left'));
     });
+    // Make sure lockscreen is not in foreground before continuing.
+    client.helper.waitForElementToDisappear(lockscreen);
 
     client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('holdsleep'));
