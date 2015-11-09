@@ -71,9 +71,7 @@
     'hierarchytopmostwindowchanged',
     'cardviewbeforeshow',
     'cardviewclosed',
-    'cardviewshown',
-    'inputfocus',
-    'inputblur'
+    'cardviewshown'
   ];
   AppWindowManager.SUB_MODULES = [
     'PinPageSystemDialog',
@@ -757,17 +755,14 @@
       return true;
     },
 
-    '_handle_inputfocus': function(evt) {
-      if (this._activeApp) {
-        this._activeApp.getTopMostWindow().broadcast('inputfocus', evt.detail);
-        return false;
+    '_handle_mozChromeEvent': function(evt) {
+      if (!evt.detail || evt.detail.type !== 'inputmethod-contextchange') {
+        return true;
       }
-      return true;
-    },
-
-    '_handle_inputblur': function(evt) {
       if (this._activeApp) {
-        this._activeApp.getTopMostWindow().broadcast('inputblur');
+        this._activeApp.getTopMostWindow()
+            .broadcast('inputmethod-contextchange',
+          evt.detail);
         return false;
       }
       return true;

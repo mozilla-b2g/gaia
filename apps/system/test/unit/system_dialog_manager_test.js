@@ -25,10 +25,10 @@ suite('system/SystemDialogManager', function() {
       optionsFake = {
         onShow: function() {},
         onHide: function() {}
-      }, fakeInputFocusEvent = {
-        type: 'inputfocus',
+      }, mozChromeEventFake = {
+        type: 'mozChromeEvent',
         detail: {
-          type: 'input',
+          type: 'inputmethod-contextchange',
           inputType: 'date'
         }
       };
@@ -296,17 +296,17 @@ suite('system/SystemDialogManager', function() {
       stubOnHide.restore();
     });
 
-    test('valid inputfocus event', function() {
+    test('valid mozChromeEvent', function() {
       var stubBroadcast = this.sinon.stub(dialogFake, 'broadcast');
       window.systemDialogManager.handleEvent({type: 'system-dialog-started',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
-      window.systemDialogManager.respondToHierarchyEvent(fakeInputFocusEvent);
+      window.systemDialogManager.respondToHierarchyEvent(mozChromeEventFake);
       assert.isTrue(stubBroadcast.called, 'broadcast was called for an ' +
         'active dialog');
-      assert.isTrue(stubBroadcast.calledWith('inputfocus',
-        fakeInputFocusEvent.detail), 'broadcast arguments are correct');
+      assert.isTrue(stubBroadcast.calledWith('inputmethod-contextchange',
+        mozChromeEventFake.detail), 'broadcast arguments are correct');
     });
   });
 });

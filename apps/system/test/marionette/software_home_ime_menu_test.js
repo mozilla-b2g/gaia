@@ -25,11 +25,13 @@ marionette('Software Home Button - IME Menu', function() {
 
   test('Proper layout for alerts', function() {
     client.executeScript(function() {
-      // XXX: This is a dirty trick to ask KeyboardManager to show the menu
-      // without an active keyboard present. Why are we doing this?
-
       window.wrappedJSObject.KeyboardManager._showingInputGroup = 'text';
-      window.wrappedJSObject.KeyboardManager._showImeMenu();
+
+      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'inputmethod-showall'
+        }
+      }));
     });
 
     function rect(el) {

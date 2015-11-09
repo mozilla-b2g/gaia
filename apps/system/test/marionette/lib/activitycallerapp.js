@@ -14,8 +14,7 @@ ActivityCallerApp.Selector = Object.freeze({
   testdefaultactivity: '#testdefaultactivity',
   closeButton: '#close',
   inputElement: '#input',
-  dateInputElement: '#dateinput',
-  selectElement: '#select'
+  dateInputElement: '#dateinput'
 });
 
 ActivityCallerApp.prototype = {
@@ -43,10 +42,6 @@ ActivityCallerApp.prototype = {
 
   get inputElement() {
     return this.client.findElement(ActivityCallerApp.Selector.inputElement);
-  },
-
-  get selectElement() {
-    return this.client.findElement(ActivityCallerApp.Selector.selectElement);
   },
 
   get dateInputElement() {
@@ -92,12 +87,6 @@ ActivityCallerApp.prototype = {
   focusTextInput: function() {
     this.switchTo();
     this.inputElement.tap();
-    this.client.switchToFrame();
-  },
-
-  focusSelect: function() {
-    this.switchTo();
-    this.selectElement.tap();
     this.client.switchToFrame();
   },
 

@@ -17,8 +17,7 @@
     'holdhome',
     'system-resize',
     'launchactivity',
-    'inputfocus',
-    'inputblur',
+    'mozChromeEvent',
     'windowopened',
     'windowclosed',
     'cardviewclosed'
@@ -163,8 +162,12 @@
         case 'cardviewclosed':
           this.updateTopMostWindow();
           break;
-        case 'inputfocus':
-        case 'inputblur':
+        case 'mozChromeEvent':
+          if (!evt.detail ||
+              evt.detail.type !== 'inputmethod-contextchange') {
+            break;
+          }
+          /* falls through */
         case 'home':
         case 'holdhome':
         case 'launchactivity':

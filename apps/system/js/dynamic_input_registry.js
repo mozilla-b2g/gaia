@@ -21,21 +21,23 @@ DynamicInputRegistry.prototype.SETTING_KEY = 'keyboard.dynamic-inputs';
 DynamicInputRegistry.prototype.start = function() {
   this.taskQueue = Promise.resolve();
 
-  navigator.mozInputMethod.mgmt.addEventListener('addinputrequest', this);
-  navigator.mozInputMethod.mgmt.addEventListener('removeinputrequest', this);
+  window.addEventListener('mozChromeEvent', this);
 };
 
 DynamicInputRegistry.prototype.stop = function() {
   this.taskQueue = null;
 
-  navigator.mozInputMethod.mgmt.removeEventListener('addinputrequest', this);
-  navigator.mozInputMethod.mgmt.removeEventListener('removeinputrequest', this);
+  window.removeEventListener('mozChromeEvent', this);
 };
 
 DynamicInputRegistry.prototype.handleEvent = function(evt) {
   var detail = evt.detail;
 
-  var p = this.taskQueue.then(function() {
+  if (!detail.type.startsWith('inputregistry')) {
+    return;
+  }
+
+  this.taskQueue = this.taskQueue.then(function() {
     return KeyboardHelper.inputAppList.getList();
   }).then(function(inputApps) {
     var inputApp = (inputApps.filter(function(inputApp) {
@@ -43,38 +45,31 @@ DynamicInputRegistry.prototype.handleEvent = function(evt) {
     }) || [])[0];
 
     if (!inputApp) {
-      throw 'App not installed';
+      this._sendContentEvent(detail, 'App not installed');
+      return;
     }
 
     var currentInputs = inputApp.getInputs();
     var currentInputIds = Object.keys(currentInputs);
     if (currentInputIds.indexOf(detail.inputId) !== -1 &&
         !currentInputs[detail.inputId].isDynamic) {
-      throw 'Can\'t mutate a statically declared input.';
+      this._sendContentEvent(detail,
+        'Can\'t mutate a statically declared input.');
+      return;
     }
 
-    return this._updateSetting(evt.type, detail)
-      .catch(function(e) {
-        console.error(e);
-        throw 'Error updating input.';
-      }.bind(this));
-  }.bind(this));
-
-  // Push the Promise queue to Gecko so it would respond to app accordingly.
-  detail.waitUntil(p);
-
-  // Tell Gecko this event is handled
-  evt.preventDefault();
-
-  this.taskQueue = p
-    .catch(function(e) {
-      console.error('DynamicInputRegistry rejects', e);
-    });
+    return this._updateSetting(detail).then(function() {
+      this._sendContentEvent(detail);
+    }.bind(this), function(e) {
+      console.error(e);
+      this._sendContentEvent(detail, 'Error updating input.');
+    }.bind(this));
+  }.bind(this)).catch(function(e) { console.error(e); });
 };
 
-DynamicInputRegistry.prototype._updateSetting = function(evtType, detail) {
+DynamicInputRegistry.prototype._updateSetting = function(detail) {
   if (!navigator.mozSettings) {
-    throw new Error('DynamicInputRegistry: No mozSettings?');
+    throw 'DynamicInputRegistry: No mozSettings?';
   }
 
   // We must mutate the setting with the same lock there.
@@ -87,8 +82,8 @@ DynamicInputRegistry.prototype._updateSetting = function(evtType, detail) {
     getReq.onerror = function() { reject(getReq.error); };
     getReq.onsuccess = (function() {
       var dynamicInputs = getReq.result[this.SETTING_KEY] || {};
-      switch (evtType) {
-        case 'addinputrequest':
+      switch (detail.type) {
+        case 'inputregistry-add':
           if (!(detail.manifestURL in dynamicInputs)) {
             dynamicInputs[detail.manifestURL] = {};
           }
@@ -96,7 +91,7 @@ DynamicInputRegistry.prototype._updateSetting = function(evtType, detail) {
             detail.inputManifest;
           break;
 
-        case 'removeinputrequest':
+        case 'inputregistry-remove':
           if (!(detail.manifestURL in dynamicInputs)) {
             break;
           }
@@ -116,6 +111,19 @@ DynamicInputRegistry.prototype._updateSetting = function(evtType, detail) {
       setReq.onsuccess = function() { resolve(); };
     }).bind(this);
   }.bind(this));
+};
+
+DynamicInputRegistry.prototype._sendContentEvent = function(chromeDetail, err) {
+  var detail = {
+    type: chromeDetail.type,
+    id: chromeDetail.id
+  };
+
+  if (err) {
+    detail.error = err;
+  }
+
+  window.dispatchEvent(new CustomEvent('mozContentEvent', { detail: detail }));
 };
 
 exports.DynamicInputRegistry = DynamicInputRegistry;
