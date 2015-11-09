@@ -2,6 +2,7 @@
 'use strict';
 
 var Ftu = require('./lib/ftu');
+var assert = require('assert');
 
 marionette('First Time Use >', function() {
 
@@ -11,6 +12,26 @@ marionette('First Time Use >', function() {
   setup(function() {
     system = client.loader.getAppClass('system');
     ftu = new Ftu(client);
+  });
+
+  test('statusbar', function() {
+    client.waitFor(function() {
+      return system.statusbar.displayed();
+    });
+    client.apps.switchToApp(Ftu.URL);
+    ftu.clickThruToFinish();
+
+    ftu.tapTakeTour();
+
+    while (!ftu.isTourFinished()) {
+      client.switchToFrame();
+      assert.ok(system.statusbar.displayed());
+      client.apps.switchToApp(Ftu.URL);
+      ftu.tapTourNext();
+    }
+
+    client.switchToFrame();
+    assert.ok(system.statusbar.displayed());
   });
 
   test('statusbar icons should be dark', function() {
@@ -28,15 +49,7 @@ marionette('First Time Use >', function() {
 
   test('statusbar icons should change', function() {
     client.apps.switchToApp(Ftu.URL);
-    ftu.clickThruPanel('#languages', '#forward');
-    ftu.clickThruPanel('#wifi', '#forward');
-    ftu.clickThruPanel('#date_and_time', '#forward');
-    ftu.clickThruPanel('#geolocation', '#forward');
-    ftu.clickThruPanel('#import_contacts', '#forward');
-    ftu.clickThruPanel('#firefox_accounts', '#forward');
-    ftu.clickThruPanel('#welcome_browser', '#forward');
-    ftu.clickThruPanel('#browser_privacy', '#forward');
-    ftu.clickThruPanel('#finish-screen', undefined);
+    ftu.clickThruToFinish();
     client.switchToFrame();
     client.waitFor(function() {
       var className = system.statusbar.scriptWith(function(element) {

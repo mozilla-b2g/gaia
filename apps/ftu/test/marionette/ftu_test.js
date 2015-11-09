@@ -20,15 +20,7 @@ marionette('First Time Use >', function() {
 
   test('FTU click thru', function() {
     client.apps.switchToApp(Ftu.URL);
-    ftu.clickThruPanel('#languages', '#forward');
-    ftu.clickThruPanel('#wifi', '#forward');
-    ftu.clickThruPanel('#date_and_time', '#forward');
-    ftu.clickThruPanel('#geolocation', '#forward');
-    ftu.clickThruPanel('#import_contacts', '#forward');
-    ftu.clickThruPanel('#firefox_accounts', '#forward');
-    ftu.clickThruPanel('#welcome_browser', '#forward');
-    ftu.clickThruPanel('#browser_privacy', '#forward');
-    ftu.clickThruPanel('#finish-screen', undefined);
+    ftu.clickThruToFinish();
   });
 
   test('FTU user timing', function() {
