@@ -1,5 +1,5 @@
 /* exported ToneList */
-/* global Templates */
+/* global Templates, Sanitizer */
 'use strict';
 
 var ToneList = (function() {
@@ -43,12 +43,13 @@ var ToneList = (function() {
    * Convert a string of HTML to a DOM node and translate any l10n IDs as
    * appropriate. Assumes that mozL10n has already been fully initialized.
    *
-   * @param {String} htmlText The HTML text to turn into a proper DOM node.
+   * @param {String} htmlObj A *Safe HTML Object* to turn into a proper DOM
+   *                        node. (Created from Sanitizer.createSafeHTML)
    * @return {Node} The converted DOM node.
    */
-  function domify(htmlText) {
+  function domify(htmlObj) {
     var dummyDiv = document.createElement('div');
-    dummyDiv.innerHTML = htmlText;
+    dummyDiv.innerHTML = Sanitizer.unwrapSafeHTML(htmlObj);
     var element = dummyDiv.firstElementChild;
 
     return element;
