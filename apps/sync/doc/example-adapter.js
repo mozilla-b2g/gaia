@@ -88,5 +88,16 @@ var ExampleAdapter = {
                 conflict.local,
                 conflict.remote);
     return Promise.resolve(conflict.local);
-  }
+  },
+
+  /*
+   * reset - will be called in case of panic after an unrecoverable error, to
+   *         reset any data the DataAdapter stores for efficiency of incremental
+   *         consecutive sync runs (for instance, some DataAdapters will store
+   *         the last modified time of unsynced records, and will only check
+   *         records that were changed since then).
+   */
+   reset: function(options) {
+     return Promise.resolve(`Reset check points for ${options.userid}.`);
+   }
 };

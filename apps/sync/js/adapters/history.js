@@ -82,6 +82,12 @@ var HistoryHelper = (() => {
     });
   }
 
+  function removeLastRevisionId(userid) {
+    return new Promise(resolve => {
+      asyncStorage.removeItem(userid + HISTORY_LAST_REVISIONID, resolve);
+    });
+  }
+
   /*
    * setDataStoreId and getDataStoreId are used to create a table for caching
    * SynctoId to DataStoreId matching. When a `deleted: true` record comes from
@@ -309,13 +315,21 @@ var HistoryHelper = (() => {
     });
   }
 
+  function reset(userid) {
+    return Promise.all([
+      removeSyncedCollectionMtime(userid),
+      removeLastRevisionId(userid)
+    ]);
+  }
+
   return {
-    mergeRecordsToDataStore: mergeRecordsToDataStore,
-    setSyncedCollectionMtime: setSyncedCollectionMtime,
-    getSyncedCollectionMtime: getSyncedCollectionMtime,
-    updatePlaces: updatePlaces,
-    deletePlace: deletePlace,
-    handleClear: handleClear
+    mergeRecordsToDataStore,
+    setSyncedCollectionMtime,
+    getSyncedCollectionMtime,
+    updatePlaces,
+    deletePlace,
+    handleClear,
+    reset
   };
 })();
 
@@ -457,5 +471,9 @@ DataAdapters.history = {
     // Because History adapter has not implemented record push yet,
     // handleConflict will always use remote records.
     return Promise.resolve(conflict.remote);
+  },
+
+  reset(options) {
+    return HistoryHelper.reset(options.userid);
   }
 };
