@@ -4,11 +4,6 @@
 
 var ToneList = (function() {
 
-  // Make sure to keep this in sync with the value in null_ringtone.js!
-  // (We copy the value here so that you don't need to load null_ringtone.js
-  // if you don't need it.)
-  var NONE_ID = 'none:none';
-
   /**
    * Compare two tone objects, sorting first on their title, and then their
    * subtitle. Note: The empty ringtone is always the "smallest".
@@ -18,15 +13,6 @@ var ToneList = (function() {
    * @param {Number} <0 if a < b, 0 if a == b, and >0 if a > b.
    */
   function toneCompare(a, b) {
-    // Make sure the empty ringtone is always first.
-    if (a.id === NONE_ID && b.id === NONE_ID) {
-      return 0;
-    } else if (a.id === NONE_ID) {
-      return -1;
-    } else if (b.id === NONE_ID) {
-      return 1;
-    }
-
     var aName = a.name.toLocaleLowerCase();
     var bName = b.name.toLocaleLowerCase();
     var cmp = aName.localeCompare(bName);

@@ -6,7 +6,7 @@ var Templates = {
     return Sanitizer.escapeHTML `
       <section hidden>
         <gaia-subheader skin="organic">
-          <span data-l10n-id="${l10nID}"></span>
+          <span data-l10n-id="${l10nID || ''}"></span>
         </gaia-subheader>
         <section data-type="list">
           <ul></ul>
@@ -19,7 +19,7 @@ var Templates = {
       <li>
         <gaia-radio name="sounds" class="truncate">
           <label class="name">
-            <bdi data-l10n-id="${l10nID}">${name}</bdi>
+            <bdi data-l10n-id="${l10nID || ''}">${name || ''}</bdi>
           </label>
           <details></details>
         </gaia-radio>

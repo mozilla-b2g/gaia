@@ -6,7 +6,7 @@ var Templates = {
     return Sanitizer.escapeHTML `
       <section hidden>
         <gaia-subheader skin="organic">
-          <span data-l10n-id="${l10nID}"></span>
+          <span data-l10n-id="${l10nID || ''}"></span>
         </gaia-subheader>
         <ul data-type="list"></ul>
       </section>`;
@@ -20,7 +20,7 @@ var Templates = {
         </aside>
         <div class="desc">
           <div class="play-icon"></div>
-          <p class="name"><bdi data-l10n-id="${l10nID}">${name}</bdi></p>
+          <p class="name"><bdi data-l10n-id="${l10nID || ''}">${name || ''}</bdi></p>
         </div>
       </li>`;
   }

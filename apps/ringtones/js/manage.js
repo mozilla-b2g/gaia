@@ -3,13 +3,12 @@
 /* jshint unused:false */
 'use strict';
 
-navigator.mozSetMessageHandler('activity', function(activity) {
+(function() {
   var tonePlayer = new TonePlayer();
+  var header = document.getElementById('header');
 
-  // Conclude the activity if the user taps "back".
-  document.getElementById('header').addEventListener('action', function() {
+  header.addEventListener('action', function() {
     tonePlayer.stop();
-    activity.postResult({});
   });
 
   function addNewTone(customRingtonesList) {
@@ -53,12 +52,11 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     };
   }
 
-  var actionsMenu = new ActionsMenu(
-    document.getElementById('ringtone-actions')
-  );
-
   function ManagerToneList(...args) {
     ToneList.apply(this, args);
+    this._actionsMenu = new ActionsMenu(
+      document.getElementById('ringtone-actions')
+    );
   }
   ManagerToneList.prototype = Object.create(ToneList.prototype);
   ManagerToneList.prototype.constructor = ManagerToneList;
@@ -76,7 +74,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     actionsButton.addEventListener('click', function() {
       tonePlayer.stop();
       window.systemTones.isInUse(tone).then(function(inUseAs) {
-        actionsMenu.open(tone, inUseAs, function(command) {
+        self._actionsMenu.open(tone, inUseAs, function(command) {
           if (command === 'delete') {
             self.remove(tone);
 
@@ -96,43 +94,48 @@ navigator.mozSetMessageHandler('activity', function(activity) {
   };
 
   navigator.mozL10n.once(function() {
-    var promises = [];
     var listParent = document.getElementById('list-parent');
+    var toneLists = {};
+    var promises = [];
 
     window.builtInRingtones.toneTypes.forEach(function(toneType) {
-      // Add the built-in ringtones.
       var builtInList = new ManagerToneList(
         'section-title-builtin-' + toneType, listParent
       );
       promises.push(window.builtInRingtones.list(toneType).then(
-        function(tones) { builtInList.add(tones); }
+        (tones) => builtInList.add(tones)
       ));
 
-      // Add the custom ringtones.
       var customList = new ManagerToneList(
-        'section-title-custom-' + toneType, listParent);
-
-      promises.push(window.customRingtones.list(toneType).then(function(tones) {
-        customList.add(tones);
-
-        if (toneType === 'ringtone') {
-          // Since we've built our custom tones list, we can now let the user
-          // add new tones to it!
-          document.getElementById('add').addEventListener(
-            'click', addNewTone.bind(null, customList)
-          );
-        }
+        'section-title-custom-' + toneType, listParent
+      );
+      promises.push(window.customRingtones.list(toneType).then(
+        (tones) => customList.add(tones)
+      }));
+      promises.push(window.sdCardRingtones.list(toneType).then(
+        (tones) => customList.add(tones)
       }));
 
-      // Add the SD card ringtones to the custom list.
-      promises.push(window.sdCardRingtones.list(toneType).then(function(tones) {
-        customList.add(tones);
-      }));
+      toneLists[toneType] = {builtIn: builtInList, custom: customList};
     });
+
+    // Since we've built our custom ringtones list, we can now let the user
+    // add new tones to it!
+    document.getElementById('add').addEventListener(
+      'click', () => addNewTone(toneLists.ringtone.custom)
+    );
 
     Promise.all(promises).then(function() {
       // This just notifies the tests that we're finished building our lists.
       document.querySelector('body').dataset.ready = true;
     });
   });
-});
+
+  navigator.mozSetMessageHandler('activity', function(activity) {
+    // Conclude the activity if the user taps "back".
+    header.addEventListener('action', function() {
+      activity.postResult({});
+    });
+  });
+
+})();
