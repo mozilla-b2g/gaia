@@ -5,11 +5,11 @@ var AppPermissionPanel = require('./regions/app_permission');
 var Base = require('./base');
 var BatteryPanel = require('./regions/battery');
 var BluetoothPanel = require('./regions/bluetooth');
+var BrowsingPrivacyPanel = require('./regions/browsing_privacy');
 var DateTimePanel = require('./regions/date_time');
 var DeviceInfoPanel = require('./regions/device_info');
 var DisplayPanel = require('./regions/display');
 var DoNotTrackPanel = require('./regions/do_not_track');
-var BrowsingPrivacyPanel = require('./regions/browsing_privacy');
 var FeedbackPanel = require('./regions/feedback');
 var HotspotPanel = require('./regions/hotspot');
 var HotspotSettingsPanel = require('./regions/hotspot_settings');
@@ -43,29 +43,29 @@ module.exports = Settings;
 
 Settings.Selectors = {
   'menuItemsSection': '#root',
+  'appPermissionMenuItem': '#menuItem-appPermissions',
+  'appStorageMenuItem': '.menuItem-applicationStorage',
+  'batteryMenuItem': '.menuItem-battery',
   'bluetoothMenuItem': '#menuItem-bluetooth',
-  'doNotTrackMenuItem': '#menuItem-doNotTrack',
   'browsingPrivacyMenuItem': '#menuItem-browsingPrivacy',
+  'dateTimeMenuItem': '#menuItem-dateAndTime',
+  'deviceInfoMenuItem': '#menuItem-deviceInfo',
+  'displayMenuItem': '#menuItem-display',
+  'doNotTrackMenuItem': '#menuItem-doNotTrack',
+  'feedbackMenuItem': 'a[href="#improveBrowserOS-chooseFeedback"]',
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
-  'supportMenuItem': '#menuItem-help',
-  'batteryMenuItem': '.menuItem-battery',
-  'dateTimeMenuItem': '#menuItem-dateAndTime',
-  'notificationsMenuItem': '#menuItem-notifications',
-  'improvePanel': '#menuItem-improveBrowserOS',
+  'improveMenuItem': '#menuItem-improveBrowserOS',
   'improveSection': '#improveBrowserOS',
-  'feedbackPanel': 'a[href="#improveBrowserOS-chooseFeedback"]',
-  'soundMenuItem': '#menuItem-sound',
-  'languageMenuItem': '.menuItem-languageAndRegion',
-  'screenLockMenuItem': '#menuItem-screenLock',
-  'appPermissionPanel': '#menuItem-appPermissions',
-  'displayMenuItem': '#menuItem-display',
-  'appStorageMenuItem': '.menuItem-applicationStorage',
-  'mediaStorageMenuItem': '.menuItem-mediaStorage',
   'keyboardMenuItem': '#menuItem-keyboard',
+  'languageMenuItem': '.menuItem-languageAndRegion',
+  'mediaStorageMenuItem': '.menuItem-mediaStorage',
   'messageMenuItem': '#menuItem-messagingSettings',
-  'deviceInfoMenuItem': '#menuItem-deviceInfo',
+  'notificationsMenuItem': '#menuItem-notifications',
+  'screenLockMenuItem': '#menuItem-screenLock',
+  'soundMenuItem': '#menuItem-sound',
+  'supportMenuItem': '#menuItem-help',
   'usbStorageMenuItem': '.menuItem-enableStorage'
 };
 
@@ -171,21 +171,21 @@ Settings.prototype = {
   },
 
   get improvePanel() {
-    this.openPanel.call(this, 'improvePanel');
+    this.openPanel.call(this, 'improveMenuItem');
     this._improvePanel = this._improvePanel ||
       new ImprovePanel(this.client);
     return this._improvePanel;
   },
 
   get feedbackPanel() {
-    this.openPanel.call(this, 'feedbackPanel', 'improveSection');
+    this.openPanel.call(this, 'feedbackMenuItem', 'improveSection');
     this._feedbackPanel =
       this._feedbackPanel || new FeedbackPanel(this.client);
     return this._feedbackPanel;
   },
 
   get appPermissionPanel() {
-    this.openPanel.call(this, 'appPermissionPanel');
+    this.openPanel.call(this, 'appPermissionMenuItem');
     this._appPermissionPanel =
       this._appPermissionPanel || new AppPermissionPanel(this.client);
     return this._appPermissionPanel;
