@@ -33,7 +33,7 @@ var BrowserDialog = {
       'browser-dialog-input',
       'browser-dialog-input-area',
       'browser-dialog-input-clear',
-      'browser-dialog-button', 'browser-dialog-button-margin',
+      'browser-dialog-button',
       'browser-dialog-button1', 'browser-dialog-button2',
     ];
 
