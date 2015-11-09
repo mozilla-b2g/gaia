@@ -31,8 +31,7 @@
   function() {
     this.ensure()
       .frame()
-      .element(this.client.findElement(this.selector.trayHandler))
-      .displayed()
+      .element(this.client.helper.waitForElement(this.selector.trayHandler))
       .actions()
         .pull(0, 400)
         .perform()
@@ -48,8 +47,7 @@
   function() {
     this.ensure()
       .frame()
-      .element(this.client.findElement(this.selector.grippy))
-      .displayed()
+      .element(this.client.helper.waitForElement(this.selector.grippy))
       .must(function(elements) {
         return elements.current.location().y > 400;
       })
