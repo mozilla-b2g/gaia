@@ -130,7 +130,9 @@ define(function(require) {
         var nameContainer = document.createElement('span');
         var numberContainer = document.createElement('small');
 
+        nameContainer.dir = 'auto';
         nameContainer.textContent = contact.name;
+        numberContainer.dir = 'auto';
         numberContainer.textContent = contact.number;
         li.appendChild(numberContainer);
         li.appendChild(nameContainer);
