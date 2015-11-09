@@ -9,6 +9,13 @@ var Storage = require('./lib/storage.js');
 var ThreadGenerator = require('./generators/thread');
 
 marionette('Message Type Conversion Banner', function() {
+  var MOCKS = [
+    '/mocks/mock_test_storages.js',
+    '/mocks/mock_test_blobs.js',
+    '/mocks/mock_navigator_moz_icc_manager.js',
+    '/mocks/mock_navigator_moz_mobile_message.js'
+  ];
+
   var apps = {};
 
   var client = marionette.client({
@@ -54,21 +61,14 @@ marionette('Message Type Conversion Banner', function() {
     inbox = messagesApp.Inbox;
     newMessage = messagesApp.NewMessage;
 
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_test_storages.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
-    );
+    MOCKS.forEach(function(mock) {
+      client.contentScript.inject(__dirname + mock);
+    });
   });
 
   suite('Message Type Conversion Banner for new threads', function() {
     setup(function() {
       messagesApp.launch();
-      storage.setMessagesStorage();
 
       inbox.navigateToComposer();
     });
@@ -137,11 +137,11 @@ marionette('Message Type Conversion Banner', function() {
         ]
       });
 
-      messagesApp.launch();
       storage.setMessagesStorage(
         [smsThread, mmsThread],
         ThreadGenerator.uniqueMessageId
       );
+      messagesApp.launch();
     });
 
     test('The banner is not shown after sending another message',

@@ -1,4 +1,4 @@
-/* global module */
+/* global Components, module, Services */
 (function(module) {
   'use strict';
 
@@ -15,40 +15,10 @@
          * generated during test (e.g. send or receive new message).
          */
         setMessagesStorage: function(threads, uniqueMessageIdCounter) {
-          client.executeScript(function(threads, uniqueMessageIdCounter) {
-            var STORAGE_NAME = 'messagesDB';
-
-            var recipientToThreadId = new Map();
-
-            var messageMap = new Map();
-
-            var threadMap = new Map(threads.map(function(thread) {
-              recipientToThreadId.set(thread.participants[0], thread.id);
-
-              // Messages should be placed into dedicated map to simplify
-              // message-based manipulations.
-              if (thread.messages) {
-                thread.messages = new Set(
-                  thread.messages.map(function(message) {
-                    messageMap.set(message.id, message);
-
-                    return message.id;
-                  })
-                );
-              }
-
-              return [thread.id, thread];
-            }));
-
-            window.wrappedJSObject.TestStorages.setStorage(STORAGE_NAME, {
-              threads: threadMap,
-              messages: messageMap,
-              recipientToThreadId: recipientToThreadId,
-              uniqueMessageIdCounter: uniqueMessageIdCounter
-            });
-
-            window.wrappedJSObject.TestStorages.setStorageReady(STORAGE_NAME);
-          }, [threads || [], uniqueMessageIdCounter || 0]);
+          this.setStorage('messagesDB', {
+            threads: threads || [],
+            uniqueMessageIdCounter: uniqueMessageIdCounter || 0
+          });
         },
 
         /**
@@ -57,15 +27,28 @@
          * pre-populate storage with.
          */
         setContactsStorage: function(contacts) {
-          client.executeScript(function(contacts) {
-            var STORAGE_NAME = 'contactsDB';
+          this.setStorage('contactsDB', {
+            contacts: contacts || []
+          });
+        },
 
-            window.wrappedJSObject.TestStorages.setStorage(STORAGE_NAME, {
-              contacts: contacts
-            });
-
-            window.wrappedJSObject.TestStorages.setStorageReady(STORAGE_NAME);
-          }, [contacts || []]);
+        /**
+         * Sets pre-populated custom storage.
+         * @param {string} storageName Name of the custom storage.
+         * @param {*} storage Custom storage data.
+         * @private
+         */
+        setStorage: function(storageName, storage) {
+          client.scope({ context: 'chrome' }).executeScript(
+            function(storage, storageName) {
+              Services.obs.addObserver(function(window) {
+                window.wrappedJSObject.TestStorages.set(
+                  storageName, Components.utils.cloneInto(storage, window)
+                );
+              }, 'test-storage-ready', false);
+            },
+            [storage, storageName]
+          );
         }
       };
     }

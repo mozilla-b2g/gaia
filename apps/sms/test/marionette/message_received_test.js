@@ -15,6 +15,7 @@ var NotificationList = require(
 marionette('Incoming messages tests', function() {
   var MOCKS = [
     '/mocks/mock_test_storages.js',
+    '/mocks/mock_test_blobs.js',
     '/mocks/mock_navigator_moz_icc_manager.js',
     '/mocks/mock_navigator_moz_mobile_message.js'
   ];
@@ -37,7 +38,7 @@ marionette('Incoming messages tests', function() {
   });
 
   suite('SMS received', function() {
-    var smsMessage, messagesStorage;
+    var smsMessage;
 
     setup(function() {
       smsMessage = ThreadGenerator.generateSMS({
@@ -47,14 +48,14 @@ marionette('Incoming messages tests', function() {
         body: 'Brand new message'
       });
 
-      messagesStorage = [{
+      storage.setMessagesStorage([{
         id: smsMessage.threadId,
         body: smsMessage.body,
         lastMessageType: smsMessage.type,
         timestamp: smsMessage.timestamp,
         messages: [smsMessage],
         participants: [smsMessage.sender]
-      }];
+      }]);
     });
 
     test('Incoming message notification is displayed correctly', function() {
@@ -64,7 +65,6 @@ marionette('Incoming messages tests', function() {
       // We should make Messages app visible, otherwise switchToApp will not
       // work.
       messagesApp.launch();
-      storage.setMessagesStorage(messagesStorage);
 
       // Switch to system app to be sure that notification is generated.
       client.switchToFrame();
@@ -84,7 +84,7 @@ marionette('Incoming messages tests', function() {
   });
 
   suite('Flash message received', function() {
-    var class0Message, messagesStorage;
+    var class0Message;
 
     setup(function() {
       class0Message = ThreadGenerator.generateSMS({
@@ -95,14 +95,14 @@ marionette('Incoming messages tests', function() {
         messageClass: 'class-0'
       });
 
-      messagesStorage = [{
+      storage.setMessagesStorage([{
         id: class0Message.threadId,
         body: class0Message.body,
         lastMessageType: class0Message.type,
         timestamp: class0Message.timestamp,
         messages: [class0Message],
         participants: [class0Message.sender]
-      }];
+      }]);
     });
 
     test('Flash message is displayed correctly', function() {
@@ -112,7 +112,6 @@ marionette('Incoming messages tests', function() {
       // We should make Messages app visible, otherwise switchToApp will not
       // work.
       messagesApp.launch();
-      storage.setMessagesStorage(messagesStorage);
 
       // Verify dialog content.
       var dialog = new DialogView(client);
