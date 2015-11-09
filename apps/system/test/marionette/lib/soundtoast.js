@@ -70,8 +70,9 @@ SoundToast.prototype = {
   waitForNotificationVolumeShown:
     function(shouldBeShown, shouldBeMuted, shouldBeVibrated) {
       this.client.waitFor(function() {
-        var volumeShown = this.NotificationVolumeBar.displayed();
-        var classes = this.NotificationVolumeBar.getAttribute('class');
+        var bar = this.NotificationVolumeBar;
+        var volumeShown = bar.displayed();
+        var classes = bar.getAttribute('class');
         var checkedMute = ((classes.indexOf('mute') !== -1) === shouldBeMuted);
         var checkedVibration =
           ((classes.indexOf('vibration') !== -1) === shouldBeVibrated);
