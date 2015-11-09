@@ -253,10 +253,6 @@ suite('configurator.js >', function() {
           }
         ],
         [
-          { 'id': 289, 'role': 'collection' },
-          { 'id': 207, 'role': 'collection' }
-        ],
-        [
           {
             'name': 'Contacts',
             'manifestURL': 'app://communications/manifest.webapp',
@@ -280,10 +276,6 @@ suite('configurator.js >', function() {
             'manifestURL': 'app://sms/manifest.webapp',
             'icon': 'app://sms/icons/Sms_60.png'
           }
-        ],
-        [
-          { 'id': 200, 'role': 'collection' },
-          { 'id': 100, 'role': 'collection' }
         ],
         [
           {

@@ -235,10 +235,6 @@
 
         case 'edititem':
           var icon = e.detail;
-          if (icon.detail.type != 'divider') {
-            // We only edit groups
-            return;
-          }
 
           LazyLoader.load('js/edit_group.js', () => {
             groupEditor.edit(icon);

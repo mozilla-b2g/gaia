@@ -1,7 +1,5 @@
 'use strict';
 /* global ApplicationSource */
-/* global BookmarkSource */
-/* global CollectionSource */
 /* global configurator */
 /* global dispatchEvent */
 /* global GaiaGrid */
@@ -39,12 +37,6 @@
         } else {
           return lookFor.manifestURL === compareWith.detail.manifestURL;
         }
-      } else if (compareWith instanceof GaiaGrid.Collection ||
-                 compareWith instanceof GaiaGrid.Bookmark) {
-        if (!lookFor.id || !compareWith.detail.id) {
-          return false;
-        }
-        return lookFor.id === compareWith.detail.id;
       }
     }
 
@@ -57,10 +49,6 @@
           newEntries.push(entries.splice(ind,1)[0]);
         }
       }
-      // If we have more sections add a divider
-      if (i < iLen - 1) {
-        newEntries.push(new GaiaGrid.Divider());
-      }
     }
     // If entries is not empty yet, they could be unordered apps (added at end)
     // or SingleVariant apps, installed before vertical started, which we need
@@ -71,7 +59,6 @@
       if (configurator.isSimPresentOnFirstBoot) {
         sortUnclassifiedApps(newEntries, entries);
       } else {
-        newEntries.push(new GaiaGrid.Divider());
         newEntries = newEntries.concat(entries);
       }
     }
@@ -112,7 +99,6 @@
     // After the sorting process, if the first element is not a SV app then
     // we only need to add them at the end of dstEntries
     if (!configurator.getSingleVariantApp(orgEntries[0].detail.manifestURL)) {
-      dstEntries.push(new GaiaGrid.Divider());
       dstEntries = dstEntries.concat(orgEntries);
     } else {
       var sepAdded = false;
@@ -121,7 +107,6 @@
         var svApp = configurator.getSingleVariantApp(app.detail.manifestURL);
         if (!svApp) {
           if (!sepAdded) {
-            dstEntries.push(new GaiaGrid.Divider());
             sepAdded = true;
           }
           dstEntries.push(app);
@@ -170,11 +155,8 @@
   function ItemStore(onsuccess) {
     var self = this;
     this.applicationSource = new ApplicationSource(this);
-    this.bookmarkSource = new BookmarkSource(this);
-    this.collectionSource = new CollectionSource(this);
 
-    this.sources = [this.applicationSource, this.bookmarkSource,
-                    this.collectionSource];
+    this.sources = [this.applicationSource];
 
     this.ready = false;
 
@@ -201,7 +183,7 @@
           objectSV.createIndex('indexSV', 'indexSV', { unique: true });
 
           var pinnedAppStore = db.createObjectStore(DB_PINNED_APP_STORE,
-            { keyPath: 'index'});
+                                                   { keyPath: 'index'});
           pinnedAppStore.createIndex('index', 'index', { unique: true });
       }
     };
@@ -218,11 +200,9 @@
           self.gridOrder = configurator.getGrid();
           self.populate(cb);
         });
-        window.addEventListener('configuration-pinned-app-ready',
-          function onPinnedAppsReady() {
-            window.removeEventListener('configuration-pinned-app-ready',
-              onPinnedAppsReady);
-            self.initPinnedAppsDB(cbPinnedApp);
+        window.addEventListener('config-pa-ready', function onPinnedAppsReady(){
+          window.removeEventListener('config-pa-ready', onPinnedAppsReady);
+          self.initPinnedAppsDB(cbPinnedApp);
         });
       } else {
         self.initSources(cb);
@@ -249,7 +229,7 @@
     _deferredSaveArgs: [],
 
     /**
-     * A list of all items. These are item objects (App, Bookmark, Divider)
+     * A list of all items. These are item objects (App)
      */
     _allItems: [],
 
@@ -325,8 +305,8 @@
     /**
      * This function save application (item) to DB
      * @param  {[object (application)]}   object   [Application's object]
-     * @param  {Function} callback [callback that executes after saving object
-     * to DB]
+     * @param  {Function} callback [callback that executes after saving 
+     * object to DB]
      * @return {[nothing]}
      */
     savePinnedAppItem: function (object, callback) {
@@ -491,7 +471,7 @@
 
     /**
      * We have fetched data from our local database and displayed it,
-     * but data inside of our application or bookmark store may be outdated.
+     * but data inside of our application store may be outdated.
      * We need to synchronize each source and delete/add records.
      */
     synchronize: function() {

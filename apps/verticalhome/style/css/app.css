@@ -69,14 +69,6 @@ body {
   display: none;
 }
 
-.divider:not(.group):last-of-type {
-  visibility: hidden;
-}
-
-.edit-mode .divider:last-of-type {
-  visibility: visible;
-}
-
 /* Disable scroll while edit group UI is being displayed because of keyboard
    translates the vertical home */
 body.edit-group {

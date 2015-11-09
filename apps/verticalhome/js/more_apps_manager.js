@@ -1,6 +1,4 @@
 /* global ConfirmDialogHelper */
-/* global BookmarksDatabase */
-/* global CollectionsDatabase */
 
 'use strict';
 
@@ -14,7 +12,6 @@
       window.dispatchEvent(new CustomEvent('moreapps-manager-ready'));
     };
 
-    window.addEventListener('gaiagrid-add-to-collection', this);
     grid.addEventListener('removeitem', this);
   }
 
@@ -28,17 +25,7 @@
     has been removed.
     */
     handleItemRemoval: function(item) {
-      function errorLogger(err) {
-        console.error('Error while trying to remove', item.name, err);
-      }
-
       switch (item.detail.type) {
-        case 'bookmark':
-          BookmarksDatabase.remove(item.identifier).catch(errorLogger);
-          break;
-        case 'collection':
-          CollectionsDatabase.remove(item.identifier).catch(errorLogger);
-          break;
         default:
           console.error(
             'Cannot handle remove for item type ',
@@ -89,35 +76,8 @@
           });
           dialog.show(document.body);
           break;
-
-        case 'gaiagrid-add-to-collection':
-          this.sendEventToCollectionApp('add-to-collection', e.detail);
-          break;
       }
-    },
-
-    sendEventToCollectionApp: function(eventName, message) {
-      var onAppReady = function(app) {
-        app.connect(eventName).then(
-          function onConnectionAccepted(ports) {
-            ports.forEach(function(port) {
-              port.postMessage(message);
-            });
-          }, function onConnectionRejected() {
-            console.error('Cannot connect to collection app');
-          }
-        );
-      };
-
-      if (!this.app) {
-        window.addEventListener('moreapps-manager-ready', function onReady() {
-          window.removeEventListener('moreapps-manager-ready', onReady);
-          onAppReady(this.app);
-        }.bind(this));
-      } else {
-        onAppReady(this.app);
-      }
-    },
+    }
   };
 
   exports.moreAppsManager = new MoreAppsManager();

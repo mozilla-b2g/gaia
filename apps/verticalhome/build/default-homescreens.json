@@ -6,12 +6,7 @@
       ["apps", "communications", "contacts"],
       ["apps", "search"],
       ["apps", "marketplace.firefox.com"],
-      ["apps", "camera"]
-    ], [
-      ["apps/collection/collections", "social"],
-      ["apps/collection/collections", "games"],
-      ["apps/collection/collections", "music"]
-    ], [
+      ["apps", "camera"],
       ["apps", "gallery"],
       ["apps", "music"],
       ["apps", "video"],
