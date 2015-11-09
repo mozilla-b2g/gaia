@@ -4,6 +4,8 @@
 var UtilityTray = require('./lib/utility_tray');
 var assert = require('assert');
 
+var SETTINGS_APP = 'app://settings.gaiamobile.org';
+
 marionette('Utility Tray - Gestures', function() {
   var client = marionette.client({
     desiredCapabilities: { raisesAccessibilityExceptions: true }
@@ -59,10 +61,12 @@ marionette('Utility Tray - Gestures', function() {
   test('Tapping "settings"', function() {
     utilityTray.swipeDown();
     utilityTray.waitForOpened();
-    client.executeScript(function() {
-      document.getElementById('quick-settings-full-app').click();
-    });
+    utilityTray.quickSettings.tap();
     utilityTray.waitForClosed();
+    client.waitFor(function() {
+      var settings = system.getAppIframe(SETTINGS_APP);
+      return settings.ariaDisplayed();
+    });
     assert.equal(false, utilityTray.shown);
   });
 
