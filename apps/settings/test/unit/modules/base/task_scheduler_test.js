@@ -43,8 +43,8 @@ suite('TaskScheduler >', function() {
             return Promise.resolve();
           },
           defer: {
-            resolve: Promise.resolve,
-            reject: Promise.reject
+            resolve: Promise.resolve.bind(Promise),
+            reject: Promise.reject.bind(Promise)
           }
         }];
       });
@@ -65,8 +65,8 @@ suite('TaskScheduler >', function() {
             return Promise.reject();
           },
           defer: {
-            resolve: Promise.resolve,
-            reject: Promise.reject
+            resolve: Promise.resolve.bind(Promise),
+            reject: Promise.reject.bind(Promise)
           }
         }];
       });

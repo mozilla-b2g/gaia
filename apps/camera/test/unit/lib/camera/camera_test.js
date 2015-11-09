@@ -815,7 +815,7 @@ suite('lib/camera/camera', function() {
       this.camera.takePicture({});
       
       // We need to wait two microtasks to see the result
-      Promise.resolve().then(Promise.resolve).then(() => {
+      Promise.resolve().then(Promise.resolve.bind(Promise)).then(() => {
         assert.isTrue(alert.called);
         done();
       });
