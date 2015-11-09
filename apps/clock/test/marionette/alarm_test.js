@@ -53,15 +53,15 @@ marionette('Alarm', function() {
 
     var selectedOptions = {
       snooze: '15 minutes',
-      sound: 'Gem Echoes',
+      sound: 'Cycle',
       repeat: 'Weekdays'
     };
 
-    assert.equal($('#sound-menu').text(), 'Classic Buzz');
+    assert.notEqual($('#sound-menu').text(), selectedOptions.sound);
     $('#sound-select').val(selectedOptions.sound);
     assert.equal($('#sound-menu').text(), selectedOptions.sound);
 
-    assert.equal($('#snooze-menu').text(), '5 minutes');
+    assert.notEqual($('#snooze-menu').text(), selectedOptions.snooze);
     $('#snooze-select').val(selectedOptions.snooze);
     assert.equal($('#snooze-menu').text(), selectedOptions.snooze);
 

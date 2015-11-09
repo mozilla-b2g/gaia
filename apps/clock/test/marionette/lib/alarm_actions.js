@@ -59,7 +59,10 @@ AlarmActions.prototype = {
   },
 
   cancelForm: function() {
-    this.actions.tapAndTransition('#alarm-close');
+    var header = this._client.findElement('gaia-header');
+    this._client.switchToShadowRoot(header);
+    var button = this._client.findElement('.action-button');
+    this.actions.tapAndTransition(button);
   },
 
   delete: function() {
