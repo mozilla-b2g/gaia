@@ -1,4 +1,5 @@
 {
+  "debugger.remote-mode": "adb-devtools",
   "screen.timeout": 0,
   "homescreen.appName": "homescreen",
   "ftu.manifestURL": "app://ftu.gaiamobile.org/manifest.webapp"
