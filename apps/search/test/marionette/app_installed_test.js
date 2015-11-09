@@ -44,7 +44,7 @@ marionette('Search - Installed Apps Test', function() {
     appInstall.installPackage(server.packageManifestURL);
 
     // Search again for the same term.
-    rocketbar.homescreenFocus();
+    rocketbar.appTitleFocus();
     rocketbar.enterText('Calendar');
     search.goToResults();
 
@@ -60,7 +60,7 @@ marionette('Search - Installed Apps Test', function() {
     home.confirmDialog('remove');
 
     // Should now contain only a single app.
-    rocketbar.homescreenFocus();
+    rocketbar.appTitleFocus();
     rocketbar.enterText('Calendar');
     search.goToResults();
     client.waitFor(function() {
