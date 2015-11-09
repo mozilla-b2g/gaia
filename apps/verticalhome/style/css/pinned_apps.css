@@ -15,8 +15,6 @@
   margin: 2rem auto 4.5rem auto;
 }
 
-
-
 #pinned-apps-list .selected .pinned-app-icon,
 #pinned-apps-list .selected input[type="button"] {
   width: 11rem;
@@ -45,7 +43,6 @@
   opacity: 1;
 }
 
-
 #pinned-apps-list .pinned-app-item {
   height: 5rem;
   width: 5rem;
@@ -70,9 +67,6 @@
   transition: all 0.5s;
 }
 
-
-
-
 #pinned-apps-list .selected.middle {
   width: 7.5rem;
   height: 7.5rem;
@@ -88,8 +82,6 @@
   opacity: 0;
   transition: all 0.5s;
 }
-
-
 
 #pinned-apps-list div.removed {
   margin: 0 auto;
