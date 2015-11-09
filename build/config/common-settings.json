@@ -106,6 +106,7 @@
    "hud.errors": true,
    "hud.security": true,
    "hud.reflows": false,
+   "hud.reflows.duration": 10,
    "hud.jank": false,
    "hud.uss": false,
    "hud.appmemory": false,
