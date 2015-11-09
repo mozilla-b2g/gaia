@@ -295,6 +295,15 @@ suite('AppUsageMetrics:', function() {
       assert.equal(getUsage(metrics, app1).installs, 2);
     });
 
+    test('record install for hosted app', function() {
+      this.sinon.stub(UsageData.prototype, 'incrementInstallRecord');
+      var hostedApp = new MockApp({ });
+      var metrics = new UsageData();
+      hostedApp.manifest = undefined;
+      metrics.recordInstall(hostedApp);
+      sinon.assert.called(UsageData.prototype.incrementInstallRecord);
+    });
+
     test('record uninstall', function() {
       var metrics = new UsageData();
       metrics.recordUninstall(app1);
