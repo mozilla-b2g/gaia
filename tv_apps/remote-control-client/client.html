@@ -14,20 +14,20 @@
   <meta name="availableLanguages" content="en-US">
   <link rel="localization" href="locales/remote-control-client.{locale}.properties">
 </head>
-<body>
+<body class="client">
   <h1 data-l10n-id="client-title"></h1>
   <section id="section-input">
-    <input id="input-string" type="text" placeholder="type here and send">
+    <input id="input-string" type="text" data-l10n-id="input">
     <div id="send-string" class="button" data-l10n-id="send"></div>
   </section>
   <section id="section-touch-panel">
     <div id="touch-panel" class="panel"></div>
-    <div id="scroll-panel" class="panel"><div id="scroll-panel-mask"></div></div>
+    <div id="scroll-panel" class="panel"></div>
   </section>
   <section id="section-buttons">
-    <div class="button" data-key="DOM_VK_ESCAPE" data-l10n-id="back"></div>
-    <div class="button" data-key="DOM_VK_HOME" data-l10n-id="home"></div>
-    <div class="button" data-key="DOM_VK_CONTEXT_MENU" data-l10n-id="option"></div>
+    <div id="button-back" class="button" data-key="DOM_VK_ESCAPE"></div>
+    <div id="button-home" class="button" data-key="DOM_VK_HOME"></div>
+    <div id="button-option" class="button" data-key="DOM_VK_CONTEXT_MENU"></div>
   </section>
 </body>
 </html>
