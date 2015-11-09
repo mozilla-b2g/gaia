@@ -2,11 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
-from marionette_driver import expected, By, Wait
+from marionette_driver import By, Wait
 from marionette_driver.marionette import Actions
-from marionette_driver.errors import NoSuchElementException
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -16,35 +13,15 @@ class Homescreen(Base):
 
     name = 'Default Home Screen'
 
-    _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _all_icons_locator = (By.TAG_NAME, 'gaia-app-icon')
-    _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
-    _search_bar_icon_locator = (By.ID, 'search-input')
-    _landing_page_locator = (By.ID, 'icons')
     _bookmark_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .bookmark')
-    _divider_locator = (By.CSS_SELECTOR, 'section.divider')
-    _divider_separator_locator = (By.CSS_SELECTOR, 'section.divider .separator > span')
-    _exit_edit_mode_locator = (By.ID, 'exit-edit-mode')
 
-    _body_dragging_locator = (By.CSS_SELECTOR, 'body.dragging')
     _apps_locator = (By.ID, 'apps')
     _app_icon_locator = (By.CSS_SELECTOR, 'gaia-app-icon[data-identifier="%s"]')
-    _remove_locator = (By.ID, 'remove')
-
     _scollable_div_locator = (By.CSS_SELECTOR, '#apps-panel div.scrollable')
 
     def wait_for_app_icon_present(self, app_manifest):
         Wait(self.marionette, timeout=30).until(lambda m: self.installed_app(app_manifest))
-
-    def wait_for_app_icon_not_present(self, app_manifest):
-        def _app_is_not_found(_):
-            try:
-                self.installed_app(app_manifest)
-            except NoSuchElementException:
-                return True
-            return False
-
-        Wait(self.marionette).until(_app_is_not_found)
 
     def wait_for_bookmark_icon_not_present(self, bookmark_title):
         Wait(self.marionette).until(lambda m: self.bookmark(bookmark_title) is None)
@@ -112,13 +89,6 @@ class Homescreen(Base):
                 column += 1
 
         return column
-
-    def delete_app(self, app_manifest):
-        app = self.installed_app(app_manifest)
-        remove_action_element = self.marionette.find_element(*self._remove_locator)
-        app.move_to(remove_action_element)
-        from gaiatest.apps.homescreen.regions.confirm_dialog import ConfirmDialog
-        return ConfirmDialog(self.marionette)
 
     class GaiaAppIcon(PageRegion):
 
