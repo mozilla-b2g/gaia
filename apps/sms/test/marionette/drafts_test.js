@@ -12,6 +12,7 @@ var InboxView = require('./lib/views/inbox/view');
 marionette('Messages Drafts', function() {
   var MOCKS = [
     '/mocks/mock_test_storages.js',
+    '/mocks/mock_test_blobs.js',
     '/mocks/mock_navigator_moz_mobile_message.js'
   ];
 
@@ -174,9 +175,6 @@ marionette('Messages Drafts', function() {
     function relaunchApp() {
       messagesApp.close();
       messagesApp.launch();
-      storage.setMessagesStorage(
-        [conversation], ThreadGenerator.uniqueMessageId
-      );
     }
 
     setup(function() {
@@ -195,11 +193,11 @@ marionette('Messages Drafts', function() {
         shouldHaveAttachment: true
       };
 
-      messagesApp.launch();
-
       storage.setMessagesStorage(
         [conversation], ThreadGenerator.uniqueMessageId
       );
+
+      messagesApp.launch();
 
       inboxView = new InboxView(client);
     });

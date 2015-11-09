@@ -15,6 +15,7 @@ var NotificationList = require(
 marionette('Message notification tests', function() {
   var MOCKS = [
     '/mocks/mock_test_storages.js',
+    '/mocks/mock_test_blobs.js',
     '/mocks/mock_navigator_moz_icc_manager.js',
     '/mocks/mock_navigator_moz_mobile_message.js'
   ];
@@ -43,7 +44,7 @@ marionette('Message notification tests', function() {
   });
 
   suite('Run application via notification', function() {
-    var smsMessage, messagesStorage;
+    var smsMessage;
 
     function openNotification() {
       client.switchToFrame();
@@ -60,7 +61,6 @@ marionette('Message notification tests', function() {
 
       // Switch to messages so that it's able to remove notification.
       messagesApp.switchTo();
-      storage.setMessagesStorage(messagesStorage);
       // Make sure we enter conversation view directly.
       assert.equal(messagesApp.getActivePanelName(), 'ConversationView');
 
@@ -97,7 +97,6 @@ marionette('Message notification tests', function() {
       // Switch to messages so that it's able to remove notification.
       messagesApp.launch();
       messagesApp.switchTo();
-      storage.setMessagesStorage(messagesStorage);
 
       // Verify that notification has been removed.
       client.switchToFrame();
@@ -142,14 +141,14 @@ marionette('Message notification tests', function() {
         timestamp: Date.now()
       };
 
-      messagesStorage = [{
+      storage.setMessagesStorage([{
         id: smsMessage.threadId,
         body: smsMessage.body,
         lastMessageType: smsMessage.type,
         timestamp: smsMessage.timestamp,
         messages: [smsMessage],
         participants: [smsMessage.sender]
-      }];
+      }]);
     });
 
     test('when "notification" system message is generated', function() {
@@ -159,7 +158,6 @@ marionette('Message notification tests', function() {
         data: { threadId: smsMessage.threadId, id: smsMessage.id }
       });
       messagesApp.switchTo();
-      storage.setMessagesStorage(messagesStorage);
 
       assertMessagesIsInCorrectState();
     });
@@ -170,7 +168,6 @@ marionette('Message notification tests', function() {
 
       // We should make Messages app visible, otherwise switchToApp won't work.
       messagesApp.launch();
-      storage.setMessagesStorage(messagesStorage);
 
       // Switch to system app to be sure that notification is generated.
       client.switchToFrame();
@@ -201,7 +198,6 @@ marionette('Message notification tests', function() {
 
       // We should make Messages app visible, otherwise switchToApp won't work.
       messagesApp.launch();
-      storage.setMessagesStorage(messagesStorage);
 
       // Switch to system app to be sure that notification is generated.
       client.switchToFrame();
@@ -231,7 +227,6 @@ marionette('Message notification tests', function() {
   });
 
   suite('Display a conversation from a notification', function() {
-    var messagesStorage;
     var thread1, thread2;
 
     setup(function() {
@@ -244,12 +239,13 @@ marionette('Message notification tests', function() {
         participants: ['888']
       });
 
-      messagesStorage = [ thread1, thread2 ];
+      storage.setMessagesStorage(
+        [thread1, thread2], ThreadGenerator.uniqueMessageId
+      );
     });
 
     test('Clicking a notification while a conversation is loading', function() {
       messagesApp.launch();
-      storage.setMessagesStorage(messagesStorage);
 
       var inbox = new InboxView(client);
       var conversation = inbox.goToConversation(thread1.id);

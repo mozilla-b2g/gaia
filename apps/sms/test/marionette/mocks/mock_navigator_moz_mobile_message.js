@@ -32,36 +32,6 @@ Services.obs.addObserver(function(document) {
     }
   }
 
-  function generateCanvas(width, height) {
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-
-    canvas.width = width;
-    canvas.height = height;
-
-    var linearGradient = context.createLinearGradient(0, 0, width, height);
-    linearGradient.addColorStop(0, 'blue');
-    linearGradient.addColorStop(1, 'red');
-
-    context.fillStyle = linearGradient;
-    context.fillRect (0, 0, width, height);
-
-    return canvas;
-  }
-
-  function generateImageBlob(width, height, type, quality) {
-    var canvas = generateCanvas(width, height);
-
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        canvas.width = canvas.height = 0;
-        canvas = null;
-
-        resolve(blob);
-      }, type, quality);
-    });
-  }
-
   function rehydrateAttachments(messages) {
     var attachmentPromises = [];
 
@@ -70,7 +40,7 @@ Services.obs.addObserver(function(document) {
         var blobPromise;
 
         if (attachment.type.startsWith('image/')) {
-          blobPromise = generateImageBlob(
+          blobPromise = window.wrappedJSObject.TestBlobs.generateImageBlob(
             attachment.width, attachment.height, attachment.type
           );
         } else {
@@ -92,26 +62,52 @@ Services.obs.addObserver(function(document) {
 
   var storagePromise = null;
   function getStorage() {
-    if (!storagePromise) {
-      var appWindow = window.wrappedJSObject;
+    if (storagePromise) {
+      return storagePromise;
+    }
 
-      if (!appWindow.TestStorages) {
-        storagePromise = Promise.resolve();
-      } else {
-        storagePromise = appWindow.TestStorages.getStorage('messagesDB');
-      }
+    let storage = window.wrappedJSObject.TestStorages &&
+      window.wrappedJSObject.TestStorages.get('messagesDB');
 
-      storagePromise = storagePromise.then((storage) => {
-        if (!storage) {
-          return {
-            threads: new Map(),
-            messages: new Map(),
-            recipientToThreadId: new Map(),
-            uniqueMessageIdCounter: 0
-          };
-        }
+    if (!storage) {
+      storagePromise = Promise.resolve({
+        threads: new Map(),
+        messages: new Map(),
+        recipientToThreadId: new Map(),
+        uniqueMessageIdCounter: 0
+      });
+    } else {
+      let recipientToThreadId = new Map();
+      let messages = new Map();
 
-        return rehydrateAttachments(storage.messages).then(() => storage);
+      let threads = new Map(
+        storage.threads.map((thread) => {
+          recipientToThreadId.set(thread.participants[0], thread.id);
+
+          // Messages should be placed into dedicated map to simplify
+          // message-based manipulations.
+          var threadMessages;
+          if (thread.messages) {
+            threadMessages = new Set(thread.messages.map((message) => {
+              messages.set(message.id, message);
+              return message.id;
+            }));
+          }
+
+          return [
+            thread.id,
+            Object.assign({}, thread, { messages: threadMessages || new Set() })
+          ];
+        })
+      );
+
+      storagePromise = rehydrateAttachments(messages).then(() => {
+        return {
+          threads,
+          messages,
+          recipientToThreadId,
+          uniqueMessageIdCounter: storage.uniqueMessageIdCounter
+        };
       });
     }
 

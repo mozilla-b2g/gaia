@@ -10,6 +10,7 @@ var Storage = require('./lib/storage.js');
 marionette('Messages as "new" activity target', function() {
   var MOCKS = [
     '/mocks/mock_test_storages.js',
+    '/mocks/mock_test_blobs.js',
     '/mocks/mock_navigator_moz_icc_manager.js',
     '/mocks/mock_navigator_moz_mobile_message.js',
     '/mocks/mock_navigator_moz_contacts.js'
@@ -40,9 +41,6 @@ marionette('Messages as "new" activity target', function() {
       timestamp: Date.now()
     };
 
-    activityCallerApp.sendMessage(activityData);
-    messagesApp.switchTo();
-
     storage.setMessagesStorage([{
       id: smsMessage.threadId,
       body: smsMessage.body,
@@ -59,6 +57,9 @@ marionette('Messages as "new" activity target', function() {
         type: 'Mobile'
       }]
     }]);
+
+    activityCallerApp.sendMessage(activityData);
+    messagesApp.switchTo();
   }
 
   function assertIsFocused(element, message) {

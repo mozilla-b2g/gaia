@@ -37,6 +37,7 @@ marionette('Messages Composer', function() {
 
   var MOCKS = [
     '/mocks/mock_test_storages.js',
+    '/mocks/mock_test_blobs.js',
     '/mocks/mock_navigator_moz_icc_manager.js',
     '/mocks/mock_navigator_moz_mobile_message.js',
     '/mocks/mock_navigator_moz_contacts.js'
@@ -59,10 +60,6 @@ marionette('Messages Composer', function() {
 
     setup(function() {
       messagesApp.launch();
-
-      // Set empty stores.
-      storage.setMessagesStorage();
-      storage.setContactsStorage();
 
       inboxView = new InboxView(client);
 
@@ -100,10 +97,6 @@ marionette('Messages Composer', function() {
     setup(function() {
       messagesApp.launch();
 
-      // Set empty messages and contacts store.
-      storage.setMessagesStorage();
-      storage.setContactsStorage();
-
       messagesApp.Inbox.navigateToComposer();
 
       // Create new thread from the scratch
@@ -130,9 +123,6 @@ marionette('Messages Composer', function() {
 
     setup(function() {
       messagesApp.launch();
-      // Set empty stores.
-      storage.setMessagesStorage();
-      storage.setContactsStorage();
 
       messagesApp.Inbox.navigateToComposer();
     });
@@ -306,9 +296,9 @@ marionette('Messages Composer', function() {
     };
 
     setup(function() {
-      messagesApp.launch();
-      storage.setMessagesStorage();
       storage.setContactsStorage([contact]);
+
+      messagesApp.launch();
 
       var inbox = new InboxView(client);
       newMessage = inbox.createNewMessage();

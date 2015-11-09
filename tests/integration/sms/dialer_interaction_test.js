@@ -13,6 +13,12 @@ var ThreadGenerator = fromApp('sms').require('generators/thread');
 var Storage = fromApp('sms').require('lib/storage.js');
 
 marionette('Dialer', function() {
+  var MOCKS = [
+    fromApp('sms').filePath('mocks/mock_test_storages.js'),
+    fromApp('sms').filePath('mocks/mock_test_blobs.js'),
+    fromApp('sms').filePath('mocks/mock_navigator_moz_mobile_message.js')
+  ];
+
   var messagesApp;
 
   var client = marionette.client({
@@ -28,20 +34,18 @@ marionette('Dialer', function() {
     messagesApp = Messages.create(client);
     storage = Storage.create(client);
 
-    client.contentScript.inject(
-      fromApp('sms').filePath('mocks/mock_test_storages.js')
-    );
-    client.contentScript.inject(
-      fromApp('sms').filePath('mocks/mock_navigator_moz_mobile_message.js')
-    );
+    MOCKS.forEach(function(mock) {
+      client.contentScript.inject(mock);
+    });
   });
 
   suite('Call button', function() {
     setup(function() {
       thread = ThreadGenerator.generate();
 
-      messagesApp.launch();
       storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
+
+      messagesApp.launch();
     });
 
     test('should go to dialer with the correct phone number', function() {
