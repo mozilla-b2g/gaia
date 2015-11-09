@@ -1697,24 +1697,24 @@ contacts.List = (function() {
                                   }
                                 }
                               });
+          }
+          params.items.push ({l10nId: 'back',
+                              incomplete: true});
+          loadContacts = false;
+          LazyLoader.load([
+            '/shared/js/option_menu.js'
+          ], () => {
+            new window.OptionMenu(params).show();
+          });
         }
-        params.items.push ({l10nId: 'back',
-                            incomplete: true});
-        loadContacts = false;
-        LazyLoader.load([
-          '/shared/js/option_menu.js'
-        ], () => {
-          new window.OptionMenu(params).show();
-        });
       }
     }
-  }
-  if(loadContacts) {
-    if (uuid) {
-      callbacks.forEach(function(callback) {
-        callback(uuid);
-      });
-    }
+    if(loadContacts) {
+      if (uuid) {
+        callbacks.forEach(function(callback) {
+          callback(uuid);
+        });
+      }
     }
     evt.preventDefault();
   }

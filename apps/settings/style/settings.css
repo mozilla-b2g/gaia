@@ -109,12 +109,12 @@ section[role="region"] > header {
 
 section[role="region"] > div {
   position: absolute;
-  top: 5rem;
+  top: 4rem;
   right: 0;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - 5rem);
+  height: calc(100% - 4rem);
   overflow-y: scroll;
   will-change: scroll-position;
 }
@@ -512,7 +512,7 @@ section ul.operate-certificate:after {
   border: solid 0.1rem #A6A6A6;
   border-radius: 0.3rem;
   display: inline-block;
-  height: 3rem;
+  height: 2rem;
   margin: 0.8rem 5%;
   padding: 0.1rem;
   width: 90%;
@@ -521,6 +521,18 @@ section ul.operate-certificate:after {
 #mediaStorage .space-stackedbar .stackedbar-item {
   display: inline-block;
   height: 3rem;
+}
+
+#mediaStorage ul li{
+  min-height: 6rem;
+}
+
+#mediaStorage ul li a{
+  padding-bottom: 2.5rem;
+}
+
+#mediaStorage .size {
+  top: -10px;
 }
 
 #mediaStorage .space-stackedbar .color-music,
@@ -556,12 +568,12 @@ section ul.operate-certificate:after {
 
 #mediaStorage .stackedbar-color-label {
   display: inline-block;
-  height: 2rem;
-  left: 1.5rem;
+  height: 2.5rem;
+  left: 1rem;
   padding: 0;
   position: absolute;
-  top: 2.1rem;
-  width: 2rem;
+  top: 1.7rem;
+  width: 2.5rem;
 }
 
 #mediaStorage .stackedbar-color-label + a {
@@ -1521,7 +1533,7 @@ ul li > label.range-icons span.moon1_icons {
 
 section[role="region"],
 section[role="region"] > div > ul {
-  background-color: #f4f4f4;
+  background-color: rgba(245, 245, 245, 0.09);
 }
 
 .carrier-ims-profile-option {

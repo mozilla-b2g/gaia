@@ -689,7 +689,7 @@ module.exports = component.register('gaia-header', {
 
   .inner {
     display: flex;
-    min-height: 50px;
+    min-height: 35px;
     direction: ltr;
     -moz-user-select: none;
 
@@ -820,7 +820,7 @@ module.exports = component.register('gaia-header', {
     white-space: nowrap;
     text-overflow: ellipsis;
     text-align: center;
-    line-height: 50px; /* 1 */
+    line-height: 35px; /* 1 */
     font-weight: 300;
     font-style: italic;
     font-size: 24px;

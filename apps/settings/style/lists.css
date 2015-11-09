@@ -14,16 +14,12 @@ ul li {
   -moz-box-sizing: border-box;
   position: relative;
   margin: 0 1.5rem;
-  border-bottom: 0.1rem solid #999;
+  border-bottom: 0.1rem solid #E5E5E5;
   color: #000;
 }
 
 ul li.description {
   border-bottom: none;
-}
-
-ul+ul li:first-child {
-  border-top: 0.1rem solid #e6e6e3;
 }
 
 ul.border-last-child li:last-child {
@@ -32,11 +28,7 @@ ul.border-last-child li:last-child {
 }
 
 ul li:last-child {
-  border-bottom: 0.1rem solid #999;
-}
-
-ul li.fxaButton,ul li.about-app-storage,ul li.findmyDevice {
-  border-bottom: 0.1rem solid #999;
+  border-bottom: 0.1rem solid #E5E5E5;
 }
 
 ul li.sound-setting {
@@ -58,12 +50,12 @@ ul li > label > span,
 ul li > label > small {
   text-decoration: none;
   outline: 0;
-  color: #000;
+  color: #333333;
   -moz-box-sizing: border-box;
   font-size: 1.5rem;
   padding: 0 1.7rem;
   margin: 0 -1.5rem;
-  font-style: italic;
+  font-style: normal;
 }
 
 #enabled-fmd {
@@ -86,17 +78,17 @@ ul li > a.list-label{
 ul li,
 ul li > a,
 ul li > label {
-  min-height: 6rem;
+  min-height: 5rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-bottom-color: #999999;
+  border-bottom-color: #E5E5E5;
 }
 
 
 ul li > a,
 ul li > label {
-  min-height: 6rem;
+  min-height: 5rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
@@ -147,7 +139,7 @@ ul > li > progress + span {
 ul li .info-item {
   display: flex;
 
-  font-style: italic;
+  font-style: normal;
   justify-content: center;
 }
 
@@ -167,7 +159,7 @@ ul li .info-item .info-item-content {
   order: 3;
   flex: 1 1 auto;
   color: #999999;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin-top: 0.5rem;
 }
 
@@ -194,7 +186,7 @@ ul li > small,
 ul li > label > small,
 ul li > a > small {
   display: block;
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   color: #505859;
   /* click/tap events should be caught by the <a> element below the <small> */
   pointer-events: none;
@@ -319,7 +311,7 @@ ul li button {
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
 ul li label {
   text-transform: none;
-  font-style: italic;
+  font-style: normal;
 }
 
 ul li > label:not([for]),
@@ -332,7 +324,7 @@ ul li > label.pack-switch {
   -moz-padding-end: 1.5rem;
   width: 100%;
   height: calc(100% - 1rem);
-  min-height: 5rem;
+  min-height: 4rem;
   overflow: visible;
   display: flex;
 }
@@ -440,9 +432,9 @@ ul li p {
    white-space: normal;
    color: #999999;
    padding: 0.1rem 1.6rem 1rem;
-   font-style: italic;
-   font-size: 1.5rem;
-   margin-top: -2rem;
+   font-style: normal;
+   font-size: 1.25rem;
+   margin-top: -1rem;
 }
 
 #internet-sharing-usb-desc1 {

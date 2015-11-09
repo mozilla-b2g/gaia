@@ -83,23 +83,23 @@ label.pack-switch input ~ span:after {
   content: 'Off';
   position: absolute;
   right: 0;
-  top: 25%;
-  width: 3rem;
-  height: 2.7rem;
+  top: 19px;
+  width: 2.3rem;
+  height: 2rem;
   pointer-events: none;
-  border-radius: 1.35rem;
   overflow: hidden;
   transition: background 0.2s ease;
-  font-size: 1.8rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: rgb(153, 156, 178);
   justify-content: center;
   text-align: left;
+  font-style: italic;
 }
 
 /* switch: 'ON' state */
 label.pack-switch input:checked ~ span:after {
-  content: 'On'; 
+  content: 'On';
   color: #33d6ff;
 }
 
@@ -131,4 +131,3 @@ html[dir="rtl"] label.pack-switch input:checked ~ span:after {
   color: #33d6ff;
   background-position: -3.2rem 0;
 }
-
