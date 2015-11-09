@@ -26,21 +26,29 @@ function ActionsMenu(menuElement) {
 
 ActionsMenu.prototype = {
   /**
+   * A callback function to run when an action button is tapped, but before the
+   * action is performed.
+   */
+  onactionstart: null,
+
+  /**
+   * A callback function to run after an action has been performed.
+   */
+  onactionend: null,
+
+  /**
    * Open the actions menu.
    *
    * @param {Tone} tone The tone to perform actions on.
    * @param {Array} inUseAs An array representing the places using this tone.
-   * @param {Function} callback A callback to call when the actions menu is
-   *   closed. Takes one argument: the action that was performed.
    */
-  open: function(tone, inUseAs, callback) {
+  open: function(tone, inUseAs) {
     if (!this._menuElement.hidden) {
       throw new Error('actions menu is already open');
     }
 
     if (tone.shareable || tone.deletable) {
       this._tone = tone;
-      this._callback = callback;
       this._menuElement.hidden = false;
       this._inUseAs = inUseAs;
 
@@ -65,8 +73,9 @@ ActionsMenu.prototype = {
    * @param {Event} event The event.
    */
   _cancel: function(event) {
+    this._actionstart('cancel');
     this.close();
-    this._finish('cancel');
+    this._actionend('cancel');
   },
 
   /**
@@ -75,6 +84,8 @@ ActionsMenu.prototype = {
    * @param {Event} event The event.
    */
   _share: function(event) {
+    this._actionstart('share');
+
     var self = this;
     this.close();
 
@@ -95,10 +106,10 @@ ActionsMenu.prototype = {
       });
       activity.onerror = function(e) {
         console.warn('share activity error:', activity.error.name);
-        self._finish('share');
+        self._actionend('share');
       };
       activity.onsuccess = function(e) {
-        self._finish('share');
+        self._actionend('share');
       };
     });
   },
@@ -109,6 +120,8 @@ ActionsMenu.prototype = {
    * @param {Event} event The event.
    */
   _delete: function(event) {
+    this._actionstart('delete');
+
     var self = this;
     this.close();
 
@@ -121,7 +134,7 @@ ActionsMenu.prototype = {
       title: 'delete-cancel',
       callback: function() {
         CustomDialog.hide();
-        self._finish('cancel');
+        self._actionend('cancel');
       }
     };
     var confirmButton = {
@@ -134,7 +147,7 @@ ActionsMenu.prototype = {
           useTransition: true
         });
         self._tone.remove();
-        self._finish('delete');
+        self._actionend('delete');
       }
     };
     CustomDialog.show(
@@ -145,16 +158,26 @@ ActionsMenu.prototype = {
   },
 
   /**
-   * Fire our callback function and clean up the internal state of the menu.
+   * Fire our onactionstart function.
    *
    * @param {String} command The command that was selected.
    */
-  _finish: function(command) {
-    if (this._callback) {
-      this._callback(command);
+  _actionstart: function(command) {
+    if (this.onactionstart) {
+      this.onactionstart(command);
+    }
+  },
+
+  /**
+   * Fire our onactionend function and clean up the internal state of the menu.
+   *
+   * @param {String} command The command that was selected.
+   */
+  _actionend: function(command) {
+    if (this.onactionend) {
+      this.onactionend(command);
     }
     this._tone = null;
-    this._callback = null;
     this._inUseAs = null;
   }
 };
