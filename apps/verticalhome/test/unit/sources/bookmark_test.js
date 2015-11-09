@@ -34,7 +34,7 @@ suite('bookmark.js > ', function() {
     window.app = new App();
     loadBodyHTML('/index.html');
     subject = new BookmarkSource();
-    require('/js/app_manager.js', done);
+    require('/js/more_apps_manager.js', done);
   });
 
   teardown(function() {

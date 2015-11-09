@@ -1,7 +1,7 @@
 'use strict';
 /* global GaiaGrid */
 /* global BookmarksDatabase */
-/* global appManager */
+/* global moreAppsManager */
 
 (function(exports) {
 
@@ -129,7 +129,7 @@
         appObject.removeFromGrid();
       }
 
-      appManager.sendEventToCollectionApp('uninstall', {
+      moreAppsManager.sendEventToCollectionApp('uninstall', {
         id: url
       });
     }

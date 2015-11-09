@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid, configurator, appManager */
+/* global GaiaGrid, configurator, moreAppsManager */
 
 (function(exports) {
 
@@ -43,7 +43,7 @@
 
     function addMozAppListener() {
       window.addEventListener('downloadapplied', function onDownloadApplied(e) {
-        appManager.sendEventToCollectionApp('install', {
+        moreAppsManager.sendEventToCollectionApp('install', {
           id: e.detail.id
         });
       });
@@ -102,7 +102,7 @@
       // for packaged apps ignore the 'install' event and wait for
       // 'downloadapplied'
       if (application.installState === 'installed') {
-        appManager.sendEventToCollectionApp('install', {
+        moreAppsManager.sendEventToCollectionApp('install', {
           id: application.manifestURL
         });
       }
@@ -152,7 +152,7 @@
         return;
       }
 
-      appManager.sendEventToCollectionApp('uninstall',
+      moreAppsManager.sendEventToCollectionApp('uninstall',
         { id: application.manifestURL });
     }.bind(this);
 

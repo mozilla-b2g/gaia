@@ -8,7 +8,7 @@ require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_confirm/script.js');
 require('/shared/js/homescreens/confirm_dialog_helper.js');
 
-suite('app_manager.js > ', function() {
+suite('more_apps_manager.js > ', function() {
 
   var realMozApps = null,
       realL10n = null,
@@ -20,7 +20,7 @@ suite('app_manager.js > ', function() {
     navigator.mozApps = MockNavigatormozApps;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    require('/js/app_manager.js', done);
+    require('/js/more_apps_manager.js', done);
   });
 
   suiteTeardown(function() {
