@@ -1,10 +1,12 @@
 'use strict';
 var Settings = require('../app/app'),
+    Ringtones = require('../../../../ringtones/test/marionette/lib/ringtones'),
     assert = require('assert');
 
 marionette('manipulate sound settings', function() {
   var client = marionette.client();
   var settingsApp;
+  var ringtonesApp;
   var soundPanel;
 
   setup(function() {
@@ -68,6 +70,22 @@ marionette('manipulate sound settings', function() {
     var ringtone_name = soundPanel.selectedRingtone;
     assert.ok(ringtone_name === 'Firefox' ||
               ringtone_name === 'Default');
+  });
+
+  test('change ringtone', function() {
+    var oldRingtoneName = soundPanel.selectedRingtone;
+    var newRingtoneName;
+
+    ringtonesApp = new Ringtones(client);
+    soundPanel.clickRingToneSelect();
+    ringtonesApp.inRingTones(soundPanel, function(PickRingtoneContainer) {
+      var newRingtone = PickRingtoneContainer.soundLists[0].sounds[10];
+      newRingtoneName = newRingtone.name;
+      newRingtone.select();
+      PickRingtoneContainer.setButton.tap();
+    });
+    assert.notEqual(oldRingtoneName, soundPanel.selectedRingtone);
+    assert.equal(newRingtoneName, soundPanel.selectedRingtone);
   });
 
   test('check default alert tone name', function() {
