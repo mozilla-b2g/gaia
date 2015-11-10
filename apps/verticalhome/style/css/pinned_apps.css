@@ -1,4 +1,4 @@
-#pin-apps-list {
+#pinned-apps-list {
   width: 100%;
   position: fixed;
   bottom: 0;
@@ -9,7 +9,7 @@
   transition: all 0.5s;
 }
 
-#pin-apps-list  .selected.pin-app-item {
+#pinned-apps-list  .selected.pinned-app-item {
   height: 11rem;
   width: 15rem;
   margin: 2rem auto 4.5rem auto;
@@ -17,17 +17,17 @@
 
 
 
-#pin-apps-list .selected .pin-app-icon,
-#pin-apps-list .selected input[type="button"] {
+#pinned-apps-list .selected .pinned-app-icon,
+#pinned-apps-list .selected input[type="button"] {
   width: 11rem;
   height: 11rem;
 }
 
-#pin-apps-list .selected input[type="button"] {
+#pinned-apps-list .selected input[type="button"] {
   border-radius: 6rem;
 }
 
-#pin-apps-list .selected .title {
+#pinned-apps-list .selected .title {
   display: inline-block;
   margin-top: 1rem;
   /* We need this rule in order not to hide the drop shadow */
@@ -46,25 +46,25 @@
 }
 
 
-#pin-apps-list .pin-app-item {
+#pinned-apps-list .pinned-app-item {
   height: 5rem;
   width: 5rem;
   margin: 1rem auto 0 auto;
   transition: all 0.5s;
 }
 
-#pin-apps-list .pin-app-icon,
-#pin-apps-list input[type="button"] {
+#pinned-apps-list .pinned-app-icon,
+#pinned-apps-list input[type="button"] {
   width: 5rem;
   height: 5rem;
   transition: all 0.5s;
 }
 
-#pin-apps-list input[type="button"] {
+#pinned-apps-list input[type="button"] {
   border-radius: 5rem;
 }
 
-#pin-apps-list .title {
+#pinned-apps-list .title {
   /*display: none;*/
   opacity: 0;
   transition: all 0.5s;
@@ -73,30 +73,30 @@
 
 
 
-#pin-apps-list .selected.middle {
+#pinned-apps-list .selected.middle {
   width: 7.5rem;
   height: 7.5rem;
   margin: 2rem auto 1rem auto;
 }
 
-#pin-apps-list .selected.middle .pin-app-icon {
+#pinned-apps-list .selected.middle .pinned-app-icon {
   width: 7.5rem;
   height: 7.5rem;
 }
 
-#pin-apps-list .selected.middle .title {
+#pinned-apps-list .selected.middle .title {
   opacity: 0;
   transition: all 0.5s;
 }
 
 
 
-#pin-apps-list div.removed {
+#pinned-apps-list div.removed {
   margin: 0 auto;
   height: 0;
 }
 
-#pin-apps-list  div.out-focus {
+#pinned-apps-list  div.out-focus {
   margin: 0 auto;
   height: 0;
 }

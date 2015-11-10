@@ -2,27 +2,27 @@
 
 (function (exports) {
 
-  function PinAppItem(index) {
+  function PinnedAppItem(index) {
     if (index === null || index === undefined){
       return false;
     }
     this.index = index;
-    //creating pin app element
-    var pinElem = document.createElement('div');
-    pinElem.className = 'pin-app-item';
-    pinElem.setAttribute('data-index', this.index);
-    pinElem.innerHTML = '<img class="pin-app-icon"><br></img>' +
+    //creating pinned app element
+    var pinnedElem = document.createElement('div');
+    pinnedElem.className = 'pinned-app-item';
+    pinnedElem.setAttribute('data-index', this.index);
+    pinnedElem.innerHTML = '<img class="pinned-app-icon"><br></img>' +
             '<span class="title"></span>';
-    var pinList = document.getElementById('pin-apps-list');
+    var pinnedList = document.getElementById('pinned-apps-list');
     var moreAppsLi = document.getElementById('moreApps');
-    pinList.insertBefore(pinElem, moreAppsLi);
+    pinnedList.insertBefore(pinnedElem, moreAppsLi);
 
-    this.element = pinElem;
-    this.icon = this.element.querySelector('.pin-app-icon');
+    this.element = pinnedElem;
+    this.icon = this.element.querySelector('.pinned-app-icon');
     this.title = this.element.querySelector('.title');
   }
 
-  PinAppItem.prototype = {
+  PinnedAppItem.prototype = {
     entry: null,
 
     bindEntry: function(entry) {
@@ -75,7 +75,7 @@
 
     refreshDomElem: function(elem){
       this.element = elem;
-      this.icon = this.element.querySelector('.pin-app-icon');
+      this.icon = this.element.querySelector('.pinned-app-icon');
       this.title = this.element.querySelector('.title');
       this.render();
     },
@@ -112,7 +112,7 @@
     },
 
     save: function() {
-      app.savePinAppItem(this.entry);
+      app.savePinnedAppItem(this.entry);
     },
 
     handleEvent: function(e) {
@@ -120,11 +120,11 @@
     }
   };
 
-  function PinAppManager() {
+  function PinnedAppsManager() {
     //do nothing
   }
 
-  PinAppManager.prototype = {
+  PinnedAppsManager.prototype = {
     items: [],
 
     init: function () {
@@ -132,10 +132,10 @@
     },
 
     onLoadSettings: function() {
-      var pinAppsList = app.getPinAppList();
-      for (var i = 0; i < pinAppsList.length; i++) {
-        this.items[i] = new PinAppItem(i);
-        this.items[i].bindEntry(pinAppsList[i]);
+      var pinnedAppsList = app.getPinnedAppsList();
+      for (var i = 0; i < pinnedAppsList.length; i++) {
+        this.items[i] = new PinnedAppItem(i);
+        this.items[i].bindEntry(pinnedAppsList[i]);
       }
 
       this.items.sort(function(elem1, elem2) {
@@ -147,5 +147,5 @@
     }
   };
 
-  exports.PinAppManager = PinAppManager;
+  exports.PinnedAppsManager = PinnedAppsManager;
 })(window);

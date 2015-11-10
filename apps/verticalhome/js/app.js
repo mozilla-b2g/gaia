@@ -1,7 +1,7 @@
 'use strict';
 /* global ItemStore, LazyLoader, Configurator,
-          groupEditor, PinAppNavigation, Clock,
-          PinAppManager, MoreAppsNavigation */
+          groupEditor, PinnedAppsNavigation, Clock,
+          PinnedAppsManager, MoreAppsNavigation */
 /* global requestAnimationFrame */
 
 (function(exports) {
@@ -55,7 +55,7 @@
     EDIT_MODE_TRANSITION_STYLE: EDIT_MODE_TRANSITION_STYLE,
 
     inMoreApps: false,
-    pinManager: null,
+    pinnedAppsManager: null,
     clock: new Clock(),
 
     /**
@@ -132,19 +132,20 @@
         MoreAppsNavigation.init();
       }.bind(this));
 
-      this.pinManager = new PinAppManager();
+      this.pinnedAppsManager = new PinnedAppsManager();
 
       /**
        * After data about applications was loaded to screen it should be
        * initialized main screen's timer for clock, manager for main screen
        * and navigation for main screen.
        */
-      window.addEventListener('pin-app-loaded', function(e) {
-        this.pinManager.init();
+      window.addEventListener('pinned-apps-loaded', function(e) {
+        this.pinnedAppsManager.init();
         this.clock.start();
-        var pinApps = document.getElementById('pin-apps-list');
-        this.pinNavigation = new PinAppNavigation(pinApps);
-        this.pinNavigation.points_selector = '#pin-apps-list .pin-app-item';
+        var pinnedApps = document.getElementById('pinned-apps-list');
+        this.pinnedAppsNavigation = new PinnedAppsNavigation(pinnedApps);
+        this.pinnedAppsNavigation.points_selector =
+                '#pinned-apps-list .pinned-app-item';
       }.bind(this));
 
     },
@@ -165,16 +166,16 @@
       return this.itemStore.getAppByURL(url);
     },
 
-    getPinAppList: function() {
-      return this.itemStore.getPinAppList();
+    getPinnedAppsList: function() {
+      return this.itemStore.getPinnedAppsList();
     },
 
-    savePinAppItem: function(obj) {
-      this.itemStore.savePinAppItem(obj);
+    savePinnedAppItem: function(obj) {
+      this.itemStore.savePinnedAppItem(obj);
     },
 
-    savePinApps: function(objs) {
-      this.itemStore.savePinApps(objs);
+    savePinnedApps: function(objs) {
+      this.itemStore.savePinnedApps(objs);
     },
 
     showMoreApps: function() {
@@ -207,7 +208,7 @@
         item.updateTitle();
       });
       this.renderGrid();
-      app.pinManager.items.forEach(item => item.render());
+      app.pinnedAppsManager.items.forEach(item => item.render());
     },
 
     /**
@@ -373,7 +374,7 @@
         // receives a home button press.
         case 'hashchange':
           this.hideMoreApps();
-          this.pinNavigation.reset();
+          this.pinnedAppsNavigation.reset();
           this.clock.clockTime.parentNode.classList.remove('not-visible');
           this.clock.start();
 
@@ -406,7 +407,7 @@
 
   // Dummy configurator
   exports.configurator = {
-    getPinApps: function() {
+    getPinnedApps: function() {
       return [];
     },
     getSingleVariantApp: function() {
