@@ -38,7 +38,7 @@
       case 'qrcode':
         this.showChildSection('big-qrcode');
         break;
-      case 'settings-icon':
+      case 'settings-button':
       case 'go-to-settings-button':
         this.showChildSection('settings-section');
         break;
@@ -57,8 +57,8 @@
 
   App.prototype.updateIP = function(ip) {
     document.getElementById('ip').textContent = 'http://' + ip;
-    this.updateQRCode('qrcode-image', ip, 256, 256);
-    this.updateQRCode('big-qrcode-image', ip, 700, 700);
+    this.updateQRCode('qrcode-image', ip, 260, 260);
+    this.updateQRCode('big-qrcode-image', ip, 540, 540);
   };
 
   App.prototype.updateQRCode = function(elemId, ip, width, height) {
@@ -87,7 +87,7 @@
 
     var enabled = Settings['remote-control.enabled'];
     var hasConnection = !!Settings['remote-control.server-ip'];
-    setVisible('location', enabled && hasConnection);
+    setVisible('main-area', enabled && hasConnection);
     setVisible('off-line-message', enabled && !hasConnection);
     setVisible('disabled-message', !enabled);
     setVisible('settings-icon', enabled);

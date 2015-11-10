@@ -28,6 +28,15 @@
   };
 
   // Section's Interface
+  SettingsSection.prototype._handleMove = function(direction) {
+    var elem = this.getFocusedElement();
+    if ((elem.id == 'option-pair-on' && direction == 'down') ||
+        (elem.id == 'option-disabled' && direction == 'up')) {
+      return document.getElementById('clear-authorized-devices');
+    }
+  };
+
+  // Section's Interface
   SettingsSection.prototype._handleClick = function() {
     if (this._pendingSave) {
       return;
@@ -80,10 +89,11 @@
     }
 
     var button = document.getElementById('clear-authorized-devices');
-    button.disabled = !authorizedDevicesCount;
     if (authorizedDevicesCount) {
+      button.classList.remove('disabled');
       button.removeAttribute('aria-hidden');
     } else {
+      button.classList.add('disabled');
       button.setAttribute('aria-hidden', true);
     }
   };
