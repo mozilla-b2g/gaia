@@ -11,7 +11,6 @@ html, body {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  background-color: #ccc;
 }
 
 section {
@@ -21,17 +20,19 @@ section {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 4rem 6rem;
+  padding: 6rem  35.5rem 0 36rem;
+  background-color: #f4f4f4;
 }
 
 h1 {
-  margin: 0 0 1rem 0;
-  font-size: 4rem;
+  margin: 0;
+  font-size: 4.6rem;
   font-style: italic;
+  font-weight: 300;
+  color: #4d4d4d;
 }
 
 #settings-section {
-  background: #ccc;
   display: none;
 }
 
@@ -43,10 +44,6 @@ h1 {
   position: absolute;
   right: 6rem;
   top: 4rem;
-  width: 5rem;
-  height: 5rem;
-  background-color: gray;
-  border-radius: 50%;
   display: none;
 }
 
@@ -54,83 +51,111 @@ h1 {
   display: block;
 }
 
-#instruction p {
-  font-size: 2rem;
-  margin: 0.6rem 0;
-}
-
-#location {
-  margin-top: 20rem;
-  text-align: center;
+#main-area {
+  position: relative;
   display: none;
+  margin: 16.5rem 0 0 4.5rem;
+  font-weight: 300;
+  font-style: italic;
+  color: #4d4d4d;
 }
 
-#location > div {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.error-message {
-  margin-top: 30rem;
-  font-size: 3rem;
-  display: none;
-}
-
-#location.visible, .error-message.visible {
+#main-area.visible {
   display: block;
 }
 
-#ip {
-  font-size: 8rem;
-  margin-right: 20rem;
+#qrcode {
+  position: absolute;
+  background-color: white;
+  right: 0;
+  top: 0;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.42s;
 }
 
-#qrcode {
-  background-color: white;
-  padding: 1.2rem;
+#qrcode:focus {
+  outline: 1rem solid #00cbf4;
+  transform: scale(1.1);
 }
 
 #qrcode-image {
-  width: 256px;
-  height: 256px;
+  margin: 3rem;
+  width: 26rem;
+  height: 26rem;
 }
 
-.focusable:focus {
-  outline: 0.8rem solid yellow;
+#instruction {
+  width: 78rem;
+}
+
+#instruction p {
+  font-size: 2.8rem;
+  margin: 0 0 1.5rem 0;
+}
+
+#ip {
+  margin-top: 4.5rem;
+  font-size: 6rem;
+}
+
+.error-message {
+  margin: 16rem 0 0 4.5rem;
+  width: 82rem;
+  font-size: 2.8rem;
+  line-height: 5.6rem;
+  font-weight: 300;
+  font-style: italic;
+  display: none;
+}
+
+.error-message.visible {
+  display: block;
+}
+
+smart-button[type="rounded-corner-text"].lower-right-button {
+  position: absolute;
+  right: 40.5rem;
+  bottom: 41rem;
+  width: 23.7rem;
+  text-align: center;
 }
 
 #big-qrcode {
   padding: 0;
   background-color: rgba(0, 0, 0, 0.9);
-  display: none;
+  display: flex;
   text-align: center;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  transition: opacity 0.1s ease-in;
+  pointer-events: none;
 }
 
 #big-qrcode.visible {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 #big-qrcode-container {
-  padding: 1.8rem;
   background-color: white;
   display: inline-block;
 }
 
 #big-qrcode-image {
-  width: 700px;
-  height: 700px;
-  background-color: white;
+  margin: 3rem;
+  width: 54rem;
+  height: 54rem;
 }
 
 #option-list {
-  font-size: 3rem;
-  margin: 12rem 0 0 35rem;
+  color: #4d4d4d;
+  margin: 12rem 0 0 4.5rem;
 }
 
 .option-item {
-  margin-bottom: 8rem;
+  margin-bottom: 7rem;
 }
 
 .option-radio, .option-content {
@@ -139,39 +164,63 @@ h1 {
 }
 
 .option-radio {
-  width: 4rem;
-  height: 4rem;
+  width: 6rem;
+  height: 6rem;
   border-radius: 50%;
-  background-color: white;
   box-sizing: border-box;
+  border: 0.4rem solid #5f6368;
+  text-align: center;
+  overflow: hidden;
+  outline: none;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.42s;
 }
 
-.option-radio.checked {
-  background-color: red;
-  border: 0.5rem solid white;
+.option-radio.checked:after {
+  font-family: "smart-icons";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 7rem;
+  line-height: 5.5rem;
+  margin-left: -0.8rem;
+  text-rendering: optimizelegibility;
+  content: "check";
+  color: #00caf2;
+}
+
+.option-radio:focus {
+  transform: scale(1.2);
 }
 
 .option-content {
-  margin-left: 2rem;
+  margin: 0.8rem 0 0 2.5rem;
+}
+
+.option-content .label {
+  font-size: 3.8rem;
 }
 
 .option-content .description {
-  margin-top: 1.5rem;
-  font-size: 2.2rem;
+  margin-top: 2.5rem;
+  font-size: 2.8rem;
+  font-weight: 300;
+  font-style: italic;
 }
 
 #clear-authorized-devices {
-  margin-top: 2rem;
-  padding: 1rem 2rem;
-  font-size: 2.2rem;
+  margin-top: 2.5rem;
+  width: 34rem;
 }
 
-.lower-right-button {
+#clear-authorized-devices.disabled {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#save-button {
   position: absolute;
-  right: 6rem;
-  bottom: 4rem;
-  font-size: 3rem;
-  background-color: gray;
-  color: white;
-  padding: 1.5rem 10rem;
+  right: 40.5rem;
+  bottom: 14rem;
+  width: 23.7rem;
+  text-align: center;
 }
