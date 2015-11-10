@@ -4,7 +4,12 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Remote Control</title>
+
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
     <link rel="stylesheet" type="text/css" href="style/main.css">
+
+    <script defer src="bower_components/smart-button/script.js"></script>
     <script defer src="bower_components/qrcodejs/qrcode.js"></script>
     <script defer src="bower_components/evt/index.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
@@ -16,6 +21,7 @@
     <script defer src="js/settings_section.js"></script>
     <script defer src="js/app.js"></script>
     <script defer src="js/bootstrap.js"></script>
+
     <!-- L10n properties -->
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
@@ -24,12 +30,15 @@
   <body>
     <section id="main-section">
       <h1 data-l10n-id="title"></h1>
-      <div id="settings-icon" class="focusable"></div>
-      <div id="instruction">
-        <p data-l10n-id="instruction1"></p>
-        <p data-l10n-id="instruction2"></p>
+      <div id="settings-icon">
+        <smart-button data-icon="settings" id="settings-button" class="focusable"></smart-button>
       </div>
-      <div id="location">
+      <div id="main-area">
+        <div id="instruction">
+          <p data-l10n-id="instruction1"></p>
+          <p data-l10n-id="instruction2"></p>
+          <p data-l10n-id="instruction3"></p>
+        </div>
         <div id="ip"></div>
         <div id="qrcode" class="focusable">
           <div id="qrcode-image"></div>
@@ -37,11 +46,11 @@
       </div>
       <div id="disabled-message" class="error-message">
         <div data-l10n-id="disabled-message"></div>
-        <div id="go-to-settings-button" class="lower-right-button focusable" data-l10n-id="go-to-settings"></div>
+        <smart-button id="go-to-settings-button" type="rounded-corner-text" class="lower-right-button focusable" data-l10n-id="go-to-settings"></smart-button>
       </div>
       <div id="off-line-message" class="error-message">
         <div data-l10n-id="off-line-message"></div>
-        <div id="exit-button" class="lower-right-button focusable" data-l10n-id="exit"></div>
+        <smart-button id="exit-button" type="rounded-corner-text" class="lower-right-button focusable" data-l10n-id="exit"></smart-button>
       </div>
     </section>
     <section id="big-qrcode">
@@ -64,7 +73,7 @@
           <div class="option-content">
             <div class="label" data-l10n-id="option-pair-on-label"></div>
             <div class="description" data-l10n-id="option-pair-on-description"></div>
-            <button id="clear-authorized-devices" class="focusable" data-l10n-id="clear-authorized-devices"></button>
+            <smart-button id="clear-authorized-devices" type="rounded-corner-text" class="focusable" data-l10n-id="clear-authorized-devices"></smart-button>
           </div>
         </div>
         <div class="option-item">
@@ -74,7 +83,7 @@
           </div>
         </div>
       </div>
-      <div id="save-button" class="lower-right-button focusable" data-l10n-id="save"></div>
+      <smart-button id="save-button" type="rounded-corner-text" class="focusable" data-l10n-id="save"></smart-button>
     </section>
   </body>
 </html>
