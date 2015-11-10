@@ -13,8 +13,8 @@ function PinningTheWeb(client) {
 PinningTheWeb.prototype = {
   Selectors: {
     pinDialog: '#pin-page-dialog',
-    pinPageButton: '#pin-page-container button',
-    pinSiteButton: '#pin-site-container button'
+    pinPageButton: '#pin-page-container gaia-button',
+    pinSiteButton: '#pin-site-container gaia-button'
   },
 
   get pinDialog() {
@@ -73,7 +73,7 @@ PinningTheWeb.prototype = {
     // When running tests in mulet locally, part of the pin site button
     // is cut off at the bottom of the screen. To work around this we
     // tap the pin button in the upper left hand corner.
-    this.pinSiteButton.tap(0, 0);
+    this.pinSiteButton.click();
     this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 
@@ -81,7 +81,7 @@ PinningTheWeb.prototype = {
   openAndPinPage: function openAndPinPage(url) {
     this._openUrl(url);
     this._clickPinContextMenu();
-    this.pinPageButton.tap();
+    this.pinPageButton.click();
     this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 

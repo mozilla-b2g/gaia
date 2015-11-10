@@ -1,0 +1,41 @@
+{
+  "name": "gaia-button",
+  "version": "0.1.0",
+  "main": "gaia-button.js",
+  "homepage": "https://github.com/gaia-components/gaia-button",
+  "authors": [
+    "cyee@mozilla.com"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "index.html",
+    "package.json",
+    "README.md"
+  ],
+  "devDependencies": {
+    "base": "gaia-components/base",
+    "gaia-fonts": "gaia-components/gaia-fonts",
+    "gaia-icons": "gaia-components/gaia-icons",
+    "gaia-theme": "gaia-components/gaia-theme"
+  },
+  "dependencies": {
+    "gaia-component": "gaia-components/gaia-component#~0.4.0"
+  },
+  "resolutions": {
+    "gaia-component": "~0.4.0"
+  },
+  "_release": "0.1.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.0",
+    "commit": "f6ab06010343da9f69cad963fc817d1e8e663c1e"
+  },
+  "_source": "git://github.com/gaia-components/gaia-button.git",
+  "_target": "*",
+  "_originalSource": "gaia-components/gaia-button"
+}

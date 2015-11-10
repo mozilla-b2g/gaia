@@ -170,6 +170,7 @@
    */
   SystemDialog.prototype.resize = function sd_resize() {
     this.updateHeight();
+    this.updateWidth();
   };
 
   /**
@@ -185,10 +186,20 @@
   };
 
   /**
+   * Update dialog width via LayoutManager
+   */
+  SystemDialog.prototype.updateWidth = function sd_updateWidth() {
+    var width = Service.query('LayoutManager.width');
+    this.containerElement.style.width = width + 'px';
+    this.debug('updateWidth: new width = ' + width);
+  };
+
+  /**
    * Publish 'show' event for activate the dialog
    */
   SystemDialog.prototype.show = function sd_show() {
     this.publish('opening');
+    this.resize();
     this.element.hidden = false;
     this.element.classList.add(this.customID);
     this.onShow();

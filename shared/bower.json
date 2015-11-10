@@ -12,7 +12,9 @@
     "gaia-theme": "gaia-components/gaia-theme#~0.4.6",
     "gaia-icons": "gaia-components/gaia-icons#~0.10.5",
     "gaia-toast": "gaia-components/gaia-toast",
-    "gaia-site-icon": "gaia-components/gaia-site-icon"
+    "gaia-site-icon": "gaia-components/gaia-site-icon",
+    "gaia-dialog": "gaia-components/gaia-dialog",
+    "gaia-button": "gaia-components/gaia-button"
   },
   "resolutions": {
     "gaia-component": "~0.4.0"

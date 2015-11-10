@@ -96,6 +96,7 @@ suite('Pin Page dialog', function() {
       this.sinon.stub(SystemDialog.prototype, 'show');
       subject = new PinPageSystemDialog();
       subject.start();
+      subject.element.open = this.sinon.stub();
     });
 
     test('shows the dialog when requestopen', function() {
@@ -103,6 +104,7 @@ suite('Pin Page dialog', function() {
         detail: {}
       }));
       assert.isTrue(SystemDialog.prototype.show.called);
+      assert.isTrue(subject.element.open.called);
       assert.isTrue(subject.publish.calledWith('started'));
     });
 
@@ -112,6 +114,7 @@ suite('Pin Page dialog', function() {
         detail: {}
       }));
       assert.isFalse(SystemDialog.prototype.show.called);
+      assert.isFalse(subject.element.open.called);
       assert.isTrue(subject.publish.calledWith('stopped'));
     });
   });
@@ -125,6 +128,7 @@ suite('Pin Page dialog', function() {
       };
       subject = new PinPageSystemDialog();
       this.sinon.stub(SystemDialog.prototype, 'show');
+      subject.element.open = this.sinon.stub();
     });
 
     test('updates the title', function() {
@@ -175,6 +179,7 @@ suite('Pin Page dialog', function() {
       setup(function() {
         subject = new PinPageSystemDialog();
         this.sinon.stub(subject, 'close');
+        subject.element.close = this.sinon.stub();
       });
 
       test('saves the pinned url', function() {

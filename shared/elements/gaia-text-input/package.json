@@ -1,0 +1,34 @@
+{
+  "name": "gaia-text-input",
+  "version": "0.2.1",
+  "homepage": "https://github.com/gaia-components/gaia-text-input",
+  "license": "ISC",
+  "main": "gaia-text-input.js",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "bower": "^1.6.5",
+    "jshint": "^2.8.0",
+    "karma": "^0.13.15",
+    "karma-firefox-launcher": "^0.1.6",
+    "karma-mocha": "^0.2.0",
+    "karma-sinon-chai": "^1.1.0",
+    "mocha": "^2.3.3"
+  },
+  "scripts": {
+    "postinstall": "bower install",
+    "test": "npm run --silent test-unit && npm run --silent test-lint",
+    "test-lint": "./node_modules/jshint/bin/jshint *.js",
+    "test-unit": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "test-unit-dev": "./node_modules/karma/bin/karma start test/karma.conf.js",
+    "gh-pages": "git co gh-pages; git merge master; git push upstrea gh-pages; git co -"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gaia-components/gaia-text-input.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gaia-components/gaia-text-input/issues"
+  }
+}
