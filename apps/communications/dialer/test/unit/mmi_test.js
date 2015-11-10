@@ -2,7 +2,7 @@
            MmiManager, MockMmiUI, MockMobileconnection, MockMobileOperator,
            MockNavigatormozApps, MockNavigatorMozIccManager,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
-           MocksHelper, Notification, MockL10n */
+           MocksHelper, NotificationHelper, MockL10n */
 
 'use strict';
 
@@ -185,15 +185,15 @@ suite('dialer/mmi', function() {
     });
 
     test('the notification is populated correctly for one SIM', function(done) {
-      this.sinon.spy(window, 'Notification');
+      this.sinon.spy(NotificationHelper, 'send');
       this.sinon.spy(MmiManager, '_');
 
       var promise = MmiManager.sendNotification(MMI_MSG, 0);
       MockNavigatormozApps.mTriggerLastRequestSuccess();
 
       promise.then(function() {
-        sinon.assert.calledOnce(Notification);
-        sinon.assert.calledWithMatch(Notification, 'fake_carrier', {
+        sinon.assert.calledOnce(NotificationHelper.send);
+        sinon.assert.calledWithMatch(NotificationHelper.send, 'fake_carrier', {
           body: MMI_MSG,
           icon: 'sms/dialer?ussdMessage=1&cardIndex=0'
         });
@@ -203,7 +203,7 @@ suite('dialer/mmi', function() {
 
     test('the notification is populated correctly for the second SIM',
       function(done) {
-        this.sinon.spy(window, 'Notification');
+        this.sinon.spy(NotificationHelper, 'send');
         this.sinon.spy(MmiManager, '_');
         MockNavigatorMozIccManager.addIcc('1', { 'cardState' : 'ready' });
 
@@ -211,9 +211,12 @@ suite('dialer/mmi', function() {
         MockNavigatormozApps.mTriggerLastRequestSuccess();
 
         promise.then(function() {
-          sinon.assert.calledOnce(Notification);
-          sinon.assert.calledWithMatch(Notification,
-            /notification-title-with-sim.*2/,
+          sinon.assert.calledOnce(NotificationHelper.send);
+          sinon.assert.calledWithMatch(NotificationHelper.send,
+            MockL10n._stringify('mmi-notification-title-with-sim', {
+              'sim': MockL10n._stringify('sim-number', {n: 2}),
+              'title': 'fake_carrier'
+            }),
             {
               body: MMI_MSG,
               icon: 'sms/dialer?ussdMessage=1&cardIndex=1'

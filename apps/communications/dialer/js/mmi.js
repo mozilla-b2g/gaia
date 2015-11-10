@@ -1,4 +1,4 @@
-/* globals LazyLoader, MmiUI, MobileOperator, Notification, NotificationHelper,
+/* globals LazyLoader, MmiUI, MobileOperator, NotificationHelper,
            Promise */
 
 /* exported MmiManager */
@@ -351,24 +351,24 @@ var MmiManager = {
           LazyLoader.load('/shared/js/notification_helper.js', function() {
             var iconURL = NotificationHelper.getIconURI(app, 'dialer');
             var clickCB = function(evt) {
-              evt.target.close();
               self.handleMMIReceived(message, /* session */ null, cardIndex);
             };
             var conn = navigator.mozMobileConnections[cardIndex || 0];
             var operator = MobileOperator.userFacingInfo(conn).operator;
-            var title = self.prependSimNumber(operator ? operator : '',
-                                              cardIndex);
+            var titleL10n = self.prependSimNumber(
+              operator ? operator : '', cardIndex);
             /* XXX: Bug 1033254 - We put the |ussd-message=1| parameter in the
              * URL string to distinguish this notification from the others.
              * This should be thorought the application possibly by using the
              * tag field. */
-            var notification = new Notification(title, {
+            NotificationHelper.send(titleL10n, {
               body: message,
               icon: iconURL + '?ussdMessage=1&cardIndex=' + cardIndex,
               tag: Date.now()
+            }).then(notification => {
+              notification.addEventListener('click', clickCB);
+              resolve();
             });
-            notification.addEventListener('click', clickCB);
-            resolve();
           });
         });
       };
