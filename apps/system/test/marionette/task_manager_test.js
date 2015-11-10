@@ -159,6 +159,48 @@ marionette('Task Manager', function() {
     });
   });
 
+  suite('closing apps', function() {
+    setup(function() {
+      taskManager.show();
+    });
+
+    test('with the close button', function() {
+      // Closing the first app
+      var card = taskManager.cards[taskManager.cards.length -1];
+      var closeButton = client.helper
+                       .waitForChild(card, taskManager.selectors.close);
+      closeButton.tap();
+
+      client.waitFor(function() {
+        return taskManager.cards.length == 1;
+      });
+
+      // Closing the second app
+      card = taskManager.cards[taskManager.cards.length -1];
+      closeButton = client.helper
+                       .waitForChild(card, taskManager.selectors.close);
+      closeButton.tap();
+
+      taskManager.waitUntilHidden();
+    });
+
+    test('by swipping', function() {
+      // Closing the first app
+      var card = taskManager.cards[taskManager.cards.length -1];
+      actions.flick(card, halfWidth, halfHeight, halfWidth, 0).perform();
+
+      client.waitFor(function() {
+        return taskManager.cards.length == 1;
+      });
+
+      // Closing the second app
+      card = taskManager.cards[taskManager.cards.length -1];
+      actions.flick(card, halfWidth, halfHeight, halfWidth, 0).perform();
+
+      taskManager.waitUntilHidden();
+    });
+  });
+
   suite('new sheet buttons', function() {
     setup(function() {
       taskManager.show();
