@@ -42,13 +42,13 @@ p.meta {
   margin: 0 1rem;
   font: italic 1.3rem/2rem auto;
   color: #e7e7e7;
+  display: flex;
   overflow: hidden;
 }
 
 #cost-control.full .credit,
 #cost-control.full .data {
-  width: auto;
-  float: none;
+  flex: 1 1 100%;
 }
 
 /* FTE */
@@ -70,9 +70,7 @@ p.meta {
 /* Credit & Data structure */
 .credit,
 .data {
-  float: left;
-  width: 50%;
-  height: 100%;
+  flex: 1 1 50%;
   box-sizing: border-box;
 }
 
@@ -91,8 +89,8 @@ p.meta {
 
 /* Credit */
 #balance-view .info {
-  padding-left: 0;
-  margin-left: 0.5rem;
+  padding-inline-start: 0;
+  margin-inline-start: 0.5rem;
 }
 
 /* Low balance credit warning */

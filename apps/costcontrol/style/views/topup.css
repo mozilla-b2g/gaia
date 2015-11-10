@@ -11,7 +11,7 @@
 }
 
 #topup-dialog form input {
-  text-align: right;
+  text-align: end;
   color: #333;
   font-weight: bold;
   font-size: 2.5rem;
@@ -26,7 +26,7 @@
   font-size: 1.8rem;
   line-height: 1em;
   font-weight: normal;
-  text-align: left;
+  text-align: start;
   margin-bottom: 1rem;
 }
 
@@ -34,15 +34,22 @@
   font-size: 1.4rem;
   line-height: 1.3em;
   color: #505859;
-  text-align: left;
+  text-align: start;
   margin-bottom: 0.5rem;
 }
 
+#topup-dialog .content .info .loading {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+}
+
 #topup-dialog .content .info .loading progress {
-  float: left;
   margin: 1rem;
 }
+
 #topup-dialog .content .info .loading p {
   padding-top: 0.8rem;
+  flex: 1;
 }
 
