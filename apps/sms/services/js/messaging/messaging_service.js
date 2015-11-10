@@ -19,7 +19,12 @@ if (!('MozMobileMessageClient' in self)) {
 const SERVICE_NAME = 'messaging-service';
 
 const METHODS = Object.freeze([
-  'sendSMS', 'sendMMS', 'resendMessage', 'retrieveMMS'
+  'register', 'sendSMS', 'sendMMS', 'resendMessage', 'retrieveMMS'
+]);
+
+const EVENTS = Object.freeze([
+  'message-received', 'message-sending', 'message-sent',
+  'message-failed-to-send', 'message-read', 'message-delivered'
 ]);
 
 function ensureBridge() {
@@ -64,6 +69,20 @@ var MessagingService = {
     ensureBridge();
 
     this.initService();
+  },
+
+  register(appInstanceId) {
+    var mobileMessageClient = MozMobileMessageClient.forApp(appInstanceId);
+
+    EVENTS.forEach((event) => {
+      mobileMessageClient.on(event, (data) => {
+        // Workaround to avoid the duplicated events by inserting appInstanceId
+        // into event name in bridge mixin.
+        data.appInstanceId = appInstanceId;
+        this.broadcast(event, data);
+      });
+    });
+    return;
   },
 
   /**
@@ -186,8 +205,10 @@ var MessagingService = {
 
 exports.MessagingService = BridgeServiceMixin.mixin(
   MessagingService,
-  SERVICE_NAME,
-  { methods: METHODS }
+  SERVICE_NAME, {
+    methods: METHODS,
+    events: EVENTS
+  }
 );
 
 if (!self.document) {

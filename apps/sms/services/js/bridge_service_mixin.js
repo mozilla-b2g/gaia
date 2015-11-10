@@ -72,6 +72,11 @@
         throw new Error('Event "' + eventName + '" is not allowed!');
       }
 
+      if (data.appInstanceId) {
+        eventName = `${eventName}-${data.appInstanceId}`;
+        delete data.appInstanceId;
+      }
+
       this[priv.service].broadcast(eventName, data);
     }
   };

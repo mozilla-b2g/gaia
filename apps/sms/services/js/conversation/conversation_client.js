@@ -62,6 +62,16 @@
       }).plugin(streamClient);
 
       this[priv.appInstanceId] = appInstanceId;
+
+      return this[priv.client].method('register', appInstanceId);
+    },
+
+    on(event, func) {
+      this[priv.client].on(`${event}-${this[priv.appInstanceId]}`, func);
+    },
+
+    off(event, func) {
+      this[priv.client].off(`${event}-${this[priv.appInstanceId]}`, func);
     },
 
     /**

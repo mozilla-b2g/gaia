@@ -8,7 +8,8 @@
          SelectionHandler,
          Settings,
          LazyLoader,
-         EventDispatcher
+         EventDispatcher,
+         ConversationClient
 */
 /*exported InboxView */
 (function(exports) {
@@ -109,9 +110,12 @@ var InboxView = {
       this.updateContactsInfo.bind(this)
     );
 
-    MessageManager.on('message-sending', this.onMessageSending.bind(this));
-    MessageManager.on('message-received', this.onMessageReceived.bind(this));
-    MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
+    ConversationClient.on('message-sending', this.onMessageSending.bind(this));
+    ConversationClient.on(
+      'message-received',
+      this.onMessageReceived.bind(this)
+    );
+    ConversationClient.on('threads-deleted', this.onThreadsDeleted.bind(this));
 
     Drafts.on('deleted', this.onDraftDeleted.bind(this));
     Drafts.on('saved', this.onDraftSaved.bind(this));

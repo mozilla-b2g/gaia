@@ -5,6 +5,7 @@
 
 /*global ActivityHandler,
          App,
+         ConversationClient,
          ConversationView,
          Drafts,
          InboxView,
@@ -72,8 +73,8 @@ var Startup = exports.Startup = {
     '/views/shared/js/activity_handler.js',
     '/views/shared/js/system_message_handler.js',
     '/views/shared/js/localization_helper.js',
-    '/lib/bridge/bridge.js',
-    '/services/js/bridge_service_mixin.js',
+    // '/lib/bridge/bridge.js',
+    // '/services/js/bridge_service_mixin.js',
     '/services/js/activity/activity_shim.js',
     '/services/js/activity/activity_client.js',
     '/services/js/messaging/messaging_client.js',
@@ -110,9 +111,10 @@ var Startup = exports.Startup = {
 
       // Init UI Managers
       TimeHeaders.init();
-      ConversationView.init();
-      MessagingClient.init(App.instanceId);
       MozMobileConnectionsClient.init(App.instanceId);
+      MessagingClient.init(App.instanceId);
+
+      ConversationView.init();
       Information.initDefaultViews();
 
       Navigation.setReady();
@@ -141,6 +143,7 @@ var Startup = exports.Startup = {
 
       Utils.initializeShimHost(App.instanceId);
 
+      ConversationClient.init(App.instanceId);
       MessageManager.init();
       Drafts.init();
       InboxView.init();

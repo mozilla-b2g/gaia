@@ -71,6 +71,22 @@ function cloneThread(thread) {
   };
 }
 
+function clone(objectToBeCloned) {
+  // Basis checking.
+  if (!(objectToBeCloned instanceof Object)) {
+    return objectToBeCloned;
+  }
+
+  var objectClone = {};
+
+  // Clone each property.
+  for (var prop in objectToBeCloned) {
+    objectClone[prop] = objectToBeCloned[prop];
+  }
+
+  return objectClone;
+}
+
 var MozMobileMessageShim = {
   init(appInstanceId, mobileMessage) {
     if (!mobileMessage) {
@@ -101,27 +117,27 @@ var MozMobileMessageShim = {
   /* Events */
 
   onSending(e) {
-    this.broadcast('message-sending', { message: e.message });
+    this.broadcast('message-sending', { message: clone(e.message) });
   },
 
   onFailed(e) {
-    this.broadcast('message-failed-to-send', { message: e.message });
+    this.broadcast('message-failed-to-send', { message: clone(e.message) });
   },
 
   onDeliverysuccess(e) {
-    this.broadcast('message-delivered', { message: e.message });
+    this.broadcast('message-delivered', { message: clone(e.message) });
   },
 
   onReadsuccess(e) {
-    this.broadcast('message-read', { message: e.message });
+    this.broadcast('message-read', { message: clone(e.message) });
   },
 
   onSent(e) {
-    this.broadcast('message-sent', { message: e.message });
+    this.broadcast('message-sent', { message: clone(e.message) });
   },
 
   onReceived(e) {
-    this.broadcast('message-received', { message: e.message });
+    this.broadcast('message-received', { message: clone(e.message) });
   },
 
   onDeleted(e) {

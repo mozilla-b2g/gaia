@@ -52,6 +52,9 @@
     ):
     () => {};
 
+  const MESSAGE_EVENTS = ['message-sending', 'message-received',
+    'threads-deleted'];
+
   const SERVICE_CONTRACT = Object.freeze({
     name: 'conversation-service',
 
@@ -61,10 +64,11 @@
 
     methods: Object.freeze([
       'deleteConversations', 'deleteMessages', 'markConversationsAs',
-      'getConversationSummary', 'getMessage', 'findConversationFromAddress'
+      'getConversationSummary', 'getMessage', 'findConversationFromAddress',
+      'register'
     ]),
 
-    events: Object.freeze(['message-change'])
+    events: Object.freeze(['message-change'].concat(MESSAGE_EVENTS))
   });
 
   function draftToConversationSummary(draft) {
@@ -100,6 +104,20 @@
      */
     init() {
       this.initService();
+    },
+
+    register(appInstanceId) {
+      var mobileMessageClient = MozMobileMessageClient.forApp(appInstanceId);
+
+      MESSAGE_EVENTS.forEach((event) => {
+        mobileMessageClient.on(event, (data) => {
+          // Workaround to avoid the duplicated events by inserting
+          // appInstanceId into event name in bridge mixin.
+          data.appInstanceId = appInstanceId;
+          this.broadcast(event, data);
+        });
+      });
+      return;
     },
 
     /**
