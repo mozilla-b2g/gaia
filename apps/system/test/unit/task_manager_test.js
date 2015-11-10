@@ -398,6 +398,37 @@ suite('system/TaskManager >', function() {
         tm.currentCard.app);
     });
 
+    test('should load icons before "cardviewshown"', done => {
+      tm.hide().then(() => tm.stop());
+      clock.tick(TICK_SHOW_HIDE_MS);
+
+      tm = new TaskManager();
+
+      var realUpdateStack = tm.updateStack.bind(tm);
+      tm.updateStack = arg => {
+        var result = realUpdateStack(arg);
+        tm.appToCardMap.forEach((card, app) => {
+          sinon.stub(card, 'loadIcon');
+        });
+        return result;
+      };
+
+      var onShow = () => {
+        window.removeEventListener('cardviewshown', onShow);
+        done(() => {
+          tm.updateStack = realUpdateStack;
+          tm.appToCardMap.forEach((card, app) => {
+            assert.isTrue(card.loadIcon.calledOnce);
+            card.loadIcon.restore();
+          });
+        });
+      };
+      window.addEventListener('cardviewshown', onShow);
+
+      tm.start().then(() => tm.show());
+      clock.tick(TICK_SHOW_HIDE_MS);
+    });
+
     test('should not query the currentIndex for the initial launch (reflow)',
     function() {
       // Called once for the scrollEvent once we set the overflow

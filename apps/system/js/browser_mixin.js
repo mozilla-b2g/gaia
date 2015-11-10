@@ -156,7 +156,7 @@
       var success = function(result) {
         if (!width) {
           // Refresh _screenshotBlob when no width/height is specified.
-          self._screenshotBlob = result;
+          self.renewCachedScreenshotBlob(result);
         }
 
         self.debug('getScreenshot succeed!');
