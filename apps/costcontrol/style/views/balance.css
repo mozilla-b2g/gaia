@@ -11,15 +11,27 @@
   margin-bottom: 1rem;
   padding: 0 0 0.8rem;
   overflow: hidden;
+  display: flex;
+  align-items: center;
 }
 
-#balance-tab .overview .info {
+html[dir="ltr"] #balance-tab .overview .info {
+  transform: translateX(4.0rem);
+}
+html[dir="rtl"] #balance-tab .overview .info {
   transform: translateX(-4.0rem);
+}
+#balance-tab .overview .info {
   transition: transform var(--transition-duration);
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-inline-start: 1rem;
 }
 
 #balance-tab .overview .end {
-  float: right;
+  flex: 1;
 }
 
 #balance-tab-credit {
@@ -65,8 +77,9 @@ section.content .error-messages {
   background-position: center;
   background-repeat: no-repeat;
   padding: 0 0.4rem;
+  padding-inline-end: 0;
   margin: 0.5rem 1rem 1rem;
-  float: left;
+  flex: 0 0 2.2rem;
 }
 
 /* ICONS*/
@@ -88,8 +101,10 @@ section.content .error-messages {
 }
 
 /* ALL STATES */
-#balance-tab.updating .overview > .info,
-#balance-tab.warning .overview > .info {
+html[dir="ltr"] #balance-tab.updating .overview > .info,
+html[dir="rtl"] #balance-tab.updating .overview > .info,
+html[dir="ltr"] #balance-tab.warning .overview > .info,
+html[dir="rtl"] #balance-tab.warning .overview > .info {
   transform: none;
 }
 

@@ -34,7 +34,11 @@ apps/communications/dialer/style/call_log.css 2 0
 apps/communications/dialer/style/suggestion.css 3 0
 apps/communications/dialer/style/toolbar.css 0 1
 apps/costcontrol/style/app.css 0 3
-apps/costcontrol/style/views/balance.css 0 2
+apps/costcontrol/style/views/balance.css 2 2
+apps/costcontrol/style/views/datausage.css 5 0
+apps/costcontrol/style/views/settings.css 1 0
+apps/costcontrol/style/views/telephony.css 2 0
+apps/costcontrol/style/widget.css 2 0
 apps/email/style/common.css 8 5
 apps/email/style/folder_cards.css 9 0
 apps/email/style/message_cards.css 16 1
