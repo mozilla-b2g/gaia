@@ -32,6 +32,7 @@ Ftu.Selectors = {
 
   // Tutorial Section
   'startTourButton': '#lets-go-button',
+  'skipTourButton': '#skip-tutorial-button',
   'completeTourButton': '#tutorialFinished',
   'tourPanel': '#tutorial',
   'nextButton': '#forward',
@@ -40,11 +41,15 @@ Ftu.Selectors = {
 };
 
 Ftu.prototype = {
+  URL: Ftu.URL,
   get startTourButton() {
     return this.client.findElement(Ftu.Selectors.startTourButton);
   },
   get completeTourButton() {
     return this.client.findElement(Ftu.Selectors.completeTourButton);
+  },
+  get skipTourButton() {
+    return this.client.findElement(Ftu.Selectors.skipTourButton);
   },
   getPanel: function(panel) {
     return this.client.helper.waitForElement(
