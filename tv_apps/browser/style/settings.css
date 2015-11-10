@@ -67,6 +67,7 @@ smart-button[type=simple-text].disabled {
 p.fine-print {
   font-size: 2rem;
   line-height: 1.6rem;
+  color: #00caf2;
 }
 
 #settings-header {
