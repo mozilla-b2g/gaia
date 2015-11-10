@@ -46,6 +46,11 @@ var BookmarksHelper = (() => {
     });
   }
 
+  /* SyncedCollectionMTime is the time of the last successful sync run.
+   * Subsequent sync runs will not check any records from the Kinto collection
+   * that have not been modified since then. This value is stored separately for
+   * each user (userid uniquely defines the FxSync account we're syncing with).
+   */
   function setSyncedCollectionMtime(mtime, userid) {
     return new Promise(resolve => {
       asyncStorage.setItem(userid + BOOKMARKS_COLLECTION_MTIME, mtime, resolve);
@@ -63,6 +68,11 @@ var BookmarksHelper = (() => {
     });
   }
 
+  /* LastRevisionId is the revisionId the DataStore had at the beginning of the
+   * last sync run. Even though there is only one DataStore, it is stored once
+   * for each userid, because a sync run only syncs with the FxSync account of
+   * the currently logged in user.
+   */
   function getLastRevisionId(userid) {
     return new Promise(resolve => {
       asyncStorage.getItem(userid + BOOKMARKS_LAST_REVISIONID, resolve);
@@ -77,14 +87,14 @@ var BookmarksHelper = (() => {
   }
 
   /*
-    setDataStoreId and getDataStoreId are used to create a table for caching
-    SynctoId to DataStoreId matching. When a `deleted: true` record comes from
-    FxSync, getDataStoreId can help to get DataStoreId easily. So a new record
-    comes, the adapter has to use setDataStoreId to store the ID matching.
-    Since both the synctoId and the dataStoreId for a given URL are unique to
-    the currently logged in user, we store these values prefixed per `userid`
-    (`xClientState` of the currently logged in user).
-  */
+   * setDataStoreId and getDataStoreId are used to create a table for caching
+   * SynctoId to DataStoreId matching. When a `deleted: true` record comes from
+   * FxSync, getDataStoreId can help to get DataStoreId easily. So a new record
+   * comes, the adapter has to use setDataStoreId to store the ID matching.
+   * Since both the synctoId and the dataStoreId for a given URL are unique to
+   * the currently logged in user, we store these values prefixed per `userid`
+   * (`xClientState` of the currently logged in user).
+   */
   function setDataStoreId(synctoId, dataStoreId, userid) {
     return new Promise(resolve => {
       asyncStorage.setItem(userid + BOOKMARKS_SYNCTOID_PREFIX + synctoId,
@@ -392,6 +402,8 @@ DataAdapters.bookmarks = {
       var fxsyncRecords = {};
       fxsyncRecords[payload.id] = remoteRecords[i].payload;
       fxsyncRecords[payload.id].timestamp = remoteRecords[i].last_modified;
+
+      // FIXME: See https://bugzilla.mozilla.org/show_bug.cgi?id=1223420
       bookmarks.push({
         // URL is the ID for bookmark records in bookmarks_store, but there are
         // some types without a valid URL except bookmark type. URL is used as
@@ -431,9 +443,14 @@ DataAdapters.bookmarks = {
     var mtime;
     return LazyLoader.load(['shared/js/async_storage.js'])
     .then(() => {
-      // FIXME: Decide how readonly DataAdapters should deal with local
-      // deletions on the phone.
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1219621
+      // We iterate over the records in the Kinto collection until we find a
+      // record whose last modified time is older than the time of the last
+      // successful sync run. However, if the DataStore has been cleared, or
+      // records have been removed from the DataStore since the last sync run,
+      // we cannot be sure that all older records are still there. So in both
+      // those cases we remove the SyncedCollectionMtime from AsyncStorage, so
+      // that this sync run will iterate over all the records in the Kinto
+      // collection, and not only over the ones that were recently modified.
       return BookmarksHelper.handleClear(options.userid);
     }).then(() => {
       return BookmarksHelper.getSyncedCollectionMtime(options.userid);
