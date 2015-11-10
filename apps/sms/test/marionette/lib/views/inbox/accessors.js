@@ -42,6 +42,16 @@ InboxAccessor.prototype = {
     return this.client.findElement('#thread-' + id);
   },
 
+  hasConversation: function(id) {
+    try {
+      return !!this.client.scope({ searchTimeout: 100 }).findElement(
+        '#thread-' + id
+      );
+    } catch(e) {
+      return false;
+    }
+  },
+
   getConversationTitle: function(conversation) {
     return conversation.findElement(SELECTORS.conversationTitle);
   },

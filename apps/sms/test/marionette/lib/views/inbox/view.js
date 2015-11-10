@@ -43,6 +43,10 @@ InboxView.prototype = {
       this._createConversationView();
   },
 
+  hasConversation: function(conversationId) {
+    return this.accessors.hasConversation(conversationId);
+  },
+
   createNewMessage: function() {
     this.accessors.createNewMessageButton.tap();
 
