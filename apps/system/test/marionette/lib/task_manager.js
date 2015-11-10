@@ -13,7 +13,8 @@
       newPrivateSheetButton: '#task-manager-new-private-sheet-button',
       cards: '#cards-view li',
       screenshot: '.screenshotView',
-      icon: '.appIcon'
+      icon: '.appIcon',
+      close: '.close-button'
     },
     get element() {
       return this.client.helper.waitForElement(this.selectors.element);
