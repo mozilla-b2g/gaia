@@ -729,7 +729,7 @@ var Toolbar = {
    * Open Pocket List
    */
   clickPocketListBlock: function toolbar_clickPocketListBlock() {
-    var pocketHomePageUri = 'https://getpocket.com/';
+    var pocketHomePageUri = 'https://getpocket.com/fxostv';
     if (Browser.currentInfo.url &&
       UrlHelper.isURL(Browser.currentInfo.url)) {
       var ev = {
