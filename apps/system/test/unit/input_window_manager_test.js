@@ -20,7 +20,7 @@ suite('InputWindowManager', function() {
   mocksForInputWindowManager.attachTestHelpers();
 
   var manager;
-  var stubIWConstructor;
+  var stubIWConstructor, realInputMethod;
 
   suiteSetup(function(done) {
     require('/js/browser_frame.js');
@@ -51,8 +51,17 @@ suite('InputWindowManager', function() {
       this.sinon.stub(Object.create(realIWPrototype))
     );
 
+    realInputMethod = window.navigator.mozInputMethod;
+    navigator.mozInputMethod = {
+      removeFocus: this.sinon.stub()
+    };
+
     manager = new InputWindowManager();
     getDeviceMemoryPromise.mFulfillToValue(768);
+  });
+
+  teardown(function() {
+    navigator.mozInputMethod = realInputMethod;
   });
 
   test('Hardware memory is correctly retrieved', function() {
@@ -268,20 +277,10 @@ suite('InputWindowManager', function() {
 
     suite('External events for hideInputWindowImmediately', function() {
       var stubHideInputWindowImmediately;
-      var realInputMethod;
 
       setup(function() {
         stubHideInputWindowImmediately =
           this.sinon.stub(manager, 'hideInputWindowImmediately');
-
-        realInputMethod = window.navigator.mozInputMethod;
-        navigator.mozInputMethod = {
-          removeFocus: this.sinon.stub()
-        };
-      });
-
-      teardown(function() {
-        navigator.mozInputMethod = realInputMethod;
       });
 
       var testForHideImmeidately = function(evtType) {
@@ -293,7 +292,7 @@ suite('InputWindowManager', function() {
         });
       };
 
-      ['activityrequesting', 'activityopening', 'activityclosing',
+      ['actionmenuhide', 'activityopening', 'activityclosing',
        'attentionrequestopen', 'attentionrecovering', 'attentionopening',
        'attentionclosing', 'attentionopened', 'attentionclosed',
        'notification-clicked', 'applicationsetupdialogshow'].forEach(evtType =>
@@ -304,19 +303,9 @@ suite('InputWindowManager', function() {
 
     suite('External events for removing input focus', function() {
       var stubHasActiveInputApp;
-      var realInputMethod;
 
       setup(function() {
         stubHasActiveInputApp = this.sinon.stub(manager, '_hasActiveInputApp');
-
-        realInputMethod = window.navigator.mozInputMethod;
-        navigator.mozInputMethod = {
-          removeFocus: this.sinon.stub()
-        };
-      });
-
-      teardown(function() {
-        navigator.mozInputMethod = realInputMethod;
       });
 
       var testForRemoveFocus = function(evtType) {
@@ -768,6 +757,23 @@ suite('InputWindowManager', function() {
                        correct layout`);
         assert.isTrue(stubMakeInputWindow.calledWith(configs),
                       '_makeInputWindow should be called with correct configs');
+      });
+
+      test('It does not open if preventInput is set', function() {
+        var stubExtractLayoutConfigs =
+          this.sinon.stub(manager, '_extractLayoutConfigs').returns(configs);
+
+        var stubMakeInputWindow =
+          this.sinon.stub(manager, '_makeInputWindow').returns(inputWindow);
+       manager.handleEvent(new CustomEvent('actionmenuopening'));
+        manager.showInputWindow(layout);
+
+        assert.isFalse(stubExtractLayoutConfigs.calledWith(layout),
+                      `_extractLayoutConfigs should be called with
+                       correct layout`);
+        assert.isFalse(stubMakeInputWindow.calledWith(configs),
+                      '_makeInputWindow should be called with correct configs');
+       manager.handleEvent(new CustomEvent('actionmenuhide'));
       });
 
       test('Fill _currentWindow', function() {
