@@ -20,11 +20,14 @@ function MockThumbnailGroup(item) {
     thumbnails.pop({data: item.name});
   }
 
+  function localize() {}
+
   MockThumbnailGroup._GroupMap[MockThumbnailGroup._GroupID] = {
     // api
     addItem: addItem,
     getCount: function() {return counter;},
     removeItem: removeItem,
+    localize: localize,
     // properties.
     groupID: MockThumbnailGroup._GroupID,
     htmlNode: dummyNode,
