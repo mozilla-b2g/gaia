@@ -7,6 +7,7 @@ import time
 from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
+from gaiatest.apps.homescreen.regions.bottom_bar import BottomBar
 
 
 class ConfirmDialog(Base):
@@ -22,3 +23,5 @@ class ConfirmDialog(Base):
             *self._confirm_button_locator))
         Wait(self.marionette).until(expected.element_displayed(confirm))
         confirm.tap()
+        
+        return BottomBar(self.marionette)

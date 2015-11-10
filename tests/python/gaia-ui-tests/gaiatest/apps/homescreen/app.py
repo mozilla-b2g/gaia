@@ -10,6 +10,7 @@ from marionette_driver.errors import NoSuchElementException
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+from gaiatest.apps.homescreen.regions.bottom_bar import BottomBar
 
 
 class Homescreen(Base):
@@ -25,12 +26,9 @@ class Homescreen(Base):
     _divider_locator = (By.CSS_SELECTOR, 'section.divider')
     _divider_separator_locator = (By.CSS_SELECTOR, 'section.divider .separator > span')
     _exit_edit_mode_locator = (By.ID, 'exit-edit-mode')
-
     _body_dragging_locator = (By.CSS_SELECTOR, 'body.dragging')
     _apps_locator = (By.ID, 'apps')
     _app_icon_locator = (By.CSS_SELECTOR, 'gaia-app-icon[data-identifier="%s"]')
-    _remove_locator = (By.ID, 'remove')
-
     _scollable_div_locator = (By.CSS_SELECTOR, '#apps-panel div.scrollable')
 
     def wait_for_app_icon_present(self, app_manifest):
@@ -115,10 +113,9 @@ class Homescreen(Base):
 
     def delete_app(self, app_manifest):
         app = self.installed_app(app_manifest)
-        remove_action_element = self.marionette.find_element(*self._remove_locator)
-        app.move_to(remove_action_element)
-        from gaiatest.apps.homescreen.regions.confirm_dialog import ConfirmDialog
-        return ConfirmDialog(self.marionette)
+        app.activate_edit_mode()
+
+        return BottomBar(self.marionette).tap_remove()
 
     class GaiaAppIcon(PageRegion):
 
@@ -143,14 +140,22 @@ class Homescreen(Base):
             Wait(self.marionette).until(lambda m: self.apps.displayed_app.manifest_url == expected_manifest_url)
             self.apps.switch_to_displayed_app()
 
-        def move_to(self, html_element):
-            self.marionette.execute_script('arguments[0].scrollIntoView(false);', [self.root_element])
+        def activate_edit_mode(self):
+            self._start_long_press_action().\
+                release().\
+                perform()
 
-            Actions(self.marionette).\
-                press(self.root_element).\
-                wait(3).\
+        def move_to(self, html_element):
+            self._start_long_press_action().\
                 move(html_element).\
                 wait(1).\
                 release().\
                 wait(1).\
                 perform()
+        
+        def _start_long_press_action(self):    
+            self.marionette.execute_script('arguments[0].scrollIntoView(false);', [self.root_element])
+            
+            return Actions(self.marionette).\
+                press(self.root_element).\
+                wait(3)
