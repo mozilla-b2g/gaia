@@ -4,7 +4,6 @@
   'use strict';
 
   exports.MockActivityShim = {
-    init: () => {},
-    hasPendingRequest: () => false
+    init: () => {}
   };
 })(window);

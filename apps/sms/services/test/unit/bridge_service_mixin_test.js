@@ -23,18 +23,19 @@ suite('BridgeServiceMixin >', function() {
   var target, service;
 
   setup(function() {
-    service = {
-      method: sinon.stub(),
-      stream: sinon.stub(),
-      broadcast: sinon.stub(),
-      listen: sinon.stub(),
-      plugin: sinon.stub()
-    };
+    service = sinon.stub({
+      method() {},
+      stream() {},
+      broadcast() {},
+      listen() {},
+      on() {},
+      plugin() {}
+    });
 
-    target = {
-      usefulMethod: sinon.stub(),
-      usefulStream: sinon.stub()
-    };
+    target = sinon.stub({
+      usefulMethod() {},
+      usefulStream() {}
+    });
 
     var methods = ['usefulMethod'];
     var streams = ['usefulStream'];
@@ -54,6 +55,8 @@ suite('BridgeServiceMixin >', function() {
   test('Service is exposed', function() {
     sinon.assert.calledWith(bridge.service, 'my-service');
     sinon.assert.calledOnce(service.listen);
+    // Does not subscribe for any bridge event if target does not need it.
+    sinon.assert.notCalled(service.on);
   });
 
   test('Methods and streams are exposed', function() {
@@ -77,5 +80,28 @@ suite('BridgeServiceMixin >', function() {
     assert.throws(() => target.broadcast('unknown-event'));
   });
 
+  test('subscribes to "connected" event if target has corresponding handler',
+  function() {
+    var newTarget = sinon.stub({
+      usefulMethod() {},
+      onConnected() {}
+    });
+
+    BridgeServiceMixin.mixin(
+      newTarget, 'my-service', { methods: ['usefulMethod'] }
+    );
+
+    newTarget.initService();
+
+    sinon.assert.calledOnce(service.on);
+    sinon.assert.calledWith(service.on, 'connected');
+    sinon.assert.notCalled(newTarget.onConnected);
+
+    service.on.withArgs('connected').yield();
+    sinon.assert.calledOnce(newTarget.onConnected);
+
+    service.on.withArgs('connected').yield();
+    sinon.assert.calledTwice(newTarget.onConnected);
+  });
 });
 

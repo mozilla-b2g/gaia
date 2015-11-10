@@ -1,10 +1,13 @@
-/* global BridgeServiceMixin */
+/* global BridgeServiceMixin,
+          BroadcastChannel
+*/
 /* exported ActivityShim */
 'use strict';
 
 (function(exports) {
   const priv = Object.freeze({
     request: Symbol('request'),
+    setMessageHandler: Symbol('setMessageHandler'),
 
     onActivityRequest: Symbol('onActivityRequest')
   });
@@ -44,30 +47,47 @@
     /**
      * Reference to currently active activity request.
      * @type {ActivityRequestHandler}
+     * @private
      */
     [priv.request]: null,
 
     /**
-     * Initialized activity service bridge.
+     * Reference to mozSetMessageHandler function.
+     * @type {Function}
+     * @private
      */
-    init() {
-      this.initService();
+    [priv.setMessageHandler]: null,
 
-      // We use setTimeout here to allow activity client to do connection
-      // handshake with the service first, so that it will be able to receive
-      // event broadcasted by service.
-      setTimeout(() => {
-        navigator.mozSetMessageHandler(
-          SYSTEM_MESSAGE_NAME, this[priv.onActivityRequest].bind(this)
-        );
-      });
+    /**
+     * Initialized activity shim bridge service.
+     * @param {string} appInstanceId Unique identifier of app instance where
+     * shim resides in.
+     */
+    init(appInstanceId, setMessageHandler) {
+      if (!appInstanceId) {
+        throw new Error('AppInstanceId is required!');
+      }
+
+      this[priv.setMessageHandler] = setMessageHandler;
+
+      // We may consider using exports.parent as endpoint instead in patch for
+      // bug 1223363, once it is unblocked.
+      this.initService(
+        new BroadcastChannel(`${SERVICE_NAME}-channel-${appInstanceId}`)
+      );
     },
 
     /**
-     * Checks if activity service has pending activity request.
+     * Method is called by bridge when a new client is connected to the service.
+     * @private
      */
-    hasPendingRequest() {
-      return navigator.mozHasPendingMessage(SYSTEM_MESSAGE_NAME);
+    onConnected() {
+      // We subscribe for the system message only when we have client connected,
+      // to avoid the case when service broadcasts message, but no one listens
+      // for it yet.
+      this[priv.setMessageHandler](
+        SYSTEM_MESSAGE_NAME, this[priv.onActivityRequest].bind(this)
+      );
     },
 
     /**

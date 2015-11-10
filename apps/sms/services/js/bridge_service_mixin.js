@@ -55,6 +55,10 @@
         });
       }
 
+      if (this.onConnected) {
+        service.on('connected', this.onConnected.bind(this));
+      }
+
       service.listen();
 
       endpoint && service.listen(endpoint);
@@ -77,7 +81,7 @@
   };
 
   exports.BridgeServiceMixin = {
-    mixin(target, name, { methods, streams, events}) {
+    mixin(target, name, { methods, streams, events }) {
       if (!name) {
         throw new Error(
           'A service name is mandatory to define a service.'
