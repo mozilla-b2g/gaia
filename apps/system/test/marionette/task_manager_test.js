@@ -94,26 +94,6 @@ marionette('Task Manager', function() {
       taskManager.show();
     });
 
-    test('should display a blob screenshot only for the current app',
-    function() {
-      var current = taskManager.cards[1];
-      var screenshot = current.findElement(taskManager.selectors.screenshot);
-      client.waitFor(function() {
-        return screenshot.scriptWith(function(div) {
-          return div.style.backgroundImage.contains('blob');
-        });
-      });
-
-      var app = taskManager.cards[0];
-      var otherScreenshot = app.findElement(taskManager.selectors.screenshot);
-      client.waitFor(function() {
-        return otherScreenshot.scriptWith(function(div) {
-          return div.style.backgroundImage.contains('-moz-element') &&
-                 !div.style.backgroundImage.contains('blob:');
-        });
-      });
-    });
-
     test('pressing home should still take you back to the homescreen',
     function() {
       actions.flick(taskManager.element, 30, halfHeight,

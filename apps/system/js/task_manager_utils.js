@@ -42,35 +42,16 @@ exports.TaskManagerUtils = {
     return app.getSiteIconUrl(size).then((iconObject) => {
       if (iconObject && iconObject.originalUrl) {
         var icon = new Icon(element, iconObject.originalUrl);
-        icon.renderBlob(iconObject.blob, { size: size });
+        return new Promise(resolve => {
+          icon.renderBlob(iconObject.blob, { size: size, onLoad: resolve });
+        });
       }
     }, (err) => {
+      element.classList.remove('pending');
       console.warn('getSiteIconUrl failed to resolve an icon:', err.message);
     }).then(() => {
       element.classList.remove('pending');
     });
-  },
-
-  /**
-   * Load a screenshot of the app into an element, only if the app is active.
-   * If it isn't, just use -moz-element as the background image.
-   */
-  loadAppScreenshot(app, element) {
-    var isActive = (Service.query('AppWindowManager.getActiveWindow') ===
-                    app.getBottomMostWindow());
-    element.classList.toggle('fullscreen', !!(isActive && app.isFullScreen()));
-    element.classList.toggle('maximized',
-      !!(isActive && app.appChrome && app.appChrome.isMaximized()));
-
-    var screenshot = 'none';
-    if (isActive) {
-      var screenshotUrl = app.requestScreenshotURL();
-      if (screenshotUrl) {
-        screenshot = 'url(' + screenshotUrl + ')';
-      }
-    }
-    element.style.backgroundImage =
-      `${screenshot}, -moz-element(#${app.instanceID})`;
   },
 
   waitForAppToClose(app) {

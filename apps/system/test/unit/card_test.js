@@ -112,16 +112,6 @@ suite('system/Card', function() {
       assert.ok(card.element.classList.contains('private'));
     });
 
-    test('calls loadAppIcon', function(){
-      this.sinon.stub(TaskManagerUtils, 'loadAppIcon')
-        .returns(Promise.resolve());
-
-      var card = new Card(makeApp({ name: 'app' }));
-
-      assert.ok(TaskManagerUtils.loadAppIcon.called);
-      assert.equal(TaskManagerUtils.loadAppIcon.firstCall.args[0], card.app);
-    });
-
     test('unkillable card', function(){
       var app = makeApp({
         name: 'privatewindow',
@@ -163,6 +153,20 @@ suite('system/Card', function() {
         'someorigin.org/foo');
     });
 
+  });
+
+  suite('loadIcon > ', function() {
+
+    test('calls loadAppIcon', function(){
+      this.sinon.stub(TaskManagerUtils, 'loadAppIcon')
+        .returns(Promise.resolve());
+
+      var card = new Card(makeApp({ name: 'app' }));
+      card.loadIcon();
+
+      assert.ok(TaskManagerUtils.loadAppIcon.called);
+      assert.equal(TaskManagerUtils.loadAppIcon.firstCall.args[0], card.app);
+    });
   });
 
 });

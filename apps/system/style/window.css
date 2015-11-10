@@ -354,16 +354,12 @@ html[dir="rtl"] .appWindow.invoked {
   visibility: visible;
 }
 
-.appWindow.collapsible .screenshot-overlay {
-  background-color: inherit;
-}
-
 /* Bug 1071235: Workaround for bug 1076783 */
 .browser-container:-moz-full-screen-ancestor > .screenshot-overlay {
   visibility: hidden;
 }
 
-.appWindow.collapsible:not(.active) .screenshot-overlay {
+.appWindow.collapsible .screenshot-overlay {
   margin-top: var(--rocketbar-urlbar-height);
 }
 

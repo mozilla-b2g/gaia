@@ -56,12 +56,9 @@ function Card(app, { disableScreenshots, stayInvisible } = {}) {
     el.querySelector('.close-button').style.visibility = 'hidden';
   }
 
-  const ICON_SIZE = 40;
-  TaskManagerUtils.loadAppIcon(app, el.querySelector('.appIcon'), ICON_SIZE);
-
   if (!disableScreenshots) {
-    TaskManagerUtils.loadAppScreenshot(
-      app, el.querySelector('.screenshotView'));
+    el.querySelector('.screenshotView').style.backgroundImage =
+      `-moz-element(#${app.instanceID})`;
   } else {
     el.classList.add('appIconPreview');
 
@@ -115,6 +112,12 @@ Card.prototype = {
     }
   },
 
+  loadIcon() {
+    const ICON_SIZE = 40;
+    TaskManagerUtils.loadAppIcon(
+      this.app, this.element.querySelector('.appIcon'), ICON_SIZE);
+  },
+
   _translateX: '0px',
   _translateY: '0px',
 
@@ -135,7 +138,7 @@ Card.prototype = {
     <footer class="card-tray">
       <button class="appIcon pending" data-l10n-id="openCard"
               data-button-action="select" aria-hidden="true"></button>
-     <menu class="buttonbar">
+      <menu class="buttonbar">
         <button class="close-button bb-button" data-l10n-id="closeCard"
                 data-button-action="close" role="button">
         </button>

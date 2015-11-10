@@ -285,6 +285,11 @@ TaskManager.prototype = {
       // for showing the task manager before cleaning things up.
       return TaskManagerUtils.waitForAppToClose(activeApp);
     }).then(() => {
+      // Load app icons asynchronously
+      this.appToCardMap.forEach((card, app) => {
+        card.loadIcon();
+      });
+
       this.publish('cardviewshown');
       this.screenElement.classList.add('cards-view');
       this.element.classList.remove('from-home');
