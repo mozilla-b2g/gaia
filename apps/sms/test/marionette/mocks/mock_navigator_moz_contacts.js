@@ -21,20 +21,33 @@ Services.obs.addObserver(function(document) {
 
   var window = document.defaultView;
 
+  function rehydratePhotos(contacts) {
+    let photoPromises = [];
+
+    contacts.forEach((contact) => {
+      contact.photo && contact.photo.forEach((photo, i) => {
+        photoPromises.push(
+          window.wrappedJSObject.TestBlobs.generateImageBlob(
+            photo.width, photo.height, photo.type
+          ).then(
+            (blob) => contact.photo[i] = blob
+          )
+        );
+      });
+    });
+
+    return Promise.all(photoPromises);
+  }
+
   var storagePromise = null;
   function getStorage() {
     if (!storagePromise) {
-      var appWindow = window.wrappedJSObject;
+      var storage = window.wrappedJSObject.TestStorages &&
+        window.wrappedJSObject.TestStorages.get('contactsDB');
 
-      if (!appWindow.TestStorages) {
-        storagePromise = Promise.resolve();
-      } else {
-        storagePromise = appWindow.TestStorages.getStorage('contactsDB');
-      }
-
-      storagePromise = storagePromise.then(function(storage) {
-        return storage || { contacts: [] };
-      });
+      storagePromise = storage ?
+        rehydratePhotos(storage.contacts).then(() => storage) :
+        Promise.resolve({ contacts: [] });
     }
 
     return storagePromise;

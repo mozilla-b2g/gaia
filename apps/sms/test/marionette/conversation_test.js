@@ -11,6 +11,7 @@ var Tools = require('./lib/views/shared/tools.js');
 marionette('Conversation Panel Tests', function() {
   var MOCKS = [
     '/mocks/mock_test_storages.js',
+    '/mocks/mock_test_blobs.js',
     '/mocks/mock_navigator_moz_icc_manager.js',
     '/mocks/mock_navigator_moz_mobile_message.js',
     '/mocks/mock_navigator_moz_contacts.js'
@@ -40,11 +41,8 @@ marionette('Conversation Panel Tests', function() {
         thread = ThreadGenerator.generate({
           numberOfMessages: 50
         });
-        messagesApp.launch();
-
         storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
-        // Set empty contacts store.
-        storage.setContactsStorage();
+        messagesApp.launch();
       });
 
       test('User can see all messages when scrolls up', function() {
@@ -94,13 +92,11 @@ marionette('Conversation Panel Tests', function() {
         ]
       });
 
-      messagesApp.launch();
       storage.setMessagesStorage(
         [smsThread, mmsThread],
         ThreadGenerator.uniqueMessageId
       );
-      // empty contact store
-      storage.setContactsStorage();
+      messagesApp.launch();
     });
 
     test('Forward a SMS', function() {
@@ -182,8 +178,6 @@ marionette('Conversation Panel Tests', function() {
         })
       ];
 
-      messagesApp.launch();
-
       storage.setMessagesStorage(threads, ThreadGenerator.uniqueMessageId);
 
       storage.setContactsStorage([{
@@ -193,6 +187,8 @@ marionette('Conversation Panel Tests', function() {
           type: 'Mobile'
         }]
       }]);
+
+      messagesApp.launch();
 
       messagesApp.Inbox.findConversation(threads[1].id).tap();
     });
@@ -275,11 +271,9 @@ marionette('Conversation Panel Tests', function() {
         expiryDate: Date.now() + 100000
       });
 
-      messagesApp.launch();
-
-      // Set empty messages and contacts store.
       storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
-      storage.setContactsStorage();
+
+      messagesApp.launch();
 
       var inboxView = new InboxView(client);
 
@@ -317,14 +311,14 @@ marionette('Conversation Panel Tests', function() {
         numberOfMessages: 4
       });
 
-      messagesApp.launch();
       storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
-      storage.setContactsStorage();
+
+      messagesApp.launch();
 
       var inboxView = new InboxView(client);
       conversationView = inboxView.goToConversation(thread.id);
     });
-    
+
     test('User can enter and exit edit mode', function () {
       conversationView.enterEditMode();
 
@@ -355,7 +349,7 @@ marionette('Conversation Panel Tests', function() {
           conversationView.toggleSelectionButtonTitle,
           'Deselect all',
           'Select / Deselect all button should display correct text'
-        );      
+        );
         assert.equal(
           conversationView.editHeaderTitle,
           '4 selected',
@@ -372,13 +366,13 @@ marionette('Conversation Panel Tests', function() {
           conversationView.toggleSelectionButtonTitle,
           'Select all',
           'Select / Deselect all button should display correct text'
-        );      
+        );
         assert.equal(
           conversationView.editHeaderTitle,
           'Delete messages',
           'Edit mode header should not indicate that any message is selected'
         );
-      }); 
+      });
 
       test('User selects a few and then selects/deselects all', function() {
         // Selecting the 1st and 3rd message
@@ -401,7 +395,7 @@ marionette('Conversation Panel Tests', function() {
           conversationView.editHeaderTitle,
           '2 selected',
           'Edit mode header should show correct number of messages'
-        ); 
+        );
 
         // Selecting all messages
         conversationView.toggleMessagesSelection();
@@ -413,7 +407,7 @@ marionette('Conversation Panel Tests', function() {
           conversationView.toggleSelectionButtonTitle,
           'Deselect all',
           'Select / Deselect all button should display correct text'
-        );     
+        );
         assert.equal(
           conversationView.editHeaderTitle,
           '4 selected',
@@ -430,7 +424,7 @@ marionette('Conversation Panel Tests', function() {
           conversationView.toggleSelectionButtonTitle,
           'Select all',
           'Select / Deselect all button should display correct text'
-        );      
+        );
         assert.equal(
           conversationView.editHeaderTitle,
           'Delete messages',
@@ -449,7 +443,7 @@ marionette('Conversation Panel Tests', function() {
           conversationView.toggleSelectionButtonTitle,
           'Deselect all',
           'Select / Deselect all button should display correct text'
-        );     
+        );
         assert.equal(
           conversationView.editHeaderTitle,
           '4 selected',
@@ -488,13 +482,13 @@ marionette('Conversation Panel Tests', function() {
           conversationView.toggleSelectionButtonTitle,
           'Deselect all',
           'Select / Deselect all button should display correct text'
-        );     
+        );
         assert.equal(
           conversationView.editHeaderTitle,
           '4 selected',
           'Edit mode header should show correct number of messages'
-        );                       
-      });    
+        );
+      });
     });
   });
 });

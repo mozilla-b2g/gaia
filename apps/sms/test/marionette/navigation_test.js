@@ -9,6 +9,7 @@ var Storage = require('./lib/storage.js');
 marionette('Navigation Tests', function() {
   var MOCKS = [
     '/mocks/mock_test_storages.js',
+    '/mocks/mock_test_blobs.js',
     '/mocks/mock_navigator_moz_icc_manager.js',
     '/mocks/mock_navigator_moz_mobile_message.js',
     '/mocks/mock_navigator_moz_contacts.js'
@@ -38,11 +39,10 @@ marionette('Navigation Tests', function() {
         thread = ThreadGenerator.generate({
           numberOfMessages: 10
         });
-        messagesApp.launch();
 
         storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
-        // Set empty contacts store.
-        storage.setContactsStorage();
+
+        messagesApp.launch();
       });
 
       test('Double tap on conversation and back', function() {
