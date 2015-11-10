@@ -14,6 +14,7 @@ Homescreen.URL = 'app://homescreen.gaiamobile.org';
 Homescreen.Selectors = {
   appsScrollable: '#apps-panel .scrollable',
   apps: '#apps',
+  pages: '#pages',
   icon: '#apps gaia-app-icon',
   card: '#pages gaia-pin-card',
   remove: '#remove',
@@ -115,6 +116,17 @@ Homescreen.prototype = {
   },
 
   /**
+   * Fetch a card element on the homescreen by its identifier.
+   * For apps, the identifier is the manifestURL, or its manifestURL,
+   * followed by a '/' followed by its entry point. For pin, the
+   * identifier is the pinned URL.
+   */
+  getCard: function(identifier) {
+    return this.client.findElement(
+      Homescreen.Selectors.pages + ' [data-id="' + identifier + '"]');
+  },
+
+  /**
    * Fetch an icon element on the homescreen by its name.
    *
    * @param {String} name The name of the icon.
@@ -188,6 +200,18 @@ Homescreen.prototype = {
   getIconImageUrl: function(icon) {
     return icon.scriptWith(function(el) {
       return el.dataset.testIconUrl;
+    });
+  },
+
+  /**
+   * Returns a homescreen card element's image URL.
+   *
+   * @param {Marionette.Element} card A homescreen card element reference.
+   */
+  getCardImageUrl: function(card) {
+    return card.scriptWith(function(el) {
+      var icon = el.shadowRoot.querySelector('.icon-container i');
+      return icon.style.backgroundImage;
     });
   },
 
