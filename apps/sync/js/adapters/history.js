@@ -41,6 +41,11 @@ var HistoryHelper = (() => {
     });
   }
 
+  /* SyncedCollectionMTime is the time of the last successful sync run.
+   * Subsequent sync runs will not check any records from the Kinto collection
+   * that have not been modified since then. This value is stored separately for
+   * each user (userid uniquely defines the FxSync account we're syncing with).
+   */
   function setSyncedCollectionMtime(mtime, userid) {
     return new Promise(resolve => {
       asyncStorage.setItem(userid + HISTORY_COLLECTION_MTIME, mtime, resolve);
@@ -59,6 +64,11 @@ var HistoryHelper = (() => {
     });
   }
 
+  /* LastRevisionId is the revisionId the DataStore had at the beginning of the
+   * last sync run. Even though there is only one DataStore, it is stored once
+   * for each userid, because a sync run only syncs with the FxSync account of
+   * the currently logged in user.
+   */
   function getLastRevisionId(userid) {
     return new Promise(resolve => {
       asyncStorage.getItem(userid + HISTORY_LAST_REVISIONID, resolve);
@@ -359,6 +369,7 @@ DataAdapters.history = {
         continue;
       }
 
+      // FIXME: See https://bugzilla.mozilla.org/show_bug.cgi?id=1223420
       places.push({
         url: payload.histUri,
         title: payload.title,
@@ -386,9 +397,14 @@ DataAdapters.history = {
     var mtime;
     return LazyLoader.load(['shared/js/async_storage.js'])
     .then(() => {
-      // FIXME: Decide how readonly DataAdapters should deal with local
-      // deletions on the phone.
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1219621
+      // We iterate over the records in the Kinto collection until we find a
+      // record whose last modified time is older than the time of the last
+      // successful sync run. However, if the DataStore has been cleared, or
+      // records have been removed from the DataStore since the last sync run,
+      // we cannot be sure that all older records are still there. So in both
+      // those cases we remove the SyncedCollectionMtime from AsyncStorage, so
+      // that this sync run will iterate over all the records in the Kinto
+      // collection, and not only over the ones that were recently modified.
       return HistoryHelper.handleClear(options.userid);
     }).then(() => {
       return HistoryHelper.getSyncedCollectionMtime(options.userid);
