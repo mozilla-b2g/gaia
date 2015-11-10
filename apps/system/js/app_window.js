@@ -2117,11 +2117,18 @@
   };
 
   AppWindow.prototype._handle__cardviewbeforeshow = function aw_cvbeforeshow() {
-    this.debug('showing screenshot for cardsview.');
-    this._showScreenshotOverlay();
+    if (this.isActive()) {
+      // Hopefully update the screenshot in time for the cards view to show
+      this.debug('requesting, then showing screenshot for cardsview.');
+      this.getScreenshot(this._showScreenshotOverlay.bind(this));
+    } else {
+      this.debug('showing screenshot for cardsview.');
+      this._showScreenshotOverlay();
+    }
   };
 
   AppWindow.prototype._handle__cardviewshown = function aw_cvshown() {
+    this._showScreenshotOverlay();
     if (this.element && this.element.classList.contains('no-screenshot') &&
         this._screenshotBlob) {
       this.element.classList.remove('no-screenshot');

@@ -54,20 +54,23 @@ suite('TaskManagerUtils >', function() {
     test('loadAppIcon successfully', function(done) {
       var ICON_URL = 'ICON_URL';
       var SIZE = 100;
-      var renderStub = sinon.stub();
+      var renderSpy;
       var el = document.createElement('div');
       el.classList.add('pending');
       window.Icon = function(el, originalUrl) {
         assert.equal(originalUrl, ICON_URL);
-        this.renderBlob = renderStub;
+        this.renderBlob = (blob, options) => {
+          options.onLoad();
+        };
+        renderSpy = sinon.spy(this, 'renderBlob');
       };
       TaskManagerUtils.loadAppIcon({
         getSiteIconUrl(size) {
           return Promise.resolve({ originalUrl: ICON_URL });
         },
       }, el, SIZE).then(() => {
-        assert.ok(renderStub.calledOnce);
-        assert.equal(renderStub.firstCall.args[1].size, SIZE);
+        assert.ok(renderSpy.calledOnce);
+        assert.equal(renderSpy.firstCall.args[1].size, SIZE);
         assert.ok(!el.classList.contains('pending'));
       }).then(done, done);
     });
@@ -87,76 +90,6 @@ suite('TaskManagerUtils >', function() {
         assert.ok(window.Icon.notCalled);
         assert.ok(!el.classList.contains('pending'));
       }).then(done, done);
-    });
-  });
-
-  function assertClassListMatchesExactly(el, list) {
-    if (el.classList.length !== list.length ||
-        !list.every((klass) => el.classList.contains(klass))) {
-      throw new Error(`expected "${el.className}" to match "${list}"`);
-    }
-  }
-
-  suite('loadAppScreenshot', function() {
-    [
-      {
-        name: 'Active, fullscreen/maximized, no screenshot',
-        active: true,
-        fullscreen: true,
-        maximized: true,
-        screenshot: null,
-        expectClassList: ['fullscreen', 'maximized'],
-        expectBackgroundImage: 'none, -moz-element(#instanceID)'
-      },
-      {
-        name: 'Active, no classes, no screenshot',
-        active: true,
-        screenshot: null,
-        expectClassList: [],
-        expectBackgroundImage: 'none, -moz-element(#instanceID)'
-      },
-      {
-        name: 'Active, screenshot',
-        active: true,
-        screenshot: 'SS',
-        expectClassList: [],
-        expectBackgroundImage: 'url("SS"), -moz-element(#instanceID)'
-      },
-      {
-        name: 'Not active, no screenshot',
-        active: false,
-        screenshot: null,
-        expectClassList: [],
-        expectBackgroundImage: 'none, -moz-element(#instanceID)'
-      },
-      {
-        name: 'Not active, screenshot',
-        active: false,
-        screenshot: 'SS',
-        expectClassList: [],
-        expectBackgroundImage: 'none, -moz-element(#instanceID)'
-      },
-    ].forEach((testCase) => {
-      test(testCase.name, function() {
-        var fakeApp = {
-          instanceID: 'instanceID',
-          getBottomMostWindow() { return this; },
-          isFullScreen() { return !!testCase.fullscreen; },
-          appChrome: {
-            isMaximized() { return !!testCase.maximized; }
-          },
-          requestScreenshotURL() { return testCase.screenshot; }
-        };
-        var el = document.createElement('div');
-        Service.mockQueryWith('AppWindowManager.getActiveWindow',
-          testCase.active ? fakeApp : null);
-        TaskManagerUtils.loadAppScreenshot(fakeApp, el);
-
-        assertClassListMatchesExactly(el, testCase.expectClassList);
-        assert.equal(
-          el.style.backgroundImage,
-          testCase.expectBackgroundImage);
-      });
     });
   });
 
