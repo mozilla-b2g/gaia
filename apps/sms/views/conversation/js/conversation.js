@@ -1921,13 +1921,15 @@ var ConversationView = {
     }
     params.items.push(subjectItem);
 
-    // If we are on a thread, we can call to SelectMessages and add recipients
+    //If we are on a thread, we can call Add recipients or Delete Thread or SelectMessages
     if (Navigation.isCurrentPanel('thread')) {
       params.items.push({
+        l10nId: 'delete-thread',
+        method: this.delete.bind(this, true /* deleteEntireThread */)
+      },{
         l10nId: 'includeSomeoneElse-label',
         method: this.includeSomeoneElse.bind(this)
-      });
-      params.items.push({
+      },{
         l10nId: 'selectMessages-label',
         method: this.startEdit.bind(this)
       });
@@ -2031,13 +2033,34 @@ var ConversationView = {
     );
   },
 
-  delete: function conv_delete() {
-    return Utils.confirm(
-      {
+  deleteConversation: function conv_deleteConversation(messageIdList) {
+    MessageManager.deleteMessages(messageIdList).then(() => {
+      messageIdList.forEach((messageId) => {
+        Threads.unregisterMessage(messageId);
+        this.removeMessageDOM(document.getElementById('message-' + messageId));
+      });
+    });
+  },
+
+  delete: function conv_delete(deleteEntireThread = false) {
+    var confirmMessage, messageIdsToDelete = [];
+
+    function onThreadMessageRetrieved(message) {
+      messageIdsToDelete.push(message.id);
+      return true;
+    }
+
+    if(!deleteEntireThread) {
+      confirmMessage =  {
         id: 'deleteMessages-confirmation-message',
         args: { n: this.selectionHandler.selectedCount }
-      },
-      null,
+      };
+    } else {
+      confirmMessage = 'deleteCurrentThread-confirmation';
+    }
+
+    return Utils.confirm(
+      confirmMessage, null,
       {
         text: 'delete',
         className: 'danger'
@@ -2045,14 +2068,24 @@ var ConversationView = {
     ).then(() => {
       WaitingScreen.show();
 
-      var messageIdsToDelete = this.selectionHandler.selectedList.map(
-        (item) => +item
-      );
-
-      return this.deleteMessages(messageIdsToDelete);
+      if(!deleteEntireThread) {
+        messageIdsToDelete = this.selectionHandler.selectedList.map(
+          (item) => +item
+        );
+        return this.deleteMessages(messageIdsToDelete);
+      } else {
+        MessageManager.getMessages({
+        // Filter and request all messages with this threadId
+          filter: { threadId: this.activeThread.id },
+          each: onThreadMessageRetrieved,
+          end: this.deleteConversation.bind(this),
+          endArgs: messageIdsToDelete
+        });
+      }
     }).then(() => {
-      ConversationView.cancelEdit();
+      this.cancelEdit();
       WaitingScreen.hide();
+      this.backOrClose();
     });
   },
 
