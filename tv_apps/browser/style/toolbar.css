@@ -723,7 +723,7 @@ input::-moz-focus-inner {
   top: 122px;
   right: -4px;
   max-width: 1000px;
-  padding: 5px 10px;
+  padding: 1rem 2rem;
   border-radius: 6px;
   background-color: #5f6368;
   list-style: none;
@@ -741,14 +741,12 @@ input::-moz-focus-inner {
 }
 
 #menu-block li {
-  display: table;
   width: 100%;
   height: 72px;
   font-size: 32px;
   border-bottom: solid 1px #7a7a7a;
-  -moz-transition: height 0.42s cubic-bezier(0.25, 0, 0, 1.0),
-                   border-bottom 0.42s cubic-bezier(0.25, 0, 0, 1.0),
-                   font-size 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+  transition: height 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+              border-bottom 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 #menu-block li:last-child {
   /* border-bottom: 0px; */
@@ -761,29 +759,47 @@ input::-moz-focus-inner {
 #menu-block li:hover a {
   font-size: 38px;
 }
+#menu-block li:hover a#pocket-tab:before {
+  background-size: 120% 120%;
+  background-position: center 80%;
+}
 #menu-block li:active a {
   color: #00caf2;
   padding-left: 20px;
 }
 
 #menu-block li > a {
-  display: table-cell;
+  display: flex;
   color: #ffffff;
   text-align: left;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 2rem;
+  padding-right: 2rem;
   max-width: 980px;
   height: 72px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-decoration: none;
-  vertical-align: middle;
+  align-items: center;
   width: 100%;
   pointer-events: none;
-  -moz-transition: padding-left 0.16s cubic-bezier(0.25, 0, 0, 1.0),
-                   color 0.16s cubic-bezier(0.25, 0, 0, 1.0);
+  transition: padding-left 0.16s cubic-bezier(0.25, 0, 0, 1.0),
+              color 0.16s cubic-bezier(0.25, 0, 0, 1.0),
+              font-size 0.42s cubic-bezier(0.25, 0, 0, 1.0);
   -moz-transform: scale(1.0);
+}
+
+#menu-block li > a#pocket-tab:before {
+  content: '';
+  display: inline-block;
+  width: 3.6rem;
+  height: 3.6rem;
+  margin-right: 2rem;
+  background-size: 110% 110%;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-image: url('../style/images/pocket_icon.png');
+  transition: background-size 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 /* ----- mode button ----- */
