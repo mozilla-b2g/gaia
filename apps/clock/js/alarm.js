@@ -156,6 +156,38 @@ define(function(require, exports, module) {
       // Only update the application if this alarm was actually saved
       // (i.e. it has an ID).
       if (this.id) {
+        var alarmDatabase = require('alarm_database');
+        // Updating Alarm info from the DataStore
+        alarmDatabase.getAll()
+        .then((alarms) => {
+          var storeAlarms = [];
+
+          alarms.forEach(function(a) {
+            // Grabbing alarms that are 'normal'
+            if(a.registeredAlarms.normal) {
+              storeAlarms.push(a.getNextAlarmFireTime());
+            }
+          });
+
+          return this.getNextAlarm(storeAlarms);
+        }).then((nextAlarm) => {
+
+          navigator.getDataStores('alarms')
+          .then((stores) => {
+            return [stores[0].getLength(), stores[0]];
+          }).then(([len, store]) => {
+            if(0 === len) {
+              return store.add(nextAlarm);
+            } else {
+              return store.put(nextAlarm, 1);
+            }
+          }).then((id) => {
+            if(id) {
+              console.log('[Clock] ==== Updated Alarm on LockScreen ====');
+            }
+          });
+
+        });
         window.dispatchEvent(
           new CustomEvent(removed ? 'alarm-removed' : 'alarm-changed', {
             detail: { alarm: this }
@@ -175,6 +207,45 @@ define(function(require, exports, module) {
           this._notifyChanged(/* removed = */ true);
         });
       });
+    },
+
+    /**
+     * Returns the next scheduled alarm within the next 24 hours
+     * @param {Array} type 'Date'
+     * @returns {Object} This is either an empty obj or hour and minute
+     */
+    getNextAlarm: function(storeAlarms) {
+      var alarmIndex = [],
+          nextAlarm = {};
+
+      // remove alarms that have more than 24 hrs
+      storeAlarms.forEach( function(val,index) {
+        if((val.getTime() - new Date().getTime()) / 36e5 > 24 ) {
+          alarmIndex.push(index);
+        }
+      });
+
+      // remove last index first
+      alarmIndex.sort(function(a,b) {
+        return b - a;
+      });
+      alarmIndex.forEach( function(val) {
+        storeAlarms.splice(val, 1);
+      });
+
+      // sort alarms
+      storeAlarms.sort(function(a,b){
+        return new Date(a.getTime()) - new Date(b.getTime());
+      });
+
+      if(storeAlarms.length > 0) {
+        var mins = storeAlarms[0].getMinutes();
+        nextAlarm = {
+          hour : '' + storeAlarms[0].getHours(),
+          minute : mins < 10 ? '0' + mins : '' + mins
+        };
+      }
+      return nextAlarm;
     }
 
   };

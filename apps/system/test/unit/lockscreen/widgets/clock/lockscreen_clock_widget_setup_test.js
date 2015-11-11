@@ -40,6 +40,12 @@ suite('LockScreenClockWidgetSetup > ', function() {
         },
         updateFormatters: {
           bind: this.sinon.stub().returns('component.updateFormatters')
+        },
+        updateAlarm: {
+          bind: this.sinon.stub().returns('component.updateAlarm')
+        },
+        fetchAlarmData: {
+          bind: this.sinon.stub().returns('component.fetchAlarmData')
         }
       },
       transferToTick: {
