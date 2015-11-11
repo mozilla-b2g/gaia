@@ -2,16 +2,13 @@
 /* global __dirname */
 
 var assert = require('assert');
-var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
+var Pinning = require(
+  '../../../../apps/system/test/marionette/lib/pinning_the_web');
 var Server = require('../../../../shared/test/integration/server');
 
-marionette('Homescreen - Bookmark order', function() {
-  var options = require(__dirname + '/client_options_bookmarks.js');
-  options.settings['dev.gaia.pinning_the_web'] = false;
-  var client = marionette.client({
-    profile: options
-  });
-  var actions, bookmark, home, server, system;
+marionette('Homescreen - Pin order', function() {
+  var client = marionette.client();
+  var actions, pinning, home, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -26,14 +23,14 @@ marionette('Homescreen - Bookmark order', function() {
 
   setup(function() {
     actions = client.loader.getActions();
-    bookmark = new Bookmark(client, server);
+    pinning = new Pinning(client);
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
     home.waitForLaunch();
   });
 
-  test('Bookmark order is retained after restart', function() {
+  test('Pin order is retained after restart', function() {
     // This test is very similar to app_order_test, but as bookmarks are
     // sourced from a different database and initialised separately to apps,
     // we need to test that their metadata is also retained across homescreen
@@ -44,7 +41,7 @@ marionette('Homescreen - Bookmark order', function() {
     var url = server.url('sample.html');
 
     client.switchToFrame();
-    bookmark.openAndSave(url);
+    pinning.openAndPinSiteFromBrowser(url);
 
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
@@ -53,7 +50,7 @@ marionette('Homescreen - Bookmark order', function() {
       return numIcons + 1 === home.visibleIcons.length;
     });
 
-    // Drag bookmark to a different place
+    // Drag pin to a different place
     var icons = home.visibleIcons;
 
     icons[numIcons].scriptWith(function(el) {
