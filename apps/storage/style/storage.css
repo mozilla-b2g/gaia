@@ -1,0 +1,56 @@
+@import url("root.css");
+
+/* No Storages */
+
+#no-storages {
+  background: #FFF url(/storages/style/images/contact_big_icon.png) no-repeat center center / 15.3rem;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 11;
+  color: #000;
+  text-align: initial;
+}
+
+#no-storages .info {
+  border-top: 0.1rem solid rgba(96, 96, 96, 0.5);
+  color: #606060;
+  font-size: 2rem;
+  font-weight: 300;
+  margin: 16rem 2rem 0;
+  padding: 1rem;
+}
+
+#no-storages p {
+  margin-bottom: 1rem;
+}
+
+#no-storages p.small {
+  font-size: 1.6rem;
+}
+
+#new-storage-form {
+  pointer-events: auto;
+}
+
+#oauth_window {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sup-oauth2-browser {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+}
+
+.scrollregion-below-header {
+  overflow: hidden;
+  will-change: auto;
+  height: 100%;
+  width: 100%;
+}
