@@ -57,6 +57,8 @@ var adapter;
 
 const MAP_LISTING_HEAD = '<MAP-msg-listing version = "1.0">\n';
 const MAP_LISTING_FOOT = '</MAP-msg-listing>\n';
+const MAP_REPORT_HEAD = '<MAP-event-report version = "1.0">\n';
+const MAP_REPORT_FOOT = '</MAP-event-report>\n';
 
 (function (exports) {
 var MapManager = {
@@ -106,11 +108,59 @@ var MapManager = {
     });
   },
 
-  onSendingSuccess() {},
+  onSendingSuccess(e) {
+    console.log('onSendingSuccess');
+    console.log(e);
+    var msgRecord = e.message, msgTemplate = {};
+    if (msgRecord.type === 'sms') {
+      msgTemplate.type = 'SMS_GSM';
+    } else if (msgRecord.type === 'mms') {
+      msgTemplate.type = 'MMS';
+    }
+    msgTemplate.handle = msgRecord.id;
 
-  onDeliverySuccess() {},
+    var content = `<event type = "SendingSuccess" ` +
+                  `handle = "${msgTemplate.handle}" ` +
+                  `folder = "TELECOM/MSG/OUTBOX" ` +
+                  `msg_type = "${msgTemplate.type}" />\n`;
+    console.log(MAP_REPORT_HEAD + content + MAP_REPORT_FOOT);
+  },
 
-  onNewMessage() {},
+  onDeliverySuccess(e) {
+    console.log('onDeliverySuccess');
+    console.log(e);
+    var msgRecord = e.message, msgTemplate = {};
+    if (msgRecord.type === 'sms') {
+      msgTemplate.type = 'SMS_GSM';
+    } else if (msgRecord.type === 'mms') {
+      msgTemplate.type = 'MMS';
+    }
+    msgTemplate.handle = msgRecord.id;
+
+    var content = `<event type = "DeliverySuccess" ` +
+                  `handle = "${msgTemplate.handle}" ` +
+                  `folder = "TELECOM/MSG/OUTBOX" ` +
+                  `msg_type = "${msgTemplate.type}" />\n`;
+    console.log(MAP_REPORT_HEAD + content + MAP_REPORT_FOOT);
+  },
+
+  onNewMessage(e) {
+    console.log('onNewMessage');
+    console.log(e);
+    var msgRecord = e.message, msgTemplate = {};
+    if (msgRecord.type === 'sms') {
+      msgTemplate.type = 'SMS_GSM';
+    } else if (msgRecord.type === 'mms') {
+      msgTemplate.type = 'MMS';
+    }
+    msgTemplate.handle = msgRecord.id;
+
+    var content = `<event type = "NewMessage" ` +
+                  `handle = "${msgTemplate.handle}" ` +
+                  `folder = "TELECOM/MSG/INBOX" ` +
+                  `msg_type = "${msgTemplate.type}" />\n`;
+    console.log(MAP_REPORT_HEAD + content + MAP_REPORT_FOOT);
+  },
 
   filterGenerator() {},
 
