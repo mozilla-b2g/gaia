@@ -265,18 +265,21 @@ def fetch_webapp(app_url, directory=None):
         if url.scheme:
             logger.info('downloading app...')
             path = manifest['package_path']
+            zipappfile = os.path.join(app_dir, filename)
             retrieve_from_url(
                 manifest['package_path'],
-                os.path.join(app_dir, filename))
+                zipappfile)
             metadata['manifestURL'] = url.geturl()
             metadata['packageEtag'] = open_from_url(path).headers['etag']
+
+            logger.info('extract manifest from zip...')
+            appzip = ZipFile(zipappfile, 'r').read('manifest.webapp')
+            manifest = json.loads(appzip.decode('utf-8-sig'))
         else:
             logger.info('copying app...')
             shutil.copyfile(app_url, '%s%s%s' % (appname, os.sep, filename))
             metadata['manifestURL'] = ''.join(
                 [domain, path, 'manifest.webapp'])
-
-        manifest['package_path'] = ''.join(['/', filename])
 
     logger.info('fetching icons...')
     for key in manifest['icons']:
@@ -314,6 +317,11 @@ def fetch_webapp(app_url, directory=None):
     # add manifestURL for update
     metadata['manifestURL'] = app_url
     metadata['external'] = True
+
+    # the app type needs to be in the metadata file to be properly populated.
+    if 'type' in manifest:
+        metadata['type'] = manifest['type']
+
 
     f = file(os.path.join(app_dir, 'metadata.json'), 'w')
     f.write(json.dumps(metadata))
