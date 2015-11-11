@@ -269,7 +269,10 @@ def fetch_webapp(app_url, directory=None):
                 manifest['package_path'],
                 os.path.join(app_dir, filename))
             metadata['manifestURL'] = url.geturl()
-            metadata['packageEtag'] = open_from_url(path).headers['etag']
+
+            package_url = open_from_url(path)
+            if 'etag' in package_url.headers:
+              metadata['packageEtag'] = package_url.headers['etag']
         else:
             logger.info('copying app...')
             shutil.copyfile(app_url, '%s%s%s' % (appname, os.sep, filename))
