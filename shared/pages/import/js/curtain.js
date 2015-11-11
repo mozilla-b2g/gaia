@@ -204,6 +204,7 @@ var Curtain = (function() {
      */
     set oncancel(cancelCb) {
       if (typeof cancelCb === 'function') {
+        delete cancelButton.onclick;
         cancelButton.onclick = function on_cancel(e) {
           delete cancelButton.onclick;
           cancelCb();
@@ -221,6 +222,7 @@ var Curtain = (function() {
      */
     set onretry(retryCb) {
       if (typeof retryCb === 'function') {
+        delete retryButton.onclick;
         retryButton.onclick = function on_retry(e) {
           delete retryButton.onclick;
           retryCb();
@@ -238,6 +240,7 @@ var Curtain = (function() {
      */
     set onok(okCb) {
       if (typeof okCb === 'function') {
+        delete okButton.onclick;
         okButton.onclick = function on_ok(e) {
           delete okButton.onclick;
           okCb();
