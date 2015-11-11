@@ -1,65 +1,298 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#findNextThumbnail'
+                class='block bold'>
+                findNextThumbnail
+              </a>
+              <a
+                href='#fitContainer'
+                class='block bold'>
+                fitContainer
+              </a>
+              <a
+                href='#getTruncated'
+                class='block bold'>
+                getTruncated
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>This file is used for forward and rewind funtionality of Gaia Video app.</p>
+<p>If the user taps the forward or rewind icons,
+the video will jump forward or back by 10 seconds.</p>
+<p>When the user presses and holds on the forward or rewind icons,
+the video time will move forward or back at 10 times the regular speed.</p>
 
-<body>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>ThumbnailDateGroup is a grouping mechanism supported in video app. It
+groups video data by its year and month, see bug 908380. The grouping
+identity is based on the groupID. Once the groupID is different, we view
+two groups as different groups. ThumbnailDateGroup also sorts the added video
+data descendant. We can just put a item into group and let it sort the list.</p>
+<p>The sanitizer.js library is used to escape HTML within the view method.
+It is used when rendering group header, the HTML DOM node of this object.</p>
+<p>The HTML Node of this object contains all UI of its children. If we move it,
+all items under this group are also moved.</p>
+<p>CONSTRUCTOR:
+To create a group, we need to supply one argument:
+item: the first data object for this group. It will be used for
+rendering the information about this group.</p>
+<p>API:
+addItem(): add a new item to this group. ThumbnailDateGroup will create a
+ThumbnailItem for the supplied video data and insert it to UI.
+args:
+item: the video data object.
+return: ThumbnailItem object
+removeItem(): remove a ThumbnailItem from this group. It also removes the
+UI from this group.
+thumbnail: ThumbnailItem object to remove.
+getCount(): returns the total items in this group</p>
+<p>Properties:
+htmlNode: the HTML DOM node of this group.
+groupID: the ID of this group.
+thumbnails: all ThumbnailItem objects under this group.</p>
+<p>Static API:
+getGroupID: calculate the group id for video object.
+item: the video data object.
+return: an id string.
+compareGroupID</p>
 
-<div id="main">
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>ThumbnailItem is view object for a single video data. It renders video with
+ThumbnailItem.view. ThumbnailItem keeps the referenced video data, while
+dispatching tap event, it supplies the video data as the argument.
+ThumbnailItem wraps the dom event to its owned addTapListener. When we need
+to change the behavior to trigger tap, we may just change the implementation
+layer here.</p>
+<p>If we need to mark a thumbnail as selected or context, we need to add/remove
+the CSS classes of htmlNode property which is created within constructor.</p>
+<p>CONSTRUCTOR:
+To create a ThumbnailItem objet requires the following argument:
+videoData: the video data object from mediadb.</p>
+<p>API:
+addTapListener: add tap event listener to this thumbnail item. args:
+listener: the listener callback.
+removeTapListener: remove tap event listener. args:
+listener: the listener callback.
+setWatched: set this thumbnail item as watched or not. args:
+watched: a boolean for watched or not.
+updatePoster: update the poster image. args:
+imageblob: a image blob object.
+updateTitleText: updates the title text according to the size of it.</p>
+<p>Properties:
+htmlNode: the HTML DOM node for this thumbnail item. It is rendered at the
+creation of object.
+data: the video data object bound with this thumbnail item.
+posterNode: the HTML DOM node for poster image. This property may be null
+if template doesn&apos;t supply one.
+unwatchedNode: the HTML DOM node for unwatched marker. This property may be
+null if template doesn&apos;t supply one.
+detailNode: the HTML DOM node for detail information. This property may be
+null if template doesn&apos;t supply one.</p>
+<p>Global Variables:
+titleMaxLines: the maximum lines of title field. The default value is 2.</p>
 
-    <h1 class="page-title">Home</h1>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>ThumbnailList is the class reponsible for rendering all video data in to a
+list. It uses GroupClass to group and sort video data as ThumbnailItem.</p>
+<p>Constructor:
+groupClass: the grouping class. We only have ThumbnailDataGroup, now.
+container: the HTML DOM object for containing everything.</p>
+<p>API:
+addItem: add a video data and render it.
+item: the video data to add.
+removeItem: remove a ThumbnailItem.
+filename: the filename of video data.
+getCount: returns the total video data in this list.
+isPickMode: returns if ThumbnailList is in pick mode.
+setPickMode: set ThumbnailList as pick mode or not.
+isSelectMode: returns if ThumbnailList is in selection mode.
+setSelectMode: set ThumbnailList as selection mode or not.
+reset: clears all the internal data structure.
+updateAllThumbnailTitles: update all thumbnail title text.
+findNextFocused: find the next focused item after the file name.
+filename: the referenced filename.</p>
+<p>Properties:
+thumbnailMap: a mapping of filename to ThumbnailItem.
+groupMap: a mapping of filename to thumbnail group.
+itemGroups: an sorted array of thumbnail group.
+count: the total ThumbnailItem in this list.
+groupClass: the grouping class this list used.
+container: the HTML DOM element containing this list.</p>
 
-    
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='findNextThumbnail' class='mt0'>
+    findNextThumbnail<span class='gray'>(filename)</span>
+  </h2>
+  <p>To find the next thumbnail item after the filename. There are multiple cases:</p>
+<ol>
+<li>filename is not existed: returns the first thumbnail.</li>
+<li>filename is at last position, returns the previous thumbnail of filename.</li>
+<li>filename is at other position, returns the next thumbnail of filename.</li>
+</ol>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>filename</strong>
+          :
+          <span class='force-inline'>
+            <p>the file name of video</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='fitContainer' class='mt0'>
+    fitContainer<span class='gray'>(DOM, DOM, int, container, player, videoRotation)</span>
+  </h2>
+  <p>fit the video player to the container. This function aspects the video
+ratio and scales video player to fit as large as possible area of
+container.</p>
 
-    
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>DOM</strong>
+          :
+          <span class='force-inline'>
+            <p>|container| the container for displaying this video.</p>
 
+          </span>
+        </li>
+        <li> <strong>DOM</strong>
+          :
+          <span class='force-inline'>
+            <p>|player| the video element to fit the container.</p>
 
-    <h3> </h3>
+          </span>
+        </li>
+        <li> <strong>int</strong>
+          :
+          <span class='force-inline'>
+            <p>|videoRotation| the rotation of video content. (optional)</p>
 
+          </span>
+        </li>
+        <li> <strong>container</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>player</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>videoRotation</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getTruncated' class='mt0'>
+    getTruncated<span class='gray'>(oldName, options)</span>
+  </h2>
+  <p>To get the truncated string. It loads oldName into a HTML Element provided
+with options. This element must put into DOM tree and all css are applied.
+We use the height of this element to detect the creation of new line. So,
+the height of this element should not be fixed.</p>
+<p>arguments:
+oldName {string}   the original string
+options {object}   an object with the following attributes:
+node {HTMLElement}: the element contains the text.
+maxLine {int}: optional, maximum line of text. The default
+value is 2.
+ellipsisCharacter {string}: optional, the text of ellipsis
+char. The default value is &apos;...&apos;.</p>
 
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>oldName</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:17 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

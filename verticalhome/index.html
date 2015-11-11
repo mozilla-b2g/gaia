@@ -1,65 +1,1026 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#_allItems'
+                class='block bold'>
+                _allItems
+              </a>
+              <a
+                href='#_deferredSaveArgs'
+                class='block bold'>
+                _deferredSaveArgs
+              </a>
+              <a
+                href='#_renderedOnce'
+                class='block bold'>
+                _renderedOnce
+              </a>
+              <a
+                href='#all'
+                class='block bold'>
+                all
+              </a>
+              <a
+                href='#deferredSave'
+                class='block bold'>
+                deferredSave
+              </a>
+              <a
+                href='#fetch'
+                class='block bold'>
+                fetch
+              </a>
+              <a
+                href='#getNextPosition'
+                class='block bold'>
+                getNextPosition
+              </a>
+              <a
+                href='#initSources'
+                class='block bold'>
+                initSources
+              </a>
+              <a
+                href='#nextPosition'
+                class='block bold'>
+                nextPosition
+              </a>
+              <a
+                href='#notifyReady'
+                class='block bold'>
+                notifyReady
+              </a>
+              <a
+                href='#populate'
+                class='block bold'>
+                populate
+              </a>
+              <a
+                href='#save'
+                class='block bold'>
+                save
+              </a>
+              <a
+                href='#saveItem'
+                class='block bold'>
+                saveItem
+              </a>
+              <a
+                href='#savePrevInstalledSvApp'
+                class='block bold'>
+                savePrevInstalledSvApp
+              </a>
+              <a
+                href='#synchronize'
+                class='block bold'>
+                synchronize
+              </a>
+              <a
+                href='#_moveAhead'
+                class='block bold'>
+                _moveAhead
+              </a>
+              <a
+                href='#BookmarkSource'
+                class='block bold'>
+                BookmarkSource
+              </a>
+                <a
+                  href='#BookmarkSource.addIconToGrid'
+                  class='regular block'>
+                  #addIconToGrid
+                </a>
+                <a
+                  href='#BookmarkSource.handleEvent'
+                  class='regular block'>
+                  #handleEvent
+                </a>
+                <a
+                  href='#BookmarkSource.populate'
+                  class='regular block'>
+                  #populate
+                </a>
+                <a
+                  href='#BookmarkSource.removeIconFromGrid'
+                  class='regular block'>
+                  #removeIconFromGrid
+                </a>
+                <a
+                  href='#BookmarkSource.synchronize'
+                  class='regular block'>
+                  #synchronize
+                </a>
+              <a
+                href='#ApplicationSource'
+                class='block bold'>
+                ApplicationSource
+              </a>
+                <a
+                  href='#ApplicationSource.addIconToGrid'
+                  class='regular block'>
+                  #addIconToGrid
+                </a>
+                <a
+                  href='#ApplicationSource.addPreviouslyInstalledSvApp'
+                  class='regular block'>
+                  #addPreviouslyInstalledSvApp
+                </a>
+                <a
+                  href='#ApplicationSource.makeIcons'
+                  class='regular block'>
+                  #makeIcons
+                </a>
+                <a
+                  href='#ApplicationSource.mapToApp'
+                  class='regular block'>
+                  #mapToApp
+                </a>
+                <a
+                  href='#ApplicationSource.populate'
+                  class='regular block'>
+                  #populate
+                </a>
+                <a
+                  href='#ApplicationSource.removeIconFromGrid'
+                  class='regular block'>
+                  #removeIconFromGrid
+                </a>
+                <a
+                  href='#ApplicationSource.synchronize'
+                  class='regular block'>
+                  #synchronize
+                </a>
+              <a
+                href='#addIfUnique'
+                class='block bold'>
+                addIfUnique
+              </a>
+              <a
+                href='#calculateAppearance'
+                class='block bold'>
+                calculateAppearance
+              </a>
+              <a
+                href='#handleEvent'
+                class='block bold'>
+                handleEvent
+              </a>
+              <a
+                href='#exitEditMode'
+                class='block bold'>
+                exitEditMode
+              </a>
+              <a
+                href='#handleEvent'
+                class='block bold'>
+                handleEvent
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#onLocalized'
+                class='block bold'>
+                onLocalized
+              </a>
+              <a
+                href='#retryFailedIcons'
+                class='block bold'>
+                retryFailedIcons
+              </a>
+              <a
+                href='#handleEvent'
+                class='block bold'>
+                handleEvent
+              </a>
+              <a
+                href='#handleItemRemoval'
+                class='block bold'>
+                handleItemRemoval
+              </a>
+              <a
+                href='#install'
+                class='block bold'>
+                install
+              </a>
+              <a
+                href='#open'
+                class='block bold'>
+                open
+              </a>
+              <a
+                href='#Search'
+                class='block bold'>
+                Search
+              </a>
+              <a
+                href='#setupColumns'
+                class='block bold'>
+                setupColumns
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='_allItems' class='mt0'>
+    _allItems<span class='gray'></span>
+  </h2>
+  <p>A list of all items. These are item objects (App, Bookmark, Divider)</p>
 
-<body>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_deferredSaveArgs' class='mt0'>
+    _deferredSaveArgs<span class='gray'></span>
+  </h2>
+  <p>The saved arguments for the last deferred save call.</p>
 
-<div id="main">
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_renderedOnce' class='mt0'>
+    _renderedOnce<span class='gray'></span>
+  </h2>
+  <p>Whether or not the grid has been rendered. We use this as an
+indicator as to whether or not we should save items to indexedDB.
+If we get items to save before this is true, we wait until the
+cached-icons-rendered event to save.</p>
 
-    <h1 class="page-title">Home</h1>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='all' class='mt0'>
+    all<span class='gray'>(success)</span>
+  </h2>
+  <p>Fetches a list of all items in the store.</p>
 
-    
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>success</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='deferredSave' class='mt0'>
+    deferredSave<span class='gray'></span>
+  </h2>
+  <p>Defers the save of items until after the grid is ready.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='fetch' class='mt0'>
+    fetch<span class='gray'>(callback)</span>
+  </h2>
+  <p>Fetches items from the database.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>A function to call after fetching all items.</p>
 
-    
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getNextPosition' class='mt0'>
+    getNextPosition<span class='gray'></span>
+  </h2>
+  <p>Gets the next available position in the grid</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='initSources' class='mt0'>
+    initSources<span class='gray'>(callback)</span>
+  </h2>
+  <p>Initializes all sources.</p>
 
-    <h3> </h3>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>The callback to fire after all sources init.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='nextPosition' class='mt0'>
+    nextPosition<span class='gray'></span>
+  </h2>
+  <p>Maintains the current index of the last grid item.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='notifyReady' class='mt0'>
+    notifyReady<span class='gray'></span>
+  </h2>
+  <p>Notifies consumers that the database is ready for queries to be makde.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='populate' class='mt0'>
+    populate<span class='gray'>(callback)</span>
+  </h2>
+  <p>Populates the database with the initial data.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Callback after database is populated.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='save' class='mt0'>
+    save<span class='gray'>(entries, aNext)</span>
+  </h2>
+  <p>Saves all icons to the database.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>entries</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>aNext</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='saveItem' class='mt0'>
+    saveItem<span class='gray'>(object, callback)</span>
+  </h2>
+  
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>object</strong>
+          :
+          <span class='force-inline'>
+            <p>a single object to update.</p>
 
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>fires when transaction finishes.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='savePrevInstalledSvApp' class='mt0'>
+    savePrevInstalledSvApp<span class='gray'>(svApps, aNext)</span>
+  </h2>
+  <p>Save reference to SingleVariant app previously installed</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>svApps</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>aNext</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='synchronize' class='mt0'>
+    synchronize<span class='gray'></span>
+  </h2>
+  <p>We have fetched data from our local database and displayed it,
+but data inside of our application or bookmark store may be outdated.
+We need to synchronize each source and delete/add records.</p>
 
-    
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_moveAhead' class='mt0'>
+    _moveAhead<span class='gray'>(startPos)</span>
+  </h2>
+  <p>Goes through all the items in the grid from startPos.
+If it finds one whose desired position is lower than it&apos;s current
+position then it&apos;ll switch it with the item ahead of it on the list
+(it&apos;ll move ahead one position).
+This is a auxiliary function, if the grid configuration is correct,
+it&apos;ll be sorted after the last item is inserted, although at intermediate
+steps it can and will be incorrectly sorted.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>startPos</strong>
+          :
+          <span class='force-inline'>
+            <p>Starting position</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BookmarkSource' class='mt0'>
+    BookmarkSource<span class='gray'>(store)</span>
+  </h2>
+  <p>BookmarkSource is responsible for populating the iniial bookmark
+results as well as keeping the grid in sync with the bookmark datastore.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>store</strong>
+          :
+          <span class='force-inline'>
+            <p>The backing database store class.</p>
 
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='BookmarkSource.addIconToGrid'>
+          <a href='#BookmarkSource.addIconToGrid'>
+            <code>
+              #addIconToGrid<span class='gray'>(detail)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Adds a bookmark icon to the grid.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BookmarkSource.addIconToGrid' class='mt0'>
+                addIconToGrid<span class='gray'>(detail)</span>
+              </h2>
+              <p>Adds a bookmark icon to the grid.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>detail</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BookmarkSource.handleEvent'>
+          <a href='#BookmarkSource.handleEvent'>
+            <code>
+              #handleEvent<span class='gray'>(e)</span>
+            </code>
+            <span class='force-inline'>
+              <p>General datastore event handler.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BookmarkSource.handleEvent' class='mt0'>
+                handleEvent<span class='gray'>(e)</span>
+              </h2>
+              <p>General datastore event handler.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event</a></code> <strong>e</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BookmarkSource.populate'>
+          <a href='#BookmarkSource.populate'>
+            <code>
+              #populate<span class='gray'>(success)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Populates the initial bookmark data.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BookmarkSource.populate' class='mt0'>
+                populate<span class='gray'>(success)</span>
+              </h2>
+              <p>Populates the initial bookmark data.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>success</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Called after we fetch all initial data.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BookmarkSource.removeIconFromGrid'>
+          <a href='#BookmarkSource.removeIconFromGrid'>
+            <code>
+              #removeIconFromGrid<span class='gray'>(url)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Removes a bookmark icon from the grid.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BookmarkSource.removeIconFromGrid' class='mt0'>
+                removeIconFromGrid<span class='gray'>(url)</span>
+              </h2>
+              <p>Removes a bookmark icon from the grid.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>url</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BookmarkSource.synchronize'>
+          <a href='#BookmarkSource.synchronize'>
+            <code>
+              #synchronize<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Synchronizes our local result set with datastre.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BookmarkSource.synchronize' class='mt0'>
+                synchronize<span class='gray'></span>
+              </h2>
+              <p>Synchronizes our local result set with datastre.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ApplicationSource' class='mt0'>
+    ApplicationSource<span class='gray'>(store)</span>
+  </h2>
+  <p>ApplicationSource is responsible for populating the iniial application
+results as well as mapping indexedDB records to app objects for launching.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>store</strong>
+          :
+          <span class='force-inline'>
+            <p>The backing database store class.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ApplicationSource.addIconToGrid'>
+          <a href='#ApplicationSource.addIconToGrid'>
+            <code>
+              #addIconToGrid<span class='gray'>(application)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Adds a new icon to the grid</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ApplicationSource.addIconToGrid' class='mt0'>
+                addIconToGrid<span class='gray'>(application)</span>
+              </h2>
+              <p>Adds a new icon to the grid</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>application</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ApplicationSource.addPreviouslyInstalledSvApp'>
+          <a href='#ApplicationSource.addPreviouslyInstalledSvApp'>
+            <code>
+              #addPreviouslyInstalledSvApp<span class='gray'>(manifest)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Add a reference to singleVariant app previously installed</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ApplicationSource.addPreviouslyInstalledSvApp' class='mt0'>
+                addPreviouslyInstalledSvApp<span class='gray'>(manifest)</span>
+              </h2>
+              <p>Add a reference to singleVariant app previously installed</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>manifest</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ApplicationSource.makeIcons'>
+          <a href='#ApplicationSource.makeIcons'>
+            <code>
+              #makeIcons<span class='gray'>(eachApp)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Creates entries for an app based on hidden roles and entry points.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ApplicationSource.makeIcons' class='mt0'>
+                makeIcons<span class='gray'>(eachApp)</span>
+              </h2>
+              <p>Creates entries for an app based on hidden roles and entry points.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>eachApp</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ApplicationSource.mapToApp'>
+          <a href='#ApplicationSource.mapToApp'>
+            <code>
+              #mapToApp<span class='gray'>(entry)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Maps a database entry to a mozApps application</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ApplicationSource.mapToApp' class='mt0'>
+                mapToApp<span class='gray'>(entry)</span>
+              </h2>
+              <p>Maps a database entry to a mozApps application</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>entry</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ApplicationSource.populate'>
+          <a href='#ApplicationSource.populate'>
+            <code>
+              #populate<span class='gray'>(success)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Populates the initial application data from mozApps.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ApplicationSource.populate' class='mt0'>
+                populate<span class='gray'>(success)</span>
+              </h2>
+              <p>Populates the initial application data from mozApps.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>success</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Called after we fetch all initial data.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ApplicationSource.removeIconFromGrid'>
+          <a href='#ApplicationSource.removeIconFromGrid'>
+            <code>
+              #removeIconFromGrid<span class='gray'>(manifestURL)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Removes an icon from the grid.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ApplicationSource.removeIconFromGrid' class='mt0'>
+                removeIconFromGrid<span class='gray'>(manifestURL)</span>
+              </h2>
+              <p>Removes an icon from the grid.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>manifestURL</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ApplicationSource.synchronize'>
+          <a href='#ApplicationSource.synchronize'>
+            <code>
+              #synchronize<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Synchronizes our local result set with mozApps.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ApplicationSource.synchronize' class='mt0'>
+                synchronize<span class='gray'></span>
+              </h2>
+              <p>Synchronizes our local result set with mozApps.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='addIfUnique' class='mt0'>
+    addIfUnique<span class='gray'>(item)</span>
+  </h2>
+  <p>Add to _allItems if the record is unique by comparing the identifier.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>item</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='calculateAppearance' class='mt0'>
+    calculateAppearance<span class='gray'></span>
+  </h2>
+  <p>Calculate the appearance of the status bar based on scroll state.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleEvent' class='mt0'>
+    handleEvent<span class='gray'>(e)</span>
+  </h2>
+  <p>General event handler.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>e</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='exitEditMode' class='mt0'>
+    exitEditMode<span class='gray'>(e)</span>
+  </h2>
+  <p>Called when we press &apos;Done&apos; to exit edit mode.
+Fires a custom event to use the same path as pressing the home button.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>e</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleEvent' class='mt0'>
+    handleEvent<span class='gray'>(e)</span>
+  </h2>
+  <p>General event handler.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>e</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'></span>
+  </h2>
+  <p>Fetch all icons and render them.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onLocalized' class='mt0'>
+    onLocalized<span class='gray'></span>
+  </h2>
+  <p>Called whenever the page is localized after the first render.
+Localizes all of the items.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='retryFailedIcons' class='mt0'>
+    retryFailedIcons<span class='gray'></span>
+  </h2>
+  <p>Showing the correct icon is ideal but sometimes not possible if the
+network is down (or some other random reason we could not fetch at the
+time of installing the icon on the homescreen) so this function handles
+triggering the retries of those icon displays.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleEvent' class='mt0'>
+    handleEvent<span class='gray'>(e)</span>
+  </h2>
+  <p>General event handler.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>e</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleItemRemoval' class='mt0'>
+    handleItemRemoval<span class='gray'>(item)</span>
+  </h2>
+  <p>Handles the asyncrhonous removal of items on the grid after the DOM element
+has been removed.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>item</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='install' class='mt0'>
+    install<span class='gray'>(application)</span>
+  </h2>
+  <p>Adds a new application to the layout when the user installed it
+from market</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code>Application</code> <strong>application</strong>
+          :
+          <span class='force-inline'>
+            <p>The application object</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='open' class='mt0'>
+    open<span class='gray'>(e)</span>
+  </h2>
+  <p>Sends a message to open the rocketbar.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>e</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Search' class='mt0'>
+    Search<span class='gray'></span>
+  </h2>
+  <p>Search handles the code to launch the search app from the homescreen.
+Home2 will contain a temporary search box in markup until we have the full
+rocketbar experience. This code is responsible for sending the IAC message
+to the system app to launch the search app.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setupColumns' class='mt0'>
+    setupColumns<span class='gray'></span>
+  </h2>
+  <p>Sets up the default columns.</p>
+
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:17 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

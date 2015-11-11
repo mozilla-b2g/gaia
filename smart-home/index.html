@@ -1,0 +1,829 @@
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
+</head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#FilterManager'
+                class='block bold'>
+                FilterManager
+              </a>
+                <a
+                  href='#FilterManager.FILTERS'
+                  class='regular block'>
+                  .FILTERS
+                </a>
+                <a
+                  href='#FilterManager.getFilterByIconName'
+                  class='regular block'>
+                  #getFilterByIconName
+                </a>
+                <a
+                  href='#FilterManager.hide'
+                  class='regular block'>
+                  #hide
+                </a>
+                <a
+                  href='#FilterManager.init'
+                  class='regular block'>
+                  #init
+                </a>
+                <a
+                  href='#FilterManager.onAnimationEnd'
+                  class='regular block'>
+                  #onAnimationEnd
+                </a>
+                <a
+                  href='#FilterManager.onFilterChanged'
+                  class='regular block'>
+                  #onFilterChanged
+                </a>
+                <a
+                  href='#FilterManager.resetFilter'
+                  class='regular block'>
+                  #resetFilter
+                </a>
+                <a
+                  href='#FilterManager.show'
+                  class='regular block'>
+                  #show
+                </a>
+                <a
+                  href='#FilterManager.uninit'
+                  class='regular block'>
+                  #uninit
+                </a>
+              <a
+                href='#CardFilter'
+                class='block bold'>
+                CardFilter
+              </a>
+              <a
+                href='#CardFilter#filterchanged'
+                class='block bold'>
+                CardFilter#filterchanged
+              </a>
+              <a
+                href='#CardFilter#opened'
+                class='block bold'>
+                CardFilter#opened
+              </a>
+              <a
+                href='#Edit'
+                class='block bold'>
+                Edit
+              </a>
+              <a
+                href='#Home'
+                class='block bold'>
+                Home
+              </a>
+              <a
+                href='#MessageHandler'
+                class='block bold'>
+                MessageHandler
+              </a>
+                <a
+                  href='#MessageHandler.init'
+                  class='regular block'>
+                  #init
+                </a>
+                <a
+                  href='#MessageHandler.pin'
+                  class='regular block'>
+                  #pin
+                </a>
+                <a
+                  href='#MessageHandler.resumeActivity'
+                  class='regular block'>
+                  #resumeActivity
+                </a>
+                <a
+                  href='#MessageHandler.stopActivity'
+                  class='regular block'>
+                  #stopActivity
+                </a>
+                <a
+                  href='#MessageHandler.unpin'
+                  class='regular block'>
+                  #unpin
+                </a>
+              <a
+                href='#onHoveringNodeRemoved'
+                class='block bold'>
+                onHoveringNodeRemoved
+              </a>
+              <a
+                href='#toggleEditMode'
+                class='block bold'>
+                toggleEditMode
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='FilterManager' class='mt0'>
+    FilterManager<span class='gray'></span>
+  </h2>
+  <p>FilterManager is the controller class of filter. It relies on
+<a href="CardFilter"><code>CardFilter</code></a> to do UI works of filter itself. However it also needs
+to co-operate with <a href="http://bit.ly/1JcrKZO"><code>SmartBubbles</code></a>,
+<a href="Edit"><code>Edit</code></a>, and <a href="Home"><code>Home</code></a> classes to do the actual <em>filtering</em> task
+in smart-home.</p>
+<p>The working flow when user change filter is like:</p>
+<ol>
+<li>FilterManager receives <code>filterchanged</code> from <a href="CardFilter"><code>CardFilter</code></a></li>
+<li>Play bubbling down animation, see
+<a href="FilterManager#onFilterChanged"><code>onFilterChanged()</code></a>.</li>
+<li>When animation ends, change card icon in smart-home, with help from
+<a href="Home"><code>Home</code></a> and XScrollable. See
+<a href="FilterManager#onAnimationEnd"><code>onAnimationEnd()</code></a>.</li>
+<li>Play bubbling up animation, see
+<a href="FilterManager#_performBubbleUp"><code>_performBubbleUp()</code></a>.</li>
+</ol>
+
+      <h4>Static members</h4>
+        <div class='collapsible' id='FilterManager.FILTERS'>
+          <a href='#FilterManager.FILTERS'>
+            <code>
+              .FILTERS<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.FILTERS' class='mt0'>
+                FILTERS<span class='gray'></span>
+              </h2>
+              
+                  <h4>Static members</h4>
+                    <div class='collapsible' id='FilterManager.FILTERS.name'>
+                      <a href='#FilterManager.FILTERS.name'>
+                        <code>
+                          .name<span class='gray'></span>
+                        </code>
+                        <span class='force-inline'>
+                          
+                        </span>
+                      </a>
+                      <div class='collapser border px2 m2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='FilterManager.FILTERS.name' class='mt0'>
+                            name<span class='gray'></span>
+                          </h2>
+                          
+                            <h4>Properties</h4>
+                            <ul class='suppress-p-margin'>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>application</code></p>
+                        
+                                      </span>
+                                    </li>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>iconName</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>application</code></p>
+                        
+                                      </span>
+                                    </li>
+                            </li>
+                        </section>
+                      </div>
+                    </div>
+                    <div class='collapsible' id='FilterManager.FILTERS.name'>
+                      <a href='#FilterManager.FILTERS.name'>
+                        <code>
+                          .name<span class='gray'></span>
+                        </code>
+                        <span class='force-inline'>
+                          
+                        </span>
+                      </a>
+                      <div class='collapser border px2 m2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='FilterManager.FILTERS.name' class='mt0'>
+                            name<span class='gray'></span>
+                          </h2>
+                          
+                            <h4>Properties</h4>
+                            <ul class='suppress-p-margin'>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>device</code></p>
+                        
+                                      </span>
+                                    </li>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>iconName</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>device</code></p>
+                        
+                                      </span>
+                                    </li>
+                            </li>
+                        </section>
+                      </div>
+                    </div>
+                    <div class='collapsible' id='FilterManager.FILTERS.name'>
+                      <a href='#FilterManager.FILTERS.name'>
+                        <code>
+                          .name<span class='gray'></span>
+                        </code>
+                        <span class='force-inline'>
+                          
+                        </span>
+                      </a>
+                      <div class='collapser border px2 m2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='FilterManager.FILTERS.name' class='mt0'>
+                            name<span class='gray'></span>
+                          </h2>
+                          
+                            <h4>Properties</h4>
+                            <ul class='suppress-p-margin'>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>tv</code></p>
+                        
+                                      </span>
+                                    </li>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>iconName</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>tv</code></p>
+                        
+                                      </span>
+                                    </li>
+                            </li>
+                        </section>
+                      </div>
+                    </div>
+                    <div class='collapsible' id='FilterManager.FILTERS.name'>
+                      <a href='#FilterManager.FILTERS.name'>
+                        <code>
+                          .name<span class='gray'></span>
+                        </code>
+                        <span class='force-inline'>
+                          
+                        </span>
+                      </a>
+                      <div class='collapser border px2 m2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='FilterManager.FILTERS.name' class='mt0'>
+                            name<span class='gray'></span>
+                          </h2>
+                          
+                            <h4>Properties</h4>
+                            <ul class='suppress-p-margin'>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>all</code></p>
+                        
+                                      </span>
+                                    </li>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>iconName</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>filter</code></p>
+                        
+                                      </span>
+                                    </li>
+                            </li>
+                        </section>
+                      </div>
+                    </div>
+                    <div class='collapsible' id='FilterManager.FILTERS.name'>
+                      <a href='#FilterManager.FILTERS.name'>
+                        <code>
+                          .name<span class='gray'></span>
+                        </code>
+                        <span class='force-inline'>
+                          
+                        </span>
+                      </a>
+                      <div class='collapser border px2 m2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='FilterManager.FILTERS.name' class='mt0'>
+                            name<span class='gray'></span>
+                          </h2>
+                          
+                            <h4>Properties</h4>
+                            <ul class='suppress-p-margin'>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>website</code></p>
+                        
+                                      </span>
+                                    </li>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>iconName</strong>
+                                      :
+                                      <span class='force-inline'>
+                                        <p>value is <code>website</code></p>
+                        
+                                      </span>
+                                    </li>
+                            </li>
+                        </section>
+                      </div>
+                    </div>
+            </section>
+          </div>
+        </div>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='FilterManager.getFilterByIconName'>
+          <a href='#FilterManager.getFilterByIconName'>
+            <code>
+              #getFilterByIconName<span class='gray'>(iconName)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Get constant object of <a href="FilterManager.FILTERS"><code>FilterManager.FILTERS</code></a> of the <code>iconName</code></p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.getFilterByIconName' class='mt0'>
+                getFilterByIconName<span class='gray'>(iconName)</span>
+              </h2>
+              <p>Get constant object of <a href="FilterManager.FILTERS"><code>FilterManager.FILTERS</code></a> of the <code>iconName</code></p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>iconName</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>-</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FilterManager.hide'>
+          <a href='#FilterManager.hide'>
+            <code>
+              #hide<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Hide filter. This should be called when we are in edit mode.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.hide' class='mt0'>
+                hide<span class='gray'></span>
+              </h2>
+              <p>Hide filter. This should be called when we are in edit mode.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FilterManager.init'>
+          <a href='#FilterManager.init'>
+            <code>
+              #init<span class='gray'>(options)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Initialize FilterManager</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.init' class='mt0'>
+                init<span class='gray'>(options)</span>
+              </h2>
+              <p>Initialize FilterManager</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>options</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                      <ul>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> options.cardListElem
+                            <p><code>HTMLElement</code> of <code>card-list</code></p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> options.cardScrollable
+                            <p>instance of XScrollable</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> options.home
+                            <p>instance of <a href="Home"><code>Home</code></a></p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> options.cardManager
+                            <p>instance of CardManager</p>
+            </li>
+                      </ul>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FilterManager.onAnimationEnd'>
+          <a href='#FilterManager.onAnimationEnd'>
+            <code>
+              #onAnimationEnd<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>EventHandler of <code>all-items-bubbled</code> event.
+<a href="http://bit.ly/1JcrKZO">SmartBubbles</a> fires <code>all-items-bubbled</code> when it
+is done with bubbling down animation. We start to alter the card content
+of XScrollable only after bubbling down animation ends. And after we are
+done with altering content, we&apos;ll have to perform bubbling up animation
+by calling <a href="FilterManager#_performBubbleUp"><code>FilterManager#_performBubbleUp</code></a>.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.onAnimationEnd' class='mt0'>
+                onAnimationEnd<span class='gray'></span>
+              </h2>
+              <p>EventHandler of <code>all-items-bubbled</code> event.
+            <a href="http://bit.ly/1JcrKZO">SmartBubbles</a> fires <code>all-items-bubbled</code> when it
+            is done with bubbling down animation. We start to alter the card content
+            of XScrollable only after bubbling down animation ends. And after we are
+            done with altering content, we&apos;ll have to perform bubbling up animation
+            by calling <a href="FilterManager#_performBubbleUp"><code>FilterManager#_performBubbleUp</code></a>.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FilterManager.onFilterChanged'>
+          <a href='#FilterManager.onFilterChanged'>
+            <code>
+              #onFilterChanged<span class='gray'>(iconName)</span>
+            </code>
+            <span class='force-inline'>
+              <p>EventHandler of <code>filterchanged</code> event. <a href="CardFilter"><code>CardFilter</code></a> fires
+<code>filterchanged</code> event whenever user select a different filter. This is
+becasue we need to play bubbling down animation whenever filter is
+changed.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.onFilterChanged' class='mt0'>
+                onFilterChanged<span class='gray'>(iconName)</span>
+              </h2>
+              <p>EventHandler of <code>filterchanged</code> event. <a href="CardFilter"><code>CardFilter</code></a> fires
+            <code>filterchanged</code> event whenever user select a different filter. This is
+            becasue we need to play bubbling down animation whenever filter is
+            changed.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>iconName</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FilterManager.resetFilter'>
+          <a href='#FilterManager.resetFilter'>
+            <code>
+              #resetFilter<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Reset filter to <a href="FilterManager.FILTERS.ALL"><code>FilterManager.FILTERS.ALL</code></a>. We should always reset
+filter when smart-home is back to foreground.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.resetFilter' class='mt0'>
+                resetFilter<span class='gray'></span>
+              </h2>
+              <p>Reset filter to <a href="FilterManager.FILTERS.ALL"><code>FilterManager.FILTERS.ALL</code></a>. We should always reset
+            filter when smart-home is back to foreground.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FilterManager.show'>
+          <a href='#FilterManager.show'>
+            <code>
+              #show<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Hide filter. This should be called when we are exit from edit mode.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.show' class='mt0'>
+                show<span class='gray'></span>
+              </h2>
+              <p>Hide filter. This should be called when we are exit from edit mode.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FilterManager.uninit'>
+          <a href='#FilterManager.uninit'>
+            <code>
+              #uninit<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Do the opposite of initalization</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FilterManager.uninit' class='mt0'>
+                uninit<span class='gray'></span>
+              </h2>
+              <p>Do the opposite of initalization</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CardFilter' class='mt0'>
+    CardFilter<span class='gray'></span>
+  </h2>
+  <p>This class controls UI and user interaction of filter, with the help from
+<a href="http://bit.ly/1JbbnZ8">MenuGroup</a>.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CardFilter#filterchanged' class='mt0'>
+    CardFilter#filterchanged<span class='gray'></span>
+  </h2>
+  <p>This event fires whenever filter changes.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CardFilter#opened' class='mt0'>
+    CardFilter#opened<span class='gray'></span>
+  </h2>
+  <p>This event fires whenever <a href="http://bit.ly/1JbbnZ8">MenuGroup</a> is opened.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Edit' class='mt0'>
+    Edit<span class='gray'></span>
+  </h2>
+  <p>Edit is the controller class when smart-home is in edit mode.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Home' class='mt0'>
+    Home<span class='gray'></span>
+  </h2>
+  <p>Main class of smart-home</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='MessageHandler' class='mt0'>
+    MessageHandler<span class='gray'></span>
+  </h2>
+  <p>MessageHandler handles all incoming messages which includes both
+<a href="http://mzl.la/1TKR6zw">IAC</a> and <a href="http://mzl.la/1Pu8ecc">MozActivity</a>.
+This class relies on <a href="ConnectionManager"><code>ConnectionManager</code></a> to monitor incoming <code>unpin</code>
+message on <a href="http://mzl.la/1TKR6zw">IAC</a>.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='MessageHandler.init'>
+          <a href='#MessageHandler.init'>
+            <code>
+              #init<span class='gray'>(home)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Initialize MessageHandler</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='MessageHandler.init' class='mt0'>
+                init<span class='gray'>(home)</span>
+              </h2>
+              <p>Initialize MessageHandler</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>home</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='MessageHandler.pin'>
+          <a href='#MessageHandler.pin'>
+            <code>
+              #pin<span class='gray'>(cardEntry)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Pin card of <code>cardEntry</code></p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='MessageHandler.pin' class='mt0'>
+                pin<span class='gray'>(cardEntry)</span>
+              </h2>
+              <p>Pin card of <code>cardEntry</code></p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>cardEntry</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>cardEntry representing the card</p>
+            
+                      </span>
+                    </li>
+                      <ul>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> cardEntry.type
+                            <p>valid values are &apos;Application&apos;, &apos;Deck&apos;,
+            and &apos;Folder&apos;</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> cardEntry.group
+                            <p>valud values are &apos;tv&apos;, &apos;application&apos;,
+            &apos;device&apos;, and &apos;dashboard&apos;</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> cardEntry.manifestURL
+                            <p>manifestURL, if the card
+            represent an app or a deck</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> cardEntry.launchURL
+                            <p>optional</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Blob">Blob</a></code> cardEntry.thumnail
+                            <p>see <a href="http://mzl.la/1BRI7IV">blob</a></p>
+            </li>
+                      </ul>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='MessageHandler.resumeActivity'>
+          <a href='#MessageHandler.resumeActivity'>
+            <code>
+              #resumeActivity<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Resume processing activity in activityQueue. We could call this method to
+continue processing pinning when smart-home is visible.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='MessageHandler.resumeActivity' class='mt0'>
+                resumeActivity<span class='gray'></span>
+              </h2>
+              <p>Resume processing activity in activityQueue. We could call this method to
+            continue processing pinning when smart-home is visible.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='MessageHandler.stopActivity'>
+          <a href='#MessageHandler.stopActivity'>
+            <code>
+              #stopActivity<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Stop from processing activity in activityQueue. The reason we need this
+is that we don&apos;t need to do pinning when smart-home is not visible.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='MessageHandler.stopActivity' class='mt0'>
+                stopActivity<span class='gray'></span>
+              </h2>
+              <p>Stop from processing activity in activityQueue. The reason we need this
+            is that we don&apos;t need to do pinning when smart-home is not visible.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='MessageHandler.unpin'>
+          <a href='#MessageHandler.unpin'>
+            <code>
+              #unpin<span class='gray'>(data)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Unpin card</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='MessageHandler.unpin' class='mt0'>
+                unpin<span class='gray'>(data)</span>
+              </h2>
+              <p>Unpin card</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>data</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                      <ul>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> data.manifestURL
+                            <p>manifestURL of the unpinned app</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> data.launchURL
+                            <p>optional</p>
+            </li>
+                      </ul>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onHoveringNodeRemoved' class='mt0'>
+    onHoveringNodeRemoved<span class='gray'>(cardItem, folderItem)</span>
+  </h2>
+  <p>Runs after moveToFolder call, when the hovering card is successfully
+removed by cardManager and the node is removed from cardScrollable.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>cardItem</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>folderItem</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='toggleEditMode' class='mt0'>
+    toggleEditMode<span class='gray'></span>
+  </h2>
+  <p>State of home app looks like this:
+(normal state)&lt;--&gt;Edit mode&lt;--&gt;Arrange mode
+(Only adjacant states are switchable)</p>
+
+</section>
+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
+</body>
+</html>

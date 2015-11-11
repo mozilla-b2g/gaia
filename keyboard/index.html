@@ -1,263 +1,4310 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
-
-<body>
-
-<div id="main">
-
-    <h1 class="page-title">Home</h1>
-
-    
-
-
-
-    
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-    <section>
-        <article><h1>Keyboard</h1><p>Keyboard app enables the user to input with different keyboard layouts and input methods (IME).
-The input management (in system app) will launch keyboard app within input window and manage its life cycle.</p>
-<h2>Run Build Test</h2><p>To test keyboard, run</p>
-<pre class="prettyprint source"><code>TEST_FILES=apps/keyboard/test/build/integration/keyboard_test.js make build-test-integration</code></pre><p>for build test.</p>
-<p>If you change the IME files, the dictionary filesize will be changed as well. Remember to update the test config <code>dictFileSize</code> in <code>apps/keyboard/test/build/integration/resources/</code>.</p>
-<h2>JSDOC</h2><p>Generated jsdoc is hosted on <a href="http://mozilla-b2g.github.io/gaia/keyboard/">http://mozilla-b2g.github.io/gaia/keyboard/</a>. You can generate it locally with the following command:</p>
-<pre class="prettyprint source"><code>$ gulp jsdoc:keyboard</code></pre></article>
-    </section>
-
-
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>
-        keyboard/layout_manager.js
-        </h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>These are special keyboard layouts.
-Language-specific layouts are in individual js files in layouts/ .</p></div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="keyboard_layout_manager.js.html">keyboard/layout_manager.js</a>, <a href="keyboard_layout_manager.js.html#line5">line 5</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#Index'
+                class='block bold'>
+                Index
+              </a>
+                <a
+                  href='#Index._binarySearch'
+                  class='regular block'>
+                  #_binarySearch
+                </a>
+                <a
+                  href='#Index.get'
+                  class='regular block'>
+                  #get
+                </a>
+                <a
+                  href='#Index.getRange'
+                  class='regular block'>
+                  #getRange
+                </a>
+              <a
+                href='#_findKey'
+                class='block bold'>
+                _findKey
+              </a>
+              <a
+                href='#LayoutManager'
+                class='block bold'>
+                LayoutManager
+              </a>
+              <a
+                href='#BinStorage'
+                class='block bold'>
+                BinStorage
+              </a>
+                <a
+                  href='#BinStorage._getBlockContent'
+                  class='regular block'>
+                  #_getBlockContent
+                </a>
+                <a
+                  href='#BinStorage.get'
+                  class='regular block'>
+                  #get
+                </a>
+                <a
+                  href='#BinStorage.getRange'
+                  class='regular block'>
+                  #getRange
+                </a>
+                <a
+                  href='#BinStorage.load'
+                  class='regular block'>
+                  #load
+                </a>
+                <a
+                  href='#BinStorage.searchBlock'
+                  class='regular block'>
+                  #searchBlock
+                </a>
+                <a
+                  href='#BinStorage.unload'
+                  class='regular block'>
+                  #unload
+                </a>
+              <a
+                href='#_getIncompleteMatchedCodesInBlock'
+                class='block bold'>
+                _getIncompleteMatchedCodesInBlock
+              </a>
+              <a
+                href='#_replaceInterchangeableSymbols'
+                class='block bold'>
+                _replaceInterchangeableSymbols
+              </a>
+              <a
+                href='#cleanupCache'
+                class='block bold'>
+                cleanupCache
+              </a>
+              <a
+                href='#get'
+                class='block bold'>
+                get
+              </a>
+              <a
+                href='#getIncompleteMatched'
+                class='block bold'>
+                getIncompleteMatched
+              </a>
+              <a
+                href='#getRange'
+                class='block bold'>
+                getRange
+              </a>
+              <a
+                href='#setInterchangeablePairs'
+                class='block bold'>
+                setInterchangeablePairs
+              </a>
+              <a
+                href='#JSZhuyinDataPack'
+                class='block bold'>
+                JSZhuyinDataPack
+              </a>
+                <a
+                  href='#JSZhuyinDataPack._getPackedResults'
+                  class='regular block'>
+                  #_getPackedResults
+                </a>
+                <a
+                  href='#JSZhuyinDataPack._getStringFromDataView'
+                  class='regular block'>
+                  #_getStringFromDataView
+                </a>
+                <a
+                  href='#JSZhuyinDataPack._setStringToDataView'
+                  class='regular block'>
+                  #_setStringToDataView
+                </a>
+                <a
+                  href='#JSZhuyinDataPack.getFirstResult'
+                  class='regular block'>
+                  #getFirstResult
+                </a>
+                <a
+                  href='#JSZhuyinDataPack.getFirstResultScore'
+                  class='regular block'>
+                  #getFirstResultScore
+                </a>
+                <a
+                  href='#JSZhuyinDataPack.getPacked'
+                  class='regular block'>
+                  #getPacked
+                </a>
+                <a
+                  href='#JSZhuyinDataPack.getResults'
+                  class='regular block'>
+                  #getResults
+                </a>
+                <a
+                  href='#JSZhuyinDataPack.getResultsBeginsWith'
+                  class='regular block'>
+                  #getResultsBeginsWith
+                </a>
+                <a
+                  href='#JSZhuyinDataPack.pack'
+                  class='regular block'>
+                  #pack
+                </a>
+                <a
+                  href='#JSZhuyinDataPack.toString'
+                  class='regular block'>
+                  #toString
+                </a>
+                <a
+                  href='#JSZhuyinDataPack.unpack'
+                  class='regular block'>
+                  #unpack
+                </a>
+              <a
+                href='#_glue'
+                class='block bold'>
+                _glue
+              </a>
+              <a
+                href='#activate'
+                class='block bold'>
+                activate
+              </a>
+              <a
+                href='#click'
+                class='block bold'>
+                click
+              </a>
+              <a
+                href='#deactivate'
+                class='block bold'>
+                deactivate
+              </a>
+              <a
+                href='#empty'
+                class='block bold'>
+                empty
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#select'
+                class='block bold'>
+                select
+              </a>
+              <a
+                href='#selectionChange'
+                class='block bold'>
+                selectionChange
+              </a>
+              <a
+                href='#surroundingtextChange'
+                class='block bold'>
+                surroundingtextChange
+              </a>
+              <a
+                href='#uninit'
+                class='block bold'>
+                uninit
+              </a>
+              <a
+                href='#_historyText'
+                class='block bold'>
+                _historyText
+              </a>
+              <a
+                href='#_sendCandidates'
+                class='block bold'>
+                _sendCandidates
+              </a>
+              <a
+                href='#activate'
+                class='block bold'>
+                activate
+              </a>
+              <a
+                href='#click'
+                class='block bold'>
+                click
+              </a>
+              <a
+                href='#deactivate'
+                class='block bold'>
+                deactivate
+              </a>
+              <a
+                href='#empty'
+                class='block bold'>
+                empty
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#select'
+                class='block bold'>
+                select
+              </a>
+              <a
+                href='#selectionChange'
+                class='block bold'>
+                selectionChange
+              </a>
+              <a
+                href='#uninit'
+                class='block bold'>
+                uninit
+              </a>
+              <a
+                href='#_keyQueue'
+                class='block bold'>
+                _keyQueue
+              </a>
+              <a
+                href='#_queue'
+                class='block bold'>
+                _queue
+              </a>
+              <a
+                href='#data'
+                class='block bold'>
+                data
+              </a>
+              <a
+                href='#getSize'
+                class='block bold'>
+                getSize
+              </a>
+              <a
+                href='#oncomplete'
+                class='block bold'>
+                oncomplete
+              </a>
+              <a
+                href='#processNext'
+                class='block bold'>
+                processNext
+              </a>
+              <a
+                href='#push'
+                class='block bold'>
+                push
+              </a>
+              <a
+                href='#_sendCandidates'
+                class='block bold'>
+                _sendCandidates
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#ActionQueue'
+                class='block bold'>
+                ActionQueue
+              </a>
+                <a
+                  href='#ActionQueue.done'
+                  class='regular block'>
+                  #done
+                </a>
+                <a
+                  href='#ActionQueue.handle'
+                  class='regular block'>
+                  #handle
+                </a>
+                <a
+                  href='#ActionQueue.queue'
+                  class='regular block'>
+                  #queue
+                </a>
+              <a
+                href='#ActiveTargetsManager'
+                class='block bold'>
+                ActiveTargetsManager
+              </a>
+              <a
+                href='#CacheStore'
+                class='block bold'>
+                CacheStore
+              </a>
+                <a
+                  href='#CacheStore.add'
+                  class='regular block'>
+                  #add
+                </a>
+                <a
+                  href='#CacheStore.cleanup'
+                  class='regular block'>
+                  #cleanup
+                </a>
+                <a
+                  href='#CacheStore.get'
+                  class='regular block'>
+                  #get
+                </a>
+              <a
+                href='#addTerm'
+                class='block bold'>
+                addTerm
+              </a>
+              <a
+                href='#getAllTerms'
+                class='block bold'>
+                getAllTerms
+              </a>
+              <a
+                href='#getStatus'
+                class='block bold'>
+                getStatus
+              </a>
+              <a
+                href='#getTermsByKana'
+                class='block bold'>
+                getTermsByKana
+              </a>
+              <a
+                href='#getTermsByKanaPrefix'
+                class='block bold'>
+                getTermsByKanaPrefix
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#isEmpty'
+                class='block bold'>
+                isEmpty
+              </a>
+              <a
+                href='#isReady'
+                class='block bold'>
+                isReady
+              </a>
+              <a
+                href='#removeTerm'
+                class='block bold'>
+                removeTerm
+              </a>
+              <a
+                href='#setAllTerms'
+                class='block bold'>
+                setAllTerms
+              </a>
+              <a
+                href='#uninit'
+                class='block bold'>
+                uninit
+              </a>
+              <a
+                href='#StatusCode'
+                class='block bold'>
+                StatusCode
+              </a>
+              <a
+                href='#AlternativesCharMenuManager'
+                class='block bold'>
+                AlternativesCharMenuManager
+              </a>
+              <a
+                href='#AlternativesCharMenuView'
+                class='block bold'>
+                AlternativesCharMenuView
+              </a>
+              <a
+                href='#arrayFromString'
+                class='block bold'>
+                arrayFromString
+              </a>
+              <a
+                href='#arrayToString'
+                class='block bold'>
+                arrayToString
+              </a>
+              <a
+                href='#BaseView'
+                class='block bold'>
+                BaseView
+              </a>
+              <a
+                href='#CandidatePanelView'
+                class='block bold'>
+                CandidatePanelView
+              </a>
+              <a
+                href='#CandidateToggleButtonView'
+                class='block bold'>
+                CandidateToggleButtonView
+              </a>
+              <a
+                href='#CandidateView'
+                class='block bold'>
+                CandidateView
+              </a>
+              <a
+                href='#JSZhuyin'
+                class='block bold'>
+                JSZhuyin
+              </a>
+                <a
+                  href='#JSZhuyin.confirmCandidate'
+                  class='regular block'>
+                  #confirmCandidate
+                </a>
+                <a
+                  href='#JSZhuyin.dataURL'
+                  class='regular block'>
+                  #dataURL
+                </a>
+                <a
+                  href='#JSZhuyin.handle'
+                  class='regular block'>
+                  #handle
+                </a>
+                <a
+                  href='#JSZhuyin.handleKey'
+                  class='regular block'>
+                  #handleKey
+                </a>
+                <a
+                  href='#JSZhuyin.handleKeyEvent'
+                  class='regular block'>
+                  #handleKeyEvent
+                </a>
+                <a
+                  href='#JSZhuyin.INTERCHANGABLE_PAIRS'
+                  class='regular block'>
+                  #INTERCHANGABLE_PAIRS
+                </a>
+                <a
+                  href='#JSZhuyin.load'
+                  class='regular block'>
+                  #load
+                </a>
+                <a
+                  href='#JSZhuyin.MAX_SYLLABLES_LENGTH'
+                  class='regular block'>
+                  #MAX_SYLLABLES_LENGTH
+                </a>
+                <a
+                  href='#JSZhuyin.onactionhandled'
+                  class='regular block'>
+                  #onactionhandled
+                </a>
+                <a
+                  href='#JSZhuyin.oncandidateschange'
+                  class='regular block'>
+                  #oncandidateschange
+                </a>
+                <a
+                  href='#JSZhuyin.oncompositionend'
+                  class='regular block'>
+                  #oncompositionend
+                </a>
+                <a
+                  href='#JSZhuyin.oncompositionupdate'
+                  class='regular block'>
+                  #oncompositionupdate
+                </a>
+                <a
+                  href='#JSZhuyin.onerror'
+                  class='regular block'>
+                  #onerror
+                </a>
+                <a
+                  href='#JSZhuyin.onload'
+                  class='regular block'>
+                  #onload
+                </a>
+                <a
+                  href='#JSZhuyin.onloadend'
+                  class='regular block'>
+                  #onloadend
+                </a>
+                <a
+                  href='#JSZhuyin.onunload'
+                  class='regular block'>
+                  #onunload
+                </a>
+                <a
+                  href='#JSZhuyin.query'
+                  class='regular block'>
+                  #query
+                </a>
+                <a
+                  href='#JSZhuyin.REORDER_SYMBOLS'
+                  class='regular block'>
+                  #REORDER_SYMBOLS
+                </a>
+                <a
+                  href='#JSZhuyin.selectCandidate'
+                  class='regular block'>
+                  #selectCandidate
+                </a>
+                <a
+                  href='#JSZhuyin.sendActionHandled'
+                  class='regular block'>
+                  #sendActionHandled
+                </a>
+                <a
+                  href='#JSZhuyin.setConfig'
+                  class='regular block'>
+                  #setConfig
+                </a>
+                <a
+                  href='#JSZhuyin.suggest'
+                  class='regular block'>
+                  #suggest
+                </a>
+                <a
+                  href='#JSZhuyin.SUGGEST_PHRASES'
+                  class='regular block'>
+                  #SUGGEST_PHRASES
+                </a>
+                <a
+                  href='#JSZhuyin.unload'
+                  class='regular block'>
+                  #unload
+                </a>
+                <a
+                  href='#JSZhuyin.updateCandidates'
+                  class='regular block'>
+                  #updateCandidates
+                </a>
+                <a
+                  href='#JSZhuyin.updateComposition'
+                  class='regular block'>
+                  #updateComposition
+                </a>
+              <a
+                href='#data'
+                class='block bold'>
+                data
+              </a>
+              <a
+                href='#func'
+                class='block bold'>
+                func
+              </a>
+              <a
+                href='#DataLoader'
+                class='block bold'>
+                DataLoader
+              </a>
+                <a
+                  href='#DataLoader.data'
+                  class='regular block'>
+                  #data
+                </a>
+                <a
+                  href='#DataLoader.DATA_URL'
+                  class='regular block'>
+                  #DATA_URL
+                </a>
+                <a
+                  href='#DataLoader.load'
+                  class='regular block'>
+                  #load
+                </a>
+                <a
+                  href='#DataLoader.onerror'
+                  class='regular block'>
+                  #onerror
+                </a>
+                <a
+                  href='#DataLoader.onload'
+                  class='regular block'>
+                  #onload
+                </a>
+                <a
+                  href='#DataLoader.onloadend'
+                  class='regular block'>
+                  #onloadend
+                </a>
+              <a
+                href='#decode'
+                class='block bold'>
+                decode
+              </a>
+              <a
+                href='#encode'
+                class='block bold'>
+                encode
+              </a>
+              <a
+                href='#isBopomofoSymbol'
+                class='block bold'>
+                isBopomofoSymbol
+              </a>
+              <a
+                href='#exports'
+                class='block bold'>
+                exports
+              </a>
+              <a
+                href='#Float32Encoder'
+                class='block bold'>
+                Float32Encoder
+              </a>
+              <a
+                href='#getSettingsSync'
+                class='block bold'>
+                getSettingsSync
+              </a>
+              <a
+                href='#initSettings'
+                class='block bold'>
+                initSettings
+              </a>
+              <a
+                href='#handleNormalKey'
+                class='block bold'>
+                handleNormalKey
+              </a>
+              <a
+                href='#HandwritingPadView'
+                class='block bold'>
+                HandwritingPadView
+              </a>
+              <a
+                href='#Homonyms'
+                class='block bold'>
+                Homonyms
+              </a>
+              <a
+                href='#importScripts'
+                class='block bold'>
+                importScripts
+              </a>
+              <a
+                href='#importScripts'
+                class='block bold'>
+                importScripts
+              </a>
+              <a
+                href='#InputMethodDatabaseLoader'
+                class='block bold'>
+                InputMethodDatabaseLoader
+              </a>
+              <a
+                href='#KeyView'
+                class='block bold'>
+                KeyView
+              </a>
+              <a
+                href='#LatinCandidatePanelView'
+                class='block bold'>
+                LatinCandidatePanelView
+              </a>
+              <a
+                href='#LayoutKeyNormalizer'
+                class='block bold'>
+                LayoutKeyNormalizer
+              </a>
+              <a
+                href='#LayoutNormalizer'
+                class='block bold'>
+                LayoutNormalizer
+              </a>
+              <a
+                href='#LayoutPageView'
+                class='block bold'>
+                LayoutPageView
+              </a>
+              <a
+                href='#LOG_LEVEL'
+                class='block bold'>
+                LOG_LEVEL
+              </a>
+              <a
+                href='#path'
+                class='block bold'>
+                path
+              </a>
+              <a
+                href='#PromiseStorage'
+                class='block bold'>
+                PromiseStorage
+              </a>
+              <a
+                href='#screenInPortraitMode'
+                class='block bold'>
+                screenInPortraitMode
+              </a>
+              <a
+                href='#sendCandidates'
+                class='block bold'>
+                sendCandidates
+              </a>
+              <a
+                href='#sendKey'
+                class='block bold'>
+                sendKey
+              </a>
+              <a
+                href='#sendPendingSymbols'
+                class='block bold'>
+                sendPendingSymbols
+              </a>
+              <a
+                href='#sendString'
+                class='block bold'>
+                sendString
+              </a>
+              <a
+                href='#SettingsPromiseManager'
+                class='block bold'>
+                SettingsPromiseManager
+              </a>
+              <a
+                href='#SwipeablePageView'
+                class='block bold'>
+                SwipeablePageView
+              </a>
+              <a
+                href='#SwipeablePanelView'
+                class='block bold'>
+                SwipeablePanelView
+              </a>
+              <a
+                href='#UserPress'
+                class='block bold'>
+                UserPress
+              </a>
+              <a
+                href='#UserPressManager'
+                class='block bold'>
+                UserPressManager
+              </a>
+              <a
+                href='#VisualHighlightManager'
+                class='block bold'>
+                VisualHighlightManager
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='Index' class='mt0'>
+    Index<span class='gray'>(targetArray, keyPath)</span>
+  </h2>
+  <p>An index class to speed up the search operation for ojbect array.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>targetArray</strong>
+          :
+          <span class='force-inline'>
+            <p>The array to be indexed.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>keyPath</strong>
+          :
+          <span class='force-inline'>
+            <p>The key path for the index to use.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Index._binarySearch'>
+          <a href='#Index._binarySearch'>
+            <code>
+              #_binarySearch<span class='gray'>(key, left, right)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Search the key position.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Index._binarySearch' class='mt0'>
+                _binarySearch<span class='gray'>(key, left, right)</span>
+              </h2>
+              <p>Search the key position.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>key</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The key to search.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>left</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The begin position of the array. It should be less
+            than the right parameter.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>right</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The end position of the array.It should be greater
+            than the left parameter.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>If success, returns the index of the key.
+            If the key is between two adjacent keys, returns the average index
+            of the two keys. If the key is out of bounds,
+            returns Infinity or -Infinity.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Index.get'>
+          <a href='#Index.get'>
+            <code>
+              #get<span class='gray'>(key)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Get array indices by given key.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Index.get' class='mt0'>
+                get<span class='gray'>(key)</span>
+              </h2>
+              <p>Get array indices by given key.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>key</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>An array of index.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Index.getRange'>
+          <a href='#Index.getRange'>
+            <code>
+              #getRange<span class='gray'>(lower, upper, lowerOpen, upperOpen)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Get array indices by given key range.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Index.getRange' class='mt0'>
+                getRange<span class='gray'>(lower, upper, lowerOpen, upperOpen)</span>
+              </h2>
+              <p>Get array indices by given key range.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>lower</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The lower bound of the key range.
+            If null, the range has no lower bound.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>upper</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The upper bound of the key range.
+            If null, the range has no upper bound.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>lowerOpen</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>If false, the range includes the lower bound
+            value. If the range has no lower bound, it will be ignored.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>upperOpen</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>If false, the range includes the upper bound
+            value. If the range has no upper bound, it will be ignored.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>An array of index.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_findKey' class='mt0'>
+    _findKey<span class='gray'>(page, keyCode)</span>
+  </h2>
+  <p>Find a key with the specific keyCode in the layout</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>page</strong>
+          :
+          <span class='force-inline'>
+            <p>The page object</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>keyCode</strong>
+          :
+          <span class='force-inline'>
+            <p>The keyCode we use to match the key</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>findResult The result of the search</p>
+
+      </span>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>findResult.keyFound true if the key has been found</p>
+
+      </span>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>findResult.keyRowCount the row position of the key</p>
+
+      </span>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>findResult.keyCount the position of the key in the row</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='LayoutManager' class='mt0'>
+    LayoutManager<span class='gray'>(app)</span>
+  </h2>
+  <p>LayoutManager do one and only simply job: Allow you to switch currentPage,
+tell you when it is ready, and give you access to it.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>app</strong>
+          :
+          <span class='force-inline'>
+            <p>the keyboard app instance</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BinStorage' class='mt0'>
+    BinStorage<span class='gray'></span>
+  </h2>
+  <p>BinStorage rely on a big chunk of encoded ArrayBuffer to do the lookup.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='BinStorage._getBlockContent'>
+          <a href='#BinStorage._getBlockContent'>
+            <code>
+              #_getBlockContent<span class='gray'>(byteOffset)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Internal method for getting the content of the block.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BinStorage._getBlockContent' class='mt0'>
+                _getBlockContent<span class='gray'>(byteOffset)</span>
+              </h2>
+              <p>Internal method for getting the content of the block.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>numbber</code> <strong>byteOffset</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Byte offset of the block.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">array</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>array contain 3 elements</p>
+            <ul>
+            <li>First element is the reference to the arrayBuffer</li>
+            <li>Second element is the byteOffset the content begins.</li>
+            <li>Third element is the length of the content.</li>
+            </ul>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BinStorage.get'>
+          <a href='#BinStorage.get'>
+            <code>
+              #get<span class='gray'>(key)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Get values from storage.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BinStorage.get' class='mt0'>
+                get<span class='gray'>(key)</span>
+              </h2>
+              <p>Get values from storage.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>key</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>string to query.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer">arraybuffer</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>the result.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BinStorage.getRange'>
+          <a href='#BinStorage.getRange'>
+            <code>
+              #getRange<span class='gray'>(key)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Look for all value begin with this key.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BinStorage.getRange' class='mt0'>
+                getRange<span class='gray'>(key)</span>
+              </h2>
+              <p>Look for all value begin with this key.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>key</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>string to query.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BinStorage.load'>
+          <a href='#BinStorage.load'>
+            <code>
+              #load<span class='gray'>(data)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Load the database.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BinStorage.load' class='mt0'>
+                load<span class='gray'>(data)</span>
+              </h2>
+              <p>Load the database.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>data</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BinStorage.searchBlock'>
+          <a href='#BinStorage.searchBlock'>
+            <code>
+              #searchBlock<span class='gray'>(code, byteOffset)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Internal method for search a given block for a single character.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BinStorage.searchBlock' class='mt0'>
+                searchBlock<span class='gray'>(code, byteOffset)</span>
+              </h2>
+              <p>Internal method for search a given block for a single character.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>code</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>code of the character.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>numbber</code> <strong>byteOffset</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Byte offset of the block.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>byteOffset of the block found, or -1.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BinStorage.unload'>
+          <a href='#BinStorage.unload'>
+            <code>
+              #unload<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Unoad the database.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BinStorage.unload' class='mt0'>
+                unload<span class='gray'></span>
+              </h2>
+              <p>Unoad the database.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_getIncompleteMatchedCodesInBlock' class='mt0'>
+    _getIncompleteMatchedCodesInBlock<span class='gray'>(code, byteOffset)</span>
+  </h2>
+  <p>Internal method to get all the addresses point from a given block that
+matches the code with BopomofoEncoder.isIncompletionOf().</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>code</strong>
+          :
+          <span class='force-inline'>
+            <p>code of the character.</p>
+
+          </span>
+        </li>
+        <li><code>numbber</code> <strong>byteOffset</strong>
+          :
+          <span class='force-inline'>
+            <p>Byte offset of the block.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">array</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>array of code and byte offsets in number[] format.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_replaceInterchangeableSymbols' class='mt0'>
+    _replaceInterchangeableSymbols<span class='gray'>(c)</span>
+  </h2>
+  <p>Internal method to reduce the bits in code to be 2nd symbols of each pair,
+in the interchange symbols property, if 1st symbols present in the phontics.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>c</strong>
+          :
+          <span class='force-inline'>
+            <p>One phontic represented in number</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Converted number.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cleanupCache' class='mt0'>
+    cleanupCache<span class='gray'>(supersetStr)</span>
+  </h2>
+  <p>Clean up the get() cache. Any key that is not a substring of the superset
+string will have their value removed.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>supersetStr</strong>
+          :
+          <span class='force-inline'>
+            <p>The superset string.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='get' class='mt0'>
+    get<span class='gray'>(key)</span>
+  </h2>
+  <p>Get values from storage, disregards interchangeable pairs.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>key</strong>
+          :
+          <span class='force-inline'>
+            <p>string to query.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code>JSZhuyinData</code></code>
+      :
+      <span class='force-inline'>
+        <p>the resulting JSZhuyinData instance.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getIncompleteMatched' class='mt0'>
+    getIncompleteMatched<span class='gray'>(key)</span>
+  </h2>
+  <p>Return all results that matches to given partial encoded Bopomofo string.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>key</strong>
+          :
+          <span class='force-inline'>
+            <p>string to query.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code>JSZhuyinDataPackCollection</code> or <code><a href="#JSZhuyinDataPack">JSZhuyinDataPack</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A JSZhuyinDataPackCollection instance
+representing the results,
+or one single JSZhuyinDataPack if there
+is only one result.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getRange' class='mt0'>
+    getRange<span class='gray'>(key)</span>
+  </h2>
+  <p>Look for all value begin with this key, disregards interchangeable pairs.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>key</strong>
+          :
+          <span class='force-inline'>
+            <p>string to query.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setInterchangeablePairs' class='mt0'>
+    setInterchangeablePairs<span class='gray'>(str)</span>
+  </h2>
+  <p>When searching for matching words/phrases, consider these pairs of symbols
+are interchangables.
+Must be a string representing 2n sounds in Bopomofo symbols.</p>
+<p>Example string: &apos;&#x3123;&#x3125;&#x310C;&#x3116;&#x3128;&#x311B;&#x3121;&apos;, making &#x3123; interchangable with &#x3125; and
+&#x310C; interchangable with &#x3116;, and &#x3128;&#x311B; with &#x3121;.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>str</strong>
+          :
+          <span class='force-inline'>
+            <p>String representing the pairs.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='JSZhuyinDataPack' class='mt0'>
+    JSZhuyinDataPack<span class='gray'>(imeData, byteOffset, length, symbols)</span>
+  </h2>
+  <p>JSZhuyinDataPack instance is the representation of the data in the database.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer">arraybuffer</a></code> or <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">array</a></code> <strong>imeData</strong>
+          :
+          <span class='force-inline'>
+            <p>arraybuffer the packed data, or an
+array of the structured data.</p>
+
+          </span>
+        </li>
+        <li> <strong>byteOffset</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>length</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>symbols</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='JSZhuyinDataPack._getPackedResults'>
+          <a href='#JSZhuyinDataPack._getPackedResults'>
+            <code>
+              #_getPackedResults<span class='gray'>(filterFn)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Go through the packed buffer and extract the results.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack._getPackedResults' class='mt0'>
+                _getPackedResults<span class='gray'>(filterFn)</span>
+              </h2>
+              <p>Go through the packed buffer and extract the results.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>filterFn</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Test function for testing results. Optional.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack._getStringFromDataView'>
+          <a href='#JSZhuyinDataPack._getStringFromDataView'>
+            <code>
+              #_getStringFromDataView<span class='gray'>(view, byteOffset, length)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Get the string from given DataView instance.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack._getStringFromDataView' class='mt0'>
+                _getStringFromDataView<span class='gray'>(view, byteOffset, length)</span>
+              </h2>
+              <p>Get the string from given DataView instance.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>view</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li> <strong>byteOffset</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li> <strong>length</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack._setStringToDataView'>
+          <a href='#JSZhuyinDataPack._setStringToDataView'>
+            <code>
+              #_setStringToDataView<span class='gray'>(view, byteOffset, str)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Set the string to given DataView instance.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack._setStringToDataView' class='mt0'>
+                _setStringToDataView<span class='gray'>(view, byteOffset, str)</span>
+              </h2>
+              <p>Set the string to given DataView instance.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>view</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li> <strong>byteOffset</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li> <strong>str</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack.getFirstResult'>
+          <a href='#JSZhuyinDataPack.getFirstResult'>
+            <code>
+              #getFirstResult<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Get the first item.
+The arraybuffer will not be unpacked.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack.getFirstResult' class='mt0'>
+                getFirstResult<span class='gray'></span>
+              </h2>
+              <p>Get the first item.
+            The arraybuffer will not be unpacked.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The first item.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack.getFirstResultScore'>
+          <a href='#JSZhuyinDataPack.getFirstResultScore'>
+            <code>
+              #getFirstResultScore<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Get the score of the first item.
+The arraybuffer will not be unpacked.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack.getFirstResultScore' class='mt0'>
+                getFirstResultScore<span class='gray'></span>
+              </h2>
+              <p>Get the score of the first item.
+            The arraybuffer will not be unpacked.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Score.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack.getPacked'>
+          <a href='#JSZhuyinDataPack.getPacked'>
+            <code>
+              #getPacked<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Get the packed array buffer. The data will be packed automatically.
+The byteLength is always dividable by 4.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack.getPacked' class='mt0'>
+                getPacked<span class='gray'></span>
+              </h2>
+              <p>Get the packed array buffer. The data will be packed automatically.
+            The byteLength is always dividable by 4.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer">arraybuffer</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The packed arraybuffer.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack.getResults'>
+          <a href='#JSZhuyinDataPack.getResults'>
+            <code>
+              #getResults<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Get all items in an array. The arraybuffer will be unpacked automatically.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack.getResults' class='mt0'>
+                getResults<span class='gray'></span>
+              </h2>
+              <p>Get all items in an array. The arraybuffer will be unpacked automatically.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack.getResultsBeginsWith'>
+          <a href='#JSZhuyinDataPack.getResultsBeginsWith'>
+            <code>
+              #getResultsBeginsWith<span class='gray'>(str)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Get items in the packed result but only with the ones begins with
+giving string.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack.getResultsBeginsWith' class='mt0'>
+                getResultsBeginsWith<span class='gray'>(str)</span>
+              </h2>
+              <p>Get items in the packed result but only with the ones begins with
+            giving string.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>str</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>String to match.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack.pack'>
+          <a href='#JSZhuyinDataPack.pack'>
+            <code>
+              #pack<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Pack the arraybuffer and remove the structured data object.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack.pack' class='mt0'>
+                pack<span class='gray'></span>
+              </h2>
+              <p>Pack the arraybuffer and remove the structured data object.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack.toString'>
+          <a href='#JSZhuyinDataPack.toString'>
+            <code>
+              #toString<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Overwrite the native toString() method.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack.toString' class='mt0'>
+                toString<span class='gray'></span>
+              </h2>
+              <p>Overwrite the native toString() method.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>String representation of the JSZhuyinDataPack instance.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyinDataPack.unpack'>
+          <a href='#JSZhuyinDataPack.unpack'>
+            <code>
+              #unpack<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Unpack the arraybuffer and remove it.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyinDataPack.unpack' class='mt0'>
+                unpack<span class='gray'></span>
+              </h2>
+              <p>Unpack the arraybuffer and remove it.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_glue' class='mt0'>
+    _glue<span class='gray'>(candidates)</span>
+  </h2>
+  <p>Glue ojbect between the IMEngieBase and the IMEManager.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>candidates</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='activate' class='mt0'>
+    activate<span class='gray'>(language, state, options)</span>
+  </h2>
+  <p>Notifies when the IM is shown</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>language</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>state</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='click' class='mt0'>
+    click<span class='gray'>(keyCode)</span>
+  </h2>
+  <p>Notifies when a keyboard key is clicked.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>keyCode</strong>
+          :
+          <span class='force-inline'>
+            <p>The key code of an integer number.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='deactivate' class='mt0'>
+    deactivate<span class='gray'></span>
+  </h2>
+  <p>Called when the keyboard is hidden</p>
 
 </section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>
-        keyboard/view_manager.js
-        </h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>ViewManager is in charge of rendering HTML elements
-under the request of LayoutRenderingManager.</p></div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="keyboard_view_manager.js.html">keyboard/view_manager.js</a>, <a href="keyboard_view_manager.js.html#line5">line 5</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='empty' class='mt0'>
+    empty<span class='gray'></span>
+  </h2>
+  <p>Notifies when pending symbols need be cleared</p>
 
 </section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'>(glue)</span>
+  </h2>
+  <p>Initialization.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code>Glue</code> <strong>glue</strong>
+          :
+          <span class='force-inline'>
+            <p>Glue object of the IMManager.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='select' class='mt0'>
+    select<span class='gray'>(text, data)</span>
+  </h2>
+  <p>Notifies when a candidate is selected.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>text</strong>
+          :
+          <span class='force-inline'>
+            <p>The text of the candidate.</p>
 
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>data</strong>
+          :
+          <span class='force-inline'>
+            <p>User data of the candidate.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='selectionChange' class='mt0'>
+    selectionChange<span class='gray'>(detail)</span>
+  </h2>
+  <p>Notifies when selection changes</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>detail</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='surroundingtextChange' class='mt0'>
+    surroundingtextChange<span class='gray'>(detail)</span>
+  </h2>
+  <p>Notifies when surrounding text changes</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>detail</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='uninit' class='mt0'>
+    uninit<span class='gray'></span>
+  </h2>
+  <p>Destruction.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_historyText' class='mt0'>
+    _historyText<span class='gray'></span>
+  </h2>
+  <p>The last selected text used to generate prediction.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_sendCandidates' class='mt0'>
+    _sendCandidates<span class='gray'>(candidates)</span>
+  </h2>
+  <p>Send candidates list.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code><<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>> <strong>candidates</strong>
+          :
+          <span class='force-inline'>
+            <p>The candidates to be sent.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code>void</code></code>
+      :
+      <span class='force-inline'>
+        <p>No return value.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='activate' class='mt0'>
+    activate<span class='gray'>(language, state, options)</span>
+  </h2>
+  <p>Override</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>language</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>state</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='click' class='mt0'>
+    click<span class='gray'>(keyCode)</span>
+  </h2>
+  <p>Override</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>keyCode</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='deactivate' class='mt0'>
+    deactivate<span class='gray'></span>
+  </h2>
+  <p>Override</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='empty' class='mt0'>
+    empty<span class='gray'></span>
+  </h2>
+  <p>Override</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'>(glue)</span>
+  </h2>
+  <p>Override</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>glue</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='select' class='mt0'>
+    select<span class='gray'>(text, data)</span>
+  </h2>
+  <p>Override</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>text</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>data</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='selectionChange' class='mt0'>
+    selectionChange<span class='gray'>(detail)</span>
+  </h2>
+  <p>Override</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>detail</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='uninit' class='mt0'>
+    uninit<span class='gray'></span>
+  </h2>
+  <p>Override</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_keyQueue' class='mt0'>
+    _keyQueue<span class='gray'></span>
+  </h2>
+  <p>BEGIN QUEUE *</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_queue' class='mt0'>
+    _queue<span class='gray'></span>
+  </h2>
+  <p>Task queue array.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='data' class='mt0'>
+    data<span class='gray'></span>
+  </h2>
+  <p>Data sharing with all tasks of the queue</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getSize' class='mt0'>
+    getSize<span class='gray'></span>
+  </h2>
+  <p>Get the number of remaining tasks.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='oncomplete' class='mt0'>
+    oncomplete<span class='gray'></span>
+  </h2>
+  <p>Callback Javascript function object that is called when the task queue
+is empty. The definition of callback is function oncomplete(queueData).</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='processNext' class='mt0'>
+    processNext<span class='gray'></span>
+  </h2>
+  <p>Start running the task queue or process the next task.
+It should be called when a task, including the last one, is finished.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='push' class='mt0'>
+    push<span class='gray'>(taskFunc, taskData)</span>
+  </h2>
+  <p>Add a new task to the tail of the queue.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>taskFunc</strong>
+          :
+          <span class='force-inline'>
+            <p>Task function object. The definition
+is function taskFunc(taskQueue, taskData).
+The taskQueue parameter is the task queue object itself,
+while the taskData
+parameter is the data property
+of the task queue object.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>taskData</strong>
+          :
+          <span class='force-inline'>
+            <p>The task&apos;s private data.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_sendCandidates' class='mt0'>
+    _sendCandidates<span class='gray'>(candidates)</span>
+  </h2>
+  <p>Send candidates list and change composition.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code><<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>> <strong>candidates</strong>
+          :
+          <span class='force-inline'>
+            <p>The candidates to be sent.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code>void</code></code>
+      :
+      <span class='force-inline'>
+        <p>No return value.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>KeyboardConsole is an incomplete implementation of console so we could
+turn it on and off on build time.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>SoundFeedbackPlayer is designed to be thrown away when not needed in order
+to conserve memory. When it is initalized and prepare()&apos;d, call play()
+will schedule a clicker sound in the Web Audio thread.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ActionQueue' class='mt0'>
+    ActionQueue<span class='gray'></span>
+  </h2>
+  <p>A queue to run one action at a time.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ActionQueue.done'>
+          <a href='#ActionQueue.done'>
+            <code>
+              #done<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>handle() are suppose to call done() when it finishes.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionQueue.done' class='mt0'>
+                done<span class='gray'></span>
+              </h2>
+              <p>handle() are suppose to call done() when it finishes.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActionQueue.handle'>
+          <a href='#ActionQueue.handle'>
+            <code>
+              #handle<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Function to call to run each action.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionQueue.handle' class='mt0'>
+                handle<span class='gray'></span>
+              </h2>
+              <p>Function to call to run each action.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActionQueue.queue'>
+          <a href='#ActionQueue.queue'>
+            <code>
+              #queue<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Queue and action. The arguments will be kept.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionQueue.queue' class='mt0'>
+                queue<span class='gray'></span>
+              </h2>
+              <p>Queue and action. The arguments will be kept.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ActiveTargetsManager' class='mt0'>
+    ActiveTargetsManager<span class='gray'>(app)</span>
+  </h2>
+  <p>ActiveTargetsManager converts user press from UserPress instance,
+figure out the active target to handle, and run the callback(s) accordingly.</p>
+<p>It is also responsible of triggering alternative char menu and block new
+touches for the alternative char menu.
+It is not responsible of user feedbacks because they can be depend on
+the properties of target itself.</p>
+<p>The caller of ActiveTargetsManager can set the following properties to alter
+its behavior:
+blockNewUserPress: when set to true, any new press is not handled.
+blockTargetMovedOut: when set to true, presses won&apos;t be able to move out
+of current target.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>app</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CacheStore' class='mt0'>
+    CacheStore<span class='gray'></span>
+  </h2>
+  <p>A simple key-value store wrapps with JavaScript object.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='CacheStore.add'>
+          <a href='#CacheStore.add'>
+            <code>
+              #add<span class='gray'>(key, value)</span>
+            </code>
+            <span class='force-inline'>
+              <p>set the value of a key.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CacheStore.add' class='mt0'>
+                add<span class='gray'>(key, value)</span>
+              </h2>
+              <p>set the value of a key.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>key</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Key.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>any</code> <strong>value</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Value.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CacheStore.cleanup'>
+          <a href='#CacheStore.cleanup'>
+            <code>
+              #cleanup<span class='gray'>(supersetStr)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Clean up the store. Any key that is not a substring of the superset
+string will have their value removed.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CacheStore.cleanup' class='mt0'>
+                cleanup<span class='gray'>(supersetStr)</span>
+              </h2>
+              <p>Clean up the store. Any key that is not a substring of the superset
+            string will have their value removed.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>supersetStr</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The superset string.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CacheStore.get'>
+          <a href='#CacheStore.get'>
+            <code>
+              #get<span class='gray'>(key)</span>
+            </code>
+            <span class='force-inline'>
+              <p>get the value of a key.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CacheStore.get' class='mt0'>
+                get<span class='gray'>(key)</span>
+              </h2>
+              <p>get the value of a key.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>key</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Key.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code>any</code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Value of the key.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='addTerm' class='mt0'>
+    addTerm<span class='gray'>(syllablesStr, term, callback)</span>
+  </h2>
+  <p>Add a term to the storage.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>syllablesStr</strong>
+          :
+          <span class='force-inline'>
+            <p>The syllables string of the term.</p>
+
+          </span>
+        </li>
+        <li><code>Term</code> <strong>term</strong>
+          :
+          <span class='force-inline'>
+            <p>The Term object of the term.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Javascript function object that is called when
+the operation is finished. The definition of callback is
+function callback().</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getAllTerms' class='mt0'>
+    getAllTerms<span class='gray'>(callback)</span>
+  </h2>
+  <p>Get all terms.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Javascript function object that is called when
+the operation is finished. The definition of callback is
+function callback(homonymsArray). The homonymsArray parameter is an array
+of Homonyms objects.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getStatus' class='mt0'>
+    getStatus<span class='gray'></span>
+  </h2>
+  <p>Get the status code of the storage.</p>
+
+      <h4>Returns</h4>
+      <code><code>DatabaseStorageBase.StatusCode</code></code>
+      :
+      <span class='force-inline'>
+        <p>The status code.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getTermsByKana' class='mt0'>
+    getTermsByKana<span class='gray'>(syllablesStr, callback)</span>
+  </h2>
+  <p>Get iterm with given syllables string.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>syllablesStr</strong>
+          :
+          <span class='force-inline'>
+            <p>The syllables string of the matched terms.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Javascript function object that is called when
+the operation is finished. The definition of callback is
+function callback(homonymsArray). The homonymsArray parameter is an array
+of Homonyms objects.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getTermsByKanaPrefix' class='mt0'>
+    getTermsByKanaPrefix<span class='gray'>(prefix, callback)</span>
+  </h2>
+  <p>Get iterms with given syllables string prefix.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>prefix</strong>
+          :
+          <span class='force-inline'>
+            <p>The prefix of the syllables string .</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Javascript function object that is called when
+the operation is finished. The definition of callback is
+function callback(homonymsArray). The homonymsArray parameter is an array
+of Homonyms objects.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'>(callback)</span>
+  </h2>
+  <p>Initialization.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Javascript function object that is called
+when the operation is finished. The definition of callback is
+function callback(statusCode). The statusCode parameter is of type
+DatabaseStorageBase.StatusCode that stores the status of the storage
+after Initialization.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isEmpty' class='mt0'>
+    isEmpty<span class='gray'></span>
+  </h2>
+  <p>Whether the storage is empty.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>true if the storage is empty; otherwise false.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isReady' class='mt0'>
+    isReady<span class='gray'></span>
+  </h2>
+  <p>Whether the database is ready to use.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='removeTerm' class='mt0'>
+    removeTerm<span class='gray'>(syllablesStr, term, callback)</span>
+  </h2>
+  <p>Remove a term from the storage.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>syllablesStr</strong>
+          :
+          <span class='force-inline'>
+            <p>The syllables string of the term.</p>
+
+          </span>
+        </li>
+        <li><code>Term</code> <strong>term</strong>
+          :
+          <span class='force-inline'>
+            <p>The Term object of the term.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Javascript function object that is called when
+the operation is finished. The definition of callback is
+function callback().</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setAllTerms' class='mt0'>
+    setAllTerms<span class='gray'>(homonymsArray, callback)</span>
+  </h2>
+  <p>Set all the terms of the storage.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>homonymsArray</strong>
+          :
+          <span class='force-inline'>
+            <p>The array of Homonyms objects containing all
+the terms.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Javascript function object that is called when
+the operation is finished. The definition of callback is
+function callback().</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='uninit' class='mt0'>
+    uninit<span class='gray'>(callback)</span>
+  </h2>
+  <p>Destruction.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>Javascript function object that is called
+when the operation is finished.
+The definition of callback is function callback().</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='StatusCode' class='mt0'>
+    StatusCode<span class='gray'></span>
+  </h2>
+  <p>DatabaseStorageBase status code enumeration.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AlternativesCharMenuManager' class='mt0'>
+    AlternativesCharMenuManager<span class='gray'>(app)</span>
+  </h2>
+  <p>AlternativesCharMenuManager is responsible of manage the state of the
+alternatives char menu. It also responsible of figure out the menu target
+to redirect to if applicable.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>app</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AlternativesCharMenuView' class='mt0'>
+    AlternativesCharMenuView<span class='gray'>(rootElement, altChars, options, viewManager)</span>
+  </h2>
+  <p>AlternativesCharMenuView handles the rendering of the alternatives char menu.
+The interaction is handled by AlternativesCharMenuManager, so this module
+could focus on UI rendering.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>rootElement</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>altChars</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>viewManager</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='arrayFromString' class='mt0'>
+    arrayFromString<span class='gray'>(str)</span>
+  </h2>
+  <p>Converts a syllables string to an array.
+For example, &apos;&#x308F;&#x305F;&#x3057;&apos; will be converted to [&apos;&#x308F;&apos;, &apos;&#x305F;&apos;, &apos;&#x3057;&apos;].</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>str</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='arrayToString' class='mt0'>
+    arrayToString<span class='gray'>(array)</span>
+  </h2>
+  <p>Converts a syllables array to a string.
+For example, [&apos;&#x308F;&apos;, &apos;&#x305F;&apos;, &apos;&#x3057;&apos;] will be converted to &apos;&#x308F;&#x305F;&#x3057;&apos;.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>array</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BaseView' class='mt0'>
+    BaseView<span class='gray'>(target, options, viewManager)</span>
+  </h2>
+  <p>BaseView is the base of all simple views in the keyboard app.
+It provides the common interface like, highlight() and hide().</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>viewManager</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CandidatePanelView' class='mt0'>
+    CandidatePanelView<span class='gray'>(target, options, viewManager)</span>
+  </h2>
+  <p>CandidatePanelView handles the rendering of candidate panel, used for showing
+word suggestions.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>viewManager</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CandidateToggleButtonView' class='mt0'>
+    CandidateToggleButtonView<span class='gray'></span>
+  </h2>
+  <p>CandidateToggleButtonView represents the toggle button to show/hide
+the full candidate panel.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CandidateView' class='mt0'>
+    CandidateView<span class='gray'></span>
+  </h2>
+  <p>CandidateView handles the rendering of each candidate, i.e.
+the word suggestion.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='JSZhuyin' class='mt0'>
+    JSZhuyin<span class='gray'></span>
+  </h2>
+  <p>The main IME logic.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='JSZhuyin.confirmCandidate'>
+          <a href='#JSZhuyin.confirmCandidate'>
+            <code>
+              #confirmCandidate<span class='gray'>(candidate, reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Confirm a selection by calling the compositionend callback and run
+the query again.
+You should not call this method directly.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.confirmCandidate' class='mt0'>
+                confirmCandidate<span class='gray'>(candidate, reqId)</span>
+              </h2>
+              <p>Confirm a selection by calling the compositionend callback and run
+            the query again.
+            You should not call this method directly.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code> <strong>candidate</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>One of the candidate that was sent via
+            oncandidateschange callback.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.dataURL'>
+          <a href='#JSZhuyin.dataURL'>
+            <code>
+              #dataURL<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Overwritten path of database file.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.dataURL' class='mt0'>
+                dataURL<span class='gray'></span>
+              </h2>
+              <p>Overwritten path of database file.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.handle'>
+          <a href='#JSZhuyin.handle'>
+            <code>
+              #handle<span class='gray'>(type, data, reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Actual function to handle an action in the action queue.
+You should not call this method directly.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.handle' class='mt0'>
+                handle<span class='gray'>(type, data, reqId)</span>
+              </h2>
+              <p>Actual function to handle an action in the action queue.
+            You should not call this method directly.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>type</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A type keyword.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>any</code> <strong>data</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Data to handle for the action.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.handleKey'>
+          <a href='#JSZhuyin.handleKey'>
+            <code>
+              #handleKey<span class='gray'>(key, reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Handle a key with it&apos;s DOM UI Event Level 3 key value.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.handleKey' class='mt0'>
+                handleKey<span class='gray'>(key, reqId)</span>
+              </h2>
+              <p>Handle a key with it&apos;s DOM UI Event Level 3 key value.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>key</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The key property of the key to handle,
+            should be the printable character or a registered
+            name in the spec.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Return true if the key will be handled async.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.handleKeyEvent'>
+          <a href='#JSZhuyin.handleKeyEvent'>
+            <code>
+              #handleKeyEvent<span class='gray'>(code, reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Handle a key event with it&apos;s keyCode or charCode. Deprecated.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.handleKeyEvent' class='mt0'>
+                handleKeyEvent<span class='gray'>(code, reqId)</span>
+              </h2>
+              <p>Handle a key event with it&apos;s keyCode or charCode. Deprecated.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>code</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>charCode of the keyboard event.
+            If charCode is 0, you should pass keyCode instead.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Return true if the key will be handled async.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.INTERCHANGABLE_PAIRS'>
+          <a href='#JSZhuyin.INTERCHANGABLE_PAIRS'>
+            <code>
+              #INTERCHANGABLE_PAIRS<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>When searching for matching words/phrases, consider these pairs of symbols
+are interchangables.
+Must be a string representing 2n sounds in Bopomofo symbols.</p>
+<p>Example string: &apos;&#x3123;&#x3125;&#x310C;&#x3116;&#x3128;&#x311B;&#x3121;&apos;, making &#x3123; interchangable with &#x3125; and
+&#x310C; interchangable with &#x3116;, and &#x3128;&#x311B; with &#x3121;.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.INTERCHANGABLE_PAIRS' class='mt0'>
+                INTERCHANGABLE_PAIRS<span class='gray'></span>
+              </h2>
+              <p>When searching for matching words/phrases, consider these pairs of symbols
+            are interchangables.
+            Must be a string representing 2n sounds in Bopomofo symbols.</p>
+            <p>Example string: &apos;&#x3123;&#x3125;&#x310C;&#x3116;&#x3128;&#x311B;&#x3121;&apos;, making &#x3123; interchangable with &#x3125; and
+            &#x310C; interchangable with &#x3116;, and &#x3128;&#x311B; with &#x3121;.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.load'>
+          <a href='#JSZhuyin.load'>
+            <code>
+              #load<span class='gray'>(data)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Load JSZhuyin; loading the database and register callbacks, etc.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.load' class='mt0'>
+                load<span class='gray'>(data)</span>
+              </h2>
+              <p>Load JSZhuyin; loading the database and register callbacks, etc.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>data</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.MAX_SYLLABLES_LENGTH'>
+          <a href='#JSZhuyin.MAX_SYLLABLES_LENGTH'>
+            <code>
+              #MAX_SYLLABLES_LENGTH<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Limit the length of the syllables in the compositions.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.MAX_SYLLABLES_LENGTH' class='mt0'>
+                MAX_SYLLABLES_LENGTH<span class='gray'></span>
+              </h2>
+              <p>Limit the length of the syllables in the compositions.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.onactionhandled'>
+          <a href='#JSZhuyin.onactionhandled'>
+            <code>
+              #onactionhandled<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Run when an action is handled; receives reqId passed to the functions.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.onactionhandled' class='mt0'>
+                onactionhandled<span class='gray'></span>
+              </h2>
+              <p>Run when an action is handled; receives reqId passed to the functions.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.oncandidateschange'>
+          <a href='#JSZhuyin.oncandidateschange'>
+            <code>
+              #oncandidateschange<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Callback to call when candidate menu updates.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.oncandidateschange' class='mt0'>
+                oncandidateschange<span class='gray'></span>
+              </h2>
+              <p>Callback to call when candidate menu updates.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.oncompositionend'>
+          <a href='#JSZhuyin.oncompositionend'>
+            <code>
+              #oncompositionend<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Callback to call when the composition ends.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.oncompositionend' class='mt0'>
+                oncompositionend<span class='gray'></span>
+              </h2>
+              <p>Callback to call when the composition ends.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.oncompositionupdate'>
+          <a href='#JSZhuyin.oncompositionupdate'>
+            <code>
+              #oncompositionupdate<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Callback to call when the composition updates.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.oncompositionupdate' class='mt0'>
+                oncompositionupdate<span class='gray'></span>
+              </h2>
+              <p>Callback to call when the composition updates.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.onerror'>
+          <a href='#JSZhuyin.onerror'>
+            <code>
+              #onerror<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Run when error occours.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.onerror' class='mt0'>
+                onerror<span class='gray'></span>
+              </h2>
+              <p>Run when error occours.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.onload'>
+          <a href='#JSZhuyin.onload'>
+            <code>
+              #onload<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Run when loading is successful.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.onload' class='mt0'>
+                onload<span class='gray'></span>
+              </h2>
+              <p>Run when loading is successful.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.onloadend'>
+          <a href='#JSZhuyin.onloadend'>
+            <code>
+              #onloadend<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Run when the loading is complete.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.onloadend' class='mt0'>
+                onloadend<span class='gray'></span>
+              </h2>
+              <p>Run when the loading is complete.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.onunload'>
+          <a href='#JSZhuyin.onunload'>
+            <code>
+              #onunload<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Run when unload.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.onunload' class='mt0'>
+                onunload<span class='gray'></span>
+              </h2>
+              <p>Run when unload.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.query'>
+          <a href='#JSZhuyin.query'>
+            <code>
+              #query<span class='gray'>(reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Run the query against the current syllables.
+You should not call this method directly.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.query' class='mt0'>
+                query<span class='gray'>(reqId)</span>
+              </h2>
+              <p>Run the query against the current syllables.
+            You should not call this method directly.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.REORDER_SYMBOLS'>
+          <a href='#JSZhuyin.REORDER_SYMBOLS'>
+            <code>
+              #REORDER_SYMBOLS<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Allow re-order of symbol input.
+Better error-handling for typing with hardware keyboard.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.REORDER_SYMBOLS' class='mt0'>
+                REORDER_SYMBOLS<span class='gray'></span>
+              </h2>
+              <p>Allow re-order of symbol input.
+            Better error-handling for typing with hardware keyboard.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.selectCandidate'>
+          <a href='#JSZhuyin.selectCandidate'>
+            <code>
+              #selectCandidate<span class='gray'>(candidate, reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Select a candidate. Will be handled in the action queue.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.selectCandidate' class='mt0'>
+                selectCandidate<span class='gray'>(candidate, reqId)</span>
+              </h2>
+              <p>Select a candidate. Will be handled in the action queue.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code> <strong>candidate</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>One of the candidate that was sent via
+            oncandidateschange callback.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.sendActionHandled'>
+          <a href='#JSZhuyin.sendActionHandled'>
+            <code>
+              #sendActionHandled<span class='gray'>(reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Call the onactionhandled callback.
+You should not call this method directly.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.sendActionHandled' class='mt0'>
+                sendActionHandled<span class='gray'>(reqId)</span>
+              </h2>
+              <p>Call the onactionhandled callback.
+            You should not call this method directly.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.setConfig'>
+          <a href='#JSZhuyin.setConfig'>
+            <code>
+              #setConfig<span class='gray'>(config)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Set configurations.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.setConfig' class='mt0'>
+                setConfig<span class='gray'>(config)</span>
+              </h2>
+              <p>Set configurations.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code> <strong>config</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Configuration to set on JSZhuyin.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.suggest'>
+          <a href='#JSZhuyin.suggest'>
+            <code>
+              #suggest<span class='gray'>(reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Suggest possible phrases after the user had enter a term.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.suggest' class='mt0'>
+                suggest<span class='gray'>(reqId)</span>
+              </h2>
+              <p>Suggest possible phrases after the user had enter a term.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.SUGGEST_PHRASES'>
+          <a href='#JSZhuyin.SUGGEST_PHRASES'>
+            <code>
+              #SUGGEST_PHRASES<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Suggest phrases after confirming characters.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.SUGGEST_PHRASES' class='mt0'>
+                SUGGEST_PHRASES<span class='gray'></span>
+              </h2>
+              <p>Suggest phrases after confirming characters.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.unload'>
+          <a href='#JSZhuyin.unload'>
+            <code>
+              #unload<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Unload JSZhuyin. Close the database connection and purge things
+from memory.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.unload' class='mt0'>
+                unload<span class='gray'></span>
+              </h2>
+              <p>Unload JSZhuyin. Close the database connection and purge things
+            from memory.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.updateCandidates'>
+          <a href='#JSZhuyin.updateCandidates'>
+            <code>
+              #updateCandidates<span class='gray'>(results, reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Update the candidate with query results.
+You should not call this method directly.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.updateCandidates' class='mt0'>
+                updateCandidates<span class='gray'>(results, reqId)</span>
+              </h2>
+              <p>Update the candidate with query results.
+            You should not call this method directly.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">array</a></code> <strong>results</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The result array.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='JSZhuyin.updateComposition'>
+          <a href='#JSZhuyin.updateComposition'>
+            <code>
+              #updateComposition<span class='gray'>(reqId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Update composition by call the oncompositionupdate callback.
+You should not call this method directly.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='JSZhuyin.updateComposition' class='mt0'>
+                updateComposition<span class='gray'>(reqId)</span>
+              </h2>
+              <p>Update composition by call the oncompositionupdate callback.
+            You should not call this method directly.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>any</code> <strong>reqId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>ID of the request.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='data' class='mt0'>
+    data<span class='gray'></span>
+  </h2>
+  <p>Task private data</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='func' class='mt0'>
+    func<span class='gray'></span>
+  </h2>
+  <p>Task function</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='DataLoader' class='mt0'>
+    DataLoader<span class='gray'></span>
+  </h2>
+  <p>DataLoader wraps XMLHTTPRequest and pull the JSZhuyin dictionary if it is
+not passed into the setup.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='DataLoader.data'>
+          <a href='#DataLoader.data'>
+            <code>
+              #data<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Once loaded, data will be available here.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='DataLoader.data' class='mt0'>
+                data<span class='gray'></span>
+              </h2>
+              <p>Once loaded, data will be available here.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='DataLoader.DATA_URL'>
+          <a href='#DataLoader.DATA_URL'>
+            <code>
+              #DATA_URL<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Database file to load.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='DataLoader.DATA_URL' class='mt0'>
+                DATA_URL<span class='gray'></span>
+              </h2>
+              <p>Database file to load.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='DataLoader.load'>
+          <a href='#DataLoader.load'>
+            <code>
+              #load<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Load the data</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='DataLoader.load' class='mt0'>
+                load<span class='gray'></span>
+              </h2>
+              <p>Load the data</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='DataLoader.onerror'>
+          <a href='#DataLoader.onerror'>
+            <code>
+              #onerror<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Run when error occours.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='DataLoader.onerror' class='mt0'>
+                onerror<span class='gray'></span>
+              </h2>
+              <p>Run when error occours.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='DataLoader.onload'>
+          <a href='#DataLoader.onload'>
+            <code>
+              #onload<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Run when loading is successful.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='DataLoader.onload' class='mt0'>
+                onload<span class='gray'></span>
+              </h2>
+              <p>Run when loading is successful.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='DataLoader.onloadend'>
+          <a href='#DataLoader.onloadend'>
+            <code>
+              #onloadend<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Run when the loading is complete.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='DataLoader.onloadend' class='mt0'>
+                onloadend<span class='gray'></span>
+              </h2>
+              <p>Run when the loading is complete.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='decode' class='mt0'>
+    decode<span class='gray'>(encodedStr)</span>
+  </h2>
+  <p>Decode an encoded string into syllables string.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>encodedStr</strong>
+          :
+          <span class='force-inline'>
+            <p>encoded string.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>syllables string.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='encode' class='mt0'>
+    encode<span class='gray'>(syllablesStr, options)</span>
+  </h2>
+  <p>Encode a string containing syllables spelled by Bopomofo symbols
+into encoded string.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>syllablesStr</strong>
+          :
+          <span class='force-inline'>
+            <p>Syllable string.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            <p>Options.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>encoded string.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isBopomofoSymbol' class='mt0'>
+    isBopomofoSymbol<span class='gray'>(chr)</span>
+  </h2>
+  <p>Return true if the character or charCode given represents
+an accepted Bopomofo symbol.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> or <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>chr</strong>
+          :
+          <span class='force-inline'>
+            <p>String or a charCode.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Return true if the character or charCode given
+represents an accepted Bopomofo symbol.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='exports' class='mt0'>
+    exports<span class='gray'></span>
+  </h2>
+  <p>CloseLockManager manages requests from multiple modules on whether we
+should close ourselves <em>now</em> or wait for the &quot;stayAwake&quot; lock to unlock.
+The &quot;requestClose&quot; request is a lock too because one might ask to close
+the app but decide not to do that later.</p>
+<p>Examples:</p>
+<ol>
+<li>If there is no stayAwake lock exist and one ask for a requestClose lock,
+the app will be closed immediately.</li>
+<li>If there is a stayAwake lock exist, app will close only until the existing
+stayAwake lock unlocks.
+2.1. Or, you could cancel the request by unlock your requestClose lock.</li>
+</ol>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Float32Encoder' class='mt0'>
+    Float32Encoder<span class='gray'>(number, type)</span>
+  </h2>
+  <p>Float32Encoder encodes a given float number to an arraybuffer,
+and vise versa.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>number</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>type</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getSettingsSync' class='mt0'>
+    getSettingsSync<span class='gray'></span>
+  </h2>
+  <p>Get current settings synchronizely.
+Return the object holding settings values.
+Object will be empty if this.initialized is false.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='initSettings' class='mt0'>
+    initSettings<span class='gray'></span>
+  </h2>
+  <p>Get current settings asynchronizely and start observing changings.
+Return a promise object resolves to object holding setting values.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleNormalKey' class='mt0'>
+    handleNormalKey<span class='gray'>(code)</span>
+  </h2>
+  <p>END QUEUE *</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>code</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='HandwritingPadView' class='mt0'>
+    HandwritingPadView<span class='gray'>(target, options, viewManager)</span>
+  </h2>
+  <p>HandwritingPadView handles the rendering of handwriting pad and
+interactions on it. Handwriting pad is a canvas element in DOM.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>viewManager</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Homonyms' class='mt0'>
+    Homonyms<span class='gray'>(kana, terms)</span>
+  </h2>
+  <p>Terms with same kana</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>kana</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>terms</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='importScripts' class='mt0'>
+    importScripts<span class='gray'></span>
+  </h2>
+  <p>Load JSZhuyin, etc. into a Web Workers.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='importScripts' class='mt0'>
+    importScripts<span class='gray'></span>
+  </h2>
+  <p>Load Recognition, etc. into a Web Worker.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='InputMethodDatabaseLoader' class='mt0'>
+    InputMethodDatabaseLoader<span class='gray'></span>
+  </h2>
+  <p>InputMethodDatabaseLoader provide a uniform interface for the IMEngine to
+get it&apos;s data (as arraybuffer). It currently supports getting the data from
+package only but eventually we would like to get the dynamic downloaded data
+from IndexedDB as well.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='KeyView' class='mt0'>
+    KeyView<span class='gray'>(target, options, viewManager)</span>
+  </h2>
+  <p>KeyView handles the rendering of each key on the keyboard.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>viewManager</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='LatinCandidatePanelView' class='mt0'>
+    LatinCandidatePanelView<span class='gray'></span>
+  </h2>
+  <p>LatinCandidatePanelView handles the rendering of latin candidate panel, used
+for showing word suggestions.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='LayoutKeyNormalizer' class='mt0'>
+    LayoutKeyNormalizer<span class='gray'>(page)</span>
+  </h2>
+  <p>LayoutKeyNormalizer normalizes a page&apos;s key objects. It may be used by
+LayoutNormalizer, or in LayoutManager when we want to normalize some
+hard-coded key objects when we process a page to render.</p>
+<p>It&apos;s to be treated as a per-page singleton utility object: We instantiate a
+normalizer for the page and call normalizeKey() method for each key we want
+to normalize, using the page as the reference for normalization parameters.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>page</strong>
+          :
+          <span class='force-inline'>
+            <p>the page we&apos;re going to normalize</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='LayoutNormalizer' class='mt0'>
+    LayoutNormalizer<span class='gray'>(layout)</span>
+  </h2>
+  <p>LayoutNormalizer normalizes a layout&apos;s key objects such that
+Dealing business logics with them will be less painful.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>layout</strong>
+          :
+          <span class='force-inline'>
+            <p>the layout we&apos;re going to normalize</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='LayoutPageView' class='mt0'>
+    LayoutPageView<span class='gray'>(layout, options, viewManager)</span>
+  </h2>
+  <p>Each keyboard layout may have multiple pages, one for default and another
+for symbol input, etc.
+LayoutPageView represents each page in the keyboard.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>layout</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>viewManager</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='LOG_LEVEL' class='mt0'>
+    LOG_LEVEL<span class='gray'></span>
+  </h2>
+  <p>Log level decides whether or not to print log.</p>
+<p>0 - warn() and error()
+1 - info()
+2 - log() and time() and timeEnd()
+3 - trace()</p>
+<p>Note that we want console.warn() and console.error() show up in
+production too so warn() and error() is not implemented here.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='path' class='mt0'>
+    path<span class='gray'></span>
+  </h2>
+  <p>The source code path of the IMEngine</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='PromiseStorage' class='mt0'>
+    PromiseStorage<span class='gray'>(name)</span>
+  </h2>
+  <p>PromiseStorage wraps IndexedDB into simple key-value storage.</p>
+<p>It exposes simple Promise interfaces at the expenses of hiding powerful stuff
+of IndexedDB. For example, there is no interface here for you to iterate
+all the available items.</p>
+<p>Note that due to the nature of Promises, this library does not support
+read-modify-write operation; you simply cannot chain a get() and a set() for
+that safely. For more discussion please read</p>
+<p><a href="http://lists.w3.org/Archives/Public/public-webapps/2013AprJun/0217.html">http://lists.w3.org/Archives/Public/public-webapps/2013AprJun/0217.html</a></p>
+<p>(We might get around this if we implement PromiseStorage#update here.)</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>name</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='screenInPortraitMode' class='mt0'>
+    screenInPortraitMode<span class='gray'></span>
+  </h2>
+  <p>There are 4 different heights we are using here.
+See CSS variable &apos;--key-height&apos; in keyboard.css.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sendCandidates' class='mt0'>
+    sendCandidates<span class='gray'>(candidates)</span>
+  </h2>
+  <p>Sends candidates to the IMEManager</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>candidates</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sendKey' class='mt0'>
+    sendKey<span class='gray'>(keyCode)</span>
+  </h2>
+  <p>Passes the clicked key to IMEManager for default action.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>keyCode</strong>
+          :
+          <span class='force-inline'>
+            <p>The key code of an integer.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sendPendingSymbols' class='mt0'>
+    sendPendingSymbols<span class='gray'>(symbols)</span>
+  </h2>
+  <p>Sends pending symbols to the IMEManager.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>symbols</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sendString' class='mt0'>
+    sendString<span class='gray'>(str)</span>
+  </h2>
+  <p>Sends the input string to the IMEManager.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>str</strong>
+          :
+          <span class='force-inline'>
+            <p>The input string.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='SettingsPromiseManager' class='mt0'>
+    SettingsPromiseManager<span class='gray'></span>
+  </h2>
+  <p>SettingsPromiseManager wraps Settings API into methods and return Promises,
+so we can easily mix and match these async actions.</p>
+<p>It also manages the lock for us.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='SwipeablePageView' class='mt0'>
+    SwipeablePageView<span class='gray'></span>
+  </h2>
+  <p>SwipeablePageView is used to render a swipeable page,
+like the pages in emoji layout.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='SwipeablePanelView' class='mt0'>
+    SwipeablePanelView<span class='gray'>(layout, options, viewManager)</span>
+  </h2>
+  <p>SwipeablePanelView is used to render a panel that is swipeable to go through
+several sections.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>layout</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>viewManager</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='UserPress' class='mt0'>
+    UserPress<span class='gray'>(obj, coords)</span>
+  </h2>
+  <p>UserPress instance represents a single user interaction, by touch or mouse.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>obj</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>coords</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='UserPressManager' class='mt0'>
+    UserPressManager<span class='gray'>(app)</span>
+  </h2>
+  <p>UserPressManager listen to touch and mouse event and call the callbacks
+attached to the instance.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>app</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='VisualHighlightManager' class='mt0'>
+    VisualHighlightManager<span class='gray'>(app)</span>
+  </h2>
+  <p>VisualHighlightManager show and hide visual highlight of keys.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>app</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BinStorage.html">BinStorage</a></li><li><a href="JSZhuyinDataPack.html">JSZhuyinDataPack</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ActionQueue">ActionQueue</a></li><li><a href="global.html#CacheStore">CacheStore</a></li><li><a href="global.html#Float32Encoder">Float32Encoder</a></li><li><a href="global.html#JSZhuyin">JSZhuyin</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:44 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

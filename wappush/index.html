@@ -1,65 +1,2870 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#_apns'
+                class='block bold'>
+                _apns
+              </a>
+              <a
+                href='#_apnsReady'
+                class='block bold'>
+                _apnsReady
+              </a>
+              <a
+                href='#_applicationNodes'
+                class='block bold'>
+                _applicationNodes
+              </a>
+              <a
+                href='#_napDefNodes'
+                class='block bold'>
+                _napDefNodes
+              </a>
+              <a
+                href='#_provisioningDoc'
+                class='block bold'>
+                _provisioningDoc
+              </a>
+              <a
+                href='#_proxies'
+                class='block bold'>
+                _proxies
+              </a>
+              <a
+                href='#_pxLogicalNodes'
+                class='block bold'>
+                _pxLogicalNodes
+              </a>
+              <a
+                href='#WhiteList'
+                class='block bold'>
+                WhiteList
+              </a>
+                <a
+                  href='#WhiteList._whiteList'
+                  class='regular block'>
+                  ._whiteList
+                </a>
+                <a
+                  href='#WhiteList.has'
+                  class='regular block'>
+                  .has
+                </a>
+                <a
+                  href='#WhiteList.has'
+                  class='regular block'>
+                  .has
+                </a>
+                <a
+                  href='#WhiteList.init'
+                  class='regular block'>
+                  .init
+                </a>
+              <a
+                href='#acceptApnButton'
+                class='block bold'>
+                acceptApnButton
+              </a>
+              <a
+                href='#acceptInstallCfgButton'
+                class='block bold'>
+                acceptInstallCfgButton
+              </a>
+              <a
+                href='#apns'
+                class='block bold'>
+                apns
+              </a>
+              <a
+                href='#apnScreen'
+                class='block bold'>
+                apnScreen
+              </a>
+              <a
+                href='#app'
+                class='block bold'>
+                app
+              </a>
+              <a
+                href='#auth'
+                class='block bold'>
+                auth
+              </a>
+              <a
+                href='#authenticated'
+                class='block bold'>
+                authenticated
+              </a>
+              <a
+                href='#authFailureMessage'
+                class='block bold'>
+                authFailureMessage
+              </a>
+              <a
+                href='#authInfo'
+                class='block bold'>
+                authInfo
+              </a>
+              <a
+                href='#cancelInstallCfgButton'
+                class='block bold'>
+                cancelInstallCfgButton
+              </a>
+              <a
+                href='#cancelQuitButton'
+                class='block bold'>
+                cancelQuitButton
+              </a>
+              <a
+                href='#closeTimeout'
+                class='block bold'>
+                closeTimeout
+              </a>
+              <a
+                href='#ParsedMessage'
+                class='block bold'>
+                ParsedMessage
+              </a>
+                <a
+                  href='#ParsedMessage.from'
+                  class='regular block'>
+                  .from
+                </a>
+                <a
+                  href='#ParsedMessage.load'
+                  class='regular block'>
+                  .load
+                </a>
+                <a
+                  href='#ParsedMessage.constructor'
+                  class='regular block'>
+                  #constructor
+                </a>
+                <a
+                  href='#ParsedMessage.getUniqueId'
+                  class='regular block'>
+                  #getUniqueId
+                </a>
+                <a
+                  href='#ParsedMessage.isExpired'
+                  class='regular block'>
+                  #isExpired
+                </a>
+                <a
+                  href='#ParsedMessage.save'
+                  class='regular block'>
+                  #save
+                </a>
+                <a
+                  href='#ParsedMessage.toJSON'
+                  class='regular block'>
+                  #toJSON
+                </a>
+              <a
+                href='#container'
+                class='block bold'>
+                container
+              </a>
+              <a
+                href='#cpScreen'
+                class='block bold'>
+                cpScreen
+              </a>
+              <a
+                href='#cpsh_closeDetails'
+                class='block bold'>
+                cpsh_closeDetails
+              </a>
+              <a
+                href='#cpsh_closePin'
+                class='block bold'>
+                cpsh_closePin
+              </a>
+              <a
+                href='#cpsh_createNode'
+                class='block bold'>
+                cpsh_createNode
+              </a>
+              <a
+                href='#cpsh_hide'
+                class='block bold'>
+                cpsh_hide
+              </a>
+              <a
+                href='#cpsh_onAcceptInstallCfg'
+                class='block bold'>
+                cpsh_onAcceptInstallCfg
+              </a>
+              <a
+                href='#cpsh_onApnAccept'
+                class='block bold'>
+                cpsh_onApnAccept
+              </a>
+              <a
+                href='#cpsh_onCancelInstallCfg'
+                class='block bold'>
+                cpsh_onCancelInstallCfg
+              </a>
+              <a
+                href='#cpsh_onCancelQuit'
+                class='block bold'>
+                cpsh_onCancelQuit
+              </a>
+              <a
+                href='#cpsh_onClose'
+                class='block bold'>
+                cpsh_onClose
+              </a>
+              <a
+                href='#cpsh_onDetailsAccept'
+                class='block bold'>
+                cpsh_onDetailsAccept
+              </a>
+              <a
+                href='#cpsh_onFinish'
+                class='block bold'>
+                cpsh_onFinish
+              </a>
+              <a
+                href='#cpsh_onPinAccept'
+                class='block bold'>
+                cpsh_onPinAccept
+              </a>
+              <a
+                href='#cpsh_onPinInput'
+                class='block bold'>
+                cpsh_onPinInput
+              </a>
+              <a
+                href='#cpsh_onQuit'
+                class='block bold'>
+                cpsh_onQuit
+              </a>
+              <a
+                href='#cpsh_populateScreen'
+                class='block bold'>
+                cpsh_populateScreen
+              </a>
+              <a
+                href='#cpsh_setPinFocus'
+                class='block bold'>
+                cpsh_setPinFocus
+              </a>
+              <a
+                href='#cpsh_showApnList'
+                class='block bold'>
+                cpsh_showApnList
+              </a>
+              <a
+                href='#cpsh_showConfirmInstallationDialog'
+                class='block bold'>
+                cpsh_showConfirmInstallationDialog
+              </a>
+              <a
+                href='#cpsh_showDetails'
+                class='block bold'>
+                cpsh_showDetails
+              </a>
+              <a
+                href='#Utils'
+                class='block bold'>
+                Utils
+              </a>
+                <a
+                  href='#Utils.deserializeParameters'
+                  class='regular block'>
+                  .deserializeParameters
+                </a>
+                <a
+                  href='#Utils.prepareMessageTitle'
+                  class='regular block'>
+                  .prepareMessageTitle
+                </a>
+              <a
+                href='#detailsScreen'
+                class='block bold'>
+                detailsScreen
+              </a>
+              <a
+                href='#displayedSiMessage'
+                class='block bold'>
+                displayedSiMessage
+              </a>
+              <a
+                href='#finishButton'
+                class='block bold'>
+                finishButton
+              </a>
+              <a
+                href='#finishConfirmDialog'
+                class='block bold'>
+                finishConfirmDialog
+              </a>
+              <a
+                href='#ParsedProvisioningDoc'
+                class='block bold'>
+                ParsedProvisioningDoc
+              </a>
+                <a
+                  href='#ParsedProvisioningDoc.from'
+                  class='regular block'>
+                  .from
+                </a>
+                <a
+                  href='#ParsedProvisioningDoc.getApns'
+                  class='regular block'>
+                  #getApns
+                </a>
+                <a
+                  href='#ParsedProvisioningDoc.getNapDefNode'
+                  class='regular block'>
+                  #getNapDefNode
+                </a>
+                <a
+                  href='#ParsedProvisioningDoc.getPxPhysicalNodes'
+                  class='regular block'>
+                  #getPxPhysicalNodes
+                </a>
+                <a
+                  href='#ParsedProvisioningDoc.parse'
+                  class='regular block'>
+                  #parse
+                </a>
+              <a
+                href='#header'
+                class='block bold'>
+                header
+              </a>
+              <a
+                href='#headerDetails'
+                class='block bold'>
+                headerDetails
+              </a>
+              <a
+                href='#iccCardIndex'
+                class='block bold'>
+                iccCardIndex
+              </a>
+              <a
+                href='#installCfgConfirmDialog'
+                class='block bold'>
+                installCfgConfirmDialog
+              </a>
+              <a
+                href='#isDocumentValid'
+                class='block bold'>
+                isDocumentValid
+              </a>
+              <a
+                href='#link'
+                class='block bold'>
+                link
+              </a>
+              <a
+                href='#mdb_allowedEvents'
+                class='block bold'>
+                mdb_allowedEvents
+              </a>
+              <a
+                href='#mdb_clear'
+                class='block bold'>
+                mdb_clear
+              </a>
+              <a
+                href='#mdb_deleteById'
+                class='block bold'>
+                mdb_deleteById
+              </a>
+              <a
+                href='#mdb_deleteByTimestamp'
+                class='block bold'>
+                mdb_deleteByTimestamp
+              </a>
+              <a
+                href='#mdb_deleteViewedMessages'
+                class='block bold'>
+                mdb_deleteViewedMessages
+              </a>
+              <a
+                href='#mdb_dispatchEvent'
+                class='block bold'>
+                mdb_dispatchEvent
+              </a>
+              <a
+                href='#mdb_open'
+                class='block bold'>
+                mdb_open
+              </a>
+              <a
+                href='#mdb_processMessage'
+                class='block bold'>
+                mdb_processMessage
+              </a>
+              <a
+                href='#mdb_put'
+                class='block bold'>
+                mdb_put
+              </a>
+              <a
+                href='#mdb_retrieve'
+                class='block bold'>
+                mdb_retrieve
+              </a>
+              <a
+                href='#mdb_transactionPromise'
+                class='block bold'>
+                mdb_transactionPromise
+              </a>
+              <a
+                href='#MessageDB@delete'
+                class='block bold'>
+                MessageDB@delete
+              </a>
+              <a
+                href='#MessageDB#discard'
+                class='block bold'>
+                MessageDB#discard
+              </a>
+              <a
+                href='#MessageDB#new'
+                class='block bold'>
+                MessageDB#new
+              </a>
+              <a
+                href='#MessageDB#update'
+                class='block bold'>
+                MessageDB#update
+              </a>
+              <a
+                href='#messageTag'
+                class='block bold'>
+                messageTag
+              </a>
+              <a
+                href='#multipleApns'
+                class='block bold'>
+                multipleApns
+              </a>
+              <a
+                href='#pa_isDocumentValid'
+                class='block bold'>
+                pa_isDocumentValid
+              </a>
+              <a
+                href='#pa_sign'
+                class='block bold'>
+                pa_sign
+              </a>
+              <a
+                href='#pa_userNetwPinAuthentication'
+                class='block bold'>
+                pa_userNetwPinAuthentication
+              </a>
+              <a
+                href='#pa_userPinAuthentication'
+                class='block bold'>
+                pa_userPinAuthentication
+              </a>
+              <a
+                href='#pa_userPinMacAuthentication'
+                class='block bold'>
+                pa_userPinMacAuthentication
+              </a>
+              <a
+                href='#parseNapDefNode'
+                class='block bold'>
+                parseNapDefNode
+              </a>
+              <a
+                href='#parsePxPhysicalNode'
+                class='block bold'>
+                parsePxPhysicalNode
+              </a>
+              <a
+                href='#pendingMessages'
+                class='block bold'>
+                pendingMessages
+              </a>
+              <a
+                href='#pin'
+                class='block bold'>
+                pin
+              </a>
+              <a
+                href='#pin'
+                class='block bold'>
+                pin
+              </a>
+              <a
+                href='#pinHelp'
+                class='block bold'>
+                pinHelp
+              </a>
+              <a
+                href='#pinScreen'
+                class='block bold'>
+                pinScreen
+              </a>
+              <a
+                href='#processed'
+                class='block bold'>
+                processed
+              </a>
+              <a
+                href='#ProvisioningAuthentication'
+                class='block bold'>
+                ProvisioningAuthentication
+              </a>
+              <a
+                href='#provisioningDoc'
+                class='block bold'>
+                provisioningDoc
+              </a>
+              <a
+                href='#quitAppConfirmDialog'
+                class='block bold'>
+                quitAppConfirmDialog
+              </a>
+              <a
+                href='#quitButton'
+                class='block bold'>
+                quitButton
+              </a>
+              <a
+                href='#screen'
+                class='block bold'>
+                screen
+              </a>
+              <a
+                href='#showPINInput'
+                class='block bold'>
+                showPINInput
+              </a>
+              <a
+                href='#sp_getMccMncCodes'
+                class='block bold'>
+                sp_getMccMncCodes
+              </a>
+              <a
+                href='#sp_provision'
+                class='block bold'>
+                sp_provision
+              </a>
+              <a
+                href='#sssh_hide'
+                class='block bold'>
+                sssh_hide
+              </a>
+              <a
+                href='#sssh_onClose'
+                class='block bold'>
+                sssh_onClose
+              </a>
+              <a
+                href='#StoreProvisioning'
+                class='block bold'>
+                StoreProvisioning
+              </a>
+              <a
+                href='#text'
+                class='block bold'>
+                text
+              </a>
+              <a
+                href='#title'
+                class='block bold'>
+                title
+              </a>
+              <a
+                href='#titleApn'
+                class='block bold'>
+                titleApn
+              </a>
+              <a
+                href='#wapPushEnabled'
+                class='block bold'>
+                wapPushEnabled
+              </a>
+              <a
+                href='#wapPushEnableKey'
+                class='block bold'>
+                wapPushEnableKey
+              </a>
+              <a
+                href='#WapPushManager'
+                class='block bold'>
+                WapPushManager
+              </a>
+              <a
+                href='#wpm_clearNotifications'
+                class='block bold'>
+                wpm_clearNotifications
+              </a>
+              <a
+                href='#wpm_close'
+                class='block bold'>
+                wpm_close
+              </a>
+              <a
+                href='#wpm_displayWapPushMessage'
+                class='block bold'>
+                wpm_displayWapPushMessage
+              </a>
+              <a
+                href='#wpm_finish'
+                class='block bold'>
+                wpm_finish
+              </a>
+              <a
+                href='#wpm_getApp'
+                class='block bold'>
+                wpm_getApp
+              </a>
+              <a
+                href='#wpm_getConfig'
+                class='block bold'>
+                wpm_getConfig
+              </a>
+              <a
+                href='#wpm_init'
+                class='block bold'>
+                wpm_init
+              </a>
+              <a
+                href='#wpm_onDelete'
+                class='block bold'>
+                wpm_onDelete
+              </a>
+              <a
+                href='#wpm_onDiscard'
+                class='block bold'>
+                wpm_onDiscard
+              </a>
+              <a
+                href='#wpm_onNew'
+                class='block bold'>
+                wpm_onNew
+              </a>
+              <a
+                href='#wpm_onNotification'
+                class='block bold'>
+                wpm_onNotification
+              </a>
+              <a
+                href='#wpm_onSettingsChange'
+                class='block bold'>
+                wpm_onSettingsChange
+              </a>
+              <a
+                href='#wpm_onUpdate'
+                class='block bold'>
+                wpm_onUpdate
+              </a>
+              <a
+                href='#wpm_onVisibilityChange'
+                class='block bold'>
+                wpm_onVisibilityChange
+              </a>
+              <a
+                href='#wpm_onWapPushReceived'
+                class='block bold'>
+                wpm_onWapPushReceived
+              </a>
+              <a
+                href='#wpm_sendNotification'
+                class='block bold'>
+                wpm_sendNotification
+              </a>
+              <a
+                href='#wpm_shouldDisplayMessage'
+                class='block bold'>
+                wpm_shouldDisplayMessage
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='_apns' class='mt0'>
+    _apns<span class='gray'></span>
+  </h2>
+  <p>Array containing APN objects</p>
 
-<body>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_apnsReady' class='mt0'>
+    _apnsReady<span class='gray'></span>
+  </h2>
+  <p>APNs are ready to use (flag)</p>
 
-<div id="main">
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_applicationNodes' class='mt0'>
+    _applicationNodes<span class='gray'></span>
+  </h2>
+  <p>Holds the list of APPLICATION (APPLICATION characteristic is used to
+define application protocol parameters and to describe the attributes
+of an application service access point available using the protocol)
+nodes in the document.</p>
 
-    <h1 class="page-title">Home</h1>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_napDefNodes' class='mt0'>
+    _napDefNodes<span class='gray'></span>
+  </h2>
+  <p>Holds the list of NAPDEF (NAPDEF characteristics define network access
+points) nodes in the document</p>
 
-    
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_provisioningDoc' class='mt0'>
+    _provisioningDoc<span class='gray'></span>
+  </h2>
+  <p>WAP provisioning document</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_proxies' class='mt0'>
+    _proxies<span class='gray'></span>
+  </h2>
+  <p>Array containing APN proxy objects</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_pxLogicalNodes' class='mt0'>
+    _pxLogicalNodes<span class='gray'></span>
+  </h2>
+  <p>Holds the list of PXLOGICAL (PXLOGICAL characteristics define logical
+proxies) nodes in the document.</p>
 
-    
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='WhiteList' class='mt0'>
+    WhiteList<span class='gray'></span>
+  </h2>
+  <p>MSISDN whitelist, if not empty only the messages sent from the MSISDNs
+present in the list will be shown to the user, others will be discarded.</p>
 
+      <h4>Static members</h4>
+        <div class='collapsible' id='WhiteList._whiteList'>
+          <a href='#WhiteList._whiteList'>
+            <code>
+              ._whiteList<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>An array holding the list of MSISDNs</p>
 
-    <h3> </h3>
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='WhiteList._whiteList' class='mt0'>
+                _whiteList<span class='gray'></span>
+              </h2>
+              <p>An array holding the list of MSISDNs</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='WhiteList.has'>
+          <a href='#WhiteList.has'>
+            <code>
+              .has<span class='gray'>(value)</span>
+            </code>
+            <span class='force-inline'>
+              <p>This reject handler is important here because in case of
+whitelist json file missing or empty, getJSON rejects the promise.
+If this handler is not present here, the returned promise from
+this function will fail for the outside code</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='WhiteList.has' class='mt0'>
+                has<span class='gray'>(value)</span>
+              </h2>
+              <p>This reject handler is important here because in case of
+            whitelist json file missing or empty, getJSON rejects the promise.
+            If this handler is not present here, the returned promise from
+            this function will fail for the outside code</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>value</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='WhiteList.has'>
+          <a href='#WhiteList.has'>
+            <code>
+              .has<span class='gray'>(value)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Checks if the element is in the whitelist.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='WhiteList.has' class='mt0'>
+                has<span class='gray'>(value)</span>
+              </h2>
+              <p>Checks if the element is in the whitelist.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>value</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>true if the element is in the whitelist, always return
+            true if the whitelist is empty.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='WhiteList.init'>
+          <a href='#WhiteList.init'>
+            <code>
+              .init<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Read the whitelist.json file from disk and initialize the whitelist with
+it. If the file is not present or empty the whitelist will be empty.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='WhiteList.init' class='mt0'>
+                init<span class='gray'></span>
+              </h2>
+              <p>Read the whitelist.json file from disk and initialize the whitelist with
+            it. If the file is not present or empty the whitelist will be empty.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='acceptApnButton' class='mt0'>
+    acceptApnButton<span class='gray'></span>
+  </h2>
+  <p>Accept button node for each screen</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='acceptInstallCfgButton' class='mt0'>
+    acceptInstallCfgButton<span class='gray'></span>
+  </h2>
+  <p>Accept install configuration button node</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='apns' class='mt0'>
+    apns<span class='gray'></span>
+  </h2>
+  <p>All APNs list</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='apnScreen' class='mt0'>
+    apnScreen<span class='gray'></span>
+  </h2>
+  <p>APN screen node</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='app' class='mt0'>
+    app<span class='gray'></span>
+  </h2>
+  <p>A reference to the app&apos;s object</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='auth' class='mt0'>
+    auth<span class='gray'></span>
+  </h2>
+  <p>The object holding auth info</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='authenticated' class='mt0'>
+    authenticated<span class='gray'></span>
+  </h2>
+  <p>The message has not been authenticated yet</p>
 
-    
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='authFailureMessage' class='mt0'>
+    authFailureMessage<span class='gray'></span>
+  </h2>
+  <p>Auth failure message</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='authInfo' class='mt0'>
+    authInfo<span class='gray'></span>
+  </h2>
+  <p>Authentication parameter for the WAP PUSH message.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cancelInstallCfgButton' class='mt0'>
+    cancelInstallCfgButton<span class='gray'></span>
+  </h2>
+  <p>Cancel install configuration button node</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cancelQuitButton' class='mt0'>
+    cancelQuitButton<span class='gray'></span>
+  </h2>
+  <p>Cancel quit app button node</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='closeTimeout' class='mt0'>
+    closeTimeout<span class='gray'></span>
+  </h2>
+  <p>Timer used to schedule a close operation</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ParsedMessage' class='mt0'>
+    ParsedMessage<span class='gray'>([obj])</span>
+  </h2>
+  <p>Default constructor, use it to copy objects. To parse objects from XML use
+the factory function from()</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>]</code> <strong>obj</strong>
+          :
+          <span class='force-inline'>
+            <p>An object from which to copy the fields.</p>
 
+          </span>
+        </li>
+    </ul>
+      <h4>Static members</h4>
+        <div class='collapsible' id='ParsedMessage.from'>
+          <a href='#ParsedMessage.from'>
+            <code>
+              .from<span class='gray'>(message, timestamp)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Parse a message and returns an object holding its fields. The returned
+object will contain the following fields:</p>
+<ul>
+<li>type: the content type of the message, either &apos;text/vnd.wap.si&apos; or
+&apos;text/vnd.wap.sl&apos;</li>
+<li>sender: the sender of this message, a MSISDN</li>
+<li>timestamp: a timestamp taken when parsing the object</li>
+<li>href: optional for SI messages, required for SL, a URL to be displayed</li>
+<li>id: optional for SI messages, a pseudo-unique ID for the message</li>
+<li>created: optional for SI messages, creation time of this message</li>
+<li>expires: optional for SI messages, expiration time of this message</li>
+<li>action: optional for SI/SL message, action to be executed</li>
+<li>provisioning: only for CP messages, CP related object</li>
+<li>text: optional, text to be displayed</li>
+</ul>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedMessage.from' class='mt0'>
+                from<span class='gray'>(message, timestamp)</span>
+              </h2>
+              <p>Parse a message and returns an object holding its fields. The returned
+            object will contain the following fields:</p>
+            <ul>
+            <li>type: the content type of the message, either &apos;text/vnd.wap.si&apos; or
+            &apos;text/vnd.wap.sl&apos;</li>
+            <li>sender: the sender of this message, a MSISDN</li>
+            <li>timestamp: a timestamp taken when parsing the object</li>
+            <li>href: optional for SI messages, required for SL, a URL to be displayed</li>
+            <li>id: optional for SI messages, a pseudo-unique ID for the message</li>
+            <li>created: optional for SI messages, creation time of this message</li>
+            <li>expires: optional for SI messages, expiration time of this message</li>
+            <li>action: optional for SI/SL message, action to be executed</li>
+            <li>provisioning: only for CP messages, CP related object</li>
+            <li>text: optional, text to be displayed</li>
+            </ul>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A WAP Push message as delivered by the system.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>timestamp</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A timestamp for the message reception time.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>An object holding the contents of the WAP message as
+            separate fields.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ParsedMessage.load'>
+          <a href='#ParsedMessage.load'>
+            <code>
+              .load<span class='gray'>(timestamp)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Loads the message corresponding to the specified timestamp from the
+database. Returns a promise that resolves to the message. If the message
+is not present the promise will be rejected.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedMessage.load' class='mt0'>
+                load<span class='gray'>(timestamp)</span>
+              </h2>
+              <p>Loads the message corresponding to the specified timestamp from the
+            database. Returns a promise that resolves to the message. If the message
+            is not present the promise will be rejected.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>timestamp</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The timestamp of the message we want to
+            retrieve.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A promise for this operation.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ParsedMessage.constructor'>
+          <a href='#ParsedMessage.constructor'>
+            <code>
+              #constructor<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Constructor, this is for internal use only</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedMessage.constructor' class='mt0'>
+                constructor<span class='gray'></span>
+              </h2>
+              <p>Constructor, this is for internal use only</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ParsedMessage.getUniqueId'>
+          <a href='#ParsedMessage.getUniqueId'>
+            <code>
+              #getUniqueId<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Gets the message unique identifier</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedMessage.getUniqueId' class='mt0'>
+                getUniqueId<span class='gray'></span>
+              </h2>
+              <p>Gets the message unique identifier</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>An identifier for this message</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ParsedMessage.isExpired'>
+          <a href='#ParsedMessage.isExpired'>
+            <code>
+              #isExpired<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Returns true if the message has already expired</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedMessage.isExpired' class='mt0'>
+                isExpired<span class='gray'></span>
+              </h2>
+              <p>Returns true if the message has already expired</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ParsedMessage.save'>
+          <a href='#ParsedMessage.save'>
+            <code>
+              #save<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Saves the message in the database.  Returns a promise that resolves
+to a string describing the status of the message: &apos;new&apos; if the message
+was new, &apos;updated&apos; if the message updated an existing message or
+&apos;discarded&apos; if the message was discarded.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedMessage.save' class='mt0'>
+                save<span class='gray'></span>
+              </h2>
+              <p>Saves the message in the database.  Returns a promise that resolves
+            to a string describing the status of the message: &apos;new&apos; if the message
+            was new, &apos;updated&apos; if the message updated an existing message or
+            &apos;discarded&apos; if the message was discarded.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A promise for this operation.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ParsedMessage.toJSON'>
+          <a href='#ParsedMessage.toJSON'>
+            <code>
+              #toJSON<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Creates an untyped object from a typed one</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedMessage.toJSON' class='mt0'>
+                toJSON<span class='gray'></span>
+              </h2>
+              <p>Creates an untyped object from a typed one</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>An untyped representation of this object.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='container' class='mt0'>
+    container<span class='gray'></span>
+  </h2>
+  <p>Message container</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpScreen' class='mt0'>
+    cpScreen<span class='gray'></span>
+  </h2>
+  <p>Content provisioning screen node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_closeDetails' class='mt0'>
+    cpsh_closeDetails<span class='gray'>(evt)</span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;back&apos;/ &apos;close&apos;
+button from the details screen.
+If there are multiple APNs then back button to go back to apn list screen.
+If only one APN then shows quit confirm.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_closePin' class='mt0'>
+    cpsh_closePin<span class='gray'></span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;back&apos; button
+from the pin screen.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_createNode' class='mt0'>
+    cpsh_createNode<span class='gray'>(rootNode, key, value)</span>
+  </h2>
+  <p>Helper function used to populate the list of the APN details.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>rootNode</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>key</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>value</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_hide' class='mt0'>
+    cpsh_hide<span class='gray'></span>
+  </h2>
+  <p>Hides all the panels.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onAcceptInstallCfg' class='mt0'>
+    cpsh_onAcceptInstallCfg<span class='gray'>(message, evt)</span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;Cancel&apos; button
+from the client install configuration screen.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onApnAccept' class='mt0'>
+    cpsh_onApnAccept<span class='gray'></span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;next&apos; button
+from the apn list screen.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onCancelInstallCfg' class='mt0'>
+    cpsh_onCancelInstallCfg<span class='gray'>(evt)</span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;Cancel&apos; button
+from the client install configuration screen.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onCancelQuit' class='mt0'>
+    cpsh_onCancelQuit<span class='gray'>(evt)</span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;Cancel&apos; button
+from the client provisioning quit app confirm dialog.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onClose' class='mt0'>
+    cpsh_onClose<span class='gray'>(evt)</span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;close&apos; button
+from the client provisioning screen.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onDetailsAccept' class='mt0'>
+    cpsh_onDetailsAccept<span class='gray'></span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;next&apos; button
+from the details screen.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onFinish' class='mt0'>
+    cpsh_onFinish<span class='gray'>(evt)</span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;Finish&apos; button
+from the client provisioning finish confirm dialog.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onPinAccept' class='mt0'>
+    cpsh_onPinAccept<span class='gray'></span>
+  </h2>
+  <p>Accepts the message, authenticates the sender and presents the settings to
+be stored to the user</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onPinInput' class='mt0'>
+    cpsh_onPinInput<span class='gray'>(evt)</span>
+  </h2>
+  <p>Enable / disable accept button if pin field is empty.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_onQuit' class='mt0'>
+    cpsh_onQuit<span class='gray'>(evt)</span>
+  </h2>
+  <p>Handles the application flow when the user clicks on the &apos;Quit&apos; button
+from the client provisioning quit app confirm dialog.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_populateScreen' class='mt0'>
+    cpsh_populateScreen<span class='gray'>(message)</span>
+  </h2>
+  <p>Makes the client provisioning screen visible and populate it.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_setPinFocus' class='mt0'>
+    cpsh_setPinFocus<span class='gray'></span>
+  </h2>
+  <p>Helper function used to set focus to pin input when transition to pin
+screen has finished.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_showApnList' class='mt0'>
+    cpsh_showApnList<span class='gray'></span>
+  </h2>
+  <p>Shows the apn list screen when there are multiple apns in a configuration
+message populating a list with each apn name.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_showConfirmInstallationDialog' class='mt0'>
+    cpsh_showConfirmInstallationDialog<span class='gray'>(message)</span>
+  </h2>
+  <p>Init the application flow showing a warning prompt that asks to the user if
+wants to install the configuration information.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cpsh_showDetails' class='mt0'>
+    cpsh_showDetails<span class='gray'>(index)</span>
+  </h2>
+  <p>Shows the apn details screen.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>index</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Utils' class='mt0'>
+    Utils<span class='gray'>(input)</span>
+  </h2>
+  <p>Various utility functions mainly used to process strings and URLs</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>input</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Static members</h4>
+        <div class='collapsible' id='Utils.deserializeParameters'>
+          <a href='#Utils.deserializeParameters'>
+            <code>
+              .deserializeParameters<span class='gray'>(input)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Retrieves the parameters from an URL and forms an object with them</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='Utils.deserializeParameters' class='mt0'>
+                deserializeParameters<span class='gray'>(input)</span>
+              </h2>
+              <p>Retrieves the parameters from an URL and forms an object with them</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>input</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A string holding the parameters attached to an URL.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>An object built using the parameters.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Utils.prepareMessageTitle'>
+          <a href='#Utils.prepareMessageTitle'>
+            <code>
+              .prepareMessageTitle<span class='gray'>(The, message)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Generate message title according from message sender and the
+serviceId if there are multiple SIMs.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='Utils.prepareMessageTitle' class='mt0'>
+                prepareMessageTitle<span class='gray'>(The, message)</span>
+              </h2>
+              <p>Generate message title according from message sender and the
+            serviceId if there are multiple SIMs.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>The</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>message from which the title will be generated.</p>
+            
+                      </span>
+                    </li>
+                    <li> <strong>message</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='detailsScreen' class='mt0'>
+    detailsScreen<span class='gray'></span>
+  </h2>
+  <p>Details screen node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='displayedSiMessage' class='mt0'>
+    displayedSiMessage<span class='gray'></span>
+  </h2>
+  <p>Currently displayed SI message (null for SL and CP messages)</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='finishButton' class='mt0'>
+    finishButton<span class='gray'></span>
+  </h2>
+  <p>Finish button node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='finishConfirmDialog' class='mt0'>
+    finishConfirmDialog<span class='gray'></span>
+  </h2>
+  <p>Finish confirm dialog node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ParsedProvisioningDoc' class='mt0'>
+    ParsedProvisioningDoc<span class='gray'>(provisioningDoc)</span>
+  </h2>
+  <p>Represents a parsed WAP provisioning document. The most important elements
+in this document are the APN objects the device needs to set up data calls.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>provisioningDoc</strong>
+          :
+          <span class='force-inline'>
+            <p>The WAP provisioning document (XML string).</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Static members</h4>
+        <div class='collapsible' id='ParsedProvisioningDoc.from'>
+          <a href='#ParsedProvisioningDoc.from'>
+            <code>
+              .from<span class='gray'>(provisioningDoc)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Parses a WAP provisioning document and returns the object holding the list
+of APN objects in the document.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedProvisioningDoc.from' class='mt0'>
+                from<span class='gray'>(provisioningDoc)</span>
+              </h2>
+              <p>Parses a WAP provisioning document and returns the object holding the list
+            of APN objects in the document.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>provisioningDoc</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The WAP provisioning document (XML string).</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A ParsedProvisioningDoc object.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ParsedProvisioningDoc.getApns'>
+          <a href='#ParsedProvisioningDoc.getApns'>
+            <code>
+              #getApns<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Gets the list of APN objects in the WAP provisioning document.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedProvisioningDoc.getApns' class='mt0'>
+                getApns<span class='gray'></span>
+              </h2>
+              <p>Gets the list of APN objects in the WAP provisioning document.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The list of APN objects.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ParsedProvisioningDoc.getNapDefNode'>
+          <a href='#ParsedProvisioningDoc.getNapDefNode'>
+            <code>
+              #getNapDefNode<span class='gray'>(toNapId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Given a network access point id it returns the NAPDEF node.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedProvisioningDoc.getNapDefNode' class='mt0'>
+                getNapDefNode<span class='gray'>(toNapId)</span>
+              </h2>
+              <p>Given a network access point id it returns the NAPDEF node.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toNapId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Network access point id.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">element</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A NAPDEF node.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ParsedProvisioningDoc.getPxPhysicalNodes'>
+          <a href='#ParsedProvisioningDoc.getPxPhysicalNodes'>
+            <code>
+              #getPxPhysicalNodes<span class='gray'>(toProxyNode)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Given a PXLOGICAL node it returns the list of PXPHYSICAL (PXPHYSICAL
+characteristics convey information on physical instances of a logical
+proxy) nodes inside.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedProvisioningDoc.getPxPhysicalNodes' class='mt0'>
+                getPxPhysicalNodes<span class='gray'>(toProxyNode)</span>
+              </h2>
+              <p>Given a PXLOGICAL node it returns the list of PXPHYSICAL (PXPHYSICAL
+            characteristics convey information on physical instances of a logical
+            proxy) nodes inside.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">element</a></code> <strong>toProxyNode</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A PXLOGICAL node.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/NodeList">NodeList</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>List of PXPHYSICAL nodes.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ParsedProvisioningDoc.parse'>
+          <a href='#ParsedProvisioningDoc.parse'>
+            <code>
+              #parse<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Parses the WAP provisioning document. It mainly parses the document and
+saves the APN objects.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ParsedProvisioningDoc.parse' class='mt0'>
+                parse<span class='gray'></span>
+              </h2>
+              <p>Parses the WAP provisioning document. It mainly parses the document and
+            saves the APN objects.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='header' class='mt0'>
+    header<span class='gray'></span>
+  </h2>
+  <p>Header node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='headerDetails' class='mt0'>
+    headerDetails<span class='gray'></span>
+  </h2>
+  <p>Header of details screen</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='iccCardIndex' class='mt0'>
+    iccCardIndex<span class='gray'></span>
+  </h2>
+  <p>Index of the card on which the message was received.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='installCfgConfirmDialog' class='mt0'>
+    installCfgConfirmDialog<span class='gray'></span>
+  </h2>
+  <p>Install configuration confirm dialog node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isDocumentValid' class='mt0'>
+    isDocumentValid<span class='gray'></span>
+  </h2>
+  <p>Flag that holds the result of the authentication process</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='link' class='mt0'>
+    link<span class='gray'></span>
+  </h2>
+  <p>Message link</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_allowedEvents' class='mt0'>
+    mdb_allowedEvents<span class='gray'></span>
+  </h2>
+  <p>List of events which can be listened to on this object.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_clear' class='mt0'>
+    mdb_clear<span class='gray'></span>
+  </h2>
+  <p>Removes all messages from the database. Returns a promise that is
+resolved when the operation has completed. This does not fire events.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for this operation.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_deleteById' class='mt0'>
+    mdb_deleteById<span class='gray'>(store, id)</span>
+  </h2>
+  <p>Deletes all messages with the specified si-id. Generates a &apos;delete&apos;
+event for every message that was deleted.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>store</strong>
+          :
+          <span class='force-inline'>
+            <p>The messages&apos; object store.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>The si-id of the messages to be deleted.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_deleteByTimestamp' class='mt0'>
+    mdb_deleteByTimestamp<span class='gray'>(timestamp)</span>
+  </h2>
+  <p>Deletes all the messages with the specified timestamp.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>timestamp</strong>
+          :
+          <span class='force-inline'>
+            <p>The timestamp used to identify the messages to
+be deleted.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for this operation.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_deleteViewedMessages' class='mt0'>
+    mdb_deleteViewedMessages<span class='gray'></span>
+  </h2>
+  <p>Delete all the messages that have been marked as viewed, this is done at
+startup to get rid of all the messages that have already been shown to the
+user.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for this operation</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_dispatchEvent' class='mt0'>
+    mdb_dispatchEvent<span class='gray'>(type, target)</span>
+  </h2>
+  <p>Dispatches a new event to the registered event handlers.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>type</strong>
+          :
+          <span class='force-inline'>
+            <p>The event type.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            <p>The event target, usually a message.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_open' class='mt0'>
+    mdb_open<span class='gray'></span>
+  </h2>
+  <p>Opens the database, creates it if it has not been created already. Returns
+a promise that is resolved with the value of the database object or
+rejected with an error object.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for this operation.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_processMessage' class='mt0'>
+    mdb_processMessage<span class='gray'>(store, message)</span>
+  </h2>
+  <p>Process a message executing the associated action. This deals with
+messages with a &apos;delete&apos; action by deleting all coresponding message and
+with new messages by storing them.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>store</strong>
+          :
+          <span class='force-inline'>
+            <p>The messages&apos; object store.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            <p>The message to be processed.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Returns true if the message has been stored, false
+if it&apos;s been deleted.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_put' class='mt0'>
+    mdb_put<span class='gray'>(message)</span>
+  </h2>
+  <p>Adds a message to the message database according to the out-of-order
+delivery rules specified in WAP-167 6.2. Returns a promise that is
+resolved when the message has been stored. This will dispatch all the
+appropriate events.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            <p>A parsed WAP Push message to be processed.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for this operation.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_retrieve' class='mt0'>
+    mdb_retrieve<span class='gray'>(timestamp)</span>
+  </h2>
+  <p>Retrieves a message and passes it to the success callback as its sole
+parameter. Once retrieved the message is marked for removal and deleted
+the next time the application is started except if it&apos;s a CP message in
+which case it can only be deleted explicitly. A promise is returned that
+will resolve to the message. If the message is not found then the promise
+will resolve to the null value.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>timestamp</strong>
+          :
+          <span class='force-inline'>
+            <p>The timestamp identifiying the message to be
+retrieved.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for this operation.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mdb_transactionPromise' class='mt0'>
+    mdb_transactionPromise<span class='gray'>(transaction)</span>
+  </h2>
+  <p>Turns an IndexedDB transaction in a promise that is resolved when the
+transaction completes or is rejected if it fails.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>transaction</strong>
+          :
+          <span class='force-inline'>
+            <p>An IDBTransaction object.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is resolved when the transaction
+completes or is rejected if an error occurs.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='MessageDB@delete' class='mt0'>
+    MessageDB@delete<span class='gray'></span>
+  </h2>
+  <p>Delete event : emitted when a message has been deleted</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='MessageDB#discard' class='mt0'>
+    MessageDB#discard<span class='gray'></span>
+  </h2>
+  <p>Discard event, emitted when a message was discarded instea of being
+stored in the database.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='MessageDB#new' class='mt0'>
+    MessageDB#new<span class='gray'></span>
+  </h2>
+  <p>New event, emitted when a new message has been stored in the database</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='MessageDB#update' class='mt0'>
+    MessageDB#update<span class='gray'></span>
+  </h2>
+  <p>Update event, emitted when an existing message was updated.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='messageTag' class='mt0'>
+    messageTag<span class='gray'></span>
+  </h2>
+  <p>Message id for notification management</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='multipleApns' class='mt0'>
+    multipleApns<span class='gray'></span>
+  </h2>
+  <p>Flag to define the flow of details screen</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pa_isDocumentValid' class='mt0'>
+    pa_isDocumentValid<span class='gray'>(pin, auth, userPin, authInfo)</span>
+  </h2>
+  <p>Determines whether the sender (tipically the Client Provisioning server)
+could be authenticate as the sender of the message.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>pin</strong>
+          :
+          <span class='force-inline'>
+            <p>The PIN introduced by the user.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>auth</strong>
+          :
+          <span class='force-inline'>
+            <p>An object containing some info such as the
+security mechanism used, the MAC, the raw message
+data in binary format (Uint8Array object).</p>
+
+          </span>
+        </li>
+        <li> <strong>userPin</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>authInfo</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      
+      <span class='force-inline'>
+        
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pa_sign' class='mt0'>
+    pa_sign<span class='gray'>(key, data, dataLength)</span>
+  </h2>
+  <p>Signs the message data. It performs a HMAC SHA1 signing method.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>key</strong>
+          :
+          <span class='force-inline'>
+            <p>The key string.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a></code> <strong>data</strong>
+          :
+          <span class='force-inline'>
+            <p>The message data.</p>
+
+          </span>
+        </li>
+        <li><code>Integer</code> <strong>dataLength</strong>
+          :
+          <span class='force-inline'>
+            <p>The length of the message data.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>The MAC we have generated.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pa_userNetwPinAuthentication' class='mt0'>
+    pa_userNetwPinAuthentication<span class='gray'></span>
+  </h2>
+  <p>Helper than handles USERNETWPIN authentication mechanism.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A flag that indicates the sender of the message could be
+authenticated as valid.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pa_userPinAuthentication' class='mt0'>
+    pa_userPinAuthentication<span class='gray'></span>
+  </h2>
+  <p>Helper than handles USERPIN authentication mechanism.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A flag that indicates the sender of the message could be
+authenticated as valid.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pa_userPinMacAuthentication' class='mt0'>
+    pa_userPinMacAuthentication<span class='gray'></span>
+  </h2>
+  <p>Helper than handles USERPINMAC authentication mechanism.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A flag that indicates the sender of the message could be
+authenticated as valid.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='parseNapDefNode' class='mt0'>
+    parseNapDefNode<span class='gray'>(napDefNode)</span>
+  </h2>
+  <p>Helper function.
+Creates an untyped object from a NAPDEF node.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">element</a></code> <strong>napDefNode</strong>
+          :
+          <span class='force-inline'>
+            <p>An NAPDEF node.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>An untyped object holding the properties of an
+PXPHYSICAL node.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='parsePxPhysicalNode' class='mt0'>
+    parsePxPhysicalNode<span class='gray'>(pxPhysicalNode, isMmsProxy)</span>
+  </h2>
+  <p>Helper function.
+Creates an untyped object from a PXPHYSICAL node.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">element</a></code> <strong>pxPhysicalNode</strong>
+          :
+          <span class='force-inline'>
+            <p>An PXPHYSICAL node.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code> <strong>isMmsProxy</strong>
+          :
+          <span class='force-inline'>
+            <p>Determines whether PXPHYSICAL node is a
+proxy for MMS.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>An untyped object holding the properties of an
+PXPHYSICAL node.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pendingMessages' class='mt0'>
+    pendingMessages<span class='gray'></span>
+  </h2>
+  <p>Number of messages that have been received but haven&apos;t been fully
+processed yet</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pin' class='mt0'>
+    pin<span class='gray'></span>
+  </h2>
+  <p>The PIN introduced by the user</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pin' class='mt0'>
+    pin<span class='gray'></span>
+  </h2>
+  <p>PIN input node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pinHelp' class='mt0'>
+    pinHelp<span class='gray'></span>
+  </h2>
+  <p>Help message</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pinScreen' class='mt0'>
+    pinScreen<span class='gray'></span>
+  </h2>
+  <p>Pin screen node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='processed' class='mt0'>
+    processed<span class='gray'></span>
+  </h2>
+  <p>The message has not been processed yet</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ProvisioningAuthentication' class='mt0'>
+    ProvisioningAuthentication<span class='gray'></span>
+  </h2>
+  <p>Singleton object that authenticates the sender of the client provisioning
+message.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='provisioningDoc' class='mt0'>
+    provisioningDoc<span class='gray'></span>
+  </h2>
+  <p>WAP provisioning document</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='quitAppConfirmDialog' class='mt0'>
+    quitAppConfirmDialog<span class='gray'></span>
+  </h2>
+  <p>Quit app confirm dialog node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='quitButton' class='mt0'>
+    quitButton<span class='gray'></span>
+  </h2>
+  <p>Quit app button node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='screen' class='mt0'>
+    screen<span class='gray'></span>
+  </h2>
+  <p>Screen node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='showPINInput' class='mt0'>
+    showPINInput<span class='gray'></span>
+  </h2>
+  <p>User PIN is needed, show input node</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sp_getMccMncCodes' class='mt0'>
+    sp_getMccMncCodes<span class='gray'>(iccCardIndex, callback)</span>
+  </h2>
+  <p>Loads the operator numeric value (MCC and MNC codes) stored into the
+settings database. The APNs are stored relaying on these codes.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>iccCardIndex</strong>
+          :
+          <span class='force-inline'>
+            <p>Index of the card on which the message was
+received. We are going to add the apns to
+the right card.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>It will be called once the work is done (only
+useful for unit testing). This function doesn&apos;t
+any parameter.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sp_provision' class='mt0'>
+    sp_provision<span class='gray'>(parameters, iccCardIndex, callback)</span>
+  </h2>
+  <p>Stores the APNs into the settings database.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>parameters</strong>
+          :
+          <span class='force-inline'>
+            <p>The array containing the APNs.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>iccCardIndex</strong>
+          :
+          <span class='force-inline'>
+            <p>Index of the card on which the message was
+received.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>It will be called once the work is done (only
+useful for unit testing). This function doesn&apos;t
+accetp any parameter.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sssh_hide' class='mt0'>
+    sssh_hide<span class='gray'></span>
+  </h2>
+  <p>Hide the SI/SL screen helper</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sssh_onClose' class='mt0'>
+    sssh_onClose<span class='gray'></span>
+  </h2>
+  <p>Closes the application</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='StoreProvisioning' class='mt0'>
+    StoreProvisioning<span class='gray'></span>
+  </h2>
+  <p>The StoreProvisioning singleton is a database helper in charge of storing the
+APNs into the settings database.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='text' class='mt0'>
+    text<span class='gray'></span>
+  </h2>
+  <p>Message text</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='title' class='mt0'>
+    title<span class='gray'></span>
+  </h2>
+  <p>Title of the message, usually holds the sender&apos;s number</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='titleApn' class='mt0'>
+    titleApn<span class='gray'></span>
+  </h2>
+  <p>Title of the message, usually holds the sender&apos;s number</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wapPushEnabled' class='mt0'>
+    wapPushEnabled<span class='gray'></span>
+  </h2>
+  <p>Enable/disable WAP Push notifications</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wapPushEnableKey' class='mt0'>
+    wapPushEnableKey<span class='gray'></span>
+  </h2>
+  <p>Settings key for enabling/disabling WAP Push messages</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='WapPushManager' class='mt0'>
+    WapPushManager<span class='gray'></span>
+  </h2>
+  <p>Handles incoming WAP Push messages and contains the functionality required
+to post notifications and display their contents</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_clearNotifications' class='mt0'>
+    wpm_clearNotifications<span class='gray'>(tag)</span>
+  </h2>
+  <p>Remove notifications for a given tag.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>tag</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that gets resolved once the notifications have
+been cleared and rejects in case of error.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_close' class='mt0'>
+    wpm_close<span class='gray'></span>
+  </h2>
+  <p>Closes the application. Whenever this function is called it
+starts a timer that will eventually close the application when no more
+messages are being processed. Calling close multiple times is safe as only
+one timer can be active at a time so subsequent calls will effectively be
+no-ops.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_displayWapPushMessage' class='mt0'>
+    wpm_displayWapPushMessage<span class='gray'>(id)</span>
+  </h2>
+  <p>Retrieves a WAP Push message from the database and displays it</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>The message id as a string.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that resolves once the message has been
+displayed and the associated notification cleared.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_finish' class='mt0'>
+    wpm_finish<span class='gray'></span>
+  </h2>
+  <p>Marks a message as processed and close the application if no more messages
+are present and the application is not visible.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_getApp' class='mt0'>
+    wpm_getApp<span class='gray'></span>
+  </h2>
+  <p>Returns a promise used to retrieve the app&apos;s own object.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for the app object.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_getConfig' class='mt0'>
+    wpm_getConfig<span class='gray'></span>
+  </h2>
+  <p>Returns a promise used to retrieve the configuration of the app.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for the app configuration.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_init' class='mt0'>
+    wpm_init<span class='gray'></span>
+  </h2>
+  <p>Initialize the WAP Push manager, this only subscribes to the
+wappush-received message handler at the moment.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that will be fullfilled once the component has
+been fully initialized.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_onDelete' class='mt0'>
+    wpm_onDelete<span class='gray'>(obj)</span>
+  </h2>
+  <p>Removes the notifications for messages that have been deleted and closes
+the app if the message being viewed has been deleted.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>obj</strong>
+          :
+          <span class='force-inline'>
+            <p>The deleted message in untyped form (i.e. JSON)</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_onDiscard' class='mt0'>
+    wpm_onDiscard<span class='gray'></span>
+  </h2>
+  <p>Prints a debug statement when a message has been discarded, no further
+action required.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_onNew' class='mt0'>
+    wpm_onNew<span class='gray'>(obj)</span>
+  </h2>
+  <p>Reacts to a new message being added to the database by showing a
+notification or directly showing the message if required by the action
+field.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>obj</strong>
+          :
+          <span class='force-inline'>
+            <p>The new message in untyped form (i.e. JSON)</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_onNotification' class='mt0'>
+    wpm_onNotification<span class='gray'>(message)</span>
+  </h2>
+  <p>Displays the contents of a WAP Push message</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            <p>The notification event.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_onSettingsChange' class='mt0'>
+    wpm_onSettingsChange<span class='gray'>(A, v)</span>
+  </h2>
+  <p>Handler invoked when the &apos;wap.push.enabled&apos; option changes.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>A</strong>
+          :
+          <span class='force-inline'>
+            <p>settings object holding the new value.</p>
+
+          </span>
+        </li>
+        <li> <strong>v</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_onUpdate' class='mt0'>
+    wpm_onUpdate<span class='gray'>(obj)</span>
+  </h2>
+  <p>Reacts to a message being updated in the database by updating the
+notification and possibly the message being shown to the user.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>obj</strong>
+          :
+          <span class='force-inline'>
+            <p>The new message in untyped form (i.e. JSON)</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_onVisibilityChange' class='mt0'>
+    wpm_onVisibilityChange<span class='gray'></span>
+  </h2>
+  <p>Closes the application whenever it is hidden</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_onWapPushReceived' class='mt0'>
+    wpm_onWapPushReceived<span class='gray'>(wapMessage)</span>
+  </h2>
+  <p>Handler for the wappush-received system messages, stores the message into
+the internal database and posts a notification which can be used to
+display the message. This method returns a promise which is currently used
+only when testing. It is also exposed for testing reasons but shouldn&apos;t be
+used outside of this file.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>wapMessage</strong>
+          :
+          <span class='force-inline'>
+            <p>The WAP Push message as provided by the system.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is resolved when the method executed
+successfully or rejected with the error code that caused the
+method to fail.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_sendNotification' class='mt0'>
+    wpm_sendNotification<span class='gray'>(message)</span>
+  </h2>
+  <p>Send a notification for the provided message</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            <p>The message the user needs to be notified of</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is resolved once the notification has been
+sent and its events hooked up properly.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='wpm_shouldDisplayMessage' class='mt0'>
+    wpm_shouldDisplayMessage<span class='gray'>(message)</span>
+  </h2>
+  <p>Establish if we must show this message or not; the message is shown only
+if WAP Push functionality is enabled, the sender&apos;s MSISDN is whitelisted
+or whitelisting is disabled</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            <p>A parsed WAP Push message.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>true if the message should be displayed, false otherwise.</p>
+
+      </span>
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#ProvisioningAuthentication">ProvisioningAuthentication</a></li><li><a href="global.html#StoreProvisioning">StoreProvisioning</a></li><li><a href="global.html#WhiteList">WhiteList</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:18 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

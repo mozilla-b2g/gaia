@@ -1,84 +1,2399 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#ToneList'
+                class='block bold'>
+                ToneList
+              </a>
+                <a
+                  href='#ToneList._append'
+                  class='regular block'>
+                  #_append
+                </a>
+                <a
+                  href='#ToneList._insertSorted'
+                  class='regular block'>
+                  #_insertSorted
+                </a>
+                <a
+                  href='#ToneList.add'
+                  class='regular block'>
+                  #add
+                </a>
+                <a
+                  href='#ToneList.makeItem'
+                  class='regular block'>
+                  #makeItem
+                </a>
+                <a
+                  href='#ToneList.remove'
+                  class='regular block'>
+                  #remove
+                </a>
+              <a
+                href='#ActionsMenu'
+                class='block bold'>
+                ActionsMenu
+              </a>
+                <a
+                  href='#ActionsMenu._cancel'
+                  class='regular block'>
+                  #_cancel
+                </a>
+                <a
+                  href='#ActionsMenu._delete'
+                  class='regular block'>
+                  #_delete
+                </a>
+                <a
+                  href='#ActionsMenu._finish'
+                  class='regular block'>
+                  #_finish
+                </a>
+                <a
+                  href='#ActionsMenu._share'
+                  class='regular block'>
+                  #_share
+                </a>
+                <a
+                  href='#ActionsMenu.close'
+                  class='regular block'>
+                  #close
+                </a>
+                <a
+                  href='#ActionsMenu.open'
+                  class='regular block'>
+                  #open
+                </a>
+              <a
+                href='#_getSetting'
+                class='block bold'>
+                _getSetting
+              </a>
+              <a
+                href='#_getSettingsBase'
+                class='block bold'>
+                _getSettingsBase
+              </a>
+              <a
+                href='#BuiltInRingtone'
+                class='block bold'>
+                BuiltInRingtone
+              </a>
+                <a
+                  href='#BuiltInRingtone._rootName'
+                  class='regular block'>
+                  #_rootName
+                </a>
+                <a
+                  href='#BuiltInRingtone.deletable'
+                  class='regular block'>
+                  #deletable
+                </a>
+                <a
+                  href='#BuiltInRingtone.filename'
+                  class='regular block'>
+                  #filename
+                </a>
+                <a
+                  href='#BuiltInRingtone.getBlob'
+                  class='regular block'>
+                  #getBlob
+                </a>
+                <a
+                  href='#BuiltInRingtone.id'
+                  class='regular block'>
+                  #id
+                </a>
+                <a
+                  href='#BuiltInRingtone.l10nID'
+                  class='regular block'>
+                  #l10nID
+                </a>
+                <a
+                  href='#BuiltInRingtone.name'
+                  class='regular block'>
+                  #name
+                </a>
+                <a
+                  href='#BuiltInRingtone.shareable'
+                  class='regular block'>
+                  #shareable
+                </a>
+                <a
+                  href='#BuiltInRingtone.type'
+                  class='regular block'>
+                  #type
+                </a>
+                <a
+                  href='#BuiltInRingtone.url'
+                  class='regular block'>
+                  #url
+                </a>
+              <a
+                href='#TonePlayer'
+                class='block bold'>
+                TonePlayer
+              </a>
+                <a
+                  href='#TonePlayer._setExclusiveMode'
+                  class='regular block'>
+                  #_setExclusiveMode
+                </a>
+                <a
+                  href='#TonePlayer.currentTone'
+                  class='regular block'>
+                  #currentTone
+                </a>
+                <a
+                  href='#TonePlayer.isValid'
+                  class='regular block'>
+                  #isValid
+                </a>
+                <a
+                  href='#TonePlayer.setTone'
+                  class='regular block'>
+                  #setTone
+                </a>
+                <a
+                  href='#TonePlayer.stop'
+                  class='regular block'>
+                  #stop
+                </a>
+              <a
+                href='#CustomRingtone'
+                class='block bold'>
+                CustomRingtone
+              </a>
+                <a
+                  href='#CustomRingtone.deletable'
+                  class='regular block'>
+                  #deletable
+                </a>
+                <a
+                  href='#CustomRingtone.filename'
+                  class='regular block'>
+                  #filename
+                </a>
+                <a
+                  href='#CustomRingtone.getBlob'
+                  class='regular block'>
+                  #getBlob
+                </a>
+                <a
+                  href='#CustomRingtone.id'
+                  class='regular block'>
+                  #id
+                </a>
+                <a
+                  href='#CustomRingtone.name'
+                  class='regular block'>
+                  #name
+                </a>
+                <a
+                  href='#CustomRingtone.remove'
+                  class='regular block'>
+                  #remove
+                </a>
+                <a
+                  href='#CustomRingtone.shareable'
+                  class='regular block'>
+                  #shareable
+                </a>
+                <a
+                  href='#CustomRingtone.subtitle'
+                  class='regular block'>
+                  #subtitle
+                </a>
+                <a
+                  href='#CustomRingtone.type'
+                  class='regular block'>
+                  #type
+                </a>
+                <a
+                  href='#CustomRingtone.url'
+                  class='regular block'>
+                  #url
+                </a>
+              <a
+                href='#SDCardRingtone'
+                class='block bold'>
+                SDCardRingtone
+              </a>
+                <a
+                  href='#SDCardRingtone.deletable'
+                  class='regular block'>
+                  #deletable
+                </a>
+                <a
+                  href='#SDCardRingtone.filename'
+                  class='regular block'>
+                  #filename
+                </a>
+                <a
+                  href='#SDCardRingtone.getBlob'
+                  class='regular block'>
+                  #getBlob
+                </a>
+                <a
+                  href='#SDCardRingtone.id'
+                  class='regular block'>
+                  #id
+                </a>
+                <a
+                  href='#SDCardRingtone.name'
+                  class='regular block'>
+                  #name
+                </a>
+                <a
+                  href='#SDCardRingtone.remove'
+                  class='regular block'>
+                  #remove
+                </a>
+                <a
+                  href='#SDCardRingtone.shareable'
+                  class='regular block'>
+                  #shareable
+                </a>
+                <a
+                  href='#SDCardRingtone.subtitle'
+                  class='regular block'>
+                  #subtitle
+                </a>
+                <a
+                  href='#SDCardRingtone.type'
+                  class='regular block'>
+                  #type
+                </a>
+                <a
+                  href='#SDCardRingtone.url'
+                  class='regular block'>
+                  #url
+                </a>
+              <a
+                href='#NullRingtone'
+                class='block bold'>
+                NullRingtone
+              </a>
+                <a
+                  href='#NullRingtone.deletable'
+                  class='regular block'>
+                  #deletable
+                </a>
+                <a
+                  href='#NullRingtone.filename'
+                  class='regular block'>
+                  #filename
+                </a>
+                <a
+                  href='#NullRingtone.getBlob'
+                  class='regular block'>
+                  #getBlob
+                </a>
+                <a
+                  href='#NullRingtone.id'
+                  class='regular block'>
+                  #id
+                </a>
+                <a
+                  href='#NullRingtone.l10nID'
+                  class='regular block'>
+                  #l10nID
+                </a>
+                <a
+                  href='#NullRingtone.name'
+                  class='regular block'>
+                  #name
+                </a>
+                <a
+                  href='#NullRingtone.shareable'
+                  class='regular block'>
+                  #shareable
+                </a>
+                <a
+                  href='#NullRingtone.type'
+                  class='regular block'>
+                  #type
+                </a>
+                <a
+                  href='#NullRingtone.url'
+                  class='regular block'>
+                  #url
+                </a>
+              <a
+                href='#domify'
+                class='block bold'>
+                domify
+              </a>
+              <a
+                href='#getSoundFilenames'
+                class='block bold'>
+                getSoundFilenames
+              </a>
+              <a
+                href='#idMatchesFilename'
+                class='block bold'>
+                idMatchesFilename
+              </a>
+              <a
+                href='#idToDBKey'
+                class='block bold'>
+                idToDBKey
+              </a>
+              <a
+                href='#idToFilename'
+                class='block bold'>
+                idToFilename
+              </a>
+              <a
+                href='#idToToneType'
+                class='block bold'>
+                idToToneType
+              </a>
+              <a
+                href='#inferMimeType'
+                class='block bold'>
+                inferMimeType
+              </a>
+              <a
+                href='#pathToType'
+                class='block bold'>
+                pathToType
+              </a>
+              <a
+                href='#systemTones'
+                class='block bold'>
+                systemTones
+              </a>
+              <a
+                href='#toneCompare'
+                class='block bold'>
+                toneCompare
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='ToneList' class='mt0'>
+    ToneList<span class='gray'>(titleID, parent)</span>
+  </h2>
+  <p>Create a new list of tones. Assumes that mozL10n has already been fully
+initialized. This class is meant to be subclassed by consumers; feel free
+to extend makeItem() to do whatever you need!</p>
 
-<body>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>titleID</strong>
+          :
+          <span class='force-inline'>
+            <p>The l10n ID of the list&apos;s header</p>
 
-<div id="main">
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling">Node</a></code> <strong>parent</strong>
+          :
+          <span class='force-inline'>
+            <p>(optional) The parent node to append this list to.</p>
 
-    <h1 class="page-title">Home</h1>
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ToneList._append'>
+          <a href='#ToneList._append'>
+            <code>
+              #_append<span class='gray'>(tone)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Append a tone object to the end of the list. Useful when we know it
+belongs at the end.</p>
 
-    
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ToneList._append' class='mt0'>
+                _append<span class='gray'>(tone)</span>
+              </h2>
+              <p>Append a tone object to the end of the list. Useful when we know it
+            belongs at the end.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>Tone</code> <strong>tone</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The tone to append.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ToneList._insertSorted'>
+          <a href='#ToneList._insertSorted'>
+            <code>
+              #_insertSorted<span class='gray'>(tone)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Insert a tone object into the list based on its sort order.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ToneList._insertSorted' class='mt0'>
+                _insertSorted<span class='gray'>(tone)</span>
+              </h2>
+              <p>Insert a tone object into the list based on its sort order.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>Tone</code> <strong>tone</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The tone to insert.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ToneList.add'>
+          <a href='#ToneList.add'>
+            <code>
+              #add<span class='gray'>(tones)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Insert a tone or array of tones in sorted order into the list.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ToneList.add' class='mt0'>
+                add<span class='gray'>(tones)</span>
+              </h2>
+              <p>Insert a tone or array of tones in sorted order into the list.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>tones</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A single tone object or an array thereof.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ToneList.makeItem'>
+          <a href='#ToneList.makeItem'>
+            <code>
+              #makeItem<span class='gray'>(tone)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Create and return a list item for a tone.</p>
 
-    
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ToneList.makeItem' class='mt0'>
+                makeItem<span class='gray'>(tone)</span>
+              </h2>
+              <p>Create and return a list item for a tone.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>tone</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The tone to use for the list item.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling">Node</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The list item.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ToneList.remove'>
+          <a href='#ToneList.remove'>
+            <code>
+              #remove<span class='gray'>(tone)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Remove an item from the list.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ToneList.remove' class='mt0'>
+                remove<span class='gray'>(tone)</span>
+              </h2>
+              <p>Remove an item from the list.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>Tone</code> <strong>tone</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The tone to remove.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ActionsMenu' class='mt0'>
+    ActionsMenu<span class='gray'>(menuElement)</span>
+  </h2>
+  <p>Create an actions menu to allow managing individual tones. Tones can be
+shared with other apps or (in the case of user-created tones) deleted from
+the system.</p>
 
-    <h3> </h3>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling">Node</a></code> <strong>menuElement</strong>
+          :
+          <span class='force-inline'>
+            <p>The DOM node for the menu.</p>
 
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ActionsMenu._cancel'>
+          <a href='#ActionsMenu._cancel'>
+            <code>
+              #_cancel<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Handle clicking the &quot;cancel&quot; button.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionsMenu._cancel' class='mt0'>
+                _cancel<span class='gray'>(event)</span>
+              </h2>
+              <p>Handle clicking the &quot;cancel&quot; button.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event</a></code> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The event.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActionsMenu._delete'>
+          <a href='#ActionsMenu._delete'>
+            <code>
+              #_delete<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Handle clicking the &quot;delete&quot; button.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionsMenu._delete' class='mt0'>
+                _delete<span class='gray'>(event)</span>
+              </h2>
+              <p>Handle clicking the &quot;delete&quot; button.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event</a></code> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The event.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActionsMenu._finish'>
+          <a href='#ActionsMenu._finish'>
+            <code>
+              #_finish<span class='gray'>(command)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Fire our callback function and clean up the internal state of the menu.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionsMenu._finish' class='mt0'>
+                _finish<span class='gray'>(command)</span>
+              </h2>
+              <p>Fire our callback function and clean up the internal state of the menu.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>command</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The command that was selected.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActionsMenu._share'>
+          <a href='#ActionsMenu._share'>
+            <code>
+              #_share<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Handle clicking the &quot;share&quot; button.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionsMenu._share' class='mt0'>
+                _share<span class='gray'>(event)</span>
+              </h2>
+              <p>Handle clicking the &quot;share&quot; button.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event</a></code> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The event.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActionsMenu.close'>
+          <a href='#ActionsMenu.close'>
+            <code>
+              #close<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Close the actions menu.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionsMenu.close' class='mt0'>
+                close<span class='gray'></span>
+              </h2>
+              <p>Close the actions menu.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActionsMenu.open'>
+          <a href='#ActionsMenu.open'>
+            <code>
+              #open<span class='gray'>(tone, inUseAs, callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Open the actions menu.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActionsMenu.open' class='mt0'>
+                open<span class='gray'>(tone, inUseAs, callback)</span>
+              </h2>
+              <p>Open the actions menu.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>Tone</code> <strong>tone</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The tone to perform actions on.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>inUseAs</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>An array representing the places using this tone.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A callback to call when the actions menu is
+            closed. Takes one argument: the action that was performed.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_getSetting' class='mt0'>
+    _getSetting<span class='gray'>(settingKey)</span>
+  </h2>
+  <p>Get the value of a setting.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>settingKey</strong>
+          :
+          <span class='force-inline'>
+            <p>The name of the setting.</p>
 
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise returning the setting&apos;s value.</p>
 
-    
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_getSettingsBase' class='mt0'>
+    _getSettingsBase<span class='gray'>(toneType)</span>
+  </h2>
+  <p>Get the base path for the tone settings.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
+          :
+          <span class='force-inline'>
+            <p>The type of the tone (&apos;ringtone&apos; or &apos;alerttone&apos;).</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BuiltInRingtone' class='mt0'>
+    BuiltInRingtone<span class='gray'>(toneType, filename, toneDef)</span>
+  </h2>
+  <p>Create a new built-in ringtone object.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
+          :
+          <span class='force-inline'>
+            <p>The kind of tone (ringtone or alerttone).</p>
 
-    <section>
-        <article><h1>Gaia Ringtones</h1><p>This app is responsible for managing ringtones on Firefox OS. There are three
-entry points into the ringtones app:</p>
-<h3>Management</h3><p>Located in <code>manage.html</code>, ringtone management can be accessed from
-<code>Settings -&gt; Sound -&gt; Manage Ringtones</code>. This lists all ringtones (built-in and
-user-created), and allows deleting or sharing them as appropriate. You can also
-create new ringtones, which will initiate a <code>'pick'</code> activity and then
-effectively open the ringtone app's <code>'share'</code> activity.</p>
-<h3>Pick</h3><p>Located in <code>pick.html</code>, this allows other apps to choose a ringtone. Notably,
-this is used in the Settings app under <code>Settings -&gt; Sound -&gt; Ringer</code> and
-<code>Settings -&gt; Sound -&gt; Alert Tone</code>. The pick activity expects a type of
-<code>'ringtone'</code> or <code>'alerttone'</code>; whichever type is requested will be shown first
-in the list. After that, we show custom ringtones, and then ringtones of
-unasked-for types.</p>
-<h3>Share</h3><p>Located in <code>share.html</code>, this allows other apps to create a new ringtone. This
-is also used in reverse to finalize creation of a ringtone from the ringtones
-management screen.</p></article>
-    </section>
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>filename</strong>
+          :
+          <span class='force-inline'>
+            <p>The filename of the ringtone.</p>
 
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>toneDef</strong>
+          :
+          <span class='force-inline'>
+            <p>The tone&apos;s definition from list.json.</p>
 
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='BuiltInRingtone._rootName'>
+          <a href='#BuiltInRingtone._rootName'>
+            <code>
+              #_rootName<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone._rootName' class='mt0'>
+                _rootName<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The filename without the extension.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.deletable'>
+          <a href='#BuiltInRingtone.deletable'>
+            <code>
+              #deletable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.deletable' class='mt0'>
+                deletable<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Whether this ringtone is deletable (always false).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.filename'>
+          <a href='#BuiltInRingtone.filename'>
+            <code>
+              #filename<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.filename' class='mt0'>
+                filename<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The filename of the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.getBlob'>
+          <a href='#BuiltInRingtone.getBlob'>
+            <code>
+              #getBlob<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Gets a blob for this tone.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.getBlob' class='mt0'>
+                getBlob<span class='gray'></span>
+              </h2>
+              <p>Gets a blob for this tone.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A promise returning a Blob of the audio data.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.id'>
+          <a href='#BuiltInRingtone.id'>
+            <code>
+              #id<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.id' class='mt0'>
+                id<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A unique ID for the tone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.l10nID'>
+          <a href='#BuiltInRingtone.l10nID'>
+            <code>
+              #l10nID<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.l10nID' class='mt0'>
+                l10nID<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The l10n ID for the tone&apos;s name.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.name'>
+          <a href='#BuiltInRingtone.name'>
+            <code>
+              #name<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.name' class='mt0'>
+                name<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The localized name of the tone. Assumes that mozL10n has
+            been initialized.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.shareable'>
+          <a href='#BuiltInRingtone.shareable'>
+            <code>
+              #shareable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.shareable' class='mt0'>
+                shareable<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Whether this ringtone is shareable (always true).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.type'>
+          <a href='#BuiltInRingtone.type'>
+            <code>
+              #type<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.type' class='mt0'>
+                type<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The type of the tone. Either &quot;ringtone&quot; or &quot;alerttone&quot;.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BuiltInRingtone.url'>
+          <a href='#BuiltInRingtone.url'>
+            <code>
+              #url<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='BuiltInRingtone.url' class='mt0'>
+                url<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A URL pointing to the tone&apos;s audio data.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='TonePlayer' class='mt0'>
+    TonePlayer<span class='gray'></span>
+  </h2>
+  <p>Create a new TonePlayer that manages the logic for previewing a ringtone or
+alert tone. There should only be one of these in use at any given time, since
+this object mucks about with audio channels.</p>
 
+      <h4>Instance members</h4>
+        <div class='collapsible' id='TonePlayer._setExclusiveMode'>
+          <a href='#TonePlayer._setExclusiveMode'>
+            <code>
+              #_setExclusiveMode<span class='gray'>(exclusive)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Creates an AudioContext with &quot;ringer&quot; priority to stop any background audio
+from playing once we&apos;ve started previewing ringtones, or destroys the
+context.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='TonePlayer._setExclusiveMode' class='mt0'>
+                _setExclusiveMode<span class='gray'>(exclusive)</span>
+              </h2>
+              <p>Creates an AudioContext with &quot;ringer&quot; priority to stop any background audio
+            from playing once we&apos;ve started previewing ringtones, or destroys the
+            context.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>exclusive</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>true to create the AudioContext, false to
+            destroy.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='TonePlayer.currentTone'>
+          <a href='#TonePlayer.currentTone'>
+            <code>
+              #currentTone<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Get the current tone that the TonePlayer is (or was) playing.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='TonePlayer.currentTone' class='mt0'>
+                currentTone<span class='gray'></span>
+              </h2>
+              <p>Get the current tone that the TonePlayer is (or was) playing.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='TonePlayer.isValid'>
+          <a href='#TonePlayer.isValid'>
+            <code>
+              #isValid<span class='gray'>(callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Get the validation status of the currently-selected tone.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='TonePlayer.isValid' class='mt0'>
+                isValid<span class='gray'>(callback)</span>
+              </h2>
+              <p>Get the validation status of the currently-selected tone.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A callback to call when we have the validation
+            status. Takes one argument, which is a boolean representing whether the
+            currently-selected tone is valid.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='TonePlayer.setTone'>
+          <a href='#TonePlayer.setTone'>
+            <code>
+              #setTone<span class='gray'>(tone, [callback])</span>
+            </code>
+            <span class='force-inline'>
+              <p>Select a tone and start playing a preview of this (this has the happy side
+effect of ensuring the tone is actually playable before we save it). Note:
+if this function is called twice with the same tone while the preview is
+still playing, this will stop the preview. This is nice for really long
+tones. However, it can be a bit confusing if the tone ends in a bunch of
+silence, since it stops it, but you&apos;d expect it to replay the tone.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='TonePlayer.setTone' class='mt0'>
+                setTone<span class='gray'>(tone, [callback])</span>
+              </h2>
+              <p>Select a tone and start playing a preview of this (this has the happy side
+            effect of ensuring the tone is actually playable before we save it). Note:
+            if this function is called twice with the same tone while the preview is
+            still playing, this will stop the preview. This is nice for really long
+            tones. However, it can be a bit confusing if the tone ends in a bunch of
+            silence, since it stops it, but you&apos;d expect it to replay the tone.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>tone</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The tone to select and preview.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code>]</code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The callback to call when the playback status
+            of the tone changes; takes a boolean value to indicate if the tone is
+            currently playing.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='TonePlayer.stop'>
+          <a href='#TonePlayer.stop'>
+            <code>
+              #stop<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Stop playing the current tone (if any). If we start playing it again,
+setTone will reset the current time to 0. Note: even though we&apos;re stopping,
+we don&apos;t want to clear the player&apos;s src URL, since we might need that to
+restart playback of the same song.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='TonePlayer.stop' class='mt0'>
+                stop<span class='gray'></span>
+              </h2>
+              <p>Stop playing the current tone (if any). If we start playing it again,
+            setTone will reset the current time to 0. Note: even though we&apos;re stopping,
+            we don&apos;t want to clear the player&apos;s src URL, since we might need that to
+            restart playback of the same song.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CustomRingtone' class='mt0'>
+    CustomRingtone<span class='gray'>(info, dbKey)</span>
+  </h2>
+  <p>Create a new custom ringtone object.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>info</strong>
+          :
+          <span class='force-inline'>
+            <p>An object containing info about the ringtone. Contains
+the following members:
+{String} name The name of the tone.
+{String} subtitle (optional) The subtitle for the tone (e.g. the artist
+of a song).
+{Number} uniqueNum The &quot;unique&quot; number for the tone, to disambiguate it
+from other tones with the same name and subtitle.
+{Boolean} isExplicitNum True if the &quot;unique&quot; number was explicitly
+specified in the original name of the tone, false if it was inferred
+for de-duplication purposes.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>dbKey</strong>
+          :
+          <span class='force-inline'>
+            <p>The database key of the tone.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='CustomRingtone.deletable'>
+          <a href='#CustomRingtone.deletable'>
+            <code>
+              #deletable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.deletable' class='mt0'>
+                deletable<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Whether this ringtone is deletable (always true).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.filename'>
+          <a href='#CustomRingtone.filename'>
+            <code>
+              #filename<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.filename' class='mt0'>
+                filename<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The filename of the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.getBlob'>
+          <a href='#CustomRingtone.getBlob'>
+            <code>
+              #getBlob<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Gets a blob for this ringtone.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.getBlob' class='mt0'>
+                getBlob<span class='gray'></span>
+              </h2>
+              <p>Gets a blob for this ringtone.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A promise returning a Blob of the audio data.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.id'>
+          <a href='#CustomRingtone.id'>
+            <code>
+              #id<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.id' class='mt0'>
+                id<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A unique ID for the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.name'>
+          <a href='#CustomRingtone.name'>
+            <code>
+              #name<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.name' class='mt0'>
+                name<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The name of the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.remove'>
+          <a href='#CustomRingtone.remove'>
+            <code>
+              #remove<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Delete this ringtone from the database.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.remove' class='mt0'>
+                remove<span class='gray'></span>
+              </h2>
+              <p>Delete this ringtone from the database.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.shareable'>
+          <a href='#CustomRingtone.shareable'>
+            <code>
+              #shareable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.shareable' class='mt0'>
+                shareable<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Whether this ringtone is shareable (always true).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.subtitle'>
+          <a href='#CustomRingtone.subtitle'>
+            <code>
+              #subtitle<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.subtitle' class='mt0'>
+                subtitle<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The subtitle of the ringtone (e.g. the artist of the
+            song), or null if there is no subtitle.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.type'>
+          <a href='#CustomRingtone.type'>
+            <code>
+              #type<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.type' class='mt0'>
+                type<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The type of the ringtone. XXX: Currently always
+            &quot;ringtone&quot;.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='CustomRingtone.url'>
+          <a href='#CustomRingtone.url'>
+            <code>
+              #url<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='CustomRingtone.url' class='mt0'>
+                url<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A URL pointing to the ringtone&apos;s audio data.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='SDCardRingtone' class='mt0'>
+    SDCardRingtone<span class='gray'>(file)</span>
+  </h2>
+  <p>Create a new SD card ringtone object.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code>File</code> <strong>file</strong>
+          :
+          <span class='force-inline'>
+            <p>A File object for the ringtone.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='SDCardRingtone.deletable'>
+          <a href='#SDCardRingtone.deletable'>
+            <code>
+              #deletable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.deletable' class='mt0'>
+                deletable<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Whether this ringtone is deletable (always true).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.filename'>
+          <a href='#SDCardRingtone.filename'>
+            <code>
+              #filename<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.filename' class='mt0'>
+                filename<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The filename of the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.getBlob'>
+          <a href='#SDCardRingtone.getBlob'>
+            <code>
+              #getBlob<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Gets a blob for this ringtone.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.getBlob' class='mt0'>
+                getBlob<span class='gray'></span>
+              </h2>
+              <p>Gets a blob for this ringtone.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A promise returning a Blob of the audio data.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.id'>
+          <a href='#SDCardRingtone.id'>
+            <code>
+              #id<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.id' class='mt0'>
+                id<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A unique ID for the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.name'>
+          <a href='#SDCardRingtone.name'>
+            <code>
+              #name<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.name' class='mt0'>
+                name<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The name of the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.remove'>
+          <a href='#SDCardRingtone.remove'>
+            <code>
+              #remove<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Delete this ringtone from the database.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.remove' class='mt0'>
+                remove<span class='gray'></span>
+              </h2>
+              <p>Delete this ringtone from the database.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.shareable'>
+          <a href='#SDCardRingtone.shareable'>
+            <code>
+              #shareable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.shareable' class='mt0'>
+                shareable<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Whether this ringtone is shareable (always true).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.subtitle'>
+          <a href='#SDCardRingtone.subtitle'>
+            <code>
+              #subtitle<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.subtitle' class='mt0'>
+                subtitle<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The subtitle of the ringtone (always &quot;SD Card&quot; in this
+            case).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.type'>
+          <a href='#SDCardRingtone.type'>
+            <code>
+              #type<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.type' class='mt0'>
+                type<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The type of the tone. Either &quot;ringtone&quot; or &quot;alerttone&quot;.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='SDCardRingtone.url'>
+          <a href='#SDCardRingtone.url'>
+            <code>
+              #url<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='SDCardRingtone.url' class='mt0'>
+                url<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A URL pointing to the ringtone&apos;s audio data.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='NullRingtone' class='mt0'>
+    NullRingtone<span class='gray'></span>
+  </h2>
+  <p>Create a ringtone with no audio data backing it.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='NullRingtone.deletable'>
+          <a href='#NullRingtone.deletable'>
+            <code>
+              #deletable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.deletable' class='mt0'>
+                deletable<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Whether this ringtone is deletable (always false).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='NullRingtone.filename'>
+          <a href='#NullRingtone.filename'>
+            <code>
+              #filename<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.filename' class='mt0'>
+                filename<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The filename of the ringtone (null in this case).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='NullRingtone.getBlob'>
+          <a href='#NullRingtone.getBlob'>
+            <code>
+              #getBlob<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Gets a blob for this tone.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.getBlob' class='mt0'>
+                getBlob<span class='gray'></span>
+              </h2>
+              <p>Gets a blob for this tone.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A promise returning the audio data (always null, since
+            this is a null ringtone).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='NullRingtone.id'>
+          <a href='#NullRingtone.id'>
+            <code>
+              #id<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.id' class='mt0'>
+                id<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A unique ID for the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='NullRingtone.l10nID'>
+          <a href='#NullRingtone.l10nID'>
+            <code>
+              #l10nID<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.l10nID' class='mt0'>
+                l10nID<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The l10n ID of the ringtone.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='NullRingtone.name'>
+          <a href='#NullRingtone.name'>
+            <code>
+              #name<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.name' class='mt0'>
+                name<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The localized name of the ringtone. Assumes mozL10n has
+            been initialized.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='NullRingtone.shareable'>
+          <a href='#NullRingtone.shareable'>
+            <code>
+              #shareable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.shareable' class='mt0'>
+                shareable<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Whether this ringtone is shareable (always false).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='NullRingtone.type'>
+          <a href='#NullRingtone.type'>
+            <code>
+              #type<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.type' class='mt0'>
+                type<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The type of the tone (null in this case).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='NullRingtone.url'>
+          <a href='#NullRingtone.url'>
+            <code>
+              #url<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='NullRingtone.url' class='mt0'>
+                url<span class='gray'></span>
+              </h2>
+              
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The URL of the ringtone (null in this case).</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='domify' class='mt0'>
+    domify<span class='gray'>(htmlText)</span>
+  </h2>
+  <p>Convert a string of HTML to a DOM node and translate any l10n IDs as
+appropriate. Assumes that mozL10n has already been fully initialized.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>htmlText</strong>
+          :
+          <span class='force-inline'>
+            <p>The HTML text to turn into a proper DOM node.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling">Node</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>The converted DOM node.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getSoundFilenames' class='mt0'>
+    getSoundFilenames<span class='gray'>(toneType)</span>
+  </h2>
+  <p>Read the list.json file to get the names of all sounds we know about.
+This function caches its results so that subsequent calls are speedy.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
+          :
+          <span class='force-inline'>
+            <p>The type of tones to get (&apos;ringtone&apos; or
+&apos;alerttone&apos;).</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise returning an array of filenames.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='idMatchesFilename' class='mt0'>
+    idMatchesFilename<span class='gray'>(id, toneType, filename)</span>
+  </h2>
+  <p>Check if a BuiltInRingtone ID refers to a particular filename.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>The BuiltInRingtone&apos;s ID.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
+          :
+          <span class='force-inline'>
+            <p>The type of the tone held in <code>filename</code>.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>filename</strong>
+          :
+          <span class='force-inline'>
+            <p>The filename.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>True if the id and filename match, false otherwise.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='idToDBKey' class='mt0'>
+    idToDBKey<span class='gray'>(id)</span>
+  </h2>
+  <p>Convert a CustomRingtone ID to its corresponding DB key.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>The ID.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>The DB key.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='idToFilename' class='mt0'>
+    idToFilename<span class='gray'>(id)</span>
+  </h2>
+  <p>Convert an SDCardRingtone ID to its corresponding filename.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>The ID.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>The filename.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='idToToneType' class='mt0'>
+    idToToneType<span class='gray'>(id)</span>
+  </h2>
+  <p>Get the type of a BuiltInRingtone from its ID.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>The BuiltInRingtone&apos;s ID.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>The tone&apos;s type (&apos;ringtone&apos; or &apos;alerttone&apos;).</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='inferMimeType' class='mt0'>
+    inferMimeType<span class='gray'>(filename)</span>
+  </h2>
+  <p>Try to guess the MIME type of a file based on its extension. It&apos;s a shame
+XHRs don&apos;t do this for us automatically!</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>filename</strong>
+          :
+          <span class='force-inline'>
+            <p>The filename of the ringtone.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>The MIME type.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='pathToType' class='mt0'>
+    pathToType<span class='gray'>(path)</span>
+  </h2>
+  <p>Given a path to an SD card tone, return its type (&quot;ringtone&quot; or
+&quot;alerttone&quot;).</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>path</strong>
+          :
+          <span class='force-inline'>
+            <p>The path to the tone.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>The tone&apos;s type.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='systemTones' class='mt0'>
+    systemTones<span class='gray'>(toneType, toneType, tone, tone)</span>
+  </h2>
+  <p>window.systemTones is responsible for managing the systemwide ringtones and
+alert tones (i.e. the default ringer and alert). The following methods are
+provided:</p>
+<p>getDefault():
+Get the factory default tone.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
+          :
+          <span class='force-inline'>
+            <p>The type of the tone (&apos;ringtone&apos; or &apos;alerttone&apos;).</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
+          :
+          <span class='force-inline'>
+            <p>The type of the tone (&apos;ringtone&apos; or &apos;alerttone&apos;).</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>tone</strong>
+          :
+          <span class='force-inline'>
+            <p>The tone to store.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>tone</strong>
+          :
+          <span class='force-inline'>
+            <p>The tone to check</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise returning the tone&apos;s ID.</p>
+<p>set():
+Set a tone as the systemwide tone.</p>
+
+      </span>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise for setting the tone.</p>
+<p>isInUse():
+Check if a tone is currently in use (either as the default ringer or
+default alert tone).</p>
+
+      </span>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise returning an array of the tone types that the
+tone is in use as.</p>
+<p>XXX: In the future, it might make sense to add a get() function that returns
+the currently-selected systemwide tone, but that&apos;s not currently necessary.
+Probably the best way to do this would be to register all the tone providers
+(builtInRingtones, customRingtones, and NullRingtone) with the scheme in
+their IDs and just delegate to the correct provider&apos;s get() method.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='toneCompare' class='mt0'>
+    toneCompare<span class='gray'>(a, b, Number)</span>
+  </h2>
+  <p>Compare two tone objects, sorting first on their title, and then their
+subtitle. Note: The empty ringtone is always the &quot;smallest&quot;.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code>Tone</code> <strong>a</strong>
+          :
+          <span class='force-inline'>
+            <p>The first tone.</p>
+
+          </span>
+        </li>
+        <li><code>Tone</code> <strong>b</strong>
+          :
+          <span class='force-inline'>
+            <p>The second tone.</p>
+
+          </span>
+        </li>
+        <li> <strong>Number</strong>
+          :
+          <span class='force-inline'>
+            <p>&lt;0 if a &lt; b, 0 if a == b, and &gt;0 if a &gt; b.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#ActionsMenu">ActionsMenu</a></li><li><a href="global.html#NullRingtone">NullRingtone</a></li><li><a href="global.html#TonePlayer">TonePlayer</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:17 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

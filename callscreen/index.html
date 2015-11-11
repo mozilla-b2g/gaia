@@ -1,65 +1,741 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#_init'
+                class='block bold'>
+                _init
+              </a>
+              <a
+                href='#addCall'
+                class='block bold'>
+                addCall
+              </a>
+              <a
+                href='#addCall'
+                class='block bold'>
+                addCall
+              </a>
+              <a
+                href='#bdiCount'
+                class='block bold'>
+                bdiCount
+              </a>
+              <a
+                href='#cdmaCallWaiting'
+                class='block bold'>
+                cdmaCallWaiting
+              </a>
+              <a
+                href='#cdmaCallWaiting'
+                class='block bold'>
+                cdmaCallWaiting
+              </a>
+              <a
+                href='#holdAndAnswerOnly'
+                class='block bold'>
+                holdAndAnswerOnly
+              </a>
+              <a
+                href='#modeSwitch'
+                class='block bold'>
+                modeSwitch
+              </a>
+              <a
+                href='#computeCallEndedFontSizeRules'
+                class='block bold'>
+                computeCallEndedFontSizeRules
+              </a>
+              <a
+                href='#createCustomStyles'
+                class='block bold'>
+                createCustomStyles
+              </a>
+              <a
+                href='#observeMutation'
+                class='block bold'>
+                observeMutation
+              </a>
+              <a
+                href='#ConferenceGroupHandler'
+                class='block bold'>
+                ConferenceGroupHandler
+              </a>
+              <a
+                href='#ConferenceGroupUI'
+                class='block bold'>
+                ConferenceGroupUI
+              </a>
+              <a
+                href='#exitCallScreenIfNoCalls'
+                class='block bold'>
+                exitCallScreenIfNoCalls
+              </a>
+              <a
+                href='#groupCalls'
+                class='block bold'>
+                groupCalls
+              </a>
+              <a
+                href='#handleDisconnectAndPlayBusyTone'
+                class='block bold'>
+                handleDisconnectAndPlayBusyTone
+              </a>
+              <a
+                href='#hideGroupDetails'
+                class='block bold'>
+                hideGroupDetails
+              </a>
+              <a
+                href='#isAnyCallOnHold'
+                class='block bold'>
+                isAnyCallOnHold
+              </a>
+              <a
+                href='#isAnyCallSwitchable'
+                class='block bold'>
+                isAnyCallSwitchable
+              </a>
+              <a
+                href='#isEstablishingCall'
+                class='block bold'>
+                isEstablishingCall
+              </a>
+              <a
+                href='#isEveryCallMergeable'
+                class='block bold'>
+                isEveryCallMergeable
+              </a>
+              <a
+                href='#isFirstCallOnCdmaNetwork'
+                class='block bold'>
+                isFirstCallOnCdmaNetwork
+              </a>
+              <a
+                href='#isGroupDetailsShown'
+                class='block bold'>
+                isGroupDetailsShown
+              </a>
+              <a
+                href='#markCallsAsEnded'
+                class='block bold'>
+                markCallsAsEnded
+              </a>
+              <a
+                href='#message'
+                class='block bold'>
+                message
+              </a>
+              <a
+                href='#numOpenLines'
+                class='block bold'>
+                numOpenLines
+              </a>
+              <a
+                href='#onCallsChanged'
+                class='block bold'>
+                onCallsChanged
+              </a>
+              <a
+                href='#onLoadCallScreen'
+                class='block bold'>
+                onLoadCallScreen
+              </a>
+              <a
+                href='#playWaitingTone'
+                class='block bold'>
+                playWaitingTone
+              </a>
+              <a
+                href='#removeCall'
+                class='block bold'>
+                removeCall
+              </a>
+              <a
+                href='#setGroupDetailsHeader'
+                class='block bold'>
+                setGroupDetailsHeader
+              </a>
+              <a
+                href='#showGroupDetails'
+                class='block bold'>
+                showGroupDetails
+              </a>
+              <a
+                href='#signalConferenceEnded'
+                class='block bold'>
+                signalConferenceEnded
+              </a>
+              <a
+                href='#stopWaitingTone'
+                class='block bold'>
+                stopWaitingTone
+              </a>
+              <a
+                href='#switchToDefaultOut'
+                class='block bold'>
+                switchToDefaultOut
+              </a>
+              <a
+                href='#unloadCallScreen'
+                class='block bold'>
+                unloadCallScreen
+              </a>
+              <a
+                href='#updateMergeAndOnHoldStatus'
+                class='block bold'>
+                updateMergeAndOnHoldStatus
+              </a>
+              <a
+                href='#updateMuteAndSpeakerStatus'
+                class='block bold'>
+                updateMuteAndSpeakerStatus
+              </a>
+              <a
+                href='#updatePlaceNewCall'
+                class='block bold'>
+                updatePlaceNewCall
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='_init' class='mt0'>
+    _init<span class='gray'>(callback)</span>
+  </h2>
+  <p>Private helper functions.</p>
 
-<body>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='addCall' class='mt0'>
+    addCall<span class='gray'>(node)</span>
+  </h2>
+  <p>Adds a call node (including information about the phone number, contact
+name, phone number type, if any) to an ongoing conference call details
+information overlay.</p>
 
-<div id="main">
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>node</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='addCall' class='mt0'>
+    addCall<span class='gray'>(node)</span>
+  </h2>
+  <p>Public functions exposed by the object.</p>
 
-    <h1 class="page-title">Home</h1>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>node</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='bdiCount' class='mt0'>
+    bdiCount<span class='gray'></span>
+  </h2>
+  <p>Object initialization.</p>
 
-    
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cdmaCallWaiting' class='mt0'>
+    cdmaCallWaiting<span class='gray'></span>
+  </h2>
+  <p>Detects if we&apos;re in CDMA call waiting mode</p>
 
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Returns true if we&apos;re in CDMA call waiting mode.</p>
 
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='cdmaCallWaiting' class='mt0'>
+    cdmaCallWaiting<span class='gray'>(enabled)</span>
+  </h2>
+  <p>When enabled displays the CDMA-specific call-waiting UI</p>
 
-    
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>enabled</strong>
+          :
+          <span class='force-inline'>
+            <p>Enables the CDMA call-waiting UI.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='holdAndAnswerOnly' class='mt0'>
+    holdAndAnswerOnly<span class='gray'>(enabled)</span>
+  </h2>
+  <p>When enabled hides the end-and-answer button in call waiting mode and
+displays only the hold-and-answer one.</p>
 
-    <h3> </h3>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>enabled</strong>
+          :
+          <span class='force-inline'>
+            <p>Enables hold-and-answer-only operation.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='modeSwitch' class='mt0'>
+    modeSwitch<span class='gray'>(mode, switcher)</span>
+  </h2>
+  
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>mode</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code> <strong>switcher</strong>
+          :
+          <span class='force-inline'>
+            <p>true if mode is on, false if off.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='computeCallEndedFontSizeRules' class='mt0'>
+    computeCallEndedFontSizeRules<span class='gray'></span>
+  </h2>
+  <p>Recomputes the font size rules so that the call ended string fits both in
+the callscreen display and in the statusbar.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='createCustomStyles' class='mt0'>
+    createCustomStyles<span class='gray'></span>
+  </h2>
+  <p>Creates the global custom style used for resizing the call ended string.
+Re-uses the existing one it if the style is already present.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='observeMutation' class='mt0'>
+    observeMutation<span class='gray'>(mutations)</span>
+  </h2>
+  <p>Observe DOM mutations. This will automatically resize the call ended string
+once it&apos;s displayed at the end of a call.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>mutations</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ConferenceGroupHandler' class='mt0'>
+    ConferenceGroupHandler<span class='gray'></span>
+  </h2>
+  <p>Manages and handles conference call logic.
+Exposes the following functionality:</p>
+<ul>
+<li>To add and to remove calls to and from the ongoing conference call details
+information overlay.</li>
+<li>To be signaled by other actors that a conference call has ended.</li>
+<li>To check if the conference call details information overlay is shown.</li>
+<li>To get the current conference call duration.</li>
+</ul>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ConferenceGroupUI' class='mt0'>
+    ConferenceGroupUI<span class='gray'></span>
+  </h2>
+  <p>This object manages the view (UI) of the details of an ongoing conference
+call, this is the presentation of the details of the parties currently
+participating on it (phone number, contact name, phone number type, etc.,
+if any).
+The needed HTML code is lazy loaded during object initialization in the
+init() function. The object takes care of the initialization automatically.
+The object provides functions to:</p>
+<ul>
+<li>Add and remove calls to the ongoing conference call details information
+overlay.</li>
+<li>Show and hide the ongoing conference call details information overlay.</li>
+<li>Mark the calls participating in an ended conference call as hang up.</li>
+<li>Set the title of the ongoing conference call details information overlay.</li>
+</ul>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='exitCallScreenIfNoCalls' class='mt0'>
+    exitCallScreenIfNoCalls<span class='gray'>(timeout)</span>
+  </h2>
+  <p>Checks now and also in CallScreen.callEndPromptTime seconds if there
+are no currently handled calls, and if not, exits the app. Resets
+this timer on each successive invocation.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>timeout</strong>
+          :
+          <span class='force-inline'>
+            <p>{Integer} A duration in ms after which the callscreen
+should be closed.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='groupCalls' class='mt0'>
+    groupCalls<span class='gray'></span>
+  </h2>
+  <p>Object initialization.</p>
 
-    
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleDisconnectAndPlayBusyTone' class='mt0'>
+    handleDisconnectAndPlayBusyTone<span class='gray'>(evt)</span>
+  </h2>
+  <p>Play the busy tone in response to a disconnected event with the
+appropriate reason set. Once the tone has finished this will also
+automatically close the callscreen if no more calls are present.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            <p>{Object} The event delivered in the
+TelephonyCall.ondisconnected event-handler.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='hideGroupDetails' class='mt0'>
+    hideGroupDetails<span class='gray'></span>
+  </h2>
+  <p>Hides the ongoing conference call details information overlay. The default
+Call Screen app closing delay is applied if the overlay is currently
+shown.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isAnyCallOnHold' class='mt0'>
+    isAnyCallOnHold<span class='gray'></span>
+  </h2>
+  <p>Check if any of the calls is currently on hold.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isAnyCallSwitchable' class='mt0'>
+    isAnyCallSwitchable<span class='gray'></span>
+  </h2>
+  <p>Check if any of the calls can be put on hold or resumed.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isEstablishingCall' class='mt0'>
+    isEstablishingCall<span class='gray'></span>
+  </h2>
+  <p>Check if a call is being established.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isEveryCallMergeable' class='mt0'>
+    isEveryCallMergeable<span class='gray'></span>
+  </h2>
+  <p>Check if all non-conference calls are mergeable.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isFirstCallOnCdmaNetwork' class='mt0'>
+    isFirstCallOnCdmaNetwork<span class='gray'></span>
+  </h2>
+  <p>Detects if we&apos;re first call on CDMA network</p>
 
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Return true if we&apos;re first call on CDMA network.</p>
 
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isGroupDetailsShown' class='mt0'>
+    isGroupDetailsShown<span class='gray'></span>
+  </h2>
+  <p>Returns the visibility status of the ongoing conference call details
+information overlay.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Visibility status of the ongoing conference call details
+information overlay.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='markCallsAsEnded' class='mt0'>
+    markCallsAsEnded<span class='gray'></span>
+  </h2>
+  <p>Marks all the calls in an already ended conference call details
+information overlay as hang up.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='message' class='mt0'>
+    message<span class='gray'></span>
+  </h2>
+  <p>See bug 853132: plugging / unplugging some headphones might send a
+&apos;headset-button-press&apos; / &apos;headset-button-release&apos; message
+=&gt; if these two events happen in the same second, it&apos;s a click;
+=&gt; if these two events are too distant, ignore them.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='numOpenLines' class='mt0'>
+    numOpenLines<span class='gray'></span>
+  </h2>
+  <p>Return the number of calls currently present in one state or another.
+This includes all regular calls irrespective of their state plus a
+conference group call if one is present.</p>
+
+      <h4>Returns</h4>
+      <code><code>Integer</code></code>
+      :
+      <span class='force-inline'>
+        <p>The number of calls currently present.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onCallsChanged' class='mt0'>
+    onCallsChanged<span class='gray'></span>
+  </h2>
+  <p>Private helper functions.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onLoadCallScreen' class='mt0'>
+    onLoadCallScreen<span class='gray'>(evt)</span>
+  </h2>
+  <p>Function invoked at onload time to initialize the application.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='playWaitingTone' class='mt0'>
+    playWaitingTone<span class='gray'>(call)</span>
+  </h2>
+  <p>Plays the ANSI call waiting tone for a 10 seconds window</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>call</strong>
+          :
+          <span class='force-inline'>
+            <p>The call object to which the wait tone is referred to.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='removeCall' class='mt0'>
+    removeCall<span class='gray'>(node)</span>
+  </h2>
+  <p>Removes a call node from an ongoing conference call details information
+overlay.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>node</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setGroupDetailsHeader' class='mt0'>
+    setGroupDetailsHeader<span class='gray'>(text)</span>
+  </h2>
+  <p>Sets the title of the ongoing conference call details information overlay.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> or <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>text</strong>
+          :
+          <span class='force-inline'>
+            <p>The text to display, can be either a string
+in which case it&apos;s interpreted as an l10n id or an object holding
+both the l10n id &amp; args.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='showGroupDetails' class='mt0'>
+    showGroupDetails<span class='gray'>(evt)</span>
+  </h2>
+  <p>Shows the ongoing conference call details information overlay.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent">MouseEvent</a></code> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            <p>The mouse event requesting the showing of the
+ongoing conference call details overlay.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='signalConferenceEnded' class='mt0'>
+    signalConferenceEnded<span class='gray'></span>
+  </h2>
+  <p>Publicly exposed API functions.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='stopWaitingTone' class='mt0'>
+    stopWaitingTone<span class='gray'></span>
+  </h2>
+  <p>Stops playing the waiting tone</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='switchToDefaultOut' class='mt0'>
+    switchToDefaultOut<span class='gray'></span>
+  </h2>
+  <p>Do not connect bluetooth SCO for first incoming/outgoing call.</p>
+<p>Bluetooth certification test requires SCO be connected after
+user answers incoming call. Gecko bluetooth would connect SCO
+automatically once 1) user answers incoming call or
+2) user dials outgoing call.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='unloadCallScreen' class='mt0'>
+    unloadCallScreen<span class='gray'>(evt)</span>
+  </h2>
+  <p>Dummy function introduced in bug 1083729, see below.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateMergeAndOnHoldStatus' class='mt0'>
+    updateMergeAndOnHoldStatus<span class='gray'></span>
+  </h2>
+  <p>Adjusts the state of the hold/merge button to reflect the current calls&apos;
+state. If only one call is available the hold button alone will be
+displayed if the call&apos;s switchable. The state of the button will depend on
+the call being on hold or not. If two calls are being handled at the same
+time we&apos;ll display the merge button if the second call&apos;s mergeable. If not
+no button will be displayed at all. We don&apos;t support cases where more than
+two calls are being handled at the same time; this code will need to be
+revisited if CALLS_LIMIT is increased above 2.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateMuteAndSpeakerStatus' class='mt0'>
+    updateMuteAndSpeakerStatus<span class='gray'></span>
+  </h2>
+  <p>Adjusts the state of the speaker and mute buttons. Both buttons are active
+only if there&apos;s an active call.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updatePlaceNewCall' class='mt0'>
+    updatePlaceNewCall<span class='gray'></span>
+  </h2>
+  <p>Allow placing a new call only when we&apos;ve not already placed one that isn&apos;t
+connected yet.</p>
+
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#ConferenceGroupHandler">ConferenceGroupHandler</a></li><li><a href="global.html#ConferenceGroupUI">ConferenceGroupUI</a></li><li><a href="global.html#onLoadCallScreen">onLoadCallScreen</a></li><li><a href="global.html#unloadCallScreen">unloadCallScreen</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:16 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

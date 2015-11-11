@@ -1,91 +1,3723 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#_messageHandler'
+                class='block bold'>
+                _messageHandler
+              </a>
+              <a
+                href='#create'
+                class='block bold'>
+                create
+              </a>
+              <a
+                href='#receive'
+                class='block bold'>
+                receive
+              </a>
+              <a
+                href='#AudioPlayer'
+                class='block bold'>
+                AudioPlayer
+              </a>
+                <a
+                  href='#AudioPlayer.pause'
+                  class='regular block'>
+                  #pause
+                </a>
+                <a
+                  href='#AudioPlayer.playRingtone'
+                  class='regular block'>
+                  #playRingtone
+                </a>
+              <a
+                href='#active'
+                class='block bold'>
+                active
+              </a>
+              <a
+                href='#ActiveAlarm'
+                class='block bold'>
+                ActiveAlarm
+              </a>
+                <a
+                  href='#ActiveAlarm.close'
+                  class='regular block'>
+                  #close
+                </a>
+                <a
+                  href='#ActiveAlarm.onAlarmFired'
+                  class='regular block'>
+                  #onAlarmFired
+                </a>
+                <a
+                  href='#ActiveAlarm.onMozAlarm'
+                  class='regular block'>
+                  #onMozAlarm
+                </a>
+                <a
+                  href='#ActiveAlarm.onTimerFired'
+                  class='regular block'>
+                  #onTimerFired
+                </a>
+                <a
+                  href='#ActiveAlarm.popAlert'
+                  class='regular block'>
+                  #popAlert
+                </a>
+                <a
+                  href='#ActiveAlarm.snoozeAlarm'
+                  class='regular block'>
+                  #snoozeAlarm
+                </a>
+              <a
+                href='#addAlert'
+                class='block bold'>
+                addAlert
+              </a>
+              <a
+                href='#onBeforeUnload'
+                class='block bold'>
+                onBeforeUnload
+              </a>
+              <a
+                href='#onClickClose'
+                class='block bold'>
+                onClickClose
+              </a>
+              <a
+                href='#onClickSnooze'
+                class='block bold'>
+                onClickSnooze
+              </a>
+              <a
+                href='#onInterrupt'
+                class='block bold'>
+                onInterrupt
+              </a>
+              <a
+                href='#refreshDisplay'
+                class='block bold'>
+                refreshDisplay
+              </a>
+              <a
+                href='#silence'
+                class='block bold'>
+                silence
+              </a>
+              <a
+                href='#whenVisible'
+                class='block bold'>
+                whenVisible
+              </a>
+              <a
+                href='#Alarm'
+                class='block bold'>
+                Alarm
+              </a>
+                <a
+                  href='#Alarm.cancel'
+                  class='regular block'>
+                  #cancel
+                </a>
+                <a
+                  href='#Alarm.delete'
+                  class='regular block'>
+                  #delete
+                </a>
+                <a
+                  href='#Alarm.isEnabled'
+                  class='regular block'>
+                  #isEnabled
+                </a>
+                <a
+                  href='#Alarm.schedule'
+                  class='regular block'>
+                  #schedule
+                </a>
+              <a
+                href='#AlarmDatabase'
+                class='block bold'>
+                AlarmDatabase
+              </a>
+                <a
+                  href='#AlarmDatabase.normalizeAlarmRecord'
+                  class='regular block'>
+                  #normalizeAlarmRecord
+                </a>
+                <a
+                  href='#AlarmDatabase.withStoreRequest'
+                  class='regular block'>
+                  #withStoreRequest
+                </a>
+              <a
+                href='#AlarmListPanel'
+                class='block bold'>
+                AlarmListPanel
+              </a>
+                <a
+                  href='#AlarmListPanel.renderAlarm'
+                  class='regular block'>
+                  #renderAlarm
+                </a>
+                <a
+                  href='#AlarmListPanel.toggleAlarm'
+                  class='regular block'>
+                  #toggleAlarm
+                </a>
+              <a
+                href='#App'
+                class='block bold'>
+                App
+              </a>
+                <a
+                  href='#App.handleEvent'
+                  class='regular block'>
+                  .handleEvent
+                </a>
+                <a
+                  href='#App.init'
+                  class='regular block'>
+                  .init
+                </a>
+                <a
+                  href='#App.loadPanel'
+                  class='regular block'>
+                  .loadPanel
+                </a>
+                <a
+                  href='#App.navigate'
+                  class='regular block'>
+                  .navigate
+                </a>
+                <a
+                  href='#App.onhashchange'
+                  class='regular block'>
+                  .onhashchange
+                </a>
+                <a
+                  href='#App.onvisibilitychange'
+                  class='regular block'>
+                  .onvisibilitychange
+                </a>
+              <a
+                href='#AsyncQueue'
+                class='block bold'>
+                AsyncQueue
+              </a>
+                <a
+                  href='#AsyncQueue.push'
+                  class='regular block'>
+                  #push
+                </a>
+              <a
+                href='#ChildWindowManager'
+                class='block bold'>
+                ChildWindowManager
+              </a>
+                <a
+                  href='#ChildWindowManager.fireReady'
+                  class='regular block'>
+                  .fireReady
+                </a>
+                <a
+                  href='#ChildWindowManager.close'
+                  class='regular block'>
+                  #close
+                </a>
+                <a
+                  href='#ChildWindowManager.handleEvent'
+                  class='regular block'>
+                  #handleEvent
+                </a>
+                <a
+                  href='#ChildWindowManager.postMessage'
+                  class='regular block'>
+                  #postMessage
+                </a>
+                <a
+                  href='#ChildWindowManager.whenReady'
+                  class='regular block'>
+                  #whenReady
+                </a>
+              <a
+                href='#FormButton'
+                class='block bold'>
+                FormButton
+              </a>
+                <a
+                  href='#FormButton.className'
+                  class='regular block'>
+                  #className
+                </a>
+                <a
+                  href='#FormButton.destroy'
+                  class='regular block'>
+                  #destroy
+                </a>
+                <a
+                  href='#FormButton.focus'
+                  class='regular block'>
+                  #focus
+                </a>
+                <a
+                  href='#FormButton.formatLabel'
+                  class='regular block'>
+                  #formatLabel
+                </a>
+                <a
+                  href='#FormButton.refresh'
+                  class='regular block'>
+                  #refresh
+                </a>
+                <a
+                  href='#FormButton.tagName'
+                  class='regular block'>
+                  #tagName
+                </a>
+                <a
+                  href='#FormButton.value'
+                  class='regular block'>
+                  #value
+                </a>
+                <a
+                  href='#FormButton.value'
+                  class='regular block'>
+                  #value
+                </a>
+              <a
+                href='#Timer'
+                class='block bold'>
+                Timer
+              </a>
+                <a
+                  href='#Timer.getFromStorage'
+                  class='regular block'>
+                  .getFromStorage
+                </a>
+                <a
+                  href='#Timer.Panel'
+                  class='regular block'>
+                  .Panel
+                </a>
+                <a
+                  href='#Timer.commit'
+                  class='regular block'>
+                  #commit
+                </a>
+                <a
+                  href='#Timer.plus'
+                  class='regular block'>
+                  #plus
+                </a>
+                <a
+                  href='#Timer.register'
+                  class='regular block'>
+                  #register
+                </a>
+                <a
+                  href='#Timer.save'
+                  class='regular block'>
+                  #save
+                </a>
+                <a
+                  href='#Timer.toSerializable'
+                  class='regular block'>
+                  #toSerializable
+                </a>
+              <a
+                href='#define'
+                class='block bold'>
+                define
+              </a>
+              <a
+                href='#define'
+                class='block bold'>
+                define
+              </a>
+              <a
+                href='#define'
+                class='block bold'>
+                define
+              </a>
+              <a
+                href='#define'
+                class='block bold'>
+                define
+              </a>
+              <a
+                href='#defineProperties'
+                class='block bold'>
+                defineProperties
+              </a>
+              <a
+                href='#eachProp'
+                class='block bold'>
+                eachProp
+              </a>
+              <a
+                href='#exec'
+                class='block bold'>
+                exec
+              </a>
+              <a
+                href='#extendWithDomGetters'
+                class='block bold'>
+                extendWithDomGetters
+              </a>
+              <a
+                href='#fromMS'
+                class='block bold'>
+                fromMS
+              </a>
+              <a
+                href='#toMS'
+                class='block bold'>
+                toMS
+              </a>
+              <a
+                href='#singleton'
+                class='block bold'>
+                singleton
+              </a>
+              <a
+                href='#formatLabel'
+                class='block bold'>
+                formatLabel
+              </a>
+              <a
+                href='#Stopwatch'
+                class='block bold'>
+                Stopwatch
+              </a>
+                <a
+                  href='#Stopwatch.Panel'
+                  class='regular block'>
+                  .Panel
+                </a>
+                <a
+                  href='#Stopwatch.getElapsedTime'
+                  class='regular block'>
+                  #getElapsedTime
+                </a>
+                <a
+                  href='#Stopwatch.getLaps'
+                  class='regular block'>
+                  #getLaps
+                </a>
+                <a
+                  href='#Stopwatch.lap'
+                  class='regular block'>
+                  #lap
+                </a>
+                <a
+                  href='#Stopwatch.nextLap'
+                  class='regular block'>
+                  #nextLap
+                </a>
+                <a
+                  href='#Stopwatch.pause'
+                  class='regular block'>
+                  #pause
+                </a>
+                <a
+                  href='#Stopwatch.reset'
+                  class='regular block'>
+                  #reset
+                </a>
+                <a
+                  href='#Stopwatch.start'
+                  class='regular block'>
+                  #start
+                </a>
+                <a
+                  href='#Stopwatch.toSerializable'
+                  class='regular block'>
+                  #toSerializable
+                </a>
+              <a
+                href='#Panel'
+                class='block bold'>
+                Panel
+              </a>
+                <a
+                  href='#Panel.handleEvent'
+                  class='regular block'>
+                  #handleEvent
+                </a>
+              <a
+                href='#Tabs'
+                class='block bold'>
+                Tabs
+              </a>
+                <a
+                  href='#Tabs.handleEvent'
+                  class='regular block'>
+                  #handleEvent
+                </a>
+              <a
+                href='#View'
+                class='block bold'>
+                View
+              </a>
+                <a
+                  href='#View.instance'
+                  class='regular block'>
+                  .instance
+                </a>
+              <a
+                href='#isValidVolume'
+                class='block bold'>
+                isValidVolume
+              </a>
+              <a
+                href='#makeMap'
+                class='block bold'>
+                makeMap
+              </a>
+              <a
+                href='#mixin'
+                class='block bold'>
+                mixin
+              </a>
+              <a
+                href='#parse'
+                class='block bold'>
+                parse
+              </a>
+                <a
+                  href='#parse.nanosecond'
+                  class='regular block'>
+                  .nanosecond
+                </a>
+              <a
+                href='#normalize'
+                class='block bold'>
+                normalize
+              </a>
+              <a
+                href='#objectStoreGetAll'
+                class='block bold'>
+                objectStoreGetAll
+              </a>
+              <a
+                href='#Spinner'
+                class='block bold'>
+                Spinner
+              </a>
+                <a
+                  href='#Spinner.ontouchstart'
+                  class='regular block'>
+                  #ontouchstart
+                </a>
+              <a
+                href='#parseName'
+                class='block bold'>
+                parseName
+              </a>
+              <a
+                href='#parseName'
+                class='block bold'>
+                parseName
+              </a>
+              <a
+                href='#useXhr'
+                class='block bold'>
+                useXhr
+              </a>
+              <a
+                href='#useXhr'
+                class='block bold'>
+                useXhr
+              </a>
+              <a
+                href='#Picker'
+                class='block bold'>
+                Picker
+              </a>
+              <a
+                href='#requirejs'
+                class='block bold'>
+                requirejs
+              </a>
+              <a
+                href='#setVolume'
+                class='block bold'>
+                setVolume
+              </a>
+              <a
+                href='#timerSingleton'
+                class='block bold'>
+                timerSingleton
+              </a>
+              <a
+                href='#toUrl'
+                class='block bold'>
+                toUrl
+              </a>
+              <a
+                href='#transition'
+                class='block bold'>
+                transition
+              </a>
+              <a
+                href='#trimDots'
+                class='block bold'>
+                trimDots
+              </a>
+              <a
+                href='#visible'
+                class='block bold'>
+                visible
+              </a>
+              <a
+                href='#whenDocumentReady'
+                class='block bold'>
+                whenDocumentReady
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='_messageHandler' class='mt0'>
+    _messageHandler<span class='gray'>(evt)</span>
+  </h2>
+  <p>Handle &apos;message&apos; events from postMessage, both when receiving a
+message to invoke a function call, and receiving a message with
+the return value of that function call. Both callbacks are
+handled here so that we only bind one listener for each
+relevant window.</p>
 
-<body>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='create' class='mt0'>
+    create<span class='gray'>(whichWindow, objectId)</span>
+  </h2>
+  <p>Create a PostMessageProxy. This returns an object that you can
+call like any other JavaScript object, by proxying methods
+through to another window.</p>
+<p>When you call a method, rather than returning its return value,
+it reutrns a Promise that you can resolve to get the return
+value from the remote function.</p>
 
-<div id="main">
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>whichWindow</strong>
+          :
+          <span class='force-inline'>
+            <p>The window (usually window.parent or a child)</p>
 
-    <h1 class="page-title">Home</h1>
+          </span>
+        </li>
+        <li> <strong>objectId</strong>
+          :
+          <span class='force-inline'>
+            <p>A string to identify the object you&apos;re proxying</p>
 
-    
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='receive' class='mt0'>
+    receive<span class='gray'>(objectId, obj)</span>
+  </h2>
+  <p>On the other window, call PostMessateProxy.receive() to hook up
+an object that processes messages from a proxy in another window.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>objectId</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>obj</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AudioPlayer' class='mt0'>
+    AudioPlayer<span class='gray'>([opts.interruptHandler], opts)</span>
+  </h2>
+  <p>The AudioPlayer class manages the playback of alarm ringtones. It
+is lazy-loading, so that you can instantiate it immediately;
+Audio objects are not actually created or loaded until you need
+to play a sound.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code>]</code> <strong>opts.interruptHandler</strong>
+          :
+          <span class='force-inline'>
+            <p>Optional callback/EventTarget to handle the &apos;mozinterruptbegin&apos; event.</p>
 
-    
+          </span>
+        </li>
+        <li> <strong>opts</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='AudioPlayer.pause'>
+          <a href='#AudioPlayer.pause'>
+            <code>
+              #pause<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Pause the currently-playing audio, if possible.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='AudioPlayer.pause' class='mt0'>
+                pause<span class='gray'></span>
+              </h2>
+              <p>Pause the currently-playing audio, if possible.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='AudioPlayer.playRingtone'>
+          <a href='#AudioPlayer.playRingtone'>
+            <code>
+              #playRingtone<span class='gray'>(ringtoneName, opts.volume, opts)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Play a ringtone from the shared/resources/media/alarms
+directory, using the current global volume settings by default.
+You can override the volume through opts.volume.</p>
 
-    <h3> </h3>
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='AudioPlayer.playRingtone' class='mt0'>
+                playRingtone<span class='gray'>(ringtoneName, opts.volume, opts)</span>
+              </h2>
+              <p>Play a ringtone from the shared/resources/media/alarms
+            directory, using the current global volume settings by default.
+            You can override the volume through opts.volume.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>ringtoneName</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code> <strong>opts.volume</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Value between 0 and 1</p>
+            
+                      </span>
+                    </li>
+                    <li> <strong>opts</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='active' class='mt0'>
+    active<span class='gray'></span>
+  </h2>
+  <p>Panel.prototype.active - Boolean</p>
+<p>Sets the internal active state, and adds or removes the &quot;active&quot;
+class on the element.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ActiveAlarm' class='mt0'>
+    ActiveAlarm<span class='gray'></span>
+  </h2>
+  <p>ActiveAlarm handles the system event that fires when an alarm
+goes off. This includes opening an attention window and updating
+an alarm&apos;s schedule when the user taps &apos;snooze&apos;. The interaction
+is mediated through a PostMessageProxy (as <code>this.ringView</code>),
+which makes it trivial to interact with a JavaScript object
+hosted in another window.</p>
 
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ActiveAlarm.close'>
+          <a href='#ActiveAlarm.close'>
+            <code>
+              #close<span class='gray'>(type, alarmId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Close the current alert window.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActiveAlarm.close' class='mt0'>
+                close<span class='gray'>(type, alarmId)</span>
+              </h2>
+              <p>Close the current alert window.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>type</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>&apos;alarm&apos; or &apos;timer&apos;</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>alarmId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The ID of the alarm, if type === &apos;alarm&apos;</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActiveAlarm.onAlarmFired'>
+          <a href='#ActiveAlarm.onAlarmFired'>
+            <code>
+              #onAlarmFired<span class='gray'>(message, data, done)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Handle an alarm firing. Immediately reschedule the alarm for
+its next firing interval (if the alarm was a repeat alarm).</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActiveAlarm.onAlarmFired' class='mt0'>
+                onAlarmFired<span class='gray'>(message, data, done)</span>
+              </h2>
+              <p>Handle an alarm firing. Immediately reschedule the alarm for
+            its next firing interval (if the alarm was a repeat alarm).</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code> <strong>message</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The message as retrieved by mozAlarm</p>
+            
+                      </span>
+                    </li>
+                    <li> <strong>data</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>done</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Callback to release the wake lock.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActiveAlarm.onMozAlarm'>
+          <a href='#ActiveAlarm.onMozAlarm'>
+            <code>
+              #onMozAlarm<span class='gray'>(message)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Fired when the system triggers an alarm. We acquire a wake lock
+here to ensure that the system doesn&apos;t fall asleep before we
+have a chance to present the attention alert window.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActiveAlarm.onMozAlarm' class='mt0'>
+                onMozAlarm<span class='gray'>(message)</span>
+              </h2>
+              <p>Fired when the system triggers an alarm. We acquire a wake lock
+            here to ensure that the system doesn&apos;t fall asleep before we
+            have a chance to present the attention alert window.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>message</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActiveAlarm.onTimerFired'>
+          <a href='#ActiveAlarm.onTimerFired'>
+            <code>
+              #onTimerFired<span class='gray'>(message, data, done)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Handle a timer firing.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActiveAlarm.onTimerFired' class='mt0'>
+                onTimerFired<span class='gray'>(message, data, done)</span>
+              </h2>
+              <p>Handle a timer firing.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code> <strong>message</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The message as retrieved by mozAlarm</p>
+            
+                      </span>
+                    </li>
+                    <li> <strong>data</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>done</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Callback to release the wake lock.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActiveAlarm.popAlert'>
+          <a href='#ActiveAlarm.popAlert'>
+            <code>
+              #popAlert<span class='gray'>(alert)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Add <code>alert</code> to the attention screen. The child alert window
+expects to receive any number of alert messages; if the child
+window has not been presented yet, this function opens the
+window before passing along the alert.</p>
+<p>An Alert object (which can represent a timer or an alarm)
+adheres to the following structure:</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActiveAlarm.popAlert' class='mt0'>
+                popAlert<span class='gray'>(alert)</span>
+              </h2>
+              <p>Add <code>alert</code> to the attention screen. The child alert window
+            expects to receive any number of alert messages; if the child
+            window has not been presented yet, this function opens the
+            window before passing along the alert.</p>
+            <p>An Alert object (which can represent a timer or an alarm)
+            adheres to the following structure:</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/alert">Alert</a></code> <strong>alert</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>An alert to pass to the child window.</p>
+            
+                      </span>
+                    </li>
+                      <ul>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> alert.type
+                            <p>&apos;alarm&apos; or &apos;timer&apos;</p>
+            </li>
+                          <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>]</code> alert.label
+                            <p>Optional label</p>
+            </li>
+                          <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>]</code> alert.sound
+                            <p>Optional filename of a sound to play</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code> alert.vibrate
+                            <p>True if the alarm should vibrate</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">Date</a></code> alert.time
+                            <p>The time the alert was supposed to fire</p>
+            </li>
+                          <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>]</code> alert.id
+                            <p>The ID of the alert, if type === &apos;alarm&apos;</p>
+            </li>
+                      </ul>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ActiveAlarm.snoozeAlarm'>
+          <a href='#ActiveAlarm.snoozeAlarm'>
+            <code>
+              #snoozeAlarm<span class='gray'>(alarmId)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Snooze the given alarm.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ActiveAlarm.snoozeAlarm' class='mt0'>
+                snoozeAlarm<span class='gray'>(alarmId)</span>
+              </h2>
+              <p>Snooze the given alarm.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>alarmId</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The ID of the alarm.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='addAlert' class='mt0'>
+    addAlert<span class='gray'>(alert.type, alert.label, alert.sound, alert.vibrate, alert)</span>
+  </h2>
+  <p>Fire the notification for an alarm or timer.</p>
+<p>Presently, we only display one notification at a time, and the
+<em>most recent</em> one at that. Each notification gets its own wake
+lock, ensuring that the screen will remain on for WAKE_DURATION.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>alert.type</strong>
+          :
+          <span class='force-inline'>
+            <p>&apos;alarm&apos; or &apos;timer&apos;</p>
 
-    
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>alert.label</strong>
+          :
+          <span class='force-inline'>
+            <p>Label to display (optional).</p>
 
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>alert.sound</strong>
+          :
+          <span class='force-inline'>
+            <p>Filename of a sound to play (optional).</p>
 
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code> <strong>alert.vibrate</strong>
+          :
+          <span class='force-inline'>
+            <p>True if the alert should vibrate.</p>
 
+          </span>
+        </li>
+        <li> <strong>alert</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onBeforeUnload' class='mt0'>
+    onBeforeUnload<span class='gray'>(evt)</span>
+  </h2>
+  <p>Clean up any state when we close this alert window. This includes
+silencing the alarm and releasing any locks we have acquired.</p>
 
-    <section>
-        <article><h1>Clock</h1><h2>Build Notes</h2><p>The Clock app takes advantage of some features in the gaia build system to do
-some optimizations:</p>
-<ul>
-<li>Apps can define an app-specific Makefile in their directory. This is run
-before the rest of the general Gaia build steps. Email uses this to create
-a directory in <code>gaia/build_stage/clock</code> and runs some optimizations around
-JS and CSS concatenation.</li>
-<li>The Gaia build system knows to use <code>gaia/build_stage/clock</code> to do the rest of
-the Gaia build steps because Clock specifies the &quot;dir&quot; in the
-<code>gaia_build.json</code> in this directory.</li>
-<li>Since the shared resources referenced by Clock are not listed in the HTML,
-but as CSS @imports or via JS module dependencies, the Clock Makefile
-runs <code>clock/build/make_gaia_shared.js</code> to generate a <code>gaia_shared.json</code> file
-in the <code>gaia/build_stage/clock</code> directory to list out the shared items use by
-the clock app. <code>gaia_shared.json</code> is used by the general Gaia build system to
-know what shared resources to keep. The Gaia build system also does HTML file
-scanning to find shared resources too.</li>
-</ul>
-<p>For DEBUG=1 builds, the clock source directory is used as-is, and the shared
-resources are magically linked in via the Gaia build system.</p>
-<p>If you want to give snapshots of builds, say for UX reviews, you should use
-the contents of the <code>gaia/build_stage/clock</code> directory as it will be a fully
-functional snapshot.</p></article>
-    </section>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onClickClose' class='mt0'>
+    onClickClose<span class='gray'>(evt)</span>
+  </h2>
+  <p>Close this window, notifying ActiveAlarm, which will pop the user
+back to the appropriate location if they are still using the
+Clock app.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onClickSnooze' class='mt0'>
+    onClickSnooze<span class='gray'>(evt)</span>
+  </h2>
+  <p>Snooze the current alarm. (The snooze button is only visible for
+alarms, not timers. Alarms have an ID; timers do not.)</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onInterrupt' class='mt0'>
+    onInterrupt<span class='gray'>(evt)</span>
+  </h2>
+  <p>Handle an interrupt as reported from the Audio player. This could
+happen if an incoming call arrives while the alert is ringing. We
+should silence our alarm to allow the phone call to take
+precedence.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='refreshDisplay' class='mt0'>
+    refreshDisplay<span class='gray'></span>
+  </h2>
+  <p>Update the display to show the currently active alert. If there
+are a stack of alerts pending, only the most recent alert is
+shown, as added to this.alerts by this.addAlert().</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='silence' class='mt0'>
+    silence<span class='gray'></span>
+  </h2>
+  <p>Stop all sounds and vibration immediately.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='whenVisible' class='mt0'>
+    whenVisible<span class='gray'>(cb)</span>
+  </h2>
+  <p>Call the callback when <code>document.hidden</code> is false. Due to a bug
+in the B2G Browser API <a href="https://bugzil.la/810431">https://bugzil.la/810431</a>, the window may
+not be immediately visible, particularly if the screen is off.
+The recommended workaround for that bug was to use setTimeout. If
+the page is still hidden after that, we listen for
+<code>visibilitychange</code>. When that bug has some action, we should
+revisit how much of this method is needed.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>cb</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Alarm' class='mt0'>
+    Alarm<span class='gray'>(opts)</span>
+  </h2>
+  <p>Alarm represents one alarm instance. It tracks any mozAlarms it
+has registered, its IndexedDB ID, and any other properties
+relating to the alarm&apos;s schedule and firing options.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>opts</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Alarm.cancel'>
+          <a href='#Alarm.cancel'>
+            <code>
+              #cancel<span class='gray'>(type)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Cancel an alarm. If <code>type</code> is provided, cancel only that type
+(&apos;normal&apos; or &apos;snooze&apos;). Returns a Promise.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Alarm.cancel' class='mt0'>
+                cancel<span class='gray'>(type)</span>
+              </h2>
+              <p>Cancel an alarm. If <code>type</code> is provided, cancel only that type
+            (&apos;normal&apos; or &apos;snooze&apos;). Returns a Promise.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>type</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Alarm.delete'>
+          <a href='#Alarm.delete'>
+            <code>
+              #delete<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Delete an alarm completely from the database, canceling any
+pending scheduled mozAlarms.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Alarm.delete' class='mt0'>
+                delete<span class='gray'></span>
+              </h2>
+              <p>Delete an alarm completely from the database, canceling any
+            pending scheduled mozAlarms.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Alarm.isEnabled'>
+          <a href='#Alarm.isEnabled'>
+            <code>
+              #isEnabled<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>An alarm is enabled if and only if it has a registeredAlarm set
+with a type of &apos;normal&apos;. To disable an alarm, any
+registeredAlarms are unregistered with mozAlarms and removed
+from this.registeredAlarms.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Alarm.isEnabled' class='mt0'>
+                isEnabled<span class='gray'></span>
+              </h2>
+              <p>An alarm is enabled if and only if it has a registeredAlarm set
+            with a type of &apos;normal&apos;. To disable an alarm, any
+            registeredAlarms are unregistered with mozAlarms and removed
+            from this.registeredAlarms.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Alarm.schedule'>
+          <a href='#Alarm.schedule'>
+            <code>
+              #schedule<span class='gray'>(type)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Schedule an alarm to ring in the future.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Alarm.schedule' class='mt0'>
+                schedule<span class='gray'>(type)</span>
+              </h2>
+              <p>Schedule an alarm to ring in the future.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>type</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AlarmDatabase' class='mt0'>
+    AlarmDatabase<span class='gray'>(dbName, storeName, version)</span>
+  </h2>
+  <p>The AlarmDatabase stores a list of alarms in IndexedDB. All
+mutation operations return Promises, for easy chaining and state
+management. This module returns the one-and-only instance of
+AlarmDatabase.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>dbName</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>storeName</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>version</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='AlarmDatabase.normalizeAlarmRecord'>
+          <a href='#AlarmDatabase.normalizeAlarmRecord'>
+            <code>
+              #normalizeAlarmRecord<span class='gray'>(alarm)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Given an Alarm&apos;s JSON data (as returned by IndexedDB),
+normalize any properties to ensure it conforms to the most
+current Alarm specification.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='AlarmDatabase.normalizeAlarmRecord' class='mt0'>
+                normalizeAlarmRecord<span class='gray'>(alarm)</span>
+              </h2>
+              <p>Given an Alarm&apos;s JSON data (as returned by IndexedDB),
+            normalize any properties to ensure it conforms to the most
+            current Alarm specification.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>alarm</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='AlarmDatabase.withStoreRequest'>
+          <a href='#AlarmDatabase.withStoreRequest'>
+            <code>
+              #withStoreRequest<span class='gray'>(method)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Execute a database store request with the given method and
+arguments, returning a Promise that will be fulfilled with the
+Store&apos;s result.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='AlarmDatabase.withStoreRequest' class='mt0'>
+                withStoreRequest<span class='gray'>(method)</span>
+              </h2>
+              <p>Execute a database store request with the given method and
+            arguments, returning a Promise that will be fulfilled with the
+            Store&apos;s result.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>method</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AlarmListPanel' class='mt0'>
+    AlarmListPanel<span class='gray'>(element)</span>
+  </h2>
+  <p>AlarmListPanel displays the list of alarms on the Clock tab.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>element</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='AlarmListPanel.renderAlarm'>
+          <a href='#AlarmListPanel.renderAlarm'>
+            <code>
+              #renderAlarm<span class='gray'>(alarm, [li])</span>
+            </code>
+            <span class='force-inline'>
+              <p>Render an alarm into a DOM node.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='AlarmListPanel.renderAlarm' class='mt0'>
+                renderAlarm<span class='gray'>(alarm, [li])</span>
+              </h2>
+              <p>Render an alarm into a DOM node.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>alarm</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The alarm to render.</p>
+            
+                      </span>
+                    </li>
+                    <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">Element</a></code>]</code> <strong>li</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Existing element to re-use, if any.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='AlarmListPanel.toggleAlarm'>
+          <a href='#AlarmListPanel.toggleAlarm'>
+            <code>
+              #toggleAlarm<span class='gray'>(alarm, enabled, callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Toggle an alarm&apos;s enabled state. To ensure that the database
+state remains consistent with the DOM, perform operations
+serially in a queue.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='AlarmListPanel.toggleAlarm' class='mt0'>
+                toggleAlarm<span class='gray'>(alarm, enabled, callback)</span>
+              </h2>
+              <p>Toggle an alarm&apos;s enabled state. To ensure that the database
+            state remains consistent with the DOM, perform operations
+            serially in a queue.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="#Alarm">Alarm</a></code> <strong>alarm</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code> <strong>enabled</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Optional callback.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='App' class='mt0'>
+    App<span class='gray'></span>
+  </h2>
+  <p>Global Application event handling and paging</p>
+
+      <h4>Static members</h4>
+        <div class='collapsible' id='App.handleEvent'>
+          <a href='#App.handleEvent'>
+            <code>
+              .handleEvent<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>split each event handler into it&apos;s own method</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='App.handleEvent' class='mt0'>
+                handleEvent<span class='gray'>(event)</span>
+              </h2>
+              <p>split each event handler into it&apos;s own method</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='App.init'>
+          <a href='#App.init'>
+            <code>
+              .init<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Load the Tabs and Panels, attach events and navigate to the default view.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='App.init' class='mt0'>
+                init<span class='gray'></span>
+              </h2>
+              <p>Load the Tabs and Panels, attach events and navigate to the default view.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='App.loadPanel'>
+          <a href='#App.loadPanel'>
+            <code>
+              .loadPanel<span class='gray'>(panel, [callback])</span>
+            </code>
+            <span class='force-inline'>
+              <p>Load and instantiate the specified panel (when necessary).</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='App.loadPanel' class='mt0'>
+                loadPanel<span class='gray'>(panel, [callback])</span>
+              </h2>
+              <p>Load and instantiate the specified panel (when necessary).</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>panel</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>An object describing the panel. It must contain
+            either an <code>el</code> attribute (defining the panel&apos;s
+            containing element) or an <code>instance</code> attribute
+            (defining the instantiated Panel itself).</p>
+            
+                      </span>
+                    </li>
+                    <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code>]</code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A function that will be invoked with the
+            instantiated panel once it is loaded.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='App.navigate'>
+          <a href='#App.navigate'>
+            <code>
+              .navigate<span class='gray'>(data, callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>navigate between pages.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='App.navigate' class='mt0'>
+                navigate<span class='gray'>(data, callback)</span>
+              </h2>
+              <p>navigate between pages.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code> <strong>data</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Options for navigation.</p>
+            
+                      </span>
+                    </li>
+                      <ul>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> data.hash
+                            <p>The hash of the panel id.  I.E. &apos;#alarm-panel&apos;.</p>
+            </li>
+                      </ul>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>Callback to invoke when done.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='App.onhashchange'>
+          <a href='#App.onhashchange'>
+            <code>
+              .onhashchange<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Navigate to the new hash.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='App.onhashchange' class='mt0'>
+                onhashchange<span class='gray'>(event)</span>
+              </h2>
+              <p>Navigate to the new hash.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='App.onvisibilitychange'>
+          <a href='#App.onvisibilitychange'>
+            <code>
+              .onvisibilitychange<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Whenever the application gains/loses focus, inform the current panel of
+its visibility loss.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='App.onvisibilitychange' class='mt0'>
+                onvisibilitychange<span class='gray'>(event)</span>
+              </h2>
+              <p>Whenever the application gains/loses focus, inform the current panel of
+            its visibility loss.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AsyncQueue' class='mt0'>
+    AsyncQueue<span class='gray'></span>
+  </h2>
+  <p>A serial queue of functions. Call <code>.push()</code> to add a function to
+the task; when each function completes (as a result of calling
+&apos;done()&apos;), the next item in the queue will be executed.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='AsyncQueue.push'>
+          <a href='#AsyncQueue.push'>
+            <code>
+              #push<span class='gray'>(fn)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Add a function to the execution queue. It should accept one
+argument, a &apos;done&apos; callback.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='AsyncQueue.push' class='mt0'>
+                push<span class='gray'>(fn)</span>
+              </h2>
+              <p>Add a function to the execution queue. It should accept one
+            argument, a &apos;done&apos; callback.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>fn</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ChildWindowManager' class='mt0'>
+    ChildWindowManager<span class='gray'>(url)</span>
+  </h2>
+  <p>ChildWindowManager maintains the lifecycle of a child attention
+window. When you instantiate a ChildWindowManager, no window
+exists yet; use .whenReady() or postMessage() to call up the
+child window and perform actions on it. Provided the child window
+calls ChildWindowManager.fireReady(), this class takes care of
+the bookkeeping to make sure that the child window is ready to
+receive events before sending over any messages. Similarly, this
+class acquires a CPU wake lock when opening the window to ensure
+that your messages are delivered reliably without the phone going
+to sleep while waiting for the child window to receive a message.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>url</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Static members</h4>
+        <div class='collapsible' id='ChildWindowManager.fireReady'>
+          <a href='#ChildWindowManager.fireReady'>
+            <code>
+              .fireReady<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Call this method from a child window when the child has loaded.
+This fires a message to the parent window, instructing it to pass
+along any queued events.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='ChildWindowManager.fireReady' class='mt0'>
+                fireReady<span class='gray'></span>
+              </h2>
+              <p>Call this method from a child window when the child has loaded.
+            This fires a message to the parent window, instructing it to pass
+            along any queued events.</p>
+            
+            </section>
+          </div>
+        </div>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ChildWindowManager.close'>
+          <a href='#ChildWindowManager.close'>
+            <code>
+              #close<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Closes the window. You may reinstantiate a window again by
+sending another postMessage.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ChildWindowManager.close' class='mt0'>
+                close<span class='gray'></span>
+              </h2>
+              <p>Closes the window. You may reinstantiate a window again by
+            sending another postMessage.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ChildWindowManager.handleEvent'>
+          <a href='#ChildWindowManager.handleEvent'>
+            <code>
+              #handleEvent<span class='gray'>(evt)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Private. Handle DOM events.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ChildWindowManager.handleEvent' class='mt0'>
+                handleEvent<span class='gray'>(evt)</span>
+              </h2>
+              <p>Private. Handle DOM events.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>evt</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ChildWindowManager.postMessage'>
+          <a href='#ChildWindowManager.postMessage'>
+            <code>
+              #postMessage<span class='gray'>(message)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Post a message to the child window. If the window is not yet
+open, acquire a CPU wake lock and open the window, then deliver
+the message. Subsequent calls to postMessage will similarly
+wait until the window is ready before delivery.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ChildWindowManager.postMessage' class='mt0'>
+                postMessage<span class='gray'>(message)</span>
+              </h2>
+              <p>Post a message to the child window. If the window is not yet
+            open, acquire a CPU wake lock and open the window, then deliver
+            the message. Subsequent calls to postMessage will similarly
+            wait until the window is ready before delivery.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>message</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ChildWindowManager.whenReady'>
+          <a href='#ChildWindowManager.whenReady'>
+            <code>
+              #whenReady<span class='gray'>(callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Call a function when the window is ready and opened. This is
+used internally by postMessage.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ChildWindowManager.whenReady' class='mt0'>
+                whenReady<span class='gray'>(callback)</span>
+              </h2>
+              <p>Call a function when the window is ready and opened. This is
+            used internally by postMessage.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='FormButton' class='mt0'>
+    FormButton<span class='gray'>(input, config)</span>
+  </h2>
+  <p>A FormButton is a button that triggers an input. The text
+of the currently selected value will display on the buttons&apos;s face.</p>
+<p>The <code>config</code> paramater supports the following optional properties.
+<code>formatLabel</code> - A function that is given the current value of the input
+and should return a string which will be used as the textContent of
+the button.</p>
+<p><code>tagName</code> - The name of the tag to create and insert into the
+document as the main button used to trigger the input. The default
+value is &apos;button&apos;</p>
+<p><code>className</code> The value of the className property that will be assigned to
+the button element the default value is &apos;icon icon-dialog&apos;.</p>
+<p><code>id</code> - A string that is used as the id of the button element.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element">HTMLElement</a></code> <strong>input</strong>
+          :
+          <span class='force-inline'>
+            <p>The input element to trigger.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>config</strong>
+          :
+          <span class='force-inline'>
+            <p>An optional config object.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='FormButton.className'>
+          <a href='#FormButton.className'>
+            <code>
+              #className<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>class The value to assign to the className property on the
+generated button element.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FormButton.className' class='mt0'>
+                className<span class='gray'></span>
+              </h2>
+              <p>class The value to assign to the className property on the
+            generated button element.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FormButton.destroy'>
+          <a href='#FormButton.destroy'>
+            <code>
+              #destroy<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Remove all event handlers.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FormButton.destroy' class='mt0'>
+                destroy<span class='gray'></span>
+              </h2>
+              <p>Remove all event handlers.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FormButton.focus'>
+          <a href='#FormButton.focus'>
+            <code>
+              #focus<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>focus Triggers a focus event on the input associated with this
+FormButton.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FormButton.focus' class='mt0'>
+                focus<span class='gray'>(event)</span>
+              </h2>
+              <p>focus Triggers a focus event on the input associated with this
+            FormButton.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>an event object.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FormButton.formatLabel'>
+          <a href='#FormButton.formatLabel'>
+            <code>
+              #formatLabel<span class='gray'>(value)</span>
+            </code>
+            <span class='force-inline'>
+              <p>An overrideable method that is called when updating the textContent
+of the button.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FormButton.formatLabel' class='mt0'>
+                formatLabel<span class='gray'>(value)</span>
+              </h2>
+              <p>An overrideable method that is called when updating the textContent
+            of the button.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>value</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code>L10nId</code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The formatted text to display in the label.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FormButton.refresh'>
+          <a href='#FormButton.refresh'>
+            <code>
+              #refresh<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>refresh Updates the label text on the button to reflect
+the current value of the input.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FormButton.refresh' class='mt0'>
+                refresh<span class='gray'></span>
+              </h2>
+              <p>refresh Updates the label text on the button to reflect
+            the current value of the input.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FormButton.tagName'>
+          <a href='#FormButton.tagName'>
+            <code>
+              #tagName<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>tagName The the name of the tag to insert into the document to use
+as the button element.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FormButton.tagName' class='mt0'>
+                tagName<span class='gray'></span>
+              </h2>
+              <p>tagName The the name of the tag to insert into the document to use
+            as the button element.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FormButton.value'>
+          <a href='#FormButton.value'>
+            <code>
+              #value<span class='gray'>(value)</span>
+            </code>
+            <span class='force-inline'>
+              <p>value sets the current value of the input and update&apos;s the
+button text.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FormButton.value' class='mt0'>
+                value<span class='gray'>(value)</span>
+              </h2>
+              <p>value sets the current value of the input and update&apos;s the
+            button text.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> or <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>value</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A string of the current values or an
+            object with properties that map to input options if the input is
+            a multi select.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='FormButton.value'>
+          <a href='#FormButton.value'>
+            <code>
+              #value<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>value Returns the current value of the input.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='FormButton.value' class='mt0'>
+                value<span class='gray'></span>
+              </h2>
+              <p>value Returns the current value of the input.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> or <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>The value of the input.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Timer' class='mt0'>
+    Timer<span class='gray'>(opts)</span>
+  </h2>
+  <p>Timer</p>
+<p>Create new or revive existing timer objects.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>opts</strong>
+          :
+          <span class='force-inline'>
+            <p>Optional timer object to create or revive
+a new or existing timer object.</p>
+<pre><code>            - startTime, number time in ms.
+            - duration, time to count from &grave;start&grave;.
+            - configuredDuration, time requested by user.
+            - sound, string sound name.
+            - vibrate, boolean, vibrate or not.
+            - id, integer, mozAlarm API id number.
+</code></pre>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Static members</h4>
+        <div class='collapsible' id='Timer.getFromStorage'>
+          <a href='#Timer.getFromStorage'>
+            <code>
+              .getFromStorage<span class='gray'>([callback])</span>
+            </code>
+            <span class='force-inline'>
+              <p>request - get the persisted Timer object.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='Timer.getFromStorage' class='mt0'>
+                getFromStorage<span class='gray'>([callback])</span>
+              </h2>
+              <p>request - get the persisted Timer object.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code>]</code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>called with (err, timer_raw).</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Timer.Panel'>
+          <a href='#Timer.Panel'>
+            <code>
+              .Panel<span class='gray'>(element)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Timer.Panel</p>
+<p>Construct a UI panel for the Timer panel.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='Timer.Panel' class='mt0'>
+                Panel<span class='gray'>(element)</span>
+              </h2>
+              <p>Timer.Panel</p>
+            <p>Construct a UI panel for the Timer panel.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>element</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code>Timer.Panel</code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Timer.Panel object.</p>
+            
+                  </span>
+                  <h4>Instance members</h4>
+                    <div class='collapsible' id='Timer.Panel.onclick'>
+                      <a href='#Timer.Panel.onclick'>
+                        <code>
+                          #onclick<span class='gray'>(event)</span>
+                        </code>
+                        <span class='force-inline'>
+                          <p>handleEvent Handler for all panel bound UI events.
+            (<code>this</code> context object is not Timer.Panel)</p>
+            
+                        </span>
+                      </a>
+                      <div class='collapser border px2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='Timer.Panel.onclick' class='mt0'>
+                            onclick<span class='gray'>(event)</span>
+                          </h2>
+                          <p>handleEvent Handler for all panel bound UI events.
+                        (<code>this</code> context object is not Timer.Panel)</p>
+                        
+                            <h4>Parameters</h4>
+                            <ul class='suppress-p-margin'>
+                                <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event</a></code> <strong>event</strong>
+                                  :
+                                  <span class='force-inline'>
+                                    <p>The Event object.</p>
+                        
+                                  </span>
+                                </li>
+                            </ul>
+                        </section>
+                      </div>
+                    </div>
+                    <div class='collapsible' id='Timer.Panel.pauseAlarm'>
+                      <a href='#Timer.Panel.pauseAlarm'>
+                        <code>
+                          #pauseAlarm<span class='gray'></span>
+                        </code>
+                        <span class='force-inline'>
+                          <p>pauseAlarm stops the alarm if it is playing</p>
+            
+                        </span>
+                      </a>
+                      <div class='collapser border px2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='Timer.Panel.pauseAlarm' class='mt0'>
+                            pauseAlarm<span class='gray'></span>
+                          </h2>
+                          <p>pauseAlarm stops the alarm if it is playing</p>
+                        
+                        </section>
+                      </div>
+                    </div>
+                    <div class='collapsible' id='Timer.Panel.previewAlarm'>
+                      <a href='#Timer.Panel.previewAlarm'>
+                        <code>
+                          #previewAlarm<span class='gray'></span>
+                        </code>
+                        <span class='force-inline'>
+                          <p>previewAlarm Plays the currently selected alarm value on a loop.</p>
+            
+                        </span>
+                      </a>
+                      <div class='collapser border px2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='Timer.Panel.previewAlarm' class='mt0'>
+                            previewAlarm<span class='gray'></span>
+                          </h2>
+                          <p>previewAlarm Plays the currently selected alarm value on a loop.</p>
+                        
+                        </section>
+                      </div>
+                    </div>
+                    <div class='collapsible' id='Timer.Panel.update'>
+                      <a href='#Timer.Panel.update'>
+                        <code>
+                          #update<span class='gray'></span>
+                        </code>
+                        <span class='force-inline'>
+                          <p>Given milliseconds, render the time as a rounded-to-seconds
+            countdown.</p>
+            
+                        </span>
+                      </a>
+                      <div class='collapser border px2'>
+                        <section class='py2 clearfix'>
+                          <h2 id='Timer.Panel.update' class='mt0'>
+                            update<span class='gray'></span>
+                          </h2>
+                          <p>Given milliseconds, render the time as a rounded-to-seconds
+                        countdown.</p>
+                        
+                        </section>
+                      </div>
+                    </div>
+            </section>
+          </div>
+        </div>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Timer.commit'>
+          <a href='#Timer.commit'>
+            <code>
+              #commit<span class='gray'>([callback])</span>
+            </code>
+            <span class='force-inline'>
+              <p>commit - save and register the timer as necessary.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Timer.commit' class='mt0'>
+                commit<span class='gray'>([callback])</span>
+              </h2>
+              <p>commit - save and register the timer as necessary.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code>]</code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>callback to call after the timer
+            has been registered.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Timer.plus'>
+          <a href='#Timer.plus'>
+            <code>
+              #plus<span class='gray'>(seconds)</span>
+            </code>
+            <span class='force-inline'>
+              <p>plus Increase the duration and extend the endAt time</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Timer.plus' class='mt0'>
+                plus<span class='gray'>(seconds)</span>
+              </h2>
+              <p>plus Increase the duration and extend the endAt time</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>seconds</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The time in seconds to add.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="#Timer">Timer</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Timer instance.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Timer.register'>
+          <a href='#Timer.register'>
+            <code>
+              #register<span class='gray'>([callback])</span>
+            </code>
+            <span class='force-inline'>
+              <p>register - Register the timer with mozAlarm API.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Timer.register' class='mt0'>
+                register<span class='gray'>([callback])</span>
+              </h2>
+              <p>register - Register the timer with mozAlarm API.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code>]</code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>callback to call after the timer
+            has been registered.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Timer.save'>
+          <a href='#Timer.save'>
+            <code>
+              #save<span class='gray'>([callback])</span>
+            </code>
+            <span class='force-inline'>
+              <p>save - Save the timer to the database.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Timer.save' class='mt0'>
+                save<span class='gray'>([callback])</span>
+              </h2>
+              <p>save - Save the timer to the database.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code>]</code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>callback to call after the timer
+            has been saved.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Timer.toSerializable'>
+          <a href='#Timer.toSerializable'>
+            <code>
+              #toSerializable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>toSerializable - convert <code>this</code> to a serialized format.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Timer.toSerializable' class='mt0'>
+                toSerializable<span class='gray'></span>
+              </h2>
+              <p>toSerializable - convert <code>this</code> to a serialized format.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>object representation of this Timer.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='define' class='mt0'>
+    define<span class='gray'></span>
+  </h2>
+  <p>parse-loose-time v1.0.0
+<a href="https://github.com/millermedeiros/parse-loose-time/">https://github.com/millermedeiros/parse-loose-time/</a>
+released under the MIT License</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='define' class='mt0'>
+    define<span class='gray'></span>
+  </h2>
+  
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='define' class='mt0'>
+    define<span class='gray'></span>
+  </h2>
+  <p>parse-duration v0.1.1
+Released under the MIT License
+<a href="https://github.com/jkroso/parse-duration">https://github.com/jkroso/parse-duration</a></p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='define' class='mt0'>
+    define<span class='gray'></span>
+  </h2>
+  
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='defineProperties' class='mt0'>
+    defineProperties<span class='gray'></span>
+  </h2>
+  <p>Static &quot;const&quot; Timer states.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='eachProp' class='mt0'>
+    eachProp<span class='gray'>(obj, func)</span>
+  </h2>
+  <p>Cycles over properties in an object and calls a function for each
+property value. If the function returns a truthy value, then the
+iteration is stopped.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>obj</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>func</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='exec' class='mt0'>
+    exec<span class='gray'>(text)</span>
+  </h2>
+  <p>Executes the text. Normally just uses eval, but can be modified
+to use a better, environment-specific call. Only used for transpiling
+loader plugins, not for plain JS modules.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>text</strong>
+          :
+          <span class='force-inline'>
+            <p>the text to execute/evaluate.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='extendWithDomGetters' class='mt0'>
+    extendWithDomGetters<span class='gray'>(proto, selectorMap)</span>
+  </h2>
+  <p>Extend the given prototype object with lazy getters.
+selectorMap is a mapping of { propertyName: selector }.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>proto</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>selectorMap</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='fromMS' class='mt0'>
+    fromMS<span class='gray'>(interval, [opts])</span>
+  </h2>
+  <p>Convert millisecond values to object literals conformable to toMS()</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>interval</strong>
+          :
+          <span class='force-inline'>
+            <p>A millisecond value.</p>
+
+          </span>
+        </li>
+        <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>]</code> <strong>opts</strong>
+          :
+          <span class='force-inline'>
+            <p>Options object with a unitsPartial property
+containing (if desired) a restriction on which
+properties will be reated for the return value.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Object literal with properties as deliniated by opts.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='toMS' class='mt0'>
+    toMS<span class='gray'>(interval, opts)</span>
+  </h2>
+  <p>Convert object literals containing interval length to milliseconds</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> or <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">Date</a></code> or <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>interval</strong>
+          :
+          <span class='force-inline'>
+            <p>An object literal containing days,
+hours, minutes etc.
+Optionally a number or date object.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>opts</strong>
+          :
+          <span class='force-inline'>
+            <p>Options object with a unitsPartial property containing
+(if desired) a restriction on which properties will be
+searched on the interval.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Millisecond value for interval length.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='singleton' class='mt0'>
+    singleton<span class='gray'>(constructor, [getKey])</span>
+  </h2>
+  <p>Define a singleton method that returns a unified instance
+based on arguments.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>constructor</strong>
+          :
+          <span class='force-inline'>
+            <p>A constructor function used
+to create a new instance.</p>
+
+          </span>
+        </li>
+        <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code>]</code> <strong>getKey</strong>
+          :
+          <span class='force-inline'>
+            <p>A function called with (arguments),
+and returns a lookup key for this singleton.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>returns the instance either created or retrieved
+from the singleton-map by the key.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='formatLabel' class='mt0'>
+    formatLabel<span class='gray'>(sound)</span>
+  </h2>
+  <p>Given a sound ID, return the label to be displayed, for instance,
+on a FormButton.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>sound</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Stopwatch' class='mt0'>
+    Stopwatch<span class='gray'>(opts)</span>
+  </h2>
+  <p>Stopwatch</p>
+<p>Create new or revive existing stopwatch objects.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>opts</strong>
+          :
+          <span class='force-inline'>
+            <p>Optional stopwatch object to create or revive
+a new or existing stopwatch object.</p>
+<pre><code>            - startTime, number time in ms.
+            - totalElapsed, number time in ms.
+            - isStarted, started state boolean.
+            - laps, array of lap objects (lap = {time:, duration:}).
+</code></pre>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Static members</h4>
+        <div class='collapsible' id='Stopwatch.Panel'>
+          <a href='#Stopwatch.Panel'>
+            <code>
+              .Panel<span class='gray'>(element)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Stopwatch.Panel</p>
+<p>Construct a UI panel for the Stopwatch panel.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.Panel' class='mt0'>
+                Panel<span class='gray'>(element)</span>
+              </h2>
+              <p>Stopwatch.Panel</p>
+            <p>Construct a UI panel for the Stopwatch panel.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>element</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code>Stopwatch.Panel</code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>Stopwatch.Panel object.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Stopwatch.getElapsedTime'>
+          <a href='#Stopwatch.getElapsedTime'>
+            <code>
+              #getElapsedTime<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>getElapsedTime Calculates the total elapsed duration since the
+stopwatch was started</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.getElapsedTime' class='mt0'>
+                getElapsedTime<span class='gray'></span>
+              </h2>
+              <p>getElapsedTime Calculates the total elapsed duration since the
+            stopwatch was started</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>return total elapsed duration.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Stopwatch.getLaps'>
+          <a href='#Stopwatch.getLaps'>
+            <code>
+              #getLaps<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>getLaps Returns an array of laps, sorted by oldest first</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.getLaps' class='mt0'>
+                getLaps<span class='gray'></span>
+              </h2>
+              <p>getLaps Returns an array of laps, sorted by oldest first</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>return an array of laps.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Stopwatch.lap'>
+          <a href='#Stopwatch.lap'>
+            <code>
+              #lap<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>lap Calculates a new lap duration since the last lap time,
+and mutates <code>priv[this].laps</code> to contain the new value.
+If the stopwatch isn&apos;t currently running, returns 0.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.lap' class='mt0'>
+                lap<span class='gray'></span>
+              </h2>
+              <p>lap Calculates a new lap duration since the last lap time,
+            and mutates <code>priv[this].laps</code> to contain the new value.
+            If the stopwatch isn&apos;t currently running, returns 0.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>return the lap duration in ms.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Stopwatch.nextLap'>
+          <a href='#Stopwatch.nextLap'>
+            <code>
+              #nextLap<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>nextLap Calculates the duration of the next lap.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.nextLap' class='mt0'>
+                nextLap<span class='gray'></span>
+              </h2>
+              <p>nextLap Calculates the duration of the next lap.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>return an object containing:
+            duration - the duration of this lap in ms.
+            time - the start time of this lap in ms from epoch.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Stopwatch.pause'>
+          <a href='#Stopwatch.pause'>
+            <code>
+              #pause<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>pause Pauses the stopwatch</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.pause' class='mt0'>
+                pause<span class='gray'></span>
+              </h2>
+              <p>pause Pauses the stopwatch</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Stopwatch.reset'>
+          <a href='#Stopwatch.reset'>
+            <code>
+              #reset<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>reset Resets the stopwatch back to 0, clears laps</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.reset' class='mt0'>
+                reset<span class='gray'></span>
+              </h2>
+              <p>reset Resets the stopwatch back to 0, clears laps</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Stopwatch.start'>
+          <a href='#Stopwatch.start'>
+            <code>
+              #start<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>start Starts the stopwatch, either from a reset or paused state</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.start' class='mt0'>
+                start<span class='gray'></span>
+              </h2>
+              <p>start Starts the stopwatch, either from a reset or paused state</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Stopwatch.toSerializable'>
+          <a href='#Stopwatch.toSerializable'>
+            <code>
+              #toSerializable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>toSerializable Returns a serializable object for persisting Stopwatch data</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Stopwatch.toSerializable' class='mt0'>
+                toSerializable<span class='gray'></span>
+              </h2>
+              <p>toSerializable Returns a serializable object for persisting Stopwatch data</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+                  :
+                  <span class='force-inline'>
+                    <p>A serializable object.</p>
+            
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Panel' class='mt0'>
+    Panel<span class='gray'>(element)</span>
+  </h2>
+  <p>A Panel is a &quot;full screen&quot; style tab/dialog.  Panels have an active state
+which can be true or false, and can transition in and out using CSS3
+classes and animation events.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element">HTMLElement</a></code> <strong>element</strong>
+          :
+          <span class='force-inline'>
+            <p>The element to wrap.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Panel.handleEvent'>
+          <a href='#Panel.handleEvent'>
+            <code>
+              #handleEvent<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Handles the &quot;animationend&quot; event.  Sets the transition state to false
+and hides the element if the Panel is not active.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Panel.handleEvent' class='mt0'>
+                handleEvent<span class='gray'>(event)</span>
+              </h2>
+              <p>Handles the &quot;animationend&quot; event.  Sets the transition state to false
+            and hides the element if the Panel is not active.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Tabs' class='mt0'>
+    Tabs<span class='gray'>(element)</span>
+  </h2>
+  <p>Abstraction for handling the Tabs links at the bottom of the UI.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element">HTMLElement</a></code> <strong>element</strong>
+          :
+          <span class='force-inline'>
+            <p>The containing element for the Tabs UI.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Tabs.handleEvent'>
+          <a href='#Tabs.handleEvent'>
+            <code>
+              #handleEvent<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Update selected attributes for the selected tab.
+Also emit a &apos;selected&apos; event with the relevant data.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Tabs.handleEvent' class='mt0'>
+                handleEvent<span class='gray'>(event)</span>
+              </h2>
+              <p>Update selected attributes for the selected tab.
+            Also emit a &apos;selected&apos; event with the relevant data.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='View' class='mt0'>
+    View<span class='gray'>(element)</span>
+  </h2>
+  <p>A View is simply a wrapper around an element.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element">HTMLElement</a></code> <strong>element</strong>
+          :
+          <span class='force-inline'>
+            <p>The element that will be wrapped by this view.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Static members</h4>
+        <div class='collapsible' id='View.instance'>
+          <a href='#View.instance'>
+            <code>
+              .instance<span class='gray'>(element, ctor)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Find or create a view instance for an element.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='View.instance' class='mt0'>
+                instance<span class='gray'>(element, ctor)</span>
+              </h2>
+              <p>Find or create a view instance for an element.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element">HTMLElement</a></code> <strong>element</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The element that will be wrapped by the view.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>ctor</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The constructor method for the view, defaults to View.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isValidVolume' class='mt0'>
+    isValidVolume<span class='gray'>(volume)</span>
+  </h2>
+  <p>The Settings App stores volumes in the range [0, 15] inclusive.
+Whenever we need to play sounds, though, the Audio object
+requires a float between [0.0, 1.0]. The conversion has to happen
+somewhere. The AudioManager here draws the line right out of what
+gets read from mozSettings.</p>
+<p>In other words, the conversion is not important to clients of
+this class, who should treat the volume as a float with no
+conversion. The only weirdness here is that unit tests must be
+aware of the slight rounding differences when converting from a
+float to the system level.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>volume</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='makeMap' class='mt0'>
+    makeMap<span class='gray'>(name, relName, applyMap)</span>
+  </h2>
+  <p>Makes a name map, normalizing the name, and using a plugin
+for normalization if necessary. Grabs a ref to plugin
+too, as an optimization.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>name</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>relName</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>applyMap</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mixin' class='mt0'>
+    mixin<span class='gray'>(target, source, force, deepStringMixin)</span>
+  </h2>
+  <p>Simple function to mix in properties from source into target,
+but only if target does not already have a property of the same name.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>source</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>force</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>deepStringMixin</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='parse' class='mt0'>
+    parse<span class='gray'>(str)</span>
+  </h2>
+  <p>convert <code>str</code> to ms</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>str</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code></code>
+      
+      <span class='force-inline'>
+        
+      </span>
+      <h4>Static members</h4>
+        <div class='collapsible' id='parse.nanosecond'>
+          <a href='#parse.nanosecond'>
+            <code>
+              .nanosecond<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>conversion ratios</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='parse.nanosecond' class='mt0'>
+                nanosecond<span class='gray'></span>
+              </h2>
+              <p>conversion ratios</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='normalize' class='mt0'>
+    normalize<span class='gray'>(name, baseName, applyMap)</span>
+  </h2>
+  <p>Given a relative module name, like ./something, normalize it to
+a real name that can be mapped to a path.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+          :
+          <span class='force-inline'>
+            <p>the relative name</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>baseName</strong>
+          :
+          <span class='force-inline'>
+            <p>a real name that the name arg is relative
+to.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>applyMap</strong>
+          :
+          <span class='force-inline'>
+            <p>apply the map config to the value. Should
+only be done if this normalization is for a dependency ID.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>normalized name</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='objectStoreGetAll' class='mt0'>
+    objectStoreGetAll<span class='gray'>(objectStore)</span>
+  </h2>
+  <p>Return all records from an ObjectStore. This function is
+non-standard, but is such a common pattern that it has actually
+been included in certain implementations of IndexedDB. It is
+extracted here for clarity.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>objectStore</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Spinner' class='mt0'>
+    Spinner<span class='gray'>(setup)</span>
+  </h2>
+  <p>Spinner</p>
+<p>Create a select list spinner.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>setup</strong>
+          :
+          <span class='force-inline'>
+            <p>An object containing setup data.</p>
+<pre><code>                  - element, a DOM element to create
+                    the spinner with.
+                  - values, an array of values to
+                    populate the spinner with.
+</code></pre>
+<p>new Spinner({
+element: this.selector[picker],
+values: values
+});</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Spinner.ontouchstart'>
+          <a href='#Spinner.ontouchstart'>
+            <code>
+              #ontouchstart<span class='gray'>(event)</span>
+            </code>
+            <span class='force-inline'>
+              <p>ontouchstart - prevent default action (stops scrolling)</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Spinner.ontouchstart' class='mt0'>
+                ontouchstart<span class='gray'>(event)</span>
+              </h2>
+              <p>ontouchstart - prevent default action (stops scrolling)</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>event</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='parseName' class='mt0'>
+    parseName<span class='gray'>(name)</span>
+  </h2>
+  <p>Parses a resource name into its component parts. Resource names
+look like: module/name.ext!strip, where the !strip part is
+optional.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+          :
+          <span class='force-inline'>
+            <p>the resource name</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>with properties &quot;moduleName&quot;, &quot;ext&quot; and &quot;strip&quot;
+where strip is a boolean.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='parseName' class='mt0'>
+    parseName<span class='gray'>(name)</span>
+  </h2>
+  <p>Parses a resource name into its component parts. Resource names
+look like: module/name.ext!strip, where the !strip part is
+optional.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+          :
+          <span class='force-inline'>
+            <p>the resource name</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>with properties &quot;moduleName&quot;, &quot;ext&quot; and &quot;strip&quot;
+where strip is a boolean.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='useXhr' class='mt0'>
+    useXhr<span class='gray'>(url, protocol, hostname, port)</span>
+  </h2>
+  <p>Is an URL on another domain. Only works for browser use, returns
+false in non-browser environments. Only used to know if an
+optimized .js version of a text resource should be loaded
+instead.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>url</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>protocol</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>hostname</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>port</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='useXhr' class='mt0'>
+    useXhr<span class='gray'>(url, protocol, hostname, port)</span>
+  </h2>
+  <p>Is an URL on another domain. Only works for browser use, returns
+false in non-browser environments. Only used to know if an
+optimized .js version of a text resource should be loaded
+instead.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>url</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>protocol</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>hostname</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>port</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Picker' class='mt0'>
+    Picker<span class='gray'>(setup)</span>
+  </h2>
+  <p>Picker</p>
+<p>Create an inline &quot;picker&quot;, comprised of n &quot;spinners&quot;.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>setup</strong>
+          :
+          <span class='force-inline'>
+            <p>An object containing setup data.</p>
+<pre><code>                  - element, The container element.
+                  - pickers, an object whose properties
+                    correspond to a Picker that will
+                    be created.
+</code></pre>
+<p>new Picker({
+element: &apos;time-picker&apos;,
+pickers: {
+hours: {
+range: [0, 24],
+l10nId: &apos;nSpinnerHours&apos;
+},
+minutes: {
+range: [0, 60],
+isPadded: true,
+l10nId: &apos;nSpinnerMinutes&apos;
+}
+}
+});</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='requirejs' class='mt0'>
+    requirejs<span class='gray'></span>
+  </h2>
+  <p>alameda 0.2.0-native-promise Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.
+Available via the MIT or new BSD license.
+see: <a href="http://github.com/requirejs/alameda">http://github.com/requirejs/alameda</a> for details</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setVolume' class='mt0'>
+    setVolume<span class='gray'>(volume, cb)</span>
+  </h2>
+  <p>Set the volume with an optional completion callback.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>volume</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>cb</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='timerSingleton' class='mt0'>
+    timerSingleton<span class='gray'>([callback])</span>
+  </h2>
+  <p>singleton - get the unique persisted Timer object.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code>]</code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>called with (err, timer).</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='toUrl' class='mt0'>
+    toUrl<span class='gray'>(moduleNamePlusExt)</span>
+  </h2>
+  <p>Converts a module name + .extension into an URL path.
+<em>Requires</em> the use of a module name. It does not support using
+plain URLs like nameToUrl.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>moduleNamePlusExt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='transition' class='mt0'>
+    transition<span class='gray'></span>
+  </h2>
+  <p>Panel.prototype.transition - String or false</p>
+<p>Sets the internal transition state.  When set, adds the class specified
+to the element, removing the old transition class if it exists.</p>
+<p>When set to false, it removes the current transition class.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='trimDots' class='mt0'>
+    trimDots<span class='gray'>(ary)</span>
+  </h2>
+  <p>Trims the . and .. from an array of path segments.
+It will keep a leading path segment if a .. will become
+the first path segment, to help with module name lookups,
+which act like paths, but can be remapped. But the end result,
+all paths that use this function should look normalized.
+NOTE: this method MODIFIES the input array.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>ary</strong>
+          :
+          <span class='force-inline'>
+            <p>the array of path segments.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='visible' class='mt0'>
+    visible<span class='gray'></span>
+  </h2>
+  <p>View.prototype.visible - set to true or false to toggle the &quot;hidden&quot; class
+on the element.</p>
+<p>Also emits a &apos;visibilitychange&apos; event passing either true or false to show
+the new visible state.  The event happens before the class is changed to
+allow time to modify the DOM before something becomes visible.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='whenDocumentReady' class='mt0'>
+    whenDocumentReady<span class='gray'></span>
+  </h2>
+  <p>RingView displays the alert screen when a timer or alarm fires.
+This screen may receive multiple different alarm/timer events;
+ideally it would display all events that fire, but currently it
+only shows the most recent event.</p>
+
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#active">active</a></li><li><a href="global.html#formatLabel">formatLabel</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#transition">transition</a></li><li><a href="global.html#visible">visible</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:23 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

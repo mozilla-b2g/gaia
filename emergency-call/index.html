@@ -1,65 +1,276 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#_caretPosition'
+                class='block bold'>
+                _caretPosition
+              </a>
+              <a
+                href='#_ellipsisOffset'
+                class='block bold'>
+                _ellipsisOffset
+              </a>
+              <a
+                href='#_realEndPosition'
+                class='block bold'>
+                _realEndPosition
+              </a>
+              <a
+                href='#_realPosition'
+                class='block bold'>
+                _realPosition
+              </a>
+              <a
+                href='#_realStartPosition'
+                class='block bold'>
+                _realStartPosition
+              </a>
+              <a
+                href='#_touchEnd'
+                class='block bold'>
+                _touchEnd
+              </a>
+              <a
+                href='#_touchMove'
+                class='block bold'>
+                _touchMove
+              </a>
+              <a
+                href='#_touchStart'
+                class='block bold'>
+                _touchStart
+              </a>
+              <a
+                href='#restoreCaretPosition'
+                class='block bold'>
+                restoreCaretPosition
+              </a>
+              <a
+                href='#CallHandler'
+                class='block bold'>
+                CallHandler
+              </a>
+              <a
+                href='#isFromICEContact'
+                class='block bold'>
+                isFromICEContact
+              </a>
+              <a
+                href='#updateICEContacts'
+                class='block bold'>
+                updateICEContacts
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='_caretPosition' class='mt0'>
+    _caretPosition<span class='gray'>(realPosition)</span>
+  </h2>
+  <p>Gets the position where the cursor should be placed inside the phone
+view (considering the ellipsed scenaries) from the real edition point.</p>
 
-<body>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>realPosition</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_ellipsisOffset' class='mt0'>
+    _ellipsisOffset<span class='gray'>(input)</span>
+  </h2>
+  <p>Calculates the amount of characters that are not visible in the current
+view. This includes all the ellipsed characters and the ellipsis
+character itself.</p>
 
-<div id="main">
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>input</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_realEndPosition' class='mt0'>
+    _realEndPosition<span class='gray'></span>
+  </h2>
+  <p>Gets the real end index for a selection in the phone view considering
+the ellipsed characters.</p>
 
-    <h1 class="page-title">Home</h1>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_realPosition' class='mt0'>
+    _realPosition<span class='gray'>(input, position)</span>
+  </h2>
+  <p>Utility to calculate the real cursor position given an input with
+ellipsed characters and a position inside the current value.</p>
 
-    
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>input</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>position</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_realStartPosition' class='mt0'>
+    _realStartPosition<span class='gray'></span>
+  </h2>
+  <p>Gets the real start index for a selection in the phone view considering
+the ellipsed characters.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_touchEnd' class='mt0'>
+    _touchEnd<span class='gray'>(key)</span>
+  </h2>
+  <p>Function used to respond to touchend events over the keypad. Stops playing
+tones and resets timers associated with the key press.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>key</strong>
+          :
+          <span class='force-inline'>
+            <p>The key over which the tap finished.</p>
 
-    
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_touchMove' class='mt0'>
+    _touchMove<span class='gray'>(touch)</span>
+  </h2>
+  <p>Function used to respond to touchmove events over the keypad. Stops playing
+the tone associated with the last pressed key and resets it if the target
+goes outside its area.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>touch</strong>
+          :
+          <span class='force-inline'>
+            <p>Touch position object for this move.</p>
 
-    <h3> </h3>
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_touchStart' class='mt0'>
+    _touchStart<span class='gray'>(key)</span>
+  </h2>
+  <p>Function used to respond to touchstart events over the keypad. Reacts to
+the first key that has been pressed by playing the appropriate tone and
+sets up the necessary timers to react to long presses.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>key</strong>
+          :
+          <span class='force-inline'>
+            <p>The key that was hit by this touchstart event.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='restoreCaretPosition' class='mt0'>
+    restoreCaretPosition<span class='gray'></span>
+  </h2>
+  <p>Sets the caret position inside the phone number input of the dialer
+according to the insert position (which is the real place where the caret
+should be inside the complete number) taking into account the number of
+ellipsed characters.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='CallHandler' class='mt0'>
+    CallHandler<span class='gray'></span>
+  </h2>
+  <p>CallHandler</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isFromICEContact' class='mt0'>
+    isFromICEContact<span class='gray'>(number)</span>
+  </h2>
+  <p>Preliminary version of this function which checks if a telephone number
+belongs to an ICE contact. A more advanced version of which should
+probably consider phone number variants.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>number</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateICEContacts' class='mt0'>
+    updateICEContacts<span class='gray'></span>
+  </h2>
+  <p>Gets the ICE contacts, show the ICE contacts bar if appropriate and loads
+the ICE contacts on the overlay for future calling.</p>
 
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      
+      <span class='force-inline'>
+        
+      </span>
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#CallHandler">CallHandler</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:15 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

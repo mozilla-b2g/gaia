@@ -1,0 +1,305 @@
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
+</head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#ContextMenu'
+                class='block bold'>
+                ContextMenu
+              </a>
+                <a
+                  href='#ContextMenu.init'
+                  class='regular block'>
+                  #init
+                </a>
+                <a
+                  href='#ContextMenu.pinOrUnpin'
+                  class='regular block'>
+                  #pinOrUnpin
+                </a>
+                <a
+                  href='#ContextMenu.sendMessage'
+                  class='regular block'>
+                  #sendMessage
+                </a>
+                <a
+                  href='#ContextMenu.uninstall'
+                  class='regular block'>
+                  #uninstall
+                </a>
+              <a
+                href='#AppDeck'
+                class='block bold'>
+                AppDeck
+              </a>
+              <a
+                href='#AppDeck#focus-on-nonpinable'
+                class='block bold'>
+                AppDeck#focus-on-nonpinable
+              </a>
+              <a
+                href='#AppDeck#focus-on-pinable'
+                class='block bold'>
+                AppDeck#focus-on-pinable
+              </a>
+              <a
+                href='#fireFocusEvent'
+                class='block bold'>
+                fireFocusEvent
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#PromotionList'
+                class='block bold'>
+                PromotionList
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='ContextMenu' class='mt0'>
+    ContextMenu<span class='gray'></span>
+  </h2>
+  <p>It handles everything related to contextmenu in app-deck.</p>
+
+      <h4>Instance members</h4>
+        <div class='collapsible' id='ContextMenu.init'>
+          <a href='#ContextMenu.init'>
+            <code>
+              #init<span class='gray'>(appDeck)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Initialize ContextMenu</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ContextMenu.init' class='mt0'>
+                init<span class='gray'>(appDeck)</span>
+              </h2>
+              <p>Initialize ContextMenu</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>AppDeck</code> <strong>appDeck</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>instance of <a href="AppDeck"><code>AppDeck</code></a></p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ContextMenu.pinOrUnpin'>
+          <a href='#ContextMenu.pinOrUnpin'>
+            <code>
+              #pinOrUnpin<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Based on currently focused SmartButton, we&apos;ll decide we are going to
+pin or unpin the app. This function is invoked when we get &apos;click&apos; event
+on pinToHomeElem. Notice that we use <code>MozActivity</code> to pin app because we
+want to bring users to Home when they finish pinning. However we unpin
+app via IAC because we want users stay in AppDeck after unpinning.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ContextMenu.pinOrUnpin' class='mt0'>
+                pinOrUnpin<span class='gray'></span>
+              </h2>
+              <p>Based on currently focused SmartButton, we&apos;ll decide we are going to
+            pin or unpin the app. This function is invoked when we get &apos;click&apos; event
+            on pinToHomeElem. Notice that we use <code>MozActivity</code> to pin app because we
+            want to bring users to Home when they finish pinning. However we unpin
+            app via IAC because we want users stay in AppDeck after unpinning.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ContextMenu.sendMessage'>
+          <a href='#ContextMenu.sendMessage'>
+            <code>
+              #sendMessage<span class='gray'>(type, data)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Send message on &apos;appdeck-channel&apos; using Inter-App Communication.
+smart-home will monitor this channel. Currently we use this channel to
+tell smart-home to what app we would like to unpin.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ContextMenu.sendMessage' class='mt0'>
+                sendMessage<span class='gray'>(type, data)</span>
+              </h2>
+              <p>Send message on &apos;appdeck-channel&apos; using Inter-App Communication.
+            smart-home will monitor this channel. Currently we use this channel to
+            tell smart-home to what app we would like to unpin.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>type</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>message type, which must be &apos;unpin&apos; for now.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>data</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>message data in JSON object format</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='ContextMenu.uninstall'>
+          <a href='#ContextMenu.uninstall'>
+            <code>
+              #uninstall<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Uninstall app represented by current focused SmartButton</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='ContextMenu.uninstall' class='mt0'>
+                uninstall<span class='gray'></span>
+              </h2>
+              <p>Uninstall app represented by current focused SmartButton</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AppDeck' class='mt0'>
+    AppDeck<span class='gray'></span>
+  </h2>
+  
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AppDeck#focus-on-nonpinable' class='mt0'>
+    AppDeck#focus-on-nonpinable<span class='gray'></span>
+  </h2>
+  
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AppDeck#focus-on-pinable' class='mt0'>
+    AppDeck#focus-on-pinable<span class='gray'></span>
+  </h2>
+  <p>This event fires whenever focus in AppDeck move to a pinable
+element (representing na app).</p>
+
+    <h4>Properties</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>pinned</strong>
+              :
+              <span class='force-inline'>
+                <p>Is current focused pinable element
+pinned or not</p>
+
+              </span>
+            </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>manifestURL</strong>
+              :
+              <span class='force-inline'>
+                <p>manifestURL of current focused
+element</p>
+
+              </span>
+            </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+              :
+              <span class='force-inline'>
+                <p>name of current focused pinable element</p>
+
+              </span>
+            </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>removable</strong>
+              :
+              <span class='force-inline'>
+                <p>Is current focused pinable element
+removable or not</p>
+
+              </span>
+            </li>
+    </li>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='fireFocusEvent' class='mt0'>
+    fireFocusEvent<span class='gray'>(elem)</span>
+  </h2>
+  <p>Notify other module that currently focused element is pinable (could be
+pinned on Home) or nonpinable (could not be pinned on Home)</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element">HTMLElement</a></code> <strong>elem</strong>
+          :
+          <span class='force-inline'>
+            <p>currently focused element</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'></span>
+  </h2>
+  <p>Initialize AppDeck. This is the main entry of the whole app.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='PromotionList' class='mt0'>
+    PromotionList<span class='gray'></span>
+  </h2>
+  <p>PromotionList controls everything on the upper half of AppDeck</p>
+
+</section>
+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
+</body>
+</html>

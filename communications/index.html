@@ -1,65 +1,2309 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#_createSchema'
+                class='block bold'>
+                _createSchema
+              </a>
+              <a
+                href='#_gatherAllGroups'
+                class='block bold'>
+                _gatherAllGroups
+              </a>
+              <a
+                href='#_getDayDate'
+                class='block bold'>
+                _getDayDate
+              </a>
+              <a
+                href='#_getGroupId'
+                class='block bold'>
+                _getGroupId
+              </a>
+              <a
+                href='#_getGroupObject'
+                class='block bold'>
+                _getGroupObject
+              </a>
+              <a
+                href='#_getList'
+                class='block bold'>
+                _getList
+              </a>
+              <a
+                href='#_keepDbPrettyAndFit'
+                class='block bold'>
+                _keepDbPrettyAndFit
+              </a>
+              <a
+                href='#_newTxn'
+                class='block bold'>
+                _newTxn
+              </a>
+              <a
+                href='#_updateCacheRevision'
+                class='block bold'>
+                _updateCacheRevision
+              </a>
+              <a
+                href='#_updateGroup'
+                class='block bold'>
+                _updateGroup
+              </a>
+              <a
+                href='#_upgradeSchemaVersion2'
+                class='block bold'>
+                _upgradeSchemaVersion2
+              </a>
+              <a
+                href='#_upgradeSchemaVersion3'
+                class='block bold'>
+                _upgradeSchemaVersion3
+              </a>
+              <a
+                href='#_upgradeSchemaVersion4'
+                class='block bold'>
+                _upgradeSchemaVersion4
+              </a>
+              <a
+                href='#_upgradeSchemaVersion5'
+                class='block bold'>
+                _upgradeSchemaVersion5
+              </a>
+              <a
+                href='#_upgradeSchemaVersion6'
+                class='block bold'>
+                _upgradeSchemaVersion6
+              </a>
+              <a
+                href='#add'
+                class='block bold'>
+                add
+              </a>
+              <a
+                href='#deleteAll'
+                class='block bold'>
+                deleteAll
+              </a>
+              <a
+                href='#deleteDb'
+                class='block bold'>
+                deleteDb
+              </a>
+              <a
+                href='#deleteGroup'
+                class='block bold'>
+                deleteGroup
+              </a>
+              <a
+                href='#deleteGroupList'
+                class='block bold'>
+                deleteGroupList
+              </a>
+              <a
+                href='#getGroupAtPosition'
+                class='block bold'>
+                getGroupAtPosition
+              </a>
+              <a
+                href='#getGroupList'
+                class='block bold'>
+                getGroupList
+              </a>
+              <a
+                href='#removeGroupContactInfo'
+                class='block bold'>
+                removeGroupContactInfo
+              </a>
+              <a
+                href='#updateGroupContactInfo'
+                class='block bold'>
+                updateGroupContactInfo
+              </a>
+              <a
+                href='#_doHandleResult'
+                class='block bold'>
+                _doHandleResult
+              </a>
+              <a
+                href='#_getImeiForCard'
+                class='block bold'>
+                _getImeiForCard
+              </a>
+              <a
+                href='#handleDialing'
+                class='block bold'>
+                handleDialing
+              </a>
+              <a
+                href='#handleMMIReceived'
+                class='block bold'>
+                handleMMIReceived
+              </a>
+              <a
+                href='#isImei'
+                class='block bold'>
+                isImei
+              </a>
+              <a
+                href='#prependSimNumber'
+                class='block bold'>
+                prependSimNumber
+              </a>
+              <a
+                href='#sendNotification'
+                class='block bold'>
+                sendNotification
+              </a>
+              <a
+                href='#showImei'
+                class='block bold'>
+                showImei
+              </a>
+              <a
+                href='#_validateContactsCache'
+                class='block bold'>
+                _validateContactsCache
+              </a>
+              <a
+                href='#updateContactInfo'
+                class='block bold'>
+                updateContactInfo
+              </a>
+              <a
+                href='#updateListWithContactInfo'
+                class='block bold'>
+                updateListWithContactInfo
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#addEventListener'
+                class='block bold'>
+                addEventListener
+              </a>
+              <a
+                href='#checkContact'
+                class='block bold'>
+                checkContact
+              </a>
+              <a
+                href='#checkContactsTab'
+                class='block bold'>
+                checkContactsTab
+              </a>
+              <a
+                href='#clearList'
+                class='block bold'>
+                clearList
+              </a>
+              <a
+                href='#contactNotAllowed'
+                class='block bold'>
+                contactNotAllowed
+              </a>
+              <a
+                href='#contactNotICE'
+                class='block bold'>
+                contactNotICE
+              </a>
+              <a
+                href='#createName'
+                class='block bold'>
+                createName
+              </a>
+              <a
+                href='#createPhotoTemplate'
+                class='block bold'>
+                createPhotoTemplate
+              </a>
+              <a
+                href='#dependencies'
+                class='block bold'>
+                dependencies
+              </a>
+              <a
+                href='#deserializeParameters'
+                class='block bold'>
+                deserializeParameters
+              </a>
+              <a
+                href='#doLoad'
+                class='block bold'>
+                doLoad
+              </a>
+              <a
+                href='#getFirstChunkCache'
+                class='block bold'>
+                getFirstChunkCache
+              </a>
+              <a
+                href='#getNextTemplateId'
+                class='block bold'>
+                getNextTemplateId
+              </a>
+              <a
+                href='#ICEData'
+                class='block bold'>
+                ICEData
+              </a>
+              <a
+                href='#ICELoaded'
+                class='block bold'>
+                ICELoaded
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#initConfiguration'
+                class='block bold'>
+                initConfiguration
+              </a>
+              <a
+                href='#listenForChanges'
+                class='block bold'>
+                listenForChanges
+              </a>
+              <a
+                href='#load'
+                class='block bold'>
+                load
+              </a>
+              <a
+                href='#loadScripts'
+                class='block bold'>
+                loadScripts
+              </a>
+              <a
+                href='#MergeHelper'
+                class='block bold'>
+                MergeHelper
+              </a>
+              <a
+                href='#modifyICEInDS'
+                class='block bold'>
+                modifyICEInDS
+              </a>
+              <a
+                href='#removeICEContact'
+                class='block bold'>
+                removeICEContact
+              </a>
+              <a
+                href='#render'
+                class='block bold'>
+                render
+              </a>
+              <a
+                href='#renderDefaultPhoto'
+                class='block bold'>
+                renderDefaultPhoto
+              </a>
+              <a
+                href='#renderTemplate'
+                class='block bold'>
+                renderTemplate
+              </a>
+              <a
+                href='#requireOverlay'
+                class='block bold'>
+                requireOverlay
+              </a>
+              <a
+                href='#requireOverlay'
+                class='block bold'>
+                requireOverlay
+              </a>
+              <a
+                href='#requireSimImport'
+                class='block bold'>
+                requireSimImport
+              </a>
+              <a
+                href='#selectICEHandler'
+                class='block bold'>
+                selectICEHandler
+              </a>
+              <a
+                href='#setButtonsState'
+                class='block bold'>
+                setButtonsState
+              </a>
+              <a
+                href='#setICEContact'
+                class='block bold'>
+                setICEContact
+              </a>
+              <a
+                href='#setICEContact'
+                class='block bold'>
+                setICEContact
+              </a>
+              <a
+                href='#setICEContacts'
+                class='block bold'>
+                setICEContacts
+              </a>
+              <a
+                href='#showSelectList'
+                class='block bold'>
+                showSelectList
+              </a>
+              <a
+                href='#update'
+                class='block bold'>
+                update
+              </a>
+              <a
+                href='#updateStorageOptions'
+                class='block bold'>
+                updateStorageOptions
+              </a>
+              <a
+                href='#utility'
+                class='block bold'>
+                utility
+              </a>
+              <a
+                href='#view'
+                class='block bold'>
+                view
+              </a>
+              <a
+                href='#utils'
+                class='block bold'>
+                utils
+              </a>
+              <a
+                href='#VCARD_MIME_TYPES'
+                class='block bold'>
+                VCARD_MIME_TYPES
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='_createSchema' class='mt0'>
+    _createSchema<span class='gray'>(db, next)</span>
+  </h2>
+  <p>Create the initial database schema.</p>
+<p>param db
+Database instance.</p>
 
-<body>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>db</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>next</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_gatherAllGroups' class='mt0'>
+    _gatherAllGroups<span class='gray'></span>
+  </h2>
+  <p>Returns a promise that when fullfilled returns an array holding all the
+groups in the call log.</p>
 
-<div id="main">
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is resolved to an array holding all the
+groups in the call log.</p>
 
-    <h1 class="page-title">Home</h1>
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_getDayDate' class='mt0'>
+    _getDayDate<span class='gray'>(timestamp)</span>
+  </h2>
+  <p>Helper function to get the current day without the hour/minute/second.</p>
 
-    
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>timestamp</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_getGroupId' class='mt0'>
+    _getGroupId<span class='gray'>(recentCall)</span>
+  </h2>
+  <p>Helper function to get the group ID from a recent call object.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>recentCall</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_getGroupObject' class='mt0'>
+    _getGroupObject<span class='gray'>(group)</span>
+  </h2>
+  <p>Helper function to get a more usable group object.</p>
+<p>Group objects are stored in the database as:</p>
+<p>{ id: [date<Date>, number<String>, type<String>, status<String>]
+number: <String>,
+serviceId: <String>,
+lastEntryDate: <Date>,
+retryCount: <Number>,
+contactId: <String>,
+contactPrimaryInfo: <String>,
+contactMatchingTelType: <String>,
+contactMatchingTelCarrier: <String>,
+contactPhoto: <Blob>,
+emergency: <Bool>,
+voicemail: <Bool>,
+calls: [
+{date: <Date>, duration: <Number>}
+]
+}</p>
+<p>but consumers might find this format hard to handle, so we unwrap the
+data inside the &apos;id&apos; and contact related fields to create a more
+manageable object of this form:</p>
+<p>{
+id: <String>,
+date: <Date>, <!-- new -->
+type: <String>, <!-- new -->
+status: <String>, <!-- new -->
+number: <String>,
+serviceId: <String>,
+lastEntryDate: <Date>,
+retryCount: <Number>,
+contact: { <!-- new -->
+id: <String>,
+primaryInfo: <String>,
+matchingTel: {
+number: <String>,
+type: <String>,
+carrier: <String>
+},
+photo: <Blob>
+},
+emergency: <Bool>,
+voicemail: <Bool>
+calls: [
+{date: <Date>, duration: <Number>}, more recent first
+...
+]
+}
+The <Date> value from the &apos;id&apos; field contains only the day of the call.</p>
+<p>&apos;lastEntryDate&apos; contains a full date.</p>
+<p>&apos;retryCount&apos; is incremented when we store a new call.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>group</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_getList' class='mt0'>
+    _getList<span class='gray'>(storeName, callback, sortedBy, prev, getCursor, limit)</span>
+  </h2>
+  <p>Helper for getting a list of all the records stored in a given object
+store.</p>
+<p>param storeName
+Name of the store to be queried.
+param callback
+Function to be called after getting the record list or when an
+error is caught.
+param sortedBy
+Field to sort by. Take into account that sorting by not indexed
+fields is quite slow.
+param prev
+Boolean flag to get the list in reverse order.
+param getCursor
+Boolean flag to get an IDB cursor instead of the whole list. This
+can be used for infinite scrolling for example.
+param limit
+Maximum number of records to be fetched from the database.</p>
+<p>return (via callback) the whole list of requested records, a cursor or an
+error message if needed.</p>
 
-    
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>storeName</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>sortedBy</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>prev</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>getCursor</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>limit</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_keepDbPrettyAndFit' class='mt0'>
+    _keepDbPrettyAndFit<span class='gray'>(txn, callback)</span>
+  </h2>
+  <p>Ensures that the DB size is not bigger than _maxNumberOfGroups. If the DB
+is fat enough, we delete the number of groups higher than
+_maxNumberOfGroups (most likely 1) plus _numberOfGroupsToDelete to make
+some extra space.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>txn</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_newTxn' class='mt0'>
+    _newTxn<span class='gray'>(txnType, objectStores, callback)</span>
+  </h2>
+  <p>Start a new database transaction.</p>
+<p>param txnType
+Type of transaction (e.g. &apos;readwrite&apos;).
+param callback
+Function to call when the transaction is available. It will be
+invoked with the transaction and the requested object stores.
+param objectStores
+The names of object stores and indexes that are in the scope of the
+new transaction as an array of strings. Specify only the object
+stores that you need to access. If you need to access only one
+object store, you can specify its name as a string.</p>
 
-    <h3> </h3>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>txnType</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>objectStores</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_updateCacheRevision' class='mt0'>
+    _updateCacheRevision<span class='gray'>(callback)</span>
+  </h2>
+  <p>We store a revision number for the contacts data local cache that we need
+to keep synced with the Contacts API database.
+This method stores the revision of the Contacts API database and it will
+be called after refresing the local cache because of a contact updated, a
+contact deletion or a cache sync.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            <p>A callback to be invoked when the operation is
+complete.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_updateGroup' class='mt0'>
+    _updateGroup<span class='gray'>(group)</span>
+  </h2>
+  <p>Updates a group using the new contact information present in the contacts
+database. Returns a promise that is fullfilled with the updated group. If
+the group didn&apos;t need updating then the promise resolution will be null.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>group</strong>
+          :
+          <span class='force-inline'>
+            <p>The group object to be updated.</p>
 
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is fullfilled with the updated group or
+null if no update was necessary.</p>
 
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_upgradeSchemaVersion2' class='mt0'>
+    _upgradeSchemaVersion2<span class='gray'>(db, transaction, next)</span>
+  </h2>
+  <p>Upgrade schema to version 2. Create an object store to host groups of
+calls.</p>
+<p>param db
+Database instance.
+param transaction
+IDB transaction instance.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>db</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>transaction</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>next</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_upgradeSchemaVersion3' class='mt0'>
+    _upgradeSchemaVersion3<span class='gray'>(next)</span>
+  </h2>
+  <p>All the required changes for v3 are done while upgrading to v4.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>next</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_upgradeSchemaVersion4' class='mt0'>
+    _upgradeSchemaVersion4<span class='gray'>(db, transaction, next)</span>
+  </h2>
+  <p>Upgrade schema to version 4. Recreate the object store to host groups of
+calls with a new schema changing the old string primary key for an array
+which will contain the date of the first call of the group, the phone
+number associated with the call, the type of the call (incoming, dialing)
+and the status of the call (accepted or not). We also add a new
+&apos;lastEntryDate&apos; field containing the date of the last call of the group
+and substitute the unused &apos;contact&apos; field by a more detailed contact
+information to avoid querying the contacts API database each time that
+we need to render the call log.</p>
+<p>param db
+Database instance.
+param transaction
+IDB transaction instance.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>db</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>transaction</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>next</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_upgradeSchemaVersion5' class='mt0'>
+    _upgradeSchemaVersion5<span class='gray'>(next)</span>
+  </h2>
+  <p>Nothing to be done for version 5 since &apos;voicemail&apos; and &apos;emergency&apos; boolean
+flags don&apos;t need a schema upgrade: their default value is false for
+already existent data.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>next</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_upgradeSchemaVersion6' class='mt0'>
+    _upgradeSchemaVersion6<span class='gray'>(db, transaction, next)</span>
+  </h2>
+  <p>Remove the &grave;dialerRecents&apos; store as it&apos;s not used anymore.</p>
 
-    
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>db</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>transaction</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>next</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='add' class='mt0'>
+    add<span class='gray'>(recentCall, callback)</span>
+  </h2>
+  <p>Stores a new call in the database.</p>
+<p>param recentCall
+Object representing the new call to be stored with this form:
+{ number: <String>,
+serviceId: <String>,
+type: <String>,
+status: <String>,
+date: <Date>,
+emergency: <Bool>,
+voicemail: <Bool>,
+duration: <Number> }</p>
+<p>param callback
+Function to be called when the transaction is done.</p>
+<p>return (via callback) the object representing the group where the call
+belongs to or an error message if needed.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>recentCall</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='deleteAll' class='mt0'>
+    deleteAll<span class='gray'>(callback)</span>
+  </h2>
+  <p>Delete all!</p>
+<p>param callback
+Function to be called to clear the database.</p>
+<p>return (via callback) error message if needed.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='deleteDb' class='mt0'>
+    deleteDb<span class='gray'>(callback)</span>
+  </h2>
+  <p>Delete the storaged database file.</p>
+<p>param callback
+Function to be called after the deletion of the database.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='deleteGroup' class='mt0'>
+    deleteGroup<span class='gray'>(group, groupId, callback)</span>
+  </h2>
+  <p>Delete a group of calls and all the calls belonging to that group.</p>
+<p>param group
+Group object to be deleted.
+param groupId
+Identifier of the group to be deleted. We expect a group object or
+its identifier.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>group</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>groupId</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='deleteGroupList' class='mt0'>
+    deleteGroupList<span class='gray'>(groupList, callback)</span>
+  </h2>
+  <p>Delete a list of groups of calls and all its belonging calls.</p>
+<p>param groupList
+Array of group objects to be deleted.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>groupList</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getGroupAtPosition' class='mt0'>
+    getGroupAtPosition<span class='gray'>(position, sortedBy, prev, type, callback)</span>
+  </h2>
+  <p>Get the call group which is the nth group with matched type</p>
+<p>param position
+To indicate the nth group is requested, 1 means the last one
+param sortedBy
+Field to sort by.
+param prev
+Boolean flag to get the list in reverse order.
+param type
+Type to indicate whether we want &apos;dialing&apos; (outgoing)
+or &apos;incoming&apos; call groups.
+If not specified, will match any types.
+param callback
+Function to be called with the last group or an error message if
+needed.
+return (via callback) the group or an error message if needed.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>position</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>sortedBy</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>prev</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>type</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getGroupList' class='mt0'>
+    getGroupList<span class='gray'>(callback, sortedBy, prev, getCursor, limit)</span>
+  </h2>
+  <p>Get the list of groups of calls.</p>
+<p>param callback
+Function to be called after getting the list of groups or the
+IDB cursor in case of &apos;getCursor&apos; param is true.
+param sortedBy
+Field to sort by. Take into account that sorting by not indexed
+fields is quite slow.
+param prev
+Boolean flag to get the list in reverse order.
+param getCursor
+Boolean flag to request an IDB cursor instead of the whole list of
+records.
+param limit
+Maximum number of records to be fetched from the database.</p>
+<p>return (via callback) the whole list of groups, a cursor or an error
+message if needed.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>sortedBy</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>prev</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>getCursor</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>limit</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='removeGroupContactInfo' class='mt0'>
+    removeGroupContactInfo<span class='gray'>(contactId, group, callback)</span>
+  </h2>
+  <p>Removes the contact information matching the given contact id from the
+list of groups or the contact information from a specific group.</p>
+<p>This function will likely be called within the handlers of the
+&apos;oncontactchange&apos; event.</p>
+<p>param contactId
+Contact identifier to be removed from the DB.
+param group
+Group object to remove the contact info from.
+param callback
+Function to be called after updating the group or when an error
+is found.</p>
+<p>return (via callback) nothing or an error message if needed.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>contactId</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>group</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateGroupContactInfo' class='mt0'>
+    updateGroupContactInfo<span class='gray'>(contact, matchingTel, callback)</span>
+  </h2>
+  <p>Updates the records from the groups object store with a given contact
+information.
+This function will likely be called within the handlers of the
+&apos;oncontactchange&apos; event.</p>
+<p>param contact
+Contact object
+param callback
+Function to be called after updating the group or when an error
+is found.</p>
+<p>return (via callback) count of affected records or an error message if
+needed.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>contact</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>matchingTel</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_doHandleResult' class='mt0'>
+    _doHandleResult<span class='gray'>(error, exported, isRecoverable)</span>
+  </h2>
+  <p>Callback invoked when the exporting process finished.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>error</strong>
+          :
+          <span class='force-inline'>
+            <p>Not null in case an error happened</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>exported</strong>
+          :
+          <span class='force-inline'>
+            <p>Number of contacts successfuly exported</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>isRecoverable</strong>
+          :
+          <span class='force-inline'>
+            <p>In case of error, whether it is recoverable</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_getImeiForCard' class='mt0'>
+    _getImeiForCard<span class='gray'>(cardIndex)</span>
+  </h2>
+  <p>Retrieves the IMEI code for the specified SIM card slot.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code>Integer</code> <strong>cardIndex</strong>
+          :
+          <span class='force-inline'>
+            <p>The index of the SIM card slot.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that resolves to the IMEI code for the slot
+upon successful completion or rejects upon failure.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleDialing' class='mt0'>
+    handleDialing<span class='gray'>(conn, message, promise)</span>
+  </h2>
+  <p>Handle dialing an MMI code by starting the UI and following up on the
+promise in the MMICall object returned by Telephony.dial().</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>conn</strong>
+          :
+          <span class='force-inline'>
+            <p>The MozMobileConnection on which the MMI code was
+dialed on.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            <p>The dialed MMI code.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code> <strong>promise</strong>
+          :
+          <span class='force-inline'>
+            <p>The MMICall promise.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is resolved once the MMI message
+response has been handled.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleMMIReceived' class='mt0'>
+    handleMMIReceived<span class='gray'>(message, session, cardIndex)</span>
+  </h2>
+  <p>Handles an MMI/USSD message. Pops up the MMI UI and displays the message.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            <p>An MMI/USSD message.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>session</strong>
+          :
+          <span class='force-inline'>
+            <p>The object representing the USSD session.</p>
+
+          </span>
+        </li>
+        <li><code>Integer</code> <strong>cardIndex</strong>
+          :
+          <span class='force-inline'>
+            <p>The index of the SIM card on which this message
+was received.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='isImei' class='mt0'>
+    isImei<span class='gray'>(number)</span>
+  </h2>
+  <p>Returns true if the specified number is the MMI code used to request the
+IMEI codes of the phone&apos;s SIM slots (*#06#).</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>number</strong>
+          :
+          <span class='force-inline'>
+            <p>A phone number or MMI code.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>true if the passed number is the MMI IMEI request code
+and false in all other cases.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='prependSimNumber' class='mt0'>
+    prependSimNumber<span class='gray'>(text, cardIndex)</span>
+  </h2>
+  <p>Create a notification/message string by prepending the SIM number if the
+phone has more than one SIM card.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>text</strong>
+          :
+          <span class='force-inline'>
+            <p>{String} The message text.</p>
+
+          </span>
+        </li>
+        <li> <strong>cardIndex</strong>
+          :
+          <span class='force-inline'>
+            <p>{Integer} The SIM card slot index.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>Either the original string alone or with the SIM number
+prepended to it.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='sendNotification' class='mt0'>
+    sendNotification<span class='gray'>(message, cardIndex)</span>
+  </h2>
+  <p>Sends a notification for the specified message, returns a promise that is
+resolved once the operation is finished.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>message</strong>
+          :
+          <span class='force-inline'>
+            <p>An MMI/USSD message.</p>
+
+          </span>
+        </li>
+        <li><code>Integer</code> <strong>cardIndex</strong>
+          :
+          <span class='force-inline'>
+            <p>The index of the SIM card on which this message
+was received.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is resolved once the operation is
+finished.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='showImei' class='mt0'>
+    showImei<span class='gray'></span>
+  </h2>
+  <p>Sends the necessary MMI messages to retrieve IMEI codes for all SIM slots
+and displays the resulting codes on the screen.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is resolved when the operation has been
+completed.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_validateContactsCache' class='mt0'>
+    _validateContactsCache<span class='gray'></span>
+  </h2>
+  <p>Returns a promise that is fullfilled once the contact cache has been
+validated. Note that the contents of the contact cache may still be stale
+after the promise is fullfilled. This only guarantees that
+this._contactCache contains a valid value.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>A promise that is fullfilled once we&apos;ve validated the
+contact cache.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateContactInfo' class='mt0'>
+    updateContactInfo<span class='gray'>(element, contact, matchingTel)</span>
+  </h2>
+  <p>Visually update the contact information of a group in the DOM.</p>
+<p>param element
+DOM element containing the group information.
+param contact
+Object containing the contact information associated to the group
+of calls.
+param matchingTel
+Object containing the phone number associated with the group of
+calls. It contains &apos;type&apos;, &apos;carrier&apos; and &apos;value&apos; parameters.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>element</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>contact</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>matchingTel</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateListWithContactInfo' class='mt0'>
+    updateListWithContactInfo<span class='gray'>(reason, contactId, target)</span>
+  </h2>
+  <p>Updates the whole list of groups or part of it with the appropriate
+contact information.</p>
+<p>This function will be triggered after receiving a &apos;oncontactchange&apos; event
+with &apos;create&apos;, &apos;remove&apos; or &apos;update&apos; reasons or during the initial rendering
+for each chunk of data <em>only</em> if we detect that the contacts cache is not
+valid.</p>
+<p>param reason
+String containing the reason of the &apos;oncontactchange&apos; event or null
+if the function was triggered because of an invalid contacts cache.
+param contactId
+Contact identifier if any. Only &apos;oncontactchange&apos; events with
+&apos;update&apos; or &apos;remove&apos; reasons will provide a contactId parameter.
+param target
+DOM element to be updated. We default to the whole log if no
+&apos;target&apos; param is provided.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>reason</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>contactId</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>ICE Settings view. In charge of selecting
+the contacts for emergency and keeping sync
+the datastore to share those contacts with
+dialer and lockscreen.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='addEventListener' class='mt0'>
+    addEventListener<span class='gray'></span>
+  </h2>
+  <h2>Bootstrap process</h2>
+<p>In order to provide an acceptable start up time, the contacts app
+keeps a cached version of the list view HTML in localStorage. We
+initially load only the scripts that are needed to recover the cached
+HTML from localStorage and to apply it as part of the contacts list view.
+Once we have done this and have shown the cached version of the list in
+the screen, we load the rest of required JS files and continue the normal
+start up process.</p>
+<p>For now, the cache is evicted in the following scenarios:</p>
+<ul>
+<li>oncontactchange event (addition, edition or deletion of contacts).</li>
+<li>ICE contacts enabled/disabled.</li>
+<li>Facebook import enabled/disabled/sync.</li>
+<li>Import from external source (Gmail, Hotmail, Sdcard...).</li>
+<li>Favorites added/removed.</li>
+<li>Change in the way we display contacts (order by last name).</li>
+<li>Locale change (from RTL to LTR and viceversa).</li>
+</ul>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='checkContact' class='mt0'>
+    checkContact<span class='gray'>(id)</span>
+  </h2>
+  <p>Will perform a series of checks to validate the selected
+contact as a valid ICE contact</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>(string) contact id</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='checkContactsTab' class='mt0'>
+    checkContactsTab<span class='gray'></span>
+  </h2>
+  <p>If the contacts tab iframe was launched via an activity to update a
+contact make it go back to the base URL.</p>
+<p>XXX bug 1046090: this will go away as soon as the contacts app will be
+split from the dialer.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='clearList' class='mt0'>
+    clearList<span class='gray'></span>
+  </h2>
+  <p>Clears the list of contacts</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='contactNotAllowed' class='mt0'>
+    contactNotAllowed<span class='gray'>(id)</span>
+  </h2>
+  <p>Filter to avoid selecting contacts as ICE if they don&apos;t have a phone number
+or they are a Facebook contact</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>(String) contact id</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='contactNotICE' class='mt0'>
+    contactNotICE<span class='gray'>(id)</span>
+  </h2>
+  <p>Checks if a contacts is already set as ICE</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>(string) contact id</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='createName' class='mt0'>
+    createName<span class='gray'>(contact)</span>
+  </h2>
+  <p>Creates a complete name from the received contact&apos;s <code>givenName</code> and
+<code>familyName</code> fields.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code> <strong>contact</strong>
+          :
+          <span class='force-inline'>
+            <p>MozContactObject to process</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='createPhotoTemplate' class='mt0'>
+    createPhotoTemplate<span class='gray'></span>
+  </h2>
+  <p>Build the template used for displaying the thumbnail
+image.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='dependencies' class='mt0'>
+    dependencies<span class='gray'>(callback)</span>
+  </h2>
+  <p>Specifies dependencies for resources
+E.g., mapping Facebook as a dependency of views</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='deserializeParameters' class='mt0'>
+    deserializeParameters<span class='gray'>(input)</span>
+  </h2>
+  <p>Retrieves the parameters from an URL and forms an object with them.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>input</strong>
+          :
+          <span class='force-inline'>
+            <p>A string holding the parameters attached to an URL.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>An object built using the parameters.</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='doLoad' class='mt0'>
+    doLoad<span class='gray'></span>
+  </h2>
+  <p>Performs the actual lazy loading
+Called once all dependencies are met</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getFirstChunkCache' class='mt0'>
+    getFirstChunkCache<span class='gray'></span>
+  </h2>
+  <p>Cache related functionality.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getNextTemplateId' class='mt0'>
+    getNextTemplateId<span class='gray'>(container)</span>
+  </h2>
+  <p>We cannot relay on the counter, but in the next id after the
+last field.
+See bug 1113134 for related explanation.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>container</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ICEData' class='mt0'>
+    ICEData<span class='gray'></span>
+  </h2>
+  <p>Module to handle ICE data across different parts of the application
+This module just know about the internal representation and how
+to deal with share ICE information (which has different format).</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='ICELoaded' class='mt0'>
+    ICELoaded<span class='gray'></span>
+  </h2>
+  <p>Check if we have ICE contacts information</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'></span>
+  </h2>
+  <p>API</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'>(ids, rowBuilder, clickHandler)</span>
+  </h2>
+  <p>Initialises the component by passing a list of ICE ids,
+a function that knows how to build contact list rows and
+another function to perform actions when clicking on a
+ICE contact.
+This function should be the same than the contacts list one
+to keep the same behavior (activities, select, etc.)</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>ids</strong>
+          :
+          <span class='force-inline'>
+            <p>(Array) array of contact ids</p>
+
+          </span>
+        </li>
+        <li> <strong>rowBuilder</strong>
+          :
+          <span class='force-inline'>
+            <p>(function) function that paints contac list
+rows, shared with the contact list</p>
+
+          </span>
+        </li>
+        <li> <strong>clickHandler</strong>
+          :
+          <span class='force-inline'>
+            <p>(function) action to perform when clicked
+on a item</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'></span>
+  </h2>
+  <p>Initializes references to DOM elements. This is needed before calling
+render.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'></span>
+  </h2>
+  <p>Redraws the ICE contact list. This is not an expensive
+operation since we have a maximun of 2 contacts.
+The first time executed will attach listeners for the
+frame ui.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='initConfiguration' class='mt0'>
+    initConfiguration<span class='gray'>(callback)</span>
+  </h2>
+  <p>Reads configuration values setup at build time to change
+behaviour of the contacts list.
+Receives a callback as parameter to call once the
+parameters have been setup.
+Also tries to save from the external file to faster cookie
+values after the first file read.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='listenForChanges' class='mt0'>
+    listenForChanges<span class='gray'>(fn)</span>
+  </h2>
+  <p>Adds an observer to be called when an ice contact
+changed. We can add multiple listeners, since we will
+need to react in several parts of the app to this changes.
+Also the listener removes a contact id in case we are performing
+a delete. In case of modification we don&apos;t do anythying as we
+store just ids.
+Listener will be attached just once, but we can keep adding
+callbacks.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>fn</strong>
+          :
+          <span class='force-inline'>
+            <p>(Function) callback to call when ice contact change</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='load' class='mt0'>
+    load<span class='gray'></span>
+  </h2>
+  <p>Loads the local formated data into an internal
+representation.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='loadScripts' class='mt0'>
+    loadScripts<span class='gray'></span>
+  </h2>
+  <p>Script loader *</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='MergeHelper' class='mt0'>
+    MergeHelper<span class='gray'></span>
+  </h2>
+  <p>Merge helper file. Allows to perform a merge while respecting
+all the ICE Settings</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='modifyICEInDS' class='mt0'>
+    modifyICEInDS<span class='gray'></span>
+  </h2>
+  <p>Clone the current local ice contacts into the datastore,
+considering the active flag.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='removeICEContact' class='mt0'>
+    removeICEContact<span class='gray'>(id)</span>
+  </h2>
+  <p>Given a specific contact id removes it from the
+ice list, if present or disabled</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>(String) contact id</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='render' class='mt0'>
+    render<span class='gray'>(contacts, cursor, filename)</span>
+  </h2>
+  <p>Allows to preview which contacts will be imported. Requires to call init
+first when DOM is ready.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code><<code>mozContact</code>> <strong>contacts</strong>
+          :
+          <span class='force-inline'>
+            <p>Every contact already read from vCard.</p>
+
+          </span>
+        </li>
+        <li> <strong>cursor</strong>
+          :
+          <span class='force-inline'>
+            <p>Reader object to continue reading from vCard.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>filename</strong>
+          :
+          <span class='force-inline'>
+            <p>Name of the vcf file we are reading from.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='renderDefaultPhoto' class='mt0'>
+    renderDefaultPhoto<span class='gray'>(img, link, group)</span>
+  </h2>
+  <p>Renders the default image for a contact using a random
+position of a background image and the group letter</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>img</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>link</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>group</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='renderTemplate' class='mt0'>
+    renderTemplate<span class='gray'>(type, toRender)</span>
+  </h2>
+  <p>Render Template</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code> <strong>type</strong>
+          :
+          <span class='force-inline'>
+            <p>Type of template, eg. &apos;tel&apos;</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code><<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></code>> <strong>toRender</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='requireOverlay' class='mt0'>
+    requireOverlay<span class='gray'>(callback)</span>
+  </h2>
+  <p>Loads the overlay class before showing</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='requireOverlay' class='mt0'>
+    requireOverlay<span class='gray'>(callback)</span>
+  </h2>
+  <p>Loads the overlay class before showing</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='requireSimImport' class='mt0'>
+    requireSimImport<span class='gray'>(callback)</span>
+  </h2>
+  <p>Loads required libraries for sim import</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='selectICEHandler' class='mt0'>
+    selectICEHandler<span class='gray'>(id)</span>
+  </h2>
+  <p>Given a contact id, saves it internally. Also restores the contact
+list default handler.
+In case of not valid contact it will display a message on the screen
+indicating the cause of the error.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>(string) contact id</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setButtonsState' class='mt0'>
+    setButtonsState<span class='gray'>(iceContactsData, done)</span>
+  </h2>
+  <p>Given an object representing the internal state
+fills the UI elements.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>iceContactsData</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>done</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setICEContact' class='mt0'>
+    setICEContact<span class='gray'>(id, pos, active, cb)</span>
+  </h2>
+  <p>Set the values for ICE contacts, both in local and in the
+datastore</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>(string) contact id</p>
+
+          </span>
+        </li>
+        <li> <strong>pos</strong>
+          :
+          <span class='force-inline'>
+            <p>(int) current position (0,1)</p>
+
+          </span>
+        </li>
+        <li> <strong>active</strong>
+          :
+          <span class='force-inline'>
+            <p>(boolean) ice contact is active or not</p>
+
+          </span>
+        </li>
+        <li> <strong>cb</strong>
+          :
+          <span class='force-inline'>
+            <p>(function) callback when ready</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setICEContact' class='mt0'>
+    setICEContact<span class='gray'>(id, pos, active)</span>
+  </h2>
+  <p>Set the value of an ICE contact, both in local and in the
+datastore</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>id</strong>
+          :
+          <span class='force-inline'>
+            <p>(string) contact id</p>
+
+          </span>
+        </li>
+        <li> <strong>pos</strong>
+          :
+          <span class='force-inline'>
+            <p>(int) current position (0,1)</p>
+
+          </span>
+        </li>
+        <li> <strong>active</strong>
+          :
+          <span class='force-inline'>
+            <p>(boolean) ice contact is active or not</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setICEContacts' class='mt0'>
+    setICEContacts<span class='gray'>(iceContactList)</span>
+  </h2>
+  <p>Set the values for ICE contacts, both in local and in the
+datastore</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>iceContactList</strong>
+          :
+          <span class='force-inline'>
+            <p>the list with ids of ICE Contacts to be set</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='showSelectList' class='mt0'>
+    showSelectList<span class='gray'>(target)</span>
+  </h2>
+  <p>We are using the contact list to choose a contact as ICE. For doing
+this, we need to setup our own click handler.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='update' class='mt0'>
+    update<span class='gray'>(destination)</span>
+  </h2>
+  <p>Update the current view by initializing the associated code. This also
+highlights the navigation bar buttons appropriately.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>destination</strong>
+          :
+          <span class='force-inline'>
+            <p>The destination pane.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateStorageOptions' class='mt0'>
+    updateStorageOptions<span class='gray'>(cardAvailable)</span>
+  </h2>
+  <p>Disables/Enables the actions over the sdcard import/export functionality</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>cardAvailable</strong>
+          :
+          <span class='force-inline'>
+            <p>Whether functions should be enabled or not.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='utility' class='mt0'>
+    utility<span class='gray'>(utility, callback.null, callback)</span>
+  </h2>
+  <p>Loads a utility from the utilities/ folder</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>utility</strong>
+          :
+          <span class='force-inline'>
+            <p>name.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback.null</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='view' class='mt0'>
+    view<span class='gray'>(view, callback.null, callback)</span>
+  </h2>
+  <p>Loads a view from the views/ folder</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>view</strong>
+          :
+          <span class='force-inline'>
+            <p>name.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback.null</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='utils' class='mt0'>
+    utils<span class='gray'></span>
+  </h2>
+  <p>Utility class to fire events needed to measure the performance
+of the application.
+For an explanation of what means each event go here:
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=996038">https://bugzilla.mozilla.org/show_bug.cgi?id=996038</a>
+For an explanation of how are adapted to the specific needs
+in the contacts app please go here:
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1015388#c8">https://bugzilla.mozilla.org/show_bug.cgi?id=1015388#c8</a></p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='VCARD_MIME_TYPES' class='mt0'>
+    VCARD_MIME_TYPES<span class='gray'></span>
+  </h2>
+  <p>Per RFC 6350, text/vcard is the canonical MIME media type for vCards, but
+there are also deprecated types as well.  Whenever we disambiguate what an
+activity is requesting based on its MIME media type, we need to check if it
+is any of these, and not just text/vcard.</p>
+
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#MergeHelper">MergeHelper</a></li><li><a href="global.html#VCARD_MIME_TYPES">VCARD_MIME_TYPES</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:27 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

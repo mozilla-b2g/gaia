@@ -1,75 +1,2305 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#_emitEvent'
+                class='block bold'>
+                _emitEvent
+              </a>
+              <a
+                href='#_listeners'
+                class='block bold'>
+                _listeners
+              </a>
+              <a
+                href='#addEventListener'
+                class='block bold'>
+                addEventListener
+              </a>
+              <a
+                href='#removeEventListener'
+                class='block bold'>
+                removeEventListener
+              </a>
+              <a
+                href='#visible'
+                class='block bold'>
+                visible
+              </a>
+              <a
+                href='#BluetoothConnectionManager'
+                class='block bold'>
+                BluetoothConnectionManager
+              </a>
+                <a
+                  href='#BluetoothConnectionManager._emitEvent'
+                  class='regular block'>
+                  ._emitEvent
+                </a>
+                <a
+                  href='#BluetoothConnectionManager._getConnectedDevicesPromise'
+                  class='regular block'>
+                  ._getConnectedDevicesPromise
+                </a>
+                <a
+                  href='#BluetoothConnectionManager._listeners'
+                  class='regular block'>
+                  ._listeners
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.addEventListener'
+                  class='regular block'>
+                  .addEventListener
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.connect'
+                  class='regular block'>
+                  .connect
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.connectingAddress'
+                  class='regular block'>
+                  .connectingAddress
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.disconnect'
+                  class='regular block'>
+                  .disconnect
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.getConnectedDevices'
+                  class='regular block'>
+                  .getConnectedDevices
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.Profiles'
+                  class='regular block'>
+                  .Profiles
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.removeEventListener'
+                  class='regular block'>
+                  .removeEventListener
+                </a>
+              <a
+                href='#BluetoothConnectionManager'
+                class='block bold'>
+                BluetoothConnectionManager
+              </a>
+                <a
+                  href='#BluetoothConnectionManager._emitEvent'
+                  class='regular block'>
+                  ._emitEvent
+                </a>
+                <a
+                  href='#BluetoothConnectionManager._getConnectedDevicesPromise'
+                  class='regular block'>
+                  ._getConnectedDevicesPromise
+                </a>
+                <a
+                  href='#BluetoothConnectionManager._listeners'
+                  class='regular block'>
+                  ._listeners
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.addEventListener'
+                  class='regular block'>
+                  .addEventListener
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.connect'
+                  class='regular block'>
+                  .connect
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.connectingAddress'
+                  class='regular block'>
+                  .connectingAddress
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.disconnect'
+                  class='regular block'>
+                  .disconnect
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.getConnectedDevices'
+                  class='regular block'>
+                  .getConnectedDevices
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.Profiles'
+                  class='regular block'>
+                  .Profiles
+                </a>
+                <a
+                  href='#BluetoothConnectionManager.removeEventListener'
+                  class='regular block'>
+                  .removeEventListener
+                </a>
+              <a
+                href='#_debug'
+                class='block bold'>
+                _debug
+              </a>
+              <a
+                href='#_device'
+                class='block bold'>
+                _device
+              </a>
+              <a
+                href='#_options'
+                class='block bold'>
+                _options
+              </a>
+              <a
+                href='#_pairMethod'
+                class='block bold'>
+                _pairMethod
+              </a>
+              <a
+                href='#_pairMethod'
+                class='block bold'>
+                _pairMethod
+              </a>
+              <a
+                href='#_remoteDeviceName'
+                class='block bold'>
+                _remoteDeviceName
+              </a>
+              <a
+                href='#init'
+                class='block bold'>
+                init
+              </a>
+              <a
+                href='#BluetoothContext'
+                class='block bold'>
+                BluetoothContext
+              </a>
+                <a
+                  href='#BluetoothContext.address'
+                  class='regular block'>
+                  .address
+                </a>
+                <a
+                  href='#BluetoothContext.discoverable'
+                  class='regular block'>
+                  .discoverable
+                </a>
+                <a
+                  href='#BluetoothContext.discovering'
+                  class='regular block'>
+                  .discovering
+                </a>
+                <a
+                  href='#BluetoothContext.firstPairedDeviceName'
+                  class='regular block'>
+                  .firstPairedDeviceName
+                </a>
+                <a
+                  href='#BluetoothContext.getPairedDevices'
+                  class='regular block'>
+                  .getPairedDevices
+                </a>
+                <a
+                  href='#BluetoothContext.getRemoteDevices'
+                  class='regular block'>
+                  .getRemoteDevices
+                </a>
+                <a
+                  href='#BluetoothContext.hasPairedDevice'
+                  class='regular block'>
+                  .hasPairedDevice
+                </a>
+                <a
+                  href='#BluetoothContext.name'
+                  class='regular block'>
+                  .name
+                </a>
+                <a
+                  href='#BluetoothContext.numberOfPairedDevices'
+                  class='regular block'>
+                  .numberOfPairedDevices
+                </a>
+                <a
+                  href='#BluetoothContext.pair'
+                  class='regular block'>
+                  .pair
+                </a>
+                <a
+                  href='#BluetoothContext.sendFile'
+                  class='regular block'>
+                  .sendFile
+                </a>
+                <a
+                  href='#BluetoothContext.setDiscoverable'
+                  class='regular block'>
+                  .setDiscoverable
+                </a>
+                <a
+                  href='#BluetoothContext.setEnabled'
+                  class='regular block'>
+                  .setEnabled
+                </a>
+                <a
+                  href='#BluetoothContext.setName'
+                  class='regular block'>
+                  .setName
+                </a>
+                <a
+                  href='#BluetoothContext.startDiscovery'
+                  class='regular block'>
+                  .startDiscovery
+                </a>
+                <a
+                  href='#BluetoothContext.state'
+                  class='regular block'>
+                  .state
+                </a>
+                <a
+                  href='#BluetoothContext.stopDiscovery'
+                  class='regular block'>
+                  .stopDiscovery
+                </a>
+                <a
+                  href='#BluetoothContext.unpair'
+                  class='regular block'>
+                  .unpair
+                </a>
+              <a
+                href='#_isExpired'
+                class='block bold'>
+                _isExpired
+              </a>
+              <a
+                href='#_isExpired'
+                class='block bold'>
+                _isExpired
+              </a>
+              <a
+                href='#_init'
+                class='block bold'>
+                _init
+              </a>
+              <a
+                href='#BluetoothAdapterManager'
+                class='block bold'>
+                BluetoothAdapterManager
+              </a>
+                <a
+                  href='#BluetoothAdapterManager.defaultAdapter'
+                  class='regular block'>
+                  .defaultAdapter
+                </a>
+              <a
+                href='#BluetoothAdapterManager'
+                class='block bold'>
+                BluetoothAdapterManager
+              </a>
+                <a
+                  href='#BluetoothAdapterManager.defaultAdapter'
+                  class='regular block'>
+                  .defaultAdapter
+                </a>
+              <a
+                href='#BluetoothClassOfDeviceMapper'
+                class='block bold'>
+                BluetoothClassOfDeviceMapper
+              </a>
+                <a
+                  href='#BluetoothClassOfDeviceMapper.getDeviceType'
+                  class='regular block'>
+                  .getDeviceType
+                </a>
+              <a
+                href='#BluetoothDevice'
+                class='block bold'>
+                BluetoothDevice
+              </a>
+              <a
+                href='#BluetoothDevice'
+                class='block bold'>
+                BluetoothDevice
+              </a>
+              <a
+                href='#define'
+                class='block bold'>
+                define
+              </a>
+              <a
+                href='#define'
+                class='block bold'>
+                define
+              </a>
+              <a
+                href='#define'
+                class='block bold'>
+                define
+              </a>
+              <a
+                href='#eachProp'
+                class='block bold'>
+                eachProp
+              </a>
+              <a
+                href='#exec'
+                class='block bold'>
+                exec
+              </a>
+              <a
+                href='#getVersion'
+                class='block bold'>
+                getVersion
+              </a>
+              <a
+                href='#makeMap'
+                class='block bold'>
+                makeMap
+              </a>
+              <a
+                href='#mixin'
+                class='block bold'>
+                mixin
+              </a>
+              <a
+                href='#name'
+                class='block bold'>
+                name
+              </a>
+              <a
+                href='#name'
+                class='block bold'>
+                name
+              </a>
+              <a
+                href='#normalize'
+                class='block bold'>
+                normalize
+              </a>
+              <a
+                href='#onattributechanged'
+                class='block bold'>
+                onattributechanged
+              </a>
+              <a
+                href='#requirejs'
+                class='block bold'>
+                requirejs
+              </a>
+              <a
+                href='#toUrl'
+                class='block bold'>
+                toUrl
+              </a>
+              <a
+                href='#trimDots'
+                class='block bold'>
+                trimDots
+              </a>
+              <a
+                href='#unobserve'
+                class='block bold'>
+                unobserve
+              </a>
+              <a
+                href='#updateConnectionInfo'
+                class='block bold'>
+                updateConnectionInfo
+              </a>
+              <a
+                href='#updateDescriptionText'
+                class='block bold'>
+                updateDescriptionText
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='_emitEvent' class='mt0'>
+    _emitEvent<span class='gray'>(options)</span>
+  </h2>
+  <p>A function to emit event to each registered listener by the input type.</p>
 
-<body>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+          <ul>
+              <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> options.type
+                <p>type of event name</p>
+</li>
+              <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> options.detail
+                <p>the object pass to the listener</p>
+</li>
+          </ul>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_listeners' class='mt0'>
+    _listeners<span class='gray'></span>
+  </h2>
+  <p>The object maintains listeners&apos; callback per property name.
+Each listener would be called as following definition.
+&apos;devicePicked&apos; - be called when device is picked and paired successfully.
+&apos;cancelSelection&apos;: - be called when user click on close button on header.</p>
 
-<div id="main">
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='addEventListener' class='mt0'>
+    addEventListener<span class='gray'>(eventName, callback)</span>
+  </h2>
+  <p>The method will provide event listener for outer modules to regist.</p>
 
-    <h1 class="page-title">Home</h1>
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>eventName</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='removeEventListener' class='mt0'>
+    removeEventListener<span class='gray'>(eventName, callback)</span>
+  </h2>
+  <p>The method will provide event listener for outer modules to un-regist.</p>
 
-    
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>eventName</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='visible' class='mt0'>
+    visible<span class='gray'>(enabled)</span>
+  </h2>
+  <p>The setter will show/hide the device picker view for outer modules.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>enabled</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BluetoothConnectionManager' class='mt0'>
+    BluetoothConnectionManager<span class='gray'></span>
+  </h2>
+  
+      <h4>Returns</h4>
+      <code><code><a href="#BluetoothConnectionManager">BluetoothConnectionManager</a></code></code>
+      
+      <span class='force-inline'>
+        
+      </span>
+      <h4>Static members</h4>
+        <div class='collapsible' id='BluetoothConnectionManager._emitEvent'>
+          <a href='#BluetoothConnectionManager._emitEvent'>
+            <code>
+              ._emitEvent<span class='gray'>(options)</span>
+            </code>
+            <span class='force-inline'>
+              <p>A function to emit event to each registered listener by the input type.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager._emitEvent' class='mt0'>
+                _emitEvent<span class='gray'>(options)</span>
+              </h2>
+              <p>A function to emit event to each registered listener by the input type.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>options</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                      <ul>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> options.type
+                            <p>type of event name</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> options.detail
+                            <p>the object pass to the listener</p>
+            </li>
+                      </ul>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager._getConnectedDevicesPromise'>
+          <a href='#BluetoothConnectionManager._getConnectedDevicesPromise'>
+            <code>
+              ._getConnectedDevicesPromise<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>An instance to maintain that we have created a promise to get connected
+devices.</p>
 
-    
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager._getConnectedDevicesPromise' class='mt0'>
+                _getConnectedDevicesPromise<span class='gray'></span>
+              </h2>
+              <p>An instance to maintain that we have created a promise to get connected
+            devices.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager._listeners'>
+          <a href='#BluetoothConnectionManager._listeners'>
+            <code>
+              ._listeners<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The object maintains listeners&apos; callback per property name.
+Each listener would be called as following definition.
+&apos;connecting&apos; - be called when device is connecting.
+&apos;connected&apos;: - be called when device is connected.
+&apos;disconnected&apos;: - be called when device is disconnected.
+&apos;profileChanged&apos;: - be called when profile is changed.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager._listeners' class='mt0'>
+                _listeners<span class='gray'></span>
+              </h2>
+              <p>The object maintains listeners&apos; callback per property name.
+            Each listener would be called as following definition.
+            &apos;connecting&apos; - be called when device is connecting.
+            &apos;connected&apos;: - be called when device is connected.
+            &apos;disconnected&apos;: - be called when device is disconnected.
+            &apos;profileChanged&apos;: - be called when profile is changed.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.addEventListener'>
+          <a href='#BluetoothConnectionManager.addEventListener'>
+            <code>
+              .addEventListener<span class='gray'>(eventName, callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method will provide event listener for outer modules to regist.</p>
 
-    <h3> </h3>
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.addEventListener' class='mt0'>
+                addEventListener<span class='gray'>(eventName, callback)</span>
+              </h2>
+              <p>The method will provide event listener for outer modules to regist.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>eventName</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.connect'>
+          <a href='#BluetoothConnectionManager.connect'>
+            <code>
+              .connect<span class='gray'>(device)</span>
+            </code>
+            <span class='force-inline'>
+              <p>It provides a convenient function for panel to connect with a device.
+And the panel no need to care about connected device currently.
+The method will disconnect current connected device first.
+Then, it will start connecting a paired device with the device&apos;s adapter.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.connect' class='mt0'>
+                connect<span class='gray'>(device)</span>
+              </h2>
+              <p>It provides a convenient function for panel to connect with a device.
+            And the panel no need to care about connected device currently.
+            The method will disconnect current connected device first.
+            Then, it will start connecting a paired device with the device&apos;s adapter.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="#BluetoothDevice">BluetoothDevice</a></code> <strong>device</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.connectingAddress'>
+          <a href='#BluetoothConnectionManager.connectingAddress'>
+            <code>
+              .connectingAddress<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The address of device that we are trying to connect.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.connectingAddress' class='mt0'>
+                connectingAddress<span class='gray'></span>
+              </h2>
+              <p>The address of device that we are trying to connect.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.disconnect'>
+          <a href='#BluetoothConnectionManager.disconnect'>
+            <code>
+              .disconnect<span class='gray'>(device)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method will disconnect the input device with the device&apos;s adapter.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.disconnect' class='mt0'>
+                disconnect<span class='gray'>(device)</span>
+              </h2>
+              <p>The method will disconnect the input device with the device&apos;s adapter.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="#BluetoothDevice">BluetoothDevice</a></code> <strong>device</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.getConnectedDevices'>
+          <a href='#BluetoothConnectionManager.getConnectedDevices'>
+            <code>
+              .getConnectedDevices<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Return the cache of connected devices in ConnectionManager.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.getConnectedDevices' class='mt0'>
+                getConnectedDevices<span class='gray'></span>
+              </h2>
+              <p>Return the cache of connected devices in ConnectionManager.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.Profiles'>
+          <a href='#BluetoothConnectionManager.Profiles'>
+            <code>
+              .Profiles<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The profiles of connected device that we are defined here.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.Profiles' class='mt0'>
+                Profiles<span class='gray'></span>
+              </h2>
+              <p>The profiles of connected device that we are defined here.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.removeEventListener'>
+          <a href='#BluetoothConnectionManager.removeEventListener'>
+            <code>
+              .removeEventListener<span class='gray'>(eventName, callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method will provide event listener for outer modules to un-regist.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.removeEventListener' class='mt0'>
+                removeEventListener<span class='gray'>(eventName, callback)</span>
+              </h2>
+              <p>The method will provide event listener for outer modules to un-regist.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>eventName</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BluetoothConnectionManager' class='mt0'>
+    BluetoothConnectionManager<span class='gray'></span>
+  </h2>
+  <p>BluetoothConnectionManager:
+BluetoothConnectionManager only update state and does not involve in any UI
+logic.</p>
 
+      <h4>Static members</h4>
+        <div class='collapsible' id='BluetoothConnectionManager._emitEvent'>
+          <a href='#BluetoothConnectionManager._emitEvent'>
+            <code>
+              ._emitEvent<span class='gray'>(options)</span>
+            </code>
+            <span class='force-inline'>
+              <p>A function to emit event to each registered listener by the input type.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager._emitEvent' class='mt0'>
+                _emitEvent<span class='gray'>(options)</span>
+              </h2>
+              <p>A function to emit event to each registered listener by the input type.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>options</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                      <ul>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> options.type
+                            <p>type of event name</p>
+            </li>
+                          <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> options.detail
+                            <p>the object pass to the listener</p>
+            </li>
+                      </ul>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager._getConnectedDevicesPromise'>
+          <a href='#BluetoothConnectionManager._getConnectedDevicesPromise'>
+            <code>
+              ._getConnectedDevicesPromise<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>An instance to maintain that we have created a promise to get connected
+devices.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager._getConnectedDevicesPromise' class='mt0'>
+                _getConnectedDevicesPromise<span class='gray'></span>
+              </h2>
+              <p>An instance to maintain that we have created a promise to get connected
+            devices.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager._listeners'>
+          <a href='#BluetoothConnectionManager._listeners'>
+            <code>
+              ._listeners<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The object maintains listeners&apos; callback per property name.
+Each listener would be called as following definition.
+&apos;connecting&apos; - be called when device is connecting.
+&apos;connected&apos;: - be called when device is connected.
+&apos;disconnected&apos;: - be called when device is disconnected.
+&apos;profileChanged&apos;: - be called when profile is changed.</p>
 
-    
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager._listeners' class='mt0'>
+                _listeners<span class='gray'></span>
+              </h2>
+              <p>The object maintains listeners&apos; callback per property name.
+            Each listener would be called as following definition.
+            &apos;connecting&apos; - be called when device is connecting.
+            &apos;connected&apos;: - be called when device is connected.
+            &apos;disconnected&apos;: - be called when device is disconnected.
+            &apos;profileChanged&apos;: - be called when profile is changed.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.addEventListener'>
+          <a href='#BluetoothConnectionManager.addEventListener'>
+            <code>
+              .addEventListener<span class='gray'>(eventName, callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method will provide event listener for outer modules to regist.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.addEventListener' class='mt0'>
+                addEventListener<span class='gray'>(eventName, callback)</span>
+              </h2>
+              <p>The method will provide event listener for outer modules to regist.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>eventName</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.connect'>
+          <a href='#BluetoothConnectionManager.connect'>
+            <code>
+              .connect<span class='gray'>(device)</span>
+            </code>
+            <span class='force-inline'>
+              <p>It provides a convenient function for panel to connect with a device.
+And the panel no need to care about connected device currently.
+The method will disconnect current connected device first.
+Then, it will start connecting a paired device with the device&apos;s adapter.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.connect' class='mt0'>
+                connect<span class='gray'>(device)</span>
+              </h2>
+              <p>It provides a convenient function for panel to connect with a device.
+            And the panel no need to care about connected device currently.
+            The method will disconnect current connected device first.
+            Then, it will start connecting a paired device with the device&apos;s adapter.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="#BluetoothDevice">BluetoothDevice</a></code> <strong>device</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.connectingAddress'>
+          <a href='#BluetoothConnectionManager.connectingAddress'>
+            <code>
+              .connectingAddress<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The address of device that we are trying to connect.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.connectingAddress' class='mt0'>
+                connectingAddress<span class='gray'></span>
+              </h2>
+              <p>The address of device that we are trying to connect.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.disconnect'>
+          <a href='#BluetoothConnectionManager.disconnect'>
+            <code>
+              .disconnect<span class='gray'>(device)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method will disconnect the input device with the device&apos;s adapter.</p>
 
-    <section>
-        <article><h1>Bluetooth</h1><p>Bluetooth app is responsible for:</p>
-<ol>
-<li>Pairing process for those remote(unpaired) Bluetooth devices. And will pop out attention dialog to interact with user via window.open.</li>
-<li>Discover Bluetooth devices for user picked in current area. Then, send file(s) to the paired device. If the picked device is unpaired, send file(s) after inline-pairing successfully.</li>
-</ol>
-<h2>JSDOC</h2><p>Generated jsdoc is hosted on <a href="http://mozilla-b2g.github.io/gaia/bluetooth/">http://mozilla-b2g.github.io/gaia/bluetooth/</a>. You can generate it locally with the following command:</p>
-<pre class="prettyprint source"><code>$ gulp jsdoc:bluetooth</code></pre><h2>WARNING</h2><p>Any change under <code>js/modules</code> should be synced with Settings Bluetooth module (<code>apps/settings/js/modules/bluetooth</code>).</p></article>
-    </section>
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.disconnect' class='mt0'>
+                disconnect<span class='gray'>(device)</span>
+              </h2>
+              <p>The method will disconnect the input device with the device&apos;s adapter.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="#BluetoothDevice">BluetoothDevice</a></code> <strong>device</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.getConnectedDevices'>
+          <a href='#BluetoothConnectionManager.getConnectedDevices'>
+            <code>
+              .getConnectedDevices<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Return the cache of connected devices in ConnectionManager.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.getConnectedDevices' class='mt0'>
+                getConnectedDevices<span class='gray'></span>
+              </h2>
+              <p>Return the cache of connected devices in ConnectionManager.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.Profiles'>
+          <a href='#BluetoothConnectionManager.Profiles'>
+            <code>
+              .Profiles<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The profiles of connected device that we are defined here.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.Profiles' class='mt0'>
+                Profiles<span class='gray'></span>
+              </h2>
+              <p>The profiles of connected device that we are defined here.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothConnectionManager.removeEventListener'>
+          <a href='#BluetoothConnectionManager.removeEventListener'>
+            <code>
+              .removeEventListener<span class='gray'>(eventName, callback)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method will provide event listener for outer modules to un-regist.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothConnectionManager.removeEventListener' class='mt0'>
+                removeEventListener<span class='gray'>(eventName, callback)</span>
+              </h2>
+              <p>The method will provide event listener for outer modules to un-regist.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>eventName</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_debug' class='mt0'>
+    _debug<span class='gray'></span>
+  </h2>
+  <p>flag for debugging.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_device' class='mt0'>
+    _device<span class='gray'></span>
+  </h2>
+  <p>device to pair with.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_options' class='mt0'>
+    _options<span class='gray'></span>
+  </h2>
+  <p>event handler of pairing request</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_pairMethod' class='mt0'>
+    _pairMethod<span class='gray'></span>
+  </h2>
+  <p>device authentication method</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_pairMethod' class='mt0'>
+    _pairMethod<span class='gray'></span>
+  </h2>
+  <p>device authentication method</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_remoteDeviceName' class='mt0'>
+    _remoteDeviceName<span class='gray'></span>
+  </h2>
+  <p>remote device name to pair with.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='init' class='mt0'>
+    init<span class='gray'>(method, options)</span>
+  </h2>
+  <p>It is used to init pairing information in this pair view.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>method</strong>
+          :
+          <span class='force-inline'>
+            <p>method of this pairing request</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+          <ul>
+              <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> options.deviceName
+                <p>name of the remote bluetooth device</p>
+</li>
+              <li><code>BluetoothPairingHandle</code> options.handle
+                <p>property handle that
+carries specific method
+to reply by user.</p>
+</li>
+          </ul>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BluetoothContext' class='mt0'>
+    BluetoothContext<span class='gray'></span>
+  </h2>
+  <p>BluetoothContext:</p>
+<ul>
+<li>BluetoothContext is an Observable that wraps the platform Bluetooth
+object.</li>
+<li>BluetoothContext is a singleton that you can easily use it to fetch some
+shared data across different panels.</li>
+<li>It has some observable properties: state, enabled, address, name,
+discoverable, discovering, numberOfPairedDevices, firstPairedDeviceName,
+hasPairedDevice.</li>
+<li>It has two observable array: _pairedDevices, _remoteDevices.
+BluetoothContext only update state and does not involve in any UI logic.</li>
+</ul>
+
+      <h4>Static members</h4>
+        <div class='collapsible' id='BluetoothContext.address'>
+          <a href='#BluetoothContext.address'>
+            <code>
+              .address<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The address of the device&apos;s adapter on the bluetooth micro-network.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.address' class='mt0'>
+                address<span class='gray'></span>
+              </h2>
+              <p>The address of the device&apos;s adapter on the bluetooth micro-network.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.discoverable'>
+          <a href='#BluetoothContext.discoverable'>
+            <code>
+              .discoverable<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Indicates if the device is discoverable (true) or not (false)
+by other bluetooth devices.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.discoverable' class='mt0'>
+                discoverable<span class='gray'></span>
+              </h2>
+              <p>Indicates if the device is discoverable (true) or not (false)
+            by other bluetooth devices.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.discovering'>
+          <a href='#BluetoothContext.discovering'>
+            <code>
+              .discovering<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Indicates if the device is in the process of discovering (true) or
+not (false) surrounding bluetooth devices.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.discovering' class='mt0'>
+                discovering<span class='gray'></span>
+              </h2>
+              <p>Indicates if the device is in the process of discovering (true) or
+            not (false) surrounding bluetooth devices.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.firstPairedDeviceName'>
+          <a href='#BluetoothContext.firstPairedDeviceName'>
+            <code>
+              .firstPairedDeviceName<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Device name of Bluetooth paired devices in the first sorting.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.firstPairedDeviceName' class='mt0'>
+                firstPairedDeviceName<span class='gray'></span>
+              </h2>
+              <p>Device name of Bluetooth paired devices in the first sorting.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.getPairedDevices'>
+          <a href='#BluetoothContext.getPairedDevices'>
+            <code>
+              .getPairedDevices<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Return paired devices list which is maintained in BluetoothContext.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.getPairedDevices' class='mt0'>
+                getPairedDevices<span class='gray'></span>
+              </h2>
+              <p>Return paired devices list which is maintained in BluetoothContext.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code>ObservableArray</code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.getRemoteDevices'>
+          <a href='#BluetoothContext.getRemoteDevices'>
+            <code>
+              .getRemoteDevices<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Return remote devices list which is maintained in BluetoothContext.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.getRemoteDevices' class='mt0'>
+                getRemoteDevices<span class='gray'></span>
+              </h2>
+              <p>Return remote devices list which is maintained in BluetoothContext.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code>ObservableArray</code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.hasPairedDevice'>
+          <a href='#BluetoothContext.hasPairedDevice'>
+            <code>
+              .hasPairedDevice<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Indicates if the paired device is in the paired devices list (true) or
+not (false).</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.hasPairedDevice' class='mt0'>
+                hasPairedDevice<span class='gray'></span>
+              </h2>
+              <p>Indicates if the paired device is in the paired devices list (true) or
+            not (false).</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.name'>
+          <a href='#BluetoothContext.name'>
+            <code>
+              .name<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The human readable name of the device&apos;s adapter.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.name' class='mt0'>
+                name<span class='gray'></span>
+              </h2>
+              <p>The human readable name of the device&apos;s adapter.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.numberOfPairedDevices'>
+          <a href='#BluetoothContext.numberOfPairedDevices'>
+            <code>
+              .numberOfPairedDevices<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Number of Bluetooth paired devices.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.numberOfPairedDevices' class='mt0'>
+                numberOfPairedDevices<span class='gray'></span>
+              </h2>
+              <p>Number of Bluetooth paired devices.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.pair'>
+          <a href='#BluetoothContext.pair'>
+            <code>
+              .pair<span class='gray'>(address)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method starts pairing a remote device with the device&apos;s adapter.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.pair' class='mt0'>
+                pair<span class='gray'>(address)</span>
+              </h2>
+              <p>The method starts pairing a remote device with the device&apos;s adapter.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>address</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.sendFile'>
+          <a href='#BluetoothContext.sendFile'>
+            <code>
+              .sendFile<span class='gray'>(address, blob)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method starts sending file to a remote device with the device&apos;s
+adapter.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.sendFile' class='mt0'>
+                sendFile<span class='gray'>(address, blob)</span>
+              </h2>
+              <p>The method starts sending file to a remote device with the device&apos;s
+            adapter.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>address</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>address of target device</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>blob</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>blob(file) to send</p>
+            
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.setDiscoverable'>
+          <a href='#BluetoothContext.setDiscoverable'>
+            <code>
+              .setDiscoverable<span class='gray'>(enabled)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Set Bluetooth discoverable.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.setDiscoverable' class='mt0'>
+                setDiscoverable<span class='gray'>(enabled)</span>
+              </h2>
+              <p>Set Bluetooth discoverable.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>enabled</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.setEnabled'>
+          <a href='#BluetoothContext.setEnabled'>
+            <code>
+              .setEnabled<span class='gray'>(enabled)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Set Bluetooth enable/disable.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.setEnabled' class='mt0'>
+                setEnabled<span class='gray'>(enabled)</span>
+              </h2>
+              <p>Set Bluetooth enable/disable.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>enabled</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.setName'>
+          <a href='#BluetoothContext.setName'>
+            <code>
+              .setName<span class='gray'>(name)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Set adapter name.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.setName' class='mt0'>
+                setName<span class='gray'>(name)</span>
+              </h2>
+              <p>Set adapter name.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.startDiscovery'>
+          <a href='#BluetoothContext.startDiscovery'>
+            <code>
+              .startDiscovery<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The method makes the device&apos;s adapter start seeking for remote devices.
+The discovery process may be terminated after discovering a period of
+time. If the startDiscovery operation succeeds, an onattributechanged
+event would be triggered before the Promise is resolved to indicate
+property discovering becomes true.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.startDiscovery' class='mt0'>
+                startDiscovery<span class='gray'></span>
+              </h2>
+              <p>The method makes the device&apos;s adapter start seeking for remote devices.
+            The discovery process may be terminated after discovering a period of
+            time. If the startDiscovery operation succeeds, an onattributechanged
+            event would be triggered before the Promise is resolved to indicate
+            property discovering becomes true.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.state'>
+          <a href='#BluetoothContext.state'>
+            <code>
+              .state<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>State of Bluetooth default adapter.
+This is an enum of BluetoothAdapterState.
+State: &apos;disabled&apos;, &apos;disabling&apos;, &apos;enabled&apos;, &apos;enabling&apos;</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.state' class='mt0'>
+                state<span class='gray'></span>
+              </h2>
+              <p>State of Bluetooth default adapter.
+            This is an enum of BluetoothAdapterState.
+            State: &apos;disabled&apos;, &apos;disabling&apos;, &apos;enabled&apos;, &apos;enabling&apos;</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.stopDiscovery'>
+          <a href='#BluetoothContext.stopDiscovery'>
+            <code>
+              .stopDiscovery<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The method makes the device&apos;s adapter stop seeking for remote devices.
+This is an asynchronous method and its result is returned via a Promise.
+If the stopDiscovery operation succeeds, an onattributechanged would be
+triggered before the Promise is resolved to indicate property discovering
+becomes false. Note adapter may still receive
+BluetoothDiscoveryHandle.ondevicefound event until the Promise is
+resolved.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.stopDiscovery' class='mt0'>
+                stopDiscovery<span class='gray'></span>
+              </h2>
+              <p>The method makes the device&apos;s adapter stop seeking for remote devices.
+            This is an asynchronous method and its result is returned via a Promise.
+            If the stopDiscovery operation succeeds, an onattributechanged would be
+            triggered before the Promise is resolved to indicate property discovering
+            becomes false. Note adapter may still receive
+            BluetoothDiscoveryHandle.ondevicefound event until the Promise is
+            resolved.</p>
+            
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='BluetoothContext.unpair'>
+          <a href='#BluetoothContext.unpair'>
+            <code>
+              .unpair<span class='gray'>(address)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The method starts unpairs a remote device with the device&apos;s adapter.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothContext.unpair' class='mt0'>
+                unpair<span class='gray'>(address)</span>
+              </h2>
+              <p>The method starts unpairs a remote device with the device&apos;s adapter.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>address</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_isExpired' class='mt0'>
+    _isExpired<span class='gray'></span>
+  </h2>
+  <p>Indicate if the pair request is expired</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_isExpired' class='mt0'>
+    _isExpired<span class='gray'></span>
+  </h2>
+  <p>Indicate if the pair request is expired</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_init' class='mt0'>
+    _init<span class='gray'></span>
+  </h2>
+  <p>Observe &apos;paired&apos;, &apos;connectionStatus&apos;, and &apos;profiles&apos; properties changed
+event in init function. Once these properties changed, we can update
+corrected description for the device.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BluetoothAdapterManager' class='mt0'>
+    BluetoothAdapterManager<span class='gray'></span>
+  </h2>
+  
+      <h4>Returns</h4>
+      <code><code><a href="#BluetoothAdapterManager">BluetoothAdapterManager</a></code></code>
+      
+      <span class='force-inline'>
+        
+      </span>
+      <h4>Static members</h4>
+        <div class='collapsible' id='BluetoothAdapterManager.defaultAdapter'>
+          <a href='#BluetoothAdapterManager.defaultAdapter'>
+            <code>
+              .defaultAdapter<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The default adapter used to connect to the remote bluetooth devices.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothAdapterManager.defaultAdapter' class='mt0'>
+                defaultAdapter<span class='gray'></span>
+              </h2>
+              <p>The default adapter used to connect to the remote bluetooth devices.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BluetoothAdapterManager' class='mt0'>
+    BluetoothAdapterManager<span class='gray'></span>
+  </h2>
+  <p>BluetoothAdapterManager:</p>
+<ul>
+<li>BluetoothAdapterManager is an Observable that wraps the platform
+Bluetooth object for construct default adapter.</li>
+<li>It has only one observable properties: defaultAdapter
+BluetoothAdapterManager only update state and does not involve in any UI
+logic.</li>
+</ul>
+
+      <h4>Static members</h4>
+        <div class='collapsible' id='BluetoothAdapterManager.defaultAdapter'>
+          <a href='#BluetoothAdapterManager.defaultAdapter'>
+            <code>
+              .defaultAdapter<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The default adapter used to connect to the remote bluetooth devices.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothAdapterManager.defaultAdapter' class='mt0'>
+                defaultAdapter<span class='gray'></span>
+              </h2>
+              <p>The default adapter used to connect to the remote bluetooth devices.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BluetoothClassOfDeviceMapper' class='mt0'>
+    BluetoothClassOfDeviceMapper<span class='gray'></span>
+  </h2>
+  <p>BluetoothClassOfDeviceMapper:</p>
+<ul>
+<li>
+<p>BluetoothClassOfDeviceMapper is a mapper that helps settings/bluetooth
+apps to decide the icon type. Since platform exposed the &apos;number&apos; type
+for class of device(Major Service Classes, Major Device Classes,
+Minor Device Classes), the helper will map the input number to specific
+device type. And the decision is referenced from Baseband.
+(Assigned numbers for Baseband identifies the Inquiry Access codes
+and Class of Device/Service (CoD) fields.)[3]
+According to the specifications described, we define the device type in
+Gaia side entirely. And the naming of device type we given is also
+mapping to CSS style sheet.</p>
+</li>
+<li>
+<p>[1] Bluetooth API v1, BluetoothDevice icon property:
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/BluetoothDevice.icon">https://developer.mozilla.org/en-US/docs/Web/API/BluetoothDevice.icon</a></p>
+</li>
+<li>
+<p>[2] Bluetooth API v2, BluetoothClassOfDevice object:
+<a href="https://wiki.mozilla.org/B2G/Bluetooth/WebBluetooth-v2/">https://wiki.mozilla.org/B2G/Bluetooth/WebBluetooth-v2/</a>
+BluetoothClassOfDevice</p>
+</li>
+<li>
+<p>[3] Bluetooth Class of Device Reference:
+<a href="https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband">https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband</a></p>
+</li>
+<li>
+<p>We can update the mapper if the specifications Baseband is updated.</p>
+</li>
+</ul>
+
+      <h4>Static members</h4>
+        <div class='collapsible' id='BluetoothClassOfDeviceMapper.getDeviceType'>
+          <a href='#BluetoothClassOfDeviceMapper.getDeviceType'>
+            <code>
+              .getDeviceType<span class='gray'>(cod)</span>
+            </code>
+            <span class='force-inline'>
+              <p>The string indicating which kind of icon could be used to represent
+the device.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='BluetoothClassOfDeviceMapper.getDeviceType' class='mt0'>
+                getDeviceType<span class='gray'>(cod)</span>
+              </h2>
+              <p>The string indicating which kind of icon could be used to represent
+            the device.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code>BluetoothClassOfDevice</code> <strong>cod</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+                  <h4>Returns</h4>
+                  <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+                  
+                  <span class='force-inline'>
+                    
+                  </span>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BluetoothDevice' class='mt0'>
+    BluetoothDevice<span class='gray'></span>
+  </h2>
+  <p>BluetoothDevice:</p>
+<ul>
+<li>BluetoothDevice is an Observable that wraps the platform
+BluetoothDevice object.</li>
+<li>It has some observable properties: name, paired, cod
+BluetoothDevice only update device information and does not involve in any
+UI logic.</li>
+</ul>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BluetoothDevice' class='mt0'>
+    BluetoothDevice<span class='gray'>(device)</span>
+  </h2>
+  
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="#BluetoothDevice">BluetoothDevice</a></code> <strong>device</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code>Observable</code></code>
+      :
+      <span class='force-inline'>
+        <p>observableBluetoothDevice</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='define' class='mt0'>
+    define<span class='gray'></span>
+  </h2>
+  <p>VersionDetector:</p>
+<ul>
+<li>VersionDetector is an detector that identify the version of platform
+Bluetooth object.</li>
+<li>It has only one method: getVersion.
+VersionDetector only identify version and does not involve in any UI logic.</li>
+</ul>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='define' class='mt0'>
+    define<span class='gray'></span>
+  </h2>
+  <p>The template function for generating an UI element for an item of Bluetooth
+paired/remote device.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='define' class='mt0'>
+    define<span class='gray'></span>
+  </h2>
+  <p>Wraps navigator.bluetooth for replacing it in unit tests more easily.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='eachProp' class='mt0'>
+    eachProp<span class='gray'>(obj, func)</span>
+  </h2>
+  <p>Cycles over properties in an object and calls a function for each
+property value. If the function returns a truthy value, then the
+iteration is stopped.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>obj</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>func</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='exec' class='mt0'>
+    exec<span class='gray'>(text)</span>
+  </h2>
+  <p>Executes the text. Normally just uses eval, but can be modified
+to use a better, environment-specific call. Only used for transpiling
+loader plugins, not for plain JS modules.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>text</strong>
+          :
+          <span class='force-inline'>
+            <p>the text to execute/evaluate.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='getVersion' class='mt0'>
+    getVersion<span class='gray'></span>
+  </h2>
+  <p>The value indicates whether the API version is responding.</p>
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code></code>
+      
+      <span class='force-inline'>
+        
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='makeMap' class='mt0'>
+    makeMap<span class='gray'>(name, relName, applyMap)</span>
+  </h2>
+  <p>Makes a name map, normalizing the name, and using a plugin
+for normalization if necessary. Grabs a ref to plugin
+too, as an optimization.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>name</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>relName</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>applyMap</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='mixin' class='mt0'>
+    mixin<span class='gray'>(target, source, force, deepStringMixin)</span>
+  </h2>
+  <p>Simple function to mix in properties from source into target,
+but only if target does not already have a property of the same name.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>target</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>source</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>force</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>deepStringMixin</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='name' class='mt0'>
+    name<span class='gray'></span>
+  </h2>
+  <p>Check blob.name because sendFile() API needs a &quot;file&quot;
+object and a filaname before sending it.
+If there is no filename in the blob, Bluetooth API will give a
+default name &quot;Unknown.jpeg&quot;.
+So Bluetooth app has to find out the name via device storage.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='name' class='mt0'>
+    name<span class='gray'></span>
+  </h2>
+  <p>Checking blob.name is because the sendFile() api needs a &quot;file&quot; object.
+And it is needing a filaname before send it.
+If there is no filename in the blob, Bluetooth API will give a default
+name &quot;Unknown.jpeg&quot;. So Bluetooth app have to find out the name via
+device stroage.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='normalize' class='mt0'>
+    normalize<span class='gray'>(name, baseName, applyMap)</span>
+  </h2>
+  <p>Given a relative module name, like ./something, normalize it to
+a real name that can be mapped to a path.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>name</strong>
+          :
+          <span class='force-inline'>
+            <p>the relative name</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>baseName</strong>
+          :
+          <span class='force-inline'>
+            <p>a real name that the name arg is relative
+to.</p>
+
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>applyMap</strong>
+          :
+          <span class='force-inline'>
+            <p>apply the map config to the value. Should
+only be done if this normalization is for a dependency ID.</p>
+
+          </span>
+        </li>
+    </ul>
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>normalized name</p>
+
+      </span>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='onattributechanged' class='mt0'>
+    onattributechanged<span class='gray'>(evt)</span>
+  </h2>
+  <p>watch &apos;onattributechanged&apos; event
+A function to receive device which is just found via discovery handler.
+And set a function to handle &apos;onattributechanged&apos; event.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>evt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='requirejs' class='mt0'>
+    requirejs<span class='gray'></span>
+  </h2>
+  <p>alameda 0.2.0-native-promise Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.
+Available via the MIT or new BSD license.
+see: <a href="http://github.com/requirejs/alameda">http://github.com/requirejs/alameda</a> for details</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='toUrl' class='mt0'>
+    toUrl<span class='gray'>(moduleNamePlusExt)</span>
+  </h2>
+  <p>Converts a module name + .extension into an URL path.
+<em>Requires</em> the use of a module name. It does not support using
+plain URLs like nameToUrl.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>moduleNamePlusExt</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='trimDots' class='mt0'>
+    trimDots<span class='gray'>(ary)</span>
+  </h2>
+  <p>Trims the . and .. from an array of path segments.
+It will keep a leading path segment if a .. will become
+the first path segment, to help with module name lookups,
+which act like paths, but can be remapped. But the end result,
+all paths that use this function should look normalized.
+NOTE: this method MODIFIES the input array.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>ary</strong>
+          :
+          <span class='force-inline'>
+            <p>the array of path segments.</p>
+
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='unobserve' class='mt0'>
+    unobserve<span class='gray'></span>
+  </h2>
+  <p>unobserve([prop], handler) - remove handler from observeable callbacks</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateConnectionInfo' class='mt0'>
+    updateConnectionInfo<span class='gray'>(options)</span>
+  </h2>
+  <p>Provide a function to update connection info.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>options</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+          <ul>
+              <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> options.connectionStatus
+                <p>is connected or not</p>
+</li>
+              <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> options.profiles
+                <p>profiles of the connection type</p>
+</li>
+          </ul>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='updateDescriptionText' class='mt0'>
+    updateDescriptionText<span class='gray'></span>
+  </h2>
+  <p>Provide a function to update description text.</p>
+
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-bluetooth_bt_template_factory.html">bluetooth/bt_template_factory</a></li><li><a href="module-BluetoothAdapterManager.html">BluetoothAdapterManager</a></li><li><a href="module-BluetoothClassOfDeviceMapper.html">BluetoothClassOfDeviceMapper</a></li><li><a href="module-BluetoothConnectionManager.html">BluetoothConnectionManager</a></li><li><a href="module-BluetoothContext.html">BluetoothContext</a></li><li><a href="module-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-modules_bluetooth_version_detector.html">modules/bluetooth/version_detector</a></li></ul><h3>Classes</h3><ul><li><a href="module-BluetoothDevice-BluetoothDevice.html">BluetoothDevice</a></li></ul><h3>Global</h3><ul><li><a href="global.html#requirejs">requirejs</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:22 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>

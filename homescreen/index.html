@@ -1,0 +1,260 @@
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
+</head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#AUTOSCROLL_DELAY'
+                class='block bold'>
+                AUTOSCROLL_DELAY
+              </a>
+              <a
+                href='#AUTOSCROLL_DISTANCE'
+                class='block bold'>
+                AUTOSCROLL_DISTANCE
+              </a>
+              <a
+                href='#AUTOSCROLL_OVERFLOW_DELAY'
+                class='block bold'>
+                AUTOSCROLL_OVERFLOW_DELAY
+              </a>
+              <a
+                href='#BLACKLIST'
+                class='block bold'>
+                BLACKLIST
+              </a>
+              <a
+                href='#COLUMNS_SETTING'
+                class='block bold'>
+                COLUMNS_SETTING
+              </a>
+              <a
+                href='#datastore'
+                class='block bold'>
+                datastore
+              </a>
+              <a
+                href='#db'
+                class='block bold'>
+                db
+              </a>
+              <a
+                href='#DB_VERSION'
+                class='block bold'>
+                DB_VERSION
+              </a>
+              <a
+                href='#lastRevision'
+                class='block bold'>
+                lastRevision
+              </a>
+              <a
+                href='#name'
+                class='block bold'>
+                name
+              </a>
+              <a
+                href='#DIALOG_SHOW_TIMEOUT'
+                class='block bold'>
+                DIALOG_SHOW_TIMEOUT
+              </a>
+              <a
+                href='#HASH_CHANGE_DEBOUNCE'
+                class='block bold'>
+                HASH_CHANGE_DEBOUNCE
+              </a>
+              <a
+                href='#HIDDEN_ROLES'
+                class='block bold'>
+                HIDDEN_ROLES
+              </a>
+              <a
+                href='#PAGES_ICON_SIZE'
+                class='block bold'>
+                PAGES_ICON_SIZE
+              </a>
+              <a
+                href='#PAGING_SETTING'
+                class='block bold'>
+                PAGING_SETTING
+              </a>
+              <a
+                href='#RESIZE_TIMEOUT'
+                class='block bold'>
+                RESIZE_TIMEOUT
+              </a>
+              <a
+                href='#SETTINGS_STORE'
+                class='block bold'>
+                SETTINGS_STORE
+              </a>
+              <a
+                href='#SETTINGS_VERSION'
+                class='block bold'>
+                SETTINGS_VERSION
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='AUTOSCROLL_DELAY' class='mt0'>
+    AUTOSCROLL_DELAY<span class='gray'></span>
+  </h2>
+  <p>The timeout before auto-scrolling a page when hovering at the edges
+of the grid.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AUTOSCROLL_DISTANCE' class='mt0'>
+    AUTOSCROLL_DISTANCE<span class='gray'></span>
+  </h2>
+  <p>The distance at the top and bottom of the icon container that when hovering
+an icon in will cause scrolling.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='AUTOSCROLL_OVERFLOW_DELAY' class='mt0'>
+    AUTOSCROLL_OVERFLOW_DELAY<span class='gray'></span>
+  </h2>
+  <p>The time to wait after setting a scroll-position before disabling
+overflow during drag-and-drop.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='BLACKLIST' class='mt0'>
+    BLACKLIST<span class='gray'></span>
+  </h2>
+  <p>Strings that are matched against to black-list app origins.
+TODO: This should not be hard-coded.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='COLUMNS_SETTING' class='mt0'>
+    COLUMNS_SETTING<span class='gray'></span>
+  </h2>
+  <p>Name of the global home screen columns setting.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='datastore' class='mt0'>
+    datastore<span class='gray'></span>
+  </h2>
+  <p>The datastore</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='db' class='mt0'>
+    db<span class='gray'></span>
+  </h2>
+  <p>Our local indexed db where we store our copy of bookmarks</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='DB_VERSION' class='mt0'>
+    DB_VERSION<span class='gray'></span>
+  </h2>
+  <p>The version of the indexed database</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='lastRevision' class='mt0'>
+    lastRevision<span class='gray'></span>
+  </h2>
+  <p>The last datastore revision that was synced</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='name' class='mt0'>
+    name<span class='gray'></span>
+  </h2>
+  <p>The name of the datastore</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='DIALOG_SHOW_TIMEOUT' class='mt0'>
+    DIALOG_SHOW_TIMEOUT<span class='gray'></span>
+  </h2>
+  <p>Timeout before showing a dialog. Without this, the click that comes through
+after an activate event from gaia-container will close the dialog.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='HASH_CHANGE_DEBOUNCE' class='mt0'>
+    HASH_CHANGE_DEBOUNCE<span class='gray'></span>
+  </h2>
+  <p>Time after receiving a handled hashchange that we ignore hashchange
+events for.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='HIDDEN_ROLES' class='mt0'>
+    HIDDEN_ROLES<span class='gray'></span>
+  </h2>
+  <p>App roles that will be skipped on the homescreen.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='PAGES_ICON_SIZE' class='mt0'>
+    PAGES_ICON_SIZE<span class='gray'></span>
+  </h2>
+  <p>The size in pixels of the icons in the pinned pages.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='PAGING_SETTING' class='mt0'>
+    PAGING_SETTING<span class='gray'></span>
+  </h2>
+  <p>Name of the global home screen paging setting.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='RESIZE_TIMEOUT' class='mt0'>
+    RESIZE_TIMEOUT<span class='gray'></span>
+  </h2>
+  <p>Timeout before resizing the apps grid after apps change.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='SETTINGS_STORE' class='mt0'>
+    SETTINGS_STORE<span class='gray'></span>
+  </h2>
+  <p>Name of the global home screen settings datastore.</p>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='SETTINGS_VERSION' class='mt0'>
+    SETTINGS_VERSION<span class='gray'></span>
+  </h2>
+  <p>Stored settings version, for use when changing/refactoring settings
+storage.</p>
+
+</section>
+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
+</body>
+</html>

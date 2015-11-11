@@ -1,65 +1,983 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Home</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
 </head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#Provider'
+                class='block bold'>
+                Provider
+              </a>
+                <a
+                  href='#Provider.abort'
+                  class='regular block'>
+                  #abort
+                </a>
+                <a
+                  href='#Provider.buildResultsDom'
+                  class='regular block'>
+                  #buildResultsDom
+                </a>
+                <a
+                  href='#Provider.clear'
+                  class='regular block'>
+                  #clear
+                </a>
+                <a
+                  href='#Provider.click'
+                  class='regular block'>
+                  #click
+                </a>
+                <a
+                  href='#Provider.dedupes'
+                  class='regular block'>
+                  #dedupes
+                </a>
+                <a
+                  href='#Provider.init'
+                  class='regular block'>
+                  #init
+                </a>
+                <a
+                  href='#Provider.name'
+                  class='regular block'>
+                  #name
+                </a>
+                <a
+                  href='#Provider.updateIcon'
+                  class='regular block'>
+                  #updateIcon
+                </a>
+              <a
+                href='#abort'
+                class='block bold'>
+                abort
+              </a>
+              <a
+                href='#change'
+                class='block bold'>
+                change
+              </a>
+              <a
+                href='#clear'
+                class='block bold'>
+                clear
+              </a>
+              <a
+                href='#close'
+                class='block bold'>
+                close
+              </a>
+              <a
+                href='#collect'
+                class='block bold'>
+                collect
+              </a>
+              <a
+                href='#dispatchMessage'
+                class='block bold'>
+                dispatchMessage
+              </a>
+              <a
+                href='#expandSearch'
+                class='block bold'>
+                expandSearch
+              </a>
+              <a
+                href='#handleActivityEvents'
+                class='block bold'>
+                handleActivityEvents
+              </a>
+              <a
+                href='#initNotice'
+                class='block bold'>
+                initNotice
+              </a>
+              <a
+                href='#navigate'
+                class='block bold'>
+                navigate
+              </a>
+              <a
+                href='#provider'
+                class='block bold'>
+                provider
+              </a>
+              <a
+                href='#setInput'
+                class='block bold'>
+                setInput
+              </a>
+              <a
+                href='#submit'
+                class='block bold'>
+                submit
+              </a>
+              <a
+                href='#suggestionNotice'
+                class='block bold'>
+                suggestionNotice
+              </a>
+              <a
+                href='#Contextmenu'
+                class='block bold'>
+                Contextmenu
+              </a>
+                <a
+                  href='#Contextmenu.icon'
+                  class='regular block'>
+                  #icon
+                </a>
+              <a
+                href='#Newtab'
+                class='block bold'>
+                Newtab
+              </a>
+                <a
+                  href='#Newtab.handleEvent'
+                  class='regular block'>
+                  #handleEvent
+                </a>
+                <a
+                  href='#Newtab.hidePrivateBrowserDialog'
+                  class='regular block'>
+                  #hidePrivateBrowserDialog
+                </a>
+                <a
+                  href='#Newtab.init'
+                  class='regular block'>
+                  #init
+                </a>
+                <a
+                  href='#Newtab.learnAboutPrivateBrowsing'
+                  class='regular block'>
+                  #learnAboutPrivateBrowsing
+                </a>
+                <a
+                  href='#Newtab.provider'
+                  class='regular block'>
+                  #provider
+                </a>
+                <a
+                  href='#Newtab.requestPrivateWindow'
+                  class='regular block'>
+                  #requestPrivateWindow
+                </a>
+                <a
+                  href='#Newtab.requestScreenshot'
+                  class='regular block'>
+                  #requestScreenshot
+                </a>
+                <a
+                  href='#Newtab.togglePrivacyMode'
+                  class='regular block'>
+                  #togglePrivacyMode
+                </a>
+              <a
+                href='#iconUrl'
+                class='block bold'>
+                iconUrl
+              </a>
+              <a
+                href='#matches'
+                class='block bold'>
+                matches
+              </a>
+              <a
+                href='#Search'
+                class='block bold'>
+                Search
+              </a>
+                <a
+                  href='#Search.navigate'
+                  class='regular block'>
+                  .navigate
+                </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='Provider' class='mt0'>
+    Provider<span class='gray'></span>
+  </h2>
+  <p>Base Provider class</p>
 
-<body>
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Provider.abort'>
+          <a href='#Provider.abort'>
+            <code>
+              #abort<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Aborts any in-progress request.</p>
 
-<div id="main">
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Provider.abort' class='mt0'>
+                abort<span class='gray'></span>
+              </h2>
+              <p>Aborts any in-progress request.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Provider.buildResultsDom'>
+          <a href='#Provider.buildResultsDom'>
+            <code>
+              #buildResultsDom<span class='gray'>(results)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Renders a set of results.
+Each result may contain the following attributes:</p>
+<ul>
+<li>title: The title of the app.</li>
+<li>meta: Secondary content to show for the result.</li>
+<li>icon: The icon of the result.</li>
+<li>dataset: Data attributes to apply to the result.</li>
+<li>label: Aria-label for the result.</li>
+<li>description: Additional description for the result.</li>
+</ul>
 
-    <h1 class="page-title">Home</h1>
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Provider.buildResultsDom' class='mt0'>
+                buildResultsDom<span class='gray'>(results)</span>
+              </h2>
+              <p>Renders a set of results.
+            Each result may contain the following attributes:</p>
+            <ul>
+            <li>title: The title of the app.</li>
+            <li>meta: Secondary content to show for the result.</li>
+            <li>icon: The icon of the result.</li>
+            <li>dataset: Data attributes to apply to the result.</li>
+            <li>label: Aria-label for the result.</li>
+            <li>description: Additional description for the result.</li>
+            </ul>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>results</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Provider.clear'>
+          <a href='#Provider.clear'>
+            <code>
+              #clear<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Clears the rendered results of this provider from the app grid</p>
 
-    
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Provider.clear' class='mt0'>
+                clear<span class='gray'></span>
+              </h2>
+              <p>Clears the rendered results of this provider from the app grid</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Provider.click'>
+          <a href='#Provider.click'>
+            <code>
+              #click<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Handler when a result is clicked</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Provider.click' class='mt0'>
+                click<span class='gray'></span>
+              </h2>
+              <p>Handler when a result is clicked</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Provider.dedupes'>
+          <a href='#Provider.dedupes'>
+            <code>
+              #dedupes<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Whether or not this provider dedupes results.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Provider.dedupes' class='mt0'>
+                dedupes<span class='gray'></span>
+              </h2>
+              <p>Whether or not this provider dedupes results.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Provider.init'>
+          <a href='#Provider.init'>
+            <code>
+              #init<span class='gray'>(searchObj)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Initializes the provider container and adds listeners</p>
 
-    
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Provider.init' class='mt0'>
+                init<span class='gray'>(searchObj)</span>
+              </h2>
+              <p>Initializes the provider container and adds listeners</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>searchObj</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Provider.name'>
+          <a href='#Provider.name'>
+            <code>
+              #name<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Name of the provider
+Overridden at the child provider level</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Provider.name' class='mt0'>
+                name<span class='gray'></span>
+              </h2>
+              <p>Name of the provider
+            Overridden at the child provider level</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Provider.updateIcon'>
+          <a href='#Provider.updateIcon'>
+            <code>
+              #updateIcon<span class='gray'>(config, iconWrapper)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Update an icon once it has been loaded.</p>
 
-    <h3> </h3>
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Provider.updateIcon' class='mt0'>
+                updateIcon<span class='gray'>(config, iconWrapper)</span>
+              </h2>
+              <p>Update an icon once it has been loaded.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>config</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>A configuration object.</p>
+            
+                      </span>
+                    </li>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>iconWrapper</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>An iconWrapper DOM object.</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='abort' class='mt0'>
+    abort<span class='gray'></span>
+  </h2>
+  <p>Aborts all in-progress provider requests.</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='change' class='mt0'>
+    change<span class='gray'>(msg)</span>
+  </h2>
+  <p>Called when the user changes the search query</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>msg</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='clear' class='mt0'>
+    clear<span class='gray'>(msg)</span>
+  </h2>
+  <p>Clear results from each provider.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>msg</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='close' class='mt0'>
+    close<span class='gray'></span>
+  </h2>
+  <p>Messages the parent container to close</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='collect' class='mt0'>
+    collect<span class='gray'>(provider, results)</span>
+  </h2>
+  <p>Collects results from a search provider.
+If the provider de-duplicates results, filter through them
+and dedupe them. Otherwise, render.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>provider</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>results</strong>
+          :
+          <span class='force-inline'>
+            <p>The results of the provider search.</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='dispatchMessage' class='mt0'>
+    dispatchMessage<span class='gray'>(msg)</span>
+  </h2>
+  <p>Dispatches messages to handlers in the Search class</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>msg</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='expandSearch' class='mt0'>
+    expandSearch<span class='gray'>(query)</span>
+  </h2>
+  <p>Expands the search experience when the user taps on a suggestion
+or submits a query.</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>query</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='handleActivityEvents' class='mt0'>
+    handleActivityEvents<span class='gray'>(activity)</span>
+  </h2>
+  <p>Called when the user trigger a search activity</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>activity</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='initNotice' class='mt0'>
+    initNotice<span class='gray'></span>
+  </h2>
+  <p>Show a notice to the user informaing them of how to configure
+search providers, should only be shown once.</p>
 
-    
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='navigate' class='mt0'>
+    navigate<span class='gray'>(url)</span>
+  </h2>
+  <p>Opens a browser to a URL</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>url</strong>
+          :
+          <span class='force-inline'>
+            <p>The url to navigate to</p>
 
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='provider' class='mt0'>
+    provider<span class='gray'>(provider)</span>
+  </h2>
+  <p>Adds a search provider</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>provider</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='setInput' class='mt0'>
+    setInput<span class='gray'>(input)</span>
+  </h2>
+  <p>Sends a message to the system app to update the input value</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>input</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='submit' class='mt0'>
+    submit<span class='gray'>(msg)</span>
+  </h2>
+  <p>Called when the user submits the search form</p>
 
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>msg</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='suggestionNotice' class='mt0'>
+    suggestionNotice<span class='gray'></span>
+  </h2>
+  <p>Used to display a notice on how to configure the search provider
+on first use</p>
 
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Contextmenu' class='mt0'>
+    Contextmenu<span class='gray'></span>
+  </h2>
+  <p>The search context menu handles bookmarking of search
+results when the users long presses them.</p>
 
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Contextmenu.icon'>
+          <a href='#Contextmenu.icon'>
+            <code>
+              #icon<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>The current icon target.</p>
 
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Contextmenu.icon' class='mt0'>
+                icon<span class='gray'></span>
+              </h2>
+              <p>The current icon target.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Newtab' class='mt0'>
+    Newtab<span class='gray'></span>
+  </h2>
+  <p>The main Newtab page object.
+Instantiates places to populate history and top sites.</p>
 
+      <h4>Instance members</h4>
+        <div class='collapsible' id='Newtab.handleEvent'>
+          <a href='#Newtab.handleEvent'>
+            <code>
+              #handleEvent<span class='gray'>(e)</span>
+            </code>
+            <span class='force-inline'>
+              <p>General event handler.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Newtab.handleEvent' class='mt0'>
+                handleEvent<span class='gray'>(e)</span>
+              </h2>
+              <p>General event handler.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>e</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Newtab.hidePrivateBrowserDialog'>
+          <a href='#Newtab.hidePrivateBrowserDialog'>
+            <code>
+              #hidePrivateBrowserDialog<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Hides the private browser dialog.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Newtab.hidePrivateBrowserDialog' class='mt0'>
+                hidePrivateBrowserDialog<span class='gray'></span>
+              </h2>
+              <p>Hides the private browser dialog.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Newtab.init'>
+          <a href='#Newtab.init'>
+            <code>
+              #init<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Initializes top sites and history.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Newtab.init' class='mt0'>
+                init<span class='gray'></span>
+              </h2>
+              <p>Initializes top sites and history.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Newtab.learnAboutPrivateBrowsing'>
+          <a href='#Newtab.learnAboutPrivateBrowsing'>
+            <code>
+              #learnAboutPrivateBrowsing<span class='gray'>(e)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Opens the learn more dialog.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Newtab.learnAboutPrivateBrowsing' class='mt0'>
+                learnAboutPrivateBrowsing<span class='gray'>(e)</span>
+              </h2>
+              <p>Opens the learn more dialog.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>e</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Newtab.provider'>
+          <a href='#Newtab.provider'>
+            <code>
+              #provider<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>A reference to the Places provider.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Newtab.provider' class='mt0'>
+                provider<span class='gray'></span>
+              </h2>
+              <p>A reference to the Places provider.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Newtab.requestPrivateWindow'>
+          <a href='#Newtab.requestPrivateWindow'>
+            <code>
+              #requestPrivateWindow<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Requests that the system app opens a new private window.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Newtab.requestPrivateWindow' class='mt0'>
+                requestPrivateWindow<span class='gray'></span>
+              </h2>
+              <p>Requests that the system app opens a new private window.</p>
+            
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Newtab.requestScreenshot'>
+          <a href='#Newtab.requestScreenshot'>
+            <code>
+              #requestScreenshot<span class='gray'>(url)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Requests a screenshot of the page from the system app.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Newtab.requestScreenshot' class='mt0'>
+                requestScreenshot<span class='gray'>(url)</span>
+              </h2>
+              <p>Requests a screenshot of the page from the system app.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li> <strong>url</strong>
+                      :
+                      <span class='force-inline'>
+                        
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+        <div class='collapsible' id='Newtab.togglePrivacyMode'>
+          <a href='#Newtab.togglePrivacyMode'>
+            <code>
+              #togglePrivacyMode<span class='gray'></span>
+            </code>
+            <span class='force-inline'>
+              <p>Toggles the privacy mode.</p>
+<p>When private browsing <em>IS</em> the default and we <em>ARE NOT</em> manually being
+regular or when private browsing <em>IS NOT</em> the default and we <em>ARE</em>
+manually bring private: Makes this window look like a private window by
+applying the necessary theme color and background. The window can&apos;t be
+truly private, otherwise we wouldn&apos;t have access to local history and
+bookmarks.</p>
+<p>When private browsing <em>IS</em> the default and we <em>ARE</em> manually regular:
+Makes this window look normal by removing private theme settings.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2'>
+            <section class='py2 clearfix'>
+              <h2 id='Newtab.togglePrivacyMode' class='mt0'>
+                togglePrivacyMode<span class='gray'></span>
+              </h2>
+              <p>Toggles the privacy mode.</p>
+            <p>When private browsing <em>IS</em> the default and we <em>ARE NOT</em> manually being
+            regular or when private browsing <em>IS NOT</em> the default and we <em>ARE</em>
+            manually bring private: Makes this window look like a private window by
+            applying the necessary theme color and background. The window can&apos;t be
+            truly private, otherwise we wouldn&apos;t have access to local history and
+            bookmarks.</p>
+            <p>When private browsing <em>IS</em> the default and we <em>ARE</em> manually regular:
+            Makes this window look normal by removing private theme settings.</p>
+            
+            </section>
+          </div>
+        </div>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='iconUrl' class='mt0'>
+    iconUrl<span class='gray'></span>
+  </h2>
+  <p>We could have several cases for icons in the search grid:</p>
+<ul>
+<li>Icons from e.me: this.icon.icon will be url</li>
+<li>
+<p>Icons from places: this.icon.icon can be:</p>
+<ul>
+<li>a blob, cached icon</li>
+<li>a icon url
+To solve this, added an extra feature attribute: iconUrl,
+so GaiaGridItems with this extra attribute in the detail
+will have a way to keep track of the original url.</li>
+</ul>
+</li>
+</ul>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='matches' class='mt0'>
+    matches<span class='gray'>(manifest, query)</span>
+  </h2>
+  <p>Checks if an app manifest matches a query.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>manifest</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+        <li> <strong>query</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='Search' class='mt0'>
+    Search<span class='gray'>(provider)</span>
+  </h2>
+  <p>Stub search object to populate providers.
+TODO: We should split up the places provider into some data layer where
+the search or newtab page could leverage it.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>provider</strong>
+          :
+          <span class='force-inline'>
+            
+          </span>
+        </li>
+    </ul>
+      <h4>Static members</h4>
+        <div class='collapsible' id='Search.navigate'>
+          <a href='#Search.navigate'>
+            <code>
+              .navigate<span class='gray'>(url)</span>
+            </code>
+            <span class='force-inline'>
+              <p>Opens a browser to a URL.</p>
+
+            </span>
+          </a>
+          <div class='collapser border px2 m2'>
+            <section class='py2 clearfix'>
+              <h2 id='Search.navigate' class='mt0'>
+                navigate<span class='gray'>(url)</span>
+              </h2>
+              <p>Opens a browser to a URL.</p>
+            
+                <h4>Parameters</h4>
+                <ul class='suppress-p-margin'>
+                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>url</strong>
+                      :
+                      <span class='force-inline'>
+                        <p>The url to navigate to</p>
+            
+                      </span>
+                    </li>
+                </ul>
+            </section>
+          </div>
+        </div>
+</section>
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#Provider">Provider</a></li><li><a href="global.html#Search">Search</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:16 GMT+0800 (CST)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
 </body>
 </html>
