@@ -217,6 +217,39 @@ L must contain the version: url`);
       });
     });
 
+    test('sync zero collections', function(done) {
+      var id = Date.now();
+      window.dispatchEvent(new CustomEvent(IAC_EVENT, {
+        detail: {
+          id,
+          name: 'sync',
+          URL: 'https://syncto.dev.mozaws.net/v1/',
+          assertion: 'assertion',
+          keys: { kB: FxSyncWebCryptoFixture.kB },
+          collections: {
+          }
+        }
+      }));
+
+      windowClosed().then(() => {
+        expect(postMessageSpy.called).to.equal(true);
+        expect(postMessageSpy.args[0][0].id).to.equal(id);
+        expect(postMessageSpy.args[0][0].error).to.equal(undefined);
+        var fetchArgsExpected = SynctoServerFixture.fetchArgsExpected(
+            ['meta']);
+        expect(fetchStub.args.length).to.equal(fetchArgsExpected.length);
+        for (var i = 0; i < fetchStub.args.length; i++) {
+          expect(fetchStub.args[i].length).to.equal(
+              fetchArgsExpected[i].length);
+          for (var j = 0; j < fetchStub.args[i].length; j++) {
+            expect(fetchStub.args[i][j]).to.deep.equal(
+                fetchArgsExpected[i][j]);
+          }
+        }
+        return clearSyncAppData(FxSyncWebCryptoFixture.kB).then(done, done);
+      });
+    });
+
     test('sync history', function(done) {
       // TODO: Test known tombstones, unknown tombstones, updates, quota errors.
       // Leaving race conditions for now, since on the TV the sync app is the
