@@ -81,8 +81,7 @@ define(function(require, exports, module) {
 
     /**
      * Main method called by consumers of this module. Will display
-     * @param  {[type]} newEmailCount [description]
-     * @return {[type]}               [description]
+     * @param  {number} newEmailCount
      */
     showNewEmailCount: function(newEmailCount) {
       // If already at the top, do not show the new message.

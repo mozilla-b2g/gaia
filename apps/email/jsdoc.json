@@ -4,9 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/email/README.md", "apps/email/js"],
-    "exclude": ["apps/email/js/ext",
-                "apps/email/js/message_list_topbar.js"]
+    "include": ["apps/email/README.md", "apps/email/js"]
   },
   "plugins": [
     "plugins/markdown",

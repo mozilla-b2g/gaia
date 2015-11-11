@@ -162,7 +162,7 @@ var FALLBACK_FOLDER_DELIM = '/';
  *   delimiter}.  We REQUIRE that the caller pass in an object here, although
  *   we do not require that the properties are present / non-null.
  *
- * @return
+ * @return {{path: string, delimiter: string, depth: number}}
  *   An object of the form { path, delim, depth } where path is the path we
  *   derived, delim is what we think the effective delimiter character is at
  *   that point, and depth the depth of the folder.

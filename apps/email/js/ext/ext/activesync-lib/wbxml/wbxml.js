@@ -750,9 +750,9 @@
     /**
      * @private
      * @property _rootTagValue
-     * @type Number|null
+     * @type {?number}
      *
-     * The tag value of the first tag written to the buffer, or null if no
+     * @description The tag value of the first tag written to the buffer, or null if no
      * tag has yet been written.  This is used by jsas's postCommand helper
      * method to extract the command from an already-written string as a caller
      * convenience.  It is publicly exposed via the `firstLocalTagName` getter.

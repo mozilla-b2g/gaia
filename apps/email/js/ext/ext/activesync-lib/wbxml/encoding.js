@@ -2266,11 +2266,17 @@
     options = Object(options);
     /** @private */
     this._encoding = getEncoding(opt_encoding); // may throw
-    /** @private @type {boolean} */
+    /**
+    * @private
+    * @type {boolean}
+    */
     this._streaming = false;
     /** @private */
     this._encoder = null;
-    /** @private @type {{fatal: boolean}=} */
+    /**
+    * @private
+    * @type {{fatal: boolean}=}
+    */
     this._options = { fatal: Boolean(options.fatal) };
 
     if (Object.defineProperty) {
@@ -2330,11 +2336,17 @@
     options = Object(options);
     /** @private */
     this._encoding = getEncoding(opt_encoding); // may throw
-    /** @private @type {boolean} */
+    /**
+    * @private
+    * @type {boolean}
+    */
     this._streaming = false;
     /** @private */
     this._decoder = null;
-    /** @private @type {{fatal: boolean}=} */
+    /**
+    * @private
+    * @type {{fatal: boolean}=}
+    */
     this._options = { fatal: Boolean(options.fatal) };
 
     if (Object.defineProperty) {
