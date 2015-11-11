@@ -163,7 +163,7 @@ suite('Video App Unit Tests', function() {
 
     test('#Test hide option view', function() {
       hideOptionsView();
-      assert.isTrue(dom.optionsView.classList[0] === 'hidden');
+      assert.isTrue(dom.optionsView.hasAttribute('hidden'));
       assert.isFalse(document.body.classList.contains('options-view'));
     });
   });
