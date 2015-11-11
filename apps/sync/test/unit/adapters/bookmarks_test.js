@@ -181,82 +181,85 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  suite('after a DataStore clear', function() {
-    suiteSetup(function() {
-      MockDatastore._taskCounter = 0;
-      MockDatastore._tasks = [
-        {
-          operation: 'clear',
-          id: 0,
-          data: {}
-        },
-        {
-          operation: 'add',
-          id: 0,
-          data: {}
-        },
-        {
-          operation: 'clear',
-          id: 0,
-          data: {}
-        },
-        {
-          operation: 'done',
-          id: 0,
-          revisionId: 'latest-after-clear',
-          data: null
-        }
-      ];
-    });
-    suiteTeardown(function() {
-      MockDatastore._taskCounter = 0;
-      MockDatastore._tasks = [
-        {
-          operation: 'update',
-          id: 0,
-          data: {}
-        },
-        {
-          operation: 'done',
-          id: 0,
-          data: null,
-          revisionId: 'latest-not-cleared'
-        }
-      ];
-    });
+  ['clear', 'remove'].forEach(task => {
+    suite(`after a DataStore ${task}`, function() {
+      suiteSetup(function() {
+        MockDatastore._taskCounter = 0;
+        MockDatastore._tasks = [
+          {
+            operation: 'clear',
+            id: 0,
+            data: {}
+          },
+          {
+            operation: 'add',
+            id: 0,
+            data: {}
+          },
+          {
+            operation: task,
+            id: 0,
+            data: {}
+          },
+          {
+            operation: 'done',
+            id: 0,
+            revisionId: `latest-after-${task}`,
+            data: null
+          }
+        ];
+      });
+      suiteTeardown(function() {
+        MockDatastore._taskCounter = 0;
+        MockDatastore._tasks = [
+          {
+            operation: 'update',
+            id: 0,
+            data: {}
+          },
+          {
+            operation: 'done',
+            id: 0,
+            data: null,
+            revisionId: 'latest-not-cleared'
+          }
+        ];
+      });
 
-    test('update - refills the DataStore', done => {
-      var bookmarksAdapter = DataAdapters.bookmarks;
-      testCollectionData = testDataGenerator(1, 1440000000, 5);
-      asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME] =
-          testCollectionData[0].last_modified;
-      bookmarksAdapter.update(kintoCollection,
-          { readonly: true, userid: 'foo' })
-      .then(() => {
-        assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
-            testCollectionData[0].last_modified);
-        getBookmarksStore().then(bookmarksStore => {
-          var ids = testCollectionData.map(item => {
-            return item.payload.bmkUri;
-          });
-          bookmarksStore.get.apply(bookmarksStore, ids).then(list => {
-            for (var i = 0; i < ids.length; i++) {
-              verifyBookmarks(testCollectionData[i], list[i]);
-              assert.equal(
-                asyncStorage.mItems['foo' + BOOKMARKS_SYNCTOID_PREFIX +
-                    testCollectionData[i].id],
-                    testCollectionData[i].payload.bmkUri);
-            }
-            assert.equal(asyncStorage.mItems[
-                'foo' + BOOKMARKS_LAST_REVISIONID], 'latest-after-clear');
-            done();
+      test('update - refills the DataStore', function(done) {
+        var bookmarksAdapter = DataAdapters.bookmarks;
+        testCollectionData = testDataGenerator(1, 1440000000, 5);
+        asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME] =
+            testCollectionData[0].last_modified;
+        bookmarksAdapter.update(kintoCollection,
+            { readonly: true, userid: 'foo' })
+        .then(() => {
+          assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
+              testCollectionData[0].last_modified);
+          getBookmarksStore().then(bookmarksStore => {
+            var ids = testCollectionData.map(item => {
+              return item.payload.bmkUri;
+            });
+            bookmarksStore.get.apply(bookmarksStore, ids).then(list => {
+              for (var i = 0; i < ids.length; i++) {
+                verifyBookmarks(testCollectionData[i], list[i]);
+                assert.equal(
+                  asyncStorage.mItems['foo' + BOOKMARKS_SYNCTOID_PREFIX +
+                      testCollectionData[i].id],
+                      testCollectionData[i].payload.bmkUri);
+              }
+              assert.equal(asyncStorage.mItems[
+                  'foo' + BOOKMARKS_LAST_REVISIONID], `latest-after-${task}`);
+              done();
+            });
           });
         });
       });
     });
   });
 
-  test('update - does not refill the DataStore if not cleared', done => {
+  test('update - does not refill the DataStore if nothing removed locally',
+      done => {
     var bookmarksAdapter = DataAdapters.bookmarks;
     testCollectionData = testDataGenerator(1, 1440000000, 5);
     asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME] =

@@ -230,7 +230,21 @@ var HistoryHelper = (() => {
                 wasCleared
               });
             } else {
-              if (task.operation === 'clear') {
+              // In readonly mode, if the DataStore was cleared, or some records
+              // were removed, it's possible that previously imported data was
+              // lost. Therefore, we return wasCleared: true after playing the
+              // DataStore history to its current revisionId, so that
+              // removeSyncedCollectionMtime will be called, and a full
+              // re-import is triggered.
+              // If only one record was removed then it would not be necessary
+              // to re-import the whole Kinto collection, but right now we have
+              // no efficient way to retrieve just one record from the Kinto
+              // collection based on URL, because we don't have a mapping from
+              // URL to fxsyncId. Since readonly sync is idempotent, there is
+              // not much harm in this, but it could possibly be made more
+              // efficient, see
+              // https://bugzilla.mozilla.org/show_bug.cgi?id=1223418.
+              if (['clear', 'remove'].indexOf(task.operation) !== -1) {
                 wasCleared = true;
               }
               // Avoid stack overflow:
