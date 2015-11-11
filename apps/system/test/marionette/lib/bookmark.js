@@ -148,6 +148,18 @@ Bookmark.prototype = {
 
     this.client.switchToFrame();
     this.client.helper.waitForElementToDisappear(this.currentTabFrame);
+  },
+
+  /**
+   * Perform action on a pin confirm dialog.
+   *
+   * @param {String} action The action to perform on the pin confirm dialog.
+   */
+  pinConfirmDialog: function(action) {
+    var selector = 'form[data-type="confirm"]';
+    var dialog = this.client.helper.waitForElement(selector);
+    var actionButton = dialog.findElement('#' + action + '-action');
+    actionButton.tap();
   }
 };
 
