@@ -2,7 +2,7 @@
 'use strict';
 
 var gulp = require('gulp');
-var shell = require('gulp-shell');
+var documentation = require('gulp-documentation');
 var ghPages = require('gulp-gh-pages');
 var del = require('del');
 var fs = require('fs');
@@ -29,10 +29,12 @@ var generatePerAppTasks = function(appFolder) {
         if('name' in appcfg) {
           var property = appcfg['name'];
           jsdocTasks.push(JSDOC_TASK_PREFIX + property);
-          gulp.task(JSDOC_TASK_PREFIX + property, shell.task([
-            './node_modules/jsdoc/jsdoc.js -c ' + jsonFile + ' -d ' +
-            appcfg.opts.destination
-          ]));
+          gulp.task(JSDOC_TASK_PREFIX + property, function() {
+            console.log('checking '+ appcfg.source.include)
+            gulp.src(appcfg.source.include)
+              .pipe(documentation({format: 'html'}))
+              .pipe(gulp.dest(appcfg.opts.destination));
+          });
           console.log('... ' + property + ' task registered');
         }
       }

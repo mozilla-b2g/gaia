@@ -1,8 +1,18 @@
 {
-  "browser": {
-    "src": ["apps/browser/js/**/*.js"],
-    "options": {
-      "destination": "docs/browser"
-    }
+  "name": "tv-browser",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["tv_apps/browser/js/**/*.js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/tv-browser"
   }
 }

@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["tv_apps/smart-settings/README.md", "tv_apps/smart-settings/js"]
+    "include": ["tv_apps/smart-settings/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",

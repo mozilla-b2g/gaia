@@ -4,11 +4,19 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/system/README.md",
-                "apps/system/js",
-                "apps/system/fxa/js",
-                "apps/system/lockscreen/js",
-                "apps/system/mobile_id/js"]
+    "include": [
+      "!apps/system/js/c*.js",
+      "!apps/system/js/t*.js",
+      "apps/system/js/*.js",
+      "apps/system/js/devtools/*.js",
+      "apps/system/js/download/*.js",
+      "apps/system/js/migrators/*.js",
+      "apps/system/js/remote/*.js",
+      "apps/system/js/value_selector/*.js",
+      "apps/system/fxa/js/**/*.js",
+      "apps/system/lockscreen/js/**/*.js",
+      "apps/system/mobile_id/js/**/*.js"
+    ]
   },
   "plugins": [
     "plugins/markdown",
@@ -20,4 +28,3 @@
     "destination": "docs/system"
   }
 }
-

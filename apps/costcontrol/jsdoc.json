@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/costcontrol/js"]
+    "include": ["apps/costcontrol/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",

@@ -4,8 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/calendar/README.md", "apps/calendar/js"],
-    "exclude": ["apps/calendar/js/ext"]
+    "include": ["!apps/calendar/js/ext/**/*.js", "apps/calendar/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",

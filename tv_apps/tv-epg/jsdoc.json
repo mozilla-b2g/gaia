@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["tv_apps/tv-epg/README.md", "tv_apps/tv-epg/js"]
+    "include": ["tv_apps/tv-epg/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",

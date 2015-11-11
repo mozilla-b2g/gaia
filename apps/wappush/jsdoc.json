@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/wappush/js"]
+    "include": ["apps/wappush/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",
