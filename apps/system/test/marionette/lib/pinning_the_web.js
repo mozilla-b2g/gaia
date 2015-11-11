@@ -63,7 +63,8 @@ PinningTheWeb.prototype = {
   openAndPinSiteFromBrowser: function openAndPinSite(url) {
     this._openUrl(url);
     this._clickPinContextMenu();
-    this.pinSiteButton.tap();
+    // Tap the top left of the pin button.
+    this.pinSiteButton.tap(0, 0);
     this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 
