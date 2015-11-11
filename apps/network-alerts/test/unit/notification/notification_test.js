@@ -1,15 +1,11 @@
 /* global MocksHelper,
   NotificationHandler,
-  Utils
  */
 'use strict';
 
-require('/test/unit/mock_utils.js');
 require('/js/notification/notification.js');
 
-var mocksForNotification = new MocksHelper([
-  'Utils'
-]);
+var mocksForNotification = new MocksHelper([]);
 
 suite('Network Alerts - Notification handling', function() {
   mocksForNotification.attachTestHelpers();
@@ -19,9 +15,6 @@ suite('Network Alerts - Notification handling', function() {
     this.sinon.stub(window, 'open');
     // We only need titleID after parsing, so mock parseParams that simply
     // return fake titleID for testing.
-    this.sinon.stub(Utils, 'parseParams').returns({
-      titleID: 'titleID'
-    });
 
     if (!window.navigator.mozSetMessageHandler) {
       window.navigator.mozSetMessageHandler = function() {};
@@ -34,7 +27,8 @@ suite('Network Alerts - Notification handling', function() {
     var message = {
       title: 'Some title',
       body: 'Some body',
-      clicked: true
+      clicked: true,
+      data: { title: "Some title" }
     };
 
     var handlerStub = window.navigator.mozSetMessageHandler;
@@ -42,7 +36,7 @@ suite('Network Alerts - Notification handling', function() {
 
     var expectedUrl = [
       'attention.html?',
-      'title=titleID&',
+      'title=Some%20title&',
       'body=Some%20body&',
       'notification=1'
     ].join('');
