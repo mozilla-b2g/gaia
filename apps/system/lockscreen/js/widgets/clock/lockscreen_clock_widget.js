@@ -45,8 +45,8 @@
     var timeText = this.timeFormatter.format(now);
     var dateText = this.dateFormatter.format(now);
 
-    this.resources.elements.time.textContent = timeText;
-    this.resources.elements.date.textContent = dateText;
+    this.resources.elements.time.firstChild.data = timeText;
+    this.resources.elements.date.firstChild.data = dateText;
     this.logger.debug('Clock updated', now);
   };
 
