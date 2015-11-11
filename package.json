@@ -54,7 +54,7 @@
     "npmr": "^0.0.3",
     "proxyquire": "*",
     "q": "*",
-    "request": "*",
+    "request": "^2.65.0",
     "restify": "*",
     "rimraf": "*",
     "sinon": "*",
