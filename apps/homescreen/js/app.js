@@ -19,7 +19,7 @@
    * The distance at the top and bottom of the icon container that when hovering
    * an icon in will cause scrolling.
    */
-  const AUTOSCROLL_DISTANCE = 30;
+  const AUTOSCROLL_DISTANCE = 40;
 
   /**
    * The timeout before auto-scrolling a page when hovering at the edges
