@@ -533,5 +533,11 @@ System.prototype = {
       UpdateManager.addToUpdatesQueue(UpdateManager.systemUpdatable);
       UpdateManager.displayNotificationAndToaster();
     });
+  },
+
+  dismissBanner: function() {
+    var banner = this.systemBanner;
+    banner.tap();
+    this.client.helper.waitForElementToDisappear(banner);
   }
 };
