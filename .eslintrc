@@ -1,5 +1,8 @@
 {
     "parser": "babel-eslint",
+    "extends": [
+      "defaults/configurations/google"
+    ],
     "plugins": [
         "no-unsafe-innerhtml",
         "no-wildcard-postmessage"
@@ -77,6 +80,7 @@
         "no-inline-comments": 0,
         "no-inner-declarations": 0,
         "no-invalid-regexp": 0,
+        "no-invalid-this": 0,
         "no-irregular-whitespace": 0,
         "no-iterator": 0,
         "no-labels": 0,
@@ -137,6 +141,7 @@
         "no-warning-comments": 0,
         "no-with": 0,
         "no-wrap-func": 0,
+        "object-curly-spacing": 0,
         "object-shorthand": 0,
         "one-var": 0,
         "operator-assignment": 0,
@@ -162,6 +167,7 @@
         "strict": 0,
         "use-isnan": 0,
         "validdoc.js": 0,
+        "valid-jsdoc": 0,
         "valid-typeof": 0,
         "vars-on-top": 0,
         "wrap-iife": 0,
