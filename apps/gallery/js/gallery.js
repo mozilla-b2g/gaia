@@ -293,6 +293,7 @@ function fileCreated(fileinfo) {
   // except that the thumbnail will be file-backed instead of memory-backed.
   photodb.getFileInfo(fileinfo.name, function(fileinfo) {
     var insertPosition;
+    var thumbnail;
 
     // If we were showing the 'no pictures' overlay, hide it
     if (Overlay.current === 'emptygallery' || Overlay.current === 'scanning') {
@@ -300,7 +301,10 @@ function fileCreated(fileinfo) {
     }
 
     // Create a thumbnailItem for this image and insert it at the right spot
-    thumbnailList.addItem(fileinfo);
+    // and set the image desciption attribute in respective locale
+    thumbnail = thumbnailList.addItem(fileinfo);
+    thumbnail.localize();
+
     insertPosition = getFileIndex(fileinfo.name);
     if (insertPosition < 0) {
       return;

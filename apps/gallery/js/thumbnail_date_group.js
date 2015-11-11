@@ -1,7 +1,8 @@
 'use strict';
 /* global
   MediaUtils,
-  ThumbnailItem
+  ThumbnailItem,
+  IntlHelper
 */
 
 /**
@@ -59,7 +60,8 @@ function ThumbnailDateGroup(item) {
   this.htmlNode.appendChild(this.header);
   this.htmlNode.appendChild(this.container);
 
-  this.localize();
+  this.header.textContent =
+    IntlHelper.get('date-group').format(new Date(this.date));
 }
 
 ThumbnailDateGroup.getGroupID = function(item) {
@@ -130,15 +132,11 @@ ThumbnailDateGroup.prototype.removeItem = function(thumbnail) {
   this.container.removeChild(thumbnail.htmlNode);
 };
 
-ThumbnailDateGroup.formatter = new Intl.DateTimeFormat(navigator.languages, {
-  month: 'long',
-  year: 'numeric',
-});
-
 ThumbnailDateGroup.prototype.localize = function() {
   var date = new Date(this.date);
 
-  this.header.textContent = ThumbnailDateGroup.formatter.format(date);
+  var formatter = IntlHelper.get('date-group');
+  this.header.textContent = formatter.format(date);
 
   // Localize each of the group's thumbnails.
   this.thumbnails.forEach(function(thumbnail) { thumbnail.localize(); });
