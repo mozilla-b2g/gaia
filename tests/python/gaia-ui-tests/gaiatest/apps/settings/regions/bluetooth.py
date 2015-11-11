@@ -9,14 +9,14 @@ from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
 
 class Bluetooth(PageRegion):
 
-    _root_locator = (By.ID, 'bluetooth_v2')
+    _root_locator = (By.ID, 'bluetooth')
 
     _bluetooth_checkbox_locator = (By.CSS_SELECTOR,
-                                   '#bluetooth_v2 .bluetooth-status gaia-switch')
+                                   '#bluetooth .bluetooth-status gaia-switch')
     _bluetooth_label_locator = (By.CSS_SELECTOR, '[data-l10n-id="bluetooth"]')
 
     _visible_to_all_checkbox_locator = (By.CSS_SELECTOR,
-                                        '#bluetooth_v2 .device-visible gaia-switch')
+                                        '#bluetooth .device-visible gaia-switch')
     _visible_to_all_label_locator = (By.CSS_SELECTOR, '[data-l10n-id="bluetooth-visible-to-all"]')
 
     _device_name_locator = (By.CSS_SELECTOR, '.bluetooth-device-name')
