@@ -14,7 +14,7 @@ task:
     - queue:create-artifact:public/node_modules.tar.gz
 
   payload:
-    image: taskcluster/npm-cache:0.2.16
+    image: taskcluster/npm-cache:0.2.17
 
     cache:
       gaia-misc-caches: /home/worker/caches/
