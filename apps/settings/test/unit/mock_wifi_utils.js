@@ -15,11 +15,19 @@ define(function() {
     newExplanationItem: function(message) {
       return document.createElement('div');
     },
+    newListItem: function(options) {
+      var item = document.createElement('li');
+      item.setAttribute('network', options.network);
+      return item;
+    },
     checkPassword: function() {
 
     },
     changeDisplay: function() {
   
+    },
+    getNetworkKey: function(network) {
+      return network ? network.ssid : '';
     }
   };
 

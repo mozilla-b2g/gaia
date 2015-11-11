@@ -249,5 +249,10 @@ var WifiHelper = {
       reqProxy.onerror();
     };
     return reqProxy;
+  },
+
+  // Returns signal strength in terms of signal bars
+  getSignalLevel: function(network) {
+    return Math.min(Math.floor(network.relSignalStrength / 20), 4);
   }
 };
