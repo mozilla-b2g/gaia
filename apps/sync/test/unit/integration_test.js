@@ -57,7 +57,7 @@ suite('Sync app', function() {
 
     var fetchStub, realFetch, LazyLoader, realGetDataStores, realAsyncStorage;
     var addEventListenerSpy, consoleErrorSpy, postMessageSpy, closeStub,
-        dataStoreSpy;
+        windowClosedPromise, dataStoreSpy;
 
     setup(function() {
       addEventListenerSpy = sinon.spy(window, 'addEventListener');
@@ -67,8 +67,11 @@ suite('Sync app', function() {
 
       consoleErrorSpy = sinon.spy(console, 'error');
       postMessageSpy = sinon.spy(MockIACPort, 'postMessage');
-      closeStub = sinon.stub(window, 'close');
-
+      closeStub = sinon.stub(window, 'close', () => {
+        if (windowClosedPromise) {
+          windowClosedPromise.resolve();
+        }
+      });
       LazyLoader = {
         load() {
           return Promise.resolve();
@@ -102,22 +105,15 @@ suite('Sync app', function() {
       navigator.getDataStores = realGetDataStores;
       window.fetch = realFetch;
       closeStub.restore();
+      windowClosedPromise = null;
     });
 
-    function windowClosed(id, timeWaited = 0) {
-      return new Promise((resolve, reject) => {
-        if (closeStub.called) {
-          resolve();
-          return;
-        }
-        if (timeWaited > 10000) {
-          reject(new Error('Window did not close within 10 seconds'));
-        }
-        setTimeout(() => {
-          windowClosed(id, timeWaited + 100).then(() => {
-            resolve();
-          });
-        }, 100);
+    function windowClosed() {
+      if (closeStub.called) {
+        return Promise.resolve();
+      }
+      return new Promise(resolve => {
+        windowClosedPromise = { resolve };
       });
     }
 
@@ -136,12 +132,12 @@ suite('Sync app', function() {
           }
         }
       }));
-      return windowClosed(id);
+      return windowClosed();
     }
 
     test('invalid sync request', function(done) {
       window.dispatchEvent(new CustomEvent(IAC_EVENT));
-      windowClosed('invalid').then(() => {
+      windowClosed().then(() => {
         expect(fetchStub.called).to.equal(false);
         done();
       });
@@ -162,7 +158,7 @@ suite('Sync app', function() {
           }
         }
       }));
-      windowClosed('without version').then(() => {
+      windowClosed().then(() => {
         expect(postMessageSpy.called).to.equal(true);
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error.message).to.equal(`The remote UR\
@@ -186,7 +182,7 @@ L must contain the version: url`);
         }
       }
     }));
-    windowClosed('unreachable').then(() => {
+    windowClosed().then(() => {
       expect(postMessageSpy.called).to.equal(true);
       expect(postMessageSpy.args[0][0].id).to.equal(id);
       expect(postMessageSpy.args[0][0].error.message).to.equal(`try later`);
@@ -209,7 +205,7 @@ L must contain the version: url`);
           }
         }
       }));
-      windowClosed('bogus').then(() => {
+      windowClosed().then(() => {
         expect(postMessageSpy.called).to.equal(true);
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error.message).to.equal(`try later`);
@@ -236,7 +232,7 @@ L must contain the version: url`);
         }
       }));
 
-      windowClosed('history').then(() => {
+      windowClosed().then(() => {
         expect(postMessageSpy.called).to.equal(true);
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error).to.equal(undefined);
@@ -306,7 +302,7 @@ eference/Global_Objects/Object/proto`,
         }
       }));
 
-      windowClosed('bookmarks').then(() => {
+      windowClosed().then(() => {
         expect(postMessageSpy.called).to.equal(true);
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error).to.equal(undefined);

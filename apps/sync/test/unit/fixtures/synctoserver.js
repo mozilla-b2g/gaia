@@ -562,7 +562,6 @@ bal_Objects/Object/proto`,
     statusText: 'OK',
     headers: { get(header) {} },
     text() {
-      console.log('consuming historyRecords', remoteData.history);
       return JSON.stringify({ data: [ remoteData.history ] });
     }
   };
@@ -572,7 +571,6 @@ bal_Objects/Object/proto`,
     statusText: 'OK',
     headers: { get(header) {} },
     text() {
-      console.log('consuming bookmarkRecords', bookmarksRecords);
       return JSON.stringify({ data: bookmarksRecords });
     }
   };
