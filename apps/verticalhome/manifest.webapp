@@ -12,7 +12,7 @@
     "themeable":{},
     "mobileconnection":{},
     "open-remote-window":{},
-    "homescreen-webapps-manage": {},
+    "webapps-manage": {},
     "systemXHR": {},
     "settings":{ "access": "readwrite" },
     "moz-extremely-unstable-and-will-change-webcomponents":{}
