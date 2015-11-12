@@ -1,5 +1,5 @@
 /*jshint browser: true */
-/*global define, console, Notification */
+/*global define, console */
 'use strict';
 define(function(require) {
 
@@ -47,7 +47,7 @@ define(function(require) {
       console.log('email: notifications not available');
       sendNotification = function() {};
     } else {
-      sendNotification = function(notificationId, title, body,
+      sendNotification = function(notificationId, titleL10n, bodyL10n,
                                   iconUrl, data, behavior) {
         console.log('Notification sent for ' + notificationId);
 
@@ -62,7 +62,7 @@ define(function(require) {
         //TODO: consider setting dir and lang?
         //https://developer.mozilla.org/en-US/docs/Web/API/notification
         var notificationOptions = {
-          body: body,
+          bodyL10n: bodyL10n,
           icon: iconUrl,
           tag: notificationId,
           data: data,
@@ -77,22 +77,23 @@ define(function(require) {
           });
         }
 
-        title = title || mozL10n.get('notification-no-subject');
+        titleL10n = titleL10n || 'notification-no-subject';
 
-        var notification = new Notification(title, notificationOptions);
-
-        // If the app is open, but in the background, when the notification
-        // comes in, then we do not get notifived via our mozSetMessageHandler
-        // that is set elsewhere. Instead need to listen to click event
-        // and synthesize an "event" ourselves.
-        notification.onclick = function() {
-          evt.emit('notification', {
-            clicked: true,
-            imageURL: iconUrl,
-            tag: notificationId,
-            data: data
+        notificationHelper.send(titleL10n, notificationOptions)
+          .then(function(notification){
+            // If the app is open, but in the background, when the notification
+            // comes in, then we do not get notifived via our 
+            // mozSetMessageHandler that is set elsewhere. Instead need to
+            // listen to click event and synthesize an "event" ourselves.
+            notification.onclick = function() {
+              evt.emit('notification', {
+                clicked: true,
+                imageURL: iconUrl,
+                tag: notificationId,
+                data: data
+              });
+            };
           });
-        };
       };
     }
 
@@ -151,9 +152,10 @@ define(function(require) {
         model.latestOnce('account', function(currentAccount) {
           fetchNotificationsData('sync').then(
             function(existingNotificationsData) {
-              fn(app, currentAccount, existingNotificationsData);
-            }
-          );
+              mozL10n.formatValue('senders-separation-sign').then(separator => {
+                fn(app, currentAccount, existingNotificationsData, separator);
+            });
+          });
         });
       });
     }
@@ -247,7 +249,8 @@ define(function(require) {
 
       // There are sync updates, get environment and figure out how to notify
       // the user of the updates.
-      getSyncEnv(function(app, currentAccount, existingNotificationsData) {
+      getSyncEnv(function(
+                 app, currentAccount, existingNotificationsData, separator) {
         var iconUrl = notificationHelper.getIconURI(app);
 
         accountsResults.updates.forEach(function(result) {
@@ -268,7 +271,7 @@ define(function(require) {
             return;
           }
 
-          var dataObject, subject, body, behavior,
+          var dataObject, subjectL10n, bodyL10n, behavior,
               count = result.count,
               oldFromNames = [];
 
@@ -311,17 +314,22 @@ define(function(require) {
             }
 
             if (model.getAccountCount() === 1) {
-              subject = mozL10n.get('new-emails-notify-one-account', {
-                n: count
-              });
+              subjectL10n = {
+                id: 'new-emails-notify-one-account',
+                args: { n: count }
+              };
             } else {
-              subject = mozL10n.get('new-emails-notify-multiple-accounts', {
-                n: count,
-                accountName: result.address
-              });
+              subjectL10n = {
+                id: 'new-emails-notify-multiple-accounts',
+                args: {
+                  n: count,
+                  accountName: result.address
+                }
+              };
             }
+            
+            bodyL10n = { raw: newFromNames.join(separator) };
 
-            body = newFromNames.join(mozL10n.get('senders-separation-sign'));
           } else {
             // Only one message to notify about.
             var info = result.latestMessageInfos[0];
@@ -336,24 +344,30 @@ define(function(require) {
             };
 
             if (model.getAccountCount() === 1) {
-              subject = info.subject;
-              body = info.from;
+              subjectL10n = { raw: info.subject };
+              bodyL10n = { raw: info.from };
             } else {
-              subject = mozL10n.get('new-emails-notify-multiple-accounts', {
-                n: count,
-                accountName: result.address
-              });
-              body = mozL10n.get('new-emails-notify-multiple-accounts-body', {
-                from: info.from,
-                subject: info.subject
-              });
+              subjectL10n = {
+                id: 'new-emails-notify-multiple-accounts',
+                args: {
+                  n: count,
+                  accountName: result.address
+                }
+              };
+              bodyL10n = {
+                id: 'new-emails-notify-multiple-accounts-body', 
+                args: {
+                  from: info.from,
+                  subject: info.subject
+                }
+              };
             }
           }
 
           sendNotification(
             result.id,
-            subject,
-            body,
+            subjectL10n,
+            bodyL10n,
             iconUrl,
             dataObject,
             behavior
@@ -438,11 +452,6 @@ define(function(require) {
         return;
       }
 
-      // Only get localized description if we have a descId
-      if (descId) {
-        data.localizedDescription = mozL10n.get(descId);
-      }
-
       // If the message sent successfuly, and we're sending this as a
       // side-effect of the user hitting "send" on the compose screen,
       // (i.e. emitNotifications is true), we may need to play a sound.
@@ -501,8 +510,8 @@ define(function(require) {
 
           sendNotification(
             BACKGROUND_SEND_NOTIFICATION_ID,
-            mozL10n.get('background-send-error-title'),
-            data.localizedDescription,
+            'background-send-error-title',
+            descId,
             iconUrl,
             dataObject
           );

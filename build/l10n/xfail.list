@@ -50,7 +50,6 @@ apps/email/js/cards/message_list.js
 apps/email/js/cards/settings_account_credentials.js
 apps/email/js/cards/setup_account_prefs.js
 apps/email/js/model_init.js
-apps/email/js/sync.js
 apps/email/js/toaster.js
 apps/fl/js/utils.js
 apps/homescreen/test/marionette/lib/homescreen.js
