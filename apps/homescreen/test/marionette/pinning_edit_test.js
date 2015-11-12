@@ -1,16 +1,14 @@
 'use strict';
 /* global __dirname */
 
+var Pinning = require(
+  '../../../../apps/system/test/marionette/lib/pinning_the_web');
 var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
 var Server = require('../../../../shared/test/integration/server');
 
-marionette('Homescreen - Bookmark Edit', function() {
-  var options = require(__dirname + '/client_options_bookmarks.js');
-  options.settings['dev.gaia.pinning_the_web'] = false;
-  var client = marionette.client({
-    profile: options
-  });
-  var actions, bookmark, home, server, system;
+marionette('Homescreen - Pinned Site Edit', function() {
+  var client = marionette.client();
+  var actions, bookmark, pinning, home, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -28,19 +26,21 @@ marionette('Homescreen - Bookmark Edit', function() {
     actions = client.loader.getActions();
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
+    pinning = new Pinning(client);
     bookmark = new Bookmark(client, server);
     system.waitForFullyLoaded();
     home.waitForLaunch();
 
     url = server.url('sample.html');
     client.switchToFrame();
-    bookmark.openAndSave(url);
+    pinning.openAndPinSiteFromBrowser(url);
+    system.dismissBanner();
 
     system.tapHome();
     home.waitForLaunch();
   });
 
-  test('pressing enter after renaming the bookmark', function() {
+  test('pressing enter after renaming the pinned site', function() {
     var icon = home.getIcon(url);
 
     home.scrollIconToCenter(icon);
