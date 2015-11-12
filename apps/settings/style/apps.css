@@ -86,34 +86,9 @@ ul li > label:not([for]).addon-details-info {
   color: #858585;
 }
 
-.addon-rename {
-  background: none;
-  border: none;
-  position: absolute;
-  top: 0.7rem;
-  offset-inline-end: 0;
-  width: auto;
-  color: #00aac5;
-  font-style: italic;
-  font-size: 1.4rem;
-  line-height: 1.4rem;
-  padding: 0;
-  margin: 0;
-}
-
 .addon-details-name {
   white-space: normal;
   padding-top: 0.4rem;
-}
-
-.addon-rename:active {
-  background: none;
-  color: #00aac5;
-  opacity: 0.5;
-}
-
-.no-rename .addon-rename {
-  display: none;
 }
 
 .addon-obsolete {
