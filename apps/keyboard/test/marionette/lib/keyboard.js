@@ -33,7 +33,8 @@ Keyboard.Selector = Object.freeze({
   upperCaseKey: '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-keycode-upper="%s"]',
   pageSwitchingKey: '.keyboard-type-container[data-active] ' +
-    'button.keyboard-key[data-target-page="%s"]'
+    'button.keyboard-key[data-target-page="%s"]',
+  activeKeyboardFrame: '#keyboards .inputWindow.active iframe'
 });
 
 Keyboard.prototype = {
@@ -56,11 +57,18 @@ Keyboard.prototype = {
     return this.client.findElement(Keyboard.Selector.shiftKey);
   },
 
+  get activeKeyboardFrame() {
+    return this.client.findElement(Keyboard.Selector.activeKeyboardFrame);
+  },
+
   getKey: function getKey(key) {
     var keySelector = Keyboard.Selector.key;
 
     if (key >= '0' && key <='9') {
-      this.switchToPage(1);
+      if (this.getCurrentInputType() !== 'number' && 
+          this.getCurrentInputMode() !== 'numeric') {
+        this.switchToPage(1);
+      }
     } else if (key >= 'A' && key <= 'Z') {
       this.switchToPage(0);
       this.switchCase(true);
@@ -119,6 +127,22 @@ Keyboard.prototype = {
 
     var pageSwitchingKey = this.getPageSwitchingKey(index);
     pageSwitchingKey.tap();
+  },
+
+  getCurrentKeyboard: function() {
+    var activeFrame = this.activeKeyboardFrame;
+
+    return activeFrame.getAttribute('data-frame-name');
+  },
+
+  getCurrentInputType: function () {
+    return this.client.executeScript(
+      'return window.wrappedJSObject.app.getBasicInputType();');
+  },
+
+  getCurrentInputMode: function () {
+    return this.client.executeScript(
+      'return window.wrappedJSObject.app.inputContext.inputMode;');
   },
 
   getCurrentPageIndex: function() {
