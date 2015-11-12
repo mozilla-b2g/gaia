@@ -1,10 +1,10 @@
 {
-  "name": "device-deck",
+  "name": "tv-device-deck",
   "tags": {
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["tv_apps/device-deck/README.md", "tv_apps/device-deck/js"]
+    "include": ["tv_apps/device-deck/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",
@@ -13,6 +13,6 @@
   "opts": {
     "private": true,
     "recurse": true,
-    "destination": "docs/device-deck"
+    "destination": "docs/tv-device-deck"
   }
 }

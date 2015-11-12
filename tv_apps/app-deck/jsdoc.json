@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["tv_apps/app-deck/README.md", "tv_apps/app-deck/js"]
+    "include": ["tv_apps/app-deck/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",
@@ -16,4 +16,3 @@
     "destination": "docs/app-deck"
   }
 }
-

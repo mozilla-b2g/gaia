@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/verticalhome/js"]
+    "include": ["apps/verticalhome/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",

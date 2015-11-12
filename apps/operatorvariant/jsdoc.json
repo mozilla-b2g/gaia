@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/operatorvariant/js"]
+    "include": ["apps/operatorvariant/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",

@@ -4,7 +4,11 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/communications/contacts/js", "apps/communications/dialer/js"]
+    "include": [
+      "apps/communications/contacts/js/**/*.js",
+      "apps/communications/dialer/js/**/*.js",
+      "apps/communications/facebook/js/**/*.js"
+    ]
   },
   "plugins": [
     "plugins/markdown",

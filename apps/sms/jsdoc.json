@@ -4,9 +4,13 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/sms/README.md", "apps/sms/views", "apps/sms/services/js"],
-    "exclude": ["apps/sms/views/shared/js/contacts.js",
-                "apps/sms/services/js/activity/activity_shim.js"]
+    "include": [
+      "apps/sms/views/conversation/js/**/*.js",
+      "apps/sms/views/inbox/js/**/*.js",
+      "apps/sms/views/new_message/js/**/*.js",
+      "apps/sms/views/shared/js/**/*.js",
+      "apps/sms/services/js/**/*.js"
+    ]
   },
   "plugins": [
     "plugins/markdown",
@@ -18,4 +22,3 @@
     "destination": "docs/sms"
   }
 }
-

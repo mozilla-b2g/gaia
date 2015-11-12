@@ -5,10 +5,11 @@
   },
   "source": {
     "include": [
-        "tv_apps/smart-system/README.md",
-        "tv_apps/smart-system/js",
-        "tv_apps/smart-system/devtools/js",
-        "tv_apps/smart-system/value_selector/js"
+        "!tv_apps/smart-system/js/bootstrap.js",
+        "!tv_apps/smart-system/js/*.js",
+        "tv_apps/smart-system/fxa/js/**/*.js",
+        "tv_apps/smart-system/devtools/js/**/*.js",
+        "tv_apps/smart-system/value_selector/js/**/*.js"
     ]
   },
   "plugins": [

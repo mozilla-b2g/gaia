@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/ringtones/README.md", "apps/ringtones/js"]
+    "include": ["apps/ringtones/js/**/*.js"]
   },
   "plugins": [
     "plugins/markdown",

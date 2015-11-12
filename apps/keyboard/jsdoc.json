@@ -4,7 +4,11 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/keyboard/README.md", "apps/keyboard/js"]
+    "include": [
+      "!apps/keyboard/js/imes/jspinyin/libpinyin.js",
+      "!apps/keyboard/js/imes/handwriting/hwr/emscripten_zinnia.js",
+      "apps/keyboard/js/**/*.js"
+    ]
   },
   "plugins": [
     "plugins/markdown",
