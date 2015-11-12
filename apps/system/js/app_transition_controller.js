@@ -237,7 +237,6 @@
       this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
-      this.app.requestForeground();
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
@@ -258,7 +257,14 @@
       this.app.element.removeAttribute('aria-hidden');
       this.app.show();
       this.app.element.classList.add('active');
-      this.app.requestForeground();
+
+      // If we set the orientation in handle_opening we want to let the resize
+      // happen before requesting foreground.
+      if (this.currentAnimation == 'immediate') {
+        setTimeout(this.app.requestForeground.bind(this.app));
+      } else {
+        this.app.requestForeground();
+      }
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
