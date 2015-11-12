@@ -11,7 +11,6 @@ require('/shared/elements/gaia_grid/js/grid_layout.js');
 require('/shared/elements/gaia_grid/js/grid_view.js');
 require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
-require('/shared/elements/gaia_grid/js/items/divider.js');
 require('/shared/elements/gaia_grid/js/items/placeholder.js');
 require('/test/unit/mock_item_store.js');
 

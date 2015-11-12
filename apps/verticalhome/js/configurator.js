@@ -171,7 +171,7 @@
 
   function onLoadPinnedAppsJSON(loadedData) {
     pinnedAppsList = loadedData.pinned_apps_default;
-    window.dispatchEvent(new CustomEvent('configuration-pinned-app-ready'));
+    window.dispatchEvent(new CustomEvent('config-pa-ready'));
   }
 
   function onErrorPinnedApps(e) {

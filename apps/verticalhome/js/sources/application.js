@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid, configurator, moreAppsManager */
+/* global GaiaGrid, configurator */
 
 (function(exports) {
 
@@ -41,16 +41,7 @@
       });
     }
 
-    function addMozAppListener() {
-      window.addEventListener('downloadapplied', function onDownloadApplied(e) {
-        moreAppsManager.sendEventToCollectionApp('install', {
-          id: e.detail.id
-        });
-      });
-    }
-
     addSVEventListener();
-    addMozAppListener();
 
     var self = this;
     function addIcons() {
@@ -78,16 +69,12 @@
         return;
       }
 
-      // There is a last divider that is always in the list, but not rendered
-      // unless in edit mode.
-      // Remove this divider, append the app, then re-append the divider.
       this.addIconToGrid(application);
       var svApp = configurator.getSingleVariantApp(application.manifestURL);
       var lastElem = app.grid.getIndexLastIcon();
       if (configurator.isSimPresentOnFirstBoot && svApp &&
           svApp.location < lastElem &&
           !this.isPreviouslyInstalled(application.manifestURL)) {
-        app.grid.popDivider();
         app.grid.removeNonVisualElements();
         lastElem = app.grid.getIndexLastIcon();
         app.grid.moveTo(lastElem, svApp.location);
@@ -98,14 +85,6 @@
 
       app.grid.render();
       app.itemStore.deferredSave(app.grid.getItems());
-
-      // for packaged apps ignore the 'install' event and wait for
-      // 'downloadapplied'
-      if (application.installState === 'installed') {
-        moreAppsManager.sendEventToCollectionApp('install', {
-          id: application.manifestURL
-        });
-      }
     }
 
     /**
@@ -151,9 +130,6 @@
       if (app.HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
         return;
       }
-
-      moreAppsManager.sendEventToCollectionApp('uninstall',
-        { id: application.manifestURL });
     }.bind(this);
 
   }

@@ -12,7 +12,6 @@
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
     <link rel="localization" href="locales/homescreen.{locale}.properties">
-    <link rel="localization" href="/shared/locales/collection_categories/collection_categories.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_grid_rs/locales/gaia_grid_rs.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
@@ -42,13 +41,9 @@
     <script defer src="js/more_apps_manager.js"></script>
     <script defer src="js/pinned_apps.js"></script>
     <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
-    <script defer src="shared/js/bookmarks_database.js"></script>
-    <script defer src="shared/js/collections_database.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
 
-    <script defer src="js/sources/bookmark.js"></script>
-    <script defer src="js/sources/collection.js"></script>
     <script defer src="js/stores/item.js"></script>
 
     <script defer src="shared/elements/gaia_grid_rs/js/grid_layout.js"></script>
@@ -56,9 +51,6 @@
     <script defer src="shared/elements/gaia_grid_rs/js/grid_view.js"></script>
     <script defer src="shared/elements/gaia_grid_rs/script.js"></script>
     <script defer src="shared/elements/gaia_grid_rs/js/items/grid_item.js"></script>
-    <script defer src="shared/elements/gaia_grid_rs/js/items/bookmark.js"></script>
-    <script defer src="shared/elements/gaia_grid_rs/js/items/collection.js"></script>
-    <script defer src="shared/elements/gaia_grid_rs/js/items/divider.js"></script>
     <script defer src="shared/elements/gaia_grid_rs/js/items/mozapp.js"></script>
     <script defer src="shared/elements/gaia_grid_rs/js/items/group.js"></script>
     <script defer src="shared/elements/gaia_grid_rs/js/items/placeholder.js"></script>
@@ -100,26 +92,6 @@
     <section id="more-apps-screen" role="region" class="hidden">
       <div class='more-apps-header'>More Apps</div>
       <gaia-grid-rs id="icons"></gaia-grid-rs>
-
-<!--      <gaia-menu id="contextmenu-dialog" hidden>
-        <button id="homescreen-settings-action" data-l10n-id="homescreen-settings" type="button"></button>
-        <button id="change-wallpaper-action" data-l10n-id="change-wallpaper" type="button"></button>
-        <button id="create-smart-collection" data-l10n-id="add-smart-collections" type="button"></button>
-      </gaia-menu>
-
-      <section id="edit-group" role="region" hidden>
-        <gaia-header id="edit-group-header" action="close">
-          <h1 data-l10n-id="edit-group-header"></h1>
-          <button id="edit-group-save" disabled type="button" data-l10n-id="edit-done"></button>
-        </gaia-header>
-
-        <form>
-          <p>
-            <input type="text" id="edit-group-title" x-inputmode="latin-prose" dir="auto"></input>
-            <button id="edit-group-title-clear" type="reset"></button>
-          </p>
-        </form>
-      </section>-->
     </section>
   </body>
 </html>

@@ -47,16 +47,6 @@
   "orientation": "default",
   "activities": {},
   "messages": [],
-  "datastores-access": {
-    "bookmarks_store": {
-      "readonly": false,
-      "description": "Display bookmarks"
-    },
-    "collections_store": {
-      "readonly": false,
-      "description": "Display collections"
-    }
-  },
   "datastores-owned": {
     "vertical_preferences_store": {
       "access": "readwrite",
