@@ -5,9 +5,7 @@ define(function(require) {
   var AddonManager = require('modules/addon_manager');
   var AddonDetails = require('panels/addon_details/addon_details');
   var SettingsService = require('modules/settings_service');
-  var DialogService = require('modules/dialog_service');
   var Toaster = require('shared/toaster');
-  var ManifestHelper = require('shared/manifest_helper');
 
   return function ctor_addon_details_panel() {
     return SettingsPanel({
@@ -25,7 +23,6 @@ define(function(require) {
           targetsList: panel.querySelector('.addon-targets'),
           toggle: panel.querySelector('.addon-enabled'),
           deleteButton: panel.querySelector('.addon-delete'),
-          renameButton: panel.querySelector('.addon-rename'),
           obsoleteStatus: panel.querySelector('.addon-obsolete-status'),
           obsoleteStatusInfo: panel.querySelector('.addon-obsolete-info')
         };
@@ -36,8 +33,6 @@ define(function(require) {
         this._elements.toggle.onchange = this._onToggleChange.bind(this);
         // Hook up the delete button
         this._elements.deleteButton.onclick = this._onDelete.bind(this);
-        // Hook up the rename button
-        this._elements.renameButton.onclick = this._onRename.bind(this);
       },
 
       onBeforeShow: function(panel, options) {
@@ -52,11 +47,7 @@ define(function(require) {
 
           // set initial state
           if (this._curAddon) {
-            this._details.render({
-              app: this._curAddon,
-              // Renaming should only be available from activity.
-              isActivity: !options.addon
-            });
+            this._details.render(this._curAddon);
             this._elements.toggle.checked =
               AddonManager.isEnabled(this._curAddon);
             this._curAddon.observe('enabled', this._boundOnAppEnabledChange);
@@ -132,35 +123,6 @@ define(function(require) {
           console.error('Addon deletion failed:', reason);
           // If the user cancelled deletion, we need to reenable the button
           this._elements.deleteButton.disabled = false;
-        });
-      },
-
-      _onRename: function() {
-        var manifest = new ManifestHelper(this._curAddon.instance.manifest ||
-          this._curAddon.instance.updateManifest);
-
-        DialogService.prompt('addon-rename-desc', {
-          title: 'addon-rename-input',
-          defaultValue: manifest.name,
-          submitButton: 'ok',
-          cancelButton: 'cancel'
-        }).then(result => {
-          var type = result.type;
-          if (type !== 'submit') { return; }
-
-          var value = result.value.trim();
-          if (!value) { return; }
-
-          AddonManager.renameAddon(this._curAddon, value).then(addon => {
-            // Renaming succeeded, only update the name where necessary.
-            // Addon manager will update the list automatically.
-            this._curAddon = addon;
-            this._details.updateNames(new ManifestHelper(
-              addon.instance.manifest || addon.instance.updateManifest));
-          }).catch(reason => {
-            // Renaming failed
-            console.error('Addon renaming failed:', reason);
-          });
         });
       }
     });

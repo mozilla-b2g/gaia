@@ -7,8 +7,7 @@ suite('Addon Details Panel > ', function() {
     'unit/mock_settings_panel',
     'unit/mock_addon_manager',
     'panels/addon_details/addon_details',
-    'unit/mock_settings_service',
-    'shared_mocks/mock_manifest_helper'
+    'unit/mock_settings_service'
   ];
   var map = {
     '*': {
@@ -16,9 +15,7 @@ suite('Addon Details Panel > ', function() {
       'modules/addon_manager': 'unit/mock_addon_manager',
       'panels/addon_details/addon_details': 'MockAddonDetails',
       'modules/settings_service': 'unit/mock_settings_service',
-      'modules/dialog_service': 'MockDialogService',
-      'shared/toaster': 'MockToaster',
-      'shared/manifest_helper': 'shared_mocks/mock_manifest_helper'
+      'shared/toaster': 'MockToaster'
     }
   };
   var MockAddon = {};
@@ -43,17 +40,6 @@ suite('Addon Details Panel > ', function() {
       };
     });
 
-    // Define MockDialogService
-    define('MockDialogService', function() {
-      return {
-        prompt: function() {
-          return Promise.resolve({
-            type: 'submit'
-          });
-        }
-      };
-    });
-
     // Define MockToaster
     define('MockToaster', function() {
       return {
@@ -62,8 +48,7 @@ suite('Addon Details Panel > ', function() {
     });
 
     requireCtx(modules, (AddonDetailsPanel, MockSettingsPanel,
-      MockAddonManager, MockAddonDetails, MockSettingsService,
-      MockManifestHelper) => {
+      MockAddonManager, MockAddonDetails, MockSettingsService) => {
       MockSettingsPanel.mInnerFunction = options => Object.assign({}, options);
 
       subject = AddonDetailsPanel();
@@ -74,7 +59,7 @@ suite('Addon Details Panel > ', function() {
   suite('panel initialized', function() {
     setup(function() {
       subject.onInit(MockPanel);
-      subject.onBeforeShow(MockPanel, { addon: MockAddon });
+      subject.onBeforeShow(MockPanel, MockAddon);
     });
     test('elements are initialized', function() {
       var elements = Object.keys(subject._elements);
