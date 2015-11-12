@@ -37,14 +37,6 @@ textarea,
   background-position: 50% 50%;
 }
 
-#screen.screenoff {
-  background: #000 !important;
-}
-
-#screen.screenoff * {
-  visibility: hidden !important;
-}
-
 /*
  *  Poweroff animation
  */

@@ -37,18 +37,18 @@ suite('LockScreenClockWidget > ', function() {
       }),
       resources: {
         elements: {
-          time: { textContent: 'dummy-textContent'},
-          date: { textContent: 'dummy-textContent' }
+          time: { firstChild: { data: 'dummy-data' }},
+          date: { firstChild: { data: 'dummy-data' }}
       }}
     };
     var method = LockScreenClockWidget.prototype.updateClock;
     var now = new Date();
     method.call(mockThis);
     assert.equal(mockThis.timeFormatter.format(now),
-      mockThis.resources.elements.time.textContent,
+      mockThis.resources.elements.time.firstChild.data,
       `it doesn't update the time.textContent with the time in locale format`);
     assert.equal(mockThis.dateFormatter.format(now),
-      mockThis.resources.elements.date.textContent,
+      mockThis.resources.elements.date.firstChild.data,
       `it doesn't update the date.textContent with the date in locale format`);
   });
 

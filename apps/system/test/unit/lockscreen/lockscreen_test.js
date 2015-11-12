@@ -21,7 +21,11 @@ var mocksForLockScreen = new window.MocksHelper([
   'SettingsListener', 'Image', 'Canvas', 'Service'
 ]).init();
 
-requireApp('system/lockscreen/js/lockscreen.js');
+var stub = sinon.stub(document, 'getElementById');
+stub.returns(document.createElement('div'));
+requireApp('system/lockscreen/js/lockscreen.js', () => {
+  stub.restore();
+});
 
 suite('system/LockScreen >', function() {
   var subject;
@@ -106,7 +110,6 @@ suite('system/LockScreen >', function() {
     subject.passcodePad = domPasscodePad;
     domMessage = document.createElement('div');
     subject.message = domMessage;
-    subject.chargingStatus.elements.charging = document.createElement('div');
     subject.lockScreenClockWidget = new window.LockScreenClockWidget();
 
     var mockClock = {
@@ -265,6 +268,7 @@ suite('system/LockScreen >', function() {
   test('Lock: would create the clock widget', function() {
     subject.overlay = domOverlay;
     var stubCreateClockWidget = this.sinon.stub(subject, 'createClockWidget');
+    MockService.mockQueryWith('screenEnabled', true);
     subject.locked = false;
     subject.lock();
     assert.isTrue(stubCreateClockWidget.called);
