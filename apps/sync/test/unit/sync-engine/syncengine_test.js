@@ -122,8 +122,8 @@ ld be a Function`);
 
     test('resolves its promise', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      expect(se.syncNow({ history: {} })).to.eventually.deep.
-          equal([ undefined ]).and.notify(done);
+      expect(se.syncNow({ history: {} })).to.eventually.
+          equal(undefined).and.notify(done);
     });
 
     test('initializes the Kinto object', function(done) {
