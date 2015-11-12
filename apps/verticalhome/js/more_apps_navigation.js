@@ -67,6 +67,7 @@
            * it is called when app is closed
            */
           this.items[this.selectedElemIndex].element.click();
+          e.preventDefault();
           break;
       }
     },
@@ -93,10 +94,10 @@
          * element.
          * It should be changed after refactoring of 'gaia_grid_rs' styles
          */
-        if (behavior == 'bottom') {
+        if (behavior === 'bottom') {
           this.items[this.selectedElemIndex].element.childNodes[0].
                   scrollIntoView({behavior: 'smooth', block: 'end'});
-        } else if (behavior == 'top') {
+        } else if (behavior === 'top') {
           this.items[this.selectedElemIndex].element.
                   scrollIntoView({behavior: 'smooth', block: 'start'});
         }
@@ -107,11 +108,12 @@
      * Check that selected element is fully visible on the screen
      */
     isFullyVisible: function (element) {
-      var height = document.documentElement.clientHeight;
-      var elementRects = element.getClientRects()[0];
-      if (elementRects.bottom > height) {
+      var gaiaGrid = document.getElementsByTagName('gaia-grid-rs')[0];
+      var gridRect = gaiaGrid.getBoundingClientRect();
+      var elementRect = element.getBoundingClientRect();
+      if (elementRect.bottom > gridRect.bottom) {
         return false;
-      } else if (elementRects.top < 0) {
+      } else if (elementRect.top < gridRect.top) {
         return false;
       }
       return true;

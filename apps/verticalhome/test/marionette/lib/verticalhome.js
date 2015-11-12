@@ -24,7 +24,6 @@ VerticalHome.Selectors = {
   editGroupTitle: '#edit-group-title',
   editGroupSave: '#edit-group-save',
   editGroupTitleClear: '#edit-group-title-clear',
-  search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
   groupHeader: '#icons .group .header',
   groupTitle: '#icons .group .header .title',
@@ -150,10 +149,19 @@ VerticalHome.prototype = {
     });
   },
 
+  /**
+   * Function focusRocketBar() doesn't work because of removal 'search' in
+   * verticalhome app.
+   * All linked tests in other applications should be revised
+   * Note: apps/search/test/marionette
+   *       apps/system/test/marionette/lib/rocketbar.js
+  */
+/*
   focusRocketBar: function() {
     this.client.helper.waitForElement(VerticalHome.Selectors.search).tap();
     this.client.switchToFrame();
   },
+*/
 
   /**
   Tap an app icon and switch to it's application iframe.

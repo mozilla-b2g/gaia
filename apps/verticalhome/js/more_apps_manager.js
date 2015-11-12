@@ -6,19 +6,19 @@
 
 (function(exports) {
 
-  function AppManager() {
+  function MoreAppsManager() {
     var grid = document.querySelector('gaia-grid-rs');
     var self = this;
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       self.app = evt.target.result;
-      window.dispatchEvent(new CustomEvent('appmanager-ready'));
+      window.dispatchEvent(new CustomEvent('moreapps-manager-ready'));
     };
 
     window.addEventListener('gaiagrid-add-to-collection', this);
     grid.addEventListener('removeitem', this);
   }
 
-  AppManager.prototype = {
+  MoreAppsManager.prototype = {
     get self() {
       return this.app;
     },
@@ -110,8 +110,8 @@
       };
 
       if (!this.app) {
-        window.addEventListener('appmanager-ready', function onReady() {
-          window.removeEventListener('appmanager-ready', onReady);
+        window.addEventListener('moreapps-manager-ready', function onReady() {
+          window.removeEventListener('moreapps-manager-ready', onReady);
           onAppReady(this.app);
         }.bind(this));
       } else {
@@ -120,6 +120,6 @@
     },
   };
 
-  exports.appManager = new AppManager();
+  exports.moreAppsManager = new MoreAppsManager();
 
 }(window));
