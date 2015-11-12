@@ -40,11 +40,8 @@ var Storage = {
    */
   init() {
     this.getAllElements();
-    if (asyncStorage.length > 0) {
-      this.loadStorageList();
-    } else {
-      this.noStorages.classList.remove('hide');
-    }
+
+    this.reloadStorageList();
 
     this.addStorageButton.addEventListener('mouseup',
       this.handleAddStorageButtonClick.bind(this));
@@ -58,8 +55,40 @@ var Storage = {
     this.initOAuthWindow();
   },
 
-  loadStorageList() {
-    console.log(asyncStorage.key);
+  reloadStorageList() {
+    return new Promise(resolve => {
+      asyncStorage.length(resolve);
+    }).then(length => {
+      if (length === 0) {
+        this.noStorages.classList.remove('hide');
+        return;
+      } else {
+        this.noStorages.classList.add('hide');
+      }
+
+      var promises = [];
+      for (var i = 0; i < length; i++) {
+        promises.push(new Promise(resolve => {
+          asyncStorage.key(i, c => {
+            asyncStorage.getItem(c, resolve);
+          });
+        }));
+      }
+
+      Promise.all(promises).then(list => {
+        var container = this.storageContainer;
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+        list.forEach(item => {
+          // TODO: refine the list UI.
+          var para = document.createElement('p');
+          var node = document.createTextNode(item.name + ' ---- ' + item.type);
+          para.appendChild(node);
+          container.appendChild(para);
+        });
+      });
+    });
   },
 
   handleAddStorageButtonClick() {
@@ -136,12 +165,25 @@ var Storage = {
     }
 
     if (accessToken) {
-      console.log(accessToken);
+      this.updateNewAccessToken(accessToken);
       this.oauthWindow.removeChild(this.browserFrame);
       this.viewStoragesList.classList.remove('hide');
     } else {
       alert('Unknown error while getting Access Token!');
     }
+  },
+
+  updateNewAccessToken(accessToken) {
+    var newStorage = {
+      name: this.newStorageName.value,
+      type: this.newStorageType.value,
+      token: accessToken
+    };
+    newStorage.id = newStorage.type + '::' + newStorage.name;
+    asyncStorage.setItem(newStorage.id, newStorage, () => {
+      console.log(newStorage);
+      this.reloadStorageList();
+    });
   },
 
   handleSelectableFormHeaderAction() {
