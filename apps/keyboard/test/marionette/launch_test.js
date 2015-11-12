@@ -69,10 +69,10 @@ marionette('show Keyboard APP', function() {
     client.apps.switchToApp(KeyboardTestApp.ORIGIN);
 
     // Focus on the 2nd input
-    keyboardTestApp.textInput2.click();
+    keyboardTestApp.numberInput.click();
 
     // Without waiting for the keyboard, focus the 3rd input
-    keyboardTestApp.textInput3.click();
+    keyboardTestApp.textareaInput.click();
 
     // Switch back to keyboard
     client.switchToFrame();
