@@ -428,6 +428,7 @@
         window.removeEventListener('lockpanelchange', self);
         self.screenEnabled = false;
         self._inTransition = false;
+        self.screen.classList.add('screenoff');
         clearTimeout(self._screenOffTimeout);
         self._screenOffTimeout = setTimeout(function realScreenOff() {
           self.setScreenBrightness(0, true);
@@ -512,6 +513,8 @@
           window.addEventListener('userproximity', this);
         }
       }
+
+      this.screen.classList.remove('screenoff');
 
       // Attaching the event listener effectively turn on the hardware
       // device light sensor, which _must be_ done after power.screenEnabled.

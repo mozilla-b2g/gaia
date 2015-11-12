@@ -564,7 +564,7 @@
       // Because 'document.hidden' changes slower than this,
       // so if we depend on that it would create the widget
       // while the screen is off.
-      if (Service.query('screenEnabled')) {
+      if (!this.mainScreen.classList.contains('screenoff')) {
         this.createClockWidget();
       }
       if (document.mozFullScreen) {

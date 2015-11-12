@@ -113,7 +113,7 @@ apps/system/style/sound_manager/sound_manager.css 5 3
 apps/system/style/statusbar/statusbar.css 1 0
 apps/system/style/storage_watcher/storage_watcher.css 2 0
 apps/system/style/system/keyboard.css 2 0
-apps/system/style/system/system.css 4 0
+apps/system/style/system/system.css 4 2
 apps/system/style/themes/default/buttons.css 3 0
 apps/system/style/themes/default/core.css 4 5
 apps/system/style/ttlview/ttlview.css 1 0

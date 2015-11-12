@@ -45,13 +45,6 @@
         if (!result) {
           throw new Error(`Can't query element ${key} with query: ${query}`);
         }
-
-        // Create a text node so we can update its data later, otherwise if we
-        // change textContent it will remove and insert a new text node, which
-        // could cause flickering if the docshell still has isActive false.
-        if (!result.firstChild) {
-          result.appendChild(document.createTextNode(''));
-        }
         elements[key] = result;
       }
     }

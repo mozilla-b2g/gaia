@@ -89,13 +89,12 @@ suite('LockScreenClockWidgetSetup > ', function() {
             date: 'date-query',
             time: 'time-query'
       }}}};
-    var dummyDiv = document.createElement('div');
-    this.sinon.stub(document, 'getElementById').returns(dummyDiv);
+    this.sinon.stub(document, 'getElementById').returns('queried');
     var method = LockScreenClockWidgetSetup.prototype.queryElements;
     method.call(mockThis);
-    assert.strictEqual(dummyDiv, mockThis.component.resources.elements.date,
+    assert.equal('queried', mockThis.component.resources.elements.date,
       `the date query hasn't been queried`);
-    assert.strictEqual(dummyDiv, mockThis.component.resources.elements.time,
+    assert.equal('queried', mockThis.component.resources.elements.time,
       `the time query hasn't been queried`);
   });
 });
