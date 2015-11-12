@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global SynctoServerFixture, requireApp */
+/* global SynctoServerFixture */
 /* exported FxSyncWebCrypto */
 
 requireApp('sync/test/unit/fixtures/synctoserver.js');

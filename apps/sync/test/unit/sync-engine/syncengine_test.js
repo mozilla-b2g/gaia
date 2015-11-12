@@ -5,15 +5,10 @@
 
 /* global
   AdapterMock,
-  expect,
   FxSyncWebCrypto,
   Kinto,
-  requireApp,
-  setup,
-  suite,
   SyncEngine,
-  SynctoServerFixture,
-  test
+  SynctoServerFixture
 */
 
 requireApp('sync/test/unit/sync-engine/adapter-mock.js');

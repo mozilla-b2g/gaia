@@ -6,12 +6,8 @@
 /* global
   crypto,
   CryptoKey,
-  expect,
   FxSyncWebCrypto,
-  FxSyncWebCryptoFixture,
-  requireApp,
-  suite,
-  test
+  FxSyncWebCryptoFixture
 */
 
 requireApp('sync/js/crypto/stringconversion.js');
