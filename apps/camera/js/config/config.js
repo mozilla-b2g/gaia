@@ -184,13 +184,9 @@ module.exports = {
     title: 'camera-resolution',
     header: 'camera-resolution-header',
     icon: 'picture-size',
-    options: [
-      // {
-      //   key: '2048x1536'
-      // }
-    ],
-    exclude: {
-      aspects: ['5:3', '11:9', '16:9']
+    options: [],
+    include: {
+      aspects: ['4:3'],
     },
     persistent: true,
     optionsLocalizable: false,
@@ -200,14 +196,9 @@ module.exports = {
     title: 'camera-resolution',
     header: 'camera-resolution-header',
     icon: 'picture-size',
-    options: [
-      // {
-      //   key: '2048x1536'
-      // }
-    ],
-    exclude: {
-      keys: ['1920x1088'],
-      aspects: ['5:3', '11:9', '16:9'],
+    options: [],
+    include: {
+      aspects: ['4:3'],
     },
     persistent: true,
     optionsLocalizable: false,
@@ -217,6 +208,7 @@ module.exports = {
     title: 'video-resolution',
     header: 'video-resolution-header',
     icon: 'video-size',
+    exclude: ['low', 'high', 'default'],
     options: [],
     persistent: true,
     optionsLocalizable: false,
@@ -226,6 +218,7 @@ module.exports = {
     title: 'video-resolution',
     header: 'video-resolution-header',
     icon: 'video-size',
+    exclude: ['low', 'high', 'default'],
     options: [],
     persistent: true,
     optionsLocalizable: false,
@@ -368,12 +361,12 @@ module.exports = {
       {
         key: 'countdown'
       },
-      // {
-      //   key: 'pictureSizes'
-      // },
-      // {
-      //   key: 'recorderProfiles'
-      // },
+      {
+        key: 'pictureSizes'
+      },
+      {
+        key: 'recorderProfiles'
+      },
       {
         key: 'grid'
       }
