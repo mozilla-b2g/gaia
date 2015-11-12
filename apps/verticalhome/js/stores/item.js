@@ -14,7 +14,7 @@
 
   const DB_ITEM_STORE = 'items';
   const DB_SV_APP_STORE_NAME = 'svAppsInstalled';
-  const DB_PIN_APP_STORE = 'pinApps';
+  const DB_PINNED_APP_STORE = 'pinnedApps';
 
   var db;
 
@@ -200,8 +200,9 @@
             { keyPath: 'manifestURL' });
           objectSV.createIndex('indexSV', 'indexSV', { unique: true });
 
-          var pinAppStore = db.createObjectStore(DB_PIN_APP_STORE, { keyPath: 'index'});
-          pinAppStore.createIndex('index', 'index', { unique: true });
+          var pinnedAppStore = db.createObjectStore(DB_PINNED_APP_STORE,
+            { keyPath: 'index'});
+          pinnedAppStore.createIndex('index', 'index', { unique: true });
       }
     };
 
@@ -209,7 +210,7 @@
       onsuccess && onsuccess(isEmpty);
       db = request.result;
       var cb = self.fetch.bind(self, self.synchronize.bind(self));
-      var cbPinApp = self.finishLoadPinApp.bind(self);
+      var cbPinnedApp = self.finishLoadPinnedApps.bind(self);
 
       if (isEmpty) {
         window.addEventListener('configuration-ready', function onReady() {
@@ -217,13 +218,15 @@
           self.gridOrder = configurator.getGrid();
           self.populate(cb);
         });
-        window.addEventListener('configuration-pin-app-ready', function onPinAppReady() {
-          window.removeEventListener('configuration-pin-app-ready', onPinAppReady);
-          self.initPinAppDB(cbPinApp);
+        window.addEventListener('configuration-pinned-app-ready',
+          function onPinnedAppsReady() {
+            window.removeEventListener('configuration-pinned-app-ready',
+              onPinnedAppsReady);
+            self.initPinnedAppsDB(cbPinnedApp);
         });
       } else {
         self.initSources(cb);
-        self.loadPinAppDB(cbPinApp);
+        self.loadPinnedAppsDB(cbPinnedApp);
       }
     };
 
@@ -260,7 +263,7 @@
      * A list that contains applications displaies on the main screen
      * @type {Array}
      */
-    _pinAppsList: [],
+    _pinnedAppsList: [],
 
 
     /**
@@ -277,15 +280,15 @@
 
 
     /**
-     * This function helps to get pinAppList
-     * @return {Array} List of pinApps
+     * This function helps to get pinnedAppsList
+     * @return {Array} List of pinnedApps
      */
-    getPinAppList: function () {
-      return this._pinAppsList;
+    getPinnedAppsList: function () {
+      return this._pinnedAppsList;
     },
 
     /**
-     * This function helps to get pin app by manifest url
+     * This function helps to get pinned app by manifest url
      * @param  {string} url Manifest url
      * @return {[obj]}      Application object
      */
@@ -313,19 +316,20 @@
      * @param  {[Array of objects]} objects [Ojects of applications]
      * @return {[nothins]}
      */
-    savePinApps: function (objects) {
+    savePinnedApps: function (objects) {
       for (var i = 0; i < objects.length; i++) {
-        this.savePinAppItem(objects[i]);
+        this.savePinnedAppItem(objects[i]);
       }
     },
 
     /**
      * This function save application (item) to DB
      * @param  {[object (application)]}   object   [Application's object]
-     * @param  {Function} callback [callback that executes after saving object to DB]
+     * @param  {Function} callback [callback that executes after saving object
+     * to DB]
      * @return {[nothing]}
      */
-    savePinAppItem: function (object, callback) {
+    savePinnedAppItem: function (object, callback) {
       // intentional use of == meaning null or undefined.
       if (object.index == null) {
         console.error('Attempting to save object without `index`');
@@ -334,7 +338,7 @@
 
       newTxn(
 
-              DB_PIN_APP_STORE,
+              DB_PINNED_APP_STORE,
               'readwrite',
               function (txn, store) {
                 var request = store.get(object.index);
@@ -348,19 +352,19 @@
                   } else {
                     store.put(object);
                   }
-                }
+                };
               },
               callback);
 
     },
 
 
-    initPinAppDB: function (callback) {
-      var pList = configurator.getPinApps();
+    initPinnedAppsDB: function (callback) {
+      var pList = configurator.getPinnedApps();
       for (var i = 0; i < pList.length; i++) {
-        this.savePinAppItem(pList[i]);
+        this.savePinnedAppItem(pList[i]);
       }
-      this._pinAppsList = pList;
+      this._pinnedAppsList = pList;
       if (callback && typeof callback === 'function') {
         callback();
       }
@@ -371,17 +375,17 @@
      * @param  {Function} callback [Executes after the function was exectued]
      * @return {[nothing]}
      */
-    loadPinAppDB: function (callback) {
+    loadPinnedAppsDB: function (callback) {
       var _pList = [];
       function iterator(value) {
         _pList[value.index] = value;
       }
-      loadTable(DB_PIN_APP_STORE, "index", iterator, callback);
-      this._pinAppsList = _pList;
+      loadTable(DB_PINNED_APP_STORE, 'index', iterator, callback);
+      this._pinnedAppsList = _pList;
     },
 
-    finishLoadPinApp: function () {
-      window.dispatchEvent(new CustomEvent('pin-app-loaded'));
+    finishLoadPinnedApps: function () {
+      window.dispatchEvent(new CustomEvent('pinned-apps-loaded'));
     },
 
     /**

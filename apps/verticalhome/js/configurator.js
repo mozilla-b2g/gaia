@@ -22,8 +22,8 @@
 
   const DEFAULT_COLUMNS = 2;
 
-  var DEFAULT_PIN_APP_CONF_FILE = 'js/pin_apps_default.json';
-  var pinAppsList = null;
+  var DEFAULT_PINNED_APP_CONF_FILE = 'js/pinned_apps_default.json';
+  var pinnedAppsList = null;
 
   function loadSettingSIMPresent(currentMccMnc) {
     var settings = navigator.mozSettings;
@@ -169,13 +169,13 @@
     }
   }
 
-  function onLoadPinAppsJSON(loadedData) {
-    pinAppsList = loadedData.pin_apps_default;
-    window.dispatchEvent(new CustomEvent('configuration-pin-app-ready'));
+  function onLoadPinnedAppsJSON(loadedData) {
+    pinnedAppsList = loadedData.pinned_apps_default;
+    window.dispatchEvent(new CustomEvent('configuration-pinned-app-ready'));
   }
 
-  function onErrorPinApps(e) {
-    console.error('Failed Load Pin Apps:' + e);
+  function onErrorPinnedApps(e) {
+    console.error('Failed Load Pinned Apps:' + e);
   }
 
   function load() {
@@ -201,15 +201,15 @@
     });
   }
 
-  function loadPinApps() {
-    LazyLoader.getJSON(DEFAULT_PIN_APP_CONF_FILE).then(
-      onLoadPinAppsJSON, onErrorPinApps
+  function loadPinnedApps() {
+    LazyLoader.getJSON(DEFAULT_PINNED_APP_CONF_FILE).then(
+      onLoadPinnedAppsJSON, onErrorPinnedApps
     );
   }
 
   function Configurator() {
     load();
-    loadPinApps();
+    loadPinnedApps();
   }
 
   Configurator.prototype = {
@@ -235,8 +235,8 @@
       return items;
     },
 
-    getPinApps: function() {
-      return pinAppsList;
+    getPinnedApps: function() {
+      return pinnedAppsList;
     },
 
     getSingleVariantApp: function(manifestURL) {

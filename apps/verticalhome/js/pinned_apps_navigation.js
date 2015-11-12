@@ -4,12 +4,12 @@
 
 
   /**
-   * This is PinAppNavigation's constructor.
-   * @param {Object} list [DOM container that contains pin elements]
+   * This is PinnedAppsNavigation's constructor.
+   * @param {Object} list [DOM container that contains pinned elements]
    */
-  function PinAppNavigation(list) {
+  function PinnedAppsNavigation(list) {
     if (!list && typeof list !== 'object') {
-      console.error('List of pin apps must be an object');
+      console.error('List of pinned apps must be an object');
       return;
     }
 
@@ -19,7 +19,7 @@
   }
 
 
-  PinAppNavigation.prototype = {
+  PinnedAppsNavigation.prototype = {
 
     selector: '',
     elements: null,
@@ -197,8 +197,8 @@
 
           this.elemList.insertBefore(clonedElem, this.elements[0]);
 
-          if (app.pinManager.items[+clonedElem.dataset.index]){
-            app.pinManager.
+          if (app.pinnedAppsManager.items[+clonedElem.dataset.index]){
+            app.pinnedAppsManager.
                 items[+clonedElem.dataset.index].
                 refreshDomElem(clonedElem);
           }
@@ -239,8 +239,8 @@
 
             this.elemList.appendChild(cloned);
 
-            if (app.pinManager.items[+cloned.dataset.index]){
-              app.pinManager.
+            if (app.pinnedAppsManager.items[+cloned.dataset.index]){
+              app.pinnedAppsManager.
                   items[+cloned.dataset.index].
                   refreshDomElem(cloned);
             }
@@ -309,6 +309,6 @@
 
   };
 
-  exports.PinAppNavigation = PinAppNavigation;
+  exports.PinnedAppsNavigation = PinnedAppsNavigation;
 
 }(window));
