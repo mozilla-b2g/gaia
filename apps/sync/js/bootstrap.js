@@ -119,7 +119,7 @@ const Bootstrap = (() => {
         }).catch(error => {
           sendPortMessage({
             id: request.id,
-            error: error
+            error: { message: error.message }
           });
           window.close();
         });
