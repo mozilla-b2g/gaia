@@ -1,8 +1,8 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals advanced_timer, DUMP, icc, icc_events, IccHelper,
-           NotificationHelper, Service, STKHelper */
+/* globals advanced_timer, DUMP, icc, icc_events, IccHelper, LazyLoader,
+           NotificationHelper, Service, SystemBanner, STKHelper */
 
 'use strict';
 
@@ -120,6 +120,7 @@ var icc_worker = {
   // STK_CMD_SEND_SMS
   '0x13': function STK_CMD_SEND_SMS(message) {
     DUMP('STK_CMD_SEND_SMS:', message.command.options);
+
     var options = message.command.options;
 
     icc.discardCurrentMessageIfNeeded(message);
@@ -128,12 +129,18 @@ var icc_worker = {
     var textL10n;
     if (text) {
       textL10n = STKHelper.getMessageText(options);
-      icc.confirm(message, textL10n, options.icons);
     } else if (text !== undefined) {
-      textL10n =
-        STKHelper.getMessageText(options, 'icc-alertMessage-send-sms');
-      icc.alert(message, textL10n, options.icons);
+      textL10n = STKHelper.getMessageText(options, 'icc-alertMessage-send-sms');
     }
+
+    if (textL10n && (!('raw' in textL10n) || textL10n.raw)) {
+      return LazyLoader.load(['js/system_banner.js']).then(() => {
+        var systemBanner = new SystemBanner();
+        systemBanner.show(textL10n);
+      });
+    }
+
+    return Promise.resolve();
   },
 
   // STK_CMD_SEND_DTMF
