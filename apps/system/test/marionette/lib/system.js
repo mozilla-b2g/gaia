@@ -438,6 +438,15 @@ System.prototype = {
     });
   },
 
+  getActiveAppName: function() {
+    var activeApp = this.client.executeScript(function() {
+      var win = window.wrappedJSObject;
+      var activeApp = win.appWindowManager.getActiveApp();
+      return activeApp.name;
+    });
+    return activeApp;
+  },
+
   tapHome: function() {
     this.client.switchToFrame();
     this.client.executeScript(function() {
