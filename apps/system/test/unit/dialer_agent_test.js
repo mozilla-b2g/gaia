@@ -493,4 +493,39 @@ suite('system/DialerAgent', function() {
     window.dispatchEvent(new CustomEvent('applicationready'));
     assert.isTrue(stubMakeFakeNotification.called);
   });
+
+  suite('onCall', function() {
+    test('returns true when on a call', function() {
+      MockNavigatorMozTelephony.calls = [ new MockCall() ];
+
+      assert.isTrue(subject.onCall());
+    });
+
+    test('returns true when on a conference call', function() {
+      MockNavigatorMozTelephony.conferenceGroup.calls = [
+        new MockCall() , new MockCall()
+      ];
+
+      assert.isTrue(subject.onCall());
+    });
+
+    test('returns false when not on a call', function() {
+      assert.isFalse(subject.onCall());
+    });
+
+    test('registers as a service when the dialer service is alive', function() {
+      subject.stop();
+
+      this.sinon.spy(MockService, 'registerState');
+      this.sinon.spy(MockService, 'unregisterState');
+
+      subject = new DialerAgent();
+      subject.start();
+      sinon.assert.calledOnce(MockService.registerState);
+      sinon.assert.calledWith(MockService.registerState, 'onCall', subject);
+      subject.stop();
+      sinon.assert.calledOnce(MockService.unregisterState);
+      sinon.assert.calledWith(MockService.unregisterState, 'onCall', subject);
+    });
+  });
 });
