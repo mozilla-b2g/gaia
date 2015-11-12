@@ -29,6 +29,7 @@ requireApp('system/lockscreen/js/lockscreen.js', () => {
 
 suite('system/LockScreen >', function() {
   var subject;
+  var realAudio;
   var realL10n;
   var realMozTelephony;
   var realClock;
@@ -80,6 +81,11 @@ suite('system/LockScreen >', function() {
     };
     window.LockScreenMediaPlaybackWidget = function() {};
     window.SettingsURL = function() {};
+
+    realAudio = window.Audio;
+    window.Audio = function(src) {
+      this.src = src;
+    };
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
@@ -302,6 +308,13 @@ suite('system/LockScreen >', function() {
     subject.checkPassCode('0000');
     assert.isTrue(StubPasscodeHelper.called,
       'lockscreen did not call PasscodeHelper to validate passcode');
+  });
+
+  test('Unlock: play sound in system audio channel', function() {
+    window.Audio.prototype.play = function() {
+      assert.equal(this.mozAudioChannelType, 'system');
+    };
+    subject.unlock(true, { unlockSoundEnabled: true });
   });
 
   suite('Pass code validation >', function() {
@@ -911,6 +924,7 @@ suite('system/LockScreen >', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozTelephony = realMozTelephony;
+    window.Audio = realAudio;
     window.Clock = realClock;
     window.SettingsListener = realSettingsListener;
     navigator.mozSettings = realMozSettings;
