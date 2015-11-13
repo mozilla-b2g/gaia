@@ -84,6 +84,8 @@
       window.addEventListener('homescreentitlestatechanged', this);
       window.addEventListener('appchromecollapsed', this);
       window.addEventListener('appchromeexpanded', this);
+      window.addEventListener('iconshown', this);
+      window.addEventListener('iconhidden', this);
       window.addEventListener('iconrendered', this);
       if (Service.query('FtuLauncher.isFinished')) {
         this.finishInit();
@@ -126,8 +128,6 @@
       window.addEventListener('utility-tray-abortclose', this);
       window.addEventListener('cardviewshown', this);
       window.addEventListener('cardviewclosed', this);
-      window.addEventListener('iconshown', this);
-      window.addEventListener('iconhidden', this);
 
       window.addEventListener('attentionopened', this);
       window.addEventListener('appwillopen', this);

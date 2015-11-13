@@ -783,11 +783,20 @@ suite('system/Statusbar', function() {
       wifiIcon.element = null;
       wifiIcon.render();
       assert.isNull(wifiIcon.element);
-      Statusbar.start();
       window.addEventListener('iconrendered', function() {
         assert.ok(wifiIcon.element);
         done();
       });
+      Statusbar.start();
+    });
+
+    test('increments icons count on new icons', function() {
+      Statusbar.start();
+      this.sinon.stub(Statusbar, 'toggleMaximized');
+      window.dispatchEvent(new CustomEvent('iconshown', {
+        detail: {}
+      }));
+      assert(Statusbar.toggleMaximized.called);
     });
   });
 
