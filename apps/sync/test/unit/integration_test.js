@@ -5,21 +5,13 @@
 'use strict';
 
 /* global
-  expect,
   FxSyncWebCryptoFixture,
   MocksHelper,
   MockIACPort,
   MockasyncStorage,
   MockDatastore,
   MockNavigatorDatastore,
-  require,
-  requireApp,
-  setup,
-  sinon,
-  suite,
-  SynctoServerFixture,
-  teardown,
-  test
+  SynctoServerFixture
 */
 
 

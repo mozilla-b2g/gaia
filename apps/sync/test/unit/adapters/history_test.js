@@ -4,7 +4,6 @@
 'use strict';
 
 /* global
-  assert,
   asyncStorage,
   DataAdapters,
   HISTORY_COLLECTION_MTIME,
@@ -14,16 +13,7 @@
   MockasyncStorage,
   MockDatastore,
   MockLazyLoader,
-  MockNavigatorDatastore,
-  require,
-  requireApp,
-  setup,
-  sinon,
-  suite,
-  suiteSetup,
-  suiteTeardown,
-  teardown,
-  test
+  MockNavigatorDatastore
 */
 
 require('/apps/music/test/unit/mock_lazy_loader.js');

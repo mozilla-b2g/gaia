@@ -10,20 +10,10 @@
   DataAdapters,
   ERROR_SYNC_APP_SYNC_IN_PROGRESS,
   ERROR_SYNC_INVALID_REQUEST_OPTIONS,
-  expect,
   MocksHelper,
   MockIACPort,
   MockLazyLoader,
-  MockSyncEngine,
-  require,
-  requireApp,
-  setup,
-  sinon,
-  suite,
-  suiteSetup,
-  suiteTeardown,
-  teardown,
-  test
+  MockSyncEngine
 */
 
 

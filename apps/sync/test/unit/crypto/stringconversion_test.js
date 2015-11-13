@@ -3,13 +3,7 @@
 
 'use strict';
 
-/* global
-  expect,
-  requireApp,
-  StringConversion,
-  suite,
-  test
-*/
+/* global StringConversion */
 
 requireApp('sync/js/crypto/stringconversion.js');
 requireApp('sync/js/crypto/keyderivation.js');
