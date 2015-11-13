@@ -613,6 +613,9 @@ form[role="dialog"].no-overlay button {
   text-overflow: ellipsis;
   width: 24rem;
 }
+/* .ice-contact is a <bdi> */
+html[dir="ltr"] .ice-contact { text-align: left; }
+html[dir="rtl"] .ice-contact { text-align: right; }
 
 #contacts-form-notes textarea {
   height: 9rem;
