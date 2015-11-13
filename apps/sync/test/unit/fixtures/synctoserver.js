@@ -302,7 +302,7 @@ ookmarks Toolbar`,
       type: 'url',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         msopyVa0ckP_: {
           id: 'msopyVa0ckP_',
@@ -338,7 +338,7 @@ ookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         '6q8JaloClXcH': {
           id: '6q8JaloClXcH',
@@ -358,7 +358,7 @@ ookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         '5AiZMklaq0fL': {
           id: '5AiZMklaq0fL',
@@ -378,7 +378,7 @@ ookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         toolbar: {
           id: 'toolbar',
@@ -404,7 +404,7 @@ layed on the Bookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         places: {
           id: 'places',
@@ -429,7 +429,7 @@ layed on the Bookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         unfiled: {
           id: 'unfiled',
@@ -454,7 +454,7 @@ layed on the Bookmarks Toolbar`,
       type: 'url',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         '-Z5mm8AxeIkq': {
           id: '-Z5mm8AxeIkq',
@@ -481,7 +481,8 @@ Script/Reference/Global_Objects/Object/proto`] = {
 bal_Objects/Object/proto`,
     title: 'Object.prototype.__proto__ € - JavaScript | MDN',
     visits: [ 1439366063808 ],
-    fxsyncId: '_9sCUbahs0ay'
+    fxsyncId: '_9sCUbahs0ay',
+    createdLocally: false
   };
   var bookmarksExpectedAsyncStorage = {
     '518fef27c6bbc0220aab0f00b1a37308::collections::bookmarks::revisionid':
