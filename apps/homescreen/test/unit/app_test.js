@@ -741,15 +741,17 @@ suite('Homescreen app', () => {
   });
 
   suite('App#removeSelectedIcon()', () => {
-    var uninstallStub;
+    var uninstallStub, clock;
     setup(() => {
       MockMozActivity.mSetup();
       uninstallStub = sinon.stub(navigator.mozApps.mgmt, 'uninstall');
+      clock = sinon.useFakeTimers();
     });
 
     teardown(() => {
       MockMozActivity.mTeardown();
       uninstallStub.restore();
+      clock.restore();
     });
 
     test('does nothing with no selected icon', () => {
@@ -780,15 +782,30 @@ suite('Homescreen app', () => {
       assert.equal(MockMozActivity.calls[0].data.url,
                    app.selectedIcon.bookmark.id);
     });
+
+    test('re-enters edit mode when removing bookmarks', () => {
+      var enterEditModeStub = sinon.stub(app, 'enterEditMode');
+      app.selectedIcon = { bookmark: { id: 'abc' } };
+      app.removeSelectedIcon();
+
+      MockMozActivity.mTriggerOnError();
+      assert.isTrue(enterEditModeStub.calledWith(app.selectedIcon));
+
+      clock.tick(50);
+      assert.isTrue(enterEditModeStub.calledWith(null));
+    });
   });
 
   suite('App#renameSelectedIcon()', () => {
+    var clock;
     setup(() => {
       MockMozActivity.mSetup();
+      clock = sinon.useFakeTimers();
     });
 
     teardown(() => {
       MockMozActivity.mTeardown();
+      clock.restore();
     });
 
     test('does nothing with no selected icon', () => {
@@ -811,6 +828,18 @@ suite('Homescreen app', () => {
       assert.equal(MockMozActivity.calls[0].data.type, 'url');
       assert.equal(MockMozActivity.calls[0].data.url,
                    app.selectedIcon.bookmark.id);
+    });
+
+    test('re-enters edit mode', () => {
+      var enterEditModeStub = sinon.stub(app, 'enterEditMode');
+      app.selectedIcon = { bookmark: { id: 'abc' } };
+      app.renameSelectedIcon();
+
+      MockMozActivity.mTriggerOnError();
+      assert.isTrue(enterEditModeStub.calledWith(app.selectedIcon));
+
+      clock.tick(50);
+      assert.isTrue(enterEditModeStub.calledWith(app.selectedIcon));
     });
   });
 

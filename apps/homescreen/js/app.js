@@ -1,6 +1,5 @@
 /* global MozActivity, HomeMetadata, Datastore, LazyLoader, FirstRun,
           IconsHelper, Settings */
-/* jshint nonew: false */
 'use strict';
 
 (function(exports) {
@@ -742,10 +741,20 @@
         }
         navigator.mozApps.mgmt.uninstall(this.selectedIcon.app);
       } else if (this.selectedIcon.bookmark) {
-        new MozActivity({
+        var remove = new MozActivity({
           name: 'remove-bookmark',
           data: { type: 'url', url: this.selectedIcon.bookmark.id }
         });
+
+        // Re-enter edit mode because the activity will hide the document,
+        // which exits edit mode
+        var icon = this.selectedIcon;
+        remove.onsuccess = () => {
+          this.enterEditMode(null);
+        };
+        remove.onerror = () => {
+          this.enterEditMode(icon);
+        };
       }
     },
 
@@ -754,10 +763,17 @@
         return;
       }
 
-      new MozActivity({
+      var rename = new MozActivity({
         name: 'save-bookmark',
         data: { type: 'url', url: this.selectedIcon.bookmark.id }
       });
+
+      // Re-enter edit mode because the activity will hide the document,
+      // which exits edit mode
+      var icon = this.selectedIcon;
+      rename.onsuccess = rename.onerror = () => {
+        this.enterEditMode(icon);
+      };
     },
 
     iconIsEditable: function(icon) {
@@ -802,10 +818,10 @@
     },
 
     enterEditMode: function(icon) {
-      console.debug('Entering edit mode on ' + icon.name);
+      console.debug('Entering edit mode on ' + (icon ? icon.name : 'no icon'));
       this.updateSelectedIcon(icon);
 
-      if (this.editMode || !this.selectedIcon) {
+      if (this.editMode) {
         return;
       }
 
