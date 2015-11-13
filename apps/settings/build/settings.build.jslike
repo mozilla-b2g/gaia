@@ -18,6 +18,7 @@
     'modules/wifi_utils': 'empty:',
     'prim': 'empty:',
     'settings': 'empty:',
+    'shared/addons/match_pattern': 'empty:',
     'shared/airplane_mode_helper': 'empty:',
     'shared/apn_helper': 'empty:',
     'shared/async_storage': 'empty:',

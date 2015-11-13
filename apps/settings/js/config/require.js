@@ -17,6 +17,9 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
+    'shared/addons/match_pattern': {
+      exports: 'MatchPattern'
+    },
     'shared/airplane_mode_helper': {
       exports: 'AirplaneModeHelper'
     },

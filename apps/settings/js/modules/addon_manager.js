@@ -1,5 +1,3 @@
-/* global MatchPattern */
-
 define(function(require) {
   'use strict';
 
@@ -7,6 +5,7 @@ define(function(require) {
   var App = require('modules/app');
   var AppsCache = require('modules/apps_cache');
   var ObservableArray = require('modules/mvvm/observable_array');
+  var MatchPattern = require('shared/addons/match_pattern');
 
   /**
    * AddonManager is a singleton with methods for querying the currently
