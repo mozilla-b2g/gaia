@@ -22,9 +22,6 @@ var cloneObject = (obj) => {
 };
 
 suite('SyncEngine', function() {
-  // NB: this.timeout only works when passing ES5-style functions to all suites
-  // and tests, see https://github.com/mochajs/mochajs.github.io/pull/14
-  this.timeout(500);
   suite('constructor', function() {
     test('constructs a SyncEngine object', function(done) {
       const options = SynctoServerFixture.syncEngineOptions;
