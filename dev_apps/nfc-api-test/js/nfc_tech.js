@@ -16,6 +16,7 @@ var NfcTechDemo = {
     }
 
     document.getElementById('isoDep-container').hidden = true;
+    document.getElementById('nfcA-container').hidden = true;
 
     nfc.ontagfound = this.handleTagFound.bind(this);
     nfc.ontaglost = this.handleTagLost.bind(this);
@@ -27,7 +28,9 @@ var NfcTechDemo = {
     errorMsg.textContent = '';
     var sucMsg = document.getElementById('success-message');
     sucMsg.textContent = '';
+
     document.getElementById('isoDep-container').hidden = true;
+    document.getElementById('nfcA-container').hidden = true;
 
     var tag = event.tag;
     var tagContainer = document.getElementById('tag-container');
@@ -36,7 +39,10 @@ var NfcTechDemo = {
 
     if (tag.techList.indexOf('ISO-DEP') != -1) {
       this.processIsoDep(tag);
-      sucMsg.textContent = 'transceive succeeds.';
+      sucMsg.textContent = 'transceive ISO-DEP succeeds.';
+    } else if (tag.techList.indexOf('NFC-A') != -1 && tag.type) {
+      this.processNfcA(tag);
+      sucMsg.textContent = 'transceive NFCA succeeds.';
     }
 
     return false;
@@ -51,6 +57,32 @@ var NfcTechDemo = {
     var isoDep = tag.selectTech('ISO-DEP');
     this.getVersion(isoDep, container).then(
       () => { return this.getKeyInfo(isoDep, container); });
+  },
+
+  processNfcA: function nd_processNfcA(tag) {
+    document.getElementById('nfcA-container').hidden = false;
+    var container;
+    var nfcA = tag.selectTech('NFC-A');
+
+    if (tag.type.toLowerCase() === "type2") {
+      document.getElementById('type1-container').hidden = true;
+      document.getElementById('type2-container').hidden = false;
+
+      container = document.getElementById('type2-container');
+      container.querySelector('[data-type="tag-type"]').textContent = tag.type;
+
+      this.write1BlockType2(nfcA, container).
+        then(this.read4BlocksType2(nfcA, container));
+    } else if (tag.type.toLowerCase() === "type1") {
+      document.getElementById('type1-container').hidden = false;
+      document.getElementById('type2-container').hidden = true;
+
+      container = document.getElementById('type1-container');
+      container.querySelector('[data-type="tag-type"]').textContent = tag.type;
+
+      this.getUIDType1(nfcA, container);
+    }
+
   },
 
   getVersion: function nd_getVersion(isoDep, container) {
@@ -115,5 +147,54 @@ var NfcTechDemo = {
         });
     });
   },
+
+  read4BlocksType2: function nd_read4BlocksType2(nfcA, container) {
+    return new Promise((resolve, reject) => {
+      var command = new Uint8Array([0x30, 0x05]);
+      nfcA.transceive(command).
+        then(response => {
+          var ndefHelper = new NDEFHelper();
+          container.querySelector('[data-type="read"]').textContent =
+          ndefHelper.dumpUint8Array(response);
+          resolve();
+        });
+    });
+  },
+
+  write1BlockType2: function nd_write1BlockType2(nfcA, container) {
+    return new Promise((resolve, reject) => {
+      var command = new Uint8Array([0xA2, 0x05, 0x01, 0x02, 0x03, 0x04]);
+      nfcA.transceive(command).
+        then(response => {
+          var ndefHelper = new NDEFHelper();
+          container.querySelector('[data-type="write"]').textContent =
+          ndefHelper.dumpUint8Array(command.subarray(2,6));
+          resolve();
+        });
+    });
+  },
+
+  getUIDType1: function nd_getUIDType1(nfcA, container) {
+    return new Promise((resolve, reject) => {
+      var command = new Uint8Array([0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+      nfcA.transceive(command).
+        then(response => {
+          container.querySelector('[data-type="hr0"]').textContent =
+          response[0].toString(16);
+          container.querySelector('[data-type="hr1"]').textContent =
+          response[1].toString(16);
+          container.querySelector('[data-type="uid0"]').textContent =
+          response[2].toString(16);
+          container.querySelector('[data-type="uid1"]').textContent =
+          response[3].toString(16);
+          container.querySelector('[data-type="uid2"]').textContent =
+          response[4].toString(16);
+          container.querySelector('[data-type="uid3"]').textContent =
+          response[5].toString(16);
+          resolve();
+        });
+    });
+  },
+
 };
 window.addEventListener('load', () => NfcTechDemo.init());
