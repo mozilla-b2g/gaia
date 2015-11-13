@@ -34,8 +34,8 @@ suite('views/preview-gallery', function() {
 
     test('Should show the option menu', function() {
       this.view.showOptionsMenu();
-      assert.equal(this.view.optionsMenuContainer.children[0].getAttribute(
-        'data-type'), 'action');
+      var optionsViewEl = this.view.el.querySelector('#options-view');
+      assert.isNotNull(optionsViewEl);
     });
   });
 
@@ -95,18 +95,20 @@ suite('views/preview-gallery', function() {
 
   suite('Options menu', function() {
     test('showOptionsMenu', function() {
-      assert.isFalse(this.view.el.classList.contains('action-menu'));
       this.view.showOptionsMenu();
-      assert.ok(this.view.el.classList.contains('action-menu'));
+      var optionsViewEl = this.view.el.querySelector('#options-view');
+      assert.isNotNull(optionsViewEl);
+      assert.isNull(optionsViewEl.getAttribute('hidden'));
     });
 
     test('hideOptionsMenu', function() {
       this.view.optionsMenuContainer = document.createElement('div');
+      this.view.optionsMenuContainer.setAttribute('id','options-view');
+      this.view.optionsMenuContainer.classList.add('js-menu');
       this.view.el.appendChild(this.view.optionsMenuContainer);
-      this.view.el.classList.add('action-menu');
-
+      var optionsViewEl = this.view.el.querySelector('#options-view');
       this.view.hideOptionsMenu();
-      assert.isFalse(this.view.el.classList.contains('action-menu'));
+      assert.equal(optionsViewEl.getAttribute('hidden'), 'true');
     });
   });
 });
