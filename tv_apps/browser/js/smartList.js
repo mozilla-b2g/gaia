@@ -127,6 +127,7 @@
       listWrap.appendChild(listMask);
 
       this.el.classList.add('smart-list');
+      this.el.addEventListener('keyup', this.handleListKeyUp.bind(this));
       this.el.appendChild(container);
       this.listEl = listView;
     },
@@ -738,6 +739,16 @@
       }
     },
 
+    handleListKeyUp: function(e) {
+      switch(e.keyCode){
+        case KeyEvent.DOM_VK_ESCAPE:
+          this.handleKeyEscape();
+          break;
+        default:
+          return;
+      }
+    },
+
     handleItemKeyDown: function(e) {
       switch(e.keyCode){
         case KeyEvent.DOM_VK_UP:
@@ -843,6 +854,18 @@
           }
         });
         this.el.dispatchEvent(event);
+      }
+    },
+
+    handleKeyEscape: function() {
+      if(!this.navState) {
+        this.close();
+      } else {
+        this.navHistory.pop();
+        this.navState = this.getCurNavHistory();
+        var folderId = this.navState ? this.navState.folderId : null;
+        this.reset();
+        this.switchListView(folderId);
       }
     },
 
