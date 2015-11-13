@@ -113,7 +113,7 @@ class FullscreenImage(Base):
 
     @property
     def photo_toolbar_width(self):
-        return self.marionette.execute_script('return document.getElementById("fullscreen-toolbar").offsetWidth')
+        return self.marionette.find_element(*self._photos_toolbar_locator).rect['width']
 
     @property
     def photo_toolbar_options(self):

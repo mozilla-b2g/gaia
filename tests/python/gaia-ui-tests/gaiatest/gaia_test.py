@@ -852,10 +852,6 @@ class GaiaDevice(object):
             };""", script_args=[self.screen_orientation, orientation])
 
     @property
-    def screen_width(self):
-        return self.marionette.execute_script('return window.screen.width')
-
-    @property
     def screen_orientation(self):
         return self.marionette.execute_script('return window.screen.mozOrientation')
 

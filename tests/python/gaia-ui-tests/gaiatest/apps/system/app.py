@@ -101,6 +101,16 @@ class System(Base):
         Wait(self.marionette).until(lambda m: element.location['y'] == (0 - element.size['height']))
 
     @property
+    def screen_width(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.find_element(*self._screen_locator).rect['width']
+
+    @property
+    def screen_height_without_software_home_button(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.find_element(*self._screen_locator).rect['height'] - self.software_buttons_height
+
+    @property
     def software_buttons_height(self):
         """
         Gets the height of the software buttons container on the screen.
