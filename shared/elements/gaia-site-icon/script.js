@@ -221,7 +221,6 @@ window.GaiaAppIcon = (function(exports) {
 
     set: function(blob) {
       if (blob) {
-        this._relayout();
         this._prepareIconLoader();
         this._hasUserSetIcon = true;
         this._pendingIconUrl = 'user-set';
@@ -423,13 +422,6 @@ window.GaiaAppIcon = (function(exports) {
     this._image.src = this._pendingIconUrl = this._predefinedIcons[name];
   };
 
-  proto._relayout = function() {
-    this._size = this.clientWidth;
-    this._container.style.width = this._container.style.height =
-      this._size + 'px';
-    this._size *= window.devicePixelRatio;
-  };
-
   proto._localizeString = function(str) {
     var userLang = document.documentElement.lang;
 
@@ -485,7 +477,6 @@ window.GaiaAppIcon = (function(exports) {
 
     this.updateName();
 
-    this._relayout();
     this._container.classList.remove('downloading');
 
     // Set an identifier on the icon to help with automated testing.
