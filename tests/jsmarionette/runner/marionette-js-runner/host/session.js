@@ -94,7 +94,7 @@ function resolveBinary(options) {
 function parseCrashInfo(info) {
   var msg = util.format('Crash detected at: %s', info.signature);
   var error = new Error(msg);
-  error.stack = msg + '\n' + info.stackwalk_stdout;
+  error.crashStack = msg + '\n' + info.stackwalk_stdout;
   error.name = 'ProcessCrash Stackwalk';
   return error;
 }
@@ -109,7 +109,7 @@ function parseCrashInfoWithStackwalkError(info) {
 
   var error = new Error(msg);
   error.name = 'ProcessCrash';
-  error.stack = msg +
+  error.crashStack = msg +
                 '\n' +
                 indent((info.stackwalk_stderr || ''), ' ', 4);
   return error;

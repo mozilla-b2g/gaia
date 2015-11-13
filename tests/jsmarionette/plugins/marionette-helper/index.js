@@ -136,12 +136,7 @@ MarionetteHelper.prototype = {
     var client = this.client;
 
     if (!isElement(el)) {
-      try {
-        el = client.findElement(el);
-      }
-      catch(e) {
-        throw new Error(e.message);
-      }
+      el = client.findElement(el);
     }
 
     client.waitFor(function() {
