@@ -135,27 +135,19 @@
      * Open smart list.
      */
     open: function() {
-      var eventDetail = {
-        startAt: 0,
-        number: MAX_VISIBLE_ITEM*2,
-        folderId: null,
-        callback: (function(listData) {
-          var event = new Event('open'),
-              focusEl = null;
-
-          this.render(listData);
-          this.el.classList.add('show');
-          focusEl = this.listItemMap[0];
-          if(focusEl) {
-            this.focusItem(focusEl);
-          }
-          this.el.dispatchEvent(event);
-        }).bind(this)
-      };
-      var event = new CustomEvent('loadDataByRange', {detail: eventDetail});
-
       this.reset();
-      this.el.dispatchEvent(event);
+      this.dispatchLoadDataByRange(0, MAX_VISIBLE_ITEM*2, null, (listData) => {
+        this.el.classList.add('show');
+
+        if(listData.length > 0) {
+          this.render(listData);
+          var focusEl = this.listItemMap[0];
+          this.focusItem(focusEl);
+        }
+
+        var event = new Event('open');
+        this.el.dispatchEvent(event);
+      });
     },
 
     /**
@@ -782,21 +774,18 @@
     handleKeyReturn: function(e) {
       var targetEl = e.currentTarget,
           type = targetEl.getAttribute('data-type'),
-          event = null,
-          eventDetail = null;
+          folderId = null;
 
       switch(type) {
         case 'folder':
-          var folderId = targetEl.getAttribute('data-folder'),
-              folderTitle = targetEl.querySelector('.title').textContent;
+          var folderTitle = targetEl.querySelector('.title').textContent;
 
+          folderId = targetEl.getAttribute('data-folder');
           this.addNavHistory(folderId, folderTitle);
           this.navState = this.getCurNavHistory();
-          eventDetail = {
-            startAt: 0,
-            number: MAX_VISIBLE_ITEM*2,
-            folderId: folderId,
-            callback: (function(listData) {
+          this.reset();
+          this.dispatchLoadDataByRange(0, MAX_VISIBLE_ITEM*2, folderId,
+            (listData) => {
               listData.unshift(
                 this.generateBackButtonData(this.navState.folderTitle)
               );
@@ -811,11 +800,8 @@
                 }
                 this.focusItem(focusEl);
               }
-            }).bind(this)
-          };
-          event = new CustomEvent('loadDataByRange', {detail: eventDetail});
-          this.reset();
-          this.el.dispatchEvent(event);
+            }
+          );
           break;
         case 'bookmark':
           var uriEL = targetEl.querySelector('.uri');
@@ -827,11 +813,10 @@
         case 'button':
           this.navHistory.pop();
           this.navState = this.getCurNavHistory();
-          eventDetail = {
-            startAt: 0,
-            number: MAX_VISIBLE_ITEM*2,
-            folderId: this.navState ? this.navState.folderId : null,
-            callback: (function(listData) {
+          folderId = this.navState ? this.navState.folderId : null;
+          this.reset();
+          this.dispatchLoadDataByRange(0, MAX_VISIBLE_ITEM*2, folderId,
+            (listData) => {
               if(this.navState) {
                 listData.unshift(
                   this.generateBackButtonData(this.navState.folderTitle)
@@ -848,11 +833,8 @@
                 }
                 this.focusItem(focusEl);
               }
-            }).bind(this)
-          };
-          event = new CustomEvent('loadDataByRange', {detail: eventDetail});
-          this.reset();
-          this.el.dispatchEvent(event);
+            }
+          );
           break;
         default:
           break;
@@ -873,6 +855,17 @@
 
     dispatchDisplayWebsite: function(uri) {
       var event = new CustomEvent('displayWebsite', {detail: uri});
+      this.el.dispatchEvent(event);
+    },
+
+    dispatchLoadDataByRange: function(start, number, folderId, cb) {
+      var eventDetail = {
+        startAt: start,
+        number: number,
+        folderId: folderId,
+        callback: cb
+      };
+      var event = new CustomEvent('loadDataByRange', {detail: eventDetail});
       this.el.dispatchEvent(event);
     },
 
