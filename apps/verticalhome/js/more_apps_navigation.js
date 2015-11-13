@@ -15,7 +15,7 @@
 
     /**
      * Called when 'More Apps' screen has been opened. This function resets
-     * selected element to a first element and adds listener on keydown event
+     * selected element to a first element
      */
     reset: function () {
       document.getElementsByTagName('gaia-grid-rs')[0].scrollTo(0, 0);
@@ -24,15 +24,6 @@
       }
       this.selectedElemIndex = 0;
       this.items[this.selectedElemIndex].element.classList.add('selected');
-      window.addEventListener('keydown', this);
-    },
-
-    /**
-     * Removes listener of keydown event.
-     * Note: called when "More Apps" screen is closed
-     */
-    stopListeningKeydownEvents: function () {
-      window.removeEventListener('keydown', this);
     },
 
     /**

@@ -15,7 +15,6 @@
     "storage": {},
     "webapps-manage": {},
     "systemXHR": {},
-    "alarms": {},
     "settings":{ "access": "readwrite" }
   },
   "default_locale": "en-US",

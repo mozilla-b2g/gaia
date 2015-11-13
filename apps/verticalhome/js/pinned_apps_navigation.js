@@ -7,45 +7,63 @@
    * This is PinnedAppsNavigation's constructor.
    * @param {Object} list [DOM container that contains pinned elements]
    */
-  function PinnedAppsNavigation(list) {
-    if (!list && typeof list !== 'object') {
-      console.error('List of pinned apps must be an object');
-      return;
+  function PinnedAppsNavigation(list, selector) {
+    if (!list) {
+      throw new Error('List must be a dom container ' +
+        'with elements to be navigated');
     }
 
-    this.elemList = list;
-    window.removeEventListener('keydown', this);
-    window.addEventListener('keydown', this);
-  }
+    /**
+     * This variable contains all elements that are
+     * representing applications on the screen
+     * @type {Array}
+     */
+    this.elements = [];
 
+    /**
+     * Index of the currently selected element of this.elements array
+     * @type {Number}
+     */
+    this.selectedElemIndex = 0;
+
+    /**
+     * This variable is used to know selected element
+     * has middle size or large size
+     * @type {Boolean}
+     */
+    this.middleElem = null;
+
+    /**
+     * DOM container that has all elements
+     * @type {Dom container}
+     */
+    this.elemList = list;
+
+    /**
+     * This is a selector that used for getting all pinned icons on main screen
+     * @type {String}
+     */
+    if (selector && typeof selector === 'string'){
+      this.selector = selector;
+      this.refresh();
+    }else{
+      this.selector = '';
+    }
+  }
 
   PinnedAppsNavigation.prototype = {
 
-    selector: '',
-    elements: null,
-    preventDef: false,
-    selectedElemIndex: 0,
-    elemList: null,
-    prevVerticalKey: null,
-
-    middleElem: false,
-
-
     /**
-     * This function reset all pinns to default values.
+     * This function resets Main homscreen's state to default one (with clock)
      * @return {[nothing]} [nothing]
      */
     reset: function reset() {
-
-      window.addEventListener('keydown', this);
-
       this.elements.sort(function(elem1, elem2) {
         if (!elem1.dataset.index || !elem2.dataset.index) {
           return 1;
         }
         return elem1.dataset.index - elem2.dataset.index;
       });
-
 
       var selected = this.elemList.querySelector('.selected');
 
@@ -55,26 +73,14 @@
 
       this.selectedElemIndex = 0;
 
-      for (var elemIndex in this.elements) {
-        this.elemList.appendChild(this.elements[elemIndex]);
-      }
+      this.elements.forEach((elem) => {this.elemList.appendChild(elem);}, this);
 
       this.elements[this.selectedElemIndex].classList.add('selected');
       this.elements[this.selectedElemIndex].classList.add('middle');
       this.elemList.removeAttribute('style');
-      this.middleElem = true;
+      this.middleElem = this.elements[this.selectedElemIndex];
 
-      var toRemoved = this.elemList.querySelector('.removed');
-      var toRemoveOutFocus = this.elemList.querySelector('.out-focus');
-
-      if (toRemoved) {
-        this.elemList.removeChild(toRemoved);
-      }
-
-      if (toRemoveOutFocus) {
-        toRemoveOutFocus.classList.remove('out-focus');
-      }
-
+      this.cleanIconsList();
     },
 
 
@@ -90,6 +96,7 @@
 
       var allItems = document.querySelectorAll(this.selector);
       this.elements = Array.prototype.slice.call(allItems);
+      this.selectedElemIndex = 0;
 
       if (!this.elements && !this.elements.length) {
         console.error('Can not find any elements by this selector');
@@ -98,9 +105,22 @@
 
       this.elements[this.selectedElemIndex].classList.add('selected');
       this.elements[this.selectedElemIndex].classList.add('middle');
-      this.middleElem = true;
+      this.middleElem = this.elements[this.selectedElemIndex];
     },
 
+
+    cleanIconsList: function cleanIconsList() {
+      var toRemoved = this.elemList.querySelector('.removed');
+      var toRemoveOutFocus = this.elemList.querySelector('.out-focus');
+
+      if (toRemoved) {
+        this.elemList.removeChild(toRemoved);
+      }
+
+      if (toRemoveOutFocus) {
+        toRemoveOutFocus.classList.remove('out-focus');
+      }
+    },
 
     /**
      * Handle event keydown
@@ -111,53 +131,44 @@
 
       var self = this;
 
-      function cycleElements(index) {
-
-        var removed = self.elements.splice(-index, index);
-
+      /**
+       * This function loops icons on the page.
+       * It replaces elements on the page from last position to first positions.
+       * @param  {number} n number of elements that will replaced
+       * @return {none}
+       */
+      function cycleElements(n) {
+        var removed = self.elements.splice(-n, n);
         for (var i = 0; i < removed.length; i++) {
-
           self.elemList.insertBefore(removed[i], self.elements[i]);
           self.elements.splice(i, 0, removed[i]);
-
         }
-
       }
 
-      if (this.preventDef) {
-        e.preventDefault();
-      }
-
+      /**
+       * Function that executs before navigation logic.
+       * @return {none}
+       */
       function preVerticalNavigation () {
         if (self.middleElem) {
-          document.querySelector('.middle').classList.remove('middle');
-          self.middleElem = false;
+          self.middleElem.classList.remove('middle');
+          self.middleElem = null;
         }
 
-
-        var toRemoved = self.elemList.querySelector('.removed');
-        var toRemoveOutFocus = self.elemList.querySelector('.out-focus');
-
-        if (toRemoved) {
-          self.elemList.removeChild(toRemoved);
-        }
-
-        if (toRemoveOutFocus) {
-          toRemoveOutFocus.classList.remove('out-focus');
-        }
-      }
-
-      if (this.preventDef){
-        e.preventDefault();
+        self.cleanIconsList();
       }
 
       var topStyle = null;
 
+      app.clock.stop();
+
+      //TODO: rewrite ArrowUp and ArrowDown implementation.
+      //Made it more understandable and replace it to separate function
       switch(e.key) {
         case 'ArrowUp':
-
+          e.preventDefault();
           preVerticalNavigation();
-          document.getElementById('clock').classList.add('not-visible');
+          app.clock.hide();
 
           if (this.elemList.dataset.scrollup) {
             this.elemList.style.top = this.elemList.dataset.scrollup;
@@ -194,7 +205,6 @@
           var lastElem = this.elements[this.elements.length - 1];
           var clonedElem = lastElem.cloneNode(true);
 
-
           this.elemList.insertBefore(clonedElem, this.elements[0]);
 
           if (app.pinnedAppsManager.items[+clonedElem.dataset.index]){
@@ -211,15 +221,12 @@
           lastElem.classList.add('removed');
           this.elements.splice(-1, 1);
 
-          this.prevVerticalKey = 'up';
-
-
           break;
 
         case 'ArrowDown':
-
+          e.preventDefault();
           preVerticalNavigation();
-          document.getElementById('clock').classList.add('not-visible');
+          app.clock.hide();
 
           this.elements[this.selectedElemIndex].classList.remove('selected');
           if (this.selectedElemIndex == (this.elements.length - 3)) {
@@ -260,8 +267,6 @@
             this.elemList.dataset.scrolldown = this.elemList.style.top;
           }
 
-          this.prevVerticalKey = 'down';
-
           if (this.selectedElemIndex == 1) {
             this.elemList.style.top = '0rem';
           }
@@ -269,9 +274,7 @@
           break;
 
         case 'Accept':
-
-          window.removeEventListener('keydown', this);
-
+          e.preventDefault();
           var elemId = this.elements[this.selectedElemIndex].getAttribute('id');
           if ( elemId === 'moreApps') {
             app.showMoreApps();
@@ -294,18 +297,6 @@
       this.selector = selector;
       this.refresh();
     },
-
-    /**
-     * Setter for preventDefault parameter. Default value is false.
-     * @param  {boolean} value  if true preventDefault()
-     *                          function will be called there
-     * @return {nothing}
-     */
-    set prevent(value) {
-      if (typeof value === 'boolean') {
-        this.preventDef = value;
-      }
-    }
 
   };
 

@@ -1,21 +1,5 @@
-/**
-  Copyright 2012, Mozilla Foundation
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
-
-'use strict';
 (function(exports) {
+'use strict';
 
 /**
  * Creates an object used for refreshing the clock UI element. Handles all
@@ -52,6 +36,12 @@ function Clock() {
   this.clockTime = document.getElementById('clock-time');
 
   /**
+   * Dom Object that contains all information about time
+   * @type {Dom element}
+   */
+  this.timeContainer = this.clockTime.parentNode;
+
+  /**
    * This dom object contains date information
    *
    * @memberOf Clock
@@ -60,6 +50,7 @@ function Clock() {
   this.date = document.getElementById('date');
 
   window.addEventListener('timeformatchange', this);
+  window.addEventListener('tick', this);
 
   /**
    * Handle the event which fires when time format is chaned
@@ -70,12 +61,20 @@ function Clock() {
   this.handleEvent = function cl_handleEvents(e){
 
     switch(e.type) {
+      /**
+       * This event is recieved when time format has been changed.
+       * For example from 24 hours time format to 12 hours time format.
+       */
       case 'timeformatchange':
         if (!this.l10nready) {
           return;
         }
         this.setClockFormat();
 
+        break;
+
+      case 'tick':
+        this.refreshClock(new Date());
         break;
     }
 
@@ -89,11 +88,23 @@ function Clock() {
    * @return {none}
    */
   this.setClockFormat = function cl_setClockFormat() {
-    this.timeFormat = window.navigator.mozHour12 ?
-      navigator.mozL10n.get('shortTimeFormat12') :
-      navigator.mozL10n.get('shortTimeFormat24');
+    if (window.navigator.mozHour12){
+      this.timeFormat = navigator.mozL10n.get('shortTimeFormat12Time');
+      this.meridiem = navigator.mozL10n.get('shortTimeFormat12Meridiem');
+    }else{
+      this.timeFormat = navigator.mozL10n.get('shortTimeFormat24');
+      this.meridiem = null;
+    }
     this.refreshClock(new Date());
 
+  };
+
+  this.hide = function cl_hide() {
+    this.timeContainer.classList.add('not-visible');
+  };
+
+  this.show = function cl_show(){
+    this.timeContainer.classList.remove('not-visible');
   };
 
   /**
@@ -107,9 +118,16 @@ function Clock() {
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    var timeFormat = this.timeFormat.replace('%p', '<span>%p</span>');
     var dateFormat = _('longDateFormat');
-    this.clockTime.innerHTML = f.localeFormat(now, timeFormat);
+    this.clockTime.innerHTML = '';
+    this.clockTime.textContent = f.localeFormat(now, this.timeFormat);
+
+    if (this.meridiem){
+      var meridiemHTML = document.createElement('span');
+      meridiemHTML.textContent = f.localeFormat(now, this.meridiem);
+      this.clockTime.appendChild(meridiemHTML);
+    }
+
     this.date.textContent = f.localeFormat(now, dateFormat);
   };
 
@@ -120,17 +138,17 @@ function Clock() {
    * @memberOf Clock
    */
   this.start = function cl_start() {
+
     var date = new Date();
     var self = this;
-
-    this.refreshClock(date);
+    window.dispatchEvent(new CustomEvent('tick'));
 
     if (this.timeoutID == null) {
       this.timeoutID = window.setTimeout(function cl_setClockInterval() {
 
         if (self.timerID == null) {
           self.timerID = window.setInterval(function cl_clockInterval() {
-            self.refreshClock(new Date());
+            window.dispatchEvent(new CustomEvent('tick'));
           }, 60000);
         }
       }, (60 - date.getSeconds()) * 1000);

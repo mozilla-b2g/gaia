@@ -37,6 +37,8 @@
     window.addEventListener('context-menu-open', this);
     window.addEventListener('context-menu-close', this);
 
+    window.addEventListener('keydown', this);
+
     this.layoutReady = false;
     window.addEventListener('gaiagrid-layout-ready', this);
 
@@ -102,6 +104,9 @@
         });
       });
 
+      //TODO: Make a dynamic load of gaia_grid_rs component.
+      //Load it when gaia grid launch at the first time
+      //not when all application starts
       this.itemStore.all(function _all(results) {
         results.forEach(function _eachResult(result) {
           this.grid.add(result);
@@ -143,9 +148,12 @@
         this.pinnedAppsManager.init();
         this.clock.start();
         var pinnedApps = document.getElementById('pinned-apps-list');
-        this.pinnedAppsNavigation = new PinnedAppsNavigation(pinnedApps);
-        this.pinnedAppsNavigation.points_selector =
-                '#pinned-apps-list .pinned-app-item';
+        var sel = '#pinned-apps-list .pinned-app-item';
+        try{
+          this.pinnedAppsNavigation = new PinnedAppsNavigation(pinnedApps, sel);
+        } catch(exception) {
+          console.error(exception);
+        }
       }.bind(this));
 
     },
@@ -191,7 +199,6 @@
       console.log('inMoreApps is : ' + this.inMoreApps);
       document.getElementById('main-screen').classList.remove('hidden');
       document.getElementById('more-apps-screen').classList.add('hidden');
-      MoreAppsNavigation.stopListeningKeydownEvents();
     },
 
     /**
@@ -365,15 +372,22 @@
           this.grid.style.transition = '';
           break;
 
+        case 'keydown':
+          if (this.inMoreApps){
+            MoreAppsNavigation.handleEvent(e);
+          }else{
+            this.pinnedAppsNavigation.handleEvent(e);
+          }
+          break;
+
         // A hashchange event means that the home button was pressed.
         // The system app changes the hash of the homescreen iframe when it
         // receives a home button press.
         case 'hashchange':
           this.hideMoreApps();
           this.pinnedAppsNavigation.reset();
-          this.clock.clockTime.parentNode.classList.remove('not-visible');
+          this.clock.show();
           this.clock.start();
-
 
           // The group editor UI will be hidden by itself so returning...
           var editor = exports.groupEditor;

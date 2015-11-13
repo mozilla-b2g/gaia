@@ -2,40 +2,41 @@
 
 (function (exports) {
 
-  function PinnedAppItem(index) {
+  function PinnedAppItem(index, entry) {
     if (index === null || index === undefined){
       return false;
     }
     this.index = index;
     //creating pinned app element
     var pinnedElem = document.createElement('div');
-    pinnedElem.className = 'pinned-app-item';
-    pinnedElem.setAttribute('data-index', this.index);
-    pinnedElem.innerHTML = '<img class="pinned-app-icon"><br></img>' +
-            '<span class="title"></span>';
+    var pinnedAppIcon = document.createElement('img');
+    var pinnedAppTitle = document.createElement('span');
     var pinnedList = document.getElementById('pinned-apps-list');
     var moreAppsLi = document.getElementById('moreApps');
+
+    pinnedElem.className = 'pinned-app-item';
+    pinnedAppIcon.className = 'pinned-app-icon';
+    pinnedAppTitle.className = 'title';
+
+    pinnedElem.setAttribute('data-index', this.index);
+    pinnedElem.appendChild(pinnedAppIcon);
+    pinnedElem.appendChild(pinnedAppTitle);
+
     pinnedList.insertBefore(pinnedElem, moreAppsLi);
 
     this.element = pinnedElem;
-    this.icon = this.element.querySelector('.pinned-app-icon');
-    this.title = this.element.querySelector('.title');
-  }
+    this.icon = pinnedAppIcon;
+    this.title = pinnedAppTitle;
 
-  PinnedAppItem.prototype = {
-    entry: null,
-
-    bindEntry: function(entry) {
-      if (!entry){
-        return;
-      }
-      this.clear();
+    if (entry){
       this.entry = entry;
       this.entry.index = this.index;
       this.targetApp = app.getAppByURL(this.entry.manifestURL);
       this.render();
-    },
+    }
+  }
 
+  PinnedAppItem.prototype = {
 
     render: function() {
 
@@ -45,31 +46,55 @@
         return  name ? name : self.entry.name;
       }
 
-      this.element.removeEventListener('click', this);
+      //TODO: it is necessary to delete elements from pinned app list from
+      //page not hide them and refresh target app for example when application
+      //is being uninstalled.
       if(this.targetApp) {
+        var manifest = this.targetApp.manifest;
+        var entry_point = this.entry.entry_point;
+        var appIcons = [];
+
         this.icon.style.visibility = 'visible';
         this.title.style.visibility = 'visible';
-        this.element.dataset.manifesturl = this.entry.manifestURL;
-        this.element.dataset.entrypoint = this.entry.entry_point;
-        if(this.entry.icon) {
-          this.icon.src = this.entry.icon;
-          this.element.addEventListener('click', this);
-        }
 
-        if (this.entry.locales) {
-          this.title.textContent = getName();
-        } else if (this.entry.name) {
-          var manifest = this.targetApp.manifest;
-          var entry_point = this.entry.entry_point;
-          this.entry.locales = manifest.entry_points && entry_point ?
-                                manifest.entry_points[entry_point].locales :
-                                manifest.locales;
-          this.title.textContent = getName();
+        if (this.entry){
+          this.element.addEventListener('click', this);
+
+          this.element.dataset.manifesturl = this.entry.manifestURL;
+          this.element.dataset.entrypoint = this.entry.entry_point;
+
+          if (manifest.entry_points) {
+            if (entry_point) {
+              appIcons = manifest.entry_points[entry_point].icons;
+            }else{
+              console.error('Entry point must be defined');
+            }
+          } else {
+            appIcons = manifest.icons;
+          }
+
+          for (var size in appIcons) {
+            if (size >= 75) {
+              var mainURL = this.entry.manifestURL.split('/');
+              mainURL.splice(-1, 1);
+              this.icon.src = mainURL.join('/') + appIcons[size];
+              break;
+            }
+          }
+
+          if (this.entry.locales) {
+            this.title.textContent = getName();
+          } else {
+            this.entry.locales = manifest.entry_points && entry_point ?
+              manifest.entry_points[entry_point].locales :
+              manifest.locales;
+            this.title.textContent = getName();
+          }
         }
 
       } else {
-          this.icon.style.visibility = 'hidden';
-          this.title.style.visibility = 'hidden';
+        this.icon.style.visibility = 'hidden';
+        this.title.style.visibility = 'hidden';
       }
     },
 
@@ -103,10 +128,6 @@
       }
     },
 
-    setEntry: function(entry) {
-      this.bindEntry(entry);
-    },
-
     getEntry: function() {
       return this.entry;
     },
@@ -121,29 +142,25 @@
   };
 
   function PinnedAppsManager() {
-    //do nothing
+    if (PinnedAppsManager.instance){
+      return PinnedAppsManager.instance;
+    }
+
+    PinnedAppsManager.instance = this;
+
+    this.items = [];
   }
 
   PinnedAppsManager.prototype = {
-    items: [],
-
     init: function () {
-      this.onLoadSettings();
-    },
-
-    onLoadSettings: function() {
       var pinnedAppsList = app.getPinnedAppsList();
       for (var i = 0; i < pinnedAppsList.length; i++) {
-        this.items[i] = new PinnedAppItem(i);
-        this.items[i].bindEntry(pinnedAppsList[i]);
+        this.items[i] = new PinnedAppItem(i, pinnedAppsList[i]);
       }
 
       this.items.sort(function(elem1, elem2) {
         return elem1.index - elem2.index;
       });
-    },
-
-    handleEvent: function(e) {
     }
   };
 

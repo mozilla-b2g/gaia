@@ -240,7 +240,7 @@
 
 
     /**
-     * A list that contains applications displaies on the main screen
+     * A list that contains applications displayed on the main screen
      * @type {Array}
      */
     _pinnedAppsList: [],
@@ -304,10 +304,10 @@
 
     /**
      * This function save application (item) to DB
-     * @param  {[object (application)]}   object   [Application's object]
+     * @param  {object (application)}   object   Application's object
      * @param  {Function} callback [callback that executes after saving 
      * object to DB]
-     * @return {[nothing]}
+     * @return {nothing}
      */
     savePinnedAppItem: function (object, callback) {
       // intentional use of == meaning null or undefined.
@@ -316,6 +316,11 @@
         return;
       }
 
+      //TODO: Changing elements' position must be carried out in one
+      //transaction through localstorage.
+      //Now this function is executed on every changed position.
+      //Also it is more useful to use flag in DB where all apps are stored
+      //to show what app is displayed on main screen
       newTxn(
 
               DB_PINNED_APP_STORE,
@@ -323,15 +328,10 @@
               function (txn, store) {
                 var request = store.get(object.index);
                 request.onsuccess = function (req) {
-                  var objFromDB = req.result;
-                  if (objFromDB) {
-                    var DBIndex = objFromDB.index;
-                    objFromDB = object;
-                    objFromDB.index = DBIndex;
-                    store.put(objFromDB);
-                  } else {
-                    store.put(object);
+                  if (req.result) {
+                    object.index = req.result.index;
                   }
+                  store.put(object);
                 };
               },
               callback);
