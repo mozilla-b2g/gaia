@@ -4,6 +4,8 @@
 /* exported Storage */
 
 var Storage = {
+  editMode: false,
+
   /** Get all DOM elements when inited. */
   getAllElements() {
 
@@ -16,7 +18,7 @@ var Storage = {
     var elementIDs = [
       'view-storages-list',
       'add-storage-button',
-      'edit-button',
+      'edit-storage-button',
 
       'no-storages',
       'storage-container',
@@ -46,6 +48,8 @@ var Storage = {
 
     this.addStorageButton.addEventListener('mouseup',
       this.handleAddStorageButtonClick.bind(this));
+    this.editStorageButton.addEventListener('mouseup',
+      this.handleEditStorageButtonClick.bind(this));
     this.selectableFormHeader.addEventListener('action',
       this.handleSelectableFormHeaderAction.bind(this));
     this.newStorageCreateButton.addEventListener('mouseup',
@@ -92,13 +96,25 @@ var Storage = {
               </gaia-switch>
             </li>
           */
-          var li = document.createElement('li');
-          li.setAttribute('role', 'checkbox');
+
+          var deleteButton = document.createElement('span');
+          deleteButton.textContent = 'Delete';
+          deleteButton.classList.add('edit-delete-btn');
+          deleteButton.classList.add('hide');
+
+          var name = document.createElement('span');
+          name.textContent = item.name;
+
+          var label = document.createElement('label');
+          label.appendChild(deleteButton);
+          label.appendChild(name);
+
           var gaia_switch = document.createElement('gaia-switch');
           gaia_switch.setAttribute('data-storage-id', item.id);
-          var label = document.createElement('label');
-          label.textContent = item.name;
           gaia_switch.appendChild(label);
+
+          var li = document.createElement('li');
+          li.setAttribute('role', 'checkbox');
           li.appendChild(gaia_switch);
           container.appendChild(li);
         });
@@ -108,6 +124,30 @@ var Storage = {
 
   handleAddStorageButtonClick() {
     this.showNewStorageForm();
+  },
+
+  handleEditStorageButtonClick() {
+    console.log('edit', this.editMode);
+    if (this.editMode) {
+      this.editMode = false;
+    } else {
+      this.editMode = true;
+    }
+    this.switchEditMode();
+  },
+
+  switchEditMode() {
+    var container = this.storageContainer;
+    var children = container.childNodes;
+    for (var i = 0; i < children.length; i++) {
+      var deleteBtn = children[i].
+        querySelector('gaia-switch span.edit-delete-btn');
+      if (this.editMode) {
+        deleteBtn.classList.remove('hide');
+      } else {
+        deleteBtn.classList.add('hide');
+      }
+    }
   },
 
   handleStorageContainerSwitchChange(e) {

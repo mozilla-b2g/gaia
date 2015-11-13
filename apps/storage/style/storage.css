@@ -43,6 +43,19 @@
   color: #111111;
 }
 
+.edit-delete-btn {
+  color: rgb(255, 255, 255);
+  background-color: red;
+  border-radius: 14px;
+  display: inline-block;
+  border: solid 1px #999;
+  font-size: 1.5rem;
+  padding-right: 6px;
+  padding-left: 6px;
+  line-height: 20px;
+  margin-right: 10px;
+}
+
 .sup-oauth2-browser {
   border: 0;
   margin: 0;
