@@ -478,6 +478,20 @@ smart-button[type="rounded-corner-text"].pressed {
   background-color: #00caf2;
 }
 
+smart-button[type="rounded-corner-text"].primary {
+  background-color: #00caf2;
+}
+
+smart-button[type="rounded-corner-text"].primary:hover,
+smart-button[type="rounded-corner-text"].primary.focused {
+  color: #ffffff;
+  background-color: #00caf2;
+}
+
+smart-button[type="rounded-corner-text"].primary.pressed {
+  background-color: #0097b5;
+}
+
 /**
  * End of rounded-corner text button
  */
