@@ -8,12 +8,11 @@ function ResetMenuDialog(container, viewManager) {
   this.viewManager = viewManager;
   this.dataUsage = {mobile:0, wifi:0};
   this.resetModes = ['wifi', 'mobile', 'all'];
-  this.cancelButton = container.querySelector('.close-reset-dialog');
-  this.cancelButton.onclick = this.closeResetMenuDialog.bind(this);
+  container.addEventListener('gaiamenu-cancel',
+    this.closeResetMenuDialog.bind(this));
 }
 
 ResetMenuDialog.prototype.initializeResetModes = function(confirmResetDialog) {
-  var resetMenu = this.container.querySelector('menu');
   this.resetModes.forEach(function(resetMode) {
     var newButton = document.createElement('button');
     newButton.id = 'reset-' + resetMode + '-data-usage';
@@ -23,7 +22,7 @@ ResetMenuDialog.prototype.initializeResetModes = function(confirmResetDialog) {
     newButton.onclick = function() {
       this.updateConfirmDialog(resetMode, confirmResetDialog);
     }.bind(this);
-    resetMenu.insertBefore(newButton, this.cancelButton);
+    this.container.appendChild(newButton);
   }.bind(this));
 };
 
