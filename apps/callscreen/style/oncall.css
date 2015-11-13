@@ -129,8 +129,8 @@
     height: 28rem;
   }
 
-  body.showKeypad .duration,
-  body.showKeypad .sim  {
+  body.showKeypad.single-line .duration,
+  body.showKeypad.single-line .sim  {
     transition: opacity var(--transition-duration) ease;
     opacity: 0;
   }
