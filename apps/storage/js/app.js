@@ -1,5 +1,6 @@
 'use strict';
 /* global asyncStorage */
+/* global FileSystemHelper */
 /* exported Storage */
 
 var Storage = {
@@ -55,6 +56,7 @@ var Storage = {
       this.handleStorageContainerSwitchChange.bind(this));
 
     this.initOAuthWindow();
+    FileSystemHelper.init();
   },
 
   reloadStorageList() {

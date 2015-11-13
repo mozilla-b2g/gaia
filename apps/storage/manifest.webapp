@@ -16,6 +16,12 @@
   "type": "certified",
   "permissions": {
     "themeable":{},
+    "device-storage:apps":{ "access": "readwrite" },
+    "device-storage:sdcard":{ "access": "readwrite" },
+    "device-storage:music":{ "access": "readwrite" },
+    "device-storage:pictures":{ "access": "readwrite" },
+    "device-storage:videos":{ "access": "readwrite" },
+    "filesystemprovider":{},
     "browser": {}
   },
   "installs_allowed_from": [
