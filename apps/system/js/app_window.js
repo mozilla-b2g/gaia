@@ -2038,7 +2038,6 @@
       setTimeout(callback);
     });
     if (this.isHomescreen) {
-      this.setVisible(true);
       return;
     }
     this.tryWaitForFullRepaint(function() {
