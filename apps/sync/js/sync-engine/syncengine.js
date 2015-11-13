@@ -192,6 +192,14 @@ uld be a Function`);
     this._ready = false;
   };
 
+  function promiseWaterfall(self, tasks, executor) {
+    return tasks.reduce((reduced, current) => {
+      return reduced.then(() => {
+        return executor.apply(self, current);
+      });
+    }, Promise.resolve());
+  }
+
   SyncEngine.prototype = {
     _createKinto: function(kintoCredentials) {
       var kinto = new Kinto({
@@ -384,13 +392,12 @@ rse crypto/keys payload as JSON`));
           return Promise.resolve();
         }
         return this._getBulkKeyBundle().then(() => {
-          var promises = [];
+          var tasks = [];
           for (var collectionName in collectionOptions) {
             collectionOptions[collectionName].userid = this._xClientState;
-            promises.push(this._updateCollection(collectionName,
-                 collectionOptions[collectionName]));
+            tasks.push([ collectionName, collectionOptions[collectionName] ]);
           }
-          return Promise.all(promises);
+          return promiseWaterfall(this, tasks, this._updateCollection);
         });
       });
     }
