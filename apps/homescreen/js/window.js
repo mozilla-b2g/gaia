@@ -40,7 +40,8 @@
 
   AppWindow.prototype = {
     updatePanelIndicator: function() {
-      var appsVisible = this.panels.scrollLeft <= this.panels.scrollLeftMax / 2;
+      var appsVisible =
+        Math.abs(this.panels.scrollLeft) <= this.panels.scrollWidth / 4;
       if (this.appsVisible !== appsVisible) {
         this.appsVisible = appsVisible;
 
