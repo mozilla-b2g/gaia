@@ -137,6 +137,7 @@ TcpSync.prototype.connect = function(callback) {
 
 TcpSync.prototype.defaultCallback = function(err, result) {
   if (err) {
+    console.log("tcp-sync.js.defaultCallback:", err);
     throw err;
   }
   return result;

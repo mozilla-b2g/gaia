@@ -140,6 +140,7 @@ MarionetteHelper.prototype = {
         el = client.findElement(el);
       }
       catch(e) {
+        console.log("waitForElement:", e);
         // Handle ProcessCrash exceptions specially and rethrow all others.
         // We do this so we can copy any gecko crash stack information into
         // the exception message and still report our JS stack here.
