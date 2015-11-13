@@ -662,6 +662,35 @@
       };
     },
 
+    switchListView: function(folderId) {
+      this.dispatchLoadDataByRange(0, MAX_VISIBLE_ITEM*2, folderId,
+        (listData) => {
+          // if user is browser list data in a folder,
+          // add back button data at the first place of listData
+          if(this.navState) {
+            listData.unshift(
+              this.generateBackButtonData(this.navState.folderTitle)
+            );
+          }
+
+          if(listData.length === 0) {
+            return;
+          }
+
+          this.render(listData);
+
+          // focus the first item in list. if the first item is button and list
+          // item length is bigger than 1, focus the second item
+          this.focusIndex = 0;
+          if(this.navState && this.listIndexEndAt > 0) {
+            this.focusIndex = 1;
+          }
+          var focusEl = this.listItemMap[this.focusIndex];
+          this.focusItem(focusEl);
+        }
+      );
+    },
+
     /**
      * Move focus to the previous element
      */
@@ -784,24 +813,7 @@
           this.addNavHistory(folderId, folderTitle);
           this.navState = this.getCurNavHistory();
           this.reset();
-          this.dispatchLoadDataByRange(0, MAX_VISIBLE_ITEM*2, folderId,
-            (listData) => {
-              listData.unshift(
-                this.generateBackButtonData(this.navState.folderTitle)
-              );
-              this.render(listData);
-              if(this.listIndexEndAt !== -1) {
-                var focusEl = this.listItemMap[0];
-                if(focusEl.getAttribute('data-type') === 'button') {
-                  if(this.listIndexEndAt > 0){
-                    focusEl = this.listItemMap[1];
-                    this.focusIndex = 1;
-                  }
-                }
-                this.focusItem(focusEl);
-              }
-            }
-          );
+          this.switchListView(folderId);
           break;
         case 'bookmark':
           var uriEL = targetEl.querySelector('.uri');
@@ -815,26 +827,7 @@
           this.navState = this.getCurNavHistory();
           folderId = this.navState ? this.navState.folderId : null;
           this.reset();
-          this.dispatchLoadDataByRange(0, MAX_VISIBLE_ITEM*2, folderId,
-            (listData) => {
-              if(this.navState) {
-                listData.unshift(
-                  this.generateBackButtonData(this.navState.folderTitle)
-                );
-              }
-              this.render(listData);
-              if(this.listIndexEndAt !== -1) {
-                var focusEl = this.listItemMap[0];
-                if(focusEl.getAttribute('data-type') === 'button') {
-                  if(this.listIndexEndAt > 0){
-                    focusEl = this.listItemMap[1];
-                    this.focusIndex = 1;
-                  }
-                }
-                this.focusItem(focusEl);
-              }
-            }
-          );
+          this.switchListView(folderId);
           break;
         default:
           break;
