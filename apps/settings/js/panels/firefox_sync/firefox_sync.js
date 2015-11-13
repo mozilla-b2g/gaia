@@ -138,9 +138,15 @@ define(function(require) {
       switch (message.state) {
         case 'disabled':
           this.showScreen(LOGGED_OUT_SCREEN);
+          this.hideEnabling();
           this.clean();
           break;
+        case 'enabling':
+          this.showScreen(LOGGED_OUT_SCREEN);
+          this.showEnabling();
+          break;
         case 'enabled':
+          this.hideEnabling();
           this.showScreen(LOGGED_IN_SCREEN);
           this.showSyncNow();
           this.showUser(message.user);
@@ -227,6 +233,22 @@ define(function(require) {
       this.screens.loggedIn.hidden = (screen != LOGGED_IN_SCREEN);
       this.screens.loggedOut.hidden = (screen != LOGGED_OUT_SCREEN);
       this.loadElements(screen);
+    },
+
+    showEnabling() {
+      this.elements.login.disabled = true;
+      this.elements.login.dataset.l10nId = 'fxsync-signing';
+    },
+
+    hideEnabling() {
+      // It is possible that we go from enabled to syncing and viceversa.
+      // In that case the login button won't be available anymore, so we
+      // just bail out.
+      if (!this.elements.login) {
+        return;
+      }
+      this.elements.login.disabled = false;
+      this.elements.login.dataset.l10nId = 'fxsync-get-started';
     },
 
     showSyncing() {
