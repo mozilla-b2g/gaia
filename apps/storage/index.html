@@ -37,6 +37,7 @@
     <script defer src="/shared/js/component_utils.js"></script>
     <script defer src="/shared/elements/gaia_subheader/script.js"></script>
     <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="/shared/elements/gaia_switch/script.js"></script>
 
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
@@ -56,7 +57,9 @@
             <p data-l10n-id="start-adding">start adding them now</p>
           </div>
         </div>
-        <div id="storage-container">
+        <div class="view-body-inner">
+          <ul id="storage-container" data-type="list" role="presentation">
+          </ul>
         </div>
       </article>
     </section>

@@ -51,6 +51,8 @@ var Storage = {
       this.handleNewStorageCreateButtonClick.bind(this));
     this.newStorageForm.addEventListener('submit',
       this.handleNewStorageFormSubmit.bind(this));
+    this.storageContainer.addEventListener('change',
+      this.handleStorageContainerSwitchChange.bind(this));
 
     this.initOAuthWindow();
   },
@@ -81,11 +83,22 @@ var Storage = {
           container.removeChild(container.firstChild);
         }
         list.forEach(item => {
-          // TODO: refine the list UI.
-          var para = document.createElement('p');
-          var node = document.createTextNode(item.name + ' ---- ' + item.type);
-          para.appendChild(node);
-          container.appendChild(para);
+          /*
+            <li role="checkbox">
+              <gaia-switch>
+                <label>Storage Name</label>
+              </gaia-switch>
+            </li>
+          */
+          var li = document.createElement('li');
+          li.setAttribute('role', 'checkbox');
+          var gaia_switch = document.createElement('gaia-switch');
+          gaia_switch.setAttribute('data-storage-id', item.id);
+          var label = document.createElement('label');
+          label.textContent = item.name;
+          gaia_switch.appendChild(label);
+          li.appendChild(gaia_switch);
+          container.appendChild(li);
         });
       });
     });
@@ -93,6 +106,11 @@ var Storage = {
 
   handleAddStorageButtonClick() {
     this.showNewStorageForm();
+  },
+
+  handleStorageContainerSwitchChange(e) {
+    var storageId = e.target.getAttribute('data-storage-id');
+    console.log(storageId);
   },
 
   handleNewStorageCreateButtonClick() {
@@ -182,6 +200,8 @@ var Storage = {
     newStorage.id = newStorage.type + '::' + newStorage.name;
     asyncStorage.setItem(newStorage.id, newStorage, () => {
       console.log(newStorage);
+      this.newStorageName.value = '';
+      this.newStorageType.value = '';
       this.reloadStorageList();
     });
   },

@@ -39,6 +39,10 @@
   border: 0;
 }
 
+#storage-container label {
+  color: #111111;
+}
+
 .sup-oauth2-browser {
   border: 0;
   margin: 0;
