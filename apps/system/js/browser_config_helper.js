@@ -83,6 +83,10 @@
         }
       }
 
+      if (name.indexOf('StorageManager')) {
+        isOutOfProcessDisabled = true;
+      }
+
       if (!isOutOfProcessDisabled) {
         this.oop = true;
       }
