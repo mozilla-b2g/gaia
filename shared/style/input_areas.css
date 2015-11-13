@@ -92,7 +92,6 @@ form p input + button[type="reset"],
 form p textarea + button[type="reset"] {
   position: absolute;
   top: 0;
-  offset-inline-end: -0.3rem;
   width: 4rem;
   height: 4rem;
   padding: 0;
@@ -101,6 +100,14 @@ form p textarea + button[type="reset"] {
   opacity: 0;
   pointer-events: none;
   background: url(input_areas/images/clear.png) no-repeat 50% 50% / 2.4rem auto;
+}
+html[dir="ltr"] form p input + button[type="reset"],
+html[dir="ltr"] form p textarea + button[type="reset"] {
+  right: -0.3rem;
+}
+html[dir="rtl"] form p input + button[type="reset"],
+html[dir="rtl"] form p textarea + button[type="reset"] {
+  left: -0.3rem;
 }
 
 .skin-dark p input + button[type="reset"],
