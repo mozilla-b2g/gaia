@@ -18,12 +18,13 @@ suite('AppWindow', () => {
   suite('AppWindow#updatePanelIndicator()', () => {
     var indicatorToggleStubs;
     var realPanels;
-    var mockPanels = {
-      scrollLeft: 0,
-      scrollLeftMax: 100
-    };
+    var mockPanels;
 
     setup(() => {
+      mockPanels = {
+        scrollLeft: 0,
+        scrollWidth: 200
+      };
       indicatorToggleStubs = [
         sinon.stub(appWindow.indicator.children[0].classList, 'toggle'),
         sinon.stub(appWindow.indicator.children[1].classList, 'toggle')];
@@ -42,6 +43,16 @@ suite('AppWindow', () => {
       assert.isTrue(indicatorToggleStubs[0].calledWith('active', true));
       assert.isTrue(indicatorToggleStubs[1].calledWith('active', false));
       assert.equal(appWindow.header.getAttribute('data-l10n-id'), 'apps-panel');
+    });
+
+    test('should update indicator when apps visible in RTL', () => {
+      appWindow.appsVisible = true;
+      mockPanels.scrollLeft = -100;
+      appWindow.updatePanelIndicator();
+      assert.isTrue(indicatorToggleStubs[0].calledWith('active', false));
+      assert.isTrue(indicatorToggleStubs[1].calledWith('active', true));
+      assert.equal(appWindow.header.getAttribute('data-l10n-id'),
+                   'pages-panel');
     });
 
     test('should update aria-hidden on both panels', () => {
