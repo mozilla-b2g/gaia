@@ -103,6 +103,40 @@ suite('system/SecureWindowManager', function() {
       }
     });
 
+    test('App focused again after permission dialog hidden', function() {
+      var stubFocus = this.sinon.stub(appFake, 'focus');
+      try {
+        window.secureWindowManager.handleEvent({type: 'secure-appcreated',
+          detail: appFake});
+        window.secureWindowManager.handleEvent({type: 'secure-appopened',
+          detail: appFake});
+        window.secureWindowManager.handleEvent({type: 'permissiondialoghide',
+          detail: appFake});
+        assert.isTrue(stubFocus.calledTwice,
+          'app not given keyboard focus when permission dialog hidden');
+      }
+      finally {
+        stubFocus.restore();
+      }
+    });
+
+    test('App focused again after sleep menu hidden', function() {
+      var stubFocus = this.sinon.stub(appFake, 'focus');
+      try {
+        window.secureWindowManager.handleEvent({type: 'secure-appcreated',
+          detail: appFake});
+        window.secureWindowManager.handleEvent({type: 'secure-appopened',
+          detail: appFake});
+        window.secureWindowManager.handleEvent({type: 'sleepmenuhide',
+          detail: appFake});
+        assert.isTrue(stubFocus.calledTwice,
+          'app not given keyboard focus when sleep menu hidden');
+      }
+      finally {
+        stubFocus.restore();
+      }
+    });
+
     test('App request close', function() {
       var stubClose = this.sinon.stub(appFake, 'close');
       window.secureWindowManager.handleEvent({type: 'secure-apprequestclose',
