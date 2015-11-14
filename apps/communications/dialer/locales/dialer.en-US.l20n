@@ -1,0 +1,247 @@
+/* Macros */
+
+<plural($n) { $n == 0 ? "zero" :
+              $n == 1 ? "one" : "many" }>
+
+<multiSim($sims) { $sims > 1 ? "multi" : "single" }
+
+/*
+ * MMI
+ */
+
+<mmi_error "An error occurred while sending the message">
+<mmi_session_expired "Session expired">
+<mmi_successfully_sent "Message successfully sent">
+<mmi_text "{{ $text }}">
+<mmi_title[multiSim($sims)] {
+  *single: "{{ $text }}",
+  multi: "{{ $sim }} {{ $text }}"
+}>
+<mmi_title_with_service_code[multiSim($sims)] {
+  *single: "{{ mmi_service_code }}",
+  multi: "{{ $sim }} {{ mmi_service_code }}"
+}>
+<mmi_title_with_error[multiSim($sims)] {
+  *single: "{{ mmi_error }}",
+  multi: "{{ $sim }} {{ mmi_error }}"
+}>
+
+/*
+ * Call forwarding
+ */
+
+<call_forwarding_error "An error occurred while retrieving call forwarding status">
+<call_forwarding_inactive "Inactive">
+<call_forwarding_async[$async] {
+  inactive: "{{ call_forwarding_inactive }}"
+  *default: "Asynchronous: {{ $async }}"
+}>
+<call_forwarding_data[$data] {
+  inactive: "{{ call_forwarding_inactive }}"
+  *default: "Data: {{ $data }}"
+}>
+<call_forwarding_fax[$fax] {
+  inactive: "{{ call_forwarding_inactive }}"
+  *default: "FAX: {{ $fax }}"
+}>
+<call_forwarding_packet[$packet] {
+  inactive: {{ call_forwarding_inactive }}
+  *default: "Packet: {{ $packet }}"
+}>
+<call_forwarding_pad[$pad] {
+  inactive: {{ call_forwarding_inactive }}
+  *default: "PAD: {{ $pad }}"
+}>
+<call_forwarding_sms[$sms] {
+  inactive: {{ call_forwarding_inactive }}
+  *default: "SMS: {{ $sms }}"
+}>
+<call_forwarding_sync[$sync] {
+  inactive: {{ call_forwarding_inactive }}
+  *default: "Synchronous:  {{ $sync }}"
+}>
+<call_forwarding_voice[$voice] {
+  inactive: {{ call_forwarding_inactive }}
+  *default: "Voice: {{ $voice }}"
+}>
+<call_forwarding_status """
+  Call forwarding status
+  {{ call_forwarding_voice }}
+  {{ call_forwarding_data }}
+  {{ call_forwarding_fax }}
+  {{ call_forwarding_sms }}
+  {{ call_forwarding_sync }}
+  {{ call_forwarding_async }}
+  {{ call_forwarding_packet }}
+  {{ call_forwarding_pad }}
+""">
+
+/*
+ * MMI Service code
+ */
+
+<mmi_service_code[$mmi_service_code] {
+  scCallBarring:    "{{ scCallBarring }}",
+  scCallForwarding: "{{ scCallForwarding }}",
+  scClip:           "{{ scClip }}",
+  scClir:           "{{ scClir }}",
+  scPwd:            "{{ scPwd }}",
+  scCallWaiting:    "{{ scCallWaiting }}",
+  scPin:            "{{ scPin }}",
+  scPin2:           "{{ scPin2 }}",
+  scPuk:            "{{ scPuk }}",
+  scPuk2:           "{{ scPuk2 }}",
+  scImei:           "{{ scImei }}",
+  scUssd:           "{{ scUssd }}"
+}>
+
+<scCallBarring "Call barring">
+<scCallForwarding "Call forwarding">
+<scClip "Incoming Caller ID">
+<scClir "Outgoing Caller ID">
+<scPwd "Password change">
+<scCallWaiting "Call waiting">
+<scPin "PIN change">
+<scPin2 "PIN2 change">
+<scPuk "Unblock PIN">
+<scPuk2 "Unblock PIN2">
+<scImei "IMEI">
+<scUssd "USSD">
+
+<imeis """
+  {{ $imei1 }}
+  {{ $imei2 }}
+""">
+
+/*
+ * MMI Service class
+ */
+
+<serviceClassVoice[$voice] {
+  enabled:   "Voice"
+  *disabled: ""
+}>
+<serviceClassData[$data] {
+  enabled:   "Data"
+  *disabled: ""
+}>
+<serviceClassFax[$fax] {
+  enabled:   "FAX"
+  *disabled: ""
+}>
+<serviceClassSms[$sms] {
+  enabled:   "SMS"
+  *disabled: ""
+}>
+<serviceClassDataSync[$sync] {
+  enabled:   "Sync"
+  *disabled: ""
+}>
+<serviceClassDataAsync[$async] {
+  enabled:   "Async"
+  *disabled: ""
+}>
+<serviceClassPacket[$packet] {
+  enabled:   "Packet"
+  *disabled: ""
+}>
+<serviceClassPad[$pad] {
+  enabled:   "PAD"
+  *disabled: ""
+}>
+
+/*
+ * MMI Status message
+ */
+
+<smServiceEnabled "Service was enabled">
+<smServiceDisabled "Service has been disabled">
+<smServiceRegistered "Registration was successful">
+<smServiceErased "Erasure was successful">
+<smServiceInterrogated "Request was successful">
+<smServiceNotProvisioned "Service not provisioned">
+<smClirPermanent "You can not change the caller ID setting">
+<smClirDefaultOnNextCallOn "Caller ID defaults to restricted. Next call: Restricted">
+<smClirDefaultOnNextCallOff "Caller ID defaults to restricted. Next call: Not restricted">
+<smClirDefaultOffNextCallOn "Caller ID defaults to not restricted. Next call: Restricted">
+<smClirDefaultOffNextCallOff "Caller ID defaults to not restricted. Next call: Not restricted">
+
+<smServiceEnabledFor """
+  Service was enabled for:
+  {{ serviceClassVoice }}
+  {{ serviceClassData }}
+  {{ serviceClassFax }}
+  {{ serviceClassSms }}
+  {{ serviceClassDataSync }}
+  {{ serviceClassDataAsync }}
+  {{ serviceClassPacket }}
+  {{ serviceClassPad }}
+""">
+
+<smPinChanged "PIN successfully changed">
+<smPinUnblocked "PIN successfully unblocked">
+<smPin2Changed "PIN2 successfully changed">
+<smPin2Unblocked "PIN2 successfully unblocked">
+<ServiceIsEnabled "Service is enabled">
+<ServiceIsDisabled "Service is disabled">
+
+<ServiceIsEnabledFor """
+  Service is enabled for:
+  {{ serviceClassVoice }}
+  {{ serviceClassData }}
+  {{ serviceClassFax }}
+  {{ serviceClassSms }}
+  {{ serviceClassDataSync }}
+  {{ serviceClassDataAsync }}
+  {{ serviceClassPacket }}
+  {{ serviceClassPad }}
+""">
+
+/*
+ * MMI Error message
+ */
+<emMmiError "Connection problem or invalid MMI code">
+<emMmiErrorNotSupported "Invalid or Unsupported MMI Code">
+<emMmiErrorInvalidAction "Invalid action">
+<emMmiErrorBadPuk "The PUK you typed is not correct">
+<emMmiErrorBadPin "The old PIN you typed is not correct.">
+<emMmiErrorMismatchPin "The PINs you typed do not match">
+<emMmiErrorInvalidPin "Type a PIN that is 4 to 8 numbers">
+<emMmiErrorNeedsPuk "Your SIM card is PUK-locked">
+<emMmiErrorPinPukAttempts[plural($n)] {
+  zero: "No retries left",
+  one:  "Only {{ n }} retry left",
+  many: "{{ n }} retries left"
+}>
+<emMmiErrorBadPinWithAttempts """
+  {{ emMmiErrorBadPin }}
+  {{ emMmiErrorPinPukAttempts[$n] }}
+""">
+<emMmiErrorBadPukWithAttempts """
+  {{ emMmiErrorBadPuk }}
+  {{ emMmiErrorPinPukAttempts[$n] }}
+""">
+<emMmiErrorSimBlocked "Maximum number of retries exceeded. SIM blocked">
+
+/*
+ * RIL errno
+ */
+<RadioNotAvailable "Radio not available">
+<GenericFailure "Generic failure">
+<IncorrectPassword "Incorrect password">
+<SimPin2 "SIM PIN2">
+<SimPuk2 "SIM PUK2">
+<RequestNotSupported "Request not supported">
+<Cancelled "Operation was cancelled">
+<OpNotAllowedDuringVoiceCall "Operation not allowed during voice call">
+<OpNotAllowedBeforeRegToNw "Operation not allowed before registering to the network">
+<SmsSendFailRetry "SMS send fail retry">
+<SimAbsent "SIM absent">
+<SubscriptionNotAvailable "Subscription not available">
+<ModeNotSupported "Mode not supported">
+<FdnCheckFailure "Fdn check failure">
+<IllegalSimOrMe "Illegal SIM or ME">
+<MissingResource "Missing resource">
+<NoSuchElement "No such element">
+<InvalidParameter "Invalid parameter">
+<UnspecifiedError "Unspecified error">
