@@ -41,7 +41,7 @@
     }
     inputStringSyncTimer = setTimeout(function() {
       inputStringSyncTimer = null;
-      sendMessage('textinput', {
+      sendMessage('input', {
         clear: true,
         string: document.getElementById('input-string').value
       });
@@ -54,7 +54,7 @@
       inputStringSyncTimer = null;
     }
     var input = document.getElementById('input-string');
-    sendMessage('textinput', {
+    sendMessage('input', {
       clear: true,
       string: input.value,
       keycode: 13

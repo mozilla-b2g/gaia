@@ -1,6 +1,5 @@
 html {
-  font-size: 10px;
-  font-family: "Fira Sans", sans-serif;
+  font-size: 12px;
   height: 100%;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -11,212 +10,121 @@ html {
 }
 
 body {
+  margin: 0;
+  padding: 10px;
+  background-color: #aaa;
   height: 100%;
   width: 100%;
-  margin: 0;
-  padding: 0;
 }
 
 body, section, input, div {
   box-sizing: border-box;
 }
 
-:focus, :active {
-  outline: none;
-}
-
-::-moz-focus-inner {
-  border: 0;
-}
-
-/**********
- * Client *
- **********/
-
- body.client {
-   background-color: #353535;
- }
-
-.client section {
+section {
   font-size: 0;
-  margin: 17px 11px 0 11px;
+  margin-top: 1rem;
 }
 
-.client section > * {
+section > * {
   vertical-align: middle;
   font-size: 1rem;
   display: inline-block;
 }
 
-.client h1 {
-  margin: 0;
-  height: 52px;
-  line-height: 52px;
-  font-size: 23px;
+h1 {
+  font-size: 1.6rem;
+  margin-top: 0;
   font-style: italic;
-  text-align: center;
-  font-weight: 300;
-  background-color: #242424;
-  color: white;
 }
 
-.client .button {
+.button {
   cursor: pointer;
   position: relative;
   left: 0;
   top: 0;
+  color: #666;
 }
 
-.client .button:active {
-  left: 1px;
-  top: 1px;
+.button:active {
+  left: 2px;
+  top: 2px;
 }
 
 #section-input {
   height: 34px;
-  border-radius: 17px;
-  background-color: #1f1f1f;
-  overflow: hidden;
 }
 
 #input-string {
-  -webkit-appearance: none;
-  background-color: transparent;
-  border: 0;
-  border-right: 1px solid #313131;
-  border-radius: 0;
-  width: calc(100% - 60px);
-  height: 24px;
-  line-height: 24px;
-  font-size: 17px;
-  padding: 0 3px 0 15px;
-  color: #909090;
-  outline: none;
-}
-
-#input-string::-moz-placeholder {
-  font-style: italic;
-  font-weight: 300;
-  color: #5f5f5f;
-  opacity: 1;
-}
-
-#input-string::-webkit-input-placeholder {
-  font-style: italic;
-  font-weight: 300;
-  color: #5f5f5f;
-  opacity: 1;
-}
-
-#input-string::-ms-input-placeholder {
-  font-style: italic;
-  font-weight: 300;
-  color: #5f5f5f;
-  opacity: 1;
+  width: calc(100% - 65px);
+  height: 100%;
+  font-size: 1.2rem;
+  padding: 0 6px;
+  border: 1px solid #aaa;
 }
 
 #send-string {
   width: 60px;
   height: 100%;
   line-height: 34px;
+  background-color: white;
   text-align: center;
-  color: #00aacc;
-  font-size: 12px;
-  font-style: italic;
+  border: 1px solid #aaa;
+  margin-left: 5px;
 }
 
 #section-touch-panel {
-  position: relative;
-  height: calc(100% - 210px);
-  border: 1px solid #4c4c4c;
-  border-radius: 15px;
-  padding: 1px;
-}
-
-/* inner border */
-#section-touch-panel:after {
-  content: "";
-  display: block;
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: calc(100% - 2px);
-  width: calc(100% - 2px);
-  border: 1px solid #252525;
-  border-radius: 15px;
-  pointer-events: none;
+  height: calc(100% - 160px);
+  width: calc(100% + 10px);
 }
 
 .panel {
-  background-color: #545454;
+  background-color: #ddd;
   height: 100%;
+  border: 1px solid #aaa;
   cursor: default;
 }
 
 .panel.touching {
-  background-color: #4a4a4a;
+  background-color: #ccc;
 }
 
 #touch-panel {
-  width: calc(100% - 27px);
-  border-top-left-radius: 15px;
-  border-bottom-left-radius: 15px;
+  width: calc(100% - 45px);
 }
 
 #scroll-panel {
-  width: 27px;
-  border-top-right-radius: 15px;
-  border-bottom-right-radius: 15px;
-  background-image: url('images/scrollbar.png');
+  position: relative;
+  width: 40px;
+  margin-left: 5px;
 }
 
-/* extend the touching area */
-#scroll-panel:after {
-  content: "";
-  display: block;
+#scroll-panel-mask {
   position: absolute;
-  right: -12px;
+  right: 0;
   top: 0;
+  width: 10px;
   height: 100%;
-  width: 39px
+  background-color: #aaa;
+  pointer-events: none;
 }
 
 #section-buttons {
-  width: 290px;
-  margin: 25px auto 0 auto;
-  text-align: justify;
-  text-justify: inter-ideograph;
-  -ms-text-justify: inter-ideograph;
-}
-
-/* Workaround "text-align: justify" on Chrome */
-#section-buttons:after {
-  content: '';
-  display: inline-block;
-  width: 100%;
+  text-align: center;
 }
 
 #section-buttons .button {
-  width: 50px;
-  height: 50px;
+  width: 55px;
+  height: 55px;
+  line-height: 55px;
+  text-align: center;
+  background-color: white;
   border-radius: 50%;
-  background-size: contain;
+  margin-right: 60px;
 }
 
-#section-buttons .button:active {
-  background-color: #3d3d3d;
-}
-
-#button-back {
-  background-image: url('images/btn_back.png');
-}
-
-#button-home {
-  background-image: url('images/btn_home.png');
-}
-
-#button-option {
-  background-image: url('images/btn_option.png');
+#section-buttons .button:last-child {
+  margin-right: 0;
 }
 
 /***********
@@ -224,88 +132,39 @@ body, section, input, div {
  ***********/
 
 body.pairing {
-  background-color: #353535;
-  padding: 24px 18px 0 18px;
+  background-color: white;
 }
 
 .pairing h1 {
-  margin: 0;
-  color: white;
-  font-size: 34px;
-  font-style: italic;
-  font-weight: 300;
-  line-height: 45px;
-  text-align: center;
+  font-style: normal;
 }
 
 #pairing-container {
-  margin: 0 auto 14px auto;
-  width: 100%;
-  min-width: 284px;
+  margin: 3rem auto 0 auto;
+  min-width: 270px;
+  width: 90%;
   max-width: 800px;
 }
 
 #pairing-information {
-  color: #858585;
-  font-size: 17px;
-  font-style: italic;
-  font-weight: 300;
-  margin-top: 28px;
-  line-height: 22px;
-  text-align: center;
-}
-
-#pairing-information p {
-  margin: 0.5rem 0;
+  font-size: 1.2rem;
 }
 
 #pairing-code {
-  position: relative;
-  width: 275px;
   text-align: center;
-  margin: 20px auto 0 auto;
-  font-size: 0;
-  text-align: justify;
-  text-justify: inter-ideograph;
-  -ms-text-justify: inter-ideograph;
+  margin-top: 4rem;
 }
 
-/* Workaround "text-align: justify" on Chrome */
-#pairing-code:after {
-  content: '';
-  display: inline-block;
-  width: 100%;
-}
-
-#pairing-code .code, #input-mask {
-  display: inline-block;
-  vertical-align: top;
-  width: 52px;
-  height: 52px;
-  font-size: 36px;
-  font-weight: 300;
-  line-height: 52px;
-  text-align: center;
-  border-bottom: 2px solid #00caf2;
-  color: white;
-  cursor: text;
-}
-
-#pairing-code .placeholder:after {
-  content: '-';
-  color: #909ca7;
-}
-
-#input-mask {
-  position: absolute;
-  display: none;
-  left: 0;
-  top: 0;
+#pairing-code input {
+  margin: 0 2px;
   padding: 0;
+  font-size: 5rem;
+  width: 5rem;
+  text-align: center;
   border: none;
+  border-bottom: 3px solid black;
   border-radius: 0px;
   outline: none;
-  background-color: #353535;
   background-image: none; /* remove inner box shadow on mobile Firefox */
 
   -webkit-appearance: textfield;
@@ -315,53 +174,33 @@ body.pairing {
   appearance:         textfield;
 }
 
-#input-mask.visible {
-  display: block;
-}
-
-#input-mask::-webkit-inner-spin-button {
+#pairing-code input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 #pairing-message {
-  color: #00caf2;
-  font-size: 16px;
-  font-weight: 300;
-  font-style: italic;
-  margin: 16px auto 0 auto;
-  padding: 0 4px;
-  height: 60px;
-  width: 284px;
+  font-size: 1.2rem;
+  margin-top: 1.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  width: 260px;
+  height: 3.5rem;
+  color: blue;
 }
 
 #pairing-message.error {
-  color: #e2443a;
+  color: red;
 }
 
 #pairing-button-area {
-  width: 284px;
-  margin: 0px auto 0 auto;
+  margin-top: 2rem;
 }
 
 #pairing-button-area button {
-  -webkit-appearance: none;
-
-  background-color: #00caf2;
-  border: 0;
-  border-radius: 25px;
   width: 100%;
-  height: 50px;
-  color: white;
-  font-size: 16px;
-  font-style: italic;
-  font-weight: 500;
-  outline: none;
-  cursor: pointer;
-}
-
-#pairing-button-area button:active {
-  background-color: #00758c;
+  font-size: 1.6rem;
+  line-height: 3rem;
 }
 
 #restart-pairing {
@@ -369,7 +208,12 @@ body.pairing {
 }
 
 .pin-code-expired #pairing-code {
-  visibility: hidden;
+  display: none;
+}
+
+.pin-code-expired #pairing-message {
+  margin-top: 8rem;
+  margin-bottom: 5.4rem;
 }
 
 .pin-code-expired #connect {
