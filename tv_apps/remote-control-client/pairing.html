@@ -16,17 +16,21 @@
 <body class="pairing">
   <div id="pairing-container">
     <h1 data-l10n-id="pairing-title"></h1>
-    <div id="pairing-information" data-l10n-id="pairing-information"></div>
+    <div id="pairing-information">
+      <p data-l10n-id="pairing-information-1"></p>
+      <p data-l10n-id="pairing-information-2"></p>
+    </div>
     <div id="pairing-code">
-      <input type="number" min="0" max="9">
-      <input type="number" min="0" max="9">
-      <input type="number" min="0" max="9">
-      <input type="number" min="0" max="9">
+      <span class="code placeholder" tabindex="1"></span>
+      <span class="code placeholder" tabindex="2"></span>
+      <span class="code placeholder" tabindex="3"></span>
+      <span class="code placeholder" tabindex="4"></span>
+      <input id="input-mask" type="number" min="0" max="9" pattern="\d*" tabindex="-1">
     </div>
     <div id="pairing-message"></div>
     <div id="pairing-button-area">
-      <button id="connect" data-l10n-id="connect"></button>
-      <button id="restart-pairing" data-l10n-id="restart-pairing"></button>
+      <button id="connect" tabindex="5" data-l10n-id="connect"></button>
+      <button id="restart-pairing" tabindex="6" data-l10n-id="restart-pairing"></button>
     </div>
   </div>
 </body>
