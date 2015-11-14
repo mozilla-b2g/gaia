@@ -88,8 +88,7 @@ define(function(require) {
             actionMenuDialog: panel.querySelector('.paired-device-option'),
             connectOption: panel.querySelector('.connect-option'),
             disconnectOption: panel.querySelector('.disconnect-option'),
-            unpairOption: panel.querySelector('.unpair-option'),
-            cancelOption: panel.querySelector('.cancel-option')
+            unpairOption: panel.querySelector('.unpair-option')
           }
         };
 
@@ -464,32 +463,29 @@ define(function(require) {
           elements.actionMenu.disconnectOption.style.display = 'block';
           elements.actionMenu.disconnectOption.onclick = () => {
             BtConnectionManager.disconnect(deviceItem.data);
-            elements.actionMenu.actionMenuDialog.hidden = true;
+            elements.actionMenu.actionMenuDialog.hide();
           };
           elements.actionMenu.unpairOption.onclick = () => {
             // Show a confirmation dialog while a user wants to unpair
             // the connected device. Because the device is connected to use now.
             this._confirmUserWantToUnpairDeviceWhileItisConnected(deviceItem);
-            elements.actionMenu.actionMenuDialog.hidden = true;
+            elements.actionMenu.actionMenuDialog.hide();
           };
         } else if (deviceItem.connectionStatus === 'disconnected') {
           elements.actionMenu.connectOption.style.display = 'block';
           elements.actionMenu.disconnectOption.style.display = 'none';
           elements.actionMenu.unpairOption.onclick = () => {
             this._confirmToUnpair(deviceItem);
-            elements.actionMenu.actionMenuDialog.hidden = true;
+            elements.actionMenu.actionMenuDialog.hide();
           };
           elements.actionMenu.connectOption.onclick = () => {
             this._connectHeadsetDevice(deviceItem);
-            elements.actionMenu.actionMenuDialog.hidden = true;
+            elements.actionMenu.actionMenuDialog.hide();
           };
         }
 
-        elements.actionMenu.cancelOption.onclick = () => {
-          elements.actionMenu.actionMenuDialog.hidden = true;
-        };
         // Show the action menu.
-        elements.actionMenu.actionMenuDialog.hidden = false;
+        elements.actionMenu.actionMenuDialog.show();
       },
 
       _confirmUserWantToUnpairDeviceWhileItisConnected: function(deviceItem) {

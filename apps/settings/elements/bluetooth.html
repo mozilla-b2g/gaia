@@ -43,14 +43,11 @@
       </ul>
     </div>
 
-    <form role="dialog" data-type="action" class="paired-device-option" hidden>
-      <menu>
-        <button data-l10n-id="device-option-connect" class="connect-option"></button>
-        <button data-l10n-id="device-option-disconnect" class="disconnect-option"></button>
-        <button data-l10n-id="device-option-unpair" class="unpair-option"></button>
-        <button data-l10n-id="cancel" class="cancel-option"></button>
-      </menu>
-    </form>
+    <gaia-menu class="paired-device-option" hidden>
+      <button data-l10n-id="device-option-connect" class="connect-option"></button>
+      <button data-l10n-id="device-option-disconnect" class="disconnect-option"></button>
+      <button data-l10n-id="device-option-unpair" class="unpair-option"></button>
+    </gaia-menu>
 
     <panel data-path="panels/bluetooth/panel"></panel>
 
