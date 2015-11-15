@@ -27,7 +27,6 @@
     "apps/email/test/marionette/reply_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/search_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/send_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
-    "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
