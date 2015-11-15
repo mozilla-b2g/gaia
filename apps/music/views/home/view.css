@@ -14,7 +14,8 @@ body[data-search="true"] {
   border-bottom: solid 1px var(--background);
   box-sizing: border-box;
   display: block;
-  float: left;
+  float: inline-start;
+  text-align: match-parent;
   position: relative;
   width: 33.3vw;
   height: 33.3vw;
@@ -40,7 +41,7 @@ body[data-search="true"] {
 .tile:nth-child(6n+4),
 .tile:nth-child(6n+5),
 .tile:nth-child(6n+6) {
-  float: right;
+  float: inline-end;
 }
 
 .tile:nth-child(6n+1):before,

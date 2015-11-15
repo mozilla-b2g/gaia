@@ -163,7 +163,7 @@ HomeView.prototype.render = function() {
 
     this.albums.forEach((album) => {
       var template =
-Sanitizer.createSafeHTML `<a class="tile"
+Sanitizer.createSafeHTML `<a class="tile" dir="auto"
     href="/player"
     data-artist="${album.metadata.artist || unknownArtist}"
     data-album="${album.metadata.album || unknownAlbum}"
