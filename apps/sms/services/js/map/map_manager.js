@@ -63,16 +63,26 @@ const MAP_REPORT_FOOT = '</MAP-event-report>\n';
 (function (exports) {
 var MapManager = {
   init() {
-    if (managerBt.defaultAdapter) {
-      adapter = managerBt.defaultAdapter;
+    var bind_event = () => {
       adapter.addEventListener('mapmessageslistingreq',
         this.mapmessageslistingreq.bind(this));
+      adapter.addEventListener('mapgetmessagereq',
+        this.mapgetmessagereq.bind(this));
+      adapter.addEventListener('mapsetmessagestatusreq',
+        this.mapsetmessagestatusreq.bind(this));
+      adapter.addEventListener('mappushmessagereq',
+        this.mappushmessagereq.bind(this));
+      adapter.addEventListener('mapmessageupdatereq',
+        this.mapmessageupdatereq.bind(this));
+    };
+    if (managerBt.defaultAdapter) {
+      adapter = managerBt.defaultAdapter;
+      bind_event();
     } else {
       var req = managerBt.getDefaultAdapter();
       req.onsuccess = function bt_getAdapterSuccess() {
         adapter = req.result;
-        adapter.addEventListener('mapmessageslistingreq',
-          this.mapmessageslistingreq);
+        bind_event();
       };
       req.onerror = function bt_getAdapterFailed() {
         console.error('MAP', 'ERROR adapter');
@@ -106,6 +116,26 @@ var MapManager = {
         '201510151020', data.size);
       console.log('[map]' ,'C');
     });
+  },
+
+  mapgetmessagereq(evt) {
+    console.log('mapgetmessagereq');
+    console.log(evt);
+  },
+
+  mapsetmessagestatusreq(evt) {
+    console.log('mapsetmessagestatusreq');
+    console.log(evt);
+  },
+
+  mappushmessagereq(evt) {
+    console.log('mappushmessagereq');
+    console.log(evt);
+  },
+
+  mapmessageupdatereq(evt) {
+    console.log('mapmessageupdatereq');
+    console.log(evt);
   },
 
   onSendingSuccess(e) {
