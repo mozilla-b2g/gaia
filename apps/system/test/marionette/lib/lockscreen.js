@@ -2,7 +2,10 @@
  * To provide a abstract LockScreen, thus we can change the implementation
  * to get closer with user's behavior (unlock via sliding; lock with button).
  */
+
 'use strict';
+var Promise = require('es6-promise').Promise;   // jshint ignore:line
+
 (function(module) {
   var LockScreen = function() {};
 
@@ -79,6 +82,48 @@
         settings = null;
       };
     }, cb);
+  };
+
+  LockScreen.prototype.setPasscode =
+  function(_passcode, cb) {
+    this.ensure().settings();
+    this.client.executeAsyncScript(function(passcode) {
+      try {
+        window.wrappedJSObject.PasscodeHelper.set(passcode);
+      } catch(e) {
+        throw e;
+      }
+      var settings = window.wrappedJSObject.navigator.mozSettings;
+      var lock = settings.createLock();
+      lock.set({
+        'lockscreen.passcode-lock.enabled': true
+      }).then((function() {
+	marionetteScriptFinished();
+      }).bind(this)).catch(function(e) {
+        throw new Error('Cannot set LockScreen passcode enabled value');
+      });
+    }, [_passcode], (function() {
+      // To end the flow when we get the value.
+      // XXX: In fact, it doesn't matter whether the value is true,
+      // since it's always true. The mysterious error is if we don't
+      // check the value, the set action won't be executed.
+      // This is an issues that the reason and symptom is still unknown.
+      this.checkPasscodeEnabled(cb);
+    }).bind(this));
+  };
+
+  LockScreen.prototype.checkPasscodeEnabled =
+  function(cb) {
+    this.client.executeAsyncScript(function() {
+      var settings = window.wrappedJSObject.navigator.mozSettings;
+      var lock = settings.createLock();
+      lock.get('lockscreen.passcode-lock.enabled')
+      .then(function(result) {
+        marionetteScriptFinished(result['lockscreen.passcode-lock.enabled']);
+      }).catch(function(e) {
+        throw new Error('Cannot get LockScreen passcode enabled value');
+      });
+    }, [], cb);
   };
 
   LockScreen.prototype.disable =
