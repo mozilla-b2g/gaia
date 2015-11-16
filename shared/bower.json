@@ -10,7 +10,7 @@
     "gaia-component": "gaia-components/gaia-component",
     "gaia-header": "gaia-components/gaia-header#~0.9.5",
     "gaia-theme": "gaia-components/gaia-theme#~0.4.6",
-    "gaia-icons": "gaia-components/gaia-icons#~0.10.5",
+    "gaia-icons": "gaia-components/gaia-icons#~1.0.2",
     "gaia-toast": "gaia-components/gaia-toast",
     "gaia-site-icon": "gaia-components/gaia-site-icon",
     "gaia-dialog": "gaia-components/gaia-dialog",
