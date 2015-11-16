@@ -343,7 +343,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, window._('no_contact_data'));
+      assert.equal(ConfirmDialog.text, window._('no_contact_data_available'));
     });
 
     test('webcontacts/select, 1 results(tel)', function() {
