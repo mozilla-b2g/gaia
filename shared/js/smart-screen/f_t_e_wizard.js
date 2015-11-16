@@ -58,12 +58,14 @@
              this._container.getElementsByClassName(this._finishButtonClass)[0];
     this._currentPage = 0;
 
-    this._container.addEventListener('keydown', this);
-    this._container.addEventListener('keyup', this);
-
     // The element list will be updated in this._updateNavigation.
     this._simpleKeyNavigation.start([],
                                      SimpleKeyNavigation.DIRECTION.HORIZONTAL);
+
+    this._container.addEventListener('keydown', this);
+    this._container.addEventListener('keyup', this);
+    this._container.addEventListener('click', this);
+
     this._pages.forEach((page, idx) => this._hide(idx));
     this._show(this._currentPage);
     this._updateNavigation();
@@ -77,6 +79,7 @@
     }
     this._container.removeEventListener('keydown', this);
     this._container.removeEventListener('keyup', this);
+    this._container.removeEventListener('click', this);
     this._simpleKeyNavigation.stop();
     this._simpleKeyNavigation = null;
 
@@ -175,6 +178,10 @@
         // triggered by keydown in smart-screen apps.
         !this.propagateKeyEvent && evt.stopPropagation();
         break;
+      case 'click':
+        // Do forced focus again on mouse click to prevent focus lost problem
+        // when running on devices like PC and phone.
+        this.focus();
     }
   };
 
