@@ -55,6 +55,7 @@ define(function(require) {
 
       // ssid
       var ssid = document.createElement('span');
+      ssid.dir = 'auto';
       ssid.textContent = network.ssid;
 
       // supported authentication methods
