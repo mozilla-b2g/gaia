@@ -1,16 +1,13 @@
 'use strict';
 /* global __dirname */
 
-var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
+var Pinning = require(
+  '../../../../apps/system/test/marionette/lib/pinning_the_web');
 var Server = require('../../../../shared/test/integration/server');
 
-marionette('Homescreen - Bookmark', function() {
-  var options = require(__dirname + '/client_options_bookmarks.js');
-  options.settings['dev.gaia.pinning_the_web'] = false;
-  var client = marionette.client({
-    profile: options
-  });
-  var bookmark, home, server, system;
+marionette('Homescreen - Pinned Sites', function() {
+  var client = marionette.client();
+  var pinning, home, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -25,18 +22,19 @@ marionette('Homescreen - Bookmark', function() {
 
   setup(function() {
     home = client.loader.getAppClass('homescreen');
+    pinning = new Pinning(client);
     system = client.loader.getAppClass('system');
-    bookmark = new Bookmark(client, server);
     system.waitForFullyLoaded();
     home.waitForLaunch();
   });
 
-  test('Bookmarking adds bookmark to homescreen', function() {
+  test('Pinning a site adds pin to homescreen', function() {
     var numIcons = home.visibleIcons.length;
     var url = server.url('sample.html');
 
     client.switchToFrame();
-    bookmark.openAndSave(url);
+    pinning.openAndPinSiteFromBrowser(url);
+    system.dismissBanner();
 
     system.tapHome();
     client.switchToFrame(system.getHomescreenIframe());
