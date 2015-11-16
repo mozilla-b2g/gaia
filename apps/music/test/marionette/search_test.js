@@ -89,11 +89,7 @@ marionette('Music player search', function() {
     // since we display the count, just get it.
     //var count = results.findElement('.search-result-count').text();
 
-    var resultsList = results.findElements('a');
-    assert.ok(resultsList);
 
-    // detect inconsistency.
-    assert.equal(resultsList.length, expectedCount);
     // XXX when the count is back
     // check what we expect.
     //    assert.equal(count, expectedCount);
@@ -105,6 +101,8 @@ marionette('Music player search', function() {
       'return parse(elements);\n'
     );
 
+    // detect inconsistency.
+    assert.equal(resultsData.length, expectedCount);
     music.switchToMe();
     return resultsData;
   }
@@ -134,6 +132,8 @@ marionette('Music player search', function() {
         assert.equal(resultsList[2].title, 'The Ecuadorian Embassy');
         assert.equal(resultsList[2].section, 'songs');
 
+        music.searchTiles(' n');
+        resultsList = testSearchResults(1);
       } catch(e) {
         assert.ok(false, e.stack);
       }
