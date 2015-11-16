@@ -28,6 +28,9 @@ var AdapterMock = (action, args) => {
     },
     handleConflict(conflict) {
       return Promise.resolve(conflict.local);
+    },
+    reset() {
+      return Promise.resolve();
     }
   };
 };

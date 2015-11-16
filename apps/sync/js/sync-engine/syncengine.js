@@ -201,6 +201,21 @@ uld be a Function`);
   }
 
   SyncEngine.prototype = {
+    _reset: function(collectionName, userid) {
+      var collectionsToReset = ['meta', 'crypto'];
+      if (collectionName) {
+        collectionsToReset.push(collectionName);
+      }
+      return Promise.all(collectionsToReset.map(collectionName => {
+        var coll = this._getCollection(collectionName);
+        return coll.clear().then(() => {
+          if (this._adapters[collectionName]) {
+            return this._adapters[collectionName].reset({ userid });
+          }
+        });
+      }));
+    },
+
     _createKinto: function(kintoCredentials) {
       var kinto = new Kinto({
         bucket: kintoCredentials.xClientState,
@@ -249,38 +264,37 @@ uld be a Function`);
       }));
     },
 
-    _syncCollection: function(collectionName) {
+    _syncCollection: function(collectionName, userid) {
       var collection = this._getCollection(collectionName);
       // Let synchronization strategy default to 'manual', see
       // http://kintojs.readthedocs.org \
       //     /en/latest/api/#fetching-and-publishing-changes
 
       return collection.sync().then(syncResults => {
-        if (syncResults.ok) {
-          return syncResults;
+        if (syncResults && syncResults.errors && syncResults.errors.length) {
+          var error = new Error('Errors in SyncResults');
+          error.data = syncResults;
+          throw error;
         }
-        return Promise.reject(new SyncEngine.UnrecoverableError('SyncResults',
-            collectionName, syncResults));
-      }).then(syncResults => {
         if (syncResults.conflicts.length) {
           return this._resolveConflicts(collectionName, syncResults.conflicts);
         }
       }).catch(err => {
-        if (err instanceof TypeError) {
-          // FIXME: document in which case Kinto.js throws a TypeError
-          throw new SyncEngine.UnrecoverableError(err);
-        } else if (err instanceof Error && typeof err.response === 'object') {
+        if (err instanceof Error && typeof err.response === 'object') {
           if (err.response.status === 401) {
-            throw new SyncEngine.AuthError(err);
+            throw new SyncEngine.AuthError(err.message);
           }
-          throw new SyncEngine.TryLaterError(err);
-        } else if (err.message === `HTTP 0; TypeError: NetworkError when attemp\
-ting to fetch resource.`) {
+          throw new SyncEngine.TryLaterError(err.message);
+        }
+        if (err.message === `HTTP 0; TypeError: NetworkError when attempting to\
+ fetch resource.`) {
           throw new SyncEngine.TryLaterError('Syncto server unreachable',
               this._kinto && this._kinto._options &&
               this._kinto._options.remote);
         }
-        throw new SyncEngine.UnrecoverableError(err);
+        return this._reset(collectionName, userid).then(() => {
+          throw new SyncEngine.UnrecoverableError(err.message);
+        });
       });
     },
 
@@ -303,7 +317,9 @@ ting to fetch resource.`) {
       }, err => {
         if (err === 'SyncKeys hmac could not be verified with current main ' +
             'key') {
-          throw new SyncEngine.UnrecoverableError(err);
+          this._reset().then(() => {
+            throw new SyncEngine.UnrecoverableError(err);
+          });
         }
         throw err;
       });
@@ -326,8 +342,8 @@ ting to fetch resource.`) {
         return this._getItem('meta', 'global');
       }).then(metaGlobal => {
         if (!this._storageVersionOK(metaGlobal)) {
-          return Promise.reject(new SyncEngine.UnrecoverableError(`Incompatible\
- storage version or storage version not recognized.`));
+          throw new SyncEngine.UnrecoverableError(`Incompatible storage version\
+ or storage version not recognized.`);
         }
       });
     },
@@ -339,8 +355,8 @@ ting to fetch resource.`) {
         try {
           cryptoKeys = JSON.parse(cryptoKeysRecord.data.payload);
         } catch (e) {
-          return Promise.reject(new SyncEngine.UnrecoverableError(`Could not pa\
-rse crypto/keys payload as JSON`));
+          throw new SyncEngine.UnrecoverableError(`Could not parse crypto/keys \
+payload as JSON`);
         }
         return cryptoKeys;
       }).then((cryptoKeys) => {
@@ -361,14 +377,16 @@ rse crypto/keys payload as JSON`));
     },
 
     _updateCollection: function(collectionName, collectionOptions) {
-      return this._syncCollection(collectionName).then(() => {
+      return this._syncCollection(collectionName, collectionOptions.userid)
+          .then(() => {
         return this._adapters[collectionName].update(
             this._collections[collectionName], collectionOptions);
       }).then(changed => {
         if (!changed && !this._haveUnsyncedConflicts[collectionName]) {
           return Promise.resolve();
         }
-        return this._syncCollection(collectionName).then(() => {
+        return this._syncCollection(collectionName, collectionOptions.userid)
+            .then(() => {
           this._haveUnsyncedConflicts[collectionName] = false;
         });
       });

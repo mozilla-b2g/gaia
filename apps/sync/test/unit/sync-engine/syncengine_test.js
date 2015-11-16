@@ -317,7 +317,8 @@ ould be an object`).and.notify(done);
           } else if (field === 'URL') {
             expect(err).to.be.instanceOf(SyncEngine.TryLaterError);
           } else {
-            expect(err).to.be.instanceOf(SyncEngine.UnrecoverableError);
+            expect(err).to.equal(`SyncKeys hmac could not be verified with curr\
+ent main key`);
           }
           done();
         });
@@ -373,6 +374,11 @@ ould be an object`).and.notify(done);
             expect(err.message).to.equal('try later');
           } else {
             expect(err.message).to.equal('unrecoverable');
+          }
+          if (['401', '404', '500', '503'].indexOf(problem) === -1) {
+            expect(Kinto.clearCalled).to.equal(true);
+          } else {
+            expect(Kinto.clearCalled).to.equal(false);
           }
           done();
         });
