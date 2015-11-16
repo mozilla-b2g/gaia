@@ -56,7 +56,9 @@
                 'secure-appcreated',
                 'secure-appopened',
                 'secure-appterminated',
-                'secure-apprequestclose'
+                'secure-apprequestclose',
+                'permissiondialoghide',
+                'sleepmenuhide',
                ]
     }
   };
@@ -136,9 +138,7 @@
           break;
         case 'secure-appopened':
           this.elements.screen.classList.add('secure-app');
-          if (this.states.activeApp) {
-            this.states.activeApp.focus();
-          }
+          this.setFocus(true);
           break;
         case 'secure-appterminated':
           app = evt.detail;
@@ -159,6 +159,10 @@
           app.close(this.states.killMode ?
               this.configs.killAnimation : null);
           this.elements.screen.classList.remove('secure-app');
+          break;
+        case 'sleepmenuhide':
+        case 'permissiondialoghide':
+          this.setFocus(true); // See bug 1224281
           break;
       }
     };
