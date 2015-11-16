@@ -140,7 +140,6 @@ function navigationStack(currentView) {
     var next = document.getElementById(nextView);
     // Add forwards class to next view.
     if (forwardsClasses.next) {
-      next.classList.add('block-item');
       next.classList.add(forwardsClasses.next);
       next.addEventListener('animationend', function ng_onNextBackwards(ev) {
         next.removeEventListener('animationend', ng_onNextBackwards);
