@@ -1,0 +1,7 @@
+{
+  "block_size": 1048576,
+  "queue_concurrency": 6,
+  "prefetch_blocks": 15,
+  "max_data_cache_entry": 80,
+  "cache_path": "/tmp/ud/cache"
+}
