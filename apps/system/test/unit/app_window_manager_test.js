@@ -417,6 +417,20 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubDisplay.called);
     });
 
+    test('Change homescreen while home displayed', function() {
+      var home2 = new HomescreenWindow('fakeHome2');
+      this.sinon.stub(home2, 'open');
+      injectRunningApps(home, home2);
+
+      subject._activeApp = home;
+      MockService.mockQueryWith('getHomescreen', home2);
+      subject.handleEvent(
+        { type: 'homescreen-changed', detail: home2 });
+
+      sinon.assert.calledOnce(home2.open);
+      sinon.assert.calledWith(home2.open, 'immediate');
+    });
+
     test('Press home but ftu launcher blocks it', function() {
       injectRunningApps(home, app1);
       var stubDisplay = this.sinon.stub(subject, 'display');

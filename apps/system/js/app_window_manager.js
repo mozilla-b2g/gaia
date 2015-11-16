@@ -317,9 +317,13 @@
                   '; next is ' + (appNext ? appNext.url : 'none'));
 
       if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
-        // Do nothing.
-        this.debug('the app has been displayed.');
-        return;
+        if (!appCurrent.isHomescreen) {
+          // Do nothing.
+          this.debug('the app has been displayed.');
+          return;
+        } else if (appCurrent.manifestURL == appNext.manifestURL) {
+          return;
+        }
       }
 
       if (document.mozFullScreen) {
@@ -426,6 +430,11 @@
         if (appNext.resized &&
             !this.service.query('match', appNext.width, appNext.height)) {
           this.debug('immediate due to resized');
+          immediateTranstion = true;
+        }
+
+        if (appCurrent && appNext &&
+            appCurrent.isHomescreen && appNext.isHomescreen) {
           immediateTranstion = true;
         }
 
