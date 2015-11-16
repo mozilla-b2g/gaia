@@ -22,6 +22,7 @@
 /* global
   asyncStorage,
   DataAdapters,
+  ERROR_SYNC_APP_RACE_CONDITION,
   LazyLoader
 */
 
@@ -182,12 +183,22 @@ var HistoryHelper = (() => {
         return setDataStoreId(place.fxsyncId, id, userid);
       });
     }).catch(e => {
+      if (e.name === 'ConstraintError' &&
+          e.message === 'RevisionId is not up-to-date') {
+        return LazyLoader.load(['shared/js/sync/errors.js']).then(() => {
+          throw new Error(ERROR_SYNC_APP_RACE_CONDITION);
+        });
+      }
       console.error(e);
     });
   }
 
   function updatePlaces(places, userid) {
-    return new Promise(resolve => {
+    // Using Array.reduce-based sequential waterfall here instead of Promise.all
+    // to make sure each DataStore update is sequential and we can detect if any
+    // actual race conditions occurred due to simultaneous DataStore access by
+    // other apps during any of these updates.
+    return new Promise((resolve, reject) => {
       places.reduce((reduced, current) => {
         return reduced.then(() => {
           if (current.url && Array.isArray(current.visits) &&
@@ -199,7 +210,7 @@ var HistoryHelper = (() => {
           }
           return addPlace(current, userid);
         });
-      }, Promise.resolve()).then(resolve);
+      }, Promise.resolve()).then(resolve, reject);
     });
   }
 
@@ -429,8 +440,7 @@ DataAdapters.history = {
       console.warn('Two-way sync not implemented yet for history.');
     }
     var mtime;
-    return LazyLoader.load(['shared/js/async_storage.js'])
-    .then(() => {
+    return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
       // We iterate over the records in the Kinto collection until we find a
       // record whose last modified time is older than the time of the last
       // successful sync run. However, if the DataStore has been cleared, or

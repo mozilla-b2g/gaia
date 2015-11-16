@@ -6,6 +6,7 @@
 /* global
   asyncStorage,
   DataAdapters,
+  ERROR_SYNC_APP_RACE_CONDITION,
   HISTORY_COLLECTION_MTIME,
   HISTORY_LAST_REVISIONID,
   HISTORY_SYNCTOID_PREFIX,
@@ -16,6 +17,7 @@
   MockNavigatorDatastore
 */
 
+require('/shared/js/sync/errors.js');
 require('/apps/music/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
@@ -23,9 +25,10 @@ requireApp('sync/js/adapters/history.js');
 
 window.DataAdapters = {};
 
-suite('sync/adapters/history >', () => {
+suite('sync/adapters/history >', function() {
   var realDatastore, realLazyLoader, realAsyncStorage, testCollectionData;
   var updatePlacesSpy, dataStoreRemoveSpy;
+
   var kintoCollection = {
     list() {
       return Promise.resolve({
@@ -110,7 +113,7 @@ suite('sync/adapters/history >', () => {
     window.asyncStorage.mTeardown();
   });
 
-  test('update - empty records', done => {
+  test('update - empty records', function(done) {
     var historyAdapter = DataAdapters.history;
     historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
         .then((result) => {
@@ -201,7 +204,7 @@ suite('sync/adapters/history >', () => {
   });
 
   test('update - does not refill the DataStore if nothing removed locally',
-      done => {
+      function(done) {
     var historyAdapter = DataAdapters.history;
     testCollectionData = testDataGenerator(1, 1440000000, 5);
     asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME] =
@@ -226,13 +229,17 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - 1 sync request with 5 new records', done => {
+  test('update - 1 sync request with 5 new records', function(done) {
     var historyAdapter = DataAdapters.history;
+    var lazyLoaderSpy = this.sinon.spy(MockLazyLoader, 'load');
+
     testCollectionData = testDataGenerator(1, 1440000000, 5);
     historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
         .then((result) => {
-      assert.equal(result, false);
       var mTime = testCollectionData[0].last_modified;
+      assert.equal(lazyLoaderSpy.calledWith(['shared/js/async_storage.js']),
+          true);
+      assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
                    mTime);
       assert.equal(updatePlacesSpy.callCount, 1);
@@ -255,7 +262,32 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - 1 sync request with 5 pre-existing records', done => {
+  suite('if a DataStore race condition occurs', function() {
+    setup(function() {
+      MockDatastore._raceCondition = true;
+    });
+    teardown(function() {
+      delete MockDatastore._raceCondition;
+    });
+
+    test('update - rejects its promise', function(done) {
+      var historyAdapter = DataAdapters.history;
+      var lazyLoaderSpy = this.sinon.spy(MockLazyLoader, 'load');
+
+      testCollectionData = testDataGenerator(1, 1440000000, 5);
+      historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
+          .catch(error => {
+        assert.equal(lazyLoaderSpy.calledWith(['shared/js/sync/errors.js']),
+            true);
+        assert.equal(error.message, ERROR_SYNC_APP_RACE_CONDITION);
+        assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
+                     null);
+        done();
+      });
+    });
+  });
+
+  test('update - 1 sync request with 5 pre-existing records', function(done) {
     var historyAdapter = DataAdapters.history;
     getPlacesStore().then(store => {
       for (var i=1; i<=5; i++) {
@@ -294,7 +326,7 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - 2 sync requests', done => {
+  test('update - 2 sync requests', function(done) {
     var historyAdapter = DataAdapters.history;
     Promise.resolve().then(() => {
       testCollectionData = testDataGenerator(1, 100, 5)
@@ -338,7 +370,7 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - 2 sync requests with 2 deleted: true records', done => {
+  test('update - 2 sync requests with 2 deleted: true records', function(done) {
     var historyAdapter = DataAdapters.history, store;
     var deletedQueue = ['UNIQUE_ID_1', 'UNIQUE_ID_4'];
     Promise.resolve().then(() => {
@@ -403,7 +435,7 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - non-array visits record', done => {
+  test('update - non-array visits record', function(done) {
     var historyAdapter = DataAdapters.history;
     var i = 1;
     testCollectionData.unshift({
@@ -429,7 +461,8 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - empty visits array record (not created locally)', done => {
+  test('update - empty visits array record (not created locally)',
+      function(done) {
     var historyAdapter = DataAdapters.history;
     var i = 1;
     testCollectionData.unshift({
@@ -457,7 +490,7 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - empty visits array record (created locally)', done => {
+  test('update - empty visits array record (created locally)', function(done) {
     var historyAdapter = DataAdapters.history;
     var i = 1;
     testCollectionData.unshift({
@@ -486,7 +519,7 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - empty history-uri record', done => {
+  test('update - empty history-uri record', function(done) {
     var historyAdapter = DataAdapters.history;
     var i = 1;
     testCollectionData.unshift({
@@ -512,7 +545,7 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('update - empty last_modified record', done => {
+  test('update - empty last_modified record', function(done) {
     var historyAdapter = DataAdapters.history;
     var i = 1;
     testCollectionData.unshift({
@@ -538,7 +571,7 @@ suite('sync/adapters/history >', () => {
     });
   });
 
-  test('HistoryHelper - merge two remote records', done => {
+  test('HistoryHelper - merge two remote records', function(done) {
     var place1 = {
       url: 'http://www.mozilla.org/en-US/',
       title: '',
@@ -572,7 +605,7 @@ suite('sync/adapters/history >', () => {
     done();
   });
 
-  test('HistoryHelper - merge remote record into local record', done => {
+  test('HistoryHelper - merge remote record into local record', function(done) {
     var place1 = {
       url: 'http://www.mozilla.org/en-US/',
       title: '',
@@ -605,7 +638,7 @@ suite('sync/adapters/history >', () => {
     done();
   });
 
-  test('HistoryHelper - merge two records with incorrect URL', done => {
+  test('HistoryHelper - merge two records with incorrect URL', function(done) {
     var place1 = {
       url: 'dummy',
       title: '',
@@ -626,7 +659,8 @@ suite('sync/adapters/history >', () => {
     done();
   });
 
-  test('HistoryHelper - merge two records with incorrect fxsyncId', done => {
+  test('HistoryHelper - merge two records with incorrect fxsyncId',
+      function(done) {
     var place1 = {
       url: 'http://www.mozilla.org/en-US/',
       title: '',

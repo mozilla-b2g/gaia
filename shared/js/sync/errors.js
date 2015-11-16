@@ -49,6 +49,8 @@
     ERROR_SYNC_APP_GENERIC: 'fxsync-error-app-generic',
     // The server cannot be reached.
     ERROR_SYNC_APP_TRY_LATER: 'fxsync-error-app-try-later',
+    // A DataStore was updated by another app at the same time.
+    ERROR_SYNC_APP_RACE_CONDITION: 'fxsync-error-app-race-condition',
     // The user is logged in with an unverified account.
     ERROR_UNVERIFIED_ACCOUNT: 'fxsync-error-unverified-account'
   };
