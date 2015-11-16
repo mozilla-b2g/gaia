@@ -4,14 +4,12 @@ suite('Languages Panel > ', function() {
 
   var modules = [
     'panels/languages/panel',
-    'unit/mock_settings',
     'unit/mock_navigator_settings',
   ];
   var map = {
     '*': {
       'panels/languages/languages': 'MockLanguages',
-      'modules/settings_panel': 'MockSettingsPanel',
-      'settings': 'unit/mock_settings'
+      'modules/settings_panel': 'MockSettingsPanel'
     }
   };
 

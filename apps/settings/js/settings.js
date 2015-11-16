@@ -7,7 +7,7 @@
  */
 
 window.Settings = {
-  get mozSettings() {
+  get hasMozSettings() {
     // return navigator.mozSettings when properly supported, null otherwise
     // (e.g. when debugging on a browser...)
     var settings = window.navigator.mozSettings;
@@ -75,7 +75,7 @@ window.Settings = {
   },
 
   init: function settings_init(options) {
-    if (!this.mozSettings || !navigator.mozSetMessageHandler) {
+    if (this.hasMozSettings || !navigator.mozSetMessageHandler) {
       return;
     }
 

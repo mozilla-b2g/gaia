@@ -91,7 +91,7 @@ define(function(require) {
         });
       } else {
         cset[this._keyUmsEnabled] = false;
-        Settings.mozSettings.createLock().set(cset);
+        navigator.mozSettings.createLock().set(cset);
       }
     },
 
@@ -118,7 +118,7 @@ define(function(require) {
           debug('turn on fail');
           var cset = {};
           cset[this._keyUmsEnabled] = false;
-          Settings.mozSettings.createLock().set(cset);
+          navigator.mozSettings.createLock().set(cset);
 
           checkbox.checked = false;
         }
@@ -140,7 +140,7 @@ define(function(require) {
 
         if (!usbTetheringSetting) {
           cset[umsSettingKey] = true;
-          Settings.mozSettings.createLock().set(cset);
+          navigator.mozSettings.createLock().set(cset);
         } else {
           openIncompatibleSettingsDialog('incompatible-settings-warning',
             umsSettingKey, oldSetting, null);

@@ -20,9 +20,6 @@ suite('WifiContext', function() {
   suiteSetup(function() {
     realSettings = window.navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
-
-    window.Settings = {};
-    window.Settings.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {

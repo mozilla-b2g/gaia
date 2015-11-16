@@ -9,7 +9,7 @@ define(function(require) {
 
   var SettingsCache = require('modules/settings_cache');
 
-  var settings = Settings.mozSettings;
+  var settings = window.navigator.mozSettings;
   /**
    * ENABLED_KEY: "privacy.donottrackheader.enabled"
    * VALUE_KEY    "privacy.donottrackheader.value"
@@ -31,7 +31,7 @@ define(function(require) {
   var DoNotTrack = function() {};
 
   DoNotTrack.prototype = {
-    /* 
+    /*
      * If 'privacy.donottrackheader.value' was not defined then
      * we're upgrading from 1.1 which did not have this key.
      * Set it according to the contents of
