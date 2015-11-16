@@ -120,6 +120,14 @@ class Homescreen(Base):
             current_frame, 0, start_y_position, final_x_position * 2, start_y_position * 2).perform()
 
 
+    def go_to_pinned_pages_panel(self):
+        current_frame = self.apps.displayed_app.frame
+        final_x_position = current_frame.rect['width'] // 2
+        start_y_position = current_frame.rect['height'] // 2
+        Actions(self.marionette).flick(
+            current_frame, 0, start_y_position, final_x_position * 2, start_y_position * 2).perform()
+
+
     class GaiaAppIcon(PageRegion):
 
         @property
