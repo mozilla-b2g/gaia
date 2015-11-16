@@ -33,6 +33,12 @@ marionette('Firefox Accounts Launch Tests', function() {
       app.enterEmailNew();
     });
 
+    test('Sync settings', function () {
+      app.launch(FxA.SETTINGS_ORIGIN);
+      app.runSyncSettingsMenu();
+      app.enterEmailNew();
+    });
+
     test('UITest app', function () {
       app.launch(FxA.UITEST_ORIGIN);
       app.runUITestMenu();
