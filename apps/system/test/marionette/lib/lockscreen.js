@@ -9,6 +9,12 @@
   LockScreen.prototype.start = function(client) {
     this.Ensure = require('./ensure.js');
     this.client = client;
+    this.actions = client.loader.getActions();
+    this.selector = {
+      lockSlider: '#lockscreen-icon-container',
+      passcodePad: '#lockscreen-passcode-pad',
+      passcodeKey: 'a[data-key="#"]'
+    };
     // XXX: After we make LockScree as an iframe or app, we need this to
     // indicate to switch to which frame.
     this.lockScreenFrameOrigin = 'app://lockscreen.gaiamobile.org';
@@ -157,6 +163,57 @@
         }
       }).bind(this));
     return this;
+  };
+
+  // Slide to unlock the screen
+  LockScreen.prototype.slideToUnlock =
+  function() {
+    this.ensure().frame();
+    this._slideLock('right');
+    return this;
+  };
+
+  // Slide an element given x and y offsets
+  LockScreen.prototype._slideByOffset =
+  function(element, x, y) {
+    // actions.flick doesn't work for some reason. Resorted to breaking it
+    // down to press > move > release. The waiting time in between each action
+    // is necessary.
+    this.actions.
+      press(element).wait(0.5).moveByOffset(x, y).wait(0.5).release().
+      perform();
+    return this;
+  };
+
+  // Slide lockscreen to left or right
+  LockScreen.prototype._slideLock =
+  function(direction) {
+    var lockSlider = this.client.findElement(this.selector.lockSlider);
+    var size = lockSlider.size();
+    switch (direction) {
+      case 'left':
+        this._slideByOffset(lockSlider, -size.width / 2, 0);
+        break;
+      case 'right':
+        this._slideByOffset(lockSlider, size.width / 2, 0);
+        break;
+    }
+    return this;
+  };
+
+  // Type numeric passcode
+  LockScreen.prototype.typePasscode = function(code) {
+    var passcodePad = this.client.findElement(this.selector.passcodePad);
+    this.ensure().frame();
+    this.ensure().element(passcodePad).displayed();
+    code.split('').forEach(function(number) {
+      var keySelector = this.selector.passcodeKey.replace('#', number);
+      var key = passcodePad.findElement(keySelector);
+      // Using tap would cause the key to be typed twice. There has to be
+      // sufficient time interval between pressing and releasing the keys
+      // to avoid this problem.
+      this.actions.press(key).wait(0.5).release().perform();
+    }.bind(this));
   };
 
   module.exports = LockScreen;
