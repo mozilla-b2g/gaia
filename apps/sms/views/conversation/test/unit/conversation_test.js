@@ -279,6 +279,9 @@ suite('conversation.js >', function() {
       container.innerHTML = innerHTML;
       // This crudely emulates the CSS styles applied to the message list
       container.lastElementChild.style.paddingBottom = '16px';
+
+      // force reflow
+      container.scrollTop;
     });
 
     test('scroll 100px, should be detected as a manual scroll', function() {
