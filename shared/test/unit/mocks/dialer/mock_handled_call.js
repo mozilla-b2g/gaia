@@ -29,6 +29,10 @@ MockHandledCall.prototype.formatPhoneNumber =
   function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
 };
 
+MockHandledCall.prototype.renderPhoneNumber =
+  function hc_renderPhoneNumber(phoneNumber, ellipsisSide) {
+};
+
 MockHandledCall.prototype.replacePhoneNumber =
   function hc_replacePhoneNumber(phoneNumber, ellipsisSide) {
 };
