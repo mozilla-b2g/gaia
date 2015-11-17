@@ -6,9 +6,7 @@
   var iceContactsDetails = [],
       iceContactsBar,
       contactListOverlay,
-      contactInOverlay,
-      contactList,
-      contactListCancel;
+      contactInOverlay;
 
   function init() {
     if (ICEContacts._initialized) {
@@ -19,16 +17,16 @@
     contactListOverlay = document.getElementById('contact-list-overlay');
     contactInOverlay = document.getElementById('contact-in-overlay');
 
-    LazyLoader.load([contactListOverlay], function() {
+    var contactsListOverlayResources = [
+      '/shared/js/component_utils.js',
+      '/shared/elements/gaia_menu/script.js'
+    ];
+
+    LazyLoader.load(contactsListOverlayResources, function() {
       var contactListOverlayHeader = contactListOverlay.querySelector('header');
       contactListOverlayHeader.dataset.l10nId = 'ice-contacts-overlay-title';
 
-      contactList = document.getElementById('contact-list');
-      contactListCancel =
-        document.getElementById('contact-list-overlay-cancel');
-
       iceContactsBar.addEventListener('click', showICEContactOverlay);
-      contactListCancel.addEventListener('click', hideICEContactOverlay);
 
       ICEContacts._initialized = true;
     });
@@ -39,15 +37,11 @@
   }
 
   function showICEContactOverlay() {
-    contactListOverlay.classList.add('display');
-  }
-
-  function hideICEContactOverlay() {
-    contactListOverlay.classList.remove('display');
+    contactListOverlay.show();
   }
 
   function callICEContact(number) {
-    hideICEContactOverlay();
+    contactListOverlay.hide();
     CallHandler.call(number);
   }
 
@@ -86,7 +80,7 @@
           tel.type[0];
         iceContactOverlayEntry.querySelector('.js-tel').textContent =
           tel.value;
-        contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
+        contactListOverlay.appendChild(iceContactOverlayEntry);
         iceContactOverlayEntry.addEventListener('click',
           callICEContact.bind(null, tel.value));
         // Set the ICE contacts bar visible as soon as there is some
