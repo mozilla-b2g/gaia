@@ -211,17 +211,22 @@ suite('system/TaskManager >', function() {
       clock.tick(TICK_SHOW_HIDE_MS);
     });
 
-    test('Should emit "cardviewbeforeshow" and "cardviewshown"', (done) => {
-      var spyCardViewBeforeShow = spyEvent(window, 'cardviewbeforeshow');
-      var spyCardViewShown = spyEvent(window, 'cardviewshown');
+    test('Should emit "cardviewprepare", "cardviewbeforeshow" ' +
+         'and "cardviewshown"', (done) => {
+      var spyCardViewPrepare = spyEvent(window, 'cardviewprepare');
       tm.hide().then(() => {
-        var show = tm.show();
-        assert.isTrue(spyCardViewBeforeShow.called);
-        clock.tick(TICK_SHOW_HIDE_MS);
-        return show;
-      }).then(() => {
-        assert.isTrue(spyCardViewShown.called);
-      }).then(done, done);
+        tm.show();
+        assert.isTrue(spyCardViewPrepare.called);
+        function onBeforeShow() {
+          window.removeEventListener('cardviewbeforeshow', onBeforeShow);
+          function onShown() {
+            window.removeEventListener('cardviewshown', onShown);
+            done();
+          }
+          window.addEventListener('cardviewshown', onShown);
+        }
+        window.addEventListener('cardviewbeforeshow', onBeforeShow);
+      });
       clock.tick(TICK_SHOW_HIDE_MS);
     });
 
