@@ -59,6 +59,13 @@ PinningTheWeb.prototype = {
     }.bind(this));
   },
 
+  // Open Pin Dialog for URL.
+  openPinDialog: function(url) {
+    this._openUrl(url);
+    this._clickPinContextMenu();
+    this.client.helper.waitForElement(this.Selectors.pinDialog);
+  },
+
   // Open a URL, open the pin dialog and tap the pin site button.
   openAndPinSiteFromBrowser: function openAndPinSite(url) {
     this._openUrl(url);
