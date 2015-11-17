@@ -19,10 +19,16 @@ marionette('First Time Use >', function() {
       return system.statusbar.displayed();
     });
     client.apps.switchToApp(Ftu.URL);
-    ftu.clickThruToFinish();
+    client.helper.waitForElement('#languages');
+    var finishScreen = client.findElement(Ftu.Selectors.finishScreen);
+    while (!finishScreen.displayed()) {
+      client.switchToFrame();
+      assert.ok(system.statusbar.displayed());
+      client.apps.switchToApp(Ftu.URL);
+      ftu.goNext();
+    }
 
     ftu.tapTakeTour();
-
     while (!ftu.isTourFinished()) {
       client.switchToFrame();
       assert.ok(system.statusbar.displayed());
