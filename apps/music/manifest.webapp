@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "name": "Music",
   "description": "Gaia Music",
-  "launch_path": "/index.html",
+  "launch_path": "/index-tv.html",
   "icons": {
     "84": "/img/icons/music_84.png",
     "126": "/img/icons/music_126.png",
@@ -74,7 +74,7 @@
     }
   },
   "default_locale": "en",
-  "orientation": "default",
+  "orientation": "landscape",
   "messages": [
     { "media-button": "/index.html" }
   ]

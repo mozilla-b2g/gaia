@@ -217,6 +217,7 @@ proto.setRootView = function(url) {
       newActiveView.frame.contentWindow.dispatchEvent(
         new CustomEvent('viewvisible')
       );
+      setTimeout(() => newActiveView.frame.contentWindow.focus(), 100);
 
       this.dispatchEvent(new CustomEvent('change', { detail: newActiveView }));
     });
@@ -245,6 +246,7 @@ proto.pushView = function(url) {
       newActiveView.frame.contentWindow.dispatchEvent(
         new CustomEvent('viewvisible')
       );
+      setTimeout(() => newActiveView.frame.contentWindow.focus(), 100);
 
       this.dispatchEvent(new CustomEvent('change', { detail: newActiveView }));
     });
@@ -279,6 +281,7 @@ proto.popView = function(destroy) {
       newActiveView.frame.contentWindow.dispatchEvent(
         new CustomEvent('viewvisible')
       );
+      setTimeout(() => newActiveView.frame.contentWindow.focus(), 100);
 
       this.dispatchEvent(new CustomEvent('change', { detail: newActiveView }));
 
