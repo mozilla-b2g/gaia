@@ -22,7 +22,7 @@ var MockIconsHelper = {
     });
   },
 
-  setElementIcon: function() {},
+  setElementIcon: Promise.resolve,
 
   getBestIconFromWebManifest: function() {},
   getBestIconFromMetaTags: function() {},

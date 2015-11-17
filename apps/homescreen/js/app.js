@@ -552,7 +552,16 @@
     refreshIcon: function(icon) {
       icon.size = this.iconSize ? this.iconSize : icon.size;
       if (icon.bookmark) {
-        IconsHelper.setElementIcon(icon, this.iconSize);
+        IconsHelper.setElementIcon(icon, this.iconSize).then(() => {},
+          e => {
+            console.error('Error refreshing bookmark icon', e);
+
+            // Refreshing a bookmark icon will set the default icon image if
+            // no user icon has been set.
+            if (!icon.isUserSet) {
+              icon.refresh();
+            }
+          });
       } else {
         icon.refresh();
       }
