@@ -162,21 +162,22 @@
    * @returns {Promise}
    */
   function setElementIcon(icon, targetSize) {
-    getIconBlob(icon.bookmark.url, targetSize, icon.bookmark, icon.bookmark)
+    return getIconBlob(icon.bookmark.url, targetSize,
+                       icon.bookmark, icon.bookmark)
       .then(iconObj => {
         if (iconObj.blob) {
           icon.icon = iconObj.blob;
+          return Promise.resolve();
         } else if (icon.bookmark.icon) {
           // We fallback to the bookmark.icon property if no icons were found.
-          fetchIconBlob(icon.bookmark.icon)
+          return fetchIconBlob(icon.bookmark.icon)
             .then(iconBlob => {
               icon.icon = iconBlob;
-            });
+              return Promise.resolve();
+            }, Promise.reject);
         }
-      })
-      .catch((e) => {
-        console.error('The icon image could not be set to the element.', e);
-      });
+        return Promise.reject('No icon data found');
+      }, Promise.reject);
   }
 
   function getBestIconFromWebManifest(webManifest, iconSize) {
