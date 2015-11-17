@@ -88,6 +88,8 @@ GAIA_DEV_PIXELS_PER_PX?=1
 NGA_SERVICE_WORKERS?=0
 FIREFOX_SYNC?=0
 
+-include build/config/$(GAIA_DEVICE_TYPE)/device.mk
+
 # Parallel build for multicores CPU
 P?=1
 
