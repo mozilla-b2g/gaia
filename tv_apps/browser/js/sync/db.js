@@ -513,7 +513,7 @@ SyncBrowserDB.db = {
    * Open a IndexedDB database with name as 'browser' and version as 7.
    * @param {Function} callback The callback to be run on success
    */
-  open: function db_open() {
+  open: function db_open(callback) {
     const DB_VERSION = 7;
     const DB_NAME = 'fxsync_browser';
     var request = idb.open(DB_NAME, DB_VERSION);
@@ -527,6 +527,7 @@ SyncBrowserDB.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
+      callback();
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
@@ -1414,7 +1415,7 @@ SyncBrowserDB.db = {
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
-        uris.push(cursor.value.uri);
+        uris.push(cursor.value.bmkUri);
         cursor.continue();
       }
     };
