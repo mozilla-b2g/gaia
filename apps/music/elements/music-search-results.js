@@ -11,6 +11,7 @@ proto.createdCallback = function() {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
+      background: var(--background);
     }
 
     music-search-results.transitions-on {
@@ -25,47 +26,16 @@ proto.createdCallback = function() {
       transition-delay: 0s, 0s;
       pointer-events: auto;
     }
-
-    #list {
-      background: var(--background);
-      position: relative;
-      width: 100%;
-      height: 100%;
-      z-index: 99999;
-    }
-
-    #list a {
-      color: var(--text-color);
-      text-decoration: none;
-      padding: 9px 0;
-      width: 100%;
-    }
-
-    #list li {
-      padding: 0;
-    }
-
-    #list h3,
-    #list p {
-      background: none !important;
-      padding-right: 60px;
-    }
-
-    #list img {
-      right: 0;
-      left: auto !important;
-      object-fit: cover;
-    }
-    </style>
-    <gaia-fast-list id="list">
-      <template>
-        <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
-          <div class="image"><img></div>
-          <h3>\${title}</h3>
-          <p>\${subtitle}</p>
-        </a>
-      </template>
-    </gaia-fast-list>`;
+  </style>
+  <gaia-fast-list id="list">
+    <template>
+      <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
+        <div class="image"><img></div>
+        <h3>\${title}</h3>
+        <p>\${subtitle}</p>
+      </a>
+    </template>
+  </gaia-fast-list>`;
 
   this.els = {
     list: this.querySelector('#list')
