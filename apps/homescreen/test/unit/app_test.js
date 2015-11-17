@@ -37,6 +37,7 @@ suite('Homescreen app', () => {
     icon.entryPoint = '';
     icon.bookmark = null;
     icon.icon = null;
+    icon.size = 100;
     icon.appendChild(iconChild);
     var container = document.createElement('div');
     container.appendChild(icon);
@@ -54,6 +55,7 @@ suite('Homescreen app', () => {
     gaiaAppIconEl.bookmark = null;
     gaiaAppIconEl.icon = null;
     gaiaAppIconEl.refresh = () => {};
+    gaiaAppIconEl.updateName = () => {};
     gaiaAppIconEl.appendChild(iconChild);
     createElementStub.withArgs('gaia-app-icon').returns(gaiaAppIconEl);
   };
@@ -172,9 +174,10 @@ suite('Homescreen app', () => {
 
     test('should remove unknown app entries from metadata store', done => {
       stub = sinon.stub(HomeMetadata.prototype, 'remove', id => {
-        assert.equal(id, 'def/');
         metadataGetAllStub.restore();
-        done();
+        done(() => {
+          assert.equal(id, 'def/');
+        });
         return Promise.resolve();
       });
       var metadataGetAllStub = sinon.stub(HomeMetadata.prototype, 'getAll',
@@ -956,23 +959,10 @@ suite('Homescreen app', () => {
       });
 
       suite('drag-move', () => {
-        var realInnerHeight, realInnerWidth, setIntervalStub, clearIntervalStub;
+        var setIntervalStub, clearIntervalStub;
 
         setup(() => {
-          realInnerHeight =
-            Object.getOwnPropertyDescriptor(window, 'innerHeight');
-          Object.defineProperty(window, 'innerHeight', {
-            value: 500,
-            configurable: true
-          });
-
-          realInnerWidth =
-            Object.getOwnPropertyDescriptor(window, 'innerWidth');
-          Object.defineProperty(window, 'innerWidth', {
-            value: 500,
-            configurable: true
-          });
-
+          app.lastWindowWidth = app.lastWindowHeight = 500;
           setIntervalStub = sinon.stub(window, 'setInterval');
           clearIntervalStub = sinon.stub(window, 'clearInterval');
 
@@ -980,8 +970,6 @@ suite('Homescreen app', () => {
         });
 
         teardown(() => {
-          Object.defineProperty(window, 'innerHeight', realInnerHeight);
-          Object.defineProperty(window, 'innerWidth', realInnerWidth);
           setIntervalStub.restore();
           clearIntervalStub.restore();
         });
@@ -1147,6 +1135,7 @@ suite('Homescreen app', () => {
         synchroniseStub = sinon.stub(app.icons, 'synchronise');
         refreshGridSizeStub = sinon.stub(app, 'refreshGridSize');
         snapScrollPositionStub = sinon.stub(app, 'snapScrollPosition');
+        app.lastWindowWidth = app.lastWindowHeight = null;
         app.handleEvent(new CustomEvent('resize'));
       });
 
@@ -1167,6 +1156,29 @@ suite('Homescreen app', () => {
 
       test('should call snapScrollPosition()', () => {
         assert.isTrue(snapScrollPositionStub.called);
+      });
+
+      test('should reset icon size', () => {
+        assert.equal(app._iconSize, 0);
+      });
+
+      test('should refresh incorrectly sized icons', () => {
+        app._iconSize = 1000;
+        var refreshIconStub = sinon.stub(app, 'refreshIcon');
+        Object.defineProperty(app.icons, 'children', {
+          value: [{
+            firstElementChild: 'abc',
+            style: { display: 'block' }
+          }],
+          configurable: true
+        });
+
+        app.lastWindowWidth = app.lastWindowHeight = null;
+        app.handleEvent(new CustomEvent('resize'));
+        assert.isTrue(refreshIconStub.calledWith('abc'));
+
+        refreshIconStub.restore();
+        delete app.icons.children;
       });
     });
   });
