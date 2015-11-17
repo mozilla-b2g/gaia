@@ -171,12 +171,18 @@ FastList.prototype = {
   },
 
   /**
-   * Updates the container geometry state needed for the rendering
+   * Updates the container geometry
+   * state needed for the rendering.
    *
-   * - viewport height
-   * - number of items per screen
-   * - maximum number of items in the dom
-   * - window left for direction changes
+   * 'switchWindow' refers to an allocation
+   * of list items that are rendered 'behind'
+   * the current scroll direction of the
+   * list, so that if/when the user changes
+   * direction, we have something prerendered.
+   *
+   * The remaining items are used to render
+   * content 'ahead' of the current scroll
+   * direction.
    *
    * @private
    */
@@ -285,6 +291,7 @@ FastList.prototype = {
     var geo = this.geometry;
 
     var indices = computeIndices(this.source, this.geometry);
+    var fullLength = source.getFullLength();
     var criticalStart = indices.cStart;
     var criticalEnd = indices.cEnd;
     var startIndex = indices.start;
@@ -305,10 +312,13 @@ FastList.prototype = {
       geo.forward ? endIndex : startIndex
     );
 
-    if (geo.forward) {
-      for (var i = startIndex; i <= endIndex; ++i) renderItem(i);
-    } else {
-      for (var j = endIndex; j >= startIndex; --j) renderItem(j);
+    // Only render if there are items
+    if (fullLength) {
+      if (geo.forward) {
+        for (var i = startIndex; i <= endIndex; ++i) renderItem(i);
+      } else {
+        for (var j = endIndex; j >= startIndex; --j) renderItem(j);
+      }
     }
 
     // When the data changes we need to make sure we're not keeping
@@ -669,14 +679,16 @@ function computeIndices(source, geometry) {
   debug('compute indices', geometry.topPosition);
   var criticalStart = source.getIndexAtPosition(geometry.topPosition);
   var criticalEnd = source.getIndexAtPosition(geometry.topPosition +
-                                           geometry.viewportHeight);
+    geometry.viewportHeight);
   var canPrerender = geometry.maxItemCount -
-                     (criticalEnd - criticalStart) - 1;
+    (criticalEnd - criticalStart) - 1;
   var before = geometry.switchWindow;
   var after = canPrerender - before;
-  var lastIndex = source.getFullLength() - 1;
+  var fullLength = source.getFullLength();
+  var lastIndex = fullLength && fullLength - 1;
   var startIndex;
   var endIndex;
+  var extra;
 
   if (geometry.forward) {
     startIndex = criticalStart - before;
@@ -686,7 +698,6 @@ function computeIndices(source, geometry) {
     endIndex = criticalEnd + before;
   }
 
-  var extra;
   if (startIndex < 0) {
     extra = -startIndex;
     startIndex = 0;
@@ -726,9 +737,9 @@ function recycle(items, start, end, action) {
 
 function cleanUpPrerenderedItems(items, source) {
   var fullLength = source.getFullLength();
-  for (var idx in items) {
-    if (idx >= fullLength) {
-      var item = items[idx];
+  for (var i in items) {
+    if (i >= fullLength) {
+      var item = items[i];
       item.dataset.populated = false;
       item.style.display = 'none';
     }
@@ -1001,7 +1012,4 @@ function style(el, key, value) {
   if (el.style[key] !== value) el.style[key] = value;
 }
 
-});})((typeof define)[0]=='f'&&define.amd?define:(function(n,n2,w){'use strict';
-return(typeof module)[0]=='o'?function(c){c(require,exports,module);}:
-function(c){var m={exports:{}};c(function(n){w[n];},m.exports,m);
-w[n]=w[n2]=m.exports;};})('FastList','fast-list',this));
+});})((typeof define)[0]=='f'&&define.amd?define:(function(n,n2,w){return(typeof module)[0]=='o'?function(c){c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){w[n];},m.exports,m);w[n]=w[n2]=m.exports;};})('FastList','fast-list',this));/*jshint ignore:line*/
