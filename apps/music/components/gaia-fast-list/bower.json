@@ -18,12 +18,13 @@
     "**/.*",
     "node_modules",
     "bower_components",
+    "README.md",
     "examples",
     "test",
     "tests"
   ],
   "dependencies": {
-    "fast-list": "gaia-components/fast-list#~0.1.4",
+    "fast-list": "gaia-components/fast-list#0.1.5",
     "gaia-component": "gaia-components/gaia-component#~0.4.0",
     "gaia-sub-header": "gaia-components/gaia-sub-header#~0.4.1",
     "poplar": "wilsonpage/poplar"

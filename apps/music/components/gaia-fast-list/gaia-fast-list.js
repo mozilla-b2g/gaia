@@ -1114,6 +1114,9 @@ Internal.prototype = {
     var lastIndex = fullLength - 1;
     var index = 0;
 
+    // sometimes the list is empty
+    if (!fullLength) return index;
+
     for (var name in sections) {
       var items = sections[name];
       var sectionHeight = items.length * itemHeight;
