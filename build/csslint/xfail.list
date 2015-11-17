@@ -141,6 +141,7 @@ shared/style/action_menu.css 3 1
 shared/style/buttons.css 7 0
 shared/style/confirm.css 7 0
 shared/style/contacts/contacts_buttons.css 0 7
+shared/style/contacts/contact_in_overlay.css 0 3
 shared/style/date_selector.css 1 0
 shared/style/dialer/dialer.css 0 1
 shared/style/dialer/keypad.css 1 0

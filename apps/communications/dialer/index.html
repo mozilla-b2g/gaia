@@ -111,7 +111,6 @@
     <link rel="import" href="elements/edit-mode.html">
     <link rel="import" href="elements/call-info-view.html">
     <link rel="import" href="/shared/elements/contacts/contact_in_overlay.html">
-    <link rel="import" href="/shared/elements/contacts/contact_list_overlay.html">
     <link rel="import" href="/shared/elements/confirmation-message.html">
     <link rel="import" href="/contacts/elements/phone_details.html">
     <link rel="import" href="/contacts/elements/email_details.html">
@@ -246,8 +245,9 @@
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
-    <form is="contact-list-overlay" id="contact-list-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
-    </form>
+    <gaia-menu id="contact-list-overlay" class="overlay" hidden>
+      <header></header>
+    </gaia-menu>
 
     <section is="phone-details" id="phone-details" hidden></section>
     <section is="email-details" id="email-details" hidden></section>
