@@ -85,10 +85,6 @@ class Settings(Base):
         Wait(self.marionette).until(
             expected.element_present(*self._app_loaded_locator))
 
-        # this is located at the end of the page.  If this is shown, everything is rendered.
-        Wait(self.marionette).until(
-            expected.element_present(*self._bluetooth_menu_item_locator))
-
     def switch_to_settings_app(self):
         self.wait_to_be_displayed()
         self.apps.switch_to_displayed_app()
