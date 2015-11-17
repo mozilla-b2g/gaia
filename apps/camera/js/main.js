@@ -2,6 +2,7 @@
 
 // Store timestamp when JS started running
 window.jsStarted = Date.now();
+window.localStorage.debug = '*';
 
 define(function(require) {
 
