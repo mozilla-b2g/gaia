@@ -77,12 +77,10 @@ define(function(require) {
           });
         }
 
-        titleL10n = titleL10n || 'notification-no-subject';
-
         notificationHelper.send(titleL10n, notificationOptions)
           .then(function(notification){
             // If the app is open, but in the background, when the notification
-            // comes in, then we do not get notifived via our 
+            // comes in, then we do not get notifived via our
             // mozSetMessageHandler that is set elsewhere. Instead need to
             // listen to click event and synthesize an "event" ourselves.
             notification.onclick = function() {
@@ -152,8 +150,16 @@ define(function(require) {
         model.latestOnce('account', function(currentAccount) {
           fetchNotificationsData('sync').then(
             function(existingNotificationsData) {
-              mozL10n.formatValue('senders-separation-sign').then(separator => {
-                fn(app, currentAccount, existingNotificationsData, separator);
+              mozL10n.formatValue('senders-separation-sign')
+              .then(function(separator) {
+                var localized = {
+                  separator
+                };
+                mozL10n.formatValue('notification-no-subject')
+                .then(function(noSubject) {
+                  localized.noSubject = noSubject;
+                  fn(app, currentAccount, existingNotificationsData, localized);
+                });
             });
           });
         });
@@ -250,7 +256,7 @@ define(function(require) {
       // There are sync updates, get environment and figure out how to notify
       // the user of the updates.
       getSyncEnv(function(
-                 app, currentAccount, existingNotificationsData, separator) {
+                 app, currentAccount, existingNotificationsData, localized) {
         var iconUrl = notificationHelper.getIconURI(app);
 
         accountsResults.updates.forEach(function(result) {
@@ -327,8 +333,8 @@ define(function(require) {
                 }
               };
             }
-            
-            bodyL10n = { raw: newFromNames.join(separator) };
+
+            bodyL10n = { raw: newFromNames.join(localized.separator) };
 
           } else {
             // Only one message to notify about.
@@ -343,8 +349,10 @@ define(function(require) {
               fromNames: [info.from]
             };
 
+            var rawSubject = info.subject || localized.noSubject;
+
             if (model.getAccountCount() === 1) {
-              subjectL10n = { raw: info.subject };
+              subjectL10n = { raw: rawSubject };
               bodyL10n = { raw: info.from };
             } else {
               subjectL10n = {
@@ -355,10 +363,10 @@ define(function(require) {
                 }
               };
               bodyL10n = {
-                id: 'new-emails-notify-multiple-accounts-body', 
+                id: 'new-emails-notify-multiple-accounts-body',
                 args: {
                   from: info.from,
-                  subject: info.subject
+                  subject: rawSubject
                 }
               };
             }
