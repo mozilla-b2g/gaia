@@ -15,17 +15,24 @@ body {
   -moz-user-select: none;
 }
 
-gaia-fast-list em {
+/**
+ * 1. List-item height
+ */
+
+a[data-number]:before {
+  content: attr(data-number);
   position: absolute;
-  offset-inline-start: 0.9rem;
-  top: 50%;
-  width: 2rem;
-  line-height: 0.7rem;
+  offset-inline-start: 9px;
+  top: 0;
+  line-height: 60px; /* 1. */
 }
 
-gaia-fast-list em ~ h3,
-gaia-fast-list em ~ p {
-  -moz-padding-start: 2.9rem;
+/**
+ * 1. Required to override default padding.
+ */
+
+a[data-number] {
+  padding-inline-start: 29px !important; /* 1 */
 }
 
 music-search-box {

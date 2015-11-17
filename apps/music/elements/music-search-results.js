@@ -31,8 +31,8 @@ proto.createdCallback = function() {
     <template>
       <a href="\${url}" data-file-path="\${name}" data-section="\${section}">
         <div class="image"><img></div>
-        <h3>\${title}</h3>
-        <p>\${subtitle}</p>
+        <h3 dir="auto">\${title}</h3>
+        <p dir="auto">\${subtitle}</p>
       </a>
     </template>
   </gaia-fast-list>`;
