@@ -1,12 +1,14 @@
 {
   "name": "gaia-fast-list",
   "main": "gaia-fast-list.js",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "devDependencies": {
     "bower": "^1.5.2",
+    "coveralls": "^2.11.4",
     "jshint": "^2.7.0",
-    "karma": "^0.12.31",
+    "karma": "^0.13.15",
     "karma-chrome-launcher": "^0.1.4",
+    "karma-coverage": "^0.5.3",
     "karma-firefox-launcher": "^0.1.4",
     "karma-mocha": "^0.2.0",
     "karma-sinon-chai": "^0.3.0",
@@ -17,7 +19,8 @@
     "test-lint": "./node_modules/jshint/bin/jshint gaia-fast-list.js",
     "test-dev": "./node_modules/karma/bin/karma start test/karma.conf",
     "test-unit": "./node_modules/karma/bin/karma start test/karma.conf --single-run",
-    "test": "npm run test-unit && npm run test-lint"
+    "test": "npm run test-unit && npm run test-lint",
+    "coveralls": "cat test/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
