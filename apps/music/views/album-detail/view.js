@@ -22,22 +22,20 @@ var AlbumDetailView = View.extend(function AlbumDetailView() {
 });
 
 AlbumDetailView.prototype.update = function() {
-  this.getAlbum().then((songs) => {
+  return this.getAlbum().then((songs) => {
     this.songs = songs;
-    this.render();
+    return this.render();
   });
 };
 
 AlbumDetailView.prototype.destroy = function() {
   this.client.destroy();
-
   View.prototype.destroy.call(this); // super(); // Always call *last*
 };
 
 AlbumDetailView.prototype.render = function() {
   View.prototype.render.call(this); // super();
-
-  this.list.model = this.songs;
+  this.list.setModel(this.songs);
 };
 
 AlbumDetailView.prototype.getAlbum = function() {

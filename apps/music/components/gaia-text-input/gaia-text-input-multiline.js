@@ -1,5 +1,4 @@
-(function(define){define(function(require,exports,module){
-/*jshint esnext:true*/
+(define=>{define((require,exports,module)=>{
 'use strict';
 
 /**
@@ -13,7 +12,7 @@ var component = require('gaia-component');
  */
 
 module.exports = component.register('gaia-text-input-multiline', {
-  created: function() {
+  created() {
     this.setupShadowRoot();
 
     this.els = {
@@ -28,7 +27,7 @@ module.exports = component.register('gaia-text-input-multiline', {
     this.value = this.getAttribute('value');
   },
 
-  clear: function(e) {
+  clear(e) {
     this.value = '';
   },
 
@@ -84,6 +83,7 @@ module.exports = component.register('gaia-text-input-multiline', {
       display: block;
       margin-top: var(--base-m, 18px);
       margin-bottom: var(--base-m, 18px);
+      font-size: 17px;
     }
 
     /** Inner
@@ -211,6 +211,4 @@ module.exports = component.register('gaia-text-input-multiline', {
     </style>`
 });
 
-});})((function(n,w){return typeof define=='function'&&define.amd?
-define:typeof module=='object'?function(c){c(require,exports,module);}:function(c){
-var m={exports:{}},r=function(n){return w[n];};w[n]=c(r,m.exports,m)||m.exports;};})('gaia-text-input-multiline',this));
+})})(((n,w)=>{return(typeof define)[0]=='f'&&define.amd?define:(typeof module)[0]=='o'?c =>{c(require,exports,module)}:c=>{var m={exports:{}},r=n=>w[n];w[n]=c(r,m.exports,m)||m.exports;};})('gaia-text-input-multiline',this));/*jshint ignore:line*/

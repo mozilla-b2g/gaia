@@ -34,6 +34,6 @@
     "commit": "aa4c9c5cb83ce8813c8472860671ea514f07274f"
   },
   "_source": "git://github.com/gaia-components/gaia-header.git",
-  "_target": "~0.9.5",
+  "_target": "~0.9.0",
   "_originalSource": "gaia-components/gaia-header"
 }

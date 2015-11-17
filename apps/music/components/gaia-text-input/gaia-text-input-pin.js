@@ -1,5 +1,4 @@
-(function(define){define(function(require,exports,module){
-/*jshint esnext:true*/
+(define=>{define((require,exports,module)=>{
 'use strict';
 
 /**
@@ -19,7 +18,7 @@ var DEFAULT_LENGTH = 4;
  */
 
 module.exports = component.register('gaia-text-input-pin', {
-  created: function() {
+  created() {
     this.setupShadowRoot();
 
     this.els = {
@@ -34,7 +33,7 @@ module.exports = component.register('gaia-text-input-pin', {
     this.addEventListener('keyup', () => this.updateCells());
   },
 
-  updateCells: function() {
+  updateCells() {
     var l = this.els.input.value.length;
     this.els.cells.forEach((cell, i) => {
       cell.classList.toggle('populated', i < l);
@@ -42,7 +41,7 @@ module.exports = component.register('gaia-text-input-pin', {
     });
   },
 
-  onBackspace: function(e) {
+  onBackspace(e) {
     var input = e.target;
     var empty = !input.value;
     var previous = input.previousElementSibling;
@@ -55,7 +54,7 @@ module.exports = component.register('gaia-text-input-pin', {
     }
   },
 
-  setupFields: function() {
+  setupFields() {
     this.els.fields.innerHTML = '';
     this.els.cells = [];
 
@@ -67,11 +66,7 @@ module.exports = component.register('gaia-text-input-pin', {
     }
   },
 
-  attributeChangedCallback: function(attr, from, to) {
-    if (attrs[attr]) { this[attr] = to; }
-  },
-
-  clear: function(e) {
+  clear(e) {
     this.value = '';
   },
 
@@ -255,6 +250,7 @@ module.exports = component.register('gaia-text-input-pin', {
     .cell::before {
       content: '';
       position: absolute;
+      left: 0;
       bottom: 0;
       width: 100%;
       height: 3px;
@@ -274,6 +270,4 @@ module.exports = component.register('gaia-text-input-pin', {
   `
 });
 
-});})((function(n,w){return typeof define=='function'&&define.amd?
-define:typeof module=='object'?function(c){c(require,exports,module);}:function(c){
-var m={exports:{}},r=function(n){return w[n];};w[n]=c(r,m.exports,m)||m.exports;};})('gaia-text-input-pin',this));
+})})(((n,w)=>{return(typeof define)[0]=='f'&&define.amd?define:(typeof module)[0]=='o'?c =>{c(require,exports,module)}:c=>{var m={exports:{}},r=n=>w[n];w[n]=c(r,m.exports,m)||m.exports;};})('gaia-text-input-pin',this));/*jshint ignore:line*/

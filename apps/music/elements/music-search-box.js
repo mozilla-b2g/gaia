@@ -4,133 +4,94 @@
 
 var proto = Object.create(HTMLElement.prototype);
 
-proto.HEIGHT = 37;
+proto.HEIGHT = 52; // 12px margin + 40px height
 
 // #form height attribute is the value of proto.HEIGHT
 proto.createdCallback = function() {
   var shadowRoot = this.createShadowRoot();
-  shadowRoot.innerHTML =
-`<style>
-  [data-icon]:before { /* Copied from /components/gaia-icons/gaia-icons.css */
-    font-family: "gaia-icons";
-    content: attr(data-icon);
-    display: inline-block;
-    font-weight: 500;
-    font-style: normal;
-    text-decoration: inherit;
-    text-transform: none;
-    text-rendering: optimizeLegibility;
-    font-size: 30px;
-    -webkit-font-smoothing: antialiased;
-  }
-  #form {
-    background-color: #202020;
-    position: relative;
-    width: 100%;
-    height: 37px;
-    overflow: hidden;
-  }
-  #form > input,
-  #form > button {
-    background: none;
-    border: none;
-    font-size: 1.6rem;
-    position: relative;
-    height: 100%;
-    vertical-align: top;
-  }
-  #input {
-    color: #fff;
-    line-height: 4rem;
-    margin: 0;
-    padding: 0;
-    padding-inline-start: 3rem; /* padding-left */
-    width: calc(100% - 11.6rem);
-  }
-  #clear {
-    color: #8f9091;
-    padding: 0 0.6rem;
-    width: 4rem;
-    pointer-events: none;
-  }
-  #input:focus + #clear,
-  #clear:active {
-    pointer-events: auto;
-  }
-  #clear:active:before,
-  #input:focus + #clear:before {
-    content: 'close';
-  }
-  #close {
-    color: #00aac5;
-    font-style: italic;
-    line-height: 100%;
-    padding: 0 1.5rem;
-    width: 7rem;
-  }
-  #close:before {
-    content: '';
-    background-color: #c7c7c7;
-    position: absolute;
-    top: 0.7rem;
-    bottom: 0.7rem;
-    offset-inline-start: -0.1rem; /* left */
-    width: 0.1rem;
-  }
-</style>
-<form id="form" role="search">
-  <input type="search" id="input" x-inputmode="verbatim" data-l10n-id="search-music">
-  <button type="reset" id="clear" data-icon="search"></button>
-  <button type="button" id="close" data-l10n-id="search-close"></button>
-</form>`;
+  shadowRoot.innerHTML = `
+  <style>
+    #inner {
+      display: flex;
+    }
+
+    gaia-text-input {
+      margin: 6px 0 !important;
+      flex: 1;
+    }
+
+    #close {
+      display: none;
+      padding: 0 14px;
+      -moz-margin-end: -14px;
+      border: 0;
+
+      background: none;
+      color: var(--highlight-color);
+      font-style: italic;
+      font-size: 17px;
+    }
+
+    .open #close {
+      display: block;
+    }
+  </style>
+  <div id="inner">
+    <gaia-text-input type="search" clearable id="input"></gaia-text-input>
+    <button id="close" data-l10n-id="search-close">Close</button>
+  </div>`;
 
   var $id = shadowRoot.getElementById.bind(shadowRoot);
 
   this.els = {
-    form:  $id('form'),
+    inner: $id('inner'),
     input: $id('input'),
-    clear: $id('clear'),
     close: $id('close')
   };
+
+  this.isOpen = false;
 
   this.els.results = document.querySelector(this.getAttribute('results'));
 
   var onSearch = debounce(() => {
-    this.dispatchEvent(new CustomEvent('search', {
-      detail: this.els.input.value
-    }));
+    this.emit('search', this.els.input.value);
   }, 500);
 
-  this.els.form.addEventListener('click', (evt) => {
-    var button = evt.target.closest('button');
-    switch (button && button.id) {
-      case 'clear':
-        this.clear();
-        onSearch();
-        break;
-      case 'close':
-        this.close();
-        break;
-    }
-  });
-
   this.els.input.addEventListener('focus', () => this.open());
-
+  this.els.close.addEventListener('click', () => this.close());
   this.els.input.addEventListener('input', onSearch);
-  this.els.input.addEventListener('keypress', onSearch);
+  this.addEventListener('touchmove', e => e.preventDefault());
 
-  this.onDOMRetranslated = () => {
-    document.l10n.translateFragment(shadowRoot);
+  /**
+   * Localizes the component's DOM.
+   *
+   * We can't use data-l10n-id attributes
+   * here as l10n.js doesn't support putting
+   * `placeholder` attribute on any element
+   * other than `<input>`.
+   *
+   * Because we have to use `.formatValues()` it
+   * makes sense to localize `search-close` in
+   * the same way.
+   *
+   * @private
+   */
+  this.localize = () => {
+    document.l10n.formatValues(['search', 'search-close'])
+      .then(([search, close]) => {
+        this.els.input.placeholder = search;
+        this.els.close.textContent = close;
+      });
   };
 };
 
 proto.attachedCallback = function() {
-  document.addEventListener('DOMRetranslated', this.onDOMRetranslated);
-  this.onDOMRetranslated();
+  document.addEventListener('DOMRetranslated', this.localize);
+  this.localize();
 };
 
 proto.detachedCallback = function() {
-  document.removeEventListener('DOMRetranslated', this.onDOMRetranslated);
+  document.removeEventListener('DOMRetranslated', this.localize);
 };
 
 proto.attributeChangedCallback = function(attr, oldVal, newVal) {
@@ -142,32 +103,51 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
 };
 
 proto.clear = function() {
-  window.requestAnimationFrame(() => {
-    this.els.form.reset();
+  requestAnimationFrame(() => {
+    this.els.input.clear();
+  });
+};
+
+proto.focus = function() {
+  requestAnimationFrame(() => {
     this.els.input.focus();
   });
 };
 
 proto.open = function() {
-  window.requestAnimationFrame(() => {
-    this.els.input.focus();
-  });
+  if (this.isOpen) {
+    return;
+  }
 
-  this.dispatchEvent(new CustomEvent('open'));
+  this.isOpen = true;
+  this.els.inner.classList.add('open');
+  this.focus();
+  this.emit('open');
 
   if (this.els.results) {
     this.els.results.open();
   }
+
 };
 
 proto.close = function() {
-  this.els.form.reset();
+  if (!this.isOpen) {
+    return;
+  }
 
-  this.dispatchEvent(new CustomEvent('close'));
+  this.isOpen = false;
+  this.els.inner.classList.remove('open');
+  this.clear();
+  this.emit('close');
 
   if (this.els.results) {
     this.els.results.close();
   }
+};
+
+proto.emit = function(name, detail) {
+  var evt = new CustomEvent(name, { detail: detail });
+  this.dispatchEvent(evt);
 };
 
 Object.defineProperty(proto, 'value', {
@@ -190,6 +170,14 @@ Object.defineProperty(proto, 'results', {
   }
 });
 
+window.MusicSearchBox = document.registerElement('music-search-box', {
+  prototype: proto
+});
+
+/**
+ * Utils
+ */
+
 function debounce(fn, ms) {
   var timeout;
   return () => {
@@ -197,16 +185,6 @@ function debounce(fn, ms) {
     clearTimeout(timeout);
     timeout = setTimeout(() => fn.apply(this, args), ms);
   };
-}
-
-try {
-  window.MusicSearchBox = document.registerElement('music-search-box', {
-    prototype: proto
-  });
-} catch (e) {
-  if (e.name !== 'NotSupportedError') {
-    throw e;
-  }
 }
 
 })(window);
