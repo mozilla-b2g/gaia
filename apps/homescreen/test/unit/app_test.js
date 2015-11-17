@@ -488,6 +488,44 @@ suite('Homescreen app', () => {
     });
   });
 
+  suite('App#refreshIcon()', () => {
+    var mockAppIcon, mockBookmarkIcon;
+    setup(() => {
+      mockAppIcon = { refresh: () => {} };
+      mockBookmarkIcon = { bookmark: {}, refresh: () => {} };
+    });
+
+    test('sets icon size', () => {
+      app._iconSize = 10;
+      app.refreshIcon(mockAppIcon);
+      assert.equal(mockAppIcon.size, 10);
+    });
+
+    test('calls refresh() on app icons', () => {
+      var refreshStub = sinon.stub(mockAppIcon, 'refresh');
+      app.refreshIcon(mockAppIcon);
+      assert.isTrue(refreshStub.calledOnce);
+    });
+
+    test('calls IconsHelper.setElementIcon() on bookmark icons', () => {
+      var setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
+                                          Promise.resolve);
+      app.refreshIcon(mockBookmarkIcon);
+      assert.isTrue(setElementIconStub.calledOnce);
+      setElementIconStub.restore();
+    });
+
+    test('calls refresh if setElementIcon() Promise rejects', done => {
+      var setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
+                                          Promise.reject);
+      sinon.stub(mockBookmarkIcon, 'refresh', () => {
+        setElementIconStub.restore();
+        done();
+      });
+      app.refreshIcon(mockBookmarkIcon);
+    });
+  });
+
   suite('App#storeAppOrder()', () => {
     setup(() => {
       app.metadata.mSetup();
