@@ -199,27 +199,6 @@ var HistoryHelper = (() => {
     });
   }
 
-  function updatePlaces(places, userid) {
-    // Using Array.reduce-based sequential waterfall here instead of Promise.all
-    // to make sure each DataStore update is sequential and we can detect if any
-    // actual race conditions occurred due to simultaneous DataStore access by
-    // other apps during any of these updates.
-    return new Promise((resolve, reject) => {
-      places.reduce((reduced, current) => {
-        return reduced.then(() => {
-          if (current.url && Array.isArray(current.visits) &&
-              current.visits.length === 0) {
-            return deleteByDataStoreId(current.url);
-          }
-          if (current.deleted) {
-            return deletePlace(current.fxsyncId, userid);
-          }
-          return addPlace(current, userid);
-        });
-      }, Promise.resolve()).then(resolve, reject);
-    });
-  }
-
   function deleteByDataStoreId(id) {
     return _ensureStore().then(store => {
       var revisionId = store.revisionId;
@@ -337,8 +316,9 @@ var HistoryHelper = (() => {
     mergeRecordsToDataStore,
     setSyncedCollectionMtime,
     getSyncedCollectionMtime,
-    updatePlaces,
     deletePlace,
+    deleteByDataStoreId,
+    addPlace,
     handleClear,
     reset
   };
@@ -405,47 +385,45 @@ DataAdapters.history = {
     "_status": "synced"
   }
 **/
-  _update(remoteRecords, lastModifiedTime, userid) {
-    var places = [];
-    for (var i = 0; i < remoteRecords.length; i++) {
-      var payload = remoteRecords[i].payload;
-      if (!Number.isInteger(remoteRecords[i].last_modified)) {
-        console.warn('Incorrect payload::last_modified? ', payload);
-        continue;
-      }
-      if (remoteRecords[i].last_modified <= lastModifiedTime) {
-        break;
-      }
-      if (payload.deleted) {
-        places.push({
-          deleted: true,
-          fxsyncId: payload.id
-        });
-        continue;
-      }
-      if (!payload.histUri || !payload.visits) {
-        console.warn('Incorrect payload? ', payload);
-        continue;
-      }
 
-      // FIXME: See https://bugzilla.mozilla.org/show_bug.cgi?id=1223420
-      places.push({
-        url: payload.histUri,
-        title: payload.title,
-        visits: payload.visits.map(elem => Math.floor(elem.date / 1000)),
-        fxsyncId: payload.id
-      });
+  _updatePlace(payload, userid) {
+    if (payload.deleted) {
+      return HistoryHelper.deletePlace(payload.id, userid);
     }
 
-    if (places.length === 0) {
-      return Promise.resolve(false);
+    if (!payload.histUri || !payload.visits) {
+      console.warn('Incorrect payload?', payload);
+      return Promise.resolve();
     }
-    return HistoryHelper.updatePlaces(places, userid).then(() => {
-      var latestMtime = remoteRecords[0].last_modified;
-      return HistoryHelper.setSyncedCollectionMtime(latestMtime, userid);
-    }).then(() => {
-      // Always return false for a read-only operation.
-      return Promise.resolve(false);
+
+    if (payload.histUri && Array.isArray(payload.visits) &&
+        payload.visits.length === 0) {
+      return HistoryHelper.deleteByDataStoreId(payload.histUri);
+    }
+
+    return HistoryHelper.addPlace({
+      url: payload.histUri,
+      title: payload.title,
+      visits: payload.visits.map(elem => Math.floor(elem.date / 1000)),
+      fxsyncId: payload.id
+    }, userid);
+  },
+
+  _next(remoteRecords, lastModifiedTime, userid, cursor) {
+    if (cursor === remoteRecords.length) {
+      return Promise.resolve();
+    }
+    if (!Number.isInteger(remoteRecords[cursor].last_modified)) {
+      console.warn('Incorrect last_modified?', remoteRecords[cursor]);
+      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
+    }
+    if (remoteRecords[cursor].last_modified <= lastModifiedTime) {
+      return Promise.resolve();
+    }
+
+    return this._updatePlace(remoteRecords[cursor].payload, userid)
+        .then(() => {
+      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
     });
   },
 
@@ -470,9 +448,19 @@ DataAdapters.history = {
       mtime = _mtime;
       return remoteHistory.list();
     }).then(list => {
-      return this._update(list.data, mtime, options.userid);
+      return this._next(list.data, mtime, options.userid, 0).then(() => {
+        if (list.data.length === 0) {
+          return Promise.resolve();
+        }
+        var latestMtime = list.data[0].last_modified;
+        return HistoryHelper.setSyncedCollectionMtime(latestMtime,
+            options.userid);
+      }).then(() => {
+       // Always return false for a read-only operation.
+       return Promise.resolve(false);
+     });
     }).catch(err => {
-      console.error('History DataAdapter update error', err);
+      console.error('History DataAdapter update error', err.message);
       throw err;
     });
   },
