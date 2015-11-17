@@ -383,7 +383,7 @@
         // to accumulate until the retry interval expires.
         self.startRetryBatch();
       }
-
+      self.request.packHistograms();
       self.request.send({
         timeout: AT.REPORT_TIMEOUT,
         onload: onload,
@@ -510,6 +510,75 @@
    */
   AdvancedTelemetryPing.prototype.getData = function(packet) {
     return JSON.stringify(packet);
+  };
+
+  AdvancedTelemetryPing.prototype.packHistogram =
+  function packHistogram(hgram) {
+    if (typeof hgram.ranges === 'undefined' ||
+      typeof hgram.counts === 'undefined') {
+      return hgram;
+    }
+    let r = hgram.ranges;
+    let c = hgram.counts;
+    let retgram = {
+      range: [r[1], r[r.length - 1]],
+      bucket_count: r.length,
+      histogram_type: hgram.histogram_type,
+      values: {},
+      sum: hgram.sum
+    };
+
+    if (hgram.histogram_type === 0) {
+      retgram.log_sum = hgram.log_sum;
+      retgram.log_sum_squares = hgram.log_sum_squares;
+    } else {
+      retgram.sum_squares_lo = hgram.sum_squares_lo;
+      retgram.sum_squares_hi = hgram.sum_squares_hi;
+    }
+
+    let first = true;
+    let last = 0;
+
+    for (let i = 0; i < c.length; i++) {
+      let value = c[i];
+      if (!value) {
+        continue;
+      }
+
+      // add a lower bound
+      if (i && first) {
+        retgram.values[r[i - 1]] = 0;
+      }
+      first = false;
+      last = i + 1;
+      retgram.values[r[i]] = value;
+    }
+
+    // add an upper bound
+    if (last && last < c.length) {
+      retgram.values[r[last]] = 0;
+    }
+    return retgram;
+  },
+
+  AdvancedTelemetryPing.prototype.packHistograms = function() {
+    var nameAddonHist = this.packet.payload.addonHistograms;
+    var nameKeyHist = this.packet.payload.keyedHistograms;
+
+    // Pack the Addon Histograms.
+    for(var addon in nameAddonHist) {
+      for(var addonHistName in nameAddonHist[addon]) {
+        nameAddonHist[addon][addonHistName] =
+          this.packHistogram(nameAddonHist[addon][addonHistName]);
+      }
+    }
+
+    // Pack the Keyed Histograms.
+    for(var key in nameKeyHist) {
+      for(var hist2 in nameKeyHist[key]) {
+        nameKeyHist[key][hist2] = this.packHistogram(nameKeyHist[key][hist2]);
+      }
+    }
   };
 
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {

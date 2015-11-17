@@ -306,7 +306,7 @@ suite('AdvancedTelemetry:', function() {
   suite('Sending the Metrics:', function() {
     var at, clock, XHR, xhr, mockSettings;
     var transmitSpy;
-    var wrapper;
+    var wrapper, packedWrapper;
     var gzipCompressedData = new Uint8Array([1,2,3,4,5]);
 
     setup(function(done) {
@@ -352,6 +352,52 @@ suite('AdvancedTelemetry:', function() {
                 sum_squares_hi: 0,
                 ranges: [0, 1, 1251, 2501, 3751, 5001, 6250, 7500, 8750, 10000],
                 counts: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+              }
+            }
+          }
+        }
+      };
+
+      packedWrapper = {
+        type: AdvancedTelemetry.REASON,
+        id: 'uuid',
+        creationDate: 'testDate',
+        version: AdvancedTelemetry.TELEMETRY_VERSION,
+        application: {
+        architecture: 'arm',
+          buildId: 'build',
+          name: AdvancedTelemetry.TELEMETRY_APP_NAME,
+          version: '43',
+          vendor: 'Mozilla',
+          platformVersion: '43',
+          xpcomAbi: 'arm-gcc3',
+          channel: 'default'
+        },
+        clientId: 'uuid',
+        payload: {
+          keyedHistograms: {
+            DEVTOOLS_HUD_REFLOW_DURATION: {
+              verticalhome: {
+                range: [1, 1000],
+                bucket_count:10,
+                histogram_type: 0,
+                values: {'5':0, '12':2, '29':1, '70':1, '170':0},
+                sum: 189,
+                log_sum:14.329224586486816,
+                log_sum_squares: 53.6346640586853
+              }
+            }
+          },
+          addonHistograms: {
+            communications: {
+              rn_metric: {
+                range: [1, 10000],
+                bucket_count:10,
+                histogram_type:1,
+                values:{'0':0, '1':1, '1251':0},
+                sum: 99,
+                sum_squares_lo:9801,
+                sum_squares_hi:0
               }
             }
           }
@@ -478,9 +524,9 @@ suite('AdvancedTelemetry:', function() {
         assert.equal(req.clientId, wrapper.clientId);
 
         // Verify the application object picked up the settings correctly.
-        assert.deepEqual(req.application, wrapper.application);
-        // Verify that the Histograms are intact.
-        assert.deepEqual(req.payload, wrapper.payload);
+        assert.deepEqual(req.application, packedWrapper.application);
+        // Verify that the Histograms are intact and are properly packed.
+        assert.deepEqual(req.payload, packedWrapper.payload);
 
         done();
       });
