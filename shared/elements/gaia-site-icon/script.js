@@ -45,7 +45,7 @@ window.GaiaAppIcon = (function(exports) {
     this._app = null;
     this._bookmark = null;
     this._entryPoint = '';
-    this._size = 0;
+    this._size = -1;
     this._hasIcon = false;
     this._hasUserSetIcon = false;
     this._hasPredefinedIcon = false;
@@ -177,6 +177,18 @@ window.GaiaAppIcon = (function(exports) {
     enumberable: true
   });
 
+  Object.defineProperty(proto, 'size', {
+    get: function() {
+      return (this._size === -1) ? this.clientWidth : this._size;
+    },
+
+    set: function(size) {
+      this._size = size >= 0 ? size : -1;
+    },
+
+    enumerable: true
+  });
+
   Object.defineProperty(proto, 'bookmark', {
     get: function() {
       return this._bookmark;
@@ -205,9 +217,10 @@ window.GaiaAppIcon = (function(exports) {
         }
 
         var canvas = document.createElement('canvas');
-        canvas.width = canvas.height = this._size;
+        var size = this.size * window.devicePixelRatio;
+        canvas.width = canvas.height = size;
         var ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(image, 0, 0, this._size, this._size);
+        ctx.drawImage(image, 0, 0, size, size);
         try {
           canvas.toBlob((blob) => {
             resolve(blob);
@@ -221,7 +234,6 @@ window.GaiaAppIcon = (function(exports) {
 
     set: function(blob) {
       if (blob) {
-        this._relayout();
         this._prepareIconLoader();
         this._hasUserSetIcon = true;
         this._pendingIconUrl = 'user-set';
@@ -334,7 +346,8 @@ window.GaiaAppIcon = (function(exports) {
       if (!this._hasUserSetIcon) {
         // Process the image
         var canvas = document.createElement('canvas');
-        canvas.width = canvas.height = this._size;
+        var size = this.size * window.devicePixelRatio;
+        canvas.width = canvas.height = size;
 
         var ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.shadowColor = SHADOW_COLOR;
@@ -343,11 +356,11 @@ window.GaiaAppIcon = (function(exports) {
         ctx.shadowOffsetY = SHADOW_OFFSET.y;
 
         if (this.bookmark && !this._hasPredefinedIcon) {
-          if (this._image.width <= this._size / 2) {
+          if (this._image.width <= size / 2) {
             // Draw filled background circle
             ctx.beginPath();
-            ctx.arc(this._size / 2, this._size / 2,
-                    this._size / 2 - CANVAS_PADDING, 0, 2 * Math.PI);
+            ctx.arc(size / 2, size / 2,
+                    size / 2 - CANVAS_PADDING, 0, 2 * Math.PI);
             ctx.fillStyle = DEFAULT_BACKGROUND_COLOR;
             ctx.fill();
 
@@ -356,28 +369,28 @@ window.GaiaAppIcon = (function(exports) {
             ctx.shadowOffsetY = 0;
             ctx.mozImageSmoothingEnabled = false;
 
-            var iconSize = this._size * FAVICON_SCALE;
+            var iconSize = size * FAVICON_SCALE;
             ctx.drawImage(this._image,
-                          (this._size - iconSize) / 2,
-                          (this._size - iconSize) / 2,
+                          (size - iconSize) / 2,
+                          (size - iconSize) / 2,
                           iconSize, iconSize);
           } else {
             // Clip the favicon in a circle. We do this in a new canvas so
             // the shadow-rendering on the main canvas works correctly.
             var clipCanvas = document.createElement('canvas');
-            clipCanvas.width = clipCanvas.height = this._size;
+            clipCanvas.width = clipCanvas.height = size;
 
             var clipCtx =
               clipCanvas.getContext('2d', { willReadFrequently: true });
             clipCtx.beginPath();
-            clipCtx.arc(this._size / 2, this._size / 2,
-                    this._size / 2 - CANVAS_PADDING, 0, 2 * Math.PI);
+            clipCtx.arc(size / 2, size / 2,
+                        size / 2 - CANVAS_PADDING, 0, 2 * Math.PI);
             clipCtx.clip();
 
             clipCtx.drawImage(this._image,
                               CANVAS_PADDING, CANVAS_PADDING,
-                              this._size - CANVAS_PADDING * 2,
-                              this._size - CANVAS_PADDING * 2);
+                              size - CANVAS_PADDING * 2,
+                              size - CANVAS_PADDING * 2);
             ctx.drawImage(clipCanvas, 0, 0);
           }
         } else {
@@ -385,8 +398,8 @@ window.GaiaAppIcon = (function(exports) {
           // explicitly rather than loaded via manifest/bookmark)
           ctx.drawImage(this._image,
                         CANVAS_PADDING, CANVAS_PADDING,
-                        this._size - CANVAS_PADDING * 2,
-                        this._size - CANVAS_PADDING * 2);
+                        size - CANVAS_PADDING * 2,
+                        size - CANVAS_PADDING * 2);
         }
 
         canvas.toBlob(function(image, blob) {
@@ -421,13 +434,6 @@ window.GaiaAppIcon = (function(exports) {
   proto._setPredefinedIcon = function(name) {
     this._hasPredefinedIcon = true;
     this._image.src = this._pendingIconUrl = this._predefinedIcons[name];
-  };
-
-  proto._relayout = function() {
-    this._size = this.clientWidth;
-    this._container.style.width = this._container.style.height =
-      this._size + 'px';
-    this._size *= window.devicePixelRatio;
   };
 
   proto._localizeString = function(str) {
@@ -484,8 +490,6 @@ window.GaiaAppIcon = (function(exports) {
     }
 
     this.updateName();
-
-    this._relayout();
     this._container.classList.remove('downloading');
 
     // Set an identifier on the icon to help with automated testing.
@@ -498,16 +502,18 @@ window.GaiaAppIcon = (function(exports) {
       delete this.dataset.identifier;
     }
 
-    // If the icon won't be visible, don't bother fetching and processing it.
-    if (this._size < 1) {
-      return;
-    }
-
     // If we're already loading an icon, let that finish first.
     if (this._image) {
       this._pendingIconRefresh = true;
       return;
     }
+
+    // If the icon won't be visible, don't bother fetching and processing it.
+    var size = this.size * window.devicePixelRatio;
+    if (size < 1) {
+      return;
+    }
+
     this._prepareIconLoader();
 
     // Handle icon loading for bookmarks, app icon loading is more involved
@@ -559,7 +565,7 @@ window.GaiaAppIcon = (function(exports) {
         };
 
         var getImage = () => {
-          navigator.mozApps.mgmt.getIcon(this.app, this._size, this.entryPoint).
+          navigator.mozApps.mgmt.getIcon(this.app, size, this.entryPoint).
             then(function(image, blob) {
               this._pendingIconUrl = 'app-icon';
               if (image.onload) {
