@@ -934,6 +934,11 @@
     background: rgba(255, 255, 255, 0.85);
   }
 
+  #call-screen[data-layout="incoming-locked"] #calls > section.ended .numberWrapper .number,
+  #call-screen[data-layout="incoming-locked"] #calls > section.ended .additionalContactInfo {
+    color: #ada9a7;
+  }
+
   #call-screen[data-layout="incoming-locked"] .number {
     font-weight: 300;
   }
