@@ -363,5 +363,57 @@ eference/Global_Objects/Object/proto`,
         return clearSyncAppData(FxSyncWebCryptoFixture.kB);
       }).then(done, done);
     });
+
+    suite('collection not in meta/global engines', function() {
+      setup(function() {
+        SynctoServerFixture.remoteData.meta.payload =
+          SynctoServerFixture.metaGlobalPayloadWithoutHistoryEngine;
+      });
+      teardown(function() {
+        SynctoServerFixture.remoteData.meta.payload =
+          SynctoServerFixture.metaGlobalPayloadWithHistoryEngine;
+      });
+
+      test('skips that collection', function(done) {
+        var id = Date.now();
+        window.dispatchEvent(new CustomEvent(IAC_EVENT, {
+          detail: {
+            id,
+            name: 'sync',
+            URL: 'https://syncto.dev.mozaws.net/v1/',
+            assertion: 'assertion',
+            keys: { kB: FxSyncWebCryptoFixture.kB },
+            collections: {
+              history: { readonly: true }
+            }
+          }
+        }));
+
+        windowClosed().then(() => {
+          expect(postMessageSpy.called).to.equal(true);
+          expect(postMessageSpy.args[0][0].id).to.equal(id);
+          expect(postMessageSpy.args[0][0].error).to.equal(undefined);
+          var fetchArgsExpected = SynctoServerFixture.fetchArgsExpected(
+              ['meta', 'crypto']);
+          // FIXME: We are not mocking IndexedDB, so it's possible the crypto
+          // collection was cached in the test environment and does not get
+          // fetched.
+          if (fetchStub.args.length == 2) {
+            fetchArgsExpected = SynctoServerFixture.fetchArgsExpected(
+              ['meta']);
+          }
+          expect(fetchStub.args.length).to.equal(fetchArgsExpected.length);
+          for (var i = 0; i < fetchStub.args.length; i++) {
+            expect(fetchStub.args[i].length).to.equal(
+                fetchArgsExpected[i].length);
+            for (var j = 0; j < fetchStub.args[i].length; j++) {
+              expect(fetchStub.args[i][j]).to.deep.equal(
+                  fetchArgsExpected[i][j]);
+            }
+          }
+          return clearSyncAppData(FxSyncWebCryptoFixture.kB).then(done, done);
+        });
+      });
+    });
   });
 });

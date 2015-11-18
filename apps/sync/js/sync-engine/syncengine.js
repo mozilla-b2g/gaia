@@ -186,6 +186,7 @@ uld be a Function`);
     this._collections = {};
     this._controlCollections = {};
     this._fswc = new FxSyncWebCrypto();
+    this._engines = null;
     this._kinto = null;
     this._xClientState = null;
     this._haveUnsyncedConflicts = {};
@@ -298,13 +299,15 @@ uld be a Function`);
       });
     },
 
-    _storageVersionOK: function(metaGlobal) {
+    _checkMetaGlobal: function(metaGlobal) {
       var payloadObj;
       try {
         payloadObj = JSON.parse(metaGlobal.data.payload);
       } catch(e) {
         return false;
       }
+      this._engines = payloadObj.engines;
+
       return (typeof payloadObj === 'object' &&
           payloadObj.storageVersion === 5);
     },
@@ -341,7 +344,7 @@ uld be a Function`);
       }).then(() => {
         return this._getItem('meta', 'global');
       }).then(metaGlobal => {
-        if (!this._storageVersionOK(metaGlobal)) {
+        if (!this._checkMetaGlobal(metaGlobal)) {
           throw new SyncEngine.UnrecoverableError(`Incompatible storage version\
  or storage version not recognized.`);
         }
@@ -377,6 +380,11 @@ payload as JSON`);
     },
 
     _updateCollection: function(collectionName, collectionOptions) {
+      if (this._engines && !this._engines[collectionName]) {
+        console.warn(`Collection ${collectionName} not present on this FxSync a\
+ccount`);
+        return Promise.resolve();
+      }
       return this._syncCollection(collectionName, collectionOptions.userid)
           .then(() => {
         return this._adapters[collectionName].update(
