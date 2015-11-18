@@ -1,10 +1,16 @@
 'use strict';
-/* globals Promise, asyncStorage, Service, BaseModule */
+/* globals
+  asyncStorage,
+  BaseModule,
+  LazyLoader,
+  placesModel,
+  Promise,
+  Service
+*/
+
 /* exported Places */
 
 (function() {
-
-  const DEBOUNCE_TIME = 2000;
 
   const SCREENSHOT_TIMEOUT = 5000;
 
@@ -27,27 +33,6 @@
     name: 'Places',
 
     /**
-     * The places store name.
-     * @memberof Places.prototype
-     * @type {String}
-     */
-    STORE_NAME: 'places',
-
-    /**
-     * A reference to the places datastore.
-     * @memberof Places.prototype
-     * @type {Object}
-     */
-    dataStore: null,
-
-    /**
-     * Set when we are editing a place record in the datastore.
-     * @memberof Places.prototype
-     * @type {Boolean}
-     */
-    writeInProgress: false,
-
-    /**
      * A queue of screenshot URLs that we are loading.
      * @memberof Places.prototype
      * @type {Array}
@@ -62,21 +47,6 @@
     MAX_TOP_SITES: 6,
 
     topSites: [],
-
-    /**
-     * A list of debounced changes to places, keyed by URL.
-     * @memberof Places.prototype
-     * @type {Object}
-     */
-    _placeChanges: {},
-
-    /**
-     * Maps URLs to debounce save timeouts. The place is saved after the
-     * timeout is reached, or on appload.
-     * @memberof Places.prototype
-     * @type {Object}
-     */
-    _timeouts: {},
 
     /**
      * Starts places.
@@ -94,18 +64,6 @@
         asyncStorage.getItem('top-sites', results => {
           this.topSites = results || [];
           resolve();
-        });
-      });
-    },
-
-    getStore: function() {
-      return new Promise(resolve => {
-        if (this.dataStore) {
-          return resolve(this.dataStore);
-        }
-        navigator.getDataStores(this.STORE_NAME).then(stores => {
-          this.dataStore = stores[0];
-          return resolve(this.dataStore);
         });
       });
     },
@@ -184,137 +142,6 @@
     },
 
     /**
-     * Formats a URL as a place object.
-     * @param {String} url The URL of a place.
-     * @return {Object}
-     * @memberof Places.prototype
-     */
-    defaultPlace: function(url) {
-      return {
-        url: url,
-        title: url,
-        icons: {},
-        frecency: 0,
-        // An array containing previous visits to this url
-        visits: [],
-        screenshot: null,
-        themeColor: null
-      };
-    },
-
-    /**
-     * Helper function to edit a place record in the datastore.
-     * @param {String} url The URL of a place.
-     * @param {Function} fun Handles place updates.
-     * @memberof Places.prototype
-     */
-    editPlace: function(url, fun) {
-      return new Promise(resolve => {
-        this.getStore().then(store => {
-          var rev = store.revisionId;
-          store.get(url).then(place => {
-            place = place || this.defaultPlace(url);
-            fun(place, newPlace => {
-              if (this.writeInProgress || store.revisionId !== rev) {
-                return this.editPlace(url, fun);
-              }
-              this.writeInProgress = true;
-              store.put(newPlace, url).then(() => {
-                this.writeInProgress = false;
-                resolve();
-              });
-            });
-          });
-        });
-      });
-    },
-
-    /**
-     * Manually set the previous visits array of timestamps, used for
-     * migrations
-     */
-    setVisits: function(url, visits) {
-      return this.editPlace(url, (place, cb) => {
-        place.visits = place.visits || [];
-        place.visits = place.visits.concat(visits);
-        place.visits.sort((a, b) => {
-          return b - a;
-        });
-        cb(place);
-      });
-    },
-
-    /**
-     * Pin/unpin a page.
-     *
-     * @param {String} url The URL of the page to pin.
-     * @param {Boolean} value true for pin, false for unpin.
-     * @returns {Promise} Promise of a response.
-     */
-    setPinned: function(url, value) {
-      return this.editPlace(url, (place, callback) => {
-        place.pinned = value;
-        if (value) {
-          place.pinTime = Date.now();
-        }
-        callback(place);
-      });
-    },
-
-    /**
-     * Is a page currently pinned?
-     *
-     * @param {String} url The URL of the page to check.
-     * @returns {Promise} Promise of a response.
-     */
-    isPinned: function(url) {
-      return new Promise((resolve, reject) => {
-        return this.getStore()
-          .then(store => {
-            return store.get(url);
-          })
-          .then(place => {
-            return resolve(!!place.pinned);
-          })
-          .catch(e => {
-            console.error(`Error getting the page details: ${e}`);
-            return reject(e);
-          });
-      });
-    },
-
-    /*
-     * Add a recorded visit to the history, we prune them to the last
-     * TRUNCATE_VISITS number of visits and store them in a low enough
-     * resolution to render the view (one per day)
-     */
-    TRUNCATE_VISITS: 10,
-
-    addToVisited: function(place) {
-      place.visits = place.visits || [];
-
-      if (!place.visits.length) {
-        place.visits.unshift(place.visited);
-        return place;
-      }
-
-      // If the last visit was within the last 24 hours, remove
-      // it as we only need a resolution of one day
-      var lastVisit = place.visits[0];
-      if (lastVisit > (Date.now() - 60 * 60 * 24 * 1000)) {
-        place.visits.shift();
-      }
-
-      place.visits.unshift(place.visited);
-
-      if (place.visits.length > this.TRUNCATE_VISITS) {
-        place.visits.length = this.TRUNCATE_VISITS;
-      }
-
-      return place;
-    },
-
-    /**
      * Check if we need to render a screenshot of the current visit
      * in the case that it is in the top most visited sites
      */
@@ -335,95 +162,14 @@
       }
     },
 
-    saveScreenshot: function(url, screenshot) {
-      return this.editPlace(url, function(place, cb) {
-        place.screenshot = screenshot;
-        cb(place);
-      });
-    },
-
-    /**
-     * Update the theme color of a page in the places db.
-     *
-     * @param {String} url The URL of the page
-     * @param {String} color The CSS color
-     */
-    saveThemeColor: function(url, color) {
-      return this.editPlace(url, function(place, cb) {
-        place.themeColor = color;
-        cb(place);
-      });
-    },
-
     /**
      * Clear all the visits in the store but the pinned pages.
      *
      * @return Promise
      */
     clearHistory: function() {
-      return new Promise((resolve, reject) => {
-        return this.getStore().then(store => {
-          store.getLength().then((storeLength) => {
-            if (!storeLength) {
-              return resolve();
-            }
-
-            new Promise((resolveInner, rejectInner) => {
-              var urls = new Map();
-              var cursor = store.sync();
-
-              function cursorResolve(task) {
-                switch (task.operation) {
-                  case 'update':
-                  case 'add':
-                    urls.set(task.id, task.data);
-                    break;
-
-                  case 'remove':
-                    urls.delete(task.id, task.data);
-                    break;
-
-                  case 'clear':
-                    urls.clear();
-                    break;
-
-                  case 'done':
-                    return resolveInner(urls);
-                }
-
-                cursor.next().then(cursorResolve, rejectInner);
-              }
-
-              cursor.next().then(cursorResolve, rejectInner);
-            })
-              .then((urls) => {
-                var promises = [];
-
-                urls.forEach((val, key) => {
-                  if (val.pinned) {
-                    // Clear the visit history of pinned pages.
-                    promises.push(this.editPlace(key, function(place, cb) {
-                      place.visits = [];
-                      cb(place);
-                    }));
-                  } else {
-                    // Remove all other pages from history.
-                    promises.push(store.remove(key));
-                  }
-                });
-
-                Promise.all(promises)
-                  .then(() => {
-                    console.log('Browsing history successfully cleared.');
-                    resolve();
-                  });
-              })
-              .catch((e) => {
-                console.error(`Error trying to clear browsing history: ${e}`);
-                reject(e);
-              });
-          });
-        });
+      return LazyLoader.load(['/shared/js/places_model.js']).then(() => {
+        return placesModel.clearHistory();
       });
     },
 
@@ -438,10 +184,9 @@
      * @memberof Places.prototype
      */
     onLocationChange: function(url) {
-      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
-      this._placeChanges[url].visited = Date.now();
-      this._placeChanges[url].frecency += 1;
-      this.debounce(url);
+      return LazyLoader.load(['/shared/js/places_model.js']).then(() => {
+        return placesModel.addVisit(url);
+      });
     },
 
     /**
@@ -452,9 +197,9 @@
      * @memberof Places.prototype
      */
     onTitleChange: function(url, title) {
-      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
-      this._placeChanges[url].title = title;
-      this.debounce(url);
+      return LazyLoader.load(['/shared/js/places_model.js']).then(() => {
+        return placesModel.setTitle(url, title);
+      });
     },
 
     /**
@@ -465,67 +210,8 @@
      * @memberof Places.prototype
      */
     onIconChange: function(url, icons) {
-      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
-      for (var iconUri in icons) {
-        this._placeChanges[url].icons[iconUri] = icons[iconUri];
-      }
-      this.debounce(url);
-    },
-
-    /**
-     * Creates a timeout to save place data.
-     *
-     * @param {String} url URL of place.
-     * @memberof Places.prototype
-     */
-    debounce: function(url) {
-      clearTimeout(this._timeouts[url]);
-      this._timeouts[url] = setTimeout(() => {
-        this.debouncePlaceChanges(url);
-      }, DEBOUNCE_TIME);
-    },
-
-    /**
-     * Saves place data to datastore after the apploaded event, or a timeout.
-     *
-     * @param {String} url URL of place to update.
-     * @param {String} icon The icon object
-     * @memberof Places.prototype
-     */
-    debouncePlaceChanges: function(url) {
-      clearTimeout(this._timeouts[url]);
-
-      this.editPlace(url, (place, cb) => {
-        var edits = this._placeChanges[url];
-        if (!edits) {
-          return;
-        }
-
-        // Update the title if it's not the default (matches the URL)
-        if (edits.title !== url) {
-          place.title = edits.title;
-        }
-
-        if (edits.visited) {
-          place.visited = edits.visited;
-        }
-        if (!place.frecency) {
-          place.frecency = 0;
-        }
-        place.frecency += edits.frecency;
-
-        if (!place.icons) {
-          place.icons = {};
-        }
-        for (var iconUri in edits.icons) {
-          place.icons[iconUri] = edits.icons[iconUri];
-        }
-
-        place = this.addToVisited(place);
-        this.checkTopSites(place);
-
-        delete this._placeChanges[url];
-        cb(place);
+      return LazyLoader.load(['/shared/js/places_model.js']).then(() => {
+        return placesModel.setIcon(url, icons);
       });
     }
   });
