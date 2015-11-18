@@ -8,12 +8,6 @@ marionette('Hour format', function() {
 
   setup(function() {
     actions.launch('alarm');
-    // Make sure navigator.mozHour12 is initialized.
-    $.client.waitFor(function() {
-      return $.client.executeScript(function() {
-        return window.wrappedJSObject.navigator.mozHour12 != null;
-      });
-    });
   });
 
   suite('12 hour format', function() {
