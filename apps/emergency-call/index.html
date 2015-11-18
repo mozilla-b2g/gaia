@@ -21,7 +21,6 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/dialer.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/contacts/contact_in_overlay.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
     <link rel="stylesheet" type="text/css" href="style/ice_contacts.css">
@@ -58,7 +57,6 @@
 
     <link rel="import" href="/shared/elements/confirmation-message.html">
     <link rel="import" href="/shared/elements/contacts/contact_in_overlay.html">
-    <link rel="import" href="/shared/elements/contacts/contact_list_overlay.html">
   </head>
   <body class="skin-comms theme-communications">
     <article id="views" class="full-height">
@@ -142,8 +140,9 @@
         </article>
       </section>
     </article>
-    <form is="contact-list-overlay" id="contact-list-overlay" role="dialog" data-type="action" class="overlay">
-    </form>
+    <gaia-menu id="contact-list-overlay" class="overlay" hidden>
+      <header></header>
+    </gaia-menu>
     <button is="contact-in-overlay" id="contact-in-overlay" class="contact-item ci--action-menu" hidden></button>
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
     <gaia-sim-picker id="sim-picker" tabindex="-1"></gaia-sim-picker>

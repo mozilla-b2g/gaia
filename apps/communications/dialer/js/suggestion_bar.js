@@ -25,7 +25,6 @@ var SuggestionBar = {
   countTag: null,
   list: null,
   overlay: null,
-  overlayCancel: null,
   template: null,
 
   init: function sb_init() {
@@ -67,7 +66,7 @@ var SuggestionBar = {
         });
       });
     } else {
-      this.hideOverlay();
+      this.overlay.hide();
     }
   },
 
@@ -249,7 +248,7 @@ var SuggestionBar = {
     itemElm.removeAttribute('id');
     itemElm.hidden = false;
     itemElm.classList.add('ci--action-menu');
-    this.list.insertBefore(itemElm, this.overlayCancel);
+    this.overlay.appendChild(itemElm);
     return itemElm;
   },
 
@@ -346,26 +345,19 @@ var SuggestionBar = {
     return fragment;
   },
 
-  _initOverlay: function() {
-    if (this.list) {
-      return;
-    }
-
-    this.list = document.getElementById('contact-list');
-    this.overlayCancel = document.getElementById('contact-list-overlay-cancel');
-    this.overlayCancel.addEventListener('click', this.hideOverlay.bind(this));
-  },
-
   _clearOverlay: function() {
-    while (this.list.firstElementChild != this.overlayCancel) {
-      this.list.firstElementChild.remove();
-    }
+    Array.slice(this.overlay.querySelectorAll('button')).forEach(button => {
+      this.overlay.removeChild(button);
+    });
   },
 
   showOverlay: function sb_showOverlay() {
     var self = this;
-    LazyLoader.load(this.overlay, function() {
-      self._initOverlay();
+    var overlayResources = [
+      '/shared/js/component_utils.js',
+      '/shared/elements/gaia_menu/script.js'
+    ];
+    LazyLoader.load(overlayResources, function() {
       self._clearOverlay();
       var title = self.overlay.querySelector('header');
       navigator.mozL10n.setAttributes(
@@ -383,7 +375,7 @@ var SuggestionBar = {
             self._allMatched.allMatches[i][j], node);
         }
       }
-      self.overlay.setAttribute('aria-hidden', false);
+      self.overlay.show();
       self.overlay.classList.add('display');
     });
   },
@@ -398,11 +390,6 @@ var SuggestionBar = {
     });
 
     return SimplePhoneMatcher.bestMatch(variants, contactTels);
-  },
-
-  hideOverlay: function sb_hideOverlay() {
-    this.overlay.setAttribute('aria-hidden', true);
-    this.overlay.classList.remove('display');
   }
 };
 
