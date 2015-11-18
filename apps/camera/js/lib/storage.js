@@ -193,11 +193,21 @@ Storage.prototype.configure = function(storageVolumeName) {
   var i;
   var videosStorages;
   var picturesStorages;
+  var self = this;
   // If we had a previous ds for pictures, let's remove the observer
   // we had set as well before fetching new ds.
   if (this.picture) {
     this.picture.removeEventListener('change', this.onStorageChange);
   }
+  if (this.watchStorages) {
+    for (i = 0; i < this.watchStorages.length; ++i) {
+      this.watchStorages[i].removeEventListener('change',
+                                                this.watchListeners[i]);
+    }
+  }
+
+  picturesStorages = navigator.getDeviceStorages('pictures');
+
   if (!storageVolumeName) {
     this.video = navigator.getDeviceStorage('videos');
     this.picture = navigator.getDeviceStorage('pictures');
@@ -211,7 +221,6 @@ Storage.prototype.configure = function(storageVolumeName) {
       }
     }
 
-    picturesStorages = navigator.getDeviceStorages('pictures');
     this.picture = picturesStorages[0];
     for (i = 0; i < picturesStorages.length; ++i) {
       if (picturesStorages[i].storageName === storageVolumeName) {
@@ -223,15 +232,59 @@ Storage.prototype.configure = function(storageVolumeName) {
 
   // Shouldn't happen?
   if (!this.picture) {
+    this.watchStorages = [];
     this.setState('unavailable');
     return;
   }
 
+  // The picture storage state is managed separately
+  this.watchStorages = picturesStorages;
+  for (i = 0; i < this.watchStorages.length;) {
+    if (!this.watchStorages[i] || this.watchStorages[i] === this.picture) {
+      this.watchStorages.splice(i, 1);
+    } else {
+      ++i;
+    }
+  }
+  this.watchStates = [];
+  this.watchListeners = [];
+
   this.picture.addEventListener('change', this.onStorageChange);
+  for (i = 0; i < this.watchStorages.length; ++i) {
+    this.watchListeners[i] = onWatchStorageChange.bind(this,
+                                                       this.watchStorages[i]);
+    this.watchStates[i] = null;
+    this.watchStorages[i].addEventListener('change', this.watchListeners[i]);
+  }
+
   this.emit('volumechanged',{
     video: this.video,
     picture: this.picture
   });
+
+  function onWatchStorageChange(storage, e) {
+    // Uses self to please lint
+    var u = self.findWatch(storage);
+    var value = e.reason;
+    debug('watch[%d] state change: %s', u, value);
+    if (u < 0) { return; }
+
+    var oldValue = self.watchStates[u];
+    self.watchStates[u] = value;
+    if (oldValue === 'shared' || value === 'shared') {
+      self.setState();
+    }
+  }
+};
+
+Storage.prototype.findWatch = function(storage) {
+  var i;
+  for (i = 0; i < this.watchStorages.length; ++i) {
+    if (this.watchStorages[i] === storage) {
+      return i;
+    }
+  }
+  return -1;
 };
 
 Storage.prototype.onStorageVolumeChanged = function(setting) {
@@ -259,8 +312,25 @@ Storage.prototype.checkFilepath = function(filepath) {
 };
 
 Storage.prototype.setState = function(value) {
-  this.state = value;
-  debug('set state: %s', value);
+  var i;
+  if (value) {
+    this.state = value;
+    debug('set state: %s', value);
+  } else {
+    value = this.state;
+  }
+
+  // If any storage is shared, consider all shared if it would be
+  // otherwise available
+  if (value === 'available') {
+    for (i = 0; i < this.watchStates.length; ++i) {
+      if (this.watchStates[i] === 'shared') {
+        debug('watch[%d] state is shared', i);
+        value = 'shared';
+        break;
+      }
+    }
+  }
   this.emit('changed', value);
 };
 
@@ -276,11 +346,10 @@ Storage.prototype.setMaxFileSize = function(maxFileSize) {
  * @param  {Function} done
  * @public
  */
-Storage.prototype.check = function(done) {
+Storage.prototype.check = function() {
   debug('check');
 
   var self = this;
-  done = done || function() {};
 
   this.getState(function(result) {
     self.setState(result);
@@ -332,11 +401,23 @@ Storage.prototype.getState = function(done) {
     return;
   }
 
-  this.picture
-    .available()
-    .onsuccess = function(e) {
-      done(e.target.result);
-    };
+  var i;
+  var watchReq = [];
+  for (i = 0; i < this.watchStorages.length; ++i) {
+    watchReq.push(this.watchStorages[i].available()
+      .then(function(storage, state) {
+        var u = this.findWatch(storage);
+        if (u < 0) { return; }
+        this.watchStates[u] = state;
+      }.bind(this, this.watchStorages[i])));
+  }
+
+  var pictureReq = this.picture.available();
+  Promise.all(watchReq).then(function() {
+    return pictureReq;
+  }).then(function(state) {
+    done(state);
+  });
 };
 
 /**
