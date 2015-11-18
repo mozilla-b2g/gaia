@@ -31,13 +31,9 @@ suite('LockScreenInputpad', function() {
 
   test('Emergency call: should disable when has no telephony', function() {
     navigator.mozTelephony = null;
-    subject.passcodePad = document.createElement('div');
-    subject.passcodePad.innerHTML = `<a data-key="e">`;
-    subject.emergencyCallBtn =
-      subject.passcodePad.querySelector('a[data-key=e]');
+    subject.states.isEmergencyEnabled = true;
     subject.toggleEmergencyButton();
-    assert.isTrue(subject.passcodePad.querySelector('a[data-key=e]')
-      .classList.contains('disabled'));
+    assert.isTrue(subject.states.isEmergencyEnabled === false);
   });
 
   test('Emergency call: should enable when has telephony', function() {
@@ -46,49 +42,12 @@ suite('LockScreenInputpad', function() {
         length: 1
       }
     };
-    subject.passcodePad = document.createElement('div');
-    subject.passcodePad.innerHTML = `<a data-key="e">`;
-    subject.emergencyCallBtn =
-      subject.passcodePad.querySelector('a[data-key=e]');
+    subject.states.isEmergencyEnabled = false;
     subject.toggleEmergencyButton();
-    assert.isFalse(subject.passcodePad.querySelector('a[data-key=e]')
-      .classList.contains('disabled'));
+    assert.isTrue(subject.states.isEmergencyEnabled === true);
   });
 
   suite('updatePassCodeUI >', function() {
-    test('it would add passcode-entered class while passcode entered',
-    function() {
-      var method = subject.updatePassCodeUI;
-      var mockSubject = {
-        states: {
-          passCodeEntered: 'foo'
-        },
-        passcodePad: document.createElement('div'),
-        passcodeCode: document.createElement('div')
-      };
-      method.apply(mockSubject);
-      assert.isTrue(mockSubject.passcodePad
-        .classList.contains('passcode-entered'),
-        'passcode-entered class not added when one is entered');
-    });
-
-    test('it would clear passcode-entered class while no passcode entered',
-    function() {
-      var method = subject.updatePassCodeUI;
-      var mockSubject = {
-        states: {
-          passCodeEntered: ''
-        },
-        passcodePad: document.createElement('div'),
-        passcodeCode: document.createElement('div')
-      };
-      mockSubject.passcodePad.classList.add('passcode-entered');
-      method.apply(mockSubject);
-      assert.isFalse(mockSubject.passcodePad
-        .classList.contains('passcode-entered'),
-        'passcode-entered class not removed when none is entered');
-    });
-
     test('it would set error class during error timeout state',
       function() {
         var method = subject.updatePassCodeUI;
@@ -240,30 +199,20 @@ suite('LockScreenInputpad', function() {
       });
     });
 
-    suite('click', function() {
+    suite('keyup', function() {
       var evt;
       setup(function() {
         evt = {
-          type: 'click',
+          type: 'keyup',
+          keyCode: 48,
           preventDefault: function() {}
         };
-        evt.target = {
-          tagName: 'div',
-          parentNode: {
-            dataset: {
-              key: 'f'
-            },
-            tagName: 'a'
-          },
-          dataset: {}
-        };
-
       });
       test('it would get the key', function() {
         var stubHandlePassCodeInput = sinon.stub(subject,
           'handlePassCodeInput');
-        subject.handleEvent(evt);
-        assert.isTrue(stubHandlePassCodeInput.calledWith('f'));
+        subject.handleKeyEvent(evt);
+        assert.isTrue(stubHandlePassCodeInput.calledWith('0'));
       });
       test('it would vibrate', function() {
         var method = subject.handlePassCodeInput;
