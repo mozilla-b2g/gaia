@@ -31,9 +31,7 @@ function whenDocumentReady() {
 
 function RingView() {
   this.alerts = [];
-  this.ringtonePlayer = AudioManager.createAudioPlayer({
-    interruptHandler: this
-  });
+  this.ringtonePlayer = AudioManager.createAudioPlayer();
 
   this.snoozeButton.addEventListener('click', this.onClickSnooze.bind(this));
   this.closeButton.addEventListener('click', this.onClickClose.bind(this));
@@ -198,16 +196,6 @@ RingView.prototype = {
     // Stop vibrating, if we were shakin'.
     clearInterval(this.vibrateInterval);
     this.vibrateInterval = null;
-  },
-
-  /**
-   * Handle an interrupt as reported from the Audio player. This could
-   * happen if an incoming call arrives while the alert is ringing. We
-   * should silence our alarm to allow the phone call to take
-   * precedence.
-   */
-  onInterrupt: function(evt) {
-    this.silence();
   },
 
   /**
