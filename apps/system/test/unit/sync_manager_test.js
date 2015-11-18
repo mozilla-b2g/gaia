@@ -643,23 +643,44 @@ suite('system/SyncManager >', () => {
       requestStub.restore();
     });
 
-    [ERROR_SYNC_APP_KILLED,
-     ERROR_SYNC_APP_SYNC_IN_PROGRESS,
-     ERROR_SYNC_APP_GENERIC,
-     ERROR_SYNC_APP_TRY_LATER,
-     ERROR_UNVERIFIED_ACCOUNT,
-     ERROR_DIALOG_CLOSED_BY_USER,
-     ERROR_GET_FXA_ASSERTION,
-     ERROR_INVALID_SYNC_ACCOUNT,
-     ERROR_OFFLINE,
-     ERROR_REQUEST_SYNC_REGISTRATION,
-     ERROR_SYNC_INVALID_REQUEST_OPTIONS,
-     ERROR_SYNC_REQUEST,
-     ERROR_UNKNOWN].forEach(error => {
+    const errors = [
+      ERROR_SYNC_APP_KILLED,
+      ERROR_SYNC_APP_SYNC_IN_PROGRESS,
+      ERROR_SYNC_APP_GENERIC,
+      ERROR_SYNC_APP_TRY_LATER,
+      ERROR_UNVERIFIED_ACCOUNT,
+      ERROR_DIALOG_CLOSED_BY_USER,
+      ERROR_GET_FXA_ASSERTION,
+      ERROR_INVALID_SYNC_ACCOUNT,
+      ERROR_OFFLINE,
+      ERROR_REQUEST_SYNC_REGISTRATION,
+      ERROR_SYNC_INVALID_REQUEST_OPTIONS,
+      ERROR_SYNC_REQUEST,
+      ERROR_UNKNOWN
+    ];
+
+    errors.forEach(error => {
       test(`onerrored received - ${error}`, done => {
         window.dispatchEvent(new CustomEvent('onsyncerrored', {
           detail: {
             args: [error]
+          }
+        }));
+        setTimeout(() => {
+          this.sinon.assert.calledOnce(updateStateSpy);
+          assert.equal(syncManager.error, error);
+          assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
+          done();
+        });
+      });
+    });
+
+    errors.forEach(error => {
+      test(`onerrored received - ${error}`, done => {
+        window.dispatchEvent(new CustomEvent('onsyncerrored', {
+          detail: {
+            args: [error],
+            from: 'syncing'
           }
         }));
         setTimeout(() => {
@@ -674,6 +695,7 @@ suite('system/SyncManager >', () => {
         });
       });
     });
+
   });
 
   suite('onsyncsyncing', () => {
