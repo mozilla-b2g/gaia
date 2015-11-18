@@ -34,7 +34,8 @@
 
     openPage: function(url) {
       url = Browser.getUrlFromInput(url);
-      if (Browser.currentInfo.url && UrlHelper.isURL(Browser.currentInfo.url)) {
+      if (Browser.currentInfo && Browser.currentInfo.url &&
+          UrlHelper.isURL(Browser.currentInfo.url)) {
         var ev = {
           detail: {
             url: url,
