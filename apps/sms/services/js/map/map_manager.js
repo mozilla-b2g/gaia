@@ -60,6 +60,10 @@ const MAP_LISTING_FOOT = '</MAP-msg-listing>\n';
 const MAP_REPORT_HEAD = '<MAP-event-report version = "1.0">\n';
 const MAP_REPORT_FOOT = '</MAP-event-report>\n';
 
+function isBtV2() {
+  return true;
+}
+
 (function (exports) {
 var MapManager = {
   init() {
@@ -75,9 +79,21 @@ var MapManager = {
       adapter.addEventListener('mapmessageupdatereq',
         this.mapmessageupdatereq.bind(this));
     };
-    if (managerBt.defaultAdapter) {
-      adapter = managerBt.defaultAdapter;
-      bind_event();
+    if (isBtV2()) {
+      managerBt.addEventListener('attributechanged', evt => {
+        for (var i in evt.attrs) {
+          switch (evt.attrs[i]) {
+            case 'defaultAdapter':
+              console.log('defaultAdapter changed. address:',
+                managerBt.defaultAdapter.address);
+              adapter = managerBt.defaultAdapter;
+              bind_event();
+              break;
+            default:
+              break;
+          }
+        }
+      });
     } else {
       var req = managerBt.getDefaultAdapter();
       req.onsuccess = function bt_getAdapterSuccess() {
