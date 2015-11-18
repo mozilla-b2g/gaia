@@ -139,6 +139,8 @@
             // close the _underlayApp.
             if (this._underlayApp.manifestURL ===
                 AppWindowManager.getActiveApp().manifestURL) {
+
+              this.publish('homescreen-underlayopened', this._underlayApp);
               focusManager.focus();
             } else {
               this._underlayApp.close('immediate');
