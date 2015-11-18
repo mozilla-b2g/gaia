@@ -1,13 +1,21 @@
 'use strict';
 var Settings = require('../app/app'),
+    LockScreen = require('../../../../system/test/marionette/lib/lockscreen'),
+    LockScreenPasscodeUnlockActions = require(
+      '../../../../system/test/marionette/lib/' +
+      'lockscreen_passcode_unlock_actions'),
+    Promise = require('es6-promise').Promise, // jshint ignore:line
     assert = require('assert');
 
 marionette('manipulate screenLock settings', function() {
   var client = marionette.client();
   var settingsApp;
   var screenLockPanel;
+  var lockScreen;
+  var actions;
 
   setup(function() {
+    lockScreen = (new LockScreen()).start(client);
     settingsApp = new Settings(client);
     settingsApp.launch();
     // Navigate to the ScreenLock menu
@@ -235,5 +243,35 @@ marionette('manipulate screenLock settings', function() {
         'screenlock is not enabled');
       assert.ok(!screenLockPanel.isScreenLockChecked(),
         'screenlock is not checked');
+  });
+
+  test('passcode is enabled, and we want to lock and unlock the device',
+  function(done) {
+    var code = '1337';
+    screenLockPanel.toggleScreenLock();
+    screenLockPanel.togglePasscodeLock();
+    screenLockPanel.typePasscode(code, code);
+    screenLockPanel.tapCreatePasscode();
+    lockScreen.lock();
+
+    new Promise(function(resolve) {
+      actions = (new LockScreenPasscodeUnlockActions()).start(client);
+      return lockScreen.slideToUnlock(resolve);
+    })
+    .then(function() {
+      code.split('').forEach(function(keyChar) {
+        actions.pressKey(keyChar);
+      });
+    })
+    .then(function() {
+      return actions.waitForUnlock();
+    })
+    .then(function() {
+      settingsApp.switchTo();
+      assert.ok(screenLockPanel.isScreenLockHeaderLabelVisible(),
+        'has not returned to settings panel');
+    })
+    .then(done)
+    .catch(done);
   });
 });
