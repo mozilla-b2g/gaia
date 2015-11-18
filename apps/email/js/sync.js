@@ -68,7 +68,8 @@ define(function(require) {
           data: data,
           mozbehavior: {
             noscreen: true
-          }
+          },
+          closeOnClick: false
         };
 
         if (behavior) {
