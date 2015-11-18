@@ -72,6 +72,46 @@ marionette('FM Radio test', function() {
   });
 
   suite('FM Radio favourites', function() {
+    test('Test favouriting', function() {
+      try {
+        fm.seekUp();
 
+        var isFav = fm.isFav();
+        assert.ok(!isFav, 'Frequency shouldn\'t have been favourited');
+
+        fm.fav();
+        isFav = fm.isFav();
+        assert.ok(isFav, 'Frequency should be favourited');
+
+        fm.close();
+
+        fm.launch();
+        fm.waitForLoaded();
+
+        isFav = fm.isFav();
+        assert.ok(isFav, 'Frequency should be favourited after reboot.');
+
+        // checking we have a selected favourite.
+        var elem = fm.selectedFavItem();
+        assert.ok(elem, 'Can\'t find selected favourite');
+
+        var freq = fm.getCurrentFrequency();
+
+        // checking the text content of the favourite.
+        var favFreq = fm.selectedFavItemText();
+        assert.equal(favFreq, freq,
+                     'Current frequency and selected favourite do not match');
+
+        // checking the id of the favourite.
+        var id = elem.getAttribute('id');
+        favFreq = id.substring(id.indexOf('-') + 1);
+        assert.equal(
+          parseFloat(favFreq), parseFloat(freq),
+          'Current frequency and selected favourite ID do not match');
+
+      } catch(e) {
+        assert.ok(false, e.stack);
+      }
+    });
   });
 });
