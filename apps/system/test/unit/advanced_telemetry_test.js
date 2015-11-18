@@ -364,7 +364,7 @@ suite('AdvancedTelemetry:', function() {
         creationDate: 'testDate',
         version: AdvancedTelemetry.TELEMETRY_VERSION,
         application: {
-        architecture: 'arm',
+          architecture: 'arm',
           buildId: 'build',
           name: AdvancedTelemetry.TELEMETRY_APP_NAME,
           version: '43',

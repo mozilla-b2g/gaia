@@ -512,8 +512,13 @@
     return JSON.stringify(packet);
   };
 
+  // This method converts a raw histogram with the .counts and .ranges arrays
+  // in it to one with just .values using the dict format.
   AdvancedTelemetryPing.prototype.packHistogram =
   function packHistogram(hgram) {
+    //Constant for Histogram types
+    const HISTOGRAM_EXP = 0;
+
     if (typeof hgram.ranges === 'undefined' ||
       typeof hgram.counts === 'undefined') {
       return hgram;
@@ -528,7 +533,7 @@
       sum: hgram.sum
     };
 
-    if (hgram.histogram_type === 0) {
+    if (hgram.histogram_type === HISTOGRAM_EXP) {
       retgram.log_sum = hgram.log_sum;
       retgram.log_sum_squares = hgram.log_sum_squares;
     } else {
@@ -561,6 +566,8 @@
     return retgram;
   },
 
+  // This method loops through the payload of histograms and converts each
+  // histogram payload to the 'dict' format required by the server for parsing.
   AdvancedTelemetryPing.prototype.packHistograms = function() {
     var nameAddonHist = this.packet.payload.addonHistograms;
     var nameKeyHist = this.packet.payload.keyedHistograms;
