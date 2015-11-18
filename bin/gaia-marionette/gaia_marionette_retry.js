@@ -66,13 +66,13 @@ function summarize(results) {
   console.log('todo: %d', results.pending);
  
   // Check if we were supposed to run tests but then didn't do anything.
-  if (process.env.TEST_FILES &&
+  if (process.env._RETRY_TEST_FILES &&
       results.pass == 0 &&
       results.fail == 0 &&
       results.pending == 0) {
     console.log('!!! ERROR !!!');
     console.log('Failed to run any tests.');
-    console.log('Should have run ', process.env.TEST_FILES);
+    console.log('Should have run ', process.env._RETRY_TEST_FILES);
     process.exit(1);
   }
 
@@ -185,8 +185,17 @@ function runTest(filename, args, retry) {
     });
 
     jsmarionette.stderr.on('data', function(data) {
-      console.error('[marionette-mocha] ' + data);
-      stderr += data.toString();
+      var dataStr = data.toString();
+      console.error('[marionette-mocha] ' + dataStr);
+      stderr += dataStr;
+
+      // Did mocha just throw an exception?
+      if (dataStr.indexOf('throw') !== -1 &&
+          dataStr.indexOf('Error:') !== -1) {
+        // Yes, FATAL: Exit now.
+        console.error('[marionette-mocha] FATAL');
+        process.exit(99);
+      }
     });
 
     jsmarionette.on('close', function(code) {
