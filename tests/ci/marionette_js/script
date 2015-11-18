@@ -1,3 +1,3 @@
 #! /bin/bash -vex
 
-make test-integration
+APP=clock make test-integration
