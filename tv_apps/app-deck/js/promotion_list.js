@@ -1,3 +1,4 @@
+/* global MozActivity, KeyEvent */
 
 (function(exports) {
   'use strict';
@@ -6,45 +7,20 @@
 
   var TEST_LIST = [
     {
-      'imageUrl': 'style/banners/banner_temp_01.jpg',
-      'title': 'title1',
-      'description': 'description1'
+      'imageUrl': 'style/banners/firefox-os.png',
+      'title': 'Firefox OS',
+      'description': 'Learn more about Firefox OS.',
+      'url': 'https://www.mozilla.org/en-US/firefox/os/'
     }, {
-      'imageUrl': 'style/banners/banner_temp_02.jpg',
-      'title': 'title2',
-      'description': 'description2'
+      'imageUrl': 'style/banners/participation.png',
+      'title': 'Firefox OS Smart TV Participation',
+      'description': 'Learn how you can participate!',
+      'url': 'https://firefoxos.mozilla.community/fxos-tv/'
     }, {
-      'imageUrl': 'style/banners/banner_temp_03.jpg',
-      'title': 'title3',
-      'description': 'description3'
-    }, {
-      'imageUrl': 'style/banners/banner_temp_04.jpg',
-      'title': 'title4',
-      'description': 'description4'
-    }, {
-      'imageUrl': 'style/banners/banner_temp_05.jpg',
-      'title': 'title5',
-      'description': 'description5'
-    }, {
-      'imageUrl': 'style/banners/banner_temp_06.jpg',
-      'title': 'title6',
-      'description': 'description6'
-    }, {
-      'imageUrl': 'style/banners/banner_temp_07.jpg',
-      'title': 'title7',
-      'description': 'description7'
-    }, {
-      'imageUrl': 'style/banners/banner_temp_08.jpg',
-      'title': 'title8',
-      'description': 'description8'
-    }, {
-      'imageUrl': 'style/banners/banner_temp_09.jpg',
-      'title': 'title9',
-      'description': 'description9'
-    }, {
-      'imageUrl': 'style/banners/banner_temp_10.jpg',
-      'title': 'title10',
-      'description': 'description10'
+      'imageUrl': 'style/banners/mdn.png',
+      'title': 'MDN',
+      'description': 'Learn about TV apps developement!',
+      'url': 'http://mzl.la/1NFslRZ'
     }
   ];
 
@@ -86,6 +62,7 @@
     btn.dataset.index = index;
 
     btn.addEventListener('focus', this);
+    btn.addEventListener('keyup', this);
 
     div.appendChild(btn);
     this.bannerContainer.appendChild(div);
@@ -180,6 +157,20 @@
     this.setContextItem(evt.target.dataset.index);
   };
 
+  proto._openLink = function(evt) {
+    var idx = evt.target.dataset.index;
+    var url = TEST_LIST[idx].url;
+
+    // Ask browser app to open this link.
+    var req = new MozActivity({
+      name: 'view',
+      data: {type: 'url', url: url}
+    });
+    req.onerror = function() {
+      console.log(req.error.name);
+    };
+  };
+
   proto._handleTransitionEnd = function(evt) {
     if (evt.propertyName !== 'transform' ||
         evt.currentTarget !== this.animator) {
@@ -201,13 +192,18 @@
   };
 
   proto.handleEvent = function(evt) {
-
     switch(evt.type) {
       case 'focus':
         this._handleFocusChange(evt);
         break;
       case 'transitionend':
         this._handleTransitionEnd(evt);
+        break;
+      case 'keyup':
+        if (evt.keyCode != KeyEvent.DOM_VK_RETURN) {
+          return;
+        }
+        this._openLink(evt);
         break;
     }
   };
