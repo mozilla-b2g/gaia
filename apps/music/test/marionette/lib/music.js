@@ -224,9 +224,13 @@ Music.prototype = {
 
   parseListItemsData: function(elements) {
       var elementsData = [];
-      for(var i = 0; i < elements.length; i++) {
+      for (var i = 0; i < elements.length; i++) {
         var data = {};
         var a = elements[i];
+        // We ignore items that are hidden by CSS.
+        if (a.style.display === 'none') {
+          continue;
+        }
         data.filePath = a.dataset.filePath;
         data.href = a.href;
         data.section = a.dataset.section;
