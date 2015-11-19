@@ -18,6 +18,7 @@ marionette('Homescreen - App order', function() {
   });
 
   test('App order is retained after restart', function() {
+    assert.ok(false, 'make sure this fails');
     // Drag icon to a different place
     var icons = home.visibleIcons;
     var location1 = icons[0].location();

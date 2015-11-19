@@ -16,6 +16,7 @@ marionette('Homescreen - App reordering', function() {
   });
 
   test('App reordering has a visual hint', function() {
+    client.waitFor(function() {});
     var icons = home.visibleIcons;
     var location1 = icons[0].location();
     var location3 = icons[2].location();

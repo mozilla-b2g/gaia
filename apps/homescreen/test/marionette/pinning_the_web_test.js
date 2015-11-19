@@ -47,6 +47,7 @@ marionette('Homescreen - Pin the web', function() {
   });
 
   test('Pinning a site from the browser context menu', function() {
+    client.waitFor(function() {});
     var url = server.url('sample.html');
 
     client.switchToFrame();
