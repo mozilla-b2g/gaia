@@ -117,6 +117,9 @@ class CallSettings(Base):
         Wait(self.marionette).until(expected.element_displayed(
             *self._call_settings_page_locator))
 
+        menu_item = self.marionette.find_element(*self._caller_id_menu_item_locator)
+        Wait(self.marionette,timeout=120).until(lambda m: not menu_item.get_attribute('aria-disabled'))
+
     def tap_voicemail(self):
         element = self.marionette.find_element(*self._voicemail_locator)
         Wait(self.marionette).until(expected.element_displayed(element) and
@@ -129,9 +132,6 @@ class CallSettings(Base):
         self.apps.switch_to_displayed_app()
 
     def tap_caller_id_selection(self):
-        menu_item = self.marionette.find_element(*self._caller_id_menu_item_locator)
-        Wait(self.marionette).until(lambda m: not menu_item.get_attribute('aria-disabled'))
-
         element = self.marionette.find_element(*self._caller_id_selector_locator)
         Wait(self.marionette).until(expected.element_displayed(element) and
                                     expected.element_enabled(element))
@@ -183,7 +183,7 @@ class CallSettings(Base):
 
     # the default is 'disabled'
     def wait_until_call_forwarding_info_received(self):
-        Wait(self.marionette, timeout=60).until(
+        Wait(self.marionette, timeout=120).until(
             expected.element_displayed(*self._call_forwarding_status_disabled_text_locator))
 
     def tap_always_forward(self):
