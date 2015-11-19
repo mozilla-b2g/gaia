@@ -305,84 +305,44 @@
      *    </div>
      *  </li>
      */
-    createItem : function(data) {
+    createItem: function(data) {
       var itemEl = document.createElement('li'),
           iconLeftEl = document.createElement('div'),
           iconImgLeftEl = document.createElement('div'),
           textEl = document.createElement('div'),
           titleEl = document.createElement('span'),
-          urlEl = document.createElement('span'),
+          uriEl = document.createElement('span'),
           iconRightEl = document.createElement('div'),
           iconImgRightEl = document.createElement('div');
 
       itemEl.classList.add('list-item');
       itemEl.setAttribute('tabindex', '0');
       itemEl.setAttribute('data-type', data.type);
-      if(data.readOnly) {
-        itemEl.setAttribute('readOnly', data.readOnly);
-      } else {
-        itemEl.setAttribute('readOnly', false);
-      }
-
       iconLeftEl.classList.add('icon-box', 'icon-box-left');
       iconImgLeftEl.classList.add('icon');
       iconLeftEl.appendChild(iconImgLeftEl);
 
       textEl.classList.add('text-box');
       titleEl.classList.add('title');
-      titleEl.textContent = data.title ? data.title : data.uri;
-      urlEl.classList.add('uri');
+      uriEl.classList.add('uri');
       textEl.appendChild(titleEl);
-      textEl.appendChild(urlEl);
+      textEl.appendChild(uriEl);
 
       iconRightEl.classList.add('icon-box', 'icon-box-right');
       iconImgRightEl.classList.add('icon');
       iconRightEl.appendChild(iconImgRightEl);
 
-      if(data.type) {
-        itemEl.setAttribute('data-type', data.type);
-        switch (data.type) {
-          case 'folder':
-            itemEl.setAttribute('data-folder', data.id);
-            iconImgLeftEl.setAttribute('data-icon', 'folder');
-            iconImgRightEl.setAttribute('data-icon', 'arrow-right');
-            break;
-          case 'bookmark':
-            itemEl.setAttribute('data-folder', '');
-            if(data.iconUri) {
-              iconImgLeftEl.setAttribute('data-icon', '');
-              iconImgLeftEl.style.backgroundImage = 'url(' + data.iconUri +')';
-            } else {
-              iconImgLeftEl.setAttribute('data-icon', 'default-fav');
-            }
-            urlEl.textContent = data.uri;
-            iconImgRightEl.setAttribute('data-icon', '');
-            break;
-          case 'button':
-            itemEl.setAttribute('data-folder', '');
-            iconImgLeftEl.setAttribute('data-icon', 'arrow-left');
-            iconImgRightEl.setAttribute('data-icon', '');
-            break;
-          default:
-            break;
-        }
-      } else {
-        itemEl.setAttribute('data-type', 'bookmark');
-        itemEl.setAttribute('data-folder', '');
-        if(data.iconUri) {
-          iconImgLeftEl.setAttribute('data-icon', '');
-          iconImgLeftEl.style.backgroundImage = 'url(' + data.iconUri +')';
-        } else {
-          iconImgLeftEl.setAttribute('data-icon', 'default-fav');
-        }
-        urlEl.textContent = data.uri;
-        iconImgRightEl.setAttribute('data-icon', '');
-      }
-
-
       itemEl.appendChild(iconLeftEl);
       itemEl.appendChild(textEl);
       itemEl.appendChild(iconRightEl);
+
+      this.updateItemContent({
+        item: itemEl,
+        iconImgLeft: iconImgLeftEl,
+        iconImgRight: iconImgRightEl,
+        title: titleEl,
+        uri: uriEl
+      }, data);
 
       // XXX: delegate these events later
       itemEl.
@@ -404,23 +364,44 @@
      * @param  {Node} el - HTML list item to update.
      * @param  {Object} data - list item data object.
      */
-    updateItem : function(el, data) {
+    updateItem: function(el, data) {
       var iconImgLeftEl = el.querySelector('.icon-box-left .icon'),
           titleEl = el.querySelector('.title'),
           uriEl = el.querySelector('.uri'),
           iconImgRightEl = el.querySelector('.icon-box-right .icon');
 
-      if(data.readOnly) {
-        el.setAttribute('readOnly', data.readOnly);
+      this.updateItemContent({
+        item: el,
+        iconImgLeft: iconImgLeftEl,
+        iconImgRight: iconImgRightEl,
+        title: titleEl,
+        uri: uriEl
+      }, data);
+    },
+
+    /**
+     * Update the content of the elements in an given item.
+     * @param  {Object} elems - all elements have to be updated.
+     * @param  {Object} data - list item data object.
+     */
+    updateItemContent: function(elems, data) {
+      var itemEl = elems.item,
+          iconImgLeftEl = elems.iconImgLeft,
+          iconImgRightEl = elems.iconImgRight,
+          titleEl = elems.title,
+          uriEl = elems.uri;
+
+      if (data.readOnly) {
+        itemEl.setAttribute('readOnly', data.readOnly);
       } else {
-        el.setAttribute('readOnly', false);
+        itemEl.setAttribute('readOnly', false);
       }
 
-      if(data.type) {
-        el.setAttribute('data-type', data.type);
+      if (data.type) {
+        itemEl.setAttribute('data-type', data.type);
         switch (data.type) {
           case 'folder':
-            el.setAttribute('data-folder', data.id);
+            itemEl.setAttribute('data-folder', data.id);
             iconImgLeftEl.style.backgroundImage = '';
             iconImgLeftEl.setAttribute('data-icon', 'folder');
             titleEl.textContent = data.title;
@@ -428,7 +409,7 @@
             iconImgRightEl.setAttribute('data-icon', 'arrow-right');
             break;
           case 'bookmark':
-            el.setAttribute('data-folder', '');
+            itemEl.setAttribute('data-folder', '');
             if(data.iconUri) {
               iconImgLeftEl.style.backgroundImage = 'url(' + data.iconUri +')';
               iconImgLeftEl.setAttribute('data-icon', '');
@@ -436,12 +417,12 @@
               iconImgLeftEl.style.backgroundImage = '';
               iconImgLeftEl.setAttribute('data-icon', 'default-fav');
             }
-            titleEl.textContent = data.title;
+            titleEl.textContent = data.title ? data.title : data.uri;
             uriEl.textContent = data.uri;
             iconImgRightEl.setAttribute('data-icon', '');
             break;
           case 'button':
-            el.setAttribute('data-folder', '');
+            itemEl.setAttribute('data-folder', '');
             iconImgLeftEl.style.backgroundImage = '';
             iconImgLeftEl.setAttribute('data-icon', 'arrow-left');
             titleEl.textContent = data.title;
@@ -452,16 +433,17 @@
             break;
         }
       } else {
-        el.setAttribute('data-type', 'bookmark');
-        el.setAttribute('data-folder', '');
+        // The records without "type" will be recognized as history records.
+        itemEl.setAttribute('data-type', 'bookmark');
+        itemEl.setAttribute('data-folder', '');
         if(data.iconUri) {
-          iconImgLeftEl.style.backgroundImage = 'url(' + data.iconUri +')';
           iconImgLeftEl.setAttribute('data-icon', '');
+          iconImgLeftEl.style.backgroundImage = 'url(' + data.iconUri +')';
         } else {
-          iconImgLeftEl.style.backgroundImage = '';
           iconImgLeftEl.setAttribute('data-icon', 'default-fav');
+          iconImgLeftEl.style.backgroundImage = '';
         }
-        titleEl.textContent = data.title;
+        titleEl.textContent = data.title ? data.title : data.uri;
         uriEl.textContent = data.uri;
         iconImgRightEl.setAttribute('data-icon', '');
       }
