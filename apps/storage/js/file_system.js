@@ -79,10 +79,10 @@ var FileSystemHelper = {
     console.log(event);
     var opt = event.options;
     var requestId = event.options.openRequestId;
-    var ab = new ArrayBuffer(opt.length);
+    var ab = new Uint8Array(opt.length);
     udManager.downloadFileInRangeByCache(this.openedFileList[requestId],
                                          ab, opt.offset, opt.length, () => {
-      event.successCallback(ab, false);
+      event.successCallback(ab.buffer, false);
     });
   }
 
