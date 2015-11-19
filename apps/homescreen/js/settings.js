@@ -43,15 +43,21 @@
 
         var syncSmallSetting = (signal) => {
           stores[0].get(COLUMNS_SETTING).then(cols => {
+            var oldSmall = this.small;
             this.small = cols > 3;
-            signalChange();
+            if (this.small !== oldSmall) {
+              signalChange();
+            }
           });
         };
 
         var syncPagingSetting = () => {
           stores[0].get(PAGING_SETTING).then(paging => {
+            var oldSnapping = this.scrollSnapping;
             this.scrollSnapping = paging || false;
-            signalChange();
+            if (this.scrollSnapping !== oldSnapping) {
+              signalChange();
+            }
           });
         };
 
