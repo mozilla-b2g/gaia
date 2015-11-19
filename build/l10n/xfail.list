@@ -39,7 +39,6 @@ apps/communications/contacts/views/form/js/form_ui.js
 apps/communications/contacts/views/matching/js/matching_ui.js
 apps/communications/dialer/js/mmi.js
 apps/communications/dialer/js/mmi_ui.js
-apps/communications/facebook/js/fb_sync_init.js
 apps/costcontrol/js/common.js
 apps/costcontrol/js/utils/toolkit.js
 apps/costcontrol/test/unit/mock_common.js
