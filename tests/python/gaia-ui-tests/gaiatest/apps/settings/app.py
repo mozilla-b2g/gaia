@@ -85,9 +85,8 @@ class Settings(Base):
         Wait(self.marionette).until(
             expected.element_present(*self._app_loaded_locator))
 
-        # this is located at the end of the page.  If this is shown, everything is rendered.
-        Wait(self.marionette).until(
-            expected.element_present(*self._bluetooth_menu_item_locator))
+        # Airplane mode is the latest item to be ready
+        self.wait_for_airplane_mode_ready()
 
     def switch_to_settings_app(self):
         self.wait_to_be_displayed()
