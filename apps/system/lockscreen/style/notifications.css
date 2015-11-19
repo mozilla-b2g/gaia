@@ -1,12 +1,29 @@
 /* Individual style; to avoid utility tray patches breark lockscreen notitifications. */
 #notifications-lockscreen-container .notification {
   position: relative;
-  height: 6rem;
+  height: 5rem;
   font-size: 1.4rem;
   font-weight: 400;
   line-height: 1.9rem;
   border-top: 0.1rem solid transparent;
   border-bottom: 0.1rem solid transparent;
+}
+
+#notifications-lockscreen-container .notification:focus,
+#notifications-lockscreen-container .notification:active {
+  height: 6rem;
+  background-color: #33d6ff;
+  color: #222;
+}
+
+#notifications-lockscreen-container .notification:focus > div.detail .detail-content,
+#notifications-lockscreen-container .notification:active > div.detail .detail-content {
+  display: block;
+}
+
+#notifications-lockscreen-container .notification:focus > div.title-container,
+#notifications-lockscreen-container .notification:active > div.title-container {
+  padding-top: 1.2rem;
 }
 
 #notifications-lockscreen-container .notification:first-child {
@@ -18,18 +35,18 @@
 }
 
 #notifications-lockscreen-container .notification > div.title-container {
-  margin-top: 2rem;
-  font-size: 1.5rem;
+  font-size: 1.9rem;
   font-weight: 500;
   color: #fff;
   display: flex;
+  padding-top: 2rem;
 }
 
 #notifications-lockscreen-container .notification > div {
   width: calc(100% - 6.5rem);
   -moz-margin-start: 5rem;
   color: #bfbfbf;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   line-height: 1.9rem;
   min-height: 1.9rem;
   overflow: hidden;
@@ -42,14 +59,13 @@
   display: block;
   width: 3rem;
   height: 3rem;
-  margin: 1.5rem 1rem;
   pointer-events: none;
 }
 
 #notifications-lockscreen-container .notification > div.title-container .title {
   flex: 1;
   overflow: hidden;
-  white-space: nowrap;
+  white-space: pre;
   text-overflow: ellipsis;
   -moz-margin-end: .5rem;
 }
@@ -172,13 +188,12 @@
   --button-label-size: 1.4rem;
   z-index: 1;
   position: absolute;
-  top: calc(50% - 7.65rem);
   left: 0;
   width: 100%;
-  height: 15rem;
+  height: 12.5rem;
   overflow-x: hidden;
   overflow-y: auto;
-
+  margin-top: 17.5rem;
   background-color: transparent;
 }
 
@@ -213,8 +228,7 @@
   */
 
   #notifications-lockscreen-container {
-    top: calc(50% - 4.7rem);
-    height: 18.8rem;
+    height: 12.5rem;
   }
 
  /* small screen, collapsed mode: for one notification...
@@ -243,11 +257,11 @@
   border-top: none;
   /* delegate border to :after element while keeping layout correct */
   border-bottom: 0.1rem solid rgba(0, 0, 0, 0);
-  height: 4.8rem;
+  height: 6rem;
   margin: 0 0 0 0;
-  -moz-padding-start: 2.4rem;
-  -moz-padding-end: 2.4rem;
-  width: calc(100% - 4.8rem);
+  -moz-padding-start: 1rem;
+  -moz-padding-end: 1rem;
+  width: calc(100% - 2rem);
 }
 
 #notifications-lockscreen-container .notification:first-child {
@@ -256,7 +270,6 @@
 
 #notifications-lockscreen-container .notification:last-child {
   border-bottom: none;
-  margin-bottom: 1.2rem;
 }
 
 #notifications-lockscreen-container.collapsed .notification:last-child {
@@ -271,14 +284,15 @@
 
 #notifications-lockscreen-container .notification > .title-container div:first-of-type {
   width: calc(100% - 9.4rem);
-  font-size: 1.4rem;
+  font-size: 1.9rem;
 }
 
 #notifications-lockscreen-container .notification > div.detail {
-  margin-top: -0.5rem;
+  margin-top: 0.4rem;
 }
 
 #notifications-lockscreen-container .notification > div.detail .detail-content {
+  display: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -286,14 +300,14 @@
 
 #notifications-lockscreen-container .notification > .title-container .timestamp {
   margin-top: 0.1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #c7c7c7;
 
   flex: initial;
   top: -.2rem;
   right: 1.5rem;
   padding: 0;
   max-width: 6.5rem;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-style: italic;
   font-weight: normal;
   line-height: 1.6rem;
@@ -304,7 +318,7 @@
 
 
 #notifications-lockscreen-container .notification > img {
-  margin-top: 0.8rem;
+  margin-top: 1.8rem;
   -moz-margin-start: 0;
   width: 2.4rem;
   height: 2.4rem;
@@ -339,7 +353,7 @@
  * and is empirical values.
  */
 #lockscreen-notification-arrow {
-  top: calc(50% - 7.65rem + 17rem - 1.2rem);
+  top: calc(50% - 7.65rem + 8.1rem - 1.2rem);
 }
 
 #lockscreen-notification-arrow.collapsed {
@@ -349,7 +363,7 @@
 
 @media (max-height:480px) {
   #lockscreen-notification-arrow {
-    top: calc(50% - 4.7rem + 18.8rem - 1.1rem);
+    top: calc(50% - 4.7rem + 19.8rem - 1.1rem);
   }
 
   #lockscreen-notification-arrow.collapsed {

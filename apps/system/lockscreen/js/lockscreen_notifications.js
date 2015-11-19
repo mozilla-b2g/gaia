@@ -276,11 +276,11 @@
       notificationId: info.notificationId
     };
     window.dispatchEvent(
-        new CustomEvent('lockscreen-notification-request-activate-unlock', {
-          detail: {
-            id: info.notificationId
-          }
-        }));
+      new CustomEvent('lockscreen-notification-request-activate-unlock', {
+      detail: {
+        id: info.notificationId
+      }
+    }));
   };
 
   /**
@@ -299,7 +299,10 @@
           node,
           oldLockScreenNode
         );
-      } else if ((this.container.firstElementChild) && (this.container.firstElementChild.id === node.id)) {
+      } else if ((this.container.firstElementChild) &&
+                 (this.container.firstElementChild.id === node.id)) {
+        // replace the existing element instead of inserting a new node
+        // if it is present.
         this.container.replaceChild(
           node,
           this.container.firstElementChild
@@ -370,7 +373,7 @@
   /**
    * When we have notifications, show bgcolor from wallpaper
    * Remove the simple gradient at the same time
-   * 
+   *
    * @memberof LockScreenNotifications
    * @this {LockScreenNotifications}
    */
@@ -385,7 +388,7 @@
   /**
    * When we don't have notifications, use the
    * simple gradient as lockscreen's masked background
-   * 
+   *
    * @memberof LockScreenNotifications
    * @this {LockScreenNotifications}
    */
@@ -398,7 +401,7 @@
   /**
    * We use a smaller notifications container when we have a media player
    * widget on the lockscreen. This function collapses the container.
-   * 
+   *
    * @memberof LockScreenNotifications
    * @this {LockScreenNotifications}
    */
@@ -410,7 +413,7 @@
 
   /**
    * ...and this function expands the container.
-   * 
+   *
    * @memberof LockScreenNotifications
    * @this {LockScreenNotifications}
    */
@@ -456,7 +459,7 @@
     }
 
     /*
-     * arrow: 
+     * arrow:
      * The "more notifications" arrow only shows
      * when the user is on the top of the container
      * and the container is scrollable

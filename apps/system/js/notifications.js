@@ -83,8 +83,9 @@ var NotificationScreen = {
     // will hold the count of external contributors to the notification
     // screen
     this.externalNotificationsCount = 0;
-    this.unreadNotifications = [];
-    this.availableNotification = [];
+    // will hold the manifestURL of app as a key and its count as a value.
+    this.unreadNotifications = new Map();
+    const SMS_MANIFEST_URL = 'app://sms.gaiamobile.org/manifest.webapp';
     window.addEventListener('utilitytrayshow', this);
     // Since UI expect there is a slight delay for the opened notification.
     window.addEventListener('lockscreen-appclosed', this);
@@ -404,77 +405,83 @@ var NotificationScreen = {
     var dir = (detail.bidi === 'auto' || typeof detail.bidi === 'undefined') ?
       document.documentElement.dir : detail.bidi;
 
-    // We need to animate the ambient indicator when the toast
-    // timesout, so we skip updating it here, by passing a skip bool
-    this.addUnreadNotification(detail.id, true);
+    // As per the UX,in case for sms notification ,the notification title
+    // will be the count along with the 'new message' text,but currently in
+    // 'detail' object, name of the sender is coming. in other cases title text
+    // in 'detail' object is appropriate.
+    var isNotificationAvailable = this.unreadNotifications.has(manifestURL);
+    if (!isNotificationAvailable) {
+      // We need to animate the ambient indicator when the toast
+      // timesout, so we skip updating it here, by passing a skip bool
+      this.addUnreadNotification(manifestURL, true);
+      var notificationNode = document.createElement('div');
+      notificationNode.classList.add('notification');
+      notificationNode.setAttribute('role', 'link');
+      notificationNode.setAttribute('id', manifestURL);
+      notificationNode.setAttribute('tabindex', '0');
+      notificationNode.dataset.notificationId = detail.id;
+      notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
+      notificationNode.lang = detail.lang;
+      notificationNode.dataset.predefinedDir = detail.bidi;
+      notificationNode.dataset.obsoleteAPI = 'false';
+      if (typeof detail.id === 'string' &&
+          detail.id.indexOf('app-notif-') === 0) {
+        notificationNode.dataset.obsoleteAPI = 'true';
+      }
+      var type = detail.type || 'desktop-notification';
+      notificationNode.dataset.type = type;
+      notificationNode.dataset.manifestURL = manifestURL;
+      // in case detail.icon value is empty, appIcon value is used.
+      if (detail.icon || detail.appIcon) {
+        var icon = document.createElement('img');
+        icon.src = detail.icon ? detail.icon : detail.appIcon;
+        icon.setAttribute('role', 'presentation');
+        notificationNode.appendChild(icon);
+      }
+      var titleContainer = document.createElement('div');
+      titleContainer.classList.add('title-container');
+      var countSpan = document.createElement('span');
+      countSpan.classList.add('detail-count');
+      countSpan.textContent = '';
+      titleContainer.appendChild(countSpan);
+      var title = document.createElement('div');
+      title.classList.add('title');
+      this.getNotificationTitle(detail, title);
+      title.setAttribute('dir', 'auto');
+      titleContainer.appendChild(title);
 
-    var cIndex = this.availableNotification.indexOf(detail.appName);
-    if (cIndex === -1) {
-    this.availableNotification.push(detail.appName);
-    var notificationNode = document.createElement('div');
-    notificationNode.classList.add('notification');
-    notificationNode.setAttribute('role', 'link');
-    notificationNode.setAttribute('id', detail.appName);
+      var time = document.createElement('span');
+      var timestamp = detail.timestamp ? new Date(detail.timestamp) :
+        new Date();
+      time.classList.add('timestamp');
+      time.dataset.timestamp = timestamp;
+      time.textContent = this.prettyDate(timestamp);
+      titleContainer.appendChild(time);
+      notificationNode.appendChild(titleContainer);
 
-    notificationNode.dataset.notificationId = detail.id;
-    notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
-    notificationNode.lang = detail.lang;
-    notificationNode.dataset.predefinedDir = detail.bidi;
-
-    notificationNode.dataset.obsoleteAPI = 'false';
-    if (typeof detail.id === 'string' &&
-        detail.id.indexOf('app-notif-') === 0) {
-      notificationNode.dataset.obsoleteAPI = 'true';
+      var message = document.createElement('div');
+      message.classList.add('detail');
+      var messageContent = document.createElement('div');
+      messageContent.classList.add('detail-content');
+      messageContent.textContent = this.getNotificationMessage(detail, '');
+      messageContent.setAttribute('dir', 'auto');
+      message.appendChild(messageContent);
+      notificationNode.appendChild(message);
+    } else {
+      // in case if notification is already present on the screen, its counter
+      // value will be incremented.
+      var notificationNode = document.getElementById(manifestURL);
+      var countVal = this.unreadNotifications.get(manifestURL);
+      this.unreadNotifications.set(manifestURL, ++countVal);
+      notificationNode.querySelector('.detail-count').textContent = countVal;
+      var messageText = notificationNode.querySelector('.detail-content').
+        textContent;
+      messageText = this.getNotificationMessage(detail, messageText);
+      this.getNotificationTitle(detail,
+        notificationNode.querySelector('.title'));
+      notificationNode.querySelector('.detail-content').textContent =
+        messageText;
     }
-    var type = detail.type || 'desktop-notification';
-    notificationNode.dataset.type = type;
-    notificationNode.dataset.manifestURL = manifestURL;
-
-    if (detail.appIcon) {
-      var icon = document.createElement('img');
-      icon.src = detail.appIcon;
-      icon.setAttribute('role', 'presentation');
-      notificationNode.appendChild(icon);
-    }
-
-    var titleContainer = document.createElement('div');
-    titleContainer.classList.add('title-container');
-
-    var title = document.createElement('div');
-    title.classList.add('title');
-    title.textContent = detail.title;
-    title.setAttribute('dir', 'auto');
-
-    titleContainer.appendChild(title);
-
-    var time = document.createElement('span');
-    var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
-    time.classList.add('timestamp');
-    time.dataset.timestamp = timestamp;
-    time.textContent = this.prettyDate(timestamp);
-    titleContainer.appendChild(time);
-
-    notificationNode.appendChild(titleContainer);
-
-    var message = document.createElement('div');
-    message.classList.add('detail');
-    var messageContent = document.createElement('div');
-    messageContent.classList.add('detail-content');
-    messageContent.textContent = detail.text;
-    messageContent.setAttribute('dir', 'auto');
-    message.appendChild(messageContent);
-    notificationNode.appendChild(message);
-    var countDiv = document.createElement('div');
-    countDiv.classList.add('detail-count');
-    countDiv.textContent = "1";
-    notificationNode.appendChild(countDiv);
-  } else {
-    var notificationNode = document.querySelector('.notification');
-    var count = document.getElementById(detail.appName).querySelector('.detail-count').textContent;
-    count = parseInt(count);
-    count++;
-    document.getElementById(detail.appName).querySelector('.detail-count').textContent = count;
-  }
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
     var oldNotif = notificationContainer.querySelector(notifSelector);
@@ -639,38 +646,40 @@ var NotificationScreen = {
     notification.style.transform = '';
   },
 
-  addUnreadNotification: function ns_addUnreadNotification(id, skipUpdate) {
+  addUnreadNotification:
+  function ns_addUnreadNotification(appManifestURL, skipUpdate) {
     if (UtilityTray.shown) {
       return;
     }
-    this.unreadNotifications.push(id);
+    this.unreadNotifications.set(appManifestURL, 1);
     if (!skipUpdate) {
       this.updateNotificationIndicator();
     }
   },
 
-  removeUnreadNotification: function ns_removeUnreadNotification(id) {
-    var notifIndex = this.unreadNotifications.indexOf(id);
-    if (notifIndex > -1) {
-      this.unreadNotifications.splice(notifIndex, 1);
+  removeUnreadNotification:
+  function ns_removeUnreadNotification(appManifestURL) {
+    var notifIndex = this.unreadNotifications.has(appManifestURL);
+    if (notifIndex) {
+      this.unreadNotifications.delete(appManifestURL);
     }
     this.updateNotificationIndicator();
   },
 
   hideNotificationIndicator: function ns_hideNotificationIndicator() {
-    if (this.unreadNotifications.length > 0) {
-      this.unreadNotifications = [];
+    if (this.unreadNotifications.size > 0) {
+      this.unreadNotifications.clear();
     }
     this.updateNotificationIndicator();
   },
 
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
-    if (this.unreadNotifications.length) {
+    if (this.unreadNotifications.size) {
       this.ambientIndicator.classList.add('unread');
       navigator.mozL10n.setAttributes(
         this.ambientIndicator,
         'statusbarNotifications-unread',
-        {n: this.unreadNotifications.length}
+        {n: this.unreadNotifications.size}
       );
     } else {
       this.ambientIndicator.classList.remove('unread');
@@ -783,9 +792,35 @@ var NotificationScreen = {
     }
     window.dispatchEvent(
       new window.CustomEvent('lockscreen-notification-request-clear'));
+  },
+
+  getNotificationMessage:
+  function ns_getNotificationMessage(detail, messageContent) {
+    // As per the UX,in text messages notification text will be name of
+    // the sender and the text of message.
+    if (detail.manifestURL === this.SMS_MANIFEST_URL) {
+      messageContent = messageContent ?
+        messageContent += '; ' + detail.title + ': ' + detail.text :
+        detail.title + ': ' + detail.text;
+    } else {
+      messageContent = messageContent ? messageContent += '; ' + detail.text :
+        detail.text;
+    }
+    return messageContent;
+  },
+
+  getNotificationTitle: function ns_getNotificationTitle(detail, title) {
+    // in case of text message, title in 'detail' object is name of the sender
+    // but as per the UX title will be 'new messages'.
+    if (detail.manifestURL === this.SMS_MANIFEST_URL) {
+      title.textContent = title.textContent ?
+        ' ' + title.textContent :
+        title.setAttribute('data-l10n-id', 'new-messages');
+    } else {
+      title.textContent = title.textContent ? ' ' + detail.title :
+        detail.title;
+    }
   }
-
-
 };
 
 window.addEventListener('load', function() {

@@ -152,15 +152,6 @@
   visibility: inherit;
 }
 
-[data-panel="main"] #lockscreen-alt-camera {
-  visibility: hidden;
-  position: absolute;
-}
-
-[data-panel="passcode"] #lockscreen-alt-camera.lockscreen-icon {
-  opacity: 1.0;
-}
-
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
@@ -168,7 +159,7 @@
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.5rem 2.4rem 0;
+  padding: 0 2.4rem 0;
   color: #fff;
   transition: transform 0.2s ease, opacity 0.2s ease;
   opacity: 1;
@@ -218,10 +209,9 @@
   margin-bottom: 0.1rem;
   margin-inline-start: -0.4rem;
   margin-inline-end: 0;
-  font-size: 6rem;
+  font-size: 5.5rem;
   line-height: 1.0;
-  margin-top: -2.4rem;
-  font-weight: 200;
+  font-weight: 100;
   text-align: center;
 }
 
@@ -341,31 +331,6 @@ button::-moz-focus-inner {
   margin-top: 2rem;
 }
 
-#lockscreen-alt-camera.lockscreen-icon {
-  border-radius: 2.5rem;
-  background-color: rgba(255, 255, 255, 0.25);
-  -moz-box-sizing: border-box;
-  float: right;
-  pointer-events: auto;
-  opacity: 0.1;
-  transition: opacity var(--panel-transition-secs) ease;
-  width: 5rem;
-  height: 5rem;
-  margin-top: 5rem;
-  display: none;
-}
-
-#lockscreen-alt-camera-button {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  pointer-events: auto;
-  background-image: url('./images/pin_camera.png');
-  background-position: 1rem center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-}
-
 #lockscreen-panel-emergency-call {
   /* > camera, unlock icons > canvas */
   z-index: 32;
@@ -411,6 +376,7 @@ button::-moz-focus-inner {
   height: 10rem;
   pointer-events: none;
   z-index: 5;
+  display: none;
 }
 
 #lockscreen .touched #lockscreen-icon-container {
@@ -452,33 +418,33 @@ button::-moz-focus-inner {
 
 /* RTL View */
 
-#lockscreen-alt-camera.lockscreen-icon:-moz-dir(rtl) {
-  float: left;
-}
-
 #lockscreen-message:-moz-dir(rtl) {
   left: unset;
   right: 0;
 }
-#lockscreen-clock-parent{
-  text-align: center;
-  width: 70%;
-  margin: auto;
-}
+
 #lockscreen-enter-code {
-  width: 100%;
-  margin-top: 2rem;
-  margin-left: 2rem;
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
+  height: 3rem;
 }
 #lockscreen-enter-code p {
   float: left;
-  width: 90%;
   line-height: 0;
-  height: 5rem;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
+  margin-left: 1rem;
   font-style: italic;
 }
 #lockscreen-enter-code-icon {
-  width: 2rem;
+  display: block;
+  width: 1.3rem;
+  height: 2rem;
+  background-image: url('images/Lock_Icon_16x20px.png');
   float: left;
+  margin-top: 0.5rem;
+}
+
+.lockscreen-enter-code-icon-hide {
+  display: none;
 }

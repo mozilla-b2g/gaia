@@ -87,7 +87,6 @@
     },
 
     // The handle area can touch by the user.
-    area: null,
     overlay: null,
 
     width: 0, // We need dynamic length here.
@@ -285,17 +284,6 @@
           this._drawIconBG();
           break;
 
-        case 'touchstart':
-          evt.preventDefault();
-          if (evt.target !== this.area || evt.touches.length > 1) {
-            return;
-          }
-          this.states.touch.id = evt.touches[0].identifier;
-          this._onSlideBegin(this._dpx(evt.touches[0].pageX));
-          window.addEventListener('touchend', this);
-          window.addEventListener('touchmove', this);
-          break;
-
         case 'touchmove':
           // In order to prevent pocket unlocks we reset the slide progress and
           // end the gesture detection if a new touch point appears on screen.
@@ -343,12 +331,10 @@
     function lss_initializeCanvas() {
 
       this.overlay = document.getElementById(this.IDs.overlay);
-      this.area = document.getElementById(this.IDs.area);
       this.canvas = document.getElementById(this.IDs.canvas);
       this.areas.left = document.getElementById(this.IDs.areas.left);
       this.areas.right = document.getElementById(this.IDs.areas.right);
 
-      this.area.addEventListener('touchstart', this);
       this.areas.left.addEventListener('click', this);
       this.areas.right.addEventListener('click', this);
 
@@ -1210,7 +1196,6 @@
       if (this._stopped) { return; }
       window.removeEventListener('touchmove', this);
       window.removeEventListener('touchend', this);
-      this.area.removeEventListener('touchstart', this);
       this._stopped = true;
     };
 
@@ -1219,7 +1204,6 @@
       if (!this._stopped) { return; }
       window.addEventListener('touchmove', this);
       window.addEventListener('touchend', this);
-      this.area.addEventListener('touchstart', this);
       this._stopped = false;
     };
 
