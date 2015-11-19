@@ -36,7 +36,7 @@
      * @memberof Applications
      */
     HIDDEN_ROLES: [
-      'system', 'homescreen', 'input', 'deck', 'addon', 'langpack'
+      'system', 'homescreen', 'input', 'deck', 'addon', 'langpack', 'widget'
     ],
 
     /**
