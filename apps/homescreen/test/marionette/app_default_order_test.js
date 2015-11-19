@@ -17,6 +17,7 @@ marionette('Homescreen - Default app order', function() {
   });
 
   test('Default app order is respected', function() {
+    assert.ok(false, 'make sure this fails');
     var expectedOrder = [
       'Phone',
       'Messages',
