@@ -14,8 +14,6 @@
 
 var FxaModuleEnterPassword = (function() {
 
-  var _ = null;
-
   function _isPasswordValid(passwordEl) {
     var passwordValue = passwordEl.value;
     return passwordValue && passwordEl.validity.valid;
@@ -73,7 +71,6 @@ var FxaModuleEnterPassword = (function() {
   Module.init = function init(options) {
 
     if (!this.initialized) {
-      _ = navigator.mozL10n.get;
       // Cache DOM elements
       this.importElements(
         'fxa-hello-known-user',
@@ -123,12 +120,9 @@ var FxaModuleEnterPassword = (function() {
     this.isFTU = !!(options && options.isftu);
     this.email = options.email;
 
-    var helloUserText = _('fxa-hello-user');
-    helloUserText = helloUserText.replace(
-      /{{\s*email\s*}}/,
-      '<a id="fxa-known-user-email">' + this.email + '</a>'
-    );
-    this.fxaHelloKnownUser.innerHTML = helloUserText;
+    navigator.mozL10n.setAttributes(this.fxaHelloKnownUser, 'fxa-hello-user2', {
+      email: this.email
+    });
 
     _cleanForm(
       this.fxaPwInput,
