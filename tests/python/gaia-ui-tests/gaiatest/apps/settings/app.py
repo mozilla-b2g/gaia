@@ -39,7 +39,7 @@ class Settings(Base):
     _call_settings_menu_item_locator = (By.ID, 'menuItem-callSettings')
     _message_settings_menu_item_locator = (By.ID, 'menuItem-messagingSettings')
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
-    _bluetooth_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-bluetooth')
+    _bluetooth_menu_item_locator = (By.ID, 'menuItem-bluetooth')
     _internet_sharing_menu_item_locator = (By.ID, 'menuItem-internetSharing')
 
     _sound_menu_item_locator = (By.ID, 'menuItem-sound')
