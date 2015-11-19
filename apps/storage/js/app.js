@@ -169,7 +169,7 @@ var Storage = {
   },
 
   initOAuthWindow() {
-    const DROPBOX_APP_KEY = 'EXAMPLE_APP_KEY';
+    const DROPBOX_APP_KEY = 'ay3tmo9igb99kf5';
 
     var url = 'https://www.dropbox.com/1/oauth2/authorize?' +
               'response_type=token&' +
