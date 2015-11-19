@@ -58,7 +58,7 @@ require([
       'TTY_MODE_OFF': 0,
       'TTY_MODE_FULL': 1,
       'TTY_MODE_HCO': 2,
-      'TTY_MODE_VCO':3
+      'TTY_MODE_VCO': 3
     };
 
     var _settings = window.navigator.mozSettings;
@@ -192,7 +192,7 @@ require([
       });
     }
 
-    function getTtyValue(currentTtyValue){
+    function getTtyValue(currentTtyValue) {
       var value = '';
       switch (currentTtyValue) {
         case 1:
@@ -202,7 +202,7 @@ require([
           value = 'TTY_MODE_HCO';
           break;
         case 3:
-          value = 'TTY_MODE_VCO'
+          value = 'TTY_MODE_VCO';
           break;
         case 0:
         default:
@@ -1032,7 +1032,8 @@ require([
       var setButton = alertPanel.querySelector('.cw-voice-mail-set ');
       var cancelButton = alertPanel.querySelector('.cw-voice-mail-set-cancel');
       document.querySelector('.menuItem-voicemail').onclick = function() {
-        var _currentSimIndex = window.DsdsSettings.getIccCardIndexForCallSettings();
+        var _currentSimIndex =
+          window.DsdsSettings.getIccCardIndexForCallSettings();
         var number = _getVoicemailNumber();
         inputfield.value = number;
         var cursorPos = inputfield.value.length;
@@ -1048,9 +1049,10 @@ require([
           });
           voicemailPanel.hidden = false;
         });
-        cancelButton.addEventListener('click', function cs_alertCancelClicked(event) {
-          voicemailPanel.hidden = true;
-        });
+        cancelButton.addEventListener('click',
+          function cs_alertCancelClicked(event) {
+            voicemailPanel.hidden = true;
+          });
         voicemailPanel.hidden = false;
       };
     }

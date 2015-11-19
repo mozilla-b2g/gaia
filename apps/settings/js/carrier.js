@@ -108,9 +108,9 @@ var CarrierSettings = (function(window, document, undefined) {
           document.querySelector('#carrier-detail gaia-header h1');
         navigator.mozL10n.setAttributes(detailHeader, 'simSettingsWithIndex',
           { index: DsdsSettings.getIccCardIndexForCellAndDataSettings() + 1 });
-      } else if(currentHash === '#carrier-ims-settings') {
+      } else if (currentHash === '#carrier-ims-settings') {
         cs_initImsSetting();
-      } else if(currentHash === '#carrier-ims-profile'){
+      } else if (currentHash === '#carrier-ims-profile') {
         cs_initImsCallingProfile();
       }
 
@@ -130,20 +130,21 @@ var CarrierSettings = (function(window, document, undefined) {
 
   function cs_initImsCallingProfile() {
     var currentImsStatus = getImsStatus();
-    var cellularPreferred = document.getElementById('menuItem-cellular-preferred');
+    var cellularPreferred =
+      document.getElementById('menuItem-cellular-preferred');
     var cellularOnly = document.getElementById('menuItem-cellular-only');
     var wifiPreferred = document.getElementById('menuItem-wifi-preferred');
     var wifiOnly = document.getElementById('menuItem-wifi-only');
-    if(!currentImsStatus) {
-      cellularPreferred.setAttribute('class','carrier-ims-profile-option');
-      wifiPreferred.setAttribute('class','carrier-ims-profile-option');
-      wifiOnly.setAttribute('class','carrier-ims-profile-option');
-      cellularOnly.removeAttribute("class");
+    if (!currentImsStatus) {
+      cellularPreferred.setAttribute('class', 'carrier-ims-profile-option');
+      wifiPreferred.setAttribute('class', 'carrier-ims-profile-option');
+      wifiOnly.setAttribute('class', 'carrier-ims-profile-option');
+      cellularOnly.removeAttribute('class');
     } else {
-      cellularPreferred.removeAttribute("class");
-      wifiPreferred.removeAttribute("class");
-      wifiOnly.removeAttribute("class");
-      cellularOnly.setAttribute('class','carrier-ims-profile-option');
+      cellularPreferred.removeAttribute('class');
+      wifiPreferred.removeAttribute('class');
+      wifiOnly.removeAttribute('class');
+      cellularOnly.setAttribute('class', 'carrier-ims-profile-option');
     }
   }
 
@@ -169,7 +170,7 @@ var CarrierSettings = (function(window, document, undefined) {
     };
   }
 
-  function getCurrentImsProfile(profileValue){
+  function getCurrentImsProfile(profileValue) {
     var value = '';
     switch (profileValue) {
       case 0:
@@ -193,17 +194,17 @@ var CarrierSettings = (function(window, document, undefined) {
   }
 
   function setImsStatus(enable) {
-    if(_imsHandler) {
+    if (_imsHandler) {
       _imsHandler.setImsEnabled(enable);
     }
   }
 
-  function getPreferredImsProfile(){
+  function getPreferredImsProfile() {
     return _imsHandler.getPreferredProfile();
   }
 
   function setPreferredImsProfile(profile) {
-    if(_imsHandler){
+    if (_imsHandler) {
       _imsHandler.setPreferredProfile(profile);
     }
   }
@@ -239,7 +240,7 @@ var CarrierSettings = (function(window, document, undefined) {
       document.querySelector('#menuItem-enableDataRoaming input');
 
     function updateDataRoamingToggle(dataEnabled) {
-      var dr_expl  = document.querySelector('#dataRoaming-expl');
+      var dr_expl = document.querySelector('#dataRoaming-expl');
       if (dataEnabled) {
         dataRoamingToggle.disabled = false;
         dr_expl.className = 'toggle-show';
@@ -271,10 +272,10 @@ var CarrierSettings = (function(window, document, undefined) {
     _settings.addObserver(DATA_KEY, function observerCb(event) {
       dataToggle.checked = event.settingValue;
       if (dataToggle.checked) {
-        var dc_expl  = document.querySelector('#dataConnection-expl');
+        var dc_expl = document.querySelector('#dataConnection-expl');
         dc_expl.className = 'toggle-show';
       } else {
-        var dc_expl  = document.querySelector('#dataConnection-expl');
+        var dc_expl = document.querySelector('#dataConnection-expl');
         dc_expl.className = 'toggle-hide';
       }
       if (_restartingDataConnection) {
