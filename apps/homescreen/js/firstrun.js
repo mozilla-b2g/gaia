@@ -9,6 +9,8 @@
 
   const VERTICALHOME_SETTINGS = 'vertical_preferences_store';
 
+  const HOMESCREEN_SETTINGS = 'homescreen_settings';
+
   function FirstRun() {
     return importVerticalHome().then(Promise.resolve(),
       (e) => {
@@ -81,6 +83,20 @@
                       stores => {
                         stores[0].get(COLS_PREF).then(cols => {
                           resolve({ order: order, small: cols >= 4 });
+
+                          // If 4-column is set, we should synchronise the
+                          // homescreen settings datastore so that Settings
+                          // reflects the correct value. (3 is the default)
+                          if (cols >= 4) {
+                            navigator.getDataStores(HOMESCREEN_SETTINGS).then(
+                              stores => {
+                                stores[0].put(cols, COLS_PREF);
+                              }).catch(
+                              e => {
+                                console.error(
+                                  'Error storing homescreen cols setting', e);
+                              });
+                          }
                         }, () => {
                           resolve({ order: order, small: false });
                         });

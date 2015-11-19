@@ -171,6 +171,7 @@
             return FirstRun().then((results) => {
               this.toggleSmall(results.small);
               this.startupMetadata = results.order;
+              this.settings.small = results.small;
               this.settings.save();
               return Promise.resolve();
             }, (e) => {
