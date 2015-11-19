@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>FTU - App Usage Metrics</title>
+
+    <!-- stylesheets of building blocks -->
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="style/index.css">
+
+    <!-- building block -->
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="bower_components/smart-button/script.js"></script>
+
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
+
+    <!-- shared libraries -->
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+
+    <!-- main javascript code -->
+    <script defer src="js/tv_ftu.js"></script>
+
+    <!-- Shared L10n libraries -->
+    <script src="shared/js/l10n.js"></script>
+
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/ftu.{locale}.properties"/>
+  </head>
+
+  <body>
+
+    <article id="app-usage-slide" class="slide">
+      <section class="slide-section top">
+        <img id="app-usage-slide-logo" src="style/images/firefox_logo.png">
+      </section>
+      <section id="app-usage-terms-section" class="slide-section mid" tabindex="-1">
+        <div id="app-usage-terms">
+          <p id="app-usage-terms-title" class="slide-description txt-large txt-center" data-l10n-id="about-firefox-os"></p>
+          <p class="slide-description txt-mid" data-l10n-id="welcome-to-fx-os"></p>
+          <p class="slide-description txt-mid" data-l10n-id="mozilla-cares-privacy"></p>
+          <p class="slide-description txt-mid" data-l10n-id="initial-activation"></p>
+          <p class="slide-description txt-mid" data-l10n-id="app-usage"></p>
+          <p class="slide-description txt-mid" data-l10n-id="tv-is-created-by-several-parties"></p>
+          <p class="slide-description txt-mid txt-center" data-l10n-id="send-data"></p>
+        </div>
+      </section>
+      <section class="slide-section bottom">
+        <div id="app-usage-arrow-icon" data-icon="arrow-down"></div>
+        <smart-button id="app-usage-no-button" type="rounded-corner-text" data-l10n-id="no"></smart-button>
+        <smart-button id="app-usage-yes-button" class="primary" type="rounded-corner-text" data-l10n-id="yes"></smart-button>
+      </section>
+    </article>
+
+  </body>
+
+</html>

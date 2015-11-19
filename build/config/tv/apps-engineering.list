@@ -14,6 +14,7 @@ tv_apps/weather-widget
 tv_apps/remote-control
 tv_apps/remote-control-client
 tv_apps/fling-tutorial
+tv_apps/tv-ftu
 apps/bluetooth
 apps/calendar
 apps/camera
