@@ -1,0 +1,123 @@
+html {
+  font-size: 10px;
+  /* We have Fira Sans as default font in real device. But it isn't default in
+   * browser. That's the main reason this line is here.*/
+  font-family: "Fira Sans";
+  font-weight: 100;
+  font-style: italic;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background: #000;
+}
+
+body {
+  background: url('images/background.png');
+}
+
+.txt-mid {
+  font-size: 3.8rem;
+}
+
+.txt-large {
+  font-size: 7rem;
+}
+
+.txt-center {
+  text-align: center;
+}
+
+smart-button[type=rounded-corner-text] {
+  width: 23.7rem;
+  font-size: 2.4rem;
+  font-weight: normal;
+}
+
+.slide {
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  position: fixed;
+}
+
+.slide-section {
+  position: absolute;
+  margin-right: -50%;
+  left: 50%;
+  transform: translate(-50%, 0px);
+}
+
+.slide-section.top {
+  top: 7.5rem;
+}
+
+.slide-section.mid {
+  width: 152rem;
+  height: 51rem;
+  top: 24rem;
+  overflow: hidden;
+}
+
+.slide-section.bottom {
+  bottom: 10.5rem;
+}
+
+.slide-description {
+  margin: 0;
+  margin-bottom: 6rem;
+}
+
+.slide-description:last-child {
+  margin-bottom: 0;
+}
+
+#app-usage-slide {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+#app-usage-terms-section {
+  overflow: scroll;
+}
+
+#app-usage-terms-section:focus {
+  outline: none;
+}
+
+#app-usage-terms-title {
+  margin-bottom: 8rem;
+}
+
+#app-usage-slide-logo {
+  width: 15rem;
+  height: 15rem;
+}
+
+#app-usage-no-button {
+  margin-right: 1.8rem;
+}
+
+#app-usage-arrow-icon {
+  width: 6rem;
+  height: 6rem;
+  position: absolute;
+  margin-right: -50%;
+  bottom: 15rem;
+  left: 50%;
+  transform: translate(-50%, 0px);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+#app-usage-arrow-icon.hidden {
+  opacity: 0;
+}
+
+#app-usage-arrow-icon[data-icon]::before {
+  font-size: 6rem;
+}
+
