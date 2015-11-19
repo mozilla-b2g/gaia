@@ -84,7 +84,7 @@ var Storage = {
         }));
       }
 
-      Promise.all(promises).then(list => {
+      return Promise.all(promises).then(list => {
         var container = this.storageContainer;
         while (container.firstChild) {
           container.removeChild(container.firstChild);
@@ -118,6 +118,7 @@ var Storage = {
           li.setAttribute('role', 'checkbox');
           li.appendChild(gaia_switch);
           container.appendChild(li);
+          gaia_switch.checked = this.storageEnabled(item.id);
         });
       });
     });
@@ -135,6 +136,12 @@ var Storage = {
       this.editMode = true;
     }
     this.switchEditMode();
+  },
+
+  storageEnabled(fsId) {
+    return navigator.getDeviceStorages('sdcard').some(el => {
+      return el.storageName === fsId;
+    });
   },
 
   switchEditMode() {
@@ -156,10 +163,14 @@ var Storage = {
     console.log(storageId);
     asyncStorage.getItem(storageId, storage => {
       if (storage.type === 'dropbox') {
-        udManagerHelper.init('Dropbox', {token: storage.token});
-        FileSystemHelper.mount({
-          id: storage.id, name: storage.name
-        }).then(e => console.log(e));
+        if (this.storageEnabled(storage.id)) {
+          FileSystemHelper.unmount();
+        } else {
+          udManagerHelper.init('Dropbox', {token: storage.token});
+          FileSystemHelper.mount({
+            id: storage.id, name: storage.name
+          }).then(e => console.log(e));
+        }
       }
     });
   },
