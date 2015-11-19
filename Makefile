@@ -143,6 +143,11 @@ NO_LOCK_SCREEN=1
 SCREEN_TIMEOUT?=300
 endif
 
+# If running as SmartTV, We should not timeout
+ifeq ($(GAIA_DEVICE_TYPE), 'tv')
+SCREEN_TIMEOUT?=0
+endif
+
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
