@@ -174,6 +174,8 @@ function runTest(filename, args, retry) {
     var command = path.resolve(__dirname, '../.bin/marionette-mocha');
     args = args.concat(filename);
 
+    console.log('Running tests in ', filename);
+
     var jsmarionette = spawn(command, args);
     var stdout = '',
         stderr = '';
@@ -220,7 +222,7 @@ function runTest(filename, args, retry) {
 function testDidFailOnTbpl(stdout, stderr) {
   // Ensure we captured output before deciding if the test failed or not.
   return stdout.length &&
-         (stdout.indexOf('TEST-UNEXPECTED-FAIL') !== -1 ||
+         (stdout.indexOf('TEST-UNEXPECTED') !== -1 ||
           stdout.indexOf('*~*~*') === -1);
 }
 
