@@ -40,7 +40,6 @@ var Browser = {
   MAX_TOPSITE_LIST: 18,
   MAX_ICON_LIST: 120,
 
-  waitingActivities: [],
   hasLoaded: false,
 
   // < category >
@@ -147,6 +146,10 @@ var Browser = {
 
         // start IAC handler
         connectionHandler.activate();
+        if (window.navigator.mozSetMessageHandler) {
+          window.navigator.mozSetMessageHandler('activity',
+              this.handleActivity.bind(this));
+        }
       }).bind(this));
     }).bind(this));
 
@@ -163,9 +166,6 @@ var Browser = {
     SyncBrowserDB.init();
 //ENDIF_FIREFOX_SYNC
 
-    if (this.waitingActivities.length) {
-      this.waitingActivities.forEach(this.handleActivity, this);
-    }
     this.hasLoaded = true;
   },
 
@@ -1214,16 +1214,4 @@ window.addEventListener('load', function browserOnLoad(evt) {
     Browser.init();
   }.bind(this));
 });
-
-function actHandle(activity) {
-  if (Browser.hasLoaded) {
-    Browser.handleActivity(activity);
-  } else {
-    Browser.waitingActivities.push(activity);
-  }
-}
-
-if (window.navigator.mozSetMessageHandler) {
-  window.navigator.mozSetMessageHandler('activity', actHandle);
-}
 
