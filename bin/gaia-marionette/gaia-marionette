@@ -105,6 +105,7 @@ if [ -n "$PART" ] ; then
   # spaces
   echo "$TEST_FILES" | sort > $TEMP_FILE
   TEST_FILES=$(split -n l/$PART/$NBPARTS $TEMP_FILE)
+  echo -e "------- Possible Test files will run:\n$TEST_FILES\n-------"
   rm -f $TEMP_FILE
 fi
 
