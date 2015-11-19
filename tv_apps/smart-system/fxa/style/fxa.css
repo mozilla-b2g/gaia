@@ -239,14 +239,10 @@ gaia-header {
   text-decoration: none;
 }
 
-
-.screen input[type="text"],
-.screen input[type="password"],
-.screen input[type="email"] {
+.screen input {
   height: 5rem;
   padding: 0.5rem 0;
   font-family: Fira Sans;
-  font-variant: 3.8rem;
   color: #000000;
   border-top: none;
   border-right: none;
@@ -255,23 +251,24 @@ gaia-header {
   background-color: transparent;
   font-size: 3.8rem;
   line-height: 3.8rem;
-  text-align: center;
   box-sizing: content-box;
 }
 
+.screen input[type="text"],
+.screen input[type="password"],
+.screen input[type="email"] {
+  text-align: center;
+}
+
 .screen input:focus {
-  color: #000000;
-  box-shadow: unset;
   border-bottom-color: rgb(0, 202, 242);
 }
 
-.screen input[type="email"]:invalid {
+.screen input:invalid {
   color: rgb(185, 0, 0);
 }
 
-.screen input[type="email"]:invalid:focus,
-.screen input[type="password"]:invalid:focus {
-  box-shadow: unset;
+.screen input:invalid:focus {
   border-bottom-color: rgb(130, 0, 0);
 }
 
