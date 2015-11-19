@@ -16,7 +16,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <!-- These file are loaded lazily but listed here to get packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css" />
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_menu/script.js"></script>
     -->
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
@@ -24,6 +25,7 @@
     <link rel="localization" href="locales/gallery.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
 
     <!-- This batch of scripts is the critical startup code that we
       want to run as soon as possible. Thumbnails.js creates a MediaDB
@@ -271,14 +273,11 @@
       </menu>
     </form>
 
-    <form id="aspect-ratio-options-view" role="dialog" data-type="action" class="hidden">
-      <menu>
-       <button type="button" id="edit-crop-aspect-3x4"><span data-l10n-id="crop-aspect-3x4">3:4</span></button>
-       <button type="button" id="edit-crop-aspect-4x3"><span data-l10n-id="crop-aspect-4x3">4:3</span></button>
-       <button type="button" id="edit-crop-aspect-16x9"><span data-l10n-id="crop-aspect-16x9">16:9</span></button>
-       <button type="button" id="aspect-ratio-options-cancel" data-l10n-id="cancel"></button>
-      </menu>
-    </form>
+    <gaia-menu id="aspect-ratio-options-view" hidden>
+      <button id="edit-crop-aspect-3x4" data-l10n-id="crop-aspect-3x4">3:4</button>
+      <button id="edit-crop-aspect-4x3" data-l10n-id="crop-aspect-4x3">4:3</button>
+      <button id="edit-crop-aspect-16x9" data-l10n-id="crop-aspect-16x9">16:9</button>
+    </gaia-menu>
 
     <!-- Some SVG filters we use -->
     <svg id="filters" width="0" height="0">

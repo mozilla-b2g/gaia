@@ -408,7 +408,7 @@ function editOptionsHandler() {
   } else if (this === $('edit-crop-aspect-square')) {
     imageEditor.setCropAspectRatio(1, 1);
   } else if (this === $('edit-crop-aspect-more')) {
-    $('aspect-ratio-options-view').classList.remove('hidden');
+    $('aspect-ratio-options-view').show();
   }
   else if (this.dataset.effect) {
     editSettings.effect.matrix = Effects[this.dataset.effect];
@@ -433,7 +433,7 @@ function editAspectMoreHandler() {
     editSettings.crop.cropModeId = editCropSelectedAspectRatio;
   }
   enableSaveAndApplyButtons();
-  $('aspect-ratio-options-view').classList.add('hidden');
+  $('aspect-ratio-options-view').hide();
 }
 
 // Set editTool to respective edit modes on click
