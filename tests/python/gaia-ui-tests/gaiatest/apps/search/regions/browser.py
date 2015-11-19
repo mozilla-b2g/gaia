@@ -12,7 +12,7 @@ class Browser(Base):
     _browser_frame_locator = (By.CSS_SELECTOR, 'iframe.browser')
 
     _menu_button_locator = (By.CSS_SELECTOR, '.menu-button')
-    _add_to_home_button_locator = (By.CSS_SELECTOR, 'button[data-id="add-to-homescreen"]')
+    _pin_button_locator = (By.CSS_SELECTOR, 'button[data-id="pin-to-home-screen"]')
     _share_button_locator = (By.CSS_SELECTOR, 'button[data-id="share"]')
     _share_to_messages_button_locator = (By.CSS_SELECTOR, 'button[data-manifest="app://sms.gaiamobile.org/manifest.webapp"]')
     _browser_menu_locator = (By.CSS_SELECTOR, '.contextmenu-list')
@@ -50,17 +50,17 @@ class Browser(Base):
         Wait(self.marionette).until(
             expected.element_displayed(*self._browser_menu_locator))
 
-    def tap_add_to_home(self):
-        element = self._root_element.find_element(*self._add_to_home_button_locator)
+    def tap_pin_button(self):
+        element = self._root_element.find_element(*self._pin_button_locator)
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
-        from gaiatest.apps.homescreen.regions.bookmark_menu import BookmarkMenu
-        return BookmarkMenu(self.marionette)
 
     def tap_share(self):
         element = self._root_element.find_element(*self._share_button_locator)
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
+        from gaiatest.apps.homescreen.regions.pin_dialog import PinDialog
+        return PinDialog(self.marionette)
 
     def tap_share_to_messages(self):
         element = Wait(self.marionette).until(

@@ -17,7 +17,7 @@ class Homescreen(Base):
 
     name = 'Default Home Screen'
 
-    _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
+    _homescreen_icon_page_locator = (By.CSS_SELECTOR, 'gaia-container[id="pages"]')
     _all_icons_locator = (By.TAG_NAME, 'gaia-app-icon')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
     _search_bar_icon_locator = (By.ID, 'search-input')
@@ -117,6 +117,13 @@ class Homescreen(Base):
 
         return BottomBar(self.marionette).tap_remove()
 
+    def go_to_pinned_pages_panel(self):
+        current_frame = self.apps.displayed_app.frame
+        final_x_position = current_frame.rect['width'] // 2
+        start_y_position = current_frame.rect['height'] // 2
+        Actions(self.marionette).flick(
+            current_frame, 0, start_y_position, final_x_position * 2, start_y_position * 2).perform()
+
     class GaiaAppIcon(PageRegion):
 
         @property
@@ -152,10 +159,10 @@ class Homescreen(Base):
                 release().\
                 wait(1).\
                 perform()
-        
-        def _start_long_press_action(self):    
+
+        def _start_long_press_action(self):
             self.marionette.execute_script('arguments[0].scrollIntoView(false);', [self.root_element])
-            
+
             return Actions(self.marionette).\
                 press(self.root_element).\
                 wait(3)
