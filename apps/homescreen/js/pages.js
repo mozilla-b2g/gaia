@@ -31,6 +31,7 @@
     this.pages.addEventListener('click', this);
     this.pages.addEventListener('contextmenu', this);
     this.pages.addEventListener('keydown', this);
+    window.addEventListener('resize', this);
 
     this.done.addEventListener('click', e => {
       e.preventDefault();
@@ -258,6 +259,10 @@
           case 13: // Enter
             this.launchCard(e.target);
         }
+        break;
+
+      case 'resize':
+        this.pages.synchronise();
         break;
       }
     }
