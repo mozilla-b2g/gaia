@@ -1,3 +1,4 @@
+/* global Components */
 'use strict';
 
 var Actions = require('marionette-client').Actions;
@@ -116,14 +117,31 @@ TextSelection.prototype = {
   },
 
   longPress: function(element) {
-    var eltSize = element.size();
-    this.longPressByPosition(element, eltSize/2, eltSize/2);
+    // Get element's bounding rectangle. The coordinate is relative to
+    // the top left corner of the window instead of the document.
+    var rect = this.client.executeScript(function() {
+      var rect = arguments[0].getBoundingClientRect();
+      return {x: rect.x, y:rect.y, width: rect.width, height: rect.height};
+    }, [element], null, 'system');
+
+    this.longPressByPosition(element, rect.x + rect.width / 2,
+      rect.y + rect.height / 2);
   },
  
   longPressByPosition: function(element, x, y) {
-    // Add moveByOffset to prevent contextmenu event be fired.
-    this.actions.tap(element, x, y).wait(5).press(element, x, y).
-      moveByOffset(0, 0).wait(2).release().perform();
+    this.client.executeScript(function() {
+      var Ci = Components.interfaces;
+      var utils = window.QueryInterface(Ci.nsIInterfaceRequestor)
+                        .getInterface(Ci.nsIDOMWindowUtils);
+      utils.sendTouchEventToWindow('touchstart', [0],
+                                   [arguments[0]], [arguments[1]],
+                                   [1], [1], [0], [1], 1, 0);
+      utils.sendMouseEventToWindow('mouselongtap', arguments[0], arguments[1],
+                                    0, 1, 0);
+      utils.sendTouchEventToWindow('touchend', [0],
+                                   [arguments[0]], [arguments[1]],
+                                   [1], [1], [0], [1], 1, 0);
+    }, [x, y], null, 'system');
   },
 
   pressCopy: function() {
