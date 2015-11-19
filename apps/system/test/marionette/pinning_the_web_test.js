@@ -3,6 +3,7 @@
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 var PinTheWeb = require('./lib/pinning_the_web');
+var UtilityTray = require('./lib/utility_tray.js');
 var assert = require('assert');
 
 marionette('Pinning the Web', function() {
@@ -20,7 +21,7 @@ marionette('Pinning the Web', function() {
     }
   });
 
-  var rocketbar, server, system, actions, home, pinTheWeb;
+  var rocketbar, server, system, actions, home, pinTheWeb, utilityTray;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -38,6 +39,7 @@ marionette('Pinning the Web', function() {
     home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     pinTheWeb = new PinTheWeb(client);
+    utilityTray = new UtilityTray(client);
     system.waitForFullyLoaded();
     actions = client.loader.getActions();
   });
@@ -303,4 +305,16 @@ marionette('Pinning the Web', function() {
     assert(home.visibleCards.length === 0, 'There is no pinned pages');
   });
 
+  test('Opening quick settings should close pin dialog', function() {
+    var url = server.url('sample.html');
+
+    client.switchToFrame();
+    pinTheWeb.openPinDialog(url);
+    var pinDialog = pinTheWeb.pinDialog;
+
+    utilityTray.open();
+    utilityTray.quickSettings.tap();
+
+    client.helper.waitForElementToDisappear(pinDialog);
+  });
 });
