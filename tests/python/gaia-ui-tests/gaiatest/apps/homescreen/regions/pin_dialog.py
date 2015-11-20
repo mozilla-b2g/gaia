@@ -18,7 +18,6 @@ class PinDialog(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
 
-
     def tap_pin_site_to_home_screen(self):
         self.marionette.switch_to_frame()
         element = Wait(self.marionette).until(expected.element_present(

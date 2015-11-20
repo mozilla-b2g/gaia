@@ -54,6 +54,8 @@ class Browser(Base):
         element = self._root_element.find_element(*self._pin_button_locator)
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
+        from gaiatest.apps.homescreen.regions.pin_dialog import PinDialog
+        return PinDialog(self.marionette)
 
     def tap_share(self):
         element = self._root_element.find_element(*self._share_button_locator)
