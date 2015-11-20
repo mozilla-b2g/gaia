@@ -1,5 +1,6 @@
 */client/marionette-client/test/integration/*
 */client/marionette-client/test/integration/drivers/*
+*/plugins/marionette-a11y/test/*_test.js
 */plugins/marionette-apps/test/*_test.js
 */plugins/marionette-content-script/test/*_test.js
 */plugins/marionette-file-manager/test/integration/*
