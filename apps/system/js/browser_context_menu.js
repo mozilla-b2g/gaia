@@ -219,8 +219,7 @@
         url: url,
         iconable: false,
         title: this.app.title,
-        themeColor: this.app.themeColor,
-        app: this.app
+        themeColor: this.app.themeColor
       };
 
       this.app.getScreenshot(function() {

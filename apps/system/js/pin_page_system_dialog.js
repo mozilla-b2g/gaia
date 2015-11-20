@@ -148,17 +148,10 @@
       case 'pin-page-dialog-requestopen':
         this.show(evt.detail);
         break;
-
-      case 'appwillclose':
-        if (evt.detail === this.currentApp) {
-          this.close();
-        }
-        break;
     }
   };
 
   PinPageSystemDialog.prototype.show = function(data) {
-    this.currentApp = data.app;
     this.pageTitle.textContent = data.title;
     this._renderPinCard(data);
     this._renderSitePanel(data);
@@ -199,23 +192,21 @@
 
   PinPageSystemDialog.prototype.hide = function() {
     this._visible = false;
-    this.currentApp = null;
     SystemDialog.prototype.hide.apply(this);
   };
 
   PinPageSystemDialog.prototype.close = function() {
     this.publish('close');
     this.hide();
+    this._visible = false;
   };
 
   PinPageSystemDialog.prototype._start = function() {
     window.addEventListener('pin-page-dialog-requestopen', this);
-    window.addEventListener('appwillclose', this);
   };
 
   PinPageSystemDialog.prototype._stop = function() {
     window.removeEventListener('pin-page-dialog-requestopen', this);
-    window.removeEventListener('appwillclose', this);
   };
 
   PinPageSystemDialog.prototype.destroy = function() {
