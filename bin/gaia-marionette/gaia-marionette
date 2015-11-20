@@ -175,12 +175,7 @@ else
   DEVICE_TYPE_OPT="--device-type $GAIA_DEVICE_TYPE"
 fi
 
-TARGET=""
-if [[ $@ == *"mocha-tbpl-reporter"* ]]; then
-  TARGET="$DIR/../gaia-marionette/gaia_marionette_retry.js"
-else
-  TARGET="$DIR/marionette-mocha"
-fi
+TARGET="$DIR/marionette-mocha"
 
 export PATH=$XPCSHELL_DIR:$PATH
 
