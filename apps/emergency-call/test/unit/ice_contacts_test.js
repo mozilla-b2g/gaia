@@ -37,10 +37,15 @@ suite('ICE contacts bar', function() {
     iceContactBar.textContent = 'ICE Contacts - In Case of Emergency';
     container.appendChild(iceContactBar);
 
-    iceContactsOverlay = document.createElement('gaia-menu');
-    iceContactsOverlay.innerHTML = '<header></header>';
+    loadBodyHTML('/shared/elements/contacts/contact_list_overlay.html');
+    var iceContactsOverlayTemplate = document.body.querySelector('template');
+    iceContactsOverlay = document.createElement('form');
     iceContactsOverlay.id = 'contact-list-overlay';
+    iceContactsOverlay.setAttribute('role', 'dialog');
+    iceContactsOverlay.setAttribute('data-type', 'action');
     iceContactsOverlay.classList.add('overlay');
+    iceContactsOverlay.appendChild(
+      iceContactsOverlayTemplate.content.cloneNode(true));
     container.appendChild(iceContactsOverlay);
 
     loadBodyHTML('/shared/elements/contacts/contact_in_overlay.html');
@@ -55,7 +60,7 @@ suite('ICE contacts bar', function() {
 
     document.body.appendChild(container);
 
-    iceContactList = document.querySelector('gaia-menu');
+    iceContactList = document.getElementById('contact-list');
   }
 
   function shouldNotShowICEContactsBar(done) {
@@ -98,7 +103,7 @@ suite('ICE contacts bar', function() {
     test('Lazyloads contact list overlay', function(done) {
       this.sinon.spy(MockLazyLoader, 'load');
       ICEContacts.updateICEContacts().then(function() {
-        sinon.assert.called(MockLazyLoader.load);
+        sinon.assert.calledWith(MockLazyLoader.load, [iceContactsOverlay]);
         done();
       });
     });
@@ -436,6 +441,11 @@ suite('ICE contacts bar', function() {
     test('Should include time element', function() {
       assert.equal(iceContactsOverlay.querySelector('.js-tel').textContent,
                    contact1.tel[0].value);
+    });
+
+    test('Should include cancel button', function() {
+      assert.ok(
+        iceContactsOverlay.querySelector('#contact-list-overlay-cancel'));
     });
 
     test('Tapping a contact dials them', function() {

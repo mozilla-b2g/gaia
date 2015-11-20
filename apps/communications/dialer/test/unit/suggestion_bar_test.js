@@ -4,9 +4,6 @@
 
 'use strict';
 
-require('/shared/js/component_utils.js');
-require('/shared/elements/gaia_menu/script.js');
-
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_call_handler.js');
@@ -123,6 +120,9 @@ suite('suggestion Bar', function() {
     loadBodyHTML('/shared/elements/contacts/contact_in_overlay.html');
     var suggestionItemTemplate = document.body.querySelector('template');
 
+    loadBodyHTML('/shared/elements/contacts/contact_list_overlay.html');
+    var suggestionOverlayTemplate = document.body.querySelector('template');
+
     domSuggestionBar = document.createElement('section');
     domSuggestionBar.id = 'suggestion-bar';
     domSuggestionBar.classList.add('hide');
@@ -147,11 +147,15 @@ suite('suggestion Bar', function() {
     domSuggestionItem.appendChild(
       suggestionItemTemplate.content.cloneNode(true));
 
-    domOverlay = document.createElement('gaia-menu');
+    domOverlay = document.createElement('form');
     domOverlay.id = 'contact-list-overlay';
+    domOverlay.setAttribute('is', 'contact-list-overlay');
+    domOverlay.setAttribute('role', 'dialog');
+    domOverlay.dataset.type = 'action';
     domOverlay.classList.add('overlay');
-    domOverlay.setAttribute('hidden', 'true');
-    domOverlay.innerHTML = '<header></header>';
+    domOverlay.setAttribute('aria-hidden', 'true');
+    domOverlay.innerHTML = '';
+    domOverlay.appendChild(suggestionOverlayTemplate.content.cloneNode(true));
     document.body.appendChild(domOverlay);
 
     domSuggestionCount = domSuggestionBar.querySelector('#suggestion-count');
@@ -159,7 +163,9 @@ suite('suggestion Bar', function() {
     subject.overlay = domOverlay;
     subject.bar = domSuggestionBar;
     subject.countTag = document.getElementById('suggestion-count');
-    subject.list = document.querySelector('gaia-menu');
+    subject.list = document.getElementById('contact-list');
+    subject.overlayCancel =
+        document.getElementById('contact-list-overlay-cancel');
     subject.init();
 
     this.sinon.spy(MockL10n, 'setAttributes');
@@ -399,12 +405,18 @@ suite('suggestion Bar', function() {
       });
 
       test('should load the overlay', function() {
-        sinon.assert.called(LazyLoader.load);
+        sinon.assert.calledWith(LazyLoader.load, domOverlay);
       });
 
       test('overlay is displayed', function() {
-        assert.equal(subject.overlay.hasAttribute('hidden'), false);
+        assert.equal(subject.overlay.getAttribute('aria-hidden'), 'false');
         assert.isTrue(subject.overlay.classList.contains('display'));
+      });
+
+      test('should have a cancel button as the last button', function() {
+        var buttons = subject.list.children;
+        var cancel = buttons[buttons.length - 1];
+        assert.equal(cancel.id, 'contact-list-overlay-cancel');
       });
 
       test('should have 2 suggestions', function() {
@@ -468,8 +480,12 @@ suite('suggestion Bar', function() {
     });
 
     suite('hide overlay', function() {
+      setup(function() {
+        subject.hideOverlay();
+      });
+
       test('should hide the overlay', function() {
-        assert.equal(subject.overlay.getAttribute('hidden'), 'true');
+        assert.equal(subject.overlay.getAttribute('aria-hidden'), 'true');
         assert.isFalse(subject.overlay.classList.contains('display'));
       });
     });
@@ -481,7 +497,7 @@ suite('suggestion Bar', function() {
       subject.showOverlay();
 
       assert.equal(
-          subject.overlay.childElementCount,
+          subject.overlay.querySelector('#contact-list').childElementCount,
           4, 'should have 3 items + cancel button into overlay list');
       assert.isFalse(subject.overlay.hidden, 'should show suggestion list');
     });
@@ -489,6 +505,7 @@ suite('suggestion Bar', function() {
     suite('#tap on suggestions list', function() {
       setup(function() {
         this.sinon.spy(MockCallHandler, 'call');
+        this.sinon.spy(subject, 'hideOverlay');
 
         MockContacts.mResult = mockResult1;
         subject.update('1234');
@@ -507,6 +524,7 @@ suite('suggestion Bar', function() {
         document.body.querySelector('.js-suggestion-item').click();
 
         sinon.assert.notCalled(MockCallHandler.call);
+        sinon.assert.calledOnce(subject.hideOverlay);
       });
     });
 

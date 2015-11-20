@@ -1,9 +1,8 @@
 /* Overrides building blocks */
-/* TODO, move into web component styles. Bug 1225857 */
-#contact-list-overlay .contact-item {
-  height: auto !important;
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
+#contact-list .contact-item {
+  height: auto;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 /* End overrides building blocks */
 
