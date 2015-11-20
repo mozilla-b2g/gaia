@@ -161,30 +161,28 @@ var Storage = {
 
   handleStorageContainerSwitchChange(e) {
     var storageId = e.target.getAttribute('data-storage-id');
-    console.log(storageId);
     asyncStorage.getItem(storageId, storage => {
-      switch (storage.type) {
-      case DropboxAuth.MOD_NAME:
-        if (this.storageEnabled(storage.id)) {
-          FileSystemHelper.unmount(); // TODO
-        } else {
-          udManagerHelper.init('Dropbox', {token: storage.token});
-          FileSystemHelper.mount({
-            id: storage.id, name: storage.name
-          }).then(e => console.log(e));
+      if (this.storageEnabled(storage.id)) {
+        FileSystemHelper.unmount(storage.id);
+      } else {
+        var option = {}, modName;
+        switch (storage.type) {
+        case DropboxAuth.MOD_NAME:
+          modName = 'Dropbox';
+          option.token = storage.token;
+          break;
+        case MyJsonAuth.MOD_NAME:
+          modName = 'Sample';
+          option.JSONPath = storage.token;
+          break;
         }
-        break;
-      case MyJsonAuth.MOD_NAME:
-        if (this.storageEnabled(storage.id)) {
-          FileSystemHelper.unmount(); // TODO
-        } else {
-          udManagerHelper.init('Sample', {JSONPath: storage.token});
-          FileSystemHelper.mount({
-            id: storage.id, name: storage.name
-          }).then(e => console.log(e));
-        }
-        break;
+
+        udManagerHelper.init(modName, option);
+        FileSystemHelper.mount({
+          id: storage.id, name: storage.name
+        }).then(e => console.log(e));
       }
+
     });
   },
 

@@ -38,6 +38,12 @@ var FileSystemHelper = {
     });
   },
 
+  unmount(fsId) {
+    this.fsProvider.unmount({
+      fileSystemId: fsId
+    });
+  },
+
   handleGetMetadata(event) {
     console.log('handleGetMetadata:', event.options.entryPath);
     console.log(event);
