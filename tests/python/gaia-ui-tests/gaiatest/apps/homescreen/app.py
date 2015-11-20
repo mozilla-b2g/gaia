@@ -122,7 +122,7 @@ class Homescreen(Base):
         final_x_position = current_frame.rect['width'] // 2
         start_y_position = current_frame.rect['height'] // 2
         Actions(self.marionette).flick(
-            current_frame, 0, start_y_position, final_x_position, start_y_position).perform()
+            current_frame, final_x_position, start_y_position, 0, start_y_position, duration=600).perform()
 
     class GaiaAppIcon(PageRegion):
 
