@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global HtmlHelper, FxaModuleOverlay, LazyLoader, FxaModuleErrors,
-   FxaModuleErrorOverlay, BrowserFrame, EntrySheet */
+   FxaModuleErrorOverlay */
 /* exported FxaModule */
 
 'use strict';
@@ -53,30 +53,6 @@ var FxaModule = (function() {
       LazyLoader.load('js/fxam_errors.js', function() {
         var config = FxaModuleErrors.responseToParams(resp);
         FxaModuleErrorOverlay.show(config.title, config.message);
-        if (resp === 'COPPA_ERROR') {
-          var link =
-            FxaModuleErrorOverlay.fxaErrorMsg.getElementById('coppa-link');
-          link.addEventListener('click', e => {
-            e.preventDefault();
-            if (this.entrySheet) {
-              this.entrySheet.close();
-              this.entrySheet = null;
-            }
-            var coppaUrl = 'http://www.ftc.gov/news-events/media-resources/' +
-              'protecting-consumer-privacy/kids-privacy-coppa';
-
-            this.entrySheet = new EntrySheet(
-              window.top.document.getElementById('screen'),
-              'URL:' + coppaUrl,
-              new BrowserFrame({
-                url: coppaUrl,
-                oop: true
-              })
-            );
-
-            this.entrySheet.open();
-          });
-        }
       });
     },
 

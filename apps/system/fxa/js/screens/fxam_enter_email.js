@@ -15,6 +15,10 @@
 
 var FxaModuleEnterEmail = (function() {
 
+  var _ = null;
+  var termsUrl = 'https://accounts.firefox.com/legal/terms';
+  var privacyUrl = 'https://accounts.firefox.com/legal/privacy';
+
   function _isEmailValid(emailEl) {
     return emailEl && emailEl.value && emailEl.validity.valid;
   }
@@ -41,6 +45,8 @@ var FxaModuleEnterEmail = (function() {
 
   var Module = Object.create(FxaModule);
   Module.init = function init(options) {
+    _ = navigator.mozL10n.get;
+
     // Cache static HTML elements
     this.importElements(
       'fxa-email-input',
@@ -55,6 +61,22 @@ var FxaModuleEnterEmail = (function() {
       return;
     }
 
+    // dynamically construct and localize ToS/PN notice
+    // XXX This relies on the current l10n fallback mechanism which will change
+    // in the future;  a real solution involves DOM overlays:
+    // https://bugzil.la/994357
+    var noticeText = _('fxa-notice');
+    var tosReplaced = noticeText.replace(
+      /{{\s*tos\s*}}/,
+      '<a id="fxa-terms" href="' + termsUrl + '">Terms of Service</a>'
+    );
+    var tosPnReplaced = tosReplaced.replace(
+      /{{\s*pn\s*}}/,
+      '<a id="fxa-privacy" href="' + privacyUrl + '">Privacy Notice</a>'
+    );
+    this.fxaNotice.innerHTML = tosPnReplaced;
+
+    // manually import a few elements after innerHTMLing
     this.fxaPrivacy = document.getElementById('fxa-privacy');
     this.fxaPrivacy.setAttribute('data-l10n-id', 'fxa-pn');
     this.fxaTerms = document.getElementById('fxa-terms');

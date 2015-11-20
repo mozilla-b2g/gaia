@@ -37,7 +37,7 @@ suite('Screen: Signup Success', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     var l10nStub = sinon.stub(navigator.mozL10n, 'get');
-    l10nStub.withArgs('fxa-will-send-email2')
+    l10nStub.withArgs('fxa-will-send-email')
       .returns('Will send email to {{email}}');
 
     mocksHelperForSignupSuccess.suiteSetup();
@@ -64,9 +64,8 @@ suite('Screen: Signup Success', function() {
 
   suite(' > init ', function() {
     test(' > email shown properly', function() {
-      assert.equal(
-        FxaModuleSignupSuccess.fxaWillSendEmail.getAttribute('data-l10n-id'),
-        'fxa-will-send-email2');
+      var willSendText = FxaModuleSignupSuccess.fxaWillSendEmail.textContent;
+      assert.isTrue(willSendText.indexOf(emailTest) > -1);
     });
 
   });
