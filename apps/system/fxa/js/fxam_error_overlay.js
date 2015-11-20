@@ -35,11 +35,7 @@ var FxaModuleErrorOverlay = {
     this.init();
 
     this.fxaErrorTitle.setAttribute('data-l10n-id', titleL10n);
-    if (typeof(messageL10n) === 'object') {
-      this.fxaErrorMsg.innerHTML = messageL10n.html;
-    } else {
-      this.fxaErrorMsg.setAttribute('data-l10n-id', messageL10n);
-    }
+    this.fxaErrorMsg.setAttribute('data-l10n-id', messageL10n);
 
     this.fxaErrorOverlay.classList.add('show');
   },
