@@ -24,7 +24,7 @@ suite('Error manager', function() {
     },
     COPPA_ERROR: {
       title: 'fxa-coppa-failure-error-title',
-      message: 'fxa-coppa-failure-error-message'
+      message: 'fxa-coppa-failure-error-message2'
     },
     COPPA_FTU_ERROR: {
       title: 'fxa-coppa-failure-error-title',
@@ -59,22 +59,12 @@ suite('Error manager', function() {
     response = null;
   });
 
-  test('copppa error called twice - bug 1137354', function() {
-    var registerElementStub = this.sinon.stub(document, 'registerElement');
-
-    FxaModuleErrors.responseToParams({error: 'COPPA_ERROR'});
-    FxaModuleErrors.responseToParams({error: 'COPPA_ERROR'});
-    assert.ok(registerElementStub.calledOnce);
-  });
-
   Object.keys(errorsObject).forEach(function(key) {
     test('Test ' + key, function() {
       response.error = key;
       var resp = FxaModuleErrors.responseToParams(response);
 
-      var message = key === 'COPPA_ERROR' ? {
-        html: 'fxa-coppa-failure-error-message'
-      } : errorsObject[key].message;
+      var message = errorsObject[key].message;
 
       assert.deepEqual(resp, {
         title: errorsObject[key].title,
