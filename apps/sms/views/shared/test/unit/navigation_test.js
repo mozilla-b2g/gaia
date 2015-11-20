@@ -192,6 +192,14 @@ suite('navigation >', function() {
           assert.isFalse(Navigation.hasPendingInit());
         }).then(done, done);
       });
+
+      test('Initial navigation request should proceed to the completion ' +
+           'without waiting for the document to be completely loaded',
+      function(done) {
+        Object.defineProperty(document, 'readyState', { value: 'interactive' });
+
+        Navigation.init().then(done, done);
+      });
     });
 
     suite('back() >', function() {
@@ -657,6 +665,8 @@ suite('navigation >', function() {
 
       window.Navigation = NavigationFactory(fakeWindow);
       navigator.mozHasPendingMessage.withArgs('notification').returns(false);
+
+      Navigation.setReady();
     });
 
     suite('init()) >', function() {
@@ -770,6 +780,16 @@ suite('navigation >', function() {
         }).then(() => {
           assert.isFalse(Navigation.hasPendingInit());
         }).then(done, done);
+      });
+
+      test('Initial navigation request should proceed to the completion ' +
+           'without waiting for the document to be completely loaded',
+      function(done) {
+        Object.defineProperty(document, 'readyState', { value: 'interactive' });
+
+        // For the split-view case Navigation.init waits for the setReady call
+        // that is made in the suite setup function above.
+        Navigation.init().then(done, done);
       });
     });
 
