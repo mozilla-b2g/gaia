@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./node_modules/.bin/confidant --exclude .git,b2g_sdk,build_stage,customization,locales,node_modules,profile,test_media .

@@ -8,6 +8,7 @@
 *.swo
 .svn
 *~
+build.ninja
 manifest.appcache
 
 /apps/calendar/js/common/presets.js
