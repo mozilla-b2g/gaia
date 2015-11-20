@@ -31,6 +31,7 @@ const HISTORY_LAST_REVISIONID = '::collections::history::revisionid';
 const HISTORY_SYNCTOID_PREFIX = '::synctoid::history::';
 
 var HistoryHelper = (() => {
+  // TODO: Use shared/js/places_model.js here, see bug 1208352
   var _store;
   function _ensureStore() {
     if (_store) {
