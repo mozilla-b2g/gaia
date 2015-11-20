@@ -8,13 +8,13 @@
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/video.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <!-- this file is loaded lazily but is listed here so it gets packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
     -->
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/info.css" />
     <link rel="stylesheet" type="text/css" href="style/spinner.css" />
-    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css" />
     <link rel="stylesheet" type="text/css" href="style/video_tablet.css" media="(min-height: 768px) and (min-width: 768px)" />
 
     <!-- Shared Libs -->
@@ -33,9 +33,11 @@
 
     <!-- Web Components -->
     <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/js/component_utils.js"></script>
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="shared/elements/gaia_menu/script.js"></script>
 
     <script defer src="js/metadata.js"></script>
     <script defer src="js/db.js"></script>
@@ -165,15 +167,11 @@
       </menu>
     </form>
 
-    <form id="options-view" role="dialog" data-type="action" class="hidden"
-          data-l10n-id="options-view">
-      <menu>
-       <button type="button" class="single-share-button"><span class="gi gi-text" data-l10n-id="share">Share</span></button>
-       <button type="button" class="single-info-button"><span class="gi gi-text" data-l10n-id="more-info">More info</span></button>
-       <button type="button" class="single-delete-button"><span class="gi gi-text" data-l10n-id="delete">Delete</span></button>
-       <button type="button" id="options-cancel-button" data-l10n-id="overlay-cancel-button"></button>
-      </menu>
-    </form>
+    <gaia-menu id="options-view" hidden>
+      <button class="single-share-button" data-l10n-id="share"></button>
+      <button class="single-info-button" data-l10n-id="more-info"></button>
+      <button class="single-delete-button" data-l10n-id="delete"></button>
+    </gaia-menu>
 
     <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->

@@ -32,7 +32,7 @@ var ids = ['thumbnail-list-title', 'thumbnails', 'thumbnails-video-button',
            'playHead', 'timeSlider', 'elapsedTime', 'video-title',
            'duration-text', 'elapsed-text', 'bufferedTime', 'slider-wrapper',
            'throbber', 'picker-close', 'picker-title', 'picker-header',
-           'picker-done', 'options', 'options-view', 'options-cancel-button',
+           'picker-done', 'options', 'options-view',
            'seek-backward', 'seek-forward', 'in-use-overlay',
            'in-use-overlay-title', 'in-use-overlay-text'];
 
@@ -311,7 +311,7 @@ function initOptionsButtons() {
   // info buttons
   dom.infoCloseButton.addEventListener('click', hideInfoView);
   // option button cancel
-  dom.optionsCancelButton.addEventListener('click', hideOptionsView);
+  dom.optionsView.addEventListener('gaiamenu-cancel', hideOptionsView);
   // fullscreen player
   dom.fullscreenButton.addEventListener('click', toggleFullscreenPlayer);
   // fullscreen toolbar
@@ -518,12 +518,12 @@ function showOptionsView() {
   if (playing) {
     pause();
   }
-  dom.optionsView.classList.remove('hidden');
+  dom.optionsView.removeAttribute('hidden');
   document.body.classList.add('options-view');
 }
 
 function hideOptionsView() {
-  dom.optionsView.classList.add('hidden');
+  dom.optionsView.setAttribute('hidden', true);
   document.body.classList.remove('options-view');
 }
 
