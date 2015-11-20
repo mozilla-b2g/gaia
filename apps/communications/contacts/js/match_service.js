@@ -14,7 +14,7 @@
   var currentURL;
 
   function openWindow(url) {
-    if (!url) {
+    if (!url || matcherWindow !== null) {
       return;
     }
     matcherWindow = window.open(url);
