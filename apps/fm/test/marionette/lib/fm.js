@@ -20,7 +20,13 @@ Fm.Selector = Object.freeze({
 
   seekDown:         '#frequency-op-seekdown',
   seekUp:           '#frequency-op-seekup',
-  powerSwitch:      '#power-switch'
+  powerSwitch:      '#power-switch',
+  favButton:        '#bookmark-button',
+  favList:          '#fav-list',
+  favListContainer: '#fav-list-container',
+  favItemSelected:  '.fav-list-item.selected',
+  favItemSelectedFreq:'.fav-list-item.selected .fav-list-frequency',
+  favItem:          '.fav-list-item',
 });
 
 Fm.prototype = {
@@ -30,6 +36,14 @@ Fm.prototype = {
 
   get powerSwitch() {
     return this.client.findElement(Fm.Selector.powerSwitch);
+  },
+
+  get favButton() {
+    return this.client.findElement(Fm.Selector.favButton);
+  },
+
+  get favListContainer() {
+    return this.client.findElement(Fm.Selector.favListContainer);
   },
 
   // debug function.
@@ -51,18 +65,27 @@ Fm.prototype = {
     this.client.apps.close(this.origin);
   },
 
+  // since we can't get the child text isolated with marionette.
+  // You might want to call _trimFreqTextContent() on the result.
+  _getTextNodeContent: function(sel) {
+    return this.client.executeScript(function(sel) {
+      return document.querySelector(sel).firstChild.textContent;
+    }, [sel]);
+  },
+
+  // make sure we have just the frequency
+  _trimFreqTextContent: function(freq) {
+    // for some reason these unicode delimiters are inserted
+    // in the text node
+    return freq.trim().replace(/[\u2068\u2069]/g, '');
+  },
+
   getCurrentFrequency: function() {
     var elem = this.client.findElement(Fm.Selector.currentFrequency);
     assert.ok(elem, 'Couldn\'t find frequency');
 
-    // since I can't get the child text isolated...
-    var freq = this.client.executeScript(function(sel) {
-      return document.querySelector(sel).firstChild.textContent;
-    }, [Fm.Selector.currentFrequency]);
-
-    // for same reason these unicode delimiter are inserted
-    // in the text node
-    return freq.trim().replace(/[\u2068\u2069]/g, '');
+    var freq = this._getTextNodeContent(Fm.Selector.currentFrequency);
+    return this._trimFreqTextContent(freq);
   },
 
   getDialFreq: function() {
@@ -90,6 +113,24 @@ Fm.prototype = {
     this.client.waitFor(function() {
       return !this.powerSwitch.getAttribute('data-seeking');
     }.bind(this));
+  },
+
+  fav: function() {
+    var elem = this.favButton;
+    elem.tap();
+  },
+
+  selectedFavItem: function() {
+    return this.favListContainer.findElement(Fm.Selector.favItemSelected);
+  },
+
+  selectedFavItemText: function() {
+    var freq = this._getTextNodeContent(Fm.Selector.favItemSelectedFreq);
+    return this._trimFreqTextContent(freq);
+  },
+
+  isFav: function() {
+    return this.favButton.getAttribute('data-bookmarked') == 'true';
   },
 
   waitForLoaded: function() {
