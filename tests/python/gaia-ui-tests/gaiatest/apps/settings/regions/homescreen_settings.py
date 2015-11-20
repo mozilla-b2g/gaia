@@ -16,7 +16,7 @@ class HomescreenSettings(Base):
 
     _change_homescreen_page_locator = (By.ID, 'homescreens-list')
     _change_homescreen_locator = (By.CSS_SELECTOR, '[data-l10n-id="change-home-screen"]')
-    _get_more_homescreen_locator = (By.CSS_SELECTOR, '[data-l10n-id="get-more-home-screens"]')
+    _get_more_homescreen_locator = (By.CLASS_NAME, 'get-more-home-screens')
     _pick_homescreen_cancel_button_locator = (By.CSS_SELECTOR, '#action-menu-list button[data-l10n-id="cancel"]')
 
     _wallpaper_preview_locator = (By.CSS_SELECTOR, '.wallpaper-preview')
