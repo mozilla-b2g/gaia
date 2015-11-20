@@ -3,6 +3,7 @@
 /* global FileSystemHelper */
 /* global udManagerHelper */
 /* global DropboxAuth */
+/* global MyJsonAuth */
 /* exported Storage */
 
 var Storage = {
@@ -162,15 +163,27 @@ var Storage = {
     var storageId = e.target.getAttribute('data-storage-id');
     console.log(storageId);
     asyncStorage.getItem(storageId, storage => {
-      if (storage.type === 'dropbox') {
+      switch (storage.type) {
+      case DropboxAuth.MOD_NAME:
         if (this.storageEnabled(storage.id)) {
-          FileSystemHelper.unmount();
+          FileSystemHelper.unmount(); // TODO
         } else {
           udManagerHelper.init('Dropbox', {token: storage.token});
           FileSystemHelper.mount({
             id: storage.id, name: storage.name
           }).then(e => console.log(e));
         }
+        break;
+      case MyJsonAuth.MOD_NAME:
+        if (this.storageEnabled(storage.id)) {
+          FileSystemHelper.unmount(); // TODO
+        } else {
+          udManagerHelper.init('Sample', {JSONPath: storage.token});
+          FileSystemHelper.mount({
+            id: storage.id, name: storage.name
+          }).then(e => console.log(e));
+        }
+        break;
       }
     });
   },
@@ -189,18 +202,26 @@ var Storage = {
   },
 
   showOAuthWindow() {
-    if (this.newStorageType.value === 'dropbox') {
-      DropboxAuth.init();
-      this.viewStoragesList.classList.add('hide');
-      this.newStorageForm.classList.add('hide');
-      DropboxAuth.show(this.oauthWindow).then(token => {
-        this.viewStoragesList.classList.remove('hide');
-        this.updateNewAccessToken(token);
-      }, error => {
-        console.error(error);
-        this.viewStoragesList.classList.remove('hide');
-      });
+    var mod;
+    switch (this.newStorageType.value) {
+    case DropboxAuth.MOD_NAME:
+      mod = DropboxAuth;
+      break;
+    case MyJsonAuth.MOD_NAME:
+      mod = MyJsonAuth;
+      break;
     }
+
+    mod.init();
+    this.viewStoragesList.classList.add('hide');
+    this.newStorageForm.classList.add('hide');
+    mod.show(this.oauthWindow).then(token => {
+      this.viewStoragesList.classList.remove('hide');
+      this.updateNewAccessToken(token);
+    }, error => {
+      console.error(error);
+      this.viewStoragesList.classList.remove('hide');
+    });
   },
 
   updateNewAccessToken(accessToken) {

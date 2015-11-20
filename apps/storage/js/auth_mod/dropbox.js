@@ -1,10 +1,10 @@
 'use strict';
 /* exported DropboxAuth */
 
-const EVENT_END_OF_AUTH = 'endOfAuth';
-
 var DropboxAuth = {
+  MOD_NAME: 'dropbox',
   init() {
+    this.EVENT_END_OF_AUTH = this.MOD_NAME + 'endOfAuth';
     const DROPBOX_APP_KEY = 'ay3tmo9igb99kf5';
 
     var url = 'https://www.dropbox.com/1/oauth2/authorize?' +
@@ -21,10 +21,9 @@ var DropboxAuth = {
   },
 
   show(oauthWindow) {
-    console.log(new Date());
     return new Promise((resolve, error) => {
       var handleEndOfAuth = event => {
-        window.removeEventListener(EVENT_END_OF_AUTH, handleEndOfAuth);
+        window.removeEventListener(this.EVENT_END_OF_AUTH, handleEndOfAuth);
         this.oauthWindow.removeChild(this.browserFrame);
         if (event.detail.error) {
           alert(event.detail.error);
@@ -33,7 +32,7 @@ var DropboxAuth = {
           resolve(event.detail.token);
         }
       };
-      window.addEventListener(EVENT_END_OF_AUTH, handleEndOfAuth);
+      window.addEventListener(this.EVENT_END_OF_AUTH, handleEndOfAuth);
 
       this.oauthWindow = oauthWindow;
       this.oauthWindow.appendChild(this.browserFrame);
@@ -63,7 +62,7 @@ var DropboxAuth = {
     }
 
     if (hasError) {
-      window.dispatchEvent(new CustomEvent(EVENT_END_OF_AUTH, {
+      window.dispatchEvent(new CustomEvent(this.EVENT_END_OF_AUTH, {
         detail: {error: errorMsg.replace(/\+/gi, ' ')}
       }));
       return;
@@ -75,7 +74,7 @@ var DropboxAuth = {
     }
 
     if (accessToken) {
-      window.dispatchEvent(new CustomEvent(EVENT_END_OF_AUTH, {
+      window.dispatchEvent(new CustomEvent(this.EVENT_END_OF_AUTH, {
         detail: {token: accessToken}
       }));
     } else {
