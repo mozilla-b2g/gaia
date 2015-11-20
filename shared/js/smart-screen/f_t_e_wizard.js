@@ -43,6 +43,14 @@
     this._finishButtonClass = options.finishButtonClass || 'fte-finish';
     this._skipButtonClass = options.skipButtonClass || 'fte-skip';
     this._pageClass = options.pageClass || 'fte-page';
+
+    // For options.pageHiddenClass, the suggested styles needed are:
+    //   opacity: 0;
+    //   pointer-events: none;
+    //   transition: opacity <any duration> linear <any duration>;
+    //   (The delay duration should be the same as transition duration.)
+    // And the page transition should be:
+    //   transition: opacity <any duration> linear;
     this._pageHiddenClass = options.pageHiddenClass || 'hidden';
     this._launchEveryTime = options.launchEveryTime || false;
     this.propagateKeyEvent = options.propagateKeyEvent || false;
