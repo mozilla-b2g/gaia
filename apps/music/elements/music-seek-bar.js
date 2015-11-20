@@ -240,7 +240,7 @@ Object.defineProperty(proto, 'remainingTime', {
 
       IntlHelper.get('duration').then((duration) => {
         this.els.remainingTime.textContent =
-          duration.format(-this._remainingTime * 1000);
+          duration.format(-(Math.floor(this.duration) - this._remainingTime) * 1000);
         this.els.elapsedTime.textContent =
           duration.format(this._elapsedTime * 1000);
       });

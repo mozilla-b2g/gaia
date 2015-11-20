@@ -560,7 +560,7 @@ var PlayerView = {
     this.seekBar.max = isFinite(endTime) ? endTime : 0;
     this.seekBar.value = currentTime;
 
-    var formattedCurrentTime = formatTime(currentTime);
+    var formattedCurrentTime = formatTime(Math.floor(currentTime));
     // Adjust values for accessibility
     this.seekSlider.setAttribute('aria-valuetext', formattedCurrentTime);
     this.seekSlider.setAttribute('aria-valuemax', this.seekBar.max);
@@ -587,7 +587,7 @@ var PlayerView = {
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
     this.seekElapsed.textContent = formattedCurrentTime;
-    var remainingTime = endTime - currentTime;
+    var remainingTime = Math.floor(endTime - currentTime);
     // Check if there is remaining time to show, avoiding to display "-00:00"
     // while song is loading (Bug 833710)
     this.seekRemaining.textContent =
