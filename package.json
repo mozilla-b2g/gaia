@@ -6,7 +6,7 @@
   "author": "The Gaia Team <dev-gaia@lists.mozilla.org>",
   "engineStrict": "true",
   "engines": {
-    "node": ">=0.10",
+    "node": ">=4.0",
     "npm": ">=2"
   },
   "devDependencies": {

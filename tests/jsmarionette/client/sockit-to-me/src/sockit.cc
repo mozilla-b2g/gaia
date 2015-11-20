@@ -426,7 +426,8 @@ Sockit::Read(const FunctionCallbackInfo<Value>& aArgs) {
 
   if(totalBytesRead) {
     // Create a node heap allocated buffer first.
-    Local<Object> heapBuffer = node::Buffer::New(totalBytesRead);
+    Local<Object> heapBuffer = node::Buffer::New(isolate, totalBytesRead).ToLocalChecked();
+
     // Copy our temporary buffer data into the heap buffer.
     memcpy(node::Buffer::Data(heapBuffer), buffer, totalBytesRead);
     // Done with our temporary buffer.
