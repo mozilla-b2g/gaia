@@ -1,16 +1,16 @@
-/* global MockIndexedDB, HomeMetadata */
+/* global MockIndexedDB, AppsMetadata */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_indexedDB.js');
-require('/js/metadata.js');
+require('/js/appsmetadata.js');
 
-suite('HomeMetadata', () => {
+suite('AppsMetadata', () => {
   var mockIndexedDB;
   var metadata;
 
   setup(() => {
     mockIndexedDB = new MockIndexedDB();
-    metadata = new HomeMetadata();
+    metadata = new AppsMetadata();
   });
 
   teardown(() => {
@@ -18,7 +18,7 @@ suite('HomeMetadata', () => {
     mockIndexedDB.mTearDown();
   });
 
-  suite('HomeMetadata#init()', () => {
+  suite('AppsMetadata#init()', () => {
     test('should open an indexedDB instance', done => {
       assert.equal(mockIndexedDB.dbs.length, 0);
       metadata.init().then(() => {
@@ -28,7 +28,7 @@ suite('HomeMetadata', () => {
     });
   });
 
-  suite('HomeMetadata#upgradeSchema()', () => {
+  suite('AppsMetadata#upgradeSchema()', () => {
     var names = [];
     var onUpgradeNeededEvent = version => {
       return {
@@ -156,7 +156,7 @@ suite('HomeMetadata', () => {
       deletedValues = [];
     });
 
-    suite('HomeMetadata#set()', () => {
+    suite('AppsMetadata#set()', () => {
       var setMetadata = (id, order, icon) => {
         metadata.set(
           [{
@@ -228,7 +228,7 @@ suite('HomeMetadata', () => {
       });
     });
 
-    suite('HomeMetadata#remove()', () => {
+    suite('AppsMetadata#remove()', () => {
       var id = 'abc/';
 
       test('should remove data from order object store', done => {
@@ -252,7 +252,7 @@ suite('HomeMetadata', () => {
       });
     });
 
-    suite('HomeMetadata#getAll()', () => {
+    suite('AppsMetadata#getAll()', () => {
       test('should combine data from both object stores', done => {
         attachDBTransaction('order');
         metadata.getAll()

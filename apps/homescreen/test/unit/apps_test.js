@@ -1,17 +1,17 @@
 /* jshint nonew: false */
 /* global MockNavigatormozApps, MockMozActivity, MockIconsHelper, IconsHelper,
-          HomeMetadata, Datastore, Settings, App */
+          AppsMetadata, Datastore, Settings, Apps */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_icons_helper.js');
-require('mocks/mock_metadata.js');
+require('mocks/mock_appsmetadata.js');
 require('mocks/mock_datastore.js');
 require('mocks/mock_settings.js');
 require('/shared/js/l10n.js');
-require('/js/app.js');
+require('/js/apps.js');
 
 suite('Homescreen app', () => {
   var sandbox;
@@ -93,7 +93,7 @@ suite('Homescreen app', () => {
         height: child.offsetHeight
       };
     };
-    app = new App();
+    app = new Apps();
   });
 
   teardown(() => {
@@ -137,15 +137,15 @@ suite('Homescreen app', () => {
           done();
         });
       });
-      new App();
+      new Apps();
     });
 
     test('should initialise the metadata store', done => {
-      stub = sinon.stub(HomeMetadata.prototype, 'init', () => {
+      stub = sinon.stub(AppsMetadata.prototype, 'init', () => {
         done();
         return Promise.resolve();
       });
-      new App();
+      new Apps();
     });
 
     test('should initialise the bookmark stores', done => {
@@ -153,7 +153,7 @@ suite('Homescreen app', () => {
         done();
         return Promise.resolve();
       });
-      new App();
+      new Apps();
     });
 
     test('should get the list of installed apps', done => {
@@ -161,7 +161,7 @@ suite('Homescreen app', () => {
         done();
         return Promise.resolve();
       });
-      new App();
+      new Apps();
     });
 
     test('should get the list of bookmarked pages', done => {
@@ -169,18 +169,18 @@ suite('Homescreen app', () => {
         done();
         return Promise.resolve();
       });
-      new App();
+      new Apps();
     });
 
     test('should remove unknown app entries from metadata store', done => {
-      stub = sinon.stub(HomeMetadata.prototype, 'remove', id => {
+      stub = sinon.stub(AppsMetadata.prototype, 'remove', id => {
         metadataGetAllStub.restore();
         done(() => {
           assert.equal(id, 'def/');
         });
         return Promise.resolve();
       });
-      var metadataGetAllStub = sinon.stub(HomeMetadata.prototype, 'getAll',
+      var metadataGetAllStub = sinon.stub(AppsMetadata.prototype, 'getAll',
         callback => {
           var results = [
             { id: 'abc/', icon: 'abc', order: 0 },
@@ -198,11 +198,11 @@ suite('Homescreen app', () => {
         addEventListener: () => {}
       }];
 
-      app = new App();
+      app = new Apps();
     });
 
     test('should add pending apps that were missed during startup', done => {
-      var metadataGetAllStub = sinon.stub(HomeMetadata.prototype, 'getAll',
+      var metadataGetAllStub = sinon.stub(AppsMetadata.prototype, 'getAll',
         callback => {
           var results = [
             { id: 'abc/', icon: 'abc', order: 0 },
@@ -222,7 +222,7 @@ suite('Homescreen app', () => {
           return Promise.resolve(results);
         });
 
-      app = new App();
+      app = new Apps();
     });
 
     suite('first run', () => {
@@ -249,7 +249,7 @@ suite('Homescreen app', () => {
           done();
           return Promise.resolve();
         });
-        new App();
+        new Apps();
       });
 
       test('should get the list of installed apps', done => {
@@ -257,7 +257,7 @@ suite('Homescreen app', () => {
           done();
           return Promise.resolve();
         });
-        new App();
+        new Apps();
       });
 
       test('should get the list of bookmarked pages', done => {
@@ -265,7 +265,7 @@ suite('Homescreen app', () => {
           done();
           return Promise.resolve();
         });
-        new App();
+        new Apps();
       });
     });
   });

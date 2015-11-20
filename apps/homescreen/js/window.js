@@ -1,4 +1,4 @@
-/* global App, Pages */
+/* global Apps, Pages */
 'use strict';
 
 (function(exports) {
@@ -15,7 +15,7 @@
     this.panels = document.getElementById('panels');
     this.shadow = document.getElementById('shadow');
 
-    this.apps = new App();
+    this.apps = new Apps();
     this.pages = new Pages();
 
     // Panel visibility state

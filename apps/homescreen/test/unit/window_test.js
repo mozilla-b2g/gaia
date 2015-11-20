@@ -4,7 +4,7 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('mocks/mock_pages.js');
-require('mocks/mock_app.js');
+require('mocks/mock_apps.js');
 require('/js/window.js');
 
 suite('AppWindow', () => {

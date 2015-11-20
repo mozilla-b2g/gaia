@@ -1,4 +1,4 @@
-/* global MozActivity, HomeMetadata, Datastore, LazyLoader, FirstRun,
+/* global MozActivity, AppsMetadata, Datastore, LazyLoader, FirstRun,
           IconsHelper, Settings */
 'use strict';
 
@@ -45,7 +45,7 @@
    */
   const BLACKLIST = [];
 
-  function App() {
+  function Apps() {
     // Chrome is displayed
     window.performance.mark('navigationLoaded');
 
@@ -150,7 +150,7 @@
     this.startupMetadata = [];
     this.iconsToRetry = [];
     this.pendingIcons = {};
-    this.metadata = new HomeMetadata();
+    this.metadata = new AppsMetadata();
     this.bookmarks = new Datastore('bookmarks_store');
 
     // Make sure icons isn't doing lots of unnecessary work while we're
@@ -354,7 +354,7 @@
     });
   }
 
-  App.prototype = {
+  Apps.prototype = {
     get iconSize() {
       // If this._iconSize is 0, let's refresh the value.
       if (!this._iconSize) {
@@ -1122,6 +1122,6 @@
     }
   };
 
-  exports.App = App;
+  exports.Apps = Apps;
 
 }(window));
