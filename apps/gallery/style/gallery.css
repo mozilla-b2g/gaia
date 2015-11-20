@@ -61,6 +61,11 @@ body.showing-dialog > section {
   display: none;
 }
 
+/* Hide unresolved gaia-header elements */
+gaia-header:unresolved {
+  visibility:hidden;
+}
+
 #thumbnail-views > gaia-header {
   position: absolute;
   width: 100%;
