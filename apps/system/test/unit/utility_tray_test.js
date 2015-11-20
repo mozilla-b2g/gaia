@@ -139,6 +139,22 @@ suite('UtilityTray', function() {
 
   });
 
+  test('Force-closes even when "closing"', function() {
+    var tray = window.UtilityTray;
+    tray.motion = { close: this.sinon.stub() };
+    tray.motion.state = 'closing';
+    tray.hide(true);
+    assert.isTrue(tray.motion.close.called);
+  });
+
+  test('Force-opens even when "opening"', function() {
+    var tray = window.UtilityTray;
+    tray.motion = { open: this.sinon.stub() };
+    tray.motion.state = 'opening';
+    tray.show(true);
+    assert.isTrue(tray.motion.open.called);
+  });
+
   suite('Hiearchy events support', function() {
     test('should have a name', function() {
       assert.equal(UtilityTray.name, 'UtilityTray');
