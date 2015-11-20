@@ -26,6 +26,8 @@ class Bluetooth(PageRegion):
     _search_for_devices_locator = (By.CSS_SELECTOR, 'button.search-device')
     _device_list_locator = (By.CLASS_NAME, "bluetooth-device")
     _bt_device_name_locator = (By.CSS_SELECTOR, "bdi")
+    _confirm_dialog_locator = (By.ID, 'settings-confirm-dialog')
+    _confirm_button_locator = (By.CLASS_NAME, 'danger')
 
     def __init__(self, marionette):
         root = marionette.find_element(*self._root_locator)
@@ -102,3 +104,6 @@ class Bluetooth(PageRegion):
                 return True
         return False
 
+    def tap_confirm_unpair_device(self):
+        confirm_dialog = self.marionette.find_element(*self._confirm_dialog_locator)
+        confirm_dialog.find_element(*self._confirm_button_locator).tap()
