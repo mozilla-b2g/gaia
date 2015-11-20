@@ -84,8 +84,7 @@ var DownloadUI = (function() {
     OPEN: new DownloadAction('OPEN', 'confirm'),
     SHARE: new DownloadAction('SHARE', 'confirm'),
     WALLPAPER: new DownloadAction('WALLPAPER', 'confirm'),
-    RINGTONE: new DownloadAction('RINGTONE', 'confirm'),
-    CANCEL: new DownloadAction('CANCEL', 'cancel')
+    RINGTONE: new DownloadAction('RINGTONE', 'confirm')
   };
 
   // Confirm dialog containers
@@ -224,16 +223,13 @@ var DownloadUI = (function() {
   }
 
   function addActionMenu() {
+    // If we have an actionMenu, empty it and re-create it.
     if (actionMenu !== null) {
-      actionMenu.innerHTML = '';
-      return;
+      document.body.removeChild(actionMenu);
     }
-
-    actionMenu = document.createElement('form');
+    actionMenu = document.createElement('gaia-menu');
     actionMenu.id = 'downloadActionMenuUI';
-    actionMenu.setAttribute('role', 'dialog');
-    actionMenu.setAttribute('data-type', 'action');
-    document.body.appendChild(actionMenu);
+    actionMenu.className = 'actions';
   }
 
   function removeActionMenu() {
@@ -241,8 +237,9 @@ var DownloadUI = (function() {
       return;
     }
 
-    actionMenu.innerHTML = '';
-    actionMenu.style.display = 'none';
+    actionMenu.hide();
+    document.body.removeChild(actionMenu);
+    actionMenu = null;
   }
 
   function createActionMenu(req, download) {
@@ -259,7 +256,6 @@ var DownloadUI = (function() {
       }
     }
 
-    actions.push(ACTIONS.CANCEL);
     doCreateActionMenu(req, fileName, actions);
   }
 
@@ -270,24 +266,19 @@ var DownloadUI = (function() {
     header.textContent = fileName;
     actionMenu.appendChild(header);
 
-    var menu = document.createElement('menu');
-    menu.classList.add('actions');
-
     actions.forEach(function addActionButton(action) {
       var button = document.createElement('button');
       button.id = action.id;
       l10n(button, action.title);
       button.dataset.type = action.type;
-      menu.appendChild(button);
+      actionMenu.appendChild(button);
       button.addEventListener('click', function buttonCliked(evt) {
         button.removeEventListener('click', buttonCliked);
         req[evt.target.dataset.type](ACTIONS[evt.target.id]);
       });
     });
-
-    actionMenu.appendChild(menu);
-
-    actionMenu.style.display = 'block';
+    document.body.appendChild(actionMenu);
+    actionMenu.removeAttribute('hidden');
   }
 
   var styleSheets = [
@@ -341,7 +332,8 @@ var DownloadUI = (function() {
     window.setTimeout(function() {
       LazyLoader.load(['shared/js/mime_mapper.js',
                        'shared/js/download/download_formatter.js',
-                       'shared/style/action_menu.css'],
+                       'shared/js/component_utils.js',
+                       'shared/elements/gaia_menu/script.js'],
                       createActionMenu.call(this, req, download));
     }, 0);
 
