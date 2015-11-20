@@ -112,14 +112,9 @@ define(function(require) {
    * is lazy-loading, so that you can instantiate it immediately;
    * Audio objects are not actually created or loaded until you need
    * to play a sound.
-   *
-   * @param {function} [opts.interruptHandler]
-   *   Optional callback/EventTarget to handle the 'mozinterruptbegin' event.
    */
-  function AudioPlayer(opts) {
-    opts = opts || {};
+  function AudioPlayer() {
     this._audio = null;
-    this._interruptHandler = opts.interruptHandler || null;
   }
 
   AudioPlayer.prototype = {
@@ -166,16 +161,6 @@ define(function(require) {
         this._audio = new Audio();
         this._audio.mozAudioChannelType = 'alarm';
         this._audio.loop = true;
-        this._audio.addEventListener('mozinterruptbegin', this);
-      }
-    },
-
-    /**
-     * @private
-     */
-    handleEvent: function(e) {
-      if (e.type === 'mozinterruptbegin' && this._interruptHandler) {
-        this._interruptHandler(e);
       }
     }
   };
@@ -190,8 +175,8 @@ define(function(require) {
     setAlarmVolume: function(volume, cb) {
       globalVolumeManager.setVolume(volume, cb);
     },
-    createAudioPlayer: function(opts) {
-      return new AudioPlayer(opts);
+    createAudioPlayer: function() {
+      return new AudioPlayer();
     },
     // Exposed for tests:
     systemVolumeToFloat: systemVolumeToFloat,
