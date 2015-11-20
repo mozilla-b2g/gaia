@@ -208,7 +208,7 @@ suite('Sync settings >', function() {
     test('should show signout button', function() {
       expect(subject.elements.signOutButton).to.be.an('object');
       expect(subject.elements.signOutButton.getAttribute('data-l10n-id'))
-        .to.equals('fxsync-disconnect');
+        .to.equals('fxsync-sign-out');
     });
 
     test('should show collection switches', function() {
