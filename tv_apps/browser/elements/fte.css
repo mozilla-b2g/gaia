@@ -48,8 +48,9 @@
 }
 
 .fte-button-container > smart-button {
-  width: 30.4rem;
-  font-size: 4.5rem;
+  width: 23.7rem;
+  font-size: 2.4rem;
+  padding: 0;
 }
 
 .fte-button-container > smart-button:first-child {
