@@ -1,4 +1,4 @@
-/* globals FxaPanel, HtmlImports, loadBodyHTML, MockFxAccountsIACHelper,
+/* globals HtmlImports, loadBodyHTML, MockFxAccountsIACHelper,
   MockL10n */
 
 'use strict';
@@ -16,19 +16,14 @@ suite('firefox accounts panel > ', function() {
   var suiteSandbox = sinon.sandbox.create(),
     setAttributesSpy,
     realL10n,
-    loggedOutScreen,
-    unverifiedScreen,
     alertSpy,
-    loggedInScreen;
+    firefoxAccounts,
+    elements;
 
-  suiteSetup(function(done) {
-    alertSpy = sinon.stub(window, 'alert');
+  setup(function(done) {
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-
-    // source the code we care about - have to wait for mock l10n
-    requireApp('settings/js/firefox_accounts/panel.js');
 
     // first, load settings app
     loadBodyHTML('/index.html');
@@ -44,16 +39,63 @@ suite('firefox accounts panel > ', function() {
         throw new Error('failed to load fxa panel into page');
       }
       // grab pointers to useful elements
-      loggedOutScreen = document.getElementById('fxa-logged-out');
-      unverifiedScreen = document.getElementById('fxa-unverified');
-      loggedInScreen = document.getElementById('fxa-logged-in');
-      done();
+      elements = {
+        fxaContainer: document.getElementById('fxa'),
+        loggedOutPanel: document.getElementById('fxa-logged-out'),
+        loggedInPanel: document.getElementById('fxa-logged-in'),
+        unverifiedPanel: document.getElementById('fxa-unverified'),
+        resendEmail: document.getElementById('fxa-resend-email'),
+        cancelBtn: document.getElementById('fxa-cancel-confirmation'),
+        loginBtn: document.getElementById('fxa-login'),
+        logoutBtn: document.getElementById('fxa-logout'),
+        loggedInEmail: document.getElementById('fxa-logged-in-text'),
+        unverifiedEmail: document.getElementById('fxa-unverified-text'),
+        resendLink: document.getElementById('fxa-resend')
+      };
+
+      var modules = [
+        '/js/panels/firefox_accounts/firefox_accounts.js',
+        'MockFxAccountsIACHelper',
+        'MockDialogService'
+      ];
+
+      var map = {
+        '*': {
+          'shared/fxa_iac_client': 'MockFxAccountsIACHelper',
+          'shared/text_normalizer': 'MockTextNormalizer',
+          'modules/dialog_service': 'MockDialogService'
+        }
+      };
+
+      define('MockFxAccountsIACHelper', function() {
+        return MockFxAccountsIACHelper;
+      });
+
+      define('MockTextNormalizer', function() {
+        return {
+          escapeHTML: function(string) { return string; }
+        };
+      });
+
+      define('MockDialogService', function() {
+        return {
+          alert: function() { return Promise.resolve(); }
+        };
+      });
+
+      testRequire(modules, map,
+        function(FirefoxAccounts, MockFxAccountsIACHelper, MockDialogService) {
+          firefoxAccounts = FirefoxAccounts();
+          firefoxAccounts.onInit(elements);
+          alertSpy = sinon.stub(MockDialogService, 'alert');
+          done();
+        }
+      );
     });
   });
   suiteTeardown(function() {
     suiteSandbox.restore();
     navigator.mozL10n = realL10n;
-    window.alert.restore();
     document.body.innerHTML = '';
   });
 
@@ -72,13 +114,14 @@ suite('firefox accounts panel > ', function() {
       email: 'init@ialization.com',
       verified: true
     });
+
     // init FxaPanel
-    FxaPanel.init(MockFxAccountsIACHelper);
+    firefoxAccounts.onBeforeShow();
 
     // check the right screen is visible
-    assert.isTrue(loggedOutScreen.hidden);
-    assert.isTrue(unverifiedScreen.hidden);
-    assert.isFalse(loggedInScreen.hidden);
+    assert.isTrue(elements.loggedOutPanel.hidden);
+    assert.isTrue(elements.unverifiedPanel.hidden);
+    assert.isFalse(elements.loggedInPanel.hidden);
 
     // test setAttributes was called with correct args
     assert.deepEqual(setAttributesSpy.args[0], [
@@ -90,11 +133,11 @@ suite('firefox accounts panel > ', function() {
 
   test('show the correct panel and email after onlogout event', function() {
     MockFxAccountsIACHelper.setCurrentState(null);
-    FxaPanel.init(MockFxAccountsIACHelper);
+    firefoxAccounts.onBeforeShow();
     MockFxAccountsIACHelper.fireEvent('onlogout');
-    assert.isFalse(loggedOutScreen.hidden);
-    assert.isTrue(unverifiedScreen.hidden);
-    assert.isTrue(loggedInScreen.hidden);
+    assert.isFalse(elements.loggedOutPanel.hidden);
+    assert.isTrue(elements.unverifiedPanel.hidden);
+    assert.isTrue(elements.loggedInPanel.hidden);
   });
 
   test('show the correct panel and email after onlogin event', function() {
@@ -102,11 +145,11 @@ suite('firefox accounts panel > ', function() {
       email: 'on@log.in',
       verified: false
     });
-    FxaPanel.init(MockFxAccountsIACHelper);
+    firefoxAccounts.onBeforeShow();
     MockFxAccountsIACHelper.fireEvent('onlogin');
-    assert.isTrue(loggedOutScreen.hidden);
-    assert.isFalse(unverifiedScreen.hidden);
-    assert.isTrue(loggedInScreen.hidden);
+    assert.isTrue(elements.loggedOutPanel.hidden);
+    assert.isFalse(elements.unverifiedPanel.hidden);
+    assert.isTrue(elements.loggedInPanel.hidden);
 
     // test setAttributes was called with correct args
     assert.deepEqual(setAttributesSpy.args[0], [
@@ -122,11 +165,12 @@ suite('firefox accounts panel > ', function() {
         email: 'on@verifiedlog.in',
         verified: true
       });
-      FxaPanel.init(MockFxAccountsIACHelper);
+      firefoxAccounts.onBeforeShow();
       MockFxAccountsIACHelper.fireEvent('onverified');
-      assert.isTrue(loggedOutScreen.hidden);
-      assert.isTrue(unverifiedScreen.hidden);
-      assert.isFalse(loggedInScreen.hidden);
+      assert.isTrue(elements.loggedOutPanel.hidden);
+      assert.isTrue(elements.unverifiedPanel.hidden);
+      assert.isFalse(elements.loggedInPanel.hidden);
+
       // test setAttributes was called with correct args
       assert.deepEqual(setAttributesSpy.args[0], [
         document.getElementById('fxa-logged-in-text'),
@@ -140,7 +184,7 @@ suite('firefox accounts panel > ', function() {
 
     suiteSetup(function() {
       getAccountSpy = sinon.stub(MockFxAccountsIACHelper, 'getAccount');
-      FxaPanel.init(MockFxAccountsIACHelper);
+      firefoxAccounts.onBeforeShow();
     });
 
     suiteTeardown(function() {
@@ -166,7 +210,7 @@ suite('firefox accounts panel > ', function() {
           }
         }
       };
-      FxaPanel._onResendClick.call(null, fakeEvt);
+      firefoxAccounts._onResendClick(fakeEvt);
       assert.isTrue(getAccountSpy.called);
     });
 
@@ -184,16 +228,19 @@ suite('firefox accounts panel > ', function() {
           }
         }
       };
-      FxaPanel._onResendClick.call(null, fakeEvt);
+      firefoxAccounts._onResendClick(fakeEvt);
       assert.isFalse(getAccountSpy.called);
     });
 
     test('_onResend should alert resend message', function(done) {
-      FxaPanel._onResend.call(null, 'foo@bar.com').then(() => {
-        assert.isTrue(
-          alertSpy.calledWith('fxa-resend-alert{"email":"foo@bar.com"}'));
-        done();
-      });
+      firefoxAccounts._onResend('foo@bar.com');
+      assert.isTrue(
+        alertSpy.calledWith({
+          id: 'fxa-resend-alert',
+          args: { email: 'foo@bar.com' }
+        })
+      );
+      done();
     });
 
     suite('timer tests > ', function() {
@@ -206,14 +253,12 @@ suite('firefox accounts panel > ', function() {
       });
 
       test('_onResend should disable link for 60 seconds', function(done) {
-        var resendLink = document.getElementById('fxa-resend');
-        FxaPanel._onResend.call(null, 'foo@bar.com').then(() => {
-          this.clock.tick(100);
-          assert.isTrue(resendLink.classList.contains('disabled'));
-          this.clock.tick(59900);
-          assert.isFalse(resendLink.classList.contains('disabled'));
-          done();
-        });
+        firefoxAccounts._onResend('foo@bar.com');
+        this.clock.tick(100);
+        assert.isTrue(elements.resendLink.classList.contains('disabled'));
+        this.clock.tick(59900);
+        assert.isFalse(elements.resendLink.classList.contains('disabled'));
+        done();
       });
     });
   });
