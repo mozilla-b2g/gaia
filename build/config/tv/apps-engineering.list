@@ -13,6 +13,7 @@ tv_apps/notification-receiver
 tv_apps/weather-widget
 tv_apps/remote-control
 tv_apps/remote-control-client
+tv_apps/fling-tutorial
 apps/bluetooth
 apps/calendar
 apps/camera

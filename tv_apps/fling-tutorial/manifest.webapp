@@ -1,0 +1,24 @@
+{
+  "name": "Send to TV",
+  "description": "Send video and tab to TV tutorial",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Send to TV",
+      "description": "Send video and tab to TV tutorial"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "336": "/style/icons/fling-tutorial_336.png"
+  },
+  "permissions": {
+    "browser": {},
+    "moz-extremely-unstable-and-will-change-webcomponents":{}
+  }
+}
