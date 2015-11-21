@@ -19,7 +19,7 @@
 }
 
 .low-limit-container input {
-  -moz-margin-end: 1rem;
+  margin-inline-end: 1rem;
   text-align: end;
 }
 
