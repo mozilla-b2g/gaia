@@ -25,25 +25,42 @@ var SynctoServerFixture = (function() {
   // Taken from https://bugzilla.mozilla.org/show_bug.cgi?id=959919#c13.
   var xClientState = '6ae94683571c7a7c54dab4700aa3995f';
 
+  var metaGlobalPayloadWithHistoryEngine = JSON.stringify({
+    syncID: 'NOuEmrZxVWxl',
+    storageVersion: 5,
+    declined:[],
+    engines: {
+      clients: { version: 1, syncID: '-qRIYq3pRFaF' },
+      prefs: { version:2, syncID: 'J2d8YxLBQ68M' },
+      passwords: { version:1, syncID: 'y3sQX0uYGXwz' },
+      tabs: { version: 1, syncID: 'MGdVuWFjTRpP' },
+      bookmarks: { version: 2, syncID: 'OmUGbrBTvZbn' },
+      addons: { version: 1, syncID: '90lUL4MPuhpx' },
+      forms: { version:1, syncID: 'Q_mWdmGZtuX9' },
+      history: { version: 1, syncID: '2_MOTXJfjA9Q' }
+    }
+  });
+
+  var metaGlobalPayloadWithoutHistoryEngine = JSON.stringify({
+    syncID: 'NOuEmrZxVWxl',
+    storageVersion: 5,
+    declined:[],
+    engines: {
+      clients: { version: 1, syncID: '-qRIYq3pRFaF' },
+      prefs: { version:2, syncID: 'J2d8YxLBQ68M' },
+      passwords: { version:1, syncID: 'y3sQX0uYGXwz' },
+      tabs: { version: 1, syncID: 'MGdVuWFjTRpP' },
+      bookmarks: { version: 2, syncID: 'OmUGbrBTvZbn' },
+      addons: { version: 1, syncID: '90lUL4MPuhpx' },
+      forms: { version:1, syncID: 'Q_mWdmGZtuX9' }
+    }
+  });
+
   var remoteData = {
     meta: {
       id: 'global',
       last_modified: 1234567890123,
-      payload: JSON.stringify({
-        syncID: 'NOuEmrZxVWxl',
-        storageVersion: 5,
-        declined:[],
-        engines: {
-          clients: { version: 1, syncID: '-qRIYq3pRFaF' },
-          prefs: { version:2, syncID: 'J2d8YxLBQ68M' },
-          passwords: { version:1, syncID: 'y3sQX0uYGXwz' },
-          tabs: { version: 1, syncID: 'MGdVuWFjTRpP' },
-          bookmarks: { version: 2, syncID: 'OmUGbrBTvZbn' },
-          addons: { version: 1, syncID: '90lUL4MPuhpx' },
-          forms: { version:1, syncID: 'Q_mWdmGZtuX9' },
-          history: { version: 1, syncID: '2_MOTXJfjA9Q' }
-        }
-      })
+      payload: metaGlobalPayloadWithHistoryEngine
     },
     crypto: {
       id: 'keys',
@@ -628,6 +645,8 @@ ce/Global_Objects/Object/proto`,
     bookmarksEntriesDec,
     bookmarksExpectedDataStore,
     bookmarksExpectedAsyncStorage,
-    fetchArgsExpected
+    fetchArgsExpected,
+    metaGlobalPayloadWithHistoryEngine,
+    metaGlobalPayloadWithoutHistoryEngine
   };
 })();
