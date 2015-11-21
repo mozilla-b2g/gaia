@@ -1,7 +1,7 @@
 {
   "name": "gaia",
   "private": true,
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "A bundle of components which Gaia needs.",
   "author": "The Gaia Team <dev-gaia@lists.mozilla.org>",
   "engineStrict": "true",
