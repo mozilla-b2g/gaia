@@ -6,7 +6,6 @@
 
 /* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
-/* global ERROR_OFFLINE */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global expect */
 /* global loadBodyHTML */
@@ -27,6 +26,8 @@ suite('Firefox Sync panel >', () => {
   var realMozIntl = null;
   var realMozL10n = null;
   var realAddIdleObserver = null;
+
+  var isOnline = true;
 
   const BOOKMARKS = 'sync.collections.bookmarks.enabled';
   const HISTORY   = 'sync.collections.history.enabled';
@@ -152,6 +153,13 @@ suite('Firefox Sync panel >', () => {
     realAddIdleObserver = navigator.addIdleObserver;
     navigator.addIdleObserver = function() {};
 
+    Object.defineProperty(navigator, 'onLine', {
+      configurable: true,
+      get: function() {
+        return isOnline;
+      }
+    });
+
     var map = {
       '*': {
         'modules/dialog_service': 'unit/mock_dialog_service',
@@ -206,6 +214,7 @@ suite('Firefox Sync panel >', () => {
   });
 
   suiteTeardown(() => {
+    delete navigator.onLine;
     alertSpy.restore();
     enableStub.restore();
     disableStub.restore();
@@ -774,6 +783,8 @@ suite('Firefox Sync panel >', () => {
 
   suite('onsyncchange "errored" - known errors', () => {
     var subject;
+    const ERROR_INVALID_SYNC_ACCOUNT = 'fxsync-error-invalid-account';
+    const ERROR_OFFLINE = 'fxsync-error-offline';
 
     suiteSetup(() => {
       subject = suiteSetupCommon();
@@ -783,6 +794,12 @@ suite('Firefox Sync panel >', () => {
     suiteTeardown(() => {
       subject = null;
       restoreSubjectSpiesAndStubs();
+    });
+
+    teardown(() => {
+      showScreenSpy.reset();
+      cleanSpy.reset();
+      alertSpy.reset();
     });
 
     [{
@@ -841,6 +858,17 @@ suite('Firefox Sync panel >', () => {
       MockSettingsListener.mTriggerCallback(PASSWORDS, true);
       setTimeout(() => {
         assert.ok(!subject.elements.syncNow.disabled);
+        done();
+      });
+    });
+
+    test('"Sync Now" should be disabled while offline', done => {
+      assert.ok(subject.elements.syncNow);
+      assert.ok(!subject.elements.syncNow.disabled);
+      isOnline = false;
+      window.dispatchEvent(new CustomEvent('online'));
+      setTimeout(() => {
+        assert.ok(subject.elements.syncNow.disabled);
         done();
       });
     });
