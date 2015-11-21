@@ -54,7 +54,7 @@ class GaiaBinaryControl(BinaryControl):
     @property
     def is_enabled(self):
         # Change for a more standard method, once Bug 1113742 lands
-        return self.marionette.execute_script('return arguments[0].wrappedJSObject.disabled == false', [self.root_element])
+        return self.marionette.execute_script('return arguments[0].wrappedJSObject.disabled != true', [self.root_element])
 
 class HtmlBinaryControl(BinaryControl):
     @property
