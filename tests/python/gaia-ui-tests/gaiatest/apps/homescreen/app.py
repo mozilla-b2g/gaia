@@ -19,6 +19,7 @@ class Homescreen(Base):
 
     _homescreen_icon_page_locator = (By.CSS_SELECTOR, 'gaia-container[id="pages"]')
     _all_icons_locator = (By.TAG_NAME, 'gaia-app-icon')
+    _all_pages_icon = (By.TAG_NAME, 'gaia-pin-card')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
     _search_bar_icon_locator = (By.ID, 'search-input')
     _landing_page_locator = (By.ID, 'icons')
@@ -72,6 +73,11 @@ class Homescreen(Base):
     def app_elements(self):
         return [self.GaiaAppIcon(self.marionette, app_element)
                 for app_element in self.marionette.find_elements(*self._all_icons_locator)]
+
+    @property
+    def page_elements(self):
+        return [self.GaiaAppIcon(self.marionette, app_element)
+                for app_element in self.marionette.find_elements(*self._all_pages_icon)]
 
     @property
     def visible_apps(self):

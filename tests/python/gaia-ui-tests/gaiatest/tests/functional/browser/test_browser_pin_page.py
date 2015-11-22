@@ -33,9 +33,9 @@ class TestBrowserPinPage(GaiaTestCase):
 
         homescreen.go_to_pinned_pages_panel()
 
-        print(len(homescreen.app_elements))
-        last_icon_position = len(homescreen.app_elements) - 1
-        last_icon = homescreen.app_elements[last_icon_position]
+        print(len(homescreen.page_elements))
+        last_icon_position = len(homescreen.page_elements) - 1
+        last_icon = homescreen.page_elements[last_icon_position]
         print(last_icon.manifest_url)
 
         print(self.test_url)
