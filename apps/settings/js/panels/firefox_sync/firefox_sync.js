@@ -154,6 +154,10 @@ define(function(require) {
           break;
         case 'syncing':
           this.showScreen(LOGGED_IN_SCREEN);
+          // The user may enter in the panel while we are in the syncing
+          // state. In that case, we also need to show the user because
+          // the enabled state was not handled yet.
+          this.showUser(message.user);
           this.showSyncing();
           break;
         case 'errored':
