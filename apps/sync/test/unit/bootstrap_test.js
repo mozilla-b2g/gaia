@@ -20,7 +20,7 @@
 require('/shared/js/sync/errors.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 requireApp('sync/test/unit/fixtures/bootstrap.js');
-requireApp('sync/test/unit/improved_mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('sync/test/unit/sync-engine-mock.js');
 
 var mocksForBootstrap = new MocksHelper([

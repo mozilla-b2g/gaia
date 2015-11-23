@@ -11,7 +11,7 @@ require('/shared/js/gzip/gzip.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/js/advanced_telemetry.js');
 requireApp('system/js/app_usage_metrics.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 
 suite('AdvancedTelemetry:', function() {
