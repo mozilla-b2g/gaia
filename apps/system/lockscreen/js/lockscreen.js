@@ -522,10 +522,8 @@
     this.lockScreenClockWidget.stop().destroy();
     delete this.lockScreenClockWidget;
 
-    if (details.unlockSoundEnabled) {
-      var unlockAudio = new Audio('/resources/sounds/unlock.opus');
-      unlockAudio.play();
-    }
+    this.unlockSoundEnabled = !!(details.unlockSoundEnabled);
+    this.playUnlockSound('/resources/sounds/unlock.opus');
 
     this.overlay.classList.toggle('no-transition', instant);
     this.dispatchEvent('lockscreen-request-unlock', this._unlockingMessage);
@@ -539,6 +537,16 @@
     }
     // Clear the state after we send the request.
     this._unlockingMessage = {};
+  };
+
+  /**
+   *  Plays unlock sound if required
+   */
+  LockScreen.prototype.playUnlockSound = function(soundFileUrl) {
+    if (this.unlockSoundEnabled) {
+      var unlockAudio = new Audio(soundFileUrl);
+      unlockAudio.play();
+    }
   };
 
   LockScreen.prototype.overlayLocked = function(instant) {
@@ -560,6 +568,7 @@
       this._lastUnlockedInterval = now - this._lastUnlockedTimeStamp;
       this._lastLockedTimeStamp = now;
 
+      this.playUnlockSound('/resources/sounds/lock.opus');
       this.overlayLocked();
       // Because 'document.hidden' changes slower than this,
       // so if we depend on that it would create the widget
