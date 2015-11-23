@@ -23,7 +23,8 @@
   asyncStorage,
   DataAdapters,
   ERROR_SYNC_APP_RACE_CONDITION,
-  LazyLoader
+  LazyLoader,
+  placesModel
 */
 
 const HISTORY_COLLECTION_MTIME = '::collections::history::mtime';
@@ -31,18 +32,6 @@ const HISTORY_LAST_REVISIONID = '::collections::history::revisionid';
 const HISTORY_SYNCTOID_PREFIX = '::synctoid::history::';
 
 var HistoryHelper = (() => {
-  // TODO: Use shared/js/places_model.js here, see bug 1208352
-  var _store;
-  function _ensureStore() {
-    if (_store) {
-      return Promise.resolve(_store);
-    }
-    return navigator.getDataStores('places').then(stores => {
-      _store = stores[0];
-      return _store;
-    });
-  }
-
   /* SyncedCollectionMTime is the time of the last successful sync run.
    * Subsequent sync runs will not check any records from the Kinto collection
    * that have not been modified since then. This value is stored separately for
@@ -114,107 +103,6 @@ var HistoryHelper = (() => {
     });
   }
 
-  function mergeRecordsToDataStore(localRecord, remoteRecord) {
-    if (!localRecord || !remoteRecord ||
-        localRecord.url !== remoteRecord.url) {
-      // The local record has different url(id) with the new one.
-      console.error('Inconsistent records on url', localRecord, remoteRecord);
-      throw new Error('Inconsistent records on url');
-    }
-    if (!localRecord.fxsyncId && typeof remoteRecord.fxsyncId === 'string') {
-      /* When a localRecord is existed without fxsyncId, assign fxsyncId to it
-         from a remoteRecord. This case always happens at first synchronization
-         or merging two records with the same URL. */
-      localRecord.fxsyncId = remoteRecord.fxsyncId;
-    } else if (localRecord.fxsyncId !== remoteRecord.fxsyncId) {
-      // Two records have different fxsyncId but have the same url(id).
-      console.log('Inconsistent records on FxSync ID',
-        localRecord, remoteRecord);
-      throw new Error('Inconsistent records on FxSync ID',
-        localRecord, remoteRecord);
-    }
-    // We remember if a record had already been created locally before we got
-    // remote data for that URL, so that we know not to remove it even when the
-    // remote data is deleted. This applies only to readonly sync, and will be
-    // removed when sync becomes read-write.
-    if (localRecord.createdLocally === undefined) {
-      localRecord.createdLocally = true;
-    }
-
-    localRecord.visits = localRecord.visits || [];
-    // If a localRecord is without any visit records or with older visit
-    // than remoteRecord, its title will be replaced by remoteRecord's.
-    if ((localRecord.visits.length === 0 && remoteRecord.title) ||
-        (remoteRecord.visits[0] >= localRecord.visits[0])) {
-      localRecord.title = remoteRecord.title;
-    }
-
-    remoteRecord.visits.forEach(item => {
-      if (localRecord.visits.indexOf(item) === -1) {
-        localRecord.visits.push(item);
-      }
-    });
-
-    localRecord.visits.sort((a, b) => {
-      // sort in descending order
-      return b - a;
-    });
-
-    return localRecord;
-  }
-
-  function addPlace(place, userid) {
-    // 1. Get place by url(id of DataStore)
-    // 2.A Merge the existing one and new one if it's an existing one,
-    //     and update the places.
-    // 2.B Add a new record with RevisionId.
-    // 3. Add the DataStore record ID into LocalID <-> RemoteID matching table.
-
-    var id = place.url;
-    var revisionId;
-    return _ensureStore().then(placesStore => {
-      revisionId = placesStore.revisionId;
-      return placesStore.get(id).then(existedPlace => {
-        // Bug 1208352 - PlacesDS accessing code should be extracted to a shared
-        // code to prevent drifting out of sync from different piece codes.
-        if (existedPlace) {
-          var newPlace = mergeRecordsToDataStore(existedPlace, place);
-          return placesStore.put(newPlace, id, revisionId);
-        }
-        // Setting createdLocally to false will cause the record to be deleted
-        // again if it's deleted remotely. This applies only to readonly sync,
-        // and will be removed when sync becomes read-write.
-        place.createdLocally = false;
-        return placesStore.add(place, id, revisionId);
-      }).then(() => {
-        return setDataStoreId(place.fxsyncId, id, userid);
-      });
-    }).catch(e => {
-      if (e.name === 'ConstraintError' &&
-          e.message === 'RevisionId is not up-to-date') {
-        return LazyLoader.load(['shared/js/sync/errors.js']).then(() => {
-          throw new Error(ERROR_SYNC_APP_RACE_CONDITION);
-        });
-      }
-      console.error(e);
-    });
-  }
-
-  function deleteByDataStoreId(id) {
-    return _ensureStore().then(store => {
-      var revisionId = store.revisionId;
-      return store.get(id).then(record => {
-        // Do not delete records that were originally created locally, even if
-        // they are deleted remotely. This applies only for readonly sync, and
-        // will be removed in the future when we switch to two-way sync.
-        if (record.createdLocally) {
-          return Promise.resolve();
-        }
-        return store.remove(id, revisionId);
-      });
-    });
-  }
-
   function deletePlace(fxsyncId, userid) {
     return getDataStoreId(fxsyncId, userid).then(id => {
       if (!id) {
@@ -222,58 +110,7 @@ var HistoryHelper = (() => {
             fxsyncId);
         return Promise.resolve();
       }
-      return deleteByDataStoreId(id);
-    });
-  }
-
-  function checkIfClearedSince(lastRevisionId, userid) {
-    return _ensureStore().then(store => {
-      if (lastRevisionId === null) {
-        var cursor = store.sync();
-        // Skip first task which is always { id: null, operation: 'clear' }
-        cursor.next().then(() => {
-          return cursor;
-        });
-      }
-      return store.sync(lastRevisionId);
-    }).then(cursor => {
-      var wasCleared = false;
-      return new Promise(resolve => {
-        function runNextTask(cursor) {
-          cursor.next().then(task => {
-            if (task.operation === 'done') {
-              resolve({
-                newRevisionId: task.revisionId,
-                wasCleared
-              });
-            } else {
-              // In readonly mode, if the DataStore was cleared, or some records
-              // were removed, it's possible that previously imported data was
-              // lost. Therefore, we return wasCleared: true after playing the
-              // DataStore history to its current revisionId, so that
-              // removeSyncedCollectionMtime will be called, and a full
-              // re-import is triggered.
-              // If only one record was removed then it would not be necessary
-              // to re-import the whole Kinto collection, but right now we have
-              // no efficient way to retrieve just one record from the Kinto
-              // collection based on URL, because we don't have a mapping from
-              // URL to fxsyncId. Since readonly sync is idempotent, there is
-              // not much harm in this, but it could possibly be made more
-              // efficient, see
-              // https://bugzilla.mozilla.org/show_bug.cgi?id=1223418.
-              if (['clear', 'remove'].indexOf(task.operation) !== -1) {
-                wasCleared = true;
-              }
-              // Avoid stack overflow:
-              setTimeout(() => {
-                // Will eventually get to a 'done' task:
-                runNextTask(cursor);
-              });
-            }
-          });
-        }
-        runNextTask(cursor);
-      });
+      return placesModel.deleteByDataStoreId(id);
     });
   }
 
@@ -293,7 +130,7 @@ var HistoryHelper = (() => {
   function handleClear(userid) {
     var newRevisionId;
     return getLastRevisionId(userid).then(lastRevisionId => {
-      return checkIfClearedSince(lastRevisionId, userid);
+      return placesModel.checkIfClearedSince(lastRevisionId, userid);
     }).then(result => {
       newRevisionId = result.newRevisionId;
       if(result.wasCleared) {
@@ -314,12 +151,10 @@ var HistoryHelper = (() => {
   }
 
   return {
-    mergeRecordsToDataStore,
     setSyncedCollectionMtime,
     getSyncedCollectionMtime,
+    setDataStoreId,
     deletePlace,
-    deleteByDataStoreId,
-    addPlace,
     handleClear,
     reset
   };
@@ -399,15 +234,25 @@ DataAdapters.history = {
 
     if (payload.histUri && Array.isArray(payload.visits) &&
         payload.visits.length === 0) {
-      return HistoryHelper.deleteByDataStoreId(payload.histUri);
+      return placesModel.deleteByDataStoreId(payload.histUri);
     }
 
-    return HistoryHelper.addPlace({
+    return placesModel.addPlace({
       url: payload.histUri,
       title: payload.title,
       visits: payload.visits.map(elem => Math.floor(elem.date / 1000)),
       fxsyncId: payload.id
-    }, userid);
+    }, userid).then(() => {
+      return HistoryHelper.setDataStoreId(payload.id, payload.histUri, userid);
+    }).catch(e => {
+      if (e.name === 'ConstraintError' &&
+          e.message === 'RevisionId is not up-to-date') {
+        return LazyLoader.load(['shared/js/sync/errors.js']).then(() => {
+          throw new Error(ERROR_SYNC_APP_RACE_CONDITION);
+        });
+      }
+      console.error(e);
+    });
   },
 
   _next(remoteRecords, lastModifiedTime, userid, cursor) {
@@ -433,7 +278,10 @@ DataAdapters.history = {
       console.warn('Two-way sync not implemented yet for history.');
     }
     var mtime;
-    return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
+    return LazyLoader.load([
+      'shared/js/async_storage.js',
+      'shared/js/places_model.js'
+    ]).then(() => {
       // We iterate over the records in the Kinto collection until we find a
       // record whose last modified time is older than the time of the last
       // successful sync run. However, if the DataStore has been cleared, or
