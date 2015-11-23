@@ -35,60 +35,15 @@
   </head>
 
   <body>
-    <div id="slide-1" class="slide">
-      <div class="slide-section left">
-        <p class="slide-description top txt-mid" data-l10n-id="step-1-of-2"></p>
-        <p class="slide-description mid txt-large" data-l10n-id="download-android-firefox"></p>
-        <p class="slide-description bottom txt-mid" data-l10n-id="using-the-same-wifi"></p>
-      </div>
-      <div class="slide-section right">
-        <img id="slide-1-phoneImg" src="../style/offline_content/images/phone.png">
-      </div>
-      <div class="slide-section bottom">
-        <smart-button id="slide-1-nextButton" data-behavior="next" class="slide-button primary" type="rounded-corner-text" data-l10n-id="next"></smart-button>
-      </div>
-    </div>
-
-    <div id="slide-2" class="slide hide">
-      <div class="slide-section left">
-        <p class="slide-description top txt-mid" data-l10n-id="step-2-of-2"></p>
-        <p class="slide-description mid txt-large" data-l10n-id="send-video-to-your-tv"></p>
-        <div class="slide-description bottom txt-mid">
-          <span data-l10n-id="while-playing-a-video-tap-on-the-send-to-icon"></span>
-          <img id="slide-2-castVideoIcon" src="../style/offline_content/images/cast_video_icon.png">
-          <br/>
-          <span data-l10n-id="appears-on-the-addr-bar-or-on-the-video-player-to-send-video"></span>
-        </div>
-      </div>
-      <div class="slide-section right">
-        <img id="slide-2-castVideoImg" src="../style/offline_content/images/cast_video.png">
-      </div>
-      <div class="slide-section bottom">
-        <smart-button id="slide-2-nextButton" data-behavior="next" class="slide-button" type="rounded-corner-text" data-l10n-id="learn-how-to-send-tabs"></smart-button>
-        <smart-button id="slide-2-doneButton" data-behavior="finish" class="slide-button primary" type="rounded-corner-text" data-l10n-id="done"></smart-button>
-      </div>
-    </div>
-
-    <div id="slide-3" class="slide hide">
-      <div class="slide-section left">
-        <p class="slide-description top txt-large" data-l10n-id="send-tabs-to-your-tv"></p>
-        <div class="slide-description mid txt-mid">
-          <span data-l10n-id="download-and-install-addon"></span>
-        </div>
-        <p class="slide-description bottom txt-mid">
-          <span data-l10n-id="while-using-firefox-tap-on-the-send-to-icon"></span>
-          <img id="slide-3-castLinkIcon" src="../style/offline_content/images/cast_link_icon.png">
-          <br/>
-          <span data-l10n-id="appears-on-the-addr-bar-to-send-tabs"></span>
-        </p>
-      </div>
-      <div class="slide-section right">
-        <img id="slide-3-castWebsiteImg" src="../style/offline_content/images/cast_website.png">
-      </div>
-      <div class="slide-section bottom">
-        <smart-button id="slide-3-doneButton" data-behavior="finish" class="slide-button primary" type="rounded-corner-text" data-l10n-id="done"></smart-button>
-      </div>
-    </div>
+    <article class="slide">
+      <section id="description-section" class="slide-section">
+        <p class="slide-description txt-large" data-l10n-id="learn-use-firefox"></p>
+        <p class="slide-description txt-mid" data-l10n-id="please-connect-to-internet"></p>
+      </section>
+      <section id="button-section" class="slide-section">
+        <smart-button data-behavior="finish" class="slide-button primary" type="rounded-corner-text" data-l10n-id="ok"></smart-button>
+      </section>
+    </article>
   </body>
 
 </html>
