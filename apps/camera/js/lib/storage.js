@@ -290,6 +290,10 @@ Storage.prototype.check = function(done) {
       return;
     }
 
+    // check file counter in dcf if it already exist.
+    if (self.dcf) {
+      self.dcf.checkFileCounter();
+    }
     self.isSpace(function(result) {
       if (!result) { self.setState('nospace'); }
       onComplete('healthy');
