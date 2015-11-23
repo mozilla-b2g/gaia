@@ -78,46 +78,74 @@
       });
     },
 
-    getByRange: function(start, num, folderId, cb) {
+    /**
+     * get the latest cache based on maxNum
+     * @param  {Number} maxNum - max query length
+     */
+    _getCaches: function(maxNum) {
       var self = this;
-      function getCaches(){
-        var length = (start + num) > self.cache.length ?
-          (self.cache.length - start) : (start + num);
+      return new Promise(resolve => {
+        var length = maxNum > self.cache.length ? self.cache.length : maxNum;
         var result = [];
 
-        for(var i = start; i < length; i++) {
+        for(var i = 0; i < length; i++) {
           result.push(self.cache[i]);
         }
-        return result;
-      }
+        resolve(result);
+      });
+    },
 
+    /**
+     * Get specific number of the latest bookmark cache
+     * @param  {Number}   maxNum - max query length
+     * @param  {String}   folderId - folder id
+     * @param  {Function} cb - callback function with history cache as parameter
+     */
+    getByNumber: function (maxNum, folderId, cb) {
       if(folderId !== this.currentFolder) {
         this.currentFolder = folderId;
-        this.updateCache().then(() => {
-          cb(getCaches());
-        });
+        this.fetchCache()
+          .then(() => this._getCaches(maxNum))
+          .then(cb);
       } else {
-        cb(getCaches());
+        this._getCaches(maxNum)
+          .then(cb);
       }
     },
 
-    getByIndex: function(index, folderId, cb) {
+    /**
+     * Get cache data by index. If index out of currant cache range, traverse
+     * new cache.
+     * @param  {Number} index - cache index
+     */
+    _getCache: function(index) {
       var self = this;
-      function getCache(){
+      return new Promise(resolve => {
         var result = null;
         if(index >= 0 && index < self.cache.length) {
           result = self.cache[index];
         }
-        return result;
-      }
+        resolve(result);
+      });
+    },
 
+    /**
+     * Get bookmark cache by index.
+     * If the index out of current cache index range, traverse new cache until
+     * there no history record.
+     * @param  {Number}   index - query cache index
+     * @param  {String}   folderId - folder id
+     * @param  {Function} cb - callback function with history cache as parameter
+     */
+    getByIndex: function (index, folderId, cb) {
       if(folderId !== this.currentFolder) {
         this.currentFolder = folderId;
-        this.updateCache().then(() => {
-          cb(getCache());
-        });
+        this.fetchCache()
+          .then(() => this._getCache(index))
+          .then(cb);
       } else {
-        cb(getCache());
+        this._getCache(index)
+          .then(cb);
       }
     },
 
@@ -205,7 +233,7 @@
     },
 //ENDIF_FIREFOX_SYNC
 
-    updateCache: function(){
+    fetchCache: function(){
       this.cache = [];
       return new Promise(resolve => {
         if(!this.isSynced) {

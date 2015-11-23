@@ -136,8 +136,7 @@
      */
     open: function() {
       var eventDetail = {
-        startAt: 0,
-        number: MAX_VISIBLE_ITEM*2,
+        maxNumber: MAX_VISIBLE_ITEM*2,
         folderId: null,
         callback: (function(listData) {
           var event = new Event('open'),
@@ -152,7 +151,7 @@
           this.el.dispatchEvent(event);
         }).bind(this)
       };
-      var event = new CustomEvent('loadDataByRange', {detail: eventDetail});
+      var event = new CustomEvent('loadDataByNumber', {detail: eventDetail});
 
       this.reset();
       this.el.dispatchEvent(event);
@@ -775,8 +774,7 @@
           this.addNavHistory(folderId, folderTitle);
           this.navState = this.getCurNavHistory();
           eventDetail = {
-            startAt: 0,
-            number: MAX_VISIBLE_ITEM*2,
+            maxNumber: MAX_VISIBLE_ITEM*2,
             folderId: folderId,
             callback: (function(listData) {
               listData.unshift(
@@ -795,7 +793,7 @@
               }
             }).bind(this)
           };
-          event = new CustomEvent('loadDataByRange', {detail: eventDetail});
+          event = new CustomEvent('loadDataByNumber', {detail: eventDetail});
           this.reset();
           this.el.dispatchEvent(event);
           break;
@@ -810,8 +808,7 @@
           this.navHistory.pop();
           this.navState = this.getCurNavHistory();
           eventDetail = {
-            startAt: 0,
-            number: MAX_VISIBLE_ITEM*2,
+            maxNumber: MAX_VISIBLE_ITEM*2,
             folderId: this.navState ? this.navState.folderId : null,
             callback: (function(listData) {
               if(this.navState) {
@@ -832,7 +829,7 @@
               }
             }).bind(this)
           };
-          event = new CustomEvent('loadDataByRange', {detail: eventDetail});
+          event = new CustomEvent('loadDataByNumber', {detail: eventDetail});
           this.reset();
           this.el.dispatchEvent(event);
           break;

@@ -3,36 +3,99 @@
 
 (function(exports){
 
-  const INITIAL_HISTORY_COUNT = 21;
+  /**
+   * history query limit for SyncBrowserDB.getHistory
+   * @type {Number}
+   */
+  const MAX_HISTORY_QUERY_COUNT = 21;
 
+  /**
+   * Milli seconds for one day
+   * @type {Number}
+   */
   const DAY_IN_MILLI_SECOND = 86400000;
 
   // TODO: for the live time history data loading task.
   var HistoryStore = {
+    /**
+     * Is data sync enabled
+     * @type {Boolean}
+     */
     isSynced: false,
 
+    /**
+     * history cache map
+     * @type {Map}
+     */
     cache: new Map(),
 
+    /**
+     * history cache start index
+     * @type {Number}
+     */
     cacheIndexStartAt: 0,
 
+    /**
+     * history cache end index
+     * @type {Number}
+     */
     cacheIndexEndAt: 0,
 
+    /**
+     * The last history record index.
+     * @type {Number}
+     */
     lastDataIndex: null,
 
+    /**
+     * Current display folder of history
+     * @type {String}
+     */
     currentFolder : null,
 
+//IFDEF_FIREFOX_SYNC
+    /**
+     * History cache for synced history root folder
+     * @type {Object}
+     */
+    syncHistoryRootFolderCache: {
+      id: 'synced_history',
+      title: '',
+      type: 'folder',
+      readOnly: true
+    },
+//ENDIF_FIREFOX_SYNC
+
+    init: function () {
+
+//IFDEF_FIREFOX_SYNC
+
+      // get l10n string and update syncHistoryRootFolderCache
+      navigator.mozL10n.formatValue('fxsync-synced-history')
+        .then(l10nFxsyncSyncedHistory => {
+          this.syncHistoryRootFolderCache.title = l10nFxsyncSyncedHistory;
+        }
+      );
+//ENDIF_FIREFOX_SYNC
+
+    },
+
     reset: function (cb) {
+      this.cache.clear();
+      this.cacheIndexStartAt = 0;
+      this.cacheIndexEndAt = 0;
+      this.lastDataIndex = null;
+      this.currentFolder = null;
+
       return new Promise(resolve => {
-        this.cache.clear();
-        this.cacheIndexStartAt = 0;
-        this.cacheIndexEndAt = 0;
-        this.lastDataIndex = null;
-        this.currentFolder = null;
+
 //IFNDEF_FIREFOX_SYNC
         resolve();
 //ENDIF_FIREFOX_SYNC
 
 //IFDEF_FIREFOX_SYNC
+
+        // update data sync status
         SyncManagerBridge.getInfo().then(message => {
           this.isSynced = (message.state === 'enabled') ? true : false;
           resolve();
@@ -42,117 +105,221 @@
       });
     },
 
-    getByRange: function (start, num, folderId, cb) {
+    /**
+     * get the latest cache based on maxNum
+     * @param  {Number} maxNum - max query length
+     */
+    _getCaches: function(maxNum) {
       var self = this;
-      function getCaches(){
-
-        var length = (start + num) > self.cache.size ?
-          (self.cache.size - start) : (start + num);
+      return new Promise(resolve => {
+        var length = maxNum > self.cache.size ? self.cache.size : maxNum;
         var result = [];
 
-        for(var i = start; i < length; i++) {
+        for(var i = 0; i < length; i++) {
           result.push(self.cache.get(i));
         }
-        return result;
+        resolve(result);
+      });
+    },
 
-      }
-
+    /**
+     * Get specific number of the latest history cache
+     * @param  {Number}   maxNum - max query length
+     * @param  {String}   folderId - folder id
+     * @param  {Function} cb - callback function with history cache as parameter
+     */
+    getByNumber: function (maxNum, folderId, cb) {
       if(folderId !== this.currentFolder) {
         this.currentFolder = folderId;
-        this.fetchCache().then(() => {
-          cb(getCaches());
-        });
+        this.fetchCache()
+          .then(() => this._getCaches(maxNum))
+          .then(cb);
       } else {
-        cb(getCaches());
+        this._getCaches(maxNum)
+          .then(cb);
       }
     },
 
-    getByIndex: function (index, folderId, cb) {
+    /**
+     * Get cache data by index. If index out of currant cache range, traverse
+     * new cache.
+     * @param  {Number} index - cache index
+     */
+    _getCache: function(index){
       var self = this;
-      function getCache(cacheIndex){
-        var promise = new Promise(resolve => {
-          var history = null;
+      return new Promise(resolve => {
+        var history = null;
 //IFNDEF_FIREFOX_SYNC
-          if(self.cacheIndexStartAt <= index <= self.cacheIndexEndAt) {
-            resolve(null);
-          } else {
-            history = self.cache.get(cacheIndex);
-            resolve(history);
-          }
+        if(self.cacheIndexStartAt <= index <= self.cacheIndexEndAt) {
+          history = self.cache.get(index);
+          resolve(history);
+        } else {
+          resolve(null);
+        }
 //ENDIF_FIREFOX_SYNC
 
 //IFDEF_FIREFOX_SYNC
-          function traverseNextCache(cacheIndex) {
-            var start = self.cache.get(self.cacheIndexStartAt).timestamp;
-            SyncBrowserDB.getHistoryTimestamp(start, 'next', false,
-              timestamp => {
-                if(timestamp) {
-                  self.updateCacheByNextHistory(timestamp).then(() => {
-                    history = self.cache.get(cacheIndex);
-                    if(!history) {
-                      traverseNextCache(cacheIndex);
-                    } else {
-                      resolve(history);
-                    }
-                  });
-                } else {
-                  resolve(null);
-                }
-              }
-            );
-          }
 
-          function traversePreviousCache(cacheIndex) {
-            var start = self.cache.get(self.cacheIndexEndAt).timestamp;
-            SyncBrowserDB.getHistoryTimestamp(start, 'prev', false,
-              timestamp => {
-                if(timestamp) {
-                  self.updateCacheByPreviousHistory(timestamp).then(() => {
-                    history = self.cache.get(cacheIndex);
-                    if(!history) {
-                      traversePreviousCache(cacheIndex);
-                    } else {
-                      resolve(history);
-                    }
-                  });
-                } else {
-                  self.lastDataIndex = self.cacheIndexEndAt;
-                  resolve(null);
-                }
+        /**
+         * traverse next history cache which timestamp laster than current
+         * cache.
+         * @param  {Number} index - cache index
+         */
+        function traverseNextCache(index) {
+          var start = self.cache.get(self.cacheIndexStartAt).timestamp;
+          SyncBrowserDB.getHistoryTimestamp(start, 'next', false,
+            timestamp => {
+              if(timestamp) {
+                self._updateCacheByNextHistory(timestamp).then(() => {
+                  history = self.cache.get(index);
+                  if(!history) {
+                    traverseNextCache(index);
+                  } else {
+                    resolve(history);
+                  }
+                });
+              } else {
+                resolve(null);
               }
-            );
-          }
-
-          if(cacheIndex < self.cacheIndexStartAt) {
-            traverseNextCache(cacheIndex);
-          } else if (cacheIndex > self.cacheIndexEndAt) {
-            if(self.lastDataIndex && cacheIndex > self.lastDataIndex) {
-              resolve(history);
-            } else {
-              traversePreviousCache(cacheIndex);
             }
-          } else {
-            history = self.cache.get(cacheIndex);
-            resolve(history);
-          }
-//ENDIF_FIREFOX_SYNC
-        });
-        return promise;
-      }
+          );
+        }
 
+        /**
+         * traverse previous history cache which timestamp is earlier than
+         * current cache.
+         * @param  {Number} index - cache index
+         */
+        function traversePreviousCache(index) {
+          var start = self.cache.get(self.cacheIndexEndAt).timestamp;
+          SyncBrowserDB.getHistoryTimestamp(start, 'prev', false,
+            timestamp => {
+              if(timestamp) {
+                self._updateCacheByPreviousHistory(timestamp).then(() => {
+                  history = self.cache.get(index);
+                  if(!history) {
+                    traversePreviousCache(index);
+                  } else {
+                    resolve(history);
+                  }
+                });
+              } else {
+                self.lastDataIndex = self.cacheIndexEndAt;
+                resolve(null);
+              }
+            }
+          );
+        }
+
+        if(index < self.cacheIndexStartAt) {
+          traverseNextCache(index);
+        } else if (index > self.cacheIndexEndAt) {
+          if(self.lastDataIndex && index > self.lastDataIndex) {
+            resolve(history);
+          } else {
+            traversePreviousCache(index);
+          }
+        } else {
+          history = self.cache.get(index);
+          resolve(history);
+        }
+//ENDIF_FIREFOX_SYNC
+      });
+    },
+
+    /**
+     * Get history cache by index.
+     * If the index out of current cache index range, traverse new cache until
+     * there no history record.
+     * @param  {Number}   index - query cache index
+     * @param  {String}   folderId - folder id
+     * @param  {Function} cb - callback function with history cache as parameter
+     */
+    getByIndex: function (index, folderId, cb) {
       if(folderId !== this.currentFolder) {
         this.currentFolder = folderId;
-        this.fetchCache().then(() => {
-          getCache(index).then(history => {
-            cb(history);
-          });
-        });
+        this.fetchCache()
+          .then(() => this._getCache(index))
+          .then(cb);
       } else {
-        getCache(index).then(history => {
-          cb(history);
-        });
+        this._getCache(index)
+          .then(cb);
       }
     },
+
+    /**
+     * update cache with local indexedDB
+     */
+    _updateLocalCache: function () {
+      return new Promise(resolve => {
+        BrowserDB.getHistory(localHistory => {
+          localHistory.forEach(history => {
+            this.cacheIndexEndAt++;
+            this.cache.set(this.cacheIndexEndAt, history);
+          });
+          this.lastDataIndex = this.cacheIndexEndAt;
+          resolve();
+        });
+      });
+    },
+
+//IFDEF_FIREFOX_SYNC
+
+    /**
+     * create root folder cache
+     */
+    _createRootFolderCache: function () {
+      var self = this;
+
+      // We query remote history by parentid for checking if
+      // the indexedDB has remote history data. If there is
+      // any remote data, we create a folder item to show the
+      // synced history.
+      function getSyncHistory() {
+        return new Promise(resolve => {
+          SyncBrowserDB.getHistoryTimestamp(Date.now(), 'prev', true,
+            timestamp => {
+              if(timestamp) {
+                self.cacheIndexEndAt++;
+                self.cache.set(self.cacheIndexEndAt,
+                  self.syncHistoryRootFolderCache);
+              }
+              resolve();
+            }
+          );
+        });
+      }
+
+      return getSyncHistory()
+        .then(() => {
+          return this._updateLocalCache();
+        });
+    },
+//ENDIF_FIREFOX_SYNC
+
+//IFDEF_FIREFOX_SYNC
+
+    /**
+     * update cache with sync indexedDB
+     */
+    _updateFolderCache: function () {
+      return new Promise(resolve => {
+        SyncBrowserDB.getHistory(MAX_HISTORY_QUERY_COUNT, syncHistory => {
+          syncHistory.forEach(history => {
+            // XXX: the data from firefox sync can't be modified.
+            history.readOnly = true;
+            this.cacheIndexEndAt++;
+            this.cache.set(this.cacheIndexEndAt, history);
+          });
+
+          if(syncHistory.length < MAX_HISTORY_QUERY_COUNT) {
+            this.lastDataIndex = this.cacheIndexEndAt;
+          }
+          resolve();
+        });
+      });
+    },
+//ENDIF_FIREFOX_SYNC
 
     fetchCache: function () {
       this.cache.clear();
@@ -162,15 +329,7 @@
 
       return new Promise( resolve => {
         if(!this.isSynced) {
-          // Get bookmark data from origin indexdDB
-          BrowserDB.getHistory(localHistory => {
-            localHistory.forEach(history => {
-              this.cacheIndexEndAt++;
-              this.cache.set(this.cacheIndexEndAt, history);
-            });
-            this.lastDataIndex = this.cacheIndexEndAt;
-            resolve();
-          });
+          this._updateLocalCache().then(resolve);
         } else {
 //IFNDEF_FIREFOX_SYNC
         resolve();
@@ -178,51 +337,9 @@
 
 //IFDEF_FIREFOX_SYNC
           if(!this.currentFolder) {
-            // XXX: Ideally we should use Promise.all for
-            // SyncBrowserDB.getBookmark and BrowserDB.getBookmarks.
-            // But now the implementation of these function are not
-            // return Promise.
-            SyncBrowserDB.getHistoryTimestamp(Date.now(), 'prev', true,
-              timestamp => {
-                // We query remote history by parentid for checking if
-                // the indexedDB has remote history data. If there is
-                // any remote data, we create a folder item to show the
-                // synced history.
-                if(timestamp) {
-                  this.cacheIndexEndAt++;
-                  this.cache.set(this.cacheIndexEndAt, {
-                    id: 'sync_history',
-                    title: 'Synced History',
-                    type: 'folder',
-                    readOnly: true
-                  });
-                }
-
-                // get bookmark data from origin indexdDB
-                BrowserDB.getHistory(localHistory => {
-                  localHistory.forEach(history => {
-                    this.cacheIndexEndAt++;
-                    this.cache.set(this.cacheIndexEndAt, history);
-                  });
-                  this.lastDataIndex = this.cacheIndexEndAt;
-                  resolve();
-                });
-              }
-            );
+            this._createRootFolderCache().then(resolve);
           } else {
-            SyncBrowserDB.getHistory(INITIAL_HISTORY_COUNT, syncHistory => {
-              syncHistory.forEach(history => {
-                // XXX: the data from firefox sync can't be modified.
-                history.readOnly = true;
-                this.cacheIndexEndAt++;
-                this.cache.set(this.cacheIndexEndAt, history);
-              });
-
-              if(syncHistory.length < INITIAL_HISTORY_COUNT) {
-                this.lastDataIndex = this.cacheIndexEndAt;
-              }
-              resolve();
-            });
+            this._updateFolderCache().then(resolve);
           }
 //ENDIF_FIREFOX_SYNC
         }
@@ -230,18 +347,29 @@
     },
 
 //IFDEF_FIREFOX_SYNC
-    updateCacheByNextHistory: function (timestamp) {
+
+    /**
+     * update history cache with the next history which laster than current
+     * history cache.
+     * @param  {Number} start - start timestamp
+     */
+    _updateCacheByNextHistory: function (start) {
       var promise = new Promise(resolve => {
-        var start = timestamp,
-            end = timestamp + DAY_IN_MILLI_SECOND;
+        var end = start + DAY_IN_MILLI_SECOND;
 
         SyncBrowserDB.getHistoryByTime(start, end, true, true, syncHistory => {
+          var historyLength = syncHistory.length;
           this.cache.clear();
-          this.cacheIndexEndAt = this.cacheIndexStartAt - 1;
-          var length = syncHistory.length;
-          while(length--) {
-            this.cacheIndexStartAt--;
-            this.cache.set(this.cacheIndexStartAt, syncHistory[length]);
+          this.cacheIndexStartAt = this.cacheIndexStartAt - historyLength;
+          this.cacheIndexEndAt = this.cacheIndexStartAt + historyLength - 1;
+
+          var cacheIndex = 0;
+          var history = null;
+          for(var i = 0; i < historyLength; i++) {
+            history = syncHistory[i];
+            history.readOnly = true;
+            cacheIndex = i + this.cacheIndexStartAt;
+            this.cache.set(cacheIndex, history);
           }
           resolve();
         });
@@ -251,20 +379,30 @@
 //ENDIF_FIREFOX_SYNC
 
 //IFDEF_FIREFOX_SYNC
-    updateCacheByPreviousHistory: function (timestamp) {
+
+    /**
+     * update history cache with the previous history which earlier than
+     * current history cache.
+     * @param  {Number} start - start timestamp
+     */
+    _updateCacheByPreviousHistory: function (end) {
       var promise = new Promise(resolve => {
-        var start = timestamp - DAY_IN_MILLI_SECOND,
-            end = timestamp;
+        var start = end - DAY_IN_MILLI_SECOND;
 
         SyncBrowserDB.getHistoryByTime(start, end, true, true, syncHistory => {
+          var historyLength = syncHistory.length;
           this.cache.clear();
           this.cacheIndexStartAt = this.cacheIndexEndAt + 1;
-          syncHistory.forEach(history => {
-            // XXX: the data from firefox sync can't be modified.
+          this.cacheIndexEndAt = this.cacheIndexStartAt + syncHistory.length -1;
+
+          var cacheIndex = 0;
+          var history = null;
+          for(var i = 0; i < historyLength; i++) {
+            history = syncHistory[i];
             history.readOnly = true;
-            this.cacheIndexEndAt++;
-            this.cache.set(this.cacheIndexEndAt, history);
-          });
+            cacheIndex = i + this.cacheIndexStartAt;
+            this.cache.set(cacheIndex, history);
+          }
           resolve();
         });
       });
