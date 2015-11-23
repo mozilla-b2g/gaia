@@ -43,8 +43,6 @@
 
     _cardManager: undefined,
 
-    _outOfControlArea: true,
-
     /**
      * Initialize AppDeck. This is the main entry of the whole app.
      *
@@ -88,6 +86,7 @@
           SharedUtils.nodeListToArray(
             document.querySelectorAll('.navigable:not(.app-banner)'))
             .concat(appGridElements);
+        that._navigableElements.unshift(that._appDeckListScrollable);
         that._spatialNavigator = new SpatialNavigator(that._navigableElements);
 
         that._keyNavigationAdapter.on('move', that.onMove.bind(that));
@@ -98,8 +97,7 @@
         that._spatialNavigator.on('unfocus', that.onUnfocus.bind(that));
         that._appDeckListScrollable.on('focus',
           that.onFocusOnAppDeckListScrollable.bind(that));
-        // start focusing on promotion list
-        that._appDeckListScrollable.focus();
+        that._spatialNavigator.focus();
         that._contextMenu = new ContextMenu();
         that._contextMenu.init(that);
         Applications.on('install', that.onAppInstalled.bind(that));
@@ -280,24 +278,13 @@
     },
 
     onMove: function ad_onMove(key) {
-      // When we are not in the SpatialNavigator's control area,
-      // use XScrollable object's spatial navigator to move.
-      // If it fails to move, and it's a 'down' operation, then we
-      // move into the last focused element within SpatialNavigator's
-      // control area.
-      if (this._outOfControlArea) {
-        if (!this._appDeckListScrollable.spatialNavigator.move(key) &&
-            key == 'down') {
-          this._spatialNavigator.focus(this._lastFocusedSmartButton);
-          this._outOfControlArea = false;
-        }
-      } else {
-        // Vice versa.
-        if (!this._spatialNavigator.move(key) && key == 'up') {
-          this._appDeckListScrollable.focus();
-          this._outOfControlArea = true;
+      var focused = this._spatialNavigator.getFocusedElement();
+      if (focused instanceof XScrollable) {
+        if (focused.spatialNavigator.move(key)) {
+          return;
         }
       }
+      this._spatialNavigator.move(key);
     },
 
     onAppInstalled: function ad_onAppInstalled(apps) {
