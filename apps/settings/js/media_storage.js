@@ -661,7 +661,7 @@ require([
           self.enableDefaultMediaLocationSelection(false);
           var obj = {};
           obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
-          Settings.mozSettings.createLock().set(obj);
+          navigator.mozSettings.createLock().set(obj);
         } else if (self._volumeList.length > 1) {
           // Disable default media location selection menu if external storage
           // is not in slot.
@@ -709,7 +709,7 @@ require([
           });
 
           // Unobserve 'unrecognised' state for external storage.
-          Settings.mozSettings.removeObserver(
+          navigator.mozSettings.removeObserver(
             EXTERNAL_UNRECOGNISED_KEY,
             this._handleExternalUnrecognisedChanged
           );
@@ -743,7 +743,7 @@ require([
           }.bind(this));
 
           // Observe 'unrecognised' state for external storage.
-          Settings.mozSettings.addObserver(
+          navigator.mozSettings.addObserver(
             EXTERNAL_UNRECOGNISED_KEY,
             this._handleExternalUnrecognisedChanged
           );
@@ -890,7 +890,7 @@ require([
       selectedOption.selected = true;
       var obj = {};
       obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
-      Settings.mozSettings.createLock().set(obj);
+      navigator.mozSettings.createLock().set(obj);
     },
 
     enableDefaultMediaLocationSelection:

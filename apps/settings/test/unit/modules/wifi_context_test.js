@@ -1,7 +1,5 @@
 /* global MockNavigatorSettings, MockNavigatorMozWifiManager */
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp(
-  'settings/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 
 suite('WifiContext', function() {
   'use strict';
@@ -10,7 +8,12 @@ suite('WifiContext', function() {
   var wifiHelper;
   var wifiContext;
   var wifiManager;
-  var map = {
+
+  var modules = [
+    'modules/wifi_context',
+    'shared/wifi_helper'
+  ];
+  var maps = {
     '*': {
       'modules/settings_cache': 'unit/mock_settings_cache',
       'shared/wifi_helper': 'shared_mocks/mock_wifi_helper'
@@ -20,9 +23,6 @@ suite('WifiContext', function() {
   suiteSetup(function() {
     realSettings = window.navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
-
-    window.Settings = {};
-    window.Settings.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
@@ -30,17 +30,14 @@ suite('WifiContext', function() {
   });
 
   setup(function(done) {
-    testRequire([
-      'modules/wifi_context',
-      'shared/wifi_helper'
-    ], map, function(WifiContext, MockWifiHelper) {
-      wifiContext = WifiContext;
-      wifiHelper = MockWifiHelper;
-      wifiManager = wifiHelper.getWifiManager();
+    testRequire(modules, maps,
+      function(WifiContext, MockWifiHelper) {
+        wifiContext = WifiContext;
+        wifiHelper = MockWifiHelper;
+        wifiManager = wifiHelper.getWifiManager();
 
-      MockNavigatorSettings.mSetup();
-      MockNavigatorMozWifiManager.mSetup();
-      done();
+        MockNavigatorMozWifiManager.mSetup();
+        done();
     });
   });
 

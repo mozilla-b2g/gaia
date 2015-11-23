@@ -11,7 +11,7 @@ define(function(require) {
   var SettingsCache = require('modules/settings_cache');
   var WifiHelper = require('shared/wifi_helper');
   var wifiManager = WifiHelper.getWifiManager();
-  var settings = Settings.mozSettings;
+  var settings = navigator.mozSettings;
 
   // observed objects
   var _currentNetwork =
