@@ -39,14 +39,14 @@
     "gaia-icons": "~0.9.2",
     "gaia-component": "~0.4.0"
   },
-  "version": "0.3.1",
-  "_release": "0.3.1",
+  "version": "0.3.2",
+  "_release": "0.3.2",
   "_resolution": {
     "type": "version",
-    "tag": "v0.3.1",
-    "commit": "8ac12ea8268430f99d55abbfffe3e4b37a889512"
+    "tag": "v0.3.2",
+    "commit": "db2e5c00a53427629dcad93a25688651fc9ab529"
   },
   "_source": "git://github.com/gaia-components/gaia-fast-list.git",
-  "_target": "0.3.1",
+  "_target": "0.3.2",
   "_originalSource": "gaia-components/gaia-fast-list"
 }
