@@ -1,6 +1,6 @@
 {
   "name": "sockit-to-me",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Ghislain 'Aus' Lacroix <aus@mozilla.com>",
   "description": "A synchronous socket API for node.js.",
   "main": "build/Release/sockit",

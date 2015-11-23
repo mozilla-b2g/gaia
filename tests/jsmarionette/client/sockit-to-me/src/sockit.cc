@@ -39,9 +39,7 @@ Persistent<Function> Sockit::constructor;
 
 static void _debug_log(const char *aMsg) {
   if(gDebugLog) {
-    fprintf(stderr, "[sockit-to-me] ");
-    fprintf(stderr, aMsg);
-    fprintf(stderr, "\n");
+    fprintf(stderr, "[sockit-to-me] %s\n", aMsg);
   }
 }
 
