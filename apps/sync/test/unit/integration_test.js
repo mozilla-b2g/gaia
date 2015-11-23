@@ -28,6 +28,7 @@ requireApp('sync/js/crypto/keyderivation.js');
 requireApp('sync/js/crypto/fxsyncwebcrypto.js');
 requireApp('sync/js/ext/kinto.min.js');
 requireApp('sync/js/sync-engine/syncengine.js');
+require('/shared/js/places_model.js');
 requireApp('sync/js/adapters/history.js');
 requireApp('sync/js/adapters/bookmarks.js');
 require('/shared/js/sync/errors.js');
