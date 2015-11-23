@@ -19,23 +19,35 @@ marionette('manipulate display settings', function() {
       usbStoragePanel = settingsApp.usbStoragePanel;
     });
 
-    suite('USB storage enabled states', function() {
+    suite('Check USB storage states and enable it', function() {
       test('check default value', function() {
         assert.ok(
           !usbStoragePanel.isUsbEnabledSwitchChecked,
           'USB enabled switch is un-checked by default'
         );
-      });
+        assert.ok(
+          !usbStoragePanel.isUmsEnabled,
+          'The default value for USB setting is false'
+        );
 
-      test('tap toggle', function() {
         usbStoragePanel.tapUsbEnabledSwitch();
         client.waitFor(function() {
           return usbStoragePanel.isUsbEnabledSwitchChecked;
-        }.bind(this));
+        });
+
+        usbStoragePanel.tapConfirmButton();
+        // Need to wait for a moment for the change in settings
+        client.waitFor(function() {
+          return usbStoragePanel.isUmsEnabled;
+        });
 
         assert.ok(
           usbStoragePanel.isUsbEnabledSwitchChecked,
           'USB enabled switch is checked'
+        );
+        assert.ok(
+          usbStoragePanel.isUmsEnabled,
+          'USB setting value is changed'
         );
       });
     });
