@@ -109,7 +109,7 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
   // must be disabled
   function onEnable(evt) {
     evt.preventDefault();
-    var lock = Settings.mozSettings.createLock();
+    var lock = navigator.mozSettings.createLock();
     var cset = {};
 
     cset[newSetting] = true;
@@ -125,7 +125,7 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
 
   function onCancel(evt) {
     evt.preventDefault();
-    var lock = Settings.mozSettings.createLock();
+    var lock = navigator.mozSettings.createLock();
     var cset = {};
 
     cset[newSetting] = false;

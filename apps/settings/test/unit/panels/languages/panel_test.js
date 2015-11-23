@@ -1,21 +1,18 @@
 'use strict';
 
 suite('Languages Panel > ', function() {
+  var realSettings;
 
   var modules = [
     'panels/languages/panel',
-    'unit/mock_settings',
-    'unit/mock_navigator_settings',
+    'shared_mocks/mock_navigator_moz_settings',
   ];
   var map = {
     '*': {
       'panels/languages/languages': 'MockLanguages',
-      'modules/settings_panel': 'MockSettingsPanel',
-      'settings': 'unit/mock_settings'
+      'modules/settings_panel': 'MockSettingsPanel'
     }
   };
-
-  var MockSettings;
 
   suiteSetup(function(done) {
     // Create a new requirejs context
@@ -44,12 +41,17 @@ suite('Languages Panel > ', function() {
       };
     });
 
-    requireCtx(modules, function(LanguagePanel, Settings) {
+    requireCtx(modules, function(LanguagePanel, MockNavigatorSettings) {
+      realSettings = window.navigator.mozSettings;
+      window.navigator.mozSettings = MockNavigatorSettings;
+
       that.panel = LanguagePanel();
-      Settings.mSuiteSetup();
-      MockSettings = Settings;
       done();
     });
+  });
+
+  suiteTeardown(function() {
+    window.navigator.mozSettings = realSettings;
   });
 
   suite('panel has not been opened yet', function() {
@@ -99,7 +101,7 @@ suite('Languages Panel > ', function() {
 
     test('language list updated', function() {
       this.mockLanguages.buildList.reset();
-      MockSettings.mozSettings.mTriggerObservers(
+      navigator.mozSettings.mTriggerObservers(
         'accessibility.screenreader', { settingValue: true });
       assert.isTrue(
         this.mockLanguages.buildList.called, 'buildList was never called');

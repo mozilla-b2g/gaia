@@ -50,7 +50,7 @@ define(function(require) {
       window.DUMP('Showing STK main menu');
       // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=844727
       // We should use Settings.settingsCache first
-      var settings = Settings.mozSettings;
+      var settings = navigator.mozSettings;
       var lock = settings.createLock();
 
       function showStkEntries(menu) {
