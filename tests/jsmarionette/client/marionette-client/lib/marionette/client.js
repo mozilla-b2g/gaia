@@ -435,6 +435,7 @@
      * @type {Function}
      */
     onScriptTimeout: function() {
+      this.switchToFrame();
       console.log('Screenshot: ' +
                   'data:image/png;base64,' +
                   this.screenshot());
