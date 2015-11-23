@@ -29,7 +29,7 @@ requireApp('system/js/sync_state_machine.js');
 requireApp('system/js/sync_manager.js');
 requireApp('system/test/unit/mock_fxa_client.js');
 requireApp('system/test/unit/mock_iac_handler.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 require('/shared/js/sync/errors.js');
 require('/shared/test/unit/mocks/mock_service.js');

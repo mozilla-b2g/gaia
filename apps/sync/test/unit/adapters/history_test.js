@@ -18,7 +18,7 @@
 */
 
 require('/shared/js/sync/errors.js');
-require('/apps/music/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
 requireApp('sync/js/adapters/history.js');

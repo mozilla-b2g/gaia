@@ -15,7 +15,7 @@
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_navigator_moz_chromenotifications.js');
 require('/test/unit/mock_version_helper.js');
-require('/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');

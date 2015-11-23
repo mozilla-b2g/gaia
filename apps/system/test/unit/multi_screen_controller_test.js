@@ -1,7 +1,7 @@
 /* global MocksHelper, ActionMenu, BaseModule, BroadcastChannel */
 'use strict';
 
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_action_menu.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
