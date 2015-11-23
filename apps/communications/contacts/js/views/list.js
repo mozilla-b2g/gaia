@@ -527,8 +527,8 @@ contacts.List = (function() {
     var display = getDisplayName(contact);
     var nameElement = getHighlightedName(display);
     if (isFavorite(contact)) {
-      var bookmark = document.createElement("span");
-      bookmark.id = "fav-bookmark";
+      var bookmark = document.createElement('span');
+      bookmark.id = 'fav-bookmark';
       container.appendChild(bookmark);
     }
     container.appendChild(nameElement);
@@ -1674,11 +1674,10 @@ contacts.List = (function() {
     var uuid = dataset.uuid || parentDataset.uuid;
     var loadContacts = true;
     if (loadedContacts != null) {
-      var ice = document.querySelector("#contacts-list-header[action='close']");
+      var ice = document.querySelector('#contacts-list-header[action=close]');
       if (ice) {
         var listItem = loadedContacts[uuid];
         var selectItem = listItem[dataset.group];
-        var OptionMenu;
         if (selectItem.tel && selectItem.tel.length > 1) {
           var params = {
                           header: {

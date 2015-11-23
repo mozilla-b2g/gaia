@@ -198,7 +198,7 @@ contacts.ICE = (function() {
       iceImage.setAttribute('data-group', firstChar);
     }
     else {
-      iceImage.style.backgroundImage = "url('" + URL.createObjectURL(photo[1])+ "')";
+      iceImage.style.backgroundImage = 'url('+URL.createObjectURL(photo[1])+')';
     }
       iceContactButtons[index].appendChild(iceImage);
   }
