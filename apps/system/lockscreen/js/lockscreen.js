@@ -524,6 +524,7 @@
 
     if (details.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
+      unlockAudio.mozAudioChannelType = 'system';
       unlockAudio.play();
     }
 
