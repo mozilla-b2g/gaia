@@ -217,6 +217,35 @@ suite('Sync settings >', function() {
     });
   });
 
+  suite('Enabled from enabling', function() {
+    var alertStub;
+    var formatValueStub;
+    suiteSetup(function() {
+      formatValueStub = sinon.stub(navigator.mozL10n, 'formatValue', key => {
+        return Promise.resolve(key);
+      });
+
+      alertStub = sinon.stub(window, 'alert');
+
+      subject.state = 'enabling';
+      onsyncchange({
+        state: 'enabled',
+        user: 'pepito'
+      });
+    });
+
+    suiteTeardown(function() {
+      showScreenSpy.reset();
+      formatValueStub.restore();
+      alertStub.restore();
+    });
+
+    test('should show enabled dialog', function() {
+      expect(alertStub.calledOnce).to.equal(true);
+      expect(alertStub.args[0][0]).to.equal('fxsync-enabled');
+    });
+  });
+
   suite('Enabling', function() {
     suiteSetup(function() {
       onsyncchange({
