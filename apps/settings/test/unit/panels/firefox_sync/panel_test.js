@@ -607,12 +607,15 @@ suite('Firefox Sync panel >', () => {
 
     var listenerSpies = new Map();
 
+    var email = 'user@domain.org';
+
     suiteSetup(() => {
       subject = suiteSetupCommon();
       setSubjectSpiesAndStubs(subject);
       setListenerSpies(subject, listenerSpies);
       subject.onsyncchange({
-        state: 'syncing'
+        state: 'syncing',
+        user: email
       });
     });
 
@@ -627,6 +630,11 @@ suite('Firefox Sync panel >', () => {
       assert.equal(showScreenSpy.getCall(0).args[0], LOGGED_IN_SCREEN);
       assert.ok(subject.screens.loggedOut.hidden);
       assert.ok(!subject.screens.loggedIn.hidden);
+    });
+
+    test('User email should be shown', () => {
+      this.sinon.assert.calledOnce(showUserSpy);
+      assert.equal(subject.elements.user.textContent, email);
     });
 
     test('Sync Now button and collection switches should be disabled', () => {
