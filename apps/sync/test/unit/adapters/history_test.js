@@ -27,7 +27,7 @@ window.DataAdapters = {};
 
 suite('sync/adapters/history >', function() {
   var realDatastore, realLazyLoader, realAsyncStorage, testCollectionData;
-  var updatePlacesSpy, dataStoreRemoveSpy;
+  var dataStoreRemoveSpy;
 
   var kintoCollection = {
     list() {
@@ -99,14 +99,12 @@ suite('sync/adapters/history >', function() {
 
   setup(() => {
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
-    updatePlacesSpy = sinon.spy(HistoryHelper, 'updatePlaces');
     dataStoreRemoveSpy = sinon.spy(MockDatastore, 'remove');
     testCollectionData = [];
     MockDatastore._tasks[1].revisionId = 'latest-not-cleared';
   });
 
   teardown(() => {
-    updatePlacesSpy.restore();
     dataStoreRemoveSpy.restore();
     MockDatastore._inError = false;
     MockDatastore._records = Object.create(null);
@@ -118,7 +116,6 @@ suite('sync/adapters/history >', function() {
     historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
         .then((result) => {
       assert.equal(result, false);
-      assert.equal(updatePlacesSpy.callCount, 0);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_LAST_REVISIONID],
           'latest-not-cleared');
     }).then(done, reason => {
@@ -242,7 +239,6 @@ suite('sync/adapters/history >', function() {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
                    mTime);
-      assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(getPlacesStore).then(placesStore => {
       var ids = testCollectionData.map(item => {
@@ -306,7 +302,6 @@ suite('sync/adapters/history >', function() {
       var mTime = testCollectionData[0].last_modified;
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
                    mTime);
-      assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(getPlacesStore).then(placesStore => {
       var ids = testCollectionData.map(item => {
@@ -338,7 +333,6 @@ suite('sync/adapters/history >', function() {
       var mTime = testCollectionData[0].last_modified;
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
                    mTime);
-      assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = testDataGenerator(6, 500, 5)
@@ -350,7 +344,6 @@ suite('sync/adapters/history >', function() {
       var mTime = testCollectionData[0].last_modified;
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
                    mTime);
-      assert.equal(updatePlacesSpy.callCount, 2);
       return Promise.resolve();
     }).then(getPlacesStore).then(placesStore => {
       var ids = testCollectionData.map(item => {
@@ -383,7 +376,6 @@ suite('sync/adapters/history >', function() {
       var mTime = testCollectionData[0].last_modified;
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
           mTime);
-      assert.equal(updatePlacesSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = testDataGenerator(6, 500, 5)
@@ -410,7 +402,6 @@ suite('sync/adapters/history >', function() {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updatePlacesSpy.callCount, 2);
       return Promise.resolve();
     }).then(getPlacesStore).then(placesStore => {
       store = placesStore;
@@ -451,10 +442,9 @@ suite('sync/adapters/history >', function() {
     historyAdapter.update(kintoCollection,
         { readonly: true, userid: 'foo' }).then((result) => {
       assert.equal(result, false);
-      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], null);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], 110);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updatePlacesSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       assert.ok(false, reason);
@@ -535,10 +525,9 @@ suite('sync/adapters/history >', function() {
     historyAdapter.update(kintoCollection,
         { readonly: true, userid: 'foo' }).then((result) => {
       assert.equal(result, false);
-      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], null);
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], 110);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updatePlacesSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       assert.ok(false, reason);
@@ -564,7 +553,6 @@ suite('sync/adapters/history >', function() {
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME], null);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updatePlacesSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       assert.ok(false, reason);

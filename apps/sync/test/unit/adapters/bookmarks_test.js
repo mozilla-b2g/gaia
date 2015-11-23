@@ -26,9 +26,8 @@ requireApp('sync/js/adapters/bookmarks.js');
 
 window.DataAdapters = {};
 
-suite('sync/adapters/bookmarks >', () => {
+suite('sync/adapters/bookmarks >', function() {
   var realDatastore, realLazyLoader, realAsyncStorage, testCollectionData;
-  var updateBookmarksSpy;
   var kintoCollection = {
     list() {
       return Promise.resolve({
@@ -147,13 +146,11 @@ suite('sync/adapters/bookmarks >', () => {
 
   setup(() => {
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
-    updateBookmarksSpy = sinon.spy(BookmarksHelper, 'updateBookmarks');
     testCollectionData = [];
     MockDatastore._tasks[1].revisionId = 'latest-not-cleared';
   });
 
   teardown(() => {
-    updateBookmarksSpy.restore();
     MockDatastore._inError = false;
     MockDatastore._records = Object.create(null);
     window.asyncStorage.mTeardown();
@@ -164,7 +161,6 @@ suite('sync/adapters/bookmarks >', () => {
     bookmarksAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
         .then(result => {
       assert.equal(result, false);
-      assert.equal(updateBookmarksSpy.callCount, 0);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
           null);
       assert.equal(asyncStorage.mItems[BOOKMARKS_LAST_REVISIONID], null);
@@ -315,7 +311,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
           assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
               'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       var ids = testCollectionData.map(item => {
@@ -349,7 +344,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = testDataGenerator(6, 500, 5)
@@ -363,7 +357,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 2);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       var ids = testCollectionData.map(item => {
@@ -398,7 +391,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = testDataGenerator(6, 500, 5)
@@ -425,7 +417,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 2);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       store = bookmarksStore;
@@ -475,7 +466,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = [
@@ -517,7 +507,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 2);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       store = bookmarksStore;
@@ -589,7 +578,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData.unshift({
@@ -611,7 +599,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 2);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       store = bookmarksStore;
@@ -712,7 +699,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       store = bookmarksStore;
@@ -754,10 +740,9 @@ suite('sync/adapters/bookmarks >', () => {
         .then(result => {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
-          null);
+          110);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       done(reason || new Error('Rejected by undefined reason.'));
@@ -781,10 +766,9 @@ suite('sync/adapters/bookmarks >', () => {
         .then(result => {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
-          null);
+          110);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       done(reason || new Error('Rejected by undefined reason.'));
@@ -811,7 +795,6 @@ suite('sync/adapters/bookmarks >', () => {
           null);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       done(reason || new Error('Rejected by undefined reason.'));
@@ -835,10 +818,9 @@ suite('sync/adapters/bookmarks >', () => {
         .then(result => {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
-          null);
+          1000);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       done(reason || new Error('Rejected by undefined reason.'));
