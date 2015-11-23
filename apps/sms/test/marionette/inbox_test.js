@@ -76,4 +76,69 @@ marionette('Inbox View tests', function() {
       });
     });
   });
+
+  suite('Split Inbox view tests', function() {
+    const NUMBER_OF_CONVERSATIONS = 10;
+    const NUMBER_OF_MESSAGES_IN_CONVERSATION = 5;
+
+    setup(function() {
+      client.contentScript.inject(__dirname + '/mocks/mock_split_view_mode.js');
+
+      ThreadGenerator.uniqueThreadId = 0;
+
+      var conversations = [];
+      for (var i = 0; i < NUMBER_OF_CONVERSATIONS; i++) {
+        conversations.push(
+          ThreadGenerator.generate({
+            participants: ['+1234' + i],
+            numberOfMessages: NUMBER_OF_MESSAGES_IN_CONVERSATION
+          })
+        );
+      }
+
+      storage.setMessagesStorage(
+        conversations, ThreadGenerator.uniqueMessageId
+      );
+
+      messagesApp.launch();
+    });
+
+    test('All conversations are loaded', function() {
+      var inboxView = new InboxView(client);
+
+      client.waitFor(function() {
+        return inboxView.conversations.length === NUMBER_OF_CONVERSATIONS;
+      });
+    });
+
+    test('User can enter New Message view from Inbox and go back', function() {
+      var inboxView = new InboxView(client);
+
+      // Make sure we've entered new message view.
+      var newMessageView = inboxView.createNewMessage();
+      newMessageView.assertRecipientsInputFocused();
+
+      newMessageView.backToInbox();
+
+      client.waitFor(function() {
+        return inboxView.conversations.length === NUMBER_OF_CONVERSATIONS;
+      });
+    });
+
+    test('User can enter Conversation view from Inbox and go back', function() {
+      var inboxView = new InboxView(client);
+
+      // Make sure we've entered conversation view.
+      var conversationView = inboxView.goToConversation(1);
+      assert.equal(
+        conversationView.messages().length, NUMBER_OF_MESSAGES_IN_CONVERSATION
+      );
+
+      conversationView.backToInbox();
+
+      client.waitFor(function() {
+        return inboxView.conversations.length === NUMBER_OF_CONVERSATIONS;
+      });
+    });
+  });
 });
