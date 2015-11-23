@@ -5,6 +5,9 @@
 # for more options.
 export MOZ_DISABLE_NONLOCAL_CONNECTIONS=1
 
+# Force the locale in this script so that it's reproducible
+export LC_ALL=C
+
 # Find the source of this file. This will exist in
 # $GAIA/node_modules/.bin/gaia-marionette.
 SOURCE="${BASH_SOURCE[0]}"
@@ -49,47 +52,24 @@ HARNESS_PATHS="$(cat "$BINDIR/../tests/jsmarionette/marionette_tests.txt")"
 
 if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
-    if [ -z "$SKIP_TEST_FILES" ]; then
-      if [ -z "$HARNESS_ONLY" ]; then
-        TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" \
-                              -or -path "*/dev_apps/*/test/marionette/*_test.js" \
-                              -or -path "*/tv_apps/*/test/marionette/*_test.js" \
-                              -or -path "*/tests/integration/*/*_test.js")
-      else
-        TEST_FILES=""
-      fi
-
-      for wildcard in $HARNESS_PATHS; do
-        HARNESS_FILES=$(find "$BINDIR/../tests/jsmarionette" -path $wildcard)
-        TEST_FILES="$TEST_FILES $HARNESS_FILES"
-      done
+    if [ -z "$HARNESS_ONLY" ]; then
+      TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/tv_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
     else
-      if [ -z "$HARNESS_ONLY" ]; then
-        TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                              -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                              -or -path "*/tv_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                              -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
-      else
-        TEST_FILES=""
-      fi
-
-      for wildcard in $HARNESS_PATHS; do
-        HARNESS_FILES=$(find "$BINDIR/../tests/jsmarionette" -path $wildcard $SKIP_TEST_FILES)
-        TEST_FILES="$TEST_FILES $HARNESS_FILES"
-      done
+      TEST_FILES=""
     fi
+
+    for wildcard in $HARNESS_PATHS; do
+      HARNESS_FILES=$(find "$BINDIR/../tests/jsmarionette" -path $wildcard $SKIP_TEST_FILES)
+      TEST_FILES="$TEST_FILES"$'\n'"$HARNESS_FILES" # $'\n' is a bashism to insert a litteral new line
+    done
   else
-    if [ -z "$SKIP_TEST_FILES" ]; then
-      TEST_FILES=$(find "$BINDIR/.." -path "*/apps/$APP/test/marionette/*_test.js" \
-                            -or -path "*/dev_apps/$APP/test/marionette/*_test.js" \
-                            -or -path "*/tv_apps/$APP/test/marionette/*_test.js" \
-                            -or -path "*/tests/integration/$APP/*_test.js")
-    else
-      TEST_FILES=$(find "$BINDIR/.." -path "*/apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/dev_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/tv_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/tests/integration/$APP/*_test.js" $SKIP_TEST_FILES)
-    fi
+    TEST_FILES=$(find "$BINDIR/.." -path "*/apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                          -or -path "*/dev_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                          -or -path "*/tv_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                          -or -path "*/tests/integration/$APP/*_test.js" $SKIP_TEST_FILES)
   fi
 fi
 
