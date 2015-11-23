@@ -170,9 +170,9 @@ var BrowserDialog = {
       case 'signout_confirm':
         opt = {
           title: null,
-          msg: _('fxsync-confirm-disconnect'),
+          msg: _('fxsync-confirm-sign-out'),
           bt1: _('LT_CANCEL'),
-          bt2: _('fxsync-disconnect')
+          bt2: _('fxsync-sign-out')
         };
         var deferred = {};
         deferred.promise = new Promise(function(resolve, reject) {
