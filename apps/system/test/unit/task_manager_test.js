@@ -1,6 +1,17 @@
-/* global MockStackManager, MockService, TaskManagerUtils,
-          TaskManager, AppWindow, WheelEvent, MockAppWindow,
-          HomescreenWindow, MockSettingsListener, MocksHelper, MockL10n */
+/* global
+  AppWindow,
+  HomescreenWindow,
+  MockAppWindow,
+  MockLazyLoader,
+  MockL10n,
+  MockService,
+  MockSettingsListener,
+  MocksHelper,
+  MockStackManager,
+  TaskManager,
+  TaskManagerUtils,
+  WheelEvent
+*/
 
 'use strict';
 
@@ -13,6 +24,7 @@ require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksForTaskManager = new MocksHelper([
   'StackManager',
@@ -30,13 +42,7 @@ suite('system/TaskManager >', function() {
   suiteSetup(mocksForTaskManager.suiteSetup);
   setup(mocksForTaskManager.setup);
 
-  // MockLazyLoader invokes promise callbacks in the wrong order, but changing
-  // it causes many other tests to fail. So for now, use a dead-simple shim:
-  window.LazyLoader = {
-    load(files) {
-      return Promise.resolve();
-    }
-  };
+  window.LazyLoader = MockLazyLoader;
 
   suiteSetup((done) => {
     function overrideProperty(obj, propName, newConfig) {

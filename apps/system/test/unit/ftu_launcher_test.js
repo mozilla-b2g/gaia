@@ -7,7 +7,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/version_helper.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
-require('/apps/system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/ftu_launcher.js');

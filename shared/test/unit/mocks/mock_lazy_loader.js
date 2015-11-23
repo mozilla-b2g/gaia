@@ -6,14 +6,7 @@ var MockLazyLoader = {
     if (callback) {
       callback();
     } else {
-      return {
-        then: function(callback) {
-          callback();
-          return {
-            'catch': function() {}
-          };
-        }
-      };
+      return Promise.resolve();
     }
   },
 

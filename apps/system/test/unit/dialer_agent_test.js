@@ -9,7 +9,7 @@ require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_attention_window.js');
 require('/test/unit/mock_callscreen_window.js');
-require('/test/unit/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_audio.js');
