@@ -36,11 +36,10 @@ class TestHomescreenLayout(GaiaTestCase):
         Wait(self.marionette).until(lambda m: initial_number_of_columns != self.homescreen.number_of_columns)
         self.assertEqual(4, self.homescreen.number_of_columns)
 
+        self.apps.kill(settings.app)
         settings.launch()
-        # in 319MB setting, the settings app gets killed sometimes,
-        # in which case homescreen needs to be opened again
-        if settings.current_view == 'root':
-            homescreen_settings = settings.open_homescreen()
+
+        homescreen_settings = settings.open_homescreen()
         homescreen_settings.change_icon_layout('Four Columns')
         self.device.touch_home_button()
         self.assertEqual(4, self.homescreen.number_of_columns)
