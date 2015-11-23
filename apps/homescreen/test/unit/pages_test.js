@@ -1,9 +1,11 @@
 /* jshint nonew: false */
-/* global Pages, PagesStore */
+/* global MockLazyLoader, Pages, PagesStore */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('mocks/mock_datastore.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/js/places_model.js');
 require('/js/pages.js');
 
 suite('Pages', () => {
@@ -13,6 +15,7 @@ suite('Pages', () => {
     window.PagesStore = window.Datastore;
     loadBodyHTML('_index.html');
     pages = new Pages();
+    window.LazyLoader = MockLazyLoader;
   });
 
   suite('Pages constructor', () => {
