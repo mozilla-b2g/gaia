@@ -38,6 +38,10 @@
           return client.helper.waitForElement(SELECTORS.pickedImageSize);
         },
 
+        get sharedImage() {
+          return client.helper.waitForElement(SELECTORS.sharedImage);
+        },
+
         get sharedImageName() {
           return client.helper.waitForElement(SELECTORS.sharedImageName);
         },

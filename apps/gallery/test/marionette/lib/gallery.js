@@ -23,9 +23,11 @@ Gallery.ORIGIN = 'app://gallery.gaiamobile.org';
  */
 Gallery.Selector = Object.freeze({
   thumbnail: '.thumbnail',
+  thumbnailImage: '.thumbnailImage',
   thumbnailsView: '#thumbnail-views > footer.thumbnails-list',
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailsDeleteButton: '#thumbnails-delete-button',
+  thumbnailsShareButton: '#thumbnails-share-button',
   confirmButton: '#confirm-ok',
   confirmCancelButton: '#confirm-cancel',
   overlayView: '#overlay',
@@ -43,17 +45,24 @@ Gallery.prototype = {
   client: null,
 
   /**
-   * @return {Marionette.Element} First element of all thumbnail images.
+   * @return {Marionette.Element} First thumbnail containing element
    */
   get thumbnail() {
     return this.client.helper.waitForElement(Gallery.Selector.thumbnail);
   },
 
   /**
-   * @return {Marionette.Element} List of elements of thumbnail images.
+   * @return {Marionette.Element} List of thumbnail containing elements
    */
   get thumbnails() {
     return this.client.findElements(Gallery.Selector.thumbnail);
+  },
+
+  /**
+   * @return {Marionette.Element} List of thumbnail images
+   */
+  get thumbnailsImage() {
+    return this.client.findElements(Gallery.Selector.thumbnailImage);
   },
 
   /**
@@ -118,6 +127,14 @@ Gallery.prototype = {
   },
 
   /**
+   * @return {Marionette.Element} Element to click to share multiple images.
+   */
+  get thumbnailsShareButton() {
+    return this.client.helper.waitForElement(
+      Gallery.Selector.thumbnailsShareButton);
+  },
+
+  /**
    * @return {Marionette.Element} Element to click to confirm the delete dialog.
    */
   get confirmButton() {
@@ -159,6 +176,10 @@ Gallery.prototype = {
     this.client.waitFor(function() {
       return this.thumbnails[n].cssProperty('outline') != null;
     }.bind(this));
+  },
+
+  getThumbnailFileName: function(n) {
+    return this.thumbnailsImage[n].getAttribute('data-filename');
   },
 
   /**

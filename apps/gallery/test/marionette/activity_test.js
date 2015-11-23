@@ -36,10 +36,12 @@ marionette('Gallery Activity Tests', function() {
     // Remove all files in temp device storage.
     client.fileManager.removeAllFiles();
     // Add file into the pictures directory
-    client.fileManager.add({
-      type: 'pictures',
-      filePath: 'test_media/Pictures/firefoxOS.png'
-    });
+    client.fileManager.add([
+      {type: 'pictures',filePath: 'test_media/Pictures/firefoxOS.png'},
+      {type: 'pictures',
+       filePath: 'test_media/Pictures/firefoxOS.png',
+       filename: 'firefoxOS_2.png'}
+    ]);
     galleryApp = new Gallery(client);
     fullscreenView = new Fullscreen_View(client);
     activityTesterApp = GalleryActivityTester.create(client);
@@ -58,8 +60,12 @@ marionette('Gallery Activity Tests', function() {
     // switchToApp that waits for gallery app and then switch to gallery app
     client.apps.switchToApp(Gallery.ORIGIN);
 
-    // Select image from thumbnail list in gallery app
-    galleryApp.tapFirstThumbnail();
+    // Check number of images loaded in gallery App
+    assert.ok(galleryApp.thumbnails.length == '2');
+    // Get image name of first thumbnail
+    var selectedImageName = galleryApp.getThumbnailFileName(0);
+    // Select first image from thumbnail list in gallery app
+    galleryApp.tapThumbnail(0);
 
     client.waitFor(function(){
       return fullscreenView.editCropCanvas.displayed();
@@ -73,9 +79,9 @@ marionette('Gallery Activity Tests', function() {
     });
 
     // Compare returned blob name, type and size with the
-    // image loaded in gallery app
+    // first image loaded in gallery app
     var pickedImageName = activityTesterApp.pickedImageName.text();
-    assert.strictEqual(pickedImageName, imageInfo.name);
+    assert.strictEqual(pickedImageName, selectedImageName);
 
     var pickedImageType = activityTesterApp.pickedImageType.text();
     assert.strictEqual(pickedImageType, imageInfo.type);
@@ -107,9 +113,15 @@ marionette('Gallery Activity Tests', function() {
       fullscreenView.openActivityImage));
   });
 
-  test('share image using gallery share activity', function() {
+  test('FullScreenView > share image using share activity ', function() {
     galleryApp.launch();
-    galleryApp.tapFirstThumbnail();
+
+    // Check number of images loaded in gallery App
+    assert.ok(galleryApp.thumbnails.length == '2');
+    // Get image name of first thumbnail
+    var selectedImageName = galleryApp.getThumbnailFileName(0);
+    // Select first image from thumbnail list in gallery app
+    galleryApp.tapThumbnail(0);
     fullscreenView.shareButton.tap();
 
     system.menuOptionButton('Gallery Activity Tester').tap();
@@ -120,9 +132,9 @@ marionette('Gallery Activity Tests', function() {
     });
 
     // Compare shared blob name, type and size with the
-    // image loaded in gallery app
+    // first image loaded in gallery app
     var sharedImageName = activityTesterApp.sharedImageName.text();
-    assert.strictEqual(sharedImageName, imageInfo.name);
+    assert.strictEqual(sharedImageName, selectedImageName);
 
     var sharedImageType = activityTesterApp.sharedImageType.text();
     assert.strictEqual(sharedImageType, imageInfo.type);
@@ -130,7 +142,6 @@ marionette('Gallery Activity Tests', function() {
     var sharedImageSize = activityTesterApp.sharedImageSize.text();
     assert.strictEqual(sharedImageSize, imageInfo.size);
   });
-
 
   test('open memory backed blob using gallery open activity', function() {
     activityTesterApp.launch();
@@ -157,4 +168,36 @@ marionette('Gallery Activity Tests', function() {
     assert.ok(fullscreenView.hasSrcImageBlobURL(Gallery.ORIGIN,
       fullscreenView.openActivityImage));
    });
+
+  test('SelectView > share image using share activity ', function() {
+    galleryApp.launch();
+    galleryApp.switchToSelectView();
+
+    // Check number of files that exist
+    assert.ok(galleryApp.thumbnails.length == '2');
+    galleryApp.tapThumbnail(0);
+    // Get image name of selected thumbnail
+    var selectedImageName = galleryApp.getThumbnailFileName(0);
+
+    galleryApp.thumbnailsShareButton.tap();
+    system.menuOptionButton('Gallery Activity Tester').tap();
+    system.switchToApp(GalleryActivityTester.ORIGIN);
+
+    // Check that image is shared and displayed in
+    // Gallery Activity Tester App
+    client.waitFor(function(){
+      return activityTesterApp.sharedImage.displayed();
+    });
+    // Compare shared blob name, type and size with the
+    // first image loaded in gallery app
+    var sharedImageName = activityTesterApp.sharedImageName.text();
+    assert.strictEqual(sharedImageName, selectedImageName);
+
+    var sharedImageType = activityTesterApp.sharedImageType.text();
+    assert.strictEqual(sharedImageType, imageInfo.type);
+
+    var sharedImageSize = activityTesterApp.sharedImageSize.text();
+    assert.strictEqual(sharedImageSize, imageInfo.size);
+  });
+
 });
