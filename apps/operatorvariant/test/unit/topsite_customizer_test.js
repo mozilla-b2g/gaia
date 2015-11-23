@@ -4,6 +4,7 @@
 
 'use strict';
 
+require('shared/js/places_model.js');
 requireApp('operatorvariant/js/customizers/customizer.js');
 requireApp('operatorvariant/js/customizers/topsites_customizer.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');

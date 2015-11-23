@@ -271,6 +271,26 @@
           });
         });
       });
+    },
+
+    setTopSites(topSiteConfig) {
+      if (!topSiteConfig ||
+          !topSiteConfig.topSites ||
+          !topSiteConfig.topSites.length) {
+        return;
+      }
+
+      this.getStore('places').then(store => {
+        topSiteConfig.topSites.forEach(site => {
+          var rev = store.revisionId;
+          store.get(site.url).then(place => {
+            if (!place) {
+              site.frecency = -1;
+              store.put(site, site.url, rev);
+            }
+          });
+        });
+      });
     }
   };
 })(this);

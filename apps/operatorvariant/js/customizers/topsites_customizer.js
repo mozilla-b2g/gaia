@@ -1,4 +1,4 @@
-/* global Customizer */
+/* global Customizer, LazyLoader, placesModel */
 
 'use strict';
 
@@ -6,31 +6,8 @@ var TopSitesCustomizer = (function() {
   Customizer.call(this, 'topsites', 'json');
 
   this.set = function(topSiteConfig) {
-
-    if (!topSiteConfig ||
-        !topSiteConfig.topSites ||
-        !topSiteConfig.topSites.length) {
-      return;
-    }
-
-    // TODO: Use shared/js/places_model.js here, see bug 1225812
-    this.getStore('places').then(store => {
-      topSiteConfig.topSites.forEach(site => {
-        store.get(site.url).then(place => {
-          if (!place) {
-            site.frecency = -1;
-            store.put(site, site.url);
-          }
-        });
-      });
-    });
-  };
-
-  this.getStore = function(name) {
-    return new Promise(resolve => {
-      navigator.getDataStores(name).then(stores => {
-        resolve(stores[0]);
-      });
+    LazyLoader.load(['shared/js/places_model.js']).then(() => {
+      return placesModel.setTopSites(topSiteConfig);
     });
   };
 
