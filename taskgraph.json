@@ -27,7 +27,7 @@
             "gaia-tc-vcs":"/home/worker/.tc-vcs",
             "gaia-linux-cache":"/home/worker/.cache"
           },
-          "image": "taskcluster/gaia-taskenv:2.0.1",
+          "image": "taskcluster/gaia-taskenv:2.0.4",
           "command": [
             "entrypoint",
             "echo 'what' && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
