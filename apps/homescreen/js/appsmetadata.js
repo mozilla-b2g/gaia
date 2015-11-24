@@ -6,9 +6,9 @@
   const DB_ICON_STORE = 'icon';
   const DB_VERSION = 1;
 
-  function HomeMetadata() {}
+  function AppsMetadata() {}
 
-  HomeMetadata.prototype = {
+  AppsMetadata.prototype = {
     db: null,
 
     init: function() {
@@ -105,6 +105,6 @@
     }
   };
 
-  exports.HomeMetadata = HomeMetadata;
+  exports.AppsMetadata = AppsMetadata;
 
 }(window));

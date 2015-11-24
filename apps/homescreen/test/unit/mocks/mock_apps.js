@@ -1,19 +1,19 @@
-/* exported App */
+/* exported Apps */
 'use strict';
 
 (function(exports) {
 
-  function App() {
+  function Apps() {
     this.panel = document.getElementById('apps-panel');
     this.scrollable = document.querySelector('#apps-panel .scrollable');
     this.editMode = false;
     this.dialogs = [];
   }
 
-  App.prototype = {
+  Apps.prototype = {
     exitEditMode: function() {}
   };
 
-  exports.App = App;
+  exports.Apps = Apps;
 
 })(window);
