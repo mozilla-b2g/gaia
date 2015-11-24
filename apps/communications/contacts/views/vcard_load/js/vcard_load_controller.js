@@ -13,11 +13,18 @@
     }
   }
 
+  function cleanup() {
+    window.removeEventListener('closeAction', close);
+    window.removeEventListener('saveAction', importAll);
+  }
+
   function importAll(evt) {
     if (!evt.detail.contactsToImport) {
       console.error('Missing parameter');
       return;
     }
+
+    cleanup();
 
     var contactsToImport = evt.detail.contactsToImport;
 
