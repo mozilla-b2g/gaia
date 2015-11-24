@@ -14,11 +14,11 @@ follow us on twitter: @Boot2Gecko
 
 join the Gaia mailing list:
 
-> [http://groups.google.com/group/mozilla.dev.gaia](http://groups.google.com/group/mozilla.dev.gaia)
+> [http://groups.google.com/group/mozilla.dev.fxos](http://groups.google.com/group/mozilla.dev.fxos)
 
 and talk to us on IRC:
 
->  #gaia on irc.mozilla.org
+>  #fxos on irc.mozilla.org
 
 ## Hacking Gaia
 
