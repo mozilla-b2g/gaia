@@ -25,8 +25,7 @@ marionette('First Time Use >', function() {
 
   test('FTU user timing', function() {
     client.apps.switchToApp(Ftu.URL);
-    ftu.waitForLanguagesToLoad();
-    ftu.client.helper.waitForElement('#languages');
+    ftu.waitForFtuReady();
 
     var markersByName = client.executeScript(function() {
       var byName = {};

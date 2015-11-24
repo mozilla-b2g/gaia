@@ -14,6 +14,7 @@ marionette('First Time Use > Pseudo Localization', function() {
   test('FTU Languages without pseudo localization', function() {
     client.settings.set('devtools.pseudolocalization.enabled', false);
     client.apps.switchToApp(Ftu.URL);
+    ftu.waitForCurtainUp();
 
     var panel = ftu.getPanel('language');
     assert.ok(panel.displayed());
@@ -28,6 +29,7 @@ marionette('First Time Use > Pseudo Localization', function() {
   test('FTU Languages with pseudo localization', function() {
     client.settings.set('devtools.pseudolocalization.enabled', true);
     client.apps.switchToApp(Ftu.URL);
+    ftu.waitForCurtainUp();
 
     var panel = ftu.getPanel('language');
     assert.ok(panel.displayed());
@@ -40,7 +42,8 @@ marionette('First Time Use > Pseudo Localization', function() {
   test('Can select accented-english', function(done) {
     client.settings.set('devtools.pseudolocalization.enabled', true);
     client.apps.switchToApp(Ftu.URL);
-    client.helper.waitForElement('#languages');
+    ftu.waitForFtuReady();
+
     var header = client.helper.waitForElement(Ftu.Selectors.header);
     ftu.selectLanguage('fr-x-psaccent');
 
