@@ -197,7 +197,7 @@ marionette('Pinning the Web', function() {
     var url, lastIconId;
 
     function lastIconMatches(id) {
-      system.tapHome();
+      system.goHome();
       client.switchToFrame(system.getHomescreenIframe());
       client.waitFor(function() {
         var ids = home.getIconIdentifiers();
@@ -280,7 +280,7 @@ marionette('Pinning the Web', function() {
 
     client.switchToFrame();
     pinTheWeb.openAndPinPage(url);
-    system.tapHome();
+    system.goHome();
     client.switchToFrame(system.getHomescreenIframe());
 
     client.waitFor(function() {
