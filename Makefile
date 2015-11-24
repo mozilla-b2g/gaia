@@ -134,8 +134,10 @@ HARDWARE_COMPOSER?=1
 # Share performance and usage data
 SHARE_PERF_USAGE?=1
 
-# what major version of node we expect to run?
-NODE_VERSION=v0.10
+# what version of node we expect to run for ideal support.
+NODE_VERSION=v4.2
+# the minimum major version is absolutely required.
+NODE_MIN_VERSION=4
 
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
@@ -788,6 +790,10 @@ node_modules: package.json
 ifneq ($(strip $(NODEJS)),)
 ifneq ($(NODE_VERSION),$(shell $(NODEJS) --version | awk -F. '{print $$1"."$$2}'))
 	@printf '\033[0;33mPlease use $(NODE_VERSION) of nodejs or it may cause unexpected error.\033[0m\n'
+endif
+ifneq (1,$(shell expr `node --version | cut -c2` \>= $(NODE_MIN_VERSION)))
+	@printf '\033[0;33mMinimum required version of nodejs v$(NODE_MIN_VERSION) not satisfied. Aborting. Install the required minimum version before you continuing.\033[0m\n'
+	exit 1
 endif
 endif
 	# TODO: Get rid of references to gaia-node-modules stuff.
