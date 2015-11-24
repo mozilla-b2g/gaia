@@ -73,12 +73,13 @@ suite('VCardLoadController', function() {
   });
 
   suite('Import all button', function() {
-    var clock, spyMatcher, spyPostResult;
+    var clock, spyMatcher, spyPostResult, spyRemoveEventListener;
 
     setup(function() {
       clock = this.sinon.useFakeTimers();
       spyMatcher = this.sinon.spy(window.Matcher, 'match');
       spyPostResult = this.sinon.spy(fakeActivity, 'postResult');
+      spyRemoveEventListener = this.sinon.spy(window, 'removeEventListener');
     });
 
     test(' > must import all contacts received', function(done) {
@@ -87,6 +88,9 @@ suite('VCardLoadController', function() {
         assert.equal(evt.detail.contactsToImport.length, contacts.length);
         assert.isTrue(spyMatcher.calledThrice);
         assert.isTrue(stubContactServiceSave.calledThrice);
+        assert.isTrue(spyRemoveEventListener.calledTwice);
+        assert.equal(spyRemoveEventListener.getCall(0).args[0], 'closeAction');
+        assert.equal(spyRemoveEventListener.getCall(1).args[0], 'saveAction');
         clock.tick(3000);
         assert.isTrue(spyPostResult.calledOnce);
         done();
