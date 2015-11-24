@@ -30,10 +30,7 @@ var dcfConfig = {
 
 exports.init = function() {
   debug('initializing');
-  asyncStorage.getItem(dcfConfig.key, function(value) {
-    dcfConfigLoaded = true;
-    dcfConfig.seq = value ? value : defaultSeq;
-
+  exports.checkFileCounter(function() {
     // We have a previous call to createDCFFilename that is waiting for
     // a response, fire it again
     if (deferredArgs) {
@@ -43,6 +40,17 @@ exports.init = function() {
     }
 
     debug('initialized');
+  });
+};
+
+exports.checkFileCounter = function(callback) {
+  asyncStorage.getItem(dcfConfig.key, function(value) {
+    dcfConfigLoaded = true;
+    dcfConfig.seq = value ? value : defaultSeq;
+
+    if (callback) {
+      callback();
+    }
   });
 };
 
