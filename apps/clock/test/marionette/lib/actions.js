@@ -60,7 +60,11 @@ ClockAppActions.prototype = {
   tapAndTransition: function(selector) {
     var previousPanel = this.currentPanelId;
 
-    $(selector).tap();
+    if (typeof selector === 'string') {
+      selector = this._client.findElement(selector);
+    }
+    selector.tap();
+    this._client.switchToShadowRoot();
 
     var self = this;
     this._client.waitFor(function() {
