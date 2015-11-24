@@ -28,6 +28,7 @@ var dcfConfig = {
   ext: {video: '3gp', image: 'jpg'}
 };
 
+exports.priv = {};
 exports.init = function() {
   debug('initializing');
   asyncStorage.getItem(dcfConfig.key, function(value) {
@@ -45,6 +46,38 @@ exports.init = function() {
     debug('initialized');
   });
 };
+
+function nextSeqIndex(storage, filedir, seq) {
+
+  var fileRe = new RegExp('\\w{4}(\\d{4})\\.\\w{3}\\b');
+
+  var m;
+  var highestSeq = 0;
+
+  var c = storage.enumerate(filedir);
+  c.onsuccess = function() {
+    var file = this.result;
+
+    m = fileRe.exec(file.name);
+    if (m) {
+      highestSeq = Math.max(parseInt(m[1], 10), highestSeq);
+    }
+
+    if (!this.done) {
+      this.continue();
+    }
+  };
+
+  if (highestSeq < seq.file) {
+    highestSeq = seq.file;
+  } else {
+    highestSeq++;
+  }
+  return { file: highestSeq, dir: seq.dir };
+}
+
+// export it to test it.
+exports.priv.nextSeqIndex = nextSeqIndex;
 
 exports.createDCFFilename = function(storage, type, callback) {
 
@@ -69,8 +102,10 @@ exports.createDCFFilename = function(storage, type, callback) {
   // A file existed, we bump the directory then try to generate a
   // new filename
   req.onsuccess = function() {
-    dcfConfig.seq.file = 1;
-    dcfConfig.seq.dir += 1;
+    // XXX find the next file
+    var nextSeq = nextSeqIndex(storage, dir, dcfConfig.seq);
+    dcfConfig.seq.file = nextSeq.file;
+    dcfConfig.seq.dir = nextSeq.dir;
     asyncStorage.setItem(dcfConfig.key, dcfConfig.seq, function() {
       exports.createDCFFilename(storage, type, callback);
     });
