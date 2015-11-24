@@ -99,6 +99,8 @@ define(function(require) {
     clean() {
       window.clearTimeout(this.timeout);
       this.timeout = undefined;
+      window.removeEventListener('offline', this.onlineListener);
+      window.removeEventListener('online', this.onlineListener);
     },
 
     /**
@@ -264,7 +266,8 @@ define(function(require) {
       if (!this.elements.syncNow) {
         return;
       }
-      this.elements.syncNow.disabled = (this.collections.size <= 0);
+      this.elements.syncNow.disabled = (this.collections.size <= 0) ||
+                                       !navigator.onLine;
     },
 
     showSyncNow() {
@@ -272,6 +275,9 @@ define(function(require) {
       this.disableSyncNowAndCollections(false);
       this.elements.unverified.hidden = true;
       this.maybeEnableSyncNow();
+      this.onlineListener = this.maybeEnableSyncNow.bind(this);
+      window.addEventListener('offline', this.onlineListener);
+      window.addEventListener('online', this.onlineListener);
     },
 
     showUser(email) {
