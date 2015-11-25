@@ -213,8 +213,13 @@ var FxaModuleEnterEmail = (function() {
     //    fxam_navigation.js doesn't work, since there is no animation for the
     //    first page in the flow.
     setTimeout(() => {
-      FxaModuleKeyNavigation.add(
-        ['#fxa-email-input', '#fxa-email-clean-btn', '#fxa-module-next']);
+      FxaModuleKeyNavigation.add([
+        '#fxa-email-input',
+        '#fxa-email-clean-btn',
+        '#fxa-module-next',
+        '#fxa-privacy',
+        '#fxa-terms'
+      ]);
     }, 500);
 
     // Avoid to add listener twice
@@ -222,8 +227,13 @@ var FxaModuleEnterEmail = (function() {
   };
 
   Module.onAnimate = function onAnimate() {
-    FxaModuleKeyNavigation.add(
-      ['#fxa-email-input', '#fxa-email-clean-btn', '#fxa-module-next']);
+    FxaModuleKeyNavigation.add([
+      '#fxa-email-input',
+      '#fxa-email-clean-btn',
+      '#fxa-module-next',
+      '#fxa-privacy',
+      '#fxa-terms'
+    ]);
   };
 
   Module.onNext = function onNext(gotoNextStepCallback) {
@@ -235,8 +245,13 @@ var FxaModuleEnterEmail = (function() {
       FxaModuleOverlay.hide();
       FxaModuleManager.setParam('email', email);
       if (response && response.registered) {
-        FxaModuleKeyNavigation.remove(
-          ['#fxa-email-input', '#fxa-email-clean-btn', '#fxa-module-next']);
+        FxaModuleKeyNavigation.remove([
+          '#fxa-email-input',
+          '#fxa-email-clean-btn',
+          '#fxa-module-next',
+          '#fxa-privacy',
+          '#fxa-terms'
+        ]);
         _loadSignIn(gotoNextStepCallback);
       } else if (this.isFTU) {
         // XXX Skip COPPA verification during FTU: if a child has a mobile
