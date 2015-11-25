@@ -80,6 +80,25 @@ suite('navigation >', function() {
     });
   }
 
+  function styleDescriptor(setterStub, propSetterStubs) {
+    return {
+      get: function() {
+        var result = {};
+        var descriptor = {};
+
+        for (var prop in propSetterStubs) {
+          descriptor[prop] = { set: propSetterStubs[prop] };
+        }
+
+        Object.defineProperties(result, descriptor);
+        return result;
+      },
+      set: setterStub,
+      enumerable: true,
+      configurable: true
+    };
+  }
+
   setup(function() {
     this.sinon.stub(window, 'setTimeout').yieldsAsync();
     loadBodyHTML('/index.html');
@@ -129,6 +148,11 @@ suite('navigation >', function() {
     });
 
     suite('init() >', function() {
+      var panel;
+      setup(function() {
+        panel = document.querySelector('.panel-InboxView');
+      });
+
       test('display the right panel', function(done) {
         assert.isFalse(elements.InboxView.classList.contains('panel-active'));
         assert.isTrue(elements.InboxView.classList.contains('panel-hidden'));
@@ -200,6 +224,23 @@ suite('navigation >', function() {
 
         Navigation.init().then(done, done);
       });
+
+      test('Initial panel should fade-in', function(done) {
+        var styleSetterStub = sinon.stub();
+        var styleAnimationNameStub = sinon.stub();
+        Object.defineProperty(
+          panel, 'style',
+          styleDescriptor(
+            styleSetterStub, { animationName: styleAnimationNameStub }
+          )
+        );
+
+        Navigation.init().then(() => {
+          sinon.assert.calledWith(styleAnimationNameStub, 'fade-in');
+          sinon.assert.calledWith(styleSetterStub, '');
+        }).then(done, done);
+      });
+
     });
 
     suite('back() >', function() {
@@ -615,10 +656,8 @@ suite('navigation >', function() {
       });
     });
 
-    suite('sliding views', function() {
+    suite('sliding views,', function() {
       setup(function(done) {
-        // neutralizes the setTimeout fallback
-        window.setTimeout.restore();
         Navigation.init().then(done, done);
       });
 
@@ -630,6 +669,9 @@ suite('navigation >', function() {
       }
 
       test('resolves the promise after animationend events', function(done) {
+        // neutralizes the setTimeout fallback
+        window.setTimeout.restore();
+
         var panel = document.querySelector('.panel-ConversationView');
         this.sinon.spy(panel, 'removeEventListener');
         setTimeout(
@@ -643,6 +685,105 @@ suite('navigation >', function() {
           sinon.assert.called(window.setTimeout);
           sinon.assert.calledWith(window.clearTimeout, 42);
         }).then(done, done);
+      });
+
+      suite('animations,', function() {
+        var panel1, panel2;
+        var styleStubs;
+        var styleAnimationNameStubs;
+
+        setup(function() {
+          panel1 = document.querySelector('.panel-InboxView');
+          panel2 = document.querySelector('.panel-ConversationView');
+
+          styleStubs = [];
+          styleAnimationNameStubs = [];
+
+          [panel1, panel2].forEach((panel, i) => {
+            styleStubs[i] = sinon.stub();
+            styleAnimationNameStubs[i] = sinon.stub();
+
+            Object.defineProperty(
+              panel, 'style',
+              styleDescriptor(
+                styleStubs[i], { animationName: styleAnimationNameStubs[i] }
+              )
+            );
+          });
+        });
+
+        teardown(function() {
+          document.dir = '';
+        });
+
+        test('sliding forwards in LTR', function(done) {
+          Navigation.toPanel('thread').then(() => {
+            // panel1 is the old panel, panel2 is the new panel
+            sinon.assert.calledWith(
+              styleAnimationNameStubs[0], 'current-to-left'
+            );
+            sinon.assert.calledWith(
+              styleAnimationNameStubs[1], 'right-to-current'
+            );
+            sinon.assert.calledWith(styleStubs[0], '');
+            sinon.assert.calledWith(styleStubs[1], '');
+          }).then(done, done);
+        });
+
+        test('sliding forwards in RTL', function(done) {
+          document.dir = 'rtl';
+          Navigation.toPanel('thread').then(() => {
+            // panel1 is the old panel, panel2 is the new panel
+            sinon.assert.calledWith(
+              styleAnimationNameStubs[0], 'current-to-right'
+            );
+            sinon.assert.calledWith(
+              styleAnimationNameStubs[1], 'left-to-current'
+            );
+            sinon.assert.calledWith(styleStubs[0], '');
+            sinon.assert.calledWith(styleStubs[1], '');
+          }).then(done, done);
+        });
+
+        suite('sliding backwards', function() {
+          setup(function(done) {
+            // First going to the conversation view, and resetting the stubs
+            Navigation.toPanel('thread').then(() => {
+              styleStubs.forEach((stub) => stub.reset());
+              styleAnimationNameStubs.forEach((stub) => stub.reset());
+            }).then(done, done);
+          });
+
+          test('in LTR', function(done) {
+            Navigation.toPanel('thread-list').then(() => {
+              // panel1 is the new panel, panel2 is the old panel
+              sinon.assert.calledWith(
+                styleAnimationNameStubs[0], 'left-to-current'
+              );
+              sinon.assert.calledWith(
+                styleAnimationNameStubs[1], 'current-to-right'
+              );
+              sinon.assert.calledWith(styleStubs[0], '');
+              sinon.assert.calledWith(styleStubs[1], '');
+            }).then(done, done);
+          });
+
+          test('in RTL', function(done) {
+            document.dir = 'rtl';
+
+            Navigation.toPanel('thread-list').then(() => {
+              // panel1 is the new panel, panel2 is the old panel
+              sinon.assert.calledWith(
+                styleAnimationNameStubs[0], 'right-to-current'
+              );
+              sinon.assert.calledWith(
+                styleAnimationNameStubs[1], 'current-to-left'
+              );
+              sinon.assert.calledWith(styleStubs[0], '');
+              sinon.assert.calledWith(styleStubs[1], '');
+            }).then(done, done);
+          });
+        });
       });
     });
 

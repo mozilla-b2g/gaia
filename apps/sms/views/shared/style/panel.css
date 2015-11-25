@@ -9,56 +9,17 @@
 
   background: white;
 
-  animation: .2s both linear;
+  animation: var(--transition-duration) both ease;
 }
-html[dir="ltr"] .panel { transform: translate(100%); }
-html[dir="rtl"] .panel { transform: translate(-100%); }
 
-/**
- * adding html[dir] to make the specificity of this rule high enough to
- * overwrite the default translation for element with class panel just above,
- * without needing to put a !important
- */
-html[dir] .panel-active {
+.panel {
+  transform: translate(100%); /* BiDi proof */
+}
+
+.panel-active {
   transform: translate(0);
 }
 
 .panel-hidden {
   display: none;
-}
-
-@keyframes new-slide-left {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: none;
-  }
-}
-
-@keyframes old-slide-left {
-  from {
-    transform: none;
-  }
-  to {
-    transform: translateX(-100%);
-  }
-}
-
-@keyframes new-slide-right {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: none;
-  }
-}
-
-@keyframes old-slide-right {
-  from {
-    transform: none;
-  }
-  to {
-    transform: translateX(100%);
-  }
 }

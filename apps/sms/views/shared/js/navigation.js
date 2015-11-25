@@ -570,39 +570,50 @@ function switchPanel() {
     ));
   }
 
+  if (newPanelElement === oldPanelElement) {
+    return Promise.resolve();
+  }
+
   var isGoingBack = oldView && oldView.previous === newView.name;
 
   newPanelElement.style = '';
+  newPanelElement.classList.remove('panel-hidden');
+  newPanelElement.classList.add('panel-active');
 
   var doSlideAnimation =
     from && from.panel &&
     from.panel.behavior !== newView.behavior;
 
+  var doFadeInAnimation = !from || !from.panel;
+
   var animationPromise;
   if (doSlideAnimation) {
-
     var shouldGoRight = isGoingBack ^ (document.dir === 'rtl');
     newPanelElement.style.animationName =
-      shouldGoRight ? 'new-slide-right' : 'new-slide-left';
+      shouldGoRight ? 'left-to-current' : 'right-to-current';
     oldPanelElement.style.animationName =
-      shouldGoRight ? 'old-slide-right' : 'old-slide-left';
+      shouldGoRight ? 'current-to-right' : 'current-to-left';
+  } else if (doFadeInAnimation) {
+    newPanelElement.style.animationName = 'fade-in';
+  }
 
+  if (doFadeInAnimation || doSlideAnimation) {
     animationPromise = waitForSlideAnimation(newPanelElement).catch(
       () => {}
     ).then(() => {
-      oldPanelElement.style = '';
+      if (oldPanelElement) {
+        oldPanelElement.style = '';
+      }
       newPanelElement.style = '';
     });
   }
 
   return (animationPromise || Promise.resolve()).then(() => {
-    if (oldView) {
+    if (oldPanelElement) {
       oldPanelElement.classList.remove('panel-active');
       oldPanelElement.setAttribute('aria-hidden', 'true');
     }
 
-    newPanelElement.classList.add('panel-active');
-    newPanelElement.classList.remove('panel-hidden');
     newPanelElement.setAttribute('aria-hidden', 'false');
   });
 }
