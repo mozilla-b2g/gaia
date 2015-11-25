@@ -286,17 +286,12 @@
       window.addEventListener('launchapp', this);
       document.body.addEventListener('launchactivity', this, true);
       window.addEventListener('appcreated', this);
-      window.addEventListener('previewcreated', this);
       window.addEventListener('appterminated', this);
-      window.addEventListener('previewterminated', this);
       window.addEventListener('homescreenterminated', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('appopened', this);
-      window.addEventListener('previewopened', this);
       window.addEventListener('apprequestopen', this);
-      window.addEventListener('previewrequestopen', this);
       window.addEventListener('apprequestclose', this);
-      window.addEventListener('previewrequestclose', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('reset-orientation', this);
       window.addEventListener('homescreencreated', this);
@@ -366,17 +361,12 @@
     uninit: function awm_uninit() {
       window.removeEventListener('launchapp', this);
       window.removeEventListener('appcreated', this);
-      window.removeEventListener('previewcreated', this);
       window.removeEventListener('appterminated', this);
-      window.removeEventListener('previewterminated', this);
       window.removeEventListener('homescreenterminated', this);
       window.removeEventListener('ftuskip', this);
       window.removeEventListener('appopened', this);
-      window.removeEventListener('previewopened', this);
       window.removeEventListener('apprequestopen', this);
-      window.removeEventListener('previewrequestopen', this);
       window.removeEventListener('apprequestclose', this);
-      window.removeEventListener('previewrequestclose', this);
       window.removeEventListener('homescreenopened', this);
       window.removeEventListener('reset-orientation', this);
       window.removeEventListener('homescreencreated', this);
@@ -437,14 +427,12 @@
           break;
 
         case 'appcreated':
-        case 'previewcreated':
           var app = evt.detail;
           this._apps[evt.detail.instanceID] = app;
           break;
 
         case 'homescreenterminated':
         case 'appterminated':
-        case 'previewterminated':
           var app = evt.detail; // jshint ignore:line
           var instanceID = app.instanceID;
           if (activeApp && instanceID === activeApp.instanceID) {
@@ -475,17 +463,11 @@
           break;
 
         case 'homescreenopened':
+        case 'appopening':
         case 'appopened':
           // Someone else may open the app,
           // so we need to update active app.
           this._updateActiveApp(evt.detail.instanceID);
-          break;
-
-        case 'appopening':
-          // Someone else may open the app,
-          // so we need to update active app.
-          this._updateActiveApp(evt.detail.instanceID);
-          this._killPreviewApps(evt.type);
           break;
 
         case 'homescreencreated':
@@ -503,12 +485,10 @@
 
         case 'displayapp':
         case 'apprequestopen':
-        case 'previewrequestopen':
           this.display(evt.detail);
           break;
 
         case 'apprequestclose':
-        case 'previewrequestclose':
           if (evt.detail.isActive()) {
             this.display();
           }
@@ -766,15 +746,6 @@
 
       this.debug('=== Active app now is: ',
         (this._activeApp.name || this._activeApp.origin), '===');
-    },
-
-    _killPreviewApps() {
-      for (var id in this._apps) {
-        var app = this._apps[id];
-        if (app.isPreviewWindow) {
-          app.kill();
-        }
-      }
     },
 
     /**

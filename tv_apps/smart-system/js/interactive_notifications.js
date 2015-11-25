@@ -9,8 +9,7 @@
 
   var TYPE = {
     'NORMAL': 'notification',
-    'ALERT': 'alert-notification',
-    'TOAST': 'toast-notification'
+    'ALERT': 'alert-notification'
   };
 
 // =============== IAC Connector ====================================
@@ -59,7 +58,6 @@
     this._pendingMessages = {};
     this._pendingMessages[TYPE.NORMAL] = [];
     this._pendingMessages[TYPE.ALERT] = [];
-    this._pendingMessages[TYPE.TOAST] = [];
 
     this._banner = $('notification-container');
     this._banner.setAttribute('aria-hidden', 'true');
@@ -88,8 +86,6 @@
   proto.getAutoHideTimeout = function in_getAutoHideTimeout(type, hasButtons) {
     if (TYPE.NORMAL === type) {
       return hasButtons ? 8000 : 5000;
-    } else if (TYPE.TOAST === type) {
-      return 3000;
     } else {
       return 0;
     }
@@ -198,10 +194,7 @@
                                SimpleKeyNavigation.DIRECTION.HORIZONTAL,
                                {target: this._banner});
     }
-
-    if (this._activeType !== TYPE.TOAST) {
-      focusManager.focus();
-    }
+    focusManager.focus();
   };
 
   proto.focus = function in_focus() {
@@ -213,7 +206,7 @@
   };
 
   proto.isFocusable = function in_isFocusable() {
-    return (!!this._activeMessage && this._activeType !== TYPE.TOAST);
+    return !!this._activeMessage;
   };
 
   proto.getElement = function in_getElement() {
@@ -227,12 +220,11 @@
         this._activeType === TYPE.ALERT) {
       // already have one, just pending it.
       this._pendingMessages[TYPE.ALERT].push(msg);
-    } else if (type === TYPE.NORMAL && type === TYPE.TOAST &&
+    } else if (type === TYPE.NORMAL &&
                (this._activeType === TYPE.NORMAL ||
-                this._activeType === TYPE.ALERT ||
-                this._activeType === TYPE.TOAST)) {
+                this._activeType === TYPE.ALERT)) {
       // already have one, just pending it.
-      this._pendingMessages[type].push(msg);
+      this._pendingMessages[TYPE.NORMAL].push(msg);
     } else if (type === TYPE.ALERT && this._activeMessage) {
       // type === alert and _activeType is null or normal.
       // We show alert anyway and hide the normal one if one is shown.
@@ -266,9 +258,6 @@
     } else if (this._pendingMessages[TYPE.NORMAL].length) {
       type = TYPE.NORMAL;
       msg = this._pendingMessages[type].shift();
-    } else if (this._pendingMessages[TYPE.TOAST].length) {
-      type = TYPE.TOAST;
-      msg = this._pendingMessages[type].shift();
     }
     if (type && msg) {
       this.showNotification(type, msg);
@@ -280,8 +269,7 @@
 
   proto.hasPendings = function in_hasPendings() {
     return this._pendingMessages[TYPE.ALERT].length ||
-           this._pendingMessages[TYPE.NORMAL].length ||
-           this._pendingMessages[TYPE.TOAST].length;
+           this._pendingMessages[TYPE.NORMAL].length;
   };
 
   proto.onHide = function in_onHide() {
@@ -295,7 +283,7 @@
       this._keyNavigator.stop();
     }
 
-    if (!this.hasPendings() && this._activeType !== TYPE.TOAST) {
+    if (!this.hasPendings()) {
       focusManager.focus();
     }
 
@@ -318,9 +306,7 @@
         }
       }
     }
-    if (this._activeType !== TYPE.TOAST) {
-      focusManager.focus();
-    }
+    focusManager.focus();
   };
 
   exports.InteractiveNotifications = InteractiveNotifications;

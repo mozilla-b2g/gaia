@@ -5,11 +5,10 @@
 /* global LazyLoader */
 /* global ManifestHelper */
 /* global ModalDialog */
+/* global SystemBanner */
 /* global Template */
 /* global focusManager */
 /* global AppInstallDialogs */
-/* global AppWindowManager */
-/* global applications */
 
 'use strict';
 
@@ -32,6 +31,7 @@ var AppInstallManager = {
     this.appInstallDialogs = new AppInstallDialogs(
       document.getElementById('app-install-dialogs'));
     this.appInstallDialogs.start();
+    this.systemBanner = new SystemBanner();
     this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
     this.imeListTemplate = document.getElementById('ime-list-template');
     this.imeList = document.getElementById('ime-list');
@@ -43,29 +43,14 @@ var AppInstallManager = {
     this.appInfos = {};
     this.setupQueue = [];
     this.isSetupInProgress = false;
-    this.marketplaceURLPattern = 'marketplace';
-
     window.addEventListener('mozChromeEvent',
       (function ai_handleChromeEvent(e) {
-        var manifestURL;
-        if (e.detail.type === 'webapps-ask-install') {
-          manifestURL = e.detail.app.manifestURL;
-          if (this.isMarketPlaceAppActive()) {
-            this.dispatchResponse(e.detail.id, 'webapps-install-granted');
-            this.setPreviewAppManifestURL(manifestURL);
-          } else {
-            this.handleAppInstallPrompt(e.detail);
-          }
-        }
-        if (e.detail.type === 'webapps-ask-uninstall') {
-          manifestURL = e.detail.app.manifestURL;
-          if (this.getPreviewAppManifestURL() === manifestURL) {
-            this.dispatchResponse(e.detail.id, 'webapps-uninstall-granted');
-            this.setPreviewAppManifestURL('');
-          } else {
-            this.handleAppUninstallPrompt(e.detail);
-          }
-        }
+      if (e.detail.type == 'webapps-ask-install') {
+        this.handleAppInstallPrompt(e.detail);
+      }
+      if (e.detail.type == 'webapps-ask-uninstall') {
+        this.handleAppUninstallPrompt(e.detail);
+      }
     }).bind(this));
 
     window.addEventListener('applicationinstall',
@@ -94,22 +79,6 @@ var AppInstallManager = {
 
     // TODO: write an integration test for pressing home.
     window.addEventListener('home', this.hideAllDialogs.bind(this));
-
-    window.addEventListener('appopening', (evt) => {
-      if (evt.detail.url.indexOf('app-deck.gaiamobile.org') !== -1) {
-        this.uninstallPreviewApp();
-      }
-    });
-
-    window.addEventListener('previewterminated', (evt) => {
-      this.uninstallPreviewApp();
-    });
-  },
-
-  isMarketPlaceAppActive: function ai_isMarketPlaceAppActive() {
-    var activeApp = AppWindowManager.getActiveApp();
-    return activeApp &&
-      (activeApp.manifestURL.indexOf(this.marketplaceURLPattern) !== -1);
   },
 
   hideAllDialogs: function ai_hideAllDialogs(e) {
@@ -323,62 +292,6 @@ var AppInstallManager = {
     app.onprogress = this.handleProgress;
   },
 
-  previewApp: function ai_previewApp(app) {
-    if (!this.isMarketPlaceAppActive()) {
-      return;
-    }
-
-    var marketplace = AppWindowManager.getActiveApp();
-    var manifestURL = app.manifestURL;
-    var appURL = app.origin + app.manifest.launch_path;
-
-    var result = marketplace.childWindowFactory.createPreviewWindow({
-      detail: {
-        url: appURL,
-        origin: app.origin,
-        manifestURL: manifestURL
-      }
-    });
-
-    marketplace.element.addEventListener('_closed', (evt) => {
-      this.uninstallPreviewApp();
-    });
-
-    var previewAppWindow = marketplace.getTopMostWindow();
-
-    if (!result || previewAppWindow === marketplace) {
-      console.error('Error when creating preview window.');
-      this.uninstallPreviewApp();
-      return;
-    }
-
-    var previewContent = previewAppWindow.element;
-    var msg = {
-      title: 'Press OPTION to',
-      text: 'Add to Apps'
-    };
-
-    previewContent.addEventListener('_opened', (evt) => {
-      var TYPE = window.InteractiveNotifications.TYPE;
-      window.interactiveNotifications.showNotification(TYPE.TOAST, msg);
-    });
-  },
-
-  getPreviewAppManifestURL: function() {
-    return localStorage.getItem('preview-app');
-  },
-
-  setPreviewAppManifestURL: function(manifestURL) {
-    localStorage.setItem('preview-app', manifestURL);
-  },
-
-  uninstallPreviewApp: function() {
-    var app = applications.getByManifestURL(this.getPreviewAppManifestURL());
-    if (app) {
-      navigator.mozApps.mgmt.uninstall(app);
-    }
-  },
-
   handleInstallSuccess: function ai_handleInstallSuccess(app) {
     var manifest = app.manifest || app.updateManifest;
     var role = manifest.role;
@@ -390,9 +303,7 @@ var AppInstallManager = {
       return;
     }
 
-    if (this.isMarketPlaceAppActive()) {
-      this.previewApp(app);
-    } else if (this.configurations[role]) {
+    if (this.configurations[role]) {
       this.setupQueue.push(app);
       this.checkSetupQueue();
     } else {
@@ -412,11 +323,10 @@ var AppInstallManager = {
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
     var msg = {
-      title: name,
-      text: 'Added to Apps'
+      id: 'app-install-success',
+      args: { appName: name }
     };
-    var TYPE = window.InteractiveNotifications.TYPE;
-    window.interactiveNotifications.showNotification(TYPE.TOAST, msg);
+    this.systemBanner.show(msg);
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {

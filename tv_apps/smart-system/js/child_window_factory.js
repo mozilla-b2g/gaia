@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow, PreviewWindow, SettingsCache,
+/* global AppWindow, PopupWindow, ActivityWindow, SettingsCache,
           AttentionWindow, MozActivity, focusManager */
 
 (function(exports) {
@@ -128,44 +128,6 @@
     };
     var childWindow = new PopupWindow(configObject);
     childWindow.element.addEventListener('_closing', this);
-    childWindow.open();
-    return true;
-  };
-
-  ChildWindowFactory.prototype.createPreviewWindow = function(evt) {
-    if (this.app.frontWindow &&
-        (this.app.frontWindow.isTransitioning() ||
-          this.app.frontWindow.isActive())) {
-      return false;
-    }
-    var detail = evt.detail;
-    var configObject = {
-      url: detail.url,
-      name: detail.name,
-      iframe: detail.frameElement,
-      origin: detail.origin,
-      manifestURL: detail.manifestURL,
-      rearWindow: this.app
-    };
-    var childWindow = new PreviewWindow(configObject);
-    childWindow.element.addEventListener('_closing', this);
-    childWindow.previousWindow = this.app;
-    this.app.previewWindow = childWindow;
-
-    window.addEventListener('mozbrowserafterkeyup', function(evt) {
-      if ((evt.keyCode === 27 || evt.key === 'Escape') &&
-        !evt.embeddedCancelled) {
-        var goBackReq = childWindow.iframe.getCanGoBack();
-        goBackReq.onsuccess = function onsuccess() {
-          if (goBackReq.result) {
-            childWindow.iframe.goBack();
-          } else {
-            childWindow.kill();
-          }
-        };
-      }
-    });
-
     childWindow.open();
     return true;
   };
