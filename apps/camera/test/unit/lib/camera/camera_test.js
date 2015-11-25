@@ -111,7 +111,7 @@ suite('lib/camera/camera', function() {
 
     test('It flags the camera as \'recording\' straight away', function() {
       this.camera.startRecording();
-      sinon.assert.calledWith(this.camera.set, 'recording', true);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'starting');
     });
 
     test('Should error if not enough storage space', function() {
@@ -245,14 +245,102 @@ suite('lib/camera/camera', function() {
       navigator.mozL10n = this.navigatorMozl10n;
     });
 
-    test('It sets `recording` to `false`', function() {
+    test('It sets `recording` to `stopped`', function() {
       this.camera.onRecordingError();
-      sinon.assert.calledWith(this.camera.set, 'recording', false);
+      sinon.assert.calledWith(this.camera.set, 'recording', 'stopped');
     });
 
     test('It calls ready()', function() {
       this.camera.onRecordingError();
       sinon.assert.called(this.camera.ready);
+    });
+  });
+
+  suite('Camera#pauseRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'get');
+      sinon.stub(this.camera, 'set');
+      this.camera.get.withArgs('recording').returns('started');
+
+      this.camera.mozCamera = {
+        pauseRecording: sinon.stub()
+      };
+    });
+
+    test('Should not do anything if camera is not recording', function() {
+      this.camera.get.withArgs('recording').returns('stopped');
+      this.camera.pauseRecording();
+      sinon.assert.notCalled(this.camera.mozCamera.pauseRecording);
+    });
+
+    test('Should call `mozCamera.pauseRecording`', function() {
+      this.camera.pauseRecording();
+      sinon.assert.called(this.camera.mozCamera.pauseRecording);
+    });
+
+    test('Should set `recording` flag to `pausing`', function() {
+      this.camera.pauseRecording();
+      sinon.assert.called(this.camera.set, 'recording', 'pausing');
+    });
+  });
+
+  suite('Camera#pausedRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'stopVideoTimer');
+      sinon.stub(this.camera, 'set');
+      this.camera.pausedRecording();
+    });
+
+    test('Should stop the video timer', function() {
+      sinon.assert.called(this.camera.stopVideoTimer);
+    });
+
+    test('Should set `recording` flag to `paused`', function() {
+      sinon.assert.called(this.camera.set, 'recording', 'paused');
+    });
+  });
+
+  suite('Camera#resumeRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'get');
+      sinon.stub(this.camera, 'set');
+      this.camera.get.withArgs('recording').returns('paused');
+
+      this.camera.mozCamera = {
+        resumeRecording: sinon.stub()
+      };
+    });
+
+    test('Should not do anything if recording is not paused', function() {
+      this.camera.get.withArgs('recording').returns('started');
+      this.camera.resumeRecording();
+      sinon.assert.notCalled(this.camera.mozCamera.resumeRecording);
+    });
+
+    test('Should call `mozCamera.resumeRecording`', function() {
+      this.camera.resumeRecording();
+      sinon.assert.called(this.camera.mozCamera.resumeRecording);
+    });
+
+    test('Should set `recording` flag to `resuming`', function() {
+      this.camera.resumeRecording();
+      sinon.assert.called(this.camera.set, 'recording', 'resuming');
+    });
+  });
+
+  suite('Camera#resumedRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'startVideoTimer');
+      sinon.stub(this.camera, 'set');
+      this.camera.resumedRecording();
+    });
+
+    test('Should restart the video timer', function() {
+      sinon.assert.called(this.camera.startVideoTimer, true);
+    });
+
+    test('Should set `recording` flag to `resumed`', function() {
+      sinon.assert.called(this.camera.set, 'recording', 'resumed');
     });
   });
 
@@ -263,7 +351,7 @@ suite('lib/camera/camera', function() {
       sinon.stub(this.camera, 'stopVideoTimer');
       sinon.stub(this.camera, 'onRecordingError');
       sinon.stub(this.camera, 'onNewVideo');
-      this.camera.get.withArgs('recording').returns(true);
+      this.camera.get.withArgs('recording').returns('started');
 
       this.camera.mozCamera = {
         stopRecording: sinon.stub()
@@ -271,7 +359,7 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should not do anything if camera is not recording', function() {
-      this.camera.get.withArgs('recording').returns(false);
+      this.camera.get.withArgs('recording').returns('stopped');
       this.camera.stopRecording();
       sinon.assert.notCalled(this.camera.mozCamera.stopRecording);
     });
@@ -291,9 +379,9 @@ suite('lib/camera/camera', function() {
       sinon.assert.called(this.camera.mozCamera.stopRecording);
     });
 
-    test('Should set `recording` flag to `false`', function() {
+    test('Should set `recording` flag to `stopping`', function() {
       this.camera.stopRecording();
-      sinon.assert.called(this.camera.set, 'recording', false);
+      sinon.assert.called(this.camera.set, 'recording', 'stopping');
     });
 
     suite('onStorageChange', function() {
@@ -430,6 +518,37 @@ suite('lib/camera/camera', function() {
         this.callback('an error');
         assert.isFalse(this.camera.emit.calledWith('newvideo'));
       });
+    });
+  });
+
+  suite('Camera#onRecorderStateChange()', function() {
+    test('Should set `recording` to `started`', function() {
+      sinon.stub(this.camera, 'set');
+      this.camera.onRecorderStateChange({newState: 'Started'});
+      sinon.assert.called(this.camera.set, 'started');
+    });
+
+    test('Should set `recording` to `stopped`', function() {
+      sinon.stub(this.camera, 'set');
+      this.camera.onRecorderStateChange({newState: 'Stopped'});
+      sinon.assert.called(this.camera.set, 'stopped');
+    });
+
+    test('Should call `pausedRecording`', function() {
+      sinon.stub(this.camera, 'pausedRecording');
+      this.camera.onRecorderStateChange({newState: 'Paused'});
+      sinon.assert.calledWith(this.camera.pausedRecording);
+    });
+
+    test('Should call `resumedRecording`', function() {
+      sinon.stub(this.camera, 'resumedRecording');
+      this.camera.onRecorderStateChange({newState: 'Resumed'});
+      sinon.assert.calledWith(this.camera.resumedRecording);
+    });
+
+    test('Should emit `filesizelimitreached`', function() {
+      this.camera.onRecorderStateChange({newState: 'FileSizeLimitReached'});
+      sinon.assert.calledWith(this.camera.emit, 'filesizelimitreached');
     });
   });
 

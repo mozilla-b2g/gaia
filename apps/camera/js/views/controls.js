@@ -35,7 +35,8 @@ module.exports = View.extend({
   // {node}: {data-l10n-id} pairs used for localization.
   elsL10n: {
     cancel: 'controls-button-close',
-    thumbnail: 'preview-button'
+    thumbnail: 'preview-button',
+    pause: 'pause-capture-button'
   },
 
   render: function() {
@@ -46,6 +47,7 @@ module.exports = View.extend({
     this.els.thumbnail = this.find('.js-thumbnail');
     this.els.capture = this.find('.js-capture');
     this.els.cancel = this.find('.js-cancel');
+    this.els.pause = this.find('.js-pause');
     this.els.switch = this.find('.js-switch');
     this.els.icons = {
       camera: this.find('.js-icon-camera'),
@@ -75,6 +77,7 @@ module.exports = View.extend({
     bind(this.els.thumbnail, 'click', this.onButtonClick);
     bind(this.els.capture, 'click', this.onButtonClick);
     bind(this.els.cancel, 'click', this.onButtonClick);
+    bind(this.els.pause, 'click', this.onButtonClick);
     return this;
   },
 
@@ -113,6 +116,13 @@ module.exports = View.extend({
 
     // Tidy up
     window.removeEventListener('load', this.setupSwitch);
+  },
+
+  setPauseState: function(paused) {
+    this.els.pause.setAttribute('data-l10n-id',
+      paused ? 'resume-capture-button' : 'pause-capture-button');
+    this.els.pause.setAttribute('data-icon',
+      paused ? 'play' : 'pause');
   },
 
   onSwitchSnapped: function(edges) {
@@ -266,10 +276,16 @@ module.exports = View.extend({
   template: function() {
     /*jshint maxlen:false*/
     return '<div class="controls-left">' +
-      '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" ' +
-        'name="thumbnail" role="button" data-l10n-id="preview-button"></div>' +
-      '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" ' +
-        'name="cancel" data-icon="close" role="button" data-l10n-id="controls-button-close"></div>' +
+      '<div class="controls-left-not-recording">' +
+        '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" ' +
+          'name="thumbnail" role="button" data-l10n-id="preview-button"></div>' +
+        '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" ' +
+          'name="cancel" data-icon="close" role="button" data-l10n-id="controls-button-close"></div>' +
+      '</div>' +
+      '<div class="controls-left-recording">' +
+        '<div class="controls-button controls-pause-button rotates js-pause" ' +
+          'name="pause" data-icon="pause" role="button" data-l10n-id="pause-capture-button"></div>' +
+      '</div>' +
     '</div>' +
     '<div class="controls-middle">' +
       '<div class="capture-button test-capture rotates js-capture" name="capture">' +
