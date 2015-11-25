@@ -860,9 +860,9 @@ caldav-server-install:
 .PHONY: raptor
 raptor: node_modules
 ifneq ($(APP),)
-	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 APP=$(APP) make install-gaia
+	GAIA_DISTRIBUTION_DIR=distros/raptor APP=$(APP) make install-gaia
 else
-	RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
+	GAIA_DISTRIBUTION_DIR=distros/raptor make reset-gaia
 endif
 
 .PHONY: raptor-transformer
@@ -871,7 +871,7 @@ ifeq ($(RAPTOR_TRANSFORM_RULES),)
 	@(echo "Please ensure you specify the 'RAPTOR_TRANSFORM_RULES=<directory with the *.esp files>'" && exit 1)
 endif
 	@test -d $(RAPTOR_TRANSFORM_RULES) || (echo "Please ensure the '$(RAPTOR_TRANSFORM_RULES)' directory exists" && exit 1)
-	RAPTOR_TRANSFORM=1 RAPTOR=1 PERF_LOGGING=1 DEVICE_DEBUG=1 GAIA_OPTIMIZE=1 NOFTU=1 SCREEN_TIMEOUT=0 make reset-gaia
+	RAPTOR_TRANSFORM=1 GAIA_DISTRIBUTION_DIR=distros/raptor make reset-gaia
 
 .PHONY: tests
 tests: app offline
