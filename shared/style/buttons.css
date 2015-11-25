@@ -145,7 +145,6 @@ li button,
 li .bb-button,
 li .button {
   position: relative;
-  text-align: start;
   border: 0.1rem solid #c7c7c7;
   background: rgba(0,0,0,0.05);
   margin: 0 0 1rem;
@@ -158,6 +157,16 @@ li .button {
   white-space: normal;
   line-height: 2rem;
   padding: 1rem 1.2rem;
+}
+html[dir="ltr"] li button,
+html[dir="ltr"] li .bb-button,
+html[dir="ltr"] li .button {
+  text-align: left;
+}
+html[dir="rtl"] li button,
+html[dir="rtl"] li .bb-button,
+html[dir="rtl"] li .button {
+  text-align: right;
 }
 
 /* Press */
