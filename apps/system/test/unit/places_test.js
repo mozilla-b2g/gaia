@@ -11,6 +11,7 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
+require('/shared/js/places_model.js');
 requireApp('system/js/places.js');
 
 var mocksHelperForPlaces = new MocksHelper([
