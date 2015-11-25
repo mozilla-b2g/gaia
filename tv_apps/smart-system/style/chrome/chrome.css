@@ -200,6 +200,7 @@
 .chrome.maximized .title[data-ssl="secure"] {
   -moz-padding-start: 3rem;
   background: url("images/light/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
+  background-position: 5rem;
 }
 
 .chrome.maximized .title[data-ssl="broken"] {
