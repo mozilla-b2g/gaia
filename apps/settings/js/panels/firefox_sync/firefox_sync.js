@@ -63,6 +63,9 @@ define(function(require) {
   }, {
     screen: LOGGED_IN_SCREEN,
     selector: '.fxsync-unverified'
+  }, {
+    screen: LOGGED_IN_SCREEN,
+    selector: '.fxsync-empty-account'
   }];
 
   function getElementName(str) {
@@ -153,6 +156,15 @@ define(function(require) {
           this.showSyncNow();
           this.showUser(message.user);
           this.showLastSync(message.lastSync);
+          if (message.error) {
+            LazyLoader.load('shared/js/sync/errors.js', () => {
+              if (message.error == ERROR_INVALID_SYNC_ACCOUNT) {
+                this.showEmptyAccount(message.user);
+              }
+            });
+          } else {
+            this.hideEmptyAccount();
+          }
           break;
         case 'syncing':
           this.showScreen(LOGGED_IN_SCREEN);
@@ -170,6 +182,12 @@ define(function(require) {
               return;
             }
 
+            if (message.error == ERROR_INVALID_SYNC_ACCOUNT) {
+              this.showScreen(LOGGED_IN_SCREEN);
+              this.showEmptyAccount(message.user);
+              return;
+            }
+
             const IGNORED_ERRORS = [
               ERROR_DIALOG_CLOSED_BY_USER
             ];
@@ -182,7 +200,6 @@ define(function(require) {
             var title;
 
             const KNOWN_ERRORS = [
-              ERROR_INVALID_SYNC_ACCOUNT,
               ERROR_OFFLINE
             ];
 
@@ -289,6 +306,17 @@ define(function(require) {
       this.showLastSync();
       this.disableSyncNowAndCollections(true);
       this.elements.unverified.hidden = false;
+    },
+
+    showEmptyAccount(email) {
+      this.showUser(email);
+      this.showLastSync();
+      this.disableSyncNowAndCollections(false);
+      this.elements.emptyAccount.hidden = false;
+    },
+
+    hideEmptyAccount() {
+      this.elements.emptyAccount.hidden = true;
     },
 
     showLastSync(time) {
