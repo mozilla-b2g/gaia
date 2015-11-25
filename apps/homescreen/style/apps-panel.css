@@ -14,11 +14,16 @@
  * Without this animation, the container would be unnecessary and only the
  * width would need to be specified.
  */
-.icon-container {
+#apps > .gaia-container-child > *  {
   position: relative;
   display: inline-block;
   width: 32vw;
   height: calc(32vw + 1.9rem);
+}
+
+#apps.small > .gaia-container-child > * {
+  width: 24vw;
+  height: calc(24vw + 1.9rem);
 }
 
 gaia-app-icon {
@@ -35,6 +40,13 @@ gaia-app-icon {
   font-weight: 400;
   color: white;
   text-shadow: rgba(0, 0, 0, 0.5) 0 0.1rem 0.3rem;
+}
+
+homescreen-group {
+  width: 32vw;
+  height: 32vw;
+  border: 0.8rem solid transparent;
+  outline: 0;
 }
 
 /* Small icons are scaled down 0.75x, so apply the reverse transforms to the
@@ -62,11 +74,6 @@ gaia-app-icon.launching {
   visibility: hidden;
 }
 
-#apps.small > .gaia-container-child > .icon-container {
-  width: 24vw;
-  height: calc(24vw + 1.9rem);
-}
-
 #apps > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
   transform: scale(1.1);
   opacity: 0.8;
@@ -80,15 +87,15 @@ gaia-app-icon.launching {
   transform: scale(0.8) translate(-3.2vw, -3.2vw);
 }
 
-.dragging:not(.autoscroll) #apps > .gaia-container-child > .icon-container {
+.dragging:not(.autoscroll) #apps > .gaia-container-child > * {
   will-change: transform;
 }
 
-#apps > .gaia-container-child > .icon-container.hover-before {
+#apps > .gaia-container-child > .hover-before {
   transform: translateX(3.5rem);
 }
 
-#apps > .gaia-container-child > .icon-container.hover-after {
+#apps > .gaia-container-child > .hover-after {
   transform: translateX(-3.5rem);
 }
 

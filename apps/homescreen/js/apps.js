@@ -239,14 +239,12 @@
         document.addEventListener('bookmarks_store-set', (e) => {
           var id = e.detail.id;
           this.bookmarks.get(id).then((bookmark) => {
-            for (var child of this.icons.children) {
-              var icon = child.firstElementChild;
+            this.iterateIcons(icon => {
               if (icon.bookmark && icon.bookmark.id === id) {
                 icon.bookmark = bookmark.data;
                 icon.refresh();
-                return;
               }
-            }
+            });
             this.addAppIcon(bookmark.data);
             this.storeAppOrder();
           });
@@ -254,10 +252,9 @@
 
         document.addEventListener('bookmarks_store-removed', (e) => {
           var id = e.detail.id;
-          for (var child of this.icons.children) {
-            var icon = child.firstElementChild;
+          this.iterateIcons((icon, container, parent) => {
             if (icon.bookmark && icon.bookmark.id === id) {
-              this.icons.removeChild(child, () => {
+              parent.removeChild(container, () => {
                 this.storeAppOrder();
                 this.refreshGridSize();
                 this.snapScrollPosition();
@@ -267,18 +264,16 @@
               if (this.selectedIcon === icon) {
                 this.updateSelectedIcon(null);
               }
-              return;
             }
-          }
+          });
         });
 
         document.addEventListener('bookmarks_store-cleared', () => {
-          for (var child of this.icons.children) {
-            var icon = child.firstElementChild;
+          this.iterateIcons((icon, container, parent) => {
             if (icon.bookmark) {
-              this.icons.removeChild(child);
+              parent.removeChild(container);
             }
-          }
+          });
           this.storeAppOrder();
           this.refreshGridSize();
           this.snapScrollPosition();
@@ -325,10 +320,9 @@
 
       // Update icons that we've added from the startup metadata in case their
       // icons have updated or the icon size has changed.
-      for (var child of this.icons.children) {
-        var icon = child.firstElementChild;
+      this.iterateIcons(icon => {
         this.refreshIcon(icon);
-      }
+      });
 
       // Add any applications that aren't in the startup metadata
       var newIcons = false;
@@ -360,7 +354,8 @@
       if (!this._iconSize) {
         var children = this.icons.children;
         for (var container of children) {
-          if (container.style.display !== 'none') {
+          if (container.style.display !== 'none' &&
+              container.localName !== 'homescreen-group') {
             this._iconSize = container.firstElementChild.size;
             break;
           }
@@ -399,6 +394,25 @@
       // when we've loaded as many apps as necessary to fill the screen.
       window.performance.mark('visuallyLoaded');
       window.performance.mark('contentInteractive');
+    },
+
+    /**
+     * Iterate over icons in the panel.
+     * @callback: Callback to call, given three parameters;
+     *   icon: The icon element
+     *   container: The top-level container of the icon
+     *   parent: The parent of the container housing the icon
+     */
+    iterateIcons: function(callback) {
+      for (var child of this.icons.children) {
+        if (child.localName === 'homescreen-group') {
+          for (var icon of child.container.children) {
+            callback(icon, icon, child.container);
+          }
+        } else {
+          callback(child.firstElementChild, child, this.icons);
+        }
+      }
     },
 
     addApp: function(app) {
@@ -569,14 +583,15 @@
     },
 
     storeAppOrder: function() {
+      // TODO: Store group information
+      var i = 0;
       var storedOrders = [];
-      var children = this.icons.children;
-      for (var i = 0, iLen = children.length; i < iLen; i++) {
-        var appIcon = children[i].firstElementChild;
-        var id = this.getIconId(appIcon.app ? appIcon.app : appIcon.bookmark,
-                                appIcon.entryPoint);
-        storedOrders.push({ id: id, order: i });
-      }
+      this.iterateIcons((icon, container, parent) => {
+        var id = this.getIconId(icon.app ? icon.app : icon.bookmark,
+                                icon.entryPoint);
+        storedOrders.push({ id: id, order: i++ });
+      });
+
       this.metadata.set(storedOrders).then(
         () => {},
         (e) => {
@@ -844,13 +859,30 @@
       this.updateSelectedIcon(null);
     },
 
+    elementName: function(element) {
+      if (!element) {
+        return 'none';
+      }
+
+      if (element.localName === 'homescreen-group') {
+        return 'group';
+      }
+
+      return element.firstElementChild.name;
+    },
+
     handleEvent: function(e) {
-      var icon, child, id;
+      var icon, id;
 
       switch (e.type) {
       // App launching
       case 'activate':
         e.preventDefault();
+        if (e.detail.target.localName === 'homescreen-group') {
+          e.detail.target.expand();
+          break;
+        }
+
         icon = e.detail.target.firstElementChild;
 
         // If we're in edit mode, remap taps to selection
@@ -894,8 +926,7 @@
 
       // Disable scrolling during dragging, and display bottom-bar
       case 'drag-start':
-        console.debug('Drag-start on ' +
-                      e.detail.target.firstElementChild.name);
+        console.debug('Drag-start on ' + this.elementName(e.detail.target));
         this.dragging = true;
         this.shouldEnterEditMode = true;
         document.body.classList.add('dragging');
@@ -931,8 +962,8 @@
 
       // Handle app/site editing and dragging to the end of the icon grid.
       case 'drag-end':
-        console.debug('Drag-end, target: ' + (e.detail.dropTarget ?
-          e.detail.dropTarget.firstElementChild.name : 'none'));
+        console.debug('Drag-end, target: ' +
+                      this.elementName(e.detail.dropTarget));
         if (e.detail.dropTarget === null &&
             e.detail.clientX >= this.iconsLeft &&
             e.detail.clientX < this.iconsRight) {
@@ -1019,14 +1050,13 @@
         // Check if the app already exists, and if so, update it.
         // This happens when reinstalling an app via WebIDE.
         var existing = false;
-        for (child of this.icons.children) {
-          icon = child.firstElementChild;
+        this.iterateIcons(icon => {
           if (icon.app && icon.app.manifestURL === e.application.manifestURL) {
             icon.app = e.application;
             icon.refresh();
             existing = true;
           }
-        }
+        });
         if (existing) {
           return;
         }
@@ -1043,8 +1073,7 @@
           this.snapScrollPosition();
         };
 
-        for (child of this.icons.children) {
-          icon = child.firstElementChild;
+        this.iterateIcons((icon, container, parent) => {
           if (icon.app && icon.app.manifestURL === e.application.manifestURL) {
             id = this.getIconId(e.application, icon.entryPoint);
             this.metadata.remove(id).then(() => {},
@@ -1052,7 +1081,7 @@
                 console.error('Error removing uninstalled app', e);
               });
 
-            this.icons.removeChild(child, callback);
+            parent.removeChild(container, callback);
 
             // We only want to store the app order once, so clear the callback
             callback = null;
@@ -1061,28 +1090,27 @@
               this.updateSelectedIcon(null);
             }
           }
-        }
+        });
         break;
 
       case 'localized':
-        for (icon of this.icons.children) {
-          icon.firstElementChild.updateName();
-        }
+        this.iterateIcons(icon => {
+          icon.updateName();
+        });
         this.icons.synchronise();
         break;
 
       case 'online':
-        for (var i = 0, iLen = this.iconsToRetry.length; i < iLen; i++) {
-          for (child of this.icons.children) {
-            icon = child.firstElementChild;
-            id = this.getIconId(icon.app ? icon.app : icon.bookmark,
-                                icon.entryPoint);
+        this.iterateIcons(icon => {
+          id = this.getIconId(icon.app ? icon.app : icon.bookmark,
+                              icon.entryPoint);
+          for (var i = 0, iLen = this.iconsToRetry.length; i < iLen; i++) {
             if (id === this.iconsToRetry[i]) {
               this.refreshIcon(icon);
               break;
             }
           }
-        }
+        });
         break;
 
       case 'resize':
@@ -1100,10 +1128,7 @@
 
         // If the icon size has changed, refresh icons
         if (oldIconSize !== this.iconSize) {
-          for (child of this.icons.children) {
-            icon = child.firstElementChild;
-            this.refreshIcon(icon);
-          }
+          this.iterateIcons(this.refreshIcon.bind(this));
         }
 
         // Re-synchronise icon position
