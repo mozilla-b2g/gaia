@@ -41,7 +41,7 @@
  */
 
 /* global asyncStorage, SettingsListener, performance, uuid, TelemetryRequest,
-          applications, LazyLoader */
+          applications, LazyLoader, homescreenWindowManager */
 (function(exports) {
   'use strict';
 
@@ -77,6 +77,7 @@
   const IACMETRICS = 'iac-app-metrics';
   const ENABLED = 'applicationenabled';
   const DISABLED = 'applicationdisabled';
+  const UNDERLAYOPENED = 'homescreen-underlayopened';
 
   // This is the list of event types we register handlers for
   const EVENT_TYPES = [
@@ -95,7 +96,8 @@
     ATTENTIONCLOSED,
     IACMETRICS,
     ENABLED,
-    DISABLED
+    DISABLED,
+    UNDERLAYOPENED
   ];
 
 
@@ -430,17 +432,46 @@
     switch (e.type) {
 
     case APPOPENED:
-    case HOMESCREEN:
-      // The user has opened an app, switched apps, or switched to the
-      // homescreen. Record data about the app that was running and then
+      // The user has opened an app or switched apps.
+      // Record data about the app that was running and then
       // update the currently running app.
-      this.metrics.recordInvocation(this.getCurrentApp(),
-                                    now - this.getCurrentStartTime());
+      if (this._appIsUnderlay) {
+        // In this case, user launched an app from Home app while Home is
+        // overlaying on an app. We increase invocation count of underlying app
+        // without recording any usage time (since the usage time before home
+        // covers on has already recorded in HOMESCREEN event).
+        this.metrics.recordInvocation(this.getCurrentApp(), 0);
+        this.metrics.recordUsageTime(homescreenWindowManager.getHomescreen(),
+                                              now - this.getCurrentStartTime());
+        this._appIsUnderlay = false;
+      } else {
+        this.metrics.recordInvocation(this.getCurrentApp(),
+                                              now - this.getCurrentStartTime());
+      }
+
       this.attentionWindows = [];
       this.currentApp = e.detail;
       this.currentAppStartTime = now;
       break;
+    case HOMESCREEN:
+      // The user has switched to homescrseen.
+      // We record its usage time but postpone invocation count until other app
+      // replaces homescreen.
+      this.metrics.recordUsageTime(this.getCurrentApp(),
+                                              now - this.getCurrentStartTime());
+      this.attentionWindows = [];
 
+      this._appIsUnderlay = true;
+      this.currentAppStartTime = now;
+      break;
+    case UNDERLAYOPENED:
+      // The user has hidden the homescreen and use underlying app again.
+      this.metrics.recordUsageTime(homescreenWindowManager.getHomescreen(),
+                                                now - this.currentAppStartTime);
+
+      this._appIsUnderlay = false;
+      this.currentAppStartTime = now;
+      break;
     case ATTENTIONOPENED:
       // Push the current attention screen start time onto stack, and use
       // currentApp / currentAppStartTime when the stack is empty
@@ -882,6 +913,27 @@
       usage.usageTime += time;
       this.needsSave = true;
       debug(app.manifestURL, 'ran for', time);
+    }
+    return time > 0;
+  };
+
+  // This function records usage time but doesn't increase invocation count.
+  // It's called for cases that user is switching between Home and underlying
+  // app back and forth.
+  UsageData.prototype.recordUsageTime = function(app, time) {
+    if (!this.shouldTrackApp(app)) {
+      return false;
+    }
+
+    // Convert time to seconds and round to the nearest second.  If 0,
+    // don't record anything. (This can happen when we go to the
+    // lockscreen right before sleeping, for example.)
+    time = Math.round(time / 1000);
+    if (time > 0) {
+      var usage = this.getAppUsage(app);
+      usage.usageTime += time;
+      this.needsSave = true;
+      debug(app.manifestURL, 'run for', time);
     }
     return time > 0;
   };
