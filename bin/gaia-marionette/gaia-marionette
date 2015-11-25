@@ -51,10 +51,15 @@ if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
     if [ -z "$SKIP_TEST_FILES" ]; then
       if [ -z "$HARNESS_ONLY" ]; then
-        TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" \
-                              -or -path "*/dev_apps/*/test/marionette/*_test.js" \
+        if [ "$GAIA_DEVICE_TYPE" = "tv" ]; then
+          TEST_FILES=$(find "$BINDIR/.." -path "*/dev_apps/*/test/marionette/*_test.js" \
                               -or -path "*/tv_apps/*/test/marionette/*_test.js" \
                               -or -path "*/tests/integration/*/*_test.js")
+        else
+          TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" \
+                              -or -path "*/dev_apps/*/test/marionette/*_test.js" \
+                              -or -path "*/tests/integration/*/*_test.js")
+        fi
       else
         TEST_FILES=""
       fi
@@ -65,10 +70,15 @@ if [ -z "$TEST_FILES" ]; then
       done
     else
       if [ -z "$HARNESS_ONLY" ]; then
-        TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                              -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                              -or -path "*/tv_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+        if [ "$GAIA_DEVICE_TYPE" = "tv" ]; then
+          TEST_FILES=$(find "$BINDIR/.." -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                              -or -path "*/tv_apps/*/test/marionette/*_test.js"  $SKIP_TEST_FILES \
+                              -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES )
+        else
+          TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js"  $SKIP_TEST_FILES \
+                              -or -path "*/dev_apps/*/test/marionette/*_test.js"  $SKIP_TEST_FILES \
                               -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
+        fi
       else
         TEST_FILES=""
       fi
