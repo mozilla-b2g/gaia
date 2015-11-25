@@ -2,6 +2,7 @@
   "name": "Weather Widget",
   "type": "certified",
   "launch_path": "/widget.html",
+  "role": "widget",
   "widgets": {
     "weather": {
       "name": "Weather Widget",
