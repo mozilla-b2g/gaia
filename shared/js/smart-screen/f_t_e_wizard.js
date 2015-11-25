@@ -166,6 +166,10 @@
                                     getElementsByClassName(this._buttonsClass));
 
     this._simpleKeyNavigation.updateList(list);
+    // Default focus on the finish button
+    if (list.indexOf(this._finishButton) !== -1) {
+      this._simpleKeyNavigation.focusOn(this._finishButton);
+    }
   };
 
   FTEWizard.prototype._hide = function fw_hide(pageIdx) {
