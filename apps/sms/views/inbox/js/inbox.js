@@ -251,6 +251,11 @@ var InboxView = {
       titleContainer.replaceChild(groupTitle, title);
     }
 
+    if (!title.textContent) {
+      // display something before waiting for findContact's result
+      title.textContent = threadNumbers[0];
+    }
+
     if (threadNumbers.length === 1) {
       return Utils.Promise.async(updateThreadNode)(threadNumbers[0]);
     }
@@ -605,7 +610,9 @@ var InboxView = {
           // Find draft-containing threads that have already been rendered
           // and update them so they mark themselves appropriately
           if (document.getElementById(`thread-${draft.threadId}`)) {
-            this.updateThread(Threads.get(draft.threadId));
+            this.updateThread(
+              Threads.get(draft.threadId), { conversationDraft: true }
+            );
           }
         } else {
           // Safely assume there is a threadless draft
@@ -697,76 +704,95 @@ var InboxView = {
     });
   },
 
+  /**
+   * This method is responsible for adding or updating the data that could
+   * change in a node that's not moving in the same time.
+   *
+   * @param {Node} node The Node to update.
+   * @param {Object} record An object that holds the conversation informations.
+   */
+  updateConversationContent(node, record) {
+    var id = record.id;
+
+    var thread = Threads.get(id);
+    var isDraft = thread.isDraft;
+    var draft = thread.getDraft();
+
+    var body = record.body;
+    var type = record.lastMessageType;
+
+    var iconLabel = '';
+
+    // If the draft is newer than the message, update
+    // the body with the draft content's first string.
+    if (draft && draft.timestamp >= record.timestamp) {
+      body = draft.content.find((content) => typeof content === 'string');
+      type = draft.type;
+    }
+
+    node.dataset.lastMessageType = type;
+
+    if (draft) {
+      // Set the "draft" visual indication
+      node.classList.add('draft');
+
+      if (isDraft) {
+        node.dataset.draftId = draft.id;
+        node.classList.add('is-draft');
+        iconLabel = 'is-draft';
+      } else {
+        node.classList.add('has-draft');
+        iconLabel = 'has-draft';
+      }
+    } else {
+      // remove it
+      node.classList.remove('draft', 'has-draft', 'is-draft');
+    }
+
+    if (record.unreadCount > 0) {
+      node.classList.add('unread');
+      iconLabel = 'unread-thread';
+    } else {
+      node.classList.remove('unread');
+    }
+
+    node.querySelector('.js-conversation-body').textContent = body || '';
+
+    var stateIndicator = node.querySelector('.js-conversation-state');
+    if (iconLabel) {
+      document.l10n.setAttributes(stateIndicator, iconLabel);
+    } else {
+      stateIndicator.removeAttribute('data-l10n-id');
+    }
+  },
+
   createThread: function inbox_createThread(record) {
     // Create DOM element
     var li = document.createElement('li');
     var timestamp = +record.timestamp;
-    var type = record.lastMessageType;
-    var participants = record.participants;
-    var number = participants[0];
     var id = record.id;
-    var bodyHTML = record.body;
     var thread = Threads.get(id);
-    var iconLabel = '';
-
-    // A new conversation "is" a draft
+    // A "new message" draft
     var isDraft = thread.isDraft;
-
-    // A an existing conversation has draft.
+    // An existing conversation's draft.
     var draft = thread.getDraft();
-
-    if (!isDraft && draft) {
-      // If the draft is newer than the message, update
-      // the body with the draft content's first string.
-      if (draft.timestamp >= record.timestamp) {
-        bodyHTML = draft.content.find(function(content) {
-          if (typeof content === 'string') {
-            return true;
-          }
-        });
-        type = draft.type;
-      }
-    }
-
-    bodyHTML = Template.escape(bodyHTML || '');
 
     li.id = 'thread-' + id;
     li.dataset.threadId = id;
     li.dataset.time = timestamp;
-    li.dataset.lastMessageType = type;
     li.classList.add('threadlist-item');
-
-    if (draft) {
-      // Set the "draft" visual indication
-      li.classList.add('draft');
-
-      if (isDraft) {
-        li.dataset.draftId = draft.id;
-        li.classList.add('is-draft');
-        iconLabel = 'is-draft';
-      } else {
-        li.classList.add('has-draft');
-        iconLabel = 'has-draft';
-      }
-    }
-
-    if (record.unreadCount > 0) {
-      li.classList.add('unread');
-      iconLabel = 'unread-thread';
-    }
 
     // Render markup with thread data
     li.innerHTML = this.tmpl.thread.interpolate({
       hash: isDraft ? '#/composer' : '#/thread?id=' + id,
       mode: isDraft ? 'drafts' : 'threads',
       id: isDraft ? draft.id : id,
-      number: number,
-      bodyHTML: bodyHTML,
-      timestamp: String(timestamp),
-      iconLabel: iconLabel
+      timestamp: String(timestamp)
     }, {
-      safe: ['id', 'bodyHTML']
+      safe: ['id']
     });
+
+    this.updateConversationContent(li, record);
 
     TimeHeaders.update(li.querySelector('time'));
 
@@ -803,7 +829,21 @@ var InboxView = {
     }
   },
 
-  updateThread: function inbox_updateThread(record, options) {
+  /**
+   * Update the DOM element for a conversation.
+   *
+   * @param {Record} record This contains the conversation informations.
+   * @param {Object} [options] Various options or hints to make the update more
+   * efficient.
+   * @param {Boolean} [options.conversationDraft] True if this update comes from
+   * a draft change for this thread. Will be false for "isDraft" conversation
+   * nodes.
+   * @param {Boolean} [options.deleted] True if this update comes from a message
+   * deletion.
+   * @param {Boolean} [options.unread] True if we have a new unread message in
+   * this conversation.
+   */
+  updateThread(record, options = {}) {
     var thread = Thread.create(record, options);
     var threadUINode = document.getElementById('thread-' + thread.id);
     var threadUITime = threadUINode ? +threadUINode.dataset.time : NaN;
@@ -812,23 +852,29 @@ var InboxView = {
     Threads.set(thread.id, thread);
 
     // Edge case: if we just received a message that is older than the latest
-    // one in the thread, we only need to update the 'unread' status.
-    var newMessageReceived = options && options.unread;
+    // one in the conversation, we only need to update the 'unread' status.
+    var newMessageReceived = options.unread;
     if (newMessageReceived && threadUITime > recordTime) {
       this.mark(thread.id, 'unread');
       return;
     }
 
-    // If we just deleted messages in a thread but kept the last message
-    // unchanged, we don't need to update the thread UI.
-    var messagesDeleted = options && options.deleted;
-    if (messagesDeleted && threadUITime === recordTime) {
+    // If we just deleted messages in a conversation but kept the last message
+    // unchanged, we don't need to update the conversation UI.
+    if (options.deleted && threadUITime === recordTime) {
       return;
     }
 
-    // General case: update the thread UI.
+    if (threadUINode && options.conversationDraft) {
+      // hasDraft drafts do not change the timestamps, so we can
+      // change the body and the type only.
+      this.updateConversationContent(threadUINode, record);
+      return;
+    }
+
+    // General case: update the conversation UI.
     if (threadUINode) {
-      // remove the current thread node in order to place the new one properly
+      // remove the current node in order to place the new one properly.
       this.removeConversationDOM(thread.id);
     }
 
@@ -965,15 +1011,9 @@ var InboxView = {
 
   mark: function inbox_mark(id, current) {
     var li = document.getElementById('thread-' + id);
-    var remove = 'read';
-
-    if (current === 'read') {
-      remove = 'unread';
-    }
 
     if (li) {
-      li.classList.remove(remove);
-      li.classList.add(current);
+      li.classList.toggle('unread', current === 'unread');
     }
   },
 
@@ -987,7 +1027,7 @@ var InboxView = {
     if (thread.isDraft) {
       this.deleteThread(thread.id);
     } else {
-      this.updateThread(thread);
+      this.updateThread(thread, { conversationDraft: true });
     }
 
     // If the draft we scheduled notification for has been deleted, we shouldn't
@@ -998,8 +1038,13 @@ var InboxView = {
   },
 
   onDraftSaved: function inbox_onDraftSaved(draft) {
-    var threadToUpdate = draft.threadId ? Threads.get(draft.threadId) : draft;
-    this.updateThread(threadToUpdate);
+    if (draft.threadId) {
+      this.updateThread(
+        Threads.get(draft.threadId), { conversationDraft: true }
+      );
+    } else {
+      this.updateThread(draft);
+    }
 
     // In case user saved draft when Inbox was not the active view, we want to
     // notify that save operation successfully completed once user returns back
