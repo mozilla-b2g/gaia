@@ -109,6 +109,36 @@ marionette('FM Radio test', function() {
           parseFloat(favFreq), parseFloat(freq),
           'Current frequency and selected favourite ID do not match');
 
+        fm.seekUp();
+        var newFreq = fm.getCurrentFrequency();
+
+        assert.notEqual(freq, newFreq);
+
+        fm.fav();
+        assert.ok(fm.isFav());
+
+        // count number of favs. Should be 2.
+        var elems = client.findElement(Fm.Selector.favList).
+            findElements(Fm.Selector.favItem);
+        assert.equal(elems.length, 2);
+
+        favFreq = fm.selectedFavItemText();
+        assert.equal(favFreq, newFreq);
+
+        elem.tap();
+        assert.ok(fm.isFav());
+
+        favFreq = fm.selectedFavItemText();
+        assert.notEqual(favFreq, newFreq);
+
+        // remove the favourite.
+        fm.fav();
+        assert.ok(!fm.isFav());
+
+        // count number of favs. Should be 1.
+        elems = client.findElement(Fm.Selector.favList).
+            findElements(Fm.Selector.favItem);
+        assert.equal(elems.length, 1);
       } catch(e) {
         assert.ok(false, e.stack);
       }

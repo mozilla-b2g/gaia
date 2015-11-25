@@ -708,7 +708,8 @@ var favoritesList = {
       this._save();
 
       // show the item in favorites list.
-      this._addItemToListUI(this._favList[freq]).scrollIntoView();
+      var elem = this._addItemToListUI(this._favList[freq]);
+      window.scrollTo(0, elem.offsetTop);
     }
   },
 
