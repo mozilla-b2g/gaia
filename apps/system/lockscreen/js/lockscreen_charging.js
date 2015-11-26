@@ -9,6 +9,11 @@ function LockScreenChargingStatus() {
   this.elements = {
     charging: document.getElementById('lockscreen-charging')
   };
+
+  // Create a text node so we can access its data later for updating the status.
+  if (!this.elements.charging.firstChild) {
+    this.elements.charging.appendChild(document.createTextNode(''));
+  }
 }
 
 LockScreenChargingStatus.listenEvents = [
@@ -66,8 +71,11 @@ LockScreenChargingStatus.prototype.refresh = function cs_refresh() {
     }
   }
 
-  navigator.mozL10n.setAttributes(this.elements.charging,
-    l10nAttrs.id, l10nAttrs.args);
+  // Update data here since changing textContent will replace the text node and
+  // could cause flickering while transitioning docshell.isActive to true.
+  navigator.mozL10n.formatValue(l10nAttrs.id, l10nAttrs.args).then((value) => {
+    this.elements.charging.firstChild.data = value;
+  });
 
   if (this.elements.charging.hasAttribute('hidden')) {
     this.elements.charging.removeAttribute('hidden');

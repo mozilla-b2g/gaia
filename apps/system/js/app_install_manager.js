@@ -26,7 +26,8 @@
       'INSTALL_FROM_DENIED': 'install-failed',
       'INVALID_SECURITY_LEVEL': 'install-failed',
       'INVALID_PACKAGE': 'install-failed',
-      'APP_CACHE_DOWNLOAD_ERROR': 'download-failed'
+      'APP_CACHE_DOWNLOAD_ERROR': 'download-failed',
+      'DOWNLOAD_CANCELED':'download-canceled'
     },
 
     start: function() {

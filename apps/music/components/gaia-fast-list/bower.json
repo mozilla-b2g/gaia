@@ -1,6 +1,5 @@
 {
   "name": "gaia-fast-list",
-  "version": "0.2.2",
   "homepage": "https://github.com/gaia-components/gaia-fast-list",
   "authors": [
     "Etienne Segonzac <etienne@segonzac.info>",
@@ -19,12 +18,13 @@
     "**/.*",
     "node_modules",
     "bower_components",
+    "README.md",
     "examples",
     "test",
     "tests"
   ],
   "dependencies": {
-    "fast-list": "gaia-components/fast-list#~0.1.3",
+    "fast-list": "gaia-components/fast-list#0.1.5",
     "gaia-component": "gaia-components/gaia-component#~0.4.0",
     "gaia-sub-header": "gaia-components/gaia-sub-header#~0.4.1",
     "poplar": "wilsonpage/poplar"

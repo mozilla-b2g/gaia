@@ -7,7 +7,7 @@ Entrypoint for the task graph extension / decisions for gaia tests.
 var taskcluster = require('taskcluster-client');
 var fs = require('fs');
 var path = require('path');
-var template = require('json-templater/object');
+var template = require('json-templater-fix/object');
 
 var GAIA_DIR = path.resolve(__dirname, '..', '..', '..');
 

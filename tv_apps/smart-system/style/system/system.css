@@ -351,7 +351,7 @@ body {
 }
 
 .generic-dialog.banner[data-button="false"] button {
-  visibility: hidden;
+  display: none;
 }
 
 #screen iframe.communication-frame {

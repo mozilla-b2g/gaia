@@ -4,12 +4,8 @@
 'use strict';
 
 /* global
-  expect,
   KeyDerivation,
-  FxSyncWebCryptoFixture,
-  requireApp,
-  suite,
-  test
+  FxSyncWebCryptoFixture
 */
 
 requireApp('sync/js/crypto/stringconversion.js');

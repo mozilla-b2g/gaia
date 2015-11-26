@@ -83,7 +83,8 @@ fullscreenButtons.edit.onclick = function() {
   LazyLoader.load(['js/ImageEditor.js',
                    'js/image_processor_thread.js',
                    'shared/js/media/crop_resize_rotate.js',
-                   'shared/style/action_menu.css'
+                   'shared/js/component_utils.js',
+                   'shared/elements/gaia_menu/script.js'
                   ], function() {
                     editPhotoIfCardNotFull(currentFileIndex);
                   });

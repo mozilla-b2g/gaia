@@ -10,7 +10,7 @@ var fs = require('fs');
 var fsPath = require('path');
 var taskcluster = require('taskcluster-client');
 var util = require('util');
-var template = require('json-templater/object');
+var template = require('json-templater-fix/object');
 
 // Cache for task definitions...
 var TASK_DEFINITIONS = {};

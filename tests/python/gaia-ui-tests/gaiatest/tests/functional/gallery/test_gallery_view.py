@@ -6,6 +6,7 @@ import time
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
+from gaiatest.apps.system.app import System
 
 
 class TestGallery(GaiaTestCase):
@@ -21,6 +22,9 @@ class TestGallery(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/14645/
         """
 
+        screen_width = System(self.marionette).screen_width
+        screen_height = System(self.marionette).screen_height_without_software_home_button
+
         gallery = Gallery(self.marionette)
         gallery.launch()
         gallery.wait_for_files_to_load(1)
@@ -34,7 +38,7 @@ class TestGallery(GaiaTestCase):
         #  Verify that the screen orientation is in portrait mode
         self.assertTrue(image.is_photo_toolbar_displayed)
         self.assertEqual('portrait-primary', self.device.screen_orientation)
-        self.assertEqual(self.device.screen_width, image.photo_toolbar_width)
+        self.assertEqual(screen_width, image.photo_toolbar_width)
 
         #  Change the screen orientation to landscape mode and verify that the screen is in landscape mode
         self.device.change_orientation('landscape-primary')
@@ -43,7 +47,7 @@ class TestGallery(GaiaTestCase):
         time.sleep(1)
         self.assertTrue(image.is_photo_toolbar_displayed)
         self.assertEqual('landscape-primary', self.device.screen_orientation)
-        self.assertEqual(self.device.screen_width, image.photo_toolbar_width)
+        self.assertEqual(screen_height, image.photo_toolbar_width)
 
         #  Unlock the screen so that it can be changed back to portrait mode
         self.marionette.execute_script('window.screen.mozUnlockOrientation()')
@@ -55,7 +59,7 @@ class TestGallery(GaiaTestCase):
         time.sleep(1)
         self.assertTrue(image.is_photo_toolbar_displayed)
         self.assertEqual('portrait-primary', self.device.screen_orientation)
-        self.assertEqual(self.device.screen_width, image.photo_toolbar_width)
+        self.assertEqual(screen_width, image.photo_toolbar_width)
 
     def tearDown(self):
         self.marionette.execute_script('window.screen.mozUnlockOrientation()')

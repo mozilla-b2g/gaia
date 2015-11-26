@@ -224,9 +224,13 @@ Music.prototype = {
 
   parseListItemsData: function(elements) {
       var elementsData = [];
-      for(var i = 0; i < elements.length; i++) {
+      for (var i = 0; i < elements.length; i++) {
         var data = {};
         var a = elements[i];
+        // We ignore items that are hidden by CSS.
+        if (a.style.display === 'none') {
+          continue;
+        }
         data.filePath = a.dataset.filePath;
         data.href = a.href;
         data.section = a.dataset.section;
@@ -528,7 +532,7 @@ Music.prototype = {
     assert.ok(viewSelector, 'Not a valid selector. Fix your test.');
 
     var frame = this.client.findElement(viewSelector);
-    assert.ok(frame, viewSelector, 'can\'t be foun.');
+    assert.ok(frame, viewSelector, 'can\'t be found.');
     this.client.switchToFrame(frame);
 
     var searchBox = this.client.helper.waitForElement(Music.Selector.searchBox);
@@ -537,10 +541,19 @@ Music.prototype = {
     var input = this.client.helper.waitForElement(Music.Selector.searchField);
     assert.ok(input);
 
-    input.clear();
-    this.client.waitFor(input.displayed.bind(input));
-    input.sendKeys(searchTerm);
+    this.client.switchToShadowRoot(input);
+    var field = this.client.helper.waitForElement('input');
 
+    // clear search
+    // input.scriptWith(function(element) {
+    //   // var input = element.querySelector('gaia-text-input');
+    //   element.clear();
+    // });
+
+    this.client.waitFor(field.displayed.bind(field));
+    field.sendKeys(searchTerm);
+
+    this.client.switchToShadowRoot();
     this.client.switchToShadowRoot();
 
     this.switchToMe();

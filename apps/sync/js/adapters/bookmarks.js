@@ -27,6 +27,7 @@
 /* global
   asyncStorage,
   DataAdapters,
+  ERROR_SYNC_APP_RACE_CONDITION,
   LazyLoader
 */
 
@@ -86,6 +87,12 @@ var BookmarksHelper = (() => {
     });
   }
 
+  function removeLastRevisionId(userid) {
+    return new Promise(resolve => {
+      asyncStorage.removeItem(userid + BOOKMARKS_LAST_REVISIONID, resolve);
+    });
+  }
+
   /*
    * setDataStoreId and getDataStoreId are used to create a table for caching
    * SynctoId to DataStoreId matching. When a `deleted: true` record comes from
@@ -122,6 +129,11 @@ var BookmarksHelper = (() => {
     localRecord.name = remoteRecord.name;
     if (!localRecord.fxsyncRecords) {
       localRecord.fxsyncRecords = {};
+      // We remember if a record had already been created locally before we got
+      // remote data for that URL, so that we know not to remove it even when
+      // the remote data is deleted. This applies only to readonly sync, and
+      // will be removed when sync becomes read-write.
+      localRecord.createdLocally = true;
     }
     localRecord.fxsyncRecords[fxsyncId] = remoteRecord.fxsyncRecords[fxsyncId];
     return localRecord;
@@ -146,25 +158,22 @@ var BookmarksHelper = (() => {
               fxsyncId);
           return store.put(newBookmark, id, revisionId);
         }
+        // Setting createdLocally to false will cause the record to be deleted
+        // again if it's deleted remotely. This applies only to readonly sync,
+        // and will be removed when sync becomes read-write.
+        remoteRecord.createdLocally = false;
         return store.add(remoteRecord, id, revisionId);
       }).then(() => {
         return setDataStoreId(fxsyncId, id, userid);
       });
     }).catch(e => {
-      console.error(e);
-    });
-  }
-
-  function updateBookmarks(records, userid) {
-    return new Promise(resolve => {
-      records.reduce((reduced, current) => {
-        return reduced.then(() => {
-          if (current.deleted) {
-            return deleteBookmark(current.id, userid);
-          }
-          return addBookmark(current, userid);
+      if (e.name === 'ConstraintError' &&
+          e.message === 'RevisionId is not up-to-date') {
+        return LazyLoader.load(['shared/js/sync/errors.js']).then(() => {
+          throw new Error(ERROR_SYNC_APP_RACE_CONDITION);
         });
-      }, Promise.resolve()).then(resolve);
+      }
+      console.error(e);
     });
   }
 
@@ -187,7 +196,10 @@ var BookmarksHelper = (() => {
           var isEmpty = Object.keys(localRecord.fxsyncRecords).every(value => {
             return localRecord.fxsyncRecords[value].deleted;
           });
-          if (isEmpty && localRecord.syncNeeded) {
+          // Do not delete records that were originally created locally, even if
+          // they are deleted remotely. This applies only for readonly sync, and
+          // will be removed in the future when we switch to two-way sync.
+          if (isEmpty && !localRecord.createdLocally) {
             return store.remove(url, revisionId);
           } else {
             return store.put(localRecord, url, revisionId);
@@ -277,13 +289,21 @@ var BookmarksHelper = (() => {
     });
   }
 
+  function reset(userid) {
+    return Promise.all([
+      removeSyncedCollectionMtime(userid),
+      removeLastRevisionId(userid)
+    ]);
+  }
+
   return {
-    mergeRecordsToDataStore: mergeRecordsToDataStore,
-    setSyncedCollectionMtime: setSyncedCollectionMtime,
-    getSyncedCollectionMtime: getSyncedCollectionMtime,
-    updateBookmarks: updateBookmarks,
-    deleteBookmark: deleteBookmark,
-    handleClear: handleClear
+    mergeRecordsToDataStore,
+    setSyncedCollectionMtime,
+    getSyncedCollectionMtime,
+    deleteBookmark,
+    addBookmark,
+    handleClear,
+    reset
   };
 })();
 
@@ -384,69 +404,62 @@ DataAdapters.bookmarks = {
   [5] https://docs.services.mozilla.com/sync/objectformats.html#bookmarks
 
 **/
-  _update(remoteRecords, lastModifiedTime, userid) {
-    var bookmarks = [];
-    for (var i = 0; i < remoteRecords.length; i++) {
-      var payload = remoteRecords[i].payload;
-      if (remoteRecords[i].last_modified <= lastModifiedTime) {
-        break;
-      }
-      if (payload.type === 'microsummary') {
-        console.warn('microsummary is OBSOLETED ', payload);
-        continue;
-      }
-      if (!Number.isInteger(remoteRecords[i].last_modified)) {
-        console.warn('Incorrect payload::last_modified? ', payload);
-        continue;
-      }
-      if (payload.deleted) {
-        bookmarks.push(payload);
-        continue;
-      } else if (['query', 'bookmark', 'folder', 'livemark', 'separator']
-          .every(value => value !== payload.type)) {
-        console.error('Unknown type? ', payload);
-        continue;
-      }
-      var typeWithUri = ['query', 'bookmark']
-          .some(value => value === payload.type);
-      if (typeWithUri && !payload.bmkUri) {
-        console.warn('Incorrect payload? ', payload);
-        continue;
-      }
-      var fxsyncRecords = {};
-      fxsyncRecords[payload.id] = remoteRecords[i].payload;
-      fxsyncRecords[payload.id].timestamp = remoteRecords[i].last_modified;
 
-      // FIXME: See https://bugzilla.mozilla.org/show_bug.cgi?id=1223420
-      bookmarks.push({
-        // URL is the ID for bookmark records in bookmarks_store, but there are
-        // some types without a valid URL except bookmark type. URL is used as
-        // its ID to compatible bookmarks_store for bookmark type record.
-        // The combination of type and fxsyncID is used as its ID for the types
-        // except bookmark.
-        id: payload.type === 'bookmark' ? payload.bmkUri :
-          (payload.type + '|' + payload.id),
-        url: payload.bmkUri,
-        name: payload.title,
-        type: payload.type === 'bookmark' ? 'url' : 'others',
-        iconable: false,
-        icon: '',
-        syncNeeded: true,
-        fxsyncRecords: fxsyncRecords,
-        fxsyncId: payload.id
-      });
+  _updateBookmark(payload, last_modified, userid) {
+    if (payload.type === 'microsummary') {
+      console.warn('microsummary is OBSOLETED ', payload);
+      return Promise.resolve();
+    }
+    if (payload.deleted) {
+      return BookmarksHelper.deleteBookmark(payload.id, userid);
+    } else if (['query', 'bookmark', 'folder', 'livemark', 'separator']
+        .every(value => value !== payload.type)) {
+      console.error('Unknown type? ', payload);
+      return Promise.resolve();
+    }
+    var typeWithUri = ['query', 'bookmark']
+        .some(value => value === payload.type);
+    if (typeWithUri && !payload.bmkUri) {
+      console.warn('Incorrect payload? ', payload);
+      return Promise.resolve();
+    }
+    var fxsyncRecords = {};
+    fxsyncRecords[payload.id] = payload;
+    fxsyncRecords[payload.id].timestamp = last_modified;
+
+    return BookmarksHelper.addBookmark({
+      // URL is the ID for bookmark records in bookmarks_store, but there are
+      // some types without a valid URL except bookmark type. URL is used as
+      // its ID to compatible bookmarks_store for bookmark type record.
+      // The combination of type and fxsyncID is used as its ID for the types
+      // except bookmark.
+      id: payload.type === 'bookmark' ? payload.bmkUri :
+        (payload.type + '|' + payload.id),
+      url: payload.bmkUri,
+      name: payload.title,
+      type: payload.type === 'bookmark' ? 'url' : 'others',
+      iconable: false,
+      icon: '',
+      fxsyncRecords: fxsyncRecords,
+      fxsyncId: payload.id
+    }, userid);
+  },
+
+  _next(remoteRecords, lastModifiedTime, userid, cursor) {
+    if (cursor === remoteRecords.length) {
+      return Promise.resolve();
+    }
+    if (!Number.isInteger(remoteRecords[cursor].last_modified)) {
+      console.warn('Incorrect last_modified?', remoteRecords[cursor]);
+      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
+    }
+    if (remoteRecords[cursor].last_modified <= lastModifiedTime) {
+      return Promise.resolve();
     }
 
-    if (bookmarks.length === 0) {
-      return Promise.resolve(false /* no writes done into kinto */);
-    }
-
-    return BookmarksHelper.updateBookmarks(bookmarks, userid).then(() => {
-      var latestMtime = remoteRecords[0].last_modified;
-      return BookmarksHelper.setSyncedCollectionMtime(latestMtime, userid);
-    }).then(() => {
-      // Always return false for a read-only operation.
-      return Promise.resolve(false /* no writes done into kinto */);
+    return this._updateBookmark(remoteRecords[cursor].payload,
+        remoteRecords[cursor].last_modified, userid).then(() => {
+      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
     });
   },
 
@@ -455,8 +468,7 @@ DataAdapters.bookmarks = {
       console.warn('Two-way sync not implemented yet for bookmarks.');
     }
     var mtime;
-    return LazyLoader.load(['shared/js/async_storage.js'])
-    .then(() => {
+    return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
       // We iterate over the records in the Kinto collection until we find a
       // record whose last modified time is older than the time of the last
       // successful sync run. However, if the DataStore has been cleared, or
@@ -472,9 +484,19 @@ DataAdapters.bookmarks = {
       mtime = _mtime;
       return remoteBookmarks.list();
     }).then(list => {
-      return this._update(list.data, mtime, options.userid);
+      return this._next(list.data, mtime, options.userid, 0).then(() => {
+        if (list.data.length === 0) {
+          return Promise.resolve();
+        }
+        var latestMtime = list.data[0].last_modified;
+        return BookmarksHelper.setSyncedCollectionMtime(latestMtime,
+            options.userid);
+      });
+    }).then(() => {
+      // Always return false for a read-only operation.
+      return Promise.resolve(false /* no writes done into kinto */);
     }).catch(err => {
-      console.error('Bookmarks DataAdapter update error', err);
+      console.error('Bookmarks DataAdapter update error', err.message);
       throw err;
     });
   },
@@ -483,5 +505,9 @@ DataAdapters.bookmarks = {
     // Because Bookmark adapter has not implemented record push yet,
     // handleConflict will always use remote records.
     return Promise.resolve(conflict.remote);
+  },
+
+  reset(options) {
+    return BookmarksHelper.reset(options.userid);
   }
 };

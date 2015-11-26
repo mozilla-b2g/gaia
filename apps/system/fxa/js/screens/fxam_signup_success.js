@@ -18,12 +18,10 @@ var FxaModuleSignupSuccess = (function() {
       'fxa-will-send-email'
     );
 
-    var willSendText = navigator.mozL10n.get('fxa-will-send-email');
-    willSendText = willSendText.replace(
-      /{{\s*email\s*}}/,
-      '<strong>' + options.email + '</strong>'
-    );
-    this.fxaWillSendEmail.innerHTML = willSendText;
+    navigator.mozL10n.setAttributes(this.fxaWillSendEmail,
+        'fxa-will-send-email2', {
+      email: options.email
+    });
   };
 
   Module.onNext = function onNext(done) {

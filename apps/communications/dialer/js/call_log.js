@@ -119,9 +119,7 @@ var CallLog = {
       window.asyncStorage.getItem('contactCacheRevision',
       function onItem(cacheRevision) {
         Contacts.getRevision(function(contactsRevision) {
-          /* We don't need to sync if this is the first time that we use the
-           * call log. */
-          if (!cacheRevision || cacheRevision > contactsRevision) {
+          if (cacheRevision > contactsRevision) {
             window.asyncStorage.setItem('contactCacheRevision',
                                         contactsRevision);
             self._contactCache = true;

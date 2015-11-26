@@ -33,8 +33,36 @@ define(function(require) {
 
       this._loadLastUpdated();
 
+      this._displayNotifyCheckbox();
+
       this._elements.checkUpdateNow.addEventListener('click',
         this._checkForUpdates.bind(this));
+    },
+
+    /**
+     * Shows and hides the "notify me" checkbox depending on whether auto
+     * updates are enabled.
+     *
+     * @access private
+     * @memberOf UpdateCheck.prototype
+     */
+    _displayNotifyCheckbox: function uc__displayNotifyCheckBox() {
+      var key = 'addons.auto_update';
+      var request = this._settings.createLock().get(key);
+
+      request.onsuccess = () => {
+        this._elements.addonUpdateNotify
+          .classList.toggle('hidden', !request.result[key]);
+
+        this._settings.addObserver(key, e => {
+          this._elements.addonUpdateNotify
+            .classList.toggle('hidden', !e.settingValue);
+        });
+      };
+
+      request.onerror = err => {
+        console.error('Failed to fetch ', key, err);
+      };
     },
 
     /**

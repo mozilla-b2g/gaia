@@ -25,25 +25,42 @@ var SynctoServerFixture = (function() {
   // Taken from https://bugzilla.mozilla.org/show_bug.cgi?id=959919#c13.
   var xClientState = '6ae94683571c7a7c54dab4700aa3995f';
 
+  var metaGlobalPayloadWithHistoryEngine = JSON.stringify({
+    syncID: 'NOuEmrZxVWxl',
+    storageVersion: 5,
+    declined:[],
+    engines: {
+      clients: { version: 1, syncID: '-qRIYq3pRFaF' },
+      prefs: { version:2, syncID: 'J2d8YxLBQ68M' },
+      passwords: { version:1, syncID: 'y3sQX0uYGXwz' },
+      tabs: { version: 1, syncID: 'MGdVuWFjTRpP' },
+      bookmarks: { version: 2, syncID: 'OmUGbrBTvZbn' },
+      addons: { version: 1, syncID: '90lUL4MPuhpx' },
+      forms: { version:1, syncID: 'Q_mWdmGZtuX9' },
+      history: { version: 1, syncID: '2_MOTXJfjA9Q' }
+    }
+  });
+
+  var metaGlobalPayloadWithoutHistoryEngine = JSON.stringify({
+    syncID: 'NOuEmrZxVWxl',
+    storageVersion: 5,
+    declined:[],
+    engines: {
+      clients: { version: 1, syncID: '-qRIYq3pRFaF' },
+      prefs: { version:2, syncID: 'J2d8YxLBQ68M' },
+      passwords: { version:1, syncID: 'y3sQX0uYGXwz' },
+      tabs: { version: 1, syncID: 'MGdVuWFjTRpP' },
+      bookmarks: { version: 2, syncID: 'OmUGbrBTvZbn' },
+      addons: { version: 1, syncID: '90lUL4MPuhpx' },
+      forms: { version:1, syncID: 'Q_mWdmGZtuX9' }
+    }
+  });
+
   var remoteData = {
     meta: {
       id: 'global',
       last_modified: 1234567890123,
-      payload: JSON.stringify({
-        syncID: 'NOuEmrZxVWxl',
-        storageVersion: 5,
-        declined:[],
-        engines: {
-          clients: { version: 1, syncID: '-qRIYq3pRFaF' },
-          prefs: { version:2, syncID: 'J2d8YxLBQ68M' },
-          passwords: { version:1, syncID: 'y3sQX0uYGXwz' },
-          tabs: { version: 1, syncID: 'MGdVuWFjTRpP' },
-          bookmarks: { version: 2, syncID: 'OmUGbrBTvZbn' },
-          addons: { version: 1, syncID: '90lUL4MPuhpx' },
-          forms: { version:1, syncID: 'Q_mWdmGZtuX9' },
-          history: { version: 1, syncID: '2_MOTXJfjA9Q' }
-        }
-      })
+      payload: metaGlobalPayloadWithHistoryEngine
     },
     crypto: {
       id: 'keys',
@@ -302,7 +319,7 @@ ookmarks Toolbar`,
       type: 'url',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         msopyVa0ckP_: {
           id: 'msopyVa0ckP_',
@@ -338,7 +355,7 @@ ookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         '6q8JaloClXcH': {
           id: '6q8JaloClXcH',
@@ -358,7 +375,7 @@ ookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         '5AiZMklaq0fL': {
           id: '5AiZMklaq0fL',
@@ -378,7 +395,7 @@ ookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         toolbar: {
           id: 'toolbar',
@@ -404,7 +421,7 @@ layed on the Bookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         places: {
           id: 'places',
@@ -429,7 +446,7 @@ layed on the Bookmarks Toolbar`,
       type: 'others',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         unfiled: {
           id: 'unfiled',
@@ -454,7 +471,7 @@ layed on the Bookmarks Toolbar`,
       type: 'url',
       iconable: false,
       icon: '',
-      syncNeeded: true,
+      createdLocally: false,
       fxsyncRecords: {
         '-Z5mm8AxeIkq': {
           id: '-Z5mm8AxeIkq',
@@ -481,7 +498,8 @@ Script/Reference/Global_Objects/Object/proto`] = {
 bal_Objects/Object/proto`,
     title: 'Object.prototype.__proto__ € - JavaScript | MDN',
     visits: [ 1439366063808 ],
-    fxsyncId: '_9sCUbahs0ay'
+    fxsyncId: '_9sCUbahs0ay',
+    createdLocally: false
   };
   var bookmarksExpectedAsyncStorage = {
     '518fef27c6bbc0220aab0f00b1a37308::collections::bookmarks::revisionid':
@@ -627,6 +645,8 @@ ce/Global_Objects/Object/proto`,
     bookmarksEntriesDec,
     bookmarksExpectedDataStore,
     bookmarksExpectedAsyncStorage,
-    fetchArgsExpected
+    fetchArgsExpected,
+    metaGlobalPayloadWithHistoryEngine,
+    metaGlobalPayloadWithoutHistoryEngine
   };
 })();

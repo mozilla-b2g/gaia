@@ -37,6 +37,7 @@ suite('Homescreen app', () => {
     icon.entryPoint = '';
     icon.bookmark = null;
     icon.icon = null;
+    icon.size = 100;
     icon.appendChild(iconChild);
     var container = document.createElement('div');
     container.appendChild(icon);
@@ -54,6 +55,7 @@ suite('Homescreen app', () => {
     gaiaAppIconEl.bookmark = null;
     gaiaAppIconEl.icon = null;
     gaiaAppIconEl.refresh = () => {};
+    gaiaAppIconEl.updateName = () => {};
     gaiaAppIconEl.appendChild(iconChild);
     createElementStub.withArgs('gaia-app-icon').returns(gaiaAppIconEl);
   };
@@ -172,9 +174,10 @@ suite('Homescreen app', () => {
 
     test('should remove unknown app entries from metadata store', done => {
       stub = sinon.stub(HomeMetadata.prototype, 'remove', id => {
-        assert.equal(id, 'def/');
         metadataGetAllStub.restore();
-        done();
+        done(() => {
+          assert.equal(id, 'def/');
+        });
         return Promise.resolve();
       });
       var metadataGetAllStub = sinon.stub(HomeMetadata.prototype, 'getAll',
@@ -485,6 +488,44 @@ suite('Homescreen app', () => {
     });
   });
 
+  suite('App#refreshIcon()', () => {
+    var mockAppIcon, mockBookmarkIcon;
+    setup(() => {
+      mockAppIcon = { refresh: () => {} };
+      mockBookmarkIcon = { bookmark: {}, refresh: () => {} };
+    });
+
+    test('sets icon size', () => {
+      app._iconSize = 10;
+      app.refreshIcon(mockAppIcon);
+      assert.equal(mockAppIcon.size, 10);
+    });
+
+    test('calls refresh() on app icons', () => {
+      var refreshStub = sinon.stub(mockAppIcon, 'refresh');
+      app.refreshIcon(mockAppIcon);
+      assert.isTrue(refreshStub.calledOnce);
+    });
+
+    test('calls IconsHelper.setElementIcon() on bookmark icons', () => {
+      var setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
+                                          Promise.resolve);
+      app.refreshIcon(mockBookmarkIcon);
+      assert.isTrue(setElementIconStub.calledOnce);
+      setElementIconStub.restore();
+    });
+
+    test('calls refresh if setElementIcon() Promise rejects', done => {
+      var setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
+                                          Promise.reject);
+      sinon.stub(mockBookmarkIcon, 'refresh', () => {
+        setElementIconStub.restore();
+        done();
+      });
+      app.refreshIcon(mockBookmarkIcon);
+    });
+  });
+
   suite('App#storeAppOrder()', () => {
     setup(() => {
       app.metadata.mSetup();
@@ -700,15 +741,17 @@ suite('Homescreen app', () => {
   });
 
   suite('App#removeSelectedIcon()', () => {
-    var uninstallStub;
+    var uninstallStub, clock;
     setup(() => {
       MockMozActivity.mSetup();
       uninstallStub = sinon.stub(navigator.mozApps.mgmt, 'uninstall');
+      clock = sinon.useFakeTimers();
     });
 
     teardown(() => {
       MockMozActivity.mTeardown();
       uninstallStub.restore();
+      clock.restore();
     });
 
     test('does nothing with no selected icon', () => {
@@ -739,15 +782,30 @@ suite('Homescreen app', () => {
       assert.equal(MockMozActivity.calls[0].data.url,
                    app.selectedIcon.bookmark.id);
     });
+
+    test('re-enters edit mode when removing bookmarks', () => {
+      var enterEditModeStub = sinon.stub(app, 'enterEditMode');
+      app.selectedIcon = { bookmark: { id: 'abc' } };
+      app.removeSelectedIcon();
+
+      MockMozActivity.mTriggerOnError();
+      assert.isTrue(enterEditModeStub.calledWith(app.selectedIcon));
+
+      clock.tick(50);
+      assert.isTrue(enterEditModeStub.calledWith(null));
+    });
   });
 
   suite('App#renameSelectedIcon()', () => {
+    var clock;
     setup(() => {
       MockMozActivity.mSetup();
+      clock = sinon.useFakeTimers();
     });
 
     teardown(() => {
       MockMozActivity.mTeardown();
+      clock.restore();
     });
 
     test('does nothing with no selected icon', () => {
@@ -770,6 +828,18 @@ suite('Homescreen app', () => {
       assert.equal(MockMozActivity.calls[0].data.type, 'url');
       assert.equal(MockMozActivity.calls[0].data.url,
                    app.selectedIcon.bookmark.id);
+    });
+
+    test('re-enters edit mode', () => {
+      var enterEditModeStub = sinon.stub(app, 'enterEditMode');
+      app.selectedIcon = { bookmark: { id: 'abc' } };
+      app.renameSelectedIcon();
+
+      MockMozActivity.mTriggerOnError();
+      assert.isTrue(enterEditModeStub.calledWith(app.selectedIcon));
+
+      clock.tick(50);
+      assert.isTrue(enterEditModeStub.calledWith(app.selectedIcon));
     });
   });
 
@@ -956,23 +1026,10 @@ suite('Homescreen app', () => {
       });
 
       suite('drag-move', () => {
-        var realInnerHeight, realInnerWidth, setIntervalStub, clearIntervalStub;
+        var setIntervalStub, clearIntervalStub;
 
         setup(() => {
-          realInnerHeight =
-            Object.getOwnPropertyDescriptor(window, 'innerHeight');
-          Object.defineProperty(window, 'innerHeight', {
-            value: 500,
-            configurable: true
-          });
-
-          realInnerWidth =
-            Object.getOwnPropertyDescriptor(window, 'innerWidth');
-          Object.defineProperty(window, 'innerWidth', {
-            value: 500,
-            configurable: true
-          });
-
+          app.lastWindowWidth = app.lastWindowHeight = 500;
           setIntervalStub = sinon.stub(window, 'setInterval');
           clearIntervalStub = sinon.stub(window, 'clearInterval');
 
@@ -980,8 +1037,6 @@ suite('Homescreen app', () => {
         });
 
         teardown(() => {
-          Object.defineProperty(window, 'innerHeight', realInnerHeight);
-          Object.defineProperty(window, 'innerWidth', realInnerWidth);
           setIntervalStub.restore();
           clearIntervalStub.restore();
         });
@@ -1147,6 +1202,7 @@ suite('Homescreen app', () => {
         synchroniseStub = sinon.stub(app.icons, 'synchronise');
         refreshGridSizeStub = sinon.stub(app, 'refreshGridSize');
         snapScrollPositionStub = sinon.stub(app, 'snapScrollPosition');
+        app.lastWindowWidth = app.lastWindowHeight = null;
         app.handleEvent(new CustomEvent('resize'));
       });
 
@@ -1167,6 +1223,29 @@ suite('Homescreen app', () => {
 
       test('should call snapScrollPosition()', () => {
         assert.isTrue(snapScrollPositionStub.called);
+      });
+
+      test('should reset icon size', () => {
+        assert.equal(app._iconSize, 0);
+      });
+
+      test('should refresh incorrectly sized icons', () => {
+        app._iconSize = 1000;
+        var refreshIconStub = sinon.stub(app, 'refreshIcon');
+        Object.defineProperty(app.icons, 'children', {
+          value: [{
+            firstElementChild: 'abc',
+            style: { display: 'block' }
+          }],
+          configurable: true
+        });
+
+        app.lastWindowWidth = app.lastWindowHeight = null;
+        app.handleEvent(new CustomEvent('resize'));
+        assert.isTrue(refreshIconStub.calledWith('abc'));
+
+        refreshIconStub.restore();
+        delete app.icons.children;
       });
     });
   });

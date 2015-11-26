@@ -39,7 +39,6 @@ apps/communications/contacts/views/form/js/form_ui.js
 apps/communications/contacts/views/matching/js/matching_ui.js
 apps/communications/dialer/js/mmi.js
 apps/communications/dialer/js/mmi_ui.js
-apps/communications/facebook/js/fb_sync_init.js
 apps/costcontrol/js/common.js
 apps/costcontrol/js/utils/toolkit.js
 apps/costcontrol/test/unit/mock_common.js
@@ -50,7 +49,6 @@ apps/email/js/cards/message_list.js
 apps/email/js/cards/settings_account_credentials.js
 apps/email/js/cards/setup_account_prefs.js
 apps/email/js/model_init.js
-apps/email/js/sync.js
 apps/email/js/toaster.js
 apps/fl/js/utils.js
 apps/homescreen/test/marionette/lib/homescreen.js
@@ -64,11 +62,6 @@ apps/ringtones/js/share.js
 apps/search/js/providers/marketplace.js
 apps/search/js/providers/places.js
 apps/sharedtest/test/unit/l10n/l10n_test.js
-apps/system/fxa/js/fxam_errors.js
-apps/system/fxa/js/screens/fxam_enter_email.js
-apps/system/fxa/js/screens/fxam_enter_password.js
-apps/system/fxa/js/screens/fxam_set_password.js
-apps/system/fxa/js/screens/fxam_signup_success.js
 apps/system/js/accessibility.js
 apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js

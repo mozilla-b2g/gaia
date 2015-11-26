@@ -366,9 +366,10 @@
       // We don't update the state until we set the error.
       this.updateState();
 
-      // If the error is recoverable we go back to the enabled state,
-      // otherwise, we disable Sync.
-      if (SyncRecoverableErrors.indexOf(error) > -1) {
+      var from = event.detail && event.detail.from;
+      // If the error is recoverable and we are coming from the syncing
+      // state, we go back to the enabled state, otherwise, we disable Sync.
+      if (SyncRecoverableErrors.indexOf(error) > -1 && from === 'syncing') {
         Service.request('SyncStateMachine:enable');
         return;
       }

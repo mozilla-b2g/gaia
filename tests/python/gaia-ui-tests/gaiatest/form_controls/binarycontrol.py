@@ -16,6 +16,10 @@ class BinaryControl(Widget):
     def is_checked(self):
         pass
 
+    @abstractproperty
+    def is_enabled(self):
+        pass
+
     @property
     def is_displayed(self):
         return self.root_element.is_displayed()
@@ -28,7 +32,7 @@ class BinaryControl(Widget):
 
     def wait_to_be_ready(self):
         Wait(self.marionette).until(expected.element_displayed(self.root_element))
-        Wait(self.marionette).until(expected.element_enabled(self.root_element))
+        Wait(self.marionette).until(lambda m: self.is_enabled)
 
     def _toggle_and_verify_state(self, final_state):
         self.wait_to_be_ready()
@@ -47,8 +51,16 @@ class GaiaBinaryControl(BinaryControl):
         # Change for a more standard method, once Bug 1113742 lands
         return self.marionette.execute_script('return arguments[0].wrappedJSObject.checked', [self.root_element])
 
+    @property
+    def is_enabled(self):
+        # Change for a more standard method, once Bug 1113742 lands
+        return self.marionette.execute_script('return arguments[0].wrappedJSObject.disabled == false', [self.root_element])
 
 class HtmlBinaryControl(BinaryControl):
     @property
     def is_checked(self):
         return self.root_element.is_selected()
+
+    @property
+    def is_enabled(self):
+        return self.root_element.is_enabled()

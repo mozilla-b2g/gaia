@@ -271,6 +271,9 @@
     // reference to active appWindow instance.
     _activeApp: null,
 
+    // the user is transitioning between apps through edge gestures
+    _sheetTransitioning: false,
+
     // store all alive appWindow instances.
     // note: the id is instanceID instead of origin here.
     _apps: {},
@@ -314,9 +317,13 @@
                   '; next is ' + (appNext ? appNext.url : 'none'));
 
       if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
-        // Do nothing.
-        this.debug('the app has been displayed.');
-        return;
+        if (!appCurrent.isHomescreen) {
+          // Do nothing.
+          this.debug('the app has been displayed.');
+          return;
+        } else if (appCurrent.manifestURL == appNext.manifestURL) {
+          return;
+        }
       }
 
       if (document.mozFullScreen) {
@@ -375,10 +382,11 @@
       this._updateActiveApp(appNext.instanceID);
 
       appNext.ready(function() {
-        if (appNext.isDead()) {
+        if (appNext.isDead() || this._sheetTransitioning) {
           if (!appNext.isHomescreen) {
             // The app was killed while we were opening it,
-            // let's not switch to a dead app!
+            // or we switched via edge gesture to a new app
+            // before fully opening this.
             this._updateActiveApp(appCurrent.instanceID);
             return;
           } else {
@@ -422,6 +430,11 @@
         if (appNext.resized &&
             !this.service.query('match', appNext.width, appNext.height)) {
           this.debug('immediate due to resized');
+          immediateTranstion = true;
+        }
+
+        if (appCurrent && appNext &&
+            appCurrent.isHomescreen && appNext.isHomescreen) {
           immediateTranstion = true;
         }
 
@@ -730,6 +743,7 @@
     },
 
     '_handle_sheets-gesture-begin': function() {
+      this._sheetTransitioning = true;
       if (document.mozFullScreen) {
         document.mozCancelFullScreen();
       }
@@ -738,6 +752,7 @@
     },
 
     '_handle_sheets-gesture-end': function() {
+      this._sheetTransitioning = false;
       // All inactive app window instances need to be aware of this so they
       // can hide the screenshot overlay. The check occurs in the AppWindow.
       this._activeApp && this._activeApp.setVisibleForScreenReader(true);

@@ -199,9 +199,7 @@ suite('system/AppTransitionController', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var stubReviveBrowser = this.sinon.stub(app1, 'reviveBrowser');
-    var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
     acn1.handle_opening();
-    assert.isTrue(stubRequestForeground.calledOnce);
     assert.isTrue(stubReviveBrowser.called);
   });
 
@@ -209,9 +207,7 @@ suite('system/AppTransitionController', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var stubReviveBrowser = this.sinon.stub(app1, 'reviveBrowser');
-    var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
     acn1.handle_opening();
-    assert.isTrue(stubRequestForeground.calledOnce);
     assert.isTrue(stubReviveBrowser.called);
   });
 
@@ -349,6 +345,7 @@ suite('system/AppTransitionController', function() {
   suite('Opened', function() {
     var app1, acn1, stubRequestForeground, stubSetOrientation, stubShow;
     setup(function() {
+      this.sinon.useFakeTimers();
       app1 = new MockAppWindow(fakeAppConfig1);
       acn1 = new AppTransitionController(app1);
       stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
@@ -356,12 +353,25 @@ suite('system/AppTransitionController', function() {
       stubShow = this.sinon.stub(app1, 'show');
       this.sinon.stub(app1, 'reviveBrowser');
     });
+
     test('Handle opened', function() {
       acn1.handle_opened();
       assert.isTrue(stubRequestForeground.calledOnce);
       assert.isTrue(stubShow.called);
       assert.isTrue(stubSetOrientation.called);
       assert.isTrue(app1.reviveBrowser.called);
+    });
+
+    test('Handle opened when the transition is immediate', function() {
+      acn1.currentAnimation = 'immediate';
+      acn1.handle_opened();
+      assert.isTrue(stubShow.called);
+      assert.isTrue(stubSetOrientation.called);
+      assert.isTrue(app1.reviveBrowser.called);
+
+      assert.isFalse(stubRequestForeground.calledOnce);
+      this.sinon.clock.tick();
+      assert.isTrue(stubRequestForeground.calledOnce);
     });
 
     test('Handle opened if the new window is callscreenWindow', function() {

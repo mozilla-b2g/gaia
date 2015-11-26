@@ -524,6 +524,7 @@
 
     if (details.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
+      unlockAudio.mozAudioChannelType = 'system';
       unlockAudio.play();
     }
 
@@ -564,7 +565,7 @@
       // Because 'document.hidden' changes slower than this,
       // so if we depend on that it would create the widget
       // while the screen is off.
-      if (!this.mainScreen.classList.contains('screenoff')) {
+      if (Service.query('screenEnabled')) {
         this.createClockWidget();
       }
       if (document.mozFullScreen) {

@@ -80,5 +80,10 @@ Base.prototype = {
    */
   tapSelectOption: function(name, optionText) {
     this.client.helper.tapSelectOption(this.selectors[name], optionText);
+  },
+
+  tapConfirmButton: function() {
+    this.client.helper.waitForElement(
+      '#settings-confirm-dialog button[type="submit"]').tap();
   }
 };

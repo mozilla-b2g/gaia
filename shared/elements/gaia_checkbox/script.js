@@ -10,6 +10,13 @@ window.GaiaCheckbox = (function(win) {
     '/shared/elements/gaia_checkbox/';
 
   proto.createdCallback = function() {
+
+    // A timestamp of the last click on the checkbox.
+    // We use this to throttle click events to the control.
+    // This is a temporary workaround for bug 1221886.
+    this.lastClick = 0;
+    this.throttleTime = 250;
+
     var shadow = this.createShadowRoot();
     this._template = template.content.cloneNode(true);
 
@@ -18,22 +25,11 @@ window.GaiaCheckbox = (function(win) {
 
     this.configureClass();
 
-    shadow.appendChild(this._template);
-
     this.checked = this.hasAttribute('checked');
     this._wrapper.setAttribute('aria-checked', this.checked);
     this.setAttribute('role', 'presentation');
 
-    // When events are triggered on content nodes, they do not bubble to
-    // our custom element. We add an event listener on our children so we can
-    // intercept the click and, process the state change, and notify listeners.
-    // Platform bug 887541.
-    setTimeout(function nextTick() {
-      var label = this.querySelector('label');
-      if (!label) {
-        return;
-      }
-    }.bind(this));
+    shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
   };
@@ -50,7 +46,14 @@ window.GaiaCheckbox = (function(win) {
     // We add this event listener twice (see above) on both the content and
     // custom element nodes. We need to stop the event propagation to prevent
     // this event from firing against both nodes.
+    e.preventDefault();
     e.stopImmediatePropagation();
+
+    // Workaround for bug 1221886 - throttle clicks if needed.
+    if (this.lastClick + this.throttleTime > Date.now()) {
+      return;
+    }
+    this.lastClick = Date.now();
 
     // Dispatch a click event to any listeners to the app.
     // We should be able to remove this when bug 887541 lands.

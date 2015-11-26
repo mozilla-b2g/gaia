@@ -8,6 +8,7 @@
 /* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_OFFLINE */
 /* global ERROR_UNVERIFIED_ACCOUNT */
+/* global expect */
 /* global loadBodyHTML */
 /* global MockL10n */
 /* global MockMozIntl */
@@ -396,6 +397,13 @@ suite('Firefox Sync panel >', () => {
         this.sinon.assert.calledOnce(spy);
       });
     });
+
+    test('Should have enabled "Get Started" button', () => {
+      expect(subject.elements.login).to.be.an('object');
+      expect(subject.elements.login.getAttribute('data-l10n-id'))
+        .to.equals('fxsync-get-started');
+      expect(subject.elements.login.disabled).to.equals(false);
+    });
   });
 
   suite('onsyncchange "errored"', () => {
@@ -465,6 +473,53 @@ suite('Firefox Sync panel >', () => {
           assert.isNull(subject.elements[element.name]);
         });
       });
+    });
+  });
+
+  suite('onsyncchange "enabling"', () => {
+    var subject;
+
+    var listenerSpies = new Map();
+
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+      setSubjectSpiesAndStubs(subject);
+      setListenerSpies(subject, listenerSpies);
+      subject.onsyncchange({
+        state: 'enabling'
+      });
+    });
+
+    suiteTeardown(() => {
+      subject = null;
+      restoreSubjectSpiesAndStubs();
+      restoreListenerSpies(listenerSpies);
+    });
+
+    test('onsyncchange enabling should show logged out screen', () => {
+      expect(showScreenSpy.calledOnce).to.equals(true);
+      expect(showScreenSpy.getCall(0).args[0]).to.equals(LOGGED_OUT_SCREEN);
+      expect(subject.screens.loggedOut.hidden).to.equals(false);
+      expect(subject.screens.loggedIn.hidden).to.equals(true);
+    });
+
+    test('Logged out screen elements should be defined', () => {
+      LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
+        expect(subject.elements[element.name]).to.be.an('object');
+      });
+    });
+
+    test('Logged in screen elements should NOT be defined', () => {
+      LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
+        expect(subject.elements[element.name]).to.equals(null);
+      });
+    });
+
+    test('Should have disabled "Signing..." button', () => {
+      expect(subject.elements.login).to.be.an('object');
+      expect(subject.elements.login.getAttribute('data-l10n-id'))
+        .to.equals('fxsync-signing');
+      expect(subject.elements.login.disabled).to.equals(true);
     });
   });
 

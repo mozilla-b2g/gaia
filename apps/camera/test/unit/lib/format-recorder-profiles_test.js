@@ -108,61 +108,48 @@ suite('lib/format-recorder-profiles', function() {
           samplerate: 48000,
           channels: 1
         }
-      },
-      'default': {
-        format: 'mp4',
-        video: {
-          codec: 'h264',
-          bitrate: 8000000,
-          framerate: 30,
-          width: 1280,
-          height: 720
-        },
-        audio: {
-          codec: 'aac',
-          bitrate: 96000,
-          samplerate: 48000,
-          channels: 1
-        }
       }
     };
 
-    this.options = this.formatRecorderProfiles(this.profiles);
+    this.profiles.default = this.profiles['720p'];
+
+    this.result = this.formatRecorderProfiles(this.profiles, {
+      exclude: ['high', 'low', 'default']
+    });
   });
 
   test('Should have formatted title string', function() {
-    assert.equal(this.options[0].title, 'default 1280x720');
-    assert.equal(this.options[1].title, 'high 1920x1080');
-    assert.equal(this.options[2].title, '1080p 1920x1080');
-    assert.equal(this.options[3].title, '720p 1280x720');
-  });
+    var items = this.result;
 
-  test('Should start with the default profile if present', function() {
-    assert.equal(this.options[0].key, 'default');
+    assert.equal(items[0].title, '1080p 1920x1080 16:9');
+    assert.equal(items[1].title, '720p 1280x720 16:9');
+    assert.equal(items[2].title, '480p 720x480 3:2');
+    assert.equal(items[3].title, 'cif 352x288 11:9');
   });
 
   test('Should be sorted by pixel count', function() {
-    var first = this.options[1];
-    var last = this.options[this.options.length - 1];
+    var items = this.result;
+    var first = items[0];
+    var last = items[items.length - 1];
 
-    assert.equal(last.key, 'low');
-    assert.equal(first.key, 'high');
+    assert.equal(first.key, '1080p');
+    assert.equal(last.key, 'cif');
   });
 
   test('Should exclude given keys', function() {
     var exclude = ['default', 'low', 'high', 'other'];
-    var options = this.formatRecorderProfiles(this.profiles, { exclude: exclude });
-    var found = options.some(function(item) { return exclude.indexOf(item.key) > -1; });
+    var items = this.formatRecorderProfiles(this.profiles, { exclude: exclude });
+    var found = items.some(function(item) { return exclude.indexOf(item.key) > -1; });
 
     assert.isFalse(found);
-    assert.equal(options.length, 4);
+    assert.equal(items.length, 4);
   });
 
   test('Should store the raw profile', function() {
-    assert.equal(this.options[1].raw, this.profiles.high);
+    assert.equal(this.result[0].raw, this.profiles['1080p']);
   });
 
   test('Should store the `key`', function() {
-    assert.equal(this.options[1].key, 'high');
+    assert.equal(this.result[0].key, '1080p');
   });
 });

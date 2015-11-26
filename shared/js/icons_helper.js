@@ -58,7 +58,7 @@
     }
 
     // Then look for an icon in the Firefox manifest.
-    if (!iconUrl && siteObj.manifest) {
+    if (!iconUrl && siteObj.manifest && siteObj.manifest.icons) {
       iconUrl = getBestIconFromWebManifest({
         icons: _convertToWebManifestIcons(siteObj.manifest,
           siteObj.origin || siteObj.manifest.origin)
@@ -69,7 +69,7 @@
     }
 
     // Otherwise, look into the meta tags.
-    if (!iconUrl && placeObj.icons) {
+    if (!iconUrl && placeObj && placeObj.icons) {
       iconUrl = getBestIconFromMetaTags(placeObj.icons, iconTargetSize);
       if (DEBUG && iconUrl) {
         console.log('Icon from Meta tags');
@@ -162,21 +162,22 @@
    * @returns {Promise}
    */
   function setElementIcon(icon, targetSize) {
-    getIconBlob(icon.bookmark.url, targetSize, icon.bookmark, icon.bookmark)
+    return getIconBlob(icon.bookmark.url, targetSize,
+                       icon.bookmark, icon.bookmark)
       .then(iconObj => {
         if (iconObj.blob) {
           icon.icon = iconObj.blob;
+          return Promise.resolve();
         } else if (icon.bookmark.icon) {
           // We fallback to the bookmark.icon property if no icons were found.
-          fetchIconBlob(icon.bookmark.icon)
+          return fetchIconBlob(icon.bookmark.icon)
             .then(iconBlob => {
               icon.icon = iconBlob;
-            });
+              return Promise.resolve();
+            }, Promise.reject);
         }
-      })
-      .catch((e) => {
-        console.error('The icon image could not be set to the element.', e);
-      });
+        return Promise.reject('No icon data found');
+      }, Promise.reject);
   }
 
   function getBestIconFromWebManifest(webManifest, iconSize) {

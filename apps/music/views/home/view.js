@@ -37,6 +37,7 @@ HomeView.prototype.nonCriticalScripts = [
   '/components/fast-list/fast-list.js',
   '/components/poplar/poplar.js',
   '/components/gaia-component/gaia-component.js',
+  '/components/gaia-text-input/gaia-text-input.js',
   '/components/gaia-fast-list/gaia-fast-list.js',
   '/components/gaia-sub-header/gaia-sub-header.js',
   '/elements/music-search-box.js',
@@ -63,18 +64,21 @@ HomeView.prototype.lazyLoadScripts = function() {
 HomeView.prototype.setupSearch = function() {
   this.searchBox = document.getElementById('search-box');
   this.searchResults = document.getElementById('search-results');
+  this.searchBoxHeight = this.searchBox.HEIGHT + 11;// 10px padding + 1px border
 
   this.searchBox.addEventListener('search', (evt) => this.search(evt.detail));
 
   this.searchResults.addEventListener('open', () => {
     this.client.method('searchOpen');
     document.body.dataset.search = true;
+    document.body.classList.add('search-open');
   });
 
   this.searchResults.addEventListener('close', () => {
     this.client.method('searchClose');
     document.body.dataset.search = false;
-    window.scrollTo(0, this.searchBox.HEIGHT);
+    document.body.classList.remove('search-open');
+    window.scrollTo(0, this.searchBoxHeight);
   });
 
   this.searchResults.addEventListener('resultclick', (evt) => {
@@ -89,7 +93,8 @@ HomeView.prototype.setupSearch = function() {
   });
 
   this.searchResults.getItemImageSrc = (item) => this.getThumbnail(item.name);
-  window.scrollTo(0, this.searchBox.HEIGHT);
+  this.searchBox.hidden = false;
+  window.scrollTo(0, this.searchBoxHeight);
 };
 
 HomeView.prototype.update = function() {
@@ -156,14 +161,14 @@ HomeView.prototype.destroy = function() {
 HomeView.prototype.render = function() {
   View.prototype.render.call(this); // super();
 
-  document.l10n.formatValues(
+  return document.l10n.formatValues(
     'unknownArtist', 'unknownAlbum'
   ).then(([unknownArtist, unknownAlbum]) => {
     var html = [];
 
     this.albums.forEach((album) => {
       var template =
-Sanitizer.createSafeHTML `<a class="tile"
+Sanitizer.createSafeHTML `<a class="tile" dir="auto"
     href="/player"
     data-artist="${album.metadata.artist || unknownArtist}"
     data-album="${album.metadata.album || unknownAlbum}"
@@ -184,6 +189,8 @@ HomeView.prototype.getAlbums = function() {
 };
 
 HomeView.prototype.getThumbnail = function(filePath) {
+  if (!filePath) return;
+
   if (this.thumbnailCache[filePath]) {
     return Promise.resolve(this.thumbnailCache[filePath]);
   }

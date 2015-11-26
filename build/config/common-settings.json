@@ -21,6 +21,8 @@
      "issuer": "Studio",
      "criteria": "achievements/creative-kind"
    }],
+   "addons.auto_update": true,
+   "addons.update_notify": false,
    "alarm.enabled": false,
    "app-transition.enabled": true,
    "app.cards_view.screenshots.enabled": true,
@@ -106,6 +108,7 @@
    "hud.errors": true,
    "hud.security": true,
    "hud.reflows": false,
+   "hud.reflows.duration": 10,
    "hud.jank": false,
    "hud.uss": false,
    "hud.appmemory": false,

@@ -41,12 +41,14 @@
     this._container = options.container;
     this._buttonsClass = options.buttonsClass || 'fte-button';
     this._finishButtonClass = options.finishButtonClass || 'fte-finish';
+    this._skipButtonClass = options.skipButtonClass || 'fte-skip';
     this._pageClass = options.pageClass || 'fte-page';
     this._pageHiddenClass = options.pageHiddenClass || 'hidden';
     this._launchEveryTime = options.launchEveryTime || false;
     this.propagateKeyEvent = options.propagateKeyEvent || false;
     this._simpleKeyNavigation = new SimpleKeyNavigation();
     this._onfinish = options.onfinish;
+    this._onskip = options.onskip;
 
     this._pages =
             Array.from(this._container.getElementsByClassName(this._pageClass));
@@ -56,14 +58,18 @@
                this._container.getElementsByClassName(this._prevButtonClass)[0];
     this._finishButton =
              this._container.getElementsByClassName(this._finishButtonClass)[0];
+    this._skipButton =
+             this._container.getElementsByClassName(this._skipButtonClass)[0];
     this._currentPage = 0;
-
-    this._container.addEventListener('keydown', this);
-    this._container.addEventListener('keyup', this);
 
     // The element list will be updated in this._updateNavigation.
     this._simpleKeyNavigation.start([],
                                      SimpleKeyNavigation.DIRECTION.HORIZONTAL);
+
+    this._container.addEventListener('keydown', this);
+    this._container.addEventListener('keyup', this);
+    this._container.addEventListener('click', this);
+
     this._pages.forEach((page, idx) => this._hide(idx));
     this._show(this._currentPage);
     this._updateNavigation();
@@ -77,6 +83,7 @@
     }
     this._container.removeEventListener('keydown', this);
     this._container.removeEventListener('keyup', this);
+    this._container.removeEventListener('click', this);
     this._simpleKeyNavigation.stop();
     this._simpleKeyNavigation = null;
 
@@ -126,6 +133,25 @@
     });
   };
 
+  /**
+   * Skip applies the same CSS class as finish to close the FTE and
+   * triggers the onskip callback.
+   */
+  FTEWizard.prototype.skip = function fw_skip() {
+    this._container.classList.add('finish');
+
+    attachTransitionEnd(this._container, () => {
+
+      this._hide(this._currentPage);
+      this._container.style.display = 'none';
+      this.uninit();
+      this._launched = true;
+
+      localStorage.setItem(this._name + '.fteskip', true);
+      this._onskip && this._onskip();
+    });
+  };
+
   FTEWizard.prototype.focus = function fw_focus() {
     this._simpleKeyNavigation.focus();
   };
@@ -163,6 +189,10 @@
             case 'finish':
               this.finish();
               break;
+
+            case 'skip':
+              this.skip();
+              break;
           }
         }
         // By default we stop propagating keyevent such that the main logic of
@@ -175,6 +205,10 @@
         // triggered by keydown in smart-screen apps.
         !this.propagateKeyEvent && evt.stopPropagation();
         break;
+      case 'click':
+        // Do forced focus again on mouse click to prevent focus lost problem
+        // when running on devices like PC and phone.
+        this.focus();
     }
   };
 

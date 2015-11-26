@@ -47,6 +47,10 @@ var metadataParser = (function() {
   // Don't try to decode image files of unknown type if bigger than this
   var MAX_UNKNOWN_IMAGE_FILE_SIZE = 0.5 * 1024 * 1024; // half a megabyte
 
+  // If a jpeg does not have a suitable EXIF preview and has more than
+  // this number of pixels, then we create an external preview for it
+  var MAX_PREVIEWLESS_JPEG_SIZE = 5 * 1024 * 1024; // 5 megapixels
+
   // An <img> element for loading images
   var offscreenImage = new Image();
 
@@ -312,24 +316,39 @@ var metadataParser = (function() {
         // facilitate removing #moz-sample-size and using ddd.
         // See bug 1206206.
 
-        if (metadata.type === 'jpeg' &&
-            metadata.width * metadata.height < 5 * 1024 * 1024) {
-          cropResizeRotate(file, null, thumbnailSize, null, metadata,
-                           function gotThumbnail(error, thumbnailBlob) {
-                             if (error) {
-                               var msg = 'Failed to create thumbnail for' +
-                                 file.name;
-                               console.error(msg);
-                               metadataError(msg);
-                               return;
-                             }
+        if (metadata.type === 'jpeg') {
+          if (metadata.width * metadata.height <= MAX_PREVIEWLESS_JPEG_SIZE) {
+            // If the jpeg image isn't too big we don't need a preview
+            // because we can decode it quickly enough at screen size.
+            // So in this case we just need to create a thumbnail.
+            cropResizeRotate(file, null, thumbnailSize, null, metadata,
+                             function gotThumbnail(error, thumbnailBlob) {
+                               if (error) {
+                                 var msg = 'Failed to create thumbnail for' +
+                                   file.name;
+                                 console.error(msg);
+                                 metadataError(msg);
+                                 return;
+                               }
 
-                             metadata.preview = null;
-                             metadata.thumbnail = thumbnailBlob;
-                             metadataCallback(metadata);
-                           });
+                               metadata.preview = null;
+                               metadata.thumbnail = thumbnailBlob;
+                               metadataCallback(metadata);
+                             });
+          }
+          else {
+            // Otherwise, this is a high-resolution jpeg that does not
+            // have an EXIF preview big enough for the screen. We need
+            // to create both a thumbnail and a preview image but we can
+            // do that with efficient downsampling using cropResizeRotate().
+            createJPEGThumbnailAndPreview(file, metadata,
+                                          metadataCallback,
+                                          metadataError);
+          }
         }
         else {
+          // In this case we have no preview and the image is not a jpeg
+          // that can be downsampled with #-moz-samplesize
           createThumbnailAndPreview(file,
                                     metadataCallback,
                                     metadataError,
@@ -398,6 +417,73 @@ var metadataParser = (function() {
         }
       }
     }
+  }
+
+  // This function is called for JPEG images that do not have a suitable
+  // EXIF preview image and that have more than MAX_PREVIEWLESS_JPEG_SIZE
+  // pixels. It creates and saves a preview image and a thumbnail.
+  // Unlike createThumbnailAndPreview(), it uses cropResizeRotate() which
+  // downsamples jpeg images while decoding them to save memory.
+  function createJPEGThumbnailAndPreview(file, metadata,
+                                         metadataCallback, metadataError)
+  {
+
+    // Figure out the preview size.
+    var scale = Math.max(Math.min(sw / metadata.width,
+                                  sh / metadata.height, 1),
+                         Math.min(sh / metadata.width,
+                                  sw / metadata.height, 1));
+    var previewSize = {
+      width: Math.round(metadata.width * scale),
+      height: Math.round(metadata.height * scale)
+    };
+
+    // Create a preview image.
+    // Note that we can't use the full metadata object here
+    // because we don't want the preview image to be rotated.
+    // We want the same orientation as the original image
+    cropResizeRotate(file, null, previewSize, null,
+      { width: metadata.width, height: metadata.height },
+      function gotPreview(error, previewBlob) {
+        if (error) {
+          var msg = 'Failed to create preview for' +
+            file.name;
+          console.error(msg);
+          metadataError(msg);
+          return;
+        }
+
+        // Save this preview to the sdcard
+        savePreview(file, previewBlob, metadataError, function(filename) {
+          // Record the preview image in the metadata
+          metadata.preview = {
+            filename: filename,
+            width: previewSize.width,
+            height: previewSize.height
+          };
+
+          // Now create the thumbnail from this smaller preview image
+          // In this case we need to pass the size of the preview
+          // and the rotation of the original image.
+          cropResizeRotate(previewBlob, null, thumbnailSize, null,
+                           {
+                             width: previewSize.width,
+                             height: previewSize.height,
+                             rotation: metadata.rotation
+                           },
+                           function gotThumbnail(error, thumbnailBlob) {
+                             // If thumbnail creation failed report the error
+                             if (error) {
+                               metadataError(error);
+                               return;
+                             }
+
+                             // Otherwise, remember thumbnail and we're done
+                             metadata.thumbnail = thumbnailBlob;
+                             metadataCallback(metadata);
+                           });
+        });
+      });
   }
 
   // Load an image from a file into an <img> tag, and then use that
@@ -500,58 +586,65 @@ var metadataParser = (function() {
         canvas.toBlob(function(blob) {
           offscreenImage.src = '';
           canvas.width = canvas.height = 0;
-          savePreview(blob);
-        }, 'image/jpeg');
-
-        function savePreview(previewblob) {
-          var storage = navigator.getDeviceStorage('pictures');
-          var filename;
-          if (file.name[0] === '/') {
-            // We expect file.name to be a fully qualified name (perhaps
-            // something like /sdcard/DCIM/100MZLLA/IMG_0001.jpg).
-            var slashIndex = file.name.indexOf('/', 1);
-            if (slashIndex < 0) {
-              error('savePreview: Bad filename: \'' + file.name + '\'');
-              return;
-            }
-            filename =
-              file.name.substring(0, slashIndex) + // storageName (i.e. /sdcard)
-              '/.gallery/previews' +
-              file.name.substring(slashIndex); // rest of path (i,e, /DCIM/...)
-          } else {
-            // On non-composite storage areas (e.g. desktop), file.name will be
-            // a relative path.
-            filename = '.gallery/previews/' + file.name;
-          }
-
-          // Add a '.jpeg' extension to all preview files. This is necessary
-          // because all previews get saved as jpegs even if the original
-          // image is not a jpeg. But DeviceStorage uses the filename extension
-          // to determine the file type.
-          filename += '.jpeg';
-
-          // Delete any existing preview by this name
-          var delreq = storage.delete(filename);
-          delreq.onsuccess = delreq.onerror = save;
-
-          function save() {
-            var savereq = storage.addNamed(previewblob, filename);
-            savereq.onerror = function() {
-              console.error('Could not save preview image', filename);
-            };
-
-            // Don't actually wait for the save to complete. Go start
-            // scanning the next one.
+          savePreview(file, blob, error, function(filename) {
             metadata.preview = {
               filename: filename,
               width: pw,
               height: ph
             };
             callback(metadata);
-          }
-        }
+          });
+        }, 'image/jpeg');
       }
     };
+  }
+
+  // Given an image file and a preview blob for it, this function saves
+  // the preview to a file in .gallery/previews/ and then passes the filename
+  // to the specified callback. Calls errorCallback if an error occurs.
+  // This is used by createThumbnailAndPreview() and by
+  // createJPEGThumbnailAndPreview().
+  function savePreview(file, previewblob, errorCallback, filenameCallback) {
+    var storage = navigator.getDeviceStorage('pictures');
+    var filename;
+    if (file.name[0] === '/') {
+      // We expect file.name to be a fully qualified name (perhaps
+      // something like /sdcard/DCIM/100MZLLA/IMG_0001.jpg).
+      var slashIndex = file.name.indexOf('/', 1);
+      if (slashIndex < 0) {
+        errorCallback('savePreview: Bad filename: \'' + file.name + '\'');
+        return;
+      }
+      filename =
+        file.name.substring(0, slashIndex) + // storageName (i.e. /sdcard)
+
+        '/.gallery/previews' +
+        file.name.substring(slashIndex); // rest of path (i,e, /DCIM/...)
+    } else {
+      // On non-composite storage areas (e.g. desktop), file.name will be
+      // a relative path.
+      filename = '.gallery/previews/' + file.name;
+    }
+
+    // Add a '.jpeg' extension to all preview files. This is necessary
+    // because all previews get saved as jpegs even if the original
+    // image is not a jpeg. But DeviceStorage uses the filename extension
+    // to determine the file type.
+    filename += '.jpeg';
+
+    // Delete any existing preview by this name
+    var delreq = storage.delete(filename);
+    delreq.onsuccess = delreq.onerror = save;
+
+    function save() {
+      var savereq = storage.addNamed(previewblob, filename);
+      savereq.onerror = function() {
+        console.error('Could not save preview image', filename);
+      };
+
+      // Don't actually wait for the save to complete.
+      filenameCallback(filename);
+    }
   }
 
   function videoMetadataParser(file, metadataCallback, errorCallback) {

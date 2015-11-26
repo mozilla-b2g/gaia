@@ -814,11 +814,14 @@ gaia-overflow-menu button#share {
 }
 
 /* Progress */
-.appWindow:not(.bar).collapsible > .chrome gaia-progress,
-.appWindow:not(.fullscreen-app) > .chrome gaia-progress {
+.appWindow.collapsible > .chrome gaia-progress,
+.appWindow.scrollable > .chrome gaia-progress {
   top: 7.3rem;
 }
-.appWindow.popupWindow > .chrome gaia-progress {
+.appWindow.bar > .chrome gaia-progress,
+.appWindow.fullscreen-app > .chrome gaia-progress,
+.appWindow.popupWindow > .chrome gaia-progress,
+.appWindow.trustedWindow > .chrome gaia-progress {
   top: 0;
 }
 

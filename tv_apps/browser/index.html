@@ -44,8 +44,11 @@ ENDIF_FIREFOX_SYNC-->
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/smart-screen/connection_manager.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
+    <script defer src="shared/js/smart-screen/f_t_e_wizard.js"></script>
 
     <!-- Specific code -->
+    <script defer src="js/resource_loader.js"></script>
     <script defer src="js/browser_db.js"></script>
 <!--IFDEF_FIREFOX_SYNC
     <script defer src="js/sync/db.js"></script>
@@ -63,6 +66,7 @@ ENDIF_FIREFOX_SYNC-->
     <script defer src="js/smartList.js"></script>
     <script defer src="js/bookmarkStore.js"></script>
     <script defer src="js/historyStore.js"></script>
+    <script defer src="js/fte.js"></script>
 
     <!-- IAC Handler (put here because it starts sending event immediately) -->
     <script defer src="shared/js/iac_handler.js"></script>
@@ -76,6 +80,10 @@ ENDIF_FIREFOX_SYNC-->
     <!-- <script src="js/sync/ds_helper.js"></script> -->
     <!-- <script src="js/sync/bookmarks.js"></script> -->
     <!-- <script src="js/sync/history.js"></script> -->
+
+    <!-- Lazy loaded Templates -->
+    <!-- <link rel="import" href="elements/fte.html"> -->
+    <!-- <link rel="stylesheet" type="text/css" href="elements/fte.css"> -->
 
   </head>
 
@@ -483,7 +491,7 @@ ENDIF_FIREFOX_SYNC-->
               <ul id="menu-block">
                 <div>
                   <li id="history-block"><a id="history-tab" href="#" data-l10n-id="LT_SE_HISTORY"></a></li>
-                  <li id="pocket-block"><a id="pocket-tab" href="#" data-l10n-id="pocket-list"></a></li>
+                  <li id="pocket-block"><a id="pocket-tab" href="#" data-l10n-id="pocket"></a></li>
                   <li id="private-window-block"><a id="private-window-tab" href="#" data-l10n-id="WB_LT_TIPS_NEW_PRIVATE_WINDOW"></a></li>
 <!--IFDEF_FIREFOX_SYNC
                   <li id="fxsync-block"><a id="fxsync-tab" href="#" data-l10n-id="fxsync-sign-in-to-sync"></a></li>
@@ -733,7 +741,7 @@ ENDIF_FIREFOX_SYNC-->
             <div id="fxsync-enabled" hidden>
               <span id="fxsync-signed-in-as" data-l10n-id="fxsync-signed-in-as"></span>
               <smart-button id="fxsync-sync-now-button" type="rounded-corner-text" data-l10n-id="fxsync-sync-now"></smart-button>
-              <smart-button id="fxsync-sign-out-button" type="rounded-corner-text" data-l10n-id="fxsync-disconnect"></smart-button>
+              <smart-button id="fxsync-sign-out-button" type="rounded-corner-text" data-l10n-id="fxsync-sign-out"></smart-button>
               <ul class="settings-horizontal-list">
                 <li class="settings-horizontal-list-item">
                   <input type="checkbox" id="fxsync-collection-bookmarks" class="settings-list-checkbox"></input>

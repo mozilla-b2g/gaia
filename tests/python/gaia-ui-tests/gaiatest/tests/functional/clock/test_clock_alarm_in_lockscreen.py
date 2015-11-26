@@ -38,7 +38,8 @@ class TestClockAlarmInLockscreen(PasscodeTestCase):
                 return new Date(yr, mth, day, 1, 0, 0).getTime();""")
         self.data_layer.set_time(_seconds_since_epoch)
 
-        new_alarm = self.clock.tap_new_alarm()
+        alarm = self.clock.switch_view('alarm')
+        new_alarm = alarm.tap_new_alarm()
         new_alarm.type_alarm_label(alarm_label_text)
         time_picker = new_alarm.tap_time()
         time_picker.add_minute()
@@ -46,7 +47,7 @@ class TestClockAlarmInLockscreen(PasscodeTestCase):
         self.clock = new_alarm.tap_done()
         self.clock.dismiss_banner()
 
-        self.assertTrue(self.clock.alarms[0].is_alarm_active)
+        self.assertTrue(alarm.alarm_items[0].is_alarm_active)
 
         self.device.lock()
 

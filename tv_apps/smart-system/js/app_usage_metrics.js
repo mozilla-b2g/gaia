@@ -905,15 +905,31 @@
   };
 
   UsageData.prototype.recordInstall = function(app) {
+    var self = this;
     if (!this.shouldTrackApp(app)) {
       return false;
     }
 
+    // If the app manifest is undefined, this means we need to listen to the
+    // downloadsuccess event fired when the download is finished.  The full
+    // manifest will be available on the downloadsuccess.
+    if (typeof app.manifest === 'undefined') {
+      app.addEventListener('downloadsuccess', function onSuccessfulDownload() {
+        app.removeEventListener('downloadsuccess', onSuccessfulDownload);
+        self.incrementInstallRecord(app);
+      });
+      return false;
+    } else {
+      self.incrementInstallRecord(app);
+    }
+    return true;
+  };
+
+  UsageData.prototype.incrementInstallRecord = function(app) {
     var usage = this.getAppUsage(app);
     usage.installs++;
     this.needsSave = true;
     debug(app.manifestURL, 'installed');
-    return true;
   };
 
   UsageData.prototype.recordUninstall = function(app) {

@@ -76,7 +76,7 @@ suite('Browser Dialog >', function() {
          function(done) {
       promise = subject.createDialog('signout_confirm');
       expect(subject.browserDialogMsg.innerHTML)
-        .to.equals('fxsync-confirm-disconnect');
+        .to.equals('fxsync-confirm-sign-out');
       expect(subject.browserDialogButton1.textContent)
         .to.equals('LT_CANCEL');
       expect(subject.browserDialogButton1.dataset.type)
@@ -84,7 +84,7 @@ suite('Browser Dialog >', function() {
       expect(subject.browserDialogButton1.classList.contains('visible'))
         .to.equals(true);
       expect(subject.browserDialogButton2.textContent)
-        .to.equals('fxsync-disconnect');
+        .to.equals('fxsync-sign-out');
       expect(subject.browserDialogButton2.dataset.type)
         .to.equals('signout_confirm');
       expect(subject.browserDialogButton2.classList.contains('visible'))

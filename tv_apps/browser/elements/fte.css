@@ -1,0 +1,57 @@
+.fte-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  text-align: center;
+  z-index: 1000;
+  color: #fff;
+  opacity: 1;
+  transition: opacity 0.5s linear;
+}
+
+.fte-container.finish {
+  opacity: 0;
+}
+
+.fte-page {
+  width: 100%;
+  height: 100%;
+}
+
+.fte-logo {
+  margin: 7.5rem 0 1.5rem 0;
+}
+
+.fte-greeting {
+  margin: 1.5rem 0 8rem 0;
+  line-height: 7rem;
+  font-weight: lighter;
+  font-style: italic;
+  font-size: 7rem;
+}
+
+.fte-description {
+  width: 110rem;
+  margin: 8rem auto 3.5rem auto;
+  font-weight: lighter;
+  font-style: italic;
+  font-size: 3.8rem;
+}
+
+.fte-button-container {
+  position: absolute;
+  bottom: 10.5rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.fte-button-container > smart-button {
+  width: 30.4rem;
+  font-size: 4.5rem;
+}
+
+.fte-button-container > smart-button:first-child {
+  margin-right: 1.8rem;
+}

@@ -18,7 +18,8 @@ class RingTone(Base):
     _ring_tone_locator = (By.CSS_SELECTOR, '#list-parent section > ul > li')
     _set_button_locator = (By.ID, 'set')
     _save_button_locator = (By.ID, 'save')
-    _actions_cancel_locator = (By.CSS_SELECTOR, '[data-l10n-id="actions-cancel"]')
+    _ringtone_actions_shadow_dom_locator = (By.ID, 'ringtone-actions')
+    _actions_cancel_locator = (By.CSS_SELECTOR, '.gaia-menu-cancel button')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -41,7 +42,10 @@ class RingTone(Base):
         GaiaHeader(self.marionette, self._header_locator).go_back(app=self,exit_app=True)
 
     def cancel_share(self):
+        shadow = self.marionette.find_element(*self._ringtone_actions_shadow_dom_locator)
+        self.marionette.switch_to_shadow_root(shadow)
         self.marionette.find_element(*self._actions_cancel_locator).tap()
+        self.marionette.switch_to_shadow_root()
 
     @property
     def ring_tones(self):

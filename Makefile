@@ -88,6 +88,8 @@ GAIA_DEV_PIXELS_PER_PX?=1
 NGA_SERVICE_WORKERS?=0
 FIREFOX_SYNC?=0
 
+-include build/config/$(GAIA_DEVICE_TYPE)/device.mk
+
 # Parallel build for multicores CPU
 P?=1
 
@@ -456,7 +458,7 @@ GAIA_CONCAT_LOCALES?=1
 # This variable is for customizing the keyboard layouts in a build.
 # Include the ID of the layout in this variable will make both the dictionary
 # and the layout included in the package.
-GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
+GAIA_KEYBOARD_LAYOUTS?=en,emoji,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
 # We optionally offers downloading the dictionary from the CDN, instead of
 # including it in the build.
 # Include the ID of the layout in this variable will make it appear in the

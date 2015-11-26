@@ -68,6 +68,14 @@
       if (activeChildSection) {
         activeChildSection.handleMove(direction);
       } else {
+        if (this._handleMove) {
+          var nextElement = this._handleMove(direction);
+          if (nextElement) {
+            if (this._spatialNav.focus(nextElement)) {
+              return;
+            }
+          }
+        }
         if (!this._spatialNav.move(direction)) {
           // If failed to move, re-focus the current one.
           this._spatialNav.focus();

@@ -196,19 +196,19 @@ Camera.prototype.requestCamera = function(camera, config) {
     attempts--;
   }
 
-  function onSuccess(params) {
-    debug('successfully got mozCamera');
+  function onSuccess(result) {
+    debug('successfully got mozCamera', result);
 
     // release camera when press power key
     // as soon as you open a camera app
     if (document.hidden) {
-      self.mozCamera = params.camera;
+      self.mozCamera = result.camera;
       self.release();
       return;
     }
 
-    self.updateConfig(params.configuration);
-    self.setupNewCamera(params.camera);
+    self.updateConfig(result.configuration);
+    self.setupNewCamera(result.camera);
     self.configureFocus();
     self.emit('focusconfigured', {
       mode: self.mozCamera.focusMode,
@@ -294,7 +294,12 @@ Camera.prototype.setupNewCamera = function(mozCamera) {
 
   this.capabilities = this.formatCapabilities(capabilities);
 
-  this.emit('newcamera', this.capabilities);
+  this.emit('newcamera', {
+    capabilities: this.capabilities,
+    pictureSize: this.pictureSize,
+    recorderProfile: this.recorderProfile
+  });
+
   debug('configured new camera');
 };
 

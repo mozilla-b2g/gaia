@@ -65,22 +65,22 @@ div#boxes > div:before {
   z-index: -1;
 }
 
-div#boxes > div:nth-child(0) {
+div#boxes > div:nth-child(1) {
   top: 0;
   left: 0;
 }
 
-div#boxes > div:nth-child(1) {
+div#boxes > div:nth-child(2) {
   top: 0;
   right: 0;
 }
 
-div#boxes > div:nth-child(2) {
+div#boxes > div:nth-child(3) {
   bottom: 0;
   left: 0;
 }
 
-div#boxes > div:nth-child(3) {
+div#boxes > div:nth-child(4) {
   bottom: 0;
   right: 0;
 }

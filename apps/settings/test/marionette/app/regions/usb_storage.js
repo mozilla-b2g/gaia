@@ -16,7 +16,8 @@ function UsbStoragePanel(client) {
 module.exports = UsbStoragePanel;
 
 UsbStoragePanel.Selectors = {
-  'usbEnabledCheckbox': '.ums-switch'
+  'usbEnabledCheckbox': '.ums-switch',
+  'confirmButton': '#settings-confirm-dialog button[type="submit"]'
 };
 
 UsbStoragePanel.prototype = {
@@ -30,6 +31,9 @@ UsbStoragePanel.prototype = {
       .scriptWith(function(el) {
         return el.shadowRoot.querySelector('input[type="checkbox"]').checked;
       });
+  },
+  get isUmsEnabled() {
+    return this.client.settings.get('ums.enabled');
   },
 
   tapUsbEnabledSwitch: function() {

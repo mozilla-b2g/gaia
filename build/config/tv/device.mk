@@ -1,0 +1,1 @@
+FIREFOX_SYNC ?= 0

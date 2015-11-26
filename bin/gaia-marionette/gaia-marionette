@@ -105,7 +105,6 @@ if [ -n "$PART" ] ; then
   # spaces
   echo "$TEST_FILES" | sort > $TEMP_FILE
   TEST_FILES=$(split -n l/$PART/$NBPARTS $TEMP_FILE)
-  echo -e "------- Will run the following test files:\n$TEST_FILES\n-------"
   rm -f $TEMP_FILE
 fi
 
@@ -189,9 +188,14 @@ if [ ! -z $TEST_MANIFEST ]; then
   TEST_FILES="$("$DIR/apply-manifest" $TEST_MANIFEST $TEST_FILES)"
 fi
 
-# We export TEST_FILES here to enable gaia_marionette_retry to self
+# Now that we've applied the manifest we can actually report which tests
+# will get run.
+PRETTY_TEST_FILES=$(echo $TEST_FILES | tr " " "\n" | sort)
+echo -e "------- Will run the following test files:\n$PRETTY_TEST_FILES\n-------"
+
+# We export _RETRY_TEST_FILES here to enable gaia_marionette_retry to self
 # diagnose in the case where we told it to run tests but it ran none.
-export TEST_FILES
+export _RETRY_TEST_FILES=$TEST_FILES
 
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.

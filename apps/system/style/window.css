@@ -104,7 +104,7 @@
 
 @keyframes zoom-in {
   0%   { transform: scale(1); }
-  100% { transform: scale(3); }
+  100% { transform: scale(2); }
 }
 
 @keyframes openAppFromCardView {
@@ -198,16 +198,16 @@ html[dir="rtl"] .appWindow.invoked {
  * transform the frame width/height needs to be < 4096.
  * The size of one side of the frame is equal to
  * devicePixelRatio * frame.[width|height] * scale, and as a result we need
- * to pick a value that fits well for pixel ratio between 1 and 2.
+ * to pick a value that fits well for pixel ratio between 1 and 2.6.
  */
 .appWindow.zoom-out {
-  transform: scale(3);
+  transform: scale(2);
   animation: zoom-out var(--transition-duration) forwards
              cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-out {
-  0%   { transform: scale(3);}
+  0%   { transform: scale(2);}
   100% { transform: scale(1);}
 }
 

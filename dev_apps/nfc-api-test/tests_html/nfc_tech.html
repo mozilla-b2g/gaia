@@ -13,7 +13,7 @@
       <div>
         <h2>Test Description</h2>
         <h5>
-          Tap an NFC tag, then this app will send some raw APDU command to that tag.
+          Tap an NFC tag, then this app will send some raw command to that tag.
         </h5>
       </div>
       <div>
@@ -47,6 +47,27 @@
          <li><b>Max number of keys: </b><span data-type="max-keys"/> </li>
          <li><b>Key Version: </b><span data-type="key-version"/> </li>
        </ul>
+     </div>
+
+     <div id="nfcA-container">
+       <div id="type1-container">
+         <ul>
+           <li><b>Tag type: </b><span data-type="tag-type"/> </li>
+           <li><b>HR0  </b><span data-type="hr0" /> </li>
+           <li><b>HR1  </b><span data-type="hr1" /> </li>
+           <li><b>UID0 </b><span data-type="uid0"/> </li>
+           <li><b>UID1 </b><span data-type="uid1"/> </li>
+           <li><b>UID2 </b><span data-type="uid2"/> </li>
+           <li><b>UID3 </b><span data-type="uid3"/> </li>
+         </ul>
+       </div>
+       <div id="type2-container">
+         <ul>
+           <li><b>Tag type: </b><span data-type="tag-type"/> </li>
+           <li><b>Write to block 5 </b><span data-type="write"/> </li>
+           <li><b>Read blocks 5~8 </b><span data-type="read"/> </li>
+         </ul>
+       </div>
      </div>
     </div>
   </body>

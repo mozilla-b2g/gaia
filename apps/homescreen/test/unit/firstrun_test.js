@@ -130,8 +130,11 @@ suite('FirstRun', () => {
 
     const VERTICALHOME_PREFS = 'vertical_preferences_store';
 
+    const HOMESCREEN_PREFS = 'homescreen_settings';
+
     var realNavigatorDatastores, realConsoleWarn;
-    var itemsDatastore, prefsDatastore, noDatastore;
+    var itemsDatastore, verticalPrefsDatastore, homescreenPrefsDatastore,
+      noDatastore;
 
     setup(() => {
       realNavigatorDatastores = navigator.getDataStores;
@@ -139,14 +142,25 @@ suite('FirstRun', () => {
       noDatastore = false;
       navigator.getDataStores = name => {
         assert.isTrue((name === VERTICALHOME_ITEMS) ||
-                      (name === VERTICALHOME_PREFS));
+                      (name === VERTICALHOME_PREFS) ||
+                      (name === HOMESCREEN_PREFS));
 
-        return Promise.resolve(noDatastore ? [] :
-          (name === VERTICALHOME_ITEMS ? [itemsDatastore] : [prefsDatastore]));
+        if (noDatastore) {
+          return Promise.resolve([]);
+        }
+
+        switch(name) {
+          case VERTICALHOME_ITEMS:
+            return Promise.resolve([itemsDatastore]);
+          case VERTICALHOME_PREFS:
+            return Promise.resolve([verticalPrefsDatastore]);
+          case HOMESCREEN_PREFS:
+            return Promise.resolve([homescreenPrefsDatastore]);
+        }
       };
 
-      // Initialise the two datastores as fake empty datastores
-      itemsDatastore = prefsDatastore = {
+      // Initialise the three datastores as fake empty datastores
+      itemsDatastore = verticalPrefsDatastore = homescreenPrefsDatastore = {
         getLength: () => { return Promise.resolve(0); },
         get: () => { return Promise.reject(); }
       };
@@ -225,7 +239,7 @@ suite('FirstRun', () => {
 
     test('reads column preferences', done => {
       populateItemStore();
-      prefsDatastore.get = pref => {
+      verticalPrefsDatastore.get = pref => {
         return (pref === COLS_PREF) ?
           Promise.resolve(4) : Promise.reject();
       };
@@ -236,6 +250,23 @@ suite('FirstRun', () => {
           assert.isTrue(results.small);
         });
       }, done);
+    });
+
+    test('stores column preference if cols > 3', done => {
+      populateItemStore();
+      verticalPrefsDatastore.get = pref => {
+        return (pref === COLS_PREF) ?
+          Promise.resolve(4) : Promise.reject();
+      };
+      homescreenPrefsDatastore.put = (pref, id) => {
+        done(() => {
+          assert.equal(id, COLS_PREF);
+          assert.equal(pref, 4);
+        });
+        return Promise.resolve();
+      };
+
+      FirstRun().catch(done);
     });
   });
 });

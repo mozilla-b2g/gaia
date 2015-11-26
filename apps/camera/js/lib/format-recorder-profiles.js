@@ -2,6 +2,12 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
+ * Dependencies
+ */
+
+var getAspect = require('./get-aspect');
+
+/**
  * Returns a formatted list of recorder
  * profiles ready to be set as setting options.
  *
@@ -15,47 +21,39 @@ define(function(require, exports, module) {
  */
 module.exports = function(profiles, options) {
   var exclude = options && options.exclude || [];
-  var formatted = [];
-  var pixelSize;
-  var profile;
-  var option;
-  var defaultOption;
-  var video;
+  var items = [];
+  var hash  = {};
 
   for (var key in profiles) {
-    // Bug 1091820 - [Camera] Add hasOwnProperty() check to recorderProfiles
-    // loop
-    if (!profiles.hasOwnProperty(key)) {
-      continue;
-    }
+    if (!profiles.hasOwnProperty(key)) { continue; } // Bug 1091820
 
-    profile = profiles[key];
-    video = profile.video;
+    var profile = profiles[key];
+    var video = profile.video;
+    var sizeKey = video.width + 'x' + video.height;
+
+    // guard against duplicate profiles
+    if (hash[sizeKey]) { continue; }
 
     // Don't include profile if marked as excluded
     if (exclude.indexOf(key) > -1) { continue; }
 
-    pixelSize = video.width * video.height;
+    var pixelSize = video.width * video.height;
+    var aspect = getAspect(video.width, video.height);
 
-    option = {
+    hash[sizeKey] = key;
+
+    items.push({
       key: key,
-      title: key + ' ' + video.width + 'x' + video.height,
+      title: key + ' ' + sizeKey + ' ' + aspect,
       pixelSize: pixelSize,
       raw: profile
-    };
-    if (key === 'default') {
-      defaultOption = option;
-    } else {
-      formatted.push(option);
-    }
+    });
   }
 
   // Sort from largest to small but put the default/preferred profile first
-  formatted.sort(function(a, b) { return b.pixelSize - a.pixelSize; });
-  if (defaultOption) {
-    formatted.unshift(defaultOption);
-  }
-  return formatted;
+  items.sort(function(a, b) { return b.pixelSize - a.pixelSize; });
+
+  return items;
 };
 
 });

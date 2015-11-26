@@ -122,6 +122,12 @@ var FxaModuleEnterPassword = (function() {
         _forgotPassword.bind(this),
         false
       );
+
+      this.fxaForgotPassword.addEventListener('keypress', e => {
+        if (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN) {
+          _forgotPassword.bind(this)();
+        }
+      });
       // Avoid repeated initialization
       this.initialized = true;
     }

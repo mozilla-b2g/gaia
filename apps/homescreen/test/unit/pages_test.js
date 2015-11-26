@@ -397,5 +397,14 @@ suite('Pages', () => {
         assert.isFalse(editModeStub.called);
       });
     });
+
+    suite('resize', () => {
+      test('should call pages.synchronise()', () => {
+        var synchroniseCalled = false;
+        pages.pages.synchronise = () => { synchroniseCalled = true; };
+        pages.handleEvent(new CustomEvent('resize'));
+        assert.isTrue(synchroniseCalled);
+      });
+    });
   });
 });

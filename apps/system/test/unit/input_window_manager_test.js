@@ -332,7 +332,7 @@ suite('InputWindowManager', function() {
       };
 
       ['lockscreen-appopened', 'sheets-gesture-begin',
-        'cardviewbeforeshow'].forEach(evtType => {
+        'cardviewprepare'].forEach(evtType => {
         testForRemoveFocus(evtType);
       });
     });

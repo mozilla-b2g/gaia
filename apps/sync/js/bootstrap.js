@@ -58,13 +58,13 @@ const Bootstrap = (() => {
         (typeof request.keys.kB !== 'string') ||
         (typeof request.collections !== 'object')) {
       return loadErrorConstants().then(() => {
-        return Promise.reject(new Error(ERROR_SYNC_INVALID_REQUEST_OPTIONS));
+        throw new Error(ERROR_SYNC_INVALID_REQUEST_OPTIONS);
       });
     }
 
     if (running) {
       return loadErrorConstants().then(() => {
-        return Promise.reject(new Error(ERROR_SYNC_APP_SYNC_IN_PROGRESS));
+        throw new Error(ERROR_SYNC_APP_SYNC_IN_PROGRESS);
       });
     }
 
@@ -82,7 +82,6 @@ const Bootstrap = (() => {
         adapters: DataAdapters
       });
 
-      // Pending https://bugzilla.mozilla.org/show_bug.cgi?id=1209934
       return syncEngine.syncNow(request.collections);
     }).then(() => {
       running = false;
@@ -119,7 +118,7 @@ const Bootstrap = (() => {
         }).catch(error => {
           sendPortMessage({
             id: request.id,
-            error: error
+            error: { message: error.message }
           });
           window.close();
         });

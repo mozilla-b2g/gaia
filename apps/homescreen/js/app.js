@@ -1,6 +1,5 @@
 /* global MozActivity, HomeMetadata, Datastore, LazyLoader, FirstRun,
           IconsHelper, Settings */
-/* jshint nonew: false */
 'use strict';
 
 (function(exports) {
@@ -122,7 +121,10 @@
       this.exitEditMode();
     });
 
+    // Icon and grid sizing behaviour
     this._iconSize = 0;
+    this.lastWindowWidth = window.innerWidth;
+    this.lastWindowHeight = window.innerHeight;
 
     // Signal handlers
     this.icons.addEventListener('activate', this);
@@ -169,6 +171,7 @@
             return FirstRun().then((results) => {
               this.toggleSmall(results.small);
               this.startupMetadata = results.order;
+              this.settings.small = results.small;
               this.settings.save();
               return Promise.resolve();
             }, (e) => {
@@ -320,6 +323,13 @@
       }
       this.startupMetadata = null;
 
+      // Update icons that we've added from the startup metadata in case their
+      // icons have updated or the icon size has changed.
+      for (var child of this.icons.children) {
+        var icon = child.firstElementChild;
+        this.refreshIcon(icon);
+      }
+
       // Add any applications that aren't in the startup metadata
       var newIcons = false;
       pendingIcons = this.pendingIcons;
@@ -348,10 +358,10 @@
     get iconSize() {
       // If this._iconSize is 0, let's refresh the value.
       if (!this._iconSize) {
-        for (var i = 0, len = this.icons.childNodes.length; i < len; i++) {
-          var container = this.icons.childNodes[i].firstChild;
+        var children = this.icons.children;
+        for (var container of children) {
           if (container.style.display !== 'none') {
-            this._iconSize = container.firstChild.clientWidth;
+            this._iconSize = container.firstElementChild.size;
             break;
           }
         }
@@ -475,7 +485,7 @@
 
       if (appOrBookmark.id) {
         icon.bookmark = appOrBookmark;
-        this.setBookmarkIcon(icon);
+        this.refreshIcon(icon);
       } else {
         icon.app = appOrBookmark;
 
@@ -496,13 +506,7 @@
         handleRoleChange(icon.app, container);
       }
 
-      // Load the cached icon
-      if (entry !== -1) {
-        icon.icon = this.startupMetadata[entry].icon;
-        this.startupMetadata.splice(entry, 1);
-      }
-
-      // Save the refreshed icon
+      // Save the new icon if it gets refreshed.
       this.iconsToRetry.push(id);
       icon.addEventListener('icon-loaded', function(icon, id) {
         if (icon.isUserSet) {
@@ -525,6 +529,18 @@
         });
       }.bind(this, icon, id));
 
+      // Refresh icon image and title
+      icon.size = this.iconSize ? this.iconSize : icon.size;
+      if (entry !== -1) {
+        // Load the cached icon and update name
+        icon.icon = this.startupMetadata[entry].icon;
+        this.startupMetadata.splice(entry, 1);
+        icon.updateName();
+      } else {
+        // Start loading a new icon and update name
+        icon.refresh();
+      }
+
       // Override default launch behaviour
       icon.addEventListener('activated', e => {
         e.preventDefault();
@@ -532,13 +548,24 @@
                            detail: { target: e.target.parentNode },
                            preventDefault: () => {}});
       });
-
-      // Refresh icon data (sets title and refreshes icon)
-      icon.refresh();
     },
 
-    setBookmarkIcon: function(icon) {
-      IconsHelper.setElementIcon(icon, this.iconSize);
+    refreshIcon: function(icon) {
+      icon.size = this.iconSize ? this.iconSize : icon.size;
+      if (icon.bookmark) {
+        IconsHelper.setElementIcon(icon, this.iconSize).then(() => {},
+          e => {
+            console.error('Error refreshing bookmark icon', e);
+
+            // Refreshing a bookmark icon will set the default icon image if
+            // no user icon has been set.
+            if (!icon.isUserSet) {
+              icon.refresh();
+            }
+          });
+      } else {
+        icon.refresh();
+      }
     },
 
     storeAppOrder: function() {
@@ -715,10 +742,20 @@
         }
         navigator.mozApps.mgmt.uninstall(this.selectedIcon.app);
       } else if (this.selectedIcon.bookmark) {
-        new MozActivity({
+        var remove = new MozActivity({
           name: 'remove-bookmark',
           data: { type: 'url', url: this.selectedIcon.bookmark.id }
         });
+
+        // Re-enter edit mode because the activity will hide the document,
+        // which exits edit mode
+        var icon = this.selectedIcon;
+        remove.onsuccess = () => {
+          this.enterEditMode(null);
+        };
+        remove.onerror = () => {
+          this.enterEditMode(icon);
+        };
       }
     },
 
@@ -727,10 +764,17 @@
         return;
       }
 
-      new MozActivity({
+      var rename = new MozActivity({
         name: 'save-bookmark',
         data: { type: 'url', url: this.selectedIcon.bookmark.id }
       });
+
+      // Re-enter edit mode because the activity will hide the document,
+      // which exits edit mode
+      var icon = this.selectedIcon;
+      rename.onsuccess = rename.onerror = () => {
+        this.enterEditMode(icon);
+      };
     },
 
     iconIsEditable: function(icon) {
@@ -775,10 +819,10 @@
     },
 
     enterEditMode: function(icon) {
-      console.debug('Entering edit mode on ' + icon.name);
+      console.debug('Entering edit mode on ' + (icon ? icon.name : 'no icon'));
       this.updateSelectedIcon(icon);
 
-      if (this.editMode || !this.selectedIcon) {
+      if (this.editMode) {
         return;
       }
 
@@ -896,7 +940,7 @@
           // within the panel, we must be dropping over the start or end of
           // the container.
           e.preventDefault();
-          var bottom = e.detail.clientY < window.innerHeight / 2;
+          var bottom = e.detail.clientY < this.lastWindowHeight / 2;
           console.debug('Reordering dragged icon to ' +
                       (bottom ? 'bottom' : 'top'));
           this.icons.reorderChild(e.detail.target,
@@ -924,7 +968,7 @@
       case 'drag-move':
         var inAutoscroll = false;
 
-        if (e.detail.clientY > window.innerHeight - AUTOSCROLL_DISTANCE) {
+        if (e.detail.clientY > this.lastWindowHeight - AUTOSCROLL_DISTANCE) {
           // User is dragging in the lower auto-scroll area
           inAutoscroll = true;
           if (this.autoScrollInterval === null) {
@@ -1034,11 +1078,7 @@
             id = this.getIconId(icon.app ? icon.app : icon.bookmark,
                                 icon.entryPoint);
             if (id === this.iconsToRetry[i]) {
-              if (icon.bookmark) {
-                this.setBookmarkIcon(icon);
-              } else {
-                icon.refresh();
-              }
+              this.refreshIcon(icon);
               break;
             }
           }
@@ -1046,7 +1086,30 @@
         break;
 
       case 'resize':
+        if (this.lastWindowWidth === window.innerWidth &&
+            this.lastWindowHeight === window.innerHeight) {
+          break;
+        }
+
+        this.lastWindowWidth = window.innerWidth;
+        this.lastWindowHeight = window.innerHeight;
+
+        // Reset icon-size
+        var oldIconSize = this.iconSize;
+        this._iconSize = 0;
+
+        // If the icon size has changed, refresh icons
+        if (oldIconSize !== this.iconSize) {
+          for (child of this.icons.children) {
+            icon = child.firstElementChild;
+            this.refreshIcon(icon);
+          }
+        }
+
+        // Re-synchronise icon position
         this.icons.synchronise();
+
+        // Recalculate grid size/snap points
         this.refreshGridSize();
         this.snapScrollPosition();
         break;

@@ -491,28 +491,13 @@ function executeNavigationStep(stepName) {
 }
 
 /**
- * Attach a handler to run the `afterEnter` step after the page is loaded.
- * It uses either the custom event `navigation-transition-end` or the usual
- * `load` event.
- * @returns {Promise} Resolved once afterEnter is run.
+ * Returns promise that is resolved either immediately (non split views) or
+ * only when Navigation is marked as ready (split views).
+ * @returns {Promise.<void>}
  */
-function attachAfterEnterHandler() {
-  if (document.readyState === 'complete') {
-    return executeNavigationStep('afterEnter').catch(catchStepError);
-  }
-
-  var defer = Utils.Promise.defer();
-
-  function onNavigationEnd() {
-    window.removeEventListener('navigation-transition-end', onNavigationEnd);
-    window.removeEventListener('load', onNavigationEnd);
-    defer.resolve(executeNavigationStep('afterEnter'));
-  }
-
-  window.addEventListener('navigation-transition-end', onNavigationEnd);
-  window.addEventListener('load', onNavigationEnd); // simulate navigation end
-
-  return defer.promise.catch(catchStepError);
+function waitForThePanelToBeReady() {
+  return isUsingOldArchitecture() || !readyDefer ?
+    Promise.resolve() : readyDefer.promise;
 }
 
 /**
@@ -823,7 +808,9 @@ var Navigation = {
     ).then(
       switchPanel
     ).then(
-      attachAfterEnterHandler
+      waitForThePanelToBeReady
+    ).then(
+      () => executeNavigationStep('afterEnter').catch(catchStepError)
     ).then(
       endNavigation
     ).then(

@@ -76,8 +76,6 @@ marionette('Music player search', function() {
     var search = client.findElement('music-search-results');
     assert.ok(search);
 
-    client.switchToShadowRoot(search);
-
     var results = client.helper.waitForElement('#list');
     assert.ok(results);
 
@@ -91,25 +89,20 @@ marionette('Music player search', function() {
     // since we display the count, just get it.
     //var count = results.findElement('.search-result-count').text();
 
-    var resultsList = results.findElements('li');
-    assert.ok(resultsList);
 
-    // detect inconsistency.
-    assert.equal(resultsList.length, expectedCount);
     // XXX when the count is back
     // check what we expect.
     //    assert.equal(count, expectedCount);
 
-    client.switchToShadowRoot();
-
     var resultsData = client.executeScript(
       'var parse = ' + music.parseListItemsData.toString() + '\n' +
       'var search = document.querySelector(\'music-search-results\');\n' +
-      'var list = search.shadowRoot.getElementById(\'list\');\n' +
-      'var elements = list.querySelectorAll(\'a\');\n' +
+      'var elements = search.querySelectorAll(\'a\');\n' +
       'return parse(elements);\n'
     );
 
+    // detect inconsistency.
+    assert.equal(resultsData.length, expectedCount);
     music.switchToMe();
     return resultsData;
   }
@@ -139,6 +132,8 @@ marionette('Music player search', function() {
         assert.equal(resultsList[2].title, 'The Ecuadorian Embassy');
         assert.equal(resultsList[2].section, 'songs');
 
+        music.searchTiles(' n');
+        resultsList = testSearchResults(1);
       } catch(e) {
         assert.ok(false, e.stack);
       }
@@ -158,8 +153,6 @@ marionette('Music player search', function() {
         var search = client.findElement('music-search-results');
         assert.ok(search);
 
-        client.switchToShadowRoot(search);
-
         // ensure that we get the properly localized string.
         var noResultString = client.executeAsyncScript(function () {
           window.wrappedJSObject.document.l10n.formatValue('search-no-result').
@@ -168,7 +161,6 @@ marionette('Music player search', function() {
             });
         });
 
-        client.switchToShadowRoot();
         music.switchToMe();
 
         assert.equal(resultsList[0].title, noResultString);

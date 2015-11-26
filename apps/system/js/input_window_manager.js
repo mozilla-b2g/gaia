@@ -129,7 +129,7 @@
     window.addEventListener('notification-clicked', this);
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('sheets-gesture-begin', this);
-    window.addEventListener('cardviewbeforeshow', this);
+    window.addEventListener('cardviewprepare', this);
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('mozmemorypressure', this);
     Service.registerState('getHeight', this);
@@ -160,7 +160,7 @@
     window.removeEventListener('notification-clicked', this);
     window.removeEventListener('applicationsetupdialogshow', this);
     window.removeEventListener('sheets-gesture-begin', this);
-    window.removeEventListener('cardviewbeforeshow', this);
+    window.removeEventListener('cardviewprepare', this);
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('mozmemorypressure', this);
   };
@@ -259,7 +259,7 @@
         break;
       case 'lockscreen-appopened':
       case 'sheets-gesture-begin':
-      case 'cardviewbeforeshow':
+      case 'cardviewprepare':
         if (this._hasActiveInputApp()) {
           // Instead of hideInputWindow(), we should removeFocus() here.
           // (and removing the focus cause Gecko to ask us to hideInputWindow())

@@ -10,7 +10,7 @@ proto.createdCallback = function() {
 
   this.querySelector('style').innerHTML +=
 `music-tab-bar {
-  background-color: #000;
+  background-color: var(--background-minus);
   position: absolute;
   bottom: 0;
   left: 0;

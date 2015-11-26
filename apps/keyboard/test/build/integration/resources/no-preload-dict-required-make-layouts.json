@@ -237,6 +237,16 @@
     "dictFilePath": "dictionaries/el.dict"
   },
   {
+    "id": "emoji",
+    "name": "Emoji",
+    "preloaded": true,
+    "types": [
+      "email",
+      "text",
+      "url"
+    ]
+  },
+  {
     "id": "en",
     "name": "English",
     "imEngineId": "latin",

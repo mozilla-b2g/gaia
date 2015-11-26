@@ -36,30 +36,29 @@ marionette('Text selection >', function() {
       });
 
       test('short cut test', function(done) {
+        // Store caret position.
         fakeTextselectionApp.longPress('FunctionalitySourceInput');
-
-        // store caret position
         var caretPositionOfSourceInput =
           fakeTextselectionApp.FunctionalitySourceInput
           .selectionHelper.selectionLocationHelper();
 
-        // add a tap to avoid two successive calls of longpress,
-        // which has a possibility to change the selection range.
-        // See Bug 1159601
-        fakeTextselectionApp.FunctionalityTargetInput.tap();
+        // Test shortcut visibility after copying something.
         fakeTextselectionApp.copy('FunctionalitySourceInput');
-
-        fakeTextselectionApp.FunctionalitySourceInput.tap();
+        fakeTextselectionApp.FunctionalityTargetInput.tap();
         assert.ok(fakeTextselectionApp.bubbleVisiblity,
           'bubble should show since we have copied sth before');
-        fakeTextselectionApp.paste('FunctionalitySourceInput');
 
+        // Wait for CUT_OR_COPIED_TIMEOUT, so that next single tap
+        // won't wake shortcut anymore.
+        client.helper.wait(15000);
+
+        // Test shortcut visibility when tapping one of the carets
         fakeTextselectionApp.textSelection.startCountVisibilityChanged();
         client.helper.wait(500);
         action.tap(
           fakeTextselectionApp.FunctionalitySourceInput,
           caretPositionOfSourceInput.caretA.x,
-          caretPositionOfSourceInput.caretA.y).wait(1)
+          caretPositionOfSourceInput.caretA.y)
         .press(fakeTextselectionApp.FunctionalitySourceInput,
           caretPositionOfSourceInput.caretA.x,
           caretPositionOfSourceInput.caretA.y + 15)
@@ -119,8 +118,16 @@ marionette('Text selection >', function() {
       setup(function() {
         fakeTextselectionApp.setTestFrame('dialogposition');
       });
+
+      function waitForKeyboard() {
+        client.switchToFrame();
+        system.waitForKeyboard();
+        client.apps.switchToApp(FakeTextSelectionApp.ORIGIN);
+      }
+
       test('click center input', function() {
         fakeTextselectionApp.longPress('DialogPositionCenterInput');
+        waitForKeyboard();
 
         assert.ok(
           fakeTextselectionApp.textSelection.location.y <
@@ -131,6 +138,7 @@ marionette('Text selection >', function() {
 
       test('click top-left input', function() {
         fakeTextselectionApp.longPress('DialogPositionTopLeftInput');
+        waitForKeyboard();
         var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
         assert.ok(
@@ -146,6 +154,7 @@ marionette('Text selection >', function() {
 
       test('click top-right input', function() {
         fakeTextselectionApp.longPress('DialogPositionTopRightInput');
+        waitForKeyboard();
         var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
         assert.ok(
@@ -162,6 +171,7 @@ marionette('Text selection >', function() {
 
       test('click bottom-left input', function() {
         fakeTextselectionApp.longPress('DialogPositionBottomLeftInput');
+        waitForKeyboard();
         var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
         assert.ok(
@@ -177,6 +187,7 @@ marionette('Text selection >', function() {
 
       test('click bottom-right input', function() {
         fakeTextselectionApp.longPress('DialogPositionBottomRightInput');
+        waitForKeyboard();
         var textSelectionLocation = fakeTextselectionApp.textSelection.location;
 
         assert.ok(

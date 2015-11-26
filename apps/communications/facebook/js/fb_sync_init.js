@@ -1,3 +1,5 @@
+/* globals NotificationHelper */
+
 'use strict';
 
 var fb = window.fb || {};
@@ -9,7 +11,6 @@ fb.sync = Sync;
 
   var ALARM_ID_KEY = fb.utils.ALARM_ID_KEY;
   var isSyncOngoing = false;
-  var _ = navigator.mozL10n.get;
 
   // This is the amount of hours to wait to retry a sync operation
   var DEFAULT_RETRY_PERIOD = 1;
@@ -71,8 +72,8 @@ fb.sync = Sync;
         // A new alarm is not set. It will be set once the user
         // logs in Facebook one more time
         showNotification({
-          title: _('facebook'),
-          body: _('notificationLogin'),
+          title: 'facebook',
+          body: 'notificationLogin',
           iconURL: FB_TRAY_ICON + '?' + FB_SYNC_ERROR_PARAM + '=1',
           callback: handleInvalidToken
         });
@@ -87,8 +88,8 @@ fb.sync = Sync;
         window.console.error('Error reported in synchronization: ',
                              JSON.stringify(theError));
         showNotification({
-          title: _('facebook'),
-          body: _('syncError'),
+          title: 'facebook',
+          body: 'syncError',
           iconURL: FB_TRAY_ICON + '?' + FB_SYNC_ERROR_PARAM + '=1',
           callback: function() {
             scheduleAt(fb.syncPeriod, closeApp);
@@ -245,11 +246,13 @@ fb.sync = Sync;
       };
 
       /*jshint unused:false*/
-      var notification = new Notification(params.title, options);
+      NotificationHelper.send(params.title, options)
+        .then(notification => {
+          if (typeof params.callback === 'function') {
+            params.callback();
+          }
+      });
 
-      if (typeof params.callback === 'function') {
-        params.callback();
-      }
     };
   }
 

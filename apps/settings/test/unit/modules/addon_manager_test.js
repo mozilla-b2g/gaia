@@ -1,7 +1,5 @@
 'use strict';
 
-require('/shared/js/addons/match_pattern.js');
-
 suite('addons manager test > ', function() {
   var realMozActivity;
 
@@ -534,7 +532,7 @@ suite('addons manager test > ', function() {
           .notify(done);
     });
 
-    test('does returns certified+privileged apps for privileged addons',
+    test('does returns certified + privileged apps for privileged addons',
       function(done) {
         var wrappedAddon = MockApp(privilegedAddon);
         assert.becomes(AddonManager.getAddonTargets(wrappedAddon),

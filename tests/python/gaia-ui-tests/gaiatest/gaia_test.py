@@ -646,7 +646,7 @@ class GaiaDevice(object):
     @property
     def is_android_build(self):
         if self.testvars.get('is_android_build') is None:
-            self.testvars['is_android_build'] = 'android' in self.marionette.session_capabilities['platformName'].lower()
+            self.testvars['is_android_build'] = 'boot2gecko' in self.marionette.session_capabilities['platformName'].lower()
         return self.testvars['is_android_build']
 
     @property
@@ -850,10 +850,6 @@ class GaiaDevice(object):
               console.log("Changing orientation to '" + arguments[1] + "'.");
               window.screen.mozLockOrientation(arguments[1]);
             };""", script_args=[self.screen_orientation, orientation])
-
-    @property
-    def screen_width(self):
-        return self.marionette.execute_script('return window.screen.width')
 
     @property
     def screen_orientation(self):
