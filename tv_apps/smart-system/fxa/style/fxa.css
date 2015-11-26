@@ -338,10 +338,19 @@ gaia-header {
 
 #fxa-notice #fxa-terms,
 #fxa-notice #fxa-privacy {
-  text-decoration: none;
-  color: inherit;
+  text-decoration: underline;
   cursor: unset;
-  pointer-events: none;
+  transition-property: color;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.42s;
+  display: inline-block;
+}
+
+#fxa-notice #fxa-terms:hover,
+#fxa-notice #fxa-terms:focus,
+#fxa-notice #fxa-privacy:hover,
+#fxa-notice #fxa-privacy:focus {
+  color: #00caf2;
 }
 
 /*
