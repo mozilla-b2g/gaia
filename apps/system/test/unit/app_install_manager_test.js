@@ -814,7 +814,9 @@ suite('system/AppInstallManager >', function() {
           'INSTALL_FROM_DENIED': 'app-install-install-failed',
           'INVALID_SECURITY_LEVEL': 'app-install-install-failed',
           'INVALID_PACKAGE': 'app-install-install-failed',
-          'APP_CACHE_DOWNLOAD_ERROR': 'app-install-download-failed'
+          'APP_CACHE_DOWNLOAD_ERROR': 'app-install-download-failed',
+          'DOWNLOAD_CANCELED':'app-install-download-canceled'
+
         };
 
         Object.keys(knownErrors).forEach(specificDownloadErrorSuite);
