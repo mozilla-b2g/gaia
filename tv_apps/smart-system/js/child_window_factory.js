@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow, SettingsCache,
+/* global AppWindow, PopupWindow, ActivityWindow, PreviewWindow, SettingsCache,
           AttentionWindow, MozActivity, focusManager */
 
 (function(exports) {
@@ -36,6 +36,8 @@
     this.app.element.addEventListener('mozbrowseropenwindow', this);
     this.app.element.addEventListener('_launchactivity',
       this.createActivityWindow.bind(this));
+    this.app.element.addEventListener('_launchpreviewapp',
+      this.createPreviewWindow.bind(this));
   };
 
   ChildWindowFactory.prototype.handleEvent =
@@ -127,6 +129,25 @@
       rearWindow: this.app
     };
     var childWindow = new PopupWindow(configObject);
+    childWindow.element.addEventListener('_closing', this);
+    childWindow.open();
+    return true;
+  };
+
+  ChildWindowFactory.prototype.createPreviewWindow = function(evt) {
+    if (this.app.frontWindow &&
+        (this.app.frontWindow.isTransitioning() ||
+          this.app.frontWindow.isActive())) {
+      // XXX should we show a hint to tell user we can't preview at this moment?
+      return false;
+    }
+    var configObject = {
+      url: evt.detail.url,
+      origin: evt.detail.origin,
+      manifestURL: evt.detail.manifestURL,
+      rearWindow: this.app
+    };
+    var childWindow = new PreviewWindow(configObject);
     childWindow.element.addEventListener('_closing', this);
     childWindow.open();
     return true;

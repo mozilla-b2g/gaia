@@ -9,6 +9,8 @@
 /* global Template */
 /* global focusManager */
 /* global AppInstallDialogs */
+/* global AppWindowManager */
+/* global applications */
 
 'use strict';
 
@@ -43,15 +45,33 @@ var AppInstallManager = {
     this.appInfos = {};
     this.setupQueue = [];
     this.isSetupInProgress = false;
-    window.addEventListener('mozChromeEvent',
-      (function ai_handleChromeEvent(e) {
-      if (e.detail.type == 'webapps-ask-install') {
-        this.handleAppInstallPrompt(e.detail);
+
+    window.addEventListener('mozChromeEvent', (evt) => {
+      var detail = evt.detail;
+      switch (detail.type) {
+        case 'webapps-ask-install':
+          if (this.isMarketplaceAppActive()) {
+            if (this.getPreviewAppManifestURL()) {
+              // Deny the install request if there's already a preview window.
+              this.dispatchResponse(detail.id, 'webapps-install-denied');
+            } else {
+              this.dispatchResponse(detail.id, 'webapps-install-granted');
+              this.setPreviewAppManifestURL(detail.app.manifestURL);
+            }
+          } else {
+            this.handleAppInstallPrompt(detail);
+          }
+          break;
+        case 'webapps-ask-uninstall':
+          if (this.getPreviewAppManifestURL() === detail.app.manifestURL) {
+            this.dispatchResponse(detail.id, 'webapps-uninstall-granted');
+            this.setPreviewAppManifestURL('');
+          } else {
+            this.handleAppUninstallPrompt(detail);
+          }
+          break;
       }
-      if (e.detail.type == 'webapps-ask-uninstall') {
-        this.handleAppUninstallPrompt(e.detail);
-      }
-    }).bind(this));
+    });
 
     window.addEventListener('applicationinstall',
       this.handleApplicationInstall.bind(this));
@@ -81,6 +101,13 @@ var AppInstallManager = {
     window.addEventListener('home', this.hideAllDialogs.bind(this));
   },
 
+  isMarketplaceAppActive: function ai_isMarketplaceAppActive() {
+    const MARKETPLACE_DOMAIN = 'https://marketplace.firefox.com/';
+
+    var activeApp = AppWindowManager.getActiveApp();
+    return activeApp && activeApp.manifestURL.startsWith(MARKETPLACE_DOMAIN);
+  },
+
   hideAllDialogs: function ai_hideAllDialogs(e) {
     this.appInstallDialogs.hideAll();
     if (this.imeLayoutDialog.classList.contains('visible')) {
@@ -99,6 +126,10 @@ var AppInstallManager = {
       .filter(function(key) { return apps[key].installState === 'pending'; })
       .map(function(key) { return apps[key]; })
       .forEach(this.prepareForDownload, this);
+
+    // Uninstall the previously-previewed app in case TV is turned off during
+    // the preview stage last time.
+    this.uninstallPreviewApp();
   },
 
   // start of app install
@@ -292,6 +323,56 @@ var AppInstallManager = {
     app.onprogress = this.handleProgress;
   },
 
+  previewApp: function ai_previewApp(app) {
+    if (!this.isMarketplaceAppActive()) {
+      this.uninstallPreviewApp();
+      return;
+    }
+
+    var marketplaceApp = AppWindowManager.getActiveApp();
+    var manifestURL = app.manifestURL;
+    var appURL = app.origin + app.manifest.launch_path;
+
+    var handlePreviewOpened = () => {
+      window.removeEventListener('previewopened', handlePreviewOpened);
+      this.systemBanner.show({
+        id: 'preview-app-hint'
+      });
+    };
+
+    var handlePreviewTerminated = () => {
+      window.removeEventListener('previewterminated', handlePreviewTerminated);
+      this.uninstallPreviewApp();
+    };
+
+    window.addEventListener('previewopened', handlePreviewOpened);
+    window.addEventListener('previewterminated', handlePreviewTerminated);
+
+    marketplaceApp.publish('launchpreviewapp', {
+      url: appURL,
+      origin: app.origin,
+      manifestURL: manifestURL
+    });
+  },
+
+  getPreviewAppManifestURL: function() {
+    return localStorage.getItem('preview-app');
+  },
+
+  setPreviewAppManifestURL: function(manifestURL) {
+    localStorage.setItem('preview-app', manifestURL);
+  },
+
+  uninstallPreviewApp: function() {
+    var previewAppManifestURL = this.getPreviewAppManifestURL();
+    if (previewAppManifestURL) {
+      var app = applications.getByManifestURL(previewAppManifestURL);
+      if (app) {
+        navigator.mozApps.mgmt.uninstall(app);
+      }
+    }
+  },
+
   handleInstallSuccess: function ai_handleInstallSuccess(app) {
     var manifest = app.manifest || app.updateManifest;
     var role = manifest.role;
@@ -300,6 +381,11 @@ var AppInstallManager = {
     // if the feature is not enabled.
     if (role === 'input' && !KeyboardManager.isOutOfProcessEnabled) {
       navigator.mozApps.mgmt.uninstall(app);
+      return;
+    }
+
+    if (app.manifestURL === this.getPreviewAppManifestURL()) {
+      this.previewApp(app);
       return;
     }
 
