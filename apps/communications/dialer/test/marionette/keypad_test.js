@@ -102,7 +102,7 @@ marionette('Dialer > Keypad', function() {
     var number = subject.client.findElement(selectors.phoneNumber);
     assert.equal(number.getAttribute('value'), '123');
     var reflowCount = reflowHelper.getCount();
-    assert.equal(reflowCount, 3);
+    assert.equal(reflowCount, 0);
     reflowHelper.stopTracking();
   });
 
