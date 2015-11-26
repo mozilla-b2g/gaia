@@ -1,10 +1,12 @@
 'use strict';
 var Settings = require('../app/app'),
+    Lockscreen = require('../../../../system/test/marionette/lib/lockscreen'),
     assert = require('assert');
 
 marionette('manipulate screenLock settings', function() {
   var client = marionette.client();
   var settingsApp;
+  var lockscreenApp;
   var screenLockPanel;
 
   setup(function() {
@@ -235,5 +237,23 @@ marionette('manipulate screenLock settings', function() {
         'screenlock is not enabled');
       assert.ok(!screenLockPanel.isScreenLockChecked(),
         'screenlock is not checked');
+  });
+
+  test('passcode is enabled, device locked, and we want to unlock by slider',
+    function() {
+      var code = '1337';
+      screenLockPanel.toggleScreenLock();
+      screenLockPanel.togglePasscodeLock();
+      screenLockPanel.typePasscode(code, code);
+      screenLockPanel.tapCreatePasscode();
+
+      lockscreenApp = (new Lockscreen()).start(client);
+      lockscreenApp.lock();
+      lockscreenApp.slideToUnlock();
+      lockscreenApp.typePasscode(code);
+
+      settingsApp.switchTo();
+      assert.ok(screenLockPanel.isScreenLockHeaderLabelVisible(),
+        'has not returned to settings panel');
   });
 });
