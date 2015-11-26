@@ -22,9 +22,9 @@ require('/shared/js/sync/errors.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
+requireApp('sync/js/adapters/datastore-based.js');
+window.DataAdapters = {}; // needs to be done before loading the DataAdapter.
 requireApp('sync/js/adapters/bookmarks.js');
-
-window.DataAdapters = {};
 
 suite('sync/adapters/bookmarks >', function() {
   var realDatastore, realLazyLoader, realAsyncStorage, testCollectionData;

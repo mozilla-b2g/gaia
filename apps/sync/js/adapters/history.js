@@ -21,17 +21,17 @@
 
 /* global
   asyncStorage,
-  DataAdapters,
   ERROR_SYNC_APP_RACE_CONDITION,
   LazyLoader,
-  placesModel
+  placesModel,
+  RegisterDataAdapter
 */
 
 const HISTORY_COLLECTION_MTIME = '::collections::history::mtime';
 const HISTORY_LAST_REVISIONID = '::collections::history::revisionid';
 const HISTORY_SYNCTOID_PREFIX = '::synctoid::history::';
 
-var HistoryHelper = (() => {
+RegisterDataAdapter('history', (() => {
   /* SyncedCollectionMTime is the time of the last successful sync run.
    * Subsequent sync runs will not check any records from the Kinto collection
    * that have not been modified since then. This value is stored separately for
@@ -143,6 +143,41 @@ var HistoryHelper = (() => {
     });
   }
 
+  function updateRecord(payload, userid) {
+    if (payload.deleted) {
+      return deletePlace(payload.id, userid);
+    }
+
+    if (!payload.histUri || !payload.visits) {
+      console.warn('Incorrect payload?', payload);
+      return Promise.resolve();
+    }
+
+    return LazyLoader.load(['shared/js/places_model.js']).then(() => {
+      if (payload.histUri && Array.isArray(payload.visits) &&
+          payload.visits.length === 0) {
+        return placesModel.deleteByDataStoreId(payload.histUri);
+      }
+
+      return placesModel.addPlace({
+        url: payload.histUri,
+        title: payload.title,
+        visits: payload.visits.map(elem => Math.floor(elem.date / 1000)),
+        fxsyncId: payload.id
+      }, userid).then(() => {
+        return setDataStoreId(payload.id, payload.histUri, userid);
+      }).catch(e => {
+        if (e.name === 'ConstraintError' &&
+            e.message === 'RevisionId is not up-to-date') {
+          return LazyLoader.load(['shared/js/sync/errors.js']).then(() => {
+            throw new Error(ERROR_SYNC_APP_RACE_CONDITION);
+          });
+        }
+        console.error(e);
+      });
+    });
+  }
+
   function reset(userid) {
     return Promise.all([
       removeSyncedCollectionMtime(userid),
@@ -153,21 +188,13 @@ var HistoryHelper = (() => {
   return {
     setSyncedCollectionMtime,
     getSyncedCollectionMtime,
-    setDataStoreId,
-    deletePlace,
     handleClear,
+    updateRecord,
     reset
   };
-})();
+})());
 
-DataAdapters.history = {
 /**
-    KintoCollection.list() provides a list containing all the remotely retrieved
-  Firefox Sync records sorted by "last_modified" property in descending order.
-  After each sync request we save the "last_modified" property of the last
-  processed record so we avoid going through the same records on following
-  operations.
-
     History records are stored locally in a DataStore with format [1] while
   history records coming from Firefox Sync (via Kinto collection) have
   format[2]. We need to convert from [1] to [2] and viceversa. Also, we need to
@@ -221,106 +248,3 @@ DataAdapters.history = {
     "_status": "synced"
   }
 **/
-
-  _updatePlace(payload, userid) {
-    if (payload.deleted) {
-      return HistoryHelper.deletePlace(payload.id, userid);
-    }
-
-    if (!payload.histUri || !payload.visits) {
-      console.warn('Incorrect payload?', payload);
-      return Promise.resolve();
-    }
-
-    if (payload.histUri && Array.isArray(payload.visits) &&
-        payload.visits.length === 0) {
-      return placesModel.deleteByDataStoreId(payload.histUri);
-    }
-
-    return placesModel.addPlace({
-      url: payload.histUri,
-      title: payload.title,
-      visits: payload.visits.map(elem => Math.floor(elem.date / 1000)),
-      fxsyncId: payload.id
-    }, userid).then(() => {
-      return HistoryHelper.setDataStoreId(payload.id, payload.histUri, userid);
-    }).catch(e => {
-      if (e.name === 'ConstraintError' &&
-          e.message === 'RevisionId is not up-to-date') {
-        return LazyLoader.load(['shared/js/sync/errors.js']).then(() => {
-          throw new Error(ERROR_SYNC_APP_RACE_CONDITION);
-        });
-      }
-      console.error(e);
-    });
-  },
-
-  _next(remoteRecords, lastModifiedTime, userid, cursor) {
-    if (cursor === remoteRecords.length) {
-      return Promise.resolve();
-    }
-    if (!Number.isInteger(remoteRecords[cursor].last_modified)) {
-      console.warn('Incorrect last_modified?', remoteRecords[cursor]);
-      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
-    }
-    if (remoteRecords[cursor].last_modified <= lastModifiedTime) {
-      return Promise.resolve();
-    }
-
-    return this._updatePlace(remoteRecords[cursor].payload, userid)
-        .then(() => {
-      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
-    });
-  },
-
-  update(remoteHistory, options = { readonly: true }) {
-    if (!options.readonly) {
-      console.warn('Two-way sync not implemented yet for history.');
-    }
-    var mtime;
-    return LazyLoader.load([
-      'shared/js/async_storage.js',
-      'shared/js/places_model.js'
-    ]).then(() => {
-      // We iterate over the records in the Kinto collection until we find a
-      // record whose last modified time is older than the time of the last
-      // successful sync run. However, if the DataStore has been cleared, or
-      // records have been removed from the DataStore since the last sync run,
-      // we cannot be sure that all older records are still there. So in both
-      // those cases we remove the SyncedCollectionMtime from AsyncStorage, so
-      // that this sync run will iterate over all the records in the Kinto
-      // collection, and not only over the ones that were recently modified.
-      return HistoryHelper.handleClear(options.userid);
-    }).then(() => {
-      return HistoryHelper.getSyncedCollectionMtime(options.userid);
-    }).then(_mtime => {
-      mtime = _mtime;
-      return remoteHistory.list();
-    }).then(list => {
-      return this._next(list.data, mtime, options.userid, 0).then(() => {
-        if (list.data.length === 0) {
-          return Promise.resolve();
-        }
-        var latestMtime = list.data[0].last_modified;
-        return HistoryHelper.setSyncedCollectionMtime(latestMtime,
-            options.userid);
-      }).then(() => {
-       // Always return false for a read-only operation.
-       return Promise.resolve(false);
-     });
-    }).catch(err => {
-      console.error('History DataAdapter update error', err.message);
-      throw err;
-    });
-  },
-
-  handleConflict(conflict) {
-    // Because History adapter has not implemented record push yet,
-    // handleConflict will always use remote records.
-    return Promise.resolve(conflict.remote);
-  },
-
-  reset(options) {
-    return HistoryHelper.reset(options.userid);
-  }
-};

@@ -26,16 +26,21 @@
 
 /* global
   asyncStorage,
-  DataAdapters,
   ERROR_SYNC_APP_RACE_CONDITION,
-  LazyLoader
+  LazyLoader,
+  RegisterDataAdapter
 */
+
+// For unit test:
+/* exported BookmarksHelper */
 
 const BOOKMARKS_COLLECTION_MTIME = '::collections::bookmarks::mtime';
 const BOOKMARKS_LAST_REVISIONID = '::collections::bookmarks::revisionid';
 const BOOKMARKS_SYNCTOID_PREFIX = '::synctoid::bookmarks::';
 
-var BookmarksHelper = (() => {
+var BookmarksHelper;
+
+RegisterDataAdapter('bookmarks', BookmarksHelper = (() => {
   var _store;
   function _ensureStore() {
     if (_store) {
@@ -289,6 +294,46 @@ var BookmarksHelper = (() => {
     });
   }
 
+  function updateRecord(payload, userid, last_modified) {
+    if (payload.type === 'microsummary') {
+      console.warn('microsummary is OBSOLETED ', payload);
+      return Promise.resolve();
+    }
+    if (payload.deleted) {
+      return deleteBookmark(payload.id, userid);
+    } else if (['query', 'bookmark', 'folder', 'livemark', 'separator']
+        .every(value => value !== payload.type)) {
+      console.error('Unknown type? ', payload);
+      return Promise.resolve();
+    }
+    var typeWithUri = ['query', 'bookmark']
+        .some(value => value === payload.type);
+    if (typeWithUri && !payload.bmkUri) {
+      console.warn('Incorrect payload? ', payload);
+      return Promise.resolve();
+    }
+    var fxsyncRecords = {};
+    fxsyncRecords[payload.id] = payload;
+    fxsyncRecords[payload.id].timestamp = last_modified;
+
+    return addBookmark({
+      // URL is the ID for bookmark records in bookmarks_store, but there are
+      // some types without a valid URL except bookmark type. URL is used as
+      // its ID to compatible bookmarks_store for bookmark type record.
+      // The combination of type and fxsyncID is used as its ID for the types
+      // except bookmark.
+      id: payload.type === 'bookmark' ? payload.bmkUri :
+        (payload.type + '|' + payload.id),
+      url: payload.bmkUri,
+      name: payload.title,
+      type: payload.type === 'bookmark' ? 'url' : 'others',
+      iconable: false,
+      icon: '',
+      fxsyncRecords: fxsyncRecords,
+      fxsyncId: payload.id
+    }, userid);
+  }
+
   function reset(userid) {
     return Promise.all([
       removeSyncedCollectionMtime(userid),
@@ -297,24 +342,16 @@ var BookmarksHelper = (() => {
   }
 
   return {
-    mergeRecordsToDataStore,
     setSyncedCollectionMtime,
     getSyncedCollectionMtime,
-    deleteBookmark,
-    addBookmark,
     handleClear,
+    mergeRecordsToDataStore, // for unit test
+    updateRecord,
     reset
   };
-})();
+})());
 
-DataAdapters.bookmarks = {
 /**
-    KintoCollection.list() provides a list containing all the remotely retrieved
-  Firefox Sync records sorted by "last_modified" property in descending order.
-  After each sync request we save the "last_modified" property of the last
-  processed record so we avoid going through the same records on following
-  operations.
-
     Bookmark records are stored locally in a DataStore with format [1] while
   bookmark records coming from Firefox Sync (via Kinto collection) have
   format[2]. [4] is the detailed information for 6 different types defined in
@@ -404,110 +441,3 @@ DataAdapters.bookmarks = {
   [5] https://docs.services.mozilla.com/sync/objectformats.html#bookmarks
 
 **/
-
-  _updateBookmark(payload, last_modified, userid) {
-    if (payload.type === 'microsummary') {
-      console.warn('microsummary is OBSOLETED ', payload);
-      return Promise.resolve();
-    }
-    if (payload.deleted) {
-      return BookmarksHelper.deleteBookmark(payload.id, userid);
-    } else if (['query', 'bookmark', 'folder', 'livemark', 'separator']
-        .every(value => value !== payload.type)) {
-      console.error('Unknown type? ', payload);
-      return Promise.resolve();
-    }
-    var typeWithUri = ['query', 'bookmark']
-        .some(value => value === payload.type);
-    if (typeWithUri && !payload.bmkUri) {
-      console.warn('Incorrect payload? ', payload);
-      return Promise.resolve();
-    }
-    var fxsyncRecords = {};
-    fxsyncRecords[payload.id] = payload;
-    fxsyncRecords[payload.id].timestamp = last_modified;
-
-    return BookmarksHelper.addBookmark({
-      // URL is the ID for bookmark records in bookmarks_store, but there are
-      // some types without a valid URL except bookmark type. URL is used as
-      // its ID to compatible bookmarks_store for bookmark type record.
-      // The combination of type and fxsyncID is used as its ID for the types
-      // except bookmark.
-      id: payload.type === 'bookmark' ? payload.bmkUri :
-        (payload.type + '|' + payload.id),
-      url: payload.bmkUri,
-      name: payload.title,
-      type: payload.type === 'bookmark' ? 'url' : 'others',
-      iconable: false,
-      icon: '',
-      fxsyncRecords: fxsyncRecords,
-      fxsyncId: payload.id
-    }, userid);
-  },
-
-  _next(remoteRecords, lastModifiedTime, userid, cursor) {
-    if (cursor === remoteRecords.length) {
-      return Promise.resolve();
-    }
-    if (!Number.isInteger(remoteRecords[cursor].last_modified)) {
-      console.warn('Incorrect last_modified?', remoteRecords[cursor]);
-      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
-    }
-    if (remoteRecords[cursor].last_modified <= lastModifiedTime) {
-      return Promise.resolve();
-    }
-
-    return this._updateBookmark(remoteRecords[cursor].payload,
-        remoteRecords[cursor].last_modified, userid).then(() => {
-      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
-    });
-  },
-
-  update(remoteBookmarks, options = { readonly: true }) {
-    if (!options.readonly) {
-      console.warn('Two-way sync not implemented yet for bookmarks.');
-    }
-    var mtime;
-    return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
-      // We iterate over the records in the Kinto collection until we find a
-      // record whose last modified time is older than the time of the last
-      // successful sync run. However, if the DataStore has been cleared, or
-      // records have been removed from the DataStore since the last sync run,
-      // we cannot be sure that all older records are still there. So in both
-      // those cases we remove the SyncedCollectionMtime from AsyncStorage, so
-      // that this sync run will iterate over all the records in the Kinto
-      // collection, and not only over the ones that were recently modified.
-      return BookmarksHelper.handleClear(options.userid);
-    }).then(() => {
-      return BookmarksHelper.getSyncedCollectionMtime(options.userid);
-    }).then(_mtime => {
-      mtime = _mtime;
-      return remoteBookmarks.list();
-    }).then(list => {
-      return this._next(list.data, mtime, options.userid, 0).then(() => {
-        if (list.data.length === 0) {
-          return Promise.resolve();
-        }
-        var latestMtime = list.data[0].last_modified;
-        return BookmarksHelper.setSyncedCollectionMtime(latestMtime,
-            options.userid);
-      });
-    }).then(() => {
-      // Always return false for a read-only operation.
-      return Promise.resolve(false /* no writes done into kinto */);
-    }).catch(err => {
-      console.error('Bookmarks DataAdapter update error', err.message);
-      throw err;
-    });
-  },
-
-  handleConflict(conflict) {
-    // Because Bookmark adapter has not implemented record push yet,
-    // handleConflict will always use remote records.
-    return Promise.resolve(conflict.remote);
-  },
-
-  reset(options) {
-    return BookmarksHelper.reset(options.userid);
-  }
-};

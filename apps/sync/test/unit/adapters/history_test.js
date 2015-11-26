@@ -21,9 +21,9 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
 require('/shared/js/places_model.js');
+requireApp('sync/js/adapters/datastore-based.js');
+window.DataAdapters = {}; // needs to be done before loading the DataAdapter.
 requireApp('sync/js/adapters/history.js');
-
-window.DataAdapters = {};
 
 suite('sync/adapters/history >', function() {
   var realDatastore, realLazyLoader, realAsyncStorage, testCollectionData;
@@ -234,13 +234,16 @@ suite('sync/adapters/history >', function() {
     historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
         .then((result) => {
       var mTime = testCollectionData[0].last_modified;
-      assert.equal(lazyLoaderSpy.calledWith(['shared/js/async_storage.js',
-          'shared/js/places_model.js']), true);
+      assert.equal(lazyLoaderSpy.calledWith(['shared/js/async_storage.js']),
+          true);
+      assert.equal(lazyLoaderSpy.calledWith(['shared/js/places_model.js']),
+          true);
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
                    mTime);
       return Promise.resolve();
     }).then(getPlacesStore).then(placesStore => {
+
       var ids = testCollectionData.map(item => {
         return item.payload.histUri;
       });

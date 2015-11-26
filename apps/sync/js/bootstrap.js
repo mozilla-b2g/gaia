@@ -31,7 +31,8 @@ const Bootstrap = (() => {
       'js/crypto/fxsyncwebcrypto.js',
 
       'js/ext/kinto.min.js',
-      'js/sync-engine/syncengine.js'
+      'js/sync-engine/syncengine.js',
+      'js/adapters/datastore-based.js'
     ]);
   };
 
