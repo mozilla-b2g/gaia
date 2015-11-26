@@ -1,81 +1,67 @@
-/* global loadBodyHTML, MocksHelper, MockL10n, MockMozDownloads, HtmlImports,
-          MockDownloadStore, DownloadsList, MockMozDownloads, MockDownload,
-          DownloadUI, DownloadHelper, MockDownloadHelper */
+/* global loadBodyHTML, HtmlImports, MockDownloadStore, MockDownload */
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l20n.js');
-// Mockup the API
 require('/shared/test/unit/mocks/mock_download.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_downloads.js');
-// We retrieve them for stubbing
-requireApp('settings/test/unit/mock_download_ui.js');
-require('/shared/js/mime_mapper.js');
-
-// Mocks for several functions
-require('/shared/test/unit/mocks/mock_navigator_datastore.js');
-require('/shared/js/download/download_store.js');
-requireApp('settings/test/unit/mock_download_store.js');
-
-require('/shared/js/lazy_loader.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
-
-require('/shared/js/download/download_formatter.js');
-require('/shared/test/unit/mocks/mock_download_formatter.js');
-
-require('/shared/test/unit/mocks/mock_download_helper.js');
-
-// Code needed from the app
-requireApp('settings/js/downloads/download_item.js');
-requireApp('settings/js/downloads/download_api_manager.js');
-requireApp('settings/js/downloads/downloads_list.js');
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/html_imports.js');
 
 suite('DownloadList', function() {
-  var mocksHelperForDownloadList = new MocksHelper([
-    'DownloadFormatter',
-    'DownloadStore',
-    'LazyLoader',
-    'DownloadHelper',
-    'DownloadUI'
-  ]);
-  var realMozDownloads, realL10n, realDownloadHelper;
+  var DownloadsList, downloadsList, DownloadUI, DownloadHelper,
+    MockMozDownloads;
+  var realMozDownloads, realL10n;
 
-  var downloadsContainerDOM, editButton, deleteButton,
-    selectAllButton, deselectAllButton, downloadsEditMenu;
+  var elements, downloadsContainer, editButton, deleteButton,
+    selectAllButton, deselectAllButton, downloadsEditMenu,
+    emptyDownloadsContainer;
 
   var clock;
   var TICK = 1000;
 
-  suiteSetup(function() {
-    // Mock l10n
-    realL10n = document.l10n;
-    document.l10n = MockL10n;
-    // Mock moz_downloads API
-    realMozDownloads = navigator.mozDownloadManager;
-    realDownloadHelper = window.DownloadHelper;
-    window.DownloadHelper = MockDownloadHelper;
-    navigator.mozDownloadManager = MockMozDownloads;
-    mocksHelperForDownloadList.suiteSetup();
+  suiteSetup(function(done) {
+    var modules = [
+      'panels/downloads/downloads_list',
+      'panels/downloads/download_item',
+      'panels/downloads/download_api_manager',
+      'shared_mocks/mock_l20n',
+      'unit/mock_download_store',
+      'unit/mock_download_ui',
+      'shared_mocks/mock_download_helper',
+      'shared_mocks/mock_navigator_moz_downloads'
+    ];
+
+    var maps = {
+      '*': {
+        'shared/download/download_store': 'unit/mock_download_store',
+        'shared/download/download_formatter':
+          'shared_mocks/mock_download_formatter',
+        'shared/download/download_helper': 'shared_mocks/mock_download_helper',
+        'shared/download/download_ui': 'unit/mock_download_ui'
+      }
+    };
+    testRequire(modules, maps, function(realDownloadsList, realDownloadItem,
+      realDownloadApiManager, mockL20n, mockDownloadStore, mockDownloadUI,
+      mockDownloadHelper, mockMozDownloads) {
+      DownloadsList = realDownloadsList;
+      DownloadUI = mockDownloadUI;
+      DownloadHelper = mockDownloadHelper;
+      MockMozDownloads = mockMozDownloads;
+
+      // Mock l10n
+      realL10n = document.l10n;
+      document.l10n = mockL20n;
+
+      realMozDownloads = navigator.mozDownloadManager;
+      navigator.mozDownloadManager = MockMozDownloads;
+
+      done();
+    });
   });
 
   suiteTeardown(function() {
     navigator.mozDownloadManager = realMozDownloads;
     document.l10n = realL10n;
-    window.DownloadHelper = realDownloadHelper;
-    realL10n = null;
-    realMozDownloads = null;
-    realDownloadHelper = null;
-
-    downloadsContainerDOM = null;
-    editButton = null;
-    selectAllButton = null;
-    deselectAllButton = null;
-    deleteButton = null;
-    downloadsEditMenu = null;
-    mocksHelperForDownloadList.suiteTeardown();
   });
 
   setup(function(done) {
@@ -89,7 +75,7 @@ suite('DownloadList', function() {
 
     HtmlImports.populate(function() {
       // Once the downloads panel is ready
-      downloadsContainerDOM = document.querySelector('#downloadList ul');
+      downloadsContainer = document.querySelector('#downloadList ul');
       editButton = document.getElementById('downloads-edit-button');
       deleteButton = document.getElementById('downloads-delete-button');
       selectAllButton =
@@ -97,7 +83,20 @@ suite('DownloadList', function() {
       deselectAllButton =
         document.getElementById('downloads-edit-deselect-all');
       downloadsEditMenu = document.getElementById('downloads-edit-menu');
-      mocksHelperForDownloadList.setup();
+      emptyDownloadsContainer = document.getElementById('download-list-empty');
+
+      downloadsList = DownloadsList();
+      elements = {
+        downloadsContainer: downloadsContainer,
+        editButton: editButton,
+        deleteButton: deleteButton,
+        selectAllButton: selectAllButton,
+        deselectAllButton: deselectAllButton,
+        downloadsEditMenu: downloadsEditMenu,
+        editHeader: document.createElement('div'),
+        downloadsPanel: document.createElement('div'),
+        emptyDownloadsContainer: emptyDownloadsContainer
+      };
       done();
     });
 
@@ -107,14 +106,13 @@ suite('DownloadList', function() {
   teardown(function() {
     document.body.innerHTML = '';
     MockDownloadStore.downloads = [];
-    mocksHelperForDownloadList.teardown();
 
     clock.restore();
   });
 
   suite(' > edit mode', function() {
     test(' > edit mode button enabled/disabled', function(done) {
-      DownloadsList.init(function() {
+      downloadsList.init(elements, function() {
         // Edit button is false at the beginning
         assert.isFalse(editButton.disabled);
         // Edit menu is hidden at the beginning
@@ -140,9 +138,11 @@ suite('DownloadList', function() {
         });
 
         // Configuration of the observer
-        var config = { attributes: true, childList: true, characterData: true };
+        var config = {
+          attributes: true, childList: true, characterData: true
+        };
         // Observe changes to the container of downloads
-        observer.observe(downloadsContainerDOM, config);
+        observer.observe(downloadsContainer, config);
 
         // Delete all downloads
         deleteButton.click();
@@ -152,7 +152,7 @@ suite('DownloadList', function() {
     });
 
     test(' > select all button enabled/disabled', function(done) {
-      DownloadsList.init(function() {
+      downloadsList.init(elements, function() {
         // Edit mode
         editButton.click();
         // Select all
@@ -170,7 +170,7 @@ suite('DownloadList', function() {
     });
 
     test(' > select the first one download', function(done) {
-      DownloadsList.init(function() {
+      downloadsList.init(elements, function() {
         var item = document.querySelector('#downloadList ul > li:first-child');
         // Edit mode
         editButton.click();
@@ -191,7 +191,7 @@ suite('DownloadList', function() {
     });
 
     test(' > deselect all button enabled/disabled', function(done) {
-      DownloadsList.init(function() {
+      downloadsList.init(elements, function() {
         // Edit mode
         editButton.click();
         // At the beginnig is disabled
@@ -211,9 +211,9 @@ suite('DownloadList', function() {
     });
 
     test(' > Deletion', function(done) {
-      DownloadsList.init(function() {
+      downloadsList.init(elements, function() {
         assert.equal(
-          downloadsContainerDOM.childNodes.length,
+          downloadsContainer.childNodes.length,
           MockMozDownloads.mockLength - 1
         );
         // Edit mode
@@ -230,7 +230,7 @@ suite('DownloadList', function() {
               // Stop the observer
               observer.disconnect();
               assert.equal(
-                downloadsContainerDOM.childNodes.length,
+                downloadsContainer.childNodes.length,
                 0
               );
               done();
@@ -239,9 +239,11 @@ suite('DownloadList', function() {
         });
 
         // Configuration of the observer
-        var config = { attributes: true, childList: true, characterData: true };
+        var config = {
+          attributes: true, childList: true, characterData: true
+        };
         // Observe changes to the container of downloads
-        observer.observe(downloadsContainerDOM, config);
+        observer.observe(downloadsContainer, config);
 
         // Delete all downloads
         deleteButton.click();
@@ -253,14 +255,14 @@ suite('DownloadList', function() {
 
   suite(' > methods', function() {
     test(' > check render with empty datastore', function(done) {
-      DownloadsList.init(function() {
+      downloadsList.init(elements, function() {
         // We have one less because we have one download 'finalized', but
         // datastore is empty
         assert.equal(
-          downloadsContainerDOM.childNodes.length,
+          downloadsContainer.childNodes.length,
           MockMozDownloads.mockLength - 1
         );
-        assert.equal(downloadsContainerDOM.firstChild.tagName, 'LI');
+        assert.equal(downloadsContainer.firstChild.tagName, 'LI');
         done();
       });
 
@@ -271,13 +273,13 @@ suite('DownloadList', function() {
       MockDownloadStore.downloads = [new MockDownload({
         state: 'succeeded'
       })];
-      DownloadsList.init(function() {
+      downloadsList.init(elements, function() {
         // Now the 'finalized' one is in the Datastore
         assert.equal(
-          downloadsContainerDOM.childNodes.length,
+          downloadsContainer.childNodes.length,
           MockMozDownloads.mockLength
         );
-        assert.equal(downloadsContainerDOM.firstChild.tagName, 'LI');
+        assert.equal(downloadsContainer.firstChild.tagName, 'LI');
         done();
       });
 
@@ -290,7 +292,6 @@ suite('DownloadList', function() {
     // Penultimate element  -->'stopped'
 
     suite(' > tap actions', function() {
-      var container;
       var downloadUI, showActionsSpy;
       setup(function(done) {
         showActionsSpy = this.sinon.spy(DownloadUI, 'showActions');
@@ -298,8 +299,7 @@ suite('DownloadList', function() {
         MockDownloadStore.downloads = [new MockDownload({
           state: 'succeeded'
         })];
-        DownloadsList.init(function() {
-          container = document.querySelector('#downloadList ul');
+        downloadsList.init(elements, function() {
           done();
         });
 
@@ -309,28 +309,27 @@ suite('DownloadList', function() {
       teardown(function() {
         showActionsSpy = null;
         downloadUI = null;
-        container = null;
         MockDownloadStore.downloads = [];
       });
 
       test(' > a finalized download, so its in datastore', function() {
-        container.firstChild.click();
+        downloadsContainer.firstChild.click();
         assert.ok(DownloadUI.showActions.calledOnce);
       });
 
       test(' > on downloading download', function() {
-        container.childNodes[2].click();
+        downloadsContainer.childNodes[2].click();
         assert.isFalse(DownloadUI.showActions.calledOnce);
         assert.ok(downloadUI.calledOnce);
         assert.equal(downloadUI.args[0][0], DownloadUI.TYPE.STOP);
       });
 
       test(' > a stopped download', function() {
-        container.lastChild.click();
+        downloadsContainer.lastChild.click();
         assert.isFalse(DownloadUI.showActions.calledOnce);
         assert.ok(downloadUI.calledOnce);
-        // DownloadUI knows which will be the correct confirm depending on state
-        // and error attributes
+        // DownloadUI knows which will be the correct confirm depending on
+        // state and error attributes
         assert.equal(downloadUI.args[0][0], null);
       });
 
@@ -339,7 +338,7 @@ suite('DownloadList', function() {
           MockDownloadStore.downloads = [new MockDownload({
             state: 'finalized'
           })];
-          DownloadsList.init(function() {
+          downloadsList.init(elements, function() {
             done();
           });
 
@@ -347,16 +346,14 @@ suite('DownloadList', function() {
         });
 
         test(' > a finalized download, but not in datastore', function() {
-          container.firstChild.click();
+          downloadsContainer.firstChild.click();
           assert.ok(DownloadUI.showActions.calledOnce);
         });
       });
     });
 
     suite(' > deletes', function() {
-      var container;
       var download;
-      var emptyContainer;
       setup(function(done) {
         MockMozDownloads.mockLength = -1;
         download = new MockDownload({
@@ -367,18 +364,13 @@ suite('DownloadList', function() {
           contentType: 'xxxx'
         });
         MockDownloadStore.downloads = [download];
-        DownloadsList.init(function() {
-          container = document.querySelector('#downloadList ul');
+        downloadsList.init(elements, function() {
           done();
         });
-        emptyContainer = document.getElementById('download-list-empty');
         clock.tick(TICK);
       });
 
       teardown(function() {
-        download = null;
-        container = null;
-        emptyContainer = null;
         MockMozDownloads.mockLength = 3;
       });
 
@@ -407,7 +399,7 @@ suite('DownloadList', function() {
             set onsuccess(cb) {
               cb(); // This callback is the one coming from the download list
               // Check if we are showing the empty list section
-              assert.equal(0, emptyContainer.classList.length);
+              assert.equal(0, emptyDownloadsContainer.classList.length);
               done();
               setTimeout(cleanStubs, 0);
               clock.tick(TICK);
@@ -416,7 +408,7 @@ suite('DownloadList', function() {
           };
         });
 
-        container.lastChild.click();
+        downloadsContainer.lastChild.click();
 
         // Clean any stub we created locally
         function cleanStubs() {
@@ -430,12 +422,6 @@ suite('DownloadList', function() {
           deleteStub = null;
         }
       });
-
-      teardown(function() {
-        container = null;
-      });
     });
   });
 });
-
-

@@ -1,50 +1,46 @@
-/* global MocksHelper, MockMozDownloads, MockDownloadHelper, MockDownload,
-          DownloadApiManager, MockDownloadStore, MockMozDownloads,
-          DownloadUI, DownloadHelper */
+/* global MockDownload */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_download.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_downloads.js');
-
-require('/shared/test/unit/mocks/mock_navigator_datastore.js');
-require('/shared/js/download/download_formatter.js');
-requireApp('settings/test/unit/mock_download_ui.js');
-require('/shared/js/download/download_store.js');
-requireApp('settings/test/unit/mock_download_store.js');
-
-require('/shared/test/unit/mocks/mock_download_helper.js');
-
-requireApp('settings/js/downloads/download_api_manager.js');
-
-if (!window.DownloadHelper) {
-  window.DownloadHelper = null;
-}
 
 suite('DownloadApiManager', function() {
+  var DownloadApiManager, DownloadStore, DownloadUI, DownloadHelper,
+    MozDownloads;
   var clock;
   var TICK = 1000;
 
-  var mocksHelperForDownloadApi = new MocksHelper([
-    'DownloadStore',
-    'DownloadUI'
-  ]);
-  var realMozDownloads, realDownloadHelper;
-  suiteSetup(function() {
-    realMozDownloads = navigator.mozDownloadManager;
-    navigator.mozDownloadManager = MockMozDownloads;
+  suiteSetup(function(done) {
+    var modules = [
+      'panels/downloads/download_api_manager',
+      'unit/mock_download_store',
+      'unit/mock_download_ui',
+      'shared_mocks/mock_download_helper',
+      'shared_mocks/mock_navigator_moz_downloads'
+    ];
 
-    realDownloadHelper = window.DownloadHelper;
-    window.DownloadHelper = MockDownloadHelper;
+    var maps = {
+      '*': {
+        'shared/download/download_store': 'unit/mock_download_store',
+        'shared/download/download_formatter':
+          'shared_mocks/mock_download_formatter',
+        'shared/download/download_helper': 'shared_mocks/mock_download_helper',
+        'shared/download/download_ui': 'unit/mock_download_ui'
+      }
+    };
 
-    mocksHelperForDownloadApi.suiteSetup();
-  });
+    testRequire(modules, maps, function(realDownloadApiManager,
+      MockDownloadStore, MockDownloadUI, MockDownloadHelper,
+      MockMozDownloads) {
+        navigator.mozDownloadManager = MockMozDownloads;
 
-  suiteTeardown(function() {
-   navigator.mozDownloadManager = realMozDownloads;
-   window.DownloadHelper = realDownloadHelper;
-   realDownloadHelper = null;
-
-   mocksHelperForDownloadApi.suiteTeardown();
+        DownloadApiManager = realDownloadApiManager;
+        DownloadStore = MockDownloadStore;
+        DownloadUI = MockDownloadUI;
+        DownloadHelper = MockDownloadHelper;
+        MozDownloads = MockMozDownloads;
+        done();
+      });
   });
 
   suite(' > methods', function() {
@@ -64,7 +60,7 @@ suite('DownloadApiManager', function() {
 
     teardown(function() {
       downloadsMock = null;
-      MockDownloadStore.downloads = [];
+      DownloadStore.downloads = [];
 
       clock.restore();
     });
@@ -74,18 +70,18 @@ suite('DownloadApiManager', function() {
       // considered as part of the list (we just ignore it because
       // it's supossed to be part of the datastore).
       // So we one less element than the mockLength
-      assert.equal(downloadsMock.length, MockMozDownloads.mockLength - 1);
+      assert.equal(downloadsMock.length, MozDownloads.mockLength - 1);
     });
 
     test(' > getDownloads with one item completed in datastore',
       function(done) {
       // In this case the item 'finalized' is stored in our datastore
       // so we merge both lists!
-      MockDownloadStore.downloads = [new MockDownload({
+      DownloadStore.downloads = [new MockDownload({
         state: 'succeeded'
       })];
       DownloadApiManager.getDownloads(function(downloads) {
-        assert.equal(downloads.length, MockMozDownloads.mockLength);
+        assert.equal(downloads.length, MozDownloads.mockLength);
         done();
       });
       clock.tick(TICK);
@@ -94,7 +90,7 @@ suite('DownloadApiManager', function() {
     test(' > getDownloads sorted properly', function(done) {
       // In this case the item 'finalized' is stored in our datastore
       // so we merge both lists!
-      MockDownloadStore.downloads = [new MockDownload({
+      DownloadStore.downloads = [new MockDownload({
         state: 'succeeded'
       })];
       DownloadApiManager.getDownloads(function(downloads) {
@@ -133,7 +129,6 @@ suite('DownloadApiManager', function() {
           set oncancel(cb) {cb();}
         };
       });
-
       this.sinon.spy(DownloadHelper, 'remove');
       DownloadApiManager.deleteDownloads([{id: 0}], function() {}, function() {
         // Once cancelled, we get the same object

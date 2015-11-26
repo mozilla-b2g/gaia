@@ -1,20 +1,11 @@
-/* global MockL10n, MocksHelper, MockDownload, DownloadItem,
-          DownloadFormatter */
+/* global MockDownload */
 
 'use strict';
 
-require('/shared/js/download/download_formatter.js');
-require('/shared/test/unit/mocks/mock_download_formatter.js');
 require('/shared/test/unit/mocks/mock_download.js');
-require('/shared/test/unit/mocks/mock_l20n.js');
-requireApp('settings/js/downloads/download_item.js');
-requireApp('sms/test/unit/mock_utils.js');
-
-var mocksHelperForDownload = new MocksHelper([
-  'DownloadFormatter'
-]);
 
 suite('Download item', function() {
+  var DownloadItem, DownloadFormatter;
   var realL10n, realOnLine, isOnLine;
 
   function navigatorOnLine() {
@@ -25,16 +16,32 @@ suite('Download item', function() {
     isOnLine = value;
   }
 
-  mocksHelperForDownload.attachTestHelpers();
+  suiteSetup(function(done) {
+    var modules = [
+      'panels/downloads/download_item',
+      'shared_mocks/mock_l20n',
+      'shared_mocks/mock_download_formatter'
+    ];
 
-  suiteSetup(function() {
-    realL10n = document.l10n;
-    document.l10n = MockL10n;
-    realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
-    Object.defineProperty(navigator, 'onLine', {
-      configurable: true,
-      get: navigatorOnLine,
-      set: setNavigatorOnLine
+    var maps = {
+      '*': {
+        'shared/download/download_formatter':
+          'shared_mocks/mock_download_formatter'
+      }
+    };
+    testRequire(modules, maps, function(
+      realDownloadItem, mockL20n, mockDownloadFormatter) {
+      DownloadItem = realDownloadItem;
+      DownloadFormatter = mockDownloadFormatter;
+      realL10n = document.l10n;
+      document.l10n = mockL20n;
+      realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+      Object.defineProperty(navigator, 'onLine', {
+        configurable: true,
+        get: navigatorOnLine,
+        set: setNavigatorOnLine
+      });
+      done();
     });
   });
 
@@ -174,5 +181,3 @@ suite('Download item', function() {
     });
   });
 });
-
-
