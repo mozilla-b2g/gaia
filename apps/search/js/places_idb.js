@@ -36,23 +36,22 @@
     upgradeSchema: function(e) {
       var db = e.target.result;
       var fromVersion = e.oldVersion;
+
       if (fromVersion < 1) {
         var places = db.createObjectStore(PLACES_STORE, { keyPath: 'url' });
         places.createIndex('frecency', 'frecency', { unique: false });
         places.createIndex('visited', 'visited', { unique: false });
       }
 
-      if (fromVersion < 3) {
+      if (fromVersion < 2) {
+        asyncStorage.removeItem('latest-revision');
         var visits = db.createObjectStore(VISITS_STORE, { keyPath: 'date' });
+        visits.createIndex('date', 'date', { unique: true });
+      }
 
-        if (fromVersion < 2) {
-          asyncStorage.removeItem('latest-revision');
-          visits.createIndex('date', 'date', { unique: true });
-        }
-
-        if (fromVersion < 3) {
-          visits.createIndex('url', 'url', { unique: false });
-        }
+      if (fromVersion < 3) {
+        var oStore = e.target.transaction.objectStore(VISITS_STORE);
+        oStore.createIndex('url', 'url', { unique: false });
       }
     },
 
