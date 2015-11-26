@@ -316,6 +316,21 @@ suite('system/AttentionWindowManager', function() {
       assert.isTrue(stubClose.called);
     });
 
+    test('If update prompt is showing we should close.',
+      function() {
+        attentionWindowManager._openedInstances =
+          new Map([[att1, att1], [att2, att2]]);
+
+        var stubCloseForAtt1 = this.sinon.stub(att1, 'close');
+        var stubCloseForAtt2 = this.sinon.stub(att2, 'close');
+
+        attentionWindowManager.handleEvent(
+          new CustomEvent('updatepromptshown')
+        );
+        assert.isTrue(stubCloseForAtt1.called);
+        assert.isTrue(stubCloseForAtt2.called);
+      });
+
     test('If an app is launching due to request we should close.',
       function() {
         attentionWindowManager._openedInstances =
