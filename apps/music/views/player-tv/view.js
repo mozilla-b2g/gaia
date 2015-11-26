@@ -45,6 +45,24 @@ var PlayerView = View.extend(function PlayerView() {
     this.seekBar.elapsedTime = elapsedTime;
   });
 
+  window.addEventListener('keydown', (evt) => {
+    switch (evt.key) {
+      case 'Escape':
+        // Goes back to music home screen
+        this.client.method('navigate');
+        break;
+      case 'ArrowLeft':
+        this.previous();
+        break;
+      case 'ArrowRight':
+        this.next();
+        break;
+      case 'Enter':
+        this.controls.paused ? this.play() : this.pause();
+        break;
+    }
+  });
+
   this.update();
 });
 

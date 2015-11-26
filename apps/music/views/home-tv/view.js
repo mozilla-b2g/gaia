@@ -24,6 +24,9 @@ var HomeView = View.extend(function HomeView() {
     var selectedIndex = [].indexOf.call(elements, selectedElement);
 
     switch (evt.key) {
+      case 'Escape':
+        this.client.method('navigate', '/player-tv');
+        break;
       case 'ArrowUp':
         selectedIndex = clamp(0, elements.length - 1, selectedIndex - 3);
         break;
@@ -41,9 +44,6 @@ var HomeView = View.extend(function HomeView() {
         this.client.method('navigate', selectedElement.getAttribute('href'));
         break;
     }
-
-    console.log('keydown == ', evt);
-
     selectedElement.classList.remove('selected');
 
     selectedElement = elements[selectedIndex];

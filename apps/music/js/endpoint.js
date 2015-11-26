@@ -1,6 +1,6 @@
 /* global AlbumArtCache, AudioMetadata, Database, LazyLoader, NFCShare,
-          PlaybackQueue, Remote, bridge, navigateToURL, onSearchOpen,
-          onSearchClose */
+          PlaybackQueue, Remote, bridge, navigateToURL, navigateBack,
+          onSearchOpen, onSearchClose */
 'use strict';
 
 var audio           = null;
@@ -466,7 +466,11 @@ function getDatabaseStatus() {
 }
 
 function navigate(url) {
-  navigateToURL(url);
+  if(url) {
+    navigateToURL(url);
+  } else {
+    navigateBack();
+  }
 }
 
 function searchOpen() {
