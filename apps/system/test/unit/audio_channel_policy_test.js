@@ -90,7 +90,7 @@ suite('system/AudioChannelPolicy', function() {
           { newAudioChannel: 'alarm', activeAudioChannels: 'ringer' },
           { newAudioChannel: 'alarm', activeAudioChannels: 'notification' },
           { newAudioChannel: 'alarm',
-            activeAudioChannels: 'publicNotification' },
+            activeAudioChannels: 'publicnotification' },
           { newAudioChannel: 'system', activeAudioChannels: 'normal' },
           { newAudioChannel: 'system', activeAudioChannels: 'content' },
           { newAudioChannel: 'system', activeAudioChannels: 'alarm' },
@@ -99,35 +99,35 @@ suite('system/AudioChannelPolicy', function() {
           { newAudioChannel: 'system', activeAudioChannels: 'telephony' },
           { newAudioChannel: 'system', activeAudioChannels: 'notification' },
           { newAudioChannel: 'system',
-            activeAudioChannels: 'publicNotification' },
+            activeAudioChannels: 'publicnotification' },
           { newAudioChannel: 'ringer', activeAudioChannels: 'system' },
           { newAudioChannel: 'ringer', activeAudioChannels: 'notification' },
           { newAudioChannel: 'ringer',
-            activeAudioChannels: 'publicNotification' },
+            activeAudioChannels: 'publicnotification' },
           { newAudioChannel: 'telephony', activeAudioChannels: 'system' },
           { newAudioChannel: 'telephony', activeAudioChannels: 'ringer' },
           { newAudioChannel: 'telephony', activeAudioChannels: 'notification' },
           { newAudioChannel: 'telephony',
-            activeAudioChannels: 'publicNotification' },
+            activeAudioChannels: 'publicnotification' },
           { newAudioChannel: 'notification', activeAudioChannels: 'alarm' },
           { newAudioChannel: 'notification', activeAudioChannels: 'system' },
           { newAudioChannel: 'notification', activeAudioChannels: 'ringer' },
           { newAudioChannel: 'notification',
             activeAudioChannels: 'notification' },
           { newAudioChannel: 'notification',
-            activeAudioChannels: 'publicNotification' },
-          { newAudioChannel: 'publicNotification',
+            activeAudioChannels: 'publicnotification' },
+          { newAudioChannel: 'publicnotification',
             activeAudioChannels: 'alarm' },
-          { newAudioChannel: 'publicNotification',
+          { newAudioChannel: 'publicnotification',
             activeAudioChannels: 'system' },
-          { newAudioChannel: 'publicNotification',
+          { newAudioChannel: 'publicnotification',
             activeAudioChannels: 'ringer' },
-          { newAudioChannel: 'publicNotification',
+          { newAudioChannel: 'publicnotification',
             activeAudioChannels: 'telephony' },
-          { newAudioChannel: 'publicNotification',
+          { newAudioChannel: 'publicnotification',
             activeAudioChannels: 'notification' },
-          { newAudioChannel: 'publicNotification',
-            activeAudioChannels: 'publicNotification' },
+          { newAudioChannel: 'publicnotification',
+            activeAudioChannels: 'publicnotification' },
         ],
         {
           newAudioChannel: {
@@ -199,9 +199,9 @@ suite('system/AudioChannelPolicy', function() {
           { newAudioChannel: 'telephony', activeAudioChannels: 'alarm' },
           { newAudioChannel: 'notification', activeAudioChannels: 'normal' },
           { newAudioChannel: 'notification', activeAudioChannels: 'content' },
-          { newAudioChannel: 'publicNotification',
+          { newAudioChannel: 'publicnotification',
             activeAudioChannels: 'normal' },
-          { newAudioChannel: 'publicNotification',
+          { newAudioChannel: 'publicnotification',
             activeAudioChannels: 'content' },  
         ],
         {
@@ -222,10 +222,10 @@ suite('system/AudioChannelPolicy', function() {
         [
           { newAudioChannel: 'normal', activeAudioChannels: 'notification' },
           { newAudioChannel: 'normal',
-            activeAudioChannels: 'publicNotification' },
+            activeAudioChannels: 'publicnotification' },
           { newAudioChannel: 'content', activeAudioChannels: 'notification' },
           { newAudioChannel: 'content',
-            activeAudioChannels: 'publicNotification' }
+            activeAudioChannels: 'publicnotification' }
         ],
         {
           newAudioChannel: {
@@ -281,11 +281,11 @@ suite('system/AudioChannelPolicy', function() {
       checkPolicy(
         [
           { newAudioChannel: 'alarm', activeAudioChannels:
-            ['system', 'telephony', 'publicNotification'] },
+            ['system', 'telephony', 'publicnotification'] },
           { newAudioChannel: 'ringer', activeAudioChannels:
-            ['system', 'telephony', 'publicNotification'] },
+            ['system', 'telephony', 'publicnotification'] },
           { newAudioChannel: 'notification', activeAudioChannels:
-            ['system', 'telephony', 'publicNotification'] },
+            ['system', 'telephony', 'publicnotification'] },
         ],
         {
           newAudioChannel: {
@@ -336,7 +336,7 @@ suite('system/AudioChannelPolicy', function() {
           newAudioChannel: 'normal',
           activeAudioChannels: [
             'content', 'alarm', 'system', 'ringer', 'telephony',
-            'notification', 'publicNotification'
+            'notification', 'publicnotification'
           ]
         },
         {
@@ -353,7 +353,7 @@ suite('system/AudioChannelPolicy', function() {
     test('All audio channel except normal audio channel ' +
          'can play in background', function() {
       ['content', 'alarm', 'system', 'ringer', 'telephony',
-       'notification', 'publicNotification'].forEach(function(name) {
+       'notification', 'publicnotification'].forEach(function(name) {
         var newAudioChannel = new MockAudioChannelController(
           { instanceID: 'appID' }, { name: name }
         );
@@ -392,8 +392,8 @@ suite('system/AudioChannelPolicy', function() {
     var isNeeded = [
       { activeChannelName: 'notification', newChannelName: 'normal' },
       { activeChannelName: 'notification', newChannelName: 'content' },
-      { activeChannelName: 'publicNotification', newChannelName: 'normal' },
-      { activeChannelName: 'publicNotification', newChannelName: 'content' }
+      { activeChannelName: 'publicnotification', newChannelName: 'normal' },
+      { activeChannelName: 'publicnotification', newChannelName: 'content' }
     ].map(function(obj) {
       return subject._isNeededToFadeOutForNewAudioChannel(
         obj.activeChannelName, obj.newChannelName
@@ -407,9 +407,9 @@ suite('system/AudioChannelPolicy', function() {
       { activeChannelName: 'alarm', newChannelName: 'ringer' },
       { activeChannelName: 'alarm', newChannelName: 'telephony' },
       { activeChannelName: 'normal', newChannelName: 'notification' },
-      { activeChannelName: 'normal', newChannelName: 'publicNotification' },
+      { activeChannelName: 'normal', newChannelName: 'publicnotification' },
       { activeChannelName: 'content', newChannelName: 'notification' },
-      { activeChannelName: 'content', newChannelName: 'publicNotification' }
+      { activeChannelName: 'content', newChannelName: 'publicnotification' }
     ].map(function(obj) {
       return subject._isNeededToFadeOutForActiveAudioChannel(
         obj.activeChannelName, obj.newChannelName
