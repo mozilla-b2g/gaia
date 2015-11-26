@@ -23,6 +23,14 @@
   font-size: 3.6rem;
   color: white;
   font-style: italic;
+  opacity: 1;
+  transition: opacity 0.5s linear;
+}
+
+.fte-page.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 0.5s;
 }
 
 .fte-content-image {
@@ -32,6 +40,26 @@
   width: 149.8rem;
   height: 84.2rem;
   background: url(images/fte_content_image.png) 100%;
+  overflow: visible;
+  box-shadow: 1rem 1rem 1rem #888888;
+}
+
+.fte-indicator-p1 {
+  position: absolute;
+  left: -21.1rem;
+  top: -11.9rem;
+  width: 192rem;
+  height: 108rem;
+  background: url(images/fte_indicator_p1.png) 100%;
+}
+
+.fte-indicator-p2 {
+  position: absolute;
+  left: -21.1rem;
+  top: -11.9rem;
+  width: 192rem;
+  height: 108rem;
+  background: url(images/fte_indicator_p2.png) 100%;
 }
 
 .fte-panel {
@@ -41,7 +69,7 @@
   width: 100%;
 }
 
-.fte-panel > .fte-button[data-behavior="finish"] {
+.fte-panel > .fte-button {
   width: 30.4rem;
   position: relative;
 }
@@ -56,21 +84,41 @@
 }
 
 #fte-tvdeck-detail {
-  left: 13.6rem;
+  left: 27.7rem;
   top: 15.9rem;
 }
 
 #fte-appdeck-detail {
-  left: 45.6rem;
+  right: 51.9rem;
   bottom: 16.5rem;
 }
 
 #fte-devicedeck-detail {
-  left: 70.2rem;
+  left: 84.9rem;
   top: 15.9rem;
 }
 
 #fte-browser-detail {
   left: 105.9rem;
+  bottom: 16.5rem;
+}
+
+#fte-search-detail {
+  left: -10.6rem;
+  top: -7.2rem;
+}
+
+#fte-settings-detail {
+  left: 8.7rem;
+  top: -7.2rem;
+}
+
+#fte-addfolder-detail {
+  left: 30.2rem;
+  top: -7.2rem;
+}
+
+#fte-filter-detail {
+  left: -10.6rem;
   bottom: 16.5rem;
 }
