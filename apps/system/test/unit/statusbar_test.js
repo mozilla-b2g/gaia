@@ -684,6 +684,10 @@ suite('system/Statusbar', function() {
       testEventThatShows.bind(this)('appchromeexpanded');
     });
 
+    test('lockscreen-request-unlock', function() {
+      testEventThatShows.bind(this)('lockscreen-request-unlock');
+    });
+
     test('apptitlestatechanged', function() {
       testEventThatShows.bind(this)('apptitlestatechanged');
     });
