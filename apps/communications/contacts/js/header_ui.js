@@ -1,4 +1,4 @@
-/* globals ActivityHandler, MainNavigation */
+/* globals MainNavigation */
 
 (function(exports) {
   'use strict';
@@ -11,6 +11,7 @@
     addButton: document.getElementById('add-contact-button'),
     editModeTitleElement: document.getElementById('edit-title'),
     appTitleElement: document.getElementById('app-title'),
+    cancelAction: null,
 
     setupActionableHeader: function() {
       this.header.removeAttribute('action');
@@ -46,8 +47,8 @@
 
     handleCancel: function() {
       //If in an activity, cancel it
-      if (ActivityHandler.currentlyHandling) {
-        ActivityHandler.postCancel();
+      if (this.cancelAction) {
+        this.cancelAction();
         MainNavigation.home();
       } else {
         MainNavigation.back();
@@ -64,10 +65,10 @@
       this.addButton.classList.add('hide');
     },
 
-    updateHeader: function(isCancelable) {
+    updateHeader: function(isCancelable, action) {
       if (isCancelable) {
         var alternativeTitle = null;
-        var activityName = ActivityHandler.activityName;
+        var activityName = action;
         if (activityName === 'pick' || activityName === 'update') {
           alternativeTitle = 'selectContact';
         }
