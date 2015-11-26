@@ -165,6 +165,32 @@ suite('system/Places', function() {
       sendEvent('apploaded', url1);
     });
 
+    test('Test meta event', function(done) {
+      var meta = {
+        name: 'content'
+      };
+      MockDatastore.addEventListener('change', function() {
+        assert.ok(url1 in MockDatastore._records);
+        var newMeta = MockDatastore._records[url1].meta;
+        assert.deepEqual(newMeta, meta);
+        MockDatastore.removeEventListener();
+        done();
+      });
+
+      sendEvent('applocationchange', url1);
+      window.dispatchEvent(new CustomEvent('appmetachange', {
+        detail: {
+          isBrowser: function() { return true; },
+          isPrivateBrowser: function() { return false; },
+          meta: meta,
+          config: {
+            url: url1
+          }
+        }
+      }));
+      sendEvent('apploaded', url1);
+    });
+
     test('Test screenshots', function(done) {
 
       subject.topSites = [];

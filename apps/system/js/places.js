@@ -89,6 +89,7 @@
         window.addEventListener('applocationchange', this);
         window.addEventListener('apptitlechange', this);
         window.addEventListener('appiconchange', this);
+        window.addEventListener('appmetachange', this);
         window.addEventListener('apploaded', this);
 
         asyncStorage.getItem('top-sites', results => {
@@ -160,6 +161,9 @@
         case 'appiconchange':
           this.onIconChange(app.config.url, app.favicons);
           break;
+        case 'appmetachange':
+          this.onMetaChange(app.config.url, app.meta);
+          break;
         case 'apploaded':
           if (app.config.url in this.screenshotQueue) {
             this.takeScreenshot(app.config.url);
@@ -215,6 +219,7 @@
         url: url,
         title: url,
         icons: {},
+        meta : {},
         frecency: 0,
         // An array containing previous visits to this url
         visits: [],
@@ -504,6 +509,19 @@
     },
 
     /**
+     * Set place meta.
+     *
+     * @param {String} url URL of place to update.
+     * @param {Object} meta The meta object
+     * @memberof Places.prototype
+     */
+    onMetaChange: function(url, meta) {
+      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
+      this._placeChanges[url].meta = meta;
+      this.debounce(url);
+    },
+
+    /**
      * Creates a timeout to save place data.
      *
      * @param {String} url URL of place.
@@ -548,6 +566,9 @@
         if (!place.icons) {
           place.icons = {};
         }
+
+        place.meta = edits.meta || {};
+
         for (var iconUri in edits.icons) {
           place.icons[iconUri] = edits.icons[iconUri];
         }

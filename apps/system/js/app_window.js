@@ -75,6 +75,7 @@
     this.isCrashed = false;
     this.launchTime = Date.now();
     this.metachangeDetails = [];
+    this.meta = {};
 
     return this;
   };
@@ -1150,6 +1151,7 @@
         this.favicons = {};
         this.webManifestURL = null;
         this.webManifest = null;
+        this.meta = {};
         this.config.url = evt.detail;
         if (!this.manifest && !this.nameChanged) {
           this.name = new URL(evt.detail).hostname;
@@ -1229,6 +1231,9 @@
           this.publish('namechanged');
           break;
       }
+      this.meta = this.meta || {};
+      this.meta[detail.name] = detail.content || '';
+      this.publish('metachange');
     };
 
   AppWindow.prototype._handle_mozbrowsermanifestchange =
