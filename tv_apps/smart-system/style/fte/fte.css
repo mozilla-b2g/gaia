@@ -27,9 +27,10 @@
 
 .fte-panel {
   position: absolute;
-  bottom: 12rem;
+  bottom: 11.11vh; /* 12rem */
   text-align: center;
   width: 100%;
+  height: 8rem;
 }
 
 .fte-content {
@@ -38,20 +39,23 @@
 
 .fte-content > smart-button {
   position: relative;
-  margin-top: 6.4rem;
+  margin-top: 24.074vh; /* 26rem */
   transition: none;
 }
 
-.fte-content > smart-button > .icon {
-  background-image: url(/style/fte/ic_pin.png);
+.fte-content > smart-button.focused[data-icon]::before {
+  left: 6rem;
+  font-size: 12rem;
+  top: 6rem;
 }
 
 .fte-button[data-behavior="finish"] {
-  width: 30.4rem;
+  width: 23.7rem;
   height: 8rem;
 }
 
 .fte-description {
-  margin-top: 11.9rem;
-  padding: 0 25%;
+  margin-top: 16.2vh; /* 17.5rem */
+  margin-left: calc(50% - 36rem);
+  width: 72rem;
 }
