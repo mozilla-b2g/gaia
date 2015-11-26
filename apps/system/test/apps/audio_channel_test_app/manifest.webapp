@@ -1,0 +1,19 @@
+{
+  "name": "Audio Channel Test App",
+  "type": "certified",
+  "description": "Audio Channel Test App",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "audio-channel-content": {},
+    "audio-channel-alarm": {},
+    "audio-channel-system": {},
+    "audio-channel-ringer": {},
+    "audio-channel-telephony": {},
+    "audio-channel-notification": {},
+    "audio-channel-publicnotification": {}
+  }
+}
