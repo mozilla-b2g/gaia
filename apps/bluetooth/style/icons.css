@@ -1,5 +1,5 @@
 /**
- * Reference these style sheet from Settings app 
+ * Reference these style sheet from Settings app
  */
 
 /******************************************************************************
@@ -18,7 +18,7 @@
   height: 3rem;
   background: url(images/bluetooth_sprite.png) no-repeat 3rem 3rem / 39rem;
   position: absolute;
-  right: 0rem;
+  offset-inline-end: 0;
   top: 50%;
   margin-top: -1.5rem;
 }
@@ -131,13 +131,4 @@
 
 .bluetooth-type-video-display:before {
   background-position: -36rem -3rem;
-}
-
-/******************************************************************************
- * Right-to-Left layout
- */
-
-html[dir="rtl"] .bluetooth-device:before {
-  left: 0;
-  right: unset;
 }
