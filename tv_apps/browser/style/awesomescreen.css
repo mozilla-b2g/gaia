@@ -11,15 +11,15 @@
 }
 
 .scale-standard {
-  -moz-transform : scale(1.0);
-  margin-left: 20px;
-  margin-right: 20px;
-  margin-bottom: 24px;
+  transform : scale(1.0);
+  margin-left: 2rem;
+  margin-right: 2rem;
+  margin-bottom: 2.4rem;
 }
 
 .scale-min {
-  -moz-transform : scale(0.8);
-  margin: 30px -45px -35px 10px;
+  transform : scale(0.8);
+  margin: 3rem -4.5rem -3.5rem 1rem;
 }
 
 /* -------- Bookmark , history  Area -------- */
@@ -31,24 +31,24 @@
   z-index : 310;
   display : none;
   background: url("../style/images/background_black.png")  repeat-x center top,
-              -moz-linear-gradient(top, rgba(0, 0, 0, 0.9) 0% ,rgba(0, 0, 0, 0.9) 100%);
+              linear-gradient(top, rgba(0, 0, 0, 0.9) 0% ,rgba(0, 0, 0, 0.9) 100%);
   background-size: 100% 100%;
   background-color: rgba(0,0,0,0.95);
-  -moz-box-sizing: border-box;
-  -moz-transform: translateY(-50%);
-  -moz-transition: opacity  0.1s cubic-bezier(0.25, 0, 0, 1.0);
+  box-sizing: border-box;
+  transform: translateY(-50%);
+  transition: opacity  0.1s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 /* -------- history  title -------- */
 #title-area {
   position: relative;
-  height: 50px;
+  height: 5rem;
   display: block;
-  margin-bottom: 40px;
-  padding-left : 20px;
+  margin-bottom: 4rem;
+  padding-left : 2rem;
   text-align: left;
   font-family: Fira Sans;
-  font-size: 42px;
+  font-size: 4.2rem;
   font-style: italic;
   color: #FFF;
   z-index: 3;
@@ -57,29 +57,29 @@
 /* -------- history List Area -------- */
 
 #list-area {
-  width : 1320px;
-  height : 847px;
+  width : 132rem;
+  height : 84.7rem;
   overflow : hidden;
   display : block;
-  margin-top: -13px;
+  margin-top: -1.3rem;
 }
 
 #bmhis-list {
-  width : 1320px;
-  height : 847px;
+  width : 132rem;
+  height : 84.7rem;
   display : block;
-  -moz-transform: translateY(0px);
-  -moz-transition: -moz-transform 0.16s cubic-bezier(0, 0, 1.0, 1.0);}
+  transform: translateY(0);
+  transition: transform 0.16s cubic-bezier(0, 0, 1.0, 1.0);}
 
 /* -------- Bookmark,history List Item -------- */
 .history-area {
   position : relative;
-  top : 0px;
-  left : 0px;
+  top : 0;
+  left : 0;
   width: 100%;
-  height:120px;
-  margin-bottom: 1px;
-  border-bottom: 1px solid rgba(255,255,255,0.3);
+  height:12rem;
+  margin-bottom: 0.1rem;
+  border-bottom: 0.1rem solid rgba(255,255,255,0.3);
   pointer-events : auto;
 }
 
@@ -93,45 +93,45 @@ li {
 }
 
 .img-area {
-  width: 120px;
-  height:120px;
+  width: 12rem;
+  height:12rem;
   display : block;
   float : left;
 }
 
  .back-icon-img {
-  width : 74px;
-  height : 74px;
-  margin-top: 23px;
-  margin-left: 23px;
+  width : 7.4rem;
+  height : 7.4rem;
+  margin-top: 2.3rem;
+  margin-left: 2.3rem;
   background-color: #9F9F9F;
 }
 
 .icon-img {
   position: relative;
   top: 50%;
-  width : 74px;
-  height : 74px;
-  margin: 0px auto;
-  background-size : 74px;
+  width : 7.4rem;
+  height : 7.4rem;
+  margin: 0 auto;
+  background-size : 7.4rem;
   background-position : center;
   display: block;
-  -moz-transform: translateY(-50%);
+  transform: translateY(-50%);
 }
 
 .text-area {
-  width: 1155px;
-  height: 82px;
-  margin-top: 15px;
+  width: 115.5rem;
+  height: 8.2rem;
+  margin-top: 1.5rem;
   float : left;
 }
 
 .text-title {
-  width: 1155px;
-  height : 41px;
+  width: 115.5rem;
+  height : 4.1rem;
   display : block;
   font-family : Fira Sans;
-  font-size : 34px;
+  font-size : 3.4rem;
   color : #ffffff;
   overflow: hidden;
   white-space: nowrap;
@@ -140,11 +140,11 @@ li {
 
 .text-url {
   display : block;
-  width: 1155px;
-  height : 41px;
-  margin-top: 5px;
+  width: 115.5rem;
+  height : 4.1rem;
+  margin-top: 0.5rem;
   font-family : Fira Sans;
-  font-size : 34px;
+  font-size : 3.4rem;
   font-style : right;
   color : #9a9a9a;
   float : right;
@@ -155,16 +155,16 @@ li {
 
 #upgradimg-area{
   display: block;
-  height: 418px;
-  width: 1320px;
+  height: 41.8rem;
+  width: 132rem;
   position: relative;
   z-index : 2;
   background: url("../style/images/background_black.png") repeat-x center top,
-              -moz-linear-gradient(top,rgba(0, 0, 0, 1) 0%,rgba(0, 0, 0, 1) 50%,rgba(0, 0, 0, 0) 100%);
-  margin-top: -312px;
+              linear-gradient(top,rgba(0, 0, 0, 1) 0%,rgba(0, 0, 0, 1) 50%,rgba(0, 0, 0, 0) 100%);
+  margin-top: -31.2rem;
   background-size: 100% 52%;
   float: right;
-  -moz-transition: opacity 0.16s cubic-bezier(0, 0, 1.0, 1.0);
+  transition: opacity 0.16s cubic-bezier(0, 0, 1.0, 1.0);
 }
 
 #upgradimg-area.hidden{
@@ -173,15 +173,15 @@ li {
 
 #downgradimg-area{
   display: block;
-  height: 300px;
-  width: 1320px;
+  height: 30rem;
+  width: 132rem;
   position: relative;
-  top: -116px;
+  top: -11.6rem;
   z-index : 1;
   background: url("../style/images/background_black.png") repeat-x center bottom,
-              -moz-linear-gradient(top,rgba(0, 0, 0, 0.1) 0%,rgba(0, 0, 0, 1) 50%,rgba(0, 0, 0, 1) 100%);
+              linear-gradient(top,rgba(0, 0, 0, 0.1) 0%,rgba(0, 0, 0, 1) 50%,rgba(0, 0, 0, 1) 100%);
   background-size: 100% 58%;
-  -moz-transition: opacity 0.16s cubic-bezier(0, 0, 1.0, 1.0);
+  transition: opacity 0.16s cubic-bezier(0, 0, 1.0, 1.0);
 }
 
 #downgradimg-area.hidden{
@@ -191,14 +191,14 @@ li {
 /* --- topste view --- */
 #top-sites {
   position: absolute;
-  top : 100px;
+  top : 10rem;
   width : 100%;
-  height : 995px;
+  height : 99.5rem;
   z-index : 300;
   display : none;
-  opacity : 0; : 995px;
+  opacity : 0;
   background-color : #e0e2e4;
- -moz-transition: opacity  1.0s  cubic-bezier(0.25, 0, 0, 1.0);
+ transition: opacity  1.0s  cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 
@@ -208,19 +208,19 @@ li {
   top: 50%;
   left: 0;
   right: 0;
-  width : 1230px;
-  height : 768px;
+  width : 123rem;
+  height : 76.8rem;
   margin: 0 auto;
-  -moz-transform: translateY(-50%);
+  transform: translateY(-50%);
 }
 
 .top-default-item {
   width : calc(100% / 3.42);
-  height : 200px;
-  margin-left: 25px;
-  margin-right: 25px;
-  margin-bottom: 56px;
-  border: 2px dashed #A3A3A3;
+  height : 20rem;
+  margin-left: 2.5rem;
+  margin-right: 2.5rem;
+  margin-bottom: 5.6rem;
+  border: 0.2rem dashed #A3A3A3;
   background-color : #e0e2e4;
   float: left;
   text-align: center;
@@ -233,54 +233,54 @@ li {
   top: 50%;
   left: 0;
   right: 0;
-  width : 1230px;
-  height : 768px;
+  width : 123rem;
+  height : 76.8rem;
   margin: 0 auto;
-  -moz-transform: translateY(-50%);
+  transform: translateY(-50%);
 }
 
 .top-site-item {
   position: relative;
   width : calc(100% / 3.42);
-  height: 200px;
-  margin-left: 25px;
-  margin-right: 25px;
-  margin-bottom: 56px;
+  height: 20rem;
+  margin-left: 2.5rem;
+  margin-right: 2.5rem;
+  margin-bottom: 5.6rem;
   background-color : #E0E2E4;
   float: left;
   text-align: center;
 }
 
 .thumbnail-area {
-  height: 200px;
-  border-width: 1px;
+  height: 20rem;
+  border-width: 0.1rem;
   border-style: solid;
   border-color: #d0d5d9;
   background-color: #FFF;
   background-size: 125% 119%;
   overflow : hidden;
-  -moz-transition: border  0.42s cubic-bezier(0.25, 0, 0, 1.0),
+  transition: border  0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background-size  0.42s cubic-bezier(0.25, 0, 0, 1.0),
-                   -moz-transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0);
+                   transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: none;
 }
 
 .topList-area {
-  height: 200px;
+  height: 20rem;
 }
 .site-title-area {
   position: absolute;
-  left: 0px;
-  right: 0px;
-  bottom: 1px;
+  left: 0;
+  right: 0;
+  bottom: 0.1rem;
   width: 99.5%;
-  height: 50px;
+  height: 5rem;
   margin: 0 auto;
   background-color: rgba(0, 0, 0, 0.4);
   display: block;
   text-align: center;
   color : #fff;
-  -moz-transition: -moz-transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0),
                    width  0.42s  cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: none;
 }
@@ -291,11 +291,11 @@ li {
   left: 0;
   right: 0;
   bottom: 0;
-  width: 300px;
-  height: 36px;
+  width: 30rem;
+  height: 3.6rem;
   margin: auto;
-  line-height: 36px;
-  font-size: 20px;
+  line-height: 3.6rem;
+  font-size: 2rem;
   font-style: italic;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -309,19 +309,19 @@ li {
 
 .top-site-item:hover > .thumbnail-area {
   outline: none;
-  border-width: 12px;
+  border-width: 1.2rem;
   border-color: #fff;
   background-size: 108% 114%;
 }
 
 .top-site-item:hover > .site-title-area{
-  width: 335px;
-  -moz-transform: translateY(-10px);
+  width: 33.5rem;
+  transform: translateY(-1rem);
 }
 
 .top-site-item.active > .thumbnail-area{
-  -moz-transition : -moz-transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0);
-  -moz-transform: scale(0.90);
+  transition : transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0);
+  transform: scale(0.90);
 }
 
 .top-site-item.active > .thumbnail-area > .topList-area{
@@ -329,8 +329,8 @@ li {
 }
 
 .top-site-item.active > .site-title-area{
-  -moz-transition: none;
-  -moz-transform: translateY(-17px) scale(0.90);
+  transition: none;
+  transform: translateY(-1.7rem) scale(0.90);
   opacity: 0.5;
 }
 
@@ -340,110 +340,110 @@ li {
 }
 #dialog-area {
   position: absolute;
-  top: 0px;
-  height: 1080px;
+  top: 0;
+  height: 108rem;
   z-index : 310;
   display : none;
   background-color: rgba(0, 0, 0, 0.9);
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: fixed;
   width: inherit;
 }
 #bmd-dialog {
   position: relative;
   top: 50%;
-  height: 640px;
+  height: 64rem;
   margin: 0 auto;
   z-index: 500;
-  -moz-transform: translateY(-50%);
+  transform: translateY(-50%);
   pointer-events: none;
 
 }
 
 #message-area {
   width: auto;
-  margin: 0px auto;
+  margin: 0 auto;
   display: block;
 }
 
 #message-title {
-  height: 38px;
-  margin-bottom: 34px;
+  height: 3.8rem;
+  margin-bottom: 3.4rem;
   text-align: center;
-  font-size: 38px;
+  font-size: 3.8rem;
   font-style: italic;
   color : #f9f9f9;
 }
 
 #bmtitle-area {
   position: relative;
-  height: 70px;
-  width: 700px;
+  height: 7rem;
+  width: 70rem;
   text-align: center;
   display: table;
   vertical-align: middle;
-  margin: 24px auto 20px;
-  border-bottom: 2px solid #E7E7E7;
-  -moz-transform: scale(1);
-  -moz-transition: all 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
+  margin: 2.4rem auto 2rem;
+  border-bottom: 0.2rem solid #E7E7E7;
+  transform: scale(1);
+  transition: all 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
   pointer-events: auto;
 }
 
 #input-area {
   position: absolute;
-  top: 0px;
-  bottom: 0px;
-  width: 600px;
+  top: 0;
+  bottom: 0;
+  width: 60rem;
   height: 100%;
   background: none repeat scroll 0% 0% transparent;
   border: medium none;
   vertical-align: middle;
-  margin: auto 50px;
+  margin: auto 5rem;
   text-align: center;
   font-family: "Fira Sans";
   font-style: italic;
-  font-size: 38px;
+  font-size: 3.8rem;
   color: #FFF;
   display: table-cell;
 }
 
 #circle-img {
-  width: 30px;
-  height: 30px;
+  width: 3rem;
+  height: 3rem;
   background: url('../style/images/ic_close.png') no-repeat scroll center center / contain #5F6368;
   border-radius: 50%;
   display: table-cell;
   position: absolute;
-  top: 0px;
-  bottom: 0px;
+  top: 0;
+  bottom: 0;
   margin: auto;
-  right: calc(50px / 2 - 15px);
-  transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s,
+  right: calc(5rem / 2 - 1.5rem);
+  transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s,
               background-color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s,
               color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
   pointer-events: auto;
 }
 
 #check-area {
-  width : 700px;
-  height : 94px;
+  width : 70rem;
+  height : 9.4rem;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2rem;
   text-align: center;
 }
 
 #cbox-area {
-  height : 54px;
+  height : 5.4rem;
   display : inline-block;
 }
 
 #check-box {
-  width : 50px;
-  height : 50px;
-  border : 4px solid #5f6368;
+  width : 5rem;
+  height : 5rem;
+  border : 0.4rem solid #5f6368;
   border-radius : 50%;
-  box-shadow : 2px 2px 2px rgba(0,0,0,0.25);
-  -moz-transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1.0);
+  box-shadow : 0.2rem 0.2rem 0.2rem rgba(0,0,0,0.25);
+  transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: auto;
 }
 
@@ -451,8 +451,8 @@ li {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   position: relative;
   opacity: 0;
   background-color: #00caf2;
@@ -462,25 +462,25 @@ li {
   animation-duration: 0.35s;
   animation-fill-mode: forwards;
 }
-@-moz-keyframes check-box-animation {
-  0% {-moz-transform: scale(0); opacity: 0.8;}
-  65% {-moz-transform: scale(1); opacity: 0.8;}
-  100% {opacity: 0; -moz-transform: scale(1);}
+@keyframes check-box-animation {
+  0% {transform: scale(0); opacity: 0.8;}
+  65% {transform: scale(1); opacity: 0.8;}
+  100% {opacity: 0; transform: scale(1);}
 }
 
 #check-img {
-  margin-top : -47px;
-  margin-left : -27px;
+  margin-top : -4.7rem;
+  margin-left : -2.7rem;
   opacity : 0;
   position: absolute;
-  -moz-transition: opacity 0.16s cubic-bezier(0.25, 0, 0, 1.0);
+  transition: opacity 0.16s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 #text-area {
-  height: 50px;
-  margin-top : -50px;
-  margin-left : 75px;
-  font-size: 38px;
+  height: 5rem;
+  margin-top : -5rem;
+  margin-left : 7.5rem;
+  font-size: 3.8rem;
   font-style: italic;
   color: #FFF;
   pointer-events: auto;
@@ -488,20 +488,20 @@ li {
 
 #button-area {
   position: relative;
-  margin: 130px auto;
+  margin: 13rem auto;
 }
 
 #bt-position {
-  margin: 0px auto;
+  margin: 0 auto;
   display: table;
   text-align: center;
 }
 
 .awesomescreen-default-button {
-  width: 210px;
-  height: 210px;
-  margin-left: 22px;
-  margin-right: 22px;
+  width: 21rem;
+  height: 21rem;
+  margin-left: 2.2rem;
+  margin-right: 2.2rem;
   background-image: none;
   font-style: italic;
   color: #FFF;
@@ -509,38 +509,38 @@ li {
   float: left;
   border: none;
   border-radius: 50%;
-  font-size : 24px;
-  -moz-transform: scale(1.0);
-  -moz-transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1.0),
+  font-size : 2.4rem;
+  transform: scale(1.0);
+  transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.16s cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: auto;
 }
 
 .awesomescreen-primary-button {
-  width: 210px;
-  height: 210px;
-  margin-left: 22px;
-  margin-right: 22px;
+  width: 21rem;
+  height: 21rem;
+  margin-left: 2.2rem;
+  margin-right: 2.2rem;
   background-image: none;
   font-style: italic;
   color: #FFF;  background-color: #0097b6;
   float: left;
   border: none;
   border-radius: 50%;
-  font-size : 24px;
-  -moz-transform: scale(1.0);
-  -moz-transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1.0),
+  font-size : 2.4rem;
+  transform: scale(1.0);
+  transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.16s cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: auto;
 }
 
 .awesomescreen-danger-button {
-  width: 210px;
-  height: 210px;
-  margin-left: 22px;
-  margin-right: 22px;
+  width: 21rem;
+  height: 21rem;
+  margin-left: 2.2rem;
+  margin-right: 2.2rem;
   background-image: none;
   font-style: italic;
   color: #FFF;
@@ -548,9 +548,9 @@ li {
   float: left;
   border: none;
   border-radius: 50%;
-  font-size : 24px;
-  -moz-transform: scale(1.0);
-  -moz-transition: -moz-transform 0.16s cubic-bezier(0.25, 0, 0, 1.0),
+  font-size : 2.4rem;
+  transform: scale(1.0);
+  transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.16s cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: auto;
@@ -560,17 +560,17 @@ li {
 #check-box:hover,
 #check-box:focus {
   outline:none;
-  -moz-transform: scale(1.2);
-  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+  transform: scale(1.2);
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 #circle-img:hover,
 #circle-img:focus {
   outline:none;
-  -moz-transform: scale(1.2);
-  border : 1px solid #fff;
+  transform: scale(1.2);
+  border : 0.1rem solid #fff;
   background: url("../style/images/ic_close_black.png") no-repeat center/contain #fff;
-  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    border 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
@@ -578,10 +578,10 @@ li {
 #circle-img.active,
 #circle-img:active {
   outline:none;
-  -moz-transform: scale(1.0);
-  border : 1px solid #00caf2;
+  transform: scale(1.0);
+  border : 0.1rem solid #00caf2;
   background: url("../style/images/ic_close.png") no-repeat center/contain #00caf2;
-  -moz-transition: -moz-transform 0.06s cubic-bezier(0.25, 0, 0, 1.0) ,
+  transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0) ,
                    background 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    border 0.06s cubic-bezier(0.25, 0, 0, 1.0);
 }
@@ -596,52 +596,52 @@ li {
 
 #bmtitle-area:hover,
 #bmtitle-area.exfocus {
-  -moz-transform: scale(1.2);
+  transform: scale(1.2);
   outline:none;
 }
 
 #bmtitle-area.input {
-  -moz-transition: -moz-transform 0.06s cubic-bezier(0.25, 0, 0, 1.0) ,
+  transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0) ,
                    border-bottom 0.06s cubic-bezier(0.25, 0, 0, 1.0);
-  border-bottom: solid 3px #00caf2;
-  -moz-transform: scale(1.0);
+  border-bottom: solid 0.3rem #00caf2;
+  transform: scale(1.0);
   outline:none;
 }
 
 #bmtitle-area.input #input-area {
   font-style: normal;
-  -moz-transition: font-style 0.06s cubic-bezier(0.25, 0, 0, 1.0) ,
+  transition: font-style 0.06s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 .awesomescreen-default-button:hover,
 .awesomescreen-default-button:focus {
-  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.42s cubic-bezier(0.25, 0, 0, 1.0);  color : #2d2d2d;
   background-color: #fff;
   outline:none;
-  -moz-transform: scale(1.2);
+  transform: scale(1.2);
 }
 
 .awesomescreen-primary-button:hover,
 .awesomescreen-primary-button:focus {
-  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.42s cubic-bezier(0.25, 0, 0, 1.0);
   color : #fff;
   outline:none;
-  -moz-transform: scale(1.2);
+  transform: scale(1.2);
 }
 
 .awesomescreen-danger-button:hover,
 .awesomescreen-danger-button:focus {
-  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 
   color : #fff;
   outline:none;
-  -moz-transform: scale(1.2);
+  transform: scale(1.2);
 }
 
 #pinhome-button.awesomescreen-default-button.active,
@@ -652,51 +652,51 @@ li {
 #remove-button.awesomescreen-default-button.active,
 #remove-bookmark-button.awesomescreen-default-button.active,
 #bt-position > .awesomescreen-default-button:active {
-  -moz-transition: -moz-transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.06s cubic-bezier(0.25, 0, 0, 1.0);
   color : #fff;
   background-color : #00caf2;
   outline:none;
-  -moz-transform: scale(1.0);
+  transform: scale(1.0);
 }
 
 #ok-button.awesomescreen-primary-button.active,
 #rename-confirm-button.awesomescreen-primary-button.active,
 #bt-position > .awesomescreen-primary-button:active {
-  -moz-transition: -moz-transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.06s cubic-bezier(0.25, 0, 0, 1.0);
   color : #fff;
   background-color : #00758c;
   outline:none;
-  -moz-transform: scale(1.0);
+  transform: scale(1.0);
 }
 
 #remove-topsite-button.awesomescreen-danger-button.active,
 #remove-confirm-button.awesomescreen-danger-button.active,
 #clear-button.awesomescreen-danger-button.active,
 #bt-position > .awesomescreen-danger-button:active {
-  -moz-transition: -moz-transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.06s cubic-bezier(0.25, 0, 0, 1.0);
   color : #fff;
   background-color : #ac2e23;
   outline:none;
   pointer-events: auto;
-  -moz-transform: scale(1.0);
+  transform: scale(1.0);
 }
 
 /* --- tabview --- */
 #tab-view {
   position: absolute;
-  top : 0px;
+  top : 0;
   width: 100%;
   z-index : 310;
   background-color: rgba(0, 0, 0, 0.9);
-  -moz-box-sizing: border-box;
-  -moz-transform: translateY(-1080px);
-  -moz-transition: -moz-transform  1s  cubic-bezier(0.25, 0, 0, 1.0);
+  box-sizing: border-box;
+  transform: translateY(-108rem);
+  transition: transform  1s  cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 #tabview-panels {
@@ -704,17 +704,17 @@ li {
 }
 
 #tab-site-list {
-  width : 1760px;
+  width : 176rem;
   height: 100%;
   display: table;
-  margin: 20px auto;
+  margin: 2rem auto;
   pointer-events: none;
 }
 
 .tabview-site-item {
   position: relative;
-  width : 400px;
-  height : 314px;
+  width : 40rem;
+  height : 31.4rem;
   opacity : 0;
   float: left;
   text-align: center;
@@ -728,14 +728,14 @@ li {
 
 .del-img {
   position: relative;
-  top: 30px;
-  width: 30px;
-  height: 30px;
-  margin: 0px auto;
+  top: 3rem;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto;
   background: url("../style/images/ic_close.png") no-repeat center/contain #5f6368;
   display: block;
   border-radius: 50%;
-  -moz-transition : -moz-transform  0.42s cubic-bezier(0.25, 0, 0, 1.0) ,
+  transition : transform  0.42s cubic-bezier(0.25, 0, 0, 1.0) ,
                     background 0.42s cubic-bezier(0.25, 0, 0, 1.0) ,
                     border 0.42s cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: auto;
@@ -743,13 +743,13 @@ li {
 
 .back-area {
   height: 72%;
-  max-height : 224px;
-  min-height : 170px;
+  max-height : 22.4rem;
+  min-height : 17rem;
   display: block;
   pointer-events: auto;
   outline:none;
   text-align: center;
-  -moz-transition : -moz-transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0);
+  transition : transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 .tabviewList-area {
@@ -760,30 +760,30 @@ li {
 #new-thumbnail {
   position: relative;
   width : 100%;
-  height : 224px;
-  margin: 0px auto;
+  height : 22.4rem;
+  margin: 0 auto;
   display: block;
-  border: 0px solid #fff;
+  border: 0 solid #fff;
   background-size: 112% 105%;
-  -moz-transition : border 0.42s  cubic-bezier(0.25, 0, 0, 1.0),
+  transition : border 0.42s  cubic-bezier(0.25, 0, 0, 1.0),
                     background-size 0.42s  cubic-bezier(0.25, 0, 0, 1.0),
-                    -moz-transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0);
+                    transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: none;
 }
 
 .tabview-title-area {
   position: absolute;
-  left: 0px;
-  right: 0px;
-  bottom: 2px;
+  left: 0;
+  right: 0;
+  bottom: 0.2rem;
   width: 100%;
-  height: 50px;
+  height: 5rem;
   margin: 0 auto;
   background-color: rgba(0, 0, 0, 0.4);
   display: block;
   text-align: center;
   color : #fff;
-  -moz-transition: -moz-transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0),
+  transition: transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0),
                    width  0.42s  cubic-bezier(0.25, 0, 0, 1.0);
   pointer-events: none;
 }
@@ -794,11 +794,11 @@ li {
   left: 0;
   right: 0;
   bottom: 0;
-  width: 300px;
-  height: 36px;
+  width: 30rem;
+  height: 3.6rem;
   margin: auto;
-  line-height: 36px;
-  font-size: 20px;
+  line-height: 3.6rem;
+  font-size: 2rem;
   font-style: italic;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -809,8 +809,8 @@ li {
 .del-img:focus,
 .del-img:hover {
   outline:none;
-  -moz-transform: scale(1.2);
-  border : 1px solid #fff;
+  transform: scale(1.2);
+  border : 0.1rem solid #fff;
   background: url("../style/images/ic_close_black.png") no-repeat center/contain #fff;
 }
 
@@ -819,29 +819,29 @@ li {
 .back-area:focus > #new-thumbnail,
 .back-area:hover > #new-thumbnail {
   outline:none;
-  border: 12px solid #fff;
+  border: 1.2rem solid #fff;
   background-size: 106% 111%;
 }
 
 .back-area:focus > .tabview-title-area,
 .back-area:hover > .tabview-title-area {
-  width: 376px;
-  -moz-transform: translateY(-12px);
+  width: 37.6rem;
+  transform: translateY(-1.2rem);
 }
 
 .del-img.active{
-  border: 1px solid #00caf2;
+  border: 0.1rem solid #00caf2;
   background: url("../style/images/ic_close.png") no-repeat center/contain #00caf2;
-  -moz-transform: scale(1.0);
-  -moz-transition : -moz-transform  0.16s  cubic-bezier(0.25, 0, 0, 1.0),
+  transform: scale(1.0);
+  transition : transform  0.16s  cubic-bezier(0.25, 0, 0, 1.0),
                     background  0.16s  cubic-bezier(0.25, 0, 0, 1.0),
                     border  0.16s  cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 .back-area.active > .tab-thumbnail,
 .back-area.active > #new-thumbnail {
-  -moz-transition : -moz-transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0);
-  -moz-transform: scale(0.90);
+  transition : transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0);
+  transform: scale(0.90);
 }
 
 .back-area.active > .tab-thumbnail > .tabviewList-area ,
@@ -850,8 +850,8 @@ li {
 }
 
 .back-area.active > .tabview-title-area {
-  -moz-transition: none;
-  -moz-transform: translateY(-19px) scale(0.90);
+  transition: none;
+  transform: translateY(-1.9rem) scale(0.90);
   opacity: 0.5;
 }
 
@@ -859,130 +859,126 @@ li {
 #dialog-banner-message {
   display: table;
   position: absolute;
-  left: 0px;
-  right: 0px;
-  bottom: 100px;
+  left: 0;
+  right: 0;
+  bottom: 10rem;
   width: auto;
   height: auto;
   max-width : 80%;
-  padding-left: 44px;
-  padding-right: 44px;
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding-left: 4.4rem;
+  padding-right: 4.4rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
   margin: 0 auto;
   z-index: 305;
   background: rgba(0, 0, 0, 0.7);
   background-color: #000000;
   opacity: 0;
   font-family: Fira Sans;
-  font-size: 26px;
+  font-size: 2.6rem;
   font-style: Italic;
   color: #ffffff;
   text-align: center;
   word-wrap: break-word;
-  border-radius: 55px;
-  -moz-transition: opacity 1s cubic-bezier(0.25, 0, 0, 1.0);
+  border-radius: 5.5rem;
+  transition: opacity 1s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 #pointer-img{
-  top : 1920px;
-  left : 1080px;
-  width: 64px;
-  height: 64px;
+  top : 192rem;
+  left : 108rem;
+  width: 6.4rem;
+  height: 6.4rem;
   z-index: 550;
   display : none;
-  -moz-transform: translate(0px,0px);
-  -moz-transition: -moz-transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+  transform: translate(0,0);
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 /* --------------- private window --------------- */
 p {
   display: block;
-  margin: 1em 0px;
+  margin: 1rem 0;
 }
 /* -------- private browsing -------- */
 #private-browsing-block {
   position: absolute;
-  top : 100px;
-  width : 100%;
-  height : 995px;
+  top : 10rem;
+  width : 192rem;
+  height : 98rem;
   z-index : 300;
   display : none;
-  background-color : #e0e2e4;
+  align-items: center;
+  justify-content: center;
+  font-family: Fira Sans;
+  background-color: #e0e2e4;
 }
 #private-browsing-block.visible {
-  display: block;
+  display: flex;
 }
 
 #private-browsing-panel {
-  position: relative;
-  width: 1220px;
+  width: 122rem;
   height: auto;
-  margin: 4em auto;
-  border: 1px solid #afafca;
-  border-radius: 6px;
-  padding: 44px 160px 90px;
+  border-radius: 0.6rem;
+  padding: 4.4rem 16rem 9rem 16rem;
   background-color: #ffffff;
   pointer-events : none;
 }
 
 #private-browsing-img {
   position: relative;
-  width: 110px;
-  height: 110px;
-  margin: auto;
+  width: 11rem;
+  height: 11rem;
+  margin: 0 auto;
   background-image: url('../style/images/img_browser_private_logo.png');
 }
 
-#private-browsing-title-text {
-  height: 46px;
-  margin-top: 14px;
-  margin-bottom: 10px;
+#private-browsing-title {
+  height: 4.6rem;
+  margin-top: 1.4rem;
+  margin-bottom: 1rem;
   text-align: center;
-  font-size: 2.4rem;
+  font-size: 4.6rem;
   font-style: italic;
+  font-weight: 200;
+  line-height: 4.6rem;
   color: #8e2bef;
 }
 
-#private-browsing-subtitle-text {
-  height: 28px;
+#private-browsing-subtitle {
+  height: 2.6rem;
+  margin-top: 0;
+  margin-bottom: 6rem;
   text-align: center;
-  font-size: 1.6rem;
-  font-family: Fire Sans;
+  font-size: 2.6rem;
   font-style: italic;
+  font-weight: 200;
+  line-height: 2.6rem;
   color: #4d4d4d;
 }
 
-#private-browsing-info-text {
-  margin-top: 60px;
-  margin-bottom: 40px;
-  font-size: 1.2rem;
-  font-family: Fire Sans;
-  font-style: Light;
+.private-browsing-text-block {
+  margin-top: 0;
+  margin-bottom: 4rem;
+}
+
+.private-browsing-text {
+  font-size: 2.4rem;
+  font-weight: lighter;
+  line-height: 3rem;
   color: #4d4d4d;
 }
 
 #private-browsing-more-info {
   background: url('../style/images/ic_borwser_tips.png') no-repeat top left;
-  -moz-padding-start: 34px;
-}
-
-#private-browsing-more-info-text {
-  font-size: 1.2rem;
-  font-family: Fire Sans;
-  font-style: Light;
-  color: #4d4d4d;
+  -moz-padding-start: 3.4rem;
 }
 
 #private-browsing-more-info-link {
-  font-size: 1.2rem;
-  font-family: Fire Sans;
-  font-style: Light;
   text-decoration: underline;
   color: #00caf2;
   pointer-events : auto;
-  /* T.B.D. */
-  display: none;
 }
 
 
@@ -990,10 +986,10 @@ p {
 #awesome-loading-icon {
   display: none;
   position: absolute;
-  left: 662.5px;
-  top: 600px;
-  width: 85px;
-  height: 85px;
+  left: 66.25rem;
+  top: 60rem;
+  width: 8.5rem;
+  height: 8.5rem;
   z-index: 400;
   pointer-events: none;
 }
@@ -1012,10 +1008,10 @@ p {
 .awesomecircle-2 {
   animation-delay: 395ms;
 }
-@-moz-keyframes awesome-loading-animation {
-  0% {-moz-transform: scale(0); opacity: 0.9;}
-  40% {-moz-transform: scale(1.4); opacity: 0;}
-  100% {-moz-transform: scale(2); opacity: 0;}
+@keyframes awesome-loading-animation {
+  0% {transform: scale(0); opacity: 0.9;}
+  40% {transform: scale(1.4); opacity: 0;}
+  100% {transform: scale(2); opacity: 0;}
 }
 
 #awesome-loading-icon.visible {
@@ -1023,15 +1019,15 @@ p {
 }
 
 #awesome-loading-icon.sideBarPos1{
-  left: 463.5px;
+  left: 46.35rem;
 }
 
 #awesome-loading-icon.bookmarkPos1{
-  top: 840px;
-  left: 590.5px;
+  top: 84rem;
+  left: 59.05rem;
 }
 
 #awesome-loading-icon.bookmarkPos2{
-  top: 840px;
-  left: 790.5px;
+  top: 84rem;
+  left: 79.05rem;
 }
