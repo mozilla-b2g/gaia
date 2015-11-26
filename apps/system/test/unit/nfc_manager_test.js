@@ -4,7 +4,7 @@
            MockService, NfcUtils, MozActivity, NfcHandoverManager,
            MockNfcHandoverManager, BaseModule, MockLazyLoader */
 
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_event_target.js');

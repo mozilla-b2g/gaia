@@ -3,7 +3,7 @@
 /* global HardwareButtons, MocksHelper, MockService, MockSettingsListener */
 
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/js/browser_key_event_manager.js');
 require('/js/hardware_buttons.js');
