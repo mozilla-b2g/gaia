@@ -509,7 +509,7 @@ suite('Homescreen app', () => {
 
     test('calls IconsHelper.setElementIcon() on bookmark icons', () => {
       var setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
-                                          Promise.resolve);
+                                          Promise.resolve.bind(Promise));
       app.refreshIcon(mockBookmarkIcon);
       assert.isTrue(setElementIconStub.calledOnce);
       setElementIconStub.restore();
@@ -517,7 +517,7 @@ suite('Homescreen app', () => {
 
     test('calls refresh if setElementIcon() Promise rejects', done => {
       var setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
-                                          Promise.reject);
+                                          Promise.reject.bind(Promise));
       sinon.stub(mockBookmarkIcon, 'refresh', () => {
         setElementIconStub.restore();
         done();
