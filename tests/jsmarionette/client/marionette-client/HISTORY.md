@@ -1,3 +1,7 @@
+# 1.9.1
+ - Bug 1227991 - client.js sends wrong variable to Marionette server
+ - nodejs v4.x, v5.x support.
+
 # 1.9.0
   - Bug 1200400 - Add support for switchToShadowRoot
 
