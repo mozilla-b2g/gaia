@@ -370,6 +370,111 @@ suite('system/Places', function() {
 
     });
 
+    suite('Clean dupes', function() {
+      var removeSpy, setItemStub;
+      var topSitesWithDupes = [
+        { url: 'http://website1/', frecency: 10},
+        { url: 'http://website1/', frecency:  8},
+        { url: 'http://website1/', frecency:  6},
+        { url: 'http://website2/', frecency:  5},
+        { url: 'http://website2/', frecency:  4},
+        { url: 'http://website3/', frecency:  3},
+      ];
+
+      var topSitesWithoutDupes = [
+        { url: 'http://website1/', frecency: 10},
+        { url: 'http://website2/', frecency:  5},
+        { url: 'http://website3/', frecency:  3},
+        { url: 'http://website4/', frecency:  2},
+        { url: 'http://website5/', frecency:  2},
+        { url: 'http://website6/', frecency:  2},
+      ];
+
+      setup(function() {
+        removeSpy = this.sinon.spy(subject, '_removeDupes');
+        setItemStub = this.sinon.stub(asyncStorage, 'setItem');
+      });
+
+      test('_start() calls _removeDupes()', function(done) {
+        subject._start().then(() => {
+          sinon.assert.calledOnce(removeSpy);
+          done();
+        });
+      });
+
+      suite('Duplicates removal', function() {
+        test('empty top sites', function() {
+          var result = subject._removeDupes([]);
+          assert.equal(result.length, 0);
+        });
+
+        test('removes duplicated top sites', function() {
+          var result = subject._removeDupes(topSitesWithDupes);
+          assert.equal(result.length, 3);
+          assert.deepEqual(result[0], topSitesWithoutDupes[0]);
+          assert.deepEqual(result[1], topSitesWithoutDupes[1]);
+          assert.deepEqual(result[2], topSitesWithoutDupes[2]);
+        });
+
+        test('nothing on non duplicated top sites', function() {
+          var result = subject._removeDupes(topSitesWithoutDupes);
+          assert.equal(result.length, 6);
+          assert.deepEqual(result[0], topSitesWithoutDupes[0]);
+          assert.deepEqual(result[1], topSitesWithoutDupes[1]);
+          assert.deepEqual(result[2], topSitesWithoutDupes[2]);
+        });
+      });
+
+      suite('checkTopSites should not add dupes', function() {
+        setup(function() {
+          subject.topSites = topSitesWithoutDupes.slice(0);
+        });
+
+        test('checking new place, higher frecency', function() {
+          var newPlace = { url: 'http://website7/', frecency: 7 };
+          subject.checkTopSites(newPlace);
+          assert.equal(subject.topSites.length, 6);
+          assert.deepEqual(topSitesWithoutDupes[0], subject.topSites[0]);
+          assert.deepEqual(newPlace, subject.topSites[1]);
+          assert.deepEqual(topSitesWithoutDupes[1], subject.topSites[2]);
+          assert.deepEqual(topSitesWithoutDupes[2], subject.topSites[3]);
+          assert.deepEqual(topSitesWithoutDupes[3], subject.topSites[4]);
+          assert.deepEqual(topSitesWithoutDupes[4], subject.topSites[5]);
+        });
+
+        test('checking new place, lower frecency', function() {
+          var newPlace = { url: 'http://website7/', frecency: 1 };
+          subject.checkTopSites(newPlace);
+          assert.equal(subject.topSites.length, 6);
+          for (var i = 0; i < 6; i++) {
+            assert.notDeepEqual(newPlace, subject.topSites[i]);
+          }
+        });
+
+        test('checking existing place, higher frecency', function() {
+          var existPlace = { url: 'http://website3/', frecency: 7 };
+          subject.checkTopSites(existPlace);
+          assert.equal(subject.topSites.length, 6);
+          assert.deepEqual(topSitesWithoutDupes[0], subject.topSites[0]);
+          assert.deepEqual(existPlace, subject.topSites[1]);
+          assert.deepEqual(topSitesWithoutDupes[1], subject.topSites[2]);
+          assert.notDeepEqual(topSitesWithoutDupes[2], subject.topSites[3]);
+          assert.deepEqual(topSitesWithoutDupes[3], subject.topSites[3]);
+          assert.deepEqual(topSitesWithoutDupes[4], subject.topSites[4]);
+          assert.deepEqual(topSitesWithoutDupes[5], subject.topSites[5]);
+        });
+
+        test('checking existing place, lower frecency', function() {
+          var existPlace = { url: 'http://website3/', frecency: 1 };
+          subject.checkTopSites(existPlace);
+          assert.equal(subject.topSites.length, 6);
+          for (var i = 0; i < 6; i++) {
+            assert.notDeepEqual(existPlace, subject.topSites[i]);
+          }
+        });
+
+      });
+    });
   });
 
 });
