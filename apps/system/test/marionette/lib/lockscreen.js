@@ -12,6 +12,9 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
   LockScreen.prototype.start = function(client) {
     this.Ensure = require('./ensure.js');
     this.client = client;
+    this.selector = {
+      lockSlider: '#lockscreen-icon-container'
+    };
     // XXX: After we make LockScree as an iframe or app, we need this to
     // indicate to switch to which frame.
     this.lockScreenFrameOrigin = 'app://lockscreen.gaiamobile.org';
@@ -202,6 +205,45 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
         }
       }).bind(this));
     return this;
+  };
+
+  // Slide to unlock the screen
+  LockScreen.prototype.slideToUnlock =
+  function(cb) {
+    this._slideLockTo('right', cb);
+  };
+
+  // Slide to open camera app
+  LockScreen.prototype.slideToOpenCamera =
+  function(cb) {
+    this._slideLockTo('left', cb);
+  };
+
+  // Slide an element given x and y offsets
+  LockScreen.prototype._slideByOffset =
+  function(element, x, y, cb) {
+    var actions = this.client.loader.getActions();
+    // actions.flick doesn't work for some reason. Resorted to breaking it
+    // down to press > move > release. The waiting time in between each action
+    // is necessary.
+    actions.press(element).wait(0.5).moveByOffset(x, y).wait(0.5).release().
+      perform(cb);
+  };
+
+  // Slide lockscreen to left or right
+  LockScreen.prototype._slideLockTo =
+  function(direction, cb) {
+    this.ensure().frame();
+    var lockSlider = this.client.findElement(this.selector.lockSlider);
+    var size = lockSlider.size();
+    switch (direction) {
+      case 'left':
+        this._slideByOffset(lockSlider, -size.width / 2, 0, cb);
+        break;
+      case 'right':
+        this._slideByOffset(lockSlider, size.width / 2, 0, cb);
+        break;
+    }
   };
 
   module.exports = LockScreen;
