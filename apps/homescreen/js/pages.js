@@ -219,6 +219,7 @@
       // Remove child immediately, datastore operations can be quite slow
       this.removeCard(this.selectedCard);
 
+      // TODO: Use shared/js/places_model.js here, see bug 1225809
       this.pagesStore.get(id).then(entry => {
         entry.data.pinned = false;
         this.pagesStore.datastore.put(entry.data, id).then(() => {},
