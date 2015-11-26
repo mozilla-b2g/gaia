@@ -1,4 +1,4 @@
-/* global PagesStore, IconsHelper */
+/* global IconsHelper, LazyLoader, PagesStore, placesModel */
 'use strict';
 
 (function(exports) {
@@ -219,14 +219,11 @@
       // Remove child immediately, datastore operations can be quite slow
       this.removeCard(this.selectedCard);
 
-      this.pagesStore.get(id).then(entry => {
-        entry.data.pinned = false;
-        this.pagesStore.datastore.put(entry.data, id).then(() => {},
-          e => {
-            console.error('Error unpinning page:', e);
-          });
-      }, e => {
-        console.error('Error retrieving page to unpin:', e);
+      // TODO: fix LazyLoader mock to support promises, see bug 1181687
+      return new Promise((resolve, reject) => {
+        LazyLoader.load(['shared/js/places_model.js'], () => {
+          placesModel.setPinned(id, false).then(resolve, reject);
+        });
       });
     },
 
