@@ -3,7 +3,10 @@
     <section class="vertical">
       <h3 class="fxa-title"><span data-l10n-id="firefox-accounts-title"></span><span class="fax-title-separator">|</span><span data-l10n-id="fxa-signin"></span></h3>
       <p id="fxa-password-refresh" class="fxa-intro" data-l10n-id="fxa-password-refresh">Please enter your Firefox Account password to continue.</p>
-      <input id="fxa-pw-input-refresh" type="password" placeholder="Password" required="" pattern=".{8,}" data-l10n-id="fxa-password" tabindex="-1">
+      <div id="fxa-pw-input-wrapper">
+        <input id="fxa-pw-input-refresh" type="password" placeholder="Password" required="" pattern=".{8,}" data-l10n-id="fxa-password" tabindex="-1">
+        <button id="fxa-pw-clean-btn" data-icon="close" aria-hidden="true" tabindex="-1"></button>
+      </div>
       <div id="fxa-pw-option-container">
         <p class="fine-print"><a id="fxa-forgot-password-refresh" data-l10n-id="fxa-forgot-your-password" tabindex="-1">Forgot your password?</a></p>
         <div id="show-pw-wrapper">

@@ -79,14 +79,20 @@ var FxaModuleEnterPassword = (function() {
         'fxa-hello-known-user',
         'fxa-pw-input',
         'fxa-show-pw',
-        'fxa-forgot-password'
+        'fxa-forgot-password',
+        'fxa-pw-clean-btn'
       );
       // Add listeners
       this.fxaPwInput.addEventListener(
         'input',
         function onInput(event) {
+          if(this.fxaPwInput.value) {
+            this.fxaPwCleanBtn.classList.add('show');
+          } else {
+            this.fxaPwCleanBtn.classList.remove('show');
+          }
           _enableNext(event.target);
-        }
+        }.bind(this)
       );
       // Ensure that pressing 'ENTER' (keycode 13) we send the form
       // as expected
@@ -103,6 +109,16 @@ var FxaModuleEnterPassword = (function() {
       this.fxaPwInput.addEventListener('focus', () => {
         setTimeout(this.fxaPwInput.select.bind(this.fxaPwInput));
       });
+
+      this.fxaPwCleanBtn.addEventListener(
+        'click',
+        function onCleanButtonClick(e) {
+          if(e.button === 0 ||
+            (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN)) {
+            this.fxaPwInput.value = '';
+          }
+        }.bind(this)
+      );
 
       this.fxaShowPw.addEventListener('keypress', e => {
         if (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN) {
@@ -166,14 +182,14 @@ var FxaModuleEnterPassword = (function() {
     setTimeout(() => {
       FxaModuleKeyNavigation.add([
         '#fxa-pw-input', '#fxa-forgot-password',
-        '#fxa-show-pw', '#fxa-module-done']);
+        '#fxa-show-pw', '#fxa-module-done', '#fxa-pw-clean-btn']);
     }, 500);
   };
 
   Module.onBack = function onBack() {
     FxaModuleKeyNavigation.remove([
       '#fxa-pw-input', '#fxa-forgot-password',
-      '#fxa-show-pw', '#fxa-module-done']);
+      '#fxa-show-pw', '#fxa-module-done', '#fxa-pw-clean-btn']);
   };
 
   Module.onDone = function onDone(done) {
@@ -187,7 +203,7 @@ var FxaModuleEnterPassword = (function() {
         FxaModuleOverlay.hide();
         FxaModuleKeyNavigation.remove([
           '#fxa-pw-input', '#fxa-forgot-password',
-          '#fxa-show-pw', '#fxa-module-done']);
+          '#fxa-show-pw', '#fxa-module-done', '#fxa-pw-clean-btn']);
 
         if (!response.authenticated) {
           // XXX For now, because we don't allow the creation of new accounts

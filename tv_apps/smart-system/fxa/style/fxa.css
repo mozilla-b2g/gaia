@@ -284,7 +284,8 @@ gaia-header {
   height: 80rem;
 }
 
-#fxa-email-input-wrapper {
+#fxa-email-input-wrapper,
+#fxa-pw-input-wrapper {
   position: relative;
 }
 
@@ -295,7 +296,8 @@ gaia-header {
   margin-bottom: 4.5rem;
 }
 
-#fxa-email-clean-btn {
+#fxa-email-clean-btn,
+#fxa-pw-clean-btn {
   position: absolute;
   top: 1.4rem;
   right: 5em;
@@ -312,18 +314,22 @@ gaia-header {
 }
 
 #fxa-email-clean-btn:focus,
-#fxa-email-clean-btn:hover {
+#fxa-email-clean-btn:hover,
+#fxa-pw-clean-btn:focus,
+#fxa-pw-clean-btn:hover {
   transform: scale(1.2);
   background-color: #fff;
   color: black;
   /*transform-origin: 50% 50%;*/
 }
 
-#fxa-email-clean-btn.show {
+#fxa-email-clean-btn.show,
+#fxa-pw-clean-btn.show {
   display: block;
 }
 
-#fxa-email-clean-btn:before {
+#fxa-email-clean-btn:before,
+#fxa-pw-clean-btn:before {
   offset-inline-end: 0;
 }
 
