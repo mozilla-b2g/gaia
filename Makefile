@@ -86,9 +86,6 @@ PRODUCTION?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 NGA_SERVICE_WORKERS?=0
-FIREFOX_SYNC?=0
-
--include build/config/$(GAIA_DEVICE_TYPE)/device.mk
 
 # Parallel build for multicores CPU
 P?=1
@@ -107,6 +104,7 @@ NODE_MODULES_CACHEDIR=modules_tar_cachedir
 # tablet
 # tv
 GAIA_DEVICE_TYPE?=phone
+-include build/config/$(GAIA_DEVICE_TYPE)/device.mk
 
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
