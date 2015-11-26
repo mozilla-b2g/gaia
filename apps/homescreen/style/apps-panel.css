@@ -79,6 +79,10 @@ gaia-app-icon.launching {
   opacity: 0.8;
 }
 
+#apps > .gaia-container-child.dragging > .icon-container.hover-over {
+  transform: scale(0.5) translate(50%, 0);
+}
+
 #apps.small > .gaia-container-child > .icon-container > gaia-app-icon {
   transform: scale(0.75) translate(-4vw, -4vw);
 }
@@ -91,12 +95,17 @@ gaia-app-icon.launching {
   will-change: transform;
 }
 
-#apps > .gaia-container-child > .hover-before {
+#apps > .gaia-container-child > .hover-before:not(.hover-over) {
   transform: translateX(3.5rem);
 }
 
-#apps > .gaia-container-child > .hover-after {
+#apps > .gaia-container-child > .hover-after:not(.hover-over) {
   transform: translateX(-3.5rem);
+}
+
+#apps > .gaia-container-child > .icon-container.hover-over {
+  transition: transform 0.2s 0.2s;
+  transform: scale(0.5) translate(-50%, 0);
 }
 
 #apps > .gaia-container-child.added gaia-app-icon {

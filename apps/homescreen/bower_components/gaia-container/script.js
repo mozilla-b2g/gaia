@@ -442,11 +442,13 @@ window.GaiaContainer = (function(exports) {
       this._dnd.child.container.style.top = '0';
       this._dnd.child.container.style.left = '0';
       this._dnd.child.markDirty();
+      var dragChild = this._dnd.child;
       this._dnd.child = null;
       this._dnd.active = false;
       this.synchronise();
       this._dnd.clickCapture = true;
-      this.dispatchEvent(new CustomEvent('drag-finish'));
+      this.dispatchEvent(new CustomEvent('drag-finish',
+        { detail: { target: dragChild.element } }));
     }
   };
 

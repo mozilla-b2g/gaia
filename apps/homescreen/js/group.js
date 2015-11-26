@@ -12,11 +12,11 @@
     this.container = shadow.querySelector('gaia-container');
   };
 
-  proto.transferIconFromContainer = function(icon) {
+  proto.transferFromContainer = function(child, container) {
 
   };
 
-  proto.transferIconToContainer = function(icon) {
+  proto.transferToContainer = function(child, container) {
 
   };
 

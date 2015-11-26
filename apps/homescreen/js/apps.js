@@ -107,6 +107,8 @@
     // Edit mode
     this.editMode = false;
     this.shouldEnterEditMode = false;
+    this.shouldCreateGroup = false;
+    this.draggingGroup = false;
     this.selectedIcon = null;
     this.rename.addEventListener('click', e => {
       e.preventDefault();
@@ -406,8 +408,8 @@
     iterateIcons: function(callback) {
       for (var child of this.icons.children) {
         if (child.localName === 'homescreen-group') {
-          for (var icon of child.container.children) {
-            callback(icon, icon, child.container);
+          for (var container of child.container.children) {
+            callback(container.firstElementChild, container, child.container);
           }
         } else {
           callback(child.firstElementChild, child, this.icons);
@@ -928,7 +930,9 @@
       case 'drag-start':
         console.debug('Drag-start on ' + this.elementName(e.detail.target));
         this.dragging = true;
+        this.draggingGroup = e.detail.target.localName === 'homescreen-group';
         this.shouldEnterEditMode = true;
+        this.shouldCreateGroup = false;
         document.body.classList.add('dragging');
         this.scrollable.style.overflow = 'hidden';
         this.draggedIndex = this.getChildIndex(e.detail.target);
@@ -952,8 +956,13 @@
         }
 
         if (this.hoverIcon) {
-          this.hoverIcon.classList.remove('hover-before', 'hover-after');
+          this.hoverIcon.classList.remove(
+            'hover-before', 'hover-after', 'hover-over');
           this.hoverIcon = null;
+        }
+
+        if (e.detail.target) {
+          e.detail.target.classList.remove('hover-over');
         }
 
         // Restore normal drag-and-drop after dragging selected icons
@@ -985,6 +994,18 @@
           if (this.editMode || this.shouldEnterEditMode) {
             e.preventDefault();
             this.enterEditMode(icon);
+          }
+          break;
+        }
+
+        if (this.shouldCreateGroup) {
+          if (e.detail.dropTarget.localName === 'homescreen-group') {
+            e.detail.dropTarget.transferFromContainer(e.detail.target);
+          } else {
+            var group = document.createElement('homescreen-group');
+            this.icons.insertBefore(group, e.detail.dropTarget);
+            group.transferFromContainer(e.detail.dropTarget, this.icons);
+            group.transferFromContainer(e.detail.target, this.icons);
           }
         }
         break;
@@ -1026,7 +1047,9 @@
           if (this.hoverIcon !== hoverIcon) {
             if (this.hoverIcon) {
               this.shouldEnterEditMode = false;
-              this.hoverIcon.classList.remove('hover-before', 'hover-after');
+              this.shouldCreateGroup = false;
+              this.hoverIcon.classList.remove(
+                'hover-before', 'hover-after', 'hover-over');
             }
             this.hoverIcon = (hoverIcon !== e.detail.target) ? hoverIcon : null;
 
@@ -1035,6 +1058,20 @@
                            this.getChildIndex(this.hoverIcon);
               this.hoverIcon.classList.add((offset >= 0) ?
                 'hover-before' : 'hover-after');
+            }
+          }
+
+          if (this.hoverIcon && !this.draggingGroup) {
+            // Evaluate whether we should create a group
+            var before = this.hoverIcon.classList.contains('hover-before');
+            var rect = this.icons.getChildOffsetRect(this.hoverIcon);
+            if ((before && e.detail.clientX > rect.right - (rect.width / 2)) ||
+                (!before && e.detail.clientX < rect.left + (rect.width / 2))) {
+              this.hoverIcon.classList.add('hover-over');
+              this.shouldCreateGroup = true;
+            } else {
+              this.hoverIcon.classList.remove('hover-over');
+              this.shouldCreateGroup = false;
             }
           }
         }
