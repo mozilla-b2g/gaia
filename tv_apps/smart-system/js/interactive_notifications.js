@@ -206,7 +206,8 @@
   };
 
   proto.isFocusable = function in_isFocusable() {
-    return !!this._activeMessage;
+    return !!this._activeMessage &&
+      this._activeMessage.buttons && this._activeMessage.buttons.length;
   };
 
   proto.getElement = function in_getElement() {
