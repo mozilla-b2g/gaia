@@ -1,3 +1,5 @@
+'use strict';
+
 return (function(ms) {
 
   var date = new Date();
@@ -12,4 +14,3 @@ return (function(ms) {
   };
 
 }.apply(this, arguments));
-
