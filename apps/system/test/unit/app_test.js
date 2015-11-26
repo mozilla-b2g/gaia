@@ -2,7 +2,7 @@
           MockLazyLoader, App, Deferred */
 'use strict';
 
-requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/settings_core.js');

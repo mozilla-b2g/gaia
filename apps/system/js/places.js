@@ -1,5 +1,5 @@
 'use strict';
-/* globals Promise, asyncStorage, Service, BaseModule */
+/* globals asyncStorage, BaseModule, LazyLoader, placesModel, Service */
 /* exported Places */
 
 (function() {
@@ -94,18 +94,6 @@
         asyncStorage.getItem('top-sites', results => {
           this.topSites = results || [];
           resolve();
-        });
-      });
-    },
-
-    getStore: function() {
-      return new Promise(resolve => {
-        if (this.dataStore) {
-          return resolve(this.dataStore);
-        }
-        navigator.getDataStores(this.STORE_NAME).then(stores => {
-          this.dataStore = stores[0];
-          return resolve(this.dataStore);
         });
       });
     },
@@ -209,23 +197,8 @@
      * @memberof Places.prototype
      */
     editPlace: function(url, fun) {
-      return new Promise(resolve => {
-        this.getStore().then(store => {
-          var rev = store.revisionId;
-          store.get(url).then(place => {
-            place = place || this.defaultPlace(url);
-            fun(place, newPlace => {
-              if (this.writeInProgress || store.revisionId !== rev) {
-                return this.editPlace(url, fun);
-              }
-              this.writeInProgress = true;
-              store.put(newPlace, url).then(() => {
-                this.writeInProgress = false;
-                resolve();
-              });
-            });
-          });
-        });
+      return LazyLoader.load(['shared/js/places_model.js']).then(() => {
+        return placesModel.editPlace(url, fun);
       });
     },
 
@@ -234,13 +207,8 @@
      * migrations
      */
     setVisits: function(url, visits) {
-      return this.editPlace(url, (place, cb) => {
-        place.visits = place.visits || [];
-        place.visits = place.visits.concat(visits);
-        place.visits.sort((a, b) => {
-          return b - a;
-        });
-        cb(place);
+      return LazyLoader.load(['shared/js/places_model.js']).then(() => {
+        return placesModel.setVisits(url, visits);
       });
     },
 
@@ -252,12 +220,8 @@
      * @returns {Promise} Promise of a response.
      */
     setPinned: function(url, value) {
-      return this.editPlace(url, (place, callback) => {
-        place.pinned = value;
-        if (value) {
-          place.pinTime = Date.now();
-        }
-        callback(place);
+      return LazyLoader.load(['shared/js/places_model.js']).then(() => {
+        return placesModel.setPinned(url, value);
       });
     },
 
@@ -268,18 +232,8 @@
      * @returns {Promise} Promise of a response.
      */
     isPinned: function(url) {
-      return new Promise((resolve, reject) => {
-        return this.getStore()
-          .then(store => {
-            return store.get(url);
-          })
-          .then(place => {
-            return resolve(!!place.pinned);
-          })
-          .catch(e => {
-            console.error(`Error getting the page details: ${e}`);
-            return reject(e);
-          });
+      return LazyLoader.load(['shared/js/places_model.js']).then(() => {
+        return placesModel.isPinned(url);
       });
     },
 
@@ -361,69 +315,8 @@
      * @return Promise
      */
     clearHistory: function() {
-      return new Promise((resolve, reject) => {
-        return this.getStore().then(store => {
-          store.getLength().then((storeLength) => {
-            if (!storeLength) {
-              return resolve();
-            }
-
-            new Promise((resolveInner, rejectInner) => {
-              var urls = new Map();
-              var cursor = store.sync();
-
-              function cursorResolve(task) {
-                switch (task.operation) {
-                  case 'update':
-                  case 'add':
-                    urls.set(task.id, task.data);
-                    break;
-
-                  case 'remove':
-                    urls.delete(task.id, task.data);
-                    break;
-
-                  case 'clear':
-                    urls.clear();
-                    break;
-
-                  case 'done':
-                    return resolveInner(urls);
-                }
-
-                cursor.next().then(cursorResolve, rejectInner);
-              }
-
-              cursor.next().then(cursorResolve, rejectInner);
-            })
-              .then((urls) => {
-                var promises = [];
-
-                urls.forEach((val, key) => {
-                  if (val.pinned) {
-                    // Clear the visit history of pinned pages.
-                    promises.push(this.editPlace(key, function(place, cb) {
-                      place.visits = [];
-                      cb(place);
-                    }));
-                  } else {
-                    // Remove all other pages from history.
-                    promises.push(store.remove(key));
-                  }
-                });
-
-                Promise.all(promises)
-                  .then(() => {
-                    console.log('Browsing history successfully cleared.');
-                    resolve();
-                  });
-              })
-              .catch((e) => {
-                console.error(`Error trying to clear browsing history: ${e}`);
-                reject(e);
-              });
-          });
-        });
+      return LazyLoader.load(['shared/js/places_model.js']).then(() => {
+        return placesModel.clearHistory();
       });
     },
 

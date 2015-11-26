@@ -13,6 +13,7 @@ var TopSitesCustomizer = (function() {
       return;
     }
 
+    // TODO: Use shared/js/places_model.js here, see bug 1225812
     this.getStore('places').then(store => {
       topSiteConfig.topSites.forEach(site => {
         store.get(site.url).then(place => {
