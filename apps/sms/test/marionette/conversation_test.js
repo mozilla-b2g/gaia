@@ -343,7 +343,7 @@ marionette('Conversation Panel Tests', function() {
         conversationView.toggleMessagesSelection();
 
         conversationView.messages().forEach(function(message) {
-          assert.isTrue(message.isSelected);
+          assert.isTrue(messagessage.isSelected);
         });
         assert.equal(
           conversationView.toggleSelectionButtonTitle,
@@ -488,6 +488,18 @@ marionette('Conversation Panel Tests', function() {
           '4 selected',
           'Edit mode header should show correct number of messages'
         );
+      test('User selects some messages ,deletes them',function(){
+        conversationView.enterEditMode();
+        var messageIndicesToSelect = [2,0];
+        var messages = conversationView.messages();
+
+        messageIndicesToSelect.forEach(function(messageIndex){
+          conversationView.tapOnMessage(mesages[messageIndex].id)
+        });
+
+        
+      })
+
       });
     });
   });
