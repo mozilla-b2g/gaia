@@ -343,7 +343,7 @@ marionette('Conversation Panel Tests', function() {
         conversationView.toggleMessagesSelection();
 
         conversationView.messages().forEach(function(message) {
-          assert.isTrue(messagessage.isSelected);
+          assert.isTrue(message.isSelected);
         });
         assert.equal(
           conversationView.toggleSelectionButtonTitle,
@@ -497,7 +497,7 @@ marionette('Conversation Panel Tests', function() {
           conversationView.tapOnMessage(mesages[messageIndex].id)
         });
 
-        
+
       })
 
       });
