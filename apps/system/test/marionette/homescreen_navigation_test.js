@@ -71,7 +71,7 @@ marionette('Homescreen navigation >', function() {
     launchSettings();
 
     var count = reflowHelper.getCount();
-    assert.equal(count, 2, 'we got ' + count + ' reflows instead of 2');
+    assert(count <= 2, 'we got 2 or less reflows');
     reflowHelper.stopTracking();
   });
 });
