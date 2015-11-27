@@ -151,17 +151,18 @@ monitorTagVisibility, GaiaHeader, GaiaSubheader */
   }
 
   function initAction(action) {
-    if (action) {
-      _action = action;
-      var cancelAction = () => {
-        window.dispatchEvent(new CustomEvent('cancelAction'));
-      };
-      HeaderUI.setCancelableHeader(cancelAction, action);
+    if (!action) {
+      return;
     }
+    _action = action;
+    var cancelAction = () => {
+      window.dispatchEvent(new CustomEvent('cancelAction'));
+    };
 
     // Hide buttons if the action is a pick
     if (action === 'pick') {
       document.body.classList.add('pick');
+      HeaderUI.setCancelableHeader(cancelAction, action);
     }
   }
 
