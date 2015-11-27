@@ -103,6 +103,8 @@ var FxaModuleRefreshAuth = (function() {
           if(e.button === 0 ||
             (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN)) {
             this.fxaPwInput.value = '';
+            FxaModuleKeyNavigation.focus(this.fxaPwInput);
+            this.fxaPwCleanBtn.classList.remove('show');
           }
         }.bind(this)
       );
