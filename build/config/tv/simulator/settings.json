@@ -16,7 +16,7 @@
              "number" : 1,
              "isEmergency": false,
              "isFree" : true,
-             "videoFilePath": "gizmo2.mp4",
+             "videoFilePath": "elephants-dream.webm",
              "programs": [
                {"eventId":"734475972", "title":"News of Morning",  "startTime":"1430686800", "duration":"10800", "description":"Morning News", "rating":"0", "audioLanguages":["eng"], "subtitleLanguages":["eng"]},
                {"eventId":"586216742", "title":"Information Program", "startTime":"1430697600", "duration":"7200",  "description":"Provide program Information.",  "rating":"0", "audioLanguages":["eng"], "subtitleLanguages":["eng"]},
@@ -737,4 +737,3 @@
     }
   ]
 }
-  
