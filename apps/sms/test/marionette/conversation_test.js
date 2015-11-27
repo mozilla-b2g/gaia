@@ -41,7 +41,7 @@ marionette('Conversation Panel Tests', function() {
       var thread;
       setup(function() {
         thread = ThreadGenerator.generate({
-          numberOfMessages: 50
+          numberOfMessages: 150
         });
         storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
         messagesApp.launch();

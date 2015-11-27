@@ -1392,15 +1392,11 @@
     }
 
     // Sort according to timestamp
-    if (!reverse) {
-      msgs.sort(function(a, b) {
-        return b.timestamp - a.timestamp;
-      });
-    } else {
-      msgs.sort(function(a, b) {
-        return a.timestamp - b.timestamp;
-      });
-    }
+    var sortFunc = reverse ?
+      (a, b) => b.timestamp - a.timestamp :
+      (a, b) => a.timestamp - b.timestamp;
+
+    msgs.sort(sortFunc);
 
     len = msgs.length;
 

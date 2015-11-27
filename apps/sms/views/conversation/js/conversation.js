@@ -64,7 +64,8 @@ function conv_generateSmilSlides(slides, content) {
 }
 
 var ConversationView = {
-  CHUNK_SIZE: 10,
+  FIRST_CHUNK_SIZE: 10,
+  CHUNK_SIZE: 50,
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
@@ -1488,7 +1489,7 @@ var ConversationView = {
   // Method for rendering the first chunk at the beginning
   showFirstChunk: function conv_showFirstChunk() {
     // Show chunk of messages
-    this.showChunkOfMessages(this.CHUNK_SIZE);
+    this.showChunkOfMessages(this.FIRST_CHUNK_SIZE);
     // Boot update of headers
     TimeHeaders.updateAll('header[data-time-update]');
     // Go to Bottom
@@ -1530,7 +1531,7 @@ var ConversationView = {
     // Use taskRunner to make sure message appended in proper order
     var taskQueue = new TaskRunner();
     var onMessagesRendered = (function messagesRendered() {
-      if (this.messageIndex < this.CHUNK_SIZE) {
+      if (this.messageIndex < this.FIRST_CHUNK_SIZE) {
         taskQueue.push(this.showFirstChunk.bind(this));
       }
     }).bind(this);
@@ -1549,7 +1550,7 @@ var ConversationView = {
         return false;
       });
       this.messageIndex++;
-      if (this.messageIndex === this.CHUNK_SIZE) {
+      if (this.messageIndex === this.FIRST_CHUNK_SIZE) {
         taskQueue.push(this.showFirstChunk.bind(this));
       }
       return true;
