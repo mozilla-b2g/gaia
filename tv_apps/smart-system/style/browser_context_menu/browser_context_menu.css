@@ -43,3 +43,7 @@ smart-button[type="contextmenu"].pressed {
   background-color: #00caf2;
   color: white;
 }
+
+smart-button[type="contextmenu"].focused.demo {
+  transform: scale(1.6667); /* scale to 40rem */
+}
