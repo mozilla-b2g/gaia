@@ -12,12 +12,17 @@
     this.instanceID = 'pin-page-dialog';
     this.controller = controller || {};
     this.options = {};
-    this.render();
     LazyLoader.load('shared/elements/gaia-component/gaia-component.js')
       .then(() => {
-        LazyLoader.load('shared/elements/gaia-site-icon/script.js');
-        LazyLoader.load('shared/elements/gaia-toast/gaia-toast.js')
+        var webComponents = [
+          'shared/elements/gaia-site-icon/script.js',
+          'shared/elements/gaia-button/gaia-button.js',
+          '/shared/elements/gaia-dialog/gaia-dialog.js',
+          'shared/elements/gaia-toast/gaia-toast.js'
+        ];
+        LazyLoader.load(webComponents)
           .then(() => {
+            this.render();
             this._banner = document.createElement('gaia-toast');
             this._banner.className = 'banner';
             this._banner.dataset.zIndexLevel = 'system-notification-banner';
@@ -48,27 +53,30 @@
   PinPageSystemDialog.prototype.name = 'PinPageSystemDialog';
 
   PinPageSystemDialog.prototype.view = function spd_view() {
-    return `<div id="${this.instanceID}" role="dialog"
-              class="generic-dialog" data-z-index-level="system-dialog" hidden>
-              <section role="region" class="container">
+    return `<gaia-dialog id="${this.instanceID}">
+              <div class="dialog" data-z-index-level="system-dialog">
                 <gaia-header id="pin-page-header" action="close">
                   <h1 id="pin-page-header" data-l10n-id="pinning-pin"></h1>
                 </gaia-header>
                 <div id="pin-page-container" class="container">
                   <div id="pin-card-container"></div>
-                  <p id="pin-page-title" class="page-title" dir="ltr"></p>
-                  <button data-l10n-id="pinning-pin-page" data-action="pin-page"
-                    class="pin-button"></button>
+                  <span id="pin-page-title" class="page-title" dir="ltr"></span>
+                  <gaia-button data-action="pin-page" class="centered">
+                    <i data-icon="pin" aria-hidden="true"></i>
+                    <span data-l10n-id="pinning-pin-page"></span>
+                  </gaia-button>
+                  <div class="divider"><span data-l10n-id="or"></span></div>
                 </div>
-                <div class="divider"><span data-l10n-id="or"></span></div>
                 <div id="pin-site-container" class="container">
                   <gaia-app-icon></gaia-app-icon>
-                  <p id="site-name"></p>
-                  <button data-l10n-id="pinning-pin-site" data-action="pin-site"
-                    class="pin-button"></button>
+                  <span id="site-name"></span>
+                  <gaia-button data-action="pin-site" class="centered">
+                    <i data-icon="pin" aria-hidden="true"></i>
+                    <span data-l10n-id="pinning-pin-site"></span>
+                  </gaia-button>
                 </div>
-              </section>
-            </div>`;
+              </div>
+            </gaia-dialog>`;
   };
 
   PinPageSystemDialog.prototype.onHide = function() {
@@ -77,7 +85,10 @@
   };
 
   PinPageSystemDialog.prototype._registerEvents = function() {
-    this.header.addEventListener('action', this.close.bind(this));
+    this.header.addEventListener('action', function() {
+      this.element.close();
+    }.bind(this));
+    this.element.addEventListener('closed', this.hide.bind(this));
     this.pinPageButton.addEventListener('click', this.save.bind(this));
     this.pinSiteButton.addEventListener('click', this.save.bind(this));
   };
@@ -87,12 +98,16 @@
     this.pageTitle = this.element.querySelector('#pin-page-title');
     this.pinCardContainer = this.element.querySelector('#pin-card-container');
     this.header = this.element.querySelector('gaia-header');
-    var pinSelector = 'button[data-action="pin-page"]';
+    var pinSelector = 'gaia-button[data-action="pin-page"]';
     this.pinPageButton = this.element.querySelector(pinSelector);
+    this.pageButtonSpan = this.pinPageButton.querySelector('span');
+    this.pageButtonIcon = this.pinPageButton.querySelector('i');
     this.siteBadge = this.element.querySelector('gaia-app-icon');
     this.siteName = this.element.querySelector('#site-name');
-    pinSelector = 'button[data-action="pin-site"]';
+    pinSelector = 'gaia-button[data-action="pin-site"]';
     this.pinSiteButton = this.element.querySelector(pinSelector);
+    this.siteButtonSpan = this.pinSiteButton.querySelector('span');
+    this.siteButtonIcon = this.pinSiteButton.querySelector('i');
   };
 
   PinPageSystemDialog.prototype._renderPinCard = function renderPinCard(data) {
@@ -135,10 +150,7 @@
         break;
     }
 
-    // Waiting for the animation. We should migrate this to a
-    // hide event when https://github.com/gaia-components/gaia-toast/issues/2
-    // gets fixed
-    setTimeout(this.close.bind(this), this._banner.timeout);
+    this.element.close();
   };
 
   PinPageSystemDialog.prototype._visible = false;
@@ -163,6 +175,7 @@
     this._renderPinCard(data);
     this._renderSitePanel(data);
     SystemDialog.prototype.show.apply(this);
+    this.element.open();
     this._visible = true;
   };
 
@@ -180,7 +193,8 @@
     Service.request('Places:isPinned', data.url)
       .then((isPinned) => {
         var action = isPinned ? 'unpin-page' : 'pin-page';
-        this.pinPageButton.setAttribute('data-l10n-id', 'pinning-' + action);
+        this.pageButtonSpan.setAttribute('data-l10n-id', 'pinning-' + action);
+        this.pageButtonIcon.setAttribute('data-icon', action.split('-')[0]);
         this.pinPageButton.dataset.action = action;
       });
 
@@ -192,7 +206,8 @@
           action = 'unpin-site';
         }
       }
-      this.pinSiteButton.setAttribute('data-l10n-id', 'pinning-' + action);
+      this.siteButtonSpan.setAttribute('data-l10n-id', 'pinning-' + action);
+      this.siteButtonIcon.setAttribute('data-icon', action.split('-')[0]);
       this.pinSiteButton.dataset.action = action;
     });
   };
@@ -201,6 +216,24 @@
     this._visible = false;
     this.currentApp = null;
     SystemDialog.prototype.hide.apply(this);
+  };
+
+  PinPageSystemDialog.prototype.updateHeight = function() {
+    var height = Service.query('LayoutManager.height');
+    this.containerElement.style.height = height + 'px';
+    // We need to manually set the gaia-dialog height,
+    // as it is fixed positioned
+    this.element.style.height = height + 'px';
+    this.debug('updateHeight: new height = ' + height);
+  };
+
+  SystemDialog.prototype.updateWidth = function sd_updateWidth() {
+    var width = Service.query('LayoutManager.width');
+    this.containerElement.style.width = width + 'px';
+    // We need to manually set the gaia-dialog width,
+    // as it is fixed positioned
+    this.element.style.width = width + 'px';
+    this.debug('updateWidth: new width = ' + width);
   };
 
   PinPageSystemDialog.prototype.close = function() {

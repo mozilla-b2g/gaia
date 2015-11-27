@@ -11,7 +11,7 @@
   "dependencies": {
     "bridge": "gaia-components/bridge#master",
     "gaia-fast-list": "gaia-components/gaia-fast-list#0.3.2",
-    "gaia-icons": "gaia-components/gaia-icons#~0.10.5",
+    "gaia-icons": "gaia-components/gaia-icons#~1.0.2",
     "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
     "gaia-toolbar": "gaia-components/gaia-toolbar#master",
     "serviceworkerware": "gaia-components/serviceworkerware#master",
@@ -19,7 +19,6 @@
     "gaia-text-input": "gaia-components/gaia-text-input#v0.2.1"
   },
   "resolutions": {
-    "gaia-component": "~0.4.0",
-    "gaia-icons": "~0.10.5"
+    "gaia-component": "~0.4.0"
   }
 }

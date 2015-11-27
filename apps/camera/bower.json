@@ -26,6 +26,6 @@
     "drag": "gaia-components/drag",
     "gaia-header": "gaia-components/gaia-header#~0.9.5",
     "gaia-theme": "gaia-components/gaia-theme#~0.4.1",
-    "gaia-icons": "gaia-components/gaia-icons#~0.10.5"
+    "gaia-icons": "gaia-components/gaia-icons#~1.0.2"
   }
 }
