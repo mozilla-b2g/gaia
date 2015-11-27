@@ -84,12 +84,28 @@ var FxaModuleRefreshAuth = (function() {
       this.importElements(
         'fxa-pw-input-refresh',
         'fxa-show-pw-refresh',
-        'fxa-forgot-password-refresh'
+        'fxa-forgot-password-refresh',
+        'fxa-pw-clean-btn'
       );
 
       this.fxaPwInputRefresh.addEventListener('input', (function(event) {
+        if(this.fxaPwInput.value) {
+          this.fxaPwCleanBtn.classList.add('show');
+        } else {
+          this.fxaPwCleanBtn.classList.remove('show');
+        }
         _enableDone(event.target);
       }).bind(this));
+
+      this.fxaPwCleanBtn.addEventListener(
+        'click',
+        function onCleanButtonClick(e) {
+          if(e.button === 0 ||
+            (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN)) {
+            this.fxaPwInput.value = '';
+          }
+        }.bind(this)
+      );
 
       this.fxaShowPwRefresh.addEventListener('change', (function() {
         var passwordFieldType = !!this.fxaShowPwRefresh.checked ? 'text' :
@@ -150,7 +166,8 @@ var FxaModuleRefreshAuth = (function() {
     setTimeout(() => {
       FxaModuleKeyNavigation.add([
         '#fxa-pw-input-refresh', '#fxa-show-pw-refresh',
-        '#fxa-forgot-password-refresh', '#fxa-module-done']);
+        '#fxa-forgot-password-refresh', '#fxa-module-done',
+        '#fxa-pw-clean-btn']);
     }, 500);
   };
 
@@ -164,7 +181,8 @@ var FxaModuleRefreshAuth = (function() {
         FxaModuleOverlay.hide();
         FxaModuleKeyNavigation.remove([
           '#fxa-pw-input-refresh', '#fxa-show-pw-refresh',
-          '#fxa-forgot-password-refresh', '#fxa-module-done']);
+          '#fxa-forgot-password-refresh', '#fxa-module-done',
+          '#fxa-pw-clean-btn']);
         callback();
       }, function onError(response) {
         FxaModuleKeyNavigation.disable();
