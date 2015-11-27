@@ -11,7 +11,6 @@
     pageClass: 'slide',
     buttonsClass: 'slide-button',
     launchEveryTime: true,
-    propagateKeyEvent: true,
     onfinish: function () {
       // Rewrite the location to trigger the mozbrowserlocationchange event
       // to let the outer app know user finishes this tutorial
