@@ -1,5 +1,5 @@
 /* global MozActivity, LazyLoader, SupportedNetworkTypeHelper */
-/* exported openLink, openIncompatibleSettingsDialog, DeviceStorageHelper */
+/* exported openLink, openIncompatibleSettingsDialog */
 'use strict';
 
 /**
@@ -97,63 +97,6 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
 
   enableDialog(true);
 }
-
-/**
- * Helper class for formatting file size strings
- * required by *_storage.js
- */
-var _fileSizeFormatter = (function FileSizeFormatter(fixed) {
-  function getReadableFileSize(bytes, digits) { // in: size in Bytes
-    if (bytes === undefined) {
-      return {};
-    }
-
-    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    var size, e;
-    if (bytes) {
-      e = Math.floor(Math.log(bytes) / Math.log(1024));
-      size = (bytes / Math.pow(1024, e)).toFixed(digits || 0);
-    } else {
-      e = 0;
-      size = '0';
-    }
-
-    return {
-      size: size,
-      unit: units[e]
-    };
-  }
-
-  return { getReadableFileSize: getReadableFileSize };
-})();
-
-/**
- * Helper class for getting available/used storage
- * required by *_storage.js
- */
-var DeviceStorageHelper = (function DeviceStorageHelper() {
-  function showFormatedSize(element, l10nId, size) {
-    if (size === undefined || isNaN(size)) {
-      element.textContent = '';
-      return;
-    }
-
-    // KB - 3 KB (nearest ones), MB, GB - 1.29 MB (nearest hundredth)
-    var fixedDigits = (size < 1024 * 1024) ? 0 : 2;
-    var sizeInfo = _fileSizeFormatter.getReadableFileSize(size, fixedDigits);
-
-    navigator.mozL10n.formatValue('byteUnit-' + sizeInfo.unit).then(unit => {
-      navigator.mozL10n.setAttributes(element, l10nId, {
-        size: sizeInfo.size,
-        unit: unit
-      });
-    });
-  }
-
-  return {
-    showFormatedSize: showFormatedSize
-  };
-})();
 
 /**
  * The function returns an object of the supporting state of category of network
