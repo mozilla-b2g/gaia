@@ -67,11 +67,9 @@ suite('system/MultiScreenController', function() {
 
       subject['_observe_' + settingsKey](true);
       assert.isTrue(subject.enabled());
-      assert.isTrue(window.addEventListener.calledWith('mozChromeEvent'));
 
       subject['_observe_' + settingsKey](false);
       assert.isFalse(subject.enabled());
-      assert.isTrue(window.removeEventListener.calledWith('mozChromeEvent'));
 
       stubAddEventListener.restore();
       stubRemoveEventListener.restore();
@@ -309,6 +307,107 @@ suite('system/MultiScreenController', function() {
         detail: {
           reason: 'reason'
         }
+      });
+    });
+  });
+
+  suite('presentation device selection', function() {
+    var eventValidator;
+
+    function _content_event_handler(evt) {
+      if (eventValidator) {
+        eventValidator(evt);
+      }
+    }
+
+    setup(function() {
+      window.navigator.mozPresentationDeviceInfo = {
+        getAll: function() {
+          return Promise.resolve([
+              { name: 'test-name',
+                id: 'test-id',
+                type: 'test-type' }
+          ]);
+        }
+      };
+      window.addEventListener('mozContentEvent', _content_event_handler);
+    });
+
+    teardown(function() {
+      delete window.navigator.mozPresentationDeviceInfo;
+      window.removeEventListener('mozContentEvent', _content_event_handler);
+    });
+
+    test('device selected', function(done) {
+      eventValidator = function(evt) {
+        if (evt.detail.type !== 'presentation-select-result') {
+          return;
+        }
+
+        done(function() {
+          assert.equal(evt.detail.type, 'presentation-select-result');
+          assert.equal(evt.detail.deviceId, 'test-id');
+          assert.equal(evt.detail.id, 'test-selection-id');
+        });
+      };
+
+      this.sinon.stub(subject, 'showMenu', function(displays) {
+        assert.equal(displays.length, 1);
+        assert.equal(displays[0].name, 'test-name');
+        assert.equal(displays[0].deviceId, 'test-id');
+        assert.equal(displays[0].id, 0);
+        return Promise.resolve(0);
+      });
+
+      triggerMozChromeEvent({
+        type: 'presentation-select-device',
+        id: 'test-selection-id',
+      });
+    });
+
+    test('selection canceled', function(done) {
+      eventValidator = function(evt) {
+        if (evt.detail.type !== 'presentation-select-deny') {
+          return;
+        }
+
+        done(function() {
+          assert.equal(evt.detail.type, 'presentation-select-deny');
+          assert.equal(evt.detail.id, 'test-selection-id');
+        });
+      };
+
+      this.sinon.stub(subject, 'showMenu', function() {
+        return Promise.resolve(undefined);
+      });
+
+      triggerMozChromeEvent({
+        type: 'presentation-select-device',
+        id: 'test-selection-id',
+      });
+    });
+
+    test('canceled while no available device', function(done) {
+      window.navigator.mozPresentationDeviceInfo = {
+        getAll: function() {
+          return Promise.resolve([]);
+        }
+      };
+
+      eventValidator = function(evt) {
+        if (evt.detail.type !== 'presentation-select-deny') {
+          return;
+        }
+
+        done(function() {
+          assert.equal(evt.detail.type, 'presentation-select-deny');
+          assert.equal(evt.detail.id, 'test-selection-id');
+        });
+      };
+
+      triggerMozChromeEvent({
+        type: 'presentation-select-device',
+        id: 'test-selection-id',
       });
     });
   });
