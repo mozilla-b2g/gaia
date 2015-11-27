@@ -67,6 +67,11 @@ ConversationView.prototype = {
     return messageNode && this.messageAccessors.parse(messageNode);
   },
 
+  waitForFullRendering: function(thread) {
+    var lastId = thread.messages[thread.messages.length - 1].id;
+    this.accessors.findMessage(lastId);
+  },
+
   downloadMessage: function(messageId) {
     this.messageAccessors.download(messageId);
   },
@@ -129,7 +134,7 @@ ConversationView.prototype = {
     this.menuAccessors.selectAppMenuOption('View message report');
 
     var ReportView = require('../report/view');
-    var reportView = new ReportView(this.client);
+    var reportView = new ReportView(this.client, this);
     reportView.accessors.waitToAppear();
     return reportView;
   },
@@ -227,6 +232,10 @@ ConversationView.prototype = {
   isSubjectVisible: function() {
     var subjectInput = this.composerAccessors.subjectInput;
     return subjectInput && this.composerAccessors.subjectInput.displayed();
+  },
+
+  fakeScrollUpTo: function(scrollTop) {
+    this.accessors.fakeScrollUpTo(scrollTop);
   },
 
   assertMessageInputFocused: function(message) {

@@ -110,6 +110,16 @@ ConversationAccessor.prototype = {
     this.actions.flick(conversationContainer, 50, 50, 50, 350).perform();
   },
 
+  fakeScrollUpTo: function(scrollTop) {
+    var conversationContainer = this.client.findElement(
+      SELECTORS.container
+    );
+
+    conversationContainer.scriptWith(function(container, scrollTop) {
+      container.scrollTop = scrollTop;
+    }, [scrollTop]);
+  },
+
   waitToAppear: function() {
     var conversationPanel = this.client.helper.waitForElement(SELECTORS.main);
     this.client.waitFor(function() {

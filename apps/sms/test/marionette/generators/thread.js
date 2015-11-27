@@ -9,7 +9,8 @@ var DEFAULT_THREAD_PARAMETERS = {
   numberOfMessages: 1,
   messageType: 'sms',
   participants: ['+123'],
-  body: 'Thread message content'
+  body: 'Thread message content',
+  baseTimestamp: Date.now()
 };
 
 var DEFAULT_MESSAGE = {
@@ -52,7 +53,7 @@ var ThreadGenerator = {
       id: ++ThreadGenerator.uniqueThreadId,
       body: parameters.body,
       lastMessageType: parameters.messageType,
-      timestamp: 0,
+      timestamp: parameters.baseTimestamp,
       messages: [],
       participants: parameters.participants
     };
@@ -71,7 +72,7 @@ var ThreadGenerator = {
           receiver:  parameters.participants[0],
           delivery: parameters.delivery,
           body: messageBody,
-          timestamp: Date.now() - i * 10000
+          timestamp: parameters.baseTimestamp - i * 10000
         });
       } else {
         message = this.generateMMS({
@@ -79,7 +80,7 @@ var ThreadGenerator = {
           receivers: parameters.participants,
           delivery: parameters.delivery,
           expiryDate: parameters.expiryDate,
-          timestamp: Date.now() - i * 10000,
+          timestamp: parameters.baseTimestamp - i * 10000,
           subject: parameters.subject,
           attachments: parameters.attachments || [{
             type: 'text/plain', content: messageBody
@@ -90,8 +91,7 @@ var ThreadGenerator = {
       thread.messages.push(message);
     }
 
-    thread.timestamp =
-      thread.messages[parameters.numberOfMessages - 1].timestamp;
+    thread.timestamp = thread.messages[0].timestamp;
 
     return thread;
   },

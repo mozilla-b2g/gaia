@@ -2,6 +2,8 @@
 'use strict';
 
 var assert = require('chai').assert;
+var _ = require('SMS/node_modules/lodash');
+
 var ThreadGenerator = require('./generators/thread');
 var Messages = require('./lib/messages.js');
 var InboxView = require('./lib/views/inbox/view');
@@ -67,6 +69,67 @@ marionette('Conversation Panel Tests', function() {
 
         assertIsDisplayed(messagesApp.Composer.sendButton);
         assertIsDisplayed(messagesApp.Composer.messageInput);
+      });
+    });
+
+
+    suite('Long MMS thread', function() {
+      var thread;
+      var inboxView;
+      var attachmentScreenshot;
+
+      suiteSetup(function() {
+        attachmentScreenshot = Tools.loadAsset('mms-attachment.png');
+      });
+
+      suiteTeardown(function() {
+        attachmentScreenshot = null;
+      });
+
+      setup(function() {
+        thread = ThreadGenerator.generate({
+          numberOfMessages: 150,
+          baseTimestamp: Date.UTC(2015, 8, 1, 13, 40),
+          messageType: 'mms',
+          attachments: [
+            { type: 'image/png', width: 10, height: 10 }
+          ]
+        });
+
+        storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
+        messagesApp.launch();
+
+        inboxView = new InboxView(client);
+      });
+
+      test('MMS are properly displayed after going to a subview', function() {
+        var conversationView = inboxView.goToConversation(thread.id);
+        conversationView.waitForFullRendering(thread);
+
+        var recentId = thread.messages[0].id;
+        var reportView = conversationView.openReport(recentId);
+        reportView.back();
+
+        var message = conversationView.findMessage(recentId);
+        var screenshot = message.attachments[0].screenshot();
+        assert.equal(screenshot, attachmentScreenshot);
+
+        conversationView.fakeScrollUpTo(0);
+
+        // Find the first displayed message. Displayed does not especially mean
+        // that we see it in the viewport, it merely means it's not "hidden"
+        // using CSS (eg: "display: none" here).
+        // I want to find the topmost already displayed message, and then scroll
+        // to it so that Gecko tries to load the attachment's background image.
+        var displayedMessage = _.find(
+          conversationView.messages(),
+          function(message) { return message.isDisplayed; }
+        );
+
+        conversationView.fakeScrollUpTo(0);
+
+        screenshot = displayedMessage.attachments[0].screenshot();
+        assert.equal(screenshot, attachmentScreenshot);
       });
     });
   });

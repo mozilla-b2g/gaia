@@ -733,15 +733,6 @@ var ConversationView = {
     this.cancelEdit();
 
     if (Navigation.isCurrentPanel('thread')) {
-      // Revoke thumbnail URL for every image attachment rendered within thread
-      // Executed only when moving out of a conversation.
-      var nodes = this.container.querySelectorAll(
-        '.attachment-container[data-thumbnail]'
-      );
-      Array.from(nodes).forEach((node) => {
-        window.URL.revokeObjectURL(node.dataset.thumbnail);
-      });
-
       // If we're leaving conversation view, ensure that the thread object's
       // unreadCount value is current (set = 0).
       this.activeThread.unreadCount = 0;
@@ -768,7 +759,8 @@ var ConversationView = {
     if (Navigation.isCurrentPanel('thread-list')) {
       // We don't want to clean these things when moving from composer to
       // conversation
-      this.container.textContent = '';
+
+      this.clearContainer();
       this.cleanFields();
     }
     if (!Navigation.isCurrentPanel('composer')) {
@@ -838,6 +830,7 @@ var ConversationView = {
     // TODO add the activity/forward/draft stuff here
     // instead of in afterEnter: Bug 1010223
 
+    this.clearContainer();
     this.cleanFields();
     this.initRecipients();
     this.updateComposerHeader();
@@ -848,7 +841,6 @@ var ConversationView = {
       forceType: () => this.hasEmailRecipients() ? 'mms' : null
     });
 
-    this.container.textContent = '';
     this.threadMessages.classList.add('new');
 
     // not strictly necessary but being consistent
@@ -1451,12 +1443,25 @@ var ConversationView = {
     }
   },
 
+  clearContainer() {
+    // Revoke thumbnail URL for every image attachment rendered within thread
+    var nodes = this.container.querySelectorAll(
+      '.attachment-container[data-thumbnail]'
+    );
+    Array.from(nodes).forEach(
+      (node) => window.URL.revokeObjectURL(node.dataset.thumbnail)
+    );
+
+    // Clean list of messages
+    this.container.textContent = '';
+  },
+
   initializeRendering: function conv_initializeRendering() {
+    this.clearContainer();
+
     // Clean fields
     this.cleanFields();
 
-    // Clean list of messages
-    this.container.innerHTML = '';
     // Initialize infinite scroll params
     this.messageIndex = 0;
     // reset stopRendering boolean
