@@ -17,17 +17,13 @@
   App.prototype._readyToShow = function(previousId) {
     this.updateStatus();
 
-    // It the previousId is omitted, it means that this section is shown for the
-    // first time by bootstrap.
-    if (!previousId) {
-      var enabled = Settings['remote-control.enabled'];
-      var hasConnection = !!Settings['remote-control.server-ip'];
+    var enabled = Settings['remote-control.enabled'];
+    var hasConnection = !!Settings['remote-control.server-ip'];
 
-      if (enabled && hasConnection) {
-        this.focus('qrcode');
-      } else {
-        this.focus('exit-button');
-      }
+    // If the previousId is omitted, it means that this section is shown for the
+    // first time by bootstrap.
+    if (!previousId && enabled && !hasConnection) {
+      this.focus('exit-button');
     }
   };
 
@@ -91,6 +87,12 @@
     setVisible('off-line-message', enabled && !hasConnection);
     setVisible('disabled-message', !enabled);
     setVisible('settings-icon', enabled);
+
+    if (enabled && hasConnection) {
+      this.focus('qrcode');
+    } else {
+      this.focus();
+    }
   };
 
   exports.App = App;
