@@ -46,8 +46,8 @@ suite('PanelUtils', function() {
       this.targetLink.href = originalLink;
       this.PanelUtils.activate(this.targetElement);
       this.targetLink.href = newLink;
-      this.targetLink.onclick();
-      sinon.assert.calledWith(window.openLink, newLink);
+      this.targetLink.onclick({target: this.targetLink});
+      assert.ok(window.openLink.calledWith(newLink));
     });
   });
 });
