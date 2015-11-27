@@ -1,5 +1,5 @@
 /* global MozActivity, LazyLoader, DsdsSettings, SupportedNetworkTypeHelper */
-/* exported reopenSettings, openLink, openDialog,
+/* exported reopenSettings, openLink,
             openIncompatibleSettingsDialog, DeviceStorageHelper,
             sanitizeAddress, getIccByIndex */
 'use strict';
@@ -31,44 +31,6 @@ function openLink(url) {
       name: 'view',
       data: { type: 'url', url: url }
     });
-  }
-}
-
-/**
- * These so-called "dialog boxes" are just standard Settings panels (<section
- * role="region" />) with reset/submit buttons: these buttons both return to the
- * previous panel when clicked, and each button has its own (optional) callback.
- */
-
-function openDialog(dialogID, onSubmit, onReset) {
-  if ('#' + dialogID === Settings.currentPanel) {
-    return;
-  }
-
-  var origin = Settings.currentPanel;
-
-  // Load dialog contents and show it.
-  Settings.currentPanel = dialogID;
-
-  var dialog = document.getElementById(dialogID);
-  var submit = dialog.querySelector('[type=submit]');
-  if (submit) {
-    submit.onclick = function onsubmit() {
-      if (typeof onSubmit === 'function') {
-        (onSubmit.bind(dialog))();
-      }
-      Settings.currentPanel = origin; // hide dialog box
-    };
-  }
-
-  var reset = dialog.querySelector('[type=reset]');
-  if (reset) {
-    reset.onclick = function onreset() {
-      if (typeof onReset === 'function') {
-        (onReset.bind(dialog))();
-      }
-      Settings.currentPanel = origin; // hide dialog box
-    };
   }
 }
 
