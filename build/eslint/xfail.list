@@ -291,3 +291,8 @@ tv_apps/smart-system/js/browser_context_menu.js # line 189, col 5, Error - Unsaf
 tv_apps/weather-widget/web_components/smart-weather.js # line 11, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tv_apps/remote-control/bower_components/qrcodejs/qrcode.js # line 255, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tv_apps/remote-control-client/bower_components/l20n/dist/webcompat/l20n.js # line 2546, col 8, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/calendar/js/ext/threads.js # line 110, col 20, Error - Using postMessage() with wildcard targets is not allowed. (no-wildcard-postmessage/no-wildcard-postmessage)
+apps/clock/js/panels/alarm/post_message_proxy.js # line 35, col 15, Error - Using postMessage() with wildcard targets is not allowed. (no-wildcard-postmessage/no-wildcard-postmessage)
+apps/keyboard/js/imes/jszhuyin/lib/jszhuyin_server.js # line 42, col 7, Error - Using postMessage() with wildcard targets is not allowed. (no-wildcard-postmessage/no-wildcard-postmessage)
+apps/sync/js/ext/kinto.min.js # line 217, col 1044, Error - Using postMessage() with wildcard targets is not allowed. (no-wildcard-postmessage/no-wildcard-postmessage)
+shared/js/setImmediate.js # line 137, col 13, Error - Using postMessage() with wildcard targets is not allowed. (no-wildcard-postmessage/no-wildcard-postmessage)
