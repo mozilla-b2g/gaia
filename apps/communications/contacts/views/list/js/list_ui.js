@@ -153,7 +153,10 @@ monitorTagVisibility, GaiaHeader, GaiaSubheader */
   function initAction(action) {
     if (action) {
       _action = action;
-      toggleICEGroup(false);
+      var cancelAction = () => {
+        window.dispatchEvent(new CustomEvent('cancelAction'));
+      };
+      HeaderUI.setCancelableHeader(cancelAction, action);
     }
 
     // Hide buttons if the action is a pick
@@ -202,9 +205,6 @@ monitorTagVisibility, GaiaHeader, GaiaSubheader */
     });
 
     initAlphaScroll();
-    ActivityHandler.isCancelable().then(isCancelable => {
-      HeaderUI.updateHeader(isCancelable);
-    });
   }
 
   function checkContactChanges() {
@@ -1080,15 +1080,6 @@ monitorTagVisibility, GaiaHeader, GaiaSubheader */
     iceContacts = ids;
 
     showICEGroup();
-  }
-
-  function toggleICEGroup(show) {
-    if (!iceGroup) {
-      return;
-    }
-
-    iceState = !iceGroup.classList.contains('hide');
-    show ? hideICEGroup() : showICEGroup();
   }
 
   function restoreICEGroupState() {

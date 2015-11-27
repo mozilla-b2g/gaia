@@ -265,14 +265,20 @@
     _activity.postResult(result);
   }
 
+  function cancelActivity() {
+    _activity.postError('canceled');
+  }
+
   exports.ListController = {
     'init': function init() {
       window.addEventListener('itemClicked', onItemClick);
       window.addEventListener('pickAction', pick);
       window.addEventListener('updateAction', update);
+      window.addEventListener('cancelAction', cancelActivity);
     },
     'setActivity': function setActivity(activity) {
       _activity = activity;
+
     }
   };
 })(window);
