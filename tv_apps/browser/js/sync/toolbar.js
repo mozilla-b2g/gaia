@@ -86,6 +86,7 @@
           this.syncTab.removeAttribute('data-l10n-args');
           break;
         case 'enabling':
+          Settings.show();
           this.syncTab.setAttribute('data-l10n-id', 'fxsync-signing');
           break;
         case 'syncing':

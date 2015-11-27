@@ -10,6 +10,7 @@
 /* global MocksHelper */
 /* global MockL10n */
 /* global MockSyncManagerBridge */
+/* global Settings */
 /* global SyncManagerBridge */
 
 'use strict';
@@ -35,6 +36,7 @@ suite('Sync toolbar >', function() {
   };
 
   var getInfoSpy;
+  var settingsShowSpy;
   var addListenerStub;
   var addEventListenerStub;
 
@@ -50,6 +52,7 @@ suite('Sync toolbar >', function() {
     loadBodyHTML('sync/fixtures/toolbar.html');
 
     getInfoSpy = sinon.spy(SyncManagerBridge, 'getInfo');
+    settingsShowSpy = sinon.spy(Settings, 'show');
     addListenerStub = sinon.stub(SyncManagerBridge, 'addListener',
                                 listener => {
       onsyncchange = listener;
@@ -68,6 +71,7 @@ suite('Sync toolbar >', function() {
 
   suiteTeardown(function() {
     getInfoSpy.restore();
+    settingsShowSpy.restore();
     addListenerStub.restore();
     addEventListenerStub.restore();
     navigator.mozL10n = realL10n;
@@ -140,6 +144,7 @@ suite('Sync toolbar >', function() {
     });
 
     test('Tab name should change', function() {
+      expect(settingsShowSpy.calledOnce).to.equal(true);
       expect(subject.syncTab.getAttribute('data-l10n-id'))
         .to.equal('fxsync-signing');
     });
