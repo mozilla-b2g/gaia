@@ -10,6 +10,7 @@ Keyboards.uk = {
     alt: {
       а: '@',
       г: 'ґ'
+      '.': ',?!;:…’'
     },
     width: 12,
     keys: [
