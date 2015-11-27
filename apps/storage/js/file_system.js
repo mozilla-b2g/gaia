@@ -1,10 +1,9 @@
 'use strict';
-/* global udManager */
 /* exported FileSystemHelper */
 
 var FileSystemHelper = {
   fsProvider: navigator.fileSystemProvider,
-  openedFileList: {},
+  registeredStorage: {},
 
   init() {
     this.fsProvider.addEventListener('getmetadatarequested',
@@ -17,6 +16,14 @@ var FileSystemHelper = {
       this.handleReadDirectory.bind(this));
     this.fsProvider.addEventListener('readfilerequested',
       this.handleReadFile.bind(this));
+  },
+
+  addManager(storageId, udManager) {
+    // openedFileList will be clear if addManagrer is invoked.
+    this.registeredStorage[storageId] = {
+      openedFileList: {},
+      udManager: udManager
+    };
   },
 
   udToFsMeta(udMeta) {
@@ -38,16 +45,21 @@ var FileSystemHelper = {
     });
   },
 
-  unmount(fsId) {
+  unmount(storageId) {
     this.fsProvider.unmount({
-      fileSystemId: fsId
+      fileSystemId: storageId
     });
   },
 
   handleGetMetadata(event) {
     console.log('handleGetMetadata:', event.options.entryPath);
     console.log(event);
-    udManager.getFileMeta(event.options.entryPath, (error, res) => {
+    var udm = this.registeredStorage[event.options.fileSystemId].udManager;
+    if (!udm) {
+      event.errorCallback('AccessDenied');
+      return;
+    }
+    udm.getFileMeta(event.options.entryPath, (error, res) => {
       if (res.data) {
         var meta = res.data.list[0];
         event.successCallback(this.udToFsMeta(meta));
@@ -59,19 +71,31 @@ var FileSystemHelper = {
   handleOpenFile(event) {
     console.log('handleOpenFile:', event.options.filePath);
     console.log(event);
-    this.openedFileList[event.options.requestId] = event.options.filePath;
+    var opt = event.options,
+        filePath = opt.filePath,
+        fileSystemId = opt.fileSystemId,
+        requestId = opt.requestId;
+    this.registeredStorage[fileSystemId].openedFileList[requestId] = filePath;
     event.successCallback();
   },
   handleCloseFile(event) {
     console.log('handleCloseFile');
     console.log(event);
-    delete this.openedFileList[event.options.requestId];
+    var opt = event.options,
+        fileSystemId = opt.fileSystemId,
+        requestId = opt.requestId;
+    delete this.registeredStorage[fileSystemId].openedFileList[requestId];
     event.successCallback();
   },
   handleReadDirectory(event) {
     console.log('handleReadDirectory:', event.options.directoryPath);
     console.log(event);
-    udManager.getFileList(event.options.directoryPath, (error, res) => {
+    var udm = this.registeredStorage[event.options.fileSystemId].udManager;
+    if (!udm) {
+      event.errorCallback('AccessDenied');
+      return;
+    }
+    udm.getFileList(event.options.directoryPath, (error, res) => {
       if (res.data) {
         var metas = res.data.list.map(this.udToFsMeta);
         event.successCallback(metas, false);
@@ -83,10 +107,18 @@ var FileSystemHelper = {
   handleReadFile(event) {
     console.log('handleReadFile:', event.options.path);
     console.log(event);
-    var opt = event.options;
-    var requestId = event.options.openRequestId;
+    var opt = event.options,
+        fileSystemId = opt.fileSystemId,
+        openRequestId = opt.openRequestId,
+        filePath = this.registeredStorage[fileSystemId].
+          openedFileList[openRequestId],
+        udm = this.registeredStorage[opt.fileSystemId].udManager;
+    if (!udm) {
+      event.errorCallback('AccessDenied');
+      return;
+    }
     var ab = new Uint8Array(opt.length);
-    udManager.downloadFileInRangeByCache(this.openedFileList[requestId],
+    udm.downloadFileInRangeByCache(filePath,
                                          ab, opt.offset, opt.length, () => {
       event.successCallback(ab.buffer, false);
     });

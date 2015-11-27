@@ -1,7 +1,7 @@
 'use strict';
 /* global asyncStorage */
 /* global FileSystemHelper */
-/* global udManagerHelper */
+/* global UnidiskHelper */
 /* global DropboxAuth */
 /* global MyJsonAuth */
 /* exported Storage */
@@ -177,7 +177,8 @@ var Storage = {
           break;
         }
 
-        udManagerHelper.init(modName, option);
+        var udManager = UnidiskHelper.create(modName, option);
+        FileSystemHelper.addManager(storage.id, udManager);
         FileSystemHelper.mount({
           id: storage.id, name: storage.name
         }).then(e => console.log(e));
