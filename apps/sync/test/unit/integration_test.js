@@ -18,7 +18,7 @@
 requireApp('system/test/unit/mock_iac_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
-requireApp('sync/test/unit/improved_mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 
 requireApp('sync/js/bootstrap.js');
@@ -28,6 +28,8 @@ requireApp('sync/js/crypto/keyderivation.js');
 requireApp('sync/js/crypto/fxsyncwebcrypto.js');
 requireApp('sync/js/ext/kinto.min.js');
 requireApp('sync/js/sync-engine/syncengine.js');
+require('/shared/js/places_model.js');
+requireApp('sync/js/adapters/datastore-based.js');
 requireApp('sync/js/adapters/history.js');
 requireApp('sync/js/adapters/bookmarks.js');
 require('/shared/js/sync/errors.js');

@@ -5,7 +5,7 @@
 requireApp('system/js/device_storage_watcher.js');
 
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
