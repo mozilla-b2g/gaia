@@ -1,4 +1,4 @@
-# 1.9.1
+# 1.9.2
  - Bug 1227991 - client.js sends wrong variable to Marionette server
  - nodejs v4.x, v5.x support.
 
