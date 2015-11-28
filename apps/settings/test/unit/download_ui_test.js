@@ -1,8 +1,11 @@
-/* global MocksHelper, MockDownload, DownloadUI, DownloadFormatter */
+/* global MocksHelper, MockDownload, DownloadUI, DownloadFormatter, MockL10n */
 
 
 'use strict';
 
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_menu/script.js');
 requireApp('settings/test/unit/mock_mime_mapper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_download.js');
@@ -17,6 +20,7 @@ var mocksHelperForDownloadUI = new MocksHelper([
 ]).init();
 
 suite('DownloadUI', function() {
+  var realL10n;
   var download, dialogSelector = '#downloadConfirmUI',
       dialogButtonsSelector = '#downloadConfirmUI button',
       actionMenuSelector = '#downloadActionMenuUI',
@@ -27,7 +31,13 @@ suite('DownloadUI', function() {
 
   mocksHelperForDownloadUI.attachTestHelpers();
 
+  suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
   suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
     var screen = document.getElementById('screen');
     if (screen) {
       document.body.removeChild(screen);
@@ -92,23 +102,23 @@ suite('DownloadUI', function() {
     }).bind(this));
   });
 
-  test('Display actions for a video (three buttons) ', function() {
+  test('Display actions for a video (two buttons) ', function() {
     download.contentType = 'video/mp4';
-    checkActionsUI(3, this.sinon);
+    checkActionsUI(2, this.sinon);
     assert.isNull(document.querySelector(ringtoneButtonSelector));
     assert.isNull(document.querySelector(wallpaperButtonSelector));
   });
 
-  test('Display actions for an audio (four buttons)', function() {
+  test('Display actions for an audio (three buttons)', function() {
     download.contentType = 'audio/mp3';
-    checkActionsUI(4, this.sinon);
+    checkActionsUI(3, this.sinon);
     assert.ok(document.querySelector(ringtoneButtonSelector));
     assert.isNull(document.querySelector(wallpaperButtonSelector));
   });
 
-  test('Display actions for an image (four buttons)', function() {
+  test('Display actions for an image (three buttons)', function() {
     download.contentType = 'image/png';
-    checkActionsUI(4, this.sinon);
+    checkActionsUI(3, this.sinon);
     assert.ok(document.querySelector(wallpaperButtonSelector));
     assert.isNull(document.querySelector(ringtoneButtonSelector));
   });
@@ -129,14 +139,16 @@ suite('DownloadUI', function() {
   test('Menu actions UI will be not displayed twice ', function() {
     DownloadUI.showActions(download);
     DownloadUI.showActions(download);
-    assert.equal(document.querySelectorAll(actionMenuSelector).length, 1);
+    setTimeout(function() {
+      assert.equal(document.querySelectorAll(actionMenuSelector).length, 1);
+    });
   });
 
   test('Hide menu action UI ', function() {
     DownloadUI.showActions(download);
     this.sinon.clock.tick(0);
     DownloadUI.hide();
-    assert.equal(document.querySelector(actionMenuSelector).innerHTML, '');
+    assert.equal(document.querySelectorAll(actionMenuSelector).length, 0);
   });
 
   test('Appends to the body when screen is not present ', function() {
