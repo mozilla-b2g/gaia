@@ -7,7 +7,7 @@ homescreen-group:before {
   display: block;
   position: absolute;
   width: 100%;
-  padding-bottom: calc(100% - 0.4rem);
+  height: calc(100% - 1.9rem);
   top: 0;
   left: 0;
   background-color: rgba(0, 0, 0, 0.35);
@@ -15,7 +15,31 @@ homescreen-group:before {
   border: 0.2rem solid rgba(0, 0, 0, 0.6);
 }
 
-gaia-container {
+#group-container {
+  position: relative;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 1.9rem);
+  overflow: hidden;
+
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+
+#group-container > .gaia-container-child > * {
+  width: calc(32vw * 0.25);
+  height: calc(32vw * 0.25);
+}
+
+#group-container > .gaia-container-child:not(.added):not(.dragging) {
+  transition: transform 0.2s;
+}
+
+/* Reuses icon-added animation from apps-panel.css */
+#group-container > .gaia-container-child.added gaia-app-icon {
+  animation-name: icon-added;
+  animation-duration: 0.4s;
+  z-index: 1;
 }

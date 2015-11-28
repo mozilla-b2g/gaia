@@ -33,6 +33,7 @@ window.GaiaContainer = (function(exports) {
     shadow.appendChild(this._template);
 
     this._frozen = false;
+    this._immediateLock = 0;
     this._pendingStateChanges = [];
     this._children = [];
     this._dnd = {
@@ -103,9 +104,13 @@ window.GaiaContainer = (function(exports) {
 
   Object.defineProperty(proto, 'children', {
     get: function() {
-      return this._children.map((child) => {
-        return child.element;
+      var children = [];
+      this._children.forEach(child => {
+        if (!child.removed) {
+          children.push(child.element);
+        }
       });
+      return children;
     },
     enumerable: true
   });
@@ -117,10 +122,34 @@ window.GaiaContainer = (function(exports) {
     enumerable: true
   });
 
+  Object.defineProperty(proto, 'firstElementChild', {
+    get: function() {
+      for (var child of this._children) {
+        if (child.element.nodeType === 1) {
+          return child.element;
+        }
+      }
+      return null;
+    },
+    enumerable: true
+  });
+
   Object.defineProperty(proto, 'lastChild', {
     get: function() {
       var length = this._children.length;
       return length ? this._children[length - 1].element : null;
+    },
+    enumerable: true
+  });
+
+  Object.defineProperty(proto, 'lastElementChild', {
+    get: function() {
+      for (var i = this._children.length; i >= 0; i--) {
+        if (this._children[i].element.nodeType === 1) {
+          return this._chidlren[i].element;
+        }
+      }
+      return null;
     },
     enumerable: true
   });
@@ -167,6 +196,7 @@ window.GaiaContainer = (function(exports) {
       throw 'removeChild called on unknown child';
     }
 
+    childToRemove.removed = true;
     this.changeState(childToRemove, 'removed', () => {
       this.realRemoveChild(childToRemove.container);
       this.realRemoveChild(childToRemove.master);
@@ -330,6 +360,13 @@ window.GaiaContainer = (function(exports) {
    * next frame.
    */
   proto.changeState = function(child, state, callback) {
+    if (this._immediateLock) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
     // Check that the child is still attached to this parent (can happen if
     // the child is removed while frozen).
     if (child.container.parentNode !== this) {
@@ -355,8 +392,8 @@ window.GaiaContainer = (function(exports) {
 
       child.container.removeEventListener('animationstart', animStart);
 
-      window.clearTimeout(child[state]);
-      delete child[state];
+      window.clearTimeout(child.states[state]);
+      delete child.states[state];
 
       var self = this;
       child.container.addEventListener('animationend', function animEnd() {
@@ -371,14 +408,24 @@ window.GaiaContainer = (function(exports) {
     child.container.addEventListener('animationstart', animStart);
     child.container.classList.add(state);
 
-    child[state] = window.setTimeout(() => {
-      delete child[state];
+    child.states[state] = window.setTimeout(() => {
+      delete child.states[state];
       child.container.removeEventListener('animationstart', animStart);
       child.container.classList.remove(state);
       if (callback) {
         callback();
       }
     }, STATE_CHANGE_TIMEOUT);
+  };
+
+  /**
+   * Any DOM functions executed within callback will occur synchronously and
+   * immediately, without transitions.
+   */
+  proto.immediate = function(callback) {
+    ++this.immediateLock;
+    callback();
+    --this.immediateLock;
   };
 
   proto.getChildOffsetRect = function(element) {
@@ -742,6 +789,8 @@ window.GaiaContainer = (function(exports) {
 
   function GaiaContainerChild(element) {
     this._element = element;
+    this.states = {};
+    this.removed = false;
     this.markDirty();
   }
 
@@ -804,7 +853,7 @@ window.GaiaContainer = (function(exports) {
       var element = this.element;
 
       var style = window.getComputedStyle(element);
-      var display = style.display;
+      var display = this.removed ? 'none' : style.display;
       var order = style.order;
       var width = element.offsetWidth;
       var height = element.offsetHeight;
@@ -828,6 +877,12 @@ window.GaiaContainer = (function(exports) {
      * Synchronise the container's transform with the position of the master.
      */
     synchroniseContainer() {
+      // Don't synchronise removed children (so they don't move around once
+      // removed).
+      if (this.removed) {
+        return;
+      }
+
       var master = this.master;
       var container = this.container;
 

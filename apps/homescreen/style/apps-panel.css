@@ -43,8 +43,6 @@ gaia-app-icon {
 }
 
 homescreen-group {
-  width: 32vw;
-  height: 32vw;
   border: 0.8rem solid transparent;
   outline: 0;
 }
@@ -108,13 +106,15 @@ gaia-app-icon.launching {
   transform: scale(0.5) translate(-50%, 0);
 }
 
-#apps > .gaia-container-child.added gaia-app-icon {
+#apps > .gaia-container-child.added gaia-app-icon,
+#apps > .gaia-container-child.added homescreen-group {
   animation-name: icon-added;
   animation-duration: 0.4s;
   z-index: 1;
 }
 
-#apps.small > .gaia-container-child.added gaia-app-icon {
+#apps.small > .gaia-container-child.added gaia-app-icon,
+#apps.small > .gaia-container-child.added homescreen-group {
   animation-name: small-icon-added;
 }
 

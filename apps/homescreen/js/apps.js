@@ -673,7 +673,7 @@
       }
       var setGridHeight = () => {
         this.resizeTimeout = null;
-        this.icons.style.height = gridHeight + 'px';
+        this.icons.style.height = this.pendingGridHeight + 'px';
         this.gridHeight = this.pendingGridHeight;
       };
       if (this.pendingGridHeight > this.gridHeight) {
@@ -999,14 +999,18 @@
         }
 
         if (this.shouldCreateGroup) {
+          e.preventDefault();
           if (e.detail.dropTarget.localName === 'homescreen-group') {
-            e.detail.dropTarget.transferFromContainer(e.detail.target);
+            e.detail.dropTarget.transferFromContainer(e.detail.target,
+                                                      this.icons);
           } else {
             var group = document.createElement('homescreen-group');
             this.icons.insertBefore(group, e.detail.dropTarget);
             group.transferFromContainer(e.detail.dropTarget, this.icons);
             group.transferFromContainer(e.detail.target, this.icons);
           }
+          this.refreshGridSize();
+          this.snapScrollPosition();
         }
         break;
 
