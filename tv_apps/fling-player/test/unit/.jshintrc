@@ -2,6 +2,7 @@
   "extends": "../../../../.jshintrc",
   "predef": [
     "assert",
+    "expect",
     "suite",
     "test",
     "setup",
