@@ -24,7 +24,7 @@
     "lodash": "3.6.0",
     "marionette-js-logger": "file:../../plugins/marionette-js-logger",
     "marionette-profile-builder": "file:../marionette-profile-builder",
-    "mocha": "^1",
+    "mocha": "^2",
     "mocha-json-proxy": "file:../../mocha/mocha-json-proxy",
     "mozilla-runner": "file:../mozilla-runner",
     "object-assign": "^1.0.0",
