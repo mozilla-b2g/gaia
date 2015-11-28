@@ -12,10 +12,37 @@
    *        shall be independent to each other.
    * - type: String. Indicate the message type.
    * - other extra properties depending on the type
+   *
+   * For example, the message of loading request from a controller may be like:
+   * {
+   *    'seq': 3,
+   *    'type': 'load',
+   *    'url': 'http://www.example.com/foo.ogg'
+   * }
    */
   var castingMessage = {};
 
   castingMessage.type = Object.freeze({
+
+    /**
+     * Represent the device info.
+     * The extra message properties:
+     *   - displayName: String. The device display name
+     */
+    'device-info': {
+      name: 'device-info',
+      sanitizeMsg: function (msg) {
+
+        if (msg.displayName !== undefined &&
+            typeof msg.displayName != 'string'
+        ) {
+          throw new Error('Ilegal display name = ' + msg.displayName +
+            ' in casting message of type = ' + this.name);
+        }
+        return msg;
+      }
+    },
+
     /**
      * Represent acknowledgement of message receiving.
      * The extra message properties:
@@ -161,12 +188,23 @@
     mDBG.log('castingMessage#parse');
     mDBG.log('Parsing : ', txt);
 
-    var data = '[' + txt.replace('}{', '},{') + ']';
+    var data = '[' + txt.replace(/}{/g, '},{') + ']';
+    mDBG.log('Transformed : ', data);
+
     var msgs = JSON.parse(data);
+    mDBG.log('JSON Parsed : ', msgs);
 
-    mDBG.log('Parsed : ', msgs);
+    var results = [];
+    msgs.forEach((m) => {
+      try {
+        results.push(this.sanitizeMsg(m));
+      } catch (e) {
+        mDBG.error(e);
+      }
+    });
+    mDBG.log('Sanitized : ', results);
 
-    return msgs.map(m => this.sanitizeMsg(m));
+    return results;
   };
 
   /**
@@ -174,8 +212,7 @@
    * @return {String} the messsage txt to sent
    */
   castingMessage.stringify = function (content) {
-    this.sanitizeMsg(content);
-    return JSON.stringify(content);
+    return JSON.stringify(this.sanitizeMsg(content));
   };
 
   exports.castingMessage = castingMessage;

@@ -28,7 +28,7 @@ a:hover, a:active, a:focus {
 }
 
 article, section, video {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -60,6 +60,7 @@ article, section, video {
   top: auto;
   bottom: 30rem;
   left: 50%;
+  margin-right: -50%;
   transform: translate(-50%, 0);
   color: #fff;
   font-size: 5rem;

@@ -122,17 +122,6 @@ suite('fling-player/VideoPlayer', function() {
     assert.equal(video.currentTime, origin);
   });
 
-  test('should add event listener', function () {
-
-    var type = 'playing';
-    var handle = function () {};
-    var exp = sinon.mock(video);
-
-    exp.expects('addEventListener').once().withExactArgs(type, handle);
-    player.addEventListener(type, handle);
-    exp.verify();
-  });
-
   suite('Event handling', function () {
 
     var exp;
