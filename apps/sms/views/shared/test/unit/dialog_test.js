@@ -5,6 +5,7 @@
 */
 'use strict';
 
+require('/shared/js/event_safety.js');
 require('/shared/test/unit/mocks/mock_l20n.js');
 
 require('/views/shared/js/dialog.js');

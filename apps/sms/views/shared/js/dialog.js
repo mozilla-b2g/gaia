@@ -107,7 +107,7 @@ var Dialog = function(params) {
     event.preventDefault();
   });
 
-  this.form.addEventListener('transitionend', function(event) {
+  window.eventSafety(this.form, 'transitionend', function(event) {
     var form = event.target;
     if (!form.classList.contains('visible') && form.parentNode) {
       form.remove();
@@ -117,7 +117,7 @@ var Dialog = function(params) {
     }
 
     document.body.classList.remove('dialog-animating');
-  });
+  }, 500);
 
   menu.addEventListener('click', function(event) {
     var action = handlers.get(event.target);

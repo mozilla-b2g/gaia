@@ -38,6 +38,7 @@ var debug = 0 ?
 
 var Startup = exports.Startup = {
   _lazyLoadScripts: [
+    '/shared/js/event_safety.js',
     '/shared/js/settings_listener.js',
     '/shared/js/mime_mapper.js',
     '/shared/js/notification_helper.js',
