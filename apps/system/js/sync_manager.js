@@ -6,6 +6,7 @@
 
 /* global asyncStorage */
 /* global BaseModule */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_REQUEST_SYNC_REGISTRATION */
 /* global ERROR_SYNC_APP_GENERIC */
 /* global ERROR_SYNC_APP_KILLED */
@@ -227,7 +228,7 @@
             this.managementPortMessage({
               id: request.id,
               state: this.state,
-              error: this.state == 'errored' ? this.error : undefined,
+              error: this.error,
               lastSync: this.lastSync,
               user: this.user
             });
@@ -333,18 +334,12 @@
         error = error.message || error.name || error.error || error;
         console.error('Could not enable sync', error);
 
-        /**
-         * XXX Until we have a way to create new Sync users, we won't progress
-         *     the UNVERIFIED_ACCOUNT error. Instead, we consider this error
-         *     as the INVALID_SYNC_USER one, so we can present a more sane UX
-         *     to the user.
-         *
         if (error == 'UNVERIFIED_ACCOUNT') {
           this.getAccount().then(() => {
             Service.request('SyncStateMachine:error', ERROR_UNVERIFIED_ACCOUNT);
           });
           return;
-        }*/
+        }
 
         error = SyncErrors[error] || error;
 
@@ -367,9 +362,24 @@
       this.updateState();
 
       var from = event.detail && event.detail.from;
+
+      // There are some cases where we want to show to the user
+      // the enabled state but warn her about the invalid state of her
+      // account. So we stay in the errored state.
+      if ([ERROR_UNVERIFIED_ACCOUNT].indexOf(error) > -1) {
+        return;
+      }
+
       // If the error is recoverable and we are coming from the syncing
       // state, we go back to the enabled state, otherwise, we disable Sync.
-      if (SyncRecoverableErrors.indexOf(error) > -1 && from === 'syncing') {
+      if ((SyncRecoverableErrors.indexOf(error) > -1 && from === 'syncing') ||
+          // XXX ERROR_INVALID_SYNC_ACCOUNT is an unrecoverable error, but we
+          // temporarily treat it in a different way depending on the device.
+          // On TVs, we show a dialog asking the user to go to Desktop or
+          // Android to create an account and we move to the disabled state.
+          // On phones, we move to the enabled state, but we show a warning to
+          // the user about her account being empty.
+          error == ERROR_INVALID_SYNC_ACCOUNT) {
         Service.request('SyncStateMachine:enable');
         return;
       }
@@ -480,7 +490,8 @@
       var promises = [];
       [SYNC_STATE,
        SYNC_STATE_ERROR,
-       SYNC_LAST_TIME].forEach(key => {
+       SYNC_LAST_TIME,
+       SYNC_USER].forEach(key => {
         var promise = new Promise(resolve => {
           asyncStorage.getItem(key, value => {
             this.debug(key + ': ' + value);
@@ -651,6 +662,10 @@
           Service.request('SyncStateMachine:error', error);
           return;
         }
+
+        // If we made a successfull synchronization we are good and so
+        // we don't care about past errors anymore.
+        this.error = null;
 
         this.debug('Sync succeded');
         this.lastSync = Date.now();

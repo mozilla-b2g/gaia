@@ -69,6 +69,8 @@ suite('Firefox Sync panel >', () => {
     name: 'lastSync'
   }, {
     name: 'unverified'
+  }, {
+    name: 'emptyAccount'
   }];
 
   // Global spies and stubs.
@@ -87,7 +89,9 @@ suite('Firefox Sync panel >', () => {
 
   // Subject spies and stubs.
   var cleanSpy;
+  var hideEmptyAccountSpy;
   var refreshSpy;
+  var showEmptyAccountSpy;
   var showLastSyncSpy;
   var showScreenSpy;
   var showSyncNowSpy;
@@ -96,7 +100,9 @@ suite('Firefox Sync panel >', () => {
 
   function setSubjectSpiesAndStubs(subject) {
     cleanSpy = sinon.spy(subject, 'clean');
+    hideEmptyAccountSpy = sinon.spy(subject, 'hideEmptyAccount');
     refreshSpy = sinon.spy(subject, 'refresh');
+    showEmptyAccountSpy = sinon.spy(subject, 'showEmptyAccount');
     showLastSyncSpy = sinon.spy(subject, 'showLastSync');
     showScreenSpy = sinon.spy(subject, 'showScreen');
     showSyncNowSpy = sinon.spy(subject, 'showSyncNow');
@@ -106,7 +112,9 @@ suite('Firefox Sync panel >', () => {
 
   function restoreSubjectSpiesAndStubs() {
     cleanSpy.restore();
+    hideEmptyAccountSpy.restore();
     refreshSpy.restore();
+    showEmptyAccountSpy.restore();
     showLastSyncSpy.restore();
     showScreenSpy.restore();
     showSyncNowSpy.restore();
@@ -439,47 +447,36 @@ suite('Firefox Sync panel >', () => {
     });
 
     test('onsyncchange errored ERROR_INVALID_SYNC_ACCOUNT ' +
-         'should show logged out screen', () => {
-      subject.onsyncchange({
-        state: 'errored',
-        error: ERROR_INVALID_SYNC_ACCOUNT
-      });
-      setTimeout(() => {
-        this.sinon.assert.calledOnce(showScreenSpy);
-        assert.equal(showScreenSpy.getCall(0).args[0], LOGGED_OUT_SCREEN);
-        this.sinon.assert.calledOnce(cleanSpy);
-        assert.ok(!subject.screens.loggedOut.hidden);
-        assert.ok(subject.screens.loggedIn.hidden);
-        LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
-          assert.ok(subject.elements[element.name]);
-          subject.elements[element.name][element.event]();
-          var spy = listenerSpies.get(element.name);
-          this.sinon.assert.calledOnce(spy);
-        });
-        LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
-          assert.isNull(subject.elements[element.name]);
-        });
-      });
-    });
-
-    test('onsyncchange errored ERROR_UNVERIFIED_ACCOUNT ' +
          'should show logged in screen', () => {
-      subject.onsyncchange({
-        state: 'errored',
-        error: ERROR_UNVERIFIED_ACCOUNT
-      });
-      setTimeout(() => {
-        this.sinon.assert.calledOnce(showScreenSpy);
-        assert.equal(showScreenSpy.getCall(0).args[0], LOGGED_IN_SCREEN);
-        this.sinon.assert.notCalled(cleanSpy);
-        this.sinon.assert.calledOnce(showUnverifiedSpy);
-        assert.ok(subject.screens.loggedOut.hidden);
-        assert.ok(!subject.screens.loggedIn.hidden);
-        LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
-          assert.ok(subject.elements[element.name]);
+      [ERROR_INVALID_SYNC_ACCOUNT,
+       ERROR_UNVERIFIED_ACCOUNT].forEach(error => {
+        showScreenSpy.reset();
+        subject.onsyncchange({
+          state: 'errored',
+          error: error
         });
-        LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
-          assert.isNull(subject.elements[element.name]);
+        setTimeout(() => {
+          this.sinon.assert.calledOnce(showScreenSpy);
+          this.sinon.assert.notCalled(cleanSpy);
+          assert.equal(showScreenSpy.getCall(0).args[0], LOGGED_IN_SCREEN);
+          assert.ok(subject.screens.loggedOut.hidden);
+          assert.ok(!subject.screens.loggedIn.hidden);
+          LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
+            assert.ok(subject.elements[element.name]);
+          });
+          LOGGED_OUT_SCREEN_ELEMENTS.forEach(element => {
+            assert.isNull(subject.elements[element.name]);
+          });
+
+          if (error == ERROR_INVALID_SYNC_ACCOUNT) {
+            this.sinon.assert.calledOnce(showEmptyAccountSpy);
+            assert.ok(!subject.elements.emptyAccount.hidden);
+          }
+
+          if (error == ERROR_UNVERIFIED_ACCOUNT) {
+            this.sinon.assert.calledOnce(showUnverifiedSpy);
+            assert.ok(!subject.elements.unverified.hidden);
+          }
         });
       });
     });
@@ -582,6 +579,11 @@ suite('Firefox Sync panel >', () => {
       assert.ok(subject.elements.lastSync.classList.contains('hidden'));
     });
 
+    test('Empty account should be hidden', () => {
+      this.sinon.assert.calledOnce(hideEmptyAccountSpy);
+      assert.ok(subject.elements.emptyAccount.hidden);
+    });
+
     test('Logged in screen elements should be defined', () => {
       LOGGED_IN_SCREEN_ELEMENTS.forEach(element => {
         assert.ok(subject.elements[element.name]);
@@ -606,6 +608,45 @@ suite('Firefox Sync panel >', () => {
           this.sinon.assert.notCalled(spy) :
           this.sinon.assert.calledOnce(spy);
       });
+    });
+  });
+
+  suite('onsyncchange "enabled" with error', () => {
+    var subject;
+    var email = 'user@domain.org';
+    var error = 'error';
+
+    suiteSetup(() => {
+      subject = suiteSetupCommon();
+      setSubjectSpiesAndStubs(subject);
+    });
+
+    suiteTeardown(() => {
+      subject = null;
+      restoreSubjectSpiesAndStubs();
+    });
+
+    setup(() => {
+      subject.onsyncchange({
+        state: 'enabled',
+        user: email,
+        error: error
+      });
+    });
+
+    teardown(() => {
+      error = ERROR_INVALID_SYNC_ACCOUNT;
+    });
+
+    test('unknown error should not show empty account',
+      () => {
+      this.sinon.assert.notCalled(showEmptyAccountSpy);
+      assert.ok(subject.elements.emptyAccount.hidden);
+    });
+
+    test('ERROR_INVALID_SYNC_ACCOUNT should show empty account', () => {
+      this.sinon.assert.calledOnce(showEmptyAccountSpy);
+      assert.ok(!subject.elements.emptyAccount.hidden);
     });
   });
 
@@ -783,7 +824,6 @@ suite('Firefox Sync panel >', () => {
 
   suite('onsyncchange "errored" - known errors', () => {
     var subject;
-    const ERROR_INVALID_SYNC_ACCOUNT = 'fxsync-error-invalid-account';
     const ERROR_OFFLINE = 'fxsync-error-offline';
 
     suiteSetup(() => {
@@ -802,29 +842,22 @@ suite('Firefox Sync panel >', () => {
       alertSpy.reset();
     });
 
-    [{
-      error: ERROR_INVALID_SYNC_ACCOUNT,
-      l10n: 'fxsync-error-invalid-account'
-    }, {
-      error: ERROR_OFFLINE,
-      l10n: 'fxsync-error-offline'
-    }].forEach(config => {
-      test('onsyncchange errored with ' + config.error +
-           ' should show alert', done => {
-        subject.onsyncchange({
-          state: 'errored',
-          error: config.error
-        });
+    test('onsyncchange errored with ' + ERROR_OFFLINE +
+         ' should show alert', done => {
+      subject.onsyncchange({
+        state: 'errored',
+        error: ERROR_OFFLINE
+      });
 
-        setTimeout(() => {
-          this.sinon.assert.calledOnce(showScreenSpy);
-          this.sinon.assert.calledOnce(cleanSpy);
-          this.sinon.assert.calledOnce(alertSpy);
-          assert.equal(alertSpy.getCall(0).args[0],
-                       config.l10n + '-explanation');
-          assert.equal(alertSpy.getCall(0).args[1].title, config.l10n);
-          done();
-        });
+      setTimeout(() => {
+        this.sinon.assert.calledOnce(showScreenSpy);
+        this.sinon.assert.calledOnce(cleanSpy);
+        this.sinon.assert.calledOnce(alertSpy);
+        assert.equal(alertSpy.getCall(0).args[0],
+                     'fxsync-error-offline-explanation');
+        assert.equal(alertSpy.getCall(0).args[1].title,
+                     'fxsync-error-offline');
+        done();
       });
     });
   });
