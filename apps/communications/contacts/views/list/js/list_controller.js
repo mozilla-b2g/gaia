@@ -149,7 +149,7 @@
         }
 
         dataSet = data;
-        noDataStr = 'no_contact_data';
+        noDataStr = 'no_contact_data_available';
         break;
     }
     var hasData = dataSet && dataSet.length;

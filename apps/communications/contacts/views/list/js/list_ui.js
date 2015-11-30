@@ -1,4 +1,4 @@
-/* globals ListUtils, Cache, Search, HeaderUI, ActivityHandler,
+/* globals ListUtils, Cache, Search, HeaderUI,
 ContactsService, utils, Normalizer, LazyLoader, Loader, SelectMode, ICEStore,
 ICEData, ICEView, ImageLoader, ContactPhotoHelper, ConfirmDialog,
 monitorTagVisibility, GaiaHeader, GaiaSubheader */
@@ -150,19 +150,20 @@ monitorTagVisibility, GaiaHeader, GaiaSubheader */
     monitor && monitor.resumeMonitoringMutations(false);
   }
 
+  function cancelActivity() {
+    window.dispatchEvent(new CustomEvent('cancelAction'));
+  }
+
   function initAction(action) {
     if (!action) {
       return;
     }
     _action = action;
-    var cancelAction = () => {
-      window.dispatchEvent(new CustomEvent('cancelAction'));
-    };
 
     // Hide buttons if the action is a pick
     if (action === 'pick') {
       document.body.classList.add('pick');
-      HeaderUI.setCancelableHeader(cancelAction, action);
+      HeaderUI.setCancelableHeader(cancelActivity, action);
     }
   }
 
@@ -1394,14 +1395,19 @@ monitorTagVisibility, GaiaHeader, GaiaSubheader */
 
   function toggleNoContactsScreen(show) {
     if (show) {
-      if (!ActivityHandler.currentlyHandling) {
+      if (!_action) {
         noContacts.classList.remove('hide');
         fastScroll.classList.add('hide');
         scrollable.classList.add('hide');
         return;
       }
 
-      if (ActivityHandler.currentActivityIs(['pick', 'update'])) {
+      var shouldShowNoContactsAlert = () => {
+        return ['pick', 'update'].some((action) => {
+          return action === _action;
+        });
+      };
+      if (shouldShowNoContactsAlert()) {
         showNoContactsAlert();
         return;
       }
@@ -1412,19 +1418,21 @@ monitorTagVisibility, GaiaHeader, GaiaSubheader */
   }
 
   function showNoContactsAlert() {
-    LazyLoader.load(['/shared/js/confirm.js',
-          document.getElementById('confirmation-message')], function() {
-      var msg = 'noContactsActivity2';
-      var noObject = {
-        title: 'ok',
-        isDanger: false,
-        callback: function onNoClicked() {
-          ConfirmDialog.hide();
-          ActivityHandler.postCancel();
-        }
-      };
+    LazyLoader.load(document.getElementById('confirmation-message')).then(
+      () => {
+      LazyLoader.load('/shared/js/confirm.js', function() {
+        var msg = 'noContactsActivity2';
+        var noObject = {
+          title: 'ok',
+          isDanger: false,
+          callback: function onNoClicked() {
+            ConfirmDialog.hide();
+            cancelActivity();
+          }
+        };
 
-      ConfirmDialog.show(null, msg, noObject);
+        ConfirmDialog.show(null, msg, noObject);
+      });
     });
   }
 
