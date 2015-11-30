@@ -26,12 +26,12 @@ const Bootstrap = (() => {
 
   const loadMainScripts = () => {
     return LazyLoader.load([
-      'js/crypto/stringconversion.js',
-      'js/crypto/keyderivation.js',
-      'js/crypto/fxsyncwebcrypto.js',
+      'shared/js/sync/crypto/stringconversion.js',
+      'shared/js/sync/crypto/keyderivation.js',
+      'shared/js/sync/crypto/fxsyncwebcrypto.js',
 
-      'js/ext/kinto.min.js',
-      'js/sync-engine/syncengine.js'
+      'shared/js/sync/ext/kinto.min.js',
+      'shared/js/sync/engine.js'
     ]);
   };
 

@@ -18,10 +18,10 @@
 
 
 require('/shared/js/sync/errors.js');
-requireApp('system/test/unit/mock_iac_handler.js');
-requireApp('sync/test/unit/fixtures/bootstrap.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('sync/test/unit/sync-engine-mock.js');
+requireApp('system/test/unit/mock_iac_handler.js');
+requireApp('sharedtest/test/unit/sync/fixtures/bootstrap.js');
+requireApp('sharedtest/test/unit/sync/sync-engine-mock.js');
 
 var mocksForBootstrap = new MocksHelper([
   'IACHandler',
@@ -40,7 +40,7 @@ suite('Bootstrap', function() {
       addEventListenerSpy = sinon.spy(window, 'addEventListener');
       // The other suites rely on this suite running first for bootstrap.js
       // to be loaded.
-      requireApp('sync/js/bootstrap.js', done);
+      require('/shared/js/sync/bootstrap.js', done);
     });
 
     suiteTeardown(function() {

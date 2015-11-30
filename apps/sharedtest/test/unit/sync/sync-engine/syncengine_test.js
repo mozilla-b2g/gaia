@@ -11,11 +11,11 @@
   SynctoServerFixture
 */
 
-requireApp('sync/test/unit/sync-engine/adapter-mock.js');
-requireApp('sync/test/unit/fixtures/synctoserver.js');
-requireApp('sync/test/unit/sync-engine/fxsyncwebcrypto-mock.js');
-requireApp('sync/test/unit/sync-engine/kinto-mock.js');
-requireApp('sync/js/sync-engine/syncengine.js');
+requireApp('sharedtest/test/unit/sync/sync-engine/adapter-mock.js');
+requireApp('sharedtest/test/unit/sync/fixtures/synctoserver.js');
+requireApp('sharedtest/test/unit/sync/sync-engine/fxsyncwebcrypto-mock.js');
+requireApp('sharedtest/test/unit/sync/sync-engine/kinto-mock.js');
+require('/shared/js/sync/engine.js');
 
 var cloneObject = (obj) => {
   return JSON.parse(JSON.stringify(obj));
