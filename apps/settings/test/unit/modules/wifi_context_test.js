@@ -123,6 +123,25 @@ suite('WifiContext', function() {
     });
   });
 
+  suite('WifiNetworkForgotten', function() {
+    var fakeCb;
+
+    setup(function() {
+      fakeCb = sinon.spy();
+      wifiContext.addEventListener('wifiNetworkForgotten', fakeCb);
+    });
+
+    teardown(function() {
+      wifiContext.removeEventListener('wifiNetworkForgotten', fakeCb);
+    });
+
+    test('when wifiContext.forgetNetwork callback, trigger cb', function() {
+      wifiContext.forgetNetwork({}, () => {
+        assert.isTrue(fakeCb.called);
+      });
+    });
+  });
+
   suite('wifiStatusText', function() {
     suiteTeardown(function() {
       delete(wifiManager.connection.status);

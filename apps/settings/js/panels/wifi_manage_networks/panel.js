@@ -9,7 +9,6 @@ define(function(require) {
   var WifiHelper = require('shared/wifi_helper');
   var WifiKnownNetworks =
     require('panels/wifi_manage_networks/wifi_known_networks');
-  var wifiManager = WifiHelper.getWifiManager();
 
   return function ctor_wifi_manage_networks_panel() {
     var elements = {};
@@ -131,12 +130,13 @@ define(function(require) {
         forgetNetworkDialog.hidden = false;
 
         forgetNetworkDialog.onsubmit = function forget() {
-          var request = wifiManager.forget(network);
-          request.onsuccess = function() {
-            self._cleanup();
-            self._scan();
-            forgetNetworkDialog.hidden = true;
-          };
+          WifiContext.forgetNetwork(network, error => {
+            if (!error) {
+              self._cleanup();
+              self._scan();
+              forgetNetworkDialog.hidden = true;
+            }
+          });
           return false;
         };
 
