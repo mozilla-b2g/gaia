@@ -64,6 +64,15 @@ define(function(require) {
     _wifiConnectionInfoUpdateListeners: [],
 
     /**
+     * These listeners would be called when the wifi network
+     * is forgotten.
+     *
+     * @memberOf WifiContext
+     * @type {Array}
+     */
+    _wifiNetworkForgottenListeners: [],
+
+    /**
      * These listeners would be called when
      *   1. wifi connection failed
      *
@@ -234,11 +243,14 @@ define(function(require) {
 
       var networkStatus = event ? event.status : wifiManager.connection.status;
       if (networkStatus === 'connectingfailed') {
-        if (_currentNetwork.known === false) {
+        // Since this.forgetNetwork will set _currentNetwork to null, we have
+        // to save the _currentNetwork.known first.
+        var isCurrentNetworkKnown = _currentNetwork.known;
+        delete _currentNetwork.password;
+        this.forgetNetwork(_currentNetwork);
+        if (isCurrentNetworkKnown === false) {
           // Connection fail on user-activated unknown network, should be wrong
           // password, delete network and force a new authentication dialog.
-          delete(_currentNetwork.password);
-          this.forgetNetwork(_currentNetwork);
           this._wifiWrongPassword();
         }
       }
@@ -316,6 +328,17 @@ define(function(require) {
      */
     _wifiConnectionInfoUpdate: function(event) {
       this._wifiConnectionInfoUpdateListeners.forEach(function(listener) {
+        listener(event);
+      });
+    },
+
+    /**
+     * When wifi's network is forgotten, we will call all registered listeners.
+     *
+     * @memberOf WifiContext
+     */
+    _wifiNetworkForgotten: function(event) {
+      this._wifiNetworkForgottenListeners.forEach(function(listener) {
         listener(event);
       });
     },
@@ -404,6 +427,7 @@ define(function(require) {
       var done = function() {
         if (!request.error) {
           _currentNetwork = null;
+          WifiContext._wifiNetworkForgotten({ network: network });
         }
         cb(request.error);
       };
@@ -428,6 +452,8 @@ define(function(require) {
         WifiContext._wifiWrongPasswordListeners.push(callback);
       } else if (eventName === 'wifiConnectionInfoUpdate') {
         WifiContext._wifiConnectionInfoUpdateListeners.push(callback);
+      } else if (eventName === 'wifiNetworkForgotten') {
+        WifiContext._wifiNetworkForgottenListeners.push(callback);
       }
     },
     removeEventListener: function(eventName, callback) {
@@ -449,6 +475,9 @@ define(function(require) {
       } else if (eventName === 'wifiConnectionInfoUpdate') {
         WifiContext._removeEventListener(
           WifiContext._wifiConnectionInfoUpdateListeners, callback);
+      } else if (eventName === 'wifiNetworkForgotten') {
+        WifiContext._removeEventListener(
+          WifiContext._wifiNetworkForgottenListeners, callback);
       }
     },
     get wifiStatusText() {

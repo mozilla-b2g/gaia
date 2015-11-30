@@ -233,6 +233,14 @@ define(function(require) {
       WifiUtils.updateNetworkSignal(event.network, event.relSignalStrength);
     });
 
+    WifiContext.addEventListener('wifiNetworkForgotten', event => {
+      var networkKey = WifiUtils.getNetworkKey(event.network);
+      var forgottenNetwork = wifiNetworkList._networks[networkKey];
+      if (forgottenNetwork) {
+        forgottenNetwork.password = '';
+      }
+    });
+
     return wifiNetworkList;
   };
 
