@@ -164,13 +164,14 @@ define(function(require) {
       });
       LazyLoader.load(scripts_src);
 
-      var _onclick = function() {
+      var _onclick = function(evt) {
         if (!this.dataset.href) {
           this.dataset.href = this.href;
           this.href = '#';
         }
         var href = this.dataset.href;
         if (!href.startsWith('#')) { // external link
+          evt.target.blur();
           openLink(href);
         } else if (!href.endsWith('Settings')) { // generic dialog
           openDialog(href.substr(1));
