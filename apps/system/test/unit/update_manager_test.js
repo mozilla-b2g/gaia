@@ -428,8 +428,6 @@ suite('system/UpdateManager', function() {
         assert.isFalse(UpdateManager.downloadViaDataConnectionDialog.
           classList.contains('visible'));
         assert.isFalse(MockCustomDialog.mShown);
-        // should not close all custom dialog when no custom dialog is opened
-        assert.isFalse(Service.request.calledWith('hideCustomDialog'));
       });
 
       test('should decline install if showing apply prompt', function() {
@@ -553,14 +551,28 @@ suite('system/UpdateManager', function() {
 
       test('should close dialogs when home button is pressed',
       function () {
+        UpdateManager.showDownloadPrompt();
         window.dispatchEvent(new CustomEvent('home'));
         assert.ok(Service.request.calledWith('hideCustomDialog'));
       });
 
       test('should close dialogs when home button is held',
       function () {
+        UpdateManager.showDownloadPrompt();
         window.dispatchEvent(new CustomEvent('holdhome'));
         assert.ok(Service.request.calledWith('hideCustomDialog'));
+      });
+
+      test('should not close dialogs when none exist (home button)',
+      function() {
+        window.dispatchEvent(new CustomEvent('home'));
+        assert.isFalse(Service.request.calledWith('hideCustomDialog'));
+      });
+
+      test('should not close dialogs when none exist (hold home button)',
+      function() {
+        window.dispatchEvent(new CustomEvent('holdhome'));
+        assert.isFalse(Service.request.calledWith('hideCustomDialog'));
       });
     });
   });

@@ -442,6 +442,7 @@
       }, this);
 
       window.dispatchEvent(new CustomEvent('updatepromptshown'));
+      this._hasDialog = true;
       this.downloadDialog.classList.add('visible');
       this.updateDownloadButton();
     },
@@ -813,7 +814,9 @@
           break;
         case 'home':
         case 'holdhome':
-          this.cancelPrompt();
+          if (this._hasDialog) {
+            this.cancelPrompt();
+          }
           break;
       }
 
