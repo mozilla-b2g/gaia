@@ -305,7 +305,7 @@ Keyboard.prototype = {
   },
 
   // For built-in keyboard settings
-  switchToBuiltInSettings: function() {
+  switchToBuiltInKeyboardSettings: function() {
     Base.prototype.switchTo.call(this);
   },
 
