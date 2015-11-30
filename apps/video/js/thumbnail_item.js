@@ -61,10 +61,10 @@ function ThumbnailItem(videoData) {
 
   render();
 
-  function convertToDOM(htmlText) {
+  function convertToDOM(wrappedHTML) {
     // convert as DOM node
     var dummyDiv = document.createElement('div');
-    dummyDiv.innerHTML = htmlText;
+    dummyDiv.innerHTML = Sanitizer.unwrapSafeHTML(wrappedHTML);
 
     var domNode = dummyDiv.firstElementChild;
 
@@ -95,14 +95,14 @@ function ThumbnailItem(videoData) {
       videoType = (pos > -1 ? _this.data.type.slice(pos + 1) : _this.data.type);
     }
 
-    // popular html text
-    var htmlText = ThumbnailItem.view({
+    // populate html text
+    var wrappedHtmlText = ThumbnailItem.view({
       'title': _this.data.metadata.title,
       'durationText': duration,
       'typeText': videoType
     });
 
-    convertToDOM(htmlText);
+    convertToDOM(wrappedHtmlText);
 
     // This  is the image blob we display for the video.
     // If the video is part-way played, we display the bookmark image.
@@ -137,7 +137,7 @@ function ThumbnailItem(videoData) {
 ThumbnailItem.titleMaxLines = 2;
 
 ThumbnailItem.view = function({title, durationText, typeText}) {
-  return Sanitizer.escapeHTML `<li class="thumbnail" role="option">
+  return Sanitizer.createSafeHTML `<li class="thumbnail" role="option">
       <div class="inner">
         <div class="unwatched"></div>
         <img class="img" role="presentation"></img>
