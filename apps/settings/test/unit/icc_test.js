@@ -1,11 +1,12 @@
 'use strict';
 
 var MockNavigatorSettings, MockNavigatorMozIccManager, MockL10n, MockDump,
-    MocksHelper, HtmlImports;
+    MocksHelper, HtmlImports, MockMozApps;
 
-require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 requireApp('settings/test/unit/mock_navigator_settings.js');
 requireApp('settings/test/unit/mock_settings.js');
+requireApp('settings/test/unit/mock_moz_apps.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks_helper.js');
@@ -14,13 +15,13 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 var mocksForIccApp = ['Settings'];
 
 mocksForIccApp.forEach(function(mockName) {
-  if (! window[mockName]) {
+  if (!window[mockName]) {
     window[mockName] = null;
   }
 });
 
 var realL10n, realMozSettings, realMozIccManager, realDUMP, mocksHelper,
-    realReopenSettings;
+    realMozApps;
 
 if (!window.navigator.mozL10n) {
   window.navigator.mozL10n = null;
@@ -33,9 +34,6 @@ if (!window.navigator.mozIccManager) {
 }
 if (!window.DUMP) {
   window.DUMP = null;
-}
-if (!window.reopenSettings) {
-  window.reopenSettings = null;
 }
 
 suite('STK (App menu) >', function() {
@@ -56,8 +54,9 @@ suite('STK (App menu) >', function() {
     navigator.mozIccManager = MockNavigatorMozIccManager;
     realDUMP = window.DUMP;
     window.DUMP = MockDump.disable();
-    realReopenSettings = window.reopenSettings;
-    window.reopenSettings = function mockReopenSettings() {};
+    realMozApps = window.navigator.mozApps;
+    window.navigator.mozApps = MockMozApps;
+
     mocksHelper = new MocksHelper(mocksForIccApp);
     mocksHelper.suiteSetup();
 
@@ -197,7 +196,7 @@ suite('STK (App menu) >', function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozIccManager = realMozIccManager;
     window.DUMP = realDUMP;
-    window.reopenSettings = realReopenSettings;
+    window.navigator.mozApps = realMozApps;
   });
 
   suite('UI checks >', function() {

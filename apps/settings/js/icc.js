@@ -1,13 +1,23 @@
-/* global reopenSettings */
 require([
   'shared/stk_helper'
 ], function(STKHelper) {
   'use strict';
   (function() {
     var iccManager = window.navigator.mozIccManager;
+
     function getIcc(iccId) {
       window.DUMP('ICC Getting ICC for ' + iccId);
       return iccManager.getIccById(iccId);
+    }
+
+    /**
+     * Move settings to foreground
+     */
+    function reopenSettings() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        var app = evt.target.result;
+        app.launch('settings');
+      };
     }
 
     // Consts
