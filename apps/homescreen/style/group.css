@@ -1,3 +1,6 @@
+/* This is a web component, so animation keyframes are defined
+ * in apps-panel.css */
+
 homescreen-group {
   position: relative;
 }
@@ -7,7 +10,7 @@ homescreen-group:before {
   display: block;
   position: absolute;
   width: 100%;
-  height: calc(100% - 1.9rem);
+  height: 100%;
   top: 0;
   left: 0;
   background-color: rgba(0, 0, 0, 0.35);
@@ -18,7 +21,7 @@ homescreen-group:before {
 #group-container {
   position: relative;
   width: 100%;
-  height: calc(100% - 1.9rem);
+  height: 100%;
   overflow: hidden;
 
   display: flex;
@@ -37,7 +40,6 @@ homescreen-group:before {
   transition: transform 0.2s;
 }
 
-/* Reuses icon-added animation from apps-panel.css */
 #group-container > .gaia-container-child.added gaia-app-icon {
   animation-name: icon-added;
   animation-duration: 0.4s;

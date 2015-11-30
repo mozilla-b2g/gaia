@@ -357,7 +357,7 @@
         var children = this.icons.children;
         for (var container of children) {
           if (container.style.display !== 'none' &&
-              container.localName !== 'homescreen-group') {
+              !this.isGroup(container)) {
             this._iconSize = container.firstElementChild.size;
             break;
           }
@@ -406,15 +406,28 @@
      *   parent: The parent of the container housing the icon
      */
     iterateIcons: function(callback) {
-      for (var child of this.icons.children) {
+      for (var container of this.icons.children) {
+        var child = container.firstElementChild;
         if (child.localName === 'homescreen-group') {
-          for (var container of child.container.children) {
-            callback(container.firstElementChild, container, child.container);
+          for (var subContainer of child.container.children) {
+            callback(subContainer.firstElementChild,
+                     subContainer, child.container);
           }
         } else {
-          callback(child.firstElementChild, child, this.icons);
+          callback(child, container, this.icons);
         }
       }
+    },
+
+    addGroup: function(before) {
+      var group = document.createElement('homescreen-group');
+      var container = document.createElement('div');
+      container.classList.add('group-container');
+      container.order = -1;
+      container.appendChild(group);
+      this.icons.insertBefore(container, before);
+
+      return group;
     },
 
     addApp: function(app) {
@@ -866,11 +879,14 @@
         return 'none';
       }
 
-      if (element.localName === 'homescreen-group') {
-        return 'group';
-      }
+      var child = element.firstElementChild;
+      return child.localName === 'homescreen-group' ?
+        'group' : child.name;
+    },
 
-      return element.firstElementChild.name;
+    isGroup: function(element) {
+      return element &&
+        element.firstElementChild.localName === 'homescreen-group';
     },
 
     handleEvent: function(e) {
@@ -880,12 +896,12 @@
       // App launching
       case 'activate':
         e.preventDefault();
-        if (e.detail.target.localName === 'homescreen-group') {
-          e.detail.target.expand();
-          break;
-        }
 
         icon = e.detail.target.firstElementChild;
+        if (icon.localName === 'homescreen-group') {
+          icon.expand();
+          break;
+        }
 
         // If we're in edit mode, remap taps to selection
         if (this.editMode) {
@@ -930,7 +946,7 @@
       case 'drag-start':
         console.debug('Drag-start on ' + this.elementName(e.detail.target));
         this.dragging = true;
-        this.draggingGroup = e.detail.target.localName === 'homescreen-group';
+        this.draggingGroup = this.isGroup(e.detail.target);
         this.shouldEnterEditMode = true;
         this.shouldCreateGroup = false;
         document.body.classList.add('dragging');
@@ -999,13 +1015,13 @@
         }
 
         if (this.shouldCreateGroup) {
+          var group;
           e.preventDefault();
-          if (e.detail.dropTarget.localName === 'homescreen-group') {
-            e.detail.dropTarget.transferFromContainer(e.detail.target,
-                                                      this.icons);
+          if (this.isGroup(e.detail.dropTarget)) {
+            group = e.detail.dropTarget.firstElementChild;
+            group.transferFromContainer(e.detail.target, this.icons);
           } else {
-            var group = document.createElement('homescreen-group');
-            this.icons.insertBefore(group, e.detail.dropTarget);
+            group = this.addGroup(e.detail.dropTarget);
             group.transferFromContainer(e.detail.dropTarget, this.icons);
             group.transferFromContainer(e.detail.target, this.icons);
           }

@@ -26,7 +26,8 @@
   height: calc(24vw + 1.9rem);
 }
 
-gaia-app-icon {
+gaia-app-icon,
+homescreen-group {
   position: absolute;
   top: 0;
   left: 0;
@@ -43,14 +44,14 @@ gaia-app-icon {
 }
 
 homescreen-group {
-  border: 0.8rem solid transparent;
-  outline: 0;
+  height: 32vw;
 }
 
 /* Small icons are scaled down 0.75x, so apply the reverse transforms to the
  * font so that it conforms to spec.
  */
-#apps.small gaia-app-icon {
+#apps.small gaia-app-icon,
+#apps.small homescreen-group {
   font-size: calc(1.2rem / 0.75);
   text-shadow: rgba(0, 0, 0, 0.5) 0 calc(0.1rem / 0.75) calc(0.3rem / 0.75);
 }
@@ -59,11 +60,13 @@ gaia-app-icon.launching {
   opacity: 0.8;
 }
 
-.edit-mode gaia-app-icon {
+.edit-mode gaia-app-icon,
+.edit-mode homescreen-group {
   opacity: 0.5;
 }
 
-.edit-mode gaia-app-icon.selected {
+.edit-mode gaia-app-icon.selected,
+.edit-mode homescreen-group.selected {
   transform: scale(1.1);
   opacity: 1;
 }
@@ -72,20 +75,22 @@ gaia-app-icon.launching {
   visibility: hidden;
 }
 
-#apps > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
+#apps > .gaia-container-child.dragging > .icon-container > * {
   transform: scale(1.1);
   opacity: 0.8;
 }
 
 #apps > .gaia-container-child.dragging > .icon-container.hover-over {
-  transform: scale(0.5) translate(50%, 0);
+  transform: scale(0.5);
 }
 
-#apps.small > .gaia-container-child > .icon-container > gaia-app-icon {
+#apps.small > .gaia-container-child > .icon-container > *,
+#apps.small > .gaia-container-child > .group-container > * {
   transform: scale(0.75) translate(-4vw, -4vw);
 }
 
-#apps.small > .gaia-container-child.dragging > .icon-container > gaia-app-icon {
+#apps.small > .gaia-container-child.dragging > .icon-container > *,
+#apps.small > .gaia-container-child.dragging > .group-container > * {
   transform: scale(0.8) translate(-3.2vw, -3.2vw);
 }
 
