@@ -1,9 +1,11 @@
+/* global returnToSettingsMainPanel */
 define(function(require) {
   'use strict';
   var STKHelper = require('shared/stk_helper');
 
   function STKItem(elements) {
     this._elements = elements;
+    this._currentMenu = null;
     this.init();
   }
 
@@ -73,6 +75,23 @@ define(function(require) {
           window.DUMP('STK Menu for SIM ' + SIMNumber +
             ' (' + menu[SIMNumber].iccId + ') - ', menu[SIMNumber].entries);
 
+          if (!menu[SIMNumber].entries.title ||
+            menu[SIMNumber].entries.items.length === 0) {
+            window.DUMP('STK does not show empty menus');
+            if (Settings.currentPanel === '#icc' &&
+              self._currentMenu === menu[SIMNumber].iccId) {
+              // We need to open an advise here
+              var confirmBtn = document.querySelector('#icc-warning-confirm');
+              var warningDialog = document.querySelector('#icc-warning-dialog');
+              warningDialog.hidden = false;
+              confirmBtn.addEventListener('click', function back() {
+                confirmBtn.removeEventListener('click', back);
+                returnToSettingsMainPanel();
+              });
+            }
+            return;
+          }
+
           var li = document.createElement('li');
           var a = document.createElement('a');
           var menuItem = menu[SIMNumber].entries;
@@ -92,6 +111,7 @@ define(function(require) {
           }
           a.onclick = function menu_icc_onclick() {
             window.DUMP('Touched ' + menu[SIMNumber].iccId);
+            self._currentMenu = menu[SIMNumber].iccId;
             loadIccPage(function() {
               var event = new CustomEvent('stkmenuselection', {
                 detail: { 'menu': menu[SIMNumber] }
@@ -120,6 +140,19 @@ define(function(require) {
 
           self._elements.iccMainHeader.hidden = false;
           self._elements.iccEntries.hidden = false;
+
+          // STK Menu is ready, so we need to check if the user is in the old
+          // menu panel in order to update its content
+          if (Settings.currentPanel === '#icc' &&
+            self._currentMenu === menu[SIMNumber].iccId) {
+            loadIccPage(function() {
+              window.DUMP('STK Menu: Updating menu content');
+              var event = new CustomEvent('stkmenuselection', {
+                detail: { 'menu': menu[SIMNumber] }
+              });
+              window.dispatchEvent(event);
+            });
+          }
         });
       }
 

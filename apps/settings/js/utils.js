@@ -261,3 +261,12 @@ function getIccByIndex(index) {
 
   return iccObj;
 }
+
+/**
+ * Helper function for go back to the main settings panel
+ */
+function returnToSettingsMainPanel() {
+  if (Settings) {
+    Settings.currentPanel = '#root';
+  }
+}

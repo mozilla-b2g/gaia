@@ -2,6 +2,7 @@
 /* global MockNavigatorSettings */
 requireApp('settings/shared/test/unit/load_body_html_helper.js');
 requireApp('settings/test/unit/mock_navigator_settings.js');
+requireApp('settings/js/utils.js');
 
 suite('STK Item >', function() {
   var modules = [
@@ -43,6 +44,12 @@ suite('STK Item >', function() {
     'presentationType': 0
   };
 
+  var dummyEmptyMenu = {
+    'title': 'DummyOperator',
+    'items': [],
+    'presentationType': 0
+  };
+
   setup(function(done) {
     var requireCtx = testRequire([], map, function() {});
     requireCtx(modules, function(STKItem, MockL10n, MockSTKHelper,
@@ -58,7 +65,8 @@ suite('STK Item >', function() {
         navigator.mozSettings = MockNavigatorSettings;
 
         window.Settings = {
-          mozSettings: navigator.mozSettings
+          mozSettings: navigator.mozSettings,
+          currentPanel: null
         };
 
         MockDump.mSuiteSetup();
@@ -221,6 +229,28 @@ suite('STK Item >', function() {
       window.Settings.currentPanel = '#developer';
       updateMenu(false);
       assert.equal(window.Settings.currentPanel, '#developer');
+    });
+  });
+
+  suite('Remove STK Menu >', function() {
+    setup(function() {
+      window.Settings.currentPanel = '#icc';
+      subject._currentMenu = '1111111111111';
+      MockNavigatorSettings.mTriggerObservers('icc.applications', {
+        settingValue: JSON.stringify({
+          '1': {
+            'iccId': '1111111111111',
+            'entries': dummyEmptyMenu
+            }
+        })
+      });
+    });
+
+    test('STK Menu is removed > Prompt is displayed', function() {
+      assert.equal(document.getElementById('icc-entries').childElementCount,
+        0, 'STK Menu has been removed');
+      assert.isFalse(document.getElementById('icc-warning-dialog').hidden);
+      assert.equal(window.Settings.currentPanel, '#icc');
     });
   });
 });
