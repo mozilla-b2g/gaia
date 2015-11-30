@@ -174,10 +174,10 @@
             .then(iconBlob => {
               icon.icon = iconBlob;
               return Promise.resolve();
-            }, Promise.reject);
+            }, Promise.reject.bind(Promise)); // XXXbz Why second arg?
         }
         return Promise.reject('No icon data found');
-      }, Promise.reject);
+      }, Promise.reject.bind(Promise));  // XXXbz Why bother with second arg?
   }
 
   function getBestIconFromWebManifest(webManifest, iconSize) {
