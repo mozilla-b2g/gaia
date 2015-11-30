@@ -10,10 +10,11 @@
  * off UMS, and we put some text to that effect on the settings screen.
  */
 require([
+  'modules/dialog_service',
   'modules/settings_cache',
   'shared/toaster',
   'shared/settings_listener'
-], function(SettingsCache, Toaster, SettingsListener) {
+], function(DialogService, SettingsCache, Toaster, SettingsListener) {
   const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
   const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
   const DEFAULT_MEDIA_VOLUME_KEY = 'device.storage.writable.name';
@@ -430,78 +431,46 @@ require([
 
   Volume.prototype.unmountSDCard = function volume_unmountSDCard(evt) {
     // Pop up a confirm window before unmount SD card.
-    var popup = document.getElementById('unmount-sdcard-dialog');
-    var cancelBtn = document.getElementById('unmount-sdcard-cancel-btn');
-    var okBtn = document.getElementById('unmount-sdcard-ok-btn');
-
     var self = this;
-    var confirmHandler = function() {
-      enablePopup(false);
-      // Unmount SD card
-      self.storages.sdcard.unmount();
-      self.isUnmounting = true;
-    };
 
-    var cancelHandler = function() {
-      enablePopup(false);
-    };
-
-    var enablePopup = function Vf_enablePopup(enabled) {
-      if (enabled) {
-        okBtn.addEventListener('click', confirmHandler);
-        cancelBtn.addEventListener('click', cancelHandler);
-        popup.hidden = false;
-      } else {
-        okBtn.removeEventListener('click', confirmHandler);
-        cancelBtn.removeEventListener('click', cancelHandler);
-        popup.hidden = true;
+    DialogService.confirm('unmount-sdcard-confirmation', {
+      submitButton: 'ok',
+      cancelButton: 'cancel'
+    }).then(function(result) {
+      if (result.type === 'submit') {
+        // Unmount SD card
+        self.storages.sdcard.unmount();
+        self.isUnmounting = true;
       }
-    };
-    enablePopup(true);
+    });
   };
 
   Volume.prototype.formatSDCard = function volume_formatSDCard(evt) {
     // Pop up a confirm window before format SD card.
-    var popup = document.getElementById('format-sdcard-dialog');
-    var cancelBtn = document.getElementById('format-sdcard-cancel-btn');
-    var okBtn = document.getElementById('format-sdcard-ok-btn');
-    var dialogHeader = popup.querySelector('h1');
-    var dialogContent = popup.querySelector('p');
+    var dialogHeaderID, dialogContentID;
+    var self = this;
 
     if (!this.external) {
-      dialogHeader.setAttribute('data-l10n-id',
-        'format-sdcard-internal-title');
-      dialogContent.setAttribute('data-l10n-id',
-        'format-sdcard-internal-message');
+        dialogHeaderID = 'format-sdcard-internal-title';
+        dialogContentID = 'format-sdcard-internal-message';
     } else {
-      dialogHeader.setAttribute('data-l10n-id', 'format-sdcard-title');
-      dialogContent.setAttribute('data-l10n-id', 'format-sdcard-message');
+      dialogHeaderID = 'format-sdcard-title';
+      dialogContentID = 'format-sdcard-message';
     }
 
-    var self = this;
-    var confirmHandler = function() {
-      enablePopup(false);
-      // Format SD card
-      self.isFormatting = true;
-      self.storages.sdcard.format();
-    };
-
-    var cancelHandler = function() {
-      enablePopup(false);
-    };
-
-    var enablePopup = function Vf_enablePopup(enabled) {
-      if (enabled) {
-        okBtn.addEventListener('click', confirmHandler);
-        cancelBtn.addEventListener('click', cancelHandler);
-        popup.hidden = false;
-      } else {
-        okBtn.removeEventListener('click', confirmHandler);
-        cancelBtn.removeEventListener('click', cancelHandler);
-        popup.hidden = true;
+    DialogService.confirm({
+      id: dialogContentID
+    }, {
+      title: dialogHeaderID,
+      submitButton: { id: 'format-sdcard-btnformat', style: 'danger' },
+      cancelButton: 'cancel'
+    }).then(function(result) {
+      if (result.type === 'submit') {
+        // Format SD card
+        self.isFormatting = true;
+        self.storages.sdcard.format();
       }
-    };
-    enablePopup(true);
+    });
   };
 
   Volume.prototype.enableUnmountSDCardBtn =
@@ -677,22 +646,19 @@ require([
     showChangingDefaultStorageConfirmation:
     function ms_showChangingDefaultStorageConfirmation() {
       //Pop up a confirm window before listing options.
-      var popup = document.getElementById('default-location-popup-container');
-      var cancelBtn = document.getElementById('default-location-cancel-btn');
-      var changeBtn = document.getElementById('default-location-change-btn');
-
       this.defaultMediaLocation.blur();
       var self = this;
-      popup.hidden = false;
-      cancelBtn.onclick = function() {
-        popup.hidden = true;
-      };
-      changeBtn.onclick = function() {
-        popup.hidden = true;
-        setTimeout(function() {
-          self.defaultMediaLocation.focus();
-        });
-      };
+
+      DialogService.confirm('change-default-media-location-confirmation', {
+        submitButton: 'change',
+        cancelButton: 'cancel'
+      }).then(function(result) {
+        if (result.type === 'submit') {
+          setTimeout(function() {
+            self.defaultMediaLocation.focus();
+          });
+        }
+      });
     },
 
     updateListeners: function ms_updateListeners(callback, isVisibilitychange) {
