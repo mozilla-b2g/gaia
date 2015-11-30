@@ -260,37 +260,20 @@ define(function(require) {
         }
       },
       _openBadCredentialsDialog: function(network) {
-        var self = this;
-        var dialogElement = elements.dialogElement;
-
-        var onConfirm = function onConfirm() {
-          self._networkList().then((networkList) => {
-            networkList._toggleNetwork(network);
-            enableDialog(false);
-          });
-        };
-
-        var onCancel = function onCancel() {
-          enableDialog(false);
-        };
-
-        var enableDialog = function enableDialog(enabled) {
-          if (enabled) {
-            navigator.mozL10n.setAttributes(
-              dialogElement.querySelector('p'),
-              'wifi-bad-credentials-confirm',
-              { ssid : network.ssid });
-            elements.okBtn.addEventListener('click', onConfirm);
-            elements.cancelBtn.addEventListener('click', onCancel);
-            dialogElement.hidden = false;
-          } else {
-            elements.okBtn.removeEventListener('click', onConfirm);
-            elements.cancelBtn.removeEventListener('click', onCancel);
-            dialogElement.hidden = true;
+        DialogService.confirm({
+          id: 'wifi-bad-credentials-confirm',
+          args: { ssid : network.ssid }
+        }, {
+          title: 'wifi-bad-credentials-title',
+          submitButton: { id: 'ok', style: 'recommend' },
+          cancelButton: 'cancel',
+        }).then((result) => {
+          if (result.type === 'submit') {
+            this._networkList().then((networkList) => {
+              networkList._toggleNetwork(network);
+            });
           }
-        };
-
-        enableDialog(true);
+        });
       },
       _networkList: function() {
         if (!this._networkListPromise) {
