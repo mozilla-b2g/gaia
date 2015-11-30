@@ -21,11 +21,6 @@ var BopomofoEncoder = {
   BOPOMOFO_START_GROUP_3: 0x311A,
   BOPOMOFO_END_GROUP_3: 0x3126,
 
-  // Number substract or add the pad value when transforming symbols into bits
-  BOPOMOFO_GROUP_1_PAD: 0x3104,
-  BOPOMOFO_GROUP_2_PAD: 0x3126,
-  BOPOMOFO_GROUP_3_PAD: 0x3119,
-
   // Tone symbols are placed in Spacing Modifier Letters Unicode block
   BOPOMOFO_TONE_1: 0x02c9,
   BOPOMOFO_TONE_2: 0x02ca,
@@ -33,20 +28,27 @@ var BopomofoEncoder = {
   BOPOMOFO_TONE_4: 0x02cb,
   BOPOMOFO_TONE_5: 0x02d9,
 
+  // Bitmask for each group
+  BOPOMOFO_GROUP_1_BITMASK: 0x7e00,
+  BOPOMOFO_GROUP_2_BITMASK: 0x0180,
+  BOPOMOFO_GROUP_3_BITMASK: 0x0078,
+  BOPOMOFO_TONE_BITMASK: 0x0007,
+
   /**
-   * Encode a string containing syllables spelled by Bopomofo symbols
+   * Encode a Bopomofo symbols string into encoded sounds.
    * into encoded string.
-   * @param  {string} syllablesStr Syllable string.
+   * @param  {string} symbols      Symbols string.
    * @param  {object} options      Options.
-   * @return {string}              encoded string.
+   *                               - reorder: true for reorder.
+   * @return {array(number)}       Encoded sounds array.
    * @this   BopomofoEncoder
    */
-  encode: function be_encode(syllablesStr, options) {
+  encode: function be_encode(symbols, options) {
     options = options || {};
 
-    var encodedStr = '';
+    var encodedSoundsArr = [];
 
-    var symbolsCode = 0;
+    var currentEncodeSymbolsCode = 0;
     var filled1 = false;
     var filled2 = false;
     var filled3 = false;
@@ -55,29 +57,16 @@ var BopomofoEncoder = {
     var reorder = options.reorder;
 
     var next = function next() {
-      if (options.tone === 'all' && !filled4) {
-        symbolsCode |= 0x1;
-      }
+      encodedSoundsArr.push(currentEncodeSymbolsCode);
 
-      if (options.tone === 'more-than-one-symbol' &&
-          !filled4 &&
-          !((!filled1 && !filled2) ||
-            (!filled2 && !filled3) ||
-            (!filled3 && !filled1))) {
-        symbolsCode |= 0x1;
-      }
-
-      encodedStr += String.fromCharCode(symbolsCode);
-
-      symbolsCode = 0;
+      currentEncodeSymbolsCode = 0;
       filled1 = filled2 = filled3 = filled4 = false;
     };
 
-    for (var j = 0; j < syllablesStr.length; j++) {
-      var symbolCode = syllablesStr.charCodeAt(j);
+    for (var j = 0; j < symbols.length; j++) {
+      var encodedSymbolCode = this.encodeOne(symbols[j]);
 
-      if (symbolCode >= this.BOPOMOFO_START_GROUP_1 &&
-          symbolCode <= this.BOPOMOFO_END_GROUP_1) {
+      if (encodedSymbolCode & this.BOPOMOFO_GROUP_1_BITMASK) {
         if (!reorder && (filled1 || filled2 || filled3 || filled4)) {
           next();
         }
@@ -86,13 +75,12 @@ var BopomofoEncoder = {
         }
 
         filled1 = true;
+        currentEncodeSymbolsCode |= encodedSymbolCode;
 
-        symbolsCode |= (symbolCode - this.BOPOMOFO_GROUP_1_PAD) << 9;
         continue;
       }
 
-      if (symbolCode >= this.BOPOMOFO_START_GROUP_2 &&
-          symbolCode <= this.BOPOMOFO_END_GROUP_2) {
+      if (encodedSymbolCode & this.BOPOMOFO_GROUP_2_BITMASK) {
         if (!reorder && (filled2 || filled3 || filled4)) {
           next();
         }
@@ -101,134 +89,136 @@ var BopomofoEncoder = {
         }
 
         filled2 = true;
+        currentEncodeSymbolsCode |= encodedSymbolCode;
 
-        symbolsCode |= (symbolCode - this.BOPOMOFO_GROUP_2_PAD) << 7;
         continue;
       }
 
-      if (symbolCode >= this.BOPOMOFO_START_GROUP_3 &&
-          symbolCode <= this.BOPOMOFO_END_GROUP_3) {
+      if (encodedSymbolCode & this.BOPOMOFO_GROUP_3_BITMASK) {
         if (filled3 || filled4) {
           next();
         }
 
         filled3 = true;
+        currentEncodeSymbolsCode |= encodedSymbolCode;
 
-        symbolsCode |= (symbolCode - this.BOPOMOFO_GROUP_3_PAD) << 3;
         continue;
       }
 
-      if (symbolCode == this.BOPOMOFO_TONE_1) {
-        if (filled4) {
-          next();
-        }
-
+      if (encodedSymbolCode & this.BOPOMOFO_TONE_BITMASK) {
         filled4 = true;
-        symbolsCode |= 0x1;
+        currentEncodeSymbolsCode |= encodedSymbolCode;
+
         continue;
       }
 
-      if (symbolCode == this.BOPOMOFO_TONE_2) {
-        if (filled4) {
-          next();
-        }
-
-        filled4 = true;
-        symbolsCode |= 0x2;
-        continue;
-      }
-
-      if (symbolCode == this.BOPOMOFO_TONE_3) {
-        if (filled4) {
-          next();
-        }
-
-        filled4 = true;
-        symbolsCode |= 0x3;
-        continue;
-      }
-
-      if (symbolCode == this.BOPOMOFO_TONE_4) {
-        if (filled4) {
-          next();
-        }
-
-        filled4 = true;
-        symbolsCode |= 0x4;
-        continue;
-      }
-
-      if (symbolCode == this.BOPOMOFO_TONE_5) {
-        if (filled4) {
-          next();
-        }
-
-        filled4 = true;
-        symbolsCode |= 0x5;
-        continue;
-      }
-
-      throw 'Unknown symbol at position ' + j + ': ' + syllablesStr[j];
+      throw new Error('Should not reach here.');
     }
 
     next();
-    return encodedStr;
+    return encodedSoundsArr;
   },
 
   /**
-   * Decode an encoded string into syllables string.
-   * @param  {string} encodedStr encoded string.
-   * @return {string}            syllables string.
+   * Encode exactly one Bopomofo symbol
+   * @param  {string} symbol Bopomofo symbol
+   * @return {number}        Encoded code representing the symbol.
+   */
+  encodeOne: function be_encodeOne(symbol) {
+    var symbolCode = symbol.charCodeAt(0);
+
+    if (symbolCode >= this.BOPOMOFO_START_GROUP_1 &&
+        symbolCode <= this.BOPOMOFO_END_GROUP_1) {
+      return (symbolCode - this.BOPOMOFO_START_GROUP_1 + 1) << 9;
+    }
+
+    if (symbolCode >= this.BOPOMOFO_START_GROUP_2 &&
+        symbolCode <= this.BOPOMOFO_END_GROUP_2) {
+      return (symbolCode - this.BOPOMOFO_START_GROUP_2 + 1) << 7;
+    }
+
+    if (symbolCode >= this.BOPOMOFO_START_GROUP_3 &&
+        symbolCode <= this.BOPOMOFO_END_GROUP_3) {
+      return (symbolCode - this.BOPOMOFO_START_GROUP_3 + 1) << 3;
+    }
+
+    if (symbolCode == this.BOPOMOFO_TONE_1) {
+      return 0x1;
+    }
+
+    if (symbolCode == this.BOPOMOFO_TONE_2) {
+      return 0x2;
+    }
+
+    if (symbolCode == this.BOPOMOFO_TONE_3) {
+      return 0x3;
+    }
+
+    if (symbolCode == this.BOPOMOFO_TONE_4) {
+      return 0x4;
+    }
+
+    if (symbolCode == this.BOPOMOFO_TONE_5) {
+      return 0x5;
+    }
+
+    throw new Error('Unknown symbol: ' + symbol);
+  },
+
+  /**
+   * Decode an encoded sounds string into Bopomofo symbols.
+   * @param  {array(number)} encodedArr Encoded sounds string or array.
+   * @return {string}                   Symbols string.
    * @this   BopomofoEncoder
    */
-  decode: function be_decode(encodedStr) {
-    var syllablesStr = '';
-    for (var i = 0; i < encodedStr.length; i++) {
-      var symbolsCode = encodedStr.charCodeAt(i);
-      var group1Code = (symbolsCode & 0x7e00) >> 9;
-      var group2Code = (symbolsCode & 0x0180) >> 7;
-      var group3Code = (symbolsCode & 0x0078) >> 3;
-      var toneCode = symbolsCode & 0x0007;
+  decode: function be_decode(encodedArr) {
+    var symbols = '';
+    for (var i = 0; i < encodedArr.length; i++) {
+      var symbolsCode = encodedArr[i];
+      var group1Code = (symbolsCode & this.BOPOMOFO_GROUP_1_BITMASK) >> 9;
+      var group2Code = (symbolsCode & this.BOPOMOFO_GROUP_2_BITMASK) >> 7;
+      var group3Code = (symbolsCode & this.BOPOMOFO_GROUP_3_BITMASK) >> 3;
+      var toneCode = symbolsCode & this.BOPOMOFO_TONE_BITMASK;
 
       if (group1Code) {
-        syllablesStr +=
-          String.fromCharCode(this.BOPOMOFO_GROUP_1_PAD + group1Code);
+        symbols +=
+          String.fromCharCode(this.BOPOMOFO_START_GROUP_1 - 1 + group1Code);
       }
 
       if (group2Code) {
-        syllablesStr +=
-          String.fromCharCode(this.BOPOMOFO_GROUP_2_PAD + group2Code);
+        symbols +=
+          String.fromCharCode(this.BOPOMOFO_START_GROUP_2 - 1 + group2Code);
       }
 
       if (group3Code) {
-        syllablesStr +=
-          String.fromCharCode(this.BOPOMOFO_GROUP_3_PAD + group3Code);
+        symbols +=
+          String.fromCharCode(this.BOPOMOFO_START_GROUP_3 - 1 + group3Code);
       }
 
       switch (toneCode) {
         case 1:
-          syllablesStr += String.fromCharCode(this.BOPOMOFO_TONE_1);
+          symbols += String.fromCharCode(this.BOPOMOFO_TONE_1);
           break;
 
         case 2:
-          syllablesStr += String.fromCharCode(this.BOPOMOFO_TONE_2);
+          symbols += String.fromCharCode(this.BOPOMOFO_TONE_2);
           break;
 
         case 3:
-          syllablesStr += String.fromCharCode(this.BOPOMOFO_TONE_3);
+          symbols += String.fromCharCode(this.BOPOMOFO_TONE_3);
           break;
 
         case 4:
-          syllablesStr += String.fromCharCode(this.BOPOMOFO_TONE_4);
+          symbols += String.fromCharCode(this.BOPOMOFO_TONE_4);
           break;
 
         case 5:
-          syllablesStr += String.fromCharCode(this.BOPOMOFO_TONE_5);
+          symbols += String.fromCharCode(this.BOPOMOFO_TONE_5);
           break;
       }
     }
 
-    return syllablesStr;
+    return symbols;
   },
 
   /**
@@ -268,16 +258,207 @@ var BopomofoEncoder = {
     return false;
   },
 
-  isIncompletionOf: function(code, codeToMatch) {
-    var group1Code = (code & 0x7e00) >> 9;
-    var group2Code = (code & 0x0180) >> 7;
-    var group3Code = (code & 0x0078) >> 3;
-    var toneCode = code & 0x0007;
+  APPEND_MODE_NONE: 0,
+  APPEND_MODE_REORDER: 1,
 
-    var group1CodeToMatch = (codeToMatch & 0x7e00) >> 9;
-    var group2CodeToMatch = (codeToMatch & 0x0180) >> 7;
-    var group3CodeToMatch = (codeToMatch & 0x0078) >> 3;
-    var toneCodeToMatch = codeToMatch & 0x0007;
+  appendToSymbols: function(symbols, symbolToAttach, mode) {
+    mode = mode || this.APPEND_MODE_NONE;
+
+    if (!this.isBopomofoSymbol(symbolToAttach)) {
+      throw new Error('BopomofoEncoder: ' +
+        'Symbol to attach is not a Bopomofo symbol.');
+    }
+
+    switch (mode) {
+      case this.APPEND_MODE_NONE:
+        return symbols + symbolToAttach;
+      case this.APPEND_MODE_REORDER:
+        // TODO: FIX THIS.
+        return this.decode(this.encode(symbols + symbolToAttach, {
+          reorder: true
+        }));
+    }
+  },
+
+  /**
+   * Construct and encoded sounds array that have all non-completed sounds
+   * expended as seperate symbols.
+   * Useful for getSymbolsCompositions() and also to decide the minimal # of
+   * composing elements of the symbols string.
+   *
+   * @param {string}           symbols   String of Bopomofo symbols.
+   * @returns {array(number)}            Array consist of code of the
+   *                                     encoded sounds.
+   */
+  encodeExpended: function(symbols) {
+    var encodedSoundsReversedArr = [0];
+    var i = symbols.length;
+    var pos = 0;
+    var placeIntoCurrentSound = false;
+    var filled1, filled2, filled3;
+
+    var encodedSymbolCode;
+    while (i--) {
+      encodedSymbolCode = this.encodeOne(symbols[i]);
+      if (this.isCompleted(encodedSymbolCode)) {
+        placeIntoCurrentSound = true;
+        filled1 = filled2 = filled3 = false;
+        encodedSoundsReversedArr.push(encodedSymbolCode);
+        pos++;
+      } else {
+        if (placeIntoCurrentSound) {
+          if ((encodedSymbolCode & this.BOPOMOFO_GROUP_3_BITMASK) &&
+              !filled3 && !filled2 && !filled1) {
+            filled3 = true;
+            encodedSoundsReversedArr[pos] |= encodedSymbolCode;
+          } else if ((encodedSymbolCode & this.BOPOMOFO_GROUP_2_BITMASK) &&
+            !filled2 && !filled1) {
+            filled2 = true;
+            encodedSoundsReversedArr[pos] |= encodedSymbolCode;
+          } else if ((encodedSymbolCode & this.BOPOMOFO_GROUP_1_BITMASK) &&
+            !filled1) {
+            filled1 = true;
+            encodedSoundsReversedArr[pos] |= encodedSymbolCode;
+          } else {
+            placeIntoCurrentSound = false;
+            encodedSoundsReversedArr.push(encodedSymbolCode);
+            pos++;
+          }
+        } else {
+          encodedSoundsReversedArr.push(encodedSymbolCode);
+          pos++;
+        }
+      }
+    }
+
+    if (encodedSoundsReversedArr[0] === 0) {
+      encodedSoundsReversedArr.shift();
+    }
+
+    return encodedSoundsReversedArr.reverse();
+  },
+  /**
+   * Trim symbols to remove the part that will only match more words specify by
+   * length.
+   * @param  {string|array(number)} symbols Symbols
+   * @param  {number} length                Length to trim.
+   * @return {string}                       Trimmed symbols.
+   */
+  trimToLength: function(symbols, length) {
+    symbols = (typeof symbols === 'string') ? symbols : this.decode(symbols);
+
+    // No need to trim.
+    if (symbols.length <= length) {
+      return symbols;
+    }
+
+    var encodedSounds;
+    var i = symbols.length;
+    // XXX: Improve this; instead of a loop we could introduce a cap in
+    // the state machine in the encode() method.
+    do {
+      encodedSounds = this.encode(symbols.substr(0, i));
+      if (encodedSounds.length <= length) {
+        break;
+      }
+    } while (i--);
+
+    return this.decode(encodedSounds);
+  },
+  /**
+   * Trim symbols (from the end) to remove the part that will only match more
+   * words specify by length.
+   * @param  {string|array(number)} symbols Symbols
+   * @param  {number} length                Length to trim.
+   * @return {string}                       Trimmed symbols.
+   */
+  trimToLengthFromEnd: function(symbols, length) {
+    symbols = (typeof symbols === 'string') ? symbols : this.decode(symbols);
+
+    var encodedSounds;
+    var totalLength = this.encode(symbols).length;
+    var i = 0;
+    // XXX: Improve this; instead of a loop we could introduce a cap in
+    // the state machine in the encode() method.
+    while (++i < symbols.length) {
+      encodedSounds = this.encode(symbols.substr(0, i));
+      if (encodedSounds.length + length > totalLength) {
+        break;
+      }
+    }
+
+    return symbols.substr(i - 1);
+  },
+
+  /**
+   * Return all possible combinations of the given symbols string.
+   * @param  {string|array(number)}     symbols       Symbol string or array
+   *                                                  returned from
+   *                                                  encodeExpended.
+   * @return {array(array(number))}                   All combinations of
+   *                                                  the given symbols string.
+   */
+  getSymbolCombinations: function(symbols) {
+    // Construct an encodeExpended encoded sounds array,
+    // or use the input as such.
+    var expendedEncodedSounds =
+      (typeof symbols === 'string') ? this.encodeExpended(symbols) : symbols;
+
+    var combinations = expendedEncodedSounds
+      .reduce(function(currentCombinations, code, i) {
+        if (i === 0) {
+          currentCombinations.push([ code ]);
+          return currentCombinations;
+        }
+
+        currentCombinations.forEach(function(combination) {
+          var k = combination.length - 1;
+          // If the previous symbol is a complete one of this is a completed
+          // one, they must not occupy the same place.
+          if (this.isCompleted(combination[k]) || this.isCompleted(code)) {
+            combination.push(code);
+            return;
+          }
+
+          var filled2 = !!(combination[k] & this.BOPOMOFO_GROUP_2_BITMASK);
+          var filled3 = !!(combination[k] & this.BOPOMOFO_GROUP_3_BITMASK);
+
+          // If the previous one contain the same or the lower place of
+          // symbol, the new symbol must not occupy the same place.
+          if ((code & this.BOPOMOFO_GROUP_1_BITMASK) ||
+              (code & this.BOPOMOFO_GROUP_2_BITMASK &&
+                (filled2 || filled3)) ||
+              (code & this.BOPOMOFO_GROUP_3_BITMASK && filled3)) {
+            combination.push(code);
+            return;
+          }
+
+          // Create a copy of the composition, so that we could still
+          // put the symbols into the new place.
+          var newCombination = [].concat(combination);
+          newCombination.push(code);
+          currentCombinations.push(newCombination);
+
+          // Combine the current symbol into the previous symbol.
+          combination[k] |= code;
+        }.bind(this));
+
+        return currentCombinations;
+      }.bind(this), []);
+
+    return combinations;
+  },
+
+  isIncompletionOf: function(code, codeToMatch) {
+    var group1Code = (code & this.BOPOMOFO_GROUP_1_BITMASK) >> 9;
+    var group2Code = (code & this.BOPOMOFO_GROUP_2_BITMASK) >> 7;
+    var group3Code = (code & this.BOPOMOFO_GROUP_3_BITMASK) >> 3;
+    var toneCode = code & this.BOPOMOFO_TONE_BITMASK;
+
+    var group1CodeToMatch = (codeToMatch & this.BOPOMOFO_GROUP_1_BITMASK) >> 9;
+    var group2CodeToMatch = (codeToMatch & this.BOPOMOFO_GROUP_2_BITMASK) >> 7;
+    var group3CodeToMatch = (codeToMatch & this.BOPOMOFO_GROUP_3_BITMASK) >> 3;
+    var toneCodeToMatch = codeToMatch & this.BOPOMOFO_TONE_BITMASK;
 
     // This is fairly complex because not only we have to consider mis-match
     // of symbols at the same place, but also evaluate to false when there is
@@ -298,22 +479,26 @@ var BopomofoEncoder = {
 
   isCompleted: function(code) {
     // Only phontics with tone is considered completed.
-    return !!(code & 0x0007);
+    return !!(code & this.BOPOMOFO_TONE_BITMASK);
   },
 
   replace: function(code, fromCode, toCode) {
     var match = false;
-    if (fromCode & 0x7e00) {
-      match = ((code & 0x7e00) === (fromCode & 0x7e00));
+    if (fromCode & this.BOPOMOFO_GROUP_1_BITMASK) {
+      match = ((code & this.BOPOMOFO_GROUP_1_BITMASK) ===
+        (fromCode & this.BOPOMOFO_GROUP_1_BITMASK));
     }
-    if (fromCode & 0x0180) {
-      match = ((code & 0x0180) === (fromCode & 0x0180));
+    if (fromCode & this.BOPOMOFO_GROUP_2_BITMASK) {
+      match = ((code & this.BOPOMOFO_GROUP_2_BITMASK) ===
+        (fromCode & this.BOPOMOFO_GROUP_2_BITMASK));
     }
-    if (fromCode & 0x0078) {
-      match = ((code & 0x0078) === (fromCode & 0x0078));
+    if (fromCode & this.BOPOMOFO_GROUP_3_BITMASK) {
+      match = ((code & this.BOPOMOFO_GROUP_3_BITMASK) ===
+        (fromCode & this.BOPOMOFO_GROUP_3_BITMASK));
     }
-    if (fromCode & 0x0007) {
-      match = ((code & 0x0007) === (fromCode & 0x0007));
+    if (fromCode & this.BOPOMOFO_TONE_BITMASK) {
+      match = ((code & this.BOPOMOFO_TONE_BITMASK) ===
+        (fromCode & this.BOPOMOFO_TONE_BITMASK));
     }
 
     if (!match) {

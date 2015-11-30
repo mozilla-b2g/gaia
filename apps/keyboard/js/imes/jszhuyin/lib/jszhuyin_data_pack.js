@@ -76,11 +76,7 @@ JSZhuyinDataPackCollection.prototype.getFirstResult = function() {
     this._getFirstResultDataPack();
   }
 
-  return {
-    'str': this.firstResultDataPack.getFirstResult().str,
-    'score': this.firstResultDataPack.getFirstResult().score,
-    'symbols': this.firstResultDataPack.symbols
-  };
+  return this.firstResultDataPack.getFirstResult();
 };
 JSZhuyinDataPackCollection.prototype._getFirstResultDataPack = function() {
   if (this.dataPacks.length === 1) {
@@ -93,6 +89,7 @@ JSZhuyinDataPackCollection.prototype._getFirstResultDataPack = function() {
   this.dataPacks.forEach(function(dataPack, i) {
     if (dataPack.getFirstResultScore() > score) {
       this.firstResultDataPack = dataPack;
+      score = dataPack.getFirstResultScore();
     }
   }.bind(this));
 };
@@ -103,10 +100,6 @@ JSZhuyinDataPackCollection.prototype.getResults = function() {
 
   if (this.dataPacks.length === 1) {
     this.results = this.dataPacks[0].getResults();
-    this.results.forEach(function(res) {
-      // XXX We are editing the res in-place
-      res.symbols = this.dataPacks[0].symbols;
-    }.bind(this));
 
     return this.results;
   }
@@ -122,8 +115,6 @@ JSZhuyinDataPackCollection.prototype.getResults = function() {
       });
 
       if (!found) {
-        // XXX We are editing the res in-place
-        res.symbols = dataPack.symbols;
         results.push(res);
       }
     });
@@ -144,7 +135,7 @@ JSZhuyinDataPackCollection.prototype.getResults = function() {
  *                                      array of the structured data.
  * @constructor
  */
-var JSZhuyinDataPack = function(imeData, byteOffset, length, symbols) {
+var JSZhuyinDataPack = function(imeData, byteOffset, length, index) {
   if (imeData.constructor === ArrayBuffer) {
     this.packed = imeData;
     this.byteOffset = byteOffset || 0;
@@ -158,7 +149,7 @@ var JSZhuyinDataPack = function(imeData, byteOffset, length, symbols) {
     this.unpacked = undefined;
   }
 
-  this.symbols = symbols;
+  this.index = index;
 };
 /**
  * Get the score of the first item.
@@ -187,8 +178,9 @@ JSZhuyinDataPack.prototype.getFirstResult = function() {
   var length = controlByte & 0x0f;
 
   var result = {
-    'str': this._getStringFromDataView(view, 3 << 1, length),
-    'score': this.getFirstResultScore()
+    str: this._getStringFromDataView(view, 3 << 1, length),
+    score: this.getFirstResultScore(),
+    index: this.index
   };
 
   return result;
@@ -265,9 +257,10 @@ JSZhuyinDataPack.prototype._getPackedResults = function(filterFn) {
     }
 
     var result = {
-      'str': this._getStringFromDataView(view, bytePos + 4, length),
-      'score': Float32Encoder.decodeArrayBuffer(
-          this.packed, this.byteOffset + bytePos)
+      str: this._getStringFromDataView(view, bytePos + 4, length),
+      score: Float32Encoder.decodeArrayBuffer(
+          this.packed, this.byteOffset + bytePos),
+      index: this.index
     };
     bytePos += (length + 2) << 1;
 
@@ -296,9 +289,6 @@ JSZhuyinDataPack.prototype.pack = function() {
   this.unpacked.forEach(function(result, i) {
     if (result.str.length > length) {
       length = result.str.length;
-    }
-    if (result.symbols && result.symbols.length > length) {
-      length = result.symbols.length;
     }
   });
 
