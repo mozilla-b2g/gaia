@@ -219,9 +219,10 @@
       // Remove child immediately, datastore operations can be quite slow
       this.removeCard(this.selectedCard);
 
+      var revId = this.pagesStore.datastore.revisionId;
       this.pagesStore.get(id).then(entry => {
         entry.data.pinned = false;
-        this.pagesStore.datastore.put(entry.data, id).then(() => {},
+        this.pagesStore.datastore.put(entry.data, id, revId).then(() => {},
           e => {
             console.error('Error unpinning page:', e);
           });

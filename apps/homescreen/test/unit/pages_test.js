@@ -284,9 +284,15 @@ suite('Pages', () => {
           return Promise.resolve(mockEntry);
         });
       storePutStub =
-        sinon.stub(pages.pagesStore.datastore, 'put', (data, id) => {
+        sinon.stub(pages.pagesStore.datastore, 'put', (data, id, revId) => {
           if (callback) {
             callback(data, id);
+          }
+          if (revId && storePutStub._raceCondition) {
+            return Promise.reject({
+              name: 'ConstraintError',
+              message: 'RevisionId is not up-to-date'
+            });
           }
           return Promise.resolve();
         });
@@ -298,6 +304,7 @@ suite('Pages', () => {
       storeGetStub.restore();
       storePutStub.restore();
       pages.selectedCard = null;
+      callback = null;
     });
 
     test('removes card from container', () => {
@@ -313,6 +320,34 @@ suite('Pages', () => {
         });
       };
       pages.unpinSelectedCard();
+    });
+
+    suite('in case of DataStore conflict', done => {
+      var consoleErrorStub, consoleErrorCallback;
+      setup(() => {
+        pages.pagesStore.datastore.revisionId = 'some-revision';
+        storePutStub._raceCondition = true;
+        consoleErrorStub = sinon.stub(console, 'error', (text, err) => {
+          if (consoleErrorCallback) {
+            consoleErrorCallback(text, err);
+          }
+        });
+      });
+      teardown(() => {
+        delete storePutStub._raceCondition;
+        consoleErrorStub.restore();
+      });
+
+      test('fails to unpin card', done => {
+        consoleErrorCallback = (text, err) => {
+          done(() => {
+            assert.equal(text, 'Error unpinning page:');
+            assert.equal(err.name, 'ConstraintError');
+            assert.equal(err.message, 'RevisionId is not up-to-date');
+          });
+        };
+        pages.unpinSelectedCard();
+      });
     });
   });
 
