@@ -172,6 +172,35 @@ suite('Sync settings >', function() {
     });
   });
 
+  suite('Disabled from disabling', function() {
+    var alertStub;
+    var formatValueStub;
+    suiteSetup(function() {
+      formatValueStub = sinon.stub(navigator.mozL10n, 'formatValue', key => {
+        return Promise.resolve(key);
+      });
+
+      alertStub = sinon.stub(window, 'alert');
+
+      subject.state = 'disabling';
+      onsyncchange({
+        state: 'disabled',
+        user: 'pepito'
+      });
+    });
+
+    suiteTeardown(function() {
+      showScreenSpy.reset();
+      formatValueStub.restore();
+      alertStub.restore();
+    });
+
+    test('should show disabled dialog', function() {
+      expect(alertStub.calledOnce).to.equal(true);
+      expect(alertStub.args[0][0]).to.equal('fxsync-disabled');
+    });
+  });
+
   suite('Enabled', function() {
     suiteSetup(function() {
       onsyncchange({
