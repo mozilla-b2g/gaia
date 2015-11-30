@@ -17,6 +17,7 @@ marionette('First Time Use > Wifi Hidden Network Test', function() {
 
   test('Wi-Fi hidden network password 64 characters', function() {
     ftu.client.apps.switchToApp(Ftu.URL);
+    ftu.waitForFtuReady();
     ftu.clickThruPanel('#languages', '#forward');
     ftu.clickThruPanel('#wifi', '#join-hidden-button');
 
@@ -30,6 +31,7 @@ marionette('First Time Use > Wifi Hidden Network Test', function() {
 
   test('Wi-Fi hidden network show password', function() {
     ftu.client.apps.switchToApp(Ftu.URL);
+    ftu.waitForFtuReady();
     ftu.clickThruPanel('#languages', '#forward');
     ftu.clickThruPanel('#wifi', '#join-hidden-button');
 

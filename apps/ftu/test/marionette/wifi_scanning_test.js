@@ -15,6 +15,7 @@ marionette('First Time Use > Wifi Scanning Test', function() {
 
   test('FTU Wifi Scanning Tests', function() {
     client.apps.switchToApp(Ftu.URL);
+    ftu.waitForFtuReady();
     ftu.clickThruPanel('#languages', '#forward');
     ftu.clickThruPanel('#wifi', '#forward');
     ftu.clickThruPanel('#date_and_time', '#back');

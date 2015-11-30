@@ -19,7 +19,7 @@ marionette('First Time Use >', function() {
       return system.statusbar.displayed();
     });
     client.apps.switchToApp(Ftu.URL);
-    client.helper.waitForElement('#languages');
+    ftu.waitForFtuReady();
     var finishScreen = client.findElement(Ftu.Selectors.finishScreen);
     while (!finishScreen.displayed()) {
       client.switchToFrame();
@@ -41,6 +41,10 @@ marionette('First Time Use >', function() {
   });
 
   test('statusbar icons should be dark', function() {
+    client.apps.switchToApp(Ftu.URL);
+    ftu.waitForCurtainUp();
+
+    client.switchToFrame();
     client.waitFor(function() {
       return system.statusbar.displayed();
     });
