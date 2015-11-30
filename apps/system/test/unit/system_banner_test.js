@@ -1,7 +1,7 @@
 'use strict';
 /* global SystemBanner, AnimationEvent, MocksHelper */
 
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocks = new MocksHelper([
   'LazyLoader'

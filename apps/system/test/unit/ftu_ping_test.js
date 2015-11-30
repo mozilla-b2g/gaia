@@ -14,7 +14,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 require('/shared/js/telemetry.js');
 require('/shared/js/uuid.js');
