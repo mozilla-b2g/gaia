@@ -1,13 +1,10 @@
-/* global MediaUtils,Sanitizer,ThumbnailItem,IntlHelper */
+/* global MediaUtils,ThumbnailItem,IntlHelper */
 /**
  * ThumbnailDateGroup is a grouping mechanism supported in video app. It
  * groups video data by its year and month, see bug 908380. The grouping
  * identity is based on the groupID. Once the groupID is different, we view
  * two groups as different groups. ThumbnailDateGroup also sorts the added video
  * data descendant. We can just put a item into group and let it sort the list.
- *
- * The sanitizer.js library is used to escape HTML within the view method.
- * It is used when rendering group header, the HTML DOM node of this object.
  *
  * The HTML Node of this object contains all UI of its children. If we move it,
  * all items under this group are also moved.
@@ -50,12 +47,7 @@ function ThumbnailDateGroup(item) {
   this.groupID = ThumbnailDateGroup.getGroupID(item);
   this.date = item.date;
 
-  var htmlText = ThumbnailDateGroup.view();
-
-  // create dummy node for converting to DOM node.
-  var dummyDiv = document.createElement('DIV');
-  dummyDiv.innerHTML = htmlText;
-  var domNode = dummyDiv.firstElementChild;
+  var domNode = ThumbnailDateGroup.view();
 
   if (!domNode) {
     throw new Error('the template is empty');
@@ -69,12 +61,29 @@ function ThumbnailDateGroup(item) {
 
 // static functions
 ThumbnailDateGroup.view = function() {
-  return Sanitizer.escapeHTML `<li role="presentation">
-      <div class="thumbnail-group-header" role="heading"
-           aria-level="1"></div>
-      <ul class="thumbnail-group-container" role="listbox"
-          data-l10n-id="videos-list" aria-multiselectable="true"></ul>
-    </li>`;
+  // <li role="presentation">
+  //   <div class="thumbnail-group-header" role="heading" aria-level="1"></div>
+  //   <ul class="thumbnail-group-container" role="listbox"
+  //       data-l10n-id="videos-list" aria-multiselectable="true"></ul>
+  // </li>
+  var listItem = document.createElement('li');
+  listItem.setAttribute('role', 'presentation');
+
+  var groupHeader = document.createElement('div');
+  groupHeader.setAttribute('class', 'thumbnail-group-header');
+  groupHeader.setAttribute('role', 'heading');
+  groupHeader.setAttribute('aria-level', '1');
+
+  var uList = document.createElement('ul');
+  uList.setAttribute('class', 'thumbnail-group-container');
+  uList.setAttribute('role', 'listbox');
+  uList.setAttribute('data-l10n-id', 'videos-list');
+  uList.setAttribute('aria-multiselectable', 'true');
+
+  listItem.appendChild(groupHeader);
+  listItem.appendChild(uList);
+
+  return listItem;
 };
 
 ThumbnailDateGroup.getGroupID = function(item) {
