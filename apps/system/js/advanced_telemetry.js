@@ -443,7 +443,7 @@
     oldHist.log_sum += newHist.log_sum;
     oldHist.log_sum_squares += newHist.log_sum_squares;
 
-    for(var i = 0; i < oldHist.counts.length; i++) {
+    for (var i = 0; i < oldHist.counts.length; i++) {
       oldHist.counts[i] += newHist.counts[i];
     }
   }
@@ -451,11 +451,11 @@
   function mergeLists(oldList, newList) {
     var histMap = new Map();
 
-    for(var keyOld in oldList) {
+    for (var keyOld in oldList) {
       histMap.set(keyOld, oldList[keyOld]);
     }
 
-    for(var keyNew in newList) {
+    for (var keyNew in newList) {
       if (histMap.has(keyNew)) {
         mergeHistogram(oldList[keyNew], newList[keyNew]);
       } else {
@@ -467,13 +467,13 @@
   function mergeKeyed(keyedOldHist, payloadOld, payloadNew) {
     var keyedOldMapKeys = new Map();
 
-    for(var keyOld in keyedOldHist) {
+    for (var keyOld in keyedOldHist) {
       keyedOldMapKeys.set(keyOld, keyedOldHist[keyOld]);
     }
 
     var keyedNew = payloadNew.keyedHistograms;
     var keyedOld = payloadOld.keyedHistograms;
-    for(var keyNew in keyedNew) {
+    for (var keyNew in keyedNew) {
       if (keyedOldMapKeys.has(keyNew)) {
         mergeLists(keyedOld[keyNew], keyedNew[keyNew]);
       } else {
@@ -573,16 +573,13 @@
     var nameKeyHist = this.packet.payload.keyedHistograms;
 
     // Pack the Addon Histograms.
-    for(var addon in nameAddonHist) {
-      for(var addonHistName in nameAddonHist[addon]) {
-        nameAddonHist[addon][addonHistName] =
-          this.packHistogram(nameAddonHist[addon][addonHistName]);
-      }
+    for (var addon in nameAddonHist) {
+      nameAddonHist[addon] = this.packHistogram(nameAddonHist[addon]);
     }
 
     // Pack the Keyed Histograms.
-    for(var key in nameKeyHist) {
-      for(var hist2 in nameKeyHist[key]) {
+    for (var key in nameKeyHist) {
+      for (var hist2 in nameKeyHist[key]) {
         nameKeyHist[key][hist2] = this.packHistogram(nameKeyHist[key][hist2]);
       }
     }

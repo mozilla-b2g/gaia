@@ -342,17 +342,15 @@ suite('AdvancedTelemetry:', function() {
             }
           },
           addonHistograms: {
-            communications: {
-              rn_metric: {
-                min: 1,
-                max: 10000,
-                histogram_type: 1,
-                sum: 99,
-                sum_squares_lo: 9801,
-                sum_squares_hi: 0,
-                ranges: [0, 1, 1251, 2501, 3751, 5001, 6250, 7500, 8750, 10000],
-                counts: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
-              }
+            rn_metric: {
+              min: 1,
+              max: 10000,
+              histogram_type: 1,
+              sum: 99,
+              sum_squares_lo: 9801,
+              sum_squares_hi: 0,
+              ranges: [0, 1, 1251, 2501, 3751, 5001, 6250, 7500, 8750, 10000],
+              counts: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
             }
           }
         }
@@ -389,16 +387,14 @@ suite('AdvancedTelemetry:', function() {
             }
           },
           addonHistograms: {
-            communications: {
-              rn_metric: {
-                range: [1, 10000],
-                bucket_count:10,
-                histogram_type:1,
-                values:{'0':0, '1':1, '1251':0},
-                sum: 99,
-                sum_squares_lo:9801,
-                sum_squares_hi:0
-              }
+            rn_metric: {
+              range: [1, 10000],
+              bucket_count:10,
+              histogram_type:1,
+              values:{'0':0, '1':1, '1251':0},
+              sum: 99,
+              sum_squares_lo:9801,
+              sum_squares_hi:0
             }
           }
         }
