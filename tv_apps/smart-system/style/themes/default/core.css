@@ -9,12 +9,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 0 7rem;
+  padding: 20.37vh 0 0; /* 20.37vh = 22rem in 1920x1080 */
   color: #fff;
   font-size: 0;
   white-space: nowrap;
-  background: #2d2d2d;
-  background-size: auto auto, 100% 100%;
+  background: RGBA(0, 0, 0, 0.7);
+  text-align: center;
   z-index: 100;
   overflow: hidden;
 }
@@ -40,10 +40,10 @@
 
 [role="dialog"].generic-dialog .inner {
   display: inline-block;
-  width: calc(100% - 3rem);
+  vertical-align: top;
+  width: 54.69vw; /* 105rem in 1920 x 1080 */
   margin-left: -0.1rem; /* need to fix the white-space: nowrap */
-  padding: 0 1.5rem;
-  vertical-align: middle;
+  padding: 0 1.5rem 2rem 0;
   white-space: normal;
 }
 
@@ -60,23 +60,20 @@
 [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
   white-space: nowrap;
   margin: 0;
-  padding: 1.5rem 1rem;
-  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
-  background: #2d2d2d;
+  padding: 0;
+  height: 34.5rem;
   display: block;
-  overflow: hidden;
+  overflow: visible;
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
 }
 
-[role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button,
+[role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] smart-button,
 [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
-  width: calc((100% - 2rem) / 2);
   margin: 0 0.5rem;
 }
-
 
 /* ----------------------------------
  * INLINE BANNER
@@ -99,7 +96,7 @@
   background: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1280px) {
   [role="dialog"].generic-dialog {
     -moz-box-sizing: border-box;
     position: absolute;
@@ -164,5 +161,49 @@
   form[role="dialog"][data-type="confirm"] {
     top: calc(50% - 23rem); /* dialog height 46rem */
     left: calc(50% - 34rem); /* dialog width 68rem */
+  }
+}
+
+/* ----------------------------------
+ * CHECKBOX
+ * ---------------------------------- */
+
+@media (min-width: 1280px) {
+  label.pack-checkbox {
+    width: 5.2rem;
+    height: 5.2rem;
+    border: 0.4rem solid #5f6368;
+    border-radius: 50%;
+    margin-right: 2rem;
+    line-height: 5.2rem;
+    text-align: center;
+    background: none;
+    transition: transform 0.2s;
+  }
+
+  label.pack-checkbox input ~ span::after {
+    background-image: none;
+    width: 5.2rem;
+    height: 5.2rem;
+    margin: -2.6rem -2.6rem 0 0;
+    left: auto;
+    top: 50%;
+    right: 50%;
+    bottom: auto;
+  }
+
+  label.pack-checkbox input:focused ~ span::after {
+    transform: scale(1.2);
+    transform-origin: 50% 50%;
+  }
+
+  label.pack-checkbox input:checked ~ span::after {
+    font-family: "gaia-icons";
+    font-style: normal;
+    font-weight: 500;
+    font-size: 4rem;
+    text-rendering: optimizelegibility;
+    content: "tick";
+    color: #00caf2;
   }
 }

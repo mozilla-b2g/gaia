@@ -583,13 +583,13 @@
         <div id="permission-dialog" role="dialog" class="generic-dialog">
           <div class="inner">
             <h1 id="permission-title"></h1>
+            <div id="permission-icon"></div>
             <h2 id="permission-message"></h2>
             <div id="permission-more-info" class="hidden">
-              <a id="permission-more-info-link" data-l10n-id="more-info" href="#">More Info…</a>
-              <a id="permission-hide-info-link" data-l10n-id="hide-info" href="#" class="hidden">Hide Info</a>
-              <div id="permission-more-info-box" class="hidden"> </div>
+              <smart-button id="permission-more-info-link" type="simple-text" data-l10n-id="more-info" href="#">More Info…</smart-button>
+              <div id="permission-more-info-box"> </div>
             </div>
-            <div id="permission-remember-section">
+            <div id="permission-remember-section" class="hidden" tabIndex="0">
               <label class="pack-checkbox">
                 <input type="checkbox" id="permission-remember-checkbox" />
                 <span></span>
@@ -600,9 +600,10 @@
             <ul id="permission-devices">
             </ul>
             <menu id="permission-buttons" data-items="2">
-              <button id="permission-no"></button>
-              <button id="permission-yes" class="affirmative"></button>
+              <smart-button id="permission-no" type="circle-text"></smart-button>
+              <smart-button id="permission-yes" type="circle-text" class="affirmative"></smart-button>
             </menu>
+            <smart-button id="permission-hide-info-link" type="circle-text" data-l10n-id="hide-info">Hide Info</smart-button>
           </div>
         </div>
       </div>
