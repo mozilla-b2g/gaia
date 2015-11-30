@@ -39,7 +39,7 @@ marionette('Keyboard Auto correction tests', function() {
   suite('autocorrect toggle', function() {
     setup(function() {
       keyboard.launch();
-      keyboard.switchToBuiltInSettings();
+      keyboard.switchToBuiltInKeyboardSettings();
     });
 
     test('auto correct switch should equal to settings context',
@@ -55,7 +55,7 @@ marionette('Keyboard Auto correction tests', function() {
       assert.equal(keyboard.autocorrect, !!currentSwitch);
     });
 
-    test('re-open built-in settings', function() {
+    test('re-open built-in keyboard settings', function() {
       var currentSwitch = keyboard.autocorrect;
 
       keyboard.clickAutocorrectOption();
@@ -65,7 +65,7 @@ marionette('Keyboard Auto correction tests', function() {
       assert.equal(keyboard.autocorrect, !currentSwitch);
 
       keyboard.launch();
-      keyboard.switchToBuiltInSettings();
+      keyboard.switchToBuiltInKeyboardSettings();
       keyboard.clickAutocorrectOption();
 
       assert.equal(keyboard.autocorrect, !!currentSwitch);
@@ -76,7 +76,7 @@ marionette('Keyboard Auto correction tests', function() {
     setup(function () {
       if (!keyboard.autocorrect) {
         keyboard.launch();
-        keyboard.switchToBuiltInSettings();
+        keyboard.switchToBuiltInKeyboardSettings();
         keyboard.clickAutocorrectOption();
         keyboard.goBackToSettingsApp();
         settings.close();
@@ -140,13 +140,32 @@ marionette('Keyboard Auto correction tests', function() {
       assert.equal(
         keyboardTestApp.textInput.getAttribute('value'), 'keyboard Tea he wot');
     });
+
+    // For Bug 1073870
+    test('move caret before autocorrect', function() {
+      keyboard.type('Hello worl');
+      keyboardTestApp.switchTo();
+
+      client.executeScript(
+        'var el = document.activeElement;' +
+        'el.selectionStart = el.selectionEnd = 5;');
+
+      keyboard.switchTo();
+      keyboard.type(' ');
+
+      keyboardTestApp.switchTo();
+
+      assert.equal(
+        keyboardTestApp.textInput.getAttribute('value'), 'Hello  worl');
+
+    });
   });
 
   suite('with autocorrect off', function() {
     setup(function () {
       if (keyboard.autocorrect) {
         keyboard.launch();
-        keyboard.switchToBuiltInSettings();
+        keyboard.switchToBuiltInKeyboardSettings();
         keyboard.clickAutocorrectOption();
         keyboard.goBackToSettingsApp();
         settings.close();
@@ -159,7 +178,7 @@ marionette('Keyboard Auto correction tests', function() {
       keyboard.switchTo();
     });
 
-    test('no autocorrect while texting', function() {
+    test('no autocorrect while typing', function() {
       keyboard.type('Tes');
       keyboardTestApp.switchTo();
 
