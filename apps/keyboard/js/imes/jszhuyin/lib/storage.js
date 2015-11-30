@@ -11,40 +11,48 @@
  * @this   {object}   CacheStore instance.
  */
 var CacheStore = function CacheStore() {
-  this.data = Object.create(null);
+  this.dataMap = new Map();
 };
 /**
  * set the value of a key.
- * @param  {string} key   Key.
- * @param  {any}    value Value.
- * @this   {object}       CacheStore instance.
+ * @param  {array(number)} codes Key.
+ * @param  {any}           value Value.
+ * @this   {object}              CacheStore instance.
  */
-CacheStore.prototype.add = function cs_add(key, value) {
-  this.data[key] = value;
+CacheStore.prototype.add = function cs_add(codes, value) {
+  // In the interest of not doing deep comparsion on arrays, we would convert
+  // them to string here.
+  this.dataMap.set(String.fromCharCode.apply(String, codes), value);
 };
 /**
  * get the value of a key.
- * @param  {string} key Key.
- * @return {any}        Value of the key.
- * @this   {object}     CacheStore instance.
+ * @param  {array(number)} codes Key.
+ * @return {any}                 Value of the key.
+ * @this   {object}              CacheStore instance.
  */
-CacheStore.prototype.get = function cs_get(key) {
-  return this.data[key];
+CacheStore.prototype.get = function cs_get(codes) {
+  return this.dataMap.get(String.fromCharCode.apply(String, codes));
 };
 /**
  * Clean up the store. Any key that is not a substring of the superset
  * string will have their value removed.
- * @param  {string} supersetStr The superset string.
- * @this   {object}             CacheStore instance.
+ *
+ * @param  {array(number)} supersetCodes The superset code array.
+ * @this   {object}                      CacheStore instance.
  */
-CacheStore.prototype.cleanup = function cs_cleanup(supersetStr) {
-  for (var key in this.data) {
-    if (supersetStr.indexOf(key) !== -1) {
-      continue;
-    }
-
-    this.data[key] = undefined;
+CacheStore.prototype.cleanup = function cs_cleanup(supersetCodes) {
+  if (!supersetCodes) {
+    this.dataMap.clear();
+    return;
   }
+
+  var supersetStr = String.fromCharCode.apply(String, supersetCodes);
+
+  this.dataMap.forEach(function(v, key) {
+    if (supersetStr.indexOf(key) === -1) {
+      this.dataMap.delete(key);
+    }
+  }, this);
 };
 
 /**
@@ -77,21 +85,17 @@ BinStorage.prototype.unload = function bs_unload() {
 };
 /**
  * Get values from storage.
- * @param  {string}       key          string to query.
+ * @param  {array(number)}       codes Array of numbers to query.
  * @return {arraybuffer}               the result.
  */
-BinStorage.prototype.get = function bs_get(key) {
+BinStorage.prototype.get = function bs_get(codes) {
   if (!this.loaded) {
-    throw 'BinStorage: not loaded.';
+    throw new Error('BinStorage: not loaded.');
   }
-
-  var keyArray = key.split('').map(function str2CharCode(char) {
-    return char.charCodeAt(0);
-  });
 
   var code;
   var byteOffset = 0;
-  while ((code = keyArray.shift()) !== undefined) {
+  while ((code = codes.shift()) !== undefined) {
     byteOffset = this.searchBlock(code, byteOffset);
     if (byteOffset === -1) {
       return undefined;
@@ -101,27 +105,31 @@ BinStorage.prototype.get = function bs_get(key) {
 };
 /**
  * Look for all value begin with this key.
- * @param  {string}              key      string to query.
- * @return {array(arraybuffer)}           the results.
+ * @param  {array(number)}       codes Array of numbers to query.
+ * @return {array(array(...))}         Array of results of _getBlockContent
  */
-BinStorage.prototype.getRange = function bs_getRange(key) {
+BinStorage.prototype.getRange = function bs_getRange(codes) {
   if (!this.loaded) {
-    throw 'BinStorage: not loaded.';
+    throw new Error('BinStorage: not loaded.');
   }
-
-  var keyArray = key.split('').map(function str2CharCode(char) {
-    return char.charCodeAt(0);
-  });
 
   var code;
   var byteOffset = 0;
-  while ((code = keyArray.shift()) !== undefined) {
+  while ((code = codes.shift()) !== undefined) {
     byteOffset = this.searchBlock(code, byteOffset);
     if (byteOffset === -1) {
       return [];
     }
   }
 
+  return this.getRangeFromContentIndex(byteOffset);
+};
+/**
+ * Get all of the values from this address.
+ * @param  {numbber}  byteOffset  Byte offset of the block.
+ * @return {array(array(...))}    Array of results of _getBlockContent
+ */
+BinStorage.prototype.getRangeFromContentIndex = function(byteOffset) {
   var bin = this._bin;
   var result = [];
 
@@ -208,10 +216,11 @@ BinStorage.prototype.searchBlock = function bs_searchBlock(code, byteOffset) {
 /**
  * Internal method for getting the content of the block.
  * @param  {numbber}  byteOffset  Byte offset of the block.
- * @return {array} array contain 3 elements
+ * @return {array} array contain 4 elements
  *   - First element is the reference to the arrayBuffer
  *   - Second element is the byteOffset the content begins.
  *   - Third element is the length of the content.
+ *   - Forth element is the address of the block.
  */
 BinStorage.prototype._getBlockContent =
   function bs_getBlockContent(byteOffset) {
@@ -223,11 +232,12 @@ BinStorage.prototype._getBlockContent =
       return undefined;
     }
 
-    return [bin, byteOffset + (2 << 1), contentLength];
+    return [bin, byteOffset + (2 << 1), contentLength, byteOffset];
   };
 
 var JSZhuyinDataPackStorage = function() {
-  this.cache = new CacheStore();
+  this.incompleteMatchedCache = new CacheStore();
+  this.getCache = new CacheStore();
   this._interchangeablePairs = '';
   this._interchangeablePairsArr = new Uint16Array(0);
 };
@@ -248,7 +258,7 @@ JSZhuyinDataPackStorage.prototype.setInterchangeablePairs = function(str) {
   }
 
   // String has changed, invalidate the entire cache.
-  this.cache.cleanup('');
+  this.incompleteMatchedCache.cleanup();
 
   var encodedSounds = BopomofoEncoder.encode(str);
 
@@ -256,46 +266,43 @@ JSZhuyinDataPackStorage.prototype.setInterchangeablePairs = function(str) {
     throw new Error('JSZhuyinDataPackStorage: Expects string to store pairs.');
   }
 
-  var arr = new Uint16Array(encodedSounds.length);
-  var i = str.length;
-  while (i--) {
-    arr[i] = encodedSounds.charCodeAt(i);
-  }
+  var arr = new Uint16Array(encodedSounds);
 
   this._interchangeablePairs = str;
   this._interchangeablePairsArr = arr;
 };
 /**
  * Get values from storage, disregards interchangeable pairs.
- * @param  {string}       key          string to query.
- * @return {JSZhuyinData}              the resulting JSZhuyinData instance.
+ * @param  {array(number)}       codes Array of numbers to query.
+ * @return {JSZhuyinData}              The resulting JSZhuyinData instance.
  */
-JSZhuyinDataPackStorage.prototype.get = function(key) {
-  if (this.cache.get(key)) {
-    return this.cache.get(key);
+JSZhuyinDataPackStorage.prototype.get = function(codes) {
+  // Should be null or the previous instance.
+  if (typeof this.getCache.get(codes) === 'object') {
+    return this.getCache.get(codes);
   }
 
-  var result = BinStorage.prototype.get.call(this, key);
+  var result = BinStorage.prototype.get.call(this, codes);
 
   if (result) {
     // This is equal to |new JSZhuyinDataPack(..)| but take array of arugments
     var dataPack = Object.create(JSZhuyinDataPack.prototype);
     JSZhuyinDataPack.apply(dataPack, result);
 
-    this.cache.add(key, dataPack);
+    this.getCache.add(codes, dataPack);
     return dataPack;
+  } else {
+    this.getCache.add(codes, null);
+    return null;
   }
-
-  // result should be undefined.
-  return result;
 };
 /**
- * Look for all value begin with this key, disregards interchangeable pairs.
- * @param  {string}              key      string to query.
- * @return {array(JSZhuyinData)}          the resulting JSZhuyinData instance.
+ * Look for all value begin from this block address.
+ * @param  {numbber}  byteOffset          Byte offset of the block.
+ * @return {array(JSZhuyinData)}          The resulting JSZhuyinData instances.
  */
-JSZhuyinDataPackStorage.prototype.getRange = function() {
-  return BinStorage.prototype.getRange.apply(this, arguments)
+JSZhuyinDataPackStorage.prototype.getRangeFromContentIndex = function() {
+  return BinStorage.prototype.getRangeFromContentIndex.apply(this, arguments)
     .map(function(result) {
       var dataPack = Object.create(JSZhuyinDataPack.prototype);
       JSZhuyinDataPack.apply(dataPack, result);
@@ -304,78 +311,79 @@ JSZhuyinDataPackStorage.prototype.getRange = function() {
 };
 /**
  * Return all results that matches to given partial encoded Bopomofo string.
- * @param  {string}              key     string to query.
- * @return {JSZhuyinDataPackCollection|JSZhuyinDataPack}
+ * @param  {array(number)}              codes     string to query.
+ * @return {JSZhuyinDataPackCollection?}
  *                                       A JSZhuyinDataPackCollection instance
- *                                       representing the results,
- *                                       or one single JSZhuyinDataPack if there
- *                                       is only one result.
+ *                                       representing the results.
  */
-JSZhuyinDataPackStorage.prototype.getIncompleteMatched = function(key) {
+JSZhuyinDataPackStorage.prototype.getIncompleteMatched = function(codes) {
   if (!this.loaded) {
     throw new Error('JSZhuyinDataPackStorage: not loaded.');
   }
 
-  if (this.cache.get(key)) {
-    return this.cache.get(key);
+  // Should be null or the previous instance.
+  if (typeof this.incompleteMatchedCache.get(codes) === 'object') {
+    return this.incompleteMatchedCache.get(codes);
   }
 
-  var keyArray = key.split('').map(function str2CharCode(char) {
-    return char.charCodeAt(0);
-  });
+  // addresses is the reduced result of checking the codes in sequences,
+  // start by looking at matched keys at table 0.
+  var addresses = codes
+    .reduce(function(addresses, code) {
+      // Thie reduces to the every addresses that matches to the code, starting
+      // from empty array.
+      // Return back the reduced result and replaces the previous array of
+      // addresses.
+      return addresses.reduce(function(codeAddresses, address) {
+        // If the code represents a completed sound, we should
+        // use searchBlock() instead of doing linear workathough with
+        // _getIncompleteMatchedCodesInBlock() since there can be only
+        // one match.
+        var a;
+        if (!this._interchangeablePairs &&
+            BopomofoEncoder.isCompleted(code)) {
+          a = this.searchBlock(code, address);
+          if (a !== -1) {
+            return codeAddresses.concat(a);
+          }
 
-  var addressesAndKeys = [[0, '']];
-  var code, a, i, ak, results;
-
-  while ((code = keyArray.shift()) !== undefined) {
-    ak = [];
-    for (i = 0; i < addressesAndKeys.length; i++) {
-      // If the code represents a completed phontics, we should
-      // use searchBlock() instead of doing linear workathough with
-      // _getIncompleteMatchedCodesInBlock() since there can be only one match.
-      if (!this._interchangeablePairs &&
-          BopomofoEncoder.isCompleted(code)) {
-        a = this.searchBlock(code, addressesAndKeys[i][0]);
-        if (a !== -1) {
-          ak = ak.concat([
-            [ a,  addressesAndKeys[i][1] + String.fromCharCode(code) ] ]);
+          return codeAddresses;
         }
 
-        continue;
-      }
+        // Depend on the setting, the result should be matched either by
+        // trying to split the encoded sound into multiple encoded sounds,
+        // or not.
+        var results =
+          this._getIncompleteMatchedSingleCodesInBlock(code, address);
 
-      results =
-        this._getIncompleteMatchedCodesInBlock(code, addressesAndKeys[i][0]);
-      ak = ak.concat(results[1].map(function(address, j) {
-        return [
-          address,
-          addressesAndKeys[i][1] + String.fromCharCode(results[0][j])
-        ];
-      }));
-    }
-    addressesAndKeys = ak;
-  }
+        // Matched addresses are appended into the current list.
+        return codeAddresses.concat(results);
+      }.bind(this), /* codeAddresses */ []);
+    }.bind(this), /* addresses */ [0]);
 
-  var dataPacks = addressesAndKeys
-    .map(function(addressAndKey) {
-      var result = this._getBlockContent(addressAndKey[0]);
-      return result ? result.concat(addressAndKey[1]) : undefined;
+  // DataPacks are constructed by getting the content of these addresses,
+  // remove the null results, and construct with the content argument array.
+  var dataPacks = addresses
+    .map(function(address) {
+      return this._getBlockContent(address);
     }, this)
-    .filter(function(resultWithKey) {
-      return !!resultWithKey;
+    .filter(function(result) {
+      return !!result;
     })
-    .map(function(resultWithKey) {
+    .map(function(result) {
       var dataPack = Object.create(JSZhuyinDataPack.prototype);
-      JSZhuyinDataPack.apply(dataPack, resultWithKey);
+      JSZhuyinDataPack.apply(dataPack, result);
       return dataPack;
     });
 
   if (!dataPacks.length) {
-    return undefined;
+    this.incompleteMatchedCache.add(codes, null);
+
+    return null;
   }
 
   var dataPackCollection = new JSZhuyinDataPackCollection(dataPacks);
-  this.cache.add(key, dataPackCollection);
+  this.incompleteMatchedCache.add(codes, dataPackCollection);
 
   return dataPackCollection;
 };
@@ -384,10 +392,10 @@ JSZhuyinDataPackStorage.prototype.getIncompleteMatched = function(key) {
  * matches the code with BopomofoEncoder.isIncompletionOf().
  * @param  {number}   code            code of the character.
  * @param  {numbber}  byteOffset      Byte offset of the block.
- * @return {array}  array of code and byte offsets in number[] format.
+ * @return {array(number)}            Array of byte offsets
  */
-JSZhuyinDataPackStorage.prototype._getIncompleteMatchedCodesInBlock =
-function jdps__getIncompleteMatchedCodesInBlock(code, byteOffset) {
+JSZhuyinDataPackStorage.prototype._getIncompleteMatchedSingleCodesInBlock =
+function jdps__getIncompleteMatchedSingleCodesInBlock(code, byteOffset) {
   var bin = this._bin;
   var view = new DataView(bin, byteOffset);
   var length = view.getUint16(0, true);
@@ -404,26 +412,66 @@ function jdps__getIncompleteMatchedCodesInBlock(code, byteOffset) {
 
   code = this._replaceInterchangeableSymbols(code);
 
-  var codes = [], addresses = [], c;
+  var addresses = [], c;
   for (var i = 0; i < length; i++) {
     c = this._replaceInterchangeableSymbols(
       keyBlockView.getUint16(i << 1, true));
     if (BopomofoEncoder.isIncompletionOf(code, c)) {
-      codes.push(c);
       addresses.push(addressBlockView.getUint32(i << 2, true));
     }
   }
 
-  return [ codes, addresses ];
+  return addresses;
+};
+/**
+ * Attempt to find the sounds for a set of characters.
+ * Only search for the 0th block (one-sound entries), does not consider
+ * word-phrases.
+ * Very very slow operation.
+ * @param  {String} str Characters to search
+ * @return {String}     Encoded sounds of Bopomofo. \u0000 for sounds can't be
+ *                      found.
+ */
+JSZhuyinDataPackStorage.prototype.reverseGet = function(str) {
+  // Construct an buffer of the same length and filled with zero.
+  var res = [];
+
+  // Since the Go through the zero-th block
+  var bin = this._bin;
+  var view = new DataView(bin);
+  var length = view.getUint16(0, true);
+  var contentLength = view.getUint16(2, true);
+
+  var keyBlockByteOffset = (2 + contentLength) << 1;
+  var addressBlockByteOffset = (2 + contentLength + length) << 1;
+  var keyBlockView = new DataView(bin, keyBlockByteOffset, length << 1);
+  var addressBlockView = new DataView(bin, addressBlockByteOffset, length << 2);
+
+  var j, result, dataPack;
+  for (var i = 0; i < length; i++) {
+    result = this._getBlockContent(addressBlockView.getUint32(i << 2, true));
+    if (!result) {
+      continue;
+    }
+    dataPack = Object.create(JSZhuyinDataPack.prototype);
+    JSZhuyinDataPack.apply(dataPack, result);
+
+    for (j = 0; j < str.length; j++) {
+      if (dataPack.getResultsBeginsWith(str[j]).length) {
+        res[j] = keyBlockView.getUint16(i << 1, true);
+      }
+    }
+  }
+
+  return res;
 };
 /**
  * Clean up the get() cache. Any key that is not a substring of the superset
  * string will have their value removed.
- * @param  {string} supersetStr The superset string.
- * @this   {object}             CacheStore instance.
+ * @param  {array(number)?} supersetCodes The superset code array.
  */
-JSZhuyinDataPackStorage.prototype.cleanupCache = function(supersetStr) {
-  this.cache.cleanup(supersetStr);
+JSZhuyinDataPackStorage.prototype.cleanupCache = function(supersetCodes) {
+  this.incompleteMatchedCache.cleanup(supersetCodes);
 };
 /**
  * Internal method to reduce the bits in code to be 2nd symbols of each pair,
