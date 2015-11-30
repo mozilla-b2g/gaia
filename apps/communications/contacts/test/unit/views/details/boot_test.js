@@ -108,6 +108,8 @@ suite('Details Boot', function() {
       var DetailsUISpy = this.sinon.spy(DetailsUI, 'init');
       window.dispatchEvent(new CustomEvent('load'));
       assert.isTrue(DetailsUISpy.calledOnce);
+      // Make sure the confirmation message dialog existed
+      assert.isNotNull(document.getElementById('confirmation-message'));
     });
   });
 
