@@ -1,4 +1,3 @@
-/* global DeviceStorageHelper */
 /**
  * Links the root panel list item with USB Mass Storage(UMS).
  * Will disable Media Storage panel when UMS enabled.
@@ -8,6 +7,7 @@ define(function(require) {
 
   var SettingsListener = require('shared/settings_listener');
   var MediaStorage = require('modules/media_storage');
+  var StorageHelper = require('modules/storage_helper');
 
   var _debug = false;
   var debug = function() {};
@@ -104,7 +104,7 @@ define(function(require) {
       this._updateUmsDesc();
       switch (MediaStorage.volumeState) {
         case 'available':
-          DeviceStorageHelper.showFormatedSize(this._elements.mediaStorageDesc,
+          StorageHelper.showFormatedSize(this._elements.mediaStorageDesc,
             'availableSize', MediaStorage.freeSize);
           this._lockMediaStorageMenu(false);
           break;

@@ -1,4 +1,4 @@
-/* global Storage, DeviceStorageHelper */
+/* global Storage */
 'use strict';
 
 /**
@@ -12,9 +12,11 @@
 require([
   'modules/dialog_service',
   'modules/settings_cache',
+  'modules/storage_helper',
   'shared/toaster',
   'shared/settings_listener'
-], function(DialogService, SettingsCache, Toaster, SettingsListener) {
+], function(DialogService, SettingsCache, StorageHelper,
+  Toaster, SettingsListener) {
   const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
   const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
   const DEFAULT_MEDIA_VOLUME_KEY = 'device.storage.writable.name';
@@ -201,7 +203,7 @@ require([
       ITEM_TYPE.forEach(function(type) {
         var element =
           self.rootElement.querySelector('.color-' + type + ' .size');
-        DeviceStorageHelper.showFormatedSize(
+        StorageHelper.showFormatedSize(
           element, 'storageSize', sizes[type]);
         element.hidden = false;
         self.stackedbar.add({ 'type': type, 'value': sizes[type] });
@@ -211,7 +213,7 @@ require([
       // update total space size
       var element =
         self.rootElement.querySelector('[data-l10n-id="total-space"] + .size');
-      DeviceStorageHelper.showFormatedSize(element, 'storageSize',
+      StorageHelper.showFormatedSize(element, 'storageSize',
                                            sizes.sdcard + sizes.free);
       element.hidden = false;
     });

@@ -160,7 +160,8 @@ require.config({
       name: 'panels/app_storage/panel',
       exclude: [
         'main',
-        'modules/app_storage'
+        'modules/app_storage',
+        'modules/storage_helper'
       ]
     },
     {
@@ -317,7 +318,8 @@ require.config({
         'main',
         'panels/root/low_priority_items',
         'modules/apps_cache',
-        'modules/addon_manager'
+        'modules/addon_manager',
+        'modules/storage_helper'
       ]
     },
     {
