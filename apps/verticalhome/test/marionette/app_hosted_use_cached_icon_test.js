@@ -10,7 +10,8 @@ var iconCached = require('./lib/icon_cached');
 
 marionette('Vertical Home - Hosted app cached icon fetch', function() {
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var server;
   setup(function(done) {

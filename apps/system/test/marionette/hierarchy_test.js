@@ -23,7 +23,8 @@
           'lockscreen.enabled': true
         },
         apps: apps
-      }
+      },
+      desiredCapabilities: { raisesAccessibilityExceptions: false }
     });
 
 

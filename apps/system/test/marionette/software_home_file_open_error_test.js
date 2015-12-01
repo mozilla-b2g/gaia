@@ -14,7 +14,8 @@ marionette('Software Home Button - File Open Error', function() {
       settings: {
         'software-button.enabled': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var home, rocketbar, search, server, system, actions;
 

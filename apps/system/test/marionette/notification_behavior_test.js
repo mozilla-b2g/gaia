@@ -11,7 +11,9 @@ var SOUND_PATH = '/test/path/to/sound/file';
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 
 marionette('notification behavior tests', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var notificationList = new NotificationList(client);
 
   test('soundFile URL should be resolved properly', function(done) {

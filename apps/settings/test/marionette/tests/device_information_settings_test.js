@@ -8,7 +8,8 @@ marionette('check device information settings', function() {
       settings: {
         'developer.menu.enabled': false
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var settingsApp;
   var deviceInfoPanel;

@@ -9,8 +9,7 @@ marionette('Status Bar icons - Debugging', function() {
       settings: {
         'debugger.remote-mode': 'disabled'
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var system;

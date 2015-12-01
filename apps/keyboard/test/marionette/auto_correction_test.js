@@ -27,7 +27,8 @@ marionette('Keyboard Auto correction tests', function() {
         'lockscreen.enabled': false,
         'ftu.manifestURL': null
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {

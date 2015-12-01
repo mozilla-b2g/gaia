@@ -30,7 +30,8 @@ marionette('App Usage Metrics >', function() {
         'fakemedia.gaiamobile.org': __dirname + '/../apps/fakemediaapp',
         'fakemusic.gaiamobile.org': __dirname + '/../apps/fakemusic'
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   function waitForEvent(name, callback) {

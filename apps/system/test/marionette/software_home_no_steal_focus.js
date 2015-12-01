@@ -10,7 +10,8 @@ marionette('Software Home Button - Stealing input focus', function() {
       settings: {
         'software-button.enabled': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var home, rocketbar, system;

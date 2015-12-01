@@ -10,7 +10,9 @@ var serverHelper = require('./lib/server_helper');
 
 marionette('email notifications, disable', function() {
   var app, sync,
-      client = marionette.client(),
+      client = marionette.client({
+        desiredCapabilities: { raisesAccessibilityExceptions: false }
+      }),
       server1 = serverHelper.use({
                   credentials: {
                     username: 'testy1',

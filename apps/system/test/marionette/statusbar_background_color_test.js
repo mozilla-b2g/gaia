@@ -11,8 +11,7 @@ marionette('Statusbar background colors', function() {
       settings: {
         'lockscreen.enabled': false
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var system;

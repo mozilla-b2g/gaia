@@ -13,7 +13,9 @@ var serverHelper = require('./lib/server_helper');
  * "John Doe wrote...", "Original message", etc., as appropriate.
  */
 marionette('reply to an e-mail', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var BODY_TEXT = 'I still have a dream.';
 

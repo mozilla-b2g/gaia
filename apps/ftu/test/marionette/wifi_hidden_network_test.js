@@ -5,7 +5,10 @@ var Ftu = require('./lib/ftu');
 
 marionette('First Time Use > Wifi Hidden Network Test', function() {
   var ftu, system;
-  var client = marionette.client({ profile: Ftu.clientOptions });
+  var client = marionette.client({
+    profile: Ftu.clientOptions,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var wifiPassword64 =
     'e93FSJpMGMxRnWHs2vJYyMud5h6u7yEhSC445cz7RdHVxXrj2LCTZPAphzaYuyy2';
 

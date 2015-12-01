@@ -11,7 +11,9 @@ var SHARED_PATH = __dirname + '/../../../../shared/test/integration';
 
 marionette('email notifications, set interval', function() {
   var app,
-      client = marionette.client(),
+      client = marionette.client({
+        desiredCapabilities: { raisesAccessibilityExceptions: false }
+      }),
       server1 = serverHelper.use({
                   credentials: {
                     username: 'testy1',

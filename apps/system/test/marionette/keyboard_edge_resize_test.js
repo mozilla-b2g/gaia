@@ -13,7 +13,8 @@ marionette('Keyboard and edge gestures >', function() {
       prefs: {
         'focusmanager.testmode': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var sys, actions;

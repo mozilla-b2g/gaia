@@ -19,7 +19,9 @@ marionette('Conversation Panel Tests', function() {
     '/mocks/mock_navigator_moz_contacts.js'
   ];
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var messagesApp, storage;
 

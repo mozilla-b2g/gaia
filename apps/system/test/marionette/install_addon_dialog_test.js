@@ -7,8 +7,7 @@ var Server = require('../../../../shared/test/integration/server');
 marionette('Install addon dialog', function() {
 
   var client = marionette.client({
-    profile: {},
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    profile: {}
   });
 
   var appInstall, server, system;

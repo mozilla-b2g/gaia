@@ -21,7 +21,8 @@ suite('client', function() {
         'lockscreen.enabled': false,
         'lockscreen.locked': false
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   /**

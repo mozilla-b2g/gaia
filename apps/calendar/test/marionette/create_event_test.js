@@ -14,7 +14,8 @@ marionette('creating events', function() {
         // system window manager) in order for it to do focus-related things.
         'focusmanager.testmode': true,
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var app;

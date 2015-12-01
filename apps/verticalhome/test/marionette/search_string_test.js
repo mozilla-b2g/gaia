@@ -9,7 +9,8 @@ var Server = require('../../../../shared/test/integration/server');
 marionette('Vertical - Search Terms: URI scheme', function() {
 
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var home, rocketbar, search, system, server;
 

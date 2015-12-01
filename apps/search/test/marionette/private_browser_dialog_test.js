@@ -4,7 +4,6 @@ var assert = require('assert');
 marionette('Private Browser Trigger', function() {
 
   var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true },
     profile: {
       settings: {
         'browser.private.default': true

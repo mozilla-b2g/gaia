@@ -499,6 +499,8 @@ endif
 TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
 TEST_AGENT_COVERAGE="./build/config/test-agent-coverage.json"
 
+CAPABILITIES=$(GAIA_DIR)$(SEP)tests$(SEP)jsmarionette$(SEP)capabilities.json
+
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
@@ -835,7 +837,7 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test: mulet node_modules
-	TEST_MANIFEST=$(TEST_MANIFEST) $(NPM) run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
+	TEST_MANIFEST=$(TEST_MANIFEST) $(NPM) run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)" --marionette-capabilities="$(CAPABILITIES)"
 
 .PHONY: jsmarionette-unit-tests
 jsmarionette-unit-tests: mulet node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv

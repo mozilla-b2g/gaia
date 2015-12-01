@@ -8,7 +8,9 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Browser - Navigating from the landing page',
   function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var home, rocketbar, search, server, system;
 

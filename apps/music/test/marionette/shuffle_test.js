@@ -12,7 +12,8 @@ marionette('Music player shuffle', function() {
         'device.storage.testing': true,
         'device.storage.prompt.testing': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var music;

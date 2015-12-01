@@ -7,7 +7,9 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Browser - Launch the same origin after navigating away',
   function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   client.scope({ searchTimeout: 20000 });
   var home, rocketbar, search, server, system;
 

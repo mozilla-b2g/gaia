@@ -19,7 +19,8 @@ marionette('Messages as share target', function() {
   var client = marionette.client({
     profile: {
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var messagesApp,

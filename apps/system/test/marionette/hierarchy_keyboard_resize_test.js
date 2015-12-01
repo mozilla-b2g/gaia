@@ -20,7 +20,8 @@
           'lockscreen.enabled': true
         },
         apps: apps
-      }
+      },
+      desiredCapabilities: { raisesAccessibilityExceptions: false }
     });
 
     var getAppHeight = function(origin) {

@@ -47,7 +47,8 @@ marionette('Show Keyboard App after uninstallation', function() {
       settings: {
        'keyboard.enabled-layouts': keyboardSettings
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   /*

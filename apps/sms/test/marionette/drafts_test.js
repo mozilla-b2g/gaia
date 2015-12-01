@@ -27,7 +27,8 @@ marionette('Messages Drafts', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var messagesApp, storage;

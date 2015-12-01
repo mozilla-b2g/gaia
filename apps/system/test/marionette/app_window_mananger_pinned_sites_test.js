@@ -16,7 +16,8 @@ marionette('AppWindowManager - Pinning sites',
         'homescreen.manifestURL':
           'app://homescreen.gaiamobile.org/manifest.webapp'
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var home, rocketbar, server, search, system, url, nApps, pinning;

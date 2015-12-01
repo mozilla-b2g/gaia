@@ -6,7 +6,9 @@ var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser - Site loading background', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var home, rocketbar, server, system;
 

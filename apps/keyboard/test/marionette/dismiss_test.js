@@ -20,7 +20,8 @@ marionette('Dimiss the keyboard', function() {
       prefs: {
         'focusmanager.testmode': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   function longPressSpaceBar(time) {

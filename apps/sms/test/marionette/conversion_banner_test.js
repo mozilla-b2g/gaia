@@ -25,7 +25,8 @@ marionette('Message Type Conversion Banner', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var messagesApp, storage, composer, inbox, newMessage;

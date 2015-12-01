@@ -10,9 +10,7 @@ var TARGET_APP = 'app://email.gaiamobile.org';
 var TARGET_APP_MANIFEST = TARGET_APP + '/manifest.webapp';
 
 marionette('notification actions', function() {
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client();
 
   var utilityTray, actions;
   var notificationList = new NotificationList(client);

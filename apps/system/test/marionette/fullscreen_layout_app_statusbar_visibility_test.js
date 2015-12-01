@@ -11,8 +11,7 @@ marionette('Fullscreen layout status bar visibility >', function() {
         'fullscreen_layout.gaiamobile.org':
           __dirname + '/../apps/fullscreen_layout'
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var system;

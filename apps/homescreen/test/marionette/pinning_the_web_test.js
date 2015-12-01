@@ -9,7 +9,8 @@ marionette('Homescreen - Pin the web', function() {
   options.settings['layers.async-pan-zoom.enabled'] = false;
   options.settings['dev.gaia.pinning_the_web'] = true;
   var client = marionette.client({
-    profile: options
+    profile: options,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var home, server, system, pinning;
 

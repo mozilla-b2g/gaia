@@ -24,7 +24,8 @@ marionette('Number keyboard input tests', function() {
         'lockscreen.enabled': false,
         'ftu.manifestURL': null
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {

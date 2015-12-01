@@ -2,7 +2,9 @@ marionette('Endurance', function() {
   'use strict';
 
   var assert = require('assert');
-  var actions = new (require('./lib/actions'))();
+  var actions = new (require('./lib/actions'))({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   setup(function() {
     actions.launch('alarm');

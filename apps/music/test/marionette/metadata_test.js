@@ -26,8 +26,7 @@ marionette('Music player metadata', function() {
       },
 
       apps: apps
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var music;

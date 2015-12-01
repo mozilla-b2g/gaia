@@ -8,7 +8,9 @@ var assert = require('assert');
 
 marionette('Pinning the Web', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var rocketbar, server, system, actions, home, pinTheWeb, utilityTray;
 

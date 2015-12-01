@@ -28,7 +28,8 @@ marionette('manipulate keyboard settings', function() {
         'lockscreen.enabled': false,
         'ftu.manifestURL': null
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {

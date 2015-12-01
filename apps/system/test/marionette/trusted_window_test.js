@@ -12,7 +12,8 @@ marionette('trusted window tests', function() {
       apps: {
         'fakeapp.gaiamobile.org': __dirname + '/../apps/fakeapp'
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   suiteSetup(function(done) {

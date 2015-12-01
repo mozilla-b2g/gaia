@@ -24,7 +24,8 @@ marionette('Email keyboard input tests', function() {
         'lockscreen.enabled': false,
         'ftu.manifestURL': null
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {
@@ -75,7 +76,7 @@ marionette('Email keyboard input tests', function() {
       keyboardTestApp.switchTo();
 
       assert.equal(
-        keyboardTestApp.emailInput.getAttribute('value'), 
+        keyboardTestApp.emailInput.getAttribute('value'),
         'post123@mydomain.com');
     });
 

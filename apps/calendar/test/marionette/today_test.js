@@ -19,8 +19,7 @@ marionette('today', function() {
         // system window manager) in order for it to do focus-related things.
         'focusmanager.testmode': true,
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   setup(function() {

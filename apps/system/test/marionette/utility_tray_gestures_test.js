@@ -7,9 +7,7 @@ var assert = require('assert');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
 marionette('Utility Tray - Gestures', function() {
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client();
 
   var system;
   var utilityTray;

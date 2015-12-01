@@ -10,8 +10,7 @@ marionette('AttentionWindow - Permission Prompt', function() {
   var client = marionette.client({
     profile: {
       apps: apps
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var system;

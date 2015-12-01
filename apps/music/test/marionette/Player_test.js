@@ -21,7 +21,8 @@ marionette('Music player tests', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var music;

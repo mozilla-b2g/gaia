@@ -7,8 +7,7 @@ var createAppServer = require('./server/parent');
 
 marionette('Homescreen - Packaged App Pending', function() {
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js'),
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    profile: require(__dirname + '/client_options.js')
   });
 
   var server;
