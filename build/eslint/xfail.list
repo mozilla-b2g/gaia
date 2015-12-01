@@ -175,7 +175,6 @@ apps/system/js/signal_icon.js # line 22, col 5, Error - Unsafe call to insertAdj
 apps/system/js/system_dialog.js # line 143, col 7, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/js/time_icon.js # line 59, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/js/ttl_view.js # line 133, col 7, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
-apps/system/mobile_id/js/error_overlay.js # line 40, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/mobile_id/js/ui.js # line 169, col 13, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/mobile_id/js/ui.js # line 340, col 9, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/test/unit/app_install_manager_test.js # line 109, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)

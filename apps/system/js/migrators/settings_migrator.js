@@ -9,7 +9,6 @@
    * @class SettingsMigrator
    */
   var SettingsMigrator = function SettingsMigrator() {
-    this._kLocaleTime = 'locale.hour12';
     this._oldPasscode = 'lockscreen.passcode-lock.code';
     this._hashedPasscode = 'lockscreen.passcode-lock.digest.value';
   };
@@ -30,15 +29,6 @@
      * @param  {Object} result all settings keys
      */
     keyMigration: function km_keyMigration(result) {
-      // locale.hour12
-      if (result[this._kLocaleTime] === undefined) {
-        var _ = navigator.mozL10n.get;
-        var localeTimeFormat = _('shortTimeFormat');
-        var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
-        var cset = {};
-        cset[this._kLocaleTime] = is12hFormat;
-        window.navigator.mozSettings.createLock().set(cset);
-      }
       if ((result[this._oldPasscode] !== undefined) &&
           (result[this._hashedPasscode] === undefined)) {
         LazyLoader.load(['/shared/js/passcode_helper.js']).then(() => {
