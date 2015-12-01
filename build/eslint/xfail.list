@@ -233,6 +233,7 @@ shared/js/intl/l20n-client.js # line 43, col 11, Error - Unsafe assignment to in
 shared/js/lazy_loader.js # line 55, col 11, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/js/smart-screen/shared_utils.js # line 29, col 7, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/js/template.js # line 160, col 9, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+shared/js/sync/ext/kinto.min.js # line 217, col 1044, Error - Using postMessage() with wildcard targets is not allowed. (no-wildcard-postmessage/no-wildcard-postmessage)
 shared/js/utilities.js # line 145, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/test/unit/load_body_html_helper.js # line 38, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 tests/**

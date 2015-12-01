@@ -20,20 +20,19 @@ require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
+require('/shared/js/sync/bootstrap.js');
+require('/shared/js/sync/engine.js');
+require('/shared/js/sync/errors.js');
+require('/shared/js/sync/crypto/stringconversion.js');
+require('/shared/js/sync/crypto/keyderivation.js');
+require('/shared/js/sync/crypto/fxsyncwebcrypto.js');
+require('/shared/js/sync/ext/kinto.min.js');
 
-requireApp('sync/js/bootstrap.js');
-
-requireApp('sync/js/crypto/stringconversion.js');
-requireApp('sync/js/crypto/keyderivation.js');
-requireApp('sync/js/crypto/fxsyncwebcrypto.js');
-requireApp('sync/js/ext/kinto.min.js');
-requireApp('sync/js/sync-engine/syncengine.js');
 requireApp('sync/js/adapters/history.js');
 requireApp('sync/js/adapters/bookmarks.js');
-require('/shared/js/sync/errors.js');
 
-requireApp('sync/test/unit/fixtures/synctoserver.js');
-requireApp('sync/test/unit/fixtures/fxsyncwebcrypto.js');
+requireApp('sharedtest/test/unit/sync/fixtures/synctoserver.js');
+requireApp('sharedtest/test/unit/sync/fixtures/fxsyncwebcrypto.js');
 
 var mocksForBootstrap = new MocksHelper([
   'IACHandler',
