@@ -137,6 +137,9 @@ NODE_VERSION=v4.2
 # the minimum major version is absolutely required.
 NODE_MIN_VERSION=4
 
+# what version of npm we expect to run for ideal support.
+NPM_VERSION=2
+
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
@@ -782,7 +785,6 @@ npm-cache:
 	@echo "Using pre-deployed cache."
 	$(NPM) install
 	touch -c node_modules
-#	@echo $(shell $(NODEJS) --version |awk -F. '{print $1, $2}')
 
 node_modules: package.json
 ifneq ($(strip $(NODEJS)),)
@@ -791,6 +793,10 @@ ifneq ($(NODE_VERSION),$(shell $(NODEJS) --version | awk -F. '{print $$1"."$$2}'
 endif
 ifneq (1,$(shell expr `node --version | cut -c2` \>= $(NODE_MIN_VERSION)))
 	@printf '\033[0;33mMinimum required version of nodejs v$(NODE_MIN_VERSION) not satisfied. Aborting. Install the required minimum version before continuing.\033[0m\n'
+	exit 1
+endif
+ifneq ($(NPM_VERSION),$(shell $(NPM) --version | cut -d. -f1))
+	@printf '\033[0;33mRequired version of npm v$(NPM_VERSION) not satisfied. Aborting. No other major versions are supported at this time.\033[0m\n'
 	exit 1
 endif
 endif
