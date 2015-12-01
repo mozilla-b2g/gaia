@@ -40,7 +40,7 @@ class TestSmsAddToExistingContact(GaiaTestCase):
         contacts.wait_for_contacts(1)
         edit_contact = contacts.contacts[0].tap(return_class='EditContact')
 
-        edit_contact.tap_update(return_details=False)
+        edit_contact.tap_update(return_class=None)
 
         self.wait_for_condition(lambda m: self.message_thread.header_text == self.contact['name'])
 
