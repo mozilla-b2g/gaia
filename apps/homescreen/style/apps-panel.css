@@ -9,6 +9,11 @@
   scroll-snap-type-y: mandatory;
 }
 
+.expanding #apps-panel > .scrollable,
+.expanded #apps-panel > .scrollable {
+  overflow: hidden;
+}
+
 /* This weird arrangement of constant sizes, transforms and containers is so
  * the gaia-container can animate fully between small and not-small states.
  * Without this animation, the container would be unnecessary and only the
@@ -45,6 +50,11 @@ homescreen-group {
 
 homescreen-group {
   height: 32vw;
+}
+
+homescreen-group.expanding,
+homescreen-group.expanded {
+  border: 0;
 }
 
 /* Small icons are scaled down 0.75x, so apply the reverse transforms to the

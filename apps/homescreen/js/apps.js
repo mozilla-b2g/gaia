@@ -899,7 +899,12 @@
 
         icon = e.detail.target.firstElementChild;
         if (icon.localName === 'homescreen-group') {
-          icon.expand();
+          icon.expand(this.icons);
+
+          // We need opened groups to appear above the app grid. We can only
+          // do this by setting a z-index on the gaia-container-child due to
+          // the established stacking order.
+          icon.parentNode.parentNode.style.zIndex = '1';
           break;
         }
 
