@@ -51,9 +51,10 @@ class ScreenLock(PageRegion):
 
     def create_passcode(self, passcode):
 
-        # switch to keyboard, input passcode
-        for times in range(2):
-            self.keyboard.send("".join(passcode))
+        # switch to keyboard, input passcode twice
+        for i in range(0, 2):
+            for character in passcode:
+                self.keyboard.send(character)
 
         # Back to create passcode
         Wait(self.marionette).until(expected.element_displayed(

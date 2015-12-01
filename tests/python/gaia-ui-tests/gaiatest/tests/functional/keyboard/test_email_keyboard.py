@@ -17,16 +17,20 @@ class TestEmailKeyboard(GaiaTestCase):
         keyboard_page = self.ui_tests.tap_keyboard_option()
         keyboard_page.switch_to_frame()
 
-        keyboard = keyboard_page.tap_email_input()
-        keyboard.send('post')
+        keyboard_page.tap_email_input()
+        keyboard_page.keyboard.send('post')
+
+        keyboard_page.switch_to_frame()
+        keyboard_page.tap_email_input()
+
+        keyboard_page.keyboard.switch_to_keyboard()
+        # '@' must be on the default email keyboard layout
+        keyboard_page.keyboard._tap('@')
         self.apps.switch_to_displayed_app()
 
         keyboard_page.switch_to_frame()
         keyboard_page.tap_email_input()
-        keyboard.switch_to_keyboard()
-        keyboard._tap('@')
-        keyboard.send('mydomain.com')
-        self.apps.switch_to_displayed_app()
+        keyboard_page.keyboard.send('mydomain.com')
 
         keyboard_page.switch_to_frame()
         typed_email_adress = keyboard_page.email_input

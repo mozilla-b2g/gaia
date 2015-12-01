@@ -221,8 +221,17 @@ class Keyboard(Base):
 
     # this would go through fastest way to tap/click through a string
     def send(self, string):
+
+        if len(string) > 1:
+            # if the string is >1 we'll send it in parts for speed
+            # firstly, get the active/focused element
+            active_element = self.marionette.execute_script('return document.activeElement')
+            # Send all but the last character using marionette
+            active_element.send_keys(string[:-1])
+
+        # Now type the last character with sw keyboard to trigger events that Gaia needs.
         self.switch_to_keyboard()
-        for val in string:
+        for val in string[-1:]:
             if ord(val) > 127:
                 # this would get the right key to long press and switch to the right keyboard
                 middle_key_val = self._find_key_for_longpress(val.encode('UTF-8'))
