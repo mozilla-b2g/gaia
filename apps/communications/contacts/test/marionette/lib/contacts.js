@@ -32,6 +32,7 @@ Contacts.Selectors = {
   confirmHeader: '#confirmation-message h1',
   confirmBody: '#confirmation-message p',
   confirmDismiss: '#confirmation-message menu button',
+  confirmDelete: '#confirmation-message .danger',
 
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
@@ -103,6 +104,7 @@ Contacts.Selectors = {
 
   editForm: '#selectable-form',
   editMenu: '#select-all-wrapper',
+  selectAction: '#select-action',
   selectAllButton: '#select-all',
 
   clearOrgButton: '#clear-org',
@@ -133,7 +135,9 @@ Contacts.Selectors = {
   galleryImage: '.thumbnail img',
   galleryDone: '#crop-done-button',
 
-  header: '#edit-title'
+  header: '#edit-title',
+
+  noContacts: '#no-contacts'
 };
 
 Contacts.prototype = {
