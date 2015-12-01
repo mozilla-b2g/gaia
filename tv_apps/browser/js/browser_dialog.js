@@ -88,7 +88,8 @@ var BrowserDialog = {
       evt.preventDefault();
     }
     this.dialogEvt = evt;
-    this.browserDialogBase.style.display = 'block';
+    this.browserDialogBase.classList.remove('hide');
+    this.browserDialogBase.dataset.type = type;
 
     var promise;
     switch(type) {
@@ -169,8 +170,8 @@ var BrowserDialog = {
 //IFDEF_FIREFOX_SYNC
       case 'signout_confirm':
         opt = {
-          title: null,
-          msg: _('fxsync-confirm-sign-out'),
+          title: _('fxsync-confirm-sign-out-title'),
+          msg: _('fxsync-confirm-sign-out-message'),
           bt1: _('LT_CANCEL'),
           bt2: _('fxsync-sign-out')
         };
@@ -246,9 +247,24 @@ var BrowserDialog = {
       this.defaultFocusIndex.x = 0;
       this.defaultFocusIndex.y = 0;
       this.focusIndex.x = 0;
+
+//IFDEF_FIREFOX_SYNC
+      if(type === 'signout_confirm') {
+        this.focusIndex.y = 0;
+        this.focusElement[0][countIndex++] = this.browserDialogButton1;
+        this.focusElement[0][countIndex++] = this.browserDialogButton2;
+      } else {
+        this.focusIndex.y = 1;
+        this.focusElement[0][countIndex++] = this.browserDialogButton2;
+        this.focusElement[0][countIndex++] = this.browserDialogButton1;
+      }
+//ENDIF_FIREFOX_SYNC
+
+//IFNDEF_FIREFOX_SYNC
       this.focusIndex.y = 1;
       this.focusElement[0][countIndex++] = this.browserDialogButton2;
       this.focusElement[0][countIndex++] = this.browserDialogButton1;
+//ENDIF_FIREFOX_SYNC
     } else if(opt.bt1) {
       this.defaultFocusIndex.x = 0;
       this.defaultFocusIndex.y = 0;
@@ -262,11 +278,7 @@ var BrowserDialog = {
   },
 
   isDisplayed: function dialog_isDisplayed() {
-    if( this.browserDialogBase.style.display == 'block' ) {
-      return true;
-    } else {
-      return false;
-    }
+    return !this.browserDialogBase.classList.contains('hide');
   },
 
   dialogBaseClick: function dialog_dialogBaseClick(evt) {
@@ -507,7 +519,7 @@ var BrowserDialog = {
       BrowserDialog.browserDialogInput.classList.remove('exfocus');
       BrowserDialog.browserDialogInput.classList.remove('input');
     }
-    BrowserDialog.browserDialogBase.style.display = 'none';
+    BrowserDialog.browserDialogBase.classList.add('hide');
     BrowserDialog.browserDialogButton1.classList.remove('visible');
     BrowserDialog.browserDialogButton2.classList.remove('visible');
     Browser.switchCursorMode(true);

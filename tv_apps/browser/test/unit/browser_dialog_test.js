@@ -75,8 +75,10 @@ suite('Browser Dialog >', function() {
     test('signout_confirm dialog should add a deferred action',
          function(done) {
       promise = subject.createDialog('signout_confirm');
+      expect(subject.browserDialogTitle.innerHTML)
+        .to.equals('fxsync-confirm-sign-out-title');
       expect(subject.browserDialogMsg.innerHTML)
-        .to.equals('fxsync-confirm-sign-out');
+        .to.equals('fxsync-confirm-sign-out-message');
       expect(subject.browserDialogButton1.textContent)
         .to.equals('LT_CANCEL');
       expect(subject.browserDialogButton1.dataset.type)
