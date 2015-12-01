@@ -98,11 +98,13 @@
     this.appsVisible = false;
 
     // Drag-and-drop
+    this.container = null;
     this.dragging = false;
     this.draggedIndex = -1;
     this.autoScrollInterval = null;
     this.autoScrollOverflowTimeout = null;
     this.hoverIcon = null;
+    this.openGroup = null;
 
     // Edit mode
     this.editMode = false;
@@ -129,12 +131,9 @@
     this.lastWindowHeight = window.innerHeight;
 
     // Signal handlers
-    this.icons.addEventListener('activate', this);
-    this.icons.addEventListener('drag-start', this);
-    this.icons.addEventListener('drag-move', this);
-    this.icons.addEventListener('drag-end', this);
-    this.icons.addEventListener('drag-rearrange', this);
-    this.icons.addEventListener('drag-finish', this);
+    this.attachInputHandlers(this.icons);
+    this.touchSelectedIcon = this.touchSelectedIcon.bind(this);
+    this.icons.addEventListener('touchstart', this);
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
     window.addEventListener('localized', this);
@@ -351,6 +350,29 @@
   }
 
   Apps.prototype = {
+    attachInputHandlers: function(container) {
+      if (this.container) {
+        if (this.container === container) {
+          return;
+        }
+
+        this.container.removeEventListener('activate', this);
+        this.container.removeEventListener('drag-start', this);
+        this.container.removeEventListener('drag-move', this);
+        this.container.removeEventListener('drag-end', this);
+        this.container.removeEventListener('drag-rearrange', this);
+        this.container.removeEventListener('drag-finish', this);
+      }
+
+      this.container = container;
+      container.addEventListener('activate', this);
+      container.addEventListener('drag-start', this);
+      container.addEventListener('drag-move', this);
+      container.addEventListener('drag-end', this);
+      container.addEventListener('drag-rearrange', this);
+      container.addEventListener('drag-finish', this);
+    },
+
     get iconSize() {
       // If this._iconSize is 0, let's refresh the value.
       if (!this._iconSize) {
@@ -758,7 +780,7 @@
     getChildIndex: function(child) {
       // XXX Note, we're taking advantage of gaia-container using
       //     Array instead of HTMLCollection here.
-      return this.icons.children.indexOf(child);
+      return this.container.children.indexOf(child);
     },
 
     removeSelectedIcon: function() {
@@ -811,6 +833,11 @@
       return (icon.bookmark || (icon.app && icon.app.removable)) ? true : false;
     },
 
+    touchSelectedIcon: function() {
+      // Activate drag-and-drop immediately for selected icons
+      this.container.dragAndDropTimeout = 0;
+    },
+
     updateSelectedIcon: function(icon) {
       if (this.selectedIcon === icon) {
         return;
@@ -818,7 +845,8 @@
 
       if (this.selectedIcon && (!icon || this.iconIsEditable(icon))) {
         this.selectedIcon.classList.remove('selected');
-        this.selectedIcon.removeEventListener('touchstart', this);
+        this.selectedIcon.removeEventListener('touchstart',
+                                              this.touchSelectedIcon);
         this.selectedIcon = null;
       }
 
@@ -832,7 +860,7 @@
         if (selectedRenameable || selectedRemovable) {
           this.selectedIcon = icon;
           icon.classList.add('selected');
-          icon.addEventListener('touchstart', this);
+          icon.addEventListener('touchstart', this.touchSelectedIcon);
           this.rename.classList.toggle('active', selectedRenameable);
           this.remove.classList.toggle('active', selectedRemovable);
         } else if (!icon.classList.contains('uneditable')) {
@@ -889,29 +917,40 @@
         element.firstElementChild.localName === 'homescreen-group';
     },
 
+    closeOpenGroup: function() {
+      if (this.openGroup) {
+        this.openGroup.collapse(this.icons, () => {
+          this.openGroup = null;
+          this.attachInputHandlers(this.icons);
+          this.icons.setAttribute('drag-and-drop', '');
+        });
+      }
+    },
+
     handleEvent: function(e) {
       var icon, id;
 
       switch (e.type) {
       // App launching
       case 'activate':
-        e.preventDefault();
+        if (e.detail.target.parentNode.parentNode !== this.container) {
+          break;
+        }
 
+        e.preventDefault();
         icon = e.detail.target.firstElementChild;
         if (icon.localName === 'homescreen-group') {
+          this.openGroup = icon;
           icon.expand(this.icons);
-
-          // We need opened groups to appear above the app grid. We can only
-          // do this by setting a z-index on the gaia-container-child due to
-          // the established stacking order.
-          icon.parentNode.parentNode.style.zIndex = '1';
+          this.icons.removeAttribute('drag-and-drop');
+          this.attachInputHandlers(icon.container);
           break;
         }
 
         // If we're in edit mode, remap taps to selection
         if (this.editMode) {
           this.enterEditMode(icon);
-          return;
+          break;
         }
 
         switch (icon.state) {
@@ -940,11 +979,24 @@
             icon.launch();
             break;
         }
+
+        this.closeOpenGroup();
         break;
 
-      // Activate drag-and-drop immediately for selected icons
+      // Close open group if we touch something in a different container
       case 'touchstart':
-        this.icons.dragAndDropTimeout = 0;
+        if (!this.openGroup || e.target === this.openGroup) {
+          break;
+        }
+
+        var parent = e.target.parentNode;
+        while (parent && parent.localName !== 'gaia-container') {
+          parent = parent.parentNode;
+        }
+
+        if (parent !== this.container) {
+          this.closeOpenGroup();
+        }
         break;
 
       // Disable scrolling during dragging, and display bottom-bar
@@ -952,8 +1004,9 @@
         console.debug('Drag-start on ' + this.elementName(e.detail.target));
         this.dragging = true;
         this.draggingGroup = this.isGroup(e.detail.target);
-        this.shouldEnterEditMode = true;
+        this.shouldEnterEditMode = this.openGroup ? false : true;
         this.shouldCreateGroup = false;
+        this.container.classList.add('dragging');
         document.body.classList.add('dragging');
         this.scrollable.style.overflow = 'hidden';
         this.draggedIndex = this.getChildIndex(e.detail.target);
@@ -962,6 +1015,7 @@
       case 'drag-finish':
         console.debug('Drag-finish');
         this.dragging = false;
+        this.container.classList.remove('dragging');
         document.body.classList.remove('dragging');
         document.body.classList.remove('autoscroll');
         this.scrollable.style.overflow = '';
@@ -987,7 +1041,7 @@
         }
 
         // Restore normal drag-and-drop after dragging selected icons
-        this.icons.dragAndDropTimeout = -1;
+        this.container.dragAndDropTimeout = -1;
         break;
 
       // Handle app/site editing and dragging to the end of the icon grid.
@@ -997,6 +1051,7 @@
         if (e.detail.dropTarget === null &&
             e.detail.clientX >= this.iconsLeft &&
             e.detail.clientX < this.iconsRight) {
+          console.log(e.detail.target, this.container.firstChild);
           // If the drop target is null, and the client coordinates are
           // within the panel, we must be dropping over the start or end of
           // the container.
@@ -1004,9 +1059,9 @@
           var bottom = e.detail.clientY < this.lastWindowHeight / 2;
           console.debug('Reordering dragged icon to ' +
                       (bottom ? 'bottom' : 'top'));
-          this.icons.reorderChild(e.detail.target,
-                                  bottom ? this.icons.firstChild : null,
-                                  this.storeAppOrder.bind(this));
+          this.container.reorderChild(e.detail.target,
+                                      bottom ? this.container.firstChild : null,
+                                      this.storeAppOrder.bind(this));
           break;
         }
 
@@ -1045,7 +1100,8 @@
       case 'drag-move':
         var inAutoscroll = false;
 
-        if (e.detail.clientY > this.lastWindowHeight - AUTOSCROLL_DISTANCE) {
+        if (!this.openGroup &&
+            e.detail.clientY > this.lastWindowHeight - AUTOSCROLL_DISTANCE) {
           // User is dragging in the lower auto-scroll area
           inAutoscroll = true;
           if (this.autoScrollInterval === null) {
@@ -1055,7 +1111,7 @@
               return true;
             }, AUTOSCROLL_DELAY);
           }
-        } else if (e.detail.clientY < AUTOSCROLL_DISTANCE) {
+        } else if (!this.openGroup && e.detail.clientY < AUTOSCROLL_DISTANCE) {
           // User is dragging in the upper auto-scroll area
           inAutoscroll = true;
           if (this.autoScrollInterval === null) {
@@ -1067,8 +1123,8 @@
           }
         } else {
           // User is dragging in the grid, provide some visual feedback
-          var hoverIcon = this.icons.getChildFromPoint(e.detail.clientX,
-                                                       e.detail.clientY);
+          var hoverIcon = this.container.getChildFromPoint(e.detail.clientX,
+                                                           e.detail.clientY);
           if (this.hoverIcon !== hoverIcon) {
             if (this.hoverIcon) {
               this.shouldEnterEditMode = false;
@@ -1086,10 +1142,10 @@
             }
           }
 
-          if (this.hoverIcon && !this.draggingGroup) {
+          if (this.hoverIcon && !this.draggingGroup && !this.openGroup) {
             // Evaluate whether we should create a group
             var before = this.hoverIcon.classList.contains('hover-before');
-            var rect = this.icons.getChildOffsetRect(this.hoverIcon);
+            var rect = this.container.getChildOffsetRect(this.hoverIcon);
             if ((before && e.detail.clientX > rect.right - (rect.width / 2)) ||
                 (!before && e.detail.clientX < rect.left + (rect.width / 2))) {
               this.hoverIcon.classList.add('hover-over');

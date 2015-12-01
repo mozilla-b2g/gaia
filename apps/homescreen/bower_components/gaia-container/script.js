@@ -267,6 +267,10 @@ window.GaiaContainer = (function(exports) {
       throw 'reorderChild called with null element';
     }
 
+    if (element === referenceElement) {
+      return;
+    }
+
     var children = this._children;
     var child = null;
     var childIndex = null;
@@ -428,6 +432,22 @@ window.GaiaContainer = (function(exports) {
     --this.immediateLock;
   };
 
+  /**
+   * Controls whether a child element should use transforms or absolute
+   * positioning for layout.
+   */
+  proto.setUseTransform = function(element, useTransform) {
+    var children = this._children;
+    for (var i = 0, iLen = children.length; i < iLen; i++) {
+      if (children[i].element === element) {
+        children[i].useTransform = useTransform;
+        return;
+      }
+    }
+
+    throw 'setUseTransform called on unknown child';
+  };
+
   proto.getChildOffsetRect = function(element) {
     var children = this._children;
     for (var i = 0, iLen = children.length; i < iLen; i++) {
@@ -454,10 +474,10 @@ window.GaiaContainer = (function(exports) {
 
   proto.getChildFromPoint = function(x, y) {
     var children = this._children;
-    for (var parent = this.parentElement; parent;
-         parent = parent.parentElement) {
-      x += parent.scrollLeft - parent.offsetLeft;
-      y += parent.scrollTop - parent.offsetTop;
+    for (var parent = this.parentNode; parent;
+         parent = parent.parentNode || parent.host) {
+      x += (parent.scrollLeft || 0) - (parent.offsetLeft || 0);
+      y += (parent.scrollTop || 0) - (parent.offsetTop || 0);
     }
     for (var i = 0, iLen = children.length; i < iLen; i++) {
       var child = children[i];
@@ -789,6 +809,7 @@ window.GaiaContainer = (function(exports) {
 
   function GaiaContainerChild(element) {
     this._element = element;
+    this._useTransform = true;
     this.states = {};
     this.removed = false;
     this.markDirty();
@@ -830,6 +851,24 @@ window.GaiaContainer = (function(exports) {
       }
 
       return this._master;
+    },
+
+    set useTransform(useTransform) {
+      if (this._useTransform === useTransform) {
+        return;
+      }
+      this._useTransform = useTransform;
+
+      // Guarantee the next call to synchronise works
+      this._lastMasterTop = null;
+      this._lastMasterLeft = null;
+
+      if (this._container) {
+        this._container.style.transform = '';
+        this._container.style.top = '0';
+        this._container.style.left = '0';
+        this.synchroniseContainer();
+      }
     },
 
     /**
@@ -894,7 +933,13 @@ window.GaiaContainer = (function(exports) {
         this._lastMasterTop = top;
         this._lastMasterLeft = left;
 
-        container.style.transform = 'translate(' + left + 'px, ' + top + 'px)';
+        if (this._useTransform) {
+          container.style.transform =
+            'translate(' + left + 'px, ' + top + 'px)';
+        } else {
+          container.style.top = top + 'px';
+          container.style.left = left + 'px';
+        }
       }
     }
   };

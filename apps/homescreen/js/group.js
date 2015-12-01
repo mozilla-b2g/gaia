@@ -17,6 +17,7 @@
 
   proto.createdCallback = function() {
     this.container = document.createElement('gaia-container');
+    this.container.setAttribute('drag-and-drop', '');
     this.container.id = 'group-container';
     this._template = template.content.cloneNode(true);
     this._template.appendChild(this.container);
@@ -55,8 +56,8 @@
     }
 
     /* The expanding animation works like so:
-     * 1 Hide overflow on parent container (to disable scrolling) by setting
-     *   style class on it.
+     * 1 Hide overflow on scroll container by setting a style class on the
+     *   document body.
      * 2 We record the current screen rect of the group.
      * 3 Set offsets on the group to have it occupy the whole screen.
      * 4 Set an offset and size on the background and container so they still
@@ -71,7 +72,7 @@
     this.state = EXPANDING;
 
     // Part 1.
-    parent.classList.add('expanding');
+    document.body.classList.add('expanding');
 
     // Part 2.
     var rect = this.getBoundingClientRect();
@@ -83,6 +84,15 @@
     var targetTop = Math.round(parentOffsetTop - rect.top);
     var targetWidth = window.innerWidth;
     var targetHeight = window.innerHeight - parentOffsetTop;
+
+    // Use absolute positioning instead of a transform so the fixed-positioning
+    // used when dragging works correctly.
+    parent.setUseTransform(this.parentNode, false);
+
+    // We need opened groups to appear above the app grid. We can only
+    // do this by setting a z-index on the gaia-container-child due to
+    // the established stacking order.
+    this.parentNode.parentNode.style.zIndex = '1';
 
     // Shrink the target rect depending on SIZE_RATIO
     if (targetHeight >= targetWidth) {
@@ -124,7 +134,7 @@
       // Part 7.
       this.container.removeEventListener('transitionend', afterExpanding);
 
-      parent.classList.add('expanded');
+      document.body.classList.add('expanded');
       this.classList.add('expanded');
       this.container.classList.add('expanded');
 
@@ -140,7 +150,7 @@
       this.container.synchronise();
 
       // Part 9.
-      parent.classList.remove('expanding');
+      document.body.classList.remove('expanding');
       this.classList.remove('expanding');
       this.container.classList.remove('expanding');
 
@@ -153,7 +163,7 @@
     this.container.classList.add('expanding');
   };
 
-  proto.collapse = function(parent) {
+  proto.collapse = function(parent, callback) {
     console.log('Group collapsed');
   };
 
