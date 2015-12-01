@@ -85,7 +85,7 @@ PlayerView.prototype.destroy = function() {
 };
 
 PlayerView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
+  this.onRenderDone();
 };
 
 PlayerView.prototype.startFastSeek = function(reverse) {
