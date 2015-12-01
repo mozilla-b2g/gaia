@@ -319,7 +319,8 @@ require.config({
         'modules/state_model',
         'modules/mvvm/list_view',
         'modules/dialog_service',
-        'modules/customized_network_type_map'
+        'modules/customized_network_type_map',
+        'modules/mobile/supported_network_info'
       ]
     },
     {
@@ -372,7 +373,10 @@ require.config({
     },
     {
       name: 'panels/sound/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/mobile/supported_network_info'
+      ]
     },
     {
       name: 'panels/usb_storage/panel',
