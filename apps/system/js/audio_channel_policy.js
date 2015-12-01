@@ -22,7 +22,7 @@
       ringer: { activeAudioChannel: PAUSE, newAudioChannel: PLAY },
       telephony: { activeAudioChannel: PAUSE, newAudioChannel: PLAY },
       notification: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
-      publicNotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
+      publicnotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
     },
     content: {
       normal: { activeAudioChannel: PAUSE, newAudioChannel: PLAY },
@@ -32,7 +32,7 @@
       ringer: { activeAudioChannel: PAUSE, newAudioChannel: PLAY },
       telephony: { activeAudioChannel: PAUSE, newAudioChannel: PLAY },
       notification:  { activeAudioChannel: PLAY, newAudioChannel: PLAY },
-      publicNotification:  { activeAudioChannel: PLAY, newAudioChannel: PLAY }
+      publicnotification:  { activeAudioChannel: PLAY, newAudioChannel: PLAY }
     },
     alarm: {
       normal: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
@@ -42,7 +42,7 @@
       ringer: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       telephony: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       notification: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
-      publicNotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
+      publicnotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
     },
     system: {
       normal: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
@@ -52,7 +52,7 @@
       ringer: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       telephony: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       notification: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
-      publicNotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
+      publicnotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
     },
     ringer: {
       normal: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
@@ -62,7 +62,7 @@
       ringer: { activeAudioChannel: PAUSE, newAudioChannel: PLAY },
       telephony: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       notification: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
-      publicNotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
+      publicnotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
     },
     telephony: {
       normal: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
@@ -71,7 +71,7 @@
       system: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       ringer: { activeAudioChannel: PLAY, newAudioChannel: PAUSE },
       notification: { activeAudioChannel: PLAY, newAudioChannel: PAUSE },
-      publicNotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
+      publicnotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
     },
     notification: {
       normal: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
@@ -81,9 +81,9 @@
       ringer: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       telephony: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       notification: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
-      publicNotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
+      publicnotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
     },
-    publicNotification: {
+    publicnotification: {
       normal: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       content: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       alarm: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
@@ -91,7 +91,7 @@
       ringer: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       telephony: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
       notification: { activeAudioChannel: PLAY, newAudioChannel: PLAY },
-      publicNotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
+      publicnotification: { activeAudioChannel: PLAY, newAudioChannel: PLAY }
     }
   };
 
@@ -218,7 +218,7 @@
       function(activeChannelName, newChannelName) {
       var isNeeded = false;
       if ((activeChannelName === 'notification' ||
-           activeChannelName === 'publicNotification') &&
+           activeChannelName === 'publicnotification') &&
           (newChannelName === 'normal' ||
            newChannelName === 'content')
          )
@@ -241,7 +241,7 @@
       if (((activeChannelName === 'normal' ||
             activeChannelName === 'content') &&
               (newChannelName === 'notification' ||
-               newChannelName === 'publicNotification')
+               newChannelName === 'publicnotification')
           ) ||
           (activeChannelName === 'alarm' &&
              (newChannelName === 'ringer' ||
