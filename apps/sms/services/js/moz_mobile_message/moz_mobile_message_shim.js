@@ -1,6 +1,5 @@
 /* global BridgeServiceMixin,
-          BroadcastChannel,
-          DOMError
+          BroadcastChannel
 */
 
 /* exported MozMobileMessageShim */
@@ -145,15 +144,9 @@ var MozMobileMessageShim = {
    *  successfully or error while failed.
    */
   retrieveMMS(id) {
-    return mozMobileMessage.retrieveMMS(id).then((message) => {
-      // Return void instead of message to avoid clone error issue.
-      return;
-    }, (error) => {
-      // Clone the error if error is DOMError. Should be removed once
-      // https://github.com/gaia-components/bridge/issues/80 or bug 1200496 that
-      // make DOMError supporting structured clone addressed.
-      throw error instanceof DOMError ? { name: error.name } : error;
-    });
+    // Return void instead of message to avoid clone error issue. Remove once
+    // bug 1172794 is resolved.
+    return mozMobileMessage.retrieveMMS(id).then(() => {});
   },
 
   send(recipient, content, sendOpts) {
