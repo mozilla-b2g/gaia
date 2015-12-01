@@ -778,7 +778,10 @@
       return new Promise((resolve, reject) => {
         navigator.mozApps.getSelf().onsuccess = event => {
           var app = event.target.result;
-          app.connect(SYNC_REQUEST_IAC_KEYWORD).then(ports => {
+          app.connect(SYNC_REQUEST_IAC_KEYWORD, {
+            // For now we only allow one synchronizer app.
+            pageURLs: 'app://sync.gaiamobile.org'
+          }).then(ports => {
             if (!ports || !ports.length) {
               return reject();
             }
