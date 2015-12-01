@@ -65,15 +65,17 @@ suite('AdvancedTelemetry:', function() {
       }
     },
     addonHistograms: {
-      COMM_SMS: {
-        min: 1,
-        max: 1000,
-        histogram_type:0,
-        sum:58,
-        log_sum: 10.935960054397583,
-        log_sum_squares: 29.95399808883667,
-        ranges: [0,1,2,5,12,29,70,170,412,1000],
-        counts:[0,0,0,0,4,0,0,0,0,0]
+      addon1: {
+        COMM_SMS: {
+          min: 1,
+          max: 1000,
+          histogram_type: 0,
+          sum: 58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0, 1, 2, 5, 12, 29, 70, 170, 412, 1000],
+          counts: [0, 0, 0, 0, 4, 0, 0, 0, 0, 0]
+        }
       }
     }
   };
@@ -158,25 +160,29 @@ suite('AdvancedTelemetry:', function() {
       }
     },
     addonHistograms: {
-      COMM_SMS: {
-        min: 1,
-        max: 1000,
-        histogram_type:0,
-        sum:58,
-        log_sum: 10.935960054397583,
-        log_sum_squares: 29.95399808883667,
-        ranges: [0,1,2,5,12,29,70,170,412,1000],
-        counts:[0,0,0,0,4,0,0,0,0,0]
+      addon1: {
+        COMM_SMS: {
+          min: 1,
+          max: 1000,
+          histogram_type: 0,
+          sum: 58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0, 1, 2, 5, 12, 29, 70, 170, 412, 1000],
+          counts: [0, 0, 0, 0, 4, 0, 0, 0, 0, 0]
+        }
       },
-      COMM_DIALER: {
-        min: 1,
-        max: 1000,
-        histogram_type:0,
-        sum:58,
-        log_sum: 10.935960054397583,
-        log_sum_squares: 29.95399808883667,
-        ranges: [0,1,2,5,12,29,70,170,412,1000],
-        counts:[0,0,0,0,4,0,0,0,0,0]
+      addon2: {
+        COMM_DIALER: {
+          min: 1,
+          max: 1000,
+          histogram_type: 0,
+          sum: 58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0, 1, 2, 5, 12, 29, 70, 170, 412, 1000],
+          counts: [0, 0, 0, 0, 4, 0, 0, 0, 0, 0]
+        }
       }
     }
   };
@@ -241,20 +247,24 @@ suite('AdvancedTelemetry:', function() {
       }
     },
     addonHistograms:{
-      COMM_SMS:{
-        min:1,max:1000,histogram_type:0,
-        sum:116,
-        log_sum:21.871920108795166,
-        log_sum_squares:59.90799617767334,
-        ranges:[0,1,2,5,12,29,70,170,412,1000],
-        counts:[0,0,0,0,8,0,0,0,0,0]},
-      COMM_DIALER:{
-        min:1,max:1000,histogram_type:0,
-        sum:58,
-        log_sum:10.935960054397583,
-        log_sum_squares:29.95399808883667,
-        ranges:[0,1,2,5,12,29,70,170,412,1000],
-        counts:[0,0,0,0,4,0,0,0,0,0]}
+      addon1: {
+        COMM_SMS: {
+          min: 1, max: 1000, histogram_type: 0,
+          sum: 116,
+          log_sum: 21.871920108795166,
+          log_sum_squares: 59.90799617767334,
+          ranges: [0, 1, 2, 5, 12, 29, 70, 170, 412, 1000],
+          counts: [0, 0, 0, 0, 8, 0, 0, 0, 0, 0]}
+      },
+      addon2: {
+        COMM_DIALER: {
+          min: 1, max: 1000, histogram_type: 0,
+          sum: 58,
+          log_sum: 10.935960054397583,
+          log_sum_squares: 29.95399808883667,
+          ranges: [0, 1, 2, 5, 12, 29, 70, 170, 412, 1000],
+          counts: [0, 0, 0, 0, 4, 0, 0, 0, 0, 0]}
+      }
     }
   };
 
@@ -342,15 +352,17 @@ suite('AdvancedTelemetry:', function() {
             }
           },
           addonHistograms: {
-            rn_metric: {
-              min: 1,
-              max: 10000,
-              histogram_type: 1,
-              sum: 99,
-              sum_squares_lo: 9801,
-              sum_squares_hi: 0,
-              ranges: [0, 1, 1251, 2501, 3751, 5001, 6250, 7500, 8750, 10000],
-              counts: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+            addon3: {
+              rn_metric: {
+                min: 1,
+                max: 10000,
+                histogram_type: 1,
+                sum: 99,
+                sum_squares_lo: 9801,
+                sum_squares_hi: 0,
+                ranges: [0, 1, 1251, 2501, 3751, 5001, 6250, 7500, 8750, 10000],
+                counts: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+              }
             }
           }
         }
@@ -387,14 +399,16 @@ suite('AdvancedTelemetry:', function() {
             }
           },
           addonHistograms: {
-            rn_metric: {
-              range: [1, 10000],
-              bucket_count:10,
-              histogram_type:1,
-              values:{'0':0, '1':1, '1251':0},
-              sum: 99,
-              sum_squares_lo:9801,
-              sum_squares_hi:0
+            addon3: {
+              rn_metric: {
+                range: [1, 10000],
+                bucket_count: 10,
+                histogram_type: 1,
+                values: {'0': 0, '1': 1, '1251': 0},
+                sum: 99,
+                sum_squares_lo: 9801,
+                sum_squares_hi: 0
+              }
             }
           }
         }
