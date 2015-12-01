@@ -93,6 +93,9 @@ var Awesomescreen = {
     this.inputArea.addEventListener('blur',
         this.handleinputAreaBlur.bind(this));
 
+    this.inputArea.addEventListener('input',
+        this.handleinputAreaInput.bind(this));
+
     this.checkBox.addEventListener('mouseup',
         this.pintohomeCheck.bind(this));
 
@@ -933,7 +936,9 @@ var Awesomescreen = {
     this.focusList = [];
     this.blurFlag = false;
     Awesomescreen.messageTitle.innerHTML = _('WB_LT_BOOKMARK_THIS_PAGE');
+    Awesomescreen.bmtitleArea.classList.remove('invalid');
     Awesomescreen.inputArea.value = Browser.currentInfo.title;
+    Awesomescreen.okButton.classList.remove('disable');
     var elementIDs = [Awesomescreen.bmtitleArea, Awesomescreen.checkArea,
                       Awesomescreen.okButton, Awesomescreen.cancelButton,
                       Awesomescreen.messageArea];
@@ -967,6 +972,9 @@ var Awesomescreen = {
     this.inputArea.style.color = '#020202';
     Awesomescreen.inputArea.value = '';
     Awesomescreen.inputArea.style.color = '#fff';
+    Awesomescreen.bmtitleArea.classList.add('invalid');
+    Awesomescreen.okButton.classList.add('disable');
+    Awesomescreen.renameConfirmButton.classList.add('disable');
   },
 
   /**
@@ -999,11 +1007,12 @@ var Awesomescreen = {
       return;
     }
 
-    //title is I do check if empty
-    var bmTitle = this.inputArea.value;
-    if(bmTitle === '') {
-      bmTitle =  Browser.currentInfo.title;
+    if(!this.isInputAreaValid()) {
+      return;
     }
+
+    //title is I do check if empty
+    var bmTitle = this.inputArea.value.trim();
 
     //Check confirmation of "pin to home"
     if(this.checkBox.classList.contains('true')){
@@ -1127,8 +1136,10 @@ var Awesomescreen = {
 
       case 'rnBookmark':
         this.messageTitle.innerHTML = _('WB_LT_RENAME_BOOKMARK');
+        this.bmtitleArea.classList.remove('invalid');
         this.inputArea.value =
           this.bookmarkList.getFocusItemTitle();
+        this.renameConfirmButton.classList.remove('disable');
         elementIDs = [this.messageArea, this.bmtitleArea, this.messageTitle,
                       this.renameConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
@@ -1273,6 +1284,23 @@ var Awesomescreen = {
     Awesomescreen.bmtitleArea.classList.remove('input');
     Awesomescreen.focusChange(Awesomescreen.focusPos);
     Awesomescreen.showPointerImg();
+  },
+
+  handleinputAreaInput: function awesomescreen_handleinputAreaInput(ev) {
+    if(Awesomescreen.isInputAreaValid()) {
+      Awesomescreen.bmtitleArea.classList.remove('invalid');
+      Awesomescreen.okButton.classList.remove('disable');
+      Awesomescreen.renameConfirmButton.classList.remove('disable');
+    } else {
+      Awesomescreen.bmtitleArea.classList.add('invalid');
+      Awesomescreen.okButton.classList.add('disable');
+      Awesomescreen.renameConfirmButton.classList.add('disable');
+    }
+  },
+
+  isInputAreaValid: function awesomescreen_isInputAreaValid() {
+    return (Awesomescreen.inputArea.value &&
+      Awesomescreen.inputArea.validity.valid);
   },
 
   clickEditButton: function awesomescreen_clickEditButton(ev) {
@@ -1516,16 +1544,15 @@ var Awesomescreen = {
     if(ev.button == 2){
       return;
     }
+
+    if(!this.isInputAreaValid()) {
+      return;
+    }
     //title is I do check if empty
-    var bmTitle = '',
+    var bmTitle = this.inputArea.value.trim(),
         listUrl = this.bookmarkList.getFocusItemUri(),
         listTitle = this.bookmarkList.getFocusItemTitle();
 
-    if(this.inputArea.value === ''){
-      bmTitle =  listTitle;
-    }else{
-      bmTitle = this.inputArea.value;
-    }
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
