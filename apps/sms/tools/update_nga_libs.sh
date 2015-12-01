@@ -10,14 +10,14 @@
 # variables
 bower_path="bower_components"
 
-bridge_repo="gaia-components/bridge#master"
+bridge_repo="fxos-components/bridge#master"
 
 bridge_source="$bower_path/bridge"
-bridge_plugins="$bridge_source/src/plugins"
+bridge_plugins="$bridge_source/plugins"
 bridge_libs=( "service.js" "service.min.js" "client.js" "client.min.js" )
 bridge_destination="lib/bridge"
 
-sww_repo="gaia-components/serviceworkerware#master"
+sww_repo="fxos-components/serviceworkerware#master"
 sww_dist="$bower_path/serviceworkerware/dist/sww.js"
 sww_path="lib/sww.js"
 

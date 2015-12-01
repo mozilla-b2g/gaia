@@ -167,8 +167,7 @@ suite('MozMobileMessageShim >', function() {
           Promise.reject(error)
         );
         MozMobileMessageShim.retrieveMMS(...args).catch((err) => {
-          assert.notInstanceOf(err, DOMError);
-          assert.deepEqual(err, { name: error.name });
+          assert.equal(err, error);
           sinon.assert.calledWith(
             MockNavigatormozMobileMessage.retrieveMMS,
             ...args

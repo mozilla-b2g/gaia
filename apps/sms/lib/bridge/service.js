@@ -155,10 +155,11 @@ var debug = {
 
 /**
  * Default response timeout.
+ *
  * @type {Number}
  * @private
  */
-var TIMEOUT = 1000;
+var TIMEOUT = 2000;
 
 /**
  * Initialize a new `Message`
@@ -173,11 +174,12 @@ function Message(type) {
   this.cancelled = false;
   this.listeners = [];
   this.deferred = defer();
+  this.listen = this.listen.bind(this);
   this.onMessage = this.onMessage.bind(this);
   this.onTimeout = this.onTimeout.bind(this);
   if (typeof type === 'object') this.setupInbound(type);
   else this.setupOutbound(type);
-  debug('initialized', type);
+  debug('initialized', this.type);
 }
 
 Message.prototype = {
@@ -301,7 +303,7 @@ Message.prototype = {
   listen(thing) {
     debug('add response listener', thing);
     var port = createPort(thing);
-    port.addListener(this.onMessage);
+    port.addListener(this.onMessage, this.listen);
     this.listeners.push(port);
     return this;
   },
@@ -352,17 +354,16 @@ Message.prototype = {
    * @param  {*} [result] Data to send back with the response
    */
   respond(result) {
-    debug('respond', result);
-
+    debug('respond', result, this.id);
     if (this.hasResponded) throw error(2);
     if (!this.sourcePort) return;
     if (this.noRespond) return;
 
-    var self = this;
     this.hasResponded = true;
+    var self = this;
 
-    // Repsond with rejection when result is an `Error`
-    if (result instanceof Error) reject(result);
+    // Reject when result is an `Error`
+    if (this.error) reject(this.error);
 
     // Call the handler and make
     // sure return value is a promise.
@@ -382,16 +383,17 @@ Message.prototype = {
     }
 
     function reject(err) {
-      var msg = err && err.message || err;
-      debug('reject', msg);
+      var serialized = serializeError(err);
+      debug('reject', serialized);
       respond({
         type: 'reject',
-        value: msg
+        value: serialized
       });
     }
 
     function respond(response) {
       self.response = response;
+
       self.sourcePort.postMessage({
         id: self.id,
         response: response
@@ -408,6 +410,9 @@ Message.prototype = {
    * message request timing out should
    * the response come back via an
    * alternative route.
+   *
+   * TODO: If forwarded message errors
+   * check it reaches origin (#86).
    *
    * @param  {(HTMLIframeElement|MessagePort|Window)} endpoint
    * @public
@@ -451,8 +456,8 @@ function Receiver(name) {
   this.name = name;
   this.ports = new Set();
   this.onMessage = this.onMessage.bind(this);
-  this['listen'] = this['listen'].bind(this);
-  this['unlisten'] = this['unlisten'].bind(this);
+  this.listen = this.listen.bind(this);
+  this.unlisten = this.unlisten.bind(this);
   debug('receiver initialized', name);
 }
 
@@ -493,13 +498,12 @@ Receiver.prototype = {
    */
   unlisten() {
     debug('unlisten');
-    this.ports.forEach(port => {
-      port.removeListener(this.onMessage, this.unlisten);
-    });
+    this.ports.forEach(port => port.removeListener(this.onMessage));
   },
 
   /**
    * Callback to handle inbound messages.
+   *
    * @param  {MessageEvent} e
    * @private
    */
@@ -516,7 +520,8 @@ Receiver.prototype = {
 
     try { this.emit(message.type, message); }
     catch (e) {
-      message.respond(e);
+      message.error = e;
+      message.respond();
       throw e;
     }
   },
@@ -536,6 +541,24 @@ Receiver.prototype = {
 
 // Mixin Emitter methods
 Emitter(Receiver.prototype);
+
+/**
+ * Error object can't be sent via
+ * .postMessage() so we have to
+ * serialize them into an error-like
+ * Object that can be sent.
+ *
+ * @param  {*} err
+ * @return {Object|*}
+ */
+function serializeError(err) {
+  switch (err && err.constructor.name) {
+    case 'DOMException':
+    case 'Error': return { message: err.message };
+    case 'DOMError': return { message: err.message, name: err.name };
+    default: return err;
+  }
+}
 
 /**
  * Creates new `Error` from registry.
@@ -589,7 +612,7 @@ var debug = 0 ? function(arg1, ...args) {
  */
 module.exports = function create(target, options) {
   if (!target) throw error(1);
-  if (isEndpoint(target)) return target;
+  if (isAdaptor(target)) return target;
   var type = target.constructor.name;
   var CustomAdaptor = adaptors[type];
   debug('creating port adaptor for', type);
@@ -631,8 +654,8 @@ var adaptors = {
     debug('HTMLIFrameElement');
     var ready = windowReady(iframe);
     return {
-      addListener(callback, listen) { on(window, MSG, callback); },
-      removeListener(callback, listen) { off(window, MSG, callback); },
+      addListener(callback) { on(window, MSG, callback); },
+      removeListener(callback) { off(window, MSG, callback); },
       postMessage(data, transfer) {
         ready.then(() => postMessageSync(iframe.contentWindow, data, transfer));
       }
@@ -700,8 +723,8 @@ var adaptors = {
     ready = ready ? Promise.resolve() : windowReady(win);
 
     return {
-      addListener(callback, listen) { on(window, MSG, callback); },
-      removeListener(callback, listen) { off(window, MSG, callback); },
+      addListener(callback) { on(window, MSG, callback); },
+      removeListener(callback) { off(window, MSG, callback); },
       postMessage(data, transfer) {
         ready.then(() => postMessageSync(win, data, transfer));
       }
@@ -729,11 +752,11 @@ var adaptors = {
         on(self, 'connect', this.onconnect);
       },
 
-      removeListener(callback, unlisten) {
+      removeListener(callback) {
         off(self, 'connect', this.onconnect);
         ports.forEach(port => {
           port.close();
-          unlisten(port);
+          port.removeEventListener(MSG, callback);
         });
       }
     };
@@ -793,7 +816,7 @@ var windowReady = (function() {
  * @ignore
  */
 
-function isEndpoint(thing) {
+function isAdaptor(thing) {
   return !!(thing && thing.addListener);
 }
 
@@ -1115,12 +1138,14 @@ Service.prototype.onMethod = function(message) {
 
   var method = message.data;
   var name = method.name;
+  var fn = this.methods[name];
   var result;
 
-  var fn = this.methods[name];
   if (!fn) throw error(4, name);
+
   try { result = fn.apply(this, method.args); }
-  catch (err) { result = err; }
+  catch (err) { message.error = err; }
+
   message.respond(result);
 };
 
