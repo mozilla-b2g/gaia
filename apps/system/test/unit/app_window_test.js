@@ -2085,6 +2085,24 @@ suite('system/AppWindow', function() {
       });
     });
 
+    test('metachange event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      this.sinon.stub(app1, 'publish');
+
+      var evt = {
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'name',
+          content: 'content'
+        }
+      };
+
+      app1.handleEvent(evt);
+
+      assert.equal(app1.meta[evt.detail.name], evt.detail.content);
+      assert(app1.publish.calledWith('metachange'));
+    });
+
     test('Locationchange event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var url = app1.config.url;
@@ -3329,7 +3347,7 @@ suite('system/AppWindow', function() {
       });
 
       assert.equal(browser1.name, 'title1');
-      assert.isTrue(stubPublish.calledOnce);
+      assert.isTrue(stubPublish.calledWith('namechanged'));
       stubPublish.restore();
     });
 
@@ -3346,7 +3364,7 @@ suite('system/AppWindow', function() {
       });
       var hostname = new URL(fakeWrapperConfig.url).hostname;
       assert.equal(browser1.name, hostname);
-      assert.isFalse(stubPublish.calledOnce);
+      assert.isFalse(stubPublish.calledWith('namechanged'));
     });
 
     test('application-name for app window', function() {
