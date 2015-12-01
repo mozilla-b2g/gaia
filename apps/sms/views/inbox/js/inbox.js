@@ -215,11 +215,6 @@ var InboxView = {
       return data;
     }
 
-    if (!title.textContent) {
-      // display something before waiting for findContact's result
-      title.textContent = threadNumbers[0];
-    }
-
     if (threadNumbers.length === 1) {
       return Utils.Promise.async(updateThreadData)(threadNumbers[0]);
     }
@@ -535,18 +530,12 @@ var InboxView = {
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderDrafts: function inbox_renderDrafts() {
-    // Request and render all threads with drafts
-    // or thread-less drafts.
+  prepareDrafts: function inbox_prepareDrafts() {
+    // Request all threads with drafts or thread-less drafts.
     return Drafts.request().then(() => {
+      var promises = [];
       for (var draft of Drafts.getAll()) {
-        if (draft.threadId) {
-          // Find draft-containing threads that have already been rendered
-          // and update them so they mark themselves appropriately
-          if (this.listData.some((data) => data.id === draft.threadId)) {
-            this.updateThread(Threads.get(draft.threadId));
-          }
-        } else {
+        if (!draft.threadId) {
           // Safely assume there is a threadless draft
           this.setEmpty(false);
 
@@ -554,10 +543,12 @@ var InboxView = {
           if (!Threads.has(draft.id)) {
             var thread = Thread.create(draft);
             Threads.set(draft.id, thread);
-            this.appendThread(thread).then(() => this.list.setModel(this.listData));
+            promises.push(this.appendThread(thread));
           }
         }
       }
+
+      return Promise.all(promises);
     });
   },
 
@@ -569,7 +560,7 @@ var InboxView = {
         return item.dayTextContent;
       }
     });
-    this.renderDrafts();
+    return this.prepareDrafts();
   },
 
   startRendering: function inbox_startRenderingThreads() {
@@ -584,7 +575,7 @@ var InboxView = {
     if (!empty) {
       // this.updateContactsInfo();
       this.list.setModel(this.listData);
-      TimeHeaders.updateAll('gaia-sub-header[data-time-update]');
+      this.list.cache();
     }
   },
 
@@ -597,8 +588,6 @@ var InboxView = {
 
     var hasThreads = false;
     var firstPanelCount = this.FIRST_PANEL_THREAD_COUNT;
-
-    this.prepareRendering();
 
     function onRenderThread(thread) {
       /* jshint validthis: true */
@@ -637,21 +626,18 @@ var InboxView = {
       }
     }
 
-    MessageManager.getThreads({
+    this.prepareRendering().then(() => MessageManager.getThreads({
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
       done: () => this.emit('fully-loaded')
-    });
+    }));
   },
 
   createThread: function inbox_createThread(record) {
     // Create DOM element
     var timestamp = +record.timestamp;
-    var type = record.lastMessageType;
     var participants = record.participants;
     var id = record.id;
-    var bodyHTML = record.body;
-    var thread = Threads.get(id);
     var iconLabel = '';
     var classList = [];
     var daySection = Utils.getDayDate(timestamp);
@@ -660,11 +646,13 @@ var InboxView = {
     var isDraft = thread.isDraft;
     var draft = thread.getDraft();
 
-    var body = record.body;
-    var type = record.lastMessageType;
+    var bodyHTML = !draft ? record.body : draft.content.toString();
+    var type = !draft ? record.lastMessageType : draft.type;
 
     var mmsPromise = type === 'mms' ?
       document.l10n.formatValue('mms-label') : Promise.resolve('');
+
+    var labelId = '';
 
     bodyHTML = Template.escape(bodyHTML || '');
 
@@ -672,34 +660,26 @@ var InboxView = {
     classList.push('threadlist-item');
 
     if (draft) {
-      // Set the "draft" visual indication
-      classList.push('draft');
-
       if (isDraft) {
-        classList.push('is-draft');
-        iconLabel = 'is-draft';
+        labelId = 'is-draft';
       } else {
-        classList.push('has-draft');
-        iconLabel = 'has-draft';
+        labelId = 'has-draft';
       }
-    } else {
-      // remove it
-      node.classList.remove('draft', 'has-draft', 'is-draft');
     }
 
     if (record.unreadCount > 0) {
-      classList.push('unread');
-      iconLabel = 'unread-thread';
-    } else {
-      node.classList.remove('unread');
+      labelId = 'unread-thread';
     }
+
+    var labelPromise = labelId ?
+      document.l10n.formatValue(labelId) : Promise.resolve('');
 
     return Promise.all([
       Utils.getHeaderDate(daySection),
+      labelPromise,
       mmsPromise
     ]).then((results) => this.setContact({
       type: type,
-      classList: classList.join(' '),
       draftId: isDraft ? draft.id : '',
       hash: isDraft ? '#/composer' : '#/thread?id=' + id,
       mode: isDraft ? 'drafts' : 'threads',
@@ -710,8 +690,9 @@ var InboxView = {
       timeTextContent: Utils.getFormattedHour(timestamp),
       daySection: daySection,
       dayTextContent: results[0],
-      iconLabel: iconLabel,
-      mmsTextContent: results[1]
+      iconLabel: results[1],
+      status: labelId,
+      mmsTextContent: results[2]
     }));
   },
 

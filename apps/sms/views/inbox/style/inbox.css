@@ -60,24 +60,24 @@
   display: block;
 }
 
-.threadlist-item [data-contact-photo=default] > span[data-type=img],
-.threadlist-item [data-contact-photo=group] > span[data-type=img] {
+[data-type="list"] [data-contact-photo=default] > span[data-type=img],
+[data-type="list"] [data-contact-photo=group] > span[data-type=img] {
   /* Please keep this image in sync with what is used in js/inbox.js */
   background: url('images/default_contact_image.png') top left; /* BiDi proof: CSS sprites */
 }
 
-.threadlist-item:nth-child(even) [data-contact-photo=default] > span[data-type=img],
-.threadlist-item:nth-child(even) [data-contact-photo=group] > span[data-type=img] {
+li:nth-child(even) [data-contact-photo=default] > span[data-type=img],
+li:nth-child(even) [data-contact-photo=group] > span[data-type=img] {
   background-position: bottom right; /* BiDi proof: CSS sprites */
 }
 
-.threadlist-item:nth-child(3n+1) [data-contact-photo=default] > span[data-type=img],
-.threadlist-item:nth-child(3n+1) [data-contact-photo=group] > span[data-type=img] {
+li:nth-child(3n+1) [data-contact-photo=default] > span[data-type=img],
+li:nth-child(3n+1) [data-contact-photo=group] > span[data-type=img] {
   background-position: top right; /* BiDi proof: CSS sprites */
 }
 
-.threadlist-item:nth-child(4n+4) [data-contact-photo=default] > span[data-type=img],
-.threadlist-item:nth-child(4n+4) [data-contact-photo=group] > span[data-type=img] {
+li:nth-child(4n+4) [data-contact-photo=default] > span[data-type=img],
+li:nth-child(4n+4) [data-contact-photo=group] > span[data-type=img] {
   background-position: center center;
 }
 
@@ -105,13 +105,13 @@
   visibility: hidden;
 }
 
-[data-type="list"] .unread aside.icon-unread {
+[data-status="unread-thread"] aside.icon-unread {
   background: url("images/unread.png") no-repeat;
   background-size: 1rem;
   visibility: visible;
 }
 
-[data-type="list"] .threadlist-item a * {
+[data-type="list"] a * {
   pointer-events: none;
 }
 
@@ -119,17 +119,18 @@
   display: flex;
 }
 
-[data-type="list"] .draft .icon-draft {
+[data-type="list"] [data-status="is-draft"] .icon-draft,
+[data-type="list"] [data-status="has-draft"] .icon-draft {
   background: url("images/draft.png") no-repeat;
   background-size: 1.2rem;
   visibility: visible;
 }
 
-[data-type="list"] .is-draft .pack-end {
+[data-status="is-draft"] .pack-end {
   opacity: 0.5;
 }
 
-[data-type="list"] .is-draft .threadlist-item-title {
+[data-status="is-draft"] .threadlist-item-title {
   font-style: italic;
   color: #5f5f5f;
 }
@@ -140,7 +141,7 @@
   margin-inline-end: 1rem;
 }
 
-[data-type="list"] .unread .summary time {
+[data-status="unread-thread"] .summary time {
   color: #1D8399;
 }
 

@@ -155,18 +155,18 @@
           <a id="threads-settings-button" data-icon="settings" data-l10n-id="settingsButton"></a>
         </gaia-header>
         <article id="threads-container" class="view-body edit-container" data-type="list">
-          <gaia-fast-list id="threads-list" top="0" bottom="0">
+          <gaia-fast-list id="threads-list" top="0" bottom="0" caching>
             <!--<template header>
               <gaia-sub-header data-time="${daySection}">${section}</gaia-sub-header>
             </template>-->
             <template item>
-              <li class="${classList}" data-last-message-type="${type}" data-time="${timestamp}" data-thread-id="${id}" data-draftId="${draftId}" id="thread-${id}">
+              <li data-status="${status}" data-last-message-type="${type}" data-time="${timestamp}" data-thread-id="${id}" data-draft-id="${draftId}" id="thread-${id}">
                 <label class="pack-checkbox negative">
                   <input type="checkbox" value="${id}" data-mode="${mode}">
                   <span></span>
                 </label>
                 <a href="${hash}">
-                  <aside role="note" data-l10n-id="${iconLabel}" class="icon icon-unread icon-draft"></aside>
+                  <aside role="note" aria-label="${iconLabel}" class="icon icon-unread icon-draft"></aside>
                   <aside class="pack-end threadlist-item-picture"
                          role="img" aria-label="Contact photo"
                          data-l10n-id="contact-photo" data-show-contact="${showContact}" data-contact-photo="${photoUrl}">
