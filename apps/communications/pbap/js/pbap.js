@@ -36,6 +36,7 @@ function isBtV2() {
       adapter.addEventListener('pullphonebookreq', pullphonebook);
       adapter.addEventListener('pullvcardentryreq', pullvcardentry);
       adapter.addEventListener('pullvcardlistingreq', pullvcardlisting);
+      adapter.addEventListener('obexpasswordreq', obexpassword);
     };
     if (isBtV2()) {
       managerBt.addEventListener('attributechanged', evt => {
@@ -64,7 +65,14 @@ function isBtV2() {
     }
   }
 
+  function obexpassword(evt) {
+    console.log('got obexpassword event');
+    console.log(evt);
+  }
+
   function pullphonebook(evt) {
+    console.log('got pullphonebook event');
+    console.log(evt);
     pb.sortAllContacts(evt).then((contacts) => {
       ContactToVcardBlob(contacts, function blobReady(vcardBlob) {
         evt.handle.replyToPhonebookPulling(vcardBlob, contacts.length);
@@ -76,6 +84,8 @@ function isBtV2() {
   }
 
   function pullvcardentry(evt) {
+    console.log('got pullvcardentry event');
+    console.log(evt);
     pb.pullVcardEntry(evt).then((contacts) => {
       ContactToVcardBlob(contacts, function blobReady(vcardBlob) {
         evt.handle.replyTovCardPulling(vcardBlob, contacts.length);
@@ -87,6 +97,8 @@ function isBtV2() {
   }
 
   function pullvcardlisting(evt) {
+    console.log('got pullvcardlisting event');
+    console.log(evt);
     pb.pullVcardListing(evt).then((content) => {
       var blob = new Blob([content.xml], {
         type: 'text/xml'
