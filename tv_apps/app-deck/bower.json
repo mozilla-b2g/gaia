@@ -14,7 +14,7 @@
     "tests"
   ],
   "dependencies": {
-    "evt": "gaia-components/evt#~0.4.0",
-    "smart-button": "gaia-components/smart-button"
+    "evt": "fxos-components/evt#~0.4.0",
+    "smart-button": "fxos-components/smart-button"
   }
 }

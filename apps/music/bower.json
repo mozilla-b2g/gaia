@@ -9,14 +9,14 @@
     "node_modules"
   ],
   "dependencies": {
-    "bridge": "gaia-components/bridge#master",
-    "gaia-fast-list": "gaia-components/gaia-fast-list#0.3.2",
-    "gaia-icons": "gaia-components/gaia-icons#~1.0.2",
-    "gaia-theme": "gaia-components/gaia-theme#~0.5.1",
-    "gaia-toolbar": "gaia-components/gaia-toolbar#master",
-    "serviceworkerware": "gaia-components/serviceworkerware#master",
-    "sww-raw-cache": "gaia-components/sww-raw-cache#~0.2.1",
-    "gaia-text-input": "gaia-components/gaia-text-input#v0.2.1"
+    "bridge": "fxos-components/bridge#master",
+    "gaia-fast-list": "fxos-components/gaia-fast-list#0.3.2",
+    "gaia-icons": "fxos-components/gaia-icons#~1.0.2",
+    "gaia-theme": "fxos-components/gaia-theme#~0.5.1",
+    "gaia-toolbar": "fxos-components/gaia-toolbar#master",
+    "serviceworkerware": "fxos-components/serviceworkerware#master",
+    "sww-raw-cache": "fxos-components/sww-raw-cache#~0.2.1",
+    "gaia-text-input": "fxos-components/gaia-text-input#v0.2.1"
   },
   "resolutions": {
     "gaia-component": "~0.4.0"

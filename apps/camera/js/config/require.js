@@ -22,7 +22,7 @@ requirejs.config({
     'view': '../bower_components/view/index',
     'evt': '../bower_components/evt/index',
     'drag': '../bower_components/drag/index',
-    'device-orientation': '../bower_components/device-orientation/index',
+    'device-orientation': '../bower_components/device-orientation/device-orientation',/*jshint ignore:line*/
     'stop-recording-event': '../shared/js/stop_recording_event'
   },
 
