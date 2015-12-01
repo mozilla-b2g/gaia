@@ -185,7 +185,7 @@ suite('system/SignalIcon', function() {
 
     test('SIM card is locked', function() {
       MockService.mockQueryWith('Radio.settingEnabled', true);
-      this.sinon.stub(subject, 'hide');
+      this.sinon.stub(subject, 'sim-locked');
       this.sinon.stub(subject.manager, 'isLocked').returns(true);
       subject.update();
       assert.isTrue(subject.hide.called);

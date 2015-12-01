@@ -439,6 +439,9 @@ html[dir="rtl"] #statusbar-call-forwardings > * { float: right; }
   background-position: -14rem -8rem;
   position: relative;
 }
+.sb-icon-signal.sim-locked{
+  background-position: -30rem -4rem;
+}
 
 .sb-icon-network-activity {
   width: 1.6rem;

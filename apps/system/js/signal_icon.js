@@ -55,6 +55,7 @@
       _(this.element, 'statusbarSignalNoSimCard');
     } else if (data && data.connected &&
                data.type && data.type.startsWith('evdo')) {
+      this.element.classList.remove('sim-locked');
       // "Carrier" / "Carrier (Roaming)" (EVDO)
       // Show signal strength of data call as EVDO only supports data call.
       this.debug('data connection, level=', data.relSignalStrength);
@@ -70,11 +71,12 @@
       this.updateSignal(voice);
     } else if (simslot.isLocked()) {
       this.debug('locked simcard');
+      this.element.classList.add('sim-locked');
+      this.show();
       // SIM locked
       // We check if the sim card is locked after checking hasActiveCall
       // because we still need to show the signal bars in the case of
       // making emergency calls when the sim card is locked.
-      this.hide();
     } else {
       this.debug('emergency call only');
       // emergencyCallsOnly is always true if voice.connected is false. Show
@@ -82,12 +84,13 @@
       // with a red "x", which stands for emergency calls only.
       this.updateSignal(voice, true);
     }
+
   };
   SignalIcon.prototype.updateSignal = function(connInfo, emergency) {
     if (!this.element) {
       return;
     }
-
+    this.element.classList.remove('sim-locked');
     this.show();
     var _ = navigator.mozL10n.setAttributes, level;
     var previousSearching = (this.element.dataset.searching === 'true');
