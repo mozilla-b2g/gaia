@@ -46,7 +46,7 @@ if (!utils.misc) {
       }
       var f = new Intl.DateTimeFormat(navigator.languages, format);
 
-      dateString = f.format(date);
+      dateString = f.format(normalizedDate);
     } catch (err) {
       console.error('Error parsing date: ', err);
       throw err;
