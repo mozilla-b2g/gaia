@@ -349,7 +349,7 @@ var CallHandler = (function callHandler() {
     };
 
     var oncall = function() {
-      SuggestionBar.overlay.hide();
+      SuggestionBar.overlay && SuggestionBar.overlay.hide();
       SuggestionBar.clear();
     };
 
