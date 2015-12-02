@@ -1,4 +1,3 @@
-/* global Storage */
 'use strict';
 
 /**
@@ -583,9 +582,7 @@ require([
           this.updateInfo();
           break;
         case 'change':
-          if (evt.target.id === 'ums-switch') {
-            Storage.umsMasterSettingChanged(evt);
-          } else if (evt.target.id === 'defaultMediaLocation') {
+          if (evt.target.id === 'defaultMediaLocation') {
             this.defaultLocationName = this.defaultMediaLocation.value;
           } else {
             // we are handling storage changes
