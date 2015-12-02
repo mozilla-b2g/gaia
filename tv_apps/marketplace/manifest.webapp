@@ -1,0 +1,19 @@
+{
+    "default_locale": "en-US",
+    "description": "Firefox Marketplace",
+    "developer": {
+        "name": "Mozilla",
+        "url": "http://mozilla.org"
+    },
+    "icons": {
+        "60": "/app-icons/60.png",
+        "90": "/app-icons/90.png",
+        "120": "/app-icons/120.png",
+        "128": "/app-icons/128.png"
+    },
+    "launch_path": "http://jostw.github.io/marketplace-tv-front-end",
+    "name": "Stage",
+    "origin": "app://marketplace.allizom.org",
+    "type": "web",
+    "version": "20151125.184150"
+}
