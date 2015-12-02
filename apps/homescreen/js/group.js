@@ -11,13 +11,12 @@
   const COLLAPSED = 0;
   const EXPANDING = 1;
   const EXPANDED = 2;
-  //const COLLAPSING = 3;
+  const COLLAPSING = 3;
 
   var proto = Object.create(HTMLElement.prototype);
 
   proto.createdCallback = function() {
     this.container = document.createElement('gaia-container');
-    this.container.setAttribute('drag-and-drop', '');
     this.container.id = 'group-container';
     this._template = template.content.cloneNode(true);
     this._template.appendChild(this.container);
@@ -78,6 +77,8 @@
     var rect = this.getBoundingClientRect();
     var originalWidth = this.clientWidth;
     var originalHeight = this.clientHeight;
+    var originalLeft = this.clientLeft;
+    var originalTop = this.clientTop;
 
     var parentOffsetTop = parent.offsetTop;
     var targetLeft = Math.round(-rect.left);
@@ -111,9 +112,9 @@
 
     // Part 4.
     this.container.style.left =
-      this.background.style.left = -targetLeft + 'px';
+      this.background.style.left = (originalLeft - targetLeft) + 'px';
     this.container.style.top =
-      this.background.style.top = -targetTop + 'px';
+      this.background.style.top = (originalTop - targetTop) + 'px';
     this.container.style.width =
       this.background.style.width = originalWidth + 'px';
     this.container.style.height =
@@ -122,8 +123,8 @@
     // Part 5.
     var bgOffsetLeft = Math.round((targetWidth / 2) - (originalWidth / 2));
     var bgOffsetTop = Math.round((targetHeight / 2) - (originalHeight / 2));
-    var bgLeft = Math.round(bgOffsetLeft + targetLeft);
-    var bgTop = Math.round(bgOffsetTop + targetTop);
+    var bgLeft = Math.round(bgOffsetLeft + targetLeft) - originalLeft;
+    var bgTop = Math.round(bgOffsetTop + targetTop) - originalTop;
     var bgTargetSize =
       Math.sqrt(2 * Math.pow(Math.max(targetWidth, targetHeight), 2));
     var bgScale = bgTargetSize / Math.max(originalWidth, originalHeight);
@@ -141,12 +142,11 @@
       this.container.style.left = this.container.style.top =
       this.container.style.width = this.container.style.height = '';
 
-      // Restore icon titles
+      // Part 8.
       this.container.children.forEach(child => {
         child.firstElementChild.showName = true;
       });
-
-      // Part 8.
+      this.container.setAttribute('drag-and-drop', '');
       this.container.synchronise();
 
       // Part 9.
@@ -164,7 +164,66 @@
   };
 
   proto.collapse = function(parent, callback) {
-    console.log('Group collapsed');
+    switch (this.state) {
+      case EXPANDED:
+        break;
+
+      default:
+        return;
+    }
+
+    /* The collapsing animations works like so:
+     * 1 Hide icon names and set style property on icon container to make it
+     *   fade out.
+     * 2 Set style property on group background to have it return to its
+     *   original position.
+     * 3 Remove offsets on group, container and background.
+     * 4 Tidy up and call complete callback.
+     * 5 Remove collapsing classes on document body and self
+     * 6 Synchronise container and set style property to have it fade in.
+     */
+    this.state = COLLAPSING;
+    this.classList.add('collapsing');
+    document.body.classList.add('collapsing');
+    this.classList.remove('expanded');
+    document.body.classList.remove('expanded');
+
+    // Part 1.
+    this.container.removeAttribute('drag-and-drop');
+    this.container.children.forEach(child => {
+      child.firstElementChild.showName = false;
+    });
+    this.container.classList.add('collapsing');
+    this.container.classList.remove('expanded');
+
+    // Part 2.
+    this.background.style.transform = '';
+
+    var afterCollapsing = () => {
+      this.background.removeEventListener('transitionend', afterCollapsing);
+
+      // Part 3.
+      this.background.style.left = this.background.style.top =
+        this.background.style.width = this.background.style.height =
+        this.background.style.transform = this.style.left = this.style.top =
+        this.style.width = this.style.height = '';
+
+      // Part 4.
+      this.parentNode.parentNode.style.zIndex = '';
+      parent.setUseTransform(this.parentNode, true);
+      callback();
+
+      // Part 5.
+      this.classList.remove('collapsing');
+      document.body.classList.remove('collapsing');
+
+      // Part 6.
+      this.container.classList.remove('collapsing');
+      this.container.synchronise();
+
+      this.state = COLLAPSED;
+    };
+    this.background.addEventListener('transitionend', afterCollapsing);
   };
 
   Object.defineProperty(proto, 'full', {

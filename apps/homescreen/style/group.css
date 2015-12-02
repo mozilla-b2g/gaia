@@ -6,7 +6,8 @@ homescreen-group {
 }
 
 homescreen-group.expanding,
-homescreen-group.expanded {
+homescreen-group.expanded,
+homescreen-group.collapsing {
   overflow: hidden;
 }
 
@@ -49,8 +50,7 @@ homescreen-group.expanded {
   justify-content: flex-start;
   align-items: flex-start;
   align-content: flex-start;
-  margin: 1.6rem 0;
-  padding: 0 0.6rem;
+  padding: 1.6rem 0.6rem;
 }
 
 #group-container > .gaia-container-child > * {
@@ -58,14 +58,16 @@ homescreen-group.expanded {
   height: calc(32vw * 0.25);
 }
 
-#group-container.expanded > .gaia-container-child > * {
+#group-container.expanded > .gaia-container-child > *,
+#group-container.collapsing > .gaia-container-child > * {
   width: 32vw;
   height: calc(32vw + 1.9rem);
   box-sizing: border-box;
   border: 0.8rem solid transparent;
 }
 
-#group-container.expanded > .gaia-container-child gaia-app-icon {
+#group-container.expanded > .gaia-container-child gaia-app-icon,
+#group-container.collapsing > .gaia-container-child gaia-app-icon {
   outline: 0;
   font-size: 1.4rem;
   font-weight: 400;

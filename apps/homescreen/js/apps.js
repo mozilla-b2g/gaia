@@ -923,6 +923,7 @@
           this.openGroup = null;
           this.attachInputHandlers(this.icons);
           this.icons.setAttribute('drag-and-drop', '');
+          this.icons.thaw();
         });
       }
     },
@@ -941,6 +942,7 @@
         icon = e.detail.target.firstElementChild;
         if (icon.localName === 'homescreen-group') {
           this.openGroup = icon;
+          this.icons.freeze();
           icon.expand(this.icons);
           this.icons.removeAttribute('drag-and-drop');
           this.attachInputHandlers(icon.container);
@@ -996,6 +998,7 @@
 
         if (parent !== this.container) {
           this.closeOpenGroup();
+          e.preventDefault();
         }
         break;
 

@@ -10,11 +10,13 @@
 }
 
 .expanding #apps-panel > .scrollable,
-.expanded #apps-panel > .scrollable {
+.expanded #apps-panel > .scrollable,
+.collapsing #apps-panel > .scrollable {
   overflow: hidden;
 }
 
-.expanding #apps > .gaia-container-child {
+.expanding #apps > .gaia-container-child,
+.collapsing #apps > .gaia-container-child {
   transition: unset;
 }
 
@@ -57,7 +59,8 @@ homescreen-group {
 }
 
 homescreen-group.expanding,
-homescreen-group.expanded {
+homescreen-group.expanded,
+homescreen-group.collapsing {
   border: 0;
 }
 
@@ -89,7 +92,8 @@ gaia-app-icon.launching {
   visibility: hidden;
 }
 
-#apps > .gaia-container-child.dragging > .icon-container > * {
+#apps > .gaia-container-child.dragging > .icon-container > *,
+#apps > .gaia-container-child.dragging > .group-container > * {
   transform: scale(1.1);
   opacity: 0.8;
 }
