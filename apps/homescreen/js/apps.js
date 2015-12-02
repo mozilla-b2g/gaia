@@ -929,7 +929,7 @@
     },
 
     handleEvent: function(e) {
-      var icon, id;
+      var icon, id, rect;
 
       switch (e.type) {
       // App launching
@@ -1054,11 +1054,25 @@
         if (e.detail.dropTarget === null &&
             e.detail.clientX >= this.iconsLeft &&
             e.detail.clientX < this.iconsRight) {
-          console.log(e.detail.target, this.container.firstChild);
+          e.preventDefault();
+
+          // If there's an open group, check if we're dropping the icon outside
+          // of the group.
+          if (this.openGroup) {
+            rect = this.openGroup.container.getBoundingClientRect();
+            if (e.detail.clientY < rect.top || e.detail.clientY > rect.bottom) {
+              console.log('Removing from group');
+              this.openGroup.transferToContainer(e.detail.target, this.icons);
+              if (this.openGroup.container.children.length <= 1) {
+                this.closeOpenGroup();
+              }
+              break;
+            }
+          }
+
           // If the drop target is null, and the client coordinates are
           // within the panel, we must be dropping over the start or end of
           // the container.
-          e.preventDefault();
           var bottom = e.detail.clientY < this.lastWindowHeight / 2;
           console.debug('Reordering dragged icon to ' +
                       (bottom ? 'bottom' : 'top'));
@@ -1148,7 +1162,7 @@
           if (this.hoverIcon && !this.draggingGroup && !this.openGroup) {
             // Evaluate whether we should create a group
             var before = this.hoverIcon.classList.contains('hover-before');
-            var rect = this.container.getChildOffsetRect(this.hoverIcon);
+            rect = this.container.getChildOffsetRect(this.hoverIcon);
             if ((before && e.detail.clientX > rect.right - (rect.width / 2)) ||
                 (!before && e.detail.clientX < rect.left + (rect.width / 2))) {
               this.hoverIcon.classList.add('hover-over');

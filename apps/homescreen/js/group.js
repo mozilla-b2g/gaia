@@ -25,6 +25,7 @@
     shadow.appendChild(this._template);
 
     this.background = shadow.getElementById('group-background');
+    this.removedChildren = [];
     this.state = 0;
   };
 
@@ -39,9 +40,26 @@
   proto.transferToContainer = function(child, container) {
     var icon = child.firstElementChild;
     this.container.removeChild(child, () => {
-      container.insertBefore(child, this.nextSibling);
       icon.showName = true;
+
+      this.removedChildren.push(child);
+      if (this.state === COLLAPSED) {
+        this.finishRemovingChildren(container);
+      }
     });
+  };
+
+  proto.finishRemovingChildren = function(container) {
+    for (var child of this.removedChildren) {
+      container.insertBefore(child, this.parentNode);
+    }
+    this.removedChildren = [];
+
+    if (this.container.children.length === 1) {
+      this.transferToContainer(this.container.firstChild, container);
+    } else if (this.container.children.length === 0) {
+      container.removeChild(this.parentNode);
+    }
   };
 
   proto.expand = function(parent) {
@@ -222,6 +240,7 @@
       this.container.synchronise();
 
       this.state = COLLAPSED;
+      this.finishRemovingChildren(parent);
     };
     this.background.addEventListener('transitionend', afterCollapsing);
   };
