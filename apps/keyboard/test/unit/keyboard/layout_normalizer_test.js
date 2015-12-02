@@ -76,6 +76,56 @@ suite('LayoutKeyNormalizer', function() {
     });
   });
 
+  suite('isButton', function() {
+    // As per bug#1212588, some special keys are to be regarded as
+    // buttons (as per accesibility programs), but not all of
+    // them. This unit test makes sure the functionality exists in the
+    // layout normalizer. In case different keys are later decided to
+    // swap roles, please change this test so that it stays
+    // meaningful.
+
+    var key = {
+      keyCode: KeyEvent.DOM_VK_ALT,
+      value: 'alt'
+    };
+
+    var button = {
+      keyCode: KeyEvent.DOM_VK_RETURN,
+      value: 'enter'
+    };
+
+    test('Alt is a key', function(){
+      var normalizer = new LayoutKeyNormalizer();
+
+      assert.isFalse(normalizer._isButton(key),
+                     'alt should be regarded as a role=key, not a button.');
+    });
+
+    test('Return is a button', function(){
+      var normalizer = new LayoutKeyNormalizer();
+
+      assert.isTrue(normalizer._isButton(button),
+                    'return should be regarded as a role=button, not a key.');
+    });
+
+    test('isButton present on normalized key', function(){
+      var normalizer = new LayoutNormalizer({
+        keys: [
+          [{value: 'a'}]
+        ],
+        upperCase: {'a': 'C'}
+      });
+
+      normalizer.normalize();
+
+      assert.isTrue(
+        normalizer._layout.pages[0].keys[0][0].hasOwnProperty('isButton'),
+        'a synthetic key made from a simple keyboard layout ' +
+          'should have property isButton');
+    });
+  });
+
+
   suite('getUpperCaseValue', function() {
     // For space key, special key, and composite key tests,
     // we're deliberately not passing layout,
@@ -623,7 +673,8 @@ suite('Layout normalization: Cross-module integrated tests', function() {
           keyCodeUpper: 67,
           lowercaseValue: 'a',
           uppercaseValue: 'C',
-          isSpecialKey: false
+          isSpecialKey: false,
+          isButton: false
         }]
       ], 'upperCase of "a" should be "C" in this crafted test');
   });

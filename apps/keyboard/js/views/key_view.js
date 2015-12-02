@@ -10,18 +10,21 @@ function KeyView(target, options, viewManager) {
   this.attributeList = options.attributeList || [];
   this.classNames = ['keyboard-key'];
 
-  if (target.isSpecialKey) {
-    this.classNames.push('special-key');
-  } else {
-    // The 'key' role tells an assistive technology that these buttons
-    // are used for composing text or numbers, and should be easier to
-    // activate than usual buttons. We keep special keys, like backspace,
-    // as buttons so that their activation is not performed by mistake.
+  // The 'key' role tells an assistive technology that these buttons
+  // are used for composing text or numbers, and should be easier to
+  // activate than usual buttons. We keep some keys as buttons so that
+  // their activation is not performed by mistake.
+  if (!target.isButton) {
     this.attributeList.push({
       key: 'role',
       value: 'key'
     });
+  }
 
+  if (target.isSpecialKey) {
+    this.classNames.push('special-key');
+
+  } else {
     if (options.classNames) {
       this.classNames = this.classNames.concat(options.classNames);
     }
