@@ -39,7 +39,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaImageCompareTestCase):
 
         results = marketplace.get_current_displayed_result()
         first_result = results.search_results[0]
-        first_result.tap_open_app_button(self.app_title,self._map_locator)
+        first_result.tap_open_app_button(self._map_locator)
 
         self.take_screenshot(prewait=self.draw_wait_time)
         self.marionette.find_element(*self._zoom_in_locator).tap()
