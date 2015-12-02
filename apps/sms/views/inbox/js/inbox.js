@@ -683,7 +683,7 @@ var InboxView = {
       Utils.getHeaderDate(daySection),
       labelPromise,
       mmsPromise
-    ]).then((results) => this.setContact({
+    ]).then((results) => ({
       type: type,
       draftId: isDraft ? draft.id : '',
       hash: isDraft ? '#/composer' : '#/thread?id=' + id,
@@ -797,6 +797,9 @@ var InboxView = {
 
     // We create the DOM element of the thread
     return this.createThread(thread).then((data) => {
+      // Async update contact after insert to list
+      this.setContact(data);
+
       // Where have I to place the new thread?
       var threadFound = false;
       for (var i = this.listData.length - 1; i > -1 ; i--) {
