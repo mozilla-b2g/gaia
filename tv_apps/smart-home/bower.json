@@ -14,9 +14,9 @@
     "tests"
   ],
   "dependencies": {
-    "evt": "gaia-components/evt#~0.4.0",
-    "smart-button": "gaia-components/smart-button#~0.0.2",
-    "menu-group": "gaia-components/menu-group",
+    "evt": "fxos-components/evt#~0.4.0",
+    "smart-button": "fxos-components/smart-button#~0.0.2",
+    "menu-group": "fxos-components/menu-group",
     "smart-icons": "smart-components/smart-icons#~0.0.2",
     "smart-bubbles": "smart-components/smart-bubbles",
     "smart-dialog": "smart-components/smart-dialog",

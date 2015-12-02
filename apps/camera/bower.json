@@ -18,14 +18,14 @@
   "dependencies": {
     "debug": "https://raw.githubusercontent.com/visionmedia/debug/1.0.2/dist/debug.js",
     "requirejs": "https://raw.githubusercontent.com/jrburke/requirejs/2.1.14/require.js",
-    "evt": "gaia-components/evt#~0.4.0",
-    "attach": "gaia-components/attach#~0.1.1",
-    "device-orientation": "gaia-components/device-orientation",
-    "view": "gaia-components/view#~0.1.1",
-    "model": "gaia-components/model#~0.1.0",
-    "drag": "gaia-components/drag",
-    "gaia-header": "gaia-components/gaia-header#~0.9.5",
-    "gaia-theme": "gaia-components/gaia-theme#~0.4.1",
-    "gaia-icons": "gaia-components/gaia-icons#~1.0.2"
+    "evt": "fxos-components/evt#~0.4.0",
+    "attach": "fxos-components/attach#0.1.1",
+    "device-orientation": "fxos-components/device-orientation",
+    "view": "fxos-components/view#~0.1.1",
+    "model": "fxos-components/model#~0.1.0",
+    "drag": "fxos-components/drag#0.1.4",
+    "gaia-header": "fxos-components/gaia-header#~0.9.5",
+    "gaia-theme": "fxos-components/gaia-theme#~0.4.1",
+    "gaia-icons": "fxos-components/gaia-icons#~1.0.2"
   }
 }

@@ -23,7 +23,7 @@
     "tag": "v0.1.4",
     "commit": "c56942e7e15abd42f38d3634e540739f96d545d3"
   },
-  "_source": "git://github.com/gaia-components/drag.git",
-  "_target": "*",
-  "_originalSource": "gaia-components/drag"
+  "_source": "git://github.com/fxos-components/drag.git",
+  "_target": "0.1.4",
+  "_originalSource": "fxos-components/drag"
 }

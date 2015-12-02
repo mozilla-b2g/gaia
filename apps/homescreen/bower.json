@@ -15,10 +15,10 @@
     "bower_components"
   ],
   "dependencies": {
-    "base": "gaia-components/base#master",
-    "evt": "gaia-components/evt#master",
+    "base": "fxos-components/base#master",
+    "evt": "fxos-components/evt#master",
     "gaia-container": "https://gitlab.com/Cwiiis/gaia-container.git",
-    "gaia-dialog": "gaia-components/gaia-dialog#master",
-    "pressed": "gaia-components/pressed#master"
+    "gaia-dialog": "fxos-components/gaia-dialog#master",
+    "pressed": "fxos-components/pressed#master"
   }
 }
