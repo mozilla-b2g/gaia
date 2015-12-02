@@ -783,13 +783,16 @@ suite('navigation >', function() {
       });
 
       test('Initial navigation request should proceed to the completion ' +
-           'without waiting for the document to be completely loaded',
+           'without waiting for the document to be completely loaded and ' +
+           'Navigation to be marked as ready',
       function(done) {
         Object.defineProperty(document, 'readyState', { value: 'interactive' });
 
-        // For the split-view case Navigation.init waits for the setReady call
-        // that is made in the suite setup function above.
-        Navigation.init().then(done, done);
+        var NonReadyNavigation = NavigationFactory(fakeWindow);
+
+        // For the split-view case Navigation.init doesn't wait for the setReady
+        // call or document load event.
+        NonReadyNavigation.init().then(done, done);
       });
     });
 

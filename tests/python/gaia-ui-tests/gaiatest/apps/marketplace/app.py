@@ -78,12 +78,12 @@ class Result(PageRegion):
         self.root_element.find_element(*self._install_button_locator).tap()
         self.marionette.switch_to_frame()
 
-    def tap_open_app_button(self, app_title, _app_locator):
+    def tap_open_app_button(self, _app_locator):
         button = self.root_element.find_element(*self._install_button_locator)
         Wait(self.marionette).until(lambda m: button.text == 'Open app')
         button.tap()
         self.apps.switch_to_displayed_app()
-        Wait(self.marionette).until(lambda m: m.title == app_title)
+
         app_element = self.marionette.find_element(*_app_locator)
         Wait(self.marionette).until(lambda m: app_element.is_displayed())
 

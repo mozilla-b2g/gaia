@@ -20,7 +20,6 @@ dev_apps/test-otasp
 dev_apps/test-receiver-1
 dev_apps/test-receiver-2
 dev_apps/test-receiver-inline
-dev_apps/test-startup-limit
 dev_apps/test-wappush
 dev_apps/uitest
 dev_apps/uitest-privileged
@@ -36,3 +35,5 @@ dev_apps/music-oga
 apps/settings/test/fixtures/addon1
 apps/settings/test/fixtures/addon2
 apps/settings/test/fixtures/addon3
+
+distros/raptor/apps/test-startup-limit

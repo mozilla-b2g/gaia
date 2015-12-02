@@ -565,6 +565,24 @@ suite('system/LockScreen >', function() {
         stubDispatch.restore();
       });
 
+  test('Handle event: when unlock animation ends,' +
+       'it would add `unlocked` class',
+    function() {
+      assert.isFalse(subject.overlay.classList.contains('unlocked'));
+      subject.locked = false;
+      subject.handleEvent({ type: 'transitionend', target: subject.overlay });
+      assert.isTrue(subject.overlay.classList.contains('unlocked'));
+  });
+
+  test('Unlock method will add `unlocked` class if it is not an' +
+       ' instant request',
+    function() {
+      assert.isFalse(subject.overlay.classList.contains('unlocked'));
+      subject.enabled = true;
+      subject.unlock(true);  // or lock screen is already enabled
+      assert.isTrue(subject.overlay.classList.contains('unlocked'));
+  });
+
   test('Switch panel: to Camera; should notify SecureWindowFactory\'s method',
     function() {
       var stubDispatch = this.sinon.stub(window, 'dispatchEvent');

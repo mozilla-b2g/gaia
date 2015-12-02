@@ -28,6 +28,7 @@ Ftu.Selectors = {
   'header': '#activation-screen gaia-header h1',
   'languageItems': '#languages ul > li[data-value]',
   'finishScreen': '#finish-screen',
+  'splashScreen': '#splash-screen',
 
   // Tutorial Section
   'startTourButton': '#lets-go-button',
@@ -67,17 +68,27 @@ Ftu.prototype = {
   },
 
   clickThruToFinish: function() {
-    this.client.helper.waitForElement('#languages');
+    this.waitForFtuReady();
     var finishScreen = this.client.findElement(Ftu.Selectors.finishScreen);
     while (!finishScreen.displayed()) {
       this.goNext();
     }
   },
 
+  waitForCurtainUp: function() {
+    this.client.helper.waitForElementToDisappear(Ftu.Selectors.splashScreen);
+  },
+
   waitForLanguagesToLoad: function() {
+    this.client.helper.waitForElement('#languages');
     return this.client.waitFor(function() {
       return this.client.findElements(Ftu.Selectors.languageItems).length > 1;
     }.bind(this));
+  },
+
+  waitForFtuReady: function() {
+    this.waitForCurtainUp();
+    this.waitForLanguagesToLoad();
   },
 
   selectLanguage: function(language) {

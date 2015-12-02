@@ -2,6 +2,9 @@
 (function(module, ns) {
   'use strict';
 
+  var Command = require('../message').Command;
+  var Response = require('../message').Response;
+
   /**
    *
    * Abstract driver that will handle
@@ -16,6 +19,7 @@
   function Abstract(options) {
     this._sendQueue = [];
     this._responseQueue = [];
+    this._lastId = 0;
   }
 
   Abstract.prototype = {
@@ -65,17 +69,22 @@
     },
 
     /**
-     * Sends a command to the remote end.
+     * Sends a JSON data structure across the wire to the remote end.
      *
      * Each command is queued whilst waiting for any pending commands.
      * This ensures order of response is correct, but also means the client
      * implements a synchronous interface for Marionette.
      *
      * @method send
-     * @param {Object} command remote command to send to marionette.
-     * @param {Function} callback executed when response comes back.
+     *
+     * @param {(Object|Command|Response)} obj
+     *     An object that can be dumped into a JSON data structure,
+     *     or a message that can be marshaled.
+     * @param {Function} callback
+     *     Callback to be invoked when a response for the request is
+     *     received.
      */
-    send: function send(cmd, callback) {
+    send: function send(obj, callback) {
       if (!this.ready) {
         throw new Error('Connection is not ready');
       }
@@ -84,12 +93,42 @@
         throw new Error('Callback is required');
       }
 
-      this._responseQueue.push(callback);
-      this._sendQueue.push(cmd);
-
-      this._nextCommand();
+      if (obj instanceof Command || obj instanceof Response) {
+        this.sendMessage(obj, callback);
+      } else {
+        this.sendRaw(obj, callback);
+      }
 
       return this;
+    },
+
+    /**
+     * Sends a message across the wire to the remote end.
+     *
+     * @param {(Command|Response)} message
+     *     The message to send.
+     * @param {Function} callback
+     *     Callback to be invoked when a response for the request is
+     *     received.
+     */
+    sendMessage: function(message, callback) {
+      message.id = ++this._lastId;
+      this.sendRaw(message.toMsg(), callback);
+    },
+
+    /**
+     * Sends a JSON data structure across the wire to the remote end.
+     *
+     * @param {Object} packet
+     *     An object that can be marshaled into a JSON data structure.
+     * @param {Function} callback
+     *     Callback to be invoked when a response for the request is
+     *     received.
+     */
+    sendRaw: function(packet, callback) {
+      this._responseQueue.push(callback);
+      this._sendQueue.push(packet);
+      this._nextCommand();
     },
 
     /**
@@ -112,17 +151,8 @@
     connect: function connect(callback) {
       this.ready = true;
       this._responseQueue.push(function(data) {
-        // determine protocol version
-        if ('marionetteProtocol' in data) {
-          this.marionetteProtocol = data.marionetteProtocol;
-        } else {
-          this.marionetteProtocol = 1;
-        }
-
-        // protocol specific properties to populate
-        if (this.marionetteProtocol == 1) {
-          this.traits = data.traits;
-        }
+        this.marionetteProtocol = data.marionetteProtocol || 1;
+        this.traits = data.traits;
         this.applicationType = data.applicationType;
 
         callback();
@@ -154,11 +184,10 @@
      * @method _nextCommand
      */
     _nextCommand: function _nextCommand() {
-      var nextCmd;
       if (!this._waiting && this._sendQueue.length) {
         this._waiting = true;
-        nextCmd = this._sendQueue.shift();
-        this._sendCommand(nextCmd);
+        var next = this._sendQueue.shift();
+        this._sendCommand(next);
       }
     },
 
@@ -172,11 +201,19 @@
      * @method _onDeviceResponse
      */
     _onDeviceResponse: function _onDeviceResponse(data) {
-      var cb;
       if (this.ready && data.id === this.connectionId) {
         this._waiting = false;
-        cb = this._responseQueue.shift();
-        cb(data.response);
+
+        var resp;
+        if (this.marionetteProtocol >= 3) {
+          var msg = Response.fromMsg(data.response);
+          resp = msg.result;
+        } else {
+          resp = data.response;
+        }
+
+        var cb = this._responseQueue.shift();
+        cb(resp);
 
         this._nextCommand();
       }

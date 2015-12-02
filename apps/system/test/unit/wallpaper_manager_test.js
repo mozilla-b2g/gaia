@@ -7,7 +7,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/image_utils.js');
 require('/apps/system/js/wallpaper_manager.js');
 require('/shared/test/unit/mocks/mock_service.js');
-require('/apps/system/test/unit/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 
 var mocksForWallpaperManager = new MocksHelper([
   'Service',
@@ -485,7 +485,7 @@ suite('WallpaperManager', function() {
     testWallpaperValue(this, DEFAULT_WALLPAPER, wallpaperBlob, done);
   });
 
-  // Data url that resolves to a right-size image 
+  // Data url that resolves to a right-size image
   test('right-size data uri', function(done) {
     testWallpaperValue(this, this.dataURL, wallpaperBlob, done);
   });

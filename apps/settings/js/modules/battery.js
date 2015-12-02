@@ -23,11 +23,21 @@ define(function(require) {
 
     this._level = this._getLevel();
     this._state = this._getState();
+    this._chargingTime = this._getChargingTime();
+    this._dischargingTime = this._getDischargingTime();
     NavigatorBattery.addEventListener('levelchange', () => {
       this._level = this._getLevel();
     });
     NavigatorBattery.addEventListener('chargingchange', () => {
       this._state = this._getState();
+      this._chargingTime = this._getChargingTime();
+      this._dischargingTime = this._getDischargingTime();
+    });
+    NavigatorBattery.addEventListener('chargingtimechange', () => {
+      this._chargingTime = this._getChargingTime();
+    });
+    NavigatorBattery.addEventListener('dischargingtimechange', () => {
+      this._dischargingTime = this._getDischargingTime();
     });
   }).extend(Observable);
 
@@ -59,6 +69,34 @@ define(function(require) {
       value: ''
   });
 
+  /**
+   * An observable property indicating the current charging time.
+   *
+   * @access public
+   * @readonly
+   * @memberOf Battery.prototype
+   * @type {String}
+   */
+  Observable.defineObservableProperty(Battery.prototype,
+    'chargingTime', {
+      readonly: true,
+      value: ''
+  });
+
+  /**
+   * An observable property indicating the current discharging time.
+   *
+   * @access public
+   * @readonly
+   * @memberOf Battery.prototype
+   * @type {String}
+   */
+  Observable.defineObservableProperty(Battery.prototype,
+    'dischargingTime', {
+      readonly: true,
+      value: ''
+  });
+
   Battery.prototype._getLevel = function() {
     return Math.min(100, Math.round(NavigatorBattery.level * 100));
   };
@@ -69,6 +107,14 @@ define(function(require) {
     } else {
       return 'unplugged';
     }
+  };
+
+  Battery.prototype._getChargingTime = function() {
+    return NavigatorBattery.chargingTime;
+  };
+
+  Battery.prototype._getDischargingTime = function() {
+    return NavigatorBattery.dischargingTime;
   };
 
   return Battery();

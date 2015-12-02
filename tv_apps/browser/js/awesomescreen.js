@@ -139,7 +139,7 @@ var Awesomescreen = {
         this.clickClearButton.bind(this));
 
     this.privateBrowsingBlock.addEventListener('mouseup',
-        this.hidePrivateBrowsingBlock.bind(this));
+        this.handlePrivateBrowsingBlockMouseUp.bind(this));
 
     // init BookmarkStore
     BookmarkStore.init();
@@ -378,6 +378,10 @@ var Awesomescreen = {
    */
   hidePrivateBrowsingBlock: function hidePrivateBrowsingBlock() {
     this.privateBrowsingBlock.classList.remove('visible');
+    var moreInfoEl =
+      document.getElementById('private-browsing-more-info-link');
+    moreInfoEl
+      .removeEventListener('click', this.openPrivateBrowsingMoreInfo);
   },
 
   /**
@@ -398,10 +402,32 @@ var Awesomescreen = {
     this.privateBrowsingBlock.classList.remove('visible');
     if(Toolbar.isPrivateBrowsing()) {
       this.privateBrowsingBlock.classList.add('visible');
-      var privateBrowsingInfoText =
-        document.getElementById('private-browsing-info-text');
-      privateBrowsingInfoText.innerHTML = _('WB_LT_PRIVATE_BROWSING_2');
+      var moreInfoEl =
+        document.getElementById('private-browsing-more-info-link');
+      moreInfoEl
+        .addEventListener('click', this.openPrivateBrowsingMoreInfo);
     }
+  },
+
+  /**
+   * handle private browsing block mouse up event
+   */
+  handlePrivateBrowsingBlockMouseUp:
+    function awesomescreen_handlePrivateBrowsingBlockMouseUp(e) {
+      var moreInfoEl =
+        document.getElementById('private-browsing-more-info-link');
+      if(e.target !== moreInfoEl) {
+        this.hidePrivateBrowsingBlock();
+      }
+  },
+
+  /**
+   * open private browsing more info link
+   */
+  openPrivateBrowsingMoreInfo:
+    function awesomescreen_openPrivateBrowsingMoreInfo() {
+    window.open('https://support.mozilla.org/en-US/kb/' +
+      'private-browsing-use-firefox-without-history');
   },
 
   /**

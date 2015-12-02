@@ -10,7 +10,7 @@ requireApp('system/js/pin_page_system_dialog.js');
 require('/shared/js/component_utils.js');
 require('/shared/js/lazy_loader.js');
 require('/shared/elements/gaia_pin_card/script.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_bookmarks_database.js');
 
 var mocksForPinDialog = new MocksHelper([

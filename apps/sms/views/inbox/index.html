@@ -109,7 +109,7 @@
         <div id="threads-no-messages">
           <div id="no-result-message">
             <p data-l10n-id="noMessages-title">No messages</p>
-            <p data-l10n-id="noMessages-text">Start communicating now</p>
+            <p data-l10n-id="noMessages-text-2">Start a conversation now</p>
           </div>
         </div>
 
@@ -162,7 +162,7 @@
         <span></span>
       </label>
       <a href="${hash}">
-        <aside role="note" data-l10n-id="${iconLabel}" class="icon icon-unread icon-draft"></aside>
+        <aside role="note" class="icon icon-unread icon-draft js-conversation-state"></aside>
         <aside class="pack-end threadlist-item-picture"
                role="img" aria-label="Contact photo"
                data-l10n-id="contact-photo">
@@ -172,7 +172,7 @@
         <p class="summary">
           <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
           <span class="mms-icon" data-l10n-id="mms-label">MMS</span>
-          <span dir="auto" class="body-text ellipsis-dir-fix">${bodyHTML}</span>
+          <span dir="auto" class="body-text js-conversation-body ellipsis-dir-fix"></span>
         </p>
       </a>
       -->

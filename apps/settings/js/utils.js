@@ -1,24 +1,10 @@
-/* global MozActivity, LazyLoader, DsdsSettings, SupportedNetworkTypeHelper */
-/* exported reopenSettings, openLink,
-            openIncompatibleSettingsDialog, DeviceStorageHelper,
-            sanitizeAddress, getIccByIndex */
+/* global MozActivity, LazyLoader, SupportedNetworkTypeHelper */
+/* exported openLink, openIncompatibleSettingsDialog */
 'use strict';
-
-/**
- * Move settings to foreground
- */
-
-function reopenSettings() {
-  navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-    var app = evt.target.result;
-    app.launch('settings');
-  };
-}
 
 /**
  * Open a link with a web activity
  */
-
 function openLink(url) {
   /* jshint nonew: false */
   if (url.startsWith('tel:')) { // dial a phone number
@@ -113,65 +99,6 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
 }
 
 /**
- * Helper class for formatting file size strings
- * required by *_storage.js
- */
-
-var FileSizeFormatter = (function FileSizeFormatter(fixed) {
-  function getReadableFileSize(bytes, digits) { // in: size in Bytes
-    if (bytes === undefined) {
-      return {};
-    }
-
-    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    var size, e;
-    if (bytes) {
-      e = Math.floor(Math.log(bytes) / Math.log(1024));
-      size = (bytes / Math.pow(1024, e)).toFixed(digits || 0);
-    } else {
-      e = 0;
-      size = '0';
-    }
-
-    return {
-      size: size,
-      unit: units[e]
-    };
-  }
-
-  return { getReadableFileSize: getReadableFileSize };
-})();
-
-/**
- * Helper class for getting available/used storage
- * required by *_storage.js
- */
-
-var DeviceStorageHelper = (function DeviceStorageHelper() {
-  function showFormatedSize(element, l10nId, size) {
-    if (size === undefined || isNaN(size)) {
-      element.textContent = '';
-      return;
-    }
-
-    // KB - 3 KB (nearest ones), MB, GB - 1.29 MB (nearest hundredth)
-    var fixedDigits = (size < 1024 * 1024) ? 0 : 2;
-    var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
-
-    navigator.mozL10n.formatValue('byteUnit-' + sizeInfo.unit).then(unit => {
-      navigator.mozL10n.setAttributes(element, l10nId, {
-        size: sizeInfo.size,
-        unit: unit
-      });
-    });
-  }
-
-  return {
-    showFormatedSize: showFormatedSize
-  };
-})();
-
-/**
  * The function returns an object of the supporting state of category of network
  * types. The categories are 'gsm', 'cdma', and 'lte'.
  */
@@ -219,45 +146,3 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
 
   exports.getSupportedNetworkInfo = getSupportedNetworkInfo;
 })(window);
-
-function isIP(address) {
-  return /^\d+\.\d+\.\d+\.\d+$/.test(address);
-}
-
-// Remove additional 0 in front of IP digits.
-// Notice that this is not following standard dot-decimal notation, just for
-// possible error tolarance.
-// (Values starting with 0 stand for octal representation by standard)
-function sanitizeAddress(input) {
-  if (isIP(input)) {
-    return input.replace(/0*(\d+)/g, '$1');
-  } else {
-    return input;
-  }
-}
-
-/**
- * Retrieve current ICC by a given index. If no index is provided, it will
- * use the index provided by `DsdsSettings.getIccCardIndexForCallSettings`,
- * which is the default. Unless there are very specific reasons to provide an
- * index, this function should always be invoked with no parameters in order to
- * use the currently selected ICC index.
- *
- * @param {Number} index index of the mobile connection to get the ICC from
- * @return {object}
- */
-function getIccByIndex(index) {
-  if (index === undefined) {
-    index = DsdsSettings.getIccCardIndexForCallSettings();
-  }
-  var iccObj;
-
-  if (navigator.mozMobileConnections[index]) {
-    var iccId = navigator.mozMobileConnections[index].iccId;
-    if (iccId) {
-      iccObj = navigator.mozIccManager.getIccById(iccId);
-    }
-  }
-
-  return iccObj;
-}

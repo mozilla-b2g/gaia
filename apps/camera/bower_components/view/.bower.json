@@ -24,7 +24,7 @@
     "tag": "v0.1.1",
     "commit": "5363c45a7150dcdba00815bea91611c14237a9e6"
   },
-  "_source": "git://github.com/gaia-components/view.git",
+  "_source": "git://github.com/fxos-components/view.git",
   "_target": "~0.1.1",
-  "_originalSource": "gaia-components/view"
+  "_originalSource": "fxos-components/view"
 }

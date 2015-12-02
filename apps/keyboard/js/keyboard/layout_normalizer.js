@@ -34,6 +34,14 @@ LayoutKeyNormalizer.prototype._isSpecialKey = function(key) {
   return hasSpecialCode || key.keyCode <= 0;
 };
 
+LayoutKeyNormalizer.prototype._isButton = function(key) {
+  var SPECIAL_BUTTONS = [
+      KeyEvent.DOM_VK_RETURN
+  ];
+
+  return this._isSpecialKey(key) && SPECIAL_BUTTONS.indexOf(key.keyCode) !== -1;
+};
+
 LayoutKeyNormalizer.prototype._getUpperCaseValue = function(key) {
   if (KeyEvent.DOM_VK_SPACE === key.keyCode ||
       this._isSpecialKey(key) ||
@@ -61,6 +69,8 @@ function(key, showAlternatesIndicator) {
   key.uppercaseValue = upperCaseKeyChar;
 
   key.isSpecialKey = this._isSpecialKey(key);
+
+  key.isButton = this._isButton(key);
 
   if (showAlternatesIndicator) {
     key.className = 'alternate-indicator';

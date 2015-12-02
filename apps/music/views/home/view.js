@@ -159,8 +159,6 @@ HomeView.prototype.destroy = function() {
 };
 
 HomeView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
-
   return document.l10n.formatValues(
     'unknownArtist', 'unknownAlbum'
   ).then(([unknownArtist, unknownAlbum]) => {
@@ -180,8 +178,11 @@ Sanitizer.createSafeHTML `<a class="tile" dir="auto"
     });
 
     this.tiles.innerHTML = Sanitizer.unwrapSafeHTML(...html);
-    return this.loadVisibleImages();
-  });
+    return Promise.all([
+      this.loadVisibleImages(),
+      document.l10n.ready
+    ]);
+  }).then(this.onRenderDone);
 };
 
 HomeView.prototype.getAlbums = function() {

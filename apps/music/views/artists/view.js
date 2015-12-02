@@ -28,9 +28,9 @@ ArtistsView.prototype.destroy = function() {
 };
 
 ArtistsView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
   return this.list.setModel(this.artists)
-    .then(() => this.list.cache());
+    .then(() => this.list.cache())
+    .then(this.onRenderDone);
 };
 
 ArtistsView.prototype.getArtists = function() {

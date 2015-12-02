@@ -37,7 +37,8 @@ define(function(require) {
       }
 
       navigator.mozL10n.setAttributes(element,
-        'batteryLevel-percent-' + Battery.state, { level: Battery.level });
+        'battery-level-percent', { level: Battery.level });
+
       if (element.hidden) {
         element.hidden = false;
       }
@@ -58,7 +59,7 @@ define(function(require) {
       if (this._enabled === value) {
         return;
       }
-      
+
       this._enabled = value;
       if (this._enabled) {
         Battery.observe('level', this._boundRefreshText);

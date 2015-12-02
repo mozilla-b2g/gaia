@@ -491,16 +491,6 @@ function executeNavigationStep(stepName) {
 }
 
 /**
- * Returns promise that is resolved either immediately (non split views) or
- * only when Navigation is marked as ready (split views).
- * @returns {Promise.<void>}
- */
-function waitForThePanelToBeReady() {
-  return isUsingOldArchitecture() || !readyDefer ?
-    Promise.resolve() : readyDefer.promise;
-}
-
-/**
  * Used in `waitForSlideAnimation` to help solving race conditions.
  * @type {Defer}
  */
@@ -807,8 +797,6 @@ var Navigation = {
       () => executeNavigationStep('beforeEnter').catch(catchStepError)
     ).then(
       switchPanel
-    ).then(
-      waitForThePanelToBeReady
     ).then(
       () => executeNavigationStep('afterEnter').catch(catchStepError)
     ).then(

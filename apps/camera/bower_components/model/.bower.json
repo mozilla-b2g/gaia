@@ -24,7 +24,7 @@
     "tag": "v0.1.0",
     "commit": "7464471d4da0743ba4042918083a3429f0fc0fd2"
   },
-  "_source": "git://github.com/gaia-components/model.git",
+  "_source": "git://github.com/fxos-components/model.git",
   "_target": "~0.1.0",
-  "_originalSource": "gaia-components/model"
+  "_originalSource": "fxos-components/model"
 }

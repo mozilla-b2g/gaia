@@ -7,14 +7,14 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "gaia-component": "gaia-components/gaia-component",
-    "gaia-header": "gaia-components/gaia-header#~0.9.5",
-    "gaia-theme": "gaia-components/gaia-theme#~0.4.6",
-    "gaia-icons": "gaia-components/gaia-icons#~0.10.5",
-    "gaia-toast": "gaia-components/gaia-toast",
-    "gaia-site-icon": "gaia-components/gaia-site-icon",
-    "gaia-dialog": "gaia-components/gaia-dialog",
-    "gaia-button": "gaia-components/gaia-button"
+    "gaia-component": "fxos-components/gaia-component",
+    "gaia-header": "fxos-components/gaia-header#~0.9.5",
+    "gaia-theme": "fxos-components/gaia-theme#~0.4.6",
+    "gaia-icons": "fxos-components/gaia-icons#1.0.2",
+    "gaia-toast": "fxos-components/gaia-toast",
+    "gaia-site-icon": "fxos-components/gaia-site-icon",
+    "gaia-dialog": "fxos-components/gaia-dialog",
+    "gaia-button": "fxos-components/gaia-button"
   },
   "resolutions": {
     "gaia-component": "~0.4.0"

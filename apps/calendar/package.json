@@ -10,7 +10,7 @@
       "eventemitter2": "github:asyncly/EventEmitter2/0.4.14#lib/eventemitter2.js",
       "ical": "github:mozilla-comm/ical.js/v0.0.2#build/ical.js",
       "page": "github:visionmedia/page.js/1.4.1#page.js",
-      "threads": "github:gaia-components/threads/master#threads.js",
+      "threads": "github:fxos-components/threads/master#threads.js",
       "uuid": "github:broofa/node-uuid/v1.4.1"
     }
   },

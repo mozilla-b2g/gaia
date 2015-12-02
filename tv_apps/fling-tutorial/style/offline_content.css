@@ -1,0 +1,52 @@
+#offline-content {
+  opacity: 1;
+  color: #fff;
+  background-image: url("images/background.png");
+  transition: opacity 0.1s ease;
+}
+
+#offline-content.finish {
+  opacity: 0;
+}
+
+.txt-mid {
+  font-size: 3.8rem;
+}
+
+.txt-large {
+  font-size: 7rem;
+}
+
+smart-button[type=rounded-corner-text] {
+  width: 23.7rem;
+  font-size: 2.4rem;
+  font-weight: normal;
+}
+
+.slide {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+}
+
+.slide-section {
+  position: absolute;
+  margin-right: -50%;
+  left: 50%;
+  transform: translate(-50%, 0px);
+}
+
+#description-section {
+  top: 21rem;
+  text-align: center;
+}
+
+#button-section {
+  bottom: 12rem;
+}
+
+.slide-description {
+  margin: 0;
+  margin-bottom: 7.5rem;
+  padding: 0;
+}
