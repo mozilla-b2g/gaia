@@ -586,7 +586,7 @@ suite('system/SyncManager >', () => {
         this.sinon.assert.calledOnce(getAssertionStub);
         this.sinon.assert.calledOnce(getKeysStub);
         this.sinon.assert.calledOnce(trySyncStub);
-        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(getAccountStub);
         this.sinon.assert.calledOnce(addEventListenerSpy);
         this.sinon.assert.calledWith(addEventListenerSpy,
                                      'mozFxAccountsUnsolChromeEvent');

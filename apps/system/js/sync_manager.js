@@ -247,6 +247,7 @@
       this.updateState();
       this.user = null;
       this.lastSync = null;
+      this.error = null;
       this.cleanup();
     },
 
@@ -311,6 +312,8 @@
         return this.getKeys();
       }).then(keys => {
         args.push(keys);
+        return this.getAccount();
+      }).then(() => {
         // We request a sync without any collection. This should fetch the
         // crypto/keys object. If it is available, we will successfully
         // continue the enabling process. If it is not available, that probably
@@ -318,8 +321,6 @@
         // In that case, until we are able to create new Sync user, we need
         // to disable Sync and let the user know about this situation.
         return this.trySync.apply(this, args);
-      }).then(() => {
-        return this.getAccount();
       }).then(() => {
         // We save default settings so we can revert user changes to the
         // default values when the user logs out from Sync. So new users don't
