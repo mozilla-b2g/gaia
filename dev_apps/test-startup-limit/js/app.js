@@ -112,14 +112,17 @@ exports.main = function() {
     component.decimal = count.toString();
     initialized = true;
     component.render();
-    perf.mark('visuallyLoaded');
-    perf.mark('contentInteractive');
 
-    // Now in the background we're going to update the binary value.
-    string.convertToBinary(count).then(binaryCount => {
-      component.binary = binaryCount;
-      perf.mark('fullyLoaded');
-    });
+    // introduce intentional startup delay to test raptor
+    setTimeout(function() {
+      perf.mark('visuallyLoaded');
+      perf.mark('contentInteractive');
+      // Now in the background we're going to update the binary value.
+      string.convertToBinary(count).then(binaryCount => {
+        component.binary = binaryCount;
+        perf.mark('fullyLoaded');
+      });
+    }, 1500);
   };
 };
 
