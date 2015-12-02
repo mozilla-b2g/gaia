@@ -102,8 +102,10 @@ suite('Pages', () => {
       title: 'Mock pinned page',
       url: 'Mock URL',
       pinTime: 4242,
-      screenshot: 'Mock screenshot',
-      themeColor: 'Mock color'
+      meta: {
+        'screenshot': 'Mock screenshot',
+        'theme-color': 'Mock color'
+      }
     };
 
     var mockCard = {
@@ -111,6 +113,7 @@ suite('Pages', () => {
       dataset: { id: null },
       style: { order: 0 },
       background: null,
+      meta: null,
       icon: null
     };
 
@@ -151,8 +154,7 @@ suite('Pages', () => {
 
       pages.updatePinnedPage(mockCard, mockPinnedPage);
       clock.tick();
-      assert.equal(mockCard.background.src, mockPinnedPage.screenshot);
-      assert.equal(mockCard.background.themeColor, mockPinnedPage.themeColor);
+      assert.equal(mockCard.meta, mockPinnedPage.meta);
     });
   });
 

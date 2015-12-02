@@ -219,24 +219,27 @@
         url: url,
         iconable: false,
         title: this.app.title,
-        themeColor: this.app.themeColor,
+        meta: this.app.meta,
         app: this.app
       };
 
-      this.app.getScreenshot(function() {
-        data.screenshot = this.app._screenshotBlob;
-        this.app.getSiteIconUrl(SITE_ICON_SIZE)
-        .then(iconObject => {
-          if (iconObject) {
-            data.icon = iconObject.blob;
-          }
-          this.publish('pin-page-dialog-requestopen', data);
-        })
-        .catch((err) => {
-          this.app.debug('bookmarkUrl, error from getSiteIcon: %s', err);
+      this.app.getSiteIconUrl(SITE_ICON_SIZE)
+      .then(iconObject => {
+        if (iconObject) {
+          data.icon = iconObject.blob;
+        }
+        this.app.getScreenshot(() => {
+          data.meta.screenshot = this.app._screenshotBlob;
           this.publish('pin-page-dialog-requestopen', data);
         });
-      }.bind(this));
+      })
+      .catch((err) => {
+        this.app.debug('bookmarkUrl, error from getSiteIcon: %s', err);
+        this.app.getScreenshot(() => {
+          data.meta.screenshot = this.app._screenshotBlob;
+          this.publish('pin-page-dialog-requestopen', data);
+        });
+      });
     },
 
     newWindow: function(manifest, isPrivate) {

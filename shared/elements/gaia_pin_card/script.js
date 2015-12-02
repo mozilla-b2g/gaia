@@ -10,6 +10,8 @@ window.GaiaPinCard = (function(win) {
   // Extend from the HTMLElement prototype
   var proto = Object.create(HTMLElement.prototype);
 
+  var DEFAULT_COLOR = [77, 77, 77];
+
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaPinCardBaseurl ||
     '/shared/elements/gaia_pin_card/';
@@ -35,13 +37,21 @@ window.GaiaPinCard = (function(win) {
       return this._background;
     },
     set: function(background) {
-      var bgSrc = background.src ? 'url(' + background.src +')' : '';
+      var bgSrc = background.src ? 'url(' + background.src + ')' : '';
       this._background = background;
       this.bgElement.style.backgroundImage = bgSrc;
       this.bgElement.style.backgroundColor = background.themeColor || '#4d4d4d';
       var opacity = background.themeColor ? '0.30' : '0.15';
       var computedStyle = window.getComputedStyle(this.bgElement);
-      var colorCodes = getColorCodes(computedStyle.backgroundColor);
+      var colorCodes;
+
+      try {
+        colorCodes = getColorCodes(computedStyle.backgroundColor);
+      } catch (error) {
+        colorCodes = DEFAULT_COLOR;
+        opacity = 0.15;
+      }
+
       // Adding opacity to the background color
       var rgbaColor = colorCodes.slice(1).join(',') + ', ' + opacity;
       var bgColorRgba = 'rgba(' + rgbaColor + ')';
@@ -49,6 +59,16 @@ window.GaiaPinCard = (function(win) {
       var width = computedWidth === 'auto' ? '140px' : computedWidth;
       var shadow = 'inset 0 0 0 ' + width;
       this.bgElement.style.boxShadow = shadow + ' ' + bgColorRgba;
+    }
+  });
+
+  Object.defineProperty(proto, 'meta', {
+    get: function() {
+      return this._meta;
+    },
+    set: function(meta) {
+      this._meta = meta;
+      this.renderCard();
     }
   });
 
@@ -70,20 +90,21 @@ window.GaiaPinCard = (function(win) {
     }
   });
 
-  Object.defineProperty(proto, 'description', {
-    get: function() {
-      return this.descElement.textContent;
-    },
-    set: function(desc) {
-      if (desc) {
-        this.descElement.textContent = desc;
-        this.container.classList.remove('no-content');
-        return;
-      }
-
-      this.container.classList.add('no-content');
+  proto.renderCard = function() {
+    var description = getDescription(this._meta);
+    if (description) {
+      this.descElement.appendChild(description);
+      this.container.classList.remove('no-content');
     }
-  });
+
+    var background = getBackgroundBlob(this._meta);
+    if (background) {
+      this.background = {
+        src: URL.createObjectURL(background),
+        themeColor: this._meta['theme-color'] || null
+      };
+    }
+  };
 
   var template = document.createElement('template');
   template.innerHTML =
@@ -94,15 +115,27 @@ window.GaiaPinCard = (function(win) {
       <div class="background"></div>
       <div class="content">
         <header></header>
-        <section>
-          <p class="description"></p>
-        </section>
+        <section class="description"></section>
       </div>
     </article>`;
 
   function getColorCodes(color) {
     var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(color);
     return colorCodes;
+  }
+
+  function getDescription(meta) {
+    if (!meta['og:description']) {
+      return false;
+    }
+
+    var desc = document.createElement('p');
+    desc.textContent = meta['og:description'];
+    return desc;
+  }
+
+  function getBackgroundBlob(meta) {
+    return meta['og:image'] || meta.screenshot;
   }
 
   // Register and return the constructor

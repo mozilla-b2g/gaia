@@ -118,15 +118,7 @@
       card.style.order = -Math.round(page.pinTime / 1000);
 
       setTimeout(function(card, page) {
-        var background = {};
-        if (page.screenshot) {
-          background.src = URL.createObjectURL(page.screenshot);
-        }
-        if (page.themeColor) {
-          background.themeColor = page.themeColor;
-        }
-        card.background = background;
-
+        card.meta = page.meta;
         IconsHelper.getIconBlob(page.url, PAGES_ICON_SIZE, page)
           .then((iconObj) => {
             if (iconObj.blob) {

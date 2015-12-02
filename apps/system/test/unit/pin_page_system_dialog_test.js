@@ -19,7 +19,7 @@ var mocksForPinDialog = new MocksHelper([
 
 suite('Pin Page dialog', function() {
   var subject, container, stubPin, stubPinSite, stubUnpinSite,
-      toastStub, bookmark, inScopeStub, scope;
+      toastStub, bookmark, inScopeStub, scope, mockPin;
 
   mocksForPinDialog.attachTestHelpers();
 
@@ -32,6 +32,11 @@ suite('Pin Page dialog', function() {
     inScopeStub = this.sinon.stub();
     toastStub = document.createElement('div');
     toastStub.show = this.sinon.stub();
+
+    mockPin = {
+      url: 'http://test.com',
+      meta: {}
+    };
 
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -101,7 +106,7 @@ suite('Pin Page dialog', function() {
 
     test('shows the dialog when requestopen', function() {
       window.dispatchEvent(new CustomEvent('pin-page-dialog-requestopen', {
-        detail: {}
+        detail: mockPin
       }));
       assert.isTrue(SystemDialog.prototype.show.called);
       assert.isTrue(subject.element.open.called);
@@ -111,7 +116,7 @@ suite('Pin Page dialog', function() {
     test('does not show the dialog when requestopen and stopped', function() {
       subject.stop();
       window.dispatchEvent(new CustomEvent('pin-page-dialog-requestopen', {
-        detail: {}
+        detail: mockPin
       }));
       assert.isFalse(SystemDialog.prototype.show.called);
       assert.isFalse(subject.element.open.called);
@@ -123,9 +128,7 @@ suite('Pin Page dialog', function() {
     var data;
 
     setup(function() {
-      data = {
-        url: 'http://test.com'
-      };
+      data = mockPin;
       subject = new PinPageSystemDialog();
       this.sinon.stub(SystemDialog.prototype, 'show');
       subject.element.open = this.sinon.stub();
