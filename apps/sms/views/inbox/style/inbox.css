@@ -1,54 +1,16 @@
-#sticky {
-  position: absolute;
 
-  /* The sticky element is positioned at the beginning of the list. */
-  top: 5rem;
-
-  /* The width is not 100% so the scrollbar is visible. */
-  width: calc(100% - 2rem);
-
-  /* The height needs to be kept in sync with the header height. */
-  height: 3.1rem;
-
-  /* Leaving 1rem margin for both side to makes scrollbar visible in LTR/RTL */
-  margin: 0 1rem;
-
-  /* The sticky element needs to be above the list. */
-  z-index: 2;
-
-  /* Hide sticky header when content is not ready */
-  visibility: hidden;
-
-  /* Those style will affect the backgroundImage: -moz-element. */
-  background: white no-repeat center top;
-}
-
-#sticky.has-content {
-  /* Set sticky header visible only when content is ready */
-  visibility: visible;
-}
-
-#threads-container[data-type="list"] header {
-  background: #fff;
-}
-
-#threads-container[data-type="list"] ul {
-  padding: 0 1.0rem;
-  background-color: #fff;
-}
-
-#threads-container[data-type="list"] .mms-icon {
+#threads-list .mms-icon {
   display: none;
 
   font-size: 1.5rem;
   color: #ff6622;
 }
 
-#threads-container[data-type="list"] [data-last-message-type="mms"] .mms-icon {
+#threads-list [data-last-message-type="mms"] .mms-icon {
   display: inline;
 }
 
-#threads-container[data-type="list"] [data-last-message-type="mms"] .body-text {
+#threads-list [data-last-message-type="mms"] .body-text {
   display: none;
 }
 
@@ -60,24 +22,24 @@
   display: block;
 }
 
-[data-type="list"] [data-contact-photo=default] > span[data-type=img],
-[data-type="list"] [data-contact-photo=group] > span[data-type=img] {
+#threads-container [data-contact-photo=default] > span[data-type=img],
+#threads-container [data-contact-photo=group] > span[data-type=img] {
   /* Please keep this image in sync with what is used in js/inbox.js */
   background: url('images/default_contact_image.png') top left; /* BiDi proof: CSS sprites */
 }
 
-li:nth-child(even) [data-contact-photo=default] > span[data-type=img],
-li:nth-child(even) [data-contact-photo=group] > span[data-type=img] {
+#threads-container li:nth-child(even) [data-contact-photo=default] > span[data-type=img],
+#threads-container li:nth-child(even) [data-contact-photo=group] > span[data-type=img] {
   background-position: bottom right; /* BiDi proof: CSS sprites */
 }
 
-li:nth-child(3n+1) [data-contact-photo=default] > span[data-type=img],
-li:nth-child(3n+1) [data-contact-photo=group] > span[data-type=img] {
+#threads-container li:nth-child(3n+1) [data-contact-photo=default] > span[data-type=img],
+#threads-container li:nth-child(3n+1) [data-contact-photo=group] > span[data-type=img] {
   background-position: top right; /* BiDi proof: CSS sprites */
 }
 
-li:nth-child(4n+4) [data-contact-photo=default] > span[data-type=img],
-li:nth-child(4n+4) [data-contact-photo=group] > span[data-type=img] {
+#threads-container li:nth-child(4n+4) [data-contact-photo=default] > span[data-type=img],
+#threads-container li:nth-child(4n+4) [data-contact-photo=group] > span[data-type=img] {
   background-position: center center;
 }
 
@@ -99,49 +61,51 @@ li:nth-child(4n+4) [data-contact-photo=group] > span[data-type=img] {
   background-color: #fff;
 }
 
-[data-type="list"] aside.icon-unread {
+#threads-list aside.icon-unread {
   margin: 0;
   width: 1.9rem;
   visibility: hidden;
 }
 
-[data-status="unread-thread"] aside.icon-unread {
-  background: url("images/unread.png") no-repeat;
+#threads-list [data-status="unread-thread"] aside.icon-unread {
+  background-image: url("images/unread.png");
+  background-repeat: no-repeat;
   background-size: 1rem;
   visibility: visible;
 }
 
-[data-type="list"] a * {
+#threads-list a * {
   pointer-events: none;
 }
 
-[data-type="list"] .summary {
+#threads-list p.summary {
   display: flex;
 }
 
-[data-type="list"] [data-status="is-draft"] .icon-draft,
-[data-type="list"] [data-status="has-draft"] .icon-draft {
-  background: url("images/draft.png") no-repeat;
+#threads-list [data-status="is-draft"] .icon-draft,
+#threads-list [data-status="has-draft"] .icon-draft {
+  background-image: url("images/draft.png");
+  background-repeat: no-repeat;
   background-size: 1.2rem;
   visibility: visible;
 }
 
-[data-status="is-draft"] .pack-end {
+#threads-list [data-status="is-draft"] .pack-end {
   opacity: 0.5;
 }
 
-[data-status="is-draft"] .threadlist-item-title {
+#threads-list [data-status="is-draft"] p.threadlist-item-title {
   font-style: italic;
   color: #5f5f5f;
 }
 
 /* Override time margin for flex layout */
-[data-type="list"] .summary time {
+#threads-list .summary time {
   display: inline-block;
   margin-inline-end: 1rem;
 }
 
-[data-status="unread-thread"] .summary time {
+#threads-list [data-status="unread-thread"] .summary time {
   color: #1D8399;
 }
 

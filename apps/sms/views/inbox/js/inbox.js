@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Template, Utils, Threads, Contacts, Threads,
-         WaitingScreen, MessageManager, TimeHeaders,
+         WaitingScreen, MessageManager,
          Drafts, Thread, OptionMenu, ActivityPicker,
          Navigation,
          SelectionHandler,
@@ -367,8 +367,16 @@ var InboxView = {
         (isRead || !thread.getDraft());
 
       if (markable) {
+        var index = this.listData.findIndex((data) => data.id === thread.id);
+        var status = '';
+
+        if (!isRead) {
+          status = 'unread-thread';
+        } else if (!!thread.getDraft()) {
+          status = 'has-draft';
+        }
         thread.unreadCount = isRead ? 0 : 1;
-        this.mark(thread.id, isRead ? 'read' : 'unread');
+        this.mark(index, status);
 
         MessageManager.markThreadRead(thread.id, isRead);
       }
@@ -573,7 +581,6 @@ var InboxView = {
     }
 
     if (!empty) {
-      // this.updateContactsInfo();
       this.list.setModel(this.listData);
       this.list.cache();
     }
@@ -604,7 +611,6 @@ var InboxView = {
         // of the visible area.
         if (--firstPanelCount === 0) {
           this.list.setModel(this.listData);
-          // this.updateContactsInfo();
           this.emit('visually-loaded');
         } else if (this.listData.length % this.FIRST_PANEL_THREAD_COUNT === 0) {
           this.list.setModel(this.listData);
@@ -638,7 +644,6 @@ var InboxView = {
     var timestamp = +record.timestamp;
     var participants = record.participants;
     var id = record.id;
-    var iconLabel = '';
     var classList = [];
     var daySection = Utils.getDayDate(timestamp);
 
@@ -713,23 +718,6 @@ var InboxView = {
     Utils.closeNotificationsForThread(threadId);
   },
 
-  insertThreadContainer:
-    function inbox_insertThreadContainer(group, timestamp) {
-    // We look for placing the group in the right place.
-    var headers = InboxView.container.getElementsByTagName('header');
-    var groupFound = false;
-    for (var i = 0; i < headers.length; i++) {
-      if (timestamp >= headers[i].dataset.time) {
-        groupFound = true;
-        InboxView.container.insertBefore(group, headers[i].parentNode);
-        break;
-      }
-    }
-    if (!groupFound) {
-      InboxView.container.appendChild(group);
-    }
-  },
-
   /**
    * Update the DOM element for a conversation.
    *
@@ -756,7 +744,7 @@ var InboxView = {
     // one in the conversation, we only need to update the 'unread' status.
     var newMessageReceived = options.unread;
     if (newMessageReceived && threadUITime > recordTime) {
-      this.mark(thread.id, 'unread');
+      this.mark(index, 'unread-thread');
       return;
     }
 
@@ -838,23 +826,22 @@ var InboxView = {
   updateContactsInfo: function inbox_updateContactsInfo() {
     Contacts.clearUnknown();
     // Prevents cases where updateContactsInfo method is called
-    // before InboxView.container exists (as observed by errors
-    // in the js console)
-    if (!this.container) {
+    // before listData exists.
+    if (!this.listData) {
       return;
     }
-    // Retrieve all 'li' elements
-    var threads = this.container.getElementsByTagName('li');
-
-    [].forEach.call(threads, this.setContact.bind(this));
+    // Retrieve all the list data
+    this.listData.forEach(this.setContact);
   },
 
-  mark: function inbox_mark(id, current) {
-    var li = document.getElementById('thread-' + id);
+  mark: function inbox_mark(index, current) {
+    var data = this.listData[index];
 
-    if (li) {
-      li.classList.toggle('unread', current === 'unread');
-    }
+    return document.l10n.formatValue(current).then((string) => {
+      data.status = current;
+      data.iconLabel = string;
+      return this.list.setModel(this.listData);
+    });
   },
 
   onDraftDeleted: function inbox_onDraftDeleted(draft) {
