@@ -95,7 +95,6 @@
 
   PreviewWindow.prototype._handle_mozbrowsercontextmenu = function(evt) {
     var icon;
-    var id;
     var label;
     var onClick;
     var manifestURL = this.manifestURL;
@@ -103,13 +102,11 @@
 
     if (!AppInstallManager.getAppAddedState(manifestURL)) {
       icon = 'style/icons/default.png';
-      id = 'addApp';
       label = 'add-to-apps';
       onClick = AppInstallManager.handleAddAppToApps.bind(
         AppInstallManager, app);
     } else {
       icon = 'style/icons/default.png';
-      id = 'deleteApp';
       label = 'delete-from-apps';
       onClick = () => {
         navigator.mozApps.mgmt.uninstall(app).onsuccess = () => {
@@ -118,13 +115,12 @@
       };
     }
 
-    label = navigator.mozL10n.formatValue(label).then((value) => {
+    navigator.mozL10n.formatValue(label).then((value) => {
       evt.detail.contextmenu = {
         type: 'menu',
         customized: true,
         items: [{
           icon: icon,
-          id: id,
           label: value,
           type: 'menuitem',
           onClick: onClick
