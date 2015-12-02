@@ -24,6 +24,7 @@
     '/shared/js/mime_mapper.js',
     '/shared/js/option_menu.js',
     '/shared/js/mobile_operator.js',
+    '/shared/js/event_safety.js',
     '/shared/elements/gaia_sim_picker/script.js',
     '/views/shared/js/waiting_screen.js',
     '/views/shared/js/errors.js',
