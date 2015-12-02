@@ -64,10 +64,6 @@ marionette('Contacts > List', function() {
       }
     }
 
-    setup(function() {
-      generateContactsWithImage();
-    });
-
     function firstContactHasImage() {
       return client.executeScript(function() {
         var span = document.querySelector(
@@ -79,28 +75,64 @@ marionette('Contacts > List', function() {
       });
     }
 
-    test('after scrolling we keep the images', function() {
-      // Scroll to different sections in the list
-      var scrollbar = client.helper.waitForElement(
-        Contacts.Selectors.scrollbar);
-      //F
-      actions.press(scrollbar, 15, 100).release().perform();
-      client.helper.waitForElement(Contacts.Selectors.overlay);
-      client.helper.waitForElementToDisappear(Contacts.Selectors.overlay);
-      //T
-      actions.press(scrollbar, 15, 300).release().perform();
-      client.helper.waitForElement(Contacts.Selectors.overlay);
-      client.helper.waitForElementToDisappear(Contacts.Selectors.overlay);
-      //X
-      actions.press(scrollbar, 15, 350).release().perform();
-      client.helper.waitForElement(Contacts.Selectors.overlay);
-      client.helper.waitForElementToDisappear(Contacts.Selectors.overlay);
-      //A
-      actions.press(scrollbar, 15, 40).release().perform();
-      client.helper.waitForElement(Contacts.Selectors.overlay);
-      client.helper.waitForElementToDisappear(Contacts.Selectors.overlay);
+    function firstContactHasDefaultImage() {
+      try {
+        var span = client.findElement(
+          '#contacts-list-A .contact-item span');
+        return span.cssProperty('background-image') === 'url(' +
+            '"app://communications.gaiamobile.org/contacts/' +
+            'style/images/Imagery.png")';
+      } catch (e) {
+        return false;
+      }
+    }
 
-      assert.ok(firstContactHasImage());
+    function checkLetterForElement(selector, letter) {
+      try {
+        var elem = client.findElement(selector);
+        return elem.getAttribute('data-group') === letter;
+      } catch (e) {
+        return e.toString();
+      }
+    }
+
+    suite('Default Images > ', function() {
+      // Moztrap: https://moztrap.mozilla.org/manage/case/14399/
+      test('contact with no picture show the default one', function() {
+        subject.addContact({givenName: 'Anthony'});
+        assert.ok(firstContactHasDefaultImage());
+        assert.ok(checkLetterForElement('span[data-type="img"]', 'A'));
+      });
+    });
+
+    suite('Contacts with images > ', function() {
+      setup(function() {
+        generateContactsWithImage();
+      });
+
+      test('after scrolling we keep the images', function() {
+        // Scroll to different sections in the list
+        var scrollbar = client.helper.waitForElement(
+          Contacts.Selectors.scrollbar);
+        //F
+        actions.press(scrollbar, 15, 100).release().perform();
+        client.helper.waitForElement(Contacts.Selectors.overlay);
+        client.helper.waitForElementToDisappear(Contacts.Selectors.overlay);
+        //T
+        actions.press(scrollbar, 15, 300).release().perform();
+        client.helper.waitForElement(Contacts.Selectors.overlay);
+        client.helper.waitForElementToDisappear(Contacts.Selectors.overlay);
+        //X
+        actions.press(scrollbar, 15, 350).release().perform();
+        client.helper.waitForElement(Contacts.Selectors.overlay);
+        client.helper.waitForElementToDisappear(Contacts.Selectors.overlay);
+        //A
+        actions.press(scrollbar, 15, 40).release().perform();
+        client.helper.waitForElement(Contacts.Selectors.overlay);
+        client.helper.waitForElementToDisappear(Contacts.Selectors.overlay);
+
+        assert.ok(firstContactHasImage());
+      });
     });
   });
 });
