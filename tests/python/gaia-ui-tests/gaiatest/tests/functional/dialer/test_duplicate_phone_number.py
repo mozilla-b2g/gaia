@@ -11,9 +11,6 @@ from gaiatest.apps.contacts.app import Contacts
 
 class TestDuplicatePhoneNumber(GaiaTestCase):
 
-    _iframe_locator = (By.CSS_SELECTOR, '.popupWindow.active iframe[data-url*="matching"]')
-    _merge_button = (By.ID, 'merge-action')
-
     def setUp(self):
         GaiaTestCase.setUp(self)
         
