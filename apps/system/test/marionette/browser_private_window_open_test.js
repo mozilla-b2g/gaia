@@ -10,7 +10,8 @@ marionette('Private Browser - Window.open', function() {
       prefs: {
         'focusmanager.testmode': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var home, rocketbar, search, server, system;

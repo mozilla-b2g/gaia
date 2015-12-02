@@ -8,7 +8,9 @@ var NEW_WINDOW = 'app://search.gaiamobile.org/newtab.html?private=0';
 
 marionette('Browser Chrome - Open New Window', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var actions, home, rocketbar, search, server, system;
 

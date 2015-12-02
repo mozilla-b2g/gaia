@@ -10,8 +10,7 @@ marionette('Software Home Button - Quick Settings Dialog', function() {
       settings: {
         'software-button.enabled': true
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
   var home, system;
 

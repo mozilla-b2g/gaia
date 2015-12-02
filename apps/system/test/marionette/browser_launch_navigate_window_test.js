@@ -7,7 +7,9 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Browser - Launch a URL navigates the same window',
   function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var home, rocketbar, search, server, system;
 

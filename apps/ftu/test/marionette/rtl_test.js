@@ -5,7 +5,10 @@ var assert = require('assert');
 
 marionette('First Time Use >', function() {
   var ftu;
-  var client = marionette.client({ profile: Ftu.clientOptions });
+  var client = marionette.client({
+    profile: Ftu.clientOptions,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var quickly;
 
   setup(function() {

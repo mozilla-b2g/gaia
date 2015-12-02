@@ -12,7 +12,7 @@ marionette('Text keyboard input tests', function() {
   var keyboardTestApp = null;
   var keyboard = null;
   var client = null;
-  
+
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
 
   client = marionette.client({
@@ -25,7 +25,8 @@ marionette('Text keyboard input tests', function() {
         'lockscreen.enabled': false,
         'ftu.manifestURL': null
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {

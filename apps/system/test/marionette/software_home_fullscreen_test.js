@@ -16,7 +16,8 @@ marionette('Software Home Button - Fullscreen Request', function() {
         'fullscreen_request.gaiamobile.org':
           __dirname + '/../apps/fullscreen_request'
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var home, system;
 

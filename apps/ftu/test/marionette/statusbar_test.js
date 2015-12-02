@@ -6,7 +6,10 @@ var assert = require('assert');
 
 marionette('First Time Use >', function() {
 
-  var client = marionette.client({ profile: Ftu.clientOptions });
+  var client = marionette.client({
+    profile: Ftu.clientOptions,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var ftu, system;
 
   setup(function() {

@@ -22,7 +22,8 @@ marionette('Music player search', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var music;

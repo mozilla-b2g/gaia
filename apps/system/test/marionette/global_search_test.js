@@ -12,7 +12,8 @@ marionette('Global search >', function() {
       prefs: {
         'devtools.debugger.forbid-certified-apps': false
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var sys, rocketbar, actions;

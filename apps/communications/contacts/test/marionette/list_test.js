@@ -5,7 +5,10 @@ var ContactsData = require('./lib/contacts_data');
 var assert = require('assert');
 
 marionette('Contacts > List', function() {
-  var client = marionette.client({ profile: Contacts.config });
+  var client = marionette.client({
+    profile: Contacts.config,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var subject;
   var selectors;
   var contactsData;
@@ -24,7 +27,7 @@ marionette('Contacts > List', function() {
   setup(function() {
     contactsData = new ContactsData(client);
     actions = client.loader.getActions();
-    subject = new Contacts(client);    
+    subject = new Contacts(client);
     subject.launch();
   });
 

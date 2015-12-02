@@ -21,7 +21,8 @@ marionette('Software Home Button - Fullscreen Layout', function() {
         'fullscreen_layout.gaiamobile.org':
           __dirname + '/../apps/fullscreen_layout'
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var home, system, actions, screenSize, shbSize;
 

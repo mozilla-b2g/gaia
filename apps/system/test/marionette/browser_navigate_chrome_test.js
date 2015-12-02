@@ -13,7 +13,8 @@ marionette('Browser - Chrome on browser navigation',
       settings: {
         'dev.gaia.pinning_the_web': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var home, rocketbar, search, server, system, pinTheWeb;

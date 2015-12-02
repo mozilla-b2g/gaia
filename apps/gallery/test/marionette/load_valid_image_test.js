@@ -24,18 +24,18 @@ marionette('loading images', function() {
     client.fileManager.removeAllFiles();
     // Add file into the pictures directory
     client.fileManager.add([
-    	{type: 'pictures',filePath: 'apps/gallery/test/images/01.jpg'}, 
-    	{type: 'pictures',filePath: 'apps/gallery/test/images/02.png'}, 
-    	{type: 'pictures',filePath: 'apps/gallery/test/images/03.gif'}, 
-    	{type: 'pictures',filePath: 'apps/gallery/test/images/04.bmp'}, 
-    	// Progressive JPG 
-        {type: 'pictures',filePath: 'apps/gallery/test/images/05.jpg'}, 
+    	{type: 'pictures',filePath: 'apps/gallery/test/images/01.jpg'},
+    	{type: 'pictures',filePath: 'apps/gallery/test/images/02.png'},
+    	{type: 'pictures',filePath: 'apps/gallery/test/images/03.gif'},
+    	{type: 'pictures',filePath: 'apps/gallery/test/images/04.bmp'},
+    	// Progressive JPG
+        {type: 'pictures',filePath: 'apps/gallery/test/images/05.jpg'},
     	// Transparent background PNG
-        {type: 'pictures',filePath: 'apps/gallery/test/images/06.png'}, 
-    	// Animated GIF 
-        {type: 'pictures',filePath: 'apps/gallery/test/images/07.gif'}, 
-    	// Animaged PNG 
-        {type: 'pictures',filePath: 'apps/gallery/test/images/08.png'}  
+        {type: 'pictures',filePath: 'apps/gallery/test/images/06.png'},
+    	// Animated GIF
+        {type: 'pictures',filePath: 'apps/gallery/test/images/07.gif'},
+    	// Animaged PNG
+        {type: 'pictures',filePath: 'apps/gallery/test/images/08.png'}
     ]);
     app = new Gallery(client);
     fullscreen_view = new Fullscreen_View(client);
@@ -51,12 +51,12 @@ marionette('loading images', function() {
 
         var initial_width = fullscreen_view.width;
         var initial_height = fullscreen_view.height;
-    	
+
     	// Checks the image blob is currently being displayed
         assert.ok(fullscreen_view.hasSrcImageBlobURL(Gallery.ORIGIN,
             fullscreen_view.displayedImage));
-    	
-        // Initially the image resolutions matches the frame size.  
+
+        // Initially the image resolutions matches the frame size.
         // if the image's original res is
         // greater than the frame, it will zoom in when the user double taps.
     	// double tap, if the image width got increased,
@@ -66,10 +66,10 @@ marionette('loading images', function() {
             {assert.ok(initial_height < fullscreen_view.height);}
     	else
             {assert.ok(initial_height == fullscreen_view.height);}
-            
+
         // return to the main thumbnail view
     	fullscreen_view.fullscreenBackButton.click();
-        assert.ok(app.thumbnailsViewDisplayed);	    
+        assert.ok(app.thumbnailsViewDisplayed);
     }
 
       });

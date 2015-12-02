@@ -11,7 +11,8 @@ marionette('First Time Experience View', function() {
       prefs: {
         'focusmanager.testmode': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var costControlApp;

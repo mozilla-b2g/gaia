@@ -21,7 +21,8 @@ marionette('Messages Composer', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var messagesApp, activityCallerApp;

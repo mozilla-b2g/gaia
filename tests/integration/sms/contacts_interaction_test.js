@@ -21,7 +21,8 @@ marionette('Contacts', function() {
   var client = marionette.client({
     prefs: {
       'focusmanager.testmode': true
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var thread, storage, contactsData, inbox;

@@ -5,7 +5,10 @@ var Ftu = require('./lib/ftu');
 
 marionette('First Time Use > Pseudo Localization', function() {
   var ftu;
-  var client = marionette.client({ profile: Ftu.clientOptions });
+  var client = marionette.client({
+    profile: Ftu.clientOptions,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   setup(function() {
     ftu = new Ftu(client);

@@ -29,7 +29,8 @@ marionette('Ringtone management', function() {
         'device.storage.testing': true,
         'device.storage.prompt.testing': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var app, settingsApp;
   var soundPanel;

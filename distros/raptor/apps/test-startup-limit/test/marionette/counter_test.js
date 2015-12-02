@@ -49,7 +49,9 @@ Counter.prototype = {
 };
 
 marionette('counter', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var counter = new Counter(client);
 
   setup(function() {

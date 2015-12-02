@@ -9,7 +9,10 @@ var createAppServer =
 
 marionette('Search - Installed Apps Test', function() {
   var clientOptions = require(__dirname + '/client_options.js');
-  var client = marionette.client({ profile: clientOptions });
+  var client = marionette.client({
+    profile: clientOptions,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var appInstall, home, rocketbar, search, server, system;
 
   setup(function(done) {

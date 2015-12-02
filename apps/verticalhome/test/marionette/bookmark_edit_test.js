@@ -8,7 +8,8 @@ marionette('Vertical - Bookmark EDIT', function() {
   var options = require(__dirname + '/client_options.js');
   options.settings['dev.gaia.pinning_the_web'] = false;
   var client = marionette.client({
-    profile: options
+    profile: options,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var bookmark, home, server, system;
 

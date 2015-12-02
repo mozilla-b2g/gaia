@@ -5,7 +5,10 @@ var assert = require('assert');
 var Contacts = require('./lib/contacts');
 
 marionette('Contacts > Delete', function() {
-  var client = marionette.client({ profile: Contacts.config });
+  var client = marionette.client({
+    profile: Contacts.config,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var subject;
   var selectors;
 

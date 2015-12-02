@@ -14,7 +14,8 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
       settings: {
         'software-button.enabled': false
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var home, system;

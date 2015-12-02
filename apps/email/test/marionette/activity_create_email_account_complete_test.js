@@ -7,7 +7,9 @@ var serverHelper = require('./lib/server_helper');
 
 marionette('activity create email account', function() {
   var app,
-      client = marionette.client(),
+      client = marionette.client({
+        desiredCapabilities: { raisesAccessibilityExceptions: false }
+      }),
       server = serverHelper.use({
         credentials: {
           username: 'testy1',

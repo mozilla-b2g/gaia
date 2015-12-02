@@ -12,7 +12,8 @@ marionette('Browser Chrome - Back/Forward button', function() {
         'fakechromenavapp.gaiamobile.org':
           __dirname + '/../apps/fakechromenavapp',
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var actions, rocketbar, search, server, system;

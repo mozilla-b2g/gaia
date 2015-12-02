@@ -3,7 +3,9 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('manipulate sound settings', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var settingsApp;
   var soundPanel;
 

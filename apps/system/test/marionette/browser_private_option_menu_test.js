@@ -11,7 +11,8 @@ marionette('Private Browser - option menu', function() {
       prefs: {
         'focusmanager.testmode': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var home, rocketbar, search, server, system;

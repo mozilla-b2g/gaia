@@ -9,7 +9,8 @@ marionette('Closing statusbar via home button >', function() {
       prefs: {
         'devtools.debugger.forbid-certified-apps': false
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var system,

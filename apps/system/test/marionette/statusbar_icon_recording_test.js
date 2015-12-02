@@ -6,9 +6,7 @@ var APP = 'app://sms.gaiamobile.org';
 
 marionette('Status Bar icons - Recording', function() {
 
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client();
 
   var system;
   var statusBar;

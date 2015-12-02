@@ -4,7 +4,9 @@ marionette('Alarm', function() {
   var assert = require('assert');
   var $ = require('./lib/mquery');
   var utils = require('./lib/utils');
-  var actions = new (require('./lib/actions'))();
+  var actions = new (require('./lib/actions'))({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var alarm = actions.alarm;
 
   setup(function() {

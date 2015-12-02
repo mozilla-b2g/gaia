@@ -20,7 +20,8 @@ marionette('Text selection >', function() {
           'docshell.device_size_is_page_size': true,
           'dom.mozInputMethod.enabled': false
         }
-      }
+      },
+      desiredCapabilities: { raisesAccessibilityExceptions: false }
     });
 
     setup(function() {

@@ -7,7 +7,9 @@ var serverHelper = require('./lib/server_helper');
 marionette('email message list edit mode', function() {
   var app;
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var server = serverHelper.use(null, this);
 

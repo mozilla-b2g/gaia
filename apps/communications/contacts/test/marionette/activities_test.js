@@ -8,7 +8,10 @@ var assert = require('assert');
 var fs = require('fs');
 
 marionette('Contacts > Activities', function() {
-  var client = marionette.client({ profile: Contacts.config });
+  var client = marionette.client({
+    profile: Contacts.config,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var dialerSubject;
 

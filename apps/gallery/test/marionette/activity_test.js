@@ -22,7 +22,8 @@ marionette('Gallery Activity Tests', function() {
         'device.storage.prompt.testing': true
       },
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var galleryApp, activityTesterApp, system;

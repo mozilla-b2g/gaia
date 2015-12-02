@@ -5,7 +5,9 @@ var Calendar = require('./lib/calendar'),
 
 marionette('settings', function() {
   var app;
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   setup(function() {
     app = new Calendar(client);

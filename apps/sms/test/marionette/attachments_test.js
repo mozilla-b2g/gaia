@@ -18,7 +18,8 @@ marionette('Attachment picking and sending tests', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var messagesApp, activityCallerApp;

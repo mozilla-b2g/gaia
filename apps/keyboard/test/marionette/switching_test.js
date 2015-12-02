@@ -40,7 +40,8 @@ marionette('switch Keyboard App', function() {
       settings: {
         'keyboard.enabled-layouts': keyboardSettings
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   /*

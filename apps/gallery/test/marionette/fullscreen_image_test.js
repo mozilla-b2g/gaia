@@ -16,7 +16,8 @@ marionette('the gallery', function() {
         'device.storage.testing': true,
         'device.storage.prompt.testing': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {
@@ -69,8 +70,8 @@ marionette('the gallery', function() {
     client.waitFor(function() {
       return app.thumbnails.length == 2;
     });
-    assert.ok(fullscreen_view.displayed);    
-    
+    assert.ok(fullscreen_view.displayed);
+
     // go back to the thumbnail view, and click the first thumbnail
     fullscreen_view.fullscreenBackButton.click();
     client.waitFor(function() {

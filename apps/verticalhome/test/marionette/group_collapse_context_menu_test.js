@@ -3,8 +3,7 @@
 marionette('Vertical - Group', function() {
 
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js'),
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    profile: require(__dirname + '/client_options.js')
   });
   var actions, home, system;
 
