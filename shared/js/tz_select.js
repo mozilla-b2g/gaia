@@ -287,8 +287,17 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     };
 
     function setTimezoneDescription(timezoneID) {
+      var oldSelectedIndex = regionSelector.selectedIndex;
       regionSelector.value = timezoneID.replace(/\/.*/, '');
+      if (regionSelector.selectedIndex == -1) {
+        regionSelector.selectedIndex = oldSelectedIndex;
+      }
+
+      oldSelectedIndex = citySelector.selectedIndex;
       citySelector.value = timezoneID.replace(/.*?\//, '');
+      if (citySelector.selectedIndex == -1) {
+        citySelector.selectedIndex = oldSelectedIndex;
+      }
     }
   }
 
