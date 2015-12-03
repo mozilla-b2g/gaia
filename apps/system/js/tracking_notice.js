@@ -72,6 +72,7 @@
       self.confirmNotice();
     });
     window.addEventListener('appopened', this);
+    window.addEventListener('appclosed', this);
   };
 
   TrackingNotice.prototype.updateSwitchToMatchSettings = function() {
@@ -117,6 +118,9 @@
       case '_locationchange':
         this.showIfNeeded(evt);
       break;
+      case 'appclosed':
+        this.hideIfNeeded(evt);
+      break;
     }
   };
 
@@ -126,6 +130,13 @@
       this.show();
     }
     app.element.removeEventListener('_locationchange', this);
+  };
+
+  TrackingNotice.prototype.hideIfNeeded = function(evt) {
+    var app = evt.detail;
+    if (app.isSearch() || app.isBrowser()) {
+      this.hide();
+    }
   };
 
   TrackingNotice.prototype.resize = function resize() {
@@ -139,6 +150,7 @@
       'privacy.trackingprotection.shown': true
     });
     window.removeEventListener('appopened', this);
+    window.removeEventListener('appclosed', this);
     window.removeEventListener('_locationchange', this);
     this.destroy();
   };
