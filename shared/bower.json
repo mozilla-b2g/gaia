@@ -14,7 +14,8 @@
     "gaia-toast": "fxos-components/gaia-toast",
     "gaia-site-icon": "fxos-components/gaia-site-icon",
     "gaia-dialog": "fxos-components/gaia-dialog",
-    "gaia-button": "fxos-components/gaia-button"
+    "gaia-button": "fxos-components/gaia-button",
+    "gaia-text-input": "fxos-components/gaia-text-input"
   },
   "resolutions": {
     "gaia-component": "~0.4.0"
