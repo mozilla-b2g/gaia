@@ -9,6 +9,7 @@ from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.phone.regions.call_screen import CallScreen
+from gaiatest.apps.contacts.app import Contacts
 
 
 class BaseKeypad(Base):
@@ -109,6 +110,7 @@ class Keypad(BaseKeypad, Phone):
 
 class AddNewNumber(Base):
     _create_new_contact_locator = (By.CSS_SELECTOR, '[data-l10n-id=createNewContact]')
+    _add_to_existing_contact_locator = (By.CSS_SELECTOR, '[data-l10n-id=addToExistingContact]')
     _form_locator = (By.CSS_SELECTOR, 'form.visible[data-type="action"]')
 
     def __init__(self, marionette):
@@ -126,3 +128,12 @@ class AddNewNumber(Base):
         new_contact = NewContact(self.marionette)
         new_contact.switch_to_new_contact_form()
         return new_contact
+
+    def tap_add_to_existing_contact(self):
+        element = self.marionette.find_element(*self._add_to_existing_contact_locator)
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
+
+        contact = Contacts(self.marionette)
+        contact.switch_to_contacts_frame()
+        return contact
