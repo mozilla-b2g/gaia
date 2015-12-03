@@ -19,7 +19,6 @@
   <link rel="stylesheet" href="style/status.css">
   <link rel="stylesheet" href="style/overlay.css">
   <link rel="stylesheet" href="style/extensions.css">
-  <link rel="stylesheet" href="style/tutorial.css">
   <link rel="stylesheet" href="style/responsive.css">
   <link rel="stylesheet" href="/shared/pages/import/style/curtain_frame.css">
 
@@ -82,8 +81,6 @@
   <script defer src="js/import_services.js"></script>
   <script defer src="js/utils.js"></script>
   <script defer src="js/finish_screen.js"></script>
-  <script defer src="js/tutorial_utils.js"></script>
-  <script defer src="js/tutorial.js"></script>
   <script defer src="js/navigation.js"></script>
   <script defer src="js/data_mobile.js"></script>
   <script defer src="js/time.js"></script>
@@ -589,7 +586,6 @@
 
   <section id="finish-screen" class="finish-screen-base" role="region">
     <section class="content">
-
       <!-- for tiny devices -->
       <div class="for-tiny">
         <h1 data-l10n-id="startYourPhone">
@@ -639,51 +635,6 @@
         Start Tour!
       </button>
     </gaia-buttons>
-  </section>
-
-  <section id="tutorial" role="region" data-step="1">
-    <article id="tutorial-steps-container" role="main">
-      <section id="tutorial-step-header">
-        <p id="tutorial-step-title">
-        </p>
-      </section>
-      <section id="tutorial-step-media">
-        <img id="tutorial-step-image" class="step-img-base" role="presentation">
-        <video id="tutorial-step-video" class="step-video-base" role="presentation" autoplay hidden loop></video>
-      </section>
-    </article>
-    <gaia-buttons id="tutorial-nav-bar" class="nav" skin="dark">
-      <button id="back-tutorial" class="button-left icon icon-previous" data-l10n-id="navbar-back">Back</button>
-      <button id="forward-tutorial" class="recommend icon icon-next" data-l10n-id="navbar-next">Next</button>
-    </gaia-buttons>
-  </section>
-  <section id="tutorial-finish-tiny" class="tutorial-finish-base" role="region">
-    <section class="content">
-      <h1 data-l10n-id="thatsIt">
-        That's it!
-      </h1>
-      <h2 id="enjoyYourPhone" data-l10n-id="enjoyYourPhone">
-        You're ready to enjoy your new phone ;)
-      </h2>
-      <h2 id="enjoyYourPhoneUpdated" data-l10n-id="enjoyYourPhoneUpdated" hidden>
-        You're ready to enjoy your updated phone.
-      </h2>
-      </section>
-      <gaia-buttons skin="dark" class="forward-only">
-        <button class="recommend" id="tutorialFinished" data-l10n-id="letsGo">
-        </button>
-      </menu>
-    </section>
-  </section>
-  <section id="tutorial-finish-large" class="tutorial-finish-base" role="region">
-    <section class="content">
-      <p data-l10n-id="thatsIt1Tablet-2">
-        You can always swipe from the bottom edge to enter home screen.
-      </p>
-      <p data-l10n-id="thatsIt2Tablet-2">
-        Let's do it !
-      </p>
-    </section>
   </section>
 
   <form role='dialog' data-type='confirm' id='offline-error-dialog'>

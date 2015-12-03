@@ -1,0 +1,172 @@
+* {
+  -moz-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden !important;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -moz-user-select: text;
+}
+
+a {
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+  color: #000;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+/*
+  Areas in our app
+*/
+
+
+/* Basics */
+
+[role=region] {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-x: auto;
+  background-color: #f4f4f4;
+ }
+
+[role=region].show {
+  display: block;
+}
+
+[role=main] {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 5rem;
+  bottom: 6.5rem;
+}
+
+[role=main] > [role=region] {
+  background: none
+}
+
+[role=region]:target {
+  display: block;
+}
+
+/*
+ * Navigation Buttons
+ */
+
+gaia-buttons.nav {
+  unicode-bidi: embed;
+}
+
+/*
+ * We need !important to override Web components,
+ * as we don't have ::content yet (bug 992249).
+ */
+gaia-buttons.back-only .recommend,
+gaia-buttons:not(.secondary-menu) #wifi-join-button,
+gaia-buttons.secondary-menu .icon-next,
+gaia-buttons.forward-only .icon-previous {
+  display: none !important;
+}
+
+/*
+  Header conditional button
+*/
+
+.no-options header menu,
+.no-options gaia-header button {
+  display: none !important;
+}
+
+/*
+  Finish process
+*/
+
+.finish-screen-base, .tutorial-finish-base {
+  opacity: 0;
+  z-index: 3010;
+  transition: all 1s ease;
+  background: #2d2d2d;
+}
+
+.finish-screen-base.show, .tutorial-finish-base.show {
+  opacity: 1;
+}
+
+.finish-screen-base h1, .tutorial-finish-base h1 {
+  margin: 0;
+  color: white;
+  font-size: 3rem;
+  padding: 4rem 0 0;
+  font-weight: 200;
+  line-height: 4rem;
+}
+
+.finish-screen-base h2, .tutorial-finish-base h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.9rem;
+  padding: .5rem 0 2rem;
+  font-weight: 200;
+  line-height: 2rem;
+}
+
+.finish-screen-base p, .tutorial-finish-base p {
+  margin: 0;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: normal;
+}
+
+.finish-screen-base .content {
+  background-repeat: no-repeat;
+  background-position: center 95%;
+  background-size: 16.9rem;
+}
+html[dir="ltr"] .finish-screen-base .content {
+  background-image: url("images/icon_tour.png");
+}
+html[dir="rtl"] .finish-screen-base .content {
+  background-image: url("images/icon_tour_rtl.png");
+}
+
+.finish-screen-base .content .for-tiny {
+  display: block;
+}
+
+.finish-screen-base .content .for-large {
+  display: none;
+}
+
+.tutorial-finish-base .content {
+  background: url(images/thumb_up.png) no-repeat center 70% / 14.4rem;
+}
+
+.finish-screen-base .content, .tutorial-finish-base .content {
+  height: calc(100% - 6rem);
+  padding: 0 3rem;
+  width: calc(100% - 6rem);
+  background-size: 17.6rem;
+}
+
+.step-img-base {
+  width: 28.9rem;
+}
+.step-img-base.hide {
+  visibility: hidden;
+}
+

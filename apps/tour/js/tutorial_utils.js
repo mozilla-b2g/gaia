@@ -103,7 +103,7 @@ var TutorialUtils = {
    * @param {String} src  URL for video/image resource
    * @returns {Promise}
    */
- getBestAssetForDirection: function(src) {
+  getBestAssetForDirection: function(src) {
     var dir = document.dir || 'ltr';
     var re =
       /(-rtl|ltr)?\.(png|gif|jpg|webm|mp4|m4v|ogg|ogv)$/;
@@ -171,6 +171,27 @@ var TutorialUtils = {
       }
     };
     return sequence;
+  },
+
+  /**
+   * Load the config with steps and associated resources for the tutorial
+   * We have different config files for each screen category:
+   * phone is 'tiny', tablet is 'large'
+   * and corresponding tiny.json, large.json
+   *
+   * @returns {Promise}
+   */
+  loadConfig: function(layout='tiny') {
+    var configUrl = '/config/' + layout + '.json';
+    return window.fetch(configUrl, {
+      method: 'GET',
+      headers: new window.Headers({
+        'Content-Type': 'application/json'
+      })
+    }).then((resp) => {
+      console.log('loadConfig response: ', resp, resp.json);
+      return resp.json();
+    });
   }
 };
 

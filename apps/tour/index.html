@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="theme-color" content="#242d33">
+  <!-- Common style -->
+  <link rel="stylesheet" href="style/style.css">
+  <link rel="stylesheet" href="style/tutorial.css">
+
+  <title>Tour</title>
+
+  <!-- Localization -->
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="en-US">
+  <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
+  <link rel="localization" href="locales/tour.{locale}.properties">
+
+  <script defer src="/shared/js/intl/l20n.js"></script>
+  <script defer src="/shared/js/event_safety.js"></script>
+
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/tutorial_utils.js"></script>
+  <script defer src="js/tutorial.js"></script>
+  <script defer src="js/startup.js"></script>
+  <!-- Components -->
+  <script defer src="/shared/js/component_utils.js"></script>
+  <script defer src="/shared/elements/gaia_buttons/script.js"></script>
+  <script defer src="/shared/elements/gaia_subheader/script.js"></script>
+</head>
+<body id="container" class="theme-settings" aria-hidden="true">
+  <section id="splash-screen" role="region" class="show">
+  </section>
+
+  <section id="tutorial" role="region" data-step="1">
+    <article id="tutorial-steps-container" role="main">
+      <section id="tutorial-step-header">
+        <p id="tutorial-step-title">
+        </p>
+      </section>
+      <section id="tutorial-step-media">
+        <img id="tutorial-step-image" class="step-img-base" role="presentation">
+        <video id="tutorial-step-video" class="step-video-base" role="presentation" autoplay hidden loop></video>
+      </section>
+    </article>
+    <gaia-buttons id="tutorial-nav-bar" class="nav" skin="dark">
+      <button id="back-tutorial" class="button-left icon icon-previous" data-l10n-id="navbar-back">Back</button>
+      <button id="forward-tutorial" class="recommend icon icon-next" data-l10n-id="navbar-next">Next</button>
+    </gaia-buttons>
+  </section>
+  <section id="tutorial-finish" class="tutorial-finish-base" role="region">
+    <section class="content">
+      <h1 data-l10n-id="thatsIt">
+        That's it!
+      </h1>
+      <h2 id="enjoyYourPhone" data-l10n-id="enjoyYourPhone">
+        You're ready to enjoy your new phone ;)
+      </h2>
+      <h2 id="enjoyYourPhoneUpdated" data-l10n-id="enjoyYourPhoneUpdated" hidden>
+        You're ready to enjoy your updated phone.
+      </h2>
+      </section>
+      <gaia-buttons skin="dark" class="forward-only">
+        <button class="recommend" id="tutorial-finished-btn" data-l10n-id="letsGo">
+        </button>
+      </menu>
+    </section>
+  </section>
+</body>
+</html>
