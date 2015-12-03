@@ -1,8 +1,8 @@
-<element name="browsingPrivacy" extends="section">
+<element name="browsingSafety" extends="section">
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="browsingPrivacy-header"></h1>
+      <h1 data-l10n-id="browsingSafety-header"></h1>
     </gaia-header>
 
     <div>
@@ -49,6 +49,23 @@
           </button>
         </li>
       </ul>
+        <header>
+            <h2 data-l10n-id="safebrowsing"></h2>
+        </header>
+        <ul>
+            <li>
+                <label class="pack-checkbox">
+                    <input type="checkbox" name="browser.safebrowsing.enabled">
+                    <span data-l10n-id="safebrowsing-enabled"></span>
+                </label>
+            </li>
+            <li>
+                <label class="pack-checkbox">
+                    <input type="checkbox" name="browser.safebrowsing.malware.enabled">
+                    <span data-l10n-id="safebrowsing-malware-enabled"></span>
+                </label>
+            </li>
+         </ul>
     </div>
 
     <panel data-path="panels/browsing_privacy/panel"></panel>
