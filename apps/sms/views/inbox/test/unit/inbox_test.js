@@ -605,6 +605,7 @@ suite('thread_list_ui', function() {
   suite('markReadUnread', function() {
     setup(function() {
       this.sinon.stub(Threads, 'get');
+      this.sinon.stub(MessageManager, 'markThreadRead');
 
       var threads = [{
         id: 1,
@@ -667,6 +668,9 @@ suite('thread_list_ui', function() {
 
       assert.isFalse(firstThreadNode.classList.contains('unread'));
       assert.isFalse(secondThreadNode.classList.contains('unread'));
+      sinon.assert.neverCalledWith(MessageManager.markThreadRead, 1, true);
+      sinon.assert.calledWith(MessageManager.markThreadRead, 2, true);
+      sinon.assert.callCount(MessageManager.markThreadRead, 1);
     });
 
     test('both Threads are unread', function() {
@@ -683,6 +687,9 @@ suite('thread_list_ui', function() {
 
       assert.isFalse(firstThreadNode.classList.contains('unread'));
       assert.isFalse(secondThreadNode.classList.contains('unread'));
+      sinon.assert.calledWith(MessageManager.markThreadRead, 3, true);
+      sinon.assert.calledWith(MessageManager.markThreadRead, 4, true);
+      sinon.assert.callCount(MessageManager.markThreadRead, 2);
     });
 
     test('both Threads are read', function() {
@@ -699,6 +706,9 @@ suite('thread_list_ui', function() {
 
       assert.isTrue(firstThreadNode.classList.contains('unread'));
       assert.isTrue(secondThreadNode.classList.contains('unread'));
+      sinon.assert.calledWith(MessageManager.markThreadRead, 5, false);
+      sinon.assert.calledWith(MessageManager.markThreadRead, 6, false);
+      sinon.assert.callCount(MessageManager.markThreadRead, 2);
     });
   });
 
