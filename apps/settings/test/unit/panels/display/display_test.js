@@ -1,7 +1,7 @@
 'use strict';
 
 suite('start testing > ', function() {
-  var DisplayContrustor;
+  var DisplayConstructor;
 
   var mockSettingsListener;
 
@@ -14,21 +14,33 @@ suite('start testing > ', function() {
     ];
     var maps = {
       'panels/display/display': {
-        'shared/settings_listener': 'shared_mocks/mock_settings_listener'
+        'shared/settings_listener': 'shared_mocks/mock_settings_listener',
+        'panels/display/slider_handler': 'MockSliderHandler'
       }
     };
+
+    define('MockSliderHandler', function() {
+      return function() {
+        return {
+          init: function() {}
+        };
+      };
+    });
+
     testRequire(modules, maps, function(MockSettingsListener, Display) {
       mockSettingsListener = MockSettingsListener;
-      DisplayContrustor = Display;
+      DisplayConstructor = Display;
       done();
     });
   });
 
   setup(function() {
-    display = DisplayContrustor();
+    display = DisplayConstructor();
     mockElements = {
       brightnessAuto: {},
-      brightnessManual: {}
+      brightnessAutoCheckbox: {},
+      brightnessManual: {},
+      brightnessManualInput: {}
     };
   });
 
