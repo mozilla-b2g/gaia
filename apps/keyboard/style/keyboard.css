@@ -833,7 +833,7 @@ bubble above the key when you tap and hold. */
   background: none;
   font-size: 3rem;
   min-height: 5rem;
-  min-width: 5rem;
+  min-width: 16.66vw;
   padding: 0;
   flex: 1;
 }
