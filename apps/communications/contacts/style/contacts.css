@@ -187,7 +187,6 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 .item.first {
-  width: 30rem;
   padding: 1rem 1rem 0 1rem;
   /* We enable overflow wrt bug 1094709 */
   overflow: inherit;
@@ -204,11 +203,11 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 #contact-form div.with-overflow input {
-  width: 20rem;
+  width: calc(100% - 10rem);
 }
 
 #contact-form div.with-overflow input[name="org"] {
-  width: 30rem;
+  width: 100%;
 }
 
 #contact-form input::-moz-placeholder,
@@ -253,7 +252,7 @@ div.with-overflow > p.input-container > input {
   /* li already has a 0.5 padding */
   margin-top: 1rem;
   overflow: visible;
-  width: 25rem;
+  width: calc(100% - 5rem);
 }
 
 .two_fields {
@@ -264,11 +263,11 @@ div.with-overflow > p.input-container > input {
 
 .two_fields > :first-child {
   margin-inline-end: 1rem;
-  width: 12rem;
+  width: 50%;
 }
 
 .two_fields > :nth-child(2) {
-  width: 12rem;
+  width: 50%;
 }
 
 .view-edit-contact .fillflow-row-action {
@@ -912,7 +911,6 @@ html[dir="rtl"] .img-delete-button { background-position: right top; }
 
 .view-edit-contact form li > section > div {
   display: block;
-  width: 30rem;
 }
 
 .view-edit-contact form li > section > div.empty {
