@@ -93,6 +93,13 @@
     'sync.collections.passwords.readonly',
     'sync.collections.bookmarks.readonly',
 
+    // Limit the number of records fetched from the server in a single request.
+    // Once the sync engine supports pagination, the limit will be the page
+    // size.
+    'sync.collections.history.limit',
+    'sync.collections.passwords.limit',
+    'sync.collections.bookmarks.limit',
+
     'sync.server.url',
     'sync.scheduler.interval',
     'sync.scheduler.wifionly',
@@ -407,7 +414,8 @@
       COLLECTIONS.forEach(name => {
         if (this._settings['sync.collections.' + name + '.enabled']) {
           collections[name] = {
-            readonly: this._settings['sync.collections.' + name + '.readonly']
+            readonly: this._settings['sync.collections.' + name + '.readonly'],
+            limit: this._settings['sync.collections.' + name + '.limit']
           };
         }
       });
