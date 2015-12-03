@@ -288,7 +288,13 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
 
     function setTimezoneDescription(timezoneID) {
       regionSelector.value = timezoneID.replace(/\/.*/, '');
+      if (regionSelector.selectedIndex == -1) {
+        regionSelector.selectedIndex = 0;
+      }
       citySelector.value = timezoneID.replace(/.*?\//, '');
+      if (citySelector.selectedIndex == -1) {
+        citySelector.selectedIndex = 0;
+      }
     }
   }
 
