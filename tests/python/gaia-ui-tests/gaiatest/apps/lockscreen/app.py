@@ -55,7 +55,7 @@ class LockScreen(Base):
 
     @property
     def time_in_datetime(self):
-        return datetime.strptime(self.time, '%I:%M %p')
+        return datetime.strptime(self.time, '%H:%M')
 
     def unlock(self):
         self._slide_to_unlock('homescreen')

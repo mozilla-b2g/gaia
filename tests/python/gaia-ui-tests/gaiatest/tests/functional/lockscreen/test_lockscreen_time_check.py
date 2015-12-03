@@ -24,11 +24,15 @@ class TestLockScreen(GaiaTestCase):
         self.settings = Settings(self.marionette)
         self.settings.launch()
         datetime_setting = self.settings.open_date_and_time()
-        old_time = datetime_setting.get_current_time_datetime
 
         # Auto time update is by default set to true, turn it off to make region change
         datetime_setting.toggle_automatic_time_update()
         self.assertFalse(datetime_setting.is_autotime_enabled, 'Autotime still enabled')
+
+        # Change to 24 hour format, so lockscreen shows no ambiguous time
+        datetime_setting.disable_default_format()
+        datetime_setting.select_time_format('24-hour')
+        old_time = datetime_setting.get_current_time_datetime
 
         # change the region.  since no one will be in Atlantic Ocean timezone, change in time
         # will be guaranteed.
@@ -55,12 +59,6 @@ class TestLockScreen(GaiaTestCase):
         self.assertTrue(datetime_setting.is_autotime_enabled, 'Autotime still disabled')
         self.marionette.switch_to_frame()
         self.device.lock()
-
-        # wait until device is off and turn back on to check that the time is changed
-        Wait(self.marionette, timeout=20).until(
-            lambda m: not self.device.is_screen_enabled)
-        self.device.turn_screen_on()
-        self.marionette.switch_to_frame()
 
         # Check it reverted to the correct time, and compare it with the previously shown time
         # Allow 4 minutes difference max

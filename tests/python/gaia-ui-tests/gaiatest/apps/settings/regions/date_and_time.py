@@ -101,7 +101,7 @@ class DateAndTime(Base):
 
     @property
     def get_current_time_datetime(self):
-        return datetime.strptime(self.get_current_time_text, '%I:%M %p')
+        return datetime.strptime(self.get_current_time_text, '%H:%M')
 
     @property
     def screen_element(self):
