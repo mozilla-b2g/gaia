@@ -751,6 +751,14 @@
         lastMessageType: 'mms',
         timestamp: now - (60000000 * 20),
         unreadCount: 0
+      },
+      {
+        id: 15,
+        participants: ['+33623456789', '+33612345678'],
+        body: 'Helllo!',
+        lastMessageType: 'mms',
+        timestamp: now - (60000000 * 30),
+        unreadCount: 0
       }
     ]
   };
@@ -782,7 +790,7 @@
   ];
 
   // Procedurally generate a large amount of messages for a single thread
-  // cycling around different delays 
+  // cycling around different delays
   for (i = 0; i < 150; i++) {
     messagesDb.messages.push({
       threadId: 5,
@@ -971,6 +979,24 @@
     }],
     type: 'mms',
     timestamp: now - (60000000 * 20)
+  });
+
+  messagesDb.messages.push({
+    type: 'mms',
+    id: messagesDb.id++,
+    threadId: 15,
+    delivery: 'received',
+    deliveryInfo: [{
+      deliveryStatus: 'success',
+      deliveryTimestamp: 0,
+      readStatus: 'not-applicable',
+      readTimestamp: 0,
+      receiver: null
+    }],
+    sender: '+33623456789',
+    receivers: ['+33623456789','+33612345678'],
+    timestamp: now - (60000000 * 30),
+    sentTimestamp: now - (60000000 * 30)
   });
 
   // Internal publisher/subscriber implementation
