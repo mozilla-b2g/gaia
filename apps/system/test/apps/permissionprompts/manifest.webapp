@@ -1,0 +1,12 @@
+{
+  "name": "Permission Prompts Test",
+  "short_name": "PPT",
+  "type": "privileged",
+  "launch_path": "/index.html",
+  "permissions": {
+    "contacts": {
+      "description": "i dont know",
+      "access": "readcreate"
+    }
+  }
+}
