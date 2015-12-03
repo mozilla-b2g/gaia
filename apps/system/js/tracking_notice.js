@@ -108,6 +108,7 @@
   TrackingNotice.prototype.show = function(data) {
     this.updateSwitchToMatchSettings();
     this.element.classList.remove('hidden');
+    this.resize();
     this.publish('show');
   };
 
