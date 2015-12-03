@@ -8,6 +8,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot_manager.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 
 requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
@@ -16,7 +17,8 @@ requireApp('system/js/sim_lock_system_dialog.js');
 
 
 var mocksForSimLockSystemDialog = new MocksHelper([
-  'SIMSlotManager'
+  'SIMSlotManager',
+  'LazyLoader'
 ]).init();
 
 suite('sim lock dialog', function() {
@@ -33,16 +35,23 @@ suite('sim lock dialog', function() {
     window.navigator.mozL10n = realL10n;
   });
 
+  function mockElement() {
+    var element = document.createElement('div');
+    sinon.stub(element, 'querySelector', function() {
+      return mockElement();
+    });
+    return element;
+  }
+
   setup(function() {
     window.applications = MockApplications;
     window.applications.ready = true;
     stubByQuery = this.sinon.stub(document, 'querySelector');
-    stubByQuery.returns(document.createElement('div'));
+    stubByQuery.returns(mockElement());
     stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    stubById.returns(mockElement());
     MockSIMSlotManager.mInstances = [new MockSIMSlot(null, 0)];
-    SimLockSystemDialog.prototype.containerElement =
-      document.createElement('div');
+    SimLockSystemDialog.prototype.containerElement = mockElement();
     subject = new SimLockSystemDialog();
     stubLockOrientation = this.sinon.stub();
 
@@ -166,6 +175,12 @@ suite('sim lock dialog', function() {
 
     setup(function() {
       stubEnable = this.sinon.stub(subject, 'enableInput');
+      [subject.pinInput, subject.pukInput, subject.xckInput,
+        subject.newPinInput,
+        subject.confirmPinInput
+      ].forEach((field) => {
+        field.clear = this.sinon.stub();
+      });
       subject.clear();
     });
 
@@ -222,6 +237,7 @@ suite('sim lock dialog', function() {
     setup(function() {
       stubClear = this.sinon.stub(subject, 'clear');
       stubApply = this.sinon.stub(SystemDialog.prototype.show, 'apply');
+      subject.element.open = this.sinon.stub();
       subject.show();
     });
 
@@ -235,6 +251,10 @@ suite('sim lock dialog', function() {
 
     test('calls to SystemDialog show method', function() {
       assert.isTrue(stubApply.calledWith(subject));
+    });
+
+    test('opens the gaia-dialog', function() {
+      assert.isTrue(subject.element.open.called);
     });
   });
 

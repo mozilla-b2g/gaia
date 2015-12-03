@@ -1,4 +1,4 @@
-/* global SystemDialog, SIMSlotManager, applications, Service */
+/* global SystemDialog, SIMSlotManager, applications, Service, LazyLoader */
 'use strict';
 
 (function(exports) {
@@ -14,7 +14,17 @@
     /**
      * render the dialog
      */
-    this.render();
+    LazyLoader.load('shared/elements/gaia-component/gaia-component.js')
+      .then(() => {
+        LazyLoader.load([
+          'shared/elements/gaia-dialog/gaia-dialog.js',
+          'shared/elements/gaia-text-input/gaia-text-input-pin.js'
+          ])
+          .then(() => {
+            this.render();
+        });
+      });
+
     this._dispatchEvent('created');
   };
 
@@ -54,67 +64,63 @@
   SimLockSystemDialog.prototype.EVENT_PREFIX = 'simlock';
 
   SimLockSystemDialog.prototype.view = function spd_view() {
-    return `<div id="${this.instanceID}" role="dialog"
-           class="generic-dialog" data-z-index-level="system-dialog" hidden>
-           <section role="region">
-             <gaia-header>
-               <h1></h1>
-             </gaia-header>
-             <div class="container">
-             <div id="errorMsg" class="error" hidden>
-               <div id="messageHeader">The PIN was incorrect.</div>
-               <span id="messageBody">3 tries left.</span>
-             </div>
-             <!-- tries left -->
-             <div id="triesLeft" data-l10n-id="inputCodeRetriesLeft" hidden>
-            </div>
-             <!-- sim pin input field -->
-             <div id="pinArea" hidden>
-               <div data-l10n-id="simPin"></div>
-               <div class="input-wrapper">
-                 <input name="simpin" type="password" x-inputmode="digit"
-                 size="8" maxlength="8" />
+    return `<gaia-dialog id="${this.instanceID}">
+              <div class="dialog-content" data-z-index-level="system-dialog">
+               <gaia-header>
+                 <h1></h1>
+               </gaia-header>
+               <div class="container">
+                 <div id="errorMsg" class="error" hidden>
+                   <div id="messageHeader">The PIN was incorrect.</div>
+                   <span id="messageBody">3 tries left.</span>
+                 </div>
+                 <!-- tries left -->
+                 <div id="triesLeft" data-l10n-id="inputCodeRetriesLeft" hidden>
+                </div>
+                 <!-- sim pin input field -->
+                 <div id="pinArea" hidden>
+                   <div data-l10n-id="simPin"></div>
+                   <div class="input-wrapper">
+                     <gaia-text-input-pin name="simpin"/>
+                   </div>
+                 </div>
+                 <!-- sim puk input field -->
+                 <div id="pukArea" hidden>
+                   <div data-l10n-id="pukCode"></div>
+                   <div class="input-wrapper">
+                     <gaia-text-input-pin name="simpuk"/>
+                   </div>
+                 </div>
+                 <!-- sim nck/cck/spck input field -->
+                 <div id="xckArea" hidden>
+                   <div name="xckDesc" data-l10n-id="nckCode"></div>
+                   <div class="input-wrapper">
+                     <gaia-text-input-pin name="xckpin" />
+                   </div>
+                 </div>
+                 <!-- new sim pin input field -->
+                 <div id="newPinArea" hidden>
+                   <div data-l10n-id="newSimPinMsg"></div>
+                   <div class="input-wrapper">
+                     <gaia-text-input-pin name="newSimpin"/>
+                   </div>
+                 </div>
+                 <!-- confirm new sim pin input field -->
+                 <div id="confirmPinArea" hidden>
+                   <div data-l10n-id="confirmNewSimPinMsg"></div>
+                   <div class="input-wrapper">
+                     <gaia-text-input-pin name="confirmNewSimpin"/>
+                   </div>
+                 </div>
                </div>
-             </div>
-             <!-- sim puk input field -->
-             <div id="pukArea" hidden>
-               <div data-l10n-id="pukCode"></div>
-               <div class="input-wrapper">
-                 <input name="simpuk" type="password" x-inputmode="digit"
-                 size="8" maxlength="8" />
-               </div>
-             </div>
-             <!-- sim nck/cck/spck input field -->
-             <div id="xckArea" hidden>
-               <div name="xckDesc" data-l10n-id="nckCode"></div>
-               <div class="input-wrapper">
-                 <input name="xckpin" type="number" size="16"
-                 maxlength="16" />
-               </div>
-             </div>
-             <!-- new sim pin input field -->
-             <div id="newPinArea" hidden>
-               <div data-l10n-id="newSimPinMsg"></div>
-               <div class="input-wrapper">
-                 <input name="newSimpin" type="password"
-                 x-inputmode="digit" size="8" maxlength="8" />
-               </div>
-             </div>
-             <!-- confirm new sim pin input field -->
-             <div id="confirmPinArea" hidden>
-               <div data-l10n-id="confirmNewSimPinMsg"></div>
-               <div class="input-wrapper">
-                 <input name="confirmNewSimpin" type="password"
-                 x-inputmode="digit" size="8" maxlength="8" />
-               </div>
-             </div>
-             </div>
-           </section>
-           <menu data-items="2">
-             <button type="reset" data-l10n-id="skip"></button>
-             <button data-l10n-id="ok" type="submit"></button>
-           </menu>
-           </div>`;
+              </div>
+              <fieldset>
+                <button data-l10n-id="skip" class="cancel">Skip</button>
+                <button data-l10n-id="ok" disabled class="submit primary">
+                  OK
+                </button>
+              </fieldset>
+            </gaia-dialog>`;
   };
 
   SimLockSystemDialog.prototype.onHide = function() {
@@ -123,40 +129,41 @@
   };
 
   SimLockSystemDialog.prototype.updateHeight = function() {
-    SystemDialog.prototype.updateHeight.apply(this, arguments);
+    var height = Service.query('LayoutManager.height');
+    this.containerElement.style.height = height + 'px';
+    // We need to manually set the gaia-dialog height,
+    // as it is fixed positioned
+    this.element.style.height = height + 'px';
+    this.debug('updateHeight: new height = ' + height);
     document.activeElement.scrollIntoView(false);
   };
 
   SimLockSystemDialog.prototype._registerEvents = function() {
-    this.dialogDone.onclick = this.verify.bind(this);
-    this.dialogSkip.onclick = this.skip.bind(this);
-    this.dialogDone.onmousedown = this._handle_mousedown.bind(this);
-    this.dialogSkip.onmousedown = this._handle_mousedown.bind(this);
+    this.dialogDone.addEventListener('click', this.verify.bind(this));
+    this.dialogSkip.addEventListener('click', this.skip.bind(this));
+    [this.dialogDone, this.dialogSkip].forEach((button) => {
+      button.addEventListener('mousedown', this._handle_mousedown.bind(this));
+    });
+
     this.header.addEventListener('action', this.back.bind(this));
+    this.element.addEventListener('closed', this.hide.bind(this));
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');
     this.xckInput = this.getNumberPasswordInputField('xckpin');
     this.newPinInput = this.getNumberPasswordInputField('newSimpin');
     this.confirmPinInput =
       this.getNumberPasswordInputField('confirmNewSimpin');
-
-    this.ensureFocusInView(this.pinInput, this.containerDiv);
-    this.ensureFocusInView(this.pukInput, this.containerDiv);
   };
 
   SimLockSystemDialog.prototype._fetchElements = function spl_initElements() {
-    this.dialogTitle =
-      document.querySelector('#simlock-dialog gaia-header h1');
-    this.dialogDone =
-      document.querySelector('#simlock-dialog button[type="submit"]');
-    this.dialogSkip =
-      document.querySelector('#simlock-dialog button[type="reset"]');
-    this.header = document.querySelector('#simlock-dialog gaia-header');
+    this.element = document.getElementById('simlock-dialog');
+    this.header = this.element.querySelector('gaia-header');
+    this.dialogTitle = this.header.querySelector('h1');
 
     this.pinArea = document.getElementById('pinArea');
     this.pukArea = document.getElementById('pukArea');
     this.xckArea = document.getElementById('xckArea');
-    this.desc = document.querySelector('#xckArea div[name="xckDesc"]');
+    this.desc = this.element.querySelector('#xckArea div[name="xckDesc"]');
     this.newPinArea = document.getElementById('newPinArea');
     this.confirmPinArea = document.getElementById('confirmPinArea');
 
@@ -166,11 +173,14 @@
     this.errorMsgHeader = document.getElementById('messageHeader');
     this.errorMsgBody = document.getElementById('messageBody');
 
-    this.containerDiv = document.querySelector('#simlock-dialog .container');
+    this.containerDiv = this.element.querySelector('.container');
+    this.dialogDone = this.element.querySelector('button.submit');
+    this.dialogSkip = this.element.querySelector('button.cancel');
   };
 
   SimLockSystemDialog.prototype.getNumberPasswordInputField = function(name) {
-    var inputField = document.querySelector('input[name="' + name + '"]');
+    var selector = 'gaia-text-input-pin[name="' + name + '"]';
+    var inputField = document.querySelector(selector);
     var self = this;
 
     inputField.addEventListener('input', function(evt) {
@@ -408,16 +418,12 @@
   SimLockSystemDialog.prototype.clear = function() {
     this.enableInput();
     this.errorMsg.hidden = true;
-    this.pinInput.value = '';
-    this.pinInput.blur();
-    this.pukInput.value = '';
-    this.pukInput.blur();
-    this.xckInput.value = '';
-    this.xckInput.blur();
-    this.newPinInput.value = '';
-    this.newPinInput.blur();
-    this.confirmPinInput.value = '';
-    this.confirmPinInput.blur();
+    this.pinInput.clear();
+    this.pukInput.clear();
+    this.xckInput.clear();
+    this.newPinInput.clear();
+    this.confirmPinInput.clear();
+    this.dialogDone.setAttribute('disabled', 'disabled');
   };
 
   SimLockSystemDialog.prototype.onclose = null;
@@ -436,6 +442,7 @@
     }
 
     SystemDialog.prototype.show.apply(this);
+    this.element.open();
     var appWindow = Service.query('getTopMostWindow');
     appWindow.lockOrientation(ORIENTATION);
     this._visible = true;
@@ -465,31 +472,17 @@
 
   SimLockSystemDialog.prototype.close = function() {
     this._dispatchEvent('close');
-    this.hide();
+    this.element.close();
     this._visible = false;
   };
 
-  SimLockSystemDialog.prototype.skip = function() {
+  SimLockSystemDialog.prototype.skip = function(evt) {
     this._dispatchEvent('skip');
   };
 
   SimLockSystemDialog.prototype.back = function() {
     this._dispatchEvent('back');
   };
-
-  // With the keyboard active the inputs, ensure they get scrolled
-  // into view
-  SimLockSystemDialog.prototype.ensureFocusInView =
-    function(element, container) {
-      element.addEventListener('focus', function(e) {
-        window.addEventListener('system-resize', function resize() {
-          window.removeEventListener('system-resize', resize);
-          // The layout always has the input at the bottom, so
-          // just always ensure we scroll to the bottom
-          container.scrollTop = container.offsetHeight;
-        });
-      });
-    };
 
   SimLockSystemDialog.prototype.requestFocus = function() {
     this._dispatchEvent('requestfocus');

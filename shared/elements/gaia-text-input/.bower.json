@@ -24,12 +24,12 @@
     "gaia-icons": "gaia-components/gaia-icons#master"
   },
   "homepage": "https://github.com/gaia-components/gaia-text-input",
-  "version": "0.2.1",
-  "_release": "0.2.1",
+  "version": "0.2.2",
+  "_release": "0.2.2",
   "_resolution": {
     "type": "version",
-    "tag": "v0.2.1",
-    "commit": "c0669b5f4a2a79f2e7ae36d322df1fc713574120"
+    "tag": "v0.2.2",
+    "commit": "9dc2d53a380342129fa2377239922e5c6d3729bb"
   },
   "_source": "git://github.com/gaia-components/gaia-text-input.git",
   "_target": "*",
