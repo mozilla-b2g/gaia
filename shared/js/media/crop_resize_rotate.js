@@ -1,5 +1,5 @@
 /* exported cropResizeRotate */
-/* global getImageSize */
+/* global getImageSize, LazyLoader, JPEGParser */
 /* global Downsample */
 
 //
@@ -41,14 +41,16 @@
 // downsampled and then cropped, further reducing the size of the
 // resulting image.
 //
-// The outputType argument specifies the type of the output image. Legal
-// values are "image/jpeg" and "image/png". If not specified, and if the
-// input image does not need to be cropped resized or rotated, then it
-// will be returned unchanged regardless of the type. If no output type
-// is specified and a new blob needs to be created then "image/jpeg" will
-// be used. If a type is explicitly specified, and does not match the type
-// of the input image, then a new blob will be created even if no other
-// changes to the image are necessary.
+// The outputType argument specifies the type of the output
+// image. Legal values are "image/jpeg", "image/jpeg+exif" and
+// "image/png". If not specified, and if the input image does not need
+// to be cropped resized or rotated, then it will be returned
+// unchanged regardless of the type. If no output type is specified
+// and a new blob needs to be created then "image/jpeg" will be
+// used. If a type is explicitly specified, and does not match the
+// type of the input image, then a new blob will be created even if no
+// other changes to the image are necessary. "image/jpeg+exif" is what
+// you want if you need to have the Exif in the updated copy.
 //
 // The optional metadata argument provides a way to pass in image size and
 // rotation metadata if you already have it. If this argument is omitted
@@ -72,6 +74,7 @@
 //    shared/js/media/image_size.js
 //    shared/js/media/jpeg_metadata_parser.js
 //    shared/js/media/downsample.js
+//    shared/js/media/jpeg-exif.js (with LazyLoader)
 //
 function cropResizeRotate(blob, cropRegion, outputSize, outputType,
                           metadata, callback)
@@ -80,6 +83,7 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
 
   const JPEG = 'image/jpeg';
   const PNG = 'image/png';
+  const EXIF = 'image/jpeg+exif';
 
   // The 2nd, 3rd, 4th and 5th arguments are optional, so fix things up if we're
   // called with fewer than 6 args. The last argument is always the callback.
@@ -255,9 +259,15 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     }
 
     // Make sure the outputType is valid, if one was specified
-    if (outputType && outputType !== JPEG && outputType !== PNG) {
+    if (outputType && outputType !== JPEG &&
+        outputType !== PNG && outputType !== EXIF) {
       callback('unsupported outputType: ' + outputType);
       return;
+    }
+    var preserveExif = false;
+    if (blob.type === JPEG && outputType === EXIF) {
+      preserveExif = true;
+      outputType = JPEG;
     }
 
     // Now that we've done these computations, we can pause for a moment
@@ -488,8 +498,48 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
         URL.revokeObjectURL(baseURL);
       }
 
+      var inputBlob = blob; // XXX just use a different parameter name
+
       // Finally, encode the image into a blob
-      canvas.toBlob(gotEncodedBlob, outputType || JPEG);
+
+      var postCallback = preserveExif ? copyMetadata : gotEncodedBlob;
+
+      canvas.toBlob(postCallback, outputType || JPEG);
+
+      function copyMetadata(outputBlob) {
+        try {
+          LazyLoader.load(['shared/js/media/jpeg-exif.js'], () => {
+            JPEGParser.readExifMetaData(inputBlob, (error, metaData) => {
+
+              if (error || !metaData) {
+                gotEncodedBlob(outputBlob);
+                return;
+              }
+              metaData.Orientation = 1;
+              if (metaData.PixelXDimension) {
+                metaData.PixelXDimension = outputSize.width;
+              }
+              if (metaData.PixelYDimension) {
+                metaData.PixelYDimension = outputSize.height;
+              }
+
+              JPEGParser.writeExifMetaData(
+                outputBlob,
+                metaData,
+                (error, modifiedBlob) => {
+                  if (error) {
+                    console.error('Error' + error);
+                  }
+                  // Process modified file
+                  gotEncodedBlob(modifiedBlob);
+                });
+            });
+          });
+        }
+        catch(e) {
+          console.log(e.stack);
+        }
+      }
 
       function gotEncodedBlob(blob) {
         // We have the encoded image but before we pass it to the callback
@@ -501,3 +551,4 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     }
   }
 }
+
