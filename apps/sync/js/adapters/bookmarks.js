@@ -508,6 +508,8 @@ DataAdapters.bookmarks = {
   },
 
   reset(options) {
-    return BookmarksHelper.reset(options.userid);
+    return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
+      return BookmarksHelper.reset(options.userid);
+    });
   }
 };
