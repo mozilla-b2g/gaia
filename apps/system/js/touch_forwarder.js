@@ -10,7 +10,7 @@
 (function(exports) {
   'use strict';
 
-  const kSignificant = 5 * window.devicePixelRatio;
+  const kSignificant = 10;
 
   var TouchForwarder = function TouchForwarder(destinationElement) {
     this.destination = destinationElement || null;

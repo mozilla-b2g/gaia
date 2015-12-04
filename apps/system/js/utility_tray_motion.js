@@ -312,7 +312,7 @@ UtilityTrayMotion.prototype = {
     // to show or hide the fixed-position footer. Without this event,
     // the footer must wait until this.state === 'open', which takes a while
     // due to overscroll effects.
-    var CLOSE_TO_BOTTOM_PX = 50 * window.devicePixelRatio;
+    var CLOSE_TO_BOTTOM_PX = 100;
     if (previousPosition < CLOSE_TO_BOTTOM_PX ||
         this.position < CLOSE_TO_BOTTOM_PX) {
       this.el.dispatchEvent(

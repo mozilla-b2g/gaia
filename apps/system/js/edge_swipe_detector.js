@@ -10,7 +10,7 @@
   const kEdgeIntertia = 250;
   const kEdgeThreshold = 0.3;
   const kEdgeAngleThreshold = Math.PI / 6;
-  const kSignificant = 5 * window.devicePixelRatio;
+  const kSignificant = 10;
 
   /**
    * Detects user gestures for moving between apps using edge gestures.
