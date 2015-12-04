@@ -59,52 +59,53 @@ define(function(require) {
   /**
    * @alias module:Layout
    * @class Layout
-   * @param {String} id
-                     The id of the layout.
-   * @param {String} appName
-                     The name of the keyboard app containing the layout.
-   * @param {String} appManifestURL
-                     The manifest url of the keyboard app containing the layout.
-   * @param {String} name
-                     The name of the layout.
-   * @param {String} nameL10nId
-                     The l10n id of the layout name.
-   * @param {String} description
-                     The description of the layout.
-   * @param {Array} types
-                    The supported input types of the layout.
-   * @param {Boolean} enabled
-                      The value indicating if the layout is enabled or not.
+   * @param {Object} Contain the following properties
+   *                 - id
+                       The id of the layout.
+   *                 - appName
+                       The name of the keyboard app containing the layout.
+   *                 - appManifestURL
+                       The manifest url of the keyboard app containing
+                       the layout.
+   *                 - name
+                       The name of the layout.
+   *                 - nameL10nId
+                       The l10n id of the layout name.
+   *                 - description
+                       The description of the layout.
+   *                 - types
+                       The supported input types of the layout.
+   *                 - enabled
+                       The value indicating if the layout is enabled or not.
    * @returns {Layout}
    */
-  var Layout =
-    function(id, appName, appManifestURL, name, nameL10nId, description,
-            types, enabled) {
-      var _observable = Observable({
-        id: id,
-        appName: appName,
-        name: name,
-        nameL10nId: nameL10nId,
-        description: description,
-        types: types,
-        enabled: enabled
-      });
+  var Layout = function(options) {
+    var _observable = Observable({
+      id: options.id,
+      appName: options.appName,
+      name: options.name,
+      nameL10nId: options.nameL10nId,
+      description: options.description,
+      types: options.types,
+      enabled: options.enabled
+    });
 
-      // Layout enabled changed.
-      _observable.observe('enabled', function(newValue, oldValue) {
-        if (!_parsingApps) {
-          KeyboardHelper.setLayoutEnabled(appManifestURL, id, newValue);
-          // only check the defaults if we disabled a checkbox
-          if (!newValue) {
-            KeyboardHelper.checkDefaults(function(layouts, missingTypes) {
-              refreshEnabledLayouts(layouts);
-              notifyDefaultEnabled(layouts, missingTypes);
-            });
-          }
+    // Layout enabled changed.
+    _observable.observe('enabled', function(newValue, oldValue) {
+      if (!_parsingApps) {
+        KeyboardHelper.setLayoutEnabled(
+          options.appManifestURL, options.id, newValue);
+        // only check the defaults if we disabled a checkbox
+        if (!newValue) {
+          KeyboardHelper.checkDefaults(function(layouts, missingTypes) {
+            refreshEnabledLayouts(layouts);
+            notifyDefaultEnabled(layouts, missingTypes);
+          });
         }
-      });
+      }
+    });
 
-      return _observable;
+    return _observable;
   };
 
   var _waitForLayouts;
@@ -135,15 +136,15 @@ define(function(require) {
         return app[layout.layoutId];
       }
 
-      var layoutName = layout.inputManifest.nameL10nId ?
-        navigator.mozL10n.get(layout.inputManifest.nameL10nId) :
-        layout.inputManifest.name;
-
-      app[layout.layoutId] = Layout(layout.layoutId,
-        layout.manifest.name, layout.app.manifestURL,
-        layoutName, layout.inputManifest.nameL10nId,
-        layout.inputManifest.description,
-        layout.inputManifest.types, layout.enabled);
+      app[layout.layoutId] = Layout({
+        id: layout.layoutId,
+        appName: layout.manifest.name,
+        appManifestURL: layout.app.manifestURL,
+        name: layout.inputManifest.name,
+        nameL10nId: layout.inputManifest.nameL10nId,
+        description: layout.inputManifest.description,
+        types: layout.inputManifest.types,
+        enabled: layout.enabled});
       return app[layout.layoutId];
     }
 
@@ -203,9 +204,6 @@ define(function(require) {
         keyboard.description = keyboardManifest.description;
         keyboard.layouts.forEach(function(layout) {
           layout.appName = keyboardManifest.name;
-          if (layout.nameL10nId) {
-            layout.name = navigator.mozL10n.get(layout.nameL10nId);
-          }
         });
       });
     });
