@@ -30,6 +30,7 @@ module.exports = component.register('gaia-text-input', {
     };
 
     this.type = this.getAttribute('type');
+    this.inputmode = this.getAttribute('x-inputmode');
     this.disabled = this.hasAttribute('disabled');
     this.clearable = this.hasAttribute('clearable');
     this.placeholder = this.getAttribute('placeholder');
@@ -145,6 +146,17 @@ module.exports = component.register('gaia-text-input', {
         if (!value) { return; }
         this.els.inner.setAttribute('type', value);
         this.els.input.setAttribute('type', value);
+      }
+    },
+
+    inputmode: {
+      get: function() { return this.els.input.getAttribute('x-inputmode'); },
+      set: function(value) {
+        if (!value) {
+          this.els.input.removeAttribute('x-inputmode');
+          return;
+        }
+        this.els.input.setAttribute('x-inputmode', value);
       }
     },
 

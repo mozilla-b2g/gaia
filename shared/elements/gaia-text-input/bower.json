@@ -3,6 +3,7 @@
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],
+
   "main": "gaia-text-input.js",
   "license": "MIT",
   "ignore": [
@@ -11,16 +12,19 @@
     "bower_components",
     "test",
     "tests",
+    "index.html",
+    "manifest.webapp",
     "README.md"
   ],
+
   "dependencies": {
-    "gaia-icons": "gaia-components/gaia-icons#~0.10.0",
-    "gaia-component": "gaia-components/gaia-component#~0.3.3"
+    "gaia-icons": "fxos-components/gaia-icons#~1.0.0",
+    "gaia-component": "fxos-components/gaia-component#~0.6.0"
   },
+
   "devDependencies": {
-    "gaia-fonts": "gaia-components/gaia-fonts#~0.2.1",
-    "gaia-theme": "gaia-components/gaia-theme#~0.4.3",
-    "base": "gaia-components/base",
-    "gaia-icons": "gaia-components/gaia-icons#master"
+    "gaia-fonts": "fxos-components/gaia-fonts",
+    "gaia-theme": "fxos-components/gaia-theme",
+    "base": "fxos-components/base"
   }
 }

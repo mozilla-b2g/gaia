@@ -18,7 +18,7 @@
       .then(() => {
         LazyLoader.load([
           'shared/elements/gaia-dialog/gaia-dialog.js',
-          'shared/elements/gaia-text-input/gaia-text-input-pin.js'
+          'shared/elements/gaia-text-input/gaia-text-input.js'
           ])
           .then(() => {
             this.render();
@@ -81,35 +81,40 @@
                  <div id="pinArea" hidden>
                    <div data-l10n-id="simPin"></div>
                    <div class="input-wrapper">
-                     <gaia-text-input-pin name="simpin"/>
+                     <gaia-text-input type="password" x-inputmode="digit"
+                      maxlength="8" name="simpin"/>
                    </div>
                  </div>
                  <!-- sim puk input field -->
                  <div id="pukArea" hidden>
                    <div data-l10n-id="pukCode"></div>
                    <div class="input-wrapper">
-                     <gaia-text-input-pin name="simpuk"/>
+                     <gaia-text-input type="password" x-inputmode="digit"
+                      maxlength="8" name="simpuk"/>
                    </div>
                  </div>
                  <!-- sim nck/cck/spck input field -->
                  <div id="xckArea" hidden>
                    <div name="xckDesc" data-l10n-id="nckCode"></div>
                    <div class="input-wrapper">
-                     <gaia-text-input-pin name="xckpin" />
+                     <gaia-text-input type="password" x-inputmode="digit"
+                      maxlength="8" name="xckpin" />
                    </div>
                  </div>
                  <!-- new sim pin input field -->
                  <div id="newPinArea" hidden>
                    <div data-l10n-id="newSimPinMsg"></div>
                    <div class="input-wrapper">
-                     <gaia-text-input-pin name="newSimpin"/>
+                     <gaia-text-input type="password" x-inputmode="digit"
+                      maxlength="8" name="newSimpin"/>
                    </div>
                  </div>
                  <!-- confirm new sim pin input field -->
                  <div id="confirmPinArea" hidden>
                    <div data-l10n-id="confirmNewSimPinMsg"></div>
                    <div class="input-wrapper">
-                     <gaia-text-input-pin name="confirmNewSimpin"/>
+                     <gaia-text-input type="password" x-inputmode="digit"
+                      maxlength="8" name="confirmNewSimpin"/>
                    </div>
                  </div>
                </div>
@@ -179,7 +184,7 @@
   };
 
   SimLockSystemDialog.prototype.getNumberPasswordInputField = function(name) {
-    var selector = 'gaia-text-input-pin[name="' + name + '"]';
+    var selector = 'gaia-text-input[name="' + name + '"]';
     var inputField = document.querySelector(selector);
     var self = this;
 
