@@ -1,7 +1,9 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
+/* global applications */
 /* global AppWindow */
+/* global AppInstallManager */
 
 (function(exports) {
   /**
@@ -24,6 +26,7 @@
     this.containerElement.addEventListener('_closed', this);
     this.element.addEventListener('_willdestroy', this);
     window.addEventListener('mozbrowserafterkeyup', this);
+    window.addEventListener('mozbrowsercontextmenu', this);
   };
 
   /**
@@ -90,10 +93,52 @@
     }
   };
 
+  PreviewWindow.prototype._handle_mozbrowsercontextmenu = function(evt) {
+    var icon;
+    var id;
+    var label;
+    var onClick;
+    var manifestURL = this.manifestURL;
+    var app = applications.getByManifestURL(manifestURL);
+
+    if (!AppInstallManager.getAppAddedState(manifestURL)) {
+      icon = 'style/icons/default.png';
+      id = 'addApp';
+      label = 'add-to-apps';
+      onClick = AppInstallManager.handleAddAppToApps.bind(
+        AppInstallManager, app);
+    } else {
+      icon = 'style/icons/default.png';
+      id = 'deleteApp';
+      label = 'delete-from-apps';
+      onClick = () => {
+        navigator.mozApps.mgmt.uninstall(app).onsuccess = () => {
+          this.close();
+        };
+      };
+    }
+
+    label = navigator.mozL10n.formatValue(label).then((value) => {
+      evt.detail.contextmenu = {
+        type: 'menu',
+        customized: true,
+        items: [{
+          icon: icon,
+          id: id,
+          label: value,
+          type: 'menuitem',
+          onClick: onClick
+        }]
+      };
+      this.contextmenu.show(evt);
+    });
+  };
+
   PreviewWindow.prototype._handle__willdestroy = function(evt) {
     this.containerElement.removeEventListener('_closed', this);
     this.element.removeEventListener('_willdestroy', this);
     window.removeEventListener('mozbrowserafterkeyup', this);
+    window.removeEventListener('mozbrowsercontextmenu', this);
   };
 
   // This handler is triggered by "this.containerElement".

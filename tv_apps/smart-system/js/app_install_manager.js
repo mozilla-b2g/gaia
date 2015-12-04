@@ -373,6 +373,16 @@ var AppInstallManager = {
     }
   },
 
+  getAppAddedState: function(manifestURL) {
+    return this.getPreviewAppManifestURL() !== manifestURL &&
+      applications.getByManifestURL(manifestURL);
+  },
+
+  handleAddAppToApps: function(app) {
+    this.setPreviewAppManifestURL('');
+    this.showInstallSuccess(app);
+  },
+
   handleInstallSuccess: function ai_handleInstallSuccess(app) {
     var manifest = app.manifest || app.updateManifest;
     var role = manifest.role;
@@ -408,11 +418,15 @@ var AppInstallManager = {
     var manifest = app.manifest || app.updateManifest;
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
-    var msg = {
-      id: 'app-install-success',
-      args: { appName: name }
-    };
-    this.systemBanner.show(msg);
+    var msgID = this.isMarketplaceAppActive() ?
+      'app-add-success' : 'app-install-success';
+
+    this.systemBanner.show({
+      id: msgID,
+      args: {
+        appName: name
+      }
+    });
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {
