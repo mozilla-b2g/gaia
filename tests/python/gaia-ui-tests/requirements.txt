@@ -1,5 +1,5 @@
 boto>=2.32.1
-marionette_driver==1.0.0
-marionette_client==1.0.0
+marionette_driver==1.1.1
+marionette_client==2.0.0
 requests
 treeherder-client==1.5
