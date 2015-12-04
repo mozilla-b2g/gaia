@@ -58,12 +58,14 @@ const Bootstrap = (() => {
         (typeof request.keys.kB !== 'string') ||
         (typeof request.collections !== 'object')) {
       return loadErrorConstants().then(() => {
+        console.error(ERROR_SYNC_INVALID_REQUEST_OPTIONS);
         throw new Error(ERROR_SYNC_INVALID_REQUEST_OPTIONS);
       });
     }
 
     if (running) {
       return loadErrorConstants().then(() => {
+        console.error(ERROR_SYNC_APP_SYNC_IN_PROGRESS);
         throw new Error(ERROR_SYNC_APP_SYNC_IN_PROGRESS);
       });
     }
@@ -96,13 +98,13 @@ const Bootstrap = (() => {
     if (port) {
       port.postMessage(message);
     } else {
-      console.error('No gaia::sync::request port');
+      console.error('No gaia::sync::request port (3001)');
     }
   };
 
   window.addEventListener('iac-gaia::sync::request', event => {
     if (!event || !event.detail || !event.detail.id) {
-      console.error('Wrong IAC request');
+      console.error('Wrong IAC request (3002)');
       window.close();
       return;
     }
@@ -124,11 +126,11 @@ const Bootstrap = (() => {
         });
         break;
       case 'cancel':
-        console.warn('Closing app');
+        console.warn('Closing app (3003)');
         window.close();
         break;
       default:
-        console.error('Unknown IAC request');
+        console.error('Unknown IAC request (3004)');
         window.close();
     }
   });

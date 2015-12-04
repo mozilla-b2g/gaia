@@ -47,8 +47,8 @@ suite('Sync app', function() {
     const IAC_EVENT = 'iac-gaia::sync::request';
 
     var fetchStub, realFetch, LazyLoader, realGetDataStores, realAsyncStorage;
-    var addEventListenerSpy, consoleErrorSpy, postMessageSpy, closeStub,
-        windowClosedPromise, dataStoreSpy;
+    var addEventListenerSpy, consoleErrorSpy, consoleWarnSpy, postMessageSpy,
+        closeStub, windowClosedPromise, dataStoreSpy;
 
     setup(function() {
       addEventListenerSpy = sinon.spy(window, 'addEventListener');
@@ -57,6 +57,7 @@ suite('Sync app', function() {
       window.asyncStorage = MockasyncStorage;
 
       consoleErrorSpy = sinon.spy(console, 'error');
+      consoleWarnSpy = sinon.spy(console, 'warn');
       postMessageSpy = sinon.spy(MockIACPort, 'postMessage');
       closeStub = sinon.stub(window, 'close', () => {
         if (windowClosedPromise) {
@@ -91,6 +92,7 @@ suite('Sync app', function() {
       window.asyncStorage.mTeardown();
       window.asyncStorage = realAsyncStorage;
       consoleErrorSpy.restore();
+      consoleWarnSpy.restore();
       postMessageSpy.restore();
       dataStoreSpy.restore();
       navigator.getDataStores = realGetDataStores;
@@ -126,9 +128,32 @@ suite('Sync app', function() {
       return windowClosed();
     }
 
+    function errorLogged(method) {
+      var spy = (method === 'warn' ? consoleWarnSpy : consoleErrorSpy), args;
+      if (spy.args.length === 0 || spy.args[0].length === 0) {
+        return null;
+      }
+
+      try {
+        return parseInt(spy.args[0][0].match(/\((\d*)\)/)[1]);
+      } catch(e) {
+        if (spy.args[0][0].substring(0, '[SyncEngine'.length) ===
+            '[SyncEngine') {
+          try {
+            args = JSON.parse(spy.args[0][1]);
+          } catch(e) {
+            return spy.args;
+          }
+          return spy.args[0][0] + ' ' + args['0'];
+        }
+        return spy.args[0][0];
+      }
+    }
+
     test('invalid sync request', function(done) {
       window.dispatchEvent(new CustomEvent(IAC_EVENT));
       windowClosed().then(() => {
+        expect(errorLogged()).to.equal(3002);
         expect(fetchStub.called).to.equal(false);
         done();
       });
@@ -174,6 +199,7 @@ L must contain the version: url`);
       }
     }));
     windowClosed().then(() => {
+      expect(errorLogged()).to.equal('[SyncEngine TryLater] HTTP 0; TypeError: e is undefined');
       expect(postMessageSpy.called).to.equal(true);
       expect(postMessageSpy.args[0][0].id).to.equal(id);
       expect(postMessageSpy.args[0][0].error.message).to.equal(`try later`);
@@ -197,6 +223,8 @@ L must contain the version: url`);
         }
       }));
       windowClosed().then(() => {
+        expect(errorLogged()).to.equal(`[SyncEngine TryLater] HTTP 200; SyntaxE\
+rror: JSON.parse: unexpected character at line 1 column 1 of the JSON data`);
         expect(postMessageSpy.called).to.equal(true);
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error.message).to.equal(`try later`);
@@ -219,6 +247,7 @@ L must contain the version: url`);
       }));
 
       windowClosed().then(() => {
+        expect(errorLogged()).to.equal(null);
         expect(postMessageSpy.called).to.equal(true);
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error).to.equal(undefined);
@@ -257,6 +286,7 @@ L must contain the version: url`);
       }));
 
       windowClosed().then(() => {
+        expect(errorLogged()).to.equal(null);
         expect(postMessageSpy.called).to.equal(true);
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error).to.equal(undefined);
@@ -302,7 +332,7 @@ eference/Global_Objects/Object/proto`,
             });
           })
         ]);
-      }).then(() => undefined).then(() => {
+      }).then(() => {
         return clearSyncAppData(FxSyncWebCryptoFixture.kB);
       }).then(done, done);
     });
@@ -328,6 +358,7 @@ eference/Global_Objects/Object/proto`,
       }));
 
       windowClosed().then(() => {
+        expect(errorLogged()).to.equal(null);
         expect(postMessageSpy.called).to.equal(true);
         expect(postMessageSpy.args[0][0].id).to.equal(id);
         expect(postMessageSpy.args[0][0].error).to.equal(undefined);
@@ -358,7 +389,7 @@ eference/Global_Objects/Object/proto`,
                 SynctoServerFixture.bookmarksExpectedDataStore);
           })
         ]);
-      }).then(() => undefined).then(() => {
+      }).then(() => {
         return clearSyncAppData(FxSyncWebCryptoFixture.kB);
       }).then(done, done);
     });
@@ -389,6 +420,7 @@ eference/Global_Objects/Object/proto`,
         }));
 
         windowClosed().then(() => {
+          expect(errorLogged('warn')).to.equal(4011);
           expect(postMessageSpy.called).to.equal(true);
           expect(postMessageSpy.args[0][0].id).to.equal(id);
           expect(postMessageSpy.args[0][0].error).to.equal(undefined);

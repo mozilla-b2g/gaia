@@ -98,7 +98,7 @@ var SyncEngine = (function() {
   var createWebCryptoTransformer = (collectionName, fswc) => {
     if (!fswc.bulkKeyBundle) {
       throw new Error(
-          'Attempt to register Transformer with no bulk key bundle!');
+          'Attempt to register Transformer with no bulk key bundle! (4001)');
     }
     return {
       encode: function(record) {
@@ -155,26 +155,26 @@ var SyncEngine = (function() {
     */
   var SyncEngine = function(options) {
     if (typeof options !== 'object') {
-      throw new Error('options should be an Object');
+      throw new Error('options should be an Object (4002)');
     }
     ['URL', 'assertion', 'kB'].forEach(field => {
       if (typeof options[field] !== 'string') {
-        throw new Error(`options.${field} should be a String`);
+        throw new Error(`options.${field} should be a String (4003)`);
       }
     });
     if (typeof options.adapters !== 'object') {
-      throw new Error('options.adapters should be an Object');
+      throw new Error('options.adapters should be an Object (4004)');
     }
     for (var collectionName in options.adapters) {
       if (typeof options.adapters[collectionName] !== 'object') {
         throw new Error(`options.adapters.${collectionName} should be an Object\
-`);
+ (4005)`);
       }
       ['update', 'handleConflict'].forEach(methodName => {
         if (typeof options.adapters[collectionName][methodName] !==
             'function') {
           throw new Error(`options.adapters.${collectionName}.${methodName} sho\
-uld be a Function`);
+uld be a Function (4006)`);
         }
       });
     }
@@ -273,7 +273,7 @@ uld be a Function`);
 
       return collection.sync().then(syncResults => {
         if (syncResults && syncResults.errors && syncResults.errors.length) {
-          var error = new Error('Errors in SyncResults');
+          var error = new Error('Errors in SyncResults (4007)');
           error.data = syncResults;
           throw error;
         }
@@ -289,7 +289,7 @@ uld be a Function`);
         }
         if (err.message === `HTTP 0; TypeError: NetworkError when attempting to\
  fetch resource.`) {
-          throw new SyncEngine.TryLaterError('Syncto server unreachable',
+          throw new SyncEngine.TryLaterError('Syncto server unreachable (4008)',
               this._kinto && this._kinto._options &&
               this._kinto._options.remote);
         }
@@ -318,10 +318,10 @@ uld be a Function`);
         this._createCollections();
         this._ready = true;
       }, err => {
-        if (err === 'SyncKeys hmac could not be verified with current main ' +
-            'key') {
+        if (err.message === `SyncKeys hmac could not be verified with current m\
+ain key (1007)`) {
           this._reset().then(() => {
-            throw new SyncEngine.UnrecoverableError(err);
+            throw new SyncEngine.UnrecoverableError(err.message);
           });
         }
         throw err;
@@ -346,7 +346,7 @@ uld be a Function`);
       }).then(metaGlobal => {
         if (!this._checkMetaGlobal(metaGlobal)) {
           throw new SyncEngine.UnrecoverableError(`Incompatible storage version\
- or storage version not recognized.`);
+ or storage version not recognized. (4009)`);
         }
       });
     },
@@ -359,7 +359,7 @@ uld be a Function`);
           cryptoKeys = JSON.parse(cryptoKeysRecord.data.payload);
         } catch (e) {
           throw new SyncEngine.UnrecoverableError(`Could not parse crypto/keys \
-payload as JSON`);
+payload as JSON (4010)`);
         }
         return cryptoKeys;
       }).then((cryptoKeys) => {
@@ -382,7 +382,7 @@ payload as JSON`);
     _updateCollection: function(collectionName, collectionOptions) {
       if (this._engines && !this._engines[collectionName]) {
         console.warn(`Collection ${collectionName} not present on this FxSync a\
-ccount`);
+ccount (4011)`);
         return Promise.resolve();
       }
       return this._syncCollection(collectionName, collectionOptions.userid)
@@ -408,8 +408,8 @@ ccount`);
       */
     syncNow: function(collectionOptions) {
       if (typeof collectionOptions !== 'object') {
-        return Promise.reject(new Error(
-            'collectionOptions should be an object'));
+        return Promise.reject(new Error(`collectionOptions should be an object \
+(4012)`));
       }
       return this._ensureReady().then(() => {
         if (Object.keys(collectionOptions).length === 0) {
@@ -430,25 +430,25 @@ ccount`);
   };
 
   SyncEngine.UnrecoverableError = function() {
-    console.error('[SyncEngine Unrecoverable]', arguments);
+    console.error('[SyncEngine Unrecoverable]', JSON.stringify(arguments));
     this.message = 'unrecoverable';
   };
   SyncEngine.UnrecoverableError.prototype = Object.create(Error.prototype);
 
   SyncEngine.TryLaterError = function() {
-    console.error('[SyncEngine TryLater]', arguments);
+    console.error('[SyncEngine TryLater]', JSON.stringify(arguments));
     this.message = 'try later';
   };
   SyncEngine.TryLaterError.prototype = Object.create(Error.prototype);
 
   SyncEngine.AuthError = function() {
-    console.error('[SyncEngine Auth]', arguments);
+    console.error('[SyncEngine Auth]', JSON.stringify(arguments));
     this.message = 'unauthorized';
   };
   SyncEngine.AuthError.prototype = Object.create(Error.prototype);
 
   SyncEngine.InvalidAccountError = function() {
-    console.error('[SyncEngine InvalidAccount]', arguments);
+    console.error('[SyncEngine InvalidAccount]', JSON.stringify(arguments));
     this.message = 'invalid account';
   };
   SyncEngine.InvalidAccountError.prototype = Object.create(Error.prototype);

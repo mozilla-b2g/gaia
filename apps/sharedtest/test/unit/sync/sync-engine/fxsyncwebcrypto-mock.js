@@ -27,7 +27,7 @@ FxSyncWebCrypto.prototype = {
       return Promise.resolve();
     }
     return Promise.reject(`SyncKeys hmac could not be verified with current mai\
-n key`);
+n key (1007)`);
   },
   encrypt: function(payload) {
     if (this.shouldWork) {

@@ -41,7 +41,7 @@ suite('SyncEngine', function() {
         var se = new SyncEngine(5);
       } catch(err) {
         expect(se).to.equal(undefined);
-        expect(err.message).to.equal('options should be an Object');
+        expect(err.message).to.equal('options should be an Object (4002)');
         done();
       }
     });
@@ -54,7 +54,8 @@ suite('SyncEngine', function() {
           var se = new SyncEngine(credentials);
         } catch(err) {
           expect(se).to.equal(undefined);
-          expect(err.message).to.equal(`options.${field} should be a String`);
+          expect(err.message).to.equal(`options.${field} should be a String (40\
+03)`);
           done();
         }
       });
@@ -67,7 +68,8 @@ suite('SyncEngine', function() {
         var se = new SyncEngine(credentials);
       } catch(err) {
         expect(se).to.equal(undefined);
-        expect(err.message).to.equal('options.adapters should be an Object');
+        expect(err.message).to.equal(`options.adapters should be an Object (400\
+4)`);
         done();
       }
     });
@@ -82,7 +84,7 @@ suite('SyncEngine', function() {
       } catch(err) {
         expect(se).to.equal(undefined);
         expect(err.message).to.equal(
-            'options.adapters.foo should be an Object');
+            'options.adapters.foo should be an Object (4005)');
         done();
       }
     });
@@ -100,7 +102,7 @@ suite('SyncEngine', function() {
         } catch(err) {
           expect(se).to.equal(undefined);
           expect(err.message).to.equal(`options.adapters.foo.${methodName} shou\
-ld be a Function`);
+ld be a Function (4006)`);
           done();
         }
       });
@@ -300,7 +302,7 @@ ld be a Function`);
         function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       expect(se.syncNow('foo')).to.be.rejectedWith(Error, `collectionOptions sh\
-ould be an object`).and.notify(done);
+ould be an object (4012)`).and.notify(done);
     });
 
     ['URL', 'assertion', 'kB'].forEach(function(field) {
@@ -318,7 +320,7 @@ ould be an object`).and.notify(done);
             expect(err).to.be.instanceOf(SyncEngine.TryLaterError);
           } else {
             expect(err).to.equal(`SyncKeys hmac could not be verified with curr\
-ent main key`);
+ent main key (1007)`);
           }
           done();
         });

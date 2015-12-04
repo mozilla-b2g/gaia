@@ -34,7 +34,7 @@ const FxSyncWebCrypto = Object.freeze((() => {
       });
     }, () => {
       // err might be a TypeError if aesKeyAB or hmacKeyAB was no ArrayBuffer.
-      throw new Error('Could not import key bundle.');
+      throw new Error('Could not import key bundle. (1001)');
     });
   };
 
@@ -82,11 +82,11 @@ const FxSyncWebCrypto = Object.freeze((() => {
           return Object.freeze(bulkKeyBundle);
         });
       } catch(e) {
-        throw new Error('Deciphered crypto keys, but not JSON');
+        throw new Error('Deciphered crypto keys, but not JSON (1002)');
       }
     }, () => {
       throw new Error(`Could not decrypt crypto keys using AES part of stretche\
-d kB key`);
+d kB key (1003)`);
     });
   };
 
@@ -96,7 +96,7 @@ d kB key`);
       ret.ciphertext = StringConversion.
         base64StringToUint8Array(obj.ciphertext);
     } catch (e) {
-      throw new Error('Could not parse ciphertext as a base64 string');
+      throw new Error('Could not parse ciphertext as a base64 string (1004)');
     }
 
     // Intentionally using StringConversion.stringToUtf8Uint8Array
@@ -109,12 +109,12 @@ d kB key`);
     try {
       ret.IV = StringConversion.base64StringToUint8Array(obj.IV);
     } catch (e) {
-      throw new Error('Could not parse IV as a base64 string');
+      throw new Error('Could not parse IV as a base64 string (1005)');
     }
     try {
       ret.hmacSignature = StringConversion.hexStringToUint8Array(obj.hmac);
     } catch (e) {
-      throw new Error('Could not parse hmac as a hex string');
+      throw new Error('Could not parse hmac as a hex string (1006)');
     }
     return Object.freeze(ret);
   };
@@ -129,8 +129,8 @@ d kB key`);
                                 cryptoKeys.ciphertext,
                                 mainSyncKey.aes);
         }
-        throw new Error(new Error(`SyncKeys hmac could not be verified with cur\
-rent main key`));
+        throw new Error(`SyncKeys hmac could not be verified with current main \
+key (1007)`);
       });
     });
   };
@@ -154,7 +154,8 @@ rent main key`));
     try {
       kBByteArray = StringConversion.hexStringToUint8Array(kB);
     } catch (e) {
-      return Promise.reject(new Error('Could not parse kB as a hex string'));
+      return Promise.reject(new Error(`Could not parse kB as a hex string (1008\
+)`));
     }
 
     try {
@@ -183,10 +184,11 @@ rent main key`));
    */
   const decrypt = function(payloadStrings, collectionName) {
     if (typeof payloadStrings !== 'object') {
-      return Promise.reject(new Error('PayloadStrings is not an object'));
+      return Promise.reject(new Error(`PayloadStrings is not an object (1009\
+)`));
     }
     if (typeof collectionName !== 'string') {
-      return Promise.reject(new Error('collectionName is not a string'));
+      return Promise.reject(new Error('collectionName is not a string (1010)'));
     }
 
     var keyBundle;
@@ -195,7 +197,7 @@ rent main key`));
       keyBundle = this.bulkKeyBundle.defaultAsKeyBundle;
     } catch(e) {
       return Promise.reject(new Error(`No key bundle found for \
-${collectionName} - did you call setKeys?`));
+${collectionName} - did you call setKeys? (1011)`));
     }
 
     const payload = importFromStrings(payloadStrings);
@@ -204,7 +206,7 @@ ${collectionName} - did you call setKeys?`));
                                 payload.hmacSignedText).then(result => {
       if (!result) {
         throw new Error(`Record verification failed with current hmac key for \
-${collectionName}`);
+${collectionName} (1012)`);
       }
     }).then(() => {
       return crypto.subtle.decrypt({ name: 'AES-CBC', iv: payload.IV },
@@ -219,12 +221,12 @@ ${collectionName}`);
         try {
           recordObj = JSON.parse(recordJSON);
         } catch(e) {
-          throw new Error('Deciphered record, but not JSON');
+          throw new Error('Deciphered record, but not JSON (1013)');
         }
         return recordObj;
       }, () => {
         throw new Error(`Could not decrypt record using AES part of key bundle \
-for collection ${collectionName}`);
+for collection ${collectionName} (1014)`);
       });
     });
   };
@@ -262,10 +264,10 @@ for collection ${collectionName}`);
    */
   const encrypt = function(record, collectionName) {
     if (typeof record !== 'object') {
-      return Promise.reject(new Error('Record should be an object'));
+      return Promise.reject(new Error('Record should be an object (1015)'));
     }
     if (typeof collectionName !== 'string') {
-      return Promise.reject(new Error('collectionName is not a string'));
+      return Promise.reject(new Error('collectionName is not a string (1016)'));
     }
 
     var cleartextStr, keyBundle;
@@ -273,14 +275,15 @@ for collection ${collectionName}`);
     try {
       cleartextStr = JSON.stringify(record);
     } catch(e) {
-      return Promise.reject(new Error('Record cannot be JSON-stringified'));
+      return Promise.reject(new Error(`Record cannot be JSON-stringified (1017\
+)`));
     }
     const cleartext = StringConversion.stringToUtf8Uint8Array(cleartextStr);
     try {
       keyBundle = this.bulkKeyBundle.defaultAsKeyBundle;
     } catch(e) {
       return Promise.reject(new Error(`No key bundle found for \
-${collectionName} - did you call setKeys?`));
+${collectionName} - did you call setKeys? (1018)`));
     }
     return encryptAndSign(keyBundle, cleartext);
   };
@@ -288,7 +291,7 @@ ${collectionName} - did you call setKeys?`));
   const FxSyncWebCrypto = function() {
     // Basic check for presence of WebCrypto.
     if (!crypto || !crypto.subtle) {
-      throw new Error('This environment does not support WebCrypto');
+      throw new Error('This environment does not support WebCrypto (1019)');
     }
 
     this.bulkKeyBundle = null;

@@ -13,7 +13,7 @@ const StringConversion = Object.freeze((() => {
   return {
     rawStringToUint8Array(str) {
       if (typeof str != 'string') {
-        throw new Error('Not a string');
+        throw new Error('Not a string (2001)');
       }
       const strLen = str.length;
       var byteArray = new Uint8Array(strLen);
@@ -25,7 +25,7 @@ const StringConversion = Object.freeze((() => {
 
     stringToUtf8Uint8Array(str) {
       if (typeof str != 'string') {
-        throw new Error('Not a string');
+        throw new Error('Not a string (2002)');
       }
       var string = unescape(encodeURIComponent(str)),
           charList = string.split(''),
@@ -39,7 +39,7 @@ const StringConversion = Object.freeze((() => {
     base64StringToUint8Array(base64) {
       if (typeof base64 != 'string' || base64.length % 4 !== 0) {
         throw new Error(`Number of base64 digits must be a multiple of 4 to con\
-vert to bytes`);
+vert to bytes (2003)`);
       }
       return StringConversion.rawStringToUint8Array(window.atob(base64));
     },
@@ -47,7 +47,7 @@ vert to bytes`);
     hexStringToUint8Array(hexStr) {
       if (typeof hexStr != 'string' || hexStr.length % 2 !== 0) {
         throw new Error(`Must have an even number of hex digits to convert to b\
-ytes`);
+ytes (2004)`);
       }
       const numBytes = hexStr.length / 2;
       var byteArray = new Uint8Array(numBytes);
@@ -59,7 +59,7 @@ ytes`);
 
     uint8ArrayToBase64String(bytes) {
       if (!(bytes instanceof Uint8Array)) {
-        throw new Error('Not a Uint8Array');
+        throw new Error('Not a Uint8Array (2005)');
       }
       var binary = '';
       const len = bytes.byteLength;
@@ -71,7 +71,7 @@ ytes`);
 
     arrayBufferToBase64String(buffer) {
       if (!(buffer instanceof ArrayBuffer)) {
-        throw new Error('Not an ArrayBuffer');
+        throw new Error('Not an ArrayBuffer (2006)');
       }
       var bytes = new Uint8Array(buffer);
       return StringConversion.uint8ArrayToBase64String(bytes);
@@ -79,7 +79,7 @@ ytes`);
 
     utf8Uint8ArrayToString(array) {
       if (!(array instanceof Uint8Array)) {
-        throw new Error('Not an Uint8Array');
+        throw new Error('Not an Uint8Array (2007)');
       }
       var utf8_string = String.fromCharCode.apply(null, array);
       return decodeURIComponent(escape(utf8_string));
@@ -87,7 +87,7 @@ ytes`);
 
     uint8ArrayToHexString(bytes) {
       if (!(bytes instanceof Uint8Array)) {
-        throw new Error('Not a Uint8Array');
+        throw new Error('Not a Uint8Array (2008)');
       }
       var hex = '';
       for (var i=0; i <bytes.length; ++i) {
@@ -99,7 +99,7 @@ ytes`);
 
     arrayBufferToHexString(buffer) {
       if (!(buffer instanceof ArrayBuffer)) {
-        throw new Error('Not an ArrayBuffer');
+        throw new Error('Not an ArrayBuffer (2009)');
       }
       var bytes = new Uint8Array(buffer);
       return StringConversion.uint8ArrayToHexString(bytes);
