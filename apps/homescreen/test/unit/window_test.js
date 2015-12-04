@@ -271,16 +271,6 @@ suite('AppWindow', () => {
         appWindow.apps.dialogs = realDialogs;
       });
 
-      test('should cancel pages-panel dialogs', done => {
-        var realDialogs = appWindow.pages.dialogs;
-        appWindow.pages.dialogs = [{
-          close: () => { done(); },
-          opened: () => { return true; }
-        }];
-        appWindow.handleEvent(new CustomEvent('hashchange'));
-        appWindow.pages.dialogs = realDialogs;
-      });
-
       test('should exit edit mode', () => {
         var exitEditModeStub;
 

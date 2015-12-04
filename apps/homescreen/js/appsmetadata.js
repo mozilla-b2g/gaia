@@ -1,26 +1,31 @@
 'use strict';
 
 (function(exports) {
-  const DB_NAME = 'home-metadata';
   const DB_ORDER_STORE = 'order';
   const DB_ICON_STORE = 'icon';
-  const DB_VERSION = 1;
 
   function AppsMetadata() {}
 
   AppsMetadata.prototype = {
+    DB_NAME: 'home-metadata',
+
+    /**
+     * The version of the indexed database
+     */
+    DB_VERSION: 1,
+
     db: null,
 
     init: function() {
       return new Promise((resolve, reject) => {
-        var req = window.indexedDB.open(DB_NAME, DB_VERSION);
+        var req = window.indexedDB.open(this.DB_NAME, this.DB_VERSION);
         req.onupgradeneeded = this.upgradeSchema;
         req.onsuccess = (e) => {
           this.db = e.target.result;
           resolve();
         };
         req.onerror = (e) => {
-          console.error('Error opening homescreen metadata db', e);
+          console.error(`Error opening ${this.DB_NAME} db`, e);
           reject(e);
         };
       });
@@ -47,12 +52,12 @@
           }
 
           if (typeof entry.order !== 'undefined') {
-            txn.objectStore(DB_ORDER_STORE).
-              put({ id: entry.id, order: entry.order });
+            txn.objectStore(DB_ORDER_STORE)
+              .put({ id: entry.id, order: entry.order });
           }
           if (typeof entry.icon !== 'undefined') {
-            txn.objectStore(DB_ICON_STORE).
-              put({ id: entry.id, icon: entry.icon });
+            txn.objectStore(DB_ICON_STORE)
+              .put({ id: entry.id, icon: entry.icon });
           }
         }
         txn.oncomplete = resolve;

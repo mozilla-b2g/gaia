@@ -8,6 +8,10 @@
   height: 100%;
 }
 
+#pages-panel > .scrollable.snapping {
+  scroll-snap-type-y: mandatory;
+}
+
 #empty-pages {
   position: absolute;
   width: 100%;
@@ -130,6 +134,14 @@ div#boxes > div:nth-child(4) {
   animation-name: card-added;
   animation-duration: 0.4s;
   z-index: 1;
+}
+
+#pages > .gaia-container-child > gaia-pin-card.hover-before {
+  transform: translateX(3.5rem);
+}
+
+#pages > .gaia-container-child > gaia-pin-card.hover-after {
+  transform: translateX(-3.5rem);
 }
 
 @keyframes card-added {
