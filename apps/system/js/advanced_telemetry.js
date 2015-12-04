@@ -383,7 +383,7 @@
         // to accumulate until the retry interval expires.
         self.startRetryBatch();
       }
-
+      self.request.packHistograms();
       self.request.send({
         timeout: AT.REPORT_TIMEOUT,
         onload: onload,
@@ -443,7 +443,7 @@
     oldHist.log_sum += newHist.log_sum;
     oldHist.log_sum_squares += newHist.log_sum_squares;
 
-    for(var i = 0; i < oldHist.counts.length; i++) {
+    for (var i = 0; i < oldHist.counts.length; i++) {
       oldHist.counts[i] += newHist.counts[i];
     }
   }
@@ -451,11 +451,11 @@
   function mergeLists(oldList, newList) {
     var histMap = new Map();
 
-    for(var keyOld in oldList) {
+    for (var keyOld in oldList) {
       histMap.set(keyOld, oldList[keyOld]);
     }
 
-    for(var keyNew in newList) {
+    for (var keyNew in newList) {
       if (histMap.has(keyNew)) {
         mergeHistogram(oldList[keyNew], newList[keyNew]);
       } else {
@@ -467,13 +467,13 @@
   function mergeKeyed(keyedOldHist, payloadOld, payloadNew) {
     var keyedOldMapKeys = new Map();
 
-    for(var keyOld in keyedOldHist) {
+    for (var keyOld in keyedOldHist) {
       keyedOldMapKeys.set(keyOld, keyedOldHist[keyOld]);
     }
 
     var keyedNew = payloadNew.keyedHistograms;
     var keyedOld = payloadOld.keyedHistograms;
-    for(var keyNew in keyedNew) {
+    for (var keyNew in keyedNew) {
       if (keyedOldMapKeys.has(keyNew)) {
         mergeLists(keyedOld[keyNew], keyedNew[keyNew]);
       } else {
@@ -510,6 +510,79 @@
    */
   AdvancedTelemetryPing.prototype.getData = function(packet) {
     return JSON.stringify(packet);
+  };
+
+  // This method converts a raw histogram with the .counts and .ranges arrays
+  // in it to one with just .values using the dict format.
+  AdvancedTelemetryPing.prototype.packHistogram =
+  function packHistogram(hgram) {
+    //Constant for Histogram types
+    const HISTOGRAM_EXP = 0;
+
+    if (typeof hgram.ranges === 'undefined' ||
+      typeof hgram.counts === 'undefined') {
+      return hgram;
+    }
+    let r = hgram.ranges;
+    let c = hgram.counts;
+    let retgram = {
+      range: [r[1], r[r.length - 1]],
+      bucket_count: r.length,
+      histogram_type: hgram.histogram_type,
+      values: {},
+      sum: hgram.sum
+    };
+
+    if (hgram.histogram_type === HISTOGRAM_EXP) {
+      retgram.log_sum = hgram.log_sum;
+      retgram.log_sum_squares = hgram.log_sum_squares;
+    } else {
+      retgram.sum_squares_lo = hgram.sum_squares_lo;
+      retgram.sum_squares_hi = hgram.sum_squares_hi;
+    }
+
+    let first = true;
+    let last = 0;
+
+    for (let i = 0; i < c.length; i++) {
+      let value = c[i];
+      if (!value) {
+        continue;
+      }
+
+      // add a lower bound
+      if (i && first) {
+        retgram.values[r[i - 1]] = 0;
+      }
+      first = false;
+      last = i + 1;
+      retgram.values[r[i]] = value;
+    }
+
+    // add an upper bound
+    if (last && last < c.length) {
+      retgram.values[r[last]] = 0;
+    }
+    return retgram;
+  },
+
+  // This method loops through the payload of histograms and converts each
+  // histogram payload to the 'dict' format required by the server for parsing.
+  AdvancedTelemetryPing.prototype.packHistograms = function() {
+    var nameAddonHist = this.packet.payload.addonHistograms;
+    var nameKeyHist = this.packet.payload.keyedHistograms;
+
+    // Pack the Addon Histograms.
+    for (var addon in nameAddonHist) {
+      nameAddonHist[addon] = this.packHistogram(nameAddonHist[addon]);
+    }
+
+    // Pack the Keyed Histograms.
+    for (var key in nameKeyHist) {
+      for (var hist2 in nameKeyHist[key]) {
+        nameKeyHist[key][hist2] = this.packHistogram(nameKeyHist[key][hist2]);
+      }
+    }
   };
 
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
