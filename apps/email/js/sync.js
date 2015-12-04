@@ -498,7 +498,10 @@ define(function(require) {
       // If we are in the foreground, notify through the model, which
       // will display an in-app toast notification when appropriate.
       if (!document.hidden) {
-        model.notifyBackgroundSendStatus(data);
+        mozL10n.formatValue(descId).then(function(localizedDescription) {
+          data.localizedDescription = localizedDescription;
+          model.notifyBackgroundSendStatus(data);
+        });
       }
       // Otherwise, notify with a system notification in the case of
       // an error. By design, we don't use system-level notifications
