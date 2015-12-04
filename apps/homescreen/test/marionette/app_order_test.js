@@ -25,26 +25,41 @@ marionette('Homescreen - App order', function() {
     actions.wait(0.5).press(icons[0]).wait(0.5).
       move(icons[1]).release().wait(0.5).perform();
 
-    assert.equal(icons[0].location().x, location2.x);
-    assert.equal(icons[1].location().x, location1.x);
-
-    // Test that icon ordering is retained
-    icons = home.visibleIcons.map(function(icon) {
-      return home.getIconText(icon);
+    client.waitFor(function() {
+      return icons[0].location().x === location2.x &&
+             icons[1].location().x === location1.x;
     });
-    var numIcons = icons.length;
 
+    // Wait for the icon order to be saved
+    var ids = home.getIconIdentifiers();
+    var numIcons = ids.length;
+    client.waitFor(function() {
+      var order = client.executeAsyncScript(function() {
+        window.wrappedJSObject.appWindow.apps.metadata.getAll().then(
+          marionetteScriptFinished);
+      });
+
+      // The order array is stored in order, but also contains non-visible
+      // icons, so just skip unknown entries.
+      var correctlyPlacedIcons = 0;
+      for (var i = 0, iLen = order.length; i < iLen; i++) {
+        if (order[i].id.startsWith(ids[correctlyPlacedIcons])) {
+          ++ correctlyPlacedIcons;
+        }
+      }
+      return correctlyPlacedIcons === numIcons;
+    });
+
+    // Test that icon ordering is retained after a restart
     home.restart();
 
     client.waitFor(function() {
       return home.visibleIcons.length === numIcons;
     });
 
-    var newIcons = home.visibleIcons.map(function(icon) {
-      return home.getIconText(icon);
-    });
-    for (var i = 0, iLen = icons.length; i < iLen; i++) {
-      assert.equal(icons[i], newIcons[i]);
+    var newIds = home.getIconIdentifiers();
+    for (var i = 0, iLen = ids.length; i < iLen; i++) {
+      assert.equal(ids[i], newIds[i]);
     }
   });
 
