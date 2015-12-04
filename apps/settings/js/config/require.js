@@ -35,6 +35,9 @@ require.config({
     'shared/device_storage/enumerate_all': {
       exports: 'enumerateAll'
     },
+    'shared/fxa_iac_client': {
+      exports: 'FxAccountsIACHelper'
+    },
     'shared/homescreens/homescreen_settings': {
       exports: 'homescreenSettings'
     },
@@ -93,6 +96,9 @@ require.config({
     },
     'shared/stk_helper': {
       exports: 'STKHelper'
+    },
+    'shared/text_normalizer': {
+      exports: 'Normalizer'
     },
     'shared/toaster': {
       exports: 'Toaster'
@@ -225,6 +231,10 @@ require.config({
         'main',
         'modules/settings_utils'
       ]
+    },
+    {
+      name: 'panels/firefox_accounts/panel',
+      exclude: ['main']
     },
     {
       name: 'panels/firefox_sync/panel',
