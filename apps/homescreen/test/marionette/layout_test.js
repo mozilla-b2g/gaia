@@ -73,4 +73,40 @@ marionette('Homescreen - Layout', function() {
     assert.ok(app2Location.x > app3Location.x,
               'App2 icon should be on the right of app3 icon');
   });
+
+  test('switching to 4-column layout works', function() {
+    // check that we're in 3-column layout
+    client.waitFor(function() {
+      var icons = home.visibleIcons;
+      var app1Location = icons[0].location();
+      var app2Location = icons[1].location();
+      var app3Location = icons[2].location();
+      var app4Location = icons[3].location();
+
+      return ((app1Location.y === app2Location.y) &&
+              (app2Location.y === app3Location.y) &&
+              (app4Location.y > app3Location.y));
+    });
+
+    // Switch the setting for 4-column layout
+    client.executeScript(function () {
+      navigator.getDataStores('homescreen_settings').then(
+        function(stores) {
+          stores[0].put(4, 'grid.cols');
+        });
+    });
+
+    // check that we're in 4-column layout
+    client.waitFor(function() {
+      var icons = home.visibleIcons;
+      var app1Location = icons[0].location();
+      var app2Location = icons[1].location();
+      var app3Location = icons[2].location();
+      var app4Location = icons[3].location();
+
+      return ((app1Location.y === app2Location.y) &&
+              (app2Location.y === app3Location.y) &&
+              (app3Location.y === app4Location.y));
+    });
+  });
 });
