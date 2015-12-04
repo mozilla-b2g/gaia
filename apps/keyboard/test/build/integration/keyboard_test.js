@@ -53,6 +53,7 @@ suite('Keyboard layouts building tests', function() {
                        'eo',
                        'es',
                        'es-Americas',
+                       'fa',
                        'fr',
                        'fr-CA',
                        'fr-CH',

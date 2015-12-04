@@ -395,6 +395,17 @@
     "dictFilePath": "dictionaries/eu.dict"
   },
   {
+    "id": "fa",
+    "name": "فارسی",
+    "types": [
+      "email",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 12345,
+    "preloaded": true
+  },
+  {
     "id": "ff",
     "name": "Pulaar-Fulfulde",
     "imEngineId": "latin",
