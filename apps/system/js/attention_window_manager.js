@@ -118,6 +118,7 @@
       window.addEventListener('secure-appopened', this);
       window.addEventListener('rocketbar-overlayopened', this);
       window.addEventListener('languagechange', this);
+      window.addEventListener('updatepromptshown', this);
       Service.request('registerHierarchy', this);
       if (navigator.mozTelephony) {
         BaseModule.lazyLoad(['DialerAgent']).then(() => {
@@ -149,6 +150,7 @@
       window.removeEventListener('secure-appopened', this);
       window.removeEventListener('rocketbar-overlayopened', this);
       window.removeEventListener('languagechange', this);
+      window.removeEventListener('updatepromptshown', this);
       Service.request('unregisterHierarchy', this);
     },
 
@@ -254,6 +256,7 @@
           } // jshint ignore:line
         case 'emergencyalert':
         case 'rocketbar-overlayopened':
+        case 'updatepromptshown':
           this._topMostWindow = null;
           this.closeAllAttentionWindows();
           break;
