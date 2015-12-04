@@ -163,6 +163,10 @@
     margin: 0;
     margin-left: 2.67rem;
   }
+
+  #screen.software-button-enabled #tracking-notice {
+    height: 100%;
+  }
 }
 
 
