@@ -57,7 +57,7 @@
 
     _initMainView: function(pin, fastPay) {
       this._pinCheckbox = this._el.querySelector('#pin-checkbox');
-      this._pinCheckbox.addEventListener('click', () => {
+      this._pinCheckbox.addEventListener('change', () => {
         this._notify({
           action: 'pin-toggle',
           data: { checked: this._pinCheckbox.checked }

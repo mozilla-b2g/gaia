@@ -10,13 +10,14 @@
         <link href="shared/style/headers.css" rel="stylesheet" type="text/css">
         <link href="shared/style/buttons.css" rel="stylesheet" type="text/css">
         <link href="shared/style/input_areas.css" rel="stylesheet" type="text/css">
-        <link href="shared/style/switches.css" rel="stylesheet" type="text/css">
         <link href="shared/style/status.css" rel="stylesheet" type="text/css">
         <link href="shared/style/icons.css" rel="stylesheet" type="text/css">
         <link href="css/app.css" rel="stylesheet" type="text/css">
         <link href="css/swipeable.css" rel="stylesheet" type="text/css">
         <link href="css/settings.css" rel="stylesheet" type="text/css">
         <link href="css/pin.css" rel="stylesheet" type="text/css">
+        <script src="/shared/js/component_utils.js" defer></script>
+        <script src="/shared/elements/gaia_switch/script.js" defer></script>
         <script type="text/javascript" src="shared/js/gesture_detector.js" defer></script>
         <script type="text/javascript" src="js/error/error_consts.js" defer></script>
         <script type="text/javascript" src="js/error/error_view.js" defer></script>
@@ -225,16 +226,14 @@
             <section>
               <ul>
                   <li>
-                    <label class="pack-switch">
-                      <input type="checkbox" id="fast-pay" />
-                      <span>Fast Pay Mode</span>
+                    <gaia-switch id="fast-pay">
+                      <label>Fast Pay Mode</label>
                     </label>
                   </li>
                   <li>
-                  <label class="pack-switch">
-                    <input type="checkbox" id="pin-checkbox" />
-                    <span>Enable PIN</span>
-                  </label>
+                  <gaia-switch id="pin-checkbox">
+                    <label>Enable PIN</label>
+                  </gaia-switch>
                 </li>
                 <li id="pin-change-btn" class="settings-disabled settings-forward">
                   <div>Change PIN</div>
