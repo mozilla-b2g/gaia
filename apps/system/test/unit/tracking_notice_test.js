@@ -154,4 +154,41 @@ suite('Tracking notice', function() {
       assert.isTrue(subject.show.called);
     });
   });
+
+  suite('onAppclosed', function() {
+    var fakeEvent;
+
+    setup(function() {
+      subject = new TrackingNotice();
+      this.sinon.stub(subject, 'hide');
+      fakeEvent = {
+        detail: {
+          isBrowser: function() {},
+          isSearch: function() {},
+          element: document.createElement('div')
+        }
+      };
+    });
+
+    test('does nothing if is not a search or the browser app', function() {
+      this.sinon.stub(fakeEvent.detail, 'isBrowser').returns(false);
+      this.sinon.stub(fakeEvent.detail, 'isSearch').returns(false);
+      window.dispatchEvent(new CustomEvent('appclosed', fakeEvent));
+      assert.isFalse(subject.hide.called);
+    });
+
+    test('hides the dialog if Browser app', function() {
+      this.sinon.stub(fakeEvent.detail, 'isBrowser').returns(true);
+      this.sinon.stub(fakeEvent.detail, 'isSearch').returns(false);
+      window.dispatchEvent(new CustomEvent('appclosed', fakeEvent));
+      assert.isTrue(subject.hide.called);
+    });
+
+    test('hides the dialog if search app', function() {
+      this.sinon.stub(fakeEvent.detail, 'isBrowser').returns(false);
+      this.sinon.stub(fakeEvent.detail, 'isSearch').returns(true);
+      window.dispatchEvent(new CustomEvent('appclosed', fakeEvent));
+      assert.isTrue(subject.hide.called);
+    });
+  });
 });
