@@ -31,6 +31,7 @@
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
+    "apps/settings/test/marionette/tests/ime_uninstallation_test.js": "Bug 1142439 - Intermittent failing test, TEST-UNEXPECTED-FAIL | /builds/slave/test/gaia/apps/settings/test/marionette/tests/ime_uninstallation_test.js | Uninstall an ime app Uninstall the preload IME Test App",
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
     "apps/settings/test/marionette/tests/root_settings_test.js": "Bug 1221876 - Intermittent root_settings_test.js | check root panel settings common tests airplane mode enable airplane mode",
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
