@@ -265,13 +265,16 @@ uld be a Function`);
       }));
     },
 
-    _syncCollection: function(collectionName, userid) {
+    _syncCollection: function(collectionName, collectionOptions) {
       var collection = this._getCollection(collectionName);
       // Let synchronization strategy default to 'manual', see
       // http://kintojs.readthedocs.org \
       //     /en/latest/api/#fetching-and-publishing-changes
 
-      return collection.sync().then(syncResults => {
+      var userid = collectionOptions && collectionOptions.userid;
+      return collection.sync({
+        fetchLimit: (collectionOptions && collectionOptions.limit) || undefined
+      }).then(syncResults => {
         if (syncResults && syncResults.errors && syncResults.errors.length) {
           var error = new Error('Errors in SyncResults');
           error.data = syncResults;
@@ -293,7 +296,8 @@ uld be a Function`);
               this._kinto && this._kinto._options &&
               this._kinto._options.remote);
         }
-        return this._reset(collectionName, userid).then(() => {
+        return this._reset(collectionName, userid).then(
+          () => {
           throw new SyncEngine.UnrecoverableError(err.message);
         });
       });
@@ -385,7 +389,7 @@ payload as JSON`);
 ccount`);
         return Promise.resolve();
       }
-      return this._syncCollection(collectionName, collectionOptions.userid)
+      return this._syncCollection(collectionName, collectionOptions)
           .then(() => {
         return this._adapters[collectionName].update(
             this._collections[collectionName], collectionOptions);
@@ -393,7 +397,7 @@ ccount`);
         if (!changed && !this._haveUnsyncedConflicts[collectionName]) {
           return Promise.resolve();
         }
-        return this._syncCollection(collectionName, collectionOptions.userid)
+        return this._syncCollection(collectionName, collectionOptions)
             .then(() => {
           this._haveUnsyncedConflicts[collectionName] = false;
         });
@@ -402,8 +406,9 @@ ccount`);
 
     /**
       * syncNow - Syncs collections up and down between device and server.
-      * @param {object} collectionOptions The options per collection. Currently,
-      *                                   only readonly (defaults to true).
+      * @param {object} collectionOptions The options per collection. Can be:
+      *                                   {boolean} readonly (defaults to true)
+      *                                   {number} limit
       * @returns {Promise}
       */
     syncNow: function(collectionOptions) {
