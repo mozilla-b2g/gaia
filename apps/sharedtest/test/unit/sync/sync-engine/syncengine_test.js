@@ -127,7 +127,8 @@ ld be a Function`);
           remote: SynctoServerFixture.syncEngineOptions.URL,
           timeout: 180 * 1000,
           headers: {
-            'Authorization': 'BrowserID ' + SynctoServerFixture.syncEngineOptions.assertion
+            'Authorization': 'BrowserID ' +
+                             SynctoServerFixture.syncEngineOptions.assertion
           }
         });
         done();
