@@ -24,7 +24,7 @@
     },
     "bookmarks_store": {
       "readonly": false,
-      "description": "Stores data about browsing history."
+      "description": "Stores data about bookmakrs."
     }
   },
   "connections": {
