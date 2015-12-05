@@ -13,7 +13,7 @@ suite('about > hardware_info', function() {
   var realIccManager;
 
   var modules = [
-    'shared_mocks/mock_l10n',
+    'shared_mocks/mock_l20n',
     'shared_mocks/mock_navigator_moz_settings',
     'panels/about/hardware_info'
   ];
@@ -28,8 +28,8 @@ suite('about > hardware_info', function() {
   setup(function(done) {
     testRequire(modules, maps,
       function(MockL10n, MockNavigatorSettings, HardwareInfo) {
-        realL10n = navigator.mozL10n;
-        navigator.mozL10n = MockL10n;
+        realL10n = document.l10n;
+        document.l10n = MockL10n;
 
         realIccManager = navigator.mozIccManager;
         navigator.mozIccManager = MockNavigatorMozIccManager;
@@ -47,7 +47,7 @@ suite('about > hardware_info', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
 
     navigator.mozSettings = realNavigatorSettings;
@@ -189,18 +189,18 @@ suite('about > hardware_info', function() {
     suite('multiple sim', function() {
       test('should show unknown phone number when no msisdn and mdn',
         function() {
-          this.sinon.spy(navigator.mozL10n, 'setAttributes');
+          this.sinon.spy(document.l10n, 'setAttributes');
           var spans0 = hardwareInfo._renderPhoneNumberElement({}, 0, true);
-          assert.equal(navigator.mozL10n.setAttributes.args[0][0], spans0);
-          assert.equal(navigator.mozL10n.setAttributes.args[0][1],
+          assert.equal(document.l10n.setAttributes.args[0][0], spans0);
+          assert.equal(document.l10n.setAttributes.args[0][1],
             'unknown-phoneNumber-sim');
-          assert.equal(navigator.mozL10n.setAttributes.args[0][2].index,
+          assert.equal(document.l10n.setAttributes.args[0][2].index,
             1);
           var spans1 = hardwareInfo._renderPhoneNumberElement({}, 1, true);
-          assert.equal(navigator.mozL10n.setAttributes.args[1][0], spans1);
-          assert.equal(navigator.mozL10n.setAttributes.args[1][1],
+          assert.equal(document.l10n.setAttributes.args[1][0], spans1);
+          assert.equal(document.l10n.setAttributes.args[1][1],
             'unknown-phoneNumber-sim');
-          assert.equal(navigator.mozL10n.setAttributes.args[1][2].index,
+          assert.equal(document.l10n.setAttributes.args[1][2].index,
             2);
       });
 

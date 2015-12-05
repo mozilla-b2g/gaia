@@ -32,11 +32,11 @@ define(function(require) {
                             The element displaying the battery information
      */
     _refreshText: function b_refreshText(element) {
-      if (!navigator.mozL10n) {
+      if (!document.l10n) {
         return;
       }
 
-      navigator.mozL10n.setAttributes(element,
+      document.l10n.setAttributes(element,
         'battery-level-percent', { level: Battery.level });
 
       if (element.hidden) {

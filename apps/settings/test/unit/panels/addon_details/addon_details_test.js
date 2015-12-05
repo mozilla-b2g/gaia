@@ -2,7 +2,7 @@
 
 /* globals MockMozApps, MockL10n */
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('mock_moz_apps.js');
 
 suite('Addon Details Test > ', function() {
@@ -37,8 +37,8 @@ suite('Addon Details Test > ', function() {
   suiteSetup(function(done) {
     // Create a new requirejs context
     var requireCtx = testRequire([], map, function() {});
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockMozApps;
 
@@ -62,7 +62,7 @@ suite('Addon Details Test > ', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
     navigator.mozApps = realMozApps;
     realMozApps = null;

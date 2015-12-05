@@ -10,7 +10,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 var mocksForIccApp = ['Settings'];
 
@@ -23,8 +23,8 @@ mocksForIccApp.forEach(function(mockName) {
 var realL10n, realMozSettings, realMozIccManager, realDUMP, mocksHelper,
     realMozApps;
 
-if (!window.navigator.mozL10n) {
-  window.navigator.mozL10n = null;
+if (!document.l10n) {
+  document.l10n = null;
 }
 if (!window.navigator.mozSettings) {
   window.navigator.mozSettings = null;
@@ -46,8 +46,8 @@ suite('STK (App menu) >', function() {
     importHook.setAttribute('href', '/elements/icc.html');
     document.head.appendChild(importHook);
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     realMozIccManager = navigator.mozIccManager;
@@ -192,7 +192,7 @@ suite('STK (App menu) >', function() {
 
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozSettings = realMozSettings;
     navigator.mozIccManager = realMozIccManager;
     window.DUMP = realDUMP;

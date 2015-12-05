@@ -10,7 +10,7 @@ require('/shared/js/html_imports.js');
 // mocks and globals
 require('mock_fx_accounts_iac_helper.js');
 require('/shared/js/text_normalizer.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('firefox accounts panel > ', function() {
   var suiteSandbox = sinon.sandbox.create(),
@@ -22,8 +22,8 @@ suite('firefox accounts panel > ', function() {
 
   setup(function(done) {
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     // first, load settings app
     loadBodyHTML('/index.html');
@@ -95,16 +95,16 @@ suite('firefox accounts panel > ', function() {
   });
   suiteTeardown(function() {
     suiteSandbox.restore();
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     document.body.innerHTML = '';
   });
 
   setup(function() {
-    setAttributesSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
+    setAttributesSpy = sinon.spy(document.l10n, 'setAttributes');
   });
 
   teardown(function() {
-    navigator.mozL10n.setAttributes.restore();
+    document.l10n.setAttributes.restore();
     MockFxAccountsIACHelper.resetListeners();
   });
 

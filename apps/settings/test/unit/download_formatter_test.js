@@ -3,7 +3,7 @@
 
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/js/download/download_formatter.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 
@@ -13,12 +13,12 @@ suite('DownloadFormatter', function() {
   suiteSetup(function() {
     realMozIntl = window.mozIntl;
     window.mozIntl = MockMozIntl;
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.mozIntl = realMozIntl;
     realL10n = null;
     realMozIntl = null;
@@ -31,8 +31,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-KB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getFormattedSize MB', function(done) {
@@ -42,8 +41,7 @@ suite('DownloadFormatter', function() {
         'size':'999.00',
         'unit':'byteUnit-MB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getFormattedSize GB', function(done) {
@@ -53,8 +51,7 @@ suite('DownloadFormatter', function() {
         'size':'2.60',
         'unit':'byteUnit-GB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getPercentage', function() {
@@ -88,8 +85,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-KB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getTotalSize MB', function(done) {
@@ -104,8 +100,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-MB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getTotalSize GB', function(done) {
@@ -120,8 +115,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-GB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getTotalSize TB', function(done) {
@@ -136,8 +130,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-TB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getDownloadedSize KB', function(done) {
@@ -152,8 +145,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-KB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getDownloadedSize MB', function(done) {
@@ -168,8 +160,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-MB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getDownloadedSize GB', function(done) {
@@ -184,8 +175,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-GB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getDownloadedSize TB', function(done) {
@@ -200,8 +190,7 @@ suite('DownloadFormatter', function() {
         'size':'1.50',
         'unit':'byteUnit-TB'
       }));
-      done();
-    });
+    }).then(done, done);
   });
 
   test(' getUUID', function() {

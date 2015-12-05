@@ -33,11 +33,11 @@ var FxaMenu = (function fxa_menu() {
       menuStatus.setAttribute('data-l10n-id', 'fxa-invitation');
       menuStatus.removeAttribute('data-l10n-args');
     } else if (e.verified) {
-      navigator.mozL10n.setAttributes(menuStatus, 'fxa-logged-in-text', {
+      document.l10n.setAttributes(menuStatus, 'fxa-logged-in-text', {
         email: email
       });
     } else { // unverified
-      navigator.mozL10n.setAttributes(menuStatus, 'fxa-confirm-email', {
+      document.l10n.setAttributes(menuStatus, 'fxa-confirm-email', {
         email: email
       });
     }

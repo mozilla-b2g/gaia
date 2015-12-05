@@ -3,7 +3,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_menu/script.js');
 requireApp('settings/test/unit/mock_mime_mapper.js');
@@ -32,12 +32,12 @@ suite('DownloadUI', function() {
   mocksHelperForDownloadUI.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     var screen = document.getElementById('screen');
     if (screen) {
       document.body.removeChild(screen);

@@ -9,7 +9,7 @@ define(function(require) {
 
   var SimSecurity = require('modules/sim_security');
   var DialogService = require('modules/dialog_service');
-  var l10n = window.navigator.mozL10n;
+  var l10n = document.l10n;
 
   var _debug = false;
   var debug = function() {};

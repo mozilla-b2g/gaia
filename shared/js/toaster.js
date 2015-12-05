@@ -76,7 +76,7 @@ var Toaster = {
     if (self._isBacklogged()) {
       toast = self._toastQueue.shift();
       self._messageElement.textContent = '';
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         self._messageElement, toast.messageL10nId, toast.messageL10nArgs);
       self._showContainerElement();
       setTimeout(function() {

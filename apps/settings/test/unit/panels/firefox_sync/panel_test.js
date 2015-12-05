@@ -20,7 +20,7 @@
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/sync/errors.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('Firefox Sync panel >', () => {
   var realMozIntl = null;
@@ -214,8 +214,8 @@ suite('Firefox Sync panel >', () => {
       realMozIntl = window.mozIntl;
       window.mozIntl = MockMozIntl;
 
-      realMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
+      realMozL10n = document.l10n;
+      document.l10n = MockL10n;
 
       done();
     });
@@ -230,7 +230,7 @@ suite('Firefox Sync panel >', () => {
     observeSpy.restore();
     syncStub.restore();
     window.mozIntl = realMozIntl;
-    window.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
   });
 
   teardown(() => {
@@ -937,7 +937,7 @@ suite('Firefox Sync panel >', () => {
     suiteSetup(() => {
       subject = suiteSetupCommon();
       subject.showScreen(LOGGED_IN_SCREEN);
-      setAttributesSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+      setAttributesSpy = this.sinon.spy(document.l10n, 'setAttributes');
     });
 
     suiteTeardown(() => {

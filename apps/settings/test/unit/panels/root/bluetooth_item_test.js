@@ -3,7 +3,7 @@
 suite('BluetoothItem', function() {
   var realL10n;
   var modules = [
-    'shared_mocks/mock_l10n',
+    'shared_mocks/mock_l20n',
     'panels/root/bluetooth_item'
   ];
   var map = {
@@ -36,9 +36,9 @@ suite('BluetoothItem', function() {
     }.bind(this));
 
     requireCtx(modules, function(MockL10n, BluetoothItem) {
-      realL10n = window.navigator.mozL10n;
+      realL10n = document.l10n;
       this.MockL10n = MockL10n;
-      window.navigator.mozL10n = MockL10n;
+      document.l10n = MockL10n;
 
       this.BluetoothItem = BluetoothItem;
       done();
@@ -46,7 +46,7 @@ suite('BluetoothItem', function() {
   });
 
   suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   setup(function() {

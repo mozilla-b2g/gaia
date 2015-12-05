@@ -31,7 +31,7 @@ define(function(require) {
         }
       },
       _updateWarningInfo: function(count) {
-        window.navigator.mozL10n.setAttributes(this._warningDialog.warningInfo,
+        document.l10n.setAttributes(this._warningDialog.warningInfo,
           'enable-full-dev-mode-final-warning-msg', {
             count: count
           });

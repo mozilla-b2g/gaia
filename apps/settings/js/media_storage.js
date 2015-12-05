@@ -538,7 +538,7 @@ require([
       this.defaultMediaLocation.addEventListener('click', this);
       this.makeDefaultLocationMenu();
 
-      window.addEventListener('localized', this);
+      document.addEventListener('DOMRetranslated', this);
     },
 
     initAllVolumeObjects: function ms_initAllVolumeObjects() {
@@ -578,7 +578,7 @@ require([
 
     handleEvent: function ms_handleEvent(evt) {
       switch (evt.type) {
-        case 'localized':
+        case 'DOMRetranslated':
           this.updateInfo();
           break;
         case 'change':

@@ -313,7 +313,7 @@ define(function(require) {
               //XXX bug 816899 will also provide 'deviceinfo.software' from
               // Gecko which is {os name + os version}
               case 'deviceinfo.software':
-                navigator.mozL10n.setAttributes(spanFields[i],
+                document.l10n.setAttributes(spanFields[i],
                   'deviceInfo_software',
                   { os: result['deviceinfo.os'] });
                 break;

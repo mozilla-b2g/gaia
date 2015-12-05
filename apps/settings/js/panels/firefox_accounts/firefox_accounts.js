@@ -75,7 +75,7 @@ define(function(require) {
     },
 
     _showLoggedInPanel: function fxa_showLoggedInPanel(email) {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this._elements.loggedInEmail, 'fxa-logged-in-text', {
         email: email
       });
@@ -95,7 +95,7 @@ define(function(require) {
     _showUnverifiedPanel: function fxa_showUnverifiedPanel(email) {
       this._elements.unverifiedPanel.hidden = false;
       this._elements.cancelBtn.onclick = this._onLogoutClick.bind(this);
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this._elements.unverifiedEmail,
         'fxa-verification-email-sent-msg',
         {email: email}

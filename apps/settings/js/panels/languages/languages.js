@@ -76,7 +76,7 @@ define(function(require) {
     },
     onLocalized: function() {
       // update keyboard layout
-      var lang = navigator.mozL10n.language.code;
+      var lang = document.documentElement.lang;
       KeyboardHelper.changeDefaultLayouts(lang);
 
       // update the format example UI

@@ -79,7 +79,7 @@ var CarrierSettings = (function() {
         cs_showCarrierName();
         return;
       } else if (currentHash === '#carrier-detail') {
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           _elements.detailHeader,
           'simSettingsWithIndex',
           { index: DsdsSettings.getIccCardIndexForCellAndDataSettings() + 1 });

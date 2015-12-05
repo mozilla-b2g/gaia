@@ -61,8 +61,8 @@ suite('Languages Panel > ', function() {
       this.mockLanguages.onLocalized.reset();
       this.mockLanguages.buildList.reset();
     });
-    test('localized fires', function() {
-      window.dispatchEvent(new CustomEvent('localized'));
+    test('DOMRetranslated fires', function() {
+      document.dispatchEvent(new CustomEvent('DOMRetranslated'));
       assert.isFalse(
         this.mockLanguages.onLocalized.called, 'onLocalized was never called');
     });
@@ -83,7 +83,7 @@ suite('Languages Panel > ', function() {
       this.panel.onBeforeHide();
     });
     test('localized fires', function() {
-      window.dispatchEvent(new CustomEvent('localized'));
+      document.dispatchEvent(new CustomEvent('DOMRetranslated'));
       assert.ok(
         this.mockLanguages.onLocalized.called, 'onLocalized was called');
     });

@@ -4,7 +4,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 // Mockup the API
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_downloads.js');
@@ -51,8 +51,8 @@ suite('DownloadList', function() {
 
   suiteSetup(function() {
     // Mock l10n
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     // Mock moz_downloads API
     realMozDownloads = navigator.mozDownloadManager;
     realDownloadHelper = window.DownloadHelper;
@@ -63,7 +63,7 @@ suite('DownloadList', function() {
 
   suiteTeardown(function() {
     navigator.mozDownloadManager = realMozDownloads;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.DownloadHelper = realDownloadHelper;
     realL10n = null;
     realMozDownloads = null;

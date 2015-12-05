@@ -6,7 +6,7 @@ requireApp('settings/test/unit/mock_navigator_settings.js');
 suite('STK Item >', function() {
   var modules = [
     'panels/root/stk_item',
-    'shared_mocks/mock_l10n',
+    'shared_mocks/mock_l20n',
     'shared_mocks/mock_stk_helper',
     'shared_mocks/mock_dump',
     'shared_mocks/mock_navigator_moz_icc_manager'
@@ -14,7 +14,7 @@ suite('STK Item >', function() {
 
   var map = {
     '*': {
-      'shared/l10n' : 'shared_mocks/mock_l10n',
+      'shared/intl/l20n' : 'shared_mocks/mock_l20n',
       'shared/stk_helper': 'shared_mocks/mock_stk_helper'
     }
   };
@@ -49,8 +49,8 @@ suite('STK Item >', function() {
       MockDump, MockNavigatorMozIccManager) {
         realMozSettings = navigator.mozSettings;
         loadBodyHTML('./_root.html');
-        realL10n = navigator.mozL10n;
-        navigator.mozL10n = MockL10n;
+        realL10n = document.l10n;
+        document.l10n = MockL10n;
         realMozIccManager = navigator.mozIccManager;
         navigator.mozIccManager = MockNavigatorMozIccManager;
         mockSTKHelper = MockSTKHelper;
@@ -75,7 +75,7 @@ suite('STK Item >', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozIccManager = realMozIccManager;
     navigator.mozSettings = realMozSettings;
     MockNavigatorSettings.mTeardown();

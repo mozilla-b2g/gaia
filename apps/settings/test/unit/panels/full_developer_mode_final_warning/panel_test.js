@@ -23,8 +23,8 @@ suite('Full developer mode final warning > ', function() {
   setup(function(done) {
     loadBodyHTML('_full_developer_mode_final_warning.html');
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
+    realL10n = document.l10n;
+    document.l10n = {
       setAttributes: sinon.stub()
     };
     realMozPower = navigator.mozPower;
@@ -64,7 +64,7 @@ suite('Full developer mode final warning > ', function() {
 
   teardown(function() {
     document.body.innerHTML = '';
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozPower = realMozPower;
   });
 
@@ -82,13 +82,13 @@ suite('Full developer mode final warning > ', function() {
 
     test('click on the ok button 10 times', function() {
       warning.beforeShow(document.body);
-      sinon.assert.calledWith(navigator.mozL10n.setAttributes, warningInfo,
+      sinon.assert.calledWith(document.l10n.setAttributes, warningInfo,
         'enable-full-dev-mode-final-warning-msg', {
           count: 10
         });
 
       for (var i = 0; i < 10; i++) {
-        navigator.mozL10n.setAttributes.reset();
+        document.l10n.setAttributes.reset();
         navigator.mozPower.factoryReset.reset();
         okBtn.dispatchEvent(new Event('click'));
         if (i === 9) {
@@ -96,7 +96,7 @@ suite('Full developer mode final warning > ', function() {
           sinon.assert.calledWith(navigator.mozPower.factoryReset, 'root');
         } else {
           sinon.assert.notCalled(navigator.mozPower.factoryReset);
-          sinon.assert.calledWith(navigator.mozL10n.setAttributes, warningInfo,
+          sinon.assert.calledWith(document.l10n.setAttributes, warningInfo,
             'enable-full-dev-mode-final-warning-msg', {
               count: 9 - i
             });

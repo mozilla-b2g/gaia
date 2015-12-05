@@ -130,7 +130,7 @@ define(function(require) {
             tone.desc.removeAttribute('data-l10n-id');
             tone.desc.textContent = oldRingtoneName;
           }
-          navigator.mozL10n.formatValue('unplayable-ringtone').then(msg =>
+          document.l10n.formatValue('unplayable-ringtone').then(msg =>
             alert(msg));
         }
       });
@@ -170,7 +170,7 @@ define(function(require) {
             // Otherwise this is an error and we should not change the
             // current setting. (The ringtones app should never return
             // a null blob if allowNone is false, but other apps might.)
-            navigator.mozL10n.formatValue('unplayable-ringtone').then(msg =>
+            document.l10n.formatValue('unplayable-ringtone').then(msg =>
               alert(msg));
           }
           return;
@@ -300,7 +300,7 @@ define(function(require) {
       activity.onerror = function() {
         console.log(this.error);
         if (this.error.name === 'NO_PROVIDER') {
-          navigator.mozL10n.formatValue('no-ringtone-app').then(msg =>
+          document.l10n.formatValue('no-ringtone-app').then(msg =>
             alert(msg));
         }
       };

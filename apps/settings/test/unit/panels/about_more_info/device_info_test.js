@@ -11,7 +11,7 @@ suite('about device info >', function() {
   var realTelephony;
 
   var modules = [
-    'shared_mocks/mock_l10n',
+    'shared_mocks/mock_l20n',
     'panels/about_more_info/device_info'
   ];
 
@@ -26,8 +26,8 @@ suite('about device info >', function() {
 
   setup(function(done) {
     testRequire(modules, maps, function(MockL10n, DeviceInfo) {
-      realL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
+      realL10n = document.l10n;
+      document.l10n = MockL10n;
 
       realMobileConnections = navigator.mozMobileConnections;
       navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
@@ -42,7 +42,7 @@ suite('about device info >', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
 
     navigator.mozMobileConnections = realMobileConnections;
@@ -112,12 +112,12 @@ suite('about device info >', function() {
         iccIds = ['12345', '22345'];
         navigator.mozMobileConnections[0].iccId = iccIds[0];
         navigator.mozMobileConnections[1].iccId = iccIds[1];
-        this.sinon.stub(navigator.mozL10n, 'setAttributes');
+        this.sinon.stub(document.l10n, 'setAttributes');
         deviceInfo._loadIccId();
         var spans = deviceInfo._elements.deviceInfoIccIds
           .querySelectorAll('span');
         iccIds.forEach(function(iccId, index) {
-          assert.ok(navigator.mozL10n.setAttributes.calledWith(
+          assert.ok(document.l10n.setAttributes.calledWith(
             spans[index], 'deviceInfo-ICCID-with-index', {
               index: index + 1,
               iccid: iccId
@@ -129,13 +129,13 @@ suite('about device info >', function() {
       test('should show unavailable sim indicator', function() {
         navigator.mozMobileConnections[0].iccId = null;
         navigator.mozMobileConnections[1].iccId = null;
-        this.sinon.stub(navigator.mozL10n, 'setAttributes');
+        this.sinon.stub(document.l10n, 'setAttributes');
         deviceInfo._loadIccId();
         var spans = deviceInfo._elements.deviceInfoIccIds
           .querySelectorAll('span');
-        assert.ok(navigator.mozL10n.setAttributes.calledWith(
+        assert.ok(document.l10n.setAttributes.calledWith(
           spans[0], 'deviceInfo-ICCID-unavailable-sim', {index:1}));
-        assert.ok(navigator.mozL10n.setAttributes.calledWith(
+        assert.ok(document.l10n.setAttributes.calledWith(
           spans[1], 'deviceInfo-ICCID-unavailable-sim', {index:2}));
       });
     });
@@ -160,7 +160,7 @@ suite('about device info >', function() {
 
     test('should show correct value when getting an IMEI successfully',
       function(done) {
-        this.sinon.stub(navigator.mozL10n, 'setAttributes');
+        this.sinon.stub(document.l10n, 'setAttributes');
         this.sinon.stub(deviceInfo, '_getImeiCode', function() {
           return Promise.resolve('fakeImei');
         });
@@ -170,7 +170,7 @@ suite('about device info >', function() {
         promise.then(function() {
           var span = deviceInfo._elements.deviceInfoImeis.querySelector('span');
           assert.equal(span.dataset.slot, 0);
-          assert.ok(navigator.mozL10n.setAttributes.calledWith(
+          assert.ok(document.l10n.setAttributes.calledWith(
             span, 'deviceInfo-IMEI-with-index', {
               index: 1,
               imei: 'fakeImei'
@@ -199,7 +199,7 @@ suite('about device info >', function() {
 
       test('should show multiple IMEI codes', function(done) {
         var count = 0;
-        this.sinon.stub(navigator.mozL10n, 'setAttributes');
+        this.sinon.stub(document.l10n, 'setAttributes');
         this.sinon.stub(deviceInfo, '_getImeiCode', function() {
           count += 1;
           return Promise.resolve('fakeImei' + count);
@@ -211,7 +211,7 @@ suite('about device info >', function() {
             .querySelectorAll('span');
           for (var index = 0; index < 2; index++) {
             assert.equal(spans[index].dataset.slot, index);
-            assert.ok(navigator.mozL10n.setAttributes.calledWith(
+            assert.ok(document.l10n.setAttributes.calledWith(
               spans[index], 'deviceInfo-IMEI-with-index', {
                 index: index + 1,
                 imei: 'fakeImei' + (index + 1)

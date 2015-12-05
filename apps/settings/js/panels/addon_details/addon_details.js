@@ -49,7 +49,7 @@ define(function(require) {
       this._updateEnabledState(this._curApp.enabled);
     }
 
-    var l10n = navigator.mozL10n;
+    var l10n = document.l10n;
     var manifest =
       new ManifestHelper(app.instance.manifest || app.instance.updateManifest);
 
@@ -126,7 +126,7 @@ define(function(require) {
   AddonDetails.prototype.updateNames = function _updateNames(manifest) {
     // Display the name of the add-on in the panel header
     var appnameArgs = { appName: manifest.name };
-    var l10n = navigator.mozL10n;
+    var l10n = document.l10n;
 
     l10n.setAttributes(
       this._elements.header, 'addon-details-header1', appnameArgs);

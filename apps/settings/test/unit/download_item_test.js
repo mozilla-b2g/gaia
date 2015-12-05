@@ -6,7 +6,7 @@
 require('/shared/js/download/download_formatter.js');
 require('/shared/test/unit/mocks/mock_download_formatter.js');
 require('/shared/test/unit/mocks/mock_download.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('settings/js/downloads/download_item.js');
 requireApp('sms/test/unit/mock_utils.js');
 
@@ -28,8 +28,8 @@ suite('Download item', function() {
   mocksHelperForDownload.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
       configurable: true,
@@ -39,7 +39,7 @@ suite('Download item', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
@@ -100,7 +100,7 @@ suite('Download item', function() {
       });
       DownloadItem.create(downloadMock).then((res) => {
         downloadElement = res;
-        l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+        l10nSpy = this.sinon.spy(document.l10n, 'setAttributes');
         fileFormatterSpy = this.sinon.spy(DownloadFormatter, 'getTotalSize');
         navigator.onLine = true;
         done();

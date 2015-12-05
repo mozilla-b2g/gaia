@@ -144,7 +144,7 @@ define(function(require) {
                 'fullStatus-wps-canceled');
             },
             onError: function(error) {
-              navigator.mozL10n.setAttributes(elements.wpsInfoBlock,
+              document.l10n.setAttributes(elements.wpsInfoBlock,
                 'wpsCancelFailedMessageError', { error: error.name });
             }
           });
@@ -172,7 +172,7 @@ define(function(require) {
                     'fullStatus-wps-inprogress');
                 },
                 onError: function(error) {
-                  navigator.mozL10n.setAttributes(elements.wpsInfoBlock,
+                  document.l10n.setAttributes(elements.wpsInfoBlock,
                     'fullStatus-wps-failed-error', { error: error.name });
                 }
               });
