@@ -94,7 +94,7 @@ module.exports = View.extend({
     return '<div class="inner">' +
       '<div class="settings_header">' +
         '<div class="settings-back-btn js-back" ' +
-          'data-icon="back" role="button" data-l10n-id="back-button"></div>' +
+          'data-icon="left" role="button" data-l10n-id="back-button"></div>' +
         '<h2 aria-level="1" class="settings_title" data-l10n-id="' +
           data.header + '"></h2>' +
       '</div>' +
