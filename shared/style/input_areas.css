@@ -32,7 +32,7 @@ textarea {
   font-family: sans-serif;
   box-sizing: border-box;
   display: block;
-  width: 100%;
+  width: 77%;
   height: 4rem;
   line-height: 4rem;
   resize: none;
@@ -152,7 +152,7 @@ input[type="time"],
 input[type="datetime"],
 input[type="datetime-local"] {
   border: 0.1rem solid #c7c7c7;
-  width: 100%;
+  width: 77%;
   box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
