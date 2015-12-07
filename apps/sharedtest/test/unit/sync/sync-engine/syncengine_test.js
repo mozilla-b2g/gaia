@@ -122,6 +122,14 @@ ld be a Function`);
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow({ history: {} }).then(function() {
         expect(se._kinto).to.be.instanceOf(Kinto);
+        expect(se._kinto.options).to.deep.equal({
+          bucket: SynctoServerFixture.xClientState,
+          remote: SynctoServerFixture.syncEngineOptions.URL,
+          timeout: 180 * 1000,
+          headers: {
+            'Authorization': 'BrowserID ' + SynctoServerFixture.syncEngineOptions.assertion
+          }
+        });
         done();
       });
     });
