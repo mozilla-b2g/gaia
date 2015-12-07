@@ -1,3 +1,6 @@
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_menu/script.js');
+
 suite('CallFdnList Panel > ', function() {
   'use strict';
 
@@ -5,8 +8,10 @@ suite('CallFdnList Panel > ', function() {
   var mockFdnContext;
   var mockDialogService;
   var mockDsdsSettings;
+  var realL10n;
 
   var modules = [
+    'shared_mocks/mock_l10n',
     'modules/fdn_context',
     'modules/dialog_service',
     'modules/settings_panel',
@@ -31,7 +36,7 @@ suite('CallFdnList Panel > ', function() {
         }
       };
     });
-    
+
     // Define MockSettingsPanel
     define('MockSettingsPanel', function() {
       return function(options) {
@@ -49,12 +54,12 @@ suite('CallFdnList Panel > ', function() {
         return obj;
       };
     });
-    
+
     define('MockDialogService', function() {
       return {
         show: function() {
           return Promise.resolve({
-            type: 'submit'  
+            type: 'submit'
           });
         }
       };
@@ -68,8 +73,10 @@ suite('CallFdnList Panel > ', function() {
     });
 
     var requireCtx = testRequire([], map, function() {});
-    requireCtx(modules, function(MockFdnContext, MockDialogService,
+    requireCtx(modules, function(MockL10n, MockFdnContext, MockDialogService,
       MockSettingsPanel, MockDsdsSettings, CallFdnListPanel) {
+        realL10n = window.navigator.mozL10n;
+        window.navigator.mozL10n = MockL10n;
         mockFdnContext = MockFdnContext;
         mockDialogService = MockDialogService;
         mockDsdsSettings = MockDsdsSettings;
@@ -77,19 +84,22 @@ suite('CallFdnList Panel > ', function() {
 
         var panel = createElement('div');
         panel.appendChild(createElement('button', 'fdnContact'));
-        panel.appendChild(createElement('div', 'call-fdnList-action'));
+        panel.appendChild(createElement('gaia-menu', 'call-fdnList-action'));
         panel.appendChild(createElement('div', 'fdnAction-name'));
         panel.appendChild(createElement('div', 'fdnAction-number'));
         panel.appendChild(createElement('div', 'fdnAction-number'));
         panel.appendChild(createElement('button', 'fdnAction-call'));
         panel.appendChild(createElement('button', 'fdnAction-edit'));
         panel.appendChild(createElement('button', 'fdnAction-delete'));
-        panel.appendChild(createElement('button', 'fdnAction-cancel'));
         panel.appendChild(createElement('ul', 'fdn-contactsContainer'));
 
         callFdnListPanel.init(panel);
         done();
     });
+  });
+
+  teardown(function() {
+    window.navigator.mozL10n = realL10n;
   });
 
   suite('_renderAuthorizedNumbers', function() {
@@ -121,7 +131,7 @@ suite('CallFdnList Panel > ', function() {
     setup(function() {
       callFdnListPanel._showActionMenu(fakeContact);
     });
-    
+
     test('we will show the menu and update information on it', function() {
       assert.equal(callFdnListPanel._currentContact, fakeContact);
       assert.equal(callFdnListPanel._elements.fdnActionMenuName.textContent,
@@ -136,7 +146,7 @@ suite('CallFdnList Panel > ', function() {
     setup(function() {
       callFdnListPanel._hideActionMenu();
     });
-    
+
     test('the menu will be hidden', function() {
       assert.isTrue(callFdnListPanel._elements.fdnActionMenu.hidden);
     });
