@@ -17,6 +17,8 @@
 // note: we removed the download cancel dialog because we don't have an UI to
 // remove it.
 
+const PREVIEW_OPENED_TIMES_TO_HINT = 3;
+
 var AppInstallManager = {
   mapDownloadErrorsToMessage: {
     'NETWORK_ERROR': 'download-failed',
@@ -46,6 +48,7 @@ var AppInstallManager = {
     this.setupQueue = [];
     this.isSetupInProgress = false;
     this.pausePreview = false;
+    this.previewOpenedTimes = {};
 
     window.addEventListener('mozChromeEvent', (evt) => {
       var detail = evt.detail;
@@ -341,11 +344,32 @@ var AppInstallManager = {
       this.systemBanner.show({
         id: 'preview-app-hint'
       });
+      this.previewOpenedTimes[manifestURL] =
+        ++this.previewOpenedTimes[manifestURL] || 1;
     };
 
     var handlePreviewTerminated = () => {
       window.removeEventListener('previewterminated', handlePreviewTerminated);
-      this.uninstallPreviewApp();
+      var askAddPrompt =
+        this.previewOpenedTimes[manifestURL] === PREVIEW_OPENED_TIMES_TO_HINT;
+      if (askAddPrompt && !this.getAppAddedState(manifestURL)) {
+        var options = { 'manifest': app.manifest };
+        var TYPES = AppInstallDialogs.TYPES;
+        // Keep app info in case of it is destroyed by terminated event
+        var cloneApp = {
+          manifestURL: app.manifestURL,
+          manifest: app.manifest,
+          updateManifest: app.updateManifest
+        };
+        this.appInstallDialogs.show(TYPES.AddAppDialog, options).then(
+          this.handleAddAppToApps.bind(this, cloneApp),
+          this.uninstallPreviewApp.bind(this)
+        ).catch(function(e) {
+          console.error(e);
+        });
+      } else {
+        this.uninstallPreviewApp();
+      }
     };
 
     window.addEventListener('previewopened', handlePreviewOpened);
