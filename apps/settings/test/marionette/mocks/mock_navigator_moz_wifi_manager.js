@@ -12,6 +12,7 @@ Services.obs.addObserver(function(document) {
   var window = document.defaultView;
   Object.defineProperty(window.wrappedJSObject.navigator, 'mozWifiManager', {
     configurable: false,
+    writable: false,
     value: Cu.cloneInto(
       {enabled: false},
       window,
