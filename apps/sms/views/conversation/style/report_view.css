@@ -12,6 +12,11 @@
   padding-inline-start: 3rem;
 }
 
+.report-view .description .message-subject {
+  float: left;
+  line-height: 1.5rem;
+}
+
 .report-view p,
 .report-view span {
   font-size: 1.5rem;
@@ -32,6 +37,8 @@
 
 .report-view .description .detail {
   color: #333;
+  margin-left: 6rem;
+  line-height: 1.5rem;
 }
 
 .report-view .description > .type[data-l10n-id="message-type-sms"] {
