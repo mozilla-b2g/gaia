@@ -120,11 +120,6 @@ SingleDay.prototype = {
     var duration = relativeDuration(this.date, startDate, endDate);
     // we subtract border to keep a margin between consecutive events
     var hei = duration * this._hourHeight - this._borderWidth;
-
-    // It doesn't make sense to set height less than 1 px, so we set it to 1 px
-    // in order to show events correctly.
-    hei = Math.max(1, hei);
-
     el.style.height = hei + 'px';
 
     if (duration < 1) {
