@@ -31,7 +31,7 @@
     '/views/shared/js/error_dialog.js',
     '/views/conversation/js/link_action_handler.js',
     '/views/shared/js/contact_renderer.js',
-    '/views/shared/js/activity_picker.js',
+    '/shared/js/links/activity_picker.js',
     '/views/conversation/js/information.js',
     '/views/shared/js/localization_helper.js'
   ];

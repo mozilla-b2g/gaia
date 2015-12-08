@@ -84,3 +84,8 @@
 #event-view .current-calendar .content {
   margin-inline-start: 1.2rem;
 }
+
+#event-view .description a {
+  color: #00F;
+  text-decoration: underline;
+}

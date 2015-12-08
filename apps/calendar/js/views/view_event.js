@@ -1,3 +1,5 @@
+/* global LinkHelper */
+
 define(function(require, exports, module) {
 'use strict';
 
@@ -6,6 +8,7 @@ var EventBase = require('./event_base');
 var alarmTemplate = require('templates/alarm');
 var localCalendarId = require('common/constants').localCalendarId;
 var router = require('router');
+var linkActionHandler = require('common/link_action_handler');
 
 require('dom!event-view');
 
@@ -27,6 +30,13 @@ ViewEvent.prototype = {
 
   _initEvents: function() {
     EventBase.prototype._initEvents.apply(this, arguments);
+    this.getEl('description').addEventListener('click', this);
+  },
+
+  handleEvent: function(e) {
+    if (e.type === 'click') {
+      linkActionHandler.onClick(e);
+    }
   },
 
   /**
@@ -126,7 +136,9 @@ ViewEvent.prototype = {
     }
 
     this.setContent('alarms', alarmContent, 'innerHTML');
-    this.setContent('description', model.description);
+    var description =  LinkHelper.searchAndLinkClickableData(model.description);
+
+    this.setContent('description', description, 'innerHTML');
   },
 
   oninactive: function() {

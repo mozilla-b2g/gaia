@@ -1,5 +1,3 @@
-/*global Utils */
-
 (function() {
 'use strict';
 /*
@@ -59,6 +57,12 @@ function checkDomain(domain) {
 
 // defines things that can match right before to be a "safe" link
 var safeStart = /[\s,:;\(>\u0080-\uFFFF]/;
+var Utils = {
+  rnondialablechars: /[^,#+\*\d]/g,
+  removeNonDialables: function removeNonDialables(input){
+    return input.replace(this.rnondialablechars, '');
+  }
+};
 
 const MINIMUM_DIGITS_IN_PHONE_NUMBER = 5;
 const LEADING_DIGIT_BREAKPOINT = 7;
@@ -84,6 +88,7 @@ var LINK_TYPES = {
       '(?:\\d[\\d \\t.()-]{0,12}\\d)' +           // <digit><digit|sddp>*<digit>
       '\\b'                                       // must end on a word boundary
       ].join(''), 'g'),
+
     matchFilter: function phoneMatchFilter(phone, link) {
       var onlyDigits = Utils.removeNonDialables(phone);
 
@@ -161,8 +166,8 @@ var LINK_TYPES = {
       if (!linkSpec.match[1]) {
         href = 'http://' + href;
       }
-      return '<a data-url="' + href + '" data-action="url-link" >' + url +
-             '</a>';
+      return '<a data-url="' + href + '" data-action="url-link" >' +
+             url + '</a>';
     }
   },
 

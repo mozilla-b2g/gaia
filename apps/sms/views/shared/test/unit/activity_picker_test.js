@@ -4,8 +4,7 @@
 
 require('/shared/test/unit/mocks/mock_l20n.js');
 
-require('/views/shared/js/activity_picker.js');
-require('/views/shared/js/utils.js');
+require('/shared/js/links/activity_picker.js');
 
 require('/views/shared/test/unit/mock_moz_activity.js');
 require('/views/shared/test/unit/mock_utils.js');
@@ -13,7 +12,6 @@ require('/views/shared/test/unit/mock_utils.js');
 
 var mocksHelperAP = new MocksHelper([
   'MozActivity',
-  'Utils'
 ]).init();
 
 suite('ActivityPicker', function() {
