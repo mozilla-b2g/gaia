@@ -85,20 +85,22 @@
       path: layout.inputManifest.launch_path
     };
 
-    // tiny helper - bound to the manifests
-    var getName = function () {
-      return this.name;
-    };
-
-    // define properties for name that resolve at display time
-    // to the correct language via the ManifestHelper
+    // define properties for names that resolve at display time
+    // to the correct language via the ManifestHelper or mozL10n.get()
     Object.defineProperties(transformedLayout, {
       name: {
-        get: getName.bind(layout.inputManifest),
+        get: function() {
+          if (layout.inputManifest.nameL10nId) {
+            return navigator.mozL10n.get(layout.inputManifest.nameL10nId);
+          }
+          return layout.inputManifest.name;
+        },
         enumerable: true
       },
       appName: {
-        get: getName.bind(layout.manifest),
+        get: function() {
+          return layout.manifest.name;
+        },
         enumerable: true
       }
     });
