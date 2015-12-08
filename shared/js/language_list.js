@@ -131,7 +131,7 @@ exports.LanguageList = {
       var langs = this._copyObj(langsFromFile);
       return Promise.all([
         this._extendPseudo(langs, current, pseudoEnabled),
-        this._readSetting('deviceinfo.os'),
+        this._readSetting('langpack.channel'),
         current,
         this._readSetting('accessibility.screenreader'),
         navigator.mozApps.getAdditionalLanguages()

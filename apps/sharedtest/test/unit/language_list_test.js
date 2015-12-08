@@ -19,7 +19,7 @@ suite('Language List', function() {
       });
       this.sinon.stub(LanguageList, '_readSetting', function(name) {
         switch (name) {
-          case 'deviceinfo.os':
+          case 'langpack.channel':
             return Promise.resolve('2.2');
           case 'language.current':
             return Promise.resolve('en-US');
