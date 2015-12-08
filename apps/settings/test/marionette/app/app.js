@@ -5,11 +5,11 @@ var AppPermissionPanel = require('./regions/app_permission');
 var Base = require('./base');
 var BatteryPanel = require('./regions/battery');
 var BluetoothPanel = require('./regions/bluetooth');
+var BrowsingPrivacyPanel = require('./regions/browsing_privacy');
 var DateTimePanel = require('./regions/date_time');
 var DeviceInfoPanel = require('./regions/device_info');
 var DisplayPanel = require('./regions/display');
 var DoNotTrackPanel = require('./regions/do_not_track');
-var BrowsingPrivacyPanel = require('./regions/browsing_privacy');
 var FeedbackPanel = require('./regions/feedback');
 var HotspotPanel = require('./regions/hotspot');
 var HotspotSettingsPanel = require('./regions/hotspot_settings');
@@ -43,30 +43,30 @@ module.exports = Settings;
 
 Settings.Selectors = {
   'menuItemsSection': '#root',
+  'appPermissionPanel': '#menuItem-appPermissions',
+  'appStorageMenuItem': '.menuItem-applicationStorage',
+  'batteryMenuItem': '.menuItem-battery',
   'bluetoothMenuItem': '#menuItem-bluetooth',
-  'doNotTrackMenuItem': '#menuItem-doNotTrack',
   'browsingPrivacyMenuItem': '#menuItem-browsingPrivacy',
+  'dateTimeMenuItem': '#menuItem-dateAndTime',
+  'deviceInfoMenuItem': '#menuItem-deviceInfo',
+  'displayMenuItem': '#menuItem-display',
+  'doNotTrackMenuItem': '#menuItem-doNotTrack',
   'hotspotMenuItem': '#menuItem-internetSharing',
+  'improveMenuItem': '#menuItem-improveBrowserOS',
+  'keyboardMenuItem': '#menuItem-keyboard',
+  'languageMenuItem': '.menuItem-languageAndRegion',
+  'mediaStorageMenuItem': '.menuItem-mediaStorage',
+  'messageMenuItem': '#menuItem-messagingSettings',
+  'notificationsMenuItem': '#menuItem-notifications',
+  'screenLockMenuItem': '#menuItem-screenLock',
+  'soundMenuItem': '#menuItem-sound',
+  'supportMenuItem': '#menuItem-help',
+  'usbStorageMenuItem': '.menuItem-enableStorage',
+  'feedbackPanel': 'a[href="#improveBrowserOS-chooseFeedback"]',
   'hotspotPanel': '#hotspot',
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
-  'supportMenuItem': '#menuItem-help',
-  'batteryMenuItem': '.menuItem-battery',
-  'dateTimeMenuItem': '#menuItem-dateAndTime',
-  'notificationsMenuItem': '#menuItem-notifications',
-  'improvePanel': '#menuItem-improveBrowserOS',
-  'improveSection': '#improveBrowserOS',
-  'feedbackPanel': 'a[href="#improveBrowserOS-chooseFeedback"]',
-  'soundMenuItem': '#menuItem-sound',
-  'languageMenuItem': '.menuItem-languageAndRegion',
-  'screenLockMenuItem': '#menuItem-screenLock',
-  'appPermissionPanel': '#menuItem-appPermissions',
-  'displayMenuItem': '#menuItem-display',
-  'appStorageMenuItem': '.menuItem-applicationStorage',
-  'mediaStorageMenuItem': '.menuItem-mediaStorage',
-  'keyboardMenuItem': '#menuItem-keyboard',
-  'messageMenuItem': '#menuItem-messagingSettings',
-  'deviceInfoMenuItem': '#menuItem-deviceInfo',
-  'usbStorageMenuItem': '.menuItem-enableStorage'
+  'improveSection': '#improveBrowserOS'
 };
 
 Settings.prototype = {
@@ -171,7 +171,7 @@ Settings.prototype = {
   },
 
   get improvePanel() {
-    this.openPanel.call(this, 'improvePanel');
+    this.openPanel.call(this, 'improveMenuItem');
     this._improvePanel = this._improvePanel ||
       new ImprovePanel(this.client);
     return this._improvePanel;
