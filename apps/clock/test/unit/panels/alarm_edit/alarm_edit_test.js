@@ -176,28 +176,31 @@ suite('AlarmEditView', function() {
       });
     });
 
-    test('should update start of week for l10n, Monday first', function() {
+    test('should update start of week for l10n, Monday first', function(done) {
       var sunday = alarmEdit.element.querySelector('#repeat-select-sunday');
       var parent = sunday.parentElement;
       // Sunday gets moved to the end.
       parent.appendChild(sunday);
 
       mozL10n.language.code = 'en-US';
-
-      assert.ok(!sunday.previousSibling, 'Sunday should be first (prev)');
-      assert.ok(sunday.nextSibling, 'Sunday should be first (next)');
+      document.l10n.requestLanguages(['en-US']).then(() => {
+        assert.ok(!sunday.previousSibling, 'Sunday should be first (prev)');
+        assert.ok(sunday.nextSibling, 'Sunday should be first (next)');
+        done();
+      });
     });
 
-    test('should update start of week for l10n, Sunday first', function() {
+    test('should update start of week for l10n, Sunday first', function(done) {
       var sunday = alarmEdit.element.querySelector('#repeat-select-sunday');
       var parent = sunday.parentElement;
       // Sunday goes first.
       parent.insertBefore(sunday, parent.firstChild);
 
-      mozL10n.language.code = 'fr';
-
-      assert.ok(sunday.previousSibling, 'Sunday should be last (prev)');
-      assert.ok(!sunday.nextSibling, 'Sunday should be last (next)');
+      document.l10n.requestLanguages(['fr']).then(() => {
+        assert.ok(sunday.previousSibling, 'Sunday should be last (prev)');
+        assert.ok(!sunday.nextSibling, 'Sunday should be last (next)');
+        done();
+      });
     });
 
   });
