@@ -809,17 +809,20 @@ suite('KeyboardManager', function() {
       var imeMenu = MockImeMenu.instances[0];
       assert.deepEqual(imeMenu.listItems,
         [{
-          layoutName: 'English',
+          name: 'English',
+          nameL10nId: undefined,
           appName: 'Built-in Keyboard',
           value: 0,
           selected: false
         }, {
-          layoutName: 'French',
+          name: 'French',
+          nameL10nId: undefined,
           appName: 'Built-out Keyboard',
           value: 1,
           selected: false
         }, {
-          layoutName: 'Chinese',
+          name: 'Chinese',
+          nameL10nId: undefined,
           appName: 'Built-inout Keyboard',
           value: 2,
           selected: true

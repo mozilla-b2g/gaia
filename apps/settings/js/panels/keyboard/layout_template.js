@@ -22,6 +22,9 @@ define(function(require) {
     }
     var refreshName = function() {
       nameBdi.textContent = layout.name;
+      if (layout.nameL10nId) {
+        nameBdi.dataset.l10nId = layout.nameL10nId;
+      }
       small.textContent = layout.appName;
     };
     refreshName();
