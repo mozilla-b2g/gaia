@@ -1120,59 +1120,83 @@ suite('system/SyncManager >', () => {
     });
   });
 
-  suite('killapp', () => {
+  suite('Synchronizer killed while syncing', () => {
     var syncManager;
-    var isSyncAppStub;
-    var isSyncApp;
+    var realMozApps;
+    var realUuid;
+    var port;
+    var _onclose;
     var requestSpy;
-
-    function killapp() {
-      window.dispatchEvent(new CustomEvent('killapp', {
-        detail: {
-          origin: 'whatever'
-        }
-      }));
-    }
+    var deferred = {};
+    deferred.promise = new Promise(resolve => {
+      deferred.resolve = resolve;
+    });
 
     suiteSetup(() => {
       syncManager = BaseModule.instantiate('SyncManager');
       syncManager.start();
+
+      requestSpy = this.sinon.spy(MockService, 'request');
+
+      realMozApps = navigator.mozApps;
+      realUuid = window.uuid;
+
+      port = {
+        set onclose(cb) {
+          _onclose = cb;
+        },
+
+        postMessage() {
+          setTimeout(() => {
+            _onclose();
+            deferred.resolve();
+          });
+        }
+      };
+
+      var ports = [port];
+
+      var app = {
+        connect() {
+          return Promise.resolve(ports);
+        }
+      };
+
+      var onsuccess = {
+        set onsuccess(callback) {
+          setTimeout(() => {
+            callback({ target: { result: app } });
+          });
+        }
+      };
+
+      navigator.mozApps = {
+        getSelf: function() {
+          return onsuccess;
+        }
+      };
+
+      window.uuid = () => {
+        return Date.now();
+      };
     });
 
     suiteTeardown(() => {
       syncManager.stop();
-    });
-
-    setup(() => {
-      isSyncAppStub = this.sinon.stub(syncManager, 'isSyncApp', () => {
-        return isSyncApp ? Promise.resolve() : Promise.reject();
-      });
-      requestSpy = this.sinon.spy(MockService, 'request');
-    });
-
-    teardown(() => {
-      isSyncAppStub.restore();
+      navigator.mozApps = realMozApps;
+      window.uuid = realUuid;
       requestSpy.restore();
     });
 
-    test('Is Sync app', done => {
-      isSyncApp = true;
-      killapp();
-      setTimeout(() => {
-        assert.ok(requestSpy.calledOnce);
+    test('Should throw error if port closes while syncing', done => {
+      syncManager.state = 'syncing';
+      deferred.promise.then(() => {
         assert.equal(requestSpy.getCall(0).args[0], 'SyncStateMachine:error');
-        assert.equal(requestSpy.getCall(0).args[1], ERROR_SYNC_APP_KILLED);
+        assert.equal(requestSpy.getCall(0).args[1],
+                     ERROR_SYNC_APP_KILLED);
         done();
       });
-    });
-
-    test('Is not Sync app', done => {
-      isSyncApp = false;
-      killapp();
-      setTimeout(() => {
-        assert.ok(requestSpy.notCalled);
-        done();
-      });
+      syncManager.doSync();
     });
   });
 
