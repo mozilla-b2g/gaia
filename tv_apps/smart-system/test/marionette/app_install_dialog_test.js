@@ -12,7 +12,7 @@ var Server = require('../../../../shared/test/integration/server');
 
 // Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
 // We should investigate the issue and re-enable the test later.
-marionette.skip('app install manager tests', function() {
+marionette('app install manager tests', function() {
 
   var opts = {
     apps: {},
