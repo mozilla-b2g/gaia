@@ -124,16 +124,6 @@ marionette('modify event view', function() {
       );
     });
 
-    test('start datetime could not equal end datetime', function() {
-      editEvent.endDate = startDate;
-      editEvent.endTime = startDate;
-      assert.equal(
-        editEvent.errors,
-        'The event cannot end before its start time',
-        'show the correct error message'
-      );
-    });
-
     suite('12/24 hour format', function() {
       test('default format: 12 hour', function() {
         app.switch12HourTimeFormat();
