@@ -273,10 +273,6 @@ module.exports = View.extend({
    * initial localization.
    */
   localize: function() {
-    for (var el in this.elsL10n) {
-      // Resetting data-l10n-id will trigger localization for the el.
-      this.els[el].setAttribute('data-l10n-id', this.elsL10n[el]);
-    }
     // Switch mode label depends on the mode that is currently set.
     var mode = this.get('mode') || 'picture';
     this.els.switch.setAttribute('data-l10n-id', mode + '-mode-button');

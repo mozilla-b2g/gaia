@@ -783,7 +783,7 @@ Camera.prototype.takePicture = function(options) {
     if (error.name === 'NS_ERROR_IN_PROGRESS') {
       complete();
     } else {
-      navigator.mozL10n.formatValue('error-saving').then((value) => {
+      document.l10n.formatValue('error-saving').then((value) => {
         alert(value);
         complete();
       });
@@ -1040,7 +1040,7 @@ Camera.prototype.stoppedRecording = function(recorded) {
 // shouldn't be handled in this file.
 Camera.prototype.onRecordingError = function(id) {
   if (id) {
-    navigator.mozL10n.formatValue(id).then((value) => {
+    document.l10n.formatValue(id).then((value) => {
       alert(value);
     });
   }

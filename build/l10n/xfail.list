@@ -20,7 +20,6 @@ apps/calendar/js/views/month_day.js
 apps/calendar/js/views/view_event.js
 apps/calendar/test/unit/view_test.js
 apps/calendar/test/unit/views/view_event_test.js
-apps/camera/test/unit/controllers/preview-gallery_test.js
 apps/communications/contacts/js/export/bt.js
 apps/communications/contacts/js/tag_options.js
 apps/communications/contacts/js/utilities/normalizer.js

@@ -18,7 +18,7 @@ module.exports = View.extend({
   name: 'setting',
 
   initialize: function(options) {
-    this.l10n = options.l10n || navigator.mozL10n;
+    this.l10n = options.l10n || document.l10n;
     this.model = options.model;
     this.model.on('change', this.render);
     this.on('destroy', this.onDestroy);

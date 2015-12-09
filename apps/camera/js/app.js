@@ -213,7 +213,7 @@ App.prototype.bindEvents = function() {
 
   // we bind to window.onlocalized in order not to depend
   // on l10n.js loading (which is lazy). See bug 999132
-  bind(this.win, 'localized', this.firer('localized'));
+  bind(this.doc, 'DOMRetranslated', this.firer('localized'));
 
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.win, 'keydown', this.onKeyDown);
@@ -403,18 +403,6 @@ App.prototype.onVisibilityChange = function() {
 App.prototype.onBeforeUnload = function() {
   this.emit('beforeunload');
   debug('beforeunload');
-};
-
-/**
- * States whether localization
- * has completed or not.
- *
- * @return {Boolean}
- * @public
- */
-App.prototype.localized = function() {
-  var l10n = navigator.mozL10n;
-  return l10n && l10n.readyState === 'complete';
 };
 
 /**

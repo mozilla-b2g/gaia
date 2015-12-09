@@ -22,7 +22,6 @@ suite('controllers/overlay', function() {
       pick: false,
       cancel: sinon.spy()
     };
-    this.app.localized.returns(true);
     this.app.require = sinon.stub();
     this.app.require.callsArgWith(1, this.Overlay);
 

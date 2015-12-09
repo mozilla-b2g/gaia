@@ -61,7 +61,7 @@ suite('controllers/settings', function() {
       return view;
     });
 
-    navigator.mozL10n = {
+    document.l10n = {
       formatValue: key => {
         return {
           then(fn) { fn('LOCALIZED'); }
@@ -78,7 +78,7 @@ suite('controllers/settings', function() {
   });
 
   teardown(function() {
-    delete navigator.mozL10n;
+    delete document.l10n;
   });
 
   suite('SettingsController()', function() {
@@ -117,7 +117,7 @@ suite('controllers/settings', function() {
       this.settings.pictureSizes.current = sinon.stub()
         .returns(this.settings.pictureSizesBack);
 
-      navigator.mozL10n = {
+      document.l10n = {
         formatValue: function(id, args) {
           return Promise.resolve();
         }
@@ -446,9 +446,7 @@ suite('controllers/settings', function() {
         .withArgs('options')
         .returns(this.options);
 
-      this.app.localized.returns(true);
-
-      navigator.mozL10n = {
+      document.l10n = {
         formatValue: function(id, args) {
           return Promise.resolve('MP');
         }
@@ -470,7 +468,7 @@ suite('controllers/settings', function() {
     });
 
     test('Should use localized \'MP\' string', function() {
-      navigator.mozL10n = {
+      document.l10n = {
         formatValue: function(id, args) {
           return Promise.resolve('MP');
         }
@@ -478,14 +476,6 @@ suite('controllers/settings', function() {
 
       this.controller.formatPictureSizeTitles();
       assert.isTrue(this.options[2].title.indexOf('MP') > -1, this.options[2].title);
-    });
-
-    test('Should not run if app isn\'t localized yet', function() {
-      this.app.localized.returns(false);
-      delete this.options[0].title;
-
-      this.controller.formatPictureSizeTitles();
-      assert.equal(this.options[0].title, undefined);
     });
   });
 

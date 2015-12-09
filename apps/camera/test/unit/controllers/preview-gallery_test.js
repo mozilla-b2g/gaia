@@ -52,13 +52,6 @@ suite('controllers/preview-gallery', function() {
 
   suite('PreviewGalleryController()', function() {
     setup(function() {
-      var mozL10n = {
-        get: function() {},
-        translate: function() {}
-      };
-      if (!navigator.mozL10n) {
-        navigator.mozL10n = mozL10n;
-      }
       var MozActivity = function() {};
       if (!window.MozActivity) {
         window.MozActivity = MozActivity;

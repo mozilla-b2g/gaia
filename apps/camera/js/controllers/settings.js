@@ -441,7 +441,7 @@ SettingsController.prototype.configureRecorderProfiles = function(camera) {
  * @private
  */
 SettingsController.prototype.formatPictureSizeTitles = function() {
-  return navigator.mozL10n.formatValue('mp').then((value) => {
+  return document.l10n.formatValue('mp').then((value) => {
     var options = this.settings.pictureSizes.get('options');
     options.forEach(function(size) {
       var data = size.data;
