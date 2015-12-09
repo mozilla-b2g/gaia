@@ -40,7 +40,6 @@ DownloadNotification.prototype = {
   _wontNotify: function dn_wontNotify() {
     var download = this.download;
     return this.state === download.state ||
-           download.state === 'downloading' ||
           (download.state === 'stopped' && download.error === null);
   },
 
