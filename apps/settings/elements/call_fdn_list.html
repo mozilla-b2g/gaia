@@ -6,18 +6,15 @@
       <button class="fdnContact"><span data-l10n-id="add" class="icon icon-add"></span></button>
     </gaia-header>
 
-    <form hidden class="call-fdnList-action" role="dialog" data-type="action">
+    <gaia-menu hidden class="call-fdnList-action">
       <header>
         <span class="fdnAction-name"></span><br />
         <span class="fdnAction-number"></span>
       </header>
-      <menu>
-        <button class="fdnAction-call" data-l10n-id="fdnAction-call"></button>
-        <button class="fdnAction-edit" data-l10n-id="fdnAction-edit"></button>
-        <button class="fdnAction-delete" data-l10n-id="fdnAction-delete"></button>
-        <button class="fdnAction-cancel" data-l10n-id="cancel"></button>
-      </menu>
-    </form>
+      <button class="fdnAction-call" data-l10n-id="fdnAction-call"></button>
+      <button class="fdnAction-edit" data-l10n-id="fdnAction-edit"></button>
+      <button class="fdnAction-delete" data-l10n-id="fdnAction-delete"></button>
+    </gaia-menu>
 
     <div>
       <ul class="fdn-contactsContainer"></ul>
