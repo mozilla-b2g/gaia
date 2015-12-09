@@ -3,7 +3,7 @@
 requireApp('clock/test/unit/mocks/mock_moz_alarm.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_intl_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 requireApp('clock/js/alameda.js', () => {

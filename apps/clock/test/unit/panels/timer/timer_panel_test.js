@@ -7,7 +7,7 @@ suite('Timer.Panel', function() {
   var View, Timer, Utils;
 
   suiteSetup(function(done) {
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     window.mozIntl = MockMozIntl;
     window.IntlHelper = MockIntlHelper;
     window.IntlHelper.define('digit-nopadding', 'number', {

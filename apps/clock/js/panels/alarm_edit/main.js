@@ -93,7 +93,8 @@ var AlarmEdit = function() {
 
   // When the language changes, the value of 'firstDayOfTheWeek'
   // might change and we need to update translations of weekdays
-  navigator.mozL10n.ready(this.updateL10n.bind(this));
+  this.updateL10n();
+  document.addEventListener('DOMRetranslated', this.updateL10n.bind(this));
 
   this.headers.header.addEventListener('action', handleDomEvent);
   this.buttons.done.addEventListener('click', handleDomEvent);

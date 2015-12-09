@@ -136,7 +136,7 @@ define(function(require) {
     this.container.setAttribute('aria-valuemin', this.lower);
     this.container.setAttribute('aria-valuenow', this.index);
     if (this.l10nId) {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.container,
         this.l10nId,
         {n: this.values[i]}
