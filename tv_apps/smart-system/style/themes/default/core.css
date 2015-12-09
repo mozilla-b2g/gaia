@@ -9,7 +9,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 20.37vh 0 0; /* 20.37vh = 22rem in 1920x1080 */
+  padding: 0;
   color: #fff;
   font-size: 0;
   white-space: nowrap;
@@ -45,6 +45,7 @@
   margin-left: -0.1rem; /* need to fix the white-space: nowrap */
   padding: 0 1.5rem 2rem 0;
   white-space: normal;
+  margin-top: 20.37vh; /* 20.37vh = 22rem in 1920x1080 */
 }
 
 [role="dialog"].generic-dialog h3 {
