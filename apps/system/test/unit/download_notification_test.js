@@ -96,14 +96,25 @@ suite('system/DownloadNotification >', function() {
     });
 
     test('The download starts', function() {
+      notification.state = 'started';
       assert.isFalse(NotificationScreen.addNotification.called);
       download.state = 'downloading';
       download.listeners[0]();
       assertUpdatedNotification(download);
 
-      sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
-        noNotify: true
-      });
+      assert.isUndefined(
+        NotificationScreen.addNotification.args[0][0].noNotify);
+    });
+
+    test('The download continues', function() {
+      notification.state = 'downloading';
+      assert.isFalse(NotificationScreen.addNotification.called);
+      download.state = 'downloading';
+      download.listeners[0]();
+      assertUpdatedNotification(download);
+
+      assert.isTrue(
+        NotificationScreen.addNotification.args[0][0].noNotify);
     });
 
     test('The notification was clicked while downloading > Show download list',
@@ -137,9 +148,8 @@ suite('system/DownloadNotification >', function() {
       download.listeners[0]();
       assertUpdatedNotification(download);
 
-      sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
-        noNotify: true
-      });
+      assert.isUndefined(
+        NotificationScreen.addNotification.args[0][0].noNotify);
     });
 
     test('Download was stopped by the user', function() {
@@ -161,9 +171,8 @@ suite('system/DownloadNotification >', function() {
       download.listeners[0]();
       assertUpdatedNotification(download);
 
-      sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
-        noNotify: true
-      });
+      assert.isUndefined(
+        NotificationScreen.addNotification.args[0][0].noNotify);
     });
 
     test('The download failed because the SD card is missing', function() {
@@ -222,9 +231,8 @@ suite('system/DownloadNotification >', function() {
       download.listeners[0]();
       assertUpdatedNotification(download);
 
-      sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
-        noNotify: true
-      });
+      assert.isUndefined(
+        NotificationScreen.addNotification.args[0][0].noNotify);
     });
 
     test('Download was stopped because the connectivity was lost', function() {
