@@ -20,6 +20,7 @@ task:
       TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
       NODE_MODULES_SRC: npm-cache
       HOST_LOG: artifacts/gecko_output.log
+      APP: homescreen
 
     command:
       - entrypoint
