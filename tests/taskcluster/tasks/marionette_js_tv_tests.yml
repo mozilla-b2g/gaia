@@ -40,4 +40,4 @@ task:
     treeherder:
       groupName: "Gaia javascript integration tests"
       groupSymbol: Gij
-      symbol: GijTV
+      symbol: GijTV{{chunk}}
