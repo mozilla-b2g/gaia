@@ -102,15 +102,6 @@ define(function(require) {
       }, {
         l10nId: 'service-worker-script-spec',
         textContent: serviceWorkersInfo.scriptSpec
-      }, {
-        l10nId: 'service-worker-current-worker-url',
-        textContent: serviceWorkersInfo.currentWorkerURL
-      }, {
-        l10nId: 'service-worker-active-cache-name',
-        textContent: serviceWorkersInfo.activeCacheName
-      }, {
-        l10nId: 'service-worker-waiting-cache-name',
-        textContent: serviceWorkersInfo.waitingCacheName
       }].forEach(property => {
         var li = document.createElement('li');
         var span = document.createElement('span');
