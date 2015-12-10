@@ -11,7 +11,7 @@ suite('CallFdnList Panel > ', function() {
   var realL10n;
 
   var modules = [
-    'shared_mocks/mock_l10n',
+    'shared_mocks/mock_l20n',
     'modules/fdn_context',
     'modules/dialog_service',
     'modules/settings_panel',
@@ -75,8 +75,8 @@ suite('CallFdnList Panel > ', function() {
     var requireCtx = testRequire([], map, function() {});
     requireCtx(modules, function(MockL10n, MockFdnContext, MockDialogService,
       MockSettingsPanel, MockDsdsSettings, CallFdnListPanel) {
-        realL10n = window.navigator.mozL10n;
-        window.navigator.mozL10n = MockL10n;
+        realL10n = document.l10n;
+        document.l10n = MockL10n;
         mockFdnContext = MockFdnContext;
         mockDialogService = MockDialogService;
         mockDsdsSettings = MockDsdsSettings;
@@ -99,7 +99,7 @@ suite('CallFdnList Panel > ', function() {
   });
 
   teardown(function() {
-    window.navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('_renderAuthorizedNumbers', function() {
