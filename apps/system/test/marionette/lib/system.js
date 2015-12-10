@@ -368,10 +368,26 @@ System.prototype = {
   },
 
   gotoBrowser: function(url) {
-    var frame = this.client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    this.client.switchToFrame();
+    var frame = this.waitForUrlLoaded(url);
     this.client.switchToFrame(frame);
     this.client.helper.waitForElement('body');
+  },
+
+  waitForUrlLoaded: function(url) {
+    var frame = this.client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    return frame;
+  },
+
+  goBack: function(url) {
+    this.client.switchToFrame();
+    this.appChromeBack.tap();
+  },
+
+  goForward: function(url) {
+    this.client.switchToFrame();
+    this.appChromeForward.tap();
   },
 
   getHomescreenIframe: function() {

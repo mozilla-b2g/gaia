@@ -37,6 +37,30 @@ marionette('Browser Chrome - Back/Forward button', function() {
     system.waitForFullyLoaded();
   });
 
+  function waitForTitle(text, url) {
+    system.gotoBrowser(url);
+    client.waitFor(function() {
+      var title = client.findElement('h1');
+      return title && title.text() === text;
+    });
+  }
+
+  test('navigation back and forward', function() {
+    // Use the home-screen search box to open up the system browser
+    var url = server.url('sample.html');
+    rocketbar.goToURL(url);
+    waitForTitle('Mozilla Sample', url);
+
+    client.findElement('a').click();
+    waitForTitle('Mozilla Darkpage', url);
+
+    system.goBack();
+    waitForTitle('Mozilla Sample', url);
+
+    system.goForward();
+    waitForTitle('Mozilla Darkpage', url);
+  });
+
   test('browsing a 2nd website should display back icon', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');

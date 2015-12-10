@@ -14,6 +14,7 @@ var Marionette = require('marionette-client');
 function Rocketbar(client) {
   this.client = client.scope({ searchTimeout: 200000 });
   this.actions = new Marionette.Actions(client);
+  this.system = client.loader.getAppClass('system');
 }
 
 module.exports = Rocketbar;
@@ -166,6 +167,12 @@ Rocketbar.prototype = {
     return this.client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
     });
+  },
+
+  goToURL: function(url) {
+    this.homescreenFocus();
+    this.enterText(url, true);
+    this.system.waitForUrlLoaded(url);
   },
 
   get rocketbar() {
