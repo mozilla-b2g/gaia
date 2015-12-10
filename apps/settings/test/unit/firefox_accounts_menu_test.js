@@ -9,7 +9,7 @@ require('/shared/js/html_imports.js');
 // mocks and globals
 require('mock_fx_accounts_iac_helper.js');
 require('/shared/js/text_normalizer.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 // source the code we care about
 requireApp('settings/js/firefox_accounts/menu.js');
@@ -23,24 +23,24 @@ suite('firefox accounts menu item > ', function() {
   suiteSetup(function() {
     // attach mock html to page, so it inits without complaint
     loadBodyHTML('./_root.html');
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
     suiteSandbox.restore();
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     document.body.innerHTML = '';
   });
 
   setup(function() {
-    setAttributesSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
+    setAttributesSpy = sinon.spy(document.l10n, 'setAttributes');
     fxaDescEl = document.getElementById('fxa-desc');
   });
 
   teardown(function() {
     MockFxAccountsIACHelper.resetListeners();
-    navigator.mozL10n.setAttributes.restore();
+    document.l10n.setAttributes.restore();
   });
 
   test('check the html loaded correctly', function() {

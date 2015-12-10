@@ -112,7 +112,7 @@ define(function(require) {
         this._renderTimeFormat();
         this._boundUpdateUI();
 
-        window.addEventListener('localized', this);
+        document.addEventListener('DOMRetranslated', this);
       },
 
       onHide: function() {
@@ -135,7 +135,7 @@ define(function(require) {
         this._elements.timeFormatAutoSwitch.removeEventListener('change',
           this._boundTimeFormatAutoChange);
 
-        window.removeEventListener('localized', this);
+        document.removeEventListener('DOMRetranslated', this);
       },
 
       /**
@@ -169,7 +169,7 @@ define(function(require) {
 
       handleEvent: function dt_handleEvent(evt) {
         switch (evt.type) {
-          case 'localized':
+          case 'DOMRetranslated':
             this._renderTimeZone();
             break;
         }

@@ -4,7 +4,7 @@ suite('LanguageItem', function() {
   var realL10n;
   var realLanguageList;
   var modules = [
-    'shared_mocks/mock_l10n',
+    'shared_mocks/mock_l20n',
     'shared_mocks/mock_language_list',
     'panels/root/language_item',
   ];
@@ -18,8 +18,8 @@ suite('LanguageItem', function() {
     var requireCtx = testRequire([], map, function() {});
 
     requireCtx(modules, function(MockL10n, MockLanguageList, LanguageItem) {
-      realL10n = window.navigator.mozL10n;
-      window.navigator.mozL10n = MockL10n;
+      realL10n = document.l10n;
+      document.l10n = MockL10n;
 
       realLanguageList = window.LanguageList;
       window.LanguageList = MockLanguageList;
@@ -40,20 +40,20 @@ suite('LanguageItem', function() {
 
   test('when enabled = true', function() {
     this.sinon.stub(this.subject, '_boundRefreshText');
-    this.sinon.stub(window, 'addEventListener');
+    this.sinon.stub(document, 'addEventListener');
     this.subject.enabled = true;
     sinon.assert.calledWith(this.subject._boundRefreshText);
-    sinon.assert.calledWith(window.addEventListener,
-      'localized', this.subject._boundRefreshText);
+    sinon.assert.calledWith(document.addEventListener,
+      'DOMRetranslated', this.subject._boundRefreshText);
   });
 
   test('when enabled = false', function() {
-    this.sinon.stub(window, 'removeEventListener');
+    this.sinon.stub(document, 'removeEventListener');
     // The default enabled value is false. Set to true first.
     this.subject._enabled = true;
     this.subject.enabled = false;
-    sinon.assert.calledWith(window.removeEventListener,
-      'localized', this.subject._boundRefreshText);
+    sinon.assert.calledWith(document.removeEventListener,
+      'DOMRetranslated', this.subject._boundRefreshText);
   });
 
   test('_boundRefreshText', function() {

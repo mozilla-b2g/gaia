@@ -330,7 +330,7 @@ define(function(require) {
       formatter.format(time).then(relDate => {
         var selector = 'span[data-l10n-id=fxsync-last-synced]';
         var lastSync = this.elements.lastSync.querySelector(selector);
-        navigator.mozL10n.setAttributes(lastSync, 'fxsync-last-synced', {
+        document.l10n.setAttributes(lastSync, 'fxsync-last-synced', {
           when: relDate
         });
         this.elements.lastSync.classList.remove('hidden');

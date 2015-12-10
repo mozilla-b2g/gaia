@@ -43,10 +43,10 @@ define(function(require) {
       if (value) { //observe
         AppStorage.observe('freeSize', this._boundUpdateAppFreeSpace);
         this._updateAppFreeSpace();
-        window.addEventListener('localized', this);
+        document.addEventListener('DOMRetranslated', this);
       } else { //unobserve
         AppStorage.unobserve('freeSize', this._boundUpdateAppFreeSpace);
-        window.removeEventListener('localized', this);
+        document.removeEventListener('DOMRetranslated', this);
       }
     },
 
@@ -58,7 +58,7 @@ define(function(require) {
 
     handleEvent: function storage_handleEvent(evt) {
       switch (evt.type) {
-        case 'localized':
+        case 'DOMRetranslated':
           this._updateAppFreeSpace();
           break;
       }

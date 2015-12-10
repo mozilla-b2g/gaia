@@ -43,7 +43,7 @@ define(function(require) {
                             The element displaying the bluetooth information
      */
     _refreshMenuDescription: function bt__refreshMenuDescription(element) {
-      if (!navigator.mozL10n) {
+      if (!document.l10n) {
         return;
       }
 
@@ -51,7 +51,7 @@ define(function(require) {
         if (BtContext.numberOfPairedDevices === 0) {
           element.setAttribute('data-l10n-id', 'bt-status-nopaired');
         } else {
-          navigator.mozL10n.setAttributes(element, 'bt-status-paired',
+          document.l10n.setAttributes(element, 'bt-status-paired',
             {
               name: BtContext.firstPairedDeviceName,
               n: BtContext.numberOfPairedDevices - 1

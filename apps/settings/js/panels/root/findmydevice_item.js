@@ -33,7 +33,7 @@ define(function(require) {
                             The element showing Find My Device's enabled state
      */
     _refreshText: function fmd_refresh_text(element) {
-      if (!navigator.mozL10n) {
+      if (!document.l10n) {
         return;
       }
 

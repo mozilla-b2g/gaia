@@ -86,7 +86,7 @@ require([
         element.removeAttribute('data-l10n-id');
         element.textContent = l10n.raw;
       } else {
-        navigator.mozL10n.setAttributes(element, l10n.id, l10n.attrs);
+        document.l10n.setAttributes(element, l10n.id, l10n.attrs);
       }
     }
 

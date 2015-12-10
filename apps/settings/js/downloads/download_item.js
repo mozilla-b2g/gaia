@@ -109,7 +109,7 @@ window.DownloadItem = (function DownloadItem() {
         DownloadFormatter.getDownloadedSize(download),
         DownloadFormatter.getTotalSize(download)
       ]).then(([partial, total]) => {
-        navigator.mozL10n.setAttributes(domNodes.info, 'partialResult', {
+        document.l10n.setAttributes(domNodes.info, 'partialResult', {
           partial: partial,
           total: total
         });
@@ -120,7 +120,7 @@ window.DownloadItem = (function DownloadItem() {
       switch (state) {
         case 'stopped':
         case 'failed':
-          statusPromise = navigator.mozL10n.formatValue('download-' + state);
+          statusPromise = document.l10n.formatValue('download-' + state);
           break;
         case 'succeeded':
           statusPromise = DownloadFormatter.getTotalSize(download);
@@ -132,7 +132,7 @@ window.DownloadItem = (function DownloadItem() {
         DownloadFormatter.getDate(download),
         statusPromise
       ]).then(function([date, status]) {
-        navigator.mozL10n.setAttributes(domNodes.info, 'summary', {
+        document.l10n.setAttributes(domNodes.info, 'summary', {
           date: date,
           status: status
         });

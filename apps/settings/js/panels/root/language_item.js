@@ -49,16 +49,16 @@ define(function(require) {
     },
 
     set enabled(value) {
-      if (this._enabled === value || !navigator.mozL10n) {
+      if (this._enabled === value || !document.l10n) {
         return;
       }
       
       this._enabled = value;
       if (this._enabled) {
-        window.addEventListener('localized', this._boundRefreshText);
+        document.addEventListener('DOMRetranslated', this._boundRefreshText);
         this._boundRefreshText();
       } else {
-        window.removeEventListener('localized', this._boundRefreshText);
+        document.removeEventListener('DOMRetranslated', this._boundRefreshText);
       }
     }
   };

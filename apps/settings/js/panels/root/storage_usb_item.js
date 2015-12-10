@@ -58,14 +58,14 @@ define(function(require) {
         MediaStorage.observe('volumeState', this._boundUpdateVolumeState);
         MediaStorage.observe('freeSize', this._boundUpdateVolumeState);
 
-        window.addEventListener('localized', this);
+        document.addEventListener('DOMRetranslated', this);
       } else { //unobserve
         SettingsListener.unobserve(this._keyUmsEnabled,
           this._boundUmsEnabledHandler);
         MediaStorage.unobserve('volumeState', this._boundUpdateVolumeState);
         MediaStorage.unobserve('freeSize', this._boundUpdateVolumeState);
 
-        window.removeEventListener('localized', this);
+        document.removeEventListener('DOMRetranslated', this);
       }
     },
 
@@ -77,7 +77,7 @@ define(function(require) {
 
     handleEvent: function storage_handleEvent(evt) {
       switch (evt.type) {
-        case 'localized':
+        case 'DOMRetranslated':
           this._updateVolumeState();
           break;
       }

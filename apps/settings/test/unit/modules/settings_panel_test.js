@@ -7,7 +7,7 @@ suite('SettingsPanel', function() {
       'modules/panel_utils',
       'modules/settings_cache',
     ], (function(settingsPanelFunc, PanelUtils, SettingsCache) {
-      this.realL10n = navigator.mozL10n;
+      this.realL10n = document.l10n;
 
       this.PanelUtils = PanelUtils;
       this.SettingsCache = SettingsCache;

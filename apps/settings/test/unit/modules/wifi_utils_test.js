@@ -1,6 +1,6 @@
 /* global MockL10n, MockNavigatorSettings, MockNavigatorMozWifiManager,
           MockNavigatorSettings */
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('settings/shared/test/unit/load_body_html_helper.js');
 requireApp(
@@ -21,15 +21,15 @@ suite('WifiUtils', function() {
   };
 
   suiteSetup(function() {
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realSettings = window.navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.navigator.mozSettings = realSettings;
   });
 
@@ -262,7 +262,7 @@ suite('WifiUtils', function() {
         relSignalStrength: 40,
         known: false,
       };
-      var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+      var l10nSpy = this.sinon.spy(document.l10n, 'setAttributes');
 
       var listItem = wifiUtils.newListItem({
         network: testNetwork
@@ -287,7 +287,7 @@ suite('WifiUtils', function() {
         relSignalStrength: 40,
         known: true,
       };
-      var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+      var l10nSpy = this.sinon.spy(document.l10n, 'setAttributes');
 
       var listItem = wifiUtils.newListItem({
         network: testNetwork

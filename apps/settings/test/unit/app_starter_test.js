@@ -1,5 +1,6 @@
-/* global AppStarter */
+/* global AppStarter, MockL10n */
 'use strict';
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 mocha.globals([
   'InitialPanelHandler',
@@ -14,25 +15,19 @@ Object.defineProperty(document, 'readyState', {
 require('/js/startup.js');
 
 suite('AppStarter', function() {
-  var realMozL10n;
-  var mockL10n = {
-    once: function() {}
-  };
+  var appStarter, realL10n;
 
-  var appStarter;
-
-  setup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = mockL10n;
-    this.sinon.stub(mockL10n, 'once', function(callback) {
-      callback();
-    });
-
-    appStarter = AppStarter();
+  suiteSetup(function() {
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
-  teardown(function() {
-    navigator.mozL10n = mockL10n;
+  suiteTeardown(function() {
+    document.l10n = realL10n;
+  });
+
+  setup(function() {
+    appStarter = AppStarter();
   });
 
   suite('start', function() {
@@ -88,10 +83,11 @@ suite('AppStarter', function() {
     });
 
     test('should only be executed once', function() {
+      this.sinon.spy(appStarter._getInitialPanelId);
       appStarter.start();
       appStarter.start();
 
-      sinon.assert.calledOnce(mockL10n.once);
+      sinon.assert.calledOnce(appStarter._getInitialPanelId);
     });
   });
 });

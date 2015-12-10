@@ -48,7 +48,7 @@ define(function(require) {
     var messageDOM = this.panel.querySelector(this.MESSAGE_SELECTOR);
     if (messageDOM && message) {
       message = this._getWrapL10nObject(message);
-      navigator.mozL10n.setAttributes(messageDOM, message.id, message.args);
+      document.l10n.setAttributes(messageDOM, message.id, message.args);
     }
   };
 
@@ -56,7 +56,7 @@ define(function(require) {
     var titleDOM = this.panel.querySelector(this.TITLE_SELECTOR);
     if (titleDOM && title) {
       title = this._getWrapL10nObject(title);
-      navigator.mozL10n.setAttributes(titleDOM, title.id, title.args);
+      document.l10n.setAttributes(titleDOM, title.id, title.args);
     }
   };
 
@@ -64,7 +64,7 @@ define(function(require) {
     var buttonDOM = this.getSubmitButton();
     if (buttonDOM && options) {
       options = this._getWrapL10nObject(options);
-      navigator.mozL10n.setAttributes(buttonDOM, options.id, options.args);
+      document.l10n.setAttributes(buttonDOM, options.id, options.args);
       buttonDOM.className = options.style || 'recommend';
     }
   };
@@ -73,7 +73,7 @@ define(function(require) {
     var buttonDOM = this.getCancelButton();
     if (buttonDOM && options) {
       options = this._getWrapL10nObject(options);
-      navigator.mozL10n.setAttributes(buttonDOM, options.id, options.args);
+      document.l10n.setAttributes(buttonDOM, options.id, options.args);
       buttonDOM.className = options.style || '';
     }
   };

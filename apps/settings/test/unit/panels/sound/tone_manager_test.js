@@ -15,7 +15,7 @@ suite('Sound > ToneManager', function() {
   };
   var modules = [
     'shared_mocks/mock_navigator_moz_telephony',
-    'shared_mocks/mock_l10n',
+    'shared_mocks/mock_l20n',
     'shared_mocks/mock_navigator_moz_settings',
     'shared_mocks/mock_settings_listener',
     'unit/mock_settings_cache',
@@ -41,8 +41,8 @@ suite('Sound > ToneManager', function() {
         mockSettingsCache = MockSettingsCache;
         mockForwardLock = MockForwardLock;
         // mock l10n
-        realL10n = window.navigator.mozL10n;
-        window.navigator.mozL10n = MockL10n;
+        realL10n = document.l10n;
+        document.l10n = MockL10n;
         // mock navigator.mozTelephony
         realTelephony = navigator.mozTelephony;
         window.navigator.mozTelephony = MockNavigatorMozTelephony;
@@ -58,7 +58,7 @@ suite('Sound > ToneManager', function() {
   });
 
   teardown(function() {
-    window.navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.navigator.mozTelephony = realTelephony;
     window.navigator.mozSettings = realMozSettings;
     window.MozActivity.mTeardown();

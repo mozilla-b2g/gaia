@@ -104,7 +104,7 @@ define(function(require) {
           var title = menu[SIMNumber].entries.title;
           span.textContent = title;
           a.appendChild(span);
-          window.navigator.mozL10n.setAttributes(a, 'stkEntry', {title: title});
+          document.l10n.setAttributes(a, 'stkEntry', {title: title});
 
           if (Object.keys(menu).length > 1) {
             var small = document.createElement('small');

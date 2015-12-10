@@ -184,8 +184,8 @@ define(function(require) {
       this._boundUserSelectedTimezone);
     window.navigator.mozSettings.addObserver(_kLocaleTime,
       this._boundCurrentHour12);
-    // Listen to 'localized' to get the latest l10n resource.
-    window.addEventListener('localized', this);
+    // Listen to 'DOMRetranslated' to get the latest l10n resource.
+    document.addEventListener('DOMRetranslated', this);
     // Listen to 'moztimechange' to update clock
     window.addEventListener('moztimechange', this);
   };
@@ -195,7 +195,7 @@ define(function(require) {
       case 'moztimechange':
         this._autoUpdateDateTime();
         break;
-      case 'localized':
+      case 'DOMRetranslated':
         var d = new Date();
         this._date = this._formatDate(d);
         this._time = this._formatTime(d);

@@ -195,8 +195,8 @@
           // succeeded.
         }, function onError() {
           // This error is fired when a download restarted is paused
-          navigator.mozL10n.formatValue('restart_download_error').then(msg =>
-            console.error(msg));
+          document.l10n.formatValue('restart_download_error').then(
+            console.error);
         });
       }
     };

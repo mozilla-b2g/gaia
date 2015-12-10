@@ -52,8 +52,8 @@ define(function(require) {
       var fixedDigits = (size < 1024 * 1024) ? 0 : 2;
       var sizeInfo = this._getReadableFileSize(size, fixedDigits);
 
-      navigator.mozL10n.formatValue('byteUnit-' + sizeInfo.unit).then(unit => {
-        navigator.mozL10n.setAttributes(element, l10nId, {
+      document.l10n.formatValue('byteUnit-' + sizeInfo.unit).then(unit => {
+        document.l10n.setAttributes(element, l10nId, {
           size: sizeInfo.size,
           unit: unit
         });

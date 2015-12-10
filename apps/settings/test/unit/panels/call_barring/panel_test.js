@@ -3,7 +3,7 @@
 
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_switch/script.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
@@ -41,8 +41,8 @@ suite('Call Barring Panel >', function() {
       }
     };
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
@@ -53,7 +53,7 @@ suite('Call Barring Panel >', function() {
 
   suiteTeardown(function() {
     window.DsdsSettings = realDsdsSettings;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
   });
 

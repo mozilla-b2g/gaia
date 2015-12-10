@@ -100,7 +100,7 @@ define(function(require) {
       _setHotspotSettingsEnabled: function(enabled) {
         elements.hotspotElement.checked = enabled;
         if (enabled) {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             elements.hotspotMsg,
             'wifi-hotspot-enabled-msg',
             { hotspotSSID: hotspotSSID }

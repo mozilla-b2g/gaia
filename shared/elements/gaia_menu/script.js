@@ -24,11 +24,13 @@ window.GaiaMenu = (function(win) {
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
-    navigator.mozL10n.ready(this.localize.bind(this));
+
+    document.l10n.ready.then(this.localize.bind(this));
+    document.addEventListener('DOMRetranslated', this.localize.bind(this));
   };
 
   proto.localize = function() {
-    navigator.mozL10n.formatValue('gaia-menu-cancel').then(value => {
+    document.l10n.formatValue('gaia-menu-cancel').then(value => {
       this.shadowRoot.querySelector('button').textContent = value;
     });
   };

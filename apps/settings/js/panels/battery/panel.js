@@ -36,17 +36,17 @@ define(function(require) {
       return l10nAttrs;
     };
     var _refreshText = function() {
-      navigator.mozL10n.setAttributes(_batteryLevelText,
+      document.l10n.setAttributes(_batteryLevelText,
         'battery-current-level', { level: Battery.level });
 
       if (Battery.state === 'unplugged') {
         var l10nDischarging = _getBatteryTimeL10n('discharging');
-        navigator.mozL10n.setAttributes(_batteryTimeText,
+        document.l10n.setAttributes(_batteryTimeText,
           l10nDischarging.id, l10nDischarging.args);
       }
       else {
         var l10nCharging = _getBatteryTimeL10n('charging');
-        navigator.mozL10n.setAttributes(_batteryTimeText,
+        document.l10n.setAttributes(_batteryTimeText,
           l10nCharging.id, l10nCharging.args);
       }
     };
