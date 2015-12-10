@@ -160,15 +160,20 @@ module.exports = function(suite) {
      */
     context.test = function(title, options, fn) {
       // Second argument is optional, put default device if it doesn't exist.
-      if (typeof(options) === 'function') {
-        fn = options;
+      if (typeof options !== 'object') {
+        if (typeof options === 'function') {
+          fn = options;
+        }
+
+        // Run only phone tests by default.
         options = { devices: ['phone'] };
       }
 
-      // Filter out test suites if device type is not in devices list
-      if (manager.deviceType && options && options.devices &&
-          options.devices.indexOf(manager.deviceType) < 0) {
-            return;
+      if (options &&
+          options.devices &&
+          options.devices.indexOf(manager.deviceType) === -1) {
+        // Ignore test.
+        return;
       }
 
       var suite = suites[0];
