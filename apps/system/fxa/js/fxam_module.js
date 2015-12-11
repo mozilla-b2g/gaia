@@ -50,12 +50,12 @@ var FxaModule = (function() {
       }
 
       FxaModuleOverlay.hide();
-      LazyLoader.load('js/fxam_errors.js', function() {
+      LazyLoader.load('js/fxam_errors.js', () => {
         var config = FxaModuleErrors.responseToParams(resp);
-        FxaModuleErrorOverlay.show(config.title, config.message);
-        if (resp === 'COPPA_ERROR') {
+        FxaModuleErrorOverlay.show(config.title, config.message, resp);
+        if (resp && resp.error === 'COPPA_ERROR') {
           var link =
-            FxaModuleErrorOverlay.fxaErrorMsg.getElementById('coppa-link');
+            FxaModuleErrorOverlay.fxaErrorMsgCoppa.querySelector('#coppa-link');
           link.addEventListener('click', e => {
             e.preventDefault();
             if (this.entrySheet) {
