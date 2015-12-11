@@ -69,6 +69,16 @@ Dialer.prototype = {
     this.client.apps.switchToApp(Dialer.URL, 'dialer');
   },
 
+  injectMockCallLogEntry: function(entry) {
+    window.wrappedJSObject.CallLogDBManager.add(entry);
+    this.client.helper.waitForElement(Dialer.selectors.callLogItem);
+  },
+
+  enterEditMode: function() {
+    this.client.findElement(Dialer.selectors.callLogEditButton).tap();
+    this.client.helper.waitForElement(Dialer.selectors.callLogEditForm);
+  },
+
   get phoneNumber() {
     return this.client.helper.waitForElement(Dialer.Selectors.phoneNumber)
                              .getAttribute('value');
