@@ -11,12 +11,12 @@ class StorageRegion(PageRegion):
     _movies_size_locator = (By.CSS_SELECTOR, '[data-l10n-id="videos-space"] + [data-l10n-id="storageSize"]')
     _pictures_size_locator = (By.CSS_SELECTOR, '[data-l10n-id="pictures-space"] + [data-l10n-id="storageSize"]')
     _format_locator = (By.CSS_SELECTOR, '[data-l10n-id^="format-sdcard"]')
-    _eject_locator = (By.CSS_SELECTOR, '[data-l10n-id^="eject-sdcard"]')
+    _eject_locator = (By.CSS_SELECTOR, '[data-l10n-id^="eject-sdcard-external-0"]')
 
-    _format_dialog_cancel_locator = (By.ID, 'format-sdcard-cancel-btn')
-    _format_dialog_confirm_locator = (By.ID, 'format-sdcard-ok-btn')
-    _eject_dialog_cancel_locator = (By.ID, 'unmount-sdcard-cancel-btn')
-    _eject_dialog_confirm_locator = (By.ID, 'unmount-sdcard-ok-btn')
+    _format_dialog_cancel_locator = (By.CSS_SELECTOR, 'button[type="reset"]')
+    _format_dialog_confirm_locator = (By.CSS_SELECTOR, 'button[type="submit"]')
+    _eject_dialog_cancel_locator = (By.CSS_SELECTOR, 'button[type="reset"]')
+    _eject_dialog_confirm_locator = (By.CSS_SELECTOR, 'button[type="submit"]')
 
     @property
     def music_size(self):
