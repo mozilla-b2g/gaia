@@ -45,6 +45,7 @@ var AppInstallManager = {
     this.appInfos = {};
     this.setupQueue = [];
     this.isSetupInProgress = false;
+    this.pausePreview = false;
 
     window.addEventListener('mozChromeEvent', (evt) => {
       var detail = evt.detail;
@@ -56,7 +57,9 @@ var AppInstallManager = {
               this.dispatchResponse(detail.id, 'webapps-install-denied');
             } else {
               this.dispatchResponse(detail.id, 'webapps-install-granted');
-              this.setPreviewAppManifestURL(detail.app.manifestURL);
+              if (!this.pausePreview) {
+                this.setPreviewAppManifestURL(detail.app.manifestURL);
+              }
             }
           } else {
             this.handleAppInstallPrompt(detail);
@@ -394,10 +397,13 @@ var AppInstallManager = {
       return;
     }
 
-    if (app.manifestURL === this.getPreviewAppManifestURL()) {
+    if (!this.pausePreview &&
+      app.manifestURL === this.getPreviewAppManifestURL()) {
       this.previewApp(app);
       return;
     }
+
+    this.pausePreview = false;
 
     if (this.configurations[role]) {
       this.setupQueue.push(app);

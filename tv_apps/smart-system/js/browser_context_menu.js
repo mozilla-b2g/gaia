@@ -1,6 +1,6 @@
 /* global MozActivity, IconsHelper, LazyLoader, applications */
 /* global BookmarksDatabase, focusManager, SmartModalDialog */
-/* global FTEWizard, Template */
+/* global FTEWizard, Template, AppInstallManager */
 
 (function(window) {
   'use strict';
@@ -156,8 +156,10 @@
 
     // Initialize FTE if necessary.
     if (!this.fteWizard.launched) {
-      var hasPinIcon = menus.some(
-                    item => item.menuIcon.search(PIN_TO_CARD_ICON_NAME) !== -1);
+      var hasPinIcon = menus.some((item) => {
+        return item.menuIcon &&
+          item.menuIcon.search(PIN_TO_CARD_ICON_NAME) !== -1;
+      });
 
       if(hasPinIcon) {
         this.initFTE(this.modalDialog.element);
@@ -204,14 +206,47 @@
     // context menu api
     if (detail.contextmenu && detail.contextmenu.items.length) {
       var that = this;
-      detail.contextmenu.items.forEach(function(choice, index) {
+      detail.contextmenu.items.forEach(function(choice) {
+        var textRaw;
+        var textL10nId;
+        var clickAction;
+        var icon;
+
+        // XXX: Bug 1218289, here is a workaround since we haven't support
+        // additional parameters in install / uninstall APIs
+        if (AppInstallManager.isMarketplaceAppActive() && choice.label &&
+            choice.label.endsWith('manifest.webapp')) {
+          var manifestURL = choice.label;
+          var app = applications.getByManifestURL(manifestURL);
+
+          if (!app) {
+            textL10nId = 'add-to-apps';
+            icon = 'style/icons/default.png';
+            clickAction = function _clickAction() {
+              AppInstallManager.pausePreview = true;
+              navigator.mozApps.install(manifestURL);
+            };
+          } else {
+            textL10nId = 'delete-from-apps';
+            icon = 'style/icons/default.png';
+            clickAction = function _clickAction() {
+              navigator.mozApps.mgmt.uninstall(app);
+            };
+          }
+        } else {
+          textRaw = choice.label;
+          icon = choice.icon;
+          clickAction = function _clickAction() {
+            detail.contextMenuItemSelected(choice.id);
+          };
+        }
+
         items.push({
           type: BUTTON_TYPE,
-          textRaw: choice.label,
-          menuIcon: that.app.origin + '/' + choice.icon,
-          onClick: choice.onClick || function() {
-            detail.contextMenuItemSelected(choice.id);
-          }
+          textL10nId: textL10nId,
+          textRaw: textRaw,
+          menuIcon: that.app.origin + '/' + icon,
+          onClick: choice.onClick || clickAction
         });
       });
     }
