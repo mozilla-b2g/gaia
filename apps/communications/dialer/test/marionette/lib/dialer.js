@@ -70,7 +70,9 @@ Dialer.prototype = {
   },
 
   injectMockCallLogEntry: function(entry) {
-    this.client.executeScript(function() { window.wrappedJSObject.CallLogDBManager.add(entry); });
+    this.client.executeScript(function() {
+      window.wrappedJSObject.CallLogDBManager.add(entry);
+    });
     this.client.helper.waitForElement(Dialer.selectors.callLogItem);
   },
 
