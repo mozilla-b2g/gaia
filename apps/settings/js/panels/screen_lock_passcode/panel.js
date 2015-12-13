@@ -10,7 +10,7 @@ define(function(require) {
 
     return DialogPanel({
       _elements: {},
-      
+
       /**
        * create  : when the user turns on passcode settings
        * edit    : when the user presses edit passcode button
@@ -152,6 +152,7 @@ define(function(require) {
               var confirmPasscode = this._getPasscodeBuffer('confirm');
               if (originalPasscode !== confirmPasscode) {
                 this._passcodeBuffer = '';
+                this._updatePassCodeUI();
                 this._showErrorMessage();
               } else {
                 this._showSuccessPasscodeStatus();
@@ -170,6 +171,7 @@ define(function(require) {
                   });
                 } else {
                   this._passcodeBuffer = '';
+                  this._updatePassCodeUI();
                 }
               });
               break;
@@ -187,6 +189,7 @@ define(function(require) {
                   });
                 } else {
                   this._passcodeBuffer = '';
+                  this._updatePassCodeUI();
                 }
               });
               break;
@@ -198,6 +201,7 @@ define(function(require) {
                   this._showDialogInMode('new');
                 } else {
                   this._passcodeBuffer = '';
+                  this._updatePassCodeUI();
                 }
               });
               break;
@@ -222,7 +226,7 @@ define(function(require) {
         } else {
           var originalPasscode = this._getPasscodeBuffer('original');
           // [Note]
-          // 
+          //
           // We keep this onSubmit function for the scenario when users did
           // type the password correctly and click "Submit" button to `submit`
           // this dialog.
@@ -236,7 +240,7 @@ define(function(require) {
 
       onCancel: function() {
         // [Note]
-        // 
+        //
         // While for the `confirm` & `confirmLock` case, because from UX spec,
         // there is no need to click the submit button, we have to close
         // the dialog programmatically, so we will use `this.cancel()` to
