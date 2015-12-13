@@ -1,11 +1,8 @@
 apps/bluetooth/js/deviceList.js
-apps/bluetooth/js/modules/pair_manager.js
-apps/bluetooth/js/modules/pair_manager_v1.js
 apps/bluetooth/js/settings.js
 apps/bluetooth/js/views/device_picker_panel.js
 apps/bluetooth/js/views/pair_view.js
 apps/bluetooth/js/views/pair_view_v1.js
-apps/bluetooth/test/unit/modules/pair_manager_test.js
 apps/bluetooth/test/unit/modules/pair_manager_v1_test.js
 apps/bookmark/js/activity_handler.js
 apps/bookmark/js/bookmark_editor.js

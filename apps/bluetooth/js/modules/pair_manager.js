@@ -306,7 +306,8 @@ define(function(require) {
       return NotificationHelper.send(titleL10n, {
         bodyL10n: bodyL10n,
         icon: iconUrl,
-        tag: notificationId
+        tag: notificationId,
+        closeOnClick: false
       }).then(notification => {
         // set onclick handler for the notification
         notification.onclick =
