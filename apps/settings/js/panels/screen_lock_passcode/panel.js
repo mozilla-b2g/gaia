@@ -170,6 +170,7 @@ define(function(require) {
                   });
                 } else {
                   this._passcodeBuffer = '';
+                  this._updatePassCodeUI();
                 }
               });
               break;
@@ -187,6 +188,7 @@ define(function(require) {
                   });
                 } else {
                   this._passcodeBuffer = '';
+                  this._updatePassCodeUI();
                 }
               });
               break;
@@ -198,6 +200,7 @@ define(function(require) {
                   this._showDialogInMode('new');
                 } else {
                   this._passcodeBuffer = '';
+                  this._updatePassCodeUI();
                 }
               });
               break;
