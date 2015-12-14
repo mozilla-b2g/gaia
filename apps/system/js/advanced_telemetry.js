@@ -96,7 +96,7 @@
       var array = longLine.match(/.{1,1000}/g);
       // Output each chunk to the console
       array.forEach(function (value) {
-        console.log(AT_DEBUG_PREFIX + value);
+        console.log(value);
       });
     } else {
       // Its < what ADB can handle so just output it normally.
@@ -430,9 +430,10 @@
       // Merge the new metrics into the old metrics and then transmit the
       // result to the server.
       function mergePayloads(payloadOld, payloadNew) {
-        mergeKeyed(payloadOld.keyedHistograms, payloadOld, payloadNew);
-        mergeLists(payloadOld.addonHistograms,
-                   payloadNew.addonHistograms);
+        mergeHistogramType(payloadOld.keyedHistograms, payloadOld, payloadNew,
+          'keyedHistograms');
+        mergeHistogramType(payloadOld.addonHistograms, payloadOld, payloadNew,
+          'addonHistograms');
         return payloadOld;
       }
     });
@@ -464,15 +465,15 @@
     }
   }
 
-  function mergeKeyed(keyedOldHist, payloadOld, payloadNew) {
+  function mergeHistogramType(oldHist, payloadOld, payloadNew, histType) {
     var keyedOldMapKeys = new Map();
 
-    for (var keyOld in keyedOldHist) {
-      keyedOldMapKeys.set(keyOld, keyedOldHist[keyOld]);
+    for (var keyOld in oldHist) {
+      keyedOldMapKeys.set(keyOld, oldHist[keyOld]);
     }
 
-    var keyedNew = payloadNew.keyedHistograms;
-    var keyedOld = payloadOld.keyedHistograms;
+    var keyedNew = payloadNew[histType];
+    var keyedOld = payloadOld[histType];
     for (var keyNew in keyedNew) {
       if (keyedOldMapKeys.has(keyNew)) {
         mergeLists(keyedOld[keyNew], keyedNew[keyNew]);
@@ -574,7 +575,10 @@
 
     // Pack the Addon Histograms.
     for (var addon in nameAddonHist) {
-      nameAddonHist[addon] = this.packHistogram(nameAddonHist[addon]);
+      for (var hist in nameAddonHist[addon]) {
+        nameAddonHist[addon][hist] =
+          this.packHistogram(nameAddonHist[addon][hist]);
+      }
     }
 
     // Pack the Keyed Histograms.
