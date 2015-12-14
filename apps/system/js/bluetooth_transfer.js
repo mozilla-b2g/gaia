@@ -84,13 +84,13 @@ var BluetoothTransfer = {
 
   getDeviceName: function bt_getDeviceName(address) {
     return new Promise((resolve) => {
-      var _ = navigator.mozL10n.get;
       var adapter = Service.query('Bluetooth.getAdapter');
       if (adapter === null) {
         var msg = 'Since cannot get Bluetooth adapter, ' +
                   'resolve with an unknown device.';
         this.debug(msg);
-        resolve(_('unknown-device'));
+        navigator.mozL10n.formatValue('unknown-device').then(resolve);
+        return;
       }
       // Service Class Name: OBEXObjectPush, UUID: 0x1105
       // Specification: Object Push Profile (OPP)
@@ -111,13 +111,13 @@ var BluetoothTransfer = {
             }
           }
         } else {
-          resolve(_('unknown-device'));
+          navigator.mozL10n.formatValue('unknown-device').then(resolve);
         }
       };
       req.onerror = () => {
         var msg = 'Can not check is device connected from adapter.';
         this.debug(msg);
-        resolve(_('unknown-device'));
+        navigator.mozL10n.formatValue('unknown-device').then(resolve);
       };
     });
   },
@@ -385,16 +385,15 @@ var BluetoothTransfer = {
   },
 
   initProgress: function bt_initProgress(evt) {
-    var _ = navigator.mozL10n.get;
     // Create progress dynamically in notification center
     var address = evt.address;
     var transferMode =
       (evt.received === true) ?
-      _('bluetooth-receiving-progress2') : _('bluetooth-sending-progress2');
+      'bluetooth-receiving-progress2' : 'bluetooth-sending-progress2';
 
     var content =
       `<div data-icon="bluetooth-transfer-circle" aria-hidden="true"></div>
-      <div class="title-container">${transferMode}</div>
+      <div class="title-container" data-l10n-id="${transferMode}"></div>
       <progress value="0" max="1"></progress>`;
 
     var transferTask = document.createElement('div');
