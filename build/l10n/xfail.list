@@ -60,6 +60,9 @@ apps/search/js/providers/marketplace.js
 apps/search/js/providers/places.js
 apps/sharedtest/test/unit/l10n/l10n_test.js
 apps/system/js/accessibility.js
+apps/system/js/app_install_manager.js
+apps/system/js/app_modal_dialog.js
+apps/system/js/bluetooth_transfer.js
 apps/system/js/browser_context_menu.js
 apps/system/js/captive_portal.js
 apps/system/js/cell_broadcast_system.js
@@ -69,9 +72,12 @@ apps/system/js/download/download_notification.js
 apps/system/js/eu_roaming_manager.js
 apps/system/js/external_storage_monitor.js
 apps/system/js/findmydevice_launcher.js
+apps/system/js/identity.js
 apps/system/js/ime_menu.js
 apps/system/js/keyboard_manager.js
+apps/system/js/migrators/settings_migrator.js
 apps/system/js/nfc_handover_manager.js
+apps/system/js/payment.js
 apps/system/js/permission_manager.js
 apps/system/js/quick_settings.js
 apps/system/js/screenshot.js
@@ -81,6 +87,7 @@ apps/system/js/update_manager.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_selector.js
 apps/system/js/voicemail.js
+apps/system/mobile_id/js/ui.js
 apps/system/test/unit/external_storage_monitor_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signup_success_test.js
 apps/system/test/unit/permission_manager_test.js

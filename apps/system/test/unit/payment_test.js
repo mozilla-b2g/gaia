@@ -32,7 +32,7 @@ suite('system/Payment', function() {
   suite('Open payment flow', function() {
     var stubDispatchEvent;
     var fakeIframe;
-    setup(function(done) {
+    setup(function() {
       mockApp = new MockApp();
       MockService.mockQueryWith('getTopMostWindow', mockApp);
       fakeIframe = document.createElement('iframe');
@@ -44,8 +44,6 @@ suite('system/Payment', function() {
         requestId: 'aRequestId'
       });
       Payment.handleEvent(event);
-
-      Promise.resolve().then(done);
     });
 
     teardown(function() {
@@ -132,7 +130,7 @@ suite('system/Payment', function() {
 
   suite('Cancel payment flow', function() {
     var stubDispatchEvent;
-    setup(function(done) {
+    setup(function() {
       stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       var event = new MockChromeEvent({
         type: 'open-payment-flow-dialog',
@@ -148,7 +146,6 @@ suite('system/Payment', function() {
         }
       };
       Payment.onPaymentWindowClosedByUser(cancelEvent);
-      Promise.resolve().then(done);
     });
 
     teardown(function() {
@@ -156,7 +153,7 @@ suite('system/Payment', function() {
     });
 
     test('Should send mozContentEvent cancel event', function() {
-      var result = stubDispatchEvent.getCall(0).args[0];
+      var result = stubDispatchEvent.getCall(1).args[0];
       assert.equal(result.type, 'mozContentEvent');
       assert.equal(result.detail.type, 'cancel');
       assert.equal(result.detail.id, 'aChromeId');

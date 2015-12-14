@@ -75,16 +75,14 @@ var Identity = (function() {
             }).bind(this);
             window.addEventListener('trustedclosed', ontrustedclosed);
 
-            navigator.mozL10n.formatValue('persona-signin').then(value => {
-              window.dispatchEvent(new CustomEvent('launchtrusted', {
-                detail: {
-                  name: value,
-                  frame: frame,
-                  requestId: requestId,
-                  chromeId: chromeEventId
-                }
-              }));
-            });
+            window.dispatchEvent(new CustomEvent('launchtrusted', {
+              detail: {
+                name: navigator.mozL10n.get('persona-signin'),
+                frame: frame,
+                requestId: requestId,
+                chromeId: chromeEventId
+              }
+            }));
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);

@@ -562,8 +562,8 @@
         case 'VERIFICATION_CODE_TIMEOUT':
         case 'NO_RETRIES_LEFT':
           MobileIDErrorOverlay.show(
-            'errorTitle',
-            'timeoutErrorMessage'
+            navigator.mozL10n.get('errorTitle'),
+            navigator.mozL10n.get('timeoutErrorMessage')
           );
           _disablePanel('verification');
           _setMultibuttonStep('resend');
@@ -587,8 +587,8 @@
           break;
         default:
           MobileIDErrorOverlay.show(
-            'errorTitle',
-            'serverErrorMessage',
+            navigator.mozL10n.get('errorTitle'),
+            navigator.mozL10n.get('serverErrorMessage'),
             function onClick() {
               Controller.postCloseAction(isVerified);
             }
