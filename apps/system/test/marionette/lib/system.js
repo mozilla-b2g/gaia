@@ -354,6 +354,15 @@ System.prototype = {
     return iframe;
   },
 
+  shareLink: function() {
+    this.appChromeContextLink.tap();
+    this.client.waitFor(function() {
+      return this.appChromeContextMenu.displayed();
+    }.bind(this));
+    this.appChromeContextMenuShare.tap();
+    this.waitForActivityMenu();
+  },
+
   /**
    * Clicks the bottom of the screen, where we expect the software home button
    * to exist. There are several different variations in the same spot, this

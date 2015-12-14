@@ -1,6 +1,6 @@
 'use strict';
 
-/* global module */
+/* global module, __dirname */
 var InboxAccessor = require('./views/inbox/accessors');
 var NewMessageAccessor = require('./views/new-message/accessors');
 var NewMessageView = require('./views/new-message/view');
@@ -13,7 +13,15 @@ var ParticipantsAccessor = require('./views/participants/accessors');
 (function(module) {
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
-  var MANIFEST_URL= ORIGIN_URL + '/manifest.webapp';
+  var MANIFEST_URL = ORIGIN_URL + '/manifest.webapp';
+
+  var MOCKS = [
+    '/../mocks/mock_test_storages.js',
+    '/../mocks/mock_test_blobs.js',
+    '/../mocks/mock_navigator_moz_icc_manager.js',
+    '/../mocks/mock_navigator_moz_mobile_message.js',
+    '/../mocks/mock_navigator_moz_contacts.js'
+  ];
 
   // TODO Move these constants to marionette, see bug 1207516
   var Chars = {
@@ -66,6 +74,12 @@ var ParticipantsAccessor = require('./views/participants/accessors');
           client.apps.close(ORIGIN_URL);
         },
 
+        loadMocks: function() {
+          MOCKS.forEach(function(mock) {
+            client.contentScript.inject(__dirname + mock);
+          });
+        },
+
         /**
          * Sends system message to the Messages app using SystemMessageInternal
          * class available in chrome context. Should be replaced by marionette
@@ -99,6 +113,14 @@ var ParticipantsAccessor = require('./views/participants/accessors');
           client.switchToFrame();
 
           client.apps.switchToApp(ORIGIN_URL);
+        },
+
+        waitForAppToAppear: function() {
+          client.switchToFrame();
+          var frame = client.scope({ searchTimeout: 50 }).helper.waitForElement(
+            'iframe[src*="' + ORIGIN_URL + '"]'
+          );
+          return frame;
         },
 
         waitForAppToDisappear: function() {
