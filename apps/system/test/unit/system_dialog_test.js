@@ -104,6 +104,19 @@ suite('system/SystemDialog', function() {
         'the event has not been fired');
     });
 
+    test('Hide when the dialog is open should close it first', function() {
+      var systemDialog = new window.SystemDialog(fakeOptions);
+      systemDialog.customID = fakeCustomID;
+      var stubOnHide = this.sinon.stub(systemDialog, 'onHide');
+      systemDialog.element = {
+        opened: true,
+        close: this.sinon.stub()
+      };
+      systemDialog.hide();
+      assert(systemDialog.element.close.called);
+      assert(!stubOnHide.called);
+    });
+
     test('The attribute "onShow" should be called with reason ' +
          'after system dialog is shown.', function() {
       var systemDialog = new window.SystemDialog(fakeOptions);
