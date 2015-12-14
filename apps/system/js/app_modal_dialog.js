@@ -2,6 +2,7 @@
 'use strict';
 
 (function(exports) {
+  var _ = navigator.mozL10n.get;
   var _id = 0;
 
   /**
@@ -211,12 +212,7 @@
         elements.alertTitle.textContent = title;
         elements.alertMessage.textContent = message;
         elements.alert.classList.add('visible');
-        if (evt.yesText) {
-          elements.alertOk.removeAttribute('data-l10n-id');
-          elements.alertOk.textContent = evt.yesText;
-        } else {
-          elements.alertOk.setAttribute('data-l10n-id', 'ok');
-        }
+        elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.alert.focus();
 
         this.updateMaxHeight();
@@ -227,18 +223,9 @@
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptTitle.textContent = title;
         elements.promptMessage.textContent = message;
-        if (evt.yesText) {
-          elements.promptOk.removeAttribute('data-l10n-id');
-          elements.promptOk.textContent = evt.yesText;
-        } else {
-          elements.promptOk.setAttribute('data-l10n-id', 'ok');
-        }
-        if (evt.noText) {
-          elements.promptCancel.removeAttribute('data-l10n-id');
-          elements.promptCancel.textContent = evt.noText;
-        } else {
-          elements.promptCancel.setAttribute('data-l10n-id', 'cancel');
-        }
+        elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.promptCancel.textContent = evt.noText ?
+          evt.noText : _('cancel');
         elements.prompt.focus();
         break;
 
@@ -246,18 +233,9 @@
         elements.confirm.classList.add('visible');
         elements.confirmTitle.textContent = title;
         elements.confirmMessage.textContent = message;
-        if (evt.yesText) {
-          elements.confirmOk.removeAttribute('data-l10n-id');
-          elements.confirmOk.textContent = evt.yesText;
-        } else {
-          elements.confirmOk.setAttribute('data-l10n-id', 'ok');
-        }
-        if (evt.noText) {
-          elements.confirmCancel.removeAttribute('data-l10n-id');
-          elements.confirmCancel.textContent = evt.noText;
-        } else {
-          elements.confirmCancel.setAttribute('data-l10n-id', 'cancel');
-        }
+        elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.confirmCancel.textContent = evt.noText ?
+          evt.noText : _('cancel');
         elements.confirm.focus();
         break;
 

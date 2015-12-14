@@ -22,7 +22,7 @@ suite('identity', function() {
   suite('open popup', function() {
     var stubDispatchEvent;
     var fakeIframe;
-    setup(function(done) {
+    setup(function() {
       fakeIframe = document.createElement('iframe');
       this.sinon.stub(document, 'createElement').returns(fakeIframe);
       stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
@@ -32,10 +32,6 @@ suite('identity', function() {
         showUI: true
       });
       subject.handleEvent(event);
-
-      // Delay tests to give a chance to l10n.formatValue to trigger 
-      // custom event dispatching
-      Promise.resolve().then(done);
     });
 
     test('popup parameters', function() {
