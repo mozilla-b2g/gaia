@@ -97,8 +97,7 @@
                                this.handleSetupConfirmAction.bind(this);
       this.imeCancelButton.onclick = this.hideIMEList.bind(this);
       this.imeConfirmButton.onclick = this.handleImeConfirmAction.bind(this);
-      LazyLoader.load(['shared/js/template.js',
-                       'shared/js/homescreens/confirm_dialog_helper.js']);
+      LazyLoader.load(['shared/js/homescreens/confirm_dialog_helper.js']);
 
       window.addEventListener('applicationready', this);
 
