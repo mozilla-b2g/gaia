@@ -33,11 +33,11 @@ var MobileIDErrorOverlay = {
     this.initialized = true;
   },
 
-  show: function mobileidm_error_overlay_show(titleL10n, messageL10n, cb) {
+  show: function mobileidm_error_overlay_show(title, message, cb) {
     this.init();
 
-    this.mobileidErrorTitle.setAttribute('data-l10n-id', titleL10n);
-    this.mobileidErrorMsg.setAttribute('data-l10n-id', messageL10n);
+    this.mobileidErrorTitle.textContent = title || '';
+    this.mobileidErrorMsg.innerHTML = message || '';
     this.mobileidErrorOk.onclick = function(event) {
       if (typeof cb === 'function') {
         cb();

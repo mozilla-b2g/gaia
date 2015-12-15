@@ -22,12 +22,12 @@ suite('MobileID Error Overlay', function() {
   });
 
   test('show', function() {
-    var customTitleL10nId = 'loremIpsumTitle';
-    var customTextL10nId = 'loremImpsumText';
-    MobileIDErrorOverlay.show(customTitleL10nId, customTextL10nId);
+    var customTitle = 'LOREM IPSUM';
+    var customText = 'Lorem ipsum...';
+    MobileIDErrorOverlay.show(customTitle, customText);
 
-    assert.equal(title.getAttribute('data-l10n-id'), customTitleL10nId);
-    assert.equal(message.getAttribute('data-l10n-id'), customTextL10nId);
+    assert.equal(title.textContent, customTitle);
+    assert.equal(message.textContent, customText);
     assert.ok(overlay.classList.contains('show'));
   });
 

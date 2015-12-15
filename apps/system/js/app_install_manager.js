@@ -228,6 +228,7 @@
     },
 
     handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
+      var _ = navigator.mozL10n.get;
       var app = detail.app;
       // updateManifest is used by packaged apps until they are installed
       var manifest = app.manifest ? app.manifest : app.updateManifest;
@@ -242,28 +243,22 @@
       var id = detail.id;
 
       if (manifest.size) {
-        this.size.removeAttribute('data-l10n-id');
         this.size.textContent = this.humanizeSize(manifest.size);
       } else {
-        this.size.setAttribute('data-l10n-id', 'size-unknown');
+        this.size.textContent = _('size-unknown');
       }
 
       // Wrap manifest to get localized properties
       manifest = new ManifestHelper(manifest);
-      navigator.mozL10n.setAttributes(this.msg, 'install-app', {
-        'name': manifest.displayName
-      });
+      var msg = _('install-app', {'name': manifest.displayName});
+      this.msg.textContent = msg;
 
       if (manifest.developer) {
-        if (manifest.developer.name) {
-          this.authorName.removeAttribute('data-l10n-id');
-          this.authorName.textContent = manifest.developer.name;
-        } else {
-          this.authorName.setAttribute('data-l10n-id', 'author-unknown');
-        }
+        this.authorName.textContent = manifest.developer.name ||
+          _('author-unknown');
         this.authorUrl.textContent = manifest.developer.url || '';
       } else {
-        this.authorName.setAttribute('data-l10n-id', 'author-unknown');
+        this.authorName.textContent = _('author-unknown');
         this.authorUrl.textContent = '';
       }
 
