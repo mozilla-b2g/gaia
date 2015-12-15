@@ -21,7 +21,7 @@ module.exports = Rocketbar;
 
 Rocketbar.prototype = {
   selectors: {
-    activeBrowserFrame: '#windows .appWindow.active',
+    activeBrowserFrame: '.browser.appWindow.active',
     screen: '#screen',
     rocketbar: '#rocketbar',
     title: '#rocketbar-title',
@@ -71,7 +71,7 @@ Rocketbar.prototype = {
     try {
       title = this.client.scope({ searchTimeout: 100 }).
         findElement(this.selectors.appTitle);
-    } catch(e) { }
+    } catch (e) { }
     if (title && title.displayed()) {
       title.tap();
       this.client.switchToFrame();
@@ -84,11 +84,16 @@ Rocketbar.prototype = {
     homeLib.focusRocketBar();
   },
 
+  performSearchInBrowser: function(text) {
+    this.enterText(text, true);
+    this.waitForBrowserFrame();
+  },
+
   /**
    * Trigger rocketbar from app title.
    */
   appTitleFocus: function() {
-    var title = this.client.findElement(this.selectors.appTitle);
+    var title = this.client.helper.waitForElement(this.selectors.appTitle);
     title.click();
   },
 
@@ -154,19 +159,12 @@ Rocketbar.prototype = {
   },
 
   /**
-   * Wait for an opened browser frame to complete showing, then
-   * return to the homescreen.
+   * Wait for an opened browser frame to complete showing
    */
   waitForBrowserFrame: function() {
     this.client.switchToFrame();
-    this.client.waitFor((function() {
-      var size = this.client.findElement(this.selectors.activeBrowserFrame)
-        .size();
-      return size.width === 320 && size.height === 456;
-    }).bind(this));
-    return this.client.executeScript(function() {
-      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
-    });
+    var browser = this.selectors.activeBrowserFrame;
+    this.client.helper.waitForElement(browser);
   },
 
   goToURL: function(url) {

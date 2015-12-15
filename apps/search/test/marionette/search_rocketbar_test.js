@@ -13,7 +13,7 @@ marionette('Search - Rocketbar Test', function() {
   });
   var home, search, rocketbar, system, server;
 
-  var providers;
+  var providers, searchTemplate;
   var phoneIdentifier =
     'app://communications.gaiamobile.org/manifest.webapp-dialer';
 
@@ -30,29 +30,40 @@ marionette('Search - Rocketbar Test', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system.waitForFullyLoaded();
-
+    searchTemplate = server.url('sample.html') + '?q=';
     providers = {
       version: search.searchDataVersion(),
       providers: {
         'first': {
           title: 'first',
-          searchUrl: server.url('sample.html'),
+          searchUrl: searchTemplate + '{searchTerms}',
           suggestUrl: server.url('suggestions_one.json')
         }
       }
     };
+    mockSearch();
+    home.waitForLaunch();
+    rocketbar.homescreenFocus();
+  });
 
+  function mockSearch() {
     client.settings.set('search.suggestions.enabled', true);
     client.settings.set('search.cache', providers);
     client.settings.set('search.provider', 'first');
-  });
+  }
+
+  function assertThatUrlContains(text) {
+    rocketbar.appTitleFocus();
+    client.waitFor(function() {
+      var value = rocketbar.input.getAttribute('value');
+      var searchText = text.replace(' ', '%20');
+      return value === (searchTemplate + searchText);
+    });
+  }
 
   test('General walkthrough', function() {
-
-    // Lauch the rocketbar and trigger its first run notice
-    home.waitForLaunch();
-    rocketbar.homescreenFocus();
     search.triggerFirstRun(rocketbar);
+    var textToSearch = 'a test';
 
     // Clear button shouldnt be visible when no text entered
     assert.ok(!rocketbar.clear.displayed());
@@ -100,8 +111,16 @@ marionette('Search - Rocketbar Test', function() {
     assert.ok(!rocketbar.clear.displayed());
 
     // Perform a search
-    rocketbar.enterText('a test\uE006');
-    rocketbar.switchToBrowserFrame(server.url('sample.html'));
+    rocketbar.enterText(textToSearch, true);
+    rocketbar.switchToBrowserFrame(searchTemplate);
+  });
+
+  test('Browser search', function() {
+    home.waitForLaunch();
+    rocketbar.homescreenFocus();
+    var textToSearch = 'a test';
+    rocketbar.performSearchInBrowser(textToSearch);
+    assertThatUrlContains(textToSearch);
   });
 
 });
