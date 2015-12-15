@@ -1,11 +1,13 @@
-/* global DsdsSettings, IccHandlerForCarrierSettings,
-          LazyLoader, IccHandlerForCarrierSettings */
-'use strict';
+/* global DsdsSettings, IccHandlerForCarrierSettings */
+define(function(require) {
+  'use strict';
+
+  var LazyLoader = require('shared/lazy_loader');
 
 /**
  * Singleton object that handles some cell and data settings.
  */
-var CarrierSettings = (function() {
+var Carrier = (function() {
   var DATA_KEY = 'ril.data.enabled';
   var DATA_ROAMING_KEY = 'ril.data.roaming_enabled';
 
@@ -95,7 +97,7 @@ var CarrierSettings = (function() {
     var isMultiSim = DsdsSettings.getNumberOfIccSlots() > 1;
     if (isMultiSim) {
       LazyLoader.load([
-        '/js/carrier_iccs.js'
+        '/js/panels/carrier/carrier_iccs.js'
       ], function() {
         IccHandlerForCarrierSettings.init();
       });
@@ -336,4 +338,5 @@ var CarrierSettings = (function() {
   };
 })();
 
-CarrierSettings.init();
+  return Carrier;
+});
