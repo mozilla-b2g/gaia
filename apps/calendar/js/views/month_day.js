@@ -76,11 +76,11 @@ MonthDay.prototype = {
     var holder = this.element.querySelector('.busy-indicator');
 
     if (count > 0) {
-      holder.setAttribute('aria-label', navigator.mozL10n.get('busy', {
-        n: count
-      }));
+      holder.setAttribute('data-l10n-id', 'busy');
+      holder.setAttribute('data-l10n-args', JSON.stringify({n: count}));
     } else {
-      holder.removeAttribute('aria-label');
+      holder.removeAttribute('data-l10n-id');
+      holder.removeAttribute('data-l10n-args');
     }
 
     var diff = count - holder.childNodes.length;
