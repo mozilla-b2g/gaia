@@ -3,8 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import expected, By, Wait
+from gaiatest import GaiaApps
 from gaiatest.apps.base import Base
 from gaiatest.form_controls.binarycontrol import GaiaBinaryControl
+from gaiatest.apps.contacts.regions.set_ice_contacts import SetIceContacts
 
 
 class SettingsForm(Base):
@@ -30,6 +32,7 @@ class SettingsForm(Base):
     _import_error_message_locator = (By.CSS_SELECTOR, '#import-live-option > p.error-message')
     _outlook_import_option_locator = (By.ID, 'import-live-option')
     _import_from_outlook_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
+    _set_ice_contact_button_locator = (By.ID, 'set-ice')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -133,6 +136,10 @@ class SettingsForm(Base):
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
         header.tap(25, 25)
         Wait(self.marionette).until(expected.element_not_displayed(header))
+
+    def tap_set_ice_contact(self):
+        self.marionette.find_element(*self._set_ice_contact_button_locator).tap()
+        return SetIceContacts(self.marionette)
 
     @property
     def is_gmail_import_service_in_error(self):

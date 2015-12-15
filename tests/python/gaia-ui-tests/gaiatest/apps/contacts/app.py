@@ -26,6 +26,9 @@ class Contacts(Base):
     _no_contacts_message_locator = (By.CSS_SELECTOR, '*[data-l10n-id="no-contacts"]')
     _group_container_selector = "#groups-container"
     _contact_locator = (By.CSS_SELECTOR, 'li[data-uuid]:not([data-group="ice"])')
+    _ice_contact = (By.CSS_SELECTOR, 'ol#ice-group')
+    _ice_list_icon_locator = (By.ID, 'contact-list-ice')
+    _select_ice_contact_1_locator = (By.ID, 'select-ice-contact-1')
 
     def launch(self):
         Base.launch(self)
@@ -111,6 +114,19 @@ class Contacts(Base):
         return self.marionette.find_element(*self._favorites_list_locator).is_displayed()
 
     @property
+    def is_ice_list_icon_displayed(self):
+        return self.marionette.find_element(*self._ice_list_icon_locator).is_displayed()
+
+    def open_ice_contact_list(self):
+        ice_list = Wait(self.marionette).until(expected.element_present(*self._ice_list_icon_locator))
+        Wait(self.marionette).until(expected.element_displayed(ice_list))
+        ice_list.tap()
+        return Contacts(self.marionette)
+
+    def wait_for_ice_contact_shown(self):
+        Wait(self.marionette).until(expected.element_displayed(*self._ice_contact))
+
+    @property
     def status_message(self):
         status = Wait(self.marionette).until(expected.element_present(
             *self._status_message_locator))
@@ -166,6 +182,9 @@ class Contacts(Base):
                 return EditContact(self.marionette)
             elif return_class == 'SelectContact':
                 return None
+            elif return_class == 'SetIceContacts':
+                from gaiatest.apps.contacts.regions.set_ice_contacts import SetIceContacts
+                return SetIceContacts(self.marionette)
             else:
                 # We are using contacts picker in activity - after choosing, fall back to open app
                 Contacts(self.marionette).wait_to_not_be_displayed()
