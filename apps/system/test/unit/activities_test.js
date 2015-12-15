@@ -359,12 +359,14 @@ suite('system/Activities', function() {
       test('with a default activity set >', function() {
         var set_default = true;
         formatted.setAsDefault = set_default;
+        this.sinon.stub(subject, 'publish');
         subject.choose(0, set_default);
 
         assert.ok(sendEvent.calledWith(formatted),
           'calls _sendEvent WITH default activity set');
         assert.ok(defaultAct.calledWith('testactivity', 'testtype', 'manifest'),
           'should call the helper with the proper values');
+        assert.ok(subject.publish.calledWith('activitychoosen'));
       });
     });
 
@@ -373,6 +375,7 @@ suite('system/Activities', function() {
         subject._detail = {
           id: 'foo'
         };
+        this.sinon.stub(subject, 'publish');
         var stub = this.sinon.stub(subject, '_sendEvent');
         var formatted = {
           id: 'foo',
@@ -381,6 +384,7 @@ suite('system/Activities', function() {
         };
         subject.cancel();
         assert.ok(stub.calledWith(formatted));
+        assert.ok(subject.publish.calledWith('activitycanceled'));
       });
 
       test('does not destroy the action menu', function() {

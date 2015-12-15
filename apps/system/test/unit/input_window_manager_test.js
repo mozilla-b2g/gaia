@@ -275,6 +275,27 @@ suite('InputWindowManager', function() {
       });
     });
 
+    suite('Block input', function() {
+      setup(function() {
+        manager.blockInput = false;
+      });
+
+      teardown(function() {
+        manager.blockInput = false;
+      });
+
+      test('external events that block input', function() {
+        [
+          'actionmenuopening',
+          'attentionopening',
+          'activityrequesting'
+        ].forEach(function(evtType) {
+          manager.handleEvent(new CustomEvent(evtType));
+          assert.isTrue(manager.blockInput);
+        });
+      });
+    });
+
     suite('External events for hideInputWindowImmediately', function() {
       var stubHideInputWindowImmediately;
 
@@ -295,6 +316,7 @@ suite('InputWindowManager', function() {
       ['actionmenuhide', 'activityopening', 'activityclosing',
        'attentionrequestopen', 'attentionrecovering', 'attentionopening',
        'attentionclosing', 'attentionopened', 'attentionclosed',
+       'activitycanceled', 'activitychoosen',
        'notification-clicked', 'applicationsetupdialogshow'].forEach(evtType =>
       {
         testForHideImmeidately(evtType);
