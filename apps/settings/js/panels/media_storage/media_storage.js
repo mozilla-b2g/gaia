@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * The whole purpose of this code is to detect when we're in the state of having
  * the UMS Enabled checkbox unchecked, but the SD-card is still being shared
@@ -8,14 +6,14 @@
  * In this case, the user has to unplug the USB cable in order to actually turn
  * off UMS, and we put some text to that effect on the settings screen.
  */
-require([
-  'modules/dialog_service',
-  'modules/settings_cache',
-  'modules/storage_helper',
-  'shared/toaster',
-  'shared/settings_listener'
-], function(DialogService, SettingsCache, StorageHelper,
-  Toaster, SettingsListener) {
+define(function(require) {
+  'use strict';
+
+  var DialogService = require('modules/dialog_service');
+  var SettingsCache = require('modules/settings_cache');
+  var StorageHelper = require('modules/storage_helper');
+  var Toaster = require('shared/toaster');
+
   const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
   const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
   const DEFAULT_MEDIA_VOLUME_KEY = 'device.storage.writable.name';
@@ -903,5 +901,5 @@ require([
     };
   };
 
-  MediaStorage.init();
+  return MediaStorage;
 });
