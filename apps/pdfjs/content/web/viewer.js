@@ -5649,8 +5649,8 @@ var ThumbnailView = function thumbnailView(container, id, defaultViewport,
     canvas.width = this.canvasWidth;
     canvas.height = this.canvasHeight;
     canvas.className = 'thumbnailImage';
-    canvas.setAttribute('aria-label', mozL10n.get('thumb_page_canvas',
-      {page: id}, 'Thumbnail of Page {{page}}'));
+    canvas.setAttribute('data-l10n-id', 'thumb_page_canvas');
+    canvas.setAttribute('data-l10n-args', JSON.stringify({page: id}));
 
     div.setAttribute('data-loaded', true);
 
