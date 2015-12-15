@@ -56,6 +56,10 @@
     }
   },
   "connections": {
+    "mediacomms": {
+      "description": "Communication with media apps for now playing info",
+      "rules": {}
+    },
     "settingsstk": {
       "description": "Communicate between Settings app and System app for SIM Toolkit.",
       "rules": {}

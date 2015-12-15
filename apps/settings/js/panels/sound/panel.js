@@ -10,6 +10,8 @@ define(function(require) {
   var ToneManager = require('panels/sound/tone_manager');
   var LazyLoader = require('shared/lazy_loader');
 
+  LazyLoader.load(['shared/js/iac_handler.js']);
+
   return function ctor_sound_panel() {
     var volumeManager = VolumeManager();
     var toneManager = ToneManager();
