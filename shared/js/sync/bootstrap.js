@@ -5,6 +5,7 @@
 'use strict';
 
 /* global
+  DUMP,
   ERROR_SYNC_APP_SYNC_IN_PROGRESS,
   ERROR_SYNC_INVALID_REQUEST_OPTIONS,
   IACHandler,
@@ -19,6 +20,14 @@
 
 var DataAdapters = {
   // To be filled by js/adapters/*.js
+};
+
+if (!window.DUMP) {
+  window.DUMP = () => {};
+}
+
+const DEBUG = (msg, args) => {
+  DUMP(`[Sync] ${msg}`, args);
 };
 
 const Bootstrap = (() => {
@@ -94,6 +103,7 @@ const Bootstrap = (() => {
   const sendPortMessage = message => {
     var port = IACHandler.getPort('gaia::sync::request', this);
     if (port) {
+      DEBUG('Port message', message);
       port.postMessage(message);
     } else {
       console.error('No gaia::sync::request port');
@@ -108,6 +118,9 @@ const Bootstrap = (() => {
     }
 
     const request = event.detail;
+
+    DEBUG('Sync request', request);
+
     switch (request.name) {
       case 'sync':
         handleSyncRequest(request).then(() => {
@@ -116,6 +129,7 @@ const Bootstrap = (() => {
           });
           window.close();
         }).catch(error => {
+          DEBUG('Sync request error', error.message || error.name || error);
           sendPortMessage({
             id: request.id,
             error: { message: error.message }
