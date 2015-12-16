@@ -14,8 +14,12 @@ ul li {
   box-sizing: border-box;
   position: relative;
   margin: 0 1.5rem;
-  border-bottom: 0.1rem solid #e6e6e3;
+  border-top: 0.1rem solid #e6e6e3;
   color: #000;
+}
+
+ul li:first-child {
+  border-top: none;
 }
 
 /* Provide additional margin around web components to match spacing with legacy components */
@@ -30,10 +34,6 @@ ul li > gaia-checkbox:not(.inline) {
 
 ul+ul li:first-child {
   border-top: 0.1rem solid #e6e6e3;
-}
-
-ul li:last-child {
-  border-bottom: none;
 }
 
 ul li.sound-setting {
