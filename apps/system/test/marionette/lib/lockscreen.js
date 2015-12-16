@@ -219,6 +219,24 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
     this._slideLockTo('left', cb);
   };
 
+
+  // Wait new one from the time being.
+  // Will change the focusing frame to System.
+  // `toHowMany` is optional.
+  LockScreen.prototype.waitForNotificationChange =
+  function(toHowMany) {
+    var currentNumber = this.client
+      .findElements('#notifications-lockscreen-container .notification').length;
+    toHowMany = toHowMany || currentNumber + 1;
+    this.client.switchToFrame();
+    this.client.waitFor((function() {
+      var nowWeHave = this.client
+        .findElements('#notifications-lockscreen-container .notification')
+        .length;
+      return toHowMany === nowWeHave;
+    }).bind(this));
+  };
+
   // Slide an element given x and y offsets
   LockScreen.prototype._slideByOffset =
   function(element, x, y, cb) {
