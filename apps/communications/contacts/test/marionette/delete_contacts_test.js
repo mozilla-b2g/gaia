@@ -83,4 +83,27 @@ marionette('Contacts > Delete', function() {
     });
   });
 
+  test('> Deleting last contact', function() {
+    subject.addContact({
+      givenName: 'Contact 1'
+    });
+
+    // Go to deatils
+    client.helper.waitForElement(selectors.listContactFirstText).click();
+    subject.waitSlideLeft('details');
+
+    // Get to the form
+    var edit = client.helper.waitForElement(selectors.detailsEditContact);
+    subject.clickOn(edit);
+    subject.waitForFadeIn(client.helper.waitForElement(selectors.form));
+
+    // Click on delete
+    client.helper.waitForElement(selectors.deleteContact).click();
+    client.helper.waitForElement(selectors.confirmDelete).click();
+
+    // Check the list has 0 contacts
+    subject.waitForFadeIn(client.helper.waitForElement(selectors.list));
+    assert.equal(subject.getNumberOfContacts(), 0);
+  });
+
 });
