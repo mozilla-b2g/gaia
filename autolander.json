@@ -5,7 +5,7 @@
       "task": {
         "metadata": {
           "name": "Gaia build tests",
-          "description": "Runs entire gaia build system through all known variants.",
+          "description": "1Runs entire gaia build system through all known variants.",
           "source": "http://todo.com/soon",
           "owner": "dev-gaia@lists.mozilla.org"
         },
