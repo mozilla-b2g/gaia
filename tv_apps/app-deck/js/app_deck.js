@@ -1,5 +1,6 @@
 /* global SpatialNavigator, SharedUtils, Applications, URL, evt, XScrollable,
-  KeyNavigationAdapter, ContextMenu, CardManager, PromotionList */
+  KeyNavigationAdapter, ContextMenu, CardManager, PromotionList,
+  BookmarkManager */
 
 (function(exports) {
   'use strict';
@@ -61,6 +62,10 @@
                              that.onCardListChanged.bind(that));
       });
 
+      this._bookmarkManager = BookmarkManager;
+      this._bookmarkManager.init(null, 'readwrite');
+      this._bookmarkManager.on('change', that.onBookmarkChanged.bind(that));
+
       // Because module Applications use manifest helper to get localized app
       // name. We cannot initialize Applications until l10n is ready.
       // See bug 1170083.
@@ -69,6 +74,19 @@
         var appGridElements = apps.map(that._createAppGridElement.bind(that));
         appGridElements.forEach(function(appGridElem) {
           that._appDeckGridViewElem.appendChild(appGridElem);
+        });
+
+        // Add Bookmarks
+        var bookmarkArr = [];
+        that._bookmarkManager.iterate(function(bookmark) {
+          bookmarkArr.push(bookmark);
+        }).then(function() {
+          bookmarkArr.sort((a, b) => a.date - b.date);
+          bookmarkArr.forEach(bookmark => {
+            var elem = that._createBookmarkGridElement(bookmark);
+            that._appDeckGridViewElem.appendChild(elem);
+            that._spatialNavigator.add(elem);
+          });
         });
 
         // promotion list must be created before XScrollable because it creates
@@ -160,9 +178,49 @@
       return appButton;
     },
 
+    _createBookmarkGridElement: function ad_createBookmarkElement(bookmark) {
+      var bookmarkButton = document.createElement('smart-button');
+      bookmarkButton.dataset.url = bookmark.url;
+      bookmarkButton.dataset.name = bookmark.name;
+      bookmarkButton.dataset.removable = true;
+      bookmarkButton.setAttribute('type', 'app-button');
+      bookmarkButton.setAttribute('app-type', 'bookmark');
+      bookmarkButton.classList.add('app-button');
+      bookmarkButton.classList.add('navigable');
+      bookmarkButton.setAttribute('label', bookmark.name);
+      bookmark.icon &&
+        (bookmarkButton.style.backgroundImage = 'url("' + bookmark.icon + '")');
+      return bookmarkButton;
+    },
+
     onCardListChanged: function ad_onCardListChanged() {
       if (this._focusElem) {
         this.fireFocusEvent(this._focusElem);
+      }
+    },
+
+    onBookmarkChanged: function ad_onBookmarkChanged(evt) {
+      var targetElem;
+      switch (evt.operation) {
+        case 'added':
+          this._bookmarkManager.get(evt.id).then(bookmark => {
+            targetElem = this._createBookmarkGridElement(bookmark);
+            this._appDeckGridViewElem.appendChild(targetElem);
+            this._spatialNavigator.add(targetElem);
+          });
+          break;
+        case 'removed':
+          targetElem = this._appDeckGridViewElem.querySelector(
+                                    'smart-button[data-url="' + evt.id +'"]');
+          // Move focus to next or previous element of `elem`, because
+          // we are going to remove `elem` from DOM tree
+          var nextFocus = targetElem.nextElementSibling ||
+                          targetElem.previousElementSibling;
+          this._spatialNavigator.focus(nextFocus);
+
+          this._appDeckGridViewElem.removeChild(targetElem);
+          this._spatialNavigator.remove(targetElem);
+          break;
       }
     },
 
@@ -274,6 +332,8 @@
       if (focused.dataset && focused.dataset.manifestURL) {
         Applications.launch(
           focused.dataset.manifestURL, focused.dataset.entryPoint);
+      } else if (focused && focused.dataset && focused.dataset.url) {
+        window.open(focused.dataset.url, '_blank', 'remote=true,applike=true');
       }
     },
 
@@ -290,8 +350,11 @@
     onAppInstalled: function ad_onAppInstalled(apps) {
       var that = this;
       var appGridElements = apps.map(this._createAppGridElement.bind(this));
+      var firstBookmarkElem = this._appDeckGridViewElem.querySelector(
+        'smart-button[app-type="bookmark"]');
+
       appGridElements.forEach(function(elem) {
-        that._appDeckGridViewElem.appendChild(elem);
+        that._appDeckGridViewElem.insertBefore(elem, firstBookmarkElem);
         that._spatialNavigator.add(elem);
       });
     },

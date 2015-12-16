@@ -14,6 +14,7 @@
 
   CardManager.prototype = evt({
     HIDDEN_ROLES: ['system', 'homescreen', 'addon', 'langpack'],
+    TABLE_NAME: 'home_cards',
 
     // Only two modes available: readonly and readwrite (default)
     // 'readwrite' mode is for Smart-Home app only
@@ -196,8 +197,8 @@
 
     _initCardStoreIfNeeded: function cm_initCardStore() {
       if (!this._cardStore) {
-        this._cardStore =
-          new CardStore(this._mode, this._manifestURLOfCardStore);
+        this._cardStore = new CardStore(
+                    this.TABLE_NAME, this._mode, this._manifestURLOfCardStore);
         this._cardStore.on('change', this._onCardStoreChange.bind(this));
       }
     },
@@ -782,7 +783,7 @@
     }
   });
 
-  SharedUtils.addMixin(CardManager, new PipedPromise());
+  SharedUtils.addMixin(CardManager, PipedPromise);
 
   exports.CardManager = CardManager;
 }(window));
