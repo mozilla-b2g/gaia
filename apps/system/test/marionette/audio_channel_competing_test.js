@@ -336,14 +336,12 @@ marionette('Audio channel competing', function() {
         client, 'app://audiochanneltestapp2.gaiamobile.org');
     });
 
-    // Fix it in Bug 1230069.
-    test.skip('Public notification channel competes with ' +
+    test('Public notification channel competes with ' +
               'normal channel', function() {
       assertPolicy4('publicnotification', 'normal');
     });
 
-    // Fix it in Bug 1230069.
-    test.skip('Public notification channel competes with ' +
+    test('Public notification channel competes with ' +
               'content channel', function() {
       assertPolicy4('publicnotification', 'content');
     });

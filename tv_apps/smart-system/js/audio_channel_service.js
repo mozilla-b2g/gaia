@@ -159,8 +159,10 @@
     _resetAudioChannel: function(audioChannel) {
       audioChannel.setPolicy({ isAllowedToPlay: false });
       this._handleAudioChannel(audioChannel);
-      audioChannel.name === 'notification' &&
+      if (audioChannel.name === 'notification' ||
+          audioChannel.name === 'publicnotification') {
         this._fadeInFadedOutAudioChannels();
+      }
     },
 
     /**
