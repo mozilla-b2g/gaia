@@ -116,7 +116,6 @@
     flex-direction: column;
     justify-content: flex-end;
     height: calc(100% - 16rem);
-    min-height: 35rem;
     background: rgba(255, 255, 255, 0.85);
     position: absolute;
     bottom: 0;
