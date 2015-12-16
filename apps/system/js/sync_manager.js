@@ -120,7 +120,6 @@
     'onsyncsyncing',
 
     /** Sync app lifecycle **/
-    'killapp',
     'appterminated'
   ];
 
@@ -470,17 +469,7 @@
       }
     },
 
-    _handle_killapp: function(event) {
-      // The synchronizer app can be killed while it's handling a sync
-      // request. In that case, we need to record an error and notify
-      // the state machine about it. Otherwise we could end up on a
-      // permanent 'syncing' state.
-      this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
-        Service.request('SyncStateMachine:error', ERROR_SYNC_APP_KILLED);
-      });
-    },
-
-    _handle_appterminated: function(event) {
+    _handle_appterminated(event) {
       // If the Sync app is closed, we need to release the reference to
       // its IAC port, so we can get a new connection on the next sync
       // request. Unfortunately, the IAC API doesn't take care of
@@ -491,6 +480,18 @@
       this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
         this._port = null;
       });
+    },
+
+    onportclose() {
+      // The synchronizer app can be killed while it's handling a sync
+      // request. In that case, we need to record an error and notify
+      // the state machine about it. Otherwise we could end up on a
+      // permanent 'syncing' state.
+      if (this.state !== 'syncing') {
+        return;
+      }
+      this.debug('Synchronizer closed before completing the sync request');
+      Service.request('SyncStateMachine:error', ERROR_SYNC_APP_KILLED);
     },
 
     /** Helpers **/
@@ -627,6 +628,7 @@
               return reject();
             }
             this._port = ports[0];
+            this._port.onclose = this.onportclose.bind(this);
             resolve(this._port);
           }).catch(error => {
             console.error(error);
