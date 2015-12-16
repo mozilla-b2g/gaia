@@ -28,8 +28,7 @@ FeedbackPanel.Selectors = {
   'feedbackEmail': '#feedback-email',
   'feedbackEmailBar': '#feedback-emailbar',
   'sendFeedbackButton': '#feedback-send-btn',
-  'alertDialogMsg': '#feedback-alert-msg',
-  'alertDialogDoneBtn': '#feedback-done',
+  'alertDialogMsg': '#settings-alert-dialog.current .settings-dialog-message',
   'feedbackBackButton': '#feedback-back-button'
 };
 
