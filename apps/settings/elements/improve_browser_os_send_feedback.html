@@ -27,6 +27,26 @@
         </li>
       </ul>
     </div>
+    <form role="dialog" data-type="confirm" hidden id="feedback-alert">
+      <section>
+        <p>
+          <strong id="feedback-alert-msg"></strong>
+        </p>
+      </section>
+      <menu>
+        <button class="full" id="feedback-alert-btn" data-l10n-id="ok"></button>
+      </menu>
+    </form>
+    <form role="dialog" data-type="confirm" hidden id="feedback-done">
+      <section>
+        <p>
+          <strong data-l10n-id="feedback-complete-msg"></strong>
+        </p>
+      </section>
+      <menu>
+        <button id="feedback-done-btn" class="full" data-l10n-id="done"></button>
+      </menu>
+    </form>
 
     <panel data-path="panels/feedback_send/panel"></panel>
 
