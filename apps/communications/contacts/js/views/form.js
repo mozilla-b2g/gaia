@@ -59,6 +59,7 @@ contacts.Form = (function() {
       currentPhoto;
 
   const CONTACTS_APP_ORIGIN = location.origin;
+  var DATE_YEAR_FUTURE_SHIFT = 20;
 
   var FB_CLASS = 'facebook';
   var INVALID_CLASS = 'invalid';
@@ -574,9 +575,10 @@ contacts.Form = (function() {
     if (type === 'date') {
       var dateInput = rendered.querySelector('input[type="date"]');
 
-      // Setting the max value as today's date
+      // Setting the max value as future date (today's date + 20 years)
       var currentDate = new Date();
-      dateInput.setAttribute('max', currentDate.getFullYear() + '-' +
+      dateInput.setAttribute('max', (currentDate.getFullYear() +
+                                    DATE_YEAR_FUTURE_SHIFT) + '-' +
                              (currentDate.getMonth() + 1) + '-' +
                              currentDate.getDate());
 
