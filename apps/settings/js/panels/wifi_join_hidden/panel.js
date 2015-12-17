@@ -23,7 +23,7 @@ define(function(require) {
         elements.showPassword = panel.querySelector(
           'gaia-checkbox[name=show-pwd]');
 
-        elements.ssid.oninput = this._onSSIDchange;
+        elements.ssid.addEventListener('input', this._onSSIDchange);
         elements.securitySelect.onchange = this._onSecurityChange;
       },
       onBeforeShow: function(panel) {
