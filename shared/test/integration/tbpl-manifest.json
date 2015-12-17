@@ -42,6 +42,7 @@
     "apps/system/test/marionette/notification_behavior_test.js": "Bug 1148336",
     "apps/system/test/marionette/software_home_file_open_error_test.js": "Bug 1119079 - Intermittent software_home_file_open_error_test.js | Software Home Button - File Open Error Proper layout for file error dialog",
     "apps/system/test/marionette/statusbar_home_button_test.js": "Bug 1154405 - TEST-UNEXPECTED-FAIL | Closing statusbar via home button > Home screen keeps scroll position AssertionError: false == true",
+    "apps/system/test/marionette/software_home_lockscreen_power_menu_test.js": "Bug 1192249 - Intermittent apps/system/test/marionette/software_home_lockscreen_power_menu_test.js",
     "apps/system/test/marionette/statusbar_icon_color_test.js": "Bug 1134018",
     "apps/system/test/marionette/update_addon_test.js": "Bug 1225932 - Intermittent update_addon_test.js | Update add-on Basic add-on update test",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
