@@ -194,7 +194,8 @@ define(function(require) {
       if (wifiManager.enabled) {
         var network = (event && event.network) ? event.network :
           wifiManager.connection.network;
-        var status = event ? event.status : wifiManager.connection.status;
+        var status =
+          event && event.status ? event.status : wifiManager.connection.status;
 
         var networkProp = network ? {ssid: network.ssid} : null;
         this._wifiStatusText =
