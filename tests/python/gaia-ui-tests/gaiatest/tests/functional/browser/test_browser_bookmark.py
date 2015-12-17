@@ -33,6 +33,12 @@ class TestBrowserBookmark(GaiaTestCase):
         bookmark.type_bookmark_title(self.bookmark_title)
         bookmark.tap_add_bookmark_to_home_screen_dialog_button()
 
+        # tap menu button to test to see if the add to homescreen button is removed
+        browser.switch_to_chrome()
+        browser.tap_menu_button()
+        self._add_to_home=bookmark.is_add_to_home_button_not_in_dialog()
+        self.assertFalse(self._add_to_home, 'Add to Homescreen is not in menu options')
+
         # Switch to Home Screen to look for bookmark
         self.device.touch_home_button()
 

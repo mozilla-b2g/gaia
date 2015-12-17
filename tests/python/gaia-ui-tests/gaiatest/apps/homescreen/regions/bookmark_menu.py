@@ -36,6 +36,10 @@ class BookmarkMenu(Base):
         self.wait_to_not_be_displayed()
         self.apps.switch_to_displayed_app()
 
+    def is_add_to_home_button_not_in_dialog(self):
+        Wait(self.marionette).until(expected.element_not_present(
+            *self._add_bookmark_to_home_screen_dialog_button_locator))
+
     def type_bookmark_title(self, value):
         element = self.marionette.find_element(
             *self._bookmark_title_input_locator)
