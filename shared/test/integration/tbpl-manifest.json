@@ -34,6 +34,7 @@
     "apps/homescreen/test/marionette/app_uninstall_pending_test.js": "Bug 1233525 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/app_uninstall_pending_test.js | Homescreen - App uninstall while pending uninstall the app",
     "apps/homescreen/test/marionette/pinning_the_web_test.js": "Bug 1233529 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_the_web_test.js | Homescreen - Pin the web Pinning a site from the browser context menu",
     "apps/homescreen/test/marionette/pinning_uninstall_test.js": "Bug 1233527 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_uninstall_test.js",
+    "apps/keyboard/test/marionette/email_keyboard_test.js": "Bug 1233536 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/email_keyboard_test.js",
     "apps/keyboard/test/marionette/number_keyboard_test.js": "Bug 1233533 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/number_keyboard_test.js",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
