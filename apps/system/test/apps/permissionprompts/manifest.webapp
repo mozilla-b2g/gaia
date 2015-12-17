@@ -5,8 +5,19 @@
   "launch_path": "/index.html",
   "permissions": {
     "contacts": {
-      "description": "i dont know",
       "access": "readcreate"
+    },
+    "device-storage:sdcard": {
+      "access": "readonly"
+    },
+    "device-storage:pictures": {
+      "access": "readonly"
+    },
+    "device-storage:videos": {
+      "access": "readonly"
+    },
+    "device-storage:music": {
+      "access": "readonly"
     }
   }
 }
