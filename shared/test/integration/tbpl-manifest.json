@@ -16,6 +16,7 @@
     "apps/clock/test/marionette/timer_test.js": "Bug 1233503 - TEST-UNEXPECTED-FAIL | apps/clock/test/marionette/timer_test.js",
     "apps/communications/contacts/test/marionette/ice_test.js": "Bug 1147601 - Intermittent failures",
     "apps/communications/contacts/test/marionette/list_test.js": "Bug 1106194 - Intermittent apps/communications/contacts/test/marionette/list_test.js | Contacts > List Visited contacts > number of visited is the same after leaving search view",
+    "apps/communications/contacts/test/marionette/settings_test.js": "Bug 1233517 - Intermittent TEST-UNEXPECTED-FAIL | apps/communications/contacts/test/marionette/settings_test.js | Contacts > Settings Export, delete and ice buttons disabled No contacts -> Disabled",
     "apps/email/test/marionette/activity_create_email_account_complete_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/local_drafts_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/manual_setup_outgoing_credentials_test.js": "Bug 975588 - Re-enable email marionette js tests",
