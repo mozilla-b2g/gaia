@@ -843,9 +843,9 @@
       set: function(state) {
         state = state || Service.query('SyncStateMachine.state');
         this.debug('Setting state', state);
+        this.store.set(SYNC_STATE, state);
         this.updateStateDeferred = new Promise(resolve => {
           asyncStorage.setItem(SYNC_STATE, state, () => {
-            this.store.set(SYNC_STATE, state);
             if (state === 'disabled' || state === 'enabled' ||
                 state === 'enabling') {
               this.updateStatePreference().then(() => {
@@ -866,9 +866,8 @@
 
     error: {
       set: function(error) {
-        asyncStorage.setItem(SYNC_STATE_ERROR, error, () => {
-          this.store.set(SYNC_STATE_ERROR, error);
-        });
+        this.store.set(SYNC_STATE_ERROR, error);
+        asyncStorage.setItem(SYNC_STATE_ERROR, error);
       },
       get: function() {
         return this.store.get(SYNC_STATE_ERROR);
@@ -878,9 +877,8 @@
     lastSync: {
       set: function(now) {
         var lastSync = now;
-        asyncStorage.setItem(SYNC_LAST_TIME, lastSync, () => {
-          this.store.set(SYNC_LAST_TIME, lastSync);
-        });
+        this.store.set(SYNC_LAST_TIME, lastSync);
+        asyncStorage.setItem(SYNC_LAST_TIME, lastSync);
       },
       get: function() {
         return this.store.get(SYNC_LAST_TIME);
