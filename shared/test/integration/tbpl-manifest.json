@@ -56,6 +56,7 @@
     "apps/system/test/marionette/global_overlay_window_test.js": "Bug 1117125 - Update b2g desktop in tbpl after bug 1101029 lands",
     "apps/system/test/marionette/keyboard_edge_resize_test.js": "Bug 1147618",
     "apps/system/test/marionette/lockscreen_media_playback_test.js": "Bug 1110913",
+    "apps/system/test/marionette/lockscreen_passcode_unlock_test.js": "Bug 1226340 - Intermittent lockscreen_passcode_unlock_test.js",
     "apps/system/test/marionette/notification_behavior_test.js": "Bug 1148336",
     "apps/system/test/marionette/software_home_file_open_error_test.js": "Bug 1119079 - Intermittent software_home_file_open_error_test.js | Software Home Button - File Open Error Proper layout for file error dialog",
     "apps/system/test/marionette/statusbar_home_button_test.js": "Bug 1154405 - TEST-UNEXPECTED-FAIL | Closing statusbar via home button > Home screen keeps scroll position AssertionError: false == true",
