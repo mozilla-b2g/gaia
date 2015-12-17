@@ -32,6 +32,7 @@
     "apps/email/test/marionette/send_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/ftu/test/marionette/late_customization_test.js": "Bug 1233522 - Intermittent TEST-UNEXPECTED-FAIL | apps/ftu/test/marionette/late_customization_test.js",
     "apps/homescreen/test/marionette/app_uninstall_pending_test.js": "Bug 1233525 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/app_uninstall_pending_test.js | Homescreen - App uninstall while pending uninstall the app",
+    "apps/homescreen/test/marionette/pinning_uninstall_test.js": "Bug 1233527 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_uninstall_test.js",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
