@@ -2,7 +2,7 @@
           MockApp, MockApplications, MockChromeEvent, MockNavigatormozApps,
           MockNavigatorWakeLock, MocksHelper, MockL10n, MockModalDialog,
           MockNotificationScreen, MockService,
-          MockSystemBanner, MockUtilityTray */
+          MockSystemBanner, MockUtilityTray, l10nAssert */
 
 'use strict';
 
@@ -321,8 +321,9 @@ suite('system/AppInstallManager >', function() {
       });
 
       test('should fill the message with app name', function() {
-        assert.equal(AppInstallManager.msg.textContent,
-          'install-app{"name":"Fake app"}');
+        l10nAssert(AppInstallManager.msg, 'install-app', {
+          name: 'Fake app'
+        });
       });
 
       test('the dialog should be hidden after press home', function() {
@@ -355,8 +356,9 @@ suite('system/AppInstallManager >', function() {
 
         AppInstallManager.handleAppInstallPrompt(evt.detail);
 
-        assert.equal(AppInstallManager.msg.textContent,
-          'install-app{"name":"Fake app"}');
+        l10nAssert(AppInstallManager.msg, 'install-app', {
+          name: 'Fake app'
+        });
       });
 
       suite('developer infos >', function() {
@@ -379,8 +381,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           AppInstallManager.handleAppInstallPrompt(evt.detail);
-          assert.equal('author-unknown',
-            AppInstallManager.authorName.textContent);
+          l10nAssert(AppInstallManager.authorName, 'author-unknown');
           assert.equal('', AppInstallManager.authorUrl.textContent);
         });
 
@@ -398,8 +399,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           AppInstallManager.handleAppInstallPrompt(evt.detail);
-          assert.equal('author-unknown',
-            AppInstallManager.authorName.textContent);
+          l10nAssert(AppInstallManager.authorName, 'author-unknown');
           assert.equal('', AppInstallManager.authorUrl.textContent);
         });
 
@@ -419,8 +419,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           AppInstallManager.handleAppInstallPrompt(evt.detail);
-          assert.equal('author-unknown',
-            AppInstallManager.authorName.textContent);
+          l10nAssert(AppInstallManager.authorName, 'author-unknown');
           assert.equal('http://example.com',
             AppInstallManager.authorUrl.textContent);
         });
@@ -467,7 +466,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           AppInstallManager.handleAppInstallPrompt(evt.detail);
-          assert.equal('size-unknown', AppInstallManager.size.textContent);
+          l10nAssert(AppInstallManager.size, 'size-unknown');
         });
       });
 
