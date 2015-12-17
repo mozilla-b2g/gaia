@@ -36,6 +36,7 @@
     "apps/homescreen/test/marionette/pinning_uninstall_test.js": "Bug 1233527 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_uninstall_test.js",
     "apps/keyboard/test/marionette/email_keyboard_test.js": "Bug 1233536 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/email_keyboard_test.js",
     "apps/keyboard/test/marionette/number_keyboard_test.js": "Bug 1233533 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/number_keyboard_test.js",
+    "apps/music/test/marionette/playlist_test.js": "Bug 1199530 - Intermittent TEST-UNEXPECTED-FAIL | apps/music/test/marionette/playlist_test.js",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
