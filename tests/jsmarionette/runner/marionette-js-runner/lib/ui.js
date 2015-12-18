@@ -169,15 +169,13 @@ module.exports = function(suite) {
         options = { devices: ['phone'] };
       }
 
-      if (options &&
-          options.devices &&
-          options.devices.indexOf(manager.deviceType) === -1) {
-        // Ignore test.
-        return;
+      var suite = suites[0];
+      if (suite.pending ||
+          (options.devices &&
+           options.devices.indexOf(manager.deviceType) === -1)) {
+        fn = null;
       }
 
-      var suite = suites[0];
-      if (suite.pending) fn = null;
       var test = new MarionetteTest(title, manager, fn);
       test.file = file;
       suite.addTest(test);
