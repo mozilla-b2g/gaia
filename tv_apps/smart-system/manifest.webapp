@@ -120,6 +120,12 @@
       }
     }
   },
+  "datastores-access": {
+    "appdeck_bookmarks": {
+      "readonly": false,
+      "description": "Read card list"
+    }
+  },
   "datastores-owned": {
     "download_store": {
       "access": "readwrite",

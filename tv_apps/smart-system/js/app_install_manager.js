@@ -17,8 +17,6 @@
 // note: we removed the download cancel dialog because we don't have an UI to
 // remove it.
 
-const PREVIEW_OPENED_TIMES_TO_HINT = 3;
-
 var AppInstallManager = {
   mapDownloadErrorsToMessage: {
     'NETWORK_ERROR': 'download-failed',
@@ -336,49 +334,10 @@ var AppInstallManager = {
     }
 
     var marketplaceApp = AppWindowManager.getActiveApp();
-    var manifestURL = app.manifestURL;
-    var appURL = app.origin + app.manifest.launch_path;
-
-    var handlePreviewOpened = () => {
-      window.removeEventListener('previewopened', handlePreviewOpened);
-      this.systemBanner.show({
-        id: 'preview-app-hint'
-      });
-      this.previewOpenedTimes[manifestURL] =
-        ++this.previewOpenedTimes[manifestURL] || 1;
-    };
-
-    var handlePreviewTerminated = () => {
-      window.removeEventListener('previewterminated', handlePreviewTerminated);
-      var askAddPrompt =
-        this.previewOpenedTimes[manifestURL] === PREVIEW_OPENED_TIMES_TO_HINT;
-      if (askAddPrompt && !this.getAppAddedState(manifestURL)) {
-        var options = { 'manifest': app.manifest };
-        var TYPES = AppInstallDialogs.TYPES;
-        // Keep app info in case of it is destroyed by terminated event
-        var cloneApp = {
-          manifestURL: app.manifestURL,
-          manifest: app.manifest,
-          updateManifest: app.updateManifest
-        };
-        this.appInstallDialogs.show(TYPES.AddAppDialog, options).then(
-          this.handleAddAppToApps.bind(this, cloneApp),
-          this.uninstallPreviewApp.bind(this)
-        ).catch(function(e) {
-          console.error(e);
-        });
-      } else {
-        this.uninstallPreviewApp();
-      }
-    };
-
-    window.addEventListener('previewopened', handlePreviewOpened);
-    window.addEventListener('previewterminated', handlePreviewTerminated);
-
     marketplaceApp.publish('launchpreviewapp', {
-      url: appURL,
+      url: app.origin + app.manifest.launch_path,
       origin: app.origin,
-      manifestURL: manifestURL
+      manifestURL: app.manifestURL
     });
   },
 
@@ -396,6 +355,8 @@ var AppInstallManager = {
       var app = applications.getByManifestURL(previewAppManifestURL);
       if (app) {
         navigator.mozApps.mgmt.uninstall(app);
+      } else {
+        this.setPreviewAppManifestURL('');
       }
     }
   },
@@ -449,7 +410,7 @@ var AppInstallManager = {
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
     var msgID = this.isMarketplaceAppActive() ?
-      'app-add-success' : 'app-install-success';
+      'added-to-apps' : 'app-install-success';
 
     this.systemBanner.show({
       id: msgID,
