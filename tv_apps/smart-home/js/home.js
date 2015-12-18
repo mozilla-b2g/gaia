@@ -2,7 +2,7 @@
 /* global Application, FilterManager, CardManager, Clock, Deck, Edit, Folder,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
           SharedUtils, SpatialNavigator, URL, XScrollable, Animations,
-          Utils, FTEWizard */
+          Utils, FTEWizard, AppBookmark */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -480,6 +480,9 @@
         } else {
           this._createWave(cardButton, card);
         }
+      } else if (card instanceof AppBookmark) {
+        cardButton.setAttribute('app-type', 'appbookmark');
+        this._fillCardIcon(cardButton, card);
       } else if (card instanceof Folder) {
         cardButton.setAttribute('app-type', 'folder');
         cardButton.dataset.icon = 'folder';
