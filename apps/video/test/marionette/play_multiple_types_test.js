@@ -15,7 +15,8 @@ marionette('play various types of videos', function() {
         'device.storage.testing': true,
         'device.storage.prompt.testing': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {
