@@ -56,7 +56,8 @@ BrowserAppBuilder.prototype.enableFirefoxSync = function(options) {
       ['js', 'index.js'],
       ['js', 'settings.js'],
       ['js', 'toolbar.js'],
-      ['style', 'settings.css']
+      ['style', 'settings.css'],
+      ['style', 'browser_dialog.css']
     ],
     remove: [
       ['js', 'sync', 'bookmarks.js'],

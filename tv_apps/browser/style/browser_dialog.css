@@ -1,6 +1,8 @@
 /* --------------- dialog --------------- */
 #browser-dialog-base {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
   top: 0;
   left: 0;
@@ -10,15 +12,16 @@
   background-color: rgba(0,0,0,0.9);
 }
 
+#browser-dialog-base.hide {
+  display: none;
+}
+
 #browser-dialog {
   -moz-box-sizing: border-box;
   position: relative;
-  top: 50%;
   width: 700px;
   height: 640px;
-  margin: 0 auto;
   color: #f9f9f9;
-  -moz-transform: translateY(-50%);
 }
 #browser-dialog-title {
   position: relative;
@@ -217,3 +220,48 @@
   color: #ffffff;
 }
 
+/*IFDEF_FIREFOX_SYNC*/
+#browser-dialog-base[data-type="signout_confirm"] #browser-dialog {
+  width: 91rem;
+  height: 100%;
+}
+
+#browser-dialog-base[data-type="signout_confirm"] #browser-dialog-title {
+  position: absolute;
+  top: 24.5rem;
+  font-size: 3.8rem;
+  font-weight: lighter;
+  line-height: 3.8rem;
+}
+
+#browser-dialog-base[data-type="signout_confirm"] #browser-dialog-msg {
+  position: absolute;
+  top: calc(24.5rem + 3.8rem + 6rem);
+  font-size: 3.8rem;
+  font-weight: lighter;
+  line-height: 4.8rem;
+}
+
+#browser-dialog-base[data-type="signout_confirm"] #browser-dialog-button {
+  position: absolute;
+  bottom: 24.5rem;
+  display: flex;
+  width: 100%;
+  flex-direction: row-reverse;
+  justify-content: center;
+  margin: 0;
+}
+
+#browser-dialog-base[data-type="signout_confirm"] #browser-dialog-button1 {
+  background-color: #5f6368;
+}
+
+#browser-dialog-base[data-type="signout_confirm"] #browser-dialog-button1:hover,
+#browser-dialog-base[data-type="signout_confirm"] #browser-dialog-button1:focus {
+  color: #fff;
+}
+
+#browser-dialog-base[data-type="signout_confirm"] #browser-dialog-button2{
+  background-color: #e63d2f;
+}
+/*ENDIF_FIREFOX_SYNC*/
