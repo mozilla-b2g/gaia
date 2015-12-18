@@ -103,7 +103,7 @@ class Settings(Base):
 
     def wait_until_wifi_is_connected_to(self, ssid):
         wifi_status_label = self.marionette.find_element(*self._wifi_text_locator)
-        Wait(self.marionette).until(lambda m: wifi_status_label.get_attribute('data-l10n-id') == 'full-status-connected' and wifi_status_label.get_attribute('data-l10n-args')['ssid'] == ssid)
+        Wait(self.marionette).until(lambda m: wifi_status_label.get_attribute('data-l10n-id') == 'full-status-connected' and ssid in wifi_status_label.get_attribute('data-l10n-args'))
 
     @property
     def is_airplane_mode_displayed(self):
