@@ -501,11 +501,10 @@ marionette('Audio channel competing', function() {
     assert.ok(!isPlaying(testApp1.origin, audioChannel1));
     assert.ok(isPlaying(testApp2.origin, audioChannel2));
 
-    // Reenable it in Bug 1230061.
-    // var testApp2Frame = sys.getAppIframe(testApp2.origin);
-    // client.switchToFrame(testApp2Frame);
-    // testApp2[audioChannel2 + 'Pause'].click();
-    // assert.ok(isPlaying(testApp1.origin, audioChannel1));
+    var testApp2Frame = sys.getAppIframe(testApp2.origin);
+    client.switchToFrame(testApp2Frame);
+    testApp2[audioChannel2 + 'Pause'].click();
+    assert.ok(isPlaying(testApp1.origin, audioChannel1));
   }
 
   /**

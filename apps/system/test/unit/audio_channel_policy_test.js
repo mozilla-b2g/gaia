@@ -251,7 +251,7 @@ suite('system/AudioChannelPolicy', function() {
           activeAudioChannels: {
             isAllowedToPlay: false,
             isNeededToVibrate: true,
-            isNeededToResumeWhenOtherEnds: false
+            isNeededToResumeWhenOtherEnds: true
           }
         }
       );
