@@ -444,6 +444,17 @@ System.prototype = {
     return frame;
   },
 
+  closeBrowserByUrl: function(url) {
+    var winId = this.client.executeScript(function(url) {
+      var win = window.wrappedJSObject;
+      var activeApp = win.appWindowManager.getActiveApp();
+      activeApp.kill();
+      return activeApp.element.id;
+    }, [url]);
+    this.client.helper.waitForElementToDisappear('#' + winId);
+    this.client.switchToFrame();
+  },
+
   goBack: function(url) {
     this.client.switchToFrame();
     this.appChromeBack.tap();
