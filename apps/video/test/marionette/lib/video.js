@@ -30,13 +30,18 @@ Video.Selector = Object.freeze({
   thumbnailsSingleDeleteButton: 'a.button.single-delete-button',
   thumbnailsSingleShareButton: 'a.button.single-share-button',
   player: 'video#player',
+  videoTitle: '#video-title',
   overlay: '#overlay',
+  elapsedTime: '#elapsed-text',
+  durationText: '#duration-text',
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailSelectTop: '#thumbnail-select-top',
   thumbnailsShareButton: '#thumbnails-share-button',
   thumbnailsVideoButton: '#thumbnails-video-button',
   thumbnailsDeleteButton: '#thumbnails-delete-button',
-  confirmOkButton: '.modal-dialog-confirm-ok'
+  confirmOkButton: '.modal-dialog-confirm-ok',
+  playerHeader: '#player-header',
+  gaiaHeaderActionButton: '.action-button'
 });
 
 Video.prototype = {
@@ -130,14 +135,76 @@ Video.prototype = {
    * @return {Marionette.Element} First element of all thumbnail images.
    */
   get thumbnail() {
-    return this.client.findElement(Video.Selector.thumbnail);
+    return this.client.helper.waitForElement(Video.Selector.thumbnail);
   },
 
   /**
    * @return {Marionette.Element} video player element.
    */
   get player() {
-    return this.client.findElement(Video.Selector.player);
+    return this.client.helper.waitForElement(Video.Selector.player);
+  },
+
+  /**
+   * Called after tapping on a thumbnail to wait for the video to
+   * begin playing.
+   */
+  waitForVideoToStartPlaying: function() {
+    var elapsedElem = this.client.findElement(Video.Selector.elapsedTime);
+
+    // Ensure when we tap on the player view the video controls are not
+    // displayed -- they are displayed when the video first plays and then
+    // they are automatically hidden.
+    //
+    // Wait for controls to appear as the video begins to play. Specify
+    // a timeout to account for the controls having already been displayed
+    // and auto-hidden.
+    this.client.waitFor(function() { return elapsedElem.displayed(); },
+      { interval: 10, timeout: 5000 }
+    );
+
+    // Either the controls are now displayed or they have already been
+    // automatically hidden. In the case where they have been displayed,
+    // wait for them to be automatically hidden.
+    this.client.waitFor(function() { return !elapsedElem.displayed(); });
+
+    // Tap to display the controls and wait for them to be displayed.
+    this.player.tap();
+    this.client.waitFor(function() { return elapsedElem.displayed(); });
+
+    // Wait for the video to play for at least one second (to allow
+    // for validation checks).
+    this.client.waitFor(() => {
+      return this.getElapsedTimeSeconds() > 0;
+    });
+  },
+
+  /**
+   * Taps 'back' button on gaia-header to return from the video player view
+   * to the thumbnails view.
+   */
+  back: function() {
+    var playerHeader = this.client.findElement(Video.Selector.playerHeader);
+    this.client.switchToShadowRoot(playerHeader);
+    var actionButton =
+      this.client.helper.waitForElement(Video.Selector.gaiaHeaderActionButton);
+    actionButton.tap();
+    this.client.switchToShadowRoot();
+  },
+
+  getElapsedTime: function() {
+    var elapsedTimeElem = this.client.findElement(Video.Selector.elapsedTime);
+    return elapsedTimeElem;
+  },
+
+  getElapsedTimeSeconds: function() {
+    return parseInt(this.getElapsedTime().text().split(':').pop());
+  },
+
+  videoTitle: function() {
+    var titleElem =
+      this.client.findElement(Video.Selector.videoTitle);
+    return titleElem.text();
   },
 
   /**
@@ -145,6 +212,23 @@ Video.prototype = {
    */
   getThumbnails: function() {
    return this.client.findElements(Video.Selector.thumbnail);
+  },
+
+  get thumbnails() {
+    return this.client.findElements(Video.Selector.thumbnail);
+  },
+
+  tapThumbnail: function(n) {
+    var thumbnail = this.thumbnails[n];
+    thumbnail.click();
+  },
+
+  waitForThumbnails: function(num) {
+    var getThumbnails = this.getThumbnails.bind(this);
+
+    this.client.helper.waitFor(function() {
+      return getThumbnails().length === num;
+    });
   },
 
   /**
