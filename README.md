@@ -26,7 +26,7 @@ and talk to us on IRC:
 
 ## Autolander (bot)
 
-Autolander is a bot which integrations github and bugzilla workflows.
+Autolander is a bot which integrates github and bugzilla workflows.
 
 Features available:
   - Automatic pull request to bugzilla attachment linking.
