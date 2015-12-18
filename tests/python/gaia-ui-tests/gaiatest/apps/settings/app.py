@@ -101,6 +101,10 @@ class Settings(Base):
     def wait_for_airplane_mode_ready(self):
         self._airplane_checkbox.wait_to_be_ready()
 
+    def wait_until_wifi_is_connected_to(self, ssid):
+        wifi_status_label = self.marionette.find_element(*self._wifi_text_locator)
+        Wait(self.marionette).until(lambda m: wifi_status_label.get_attribute('data-l10n-id') == 'full-status-connected' and wifi_status_label.get_attribute('data-l10n-args')['ssid'] == ssid)
+
     @property
     def is_airplane_mode_displayed(self):
         return self._airplane_checkbox.is_displayed

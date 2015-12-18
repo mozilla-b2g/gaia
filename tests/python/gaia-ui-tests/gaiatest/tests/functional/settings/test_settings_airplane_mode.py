@@ -44,8 +44,12 @@ class TestAirplaneMode(GaiaTestCase):
 
         settings.disable_airplane_mode()
 
+        # import pdb
+        # pdb.set_trace()
+
         # Wait for wifi to be connected, because this takes the longest to connect after airplane mode is switched off
-        self.wait_for_condition(lambda s: 'Connected to ' + self.testvars['wifi']['ssid'] in settings.wifi_menu_item_description, timeout=40)
+        # self.wait_for_condition(lambda s: 'Connected to ' + self.testvars['wifi']['ssid'] in settings.wifi_menu_item_description, timeout=40)
+        settings.wait_until_wifi_is_connected_to(self.testvars['wifi']['ssid'])
 
         # check Wifi is enabled
         self.assertTrue(self.data_layer.is_wifi_connected(self.testvars['wifi']), "WiFi was not connected after switching off Airplane mode")
