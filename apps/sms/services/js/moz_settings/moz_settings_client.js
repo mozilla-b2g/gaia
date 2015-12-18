@@ -61,11 +61,9 @@ var MozSettingsClient = {
    *  limit in Bytes. Default limitation is 295KB.
    */
   mmsSizeLimitation() {
-    return client.method('get', MMS_SIZE_LIMIT_KEY).then((result) => {
-      var size = result[MMS_SIZE_LIMIT_KEY];
-      return size && !isNaN(size) ?
-        size - MMS_SIZE_OVERHEAD : MMS_SIZE_LIMITATION;
-    });
+    return client.method('get', MMS_SIZE_LIMIT_KEY).then((size) =>
+      size && !isNaN(size) ? size - MMS_SIZE_OVERHEAD : MMS_SIZE_LIMITATION
+    );
   },
 
   /**
@@ -74,10 +72,9 @@ var MozSettingsClient = {
    *  maximum concatenated number of our SMS. Default maximum number is 10.
    */
   maxConcatenatedMessages() {
-    return client.method('get', SMS_MAX_CONCAT_KEY).then((result) => {
-      var num = result[SMS_MAX_CONCAT_KEY];
-      return num && !isNaN(num) ? num : MAX_CONCATENATED_MESSAGES;
-    });
+    return client.method('get', SMS_MAX_CONCAT_KEY).then((num) =>
+      num && !isNaN(num) ? num : MAX_CONCATENATED_MESSAGES
+    );
   },
 
   /**

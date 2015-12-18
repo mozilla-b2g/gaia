@@ -38,10 +38,10 @@ var MozSettingsShim = {
   /**
    * Shim for mozSettings.createLock().get API.
    * @param {String} key Key name for Settings.
-   * @returns {Promise} Promise that return the settings value from settings DB.
+   * @returns {String} The requested value from settings DB.
    */
   get(key) {
-    return mozSettings.createLock().get(key);
+    return mozSettings.createLock().get(key).then((result) => result[key]);
   },
 
   /**
