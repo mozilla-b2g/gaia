@@ -469,7 +469,9 @@ define(function(require) {
       }
 
       this._elements.errorMsgHeader.setAttribute('data-l10n-id', headerL10nId);
-      this._localize(this._elements.errorMsgBody, bodyL10nId, args);
+      if (bodyL10nId) {
+        this._localize(this._elements.errorMsgBody, bodyL10nId, args);
+      }
       this._elements.errorMsg.hidden = false;
     },
 
