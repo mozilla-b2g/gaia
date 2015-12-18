@@ -21,8 +21,7 @@
    * @requires CardManager
    * @requires {@link PromotionList}
    *
-   * @fires AppDeck#focus-on-pinable
-   * @fires AppDeck#focus-on-nonpinable
+   * @fires AppDeck#focus
    */
   var AppDeck = function() {
   };
@@ -43,6 +42,8 @@
     _appDeckListScrollable: undefined,
 
     _cardManager: undefined,
+
+    _bookmarkManager: undefined,
 
     _outOfControlArea: true,
 
@@ -227,34 +228,40 @@
     },
 
     /**
-     * Notify other module that currently focused element is pinable (could be
-     * pinned on Home) or nonpinable (could not be pinned on Home)
+     * Notify other module that currently focused element detail, like
+     * pinable (could be pinned on Home) or nonpinable; type (app or bookmark)
+     * and etc.
      *
      * @public
      * @method  AppDeck#fireFocusEvent
      * @param  {HTMLElement} elem - currently focused element
      */
+    /**
+     * This event fires whenever focus in AppDeck move to a pinable
+     * element (representing na app).
+     * @event AppDeck#focus
+     * @type {Object}
+     * @property {String} type - 'app' / 'bookmark' / 'others'
+     * @property {Boolean} pinable - Can it be pinned to to Home
+     * @property {Boolean} pinned - Has it been pinned to Home
+     * @property {String} manifestURL - manifest URL if it's an app
+     * @property {String} url - target URL if it's a bookmark
+     * @property {String} name - name of current focused pinable element
+     * @property {Boolean} removable - Is current focused pinable element
+     *                               removable or not
+     */
     fireFocusEvent: function ad_fireFocusEvent(elem) {
       var that = this;
-      if (elem && elem.dataset && elem.dataset.manifestURL) {
+      var type = elem && elem.getAttribute('app-Type');
+
+      if (type === 'app') {
         this._cardManager.isPinned({
           manifestURL: elem.dataset.manifestURL,
           entryPoint: elem.dataset.entryPoint
         }).then(function(pinned) {
-          /**
-           * This event fires whenever focus in AppDeck move to a pinable
-           * element (representing na app).
-           * @event AppDeck#focus-on-pinable
-           * @type {Object}
-           * @property {Boolean} pinned - Is current focused pinable element
-           *                            pinned or not
-           * @property {String} manifestURL - manifestURL of current focused
-           *                                element
-           * @property {String} name - name of current focused pinable element
-           * @property {Boolean} removable - Is current focused pinable element
-           *                               removable or not
-           */
-          that.fire('focus-on-pinable', {
+          that.fire('focus', {
+            type: type,
+            pinable: true,
             pinned: pinned,
             manifestURL: elem.dataset.manifestURL,
             // entryPoint is deprecated
@@ -263,11 +270,16 @@
             removable: elem.dataset.removable === 'true'
           });
         });
-      } else {
-        /**
-         * @event AppDeck#focus-on-nonpinable
-         */
-        this.fire('focus-on-nonpinable');
+      } else if (type === 'bookmark') {
+        // For now this is the case of bookmarks.
+        this.fire('focus', {
+          type: type,
+          pinable: false,
+          pinned: false,
+          url: elem.dataset.url,
+          name: elem.dataset.name,
+          removable: elem.dataset.removable === 'true'
+        });
       }
     },
 

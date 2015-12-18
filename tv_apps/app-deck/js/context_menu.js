@@ -1,6 +1,6 @@
 'use strict';
 
-/* global MozActivity, Applications, SharedUtils */
+/* global MozActivity, Applications */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -18,12 +18,14 @@
 
   ContextMenu.prototype = {
     pinToHomeElem: document.getElementById('pin-to-home'),
+    unpinFromHomeElem: document.getElementById('unpin-from-home'),
     mainSection: document.getElementById('main-section'),
     removeElem: document.getElementById('remove-card'),
     contextMenuElem: document.getElementById('context-menu'),
 
     _appDeck: undefined,
-    _app: undefined,
+    _target: {},
+
 
     /**
      * Initialize ContextMenu
@@ -33,16 +35,14 @@
      * @param  {AppDeck} appDeck - instance of {@link AppDeck}
      */
     init: function cm_init(appDeck) {
-      this.mainSection.addEventListener('contextmenu',
-        this.onContextMenu.bind(this));
-
       this._appDeck = appDeck;
-      this._appDeck.on('focus-on-pinable', this.onFocusOnPinable.bind(this));
-      this._appDeck.on('focus-on-nonpinable',
-        this.onFocusOnNonpinable.bind(this));
+      this._appDeck.on('focus', this.onFocus.bind(this));
 
       this.pinToHomeElem.addEventListener('click', this.pinOrUnpin.bind(this));
-      this.removeElem.addEventListener('click', this.uninstall.bind(this));
+      this.unpinFromHomeElem.addEventListener(
+                                          'click', this.pinOrUnpin.bind(this));
+
+      this.removeElem.addEventListener('click', this.onRemove.bind(this));
     },
 
     _selfApp: undefined,
@@ -133,37 +133,43 @@
      * @method  ContextMenu#pinOrUnpin
      */
     pinOrUnpin: function cm_pinOrUnpin() {
-      if (this._app) {
-        var app = this._app;
-        if (app.pinned) {
-          this._sendUnpinMessage(app);
-        } else {
-          // XXX: preferredSize should be determined by
-          // real offsetWidth of cardThumbnailElem in smart-home instead of
-          // hard-coded value
-          Applications.getIconBlob(app.manifestURL, app.entryPoint, 354,
-            function(blob) {
-              // Notice that here we didn't specify launchURL because we assume
-              // all 'Application' in app-deck are launched by calling
-              // app.launch().
-              // However, in the case of other deck-like app, if we are going to
-              // pin application which is launched by different launchURL, we
-              // must specify 'launchURL' here.
-              new MozActivity({
-                name: 'pin',
-                data: {
-                  type: 'Application',
-                  group: 'application',
-                  manifestURL: app.manifestURL,
-                  // We use app's original icon instead of screenshot here
-                  // because we are in app deck. For the case of getting
-                  // screenshot, please refer to bug 1100238.
-                  thumbnail: blob
-                }
-              });
+      var app = this._target;
+      if (app.pinned) {
+        this._sendUnpinMessage(app);
+      } else {
+        // XXX: preferredSize should be determined by
+        // real offsetWidth of cardThumbnailElem in smart-home instead of
+        // hard-coded value
+        Applications.getIconBlob(app.manifestURL, app.entryPoint, 354, blob => {
+          // Notice that here we didn't specify launchURL because we assume
+          // all 'Application' in app-deck are launched by calling
+          // app.launch().
+          // However, in the case of other deck-like app, if we are going to
+          // pin application which is launched by different launchURL, we
+          // must specify 'launchURL' here.
+          new MozActivity({
+            name: 'pin',
+            data: {
+              type: 'Application',
+              group: 'application',
+              manifestURL: app.manifestURL,
+              // We use app's original icon instead of screenshot here
+              // because we are in app deck. For the case of getting
+              // screenshot, please refer to bug 1100238.
+              thumbnail: blob
+            }
+          });
+        });
+      }
+    },
 
-            });
-        }
+    onRemove: function cm_onRemove() {
+      if (this._target.type === 'app') {
+        this.uninstall(this._target);
+
+      } else if (this._target.type === 'bookmark') {
+        this._appDeck._bookmarkManager.remove(this._target.url);
+
       }
     },
 
@@ -172,41 +178,33 @@
      * @public
      * @method  ContextMenu#uninstall
      */
-    uninstall: function cm_uninstall() {
-      if (this._app && this._app.removable) {
-        var app = this._app;
-        // unpin app before uninstall it
-        if (app.pinned) {
-          this._sendUnpinMessage(app);
-        }
-        var appInstance = Applications.installedApps[app.manifestURL];
-        if (appInstance) {
-          navigator.mozApps.mgmt.uninstall(appInstance);
-        }
+    uninstall: function cm_uninstall(app) {
+      // unpin app before uninstall it
+      if (app.pinned) {
+        this._sendUnpinMessage(app);
+      }
+      var appInstance = Applications.installedApps[app.manifestURL];
+      if (appInstance) {
+        navigator.mozApps.mgmt.uninstall(appInstance);
       }
     },
 
-    onFocusOnPinable: function cm_onFocusOnPinable(detail) {
-      this._app = detail;
-      var l10nPayload =
-        (detail && detail.pinned) ? 'unpin-from-home' : 'pin-to-home';
-      SharedUtils.localizeElement(this.pinToHomeElem, l10nPayload);
+    onFocus: function cm_onFocus(detail) {
+      this._target = detail;
+
+      this.contextMenuElem.innerHTML = '';
+      if (detail.type === 'app') {
+        if (detail.pinned) {
+          this.contextMenuElem.appendChild(this.unpinFromHomeElem);
+        } else {
+          this.contextMenuElem.appendChild(this.pinToHomeElem);
+        }
+      }
+
       if (detail.removable === false) {
         this.contextMenuElem.removeChild(this.removeElem);
       } else {
-        this.contextMenuElem.insertBefore(this.removeElem,
-          this.pinToHomeElem.nextElementSibling);
-      }
-    },
-
-    onFocusOnNonpinable: function cm_onFocusOnNonpinable() {
-      this._app = undefined;
-    },
-
-    onContextMenu: function cm_onContextMenu(evt) {
-      // stop showing context menu if we are not focus on pinable element
-      if (!this._app) {
-        evt.preventDefault();
+        this.contextMenuElem.appendChild(this.removeElem);
       }
     }
   };
