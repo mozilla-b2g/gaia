@@ -103,6 +103,7 @@ tv_apps/smart-system/js/accessibility.js
 tv_apps/smart-system/js/app_install_manager.js
 tv_apps/smart-system/js/app_modal_dialog.js
 tv_apps/smart-system/js/bluetooth_transfer.js
+tv_apps/smart-system/js/browser_context_menu.js
 tv_apps/smart-system/js/external_storage_monitor.js
 tv_apps/smart-system/js/ime_menu.js
 tv_apps/smart-system/js/remote_control.js
