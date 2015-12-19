@@ -57,7 +57,8 @@ const NGA_VIEWS = Object.freeze([
     name: 'report-view',
     behavior: 'ReportView',
     previous: 'thread',
-    partOf: 'thread'
+    partOf: 'thread',
+    type: 'dialog'
   }),
   Object.freeze({
     name: 'composer',
@@ -104,9 +105,17 @@ const OA_VIEWS = Object.freeze([
     name: 'report-view',
     behavior: 'ReportView',
     previous: 'thread',
-    partOf: 'thread-list'
+    partOf: 'thread-list',
+    type: 'dialog'
   })
 ]);
+
+const ANIMATIONS = Object.freeze({
+  default: {
+  },
+  dialog: {
+  }
+});
 
 const VIEWS = isUsingOldArchitecture() ? OA_VIEWS : NGA_VIEWS;
 
@@ -588,11 +597,18 @@ function switchPanel() {
 
   var animationPromise;
   if (doSlideAnimation) {
+    /*
     var shouldGoRight = isGoingBack ^ (document.dir === 'rtl');
     newPanelElement.style.animationName =
       shouldGoRight ? 'left-to-current' : 'right-to-current';
     oldPanelElement.style.animationName =
       shouldGoRight ? 'current-to-right' : 'current-to-left';
+    */
+   if (isGoingBack) {
+     oldPanelElement.style.animationName = 'fade-scale-out';
+   } else {
+     newPanelElement.style.animationName = 'fade-scale-in';
+   }
   } else if (doFadeInAnimation) {
     newPanelElement.style.animationName = 'fade-in';
   }
