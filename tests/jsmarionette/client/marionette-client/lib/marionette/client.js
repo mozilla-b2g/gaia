@@ -6,11 +6,11 @@
   var Exception = ns.require('error');
   var message = ns.require('./message');
 
-  var DEFAULT_SCRIPT_TIMEOUT = 20000;
-  var DEFAULT_SEARCH_TIMEOUT = 20000;
+  var DEFAULT_SCRIPT_TIMEOUT = 60000;
+  var DEFAULT_SEARCH_TIMEOUT = 60000;
 
   var DEFAULT_WAIT_FOR_INTERVAL = 100;
-  var DEFAULT_WAIT_FOR_TIMEOUT = 20000;
+  var DEFAULT_WAIT_FOR_TIMEOUT = 60000;
 
   var SCOPE_TO_METHOD = Object.freeze({
     scriptTimeout: 'setScriptTimeout',
