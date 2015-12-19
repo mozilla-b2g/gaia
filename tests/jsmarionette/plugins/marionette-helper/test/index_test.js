@@ -173,6 +173,31 @@ marionette('MarionetteHelper', function() {
     subject.waitForElementToDisappear('#' + myRandomID);
   });
 
+  test('#waitForElementToDisappear with custom timeout', function(done) {
+    this.timeout(10000); // make this fail fast.
+    var myRandomID = 'YAAAAAAYRandomWow' + Date.now();
+    client.executeScript(function(myRandomID) {
+      var el = document.createElement('div');
+      el.id = myRandomID;
+      el.innerHTML = 'Hello Test!';
+      document.body.appendChild(el);
+      setTimeout(function() {
+        el.style.display = 'none';
+      }, 500);
+    }, [myRandomID]);
+
+    // Ensure the waitFor times out.
+    client.onScriptTimeout = function() {
+      assert(true, 'this should timeout');
+      done();
+    };
+
+    try {
+      subject.waitForElementToDisappear('#' + myRandomID, { timeout: 10 });
+      assert(false, 'should timeout before disappearing');
+    } catch (e) {}
+  });
+
   suite.skip('#waitForAlert', function() {
     setup(function() {
       console.log('Will alert!');

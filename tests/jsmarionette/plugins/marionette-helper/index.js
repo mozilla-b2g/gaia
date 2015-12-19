@@ -174,8 +174,9 @@ MarionetteHelper.prototype = {
   /**
    * Wait for an element either hidden or removed from the dom
    * @param {Marionette.Element|string} el element or some css selector.
+   * @param {Object} [options] options object to be passed to client.waitFor.
    */
-  waitForElementToDisappear: function(el) {
+  waitForElementToDisappear: function(el, options) {
     if (!isElement(el)) {
       try {
         el = this.client.findElement(el);
@@ -204,7 +205,7 @@ MarionetteHelper.prototype = {
         // the client threw an unexpected error, rethrow it
         throw err;
       }
-    });
+    }, options);
   },
 
   /**
