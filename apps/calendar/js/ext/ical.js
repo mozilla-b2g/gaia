@@ -6408,7 +6408,7 @@ ICAL.Event = (function() {
     },
 
     get endDate() {
-      return this._firstProp('dtend');
+      return this._firstProp('dtend') || this._firstProp('dtstart');
     },
 
     set endDate(value) {
