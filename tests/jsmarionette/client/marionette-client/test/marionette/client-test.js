@@ -1094,15 +1094,46 @@ suite('marionette/client', function() {
     });
 
     suite('.executeScript', function() {
-      setup(function() {
-        subject.executeScript(script, commandCallback);
-      });
-
       test('should call _executeScript', function() {
+        subject.executeScript(script, commandCallback);
         assert.deepEqual(calledWith, [
           {
             name: 'executeScript',
-            parameters: { script: script, args: null, sandbox: 'default' }
+            parameters: {
+              script: script,
+              args: null,
+              sandbox: 'default',
+            }
+          },
+          commandCallback
+        ]);
+      });
+
+      test('should call _executeScript with arguments', function() {
+        subject.executeScript(script, ['foo'], commandCallback);
+        assert.deepEqual(calledWith, [
+          {
+            name: 'executeScript',
+            parameters: {
+              script: script,
+              args: ['foo'],
+              sandbox: 'default',
+            }
+          },
+          commandCallback
+        ]);
+      });
+
+      test('should call _executeScript with custom sandbox', function() {
+        subject.executeScript(script, null, commandCallback, 'foo');
+        assert.deepEqual(calledWith, [
+          {
+            name: 'executeScript',
+            parameters: {
+              script: script,
+              args: null,
+              sandbox: 'foo',
+            }
           },
           commandCallback
         ]);
@@ -1117,21 +1148,57 @@ suite('marionette/client', function() {
       test('should call _executeScript', function() {
         assert.deepEqual(calledWith, [{
           name: 'executeJSScript',
-          parameters: {script: script, timeout: true, args: null}
+          parameters: {
+            script: script,
+            timeout: true,
+            args: null,
+            sandbox: 'simpletest',
+          }
         }, commandCallback]);
       });
     });
 
     suite('.executeAsyncScript', function() {
-      setup(function() {
-        subject.executeAsyncScript(script, commandCallback);
-      });
-
       test('should call _executeScript', function() {
+        subject.executeAsyncScript(script, commandCallback);
         assert.deepEqual(calledWith, [
           {
             name: 'executeAsyncScript',
-            parameters: {script: script, args: null}
+            parameters: {
+              script: script,
+              args: null,
+              sandbox: 'default',
+            }
+          },
+          commandCallback
+        ]);
+      });
+
+      test('should call _executeScript with arguments', function() {
+        subject.executeAsyncScript(script, ['foo'], commandCallback);
+        assert.deepEqual(calledWith, [
+          {
+            name: 'executeAsyncScript',
+            parameters: {
+              script: script,
+              args: ['foo'],
+              sandbox: 'default',
+            }
+          },
+          commandCallback
+        ]);
+      });
+
+      test('should call _executeScript with custom sandbox', function() {
+        subject.executeAsyncScript(script, null, commandCallback, 'foo');
+        assert.deepEqual(calledWith, [
+          {
+            name: 'executeAsyncScript',
+            parameters: {
+              script: script,
+              args: null,
+              sandbox: 'foo',
+            }
           },
           commandCallback
         ]);
