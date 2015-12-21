@@ -1,5 +1,3 @@
-/* global openIncompatibleSettingsDialog */
-
 define(function(require) {
   'use strict';
 
@@ -139,22 +137,55 @@ define(function(require) {
 
       _openIncompatibleSettingsDialog:
         function(newSetting, oldSetting, bothConflicts) {
-          // We must check if there is two incompatibilities
-          // (usb hotspot case) or just one
+          // if both conflict, ensure that two incompatible settings
+          // are disabled before turning on.
           if (bothConflicts) {
-            openIncompatibleSettingsDialog(this._incompatibleSettingsDialog,
-              hotspot.tetheringUsbKey, hotspot.tetheringWifiKey,
-              this._openSecondWarning.bind(this));
-          } else {
-            openIncompatibleSettingsDialog(this._incompatibleSettingsDialog,
-              newSetting, oldSetting, null);
+            return this._openIncompatibleSettingsDialog(
+              hotspot.tetheringUsbKey, hotspot.tetheringWifiKey, null)
+            .then((updated) => {
+              updated && this._openIncompatibleSettingsDialog(
+                hotspot.tetheringUsbKey, hotspot.usbStorageKey, null);
+            });
           }
-      },
 
-      _openSecondWarning: function() {
-        openIncompatibleSettingsDialog(this._incompatibleSettingsDialog,
-            hotspot.tetheringUsbKey, hotspot.usbStorageKey,
-            null);
+          var headerL10nMap = {
+            'ums.enabled': 'is-warning-storage-header',
+            'tethering.usb.enabled': 'is-warning-tethering-header',
+            'tethering.wifi.enabled': 'is-warning-wifi-header'
+          };
+          var messageL10nMap = {
+            'ums.enabled': {
+              'tethering.usb.enabled': 'is-warning-storage-tethering-message'
+            },
+            'tethering.usb.enabled': {
+              'ums.enabled': 'is-warning-tethering-storage-message',
+              'tethering.wifi.enabled': 'is-warning-tethering-wifi-message'
+            },
+            'tethering.wifi.enabled': {
+              'tethering.usb.enabled': 'is-warning-wifi-tethering-message'
+            }
+          };
+
+          var headerL10n = headerL10nMap[newSetting];
+          var messageL10n =
+            messageL10nMap[newSetting] &&
+            messageL10nMap[newSetting][oldSetting];
+
+          return DialogService.confirm(messageL10n, {
+            title: headerL10n,
+            submitButton: { id: 'enable', style: 'recommend' },
+            cancelButton: { id: 'cancel' },
+          }).then((result) => {
+            var enabled = result.type === 'submit';
+            var lock = navigator.mozSettings.createLock();
+            var cset = {};
+
+            cset[newSetting] = enabled;
+            cset[oldSetting] = !enabled;
+            lock.set(cset);
+
+            return enabled;
+          });
       },
 
       _updateUI: function() {
