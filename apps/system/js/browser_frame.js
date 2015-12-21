@@ -95,7 +95,10 @@
   function setMozAppType(iframe, config) {
     // XXX: Those urls needs to be built dynamically.
     if (config.url.startsWith(window.location.protocol +
-                              '//callscreen.gaiamobile.org') ||
+                              '//communications.gaiamobile.org' +
+                              (window.location.port ?
+                                (':' + window.location.port) : '') +
+                              '/dialer') ||
         config.url.startsWith(window.location.protocol +
                               '//clock.gaiamobile.org')) {
       iframe.setAttribute('mozapptype', 'critical');

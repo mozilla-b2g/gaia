@@ -27,7 +27,6 @@ var CallLog = {
       '/shared/style/switches.css',
       '/shared/style/lists.css',
       '/shared/js/confirm.js',
-      '/shared/js/dialer/utils.js',
       '/shared/js/sticky_header.js',
       '/shared/js/sim_settings_helper.js',
       '/shared/js/date_time_helper.js'

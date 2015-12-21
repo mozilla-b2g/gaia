@@ -86,14 +86,14 @@
     },
 
     _handle_attentionopening: function(evt) {
-      if (evt.detail.CLASS_NAME !== 'CallscreenWindow') {
+      if (!evt.detail.isCallscreenWindow) {
         return;
       }
       this._duringCall = true;
     },
 
     _handle_attentionterminated: function(evt) {
-      if (evt.detail.CLASS_NAME !== 'CallscreenWindow') {
+      if (!evt.detail.isCallscreenWindow) {
         return;
       }
       this._duringCall = false;

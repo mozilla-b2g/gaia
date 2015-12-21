@@ -90,7 +90,7 @@ var SuggestionBar = {
 
     var self = this;
     LazyLoader.load(['/shared/js/async_storage.js',
-                     '/shared/js/dialer/contacts.js',
+                     '/dialer/js/contacts.js',
                      '/shared/js/simple_phone_matcher.js',
                      this.barSuggestionItem,
                      this.template],
