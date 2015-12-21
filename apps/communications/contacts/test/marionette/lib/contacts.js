@@ -59,6 +59,7 @@ Contacts.Selectors = {
   duplicateMerge: '#merge-action',
 
   exportButton: '#exportContacts button',
+  exportSDCard: '#export-sd-option button',
 
   form: '#view-contact-form',
   formTitle: '#contact-form-title',
