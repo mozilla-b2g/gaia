@@ -2,8 +2,8 @@
 # Each line contains 3 informations:
 # - the filename, the numbers or known errors, the numbers of known warnings
 #
-apps/bluetooth/style/icons.css 0 1
-apps/bluetooth/style/settings.css 0 1
+apps/bluetooth/style/lists.css 5 0
+apps/bluetooth/style/settings.css 2 1
 apps/calendar/style/event_view.css 2 0
 apps/calendar/style/modify_account_view.css 1 0
 apps/calendar/style/modify_event_view.css 4 4

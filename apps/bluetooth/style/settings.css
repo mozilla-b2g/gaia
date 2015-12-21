@@ -25,7 +25,7 @@ html, body {
 section[role="region"] {
   position: absolute;
   top: 0;
-  left: 0;
+  offset-inline-start: 0;
   width: 100%;
   height: 100%;
   border: 0;
@@ -49,6 +49,7 @@ section[role="region"] > div {
   width: 100%;
   height: calc(100% - 5rem);
   overflow-y: scroll;
+  will-change: scroll-position;
 }
 
 
@@ -64,38 +65,59 @@ section[role="region"] > div {
 }
 
 .description {
-  padding: 1rem 1.5rem;
   font-size: 1.7rem;
   line-height: 2.3rem;
   white-space: normal;
   -moz-hyphens: auto;
 }
 
-.description p {
-  padding: 0 0 1rem;
+.description p,
+.description a,
+.description label {
   font-size: 1.7rem;
   line-height: 2.3rem;
   white-space: normal;
 }
 
-.description a {
+.description label {
+  padding: 0;
+}
+
+.description label span {
+  height: auto;
+  min-height: 6rem;
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
   font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+}
+
+.description small {
+  font-size: 1.7rem;
+  color: #505859;
 }
 
 .hint label span {
   top: 2.9rem !important;
 }
 
+.hint span {
+  line-height: 6rem;
+}
+
 .hint .explanation {
   font-style: normal;
   position: relative;
   margin-top: -2rem;
-  padding: 0.5rem 4rem 1.3rem 1.5rem;
+  padding: 0.5rem 4rem 1.3rem;
+  padding-inline-start: 1.5rem;
   white-space: normal;
 }
 
+.hint > gaia-switch ~ .explanation,
 .hint > label:not([for]) ~ .explanation {
-  padding-right: 8rem;
+  padding-inline-end: 8rem;
 }
 
 .hint .explanation[hidden] {

@@ -15,15 +15,19 @@ ul {
 }
 
 ul li {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: relative;
   margin: 0 1.5rem;
-  border-bottom: 0.1rem solid #e6e6e3;
+  border-top: 0.1rem solid #e6e6e3;
   color: #000;
 }
 
-ul li:last-child {
-  border-bottom: none;
+ul li:first-child {
+  border-top: none;
+}
+
+ul+ul li:first-child {
+  border-top: 0.1rem solid #e6e6e3;
 }
 
 ul li.sound-setting {
@@ -39,13 +43,13 @@ ul li > span,
 ul li > small,
 ul li > label > span,
 ul li > label > small {
-  display: block;
   text-decoration: none;
   outline: 0;
   color: #000;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   font-size: 1.9rem;
-  padding: 0 1.5rem;
+  padding: 0 3rem;
+  margin: 0 -1.5rem;
 }
 
 ul li,
@@ -55,6 +59,13 @@ ul li > label {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+ul li > a,
+ul li > label {
+  min-height: 6rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 ul li[hidden] {
@@ -68,9 +79,9 @@ ul li > a > span {
 ul li.active a,
 ul li.active span,
 ul li:not([aria-disabled="true"]) > small + a:active,
-ul li:not([aria-disabled="true"]) > a[href]:active,
+ul li:not([aria-disabled="true"]) > a:active,
 ul li:not([aria-disabled="true"]) > small + a:focus,
-ul li:not([aria-disabled="true"]) > a[href]:focus {
+ul li:not([aria-disabled="true"]) > a:focus {
   background-color: #b2f2ff;
   color: #222;
 }
@@ -91,10 +102,8 @@ ul > li > progress + span {
   display: inline-block;
   vertical-align: middle;
   margin: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  -moz-padding-end: 0;
-  -moz-padding-start: 1rem;
+  padding: 0;
+  padding-inline-start: 1rem;
   color: #505b5b;
   font-size: 1.4rem;
   line-height: 6rem;
@@ -115,7 +124,7 @@ ul > li > progress.hidden {
 /* description + value on the same line */
 ul li > a span:nth-of-type(2):not(.button) {
   position: absolute;
-  right: 1.5rem;
+  offset-inline-end: 1.5rem;
   color: #505859;
   line-height: 6rem;
   height: 6rem;
@@ -123,7 +132,9 @@ ul li > a span:nth-of-type(2):not(.button) {
 }
 
 /* text ellipsis */
-ul li > *, ul li > label > *, ul li > a > * {
+ul li > *,
+ul li > label > *,
+ul li > a > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -131,7 +142,9 @@ ul li > *, ul li > label > *, ul li > a > * {
 }
 
 /* sublines */
-ul li > small, ul li > label > small , ul li > a > small {
+ul li > small,
+ul li > label > small,
+ul li > a > small {
   display: block;
   font-size: 1.4rem;
   color: #505859;
@@ -139,7 +152,7 @@ ul li > small, ul li > label > small , ul li > a > small {
   pointer-events: none;
 }
 
-small > span {
+small.multiline > span {
   display: block;
 }
 
@@ -148,7 +161,6 @@ ul li > label {
   line-height: 1.9rem;
   font-weight: 400;
   margin: 0;
-  padding: 1.5rem 1.5rem 1rem;
 }
 
 ul li > label ~ input {
@@ -163,6 +175,7 @@ ul li button,
 ul li a.bb-button {
   display: inline-block;
   margin: 1rem 0;
+  white-space: normal;
 }
 
 /******************************************************************************
@@ -175,15 +188,15 @@ ul li label {
 }
 
 ul li > label:not([for]) {
-  padding: 0 1.5rem;
-  margin: 0 -1.5rem;
+  margin-inline-start: -1.5rem;
+  margin-inline-end: -1.5rem;
+  padding-inline-start: 1.5rem;
+  padding-inline-end: 1.5rem;
   width: 100%;
-  height: 100%;
-  min-height: 6rem;
+  height: calc(100% - 1rem);
+  min-height: 5rem;
   overflow: visible;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 ul li > label:not([for]) > span {
@@ -206,39 +219,4 @@ ul li p {
 ul li p + label:not([for]) {
   top: 2.5rem;
   height: calc(100% - 2.5rem);
-}
-
-/******************************************************************************
- * Right-to-Left layout
- */
-
-html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
-  left: 1.5rem;
-  right: auto;
-}
-
-html[dir="rtl"] ul li > label input[type="range"] {
-  left: 7rem;
-  right: 5rem;
-}
-
-html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
-  left: auto;
-  right: 1.5rem;
-}
-
-html[dir="rtl"] dl dt {
-  padding-left: 0;
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li.bluetooth-device > a{
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-/* Customization style for overlapping .bluetooth-device:before */
-html[dir="rtl"] ul > li > progress.overlapping-icon {
-  right: unset;
-  left: 3rem;
 }
