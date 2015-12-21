@@ -28,20 +28,30 @@
 
       $(id).addEventListener('click', this);
     }.bind(this));
+
+    if (!window.PresentationRequest) {
+      return;
+    }
+    this._request = new window.PresentationRequest(PLAYER_URL);
+    this._request.getAvailability().then(
+      function(aAvailability) {
+        aAvailability.onchange = function() {
+          $('start-btn').disabled = !aAvailability.value;
+          console.log('Device available: ' + aAvailability.value);
+        };
+        console.log('Device available: ' + aAvailability.value);
+        $('start-btn').disabled = !aAvailability.value;
+      },
+      function(aError) {
+        console.log('Error occurred when getting availability: ' + aError);
+      }
+    );
   };
 
   proto.handleEvent = function fs_handleEvent(evt) {
     switch(evt.type) {
       case 'message':
-        var data = JSON.parse(evt.data);
-        switch(data.type) {
-          case 'ack':
-            this.handleMessage($('ack-result'), data);
-            break;
-          case 'status':
-            this.handleMessage($('status-result'), data);
-            break;
-        }
+        this.handleData(evt.data);
         break;
       case 'click':
         switch(evt.target.id) {
@@ -56,6 +66,9 @@
             this.sendCommand('load', {
               'url': this._urlBox.value
             });
+            this.sendCommand('device-info', {
+              'displayName': 'Fling Sender App'
+            });
             break;
           case 'play-btn':
             this.sendCommand('play');
@@ -65,7 +78,7 @@
             break;
           case 'seek-btn':
             this.sendCommand('seek', {
-              'time': this._seekBox.value
+              'time': parseInt(this._seekBox.value, 10)
             });
             break;
         }
@@ -73,12 +86,32 @@
     }
   };
 
+  proto.handleData = function fs_handleData(data) {
+    data = '[' + data.replace(/}{/g, '},{') + ']';
+    var msgs = JSON.parse(data);
+
+    msgs.sort((a, b) => {
+      return a.seq - b.seq;
+    });
+
+    msgs.forEach((msg) => {
+      switch(msg.type) {
+        case 'ack':
+          this.handleMessage($('ack-result'), msg);
+          break;
+        case 'status':
+          this.handleMessage($('status-result'), msg);
+          break;
+      }
+    });
+  },
+
   proto.handleMessage = function fs_handleMessage(element, msg) {
     element.textContent = JSON.stringify(msg);
   };
 
   proto.handleStateChange = function fs_handleStateChange() {
-    if (!this._session || !this._session.state) {
+    if (!this._session || this._session.state != 'connected') {
       this.disableButtons(true);
       this._session = null;
       if (!this._sessionCloseExpected) {
@@ -99,10 +132,7 @@
   };
 
   proto.startSession = function fs_startSession() {
-    if (!navigator.mozPresentation) {
-      return;
-    }
-    navigator.mozPresentation.startSession(PLAYER_URL).then(function (session) {
+    this._request.start().then(function (session) {
       this._session = session;
       this._session.onmessage = this.handleEvent.bind(this);
       this._session.onstatechange = this.handleStateChange.bind(this);
@@ -115,7 +145,7 @@
   proto.closeSession = function fs_closeSession() {
     if (this._session) {
       this._sessionCloseExpected = true;
-      this._session.disconnect();
+      this._session.terminate();
     }
   };
 

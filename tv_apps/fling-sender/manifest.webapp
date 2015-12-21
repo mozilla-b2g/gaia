@@ -14,7 +14,8 @@
     }
   },
   "permissions": {
-    "desktop-notification": {}
+    "desktop-notification": {},
+    "presentation": {}
   },
   "default_locale": "en-US",
   "icons": {
