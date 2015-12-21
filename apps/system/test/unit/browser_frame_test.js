@@ -19,13 +19,14 @@ suite('browser class > ', function() {
       assert.equal(b.element.getAttribute('mozapptype'), 'critical');
     });
 
-    test('mozapptype: callscreen', function() {
+    test('mozapptype: dialer', function() {
       var port = '';
       if (window.location.port !== '') {
         port = ':' + window.location.port;
       }
       var b = new BrowserFrame({
-        url: window.location.protocol + '//' + 'callscreen.gaiamobile.org'
+        url: window.location.protocol + '//' +
+            'communications.gaiamobile.org' + port + '/dialer'
       });
       assert.equal(b.element.getAttribute('mozapptype'), 'critical');
     });

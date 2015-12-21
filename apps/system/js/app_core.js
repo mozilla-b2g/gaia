@@ -27,7 +27,6 @@
     'js/global_overlay_window.js',
     'js/trusted_window.js',
     'js/touch_forwarder.js',
-    'js/callscreen_window.js',
     'js/secure_window.js',
     'js/lockscreen_window.js',
     'js/input_window.js',

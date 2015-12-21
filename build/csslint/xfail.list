@@ -11,10 +11,6 @@ apps/calendar/style/month.css 4 2
 apps/calendar/style/multi_day.css 9 0
 apps/calendar/style/settings.css 3 1
 apps/calendar/style/ui.css 2 1
-apps/callscreen/style/conference_group_ui.css 1 0
-apps/callscreen/style/lockscreen.css 2 0
-apps/callscreen/style/oncall.css 20 1
-apps/callscreen/style/oncall_status_bar.css 4 0
 apps/camera/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/camera/style/notification.css 1 0
 apps/camera/style/overlay.css 0 4
@@ -31,6 +27,10 @@ apps/communications/contacts/style/status.css 0 1
 apps/communications/dialer/style/buttons.css 7 0
 apps/communications/dialer/style/call_info.css 1 0
 apps/communications/dialer/style/call_log.css 2 0
+apps/communications/dialer/style/conference_group_ui.css 1 0
+apps/communications/dialer/style/lockscreen.css 2 0
+apps/communications/dialer/style/oncall.css 20 1
+apps/communications/dialer/style/oncall_status_bar.css 4 0
 apps/communications/dialer/style/suggestion.css 3 0
 apps/communications/dialer/style/toolbar.css 0 1
 apps/costcontrol/style/app.css 0 3
