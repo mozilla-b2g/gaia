@@ -71,9 +71,7 @@
                 'simlockrequestfocus',
                 'home',
                 'holdhome',
-                'hierarchytopmostwindowchanged',
-                'inputfocus',
-                'inputblur']
+                'hierarchytopmostwindowchanged']
     }
   };
 

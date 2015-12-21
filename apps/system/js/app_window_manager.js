@@ -71,9 +71,7 @@
     'hierarchytopmostwindowchanged',
     'cardviewbeforeshow',
     'cardviewclosed',
-    'cardviewshown',
-    'inputfocus',
-    'inputblur'
+    'cardviewshown'
   ];
   AppWindowManager.SUB_MODULES = [
     'PinPageSystemDialog',
