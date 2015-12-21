@@ -208,7 +208,7 @@ form[role="dialog"][data-type="confirm"] dl > dt {
   text-align: left;
 }
 html[dir="ltr"] form[role="dialog"][data-type="confirm"] dl > dt { float: left; }
-html[dir="rtl"] form[role="dialog"][data-type="confirm"] dl > dt { float: right; }
+html[dir="rtl"] form[role="dialog"][data-type="confirm"] dl > dt { float: right; text-align: right; }
 
 form[role="dialog"][data-type="confirm"] dl > dd {
   padding-inline-end: 1.5rem;
