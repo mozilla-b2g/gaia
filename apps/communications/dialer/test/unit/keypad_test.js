@@ -1,9 +1,10 @@
-/* globals CallHandler, CallLogDBManager, ConfirmDialog, FontSizeManager,
+/* globals CallHandler, CallLogDBManager, CallScreen, ConfirmDialog,
+           CustomDialog, CustomElementsHelper, FontSizeManager,
            gTonesFrequencies, KeypadManager, MockCall, MockCallsHandler,
-           MockIccManager, MockNavigatorMozTelephony, MockNavigatorSettings,
-           MockSettingsListener, MocksHelper, MockTonePlayer, telephonyAddCall,
-           MockMultiSimActionButtonSingleton, MockL10n,  CustomDialog,
-           MockMozActivity, SimSettingsHelper, CustomElementsHelper
+           MockIccManager, MockL10n, MockMozActivity,
+           MockMultiSimActionButtonSingleton, MockNavigatorMozTelephony,
+           MockNavigatorSettings, MockSettingsListener, MocksHelper,
+           MockTonePlayer, SimSettingsHelper, telephonyAddCall
 */
 
 'use strict';
@@ -813,6 +814,27 @@ suite('dialer/keypad', function() {
           }).then(done, done);
         });
       });
+    });
+  });
+
+  suite('hangUpCallFromKeypad', function() {
+    /* XXX: We don't import the full mock here because it still lives in the
+     * dialer sources and there's no point in moving it just for this test.
+     * This will go away as soon as the dialer and keypad are reunited. */
+    setup(function() {
+      window.CallScreen = { hideKeypad: this.sinon.stub() };
+    });
+
+    teardown(function() {
+      delete window.CallScreen;
+    });
+
+    test('hide the keypad before hanging up', function() {
+      this.sinon.spy(MockCallsHandler, 'end');
+
+      subject.hangUpCallFromKeypad();
+
+      CallScreen.hideKeypad.calledBefore(MockCallsHandler.end);
     });
   });
 

@@ -769,21 +769,21 @@ suite('dialer/handled_call', function() {
         FontSizeManager.resetFixedBaseline, subject.numberNode);
     });
 
-    test('check replace number with regular number', function() {
+    test('check render number with regular number', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
 
-      subject.replacePhoneNumber({ raw: '12345678' });
+      subject.renderPhoneNumber({ raw: '12345678' });
       l10nAssert(subject.numberNode, { raw: '12345678' });
     });
 
-    test('check replace number with l10n id', function() {
+    test('check render number with l10n id', function() {
       mockCall = new MockCall('', 'incoming');
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
 
-      subject.replacePhoneNumber('withheld-number');
+      subject.renderPhoneNumber('withheld-number');
       l10nAssert(subject.numberNode, 'withheld-number');
     });
 
@@ -792,9 +792,10 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
 
-      subject.numberNode.textContent = '12345678';
+      subject.replacePhoneNumber({ raw: '12345678' });
+      subject.renderPhoneNumber('123');
       subject.restorePhoneNumber();
-      assert.equal(subject.numberNode.textContent, 'test name');
+      l10nAssert(subject.numberNode, { raw: '12345678' });
     });
 
     test('check restore withheld-number', function() {
@@ -802,6 +803,8 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
 
+      subject.replacePhoneNumber('withheld-number');
+      subject.renderPhoneNumber('123');
       subject.restorePhoneNumber();
       l10nAssert(subject.numberNode, 'withheld-number');
     });
@@ -811,6 +814,7 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(true);
 
+      subject.renderPhoneNumber('123');
       subject.restorePhoneNumber();
       l10nAssert(subject.numberNode, 'voiceMail');
     });
@@ -821,6 +825,7 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
       MockVoicemail.mResolvePromise(false);
 
+      subject.renderPhoneNumber('123');
       subject.restorePhoneNumber();
       assert.equal(subject.numberNode.textContent, '112');
     });
