@@ -83,6 +83,7 @@ Contacts.Selectors = {
   formAddNewEmail: '#add-new-email',
   formHeader: '#contact-form-header',
   formPhotoImg: '#thumbnail-photo',
+  deleteContact: '#delete-contact',
 
   groupList: ' #groups-list',
   contacts: '#groups-list .contact-item',
@@ -411,6 +412,13 @@ Contacts.prototype = {
     return this.client.executeScript(function(selector, type) {
       return document.querySelector(selector).style[type];
     }, [selector, type]);
+  },
+
+  getNumberOfContacts: function() {
+    return this.client.executeScript(function() {
+      var selector = 'li:not([data-group="ice"]).contact-item';
+      return document.querySelectorAll(selector).length;
+    });
   }
 };
 
