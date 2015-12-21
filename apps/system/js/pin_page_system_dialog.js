@@ -17,7 +17,7 @@
         var webComponents = [
           'shared/elements/gaia-site-icon/script.js',
           'shared/elements/gaia-button/gaia-button.js',
-          '/shared/elements/gaia-dialog/gaia-dialog.js',
+          'shared/elements/gaia-dialog/gaia-dialog.js',
           'shared/elements/gaia-toast/gaia-toast.js'
         ];
         LazyLoader.load(webComponents)
@@ -120,12 +120,7 @@
 
     this.pinCardContainer.innerHTML = '';
 
-    var screenshot = data.screenshot || null;
-    var screenshotURL = screenshot ? URL.createObjectURL(screenshot) : null;
-    this.card.background = {
-      src: screenshotURL,
-      themeColor: data.themeColor
-    };
+    this.card.meta = data.meta;
     this.pinCardContainer.appendChild(this.card);
   };
 
