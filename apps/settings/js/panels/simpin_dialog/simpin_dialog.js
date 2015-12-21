@@ -595,6 +595,10 @@ define(function(require) {
           this._localize(this._elements.pukArea.querySelector('div'),
             'pukCode');
           this._localize(this._elements.dialogTitle, 'pukTitle');
+          this._localize(this._elements.newPinArea.querySelector('div'),
+            'newSimPinMsg');
+          this._localize(this._elements.confirmPinArea.querySelector('div'),
+            'confirmNewSimPinMsg');
           break;
 
         case 'unlock_puk2':
