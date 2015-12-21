@@ -306,7 +306,7 @@
           checkbox.querySelector('label').textContent =
             customPrompt.checkboxMessage;
         } else {
-          checkbox.parentNode.classList.add('hidden');
+          checkbox.style.display = 'none';
         }
 
         elements.customPrompt.focus();
