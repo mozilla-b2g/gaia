@@ -120,7 +120,7 @@ IMEngineBase.prototype = {
   /**
    * Notifies when selection changes
    */
-  selectionChange: function engineBase_selectionChange(detail) {
+  stateChange: function engineBase_stateChange(detail) {
   },
 
   /**
@@ -654,8 +654,8 @@ IMEngine.prototype = {
   /**
    * Override
    */
-  selectionChange: function engine_selectionChange(detail) {
-    debug('selectionChange');
+  stateChange: function engine_stateChange(detail) {
+    debug('stateChange');
 
     if (detail.ownAction) {
       return;

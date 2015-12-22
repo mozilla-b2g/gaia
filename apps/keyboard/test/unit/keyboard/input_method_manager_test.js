@@ -465,7 +465,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar'
+        text: 'foobar'
       }, {
         suggest: true,
         correct: true,
@@ -534,7 +534,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar'
+        text: 'foobar'
       }, {
         suggest: true,
         correct: true,
@@ -578,7 +578,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar'
+        text: 'foobar'
       }, {
         suggest: true,
         correct: true,
@@ -612,10 +612,13 @@ suite('InputMethodManager', function() {
       assert.isTrue(false, 'should not reject');
     }).then(function() {
       var imEngine = manager.loader.getInputMethod('foo');
-      assert.isTrue(imEngine.selectionChange.calledWith({
+      assert.isTrue(imEngine.stateChange.calledWithExactly({
+        ownAction: true,
+        type: 'text',
+        inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        ownAction: true
+        text: 'foobar'
       }));
     }).then(done, done);
   });
@@ -639,11 +642,13 @@ suite('InputMethodManager', function() {
       assert.isTrue(false, 'should not reject');
     }).then(function() {
       var imEngine = manager.loader.getInputMethod('foo');
-      assert.isTrue(imEngine.surroundingtextChange.calledWith({
-        text: '',
-        textBeforeCursor: '',
-        textAfterCursor: '',
-        ownAction: true
+      assert.isTrue(imEngine.stateChange.calledWithExactly({
+        ownAction: true,
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: 'foobar'
       }));
     }).then(done, done);
   });

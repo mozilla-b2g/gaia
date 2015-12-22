@@ -24,12 +24,12 @@
  *    init(keyboard):
  *      Keyboard is the object that the IM uses to communicate with the keyboard
  *
- *    activate(language, inputData, options):
+ *    activate(language, state, options):
  *      The keyboard calls this method when it becomes active.
- *      language is the current language. inputData is an object
+ *      language is the current language. state is an object
  *      that holds the infomation of the input field or textarea
  *      being typed into. it includes type, inputmode, value,
- *      inputContext and selectionStart, selectionEnd attributes.
+ *      selectionStart, and selectionEnd properties.
  *      options is also an object, it includes suggest, correct,
  *      layoutName attributes. suggest specifies whether the user
  *      wants word suggestions and correct specifies whether auto
@@ -39,7 +39,7 @@
  *    deactivate():
  *      Called when the keyboard is hidden.
  *
- *    empty:
+ *    empty():
  *      Clear any currently displayed candidates/suggestions.
  *      The latin input method does not use this, and it is not clear
  *      to me whether the Asian IMs need it either.
@@ -68,6 +68,13 @@
  *    sendStrokePoints(strokePoints):
  *      (optional) Send stroke points to handwriting input method engine.
  *      Only handwrting input methods use it.
+ *
+ *    stateChange(state):
+ *      When the "state" (the properties of the input as explained in
+ *      activate() method) changes, this method will be called.
+ *      It might be called multiple times even if the state is not changed.
+ *      The IMEngine is responsible of filtering out these extra calls
+ *      (because we don't know what property is being used internally).
  *
  * The init method of each IM is passed an object that it uses to
  * communicate with the keyboard. That interface object defines the following
@@ -428,7 +435,7 @@ InputMethodManager.prototype.activateIMEngine = function(imEngineName) {
           inputmode: inputContext.inputMode,
           selectionStart: inputContext.selectionStart,
           selectionEnd: inputContext.selectionEnd,
-          value: inputContext.text
+          text: inputContext.text
         }, {
           suggest: settingsValues.suggestionsEnabled,
           correct: settingsValues.correctionsEnabled,
@@ -436,13 +443,11 @@ InputMethodManager.prototype.activateIMEngine = function(imEngineName) {
         });
     }
 
-    if (typeof imEngine.selectionChange === 'function') {
+    if (typeof imEngine.stateChange === 'function') {
       this.app.inputContext.addEventListener('selectionchange', this);
-    }
-
-    if (typeof imEngine.surroundingtextChange === 'function') {
       this.app.inputContext.addEventListener('surroundingtextchange', this);
     }
+
     this.currentIMEngine = imEngine;
   }.bind(this));
 
@@ -469,22 +474,24 @@ InputMethodManager.prototype.deactivateIMEngine = function() {
 
 InputMethodManager.prototype.handleEvent = function(evt) {
   this.app.console.info('InputMethodManager.handleEvent()', evt);
-  switch (evt.type) {
-    case 'selectionchange':
-      this.app.console.log(
-        'InputMethodManager::currentIMEngine.selectionChange()', evt.detail);
-      this.currentIMEngine.selectionChange(evt.detail);
 
-      break;
+  var inputContext = this.app.inputContext;
 
-    case 'surroundingtextchange':
-      this.app.console.log(
-        'InputMethodManager::currentIMEngine.surroundingtextChange()',
-        evt.detail);
-      this.currentIMEngine.surroundingtextChange(evt.detail);
+  var inputContextStates = {
+    // TODO: ownAction is not trustworthy; remove it one day and ask IMengines
+    // to calculate themselves.
+    ownAction: evt.detail.ownAction,
 
-      break;
-  }
+    type: inputContext.inputType,
+    inputmode: inputContext.inputMode,
+    selectionStart: inputContext.selectionStart,
+    selectionEnd: inputContext.selectionEnd,
+    text: inputContext.text
+  };
+
+  this.app.console.log(
+    'InputMethodManager::currentIMEngine.stateChange()', inputContextStates);
+  this.currentIMEngine.stateChange(inputContextStates);
 };
 
 // InputMethod modules register themselves in this object, for now.
