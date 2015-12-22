@@ -20,5 +20,5 @@ class TestLockScreenAccessibility(GaiaImageCompareTestCase):
         lock_screen.switch_to_frame()
         homescreen = lock_screen.unlock()
 
-        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == homescreen.name)
+        homescreen.wait_to_be_displayed()
         self.take_screenshot()
