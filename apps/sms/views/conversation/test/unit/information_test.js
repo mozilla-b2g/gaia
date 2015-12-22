@@ -727,7 +727,7 @@ suite('Information view', function() {
         this.sinon.stub(window.navigator, 'mozIccManager', {
           getIccById: () => null
         });
-        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Utils, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
         reportView.render();
 
@@ -750,7 +750,7 @@ suite('Information view', function() {
             };
           }
         });
-        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Utils, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
         this.sinon.stub(MobileOperator, 'userFacingInfo').returns({
           operator: 'operator'
@@ -780,7 +780,7 @@ suite('Information view', function() {
             };
           }
         });
-        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Utils, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
         this.sinon.stub(MobileOperator, 'userFacingInfo').returns({
           operator: ''
@@ -810,7 +810,7 @@ suite('Information view', function() {
             };
           }
         });
-        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Utils, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(1);
         this.sinon.stub(MobileOperator, 'userFacingInfo').returns({
           operator: 'operator'

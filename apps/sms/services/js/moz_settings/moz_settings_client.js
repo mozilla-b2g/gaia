@@ -75,15 +75,6 @@ var MozSettingsClient = {
     return client.method('get', SMS_MAX_CONCAT_KEY).then((num) =>
       num && !isNaN(num) ? num : MAX_CONCATENATED_MESSAGES
     );
-  },
-
-  /**
-   * Check if device have more than 1 active SIM.
-   * @returns {boolean} true if the device has more than 1 SIM port and at least
-   *  2 SIMs are inserted.
-   */
-  hasSeveralSim() {
-    return navigator.mozIccManager && navigator.mozIccManager.iccIds.length > 1;
   }
 };
 

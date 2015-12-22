@@ -1,6 +1,5 @@
 /*global Contacts,
          MessageManager,
-         MozSettingsClient
          Navigation,
          NotificationHelper,
          Notify,
@@ -143,7 +142,7 @@
           contacts[0].name.length && contacts[0].name[0] ||
           message.sender;
 
-        if (MozSettingsClient.hasSeveralSim() && message.iccId) {
+        if (Utils.hasSeveralSim() && message.iccId) {
           return Utils.getSimNameByIccId(message.iccId).then(
             (simName) => ({
               id: 'dsds-notification-title-with-sim',

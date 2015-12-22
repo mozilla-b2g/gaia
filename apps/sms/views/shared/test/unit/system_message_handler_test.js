@@ -6,7 +6,6 @@
          Navigation,
          NotificationHelper,
          Notify,
-         Settings,
          SilentSms,
          SMIL,
          SystemMessageHandler,
@@ -577,7 +576,7 @@ suite('SystemMessageHandler', function() {
         setup(function() {
           smsMessage.iccId = '200';
 
-          this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+          this.sinon.stub(Utils, 'hasSeveralSim').returns(true);
           this.sinon.stub(Utils, 'getSimNameByIccId').withArgs('200').returns(
             Promise.resolve('SIM 2')
           );
@@ -585,7 +584,7 @@ suite('SystemMessageHandler', function() {
 
         test('message has iccId, but only one SIM is presented',
         function(done) {
-          Settings.hasSeveralSim.returns(false);
+          Utils.hasSeveralSim.returns(false);
 
           SystemMessageHandler.onSmsReceivedSystemMessage(smsMessage).then(
             () => {

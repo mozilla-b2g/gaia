@@ -17,6 +17,7 @@ var MocksHelperForAttachment = new MocksHelper([
 
 suite('MozSettingsShim >', function() {
   var serviceStub;
+  const APP_ID = 'fake-app-id';
 
   MocksHelperForAttachment.attachTestHelpers();
 
@@ -30,7 +31,7 @@ suite('MozSettingsShim >', function() {
   });
 
   test('service is correctly initialized with settings provided', function() {
-    MozSettingsShim.init(MockNavigatorSettings);
+    MozSettingsShim.init(APP_ID, MockNavigatorSettings);
 
     sinon.assert.calledOnce(bridge.service);
     sinon.assert.calledWith(bridge.service, 'moz-settings-shim');
@@ -54,7 +55,7 @@ suite('MozSettingsShim >', function() {
         set: () => {}
       });
       this.sinon.stub(MockNavigatorSettings, 'createLock').returns(lockStub);
-      MozSettingsShim.init(MockNavigatorSettings);
+      MozSettingsShim.init(APP_ID, MockNavigatorSettings);
     });
 
     suite('get >', function() {
@@ -62,7 +63,9 @@ suite('MozSettingsShim >', function() {
       test('returns value successfully', function(done) {
         var key = 'key';
         var value = 'result';
-        lockStub.get.withArgs(key).returns(Promise.resolve(value));
+        var settingsResult = { key : value };
+
+        lockStub.get.withArgs(key).returns(Promise.resolve(settingsResult));
         MozSettingsShim.get(key).then((result) => {
           sinon.assert.calledWith(lockStub.get, key);
           assert.equal(result, value);

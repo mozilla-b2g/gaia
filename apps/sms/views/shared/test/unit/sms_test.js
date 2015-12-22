@@ -32,6 +32,7 @@ require('/services/test/unit/activity/mock_activity_client.js');
 require('/views/shared/test/unit/utils_mockup.js');
 require('/views/shared/test/unit/messages_mockup.js');
 require('/views/shared/test/unit/thread_list_mockup.js');
+require('/services/test/unit/moz_settings/mock_moz_settings_client.js');
 
 require('/views/shared/js/utils.js');
 require('/views/shared/js/selection_handler.js');
@@ -62,7 +63,8 @@ var MocksHelperForSmsUnitTest = new MocksHelper([
   'ContactPhotoHelper',
   'InterInstanceEventDispatcher',
   'LazyLoader',
-  'MultiSimActionButton'
+  'MultiSimActionButton',
+  'MozSettingsClient'
 ]).init();
 
 suite('SMS App Unit-Test', function() {

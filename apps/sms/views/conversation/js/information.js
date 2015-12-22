@@ -3,7 +3,6 @@
          ConversationView,
          MessageManager,
          MobileOperator,
-         MozSettingsClient,
          Navigation,
          Settings,
          Template,
@@ -164,7 +163,7 @@ function createReportDiv(reports) {
 function showSimInfo(element, iccId) {
   var iccManager = navigator.mozIccManager;
   // Hide the element when single SIM or no iccManager/mobileConnections
-  if (!(MozSettingsClient.hasSeveralSim() && iccId && iccManager)) {
+  if (!(Utils.hasSeveralSim() && iccId)) {
     return;
   }
 
@@ -390,7 +389,7 @@ var VIEWS = {
           var unitElement = this.panel.querySelector(`.lateness-${unit}`);
 
           if (lateness >= unitVal) {
-            // Compute integer value for the current unit output 
+            // Compute integer value for the current unit output
             // and get the rest for the next smaller unit
             output = Math.floor(lateness / unitVal);
             lateness = lateness % unitVal;

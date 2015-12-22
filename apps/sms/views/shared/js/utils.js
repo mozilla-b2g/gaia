@@ -963,6 +963,17 @@
       });
 
       return defer.promise;
+    },
+
+    /**
+     * Check if device have more than 1 active SIM.
+     * @returns {boolean} True if the device has more than 1 SIM port and at
+     *  least 2 SIMs are inserted and false if device only has 1 SIM port or
+     *  mozIccManager not supported.
+     */
+    hasSeveralSim() {
+      return !!navigator.mozIccManager &&
+        navigator.mozIccManager.iccIds.length > 1;
     }
   };
 

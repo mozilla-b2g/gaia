@@ -1734,7 +1734,7 @@ var ConversationView = {
     messageDOM.dataset.iccId = message.iccId;
     var simServiceId = Settings.getServiceIdByIccId(message.iccId);
     var showSimInformation =
-      MozSettingsClient.hasSeveralSim() && simServiceId !== null;
+      Utils.hasSeveralSim() && simServiceId !== null;
     var simInformationHTML = '';
 
     if (showSimInformation) {
