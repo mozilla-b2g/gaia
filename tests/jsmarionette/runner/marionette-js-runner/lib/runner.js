@@ -228,6 +228,8 @@ Runner.prototype = {
     }
 
     this.process = fork(MOCHA_BINARY, argv, options);
+    this.process.stdout.pipe(process.stdout);
+    this.process.stderr.pipe(process.stderr);
     this.mochaRunnerProxy = new Consumer(this.process);
     this.rpc = new RPC(this.process.send.bind(this.process));
 

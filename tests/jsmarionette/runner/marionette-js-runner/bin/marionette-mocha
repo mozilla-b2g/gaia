@@ -25,6 +25,9 @@ var argv = ['test/', 'tests/', '.'].reduce(function(argv, path) {
   return argv;
 }, process.argv);
 
+console.log('[marionette-mocha]', 'process.argv', JSON.stringify(process.argv));
+console.log('[marionette-mocha]', 'argv', JSON.stringify(argv));
+
 var requireReporter = require('../lib/require_reporter').bind(null, argv);
 
 var parser = new ArgumentParser({
