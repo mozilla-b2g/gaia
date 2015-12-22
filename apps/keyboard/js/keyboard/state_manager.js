@@ -119,10 +119,6 @@ StateManager.prototype._updateActiveState = function(active) {
         // compositions.
         this.app.inputMethodManager.deactivateIMEngine();
 
-        // Get the latest inputContext data for the new IMEngine to consume.
-        // (Make sure we are working in parallel here.)
-        this.app.inputMethodManager.updateInputContextData();
-
         this.app.feedbackManager.activate();
       }.bind(this),
       // Switch the layout,
