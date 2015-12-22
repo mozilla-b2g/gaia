@@ -43,7 +43,7 @@ View.prototype = {
         this.client.switchToFrame();
     }, 
     wait: function(time) {
-		this.actions.wait(time).perform();
+	   this.actions.wait(time).perform();
     }
 };
 

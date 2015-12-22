@@ -1,4 +1,5 @@
 'use strict';
+
 var View = require('../../../../shared/test/integration/helpers/view');
 var AlarmView = require('./alarm');
 var TimerView = require('./timer');
@@ -15,9 +16,6 @@ ClockView.prototype.launch = function(){
     View.prototype.launch.call(this, this.ORIGIN);
     this.waitForDisplay(ClockView.prototype.selectors._visibleClockLocator);
 };
-
-
-
 
 ClockView.prototype.selectors = {
     _visibleClockLocator : {'by':'css selector',

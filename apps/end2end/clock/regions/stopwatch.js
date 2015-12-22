@@ -1,4 +1,5 @@
 'use strict';
+
 var PageRegion = require(
     '../../../../shared/test/integration/helpers/page_region');
 var MarionetteSearchTypes = require(
@@ -6,11 +7,11 @@ var MarionetteSearchTypes = require(
 
 function Stopwatch(client) {
     PageRegion.call(this, client,
-        Stopwatch.prototype.selectors._stopwatchViewLocator);
+        Stopwatch.prototype.selectors._stopwatchPanelLocator);
     var viewLocator = this.findElement(
-        Stopwatch.prototype.selectors._stopwatchViewLocator);
+        Stopwatch.prototype.selectors._stopwatchPanelLocator);
     this.client.waitFor(function() {
-            return viewLocator.displayed() && viewLocator.location().x === 0;
+            return viewLocator.displayed() && viewLocator.rect().x === 0;
         }
     );
 }
@@ -19,7 +20,7 @@ Stopwatch.prototype = Object.create(PageRegion.prototype);
 Stopwatch.prototype.constructor =  Stopwatch;
 
 Stopwatch.prototype.selectors = {
-    _stopwatchViewLocator : {'by':MarionetteSearchTypes.prototype.cssId ,
+    _stopwatchPanelLocator : {'by':MarionetteSearchTypes.prototype.cssId ,
         'locator': 'stopwatch-panel' },
     _stopwatchTimeLocator : {'by': MarionetteSearchTypes.prototype.cssSelector,
         'locator': '.stopwatch-time'},

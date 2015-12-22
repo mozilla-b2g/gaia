@@ -1,4 +1,5 @@
 'use strict';
+
 var Clock = require('./regions/app_view');
 var expect = require('chai').expect;
 
@@ -20,7 +21,6 @@ marionette('Clock Acceptance Suite', function(){
     suite('Stopwatch Suite', function() {
         test('Start Stopwatch and Reset', function() {
             var stopwatchView = clock.switchView('stopwatch');
-
 
             expect(stopwatchView.getDisplayedTime()).to.equal('00:00.00');
 

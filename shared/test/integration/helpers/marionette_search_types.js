@@ -1,4 +1,3 @@
-
 'use strict';
 
 function MarionetteSearchTypes() {}
@@ -12,7 +11,6 @@ MarionetteSearchTypes.prototype = {
     tagName : 'tag name',
     linkText : 'link text',
     partialLinkText : 'partial link text'
-
 };
 
 module.exports = MarionetteSearchTypes;

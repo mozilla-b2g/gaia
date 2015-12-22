@@ -1,4 +1,5 @@
 'use strict';
+
 var PageRegion = require(
     '../../../../shared/test/integration/helpers/page_region');
 var MarionetteSearchTypes = require(
