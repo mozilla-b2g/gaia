@@ -65,7 +65,7 @@
         var app = this._apps[id];
         if (app.origin === origin &&
             (!manifestURL || app.manifestURL === manifestURL) &&
-            (!app.isBrowser() || app.config.url === origin)) {
+            (!app.isBrowser() || app.isAppLike || app.config.url === origin)) {
           return app;
         }
       }
