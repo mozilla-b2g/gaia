@@ -221,9 +221,17 @@ function runTest(filename, args, retry) {
  */
 function testDidFailOnTbpl(stdout, stderr) {
   // Ensure we captured output before deciding if the test failed or not.
-  return stdout.length &&
-         (stdout.indexOf('TEST-UNEXPECTED') !== -1 ||
-          stdout.indexOf('*~*~*') === -1);
+  if (!stdout.length || stdout.indexOf('TEST-UNEXPECTED')) {
+    return false;
+  }
+
+  // Check for an epilogue but handle case where everything is pending
+  // and mocha is stupid.
+  if (stdout.indexOf('*~*~*') !== -1) {
+    return true;
+  }
+
+  return stdout.indexOf('TEST-PENDING') !== -1;
 }
 
 function forEach(obj, fn) {
