@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump, TelemetryRequest */
+/* global MobileOperator, SIMSlotManager, dump, TelemetryRequest */
 
 /**
  * A simple ping that is kicked off on first time use
@@ -13,7 +13,6 @@
 
   const FTU_PING_ACTIVATION = 'ftu.pingActivation';
   const FTU_PING_ENABLED = 'ftu.pingEnabled';
-  const FTU_PING_ID = 'ftu.pingID';
   const FTU_PING_MAX_NETWORK_FAILS = 'ftu.pingMaxNetworkFails';
   const FTU_PING_NETWORK_FAIL_COUNT = 'ftu.pingNetworkFailCount';
   const FTU_PING_URL = 'ftu.pingURL';
@@ -109,19 +108,13 @@
         self._pingData.devicePixelRatio = window.devicePixelRatio;
         self._pingData.locale = window.navigator.language;
 
-        self.getAsyncStorageItems([FTU_PING_ID, FTU_PING_ACTIVATION,
+        self.getAsyncStorageItems([FTU_PING_ACTIVATION,
                                    FTU_PING_ENABLED,
                                    FTU_PING_NETWORK_FAIL_COUNT],
                                   function(items) {
 
-          self._pingData.pingID = items[FTU_PING_ID];
           self._pingData.activationTime = items[FTU_PING_ACTIVATION];
           self._pingEnabled = items[FTU_PING_ENABLED];
-
-          if (!self._pingData.pingID) {
-            self._pingData.pingID = uuid();
-            window.asyncStorage.setItem(FTU_PING_ID, self._pingData.pingID);
-          }
 
           if (!self._pingData.activationTime) {
             self._pingData.activationTime = Date.now();
@@ -316,6 +309,7 @@
     },
 
     tryPing: function fp_tryPing() {
+      var self = this;
       try {
         this.checkMobileNetwork();
         if (this._networkFailCount >= this._maxNetworkFails) {
@@ -334,8 +328,13 @@
           return false;
         }
 
-        this.ping();
-        return true;
+        var promise = TelemetryRequest.getDeviceID();
+        promise.then(function(deviceID) {
+          self._pingData.pingID = deviceID;
+          self.ping();
+        }).catch(function(error) {
+          self.debug('Generating deviceID: ' + error);
+        });
       } catch (e) {
         this.debug('Error while trying FTU ping: ' + e);
         return false;

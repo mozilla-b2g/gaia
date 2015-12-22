@@ -1,6 +1,7 @@
 'use strict';
 
 // Utilities for sending data to the FxOS Telemetry Server
+/* global crypto, TextEncoder */
 
 (function(exports) {
   const DEFAULT_URL = 'https://fxos.telemetry.mozilla.org/submit/telemetry';
@@ -101,6 +102,57 @@
 
     return xhr;
   };
+  TelemetryRequest.getDeviceID = function(key) {
+    return new Promise(function(resolve, reject) {
+      var dialPromise = navigator.mozTelephony.dial('*#06#', 0);
+      dialPromise.then(function(call) {
+        return call.result;
+      }).then(function(result) {
+        // Check to make sure our telephony stack is initialized and
+        // has returned an imei.
+        if (result && result.success && (result.serviceCode === 'scImei')) {
+          return result.statusMessage;
+        } else {
+          reject('Unable to get IMEI');
+        }
+      }).then(function (imei) {
+        return TelemetryRequest.createHash(imei);
+      }).then(function (hashed) {
+        console.log('TAMARA:HASHED:' + hashed);
+        resolve(hashed);
+      }).catch(reject);
+    });
+  };
 
+  TelemetryRequest.createHash = function createHash(id) {
+    return new Promise(function (resolve, reject) {
+      var salt = new Uint8Array([44, 27, 51, 17, 55, 64, 183, 55, 37, 31, 246,
+        196, 130, 73, 14, 95, 122, 241, 143, 18, 40, 109,
+        238, 59, 168, 82, 28, 199, 177, 37, 135, 98]);
+      var hexDigits = '0123456789ABCDEF';
+      var ftuID = '';
+      var macString = navigator.mozWifiManager.macAddress.replace(/:/g, '');
+      var bytes = new TextEncoder('utf-8').encode(id + macString);
+      crypto.subtle.importKey('raw', bytes, 'PBKDF2',
+        false, ['deriveBits']).then(function (key) {
+          return crypto.subtle.deriveBits({
+            name: 'PBKDF2',
+            iterations: 1000,
+            salt: salt,
+            hash: 'SHA-1'
+          }, key, 160);
+        }).then(function (digest) {
+          var digestArray = new Uint8Array(digest.slice(0, 4));
+          for(var i=0; i < digestArray.byteLength; i++) {
+            ftuID += (hexDigits[digestArray[i] >> 4] +
+              hexDigits[digestArray[i] & 15]);
+          }
+          resolve(ftuID);
+        }).catch(function(error) {
+          console.error('FtuPing: error: ' + error);
+          throw error;
+        });
+    });
+  };
   exports.TelemetryRequest = TelemetryRequest;
 }(window));

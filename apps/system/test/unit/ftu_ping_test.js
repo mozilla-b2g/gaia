@@ -2,21 +2,36 @@
 
 /* global MockNavigatorSettings, MockasyncStorage, MockXMLHttpRequest,
           MockNavigatorMozMobileConnections, MockNavigatorMozIccManager,
-          MockMobileOperator, MockSIMSlotManager, MockSIMSlot, MockAppsMgmt */
+          MockMobileOperator, MockSIMSlotManager, MockSIMSlot, MockAppsMgmt,
+          MockNavigatorMozWifiManager, MockNavigatorMozTelephony */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
 require('/apps/homescreen/test/unit/mock_xmlhttprequest.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
-requireApp('system/test/unit/mock_apps_mgmt.js');
+require('/apps/system/test/unit/mock_apps_mgmt.js');
 
 require('/shared/js/telemetry.js');
 require('/shared/js/uuid.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/apps/system/js/ftu_ping.js');
+
+function stubDial(self) {
+  self.sinon.stub(navigator.mozTelephony, 'dial', function() {
+    return Promise.resolve({
+      result: Promise.resolve({
+        success: true,
+        serviceCode: 'scImei',
+        statusMessage: 'fakeImei'
+      })
+    });
+  });
+}
 
 if (!window.asyncStorage) {
   window.asyncStorage = null;
@@ -38,7 +53,7 @@ suite('FtuPing', function() {
   var realMozSettings, realAsyncStorage, realXHR;
   var realMobileConnections, realIccManager;
   var realMobileOperator, realSIMSlotManager;
-  var realMozApps;
+  var realMozApps, realMozTelephony, realMozWifiManager;
   var FtuPing;
 
   suiteSetup(function() {
@@ -50,6 +65,8 @@ suite('FtuPing', function() {
     realMobileOperator = window.MobileOperator;
     realSIMSlotManager = window.SIMSlotManager;
     realMozApps = navigator.mozApps;
+    realMozTelephony = navigator.mozTelephony;
+    realMozWifiManager = navigator.mozWifiManager;
 
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
@@ -59,6 +76,8 @@ suite('FtuPing', function() {
     window.MobileOperator = MockMobileOperator;
     window.SIMSlotManager = MockSIMSlotManager;
     navigator.mozApps = { mgmt: MockAppsMgmt };
+    navigator.mozTelephony = MockNavigatorMozTelephony;
+    navigator.mozWifiManager = MockNavigatorMozWifiManager;
   });
 
   suiteTeardown(function() {
@@ -70,6 +89,8 @@ suite('FtuPing', function() {
     window.MobileOperator = realMobileOperator;
     window.SIMSlotManager = realSIMSlotManager;
     navigator.mozApps = realMozApps;
+    navigator.mozTelephony = realMozTelephony;
+    navigator.mozWifiManager = realMozWifiManager;
   });
 
   setup(function() {
@@ -153,8 +174,6 @@ suite('FtuPing', function() {
       this.timeout(3000);
       doneCallback = function() {
         var pingData = FtuPing.getPingData();
-        assert.ok(pingData.pingID);
-        assert.equal(pingData.pingID, MockasyncStorage.mItems['ftu.pingID']);
 
         assert.ok(pingData.activationTime);
         assert.equal(pingData.activationTime,
@@ -173,7 +192,6 @@ suite('FtuPing', function() {
 
     test('existing settings are set', function(done) {
       this.timeout(3000);
-      MockasyncStorage.mItems['ftu.pingID'] = 'test_ping_id';
       MockasyncStorage.mItems['ftu.pingActivation'] = 'test_activation';
       MockasyncStorage.mItems['ftu.pingEnabled'] = false;
       MockasyncStorage.mItems['ftu.pingNetworkFailCount'] = 10;
@@ -193,7 +211,6 @@ suite('FtuPing', function() {
 
       doneCallback = function() {
         var pingData = FtuPing.getPingData();
-        assert.equal(pingData.pingID, 'test_ping_id');
         assert.equal(pingData.activationTime, 'test_activation');
         assert.equal(FtuPing.isEnabled(), false);
         assert.equal(FtuPing.getNetworkFailCount(), 10);
@@ -377,13 +394,15 @@ suite('FtuPing', function() {
 
     test('iccinfo and voice network make it into pingData', function(done) {
       MockNavigatorSettings.mSettings['deviceinfo.os'] = 'test_os';
+      MockNavigatorMozWifiManager.setMacAddress('00:0a:f5:cb:63:dc');
       this.sinon.stub(MockSIMSlotManager, 'noSIMCardConnectedToNetwork')
           .returns(false);
+      stubDial(this);
       var conn = addMockMobileConnection();
       MockSIMSlotManager.mInstances.push(new MockSIMSlot(conn, 0));
 
       FtuPing.initSettings().then(function() {
-        assert.ok(FtuPing.tryPing());
+        FtuPing.tryPing();
 
         var pingData = FtuPing.getPingData();
         assert.ok(pingData.icc);
@@ -407,13 +426,13 @@ suite('FtuPing', function() {
     setup(function() {
       MockNavigatorSettings.mSettings['ftu.pingURL'] = 'test_url';
       MockasyncStorage.mItems['ftu.pingEnabled'] = true;
-      MockasyncStorage.mItems['ftu.pingID'] = 'test_id';
     });
 
     test('pingData and url are valid', function(done) {
       MockNavigatorSettings.mSettings['deviceinfo.os'] = 'test_os';
 
       FtuPing.initSettings().then(function() {
+        FtuPing._pingData.pingID = 'test_id';
         FtuPing.ping();
         assert.equal(MockXMLHttpRequest.mLastOpenedUrl,
                      'test_url/test_id/ftu/FirefoxOS/unknown/unknown/unknown');
@@ -430,6 +449,7 @@ suite('FtuPing', function() {
 
     test('OK clears enabled flag', function(done) {
       FtuPing.initSettings().then(function() {
+        FtuPing._pingData.pingID = 'test_id';
         FtuPing.ping();
         MockXMLHttpRequest.mSendOnLoad({ responseText: 'OK' });
         assert.equal(MockasyncStorage.mItems['ftu.pingEnabled'], false);
@@ -440,6 +460,7 @@ suite('FtuPing', function() {
 
     test('bad response doesn\'t clear flag', function(done) {
       FtuPing.initSettings().then(function() {
+        FtuPing._pingData.pingID = 'test_id';
         FtuPing.ping();
         MockXMLHttpRequest.mSendOnLoad({ responseText: 'bla' });
         assert.equal(MockasyncStorage.mItems['ftu.pingEnabled'], true);
@@ -450,6 +471,7 @@ suite('FtuPing', function() {
 
     test('error doesn\'t clear flag', function(done) {
       FtuPing.initSettings().then(function() {
+        FtuPing._pingData.pingID = 'test_id';
         FtuPing.ping();
         MockXMLHttpRequest.mSendError();
         assert.equal(MockasyncStorage.mItems['ftu.pingEnabled'], true);
@@ -460,6 +482,7 @@ suite('FtuPing', function() {
 
     test('timeout doesn\'t clear flag', function(done) {
       FtuPing.initSettings().then(function() {
+        FtuPing._pingData.pingID = 'test_id';
         FtuPing.ping();
         MockXMLHttpRequest.mSendTimeout();
         assert.equal(MockasyncStorage.mItems['ftu.pingEnabled'], true);
