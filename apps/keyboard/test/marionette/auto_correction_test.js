@@ -92,7 +92,8 @@ marionette('Keyboard Auto correction tests', function() {
 
     test('predictive tests', function() {
       // Test 1 - type first 7 letters of the expected word
-      var expectedWord = 'keyboard';
+      // select suggestion will append a space.
+      var expectedWord = 'keyboard ';
       keyboard.type(expectedWord.slice(0, 7));
       keyboard.tapFirstPredictiveWord();
       keyboardTestApp.switchTo();
@@ -102,7 +103,6 @@ marionette('Keyboard Auto correction tests', function() {
 
       // Test 2 - tap second suggestion, then press space
       keyboard.switchTo();
-      keyboard.type(' ');
       keyboard.type('Tes');
       keyboardTestApp.switchTo();
 
@@ -111,7 +111,6 @@ marionette('Keyboard Auto correction tests', function() {
 
       keyboard.switchTo();
       keyboard.tapSuggestionKey('Tea');
-      keyboard.type(' ');
       keyboardTestApp.switchTo();
 
       assert.equal(
@@ -188,7 +187,6 @@ marionette('Keyboard Auto correction tests', function() {
 
       keyboard.switchTo();
       keyboard.tapSuggestionKey('Tea');
-      keyboard.type(' ');
       keyboardTestApp.switchTo();
 
       assert.equal(

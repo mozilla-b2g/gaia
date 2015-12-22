@@ -132,6 +132,10 @@
   // this much more highly weighted than the second suggested word.
   var AUTO_CORRECT_THRESHOLD = 1.30;
 
+  // Append a suffix when a suggestion was picked. In general, we
+  // use space in Latin script as word divider.
+  var SUGGESTION_SUFFIX = ' ';
+
   // If the length doesn't match between input and first suggestion.
   // The min. frequency the first suggestion needs to have if we turn it into
   // an autocorrect action
@@ -903,13 +907,12 @@
   // update our internal state to match.
   //   word: the text displayed as the suggestion, might contain ellipsis
   //   data: the actual data we need to output
-  // In the past we would automatically insert a space after the selected
-  // word, but that, combined with the revert-on-backspace behavior made
-  // it impossible to add a suffix to the selected word.
   //
   function select(word, data) {
     var oldWord = wordBeforeCursor();
-    var newWord = data;
+    // A word divider is expected to append to the word when the
+    // suggestion is selected.
+    var newWord = data + SUGGESTION_SUFFIX;
 
     // The user has selected a suggestion, so we don't need to display
     // them anymore. Note that calling this function resets all the
@@ -923,15 +926,6 @@
       // autocorrection for this word.
       revertFrom = newWord;
       revertTo = oldWord;
-
-      // Given that the user has selected this word, we don't ever
-      // want to autocorrect the word because if they keep typing to
-      // add a suffix to the word, we don't want to modify the
-      // original. This also means that if they revert the selection
-      // autocorrect will still be disabled which is what we want.
-      // Note, however, that most often the user will type a space
-      // after this selection and autocorrect will be enabled again.
-      correctionDisabled = true;
 
       // And update the keyboard capitalization state, if necessary
       updateCapitalization();
