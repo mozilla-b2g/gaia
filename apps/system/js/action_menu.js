@@ -68,6 +68,10 @@
   };
 
   ActionMenu.prototype.hide = function() {
+    if (!this.active) {
+      return;
+    }
+
     eventSafety(this.form, 'transitionend', function doHide(e) {
       this.form.style.position = '';
       SystemDialog.prototype.hide.apply(this);

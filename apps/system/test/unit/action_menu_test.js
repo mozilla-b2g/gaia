@@ -99,6 +99,11 @@ suite('ActionMenu', function() {
   });
 
   suite('Hide > ', function() {
+
+    setup(function() {
+      actionMenu.active = true;
+    });
+
     test('Should force position:fixed during the transition', function() {
       actionMenu.hide();
       assert.equal(actionMenu.form.style.position, 'fixed');
@@ -113,6 +118,14 @@ suite('ActionMenu', function() {
       actionMenu.form.dispatchEvent(evt);
       assert.isTrue(systemHideStub.called);
       assert.isFalse(actionMenu.form.classList.contains('visible'));
+    });
+
+    test('Does nothing if not active', function() {
+      actionMenu.active = false;
+      actionMenu.hide();
+      var evt = new CustomEvent('transitionend');
+      actionMenu.form.dispatchEvent(evt);
+      assert.isFalse(systemHideStub.called);
     });
   });
 
