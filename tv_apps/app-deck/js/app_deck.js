@@ -191,8 +191,12 @@
       bookmarkButton.classList.add('app-button');
       bookmarkButton.classList.add('navigable');
       bookmarkButton.setAttribute('label', bookmark.name);
-      bookmark.icon &&
-        (bookmarkButton.style.backgroundImage = 'url("' + bookmark.icon + '")');
+
+      if(bookmark.icon) {
+        var iconURL = URL.createObjectURL(bookmark.icon);
+        bookmarkButton.dataset.revokableURL = iconURL;
+        bookmarkButton.style.backgroundImage = 'url("' + iconURL + '")';
+      }
       return bookmarkButton;
     },
 
@@ -223,64 +227,51 @@
 
           this._appDeckGridViewElem.removeChild(targetElem);
           this._spatialNavigator.remove(targetElem);
+          URL.revokeObjectURL(targetElem.dataset.revokableURL);
           break;
       }
     },
 
     /**
-     * Notify other module that currently focused element detail, like
-     * pinable (could be pinned on Home) or nonpinable; type (app or bookmark)
-     * and etc.
+     * Notify other modules about details of currently focused element.
      *
      * @public
      * @method  AppDeck#fireFocusEvent
      * @param  {HTMLElement} elem - currently focused element
      */
     /**
-     * This event fires whenever focus in AppDeck move to a pinable
-     * element (representing na app).
+     * This event fires whenever focus in AppDeck move to a pinnable
+     * element (For now it's an app or a bookmark).
      * @event AppDeck#focus
      * @type {Object}
-     * @property {String} type - 'app' / 'bookmark' / 'others'
-     * @property {Boolean} pinable - Can it be pinned to to Home
+     * @property {HTMLElement} elem - currently focused element
      * @property {Boolean} pinned - Has it been pinned to Home
-     * @property {String} manifestURL - manifest URL if it's an app
-     * @property {String} url - target URL if it's a bookmark
-     * @property {String} name - name of current focused pinable element
-     * @property {Boolean} removable - Is current focused pinable element
-     *                               removable or not
      */
     fireFocusEvent: function ad_fireFocusEvent(elem) {
       var that = this;
       var type = elem && elem.getAttribute('app-Type');
 
+      var query;
       if (type === 'app') {
-        this._cardManager.isPinned({
+        query = {
           manifestURL: elem.dataset.manifestURL,
           entryPoint: elem.dataset.entryPoint
-        }).then(function(pinned) {
-          that.fire('focus', {
-            type: type,
-            pinable: true,
-            pinned: pinned,
-            manifestURL: elem.dataset.manifestURL,
-            // entryPoint is deprecated
-            entryPoint: elem.dataset.entryPoint,
-            name: elem.dataset.name,
-            removable: elem.dataset.removable === 'true'
-          });
-        });
+        };
       } else if (type === 'bookmark') {
-        // For now this is the case of bookmarks.
-        this.fire('focus', {
-          type: type,
-          pinable: false,
-          pinned: false,
-          url: elem.dataset.url,
-          name: elem.dataset.name,
-          removable: elem.dataset.removable === 'true'
-        });
+        query = {
+          url: elem.dataset.url
+        };
+      } else {
+        // We have no other types for now.
+        return;
       }
+
+      this._cardManager.isPinned(query).then(pinned => {
+        that.fire('focus', {
+          elem: elem,
+          pinned: pinned
+        });
+      });
     },
 
     onFocus: function ad_onFocus(elem) {

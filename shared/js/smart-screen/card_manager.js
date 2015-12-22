@@ -1,5 +1,5 @@
 /* global evt, SharedUtils, Promise, PipedPromise, Application, CardStore,
-        Deck, Folder, AsyncSemaphore */
+          Deck, Folder, AsyncSemaphore, AppBookmark */
 
 (function(exports) {
   'use strict';
@@ -49,12 +49,14 @@
     _deserializeCardEntry: function cm_deserializeCardEntry(cardEntry) {
       var cardInstance;
       switch (cardEntry.type) {
-        case 'AppBookmark':
         case 'Application':
           cardInstance = Application.deserialize(cardEntry, this.installedApps);
           break;
         case 'Deck':
           cardInstance = Deck.deserialize(cardEntry, this.installedApps);
+          break;
+        case 'AppBookmark':
+          cardInstance = AppBookmark.deserialize(cardEntry);
           break;
         case 'Folder':
           cardInstance = Folder.deserialize(cardEntry);
@@ -701,10 +703,13 @@
     },
 
     // TODO: need to be protected by semaphore
+    // TODO: some comparison are based on card type. We may move these part to
+    //       card class themselves.
     // There are three types of query:
     // 1. query by cardId
     // 2. query by manifestURL and optionally launchURL
-    // 3. query by cardEntry (i.e. serialized card)
+    // 3. query by bookmark url
+    // 4. query by cardEntry (i.e. serialized card)
     findCardFromCardList: function cm_findCardFromCardList(query) {
       var found;
       this._cardList.some(function(card) {
@@ -732,6 +737,11 @@
               return true;
             }
           } else {
+            found = card;
+            return true;
+          }
+        } else if (query.url) {
+          if (query.url === card.url) {
             found = card;
             return true;
           }

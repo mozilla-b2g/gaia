@@ -10,6 +10,7 @@ require('/shared/js/smart-screen/cards/card.js');
 require('/shared/js/smart-screen/cards/application.js');
 require('/shared/js/smart-screen/cards/deck.js');
 require('/shared/js/smart-screen/cards/folder.js');
+require('/shared/js/smart-screen/cards/app_bookmark.js');
 require('/shared/js/smart-screen/clock.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('mock_card_manager.js');

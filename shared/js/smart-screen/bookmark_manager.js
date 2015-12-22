@@ -65,12 +65,7 @@
         xhr.send();
 
         xhr.onload = function() {
-          var reader = new FileReader();
-          reader.readAsDataURL(xhr.response);
-
-          reader.onloadend = function() {
-            resolve(reader.result);
-          };
+          resolve(xhr.response);
         };
 
         xhr.onerror = function() {
