@@ -5,6 +5,7 @@
 var System = require('./lib/system');
 var assert = require('assert');
 var AudioChannelTestApp = require('./lib/audio_channel_test_app.js');
+var AudioChannelHelper = require('./lib/audio_channel_helper.js');
 
 marionette('Audio channel competing', function() {
   var client = marionette.client({
@@ -18,7 +19,7 @@ marionette('Audio channel competing', function() {
     }
   });
 
-  var sys, testApp1, testApp2;
+  var sys, testApp1, testApp2, helper;
 
   suite('Normal audio channel competes with audio channels', function() {
     setup(function() {
@@ -28,6 +29,7 @@ marionette('Audio channel competing', function() {
         client, 'app://audiochanneltestapp1.gaiamobile.org');
       testApp2 = new AudioChannelTestApp(
         client, 'app://audiochanneltestapp2.gaiamobile.org');
+      helper = new AudioChannelHelper(client);
     });
 
     test('Normal channel competes with normal channel', function() {
@@ -387,8 +389,8 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy0(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(isPlaying(testApp2.origin, audioChannel2));
+    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
   }
 
   /**
@@ -403,16 +405,16 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy1(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(isPlaying(testApp2.origin, audioChannel2));
-    assert.ok(!isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
+    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
 
     var testApp2Frame = sys.getAppIframe(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Pause'].click();
-    assert.ok(!isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
 
     sys.waitForLaunch(testApp1.origin);
-    assert.ok(isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
   }
 
   /**
@@ -426,20 +428,20 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy2(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(isPlaying(testApp2.origin, audioChannel2));
-    assert.ok(!isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
+    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
 
     var testApp2Frame = sys.getAppIframe(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Pause'].click();
-    assert.ok(isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
  
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Play'].click();
-    assert.ok(isPlaying(testApp2.origin, audioChannel2));
+    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
 
     sys.waitForLaunch(testApp1.origin);
-    assert.ok(isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
   }
 
   /**
@@ -452,16 +454,16 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy3(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(isFadingOut(testApp1.origin, audioChannel1));
-    assert.ok(isPlaying(testApp2.origin, audioChannel2));
+    assert.ok(helper.isFadingOut(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
 
     var testApp2Frame = sys.getAppIframe(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Pause'].click();
-    assert.ok(isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
     // Reenable it in Bug 1230074.
-    // assert.ok(!isFadingOut(testApp1.origin, audioChannel1));
-    assert.ok(!isPlaying(testApp2.origin, audioChannel2));
+    // assert.ok(!helper.isFadingOut(testApp1.origin, audioChannel1));
+    assert.ok(!helper.isPlaying(testApp2.origin, audioChannel2));
   }
 
   /**
@@ -474,15 +476,15 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy4(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(isFadingOut(testApp2.origin, audioChannel2));
+    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isFadingOut(testApp2.origin, audioChannel2));
 
     var testApp1Frame = sys.waitForLaunch(testApp1.origin);
     client.switchToFrame(testApp1Frame);
     testApp1[audioChannel1 + 'Pause'].click();
-    assert.ok(!isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(!isFadingOut(testApp2.origin, audioChannel2));
-    assert.ok(isPlaying(testApp2.origin, audioChannel2));
+    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(!helper.isFadingOut(testApp2.origin, audioChannel2));
+    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
   }
 
   /**
@@ -495,14 +497,14 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy5(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(isVibrating(testApp1.origin, audioChannel1));
-    assert.ok(!isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(isPlaying(testApp2.origin, audioChannel2));
+    assert.ok(helper.isVibrating(testApp1.origin, audioChannel1));
+    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
 
     var testApp2Frame = sys.getAppIframe(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Pause'].click();
-    assert.ok(isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
   }
 
   /**
@@ -515,9 +517,9 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy6(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(isVibrating(testApp2.origin, audioChannel2));
-    assert.ok(!isPlaying(testApp2.origin, audioChannel2));
+    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
+    assert.ok(helper.isVibrating(testApp2.origin, audioChannel2));
+    assert.ok(!helper.isPlaying(testApp2.origin, audioChannel2));
   }
 
   /**
@@ -538,50 +540,5 @@ marionette('Audio channel competing', function() {
     var testApp2Frame = sys.waitForLaunch(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp1[audioChannel2 + 'Play'].click();
-  }
-
-  /**
-   * Check the audio channel is playing or not.
-   *
-   * @param {String} url The App URL.
-   * @param {String} audioChannel An audio channel type.
-   * @return {Boolean} The audio channel is playing or not.
-   */
-  function isPlaying(url, audioChannel) {
-    client.switchToFrame();
-    return client.executeScript(function(url, audioChannel) {
-      return window.wrappedJSObject.core.appCore.appWindowManager
-        .getApp(url).audioChannels.get(audioChannel).isPlaying();
-    }, [url, audioChannel]);
-  }
-
-  /**
-   * Check the audio channel is fading out or not.
-   *
-   * @param {String} url The App URL.
-   * @param {String} audioChannel An audio channel type.
-   * @return {Boolean} The audio channel is fading out or not.
-   */
-  function isFadingOut(url, audioChannel) {
-    client.switchToFrame();
-    return client.executeScript(function(url, audioChannel) {
-      return window.wrappedJSObject.core.appCore.appWindowManager
-        .getApp(url).audioChannels.get(audioChannel).isFadingOut();
-    }, [url, audioChannel]);
-  }
-
-  /**
-   * Check the audio channel is vibrating out or not.
-   *
-   * @param {String} url The App URL.
-   * @param {String} audioChannel An audio channel type.
-   * @return {Boolean} The audio channel is fading out or not.
-   */
-  function isVibrating(url, audioChannel) {
-    client.switchToFrame();
-    return client.executeScript(function(url, audioChannel) {
-      return window.wrappedJSObject.core.appCore.appWindowManager
-        .getApp(url).audioChannels.get(audioChannel).isVibrating();
-    }, [url, audioChannel]);
   }
 });
