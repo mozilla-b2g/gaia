@@ -19,15 +19,17 @@
    *   },
    *   ...
    * };
-   * addMixin(SomeModule, new PipedPromise());
+   * addMixin(SomeModule, PipedPromise);
    *
    */
-  var PipedPromise = function() {
-    this._piped_promises = {};
+  var PipedPromise = {
+    _removePipedPromise: function pp_removePipedPromise(key) {
+      if (!this._piped_promises) {
+        this._piped_promises = {};
+      }
 
-    this._removePipedPromise = function pp_removePipedPromise(key) {
       this._piped_promises[key] = undefined;
-    };
+    },
 
     /**
      * Get Promise object of specific key. It will generate a new Promise
@@ -39,7 +41,11 @@
      * @returns {Promise} - A Promise
      *
      */
-    this._getPipedPromise = function pp_getOrCreatePromise(key, executor) {
+    _getPipedPromise: function pp_getOrCreatePromise(key, executor) {
+      if (!this._piped_promises) {
+        this._piped_promises = {};
+      }
+
       var that = this;
       var promise = this._piped_promises[key];
       if (!promise) {
@@ -52,7 +58,7 @@
         that._piped_promises[key] = promise;
       }
       return promise;
-    };
+    }
   };
 
   exports.PipedPromise = PipedPromise;
