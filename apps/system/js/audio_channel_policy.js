@@ -279,8 +279,7 @@
       var isNeeded = true;
       if (activeChannelName === 'normal' ||
           (activeChannelName === 'content' && newChannelName === 'normal') ||
-          (activeChannelName === 'alarm' && newChannelName === 'alarm') ||
-          (activeChannelName === 'ringer' && newChannelName === 'ringer')) {
+          (activeChannelName === 'alarm' && newChannelName === 'alarm')) {
         isNeeded = false;
       }
       return isNeeded;
