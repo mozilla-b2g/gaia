@@ -700,7 +700,10 @@ var InboxView = {
     MessageManager.getThreads({
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
-      done: () => this.emit('fully-loaded')
+      // We should emit 'fully-loaded' event only when drafts are loaded and
+      // processed, Drafts keeps track of single "request" promise, so there is
+      // no overhead here.
+      done: () => Drafts.request().then(() => this.emit('fully-loaded'))
     });
   },
 

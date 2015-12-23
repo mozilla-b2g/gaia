@@ -5,6 +5,7 @@
 
   exports.MockApp = {
     instanceId: 'app-instance-id',
-    whenReady: () => Promise.resolve()
+    whenReady: () => Promise.resolve(),
+    setReady: () => {}
   };
 })(window);

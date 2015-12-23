@@ -2204,16 +2204,21 @@ suite('thread_list_ui', function() {
   });
 
   suite('On fully loaded event', function() {
-    test('only fires when all threads are rendered', function(done) {
+    var resolveDraftsRequest;
+    setup(function() {
+      this.sinon.stub(Drafts, 'request').returns(
+        new Promise((resolve) => resolveDraftsRequest = resolve)
+      );
+
       this.sinon.stub(MessageManager, 'getThreads');
+    });
 
-      var visuallyLoaded = sinon.stub();
+    test('only fires when all threads and drafts are rendered', function(done) {
+      var visuallyLoadedStub = sinon.stub();
+      var fullyLoadedStub = sinon.stub();
 
-      InboxView.once('visually-loaded', visuallyLoaded);
-
-      InboxView.once('fully-loaded', () => done(() => {
-        sinon.assert.calledOnce(visuallyLoaded);
-      }));
+      InboxView.once('visually-loaded', visuallyLoadedStub);
+      InboxView.once('fully-loaded', fullyLoadedStub);
 
       InboxView.renderThreads();
 
@@ -2223,6 +2228,19 @@ suite('thread_list_ui', function() {
       );
       MessageManager.getThreads.yieldTo('end');
       MessageManager.getThreads.yieldTo('done');
+
+      sinon.assert.calledOnce(visuallyLoadedStub);
+      sinon.assert.notCalled(fullyLoadedStub);
+
+      // Clean micro-queue to make sure that fullyLoaded depends on Drafts
+      // request promise specifically, not on any other promise.
+      Promise.resolve().then(() => {
+        sinon.assert.notCalled(fullyLoadedStub);
+
+        resolveDraftsRequest();
+      }).then(() => {
+        sinon.assert.calledOnce(fullyLoadedStub);
+      }).then(done, done);
     });
   });
 
