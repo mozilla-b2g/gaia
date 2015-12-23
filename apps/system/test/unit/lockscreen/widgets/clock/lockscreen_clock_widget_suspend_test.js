@@ -52,6 +52,7 @@ suite('LockScreenClockWidgetSuspend > ', function() {
 
   test(`when events it would call the corresponding functions`, function() {
     var mockThis = {
+      component: { updateClock: this.sinon.stub() },
       transferToTick: this.sinon.stub()
     };
     var method = LockScreenClockWidgetSuspend.prototype.handleSourceEvent;
@@ -78,5 +79,18 @@ suite('LockScreenClockWidgetSuspend > ', function() {
     assert.isTrue(mockThis.component.transferTo.calledWithMatch(function(clz) {
       return 'LockScreenClockWidgetTick' === clz.name;
     }));
+  });
+
+  test(`it should update the clock before transferring to the Suspend state`,
+  function() {
+    var mockThis = {
+      component: { updateClock: this.sinon.stub() },
+      transferToTick: function() {}
+    };
+    var method = LockScreenClockWidgetSuspend.prototype.handleSourceEvent;
+    method.call(mockThis, {'type': 'screenchange',
+      'detail': { 'screenEnabled': true}});
+    assert.isTrue(mockThis.component.updateClock.called,
+      `it doesn't call updateClock before the transferring`);
   });
 });

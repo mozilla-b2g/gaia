@@ -36,6 +36,7 @@ suite('LockScreenClockWidgetTick > ', function() {
       configs: {},
       handleSourceEvent: function() {},
       component: {
+        _previousState: { configs: { name: 'LockScreenClockWidgetSetup' }},
         updateClock: {
           bind: this.sinon.stub().returns('component.updateClock')
         },
@@ -56,6 +57,22 @@ suite('LockScreenClockWidgetTick > ', function() {
         `it doesn't schedule to update the clock`);
     assert.include(mockThis.stream.steps, 'ready',
         `it doesn't schedule to become ready`);
+  });
+
+  test(`when restart it should call the restart method`,
+  function() {
+    var mockThis = {
+      configs: {},
+      handleSourceEvent: function() {},
+      component: {
+        _previousState: { configs: { name: 'LockScreenClockWidgetSuspend' }},
+      },
+      restart: this.sinon.stub()
+    };
+    var method = LockScreenClockWidgetTick.prototype.start;
+    method.call(mockThis);
+    assert.isTrue(mockThis.restart.called,
+      `it doesn't call the restart method`);
   });
 
   test(`when stop it should stop things`, function() {
