@@ -77,7 +77,7 @@ proto.createdCallback = function() {
    * @private
    */
   this.localize = () => {
-    document.l10n.formatValues(['search', 'search-close'])
+    document.l10n.formatValues('search', 'search-close')
       .then(([search, close]) => {
         this.els.input.placeholder = search;
         this.els.close.textContent = close;
