@@ -19,7 +19,7 @@
     '/views/shared/js/waiting_screen.js',
     '/views/shared/js/dialog.js',
     '/views/shared/js/error_dialog.js',
-    '/views/shared/js/activity_picker.js'
+    '/shared/js/links/activity_picker.js'
   ];
 
   function initLazyDependencies() {
