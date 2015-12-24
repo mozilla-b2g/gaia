@@ -145,7 +145,9 @@
       url: evt.detail.url,
       origin: evt.detail.origin,
       manifestURL: evt.detail.manifestURL,
-      rearWindow: this.app
+      features: evt.detail.features,
+      rearWindow: this.app,
+      oop: true
     };
     var childWindow = new PreviewWindow(configObject);
     childWindow.element.addEventListener('_closing', this);

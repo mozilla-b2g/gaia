@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, AppWindowManager, AppWindow */
+/*global applications, AppWindowManager, AppWindow, AppInstallManager */
 
 (function(window) {
   /**
@@ -37,6 +37,23 @@
           acc[decodeURIComponent(feature[0])] = decodeURIComponent(feature[1]);
           return acc;
         }, {});
+
+      if ('preview' in features && features.preview === 'true' &&
+          AppInstallManager.isMarketplaceAppActive()) {
+
+        var marketplaceApp = AppWindowManager.getActiveApp();
+        marketplaceApp.publish('launchpreviewapp', {
+          url: detail.url,
+          origin: detail.url,
+          features: {
+            name: features.name,
+            iconUrl: features.iconUrl
+          }
+        });
+
+        evt.stopImmediatePropagation();
+        return;
+      }
 
       // Handles only call to window.open with `remote=true` feature.
       if (!('remote' in features) || features.remote !== 'true') {

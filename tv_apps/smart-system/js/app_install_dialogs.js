@@ -296,16 +296,21 @@
   };
 
   proto.focus = function aid_focus() {
-    var topMost = this.getTopMostDialogElement();
-    if (topMost) {
+    var topMostDialog = this.getTopMostDialog();
+    if (topMostDialog) {
       document.activeElement.blur();
-      topMost.focus();
+      topMostDialog.focus();
     }
   };
 
+  proto.getTopMostDialog = function aid_getTopMostDialog() {
+    return this.hasVisibleDialog() ?
+      this._visibleDialogs[this._visibleDialogs.length - 1] : null;
+  };
+
   proto.getTopMostDialogElement = function aid_getTopMostDialogElement() {
-    return (this._visibleDialogs.length > 0) ?
-      this._visibleDialogs[this._visibleDialogs.length - 1].element : null;
+    var topMostDialog = this.getTopMostDialog();
+    return topMostDialog ? topMostDialog.element : null;
   };
 
   proto.hasVisibleDialog = function aid_hasVisibleDialog() {

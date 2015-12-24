@@ -4,8 +4,14 @@
 /* global applications */
 /* global AppWindow */
 /* global AppInstallManager */
+/* global AppInstallDialogs */
+/* global SystemBanner */
+/* global BookmarkManager */
 
 (function(exports) {
+  const PREVIEW_OPENED_TIMES_KEY = 'preview-opened-times';
+  const PREVIEW_OPENED_TIMES_TO_HINT = 3;
+
   /**
    * This window is inherit the AppWindow, and modifies some properties
    * different from the later.
@@ -16,17 +22,25 @@
   var PreviewWindow = function(configs) {
     if (configs && configs.rearWindow) {
       // Render inside its opener.
-      this.containerElement = configs.rearWindow.element;
+      this.container = configs.rearWindow;
     }
 
-    this.isPreviewWindow = true;
+    this.isWebsite = !configs.manifestURL;
+    this.identity = configs.manifestURL || configs.url;
+    this.features = configs.features || {};
+
+    this.systemBanner = new SystemBanner();
+
+    configs.chrome = {
+      scrollable: false
+    };
 
     AppWindow.call(this, configs);
 
-    this.containerElement.addEventListener('_closed', this);
-    this.element.addEventListener('_willdestroy', this);
     window.addEventListener('mozbrowserafterkeyup', this);
-    window.addEventListener('mozbrowsercontextmenu', this);
+    this.container.element.addEventListener('_closed', this);
+    this.element.addEventListener('_opened', this);
+    this.element.addEventListener('_willdestroy', this);
   };
 
   /**
@@ -77,67 +91,95 @@
   };
 
   PreviewWindow.prototype._handle_mozbrowserafterkeyup = function(evt) {
+    if (document.activeElement !== this.iframe &&
+        document.activeElement !== this.container.iframe) {
+      return;
+    }
     if ((evt.keyCode === 27 || evt.key === 'Escape') &&
         !evt.embeddedCancelled) {
-      var goBackReq = this.iframe.getCanGoBack();
-      goBackReq.onsuccess = () => {
-        if (goBackReq.result) {
-          this.iframe.goBack();
-        } else {
-          this.kill();
-        }
-      };
-      goBackReq.onerror = () => {
-        this.kill();
-      };
+      this.kill();
     }
   };
 
-  PreviewWindow.prototype._handle_mozbrowsercontextmenu = function(evt) {
-    var icon;
-    var label;
-    var onClick;
-    var manifestURL = this.manifestURL;
-    var app = applications.getByManifestURL(manifestURL);
+  PreviewWindow.prototype._handle__opened = function(evt) {
+    var previewOpenedTimes =
+      JSON.parse(localStorage.getItem(PREVIEW_OPENED_TIMES_KEY) || '{}');
 
-    if (!AppInstallManager.getAppAddedState(manifestURL)) {
-      icon = 'style/icons/default.png';
-      label = 'add-to-apps';
-      onClick = AppInstallManager.handleAddAppToApps.bind(
-        AppInstallManager, app);
-    } else {
-      icon = 'style/icons/default.png';
-      label = 'delete-from-apps';
-      onClick = () => {
-        navigator.mozApps.mgmt.uninstall(app).onsuccess = () => {
-          this.close();
-        };
-      };
+    if (!previewOpenedTimes[this.identity]) {
+      previewOpenedTimes[this.identity] = 0;
     }
+    previewOpenedTimes[this.identity]++;
 
-    navigator.mozL10n.formatValue(label).then((value) => {
-      evt.detail.contextmenu = {
-        type: 'menu',
-        customized: true,
-        items: [{
-          icon: icon,
-          label: value,
-          type: 'menuitem',
-          onClick: onClick
-        }]
-      };
-      this.contextmenu.show(evt);
+    localStorage.setItem(PREVIEW_OPENED_TIMES_KEY,
+      JSON.stringify(previewOpenedTimes));
+
+    this.systemBanner.show({
+      id: 'preview-app-hint'
     });
   };
 
   PreviewWindow.prototype._handle__willdestroy = function(evt) {
-    this.containerElement.removeEventListener('_closed', this);
-    this.element.removeEventListener('_willdestroy', this);
+    this.container.element.removeEventListener('_closed', this);
     window.removeEventListener('mozbrowserafterkeyup', this);
-    window.removeEventListener('mozbrowsercontextmenu', this);
+
+    var previewOpenedTimes =
+      JSON.parse(localStorage.getItem(PREVIEW_OPENED_TIMES_KEY) || '{}');
+    var needPrompt =
+      previewOpenedTimes[this.identity] == PREVIEW_OPENED_TIMES_TO_HINT;
+    var options;
+
+    if (this.isWebsite) {
+      if (needPrompt) {
+        BookmarkManager.get(this.identity).then((bookmark) => {
+          if (!bookmark) {
+            options = {
+              manifest: {
+                name: this.features.name
+              }
+            };
+            AppInstallManager.appInstallDialogs
+              .show(AppInstallDialogs.TYPES.AddAppDialog, options)
+              .then(() => {
+                return BookmarkManager.add({
+                  name: this.features.name,
+                  url: this.identity,
+                  iconUrl: this.features.iconUrl
+                });
+              })
+              .then(() => {
+                this.systemBanner.show({
+                  id: 'added-to-apps',
+                  args: {
+                    appName: this.features.name
+                  }
+                });
+              });
+          }
+        });
+      }
+    } else {
+      if (needPrompt && !AppInstallManager.getAppAddedState(this.manifestURL)) {
+        var app = applications.getByManifestURL(this.manifestURL);
+
+        options = {
+          manifest: app.manifest
+        };
+
+        var onFulfilled = AppInstallManager.handleAddAppToApps
+          .bind(AppInstallManager, app);
+        var onRejected = AppInstallManager.uninstallPreviewApp
+          .bind(AppInstallManager);
+
+        AppInstallManager.appInstallDialogs
+          .show(AppInstallDialogs.TYPES.AddAppDialog, options)
+          .then(onFulfilled, onRejected);
+      } else {
+        AppInstallManager.uninstallPreviewApp();
+      }
+    }
   };
 
-  // This handler is triggered by "this.containerElement".
+  // This handler is triggered by "this.container.element".
   PreviewWindow.prototype._handle__closed = function(evt) {
     // kill itself when the parent app intends to close.
     this.kill();
