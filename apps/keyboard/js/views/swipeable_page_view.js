@@ -31,6 +31,8 @@ SwipeablePageView.prototype.render = function() {
       this.viewManager);
   swipeablePanel.render();
 
+  this.swipeablePanel = swipeablePanel;
+
   container.appendChild(swipeablePanel.element);
 
   // Render the bottom row for switching different type of emojis
@@ -71,6 +73,11 @@ SwipeablePageView.prototype.render = function() {
   }
 
   this.element = container;
+};
+
+SwipeablePageView.prototype.resize = function resize(totalWidth) {
+  this.options.totalWidth = totalWidth;
+  this.swipeablePanel.resize(totalWidth);
 };
 
 SwipeablePageView.prototype.getHeight = function() {

@@ -105,6 +105,27 @@ SwipeablePanelView.prototype.gotoSection = function(index) {
   this._updateIndicator();
 };
 
+SwipeablePanelView.prototype.resize = function resize(totalWidth) {
+  this.options.totalWidth = totalWidth;
+  this.swipeDetectingPaused = true;
+
+  // Reposition sections when resize;
+  this.sections.forEach(function(section, index) {
+    var translateX;
+    
+    if (index === this.currentSectionIndex) {
+      translateX = 0; 
+    } else if (this.currentSectionIndex > index) {
+      translateX = -totalWidth;
+    } else {
+      translateX = totalWidth; 
+    }
+
+    section.style.transform = 'translateX(' + translateX + 'px)';
+  }, this);
+
+};
+
 SwipeablePanelView.prototype._moveSection = function(index, distance) {
   var style = this.sections[index].style;
   style.transform = 'translateX(' + distance + 'px)';
@@ -122,9 +143,14 @@ SwipeablePanelView.prototype._updateIndicator = function() {
 SwipeablePanelView.prototype._handleTouchStart = function(evt) {
   this.startX = evt.position.clientX;
   this.deltaX = 0;
+  this.swipeDetectingPaused = false;
 };
 
 SwipeablePanelView.prototype._handlePan = function(evt) {
+  if (this.swipeDetectingPaused) {
+    return;
+  }
+
   var totalWidth = this.options.totalWidth;
 
   // Clear all transition styles
@@ -184,8 +210,11 @@ SwipeablePanelView.prototype._handlePan = function(evt) {
 };
 
 SwipeablePanelView.prototype._handleSwipe = function(evt) {
-  var totalWidth = this.options.totalWidth;
+  if (this.swipeDetectingPaused) {
+    return;
+  }
 
+  var totalWidth = this.options.totalWidth;
   var targetIndex = this.currentSectionIndex;
   var forward = evt.direction === 'left';
 
