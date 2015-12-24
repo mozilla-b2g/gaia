@@ -19,7 +19,6 @@ module.exports = RootPanel;
 RootPanel.Selectors = {
   'airplaneModeCheckbox': '.airplaneMode-input',
   'airplaneModeMenuItem': '#menuItem-airplaneMode',
-  'airplaneModeSpan': '.airplaneMode-input ~ span',
   'applicationStorageDesc': '.application-storage-desc',
   'batteryDesc': '.battery-desc',
   'bluetoothDesc': '.bluetooth-desc',
