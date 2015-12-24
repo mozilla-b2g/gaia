@@ -21,8 +21,7 @@
    * @requires CardManager
    * @requires {@link PromotionList}
    *
-   * @fires AppDeck#focus-on-pinable
-   * @fires AppDeck#focus-on-nonpinable
+   * @fires AppDeck#focus
    */
   var AppDeck = function() {
   };
@@ -43,6 +42,8 @@
     _appDeckListScrollable: undefined,
 
     _cardManager: undefined,
+
+    _bookmarkManager: undefined,
 
     _outOfControlArea: true,
 
@@ -190,8 +191,12 @@
       bookmarkButton.classList.add('app-button');
       bookmarkButton.classList.add('navigable');
       bookmarkButton.setAttribute('label', bookmark.name);
-      bookmark.icon &&
-        (bookmarkButton.style.backgroundImage = 'url("' + bookmark.icon + '")');
+
+      if(bookmark.icon) {
+        var iconURL = URL.createObjectURL(bookmark.icon);
+        bookmarkButton.dataset.revokableURL = iconURL;
+        bookmarkButton.style.backgroundImage = 'url("' + iconURL + '")';
+      }
       return bookmarkButton;
     },
 
@@ -222,53 +227,51 @@
 
           this._appDeckGridViewElem.removeChild(targetElem);
           this._spatialNavigator.remove(targetElem);
+          URL.revokeObjectURL(targetElem.dataset.revokableURL);
           break;
       }
     },
 
     /**
-     * Notify other module that currently focused element is pinable (could be
-     * pinned on Home) or nonpinable (could not be pinned on Home)
+     * Notify other modules about details of currently focused element.
      *
      * @public
      * @method  AppDeck#fireFocusEvent
      * @param  {HTMLElement} elem - currently focused element
      */
+    /**
+     * This event fires whenever focus in AppDeck move to a pinnable
+     * element (For now it's an app or a bookmark).
+     * @event AppDeck#focus
+     * @type {Object}
+     * @property {HTMLElement} elem - currently focused element
+     * @property {Boolean} pinned - Has it been pinned to Home
+     */
     fireFocusEvent: function ad_fireFocusEvent(elem) {
       var that = this;
-      if (elem && elem.dataset && elem.dataset.manifestURL) {
-        this._cardManager.isPinned({
+      var type = elem && elem.getAttribute('app-Type');
+
+      var query;
+      if (type === 'app') {
+        query = {
           manifestURL: elem.dataset.manifestURL,
           entryPoint: elem.dataset.entryPoint
-        }).then(function(pinned) {
-          /**
-           * This event fires whenever focus in AppDeck move to a pinable
-           * element (representing na app).
-           * @event AppDeck#focus-on-pinable
-           * @type {Object}
-           * @property {Boolean} pinned - Is current focused pinable element
-           *                            pinned or not
-           * @property {String} manifestURL - manifestURL of current focused
-           *                                element
-           * @property {String} name - name of current focused pinable element
-           * @property {Boolean} removable - Is current focused pinable element
-           *                               removable or not
-           */
-          that.fire('focus-on-pinable', {
-            pinned: pinned,
-            manifestURL: elem.dataset.manifestURL,
-            // entryPoint is deprecated
-            entryPoint: elem.dataset.entryPoint,
-            name: elem.dataset.name,
-            removable: elem.dataset.removable === 'true'
-          });
-        });
+        };
+      } else if (type === 'bookmark') {
+        query = {
+          url: elem.dataset.url
+        };
       } else {
-        /**
-         * @event AppDeck#focus-on-nonpinable
-         */
-        this.fire('focus-on-nonpinable');
+        // We have no other types for now.
+        return;
       }
+
+      this._cardManager.isPinned(query).then(pinned => {
+        that.fire('focus', {
+          elem: elem,
+          pinned: pinned
+        });
+      });
     },
 
     onFocus: function ad_onFocus(elem) {

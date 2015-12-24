@@ -303,7 +303,8 @@ smart-button[type="app-button"][app-type="tv"] > span.name {
   background-color: #d90c83;
 }
 
-smart-button[type="app-button"][app-type="app"] > span.name {
+smart-button[type="app-button"][app-type="app"] > span.name,
+smart-button[type="app-button"][app-type="appbookmark"] > span.name {
   background-color: rgba(0, 0, 0, 0.4);
 }
 
