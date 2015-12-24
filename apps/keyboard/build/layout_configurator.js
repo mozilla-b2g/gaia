@@ -137,6 +137,7 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
     case 'jsavrophonetic':
     case 'jstelex':
     case 'india':
+    case 'emoji':
     case 'jshangul':
     case 'vietnamese':
     case 'myanmar':

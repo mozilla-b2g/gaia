@@ -331,17 +331,22 @@ InputMethodLoader.prototype.getInputMethodAsync = function(imEngineName) {
 
   var p = new Promise(function(resolve, reject) {
     var script = document.createElement('script');
-    script.onload = function() {
-      this.initInputMethod(imEngineName);
-      resolve(this._initializedIMEngines[imEngineName]);
-    }.bind(this);
+    script.onload = resolve;
+
     script.onerror = function() {
       this._imEnginesPromises[imEngineName] = null;
       console.error('InputMethodLoader: unable to load ' + imEngineName + '.');
       reject();
     }.bind(this);
+
     script.src = this.SOURCE_DIR + imEngineName + '/' + imEngineName + '.js';
     document.body.appendChild(script);
+  }.bind(this))
+  .then(function() {
+    return this.initInputMethod(imEngineName);
+  }.bind(this))
+  .then(function() {
+    return this._initializedIMEngines[imEngineName];
   }.bind(this));
 
   this._imEnginesPromises[imEngineName] = p;
@@ -362,7 +367,7 @@ InputMethodLoader.prototype.initInputMethod = function(imEngineName) {
   this._initializedIMEngines[imEngineName] = InputMethods[imEngineName];
   InputMethods[imEngineName] = null;
 
-  imEngine.init(glue);
+  return imEngine.init(glue);
 };
 
 var InputMethodManager = function InputMethodManager(app) {
