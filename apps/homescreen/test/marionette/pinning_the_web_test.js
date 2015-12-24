@@ -5,7 +5,7 @@ var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('../../../system/test/marionette/lib/pinning_the_web');
 
 marionette('Homescreen - Pin the web', function() {
-  var options = require(__dirname + '/client_options_bookmarks.js');
+  var options = require(__dirname + '/client_options.js');
   options.settings['layers.async-pan-zoom.enabled'] = false;
   options.settings['dev.gaia.pinning_the_web'] = true;
   var client = marionette.client({

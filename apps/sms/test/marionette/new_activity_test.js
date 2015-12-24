@@ -87,6 +87,7 @@ marionette('Messages as "new" activity target', function() {
     });
 
     test('Activity with malicious content', function() {
+      try {
       var maliciousContent =
         content + '<img src="/" onerror="delete window.Compose;" />';
 
@@ -102,7 +103,7 @@ marionette('Messages as "new" activity target', function() {
         return !!window.wrappedJSObject.Compose;
       }), 'XSS should not be performed');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -131,15 +132,19 @@ marionette('Messages as "new" activity target', function() {
       assert.isTrue(client.executeScript(function() {
         return !!window.wrappedJSObject.Compose;
       }), 'XSS should not be performed');
+      } catch(e) {
+        assert(false, 'name: ' + e.name + ', message: ' + e.message + ', stack: ' + (e.stack && e.stack.replace(/\n/g, '|')));
+      }
     });
 
     test('Activity with "body" only', function() {
+      try {
       launchAsActivity({ body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       assert.isFalse(messagesApp.Composer.sendButton.enabled());
       assert.equal(messagesApp.NewMessage.recipients.length, 0);
@@ -153,22 +158,26 @@ marionette('Messages as "new" activity target', function() {
         messagesApp.NewMessage.recipientsInput,
         'Recipient input should be focused'
       );
+      } catch(e) {
+        assert(false, 'name: ' + e.name + ', message: ' + e.message + ', stack: ' + (e.stack && e.stack.replace(/\n/g, '|')));
+      }
     });
 
     test('Activity with "body" and unknown "number"', function() {
+      try {
       launchAsActivity({ number: number, body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), number);
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -178,23 +187,27 @@ marionette('Messages as "new" activity target', function() {
       assertIsFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
+      } catch(e) {
+        assert(false, 'name: ' + e.name + ', message: ' + e.message + ', stack: ' + (e.stack && e.stack.replace(/\n/g, '|')));
+      }
     });
 
     test('Activity with "body" and contact "number"', function() {
+      try {
       // Send message to number that has contact associated with it
       launchAsActivity({ number: '+100', body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), 'Alan Turing');
       assert.equal(recipients[0].getAttribute('data-source'), 'contacts');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -204,9 +217,13 @@ marionette('Messages as "new" activity target', function() {
       assertIsFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
+      } catch(e) {
+        assert(false, 'name: ' + e.name + ', message: ' + e.message + ', stack: ' + (e.stack && e.stack.replace(/\n/g, '|')));
+      }
     });
 
     test('Activity with thread "number"', function() {
+      try {
       // Send message to number that has thread associated with it
       launchAsActivity({ number: '+200' });
 
@@ -231,23 +248,27 @@ marionette('Messages as "new" activity target', function() {
       assertIsFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
+      } catch(e) {
+        assert(false, 'name: ' + e.name + ', message: ' + e.message + ', stack: ' + (e.stack && e.stack.replace(/\n/g, '|')));
+      }
     });
 
     test('Activity with thread "number" and "body"', function() {
+      try {
       // Send message to number that has thread associated with it
       launchAsActivity({ number: '+200', body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), '+200');
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -257,6 +278,9 @@ marionette('Messages as "new" activity target', function() {
       assertIsFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
+      } catch(e) {
+        assert(false, 'name: ' + e.name + ', message: ' + e.message + ', stack: ' + (e.stack && e.stack.replace(/\n/g, '|')));
+      }
     });
   });
 });

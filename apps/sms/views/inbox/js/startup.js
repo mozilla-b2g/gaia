@@ -47,6 +47,10 @@
         initLazyDependencies();
       });
 
+      InboxView.once('fully-loaded', () => {
+        App.setReady();
+      });
+
       InboxView.renderThreads();
     }
   };
