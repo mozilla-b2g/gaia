@@ -58,7 +58,6 @@
    "clear.remote-windows.data": false,
    "cmas.enabled": [true, true],
    "copypaste.enabled": true,
-   "multiscreen.enabled": false,
    "debug.console.enabled": false,
    "developer.menu.enabled": false,
    "dev.gaia.pinning_the_web": true,
