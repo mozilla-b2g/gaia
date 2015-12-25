@@ -47,6 +47,11 @@
         details.lang = _details.lang;
       }
       var notification = new Notification(_details.title, details);
+      notification.onclick = (function() {
+        var notificationDOM = document.querySelector(
+          '#notifications-lockscreen-container .notification');
+        notificationDOM.classList.add('__test_notification_clicked');
+      });
       // XXX: Because to return DOM notification would block process.
       return JSON.parse(JSON.stringify(notification));
     }, [details]);
