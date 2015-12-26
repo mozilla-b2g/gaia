@@ -293,7 +293,7 @@
    */
   SecureWindowManager.prototype.deactivateApp =
     function swm_deactivateApp() {
-      if (this.states.activeApp.isFullScreen()) {
+      if (this.states.activeApp && this.states.activeApp.isFullScreen()) {
         this.elements.screen.classList.remove('fullscreen-app');
       }
       this.states.activeApp = null;
