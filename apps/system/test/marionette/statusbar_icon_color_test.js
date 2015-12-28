@@ -21,7 +21,7 @@ marionette('Statusbar colors', function() {
   var bookmark;
   var actions;
   var search;
-  var rocketbar = new Rocketbar(client);
+  var rocketbar;
   var server;
   var utilityTray;
 
@@ -29,6 +29,7 @@ marionette('Statusbar colors', function() {
     actions = client.loader.getActions();
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
+    rocketbar = new Rocketbar(client);
     utilityTray = new UtilityTray(client);
     bookmark = new Bookmark(client);
     system.waitForFullyLoaded();
