@@ -307,7 +307,7 @@
       this.cleanup();
     },
 
-    ondisabling() {
+    ondisabling(from) {
       this.debug('ondisabling observed');
       this.updateState();
 
@@ -316,6 +316,11 @@
       // Keep logout *after* the cleanup call where we remove the FxA event
       // listeners.
       LazyLoader.load('js/fx_accounts_client.js', () => {
+        // if the former state is not errored, clear error value
+        if (from !== 'errored') {
+          this.error = null;
+        }
+
         FxAccountsClient.logout();
 
         // Go back to default settings, so new users won't inherit old users
