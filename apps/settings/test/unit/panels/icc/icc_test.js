@@ -182,7 +182,7 @@ suite('STK (App menu) >', function() {
           window.require = function(modules, callback) {
             callback(MockStkHelper);
           };
-          testRequire(['icc'], {}, function() {
+          testRequire(['panels/icc/icc'], {}, function() {
             done();
           });
         });
