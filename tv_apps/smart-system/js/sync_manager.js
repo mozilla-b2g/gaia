@@ -67,13 +67,16 @@
     'sync.collections.bookmarks.enabled',
     'sync.collections.history.enabled',
     'sync.collections.passwords.enabled',
+    'sync.collections.bookmarks.limit',
+    'sync.collections.history.limit',
+    'sync.collections.passwords.limit',
     'sync.collections.bookmarks.readonly',
     'sync.collections.history.readonly',
     'sync.collections.passwords.readonly',
-    'sync.server.url',
+    'sync.fxa.audience',
     'sync.scheduler.interval',
     'sync.scheduler.wifionly',
-    'sync.fxa.audience'
+    'sync.server.url'
   ];
 
   // Keys of asyncStorage persisted data.
@@ -460,7 +463,8 @@
         if (this.settings.has('sync.collections.' + name + '.enabled')) {
           collections[name] = {
             readonly: this.settings.get('sync.collections.' + name +
-                                        '.readonly')
+                                        '.readonly'),
+            limit: this.settings.get('sync.collections.' + name + '.limit')
           };
         }
       });
