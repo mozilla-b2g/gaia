@@ -187,12 +187,6 @@ suite('controllers/battery', function() {
       this.controller.onStatusChange('low');
       assert.isTrue(this.notification.clear.called);
     });
-
-    test('should wait for the app to be localized', function() {
-      this.app.localized.returns(false);
-      this.controller.onStatusChange('shutdown');
-      assert.ok(this.app.once.calledWith('localized'));
-    });
   });
 
   suite('BatteryController#updatePowerSave()', function() {

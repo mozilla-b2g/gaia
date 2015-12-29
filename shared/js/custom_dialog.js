@@ -94,7 +94,7 @@ var CustomDialog = (function() {
           // More decorating options goes here.
 
           if (options.id) {
-            navigator.mozL10n.setAttributes(
+            document.l10n.setAttributes(
               textElm,
               options.id,
               options.args
@@ -113,7 +113,7 @@ var CustomDialog = (function() {
           }
 
           if(options.id) {
-            navigator.mozL10n.setAttributes(element, options.id, options.args);
+            document.l10n.setAttributes(element, options.id, options.args);
           }
         };
 

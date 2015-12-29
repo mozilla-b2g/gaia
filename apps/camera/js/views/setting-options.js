@@ -18,7 +18,7 @@ module.exports = View.extend({
 
   initialize: function(options) {
     this.model = options.model;
-    this.l10n = options.l10n || navigator.mozL10n;
+    this.l10n = options.l10n || document.l10n;
     this.on('destroy', this.onDestroy);
     attach(this.el, 'click', 'li', this.onOptionClick);
     attach(this.el, 'click', '.js-back', this.firer('click:back'));

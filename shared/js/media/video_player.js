@@ -135,10 +135,7 @@ function VideoPlayer(container) {
 
     videotimestamp = timestamp;
 
-    // If a locale is present and ready, go ahead and localize now.
-    if (navigator.mozL10n.readyState === 'complete') {
-      this.localize();
-    }
+    this.localize();
 
     this.init();
     setPlayerSize();
@@ -295,7 +292,7 @@ function VideoPlayer(container) {
     durationText.textContent = formattedTime;
     slider.setAttribute('aria-valuemax', player.duration);
     // This sets the aria-label to a localized slider description
-    navigator.mozL10n.setAttributes(slider, 'playbackSeekBar',
+    document.l10n.setAttributes(slider, 'playbackSeekBar',
                                     {'duration': formattedTime});
     // start off in the paused state
     self.pause();
@@ -343,7 +340,7 @@ function VideoPlayer(container) {
 
       var percent = (player.currentTime / player.duration) * 100 + '%';
       var startEdge =
-        navigator.mozL10n.language.direction === 'ltr' ? 'left' : 'right';
+        document.documentElement.dir === 'ltr' ? 'left' : 'right';
       elapsedBar.style.width = percent;
       playHead.style[startEdge] = percent;
     }
@@ -498,7 +495,7 @@ function VideoPlayer(container) {
     var pos = Math.min(Math.max(position, 0), 1);
     // Handle pos so that slider moves correct way
     // when user drags it for RTL locales
-    if (navigator.mozL10n.language.direction === 'rtl') {
+    if (document.documentElement.dir === 'rtl') {
       pos = 1 - pos;
     }
     player.currentTime = player.duration * pos;
@@ -562,7 +559,7 @@ function VideoPlayer(container) {
 
     var orientationL10nId = portrait ? 'orientationPortrait' :
       'orientationLandscape';
-    navigator.mozL10n.formatValue(orientationL10nId).then((orientationText) => {
+    document.l10n.formatValue(orientationL10nId).then((orientationText) => {
       if (videotimestamp) {
         if (!self.dtf) {
           // XXX: add localized/timeformatchange event to reset
@@ -578,7 +575,7 @@ function VideoPlayer(container) {
 
         var ts = this.dtf.format(new Date(videotimestamp));
 
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           poster,
           'videoDescription',
           {
@@ -587,7 +584,7 @@ function VideoPlayer(container) {
           }
         );
       } else {
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           poster,
           'videoDescriptionNoTimestamp',
           { orientation: orientationText }
@@ -609,7 +606,7 @@ VideoPlayer.prototype.show = function() {
 
 VideoPlayer.instancesToLocalize = new WeakMap();
 
-navigator.mozL10n.ready(function() {
+document.addEventListener('DOMRetranslated', function() {
   // Retrieve VideoPlayer instances by searching for container nodes.
   for (var container of document.querySelectorAll('.video-player-container')) {
     var instance = VideoPlayer.instancesToLocalize.get(container);
