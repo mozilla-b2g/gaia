@@ -84,55 +84,52 @@
 
   var doInit = function doInit() {
     if (initialized) {
-      return Promise.resolve();
+      return;
     }
 
-    return new Promise(resolve => {
-      utils.listeners.add({
-        '#cancel-search': exitSearchMode,
-        '#search-contact': [
-          {
-            event: 'keypress',
-            handler: ignoreReturnKey
-          }
-        ]
-      });
-
-      initialized = true;
-      searchBox = document.getElementById('search-contact');
-      var resetButton = searchBox.nextElementSibling;
-      resetButton.addEventListener('ontouchstart' in window ? 'touchstart' :
-                                   'mousedown', function() {
-        searchBox.value = '';
-        searchBox.focus();
-        resetState();
-        window.setTimeout(fillInitialSearchPage, 0);
-      });
-
-      searchList.parentNode.addEventListener('touchstart', function() {
-        if (searchableNodes && remainingPending) {
-          addRemainingResults(searchableNodes, searchPageSize);
+    utils.listeners.add({
+      '#cancel-search': exitSearchMode,
+      '#search-contact': [
+        {
+          event: 'keypress',
+          handler: ignoreReturnKey
         }
-        blurList = true;
-      });
-      searchNoResult = document.getElementById('no-result');
-      searchProgress = document.getElementById('search-progress');
-      searchBox.addEventListener('blur', function() {
-        window.setTimeout(onSearchBlur, 0);
-      });
+      ]
+    });
 
-      searchBox.addEventListener('focus', function() {
-        blurList = false;
-      });
+    initialized = true;
+    searchBox = document.getElementById('search-contact');
+    var resetButton = searchBox.nextElementSibling;
+    resetButton.addEventListener('ontouchstart' in window ? 'touchstart' :
+                                 'mousedown', function() {
+      searchBox.value = '';
+      searchBox.focus();
+      resetState();
+      window.setTimeout(fillInitialSearchPage, 0);
+    });
 
-      LazyLoader.load([
-        '/contacts/js/fb_resolver.js',
-        '/shared/js/contacts/utilities/image_loader.js'
-      ], function() {
-        imgLoader = new ImageLoader('#groups-list-search', 'li');
-        imgLoader.setResolver(fb.resolver);
-        resolve();
-      });
+    searchList.parentNode.addEventListener('touchstart', function() {
+      if (searchableNodes && remainingPending) {
+        addRemainingResults(searchableNodes, searchPageSize);
+      }
+      blurList = true;
+    });
+    searchNoResult = document.getElementById('no-result');
+    searchProgress = document.getElementById('search-progress');
+    searchBox.addEventListener('blur', function() {
+      window.setTimeout(onSearchBlur, 0);
+    });
+
+    searchBox.addEventListener('focus', function() {
+      blurList = false;
+    });
+
+    LazyLoader.load([
+      '/contacts/js/fb_resolver.js',
+      '/shared/js/contacts/utilities/image_loader.js'
+    ], function() {
+      imgLoader = new ImageLoader('#groups-list-search', 'li');
+      imgLoader.setResolver(fb.resolver);
     });
   };
 
@@ -375,17 +372,16 @@
         selectableForm.classList.add('insearchmode');
       }
 
-      return doInit().then(() => {
-        fillInitialSearchPage();
-        inSearchMode = true;
-        emptySearch = true;
-        if (navigationController) {
-          navigationController.go('search-view', 'none');
-        }
+      doInit();
+      fillInitialSearchPage();
+      inSearchMode = true;
+      emptySearch = true;
+      if (navigationController) {
+        navigationController.go('search-view', 'none');
+      }
 
-        setTimeout(function nextTick() {
-          searchBox.focus();
-        });
+      setTimeout(function nextTick() {
+        searchBox.focus();
       });
     }
   };

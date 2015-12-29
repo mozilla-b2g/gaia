@@ -48,7 +48,7 @@ suite('Search mode', function() {
     assert.isTrue(contactFound, 'The contact has not been found');
   }
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     document.body.innerHTML = MockSearchHtml;
 
     searchList = document.getElementById('search-list');
@@ -56,7 +56,7 @@ suite('Search mode', function() {
 
     searchBox = document.getElementById('search-contact');
     Search.init(MockSearchSource, true, null);
-    Search.enterSearchMode({preventDefault: function() {}}).then(done);
+    Search.enterSearchMode({preventDefault: function() {}});
   });
 
   teardown(function() {
