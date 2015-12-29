@@ -44,12 +44,14 @@
      * @method  MessageHandler#pin
      * @param {Object} cardEntry - cardEntry representing the card
      * @param {String} cardEntry.type - valid values are 'Application', 'Deck',
-     *                                and 'Folder'
+     *                                'AppBookmark', and 'Folder'
      * @param {String} cardEntry.group - valud values are 'tv', 'application',
      *                                 'device', and 'dashboard'
      * @param {String} cardEntry.manifestURL - manifestURL, if the card
-     *                                       represent an app or a deck
+     *                                       represents an app or a deck
      * @param {String} cardEntry.launchURL - optional
+     * @param {String} cardEntry.url - URL, if the card represents a bookmark
+     * @param {String} cardEntry.name.raw - optional display name
      * @param {Blob} cardEntry.thumnail - see [blob](http://mzl.la/1BRI7IV)
      */
     pin: function mh_pin(cardEntry) {
@@ -63,8 +65,10 @@
      * @public
      * @method  MessageHandler#unpin
      * @param  {Object} data
-     * @param  {String} data.manifestURL - manifestURL of the unpinned app
-     * @param  {String} data.launchURL - optional
+     * @param  {String} data.manifestURL - manifestURL if unpinning an app
+     * @param  {String} data.launchURL - optional launchURL if unpinning an
+     *                                   app
+     * @param  {String} data.url - link URL when unpinning an bookmark
      */
     unpin: function mh_unpin(data) {
       var home = this._home;

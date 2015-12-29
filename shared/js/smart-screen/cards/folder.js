@@ -116,7 +116,8 @@
   // There are three types of query:
   // 1. query by cardId
   // 2. query by manifestURL and optionally launchURL
-  // 3. query by cardEntry (i.e. serialized card)
+  // 3. query by bookmark url
+  // 4. query by cardEntry (i.e. serialized card)
   Folder.prototype.findCard = function folder_findCard(query) {
     var found;
     this._cardsInFolder.some(function(card, index) {
@@ -136,6 +137,11 @@
           found = card;
           return true;
         }
+      } else if (query.url) {
+        if (query.url === card.url) {
+          found = card;
+        }
+        return true;
       } else if (query.cardEntry) {
         // XXX: this could be bad at performance because we serialize card
         // in every loop. We might need improvement on this query.
