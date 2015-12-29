@@ -8,7 +8,6 @@ require('/js/notification/notification.js');
 var mocksForNotification = new MocksHelper([]);
 
 suite('Network Alerts - Notification handling', function() {
-  mocksForNotification.attachTestHelpers();
 
   setup(function() {
     this.sinon.stub(window, 'close');
