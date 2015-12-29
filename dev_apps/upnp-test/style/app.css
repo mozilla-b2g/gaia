@@ -1,0 +1,80 @@
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 10px;
+    font-family: sans-serif;
+  }
+  header {
+    font: 25px bold;
+  }
+  button {
+    font-size: 15px;
+  }
+  section {
+    padding: 10px;
+  }
+
+  #folderList {
+    width: 300px;
+    height: 280px;
+    padding: 0 20px;
+    overflow: auto;
+    border: 1px solid;
+  }
+  #debug {
+    padding: 0.5em;
+    border: thin inset;
+    font: small monospace;
+    color: black;
+  }
+  .audio, .video, .image, .folder, #folderlist a {
+    display: block;
+    padding-left: 25px;
+    margin: 25px 0;
+    font-size: 15px;
+  }
+  a.folder {
+    color: #FF9900;
+    padding-left: 40px;
+    background: url(image/folder_closed.png) left center no-repeat,
+                url(image/icon_folder.png) left 20px center no-repeat;
+  }
+  a.folder.opened {
+    background: url(image/folder_opened.png) left center no-repeat,
+                url(image/icon_folder.png) left 20px center no-repeat;
+  }
+  .audio {
+    color: #00CC66;
+    background: url(image/icon_music.png) left center no-repeat;
+  }
+  .video {
+    color: #00CC66;
+    background: url(image/icon_video.png) left center no-repeat;
+  }
+  .image {
+    color: #00CC66;
+    background: url(image/icon_image.png) left center no-repeat;
+  }
+  .server {
+    background: url(image/icon_server.png) left center no-repeat;
+    font: 15px bold;
+    padding: 0 25px;
+    margin-top: 20px;
+  }
+  .sublist {
+    margin-left: 20px;
+  }
+  .player {
+    height: 150px;
+  }
+  a:hover {
+    color: #003399;
+  }
+  a:visited {
+    color: #999999;
+  }
+  .hide {
+    display: none;
+  }

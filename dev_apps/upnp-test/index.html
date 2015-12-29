@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <title>Device Storage Test</title>
+    <script type="text/javascript" src="js/lib/ssdp/ssdp.js"></script>
+    <script type="text/javascript" src="js/lib/plug.play/plug.upnp.js"></script>
+    <script type="text/javascript" src="js/lib/plug.play/ContentDirectory/plug.upnp_contentdirectory.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+    <link href="style/app.css" rel="stylesheet">
+  </head>
+  <body role="application">
+    <section>
+      <header>UPnP Test</header>
+    </section>
+
+    <section>
+      <div id="folderList"></div>
+    </section>
+
+    <section>
+      <div>
+        <audio id="audioPlayer" class="player" controls="true"></audio>
+        <video id="videoPlayer" class="player" controls="true"></video>
+        <img id="imagePlayer" class="player"></img>
+      </div>
+      <div id="controlButtons">
+        <button id="discoverButton">Discover</button>
+        <button id="playerToggler">Hide/Show Player</button>
+        <button id="clearLog">Clear Log</button>
+      </div>
+    </section>
+
+    <section>
+      <div id="debug">
+      </div>
+    </section>
+  </body>
+</html>
