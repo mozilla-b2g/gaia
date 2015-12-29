@@ -6,6 +6,7 @@
 /* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_OFFLINE */
+/* global ERROR_SYNC_APP_KILLED */
 /* global ERROR_UNKNOWN */
 /* global LazyLoader */
 /* global Settings */
@@ -204,7 +205,8 @@
         case 'errored':
           LazyLoader.load('shared/js/sync/errors.js', () => {
             const IGNORED_ERRORS = [
-              ERROR_DIALOG_CLOSED_BY_USER
+              ERROR_DIALOG_CLOSED_BY_USER,
+              ERROR_SYNC_APP_KILLED
             ];
 
             if (IGNORED_ERRORS.indexOf(message.error) > -1) {
