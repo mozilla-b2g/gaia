@@ -181,12 +181,6 @@ suite('Sync settings >', function() {
       });
 
       alertStub = sinon.stub(window, 'alert');
-
-      subject.state = 'disabling';
-      onsyncchange({
-        state: 'disabled',
-        user: 'pepito'
-      });
     });
 
     suiteTeardown(function() {
@@ -195,9 +189,25 @@ suite('Sync settings >', function() {
       alertStub.restore();
     });
 
-    test('should show disabled dialog', function() {
-      expect(alertStub.calledOnce).to.equal(true);
-      expect(alertStub.args[0][0]).to.equal('fxsync-disabled');
+    teardown(function() {
+      alertStub.reset();
+    });
+
+    ['enabled', 'syncing'].forEach(previousState => {
+      test('should show disabled dialog',
+        function(done) {
+        subject.previousState = previousState;
+        subject.state = 'disabling';
+        onsyncchange({
+          state: 'disabled',
+          user: 'pepito'
+        });
+        setTimeout(function() {
+          expect(alertStub.calledOnce).to.equal(true);
+          expect(alertStub.args[0][0]).to.equal('fxsync-disabled');
+          done();
+        });
+      });
     });
   });
 
