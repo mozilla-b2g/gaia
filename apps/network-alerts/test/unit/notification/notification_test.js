@@ -5,8 +5,6 @@
 
 require('/js/notification/notification.js');
 
-var mocksForNotification = new MocksHelper([]);
-
 suite('Network Alerts - Notification handling', function() {
 
   setup(function() {
