@@ -55,6 +55,8 @@ System.Selector = Object.freeze({
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
   inlineActivity: '.appWindow.inline-activity',
+  permissionDialog: '#permission-dialog',
+  permissionYes: '#permission-yes',
   pinDialog: '.appWindow.active .chrome .pin-dialog',
   pinButton: '.appWindow.active .chrome .pin-button',
   sleepMenuContainer: '#sleep-menu-container',
@@ -241,6 +243,14 @@ System.prototype = {
 
   get inlineActivity() {
     return this.client.helper.waitForElement(System.Selector.inlineActivity);
+  },
+
+  get permissionDialog() {
+    return this.client.helper.waitForElement(System.Selector.permissionDialog);
+  },
+
+  get permissionYes() {
+    return this.client.helper.waitForElement(System.Selector.permissionYes);
   },
 
   get pinDialog() {
