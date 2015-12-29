@@ -334,43 +334,34 @@ return View.extend({
     this.optionsMenuContainer.innerHTML = this.optionTemplate();
     this.el.appendChild(this.optionsMenuContainer);
 
-    this.el.classList.add('action-menu');
-
     this.menu = this.find('.js-menu');
+    this.menu.removeAttribute('hidden');
 
     // We add the event listner for menu items and cancel buttons
-    var cancelButton = this.find('.js-cancel');
-    bind(cancelButton, 'click', this.hideOptionsMenu);
-    if (this.menu) {
-      attach.on(this.menu, 'click', '.js-btn', this.onButtonClick);
-    }
+    var galleryBtn = this.find('.js-gallery-btn'),
+      deleteBtn = this.find('.js-delete-btn');
+    bind(galleryBtn, 'click', this.onButtonClick);
+    bind(deleteBtn, 'click', this.onButtonClick);
   },
 
   hideOptionsMenu: function() {
     if (this.optionsMenuContainer) {
-      this.el.classList.remove('action-menu');
-      this.optionsMenuContainer.parentElement.removeChild(
-        this.optionsMenuContainer);
-      this.optionsMenuContainer = null;
+      this.menu = this.find('.js-menu');
+      this.menu.setAttribute('hidden', true);
     }
   },
 
   optionTemplate: function() {
-    return '<form class="visible" data-type="action"' +
-      'role="dialog" data-z-index-level="action-menu">' +
+    return '<gaia-menu id="options-view" class="js-menu" hidden>' +
       '<header data-l10n-id="options">Options</header>' +
-      '<menu class="js-menu">' +
-      '<button class="js-btn" name="gallery" data-l10n-id="open-gallery">' +
+      '<button class="js-gallery-btn" name="gallery" ' +
+        'data-l10n-id="open-gallery">' +
         'Open Gallery' +
       '</button>' +
-      '<button class="js-btn" name="delete" data-l10n-id="delete">' +
+      '<button class="js-delete-btn" name="delete" data-l10n-id="delete">' +
         'Delete' +
       '</button>' +
-      '<button class="js-cancel" data-action="cancel" data-l10n-id="cancel">' +
-        'Cancel' +
-      '</button>' +
-      '</menu>' +
-      '</form>';
+      '</gaia-menu>';
   }
 });
 
