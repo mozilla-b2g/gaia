@@ -176,7 +176,7 @@ marionette('Music player tests', function() {
 
       // check the status bar for the hidden play icon
       client.switchToFrame();
-      assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'true');
+      statusbar.waitForPlayingIndicatorShown(false);
 
       music.switchToMe();
       music.playFirstSong();
@@ -186,7 +186,7 @@ marionette('Music player tests', function() {
     test('Check the play icon is in the status bar. moztrap:9742', function() {
       // check the status bar
       client.switchToFrame();
-      assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'false');
+      statusbar.waitForPlayingIndicatorShown(true);
 
       // switch to the homescreen
       var system = client.loader.getAppClass('system');
@@ -197,13 +197,21 @@ marionette('Music player tests', function() {
       });
 
       // check the status bar again
-      assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'false');
+      statusbar.waitForPlayingIndicatorShown(true);
     });
 
     test('Check the play icon is hidden after close Music app', function() {
-      music.close();
+      // ensure statusbar icon is visible
       client.switchToFrame();
-      assert.equal(statusbar.playingIndicator.getAttribute('hidden'), 'true');
+      statusbar.waitForPlayingIndicatorShown(true);
+
+      // close the music app
+      music.switchToMe();
+      music.close();
+
+      // make sure statusbar icon goes away
+      client.switchToFrame();
+      statusbar.waitForPlayingIndicatorShown(false);
     });
   });
 
