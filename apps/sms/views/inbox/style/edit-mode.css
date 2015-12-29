@@ -13,10 +13,6 @@
   background-image: url("images/icons/ico_in_markasunread_30x30.png");
 }
 
-.edit #threads-container[data-type="list"] {
-  height: calc(100% - 10rem);
-}
-
 html[dir="ltr"] .edit [data-type="list"] li > a > aside.icon-unread {
   transform: translateX(5rem);
 }

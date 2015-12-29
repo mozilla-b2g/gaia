@@ -2,9 +2,9 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Template, Utils, Threads, Contacts, Threads,
-         WaitingScreen, MessageManager, TimeHeaders,
+         WaitingScreen, MessageManager,
          Drafts, Thread, OptionMenu, ActivityPicker,
-         StickyHeader, Navigation,
+         Navigation,
          SelectionHandler,
          Settings,
          LazyLoader,
@@ -15,12 +15,6 @@
 'use strict';
 
 const privateMembers = new WeakMap();
-
-function createBdiNode(content) {
-  var bdi = document.createElement('bdi');
-  bdi.textContent = content;
-  return bdi;
-}
 
 var InboxView = {
   DRAFT_SAVED_DURATION: 5000,
@@ -45,9 +39,6 @@ var InboxView = {
   notifyAboutSavedDraftWithId: null,
 
   init: function inbox_init() {
-    this.tmpl = {
-      thread: Template('messages-thread-tmpl')
-    };
 
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
     [
@@ -55,7 +46,7 @@ var InboxView = {
       'check-uncheck-all-button','composer-link',
       'delete-button', 'edit-header','options-button',
       'settings-button','edit-mode', 'edit-form',
-      'draft-saved-banner'
+      'draft-saved-banner', 'list'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -126,19 +117,6 @@ var InboxView = {
     this.once('fully-loaded', () => {
       this.ensureReadAheadSetting();
     });
-
-    this.once('visually-loaded', () => {
-      this.initStickyHeader();
-    });
-
-    this.sticky = null;
-  },
-
-  initStickyHeader: function inbox_initStickyHeader() {
-    if (!this.sticky) {
-      this.sticky =
-        new StickyHeader(this.container, document.getElementById('sticky'));
-    }
   },
 
   beforeEnter: function inbox_beforeEnter(args = {}) {
@@ -162,9 +140,9 @@ var InboxView = {
     return Threads.keys();
   },
 
-  setContact: function inbox_setContact(node) {
-    var threadId = node.dataset.threadId;
-    var draftId = node.dataset.draftId;
+  setContact: function inbox_setContact(data) {
+    var threadId = data.id;
+    var draftId = data.draftId;
 
     var threadOrDraft = draftId ?
       Drafts.byDraftId(+draftId) : Threads.get(+threadId);
@@ -175,35 +153,23 @@ var InboxView = {
 
     var threadNumbers = threadOrDraft.participants || threadOrDraft.recipients;
 
-    var titleContainer = node.querySelector('.threadlist-item-title');
-    var title = titleContainer.firstElementChild;
-    var picture = node.querySelector('.threadlist-item-picture');
-
     if (!threadNumbers || !threadNumbers.length) {
-      title.setAttribute('data-l10n-id', 'no-recipient');
-      return;
+      return document.l10n.formatValue('no-recipient').then((text) =>
+        data.title = text
+      );
     }
 
-    function* updateThreadNode(number) {
+    function* updateThreadData(number) {
       var contact = yield InboxView.findContact(number, { photoURL: true });
       var isContact = !!contact.isContact;
 
-      picture.classList.toggle('has-picture', isContact);
-      picture.classList.toggle(
-        'default-picture', isContact && !contact.photoURL
-      );
+      data.title = contact.title || number;
+      data.showContact = isContact;
+      data.titleLength = '';
 
-      title.textContent = contact.title || number;
-
-      var photoUrl = node.dataset.photoUrl;
+      var photoUrl = data.photoUrl;
       if (photoUrl) {
         window.URL.revokeObjectURL(photoUrl);
-      }
-
-      if (contact.photoURL) {
-        node.dataset.photoUrl = contact.photoURL;
-      } else if (photoUrl) {
-        node.dataset.photoUrl = '';
       }
 
       if (contact.photoURL) {
@@ -211,56 +177,49 @@ var InboxView = {
         // contact image thumbnail is decoded by Gecko. Difference is especially
         // noticeable on slow devices. Please keep default image in sync with
         // what defined in CSS (sms.css/.threadlist-item-picture)
-        picture.firstElementChild.style.backgroundImage = [
+        data.photoUrl = contact.photoURL;
+        data.bgImgStyle = 'background-image: ' + [
           'url(' + contact.photoURL + ')',
           'url(/views/inbox/style/images/default_contact_image.png)'
         ].join(', ');
       } else {
-        picture.firstElementChild.style.backgroundImage = null;
+        data.photoUrl = isContact ? 'default' : '';
+        data.bgImgStyle = '';
       }
+
+      return data;
     }
 
-    function* updateGroupThreadNode(numbers, titleMaxLength) {
+    function* updateGroupThreadData(numbers, titleMaxLength) {
       var contactTitle, number;
       var i = 0;
       var threadTitleLength = 0;
+      var groupTitle = [];
 
-      var groupTitle = document.createElement('span');
-      var separatorNode = document.createElement('span');
-      separatorNode.setAttribute(
-        'data-l10n-id',
-        'thread-participant-separator'
-      );
-
-      picture.firstElementChild.textContent = numbers.length;
-      picture.classList.add('has-picture', 'group-picture');
+      data.titleLength = numbers.length;
+      data.photoUrl = 'group';
+      data.showContact = true;
 
       while (i < numbers.length && threadTitleLength < titleMaxLength) {
         number = numbers[i++];
 
         contactTitle = (yield InboxView.findContact(number)).title || number;
 
-        if (threadTitleLength > 0) {
-          groupTitle.appendChild(separatorNode.cloneNode(true));
-        }
-        groupTitle.appendChild(createBdiNode(contactTitle));
+        groupTitle.push(contactTitle);
 
         threadTitleLength += contactTitle.length;
       }
 
-      titleContainer.replaceChild(groupTitle, title);
-    }
+      data.title = groupTitle.join(' , ');
 
-    if (!title.textContent) {
-      // display something before waiting for findContact's result
-      title.textContent = threadNumbers[0];
+      return data;
     }
 
     if (threadNumbers.length === 1) {
-      return Utils.Promise.async(updateThreadNode)(threadNumbers[0]);
+      return Utils.Promise.async(updateThreadData)(threadNumbers[0]);
     }
 
-    return Utils.Promise.async(updateGroupThreadNode)(
+    return Utils.Promise.async(updateGroupThreadData)(
       threadNumbers, privateMembers.get(this).groupThreadTitleMaxLength
     );
   },
@@ -408,44 +367,22 @@ var InboxView = {
         (isRead || !thread.getDraft());
 
       if (markable) {
+        var index = this.listData.findIndex((data) => data.id === thread.id);
+        var status = '';
+
+        if (!isRead) {
+          status = 'unread-thread';
+        } else if (!!thread.getDraft()) {
+          status = 'has-draft';
+        }
         thread.unreadCount = isRead ? 0 : 1;
-        this.mark(thread.id, isRead ? 'read' : 'unread');
+        this.mark(index, status);
 
         MessageManager.markThreadRead(thread.id, isRead);
       }
     });
 
     this.cancelEdit();
-  },
-
-  removeConversationDOM(conversationId) {
-    var li = document.getElementById('thread-' + conversationId);
-    var parent;
-    var photoUrl = li && li.dataset.photoUrl;
-
-    // Revoke the contact photo while deletion for avoiding intermittent
-    // photo disappear issue.
-    if (photoUrl) {
-      window.URL.revokeObjectURL(photoUrl);
-    }
-
-    if (li) {
-      parent = li.parentNode;
-      li.remove();
-    }
-
-    // remove the header and the ul for an empty list
-    if (parent && !parent.firstElementChild) {
-      parent.previousSibling.remove();
-      parent.remove();
-
-      this.sticky && this.sticky.refresh();
-
-      // if we have no more elements, set empty classes
-      if (!this.container.querySelector('li')) {
-        this.setEmpty(true);
-      }
-    }
   },
 
   // Since removeConversationDOM will revoke list photoUrl at the end of
@@ -601,20 +538,12 @@ var InboxView = {
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderDrafts: function inbox_renderDrafts() {
-    // Request and render all threads with drafts
-    // or thread-less drafts.
+  prepareDrafts: function inbox_prepareDrafts() {
+    // Request all threads with drafts or thread-less drafts.
     return Drafts.request().then(() => {
+      var promises = [];
       for (var draft of Drafts.getAll()) {
-        if (draft.threadId) {
-          // Find draft-containing threads that have already been rendered
-          // and update them so they mark themselves appropriately
-          if (document.getElementById(`thread-${draft.threadId}`)) {
-            this.updateThread(
-              Threads.get(draft.threadId), { conversationDraft: true }
-            );
-          }
-        } else {
+        if (!draft.threadId) {
           // Safely assume there is a threadless draft
           this.setEmpty(false);
 
@@ -622,18 +551,24 @@ var InboxView = {
           if (!Threads.has(draft.id)) {
             var thread = Thread.create(draft);
             Threads.set(draft.id, thread);
-            this.appendThread(thread);
+            promises.push(this.appendThread(thread));
           }
         }
       }
 
-      this.sticky && this.sticky.refresh();
+      return Promise.all(promises);
     });
   },
 
   prepareRendering: function inbox_prepareRendering() {
-    this.container.innerHTML = '';
-    this.renderDrafts();
+    // this.container.innerHTML = '';
+    this.listData = [];
+    this.list.configure({
+      getSectionName: function(item) {
+        return item.dayTextContent;
+      }
+    });
+    return this.prepareDrafts();
   },
 
   startRendering: function inbox_startRenderingThreads() {
@@ -646,10 +581,9 @@ var InboxView = {
     }
 
     if (!empty) {
-      TimeHeaders.updateAll('header[data-time-update]');
+      this.list.setModel(this.listData);
+      this.list.cache();
     }
-
-    this.sticky && this.sticky.refresh();
   },
 
   ensureReadAheadSetting: function inbox_ensureReadAheadSettting() {
@@ -662,8 +596,6 @@ var InboxView = {
     var hasThreads = false;
     var firstPanelCount = this.FIRST_PANEL_THREAD_COUNT;
 
-    this.prepareRendering();
-
     function onRenderThread(thread) {
       /* jshint validthis: true */
       // Register all threads to the Threads object.
@@ -674,13 +606,16 @@ var InboxView = {
         this.startRendering();
       }
 
-      this.appendThread(thread);
-
-      // Dispatch visually-loaded when rendered threads could fill up the top of
-      // the visible area.
-      if (--firstPanelCount === 0) {
-        this.emit('visually-loaded');
-      }
+      this.appendThread(thread).then(() => {
+        // Dispatch visually-loaded when rendered threads could fill up the top
+        // of the visible area.
+        if (--firstPanelCount === 0) {
+          this.list.setModel(this.listData);
+          this.emit('visually-loaded');
+        } else if (this.listData.length % this.FIRST_PANEL_THREAD_COUNT === 0) {
+          this.list.setModel(this.listData);
+        }
+      });
     }
 
     function onThreadsRendered() {
@@ -697,106 +632,73 @@ var InboxView = {
       }
     }
 
-    MessageManager.getThreads({
+    this.prepareRendering().then(() => MessageManager.getThreads({
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
       done: () => this.emit('fully-loaded')
-    });
-  },
-
-  /**
-   * This method is responsible for adding or updating the data that could
-   * change in a node that's not moving in the same time.
-   *
-   * @param {Node} node The Node to update.
-   * @param {Object} record An object that holds the conversation informations.
-   */
-  updateConversationContent(node, record) {
-    var id = record.id;
-
-    var thread = Threads.get(id);
-    var isDraft = thread.isDraft;
-    var draft = thread.getDraft();
-
-    var body = record.body;
-    var type = record.lastMessageType;
-
-    var iconLabel = '';
-
-    // If the draft is newer than the message, update
-    // the body with the draft content's first string.
-    if (draft && draft.timestamp >= record.timestamp) {
-      body = draft.content.find((content) => typeof content === 'string');
-      type = draft.type;
-    }
-
-    node.dataset.lastMessageType = type;
-
-    if (draft) {
-      // Set the "draft" visual indication
-      node.classList.add('draft');
-
-      if (isDraft) {
-        node.dataset.draftId = draft.id;
-        node.classList.add('is-draft');
-        iconLabel = 'is-draft';
-      } else {
-        node.classList.add('has-draft');
-        iconLabel = 'has-draft';
-      }
-    } else {
-      // remove it
-      node.classList.remove('draft', 'has-draft', 'is-draft');
-    }
-
-    if (record.unreadCount > 0) {
-      node.classList.add('unread');
-      iconLabel = 'unread-thread';
-    } else {
-      node.classList.remove('unread');
-    }
-
-    node.querySelector('.js-conversation-body').textContent = body || '';
-
-    var stateIndicator = node.querySelector('.js-conversation-state');
-    if (iconLabel) {
-      document.l10n.setAttributes(stateIndicator, iconLabel);
-    } else {
-      stateIndicator.removeAttribute('data-l10n-id');
-    }
+    }));
   },
 
   createThread: function inbox_createThread(record) {
     // Create DOM element
-    var li = document.createElement('li');
     var timestamp = +record.timestamp;
+    var participants = record.participants;
     var id = record.id;
+    var classList = [];
+    var daySection = Utils.getDayDate(timestamp);
+
     var thread = Threads.get(id);
-    // A "new message" draft
     var isDraft = thread.isDraft;
-    // An existing conversation's draft.
     var draft = thread.getDraft();
 
-    li.id = 'thread-' + id;
-    li.dataset.threadId = id;
-    li.dataset.time = timestamp;
-    li.classList.add('threadlist-item');
+    var bodyHTML = !draft ? record.body : draft.content.toString();
+    var type = !draft ? record.lastMessageType : draft.type;
 
-    // Render markup with thread data
-    li.innerHTML = this.tmpl.thread.interpolate({
+    var mmsPromise = type === 'mms' ?
+      document.l10n.formatValue('mms-label') : Promise.resolve('');
+
+    var labelId = '';
+
+    bodyHTML = Template.escape(bodyHTML || '');
+
+
+    classList.push('threadlist-item');
+
+    if (draft) {
+      if (isDraft) {
+        labelId = 'is-draft';
+      } else {
+        labelId = 'has-draft';
+      }
+    }
+
+    if (record.unreadCount > 0) {
+      labelId = 'unread-thread';
+    }
+
+    var labelPromise = labelId ?
+      document.l10n.formatValue(labelId) : Promise.resolve('');
+
+    return Promise.all([
+      Utils.getHeaderDate(daySection),
+      labelPromise,
+      mmsPromise
+    ]).then((results) => ({
+      type: type,
+      draftId: isDraft ? draft.id : '',
       hash: isDraft ? '#/composer' : '#/thread?id=' + id,
       mode: isDraft ? 'drafts' : 'threads',
       id: isDraft ? draft.id : id,
-      timestamp: String(timestamp)
-    }, {
-      safe: ['id']
-    });
-
-    this.updateConversationContent(li, record);
-
-    TimeHeaders.update(li.querySelector('time'));
-
-    return li;
+      title: participants.join(' , ') || '',
+      bodyHTML: bodyHTML,
+      timestamp: String(timestamp),
+      timeTextContent: Utils.getFormattedHour(timestamp),
+      daySection: daySection,
+      dayTextContent: results[0],
+      iconLabel: results[1],
+      status: labelId,
+      mmsTextContent: results[2]
+    }));
   },
 
   deleteThread: function(threadId) {
@@ -806,27 +708,14 @@ var InboxView = {
     Threads.delete(threadId);
 
     // Cleanup the DOM
-    this.removeConversationDOM(threadId);
+    var index = this.listData.findIndex((data) => data.id === threadId);
+    if (index > -1) {
+      this.listData.splice(index, 1);
+      this.list.setModel(this.listData);
+    }
 
     // Remove notification if exist
     Utils.closeNotificationsForThread(threadId);
-  },
-
-  insertThreadContainer:
-    function inbox_insertThreadContainer(group, timestamp) {
-    // We look for placing the group in the right place.
-    var headers = InboxView.container.getElementsByTagName('header');
-    var groupFound = false;
-    for (var i = 0; i < headers.length; i++) {
-      if (timestamp >= headers[i].dataset.time) {
-        groupFound = true;
-        InboxView.container.insertBefore(group, headers[i].parentNode);
-        break;
-      }
-    }
-    if (!groupFound) {
-      InboxView.container.appendChild(group);
-    }
   },
 
   /**
@@ -845,8 +734,8 @@ var InboxView = {
    */
   updateThread(record, options = {}) {
     var thread = Thread.create(record, options);
-    var threadUINode = document.getElementById('thread-' + thread.id);
-    var threadUITime = threadUINode ? +threadUINode.dataset.time : NaN;
+    var index = this.listData.findIndex((data) => data.id === thread.id);
+    var threadUITime = index > -1 ? +this.listData[index].timestamp : NaN;
     var recordTime = +thread.timestamp;
 
     Threads.set(thread.id, thread);
@@ -855,7 +744,7 @@ var InboxView = {
     // one in the conversation, we only need to update the 'unread' status.
     var newMessageReceived = options.unread;
     if (newMessageReceived && threadUITime > recordTime) {
-      this.mark(thread.id, 'unread');
+      this.mark(index, 'unread-thread');
       return;
     }
 
@@ -865,23 +754,14 @@ var InboxView = {
       return;
     }
 
-    if (threadUINode && options.conversationDraft) {
-      // hasDraft drafts do not change the timestamps, so we can
-      // change the body and the type only.
-      this.updateConversationContent(threadUINode, record);
-      return;
-    }
-
-    // General case: update the conversation UI.
-    if (threadUINode) {
-      // remove the current node in order to place the new one properly.
-      this.removeConversationDOM(thread.id);
+    // General case: update the thread UI.
+    if (index > -1) {
+      // remove the current thread node in order to place the new one properly
+      this.listData.splice(index, 1);
     }
 
     this.setEmpty(false);
-    if (this.appendThread(thread)) {
-      this.sticky && this.sticky.refresh();
-    }
+    this.appendThread(thread).then(() => this.list.setModel(this.listData));
   },
 
   onMessageSending: function inbox_onMessageSending(e) {
@@ -914,107 +794,57 @@ var InboxView = {
    */
   appendThread: function inbox_appendThread(thread) {
     var timestamp = +thread.timestamp;
-    var firstThreadInContainer = false;
 
     // We create the DOM element of the thread
-    var node = this.createThread(thread);
+    return this.createThread(thread).then((data) => {
+      // Async update contact after insert to list
+      this.setContact(data);
 
-    // Update info given a number
-    this.setContact(node);
-
-    // Is there any container already?
-    var threadsContainerID = 'threadsContainer_' +
-                              Utils.getDayDate(timestamp);
-    var threadsContainer = document.getElementById(threadsContainerID);
-    // If there is no container we create & insert it to the DOM
-    if (!threadsContainer) {
-      // We create the wrapper with a 'header' & 'ul'
-      var threadsContainerWrapper =
-        InboxView.createThreadContainer(timestamp);
-      // Update threadsContainer with the new value
-      threadsContainer = threadsContainerWrapper.childNodes[1];
-      // Place our new content in the DOM
-      InboxView.insertThreadContainer(threadsContainerWrapper, timestamp);
-      // We had to create a container, so this will be the first thread in it.
-      firstThreadInContainer = true;
-    }
-
-    // Where have I to place the new thread?
-    var threads = threadsContainer.getElementsByTagName('li');
-    var threadFound = false;
-    for (var i = 0, l = threads.length; i < l; i++) {
-      if (timestamp > threads[i].dataset.time) {
-        threadFound = true;
-        threadsContainer.insertBefore(node, threads[i]);
-        break;
+      // Where have I to place the new thread?
+      var threadFound = false;
+      for (var i = this.listData.length - 1; i > -1 ; i--) {
+        if (timestamp < this.listData[i].timestamp) {
+          threadFound = true;
+          this.listData.splice(i + 1, 0, data);
+          break;
+        }
       }
-    }
 
-    if (!threadFound) {
-      threadsContainer.appendChild(node);
-    }
+      if (!threadFound) {
+        this.listData.unshift(data);
+      }
 
-    if (this.inEditMode) {
-      // Remove the new added thread id from the selection handler
-      this.selectionHandler.unselect(thread.id);
+      if (this.inEditMode) {
+        // Remove the new added thread id from the selection handler
+        this.selectionHandler.unselect(thread.id);
 
-      this.updateSelectionStatus();
-    }
+        this.updateSelectionStatus();
+      }
 
-    return firstThreadInContainer;
-  },
-
-  // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createThreadContainer: function inbox_createThreadContainer(timestamp) {
-    var threadContainer = document.createElement('div');
-    // Create Header DOM Element
-    var headerDOM = document.createElement('header');
-
-    // The id is used by the sticky header code as the -moz-element target.
-    headerDOM.id = 'header_' + timestamp;
-
-    // Append 'time-update' state
-    headerDOM.dataset.timeUpdate = 'repeat';
-    headerDOM.dataset.time = timestamp;
-    headerDOM.dataset.dateOnly = true;
-
-    // Create UL DOM Element
-    var threadsContainerDOM = document.createElement('ul');
-    threadsContainerDOM.id = 'threadsContainer_' +
-                              Utils.getDayDate(timestamp);
-    // Add text
-    Utils.setHeaderDate({
-      time: timestamp,
-      element: headerDOM
+      return;
     });
-
-    // Add to DOM all elements
-    threadContainer.appendChild(headerDOM);
-    threadContainer.appendChild(threadsContainerDOM);
-    return threadContainer;
   },
 
   // Method for updating all contact info after creating a contact
   updateContactsInfo: function inbox_updateContactsInfo() {
     Contacts.clearUnknown();
     // Prevents cases where updateContactsInfo method is called
-    // before InboxView.container exists (as observed by errors
-    // in the js console)
-    if (!this.container) {
+    // before listData exists.
+    if (!this.listData) {
       return;
     }
-    // Retrieve all 'li' elements
-    var threads = this.container.getElementsByTagName('li');
-
-    [].forEach.call(threads, this.setContact.bind(this));
+    // Retrieve all the list data
+    this.listData.forEach(this.setContact);
   },
 
-  mark: function inbox_mark(id, current) {
-    var li = document.getElementById('thread-' + id);
+  mark: function inbox_mark(index, current) {
+    var data = this.listData[index];
 
-    if (li) {
-      li.classList.toggle('unread', current === 'unread');
-    }
+    return document.l10n.formatValue(current).then((string) => {
+      data.status = current;
+      data.iconLabel = string;
+      return this.list.setModel(this.listData);
+    });
   },
 
   onDraftDeleted: function inbox_onDraftDeleted(draft) {
