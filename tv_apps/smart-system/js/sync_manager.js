@@ -116,8 +116,6 @@
           window.addEventListener('iac-' + SYNC_MANAGEMENT_API_IAC_KEYWORD,
                                   this.oniacrequestListener);
           // Sync app lifecycle.
-          this.onkillappListener = this.onkillapp.bind(this);
-          window.addEventListener('killapp', this.onkillappListener);
           this.onappterminatedListener = this.onappterminated.bind(this);
           window.addEventListener('appterminated',
                                   this.onappterminatedListener);
@@ -176,7 +174,6 @@
       window.removeEventListener('iac-' + SYNC_MANAGEMENT_API_IAC_KEYWORD,
                                  this.oniacrequestListener);
       window.removeEventListener(FXA_EVENT, this.fxaEventHandler);
-      window.removeEventListener('killapp', this.onkillappListener);
       window.removeEventListener('appterminated',
                                  this.onappterminatedListener);
     },
@@ -509,16 +506,6 @@
       }
     },
 
-    onkillapp(event) {
-      // The synchronizer app can be killed while it's handling a sync
-      // request. In that case, we need to record an error and notify
-      // the state machine about it. Otherwise we could end up on a
-      // permanent 'syncing' state.
-      this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
-        SyncStateMachine.error(ERROR_SYNC_APP_KILLED);
-      });
-    },
-
     onappterminated(event) {
       // If the Sync app is closed, we need to release the reference to
       // its IAC port, so we can get a new connection on the next sync
@@ -530,6 +517,18 @@
       this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
         this._port = null;
       });
+    },
+
+    onportclose() {
+      // The synchronizer app can be killed while it's handling a sync
+      // request. In that case, we need to record an error and notify
+      // the state machine about it. Otherwise we could end up on a
+      // permanent 'syncing' state.
+      if (this.state !== 'syncing') {
+        return;
+      }
+      this.debug('Synchronizer closed before completing the sync request');
+      SyncStateMachine.error(ERROR_SYNC_APP_KILLED);
     },
 
     /** Helpers **/
@@ -758,6 +757,7 @@
               return reject();
             }
             this._port = ports[0];
+            this._port.onclose = this.onportclose.bind(this);
             resolve(this._port);
           }).catch(error => {
             console.error(error);
