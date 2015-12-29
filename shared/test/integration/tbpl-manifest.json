@@ -43,6 +43,7 @@
     "apps/music/test/marionette/Player_test.js": "Bug 1235538 - Intermittent TEST-UNEXPECTED-FAIL | apps/music/test/marionette/Player_test.js | Music player tests Status bar Check the play icon is in the status bar. moztrap:9742",
     "apps/music/test/marionette/playlist_test.js": "Bug 1199530 - Intermittent TEST-UNEXPECTED-FAIL | apps/music/test/marionette/playlist_test.js",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
+    "apps/ringtones/test/marionette/share_test.js": "Bug 1222154 - Failing share_test.js | Share as ringtone Share activity Create new ringtone",
     "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
