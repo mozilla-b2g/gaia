@@ -116,9 +116,6 @@ require.config({
     'shared/wifi_helper': {
       exports: 'WifiHelper'
     },
-    'utils': {
-      exports: ''
-    },
     'vendor/jszip': {
       exports: 'JSZip'
     }
