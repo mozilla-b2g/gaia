@@ -3,9 +3,9 @@
 suite('PanelModel', function() {
   var PanelModel;
   var mockConn;
+  var mockNetworkInfo;
   var mockHardwareSupportMode = {};
 
-  var realGetSupportedNetworkInfo;
   var realMozMobileConnections;
 
   var panelModel;
@@ -14,22 +14,35 @@ suite('PanelModel', function() {
     'panels/operator_settings/models/panel_model'
   ];
 
+  var map = {
+    '*': {
+      'modules/mobile/supported_network_info': 'MockNetworkInfo'
+    }
+  };
+
   setup(function(done) {
+    var requireCtx = testRequire([], map, function() {});
+
     mockConn = {
       voice: {
         type: 'gsm'
       },
       addEventListener: sinon.stub()
     };
+
+    mockNetworkInfo = {
+      getSupportedNetworkInfo: function(conn, callback) {
+        callback(mockHardwareSupportMode);
+      }
+    };
+    define('MockNetworkInfo', function() {
+      return mockNetworkInfo;
+    });
+
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = [mockConn];
 
-    realGetSupportedNetworkInfo = window.getSupportedNetworkInfo;
-    window.getSupportedNetworkInfo = function(conn, callback) {
-      callback(mockHardwareSupportMode);
-    };
-
-    testRequire(modules, (_PanelModel) => {
+    requireCtx(modules, (_PanelModel) => {
       PanelModel = _PanelModel;
       panelModel = PanelModel(mockConn);
       done();
@@ -37,7 +50,6 @@ suite('PanelModel', function() {
   });
 
   teardown(function() {
-    window.getSupportedNetworkInfo = realGetSupportedNetworkInfo;
     navigator.mozMobileConnections = realMozMobileConnections;
   });
 

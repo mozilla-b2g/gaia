@@ -50,7 +50,9 @@
     mTeardown: mnmmc_init,
     get mEventListeners() {
       return eventListeners;
-    }
+    },
+    supportedNetworkTypes: function() {},
+    setPreferredNetworkType: function() {}
   };
 
   mnmmc_init();
