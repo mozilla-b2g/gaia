@@ -47,6 +47,7 @@
 
     _outOfControlArea: true,
 
+    _disableNavigation: false,
     /**
      * Initialize AppDeck. This is the main entry of the whole app.
      *
@@ -333,6 +334,10 @@
       },
 
     onEnter: function ad_onEnter() {
+      if (this._disableNavigation) {
+        return;
+      }
+
       var focused = this._spatialNavigator.getFocusedElement();
       if (focused && focused.dataset && focused.dataset.manifestURL) {
         Applications.launch(
@@ -343,6 +348,10 @@
     },
 
     onMove: function ad_onMove(key) {
+      if (this._disableNavigation) {
+        return;
+      }
+
       // When we are not in the SpatialNavigator's control area,
       // use XScrollable object's spatial navigator to move.
       // If it fails to move, and it's a 'down' operation, then we
@@ -435,6 +444,15 @@
         return false;
       });
       return found;
+    },
+
+    disableNavigation: function ad_stopNavigation() {
+      this._disableNavigation = true;
+    },
+
+    enableNavigation: function ad_stopNavigation() {
+      this._disableNavigation = false;
+      this._spatialNavigator.focus();
     }
   });
 

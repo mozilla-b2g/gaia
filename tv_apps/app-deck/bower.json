@@ -15,6 +15,9 @@
   ],
   "dependencies": {
     "evt": "fxos-components/evt#~0.4.0",
-    "smart-button": "fxos-components/smart-button"
+    "smart-button": "fxos-components/smart-button",
+    "smart-bubbles": "smart-components/smart-bubbles",
+    "smart-dialog": "smart-components/smart-dialog",
+    "smart-modal-dialog": "smart-components/smart-modal-dialog"
   }
 }
