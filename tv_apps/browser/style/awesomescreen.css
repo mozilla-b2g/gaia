@@ -568,10 +568,8 @@ li {
 #circle-img:focus {
   outline:none;
   transform: scale(1.2);
-  border : 0.1rem solid #fff;
   background: url("../style/images/ic_close_black.png") no-repeat center/contain #fff;
   transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
-                   border 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
