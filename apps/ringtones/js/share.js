@@ -1,4 +1,4 @@
-/* global CustomDialog, Notification */
+/* global CustomDialog, NotificationHelper */
 'use strict';
 
 screen.mozLockOrientation('portrait');
@@ -69,7 +69,6 @@ else {
 
 function handleShare(data, callback) {
   navigator.mozL10n.once(function() {
-    var _ = navigator.mozL10n.get;
 
     function showError(title, message, okCallback) {
       var okButton = {
@@ -95,7 +94,7 @@ function handleShare(data, callback) {
       songtitle = data.name;
     }
     else {
-      songtitle = _('ringtone-untitled');
+      songtitle = 'ringtone-untitled';
     }
 
     var subtitle = '';
@@ -228,13 +227,16 @@ function handleShare(data, callback) {
         // Show a notification indicating success, and then close it immediately
         // so it doesn't stink up the notifications tray! XXX: This UX isn't
         // great; we should turn this into a transient notification when we can.
-        new Notification(
+        NotificationHelper.send(
           songtitle,
-          {body: navigator.mozL10n.get(
-            details.setAsDefault ? 'set-default-tone' : 'created-tone'
-          )}
-        ).close();
-        callback('save', details);
+          { bodyL10n: details.setAsDefault ? 'set-default-tone' :
+                      'created-tone',
+            closeOnClick: false
+          }
+        ).then((notification) => {
+          notification.close();
+          callback('save', details);
+        });
       }, function(error) {
         console.log('Error saving ringtone', error);
         showError('save-error-title', 'save-error-desc',
