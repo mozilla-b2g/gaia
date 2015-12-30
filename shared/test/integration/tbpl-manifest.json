@@ -70,6 +70,7 @@
     "apps/system/test/marionette/context_menu_test.js": "Bug 1233567 - Intermittent TEST-UNEXPECTED-FAIL | apps/system/test/marionette/context_menu_test.js",
     "apps/system/test/marionette/global_overlay_window_test.js": "Bug 1117125 - Update b2g desktop in tbpl after bug 1101029 lands",
     "apps/system/test/marionette/keyboard_edge_resize_test.js": "Bug 1147618",
+    "apps/system/test/marionette/lockscreen_camera_button_test.js": "Bug 1235848 - Intermittent TEST-UNEXPECTED-FAIL | apps/system/test/marionette/lockscreen_camera_button_test.js | LockScreen > after launch the app, turning off and then on the screen should dismiss it",
     "apps/system/test/marionette/lockscreen_media_playback_test.js": "Bug 1110913",
     "apps/system/test/marionette/lockscreen_passcode_unlock_test.js": "Bug 1226340 - Intermittent lockscreen_passcode_unlock_test.js",
     "apps/system/test/marionette/notification_behavior_test.js": "Bug 1148336",
