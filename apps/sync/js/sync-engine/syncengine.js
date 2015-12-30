@@ -61,6 +61,8 @@
 */
 
 var SyncEngine = (function() {
+  const HTTP_TIMEOUT_SECONDS = 180;
+
   var createFxSyncIdSchema = () => {
     return {
       generate: function() {
@@ -197,6 +199,7 @@ uld be a Function`);
       var kinto = new Kinto({
         bucket: kintoCredentials.xClientState,
         remote: kintoCredentials.URL,
+        timeout: HTTP_TIMEOUT_SECONDS * 1000,
         headers: {
           'Authorization': 'BrowserID ' + kintoCredentials.assertion
         }
