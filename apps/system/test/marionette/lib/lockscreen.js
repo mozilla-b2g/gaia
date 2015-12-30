@@ -219,21 +219,6 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
     this._slideLockTo('left', cb);
   };
 
-  LockScreen.prototype.waitForUnlock = function() {
-    return new Promise((function(resolve, reject) {
-      this.client.waitFor((function() {
-        var frame = this.client.findElement('#lockscreen-frame');
-        return !frame.displayed();
-      }).bind(this));
-      if (this.client.executeScript(function() {
-        return window.wrappedJSObject.Service.query('locked');
-      })) {
-        reject('Not unlocked before screen off');
-      } else {
-        resolve();
-      }
-    }).bind(this));
-  };
 
   // Wait new one from the time being.
   // Will change the focusing frame to System.

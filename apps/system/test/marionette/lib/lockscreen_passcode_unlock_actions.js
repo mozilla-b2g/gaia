@@ -49,22 +49,6 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
     }).bind(this));
   };
 
-  LockScreenPasscodeUnlockActions.prototype.waitForPasscodePanel = function() {
-    this.client.waitFor((function() {
-      return this.client.executeScript(function() {
-        var screenHeight = window.wrappedJSObject.screen.height;
-        var panel = window.wrappedJSObject.document
-                      .querySelector('#lockscreen-panel-passcode');
-        var panelTop = panel.getBoundingClientRect().top;
-        if (screenHeight === panelTop) {
-          return true;
-        } else {
-          return false;   // True: only when it rises to 100% fit the screen.
-        }
-      });
-    }).bind(this));
-  };
-
   LockScreenPasscodeUnlockActions.prototype.pressKey = function(keyChar) {
     var selector = '#lockscreen-passcode-pad a[data-key="' + keyChar + '"]';
     // To wait it displayed.
