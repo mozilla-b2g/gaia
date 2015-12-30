@@ -3,7 +3,7 @@
 
 marionette('Homescreen - App reordering', function() {
   var client = marionette.client({
-    profile: require(__dirname + '/client_options_bookmarks.js')
+    profile: require(__dirname + '/client_options.js')
   });
   var actions, home, system;
 
