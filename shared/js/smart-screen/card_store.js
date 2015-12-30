@@ -11,6 +11,7 @@
       this._manifestURL = manifestURL;
       this._getStore();
     } else {
+      this._isOwner = true;
       navigator.mozApps.getSelf().onsuccess = function(evt) {
         var app = evt.target.result;
         that._manifestURL = app.manifestURL;
@@ -153,6 +154,10 @@
       return this._getStore().then(store => {
         return store.getLength();
       });
+    },
+
+    get isOwner() {
+      return this._isOwner;
     }
   });
 
