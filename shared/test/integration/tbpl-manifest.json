@@ -38,6 +38,7 @@
     "apps/homescreen/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1235528 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/app_hosted_use_cached_icon_test.js | Homescreen - Hosted app cached icon fetch fallback to default icon",
     "apps/homescreen/test/marionette/app_order_test.js": "Bug 1223321 - Intermittent apps/homescreen/test/marionette/app_order_test.js | Homescreen - App order App order is retained after restart",
     "apps/homescreen/test/marionette/app_uninstall_pending_test.js": "Bug 1233525 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/app_uninstall_pending_test.js | Homescreen - App uninstall while pending uninstall the app",
+    "apps/homescreen/test/marionette/pinning_edit_test.js": "Bug 1235799 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_edit_test.js",
     "apps/homescreen/test/marionette/pinning_the_web_test.js": "Bug 1233529 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_the_web_test.js | Homescreen - Pin the web Pinning a site from the browser context menu",
     "apps/homescreen/test/marionette/pinning_uninstall_test.js": "Bug 1233527 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_uninstall_test.js",
     "apps/keyboard/test/marionette/auto_correction_test.js": "Bug 1235574 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/auto_correction_test.js",
