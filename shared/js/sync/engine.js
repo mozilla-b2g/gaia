@@ -276,7 +276,8 @@ uld be a Function`);
 
       var userid = collectionOptions && collectionOptions.userid;
       return collection.sync({
-        fetchLimit: (collectionOptions && collectionOptions.limit) || undefined
+        fetchLimit: (collectionOptions && collectionOptions.limit) || undefined,
+        fetchToken: (collectionOptions && collectionOptions.fetchToken) || undefined
       }).then(syncResults => {
         if (syncResults && syncResults.errors && syncResults.errors.length) {
           var error = new Error('Errors in SyncResults');
@@ -284,8 +285,10 @@ uld be a Function`);
           throw error;
         }
         if (syncResults.conflicts.length) {
-          return this._resolveConflicts(collectionName, syncResults.conflicts);
+          return this._resolveConflicts(collectionName, syncResults.conflicts)
+              .then(() => syncResults);
         }
+        return syncResults;
       }).catch(err => {
         if (err instanceof Error && typeof err.response === 'object') {
           if (err.response.status === 401) {
@@ -387,13 +390,18 @@ payload as JSON`);
     },
 
     _updateCollection: function(collectionName, collectionOptions) {
+      var repeatNeeded;
       if (this._engines && !this._engines[collectionName]) {
         console.warn(`Collection ${collectionName} not present on this FxSync a\
 ccount`);
         return Promise.resolve();
       }
       return this._syncCollection(collectionName, collectionOptions)
-          .then(() => {
+          .then(syncResults1 => {
+        if (syncResults1.fetchToken) {
+          collectionOptions.fetchToken = syncResults1.fetchToken;
+          repeatNeeded = true;
+        }
         return this._adapters[collectionName].update(
             this._collections[collectionName], collectionOptions);
       }).then(changed => {
@@ -401,9 +409,19 @@ ccount`);
           return Promise.resolve();
         }
         return this._syncCollection(collectionName, collectionOptions)
-            .then(() => {
+            .then(syncResults2 => {
+          if (syncResults2.fetchToken) {
+            collectionOptions.fetchToken = syncResults2.fetchToken;
+            repeatNeeded = true;
+          } else {
+            repeatNeeded = false;
+          }
           this._haveUnsyncedConflicts[collectionName] = false;
         });
+      }).then(() => {
+        if (repeatNeeded) {
+          return this._updateCollection(collectionName, collectionOptions);
+        }
       });
     },
 
