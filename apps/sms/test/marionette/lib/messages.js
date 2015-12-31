@@ -31,6 +31,7 @@ var ParticipantsAccessor = require('./views/participants/accessors');
 
   var SELECTORS = Object.freeze({
     main: '#main-wrapper',
+    appReady: 'body.js-app-ready',
 
     Message: {
       content: '.message-content > p:first-child',
@@ -63,11 +64,11 @@ var ParticipantsAccessor = require('./views/participants/accessors');
 
         Participants: new ParticipantsAccessor(client),
 
-        launch: function() {
+        launch() {
           client.switchToFrame();
           client.apps.launch(ORIGIN_URL);
           client.apps.switchToApp(ORIGIN_URL);
-          client.helper.waitForElement(SELECTORS.main);
+          client.helper.waitForElement(SELECTORS.appReady);
         },
 
         close: function() {
@@ -113,6 +114,7 @@ var ParticipantsAccessor = require('./views/participants/accessors');
           client.switchToFrame();
 
           client.apps.switchToApp(ORIGIN_URL);
+          client.helper.waitForElement(SELECTORS.appReady);
         },
 
         waitForAppToAppear: function() {

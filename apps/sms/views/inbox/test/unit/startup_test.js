@@ -48,6 +48,7 @@ suite('InboxView Startup', function() {
   MocksHelperForInboxStartup.attachTestHelpers();
 
   setup(function() {
+    this.sinon.spy(App, 'setReady');
     this.sinon.spy(MessageManager, 'init');
     this.sinon.spy(Navigation, 'init');
     this.sinon.spy(InboxView, 'init');
@@ -94,5 +95,15 @@ suite('InboxView Startup', function() {
       sinon.assert.calledOnce(Navigation.setReady);
       sinon.assert.calledOnce(InterInstanceEventDispatcher.connect);
     }).then(done, done);
+  });
+
+  test('app is marked as ready only on fully loaded', function() {
+    InboxView.once.withArgs('visually-loaded').yield();
+
+    sinon.assert.notCalled(App.setReady);
+
+    InboxView.once.withArgs('fully-loaded').yield();
+
+    sinon.assert.calledOnce(App.setReady);
   });
 });

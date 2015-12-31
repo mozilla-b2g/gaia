@@ -102,7 +102,7 @@ marionette('Messages as "new" activity target', function() {
         return !!window.wrappedJSObject.Compose;
       }), 'XSS should not be performed');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -137,9 +137,9 @@ marionette('Messages as "new" activity target', function() {
       launchAsActivity({ body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       assert.isFalse(messagesApp.Composer.sendButton.enabled());
       assert.equal(messagesApp.NewMessage.recipients.length, 0);
@@ -159,16 +159,16 @@ marionette('Messages as "new" activity target', function() {
       launchAsActivity({ number: number, body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), number);
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -185,16 +185,16 @@ marionette('Messages as "new" activity target', function() {
       launchAsActivity({ number: '+100', body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), 'Alan Turing');
       assert.equal(recipients[0].getAttribute('data-source'), 'contacts');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -238,16 +238,16 @@ marionette('Messages as "new" activity target', function() {
       launchAsActivity({ number: '+200', body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), '+200');
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
