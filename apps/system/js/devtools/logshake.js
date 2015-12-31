@@ -2,6 +2,7 @@
           ModalDialog,
           MozActivity,
           Notification,
+          NotificationHelper,
           Service
 */
 
@@ -87,7 +88,7 @@
     handleCaptureLogsStart: function(event) {
       debug('handling capture-logs-start');
       this._shakeId = Date.now();
-      this._notify('logsSaving', '');
+      this._notify('logsSaving');
     },
 
     requestSystemLogs: function() {
@@ -199,12 +200,13 @@
 
       if (typeof error === 'object') {
         if ('operation' in error) {
-          return navigator.mozL10n.get('logsOperationFailed',
-                                       { operation: error.operation });
+          return { id: 'logsOperationFailed',
+                   args: { operation: error.operation }
+                 };
         }
 
         if ('name' in error && error.name === 'NotFoundError') {
-          return navigator.mozL10n.get('logsNotFoundError');
+          return 'logsNotFoundError';
         }
       }
 
@@ -245,10 +247,9 @@
       ModalDialog.alert(title, this.ERRNO_TO_MSG[errorKey], { title: 'ok' });
     },
 
-    _notify: function(titleId, body, onclick, dataPayload) {
-      var title = navigator.mozL10n.get(titleId) || titleId;
+    _notify: function(titleL10n, bodyL10n, onclick, dataPayload) {
       var payload = {
-        body: navigator.mozL10n.get(body) || body,
+        bodyL10n: bodyL10n,
         icon: '/style/notifications/images/bug.png',
         tag: 'logshake:' + this._shakeId,
         data: {
@@ -256,10 +257,11 @@
           logshakePayload: dataPayload || undefined
         }
       };
-      var notification = new Notification(title, payload);
-      if (onclick) {
-        notification.onclick = onclick.bind(this, notification);
-      }
+      NotificationHelper.send(titleL10n, payload).then(notification => {
+        if (onclick) {
+          notification.onclick = onclick.bind(this, notification);
+        }
+      });
     },
 
     handleSystemMessageNotification: function(message) {

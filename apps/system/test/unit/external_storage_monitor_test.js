@@ -1,11 +1,13 @@
 'use strict';
 /* global ExternalStorageMonitor, MocksHelper, MockNotification, MockL10n,
-          MockGetDeviceStorages, MockMozActivity, MockNavigatorSettings */
+          MockNotificationHelper, MockGetDeviceStorages, MockMozActivity,
+          MockNavigatorSettings */
 
 requireApp('system/js/external_storage_monitor.js');
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
@@ -24,6 +26,7 @@ suite('system/ExternalStorageMonitor', function() {
 
   var realL10n;
   var realNotification;
+  var realNotificationHelper;
   var realNavigatorGetDeviceStorages;
   var realMozActivity;
   var realMozSettings;
@@ -38,6 +41,9 @@ suite('system/ExternalStorageMonitor', function() {
 
     realNotification = window.Notification;
     window.Notification = MockNotification;
+    
+    realNotificationHelper = window.NotificationHelper;
+    window.NotificationHelper = MockNotificationHelper;
 
     realNavigatorGetDeviceStorages = navigator.getDeviceStorages;
     navigator.getDeviceStorages = MockGetDeviceStorages;
@@ -54,6 +60,7 @@ suite('system/ExternalStorageMonitor', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     window.Notification = realNotification;
+    window.NotificationHelper = realNotificationHelper;
     navigator.getDeviceStorages = realNavigatorGetDeviceStorages;
     window.MozActivity = realMozActivity;
     navigator.mozSettings = realMozSettings;
@@ -336,17 +343,19 @@ suite('system/ExternalStorageMonitor', function() {
 
         test('fireNotification() should be called ' +
           'after got total space..', function() {
-          var _ = navigator.mozL10n.get;
           assert.isTrue(stubGetTotalSpace.called);
           var gotTotalSpaceCallback = stubGetTotalSpace.getCall(0).args[0];
           gotTotalSpaceCallback(fakeTotalSpace);
-          var title = _('sdcard-detected-title');
-          var body = _('sdcard-total-size-body', {
-            size: fakeTotalSpace.size,
-            unit: fakeTotalSpace.unit
-          });
+          var titleL10n = 'sdcard-detected-title';
+          var bodyL10n = {
+            id: 'sdcard-total-size-body',
+            args: {
+              size: fakeTotalSpace.size,
+              unit: fakeTotalSpace.unit
+            }
+          };
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
-            title, body, true));
+            titleL10n, bodyL10n, true));
         });
       });
 
@@ -357,9 +366,8 @@ suite('system/ExternalStorageMonitor', function() {
         });
 
         test('fireNotification() should be called with three args', function() {
-          var _ = navigator.mozL10n.get;
-          var title = _('sdcard-detected-title');
-          var body = _('sdcard-unknown-size-then-tap-to-format-body');
+          var title = 'sdcard-detected-title';
+          var body = 'sdcard-unknown-size-then-tap-to-format-body';
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
             title, body, true));
         });
@@ -372,9 +380,8 @@ suite('system/ExternalStorageMonitor', function() {
         });
 
         test('fireNotification() should be called with two args', function() {
-          var _ = navigator.mozL10n.get;
-          var title = _('sdcard-removed-title');
-          var body = _('sdcard-removed-ejected-successfully');
+          var title = 'sdcard-removed-title';
+          var body = 'sdcard-removed-ejected-successfully';
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
             title, body));
         });
@@ -387,9 +394,8 @@ suite('system/ExternalStorageMonitor', function() {
         });
 
         test('fireNotification() should be called with two args', function() {
-          var _ = navigator.mozL10n.get;
-          var title = _('sdcard-removed-title');
-          var body = _('sdcard-removed-not-ejected-properly');
+          var title = 'sdcard-removed-title';
+          var body = 'sdcard-removed-not-ejected-properly';
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
             title, body));
         });
@@ -416,7 +422,7 @@ suite('system/ExternalStorageMonitor', function() {
     suite('fireNotification > ', function() {
       var notificationSpy, title, body, openSettings;
       setup(function() {
-        notificationSpy = this.sinon.spy(window, 'Notification');
+        notificationSpy = this.sinon.spy(window.NotificationHelper, 'send');
         title = 'SD card removed';
         body = 'SD card removed eject successfully';
         openSettings = true;
@@ -427,8 +433,6 @@ suite('system/ExternalStorageMonitor', function() {
         'onclick handler ', function() {
         assert.isTrue(notificationSpy.calledOnce,
           'Notification should be called');
-        assert.isTrue(notificationSpy.calledWithNew(),
-          'Notification should be called with new');
         assert.equal(notificationSpy.firstCall.args[0], title,
           'Notification should be called with correct title');
         assert.equal(notificationSpy.firstCall.args[1].body, body,
