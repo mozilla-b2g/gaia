@@ -1,5 +1,4 @@
 /* global BaseModule */
-/* global AppWindowManager */
 'use strict';
 
 (function() {
@@ -81,32 +80,29 @@
     },
 
     _handle_focuschanged: function(evt) {
-      if (evt.detail.topMost.CLASS_NAME === 'AppWindow' &&
+      var classNeedsToHandle = ['AppWindow', 'PopupWindow', 'PreviewWindow'];
+      if (classNeedsToHandle.indexOf(evt.detail.topMost.CLASS_NAME) >= 0 &&
           evt.detail.topMost !== this._topMostWindow) {
-        this._handle_hierarchytopmostwindowchanged();
+        this._handle_hierarchytopmostwindowchanged(evt.detail.topMost);
       }
-    },
-
-    _getTopMostWindow: function() {
-      return AppWindowManager.getActiveApp().getTopMostWindow();
     },
 
     /**
      * Handle the audio chanel when the app is in foreground or background.
      */
-    _handle_hierarchytopmostwindowchanged: function() {
+    _handle_hierarchytopmostwindowchanged: function(topMostWindow) {
       if (this._topMostWindow && this._topMostWindow.audioChannels) {
         // Normal channel could not play in background.
-        this.debug(this._topMostWindow.name + ' is closed');
+        this.debug('"' + this._topMostWindow.name + '" is closed');
         var audioChannel = this._topMostWindow.audioChannels.get('normal');
         if (audioChannel && audioChannel.isPlaying()) {
           audioChannel.setPolicy({ isAllowedToPlay: false });
           this._handleAudioChannel(audioChannel);
         }
       }
-      this._topMostWindow = this._getTopMostWindow();
+      this._topMostWindow = topMostWindow;
       if (this._topMostWindow) {
-        this.debug(this._topMostWindow.name + ' is opened');
+        this.debug('"' + this._topMostWindow.name + '" is opened');
         this._resumeAudioChannels(this._topMostWindow);
       }
     },
@@ -239,7 +235,7 @@
       this._activeAudioChannels.forEach((audioChannel) => {
         if (this._audioChannelWeights.get(audioChannel.name) >
             this._audioChannelWeights.get(channel)) {
-          channel = audioChannel.name;  
+          channel = audioChannel.name;
         }
       });
       return channel;
