@@ -163,6 +163,17 @@
       }
       switch (message.state) {
         case 'disabled':
+          // We want to show a dialog once Sync is disabled
+          // but we only want to do that if it's disabled via user action
+          // and the user has already logged in.
+          // (and not because it is already disabled from a previous run).
+          if (this.state === 'disabling' &&
+             (this.previousState === 'enabled' ||
+              this.previousState === 'syncing')) {
+            navigator.mozL10n.formatValue('fxsync-disabled').then(result => {
+              window.alert(result);
+            });
+          }
           this.showScreen(DISABLED);
           this.hideEnabling();
           break;
@@ -226,6 +237,7 @@
           });
           break;
       }
+      this.previousState = this.state;
       this.state = message.state;
     },
 
