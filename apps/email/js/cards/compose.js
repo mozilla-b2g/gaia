@@ -467,6 +467,7 @@ return [
         nameNode.textContent = name;
         bubble.setAttribute('data-name', name);
       }
+      bubble.dataset.address = bubble.dataset.address || bubble.dataset.name;
       return bubble;
     },
 
