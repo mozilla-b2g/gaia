@@ -67,14 +67,15 @@ PinningTheWeb.prototype = {
   },
 
   // Open a URL, open the pin dialog and tap the pin site button.
-  openAndPinSiteFromBrowser: function openAndPinSite(url) {
+  openAndPinSiteFromBrowser: function (url) {
     this._openUrl(url);
     this._clickPinContextMenu();
+    var pinDialog = this.pinDialog;
     // When running tests in mulet locally, part of the pin site button
     // is cut off at the bottom of the screen. To work around this we
     // tap the pin button in the upper left hand corner.
     this.pinSiteButton.click();
-    this.client.helper.waitForElementToDisappear(this.pinDialog);
+    this.client.helper.waitForElementToDisappear(pinDialog);
   },
 
   // Open a URL, open the pin dialog and tap the pin/unpin page button.
