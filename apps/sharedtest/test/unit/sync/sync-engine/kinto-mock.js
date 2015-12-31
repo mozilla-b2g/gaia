@@ -13,14 +13,27 @@ var Kinto = (function() {
   var KintoCollectionMock = function(collectionName, options = {}) {
     this.collectionName = collectionName;
     this.data = null;
+    this.args = [];
     this.fireConflicts = options.fireConflicts || [];
     this._idSchemaUsed = options.idSchema; // Not mocking default UUID IdSchema.
     this._remoteTransformersUsed = options.remoteTransformers;
   };
   KintoCollectionMock.prototype = {
-    sync: function() {
-      var dataRecordIn = JSON.parse(JSON.stringify(
+    sync: function(options) {
+      this.args.push(options);
+      var fetchToken;
+      var dataRecordsIn = JSON.parse(JSON.stringify(
         SynctoServerFixture.remoteData[this.collectionName]));
+      if (options.fetchToken) {
+        var removed;
+        do {
+          removed = dataRecordsIn.shift();
+        } while (removed.id != options.fetchToken);
+      }
+      if (options.fetchLimit && options.fetchLimit < dataRecordsIn.length) {
+        dataRecordsIn.splice(options.fetchLimit);
+        fetchToken = dataRecordsIn[ dataRecordsIn.length - 1 ].id;
+      }
       var transformOut = (item) => {
         if (!this._remoteTransformersUsed) {
           return Promise.resolve(item);
@@ -37,10 +50,12 @@ var Kinto = (function() {
         try {
           // We're only mocking the case where there is just one
           // remoteTransformer.
-          return this._remoteTransformersUsed[0].decode(dataRecordIn).
-              then(decoded => {
-            dataRecordIn = decoded;
-          });
+          return Promise.all(dataRecordsIn.map((dataRecord, i, arr) => {
+             return this._remoteTransformersUsed[0].decode(dataRecord)
+                 .then(decoded => {
+                   arr[i] = decoded;
+                 });
+          }));
         } catch(err) {
           return Promise.reject(err);
         }
@@ -59,17 +74,23 @@ var Kinto = (function() {
       };
 
       var checkIdSchema = () => {
-        if (!this._idSchemaUsed.validate(dataRecordIn.id)) {
-          return Promise.reject(new Error('Invalid id: ' +
-              dataRecordIn.id));
+        for (var i = 0; i < dataRecordsIn.length; i++) {
+          if (!this._idSchemaUsed.validate(dataRecordsIn[i].id)) {
+            return Promise.reject(new Error('Invalid id: ' +
+                dataRecordsIn[i].id));
+          }
         }
       };
 
       var storeListData = () => {
         if (!listData[this.collectionName]) {
-          listData[this.collectionName] = { data: [ dataRecordIn ] };
+          listData[this.collectionName] = { data: dataRecordsIn };
         }
-        return Promise.resolve({ ok: true, conflicts: this.fireConflicts });
+        return Promise.resolve({
+          ok: true,
+          conflicts: this.fireConflicts,
+          fetchToken
+        });
       };
 
       var markSyncCount = (syncResults) => {
