@@ -79,14 +79,22 @@ window.SmartBanner = (function(win) {
         break;
       case 'animationend':
         this.classList.remove('flying');
-        this.open();
+        this.classList.remove('bouncing');
+
+        if (evt.animationName === 'bouncingAnimation') {
+          this.init();
+          this.fireEvent('hidden');
+        } else {
+          this.open();
+        }
         break;
     }
   };
 
   proto.open = function() {
-    // no operation during flying and hiding
+    // no operation during flying, bouncing and hiding
     if (this.classList.contains('flying') ||
+        this.classList.contains('bouncing') ||
         this.classList.contains('hiding')) {
       return;
     }
@@ -96,13 +104,13 @@ window.SmartBanner = (function(win) {
     this.classList.remove('closed');
     this.classList.remove('closing');
     this.classList.add('opening');
-    // change to opening
     this.style.width = this.calculateChildWidth() + 'px';
   };
 
   proto.close = function() {
-    // no operation during flying and hiding
+    // no operation during flying, bouncing and hiding
     if (this.classList.contains('flying') ||
+        this.classList.contains('bouncing') ||
         this.classList.contains('hiding')) {
       return;
     }
@@ -119,9 +127,20 @@ window.SmartBanner = (function(win) {
     this.classList.add('hiding');
   };
 
-  proto.flyOpen = function() {
+  proto.flying = function() {
+    this.classList.add('flying');
+  };
+
+  proto.bouncing = function() {
+    this.classList.remove('closed');
+    this.style.width = 'auto';
+    this.classList.add('bouncing');
+  };
+
+  proto.show = function(options) {
+    var animation = (options && options.animation) || 'flying';
     if (this.classList.contains('closed')) {
-      this.classList.add('flying');
+      this[animation] && this[animation]();
     }
   };
 
