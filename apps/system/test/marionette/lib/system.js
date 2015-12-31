@@ -473,10 +473,7 @@ System.prototype = {
   },
 
   waitForStartup: function() {
-    var osLogo = this.client.findElement('#os-logo');
-    this.client.waitFor(function() {
-      return osLogo.getAttribute('class') == 'hide';
-    });
+    this.client.helper.waitForElementToDisappear('#os-logo');
   },
 
   waitForFullyLoaded: function() {
