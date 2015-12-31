@@ -280,24 +280,15 @@ define(function(require) {
    *
    * @access private
    * @memberOf DateTime
-   * @param {Date|String} input could be Date or String
-   * @param {Boolean} iso force output as YYYY-MM-DD for ISO 8601 text parsing
+   * @param {Date} input as Date
    * @returns {String}
    */
-  DateTime.prototype._formatDate = function(d, iso) {
-    if (d instanceof Date) {
-      if (iso) {
-        return d.toLocaleFormat('%Y-%m-%d');
-      } else {
-        return d.toLocaleString(navigator.languages, {
-          year: 'numeric',
-          month: 'long',
-          day: '2-digit',
-        });
-      }
-    } else {
-      return d;
-    }
+  DateTime.prototype._formatDate = function(d) {
+    return d.toLocaleString(navigator.languages, {
+      year: 'numeric',
+      month: 'long',
+      day: '2-digit',
+    });
   };
 
   /**
@@ -305,29 +296,15 @@ define(function(require) {
    *
    * @access private
    * @memberOf DateTime
-   * @param {Date|String} input could be Date or String
-   * @param {Boolean} iso force output as HH:MM for ISO 8601 text parsing
+   * @param {Date} input as Date
    * @returns {String}
    */
-  DateTime.prototype._formatTime = function(d, iso) {
-    if (d instanceof Date) {
-      var format;
-      if (iso) {
-        format = '%H:%M';
-        return d.toLocaleFormat(format);
-      } else {
-        return d.toLocaleString(navigator.languages, {
-          hour12: navigator.mozHour12,
-          hour: 'numeric',
-          minute: 'numeric',
-        });
-      }
-    } else {
-      if (d.indexOf(':') == 1) {  // Format: 8:05 --> 08:05
-        d = '0' + d;
-      }
-      return d;
-    }
+  DateTime.prototype._formatTime = function(d) {
+    return d.toLocaleString(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric',
+      minute: 'numeric',
+    });
   };
 
   /**
@@ -337,25 +314,23 @@ define(function(require) {
    * @memberOf DateTime
    */
   DateTime.prototype.setTime = function(type, value) {
-    var pDate = '';
-    var pTime = '';
-    var d = new Date();
+    var newDate = new Date();
+    var tokens;
+
     switch (type) {
       case 'date':
-        // Get value from date picker.
-        pDate = this._formatDate(value);  // Format: 2012-09-01
-        pTime = this._formatTime(d, true);
+        tokens = value.split('-');
+        newDate.setYear(tokens[0]);
+        newDate.setMonth(tokens[1] - 1);
+        newDate.setDate(tokens[2]);
         break;
 
       case 'time':
-        // Get value from time picker.
-        pDate = this._formatDate(d, true);
-        pTime = this._formatTime(value);  // Format: 0:02, 8:05, 23:45
+        tokens = value.split(':');
+        newDate.setHours(parseInt(tokens[0]));
+        newDate.setMinutes(parseInt(tokens[1]));
         break;
     }
-    // Construct a Date object with date time
-    // specified in a ISO 8601 string (YYYY-MM-DDTHH:MM)
-    var newDate = new Date(pDate + 'T' + pTime);
     this._mozTime.set(newDate);
   };
 
