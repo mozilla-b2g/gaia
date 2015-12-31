@@ -1,7 +1,7 @@
 'use strict';
 
 var http = require('http');
-var emptyPort = require('empty-port');
+// var emptyPort = require('empty-port');
 var nodeStatic = require('node-static');
 
 var EventEmitter = require('events').EventEmitter;
@@ -90,10 +90,9 @@ Server.prototype = {
 server = new Server();
 
 // figure out which port we are on
-emptyPort({}, function(err, port) {
-  server.start(port);
-  process.send(['start', port]);
-});
+var port = 87; // force it to bad port to try and get failure
+server.start(port);
+process.send(['start', port]);
 
 // handle process messages
 process.on('message', function(data) {
