@@ -84,18 +84,19 @@ suite('Date & Time > ', function() {
     test('Set Date', function() {
       DateTime.setTime('date', '2013-05-21');
       var d = new Date();
-      d.setYear(2013);
-      d.setMonth(5 - 1);
-      d.setDate(21);
-      assert.ok(DateTime._mozTime.set.calledWith(d));
+      var pDate = DateTime._formatDate('2013-05-21');
+      var pTime = DateTime._formatTime(d, true);
+      var newDate = new Date(pDate + 'T' + pTime);
+      assert.ok(DateTime._mozTime.set.calledWith(newDate));
     });
 
     test('Set clock', function() {
       DateTime.setTime('time', '9:12');
       var d = new Date();
-      d.setHours(9);
-      d.setMinutes(12);
-      assert.ok(DateTime._mozTime.set.calledWith(d));
+      var pDate = DateTime._formatDate(d, true);
+      var pTime = DateTime._formatTime('9:12');
+      var newDate = new Date(pDate + 'T' + pTime);
+      assert.ok(DateTime._mozTime.set.calledWith(newDate));
     });
   });
 

@@ -11,12 +11,12 @@ var ValuePicker = (function() {
   function VP(e, unitStyle) {
     this.element = e;
     this.container = e.parentNode;
-    this._optionsL10n = unitStyle.optionsL10n;
+    this._valueDisplayedText = unitStyle.valueDisplayedText;
     this._unitClassName = unitStyle.className;
     this._top = 0;
     this._lower = 0;
-    this._upper = unitStyle.optionsL10n.length - 1;
-    this._range = unitStyle.optionsL10n.length;
+    this._upper = unitStyle.valueDisplayedText.length - 1;
+    this._range = unitStyle.valueDisplayedText.length;
     this._currentIndex = 0;
     this._unitHeight = 0;
     this._unitStyle = unitStyle;
@@ -31,8 +31,9 @@ var ValuePicker = (function() {
     return selectedIndex;
   };
 
-  VP.prototype.getSelectedOptionL10n = function() {
-    return this._optionsL10n[this._currentIndex];
+  VP.prototype.getSelectedDisplayedText = function() {
+    var displayedText = this._valueDisplayedText[this._currentIndex];
+    return displayedText;
   };
 
   VP.prototype.setSelectedIndex = function(tunedIndex, ignorePicker) {
@@ -64,6 +65,15 @@ var ValuePicker = (function() {
     return tunedIndex;
   };
 
+  VP.prototype.setSelectedIndexByDisplayedText = function(displayedText) {
+    var newIndex = this._valueDisplayedText.indexOf(displayedText);
+    if (newIndex != -1) {
+      if (this._currentIndex != newIndex) {
+        this.setSelectedIndex(newIndex);
+      }
+    }
+  };
+
   VP.prototype.setRange = function(lower, upper) {
     if (lower !== null) {
       this._lower = lower;
@@ -74,7 +84,7 @@ var ValuePicker = (function() {
     if (upper !== null) {
       this._upper = upper;
     } else {
-      this._upper = this._unitStyle.optionsL10n.length - 1;
+      this._upper = this._unitStyle.valueDisplayedText.length - 1;
     }
 
     var unitElement = this.element.firstElementChild;
@@ -110,23 +120,17 @@ var ValuePicker = (function() {
     this.container.setAttribute('role', 'spinbutton');
     this.container.setAttribute('aria-valuemin', this._lower);
     this.container.setAttribute('aria-valuemax', this._upper);
-    var unitCount = this._optionsL10n.length;
+    var unitCount = this._valueDisplayedText.length;
     for (var i = 0; i < unitCount; ++i) {
       this.addPickerUnit(i);
     }
   };
 
   VP.prototype.addPickerUnit = function(index) {
-    var l10n = this._optionsL10n[index];
+    var content = this._valueDisplayedText[index];
     var unit = document.createElement('div');
     unit.className = this._unitClassName;
-    if (typeof l10n === 'string') {
-      unit.setAttribute('data-l10n-id', l10n);
-    } else if (l10n.hasOwnProperty('raw')) {
-      unit.textContent = l10n.raw;
-    } else {
-      navigator.mozL10n.setAttributes(unit, l10n.id, l10n.args);
-    }
+    unit.textContent = content;
     this.element.appendChild(unit);
   };
 
@@ -141,12 +145,8 @@ var ValuePicker = (function() {
       this._top = -index * this._unitHeight;
       this.element.style.transform = 'translateY(' + this._top + 'px)';
       this.container.setAttribute('aria-valuenow', index);
-
-      if (this._optionsL10n[index] &&
-          this._optionsL10n[index].hasOwnProperty('raw')) {
-        this.container.setAttribute('aria-valuetext',
-                                    this._optionsL10n[index].raw);
-      }
+      this.container.setAttribute('aria-valuetext',
+                                  this._valueDisplayedText[index]);
     }
   };
 

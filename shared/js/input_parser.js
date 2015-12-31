@@ -25,10 +25,9 @@ var InputParser = (function() {
         seconds: 0
       };
 
-      if (!value) {
+      if (typeof(value) !== 'string') {
         return result;
       }
-
 
       var parts = value.split(':');
       var part;
@@ -55,12 +54,17 @@ var InputParser = (function() {
      * @return {String} 17:39:57.
      */
     exportTime: function(value) {
-      return value.toLocaleString('en-US', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
+      var hour = value.getHours();
+      var minute = value.getMinutes();
+      var second = value.getSeconds();
+
+      var result = '';
+
+      result += InputParser.padNumber(hour) + ':';
+      result += InputParser.padNumber(minute) + ':';
+      result += InputParser.padNumber(second);
+
+      return result;
     },
 
     /**
@@ -75,10 +79,6 @@ var InputParser = (function() {
         month: 0,
         date: 0
       };
-
-      if (!value) {
-        return result;
-      }
 
       var parts = value.split('-');
       var part;
@@ -111,7 +111,17 @@ var InputParser = (function() {
      * @return {String} date string (1997-12-19).
      */
     exportDate: function(value) {
-      return value.toISOString().split('T')[0];
+      var year = value.getFullYear();
+      var month = value.getMonth() + 1;
+      var date = value.getDate();
+
+      var result = '';
+
+      result += InputParser.padNumber(year) + '-';
+      result += InputParser.padNumber(month) + '-';
+      result += InputParser.padNumber(date);
+
+      return result;
     },
 
     /**
@@ -136,6 +146,19 @@ var InputParser = (function() {
         time.seconds
       );
     },
+
+    /**
+     * @param {Numeric} numeric value.
+     * @return {String} Pad the numeric with a leading zero if < 10.
+     */
+    padNumber: function(numeric) {
+      var value = String(numeric);
+      if (numeric < 10) {
+        return '0' + value;
+      }
+
+      return value;
+    }
   };
 
   return InputParser;
