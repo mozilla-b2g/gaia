@@ -5,8 +5,9 @@
 /* global AppWindow */
 /* global AppInstallManager */
 /* global AppInstallDialogs */
-/* global SystemBanner */
 /* global BookmarkManager */
+/* global InteractiveNotifications */
+/* global SystemBanner */
 
 (function(exports) {
   const PREVIEW_OPENED_TIMES_KEY = 'preview-opened-times';
@@ -113,9 +114,17 @@
     localStorage.setItem(PREVIEW_OPENED_TIMES_KEY,
       JSON.stringify(previewOpenedTimes));
 
-    this.systemBanner.show({
-      id: 'preview-app-hint'
-    });
+    window.interactiveNotifications.showNotification(
+      InteractiveNotifications.TYPE.NORMAL, {
+        title: {
+          id: 'press-option-hint'
+        },
+        text: {
+          id: 'add-to-apps'
+        },
+        icon: AppInstallManager.ADD_TO_APPS_ICON_PATH
+      }
+    );
   };
 
   PreviewWindow.prototype._handle__willdestroy = function(evt) {
@@ -131,27 +140,29 @@
     if (this.isWebsite) {
       if (needPrompt) {
         BookmarkManager.get(this.identity).then((bookmark) => {
+          var name = this.features.name;
           if (!bookmark) {
             options = {
               manifest: {
-                name: this.features.name
+                name: name
               }
             };
             AppInstallManager.appInstallDialogs
               .show(AppInstallDialogs.TYPES.AddAppDialog, options)
               .then(() => {
                 return BookmarkManager.add({
-                  name: this.features.name,
+                  name: name,
                   url: this.identity,
                   iconUrl: this.features.iconUrl
                 });
               })
               .then(() => {
                 this.systemBanner.show({
-                  id: 'added-to-apps',
-                  args: {
-                    appName: this.features.name
-                  }
+                  title: name,
+                  text: {
+                    id: 'added-to-apps'
+                  },
+                  icon: AppInstallManager.ADD_TO_APPS_ICON_PATH
                 });
               });
           }
