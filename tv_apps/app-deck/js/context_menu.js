@@ -1,6 +1,6 @@
 'use strict';
 
-/* global MozActivity, Applications, BookmarkManager */
+/* global MozActivity, Applications, BookmarkManager, SmartModalDialog */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -40,11 +40,18 @@
 
       this._bookmarkManager = BookmarkManager;
 
+      this._modalDialog = new SmartModalDialog();
+
       this.pinToHomeElem.addEventListener('click', this.pinOrUnpin.bind(this));
       this.unpinFromHomeElem.addEventListener(
                                           'click', this.pinOrUnpin.bind(this));
 
       this.removeElem.addEventListener('click', this.onRemove.bind(this));
+
+      this._modalDialog.container.addEventListener('modal-dialog-closed',
+                            this._appDeck.enableNavigation.bind(this._appDeck));
+      this._modalDialog.container.addEventListener('modal-dialog-will-open',
+                           this._appDeck.disableNavigation.bind(this._appDeck));
     },
 
     _selfApp: undefined,
@@ -177,13 +184,36 @@
 
     onRemove: function cm_onRemove() {
       var type = this._getTargetType();
-      if (this._target.pinned) {
-        this._sendUnpinMessage(this._target.elem);
-      }
+      var elem = this._target.elem;
       if (type === 'app') {
-        this.uninstall(this._target.elem);
+        this.uninstall(elem);
+
       } else if (type === 'bookmark') {
-        this._bookmarkManager.remove(this._target.elem.dataset.url);
+        this._appDeck.disableNavigation();
+        this._modalDialog.open({
+          message: {
+            textL10nId: {
+              id: 'delete-bookmark-alert',
+              args: {
+                name: elem.getAttribute('label')
+              }
+            }
+          },
+          buttonSettings: [
+            {
+              textL10nId: 'cancel',
+              defaultFocus: true,
+            },
+            {
+              textL10nId: 'delete',
+              class: 'danger',
+              onClick: () => {
+                this._bookmarkManager.remove(elem.dataset.url);
+                this._sendUnpinMessage(elem);
+              }
+            }
+          ]
+        });
       }
     },
 

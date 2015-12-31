@@ -370,6 +370,12 @@
             }
           });
         } else {
+          // We have 3 places that use the same type of dialog.
+          // 1. removeing card in smart-home.
+          // 2. uninstalling bookmark in app-deck.
+          // 3. here.
+          // If we need further changes on the behavior of confirmation, be sure
+          // to check these 3 places.
           resolve({
             type: BUTTON_TYPE,
             textRaw: _('delete-from-apps'),

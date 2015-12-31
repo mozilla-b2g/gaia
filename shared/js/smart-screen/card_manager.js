@@ -345,9 +345,25 @@
 
     _onAppUninstall: function cm_onAppUninstall(evt) {
       var app = evt.application;
+
+      // XXX: Delete uninstalled app cards if any. The deletion should be
+      // performed only once, so we let only the owner of data store to do it.
+      // Notice the application object will be destroyed after uninstall event
+      // is done, and we won't be able to read any data inside card.nativeApp
+      // anymore (thus cause failure to FindCardFromCardList and etc.).
+      // So we let CardManager do it consciously to prevent zombie app cards.
+      // A possible way to improve it is to decouple AppMgmt and its app objects
+      // completely with CardManager and leave them inside applications.js.
+      if (this._cardStore.isOwner) {
+        var card = this.findCardFromCardList({
+          manifestURL: app.manifestURL
+        });
+        card && this.removeCard(card);
+      }
+
       if (this.installedApps[app.manifestURL]) {
-        delete this.installedApps[app.manifestURL];
         this.fire('uninstall', this.getAppEntries(app.manifestURL));
+        delete this.installedApps[app.manifestURL];
       }
     },
 
