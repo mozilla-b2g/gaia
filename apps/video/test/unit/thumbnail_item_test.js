@@ -6,18 +6,18 @@
 
 require('/shared/js/sanitizer.js');
 require('/shared/js/media/media_utils.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('/video/js/thumbnail_item.js');
 
 suite('Thumbnail Item Unit Tests', function() {
   var nativeMozL10n;
   suiteSetup(function() {
-    nativeMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    nativeMozL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
+    document.l10n = nativeMozL10n;
   });
 
   suite('#test object creation', function() {

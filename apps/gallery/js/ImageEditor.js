@@ -95,7 +95,7 @@ function editPhotoIfCardNotFull(n) {
       editPhoto(n);
     }
     else {
-      navigator.mozL10n.formatValue('memorycardfull').then(alert);
+      document.l10n.formatValue('memorycardfull').then(alert);
     }
   });
 }
@@ -119,7 +119,7 @@ var exposureSlider = (function() {
   thumb.addEventListener('pan', function(e) {
     // Handle delta so that slider moves correct way
     // when user drags it for RTL locales
-    var delta = navigator.mozL10n.language.direction === 'ltr' ?
+    var delta = document.documentElement.dir === 'ltr' ?
                 e.detail.absolute.dx : - e.detail.absolute.dx;
 
     var exposureDelta = delta / parseInt(bar.clientWidth, 10) * 6;
@@ -596,7 +596,7 @@ function setAutoEnhanceState(isEnhanced) {
   }
 
   function showStatus(msgId) {
-    navigator.mozL10n.setAttributes(statusLabel, msgId);
+    document.l10n.setAttributes(statusLabel, msgId);
     banner.hidden = false;
     setTimeout(function() {
       banner.hidden = true;

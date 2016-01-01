@@ -4,7 +4,7 @@
 'use strict';
 /* global ThumbnailItem */
 
-require('/shared/js/l10n.js');
+require('/shared/js/intl/l20n.js');
 requireApp('/gallery/js/thumbnail_item.js');
 
 suite('Thumbnail Item Unit Tests', function() {

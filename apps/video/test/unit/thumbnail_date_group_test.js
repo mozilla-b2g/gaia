@@ -7,7 +7,7 @@
 
 require('/shared/js/sanitizer.js');
 require('/shared/js/media/media_utils.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_intl_helper.js');
 requireApp('/video/test/unit/mock_thumbnail_item.js');
 requireApp('/video/js/thumbnail_date_group.js');
@@ -21,8 +21,8 @@ suite('Thumbnail Date Group Unit Tests', function() {
 
   suiteSetup(function() {
     nativeThumbnailItem = ThumbnailItem;
-    nativeMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    nativeMozL10n = document.l10n;
+    document.l10n = MockL10n;
     nativeIntlHelper = window.IntlHelper;
     window.IntlHelper = MockIntlHelper;
     ThumbnailItem = MockThumbnailItem;
@@ -34,7 +34,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
+    document.l10n = nativeMozL10n;
     window.IntlHelper = nativeIntlHelper;
     ThumbnailItem = nativeThumbnailItem;
   });

@@ -1,5 +1,5 @@
 /* global VideoLoadingChecker,stopParsingMetadata,startParsingMetadata,
-  ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
+  ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
   ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
   MozActivity,MediaDB,metadataQueue,processingQueue,LazyLoader,Dialogs,
   captureFrame,VideoStats,noMoreWorkCallback:true,IntlHelper,Seeker,Captions */
@@ -173,17 +173,6 @@ if (acm) {
 
 navigator.mozSetMessageHandler('activity', handleActivityEvents);
 
-if (!isPhone) {
-  navigator.mozL10n.ready(function localizeThumbnailListTitle() {
-    // reload the thumbnail list title field for tablet which is the app name.
-    var req = navigator.mozApps.getSelf();
-    req.onsuccess = function() {
-      var manifest = new ManifestHelper(req.result.manifest);
-      dom.thumbnailListTitle.textContent = manifest.name;
-    };
-  });
-}
-
 function init() {
 
   // Tell performance monitors that our chrome is visible
@@ -219,7 +208,7 @@ function init() {
 
     // Ensure code that accesses html dir is executed after
     // `documentElement.dir` is set.
-    navigator.mozL10n.once(function() {
+    document.l10n.ready.then(function() {
       initPlayerControls();
     });
 
@@ -552,7 +541,7 @@ function clearSelection() {
   selectedFileNamesToBlobs = {};
   setDisabled(dom.thumbnailsDeleteButton, true);
   setDisabled(dom.thumbnailsShareButton, true);
-  navigator.mozL10n.setAttributes(
+  document.l10n.setAttributes(
     dom.thumbnailsNumberSelected,
     'number-selected2',
     { n: 0 });
@@ -587,7 +576,7 @@ function updateSelection(videodata) {
 
   // Now update the UI based on the number of selected thumbnails
   var numSelected = selectedFileNames.length;
-  navigator.mozL10n.setAttributes(
+  document.l10n.setAttributes(
     dom.thumbnailsNumberSelected,
     'number-selected2',
     { n: numSelected });
@@ -607,7 +596,7 @@ function launchCameraApp() {
 
   a.onerror = function() {
     if (a.error.name === 'NO_PROVIDER') {
-      navigator.mozL10n.formatValue('share-noprovider').then((msg) => {
+      document.l10n.formatValue('share-noprovider').then((msg) => {
         alert(msg);
       });
     } else {
@@ -733,7 +722,7 @@ function share(blobs) {
 
   a.onerror = function() {
     if (a.error.name === 'NO_PROVIDER') {
-      navigator.mozL10n.formatValue('share-noprovider').then((msg) => {
+      document.l10n.formatValue('share-noprovider').then((msg) => {
         alert(msg);
       });
     } else {
@@ -1119,7 +1108,7 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
       rotation = 0;
     }
 
-    navigator.mozL10n.setAttributes(dom.timeSlider, 'seek-bar',
+    document.l10n.setAttributes(dom.timeSlider, 'seek-bar',
       { duration: formattedDuration });
     dom.timeSlider.setAttribute('aria-valuemin', 0);
     dom.timeSlider.setAttribute('aria-valuemax', dom.player.duration);

@@ -224,7 +224,7 @@
   }
 
   function displayError(msgid) {
-    navigator.mozL10n.formatValue(msgid).then(function(val) {
+    document.l10n.formatValue(msgid).then(function(val) {
       alert(val);
       done();
     });
@@ -300,7 +300,7 @@
   }
 
   function showBanner(msg, title) {
-    navigator.mozL10n.setAttributes($('message'), msg, {filename: title});
+    document.l10n.setAttributes($('message'), msg, {filename: title});
     $('banner').hidden = false;
     setTimeout(function() {
       $('banner').hidden = true;

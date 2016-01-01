@@ -22,8 +22,9 @@ require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_screen_layout.js');
 require('/shared/test/unit/mocks/mock_video_stats.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks//mock_intl_helper.js');
+require('/shared/test/unit/mocks//mock_manifest_helper.js');
 requireApp('/video/js/video_utils.js');
 requireApp('/video/test/unit/mock_metadata.js');
 requireApp('/video/test/unit/mock_mediadb.js');
@@ -86,8 +87,8 @@ suite('Video App Unit Tests', function() {
     // Create DOM structure
     loadBodyHTML('/index.html');
 
-    nativeMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    nativeMozL10n = document.l10n;
+    document.l10n = MockL10n;
     IntlHelper = MockIntlHelper;
 
     ThumbnailItem = MockThumbnailItem;
@@ -99,16 +100,11 @@ suite('Video App Unit Tests', function() {
 
     window.Captions = MockCaptions;
 
-    // we don't want to trigger once/ready callbacks
-    sinon.stub(navigator.mozL10n, 'once');
-    sinon.stub(navigator.mozL10n, 'ready');
     requireApp('/video/js/video.js', done);
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n.once.restore();
-    navigator.mozL10n.ready.restore();
-    navigator.mozL10n = nativeMozL10n;
+    document.l10n = nativeMozL10n;
   });
 
   suite('#Video Info Populate Data', function() {

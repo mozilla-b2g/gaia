@@ -210,7 +210,7 @@ ThumbnailItem.prototype.updateTitleText = function() {
 ThumbnailItem.prototype.localize = function() {
   if (this.sizeNode && isFinite(this.data.size)) {
     MediaUtils.getLocalizedSizeTokens(this.data.size).then((args) => {
-      navigator.mozL10n.setAttributes(this.sizeNode, 'fileSize', args);
+      document.l10n.setAttributes(this.sizeNode, 'fileSize', args);
     });
   }
 };
