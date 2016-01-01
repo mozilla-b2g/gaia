@@ -12,8 +12,8 @@ var Keys = {
 
 var assert = require('chai').assert;
 
-// Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
-// We should investigate the issue and re-enable the test later.
+// TV EPG app is not in use now so we skip the tests.
+// Re-enable the tests in the future when we are going to use it.
 marionette.skip('Test Program Navigation', function() {
 
   var opts = {
