@@ -42,3 +42,13 @@ gaia-app-icon {
   text-align: center;
   margin-top: 0.3rem;
 }
+
+#title-container {
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+#title-container.hidden {
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+}
