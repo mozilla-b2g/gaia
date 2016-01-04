@@ -491,7 +491,7 @@ System.prototype = {
     var body = this.client.findElement('body');
     this.client.waitFor(function() {
       return body.getAttribute('ready-state') == 'fullyLoaded';
-    });
+    }, { timeout: 120000 });
   },
 
   // Since the getScreenshot call is asynchronous and does not have any
