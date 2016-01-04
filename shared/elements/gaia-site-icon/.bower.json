@@ -20,14 +20,14 @@
     "test",
     "tests"
   ],
-  "homepage": "https://github.com/gaia-components/gaia-site-icon",
-  "_release": "fe42652f76",
+  "homepage": "https://github.com/fxos-components/gaia-site-icon",
+  "_release": "dd873b7f7d",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "fe42652f76c070b9f126ce2fe428e90680562e6e"
+    "commit": "dd873b7f7d0d8be737566276f3188e68931a9584"
   },
-  "_source": "git://github.com/gaia-components/gaia-site-icon.git",
+  "_source": "git://github.com/fxos-components/gaia-site-icon.git",
   "_target": "*",
-  "_originalSource": "gaia-components/gaia-site-icon"
+  "_originalSource": "fxos-components/gaia-site-icon"
 }

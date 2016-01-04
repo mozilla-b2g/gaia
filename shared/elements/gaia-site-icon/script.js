@@ -18,12 +18,6 @@ window.GaiaAppIcon = (function(exports) {
   const CANVAS_PADDING = 2 * window.devicePixelRatio;
   const FAVICON_SCALE = 0.55;
 
-  // FIXME: Remove once bug 1211266 is fixed.
-  // navigator.mozApps.mgmt.getIcon returns a blob, but requesting the data
-  // for it sometimes fails silently.
-  const ICON_LOAD_TIMEOUT = 5000;
-  const ICON_RETRY_COUNT = 5;
-
   var proto = Object.create(HTMLElement.prototype);
 
   // Allow the base URL to be overridden
@@ -40,7 +34,9 @@ window.GaiaAppIcon = (function(exports) {
     shadow.appendChild(this._template);
 
     this._container = shadow.getElementById('image-container');
+    this._titleContainer = shadow.getElementById('title-container');
     this._subtitle = shadow.getElementById('subtitle');
+    this._showName = true;
     this._image = null;
     this._app = null;
     this._bookmark = null;
@@ -53,9 +49,6 @@ window.GaiaAppIcon = (function(exports) {
     this._pendingIconUrl = null;
     this._pendingIconRefresh = false;
     this._lastState = null;
-
-    // FIXME: Remove once bug 1211266 is fixed.
-    this._iconFetchTimeout = null;
 
     this._predefinedIcons = {};
     for (var key in PREDEFINED_ICONS) {
@@ -249,6 +242,22 @@ window.GaiaAppIcon = (function(exports) {
     enumerable: true
   });
 
+  Object.defineProperty(proto, 'showName', {
+    get: function() {
+      return this._showName;
+    },
+
+    set: function(show) {
+      show = show ? true : false;
+      if (this._showName !== show) {
+        this._showName = show;
+        this._titleContainer.classList.toggle('hidden', !show);
+      }
+    },
+
+    enumerable: true
+  });
+
   Object.defineProperty(proto, 'isUserSet', {
     get: function() {
       return this._iconUrl === 'user-set';
@@ -312,12 +321,6 @@ window.GaiaAppIcon = (function(exports) {
     this._image.setAttribute('role', 'presentation');
 
     this._image.onload = () => {
-      // FIXME: Remove once bug 1211266 is fixed
-      if (this._iconFetchTimeout) {
-        clearTimeout(this._iconFetchTimeout);
-        this._iconFetchTimeout = null;
-      }
-
       this._image.onload = () => {
         // Add new icon
         this._removeOldIcon();
@@ -548,13 +551,6 @@ window.GaiaAppIcon = (function(exports) {
         break;
 
       case 'installed':
-        // FIXME: Remove once bug 1211266 is fixed.
-        var retryCount = 0;
-        if (this._iconFetchTimeout) {
-          clearTimeout(this._iconFetchTimeout);
-          this._iconFetchTimeout = null;
-        }
-
         var handleError = function(image, e) {
           console.error('Failed to retrieve icon', e);
           if (image.onload && !this._hasIcon) {
@@ -570,17 +566,6 @@ window.GaiaAppIcon = (function(exports) {
               this._pendingIconUrl = 'app-icon';
               if (image.onload) {
                 image.src = URL.createObjectURL(blob);
-
-                // FIXME: Remove once bug 1211266 is fixed.
-                this._iconFetchTimeout = setTimeout(() => {
-                  this._iconFetchTimeout = null;
-                  if (++retryCount >= ICON_RETRY_COUNT) {
-                    handleError(image, 'Bug 1211266: Icon load timed out');
-                  }
-                  console.debug('Bug 1211266: getIcon retry ' + retryCount +
-                                ' for ' + this.dataset.identifier);
-                  getImage();
-                }, ICON_LOAD_TIMEOUT);
               }
             }.bind(this, this._image),
             handleError.bind(this, this._image));
@@ -611,8 +596,8 @@ window.GaiaAppIcon = (function(exports) {
   var stylesheet = baseurl + 'style.css';
   template.innerHTML =
     `<style>@import url(${stylesheet});</style>
-     <div id='image-container'><div id="spinner"></div></div>
-     <div><div dir='auto' id='subtitle'></div></div>`;
+     <div id="image-container"><div id="spinner"></div></div>
+     <div id="title-container"><div dir="auto" id="subtitle"></div></div>`;
 
   return document.registerElement('gaia-app-icon', { prototype: proto });
 })(window);
