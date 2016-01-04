@@ -120,6 +120,20 @@ suite('system/Activities', function() {
       subject.handleEvent({type: 'lockscreen-appopened'});
       assert.ok(subject.cancel.calledOnce);
     });
+
+    test('cancel choice when pressing home button', function() {
+      subject._detail = {
+        id: 'foo',
+        name: 'testactivity',
+        activityType: 'testtype',
+        choices: [{
+          manifest: 'manifest'
+        }]
+      };
+      this.sinon.stub(subject, 'cancel');
+      subject.handleEvent({type: 'home'});
+      assert.ok(subject.cancel.calledOnce);
+    });
   });
 
   suite('activity (multi)selection', function() {
