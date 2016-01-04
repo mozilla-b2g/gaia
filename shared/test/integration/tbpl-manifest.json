@@ -58,6 +58,7 @@
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
     "apps/settings/test/marionette/tests/screen_lock_settings_test.js": "Bug 1227796 - Intermittent screen_lock_settings_test.js",
     "apps/sms/test/marionette/inbox_test.js": "Bug 1234689 - Intermittent TEST-UNEXPECTED-FAIL | apps/sms/test/marionette/inbox_test.js",
+    "apps/sms/test/marionette/new_activity_test.js": "Bug 1235842 - Intermittent TEST-UNEXPECTED-FAIL | apps/sms/test/marionette/new_activity_test.js",
     "apps/sms/test/marionette/share_activity_test.js": "Bug 1233552 - Intermittent TEST-UNEXPECTED-FAIL | apps/sms/test/marionette/share_activity_test.js | Messages as share target Share via Messages Activity close button Should close activity if in NewMessage view",
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
     "apps/system/test/marionette/activity_action_menu_test.js": "Bug 1168363 - Intermittent activity_action_menu_test.js | activity action menu test works after opening an app",
