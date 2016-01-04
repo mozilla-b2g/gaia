@@ -3,7 +3,7 @@
 reruns: 4
 task:
   metadata:
-    name: 'Marionette JS tests for tv'
+    name: 'Marionette JS tests for TV {{chunk}}'
     description: Run entire suite of marionette js tests for tv
 
   workerType: '{{workerType}}'
@@ -20,6 +20,8 @@ task:
     # Chunking logic is actually in the Makefile here which may make it
     # confusing to figure out who calls what this should be improved.
     env:
+      PART: '{{chunk}}'
+      NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
       GAIA_DEVICE_TYPE: 'tv'
