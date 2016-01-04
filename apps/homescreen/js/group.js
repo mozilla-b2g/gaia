@@ -43,22 +43,38 @@
       icon.showName = true;
 
       this.removedChildren.push(child);
-      if (this.state === COLLAPSED) {
-        this.finishRemovingChildren(container);
-      }
+      this.finishRemovingChildren(container);
     });
   };
 
   proto.finishRemovingChildren = function(container) {
-    for (var child of this.removedChildren) {
-      container.insertBefore(child, this.parentNode);
-    }
-    this.removedChildren = [];
+    var reparentRemovedChildren = beforeChild => {
+      for (var child of this.removedChildren) {
+        container.insertBefore(child, beforeChild);
+      }
+      this.removedChildren = [];
+    };
 
     if (this.container.children.length === 1) {
       this.transferToContainer(this.container.firstChild, container);
-    } else if (this.container.children.length === 0) {
-      container.removeChild(this.parentNode);
+    } else if (this.state !== COLLAPSING &&
+               this.container.children.length === 0) {
+      // The children will be added back to the parent container after the
+      // group is removed, so find the group's sibling to insert the children
+      // before.
+      var children = container.children;
+      var sibling = null;
+      for (var i = 0, iLen = children.length; i < iLen - 1; i++) {
+        if (children[i] === this.parentNode) {
+          sibling = children[i + 1];
+          break;
+        }
+      }
+
+      container.removeChild(this.parentNode,
+        reparentRemovedChildren.bind(this, sibling));
+    } else if (this.state === COLLAPSED) {
+      reparentRemovedChildren(this.parentNode);
     }
   };
 

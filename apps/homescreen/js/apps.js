@@ -880,7 +880,7 @@
       console.debug('Entering edit mode on ' + (icon ? icon.name : 'no icon'));
       this.updateSelectedIcon(icon);
 
-      if (this.editMode) {
+      if (this.editMode || !this.selectedIcon) {
         return;
       }
 
@@ -919,11 +919,12 @@
 
     closeOpenGroup: function() {
       if (this.openGroup) {
+        this.icons.freeze();
         this.openGroup.collapse(this.icons, () => {
+          this.icons.thaw();
           this.openGroup = null;
           this.attachInputHandlers(this.icons);
           this.icons.setAttribute('drag-and-drop', '');
-          this.icons.thaw();
         });
       }
     },
@@ -942,7 +943,6 @@
         icon = e.detail.target.firstElementChild;
         if (icon.localName === 'homescreen-group') {
           this.openGroup = icon;
-          this.icons.freeze();
           icon.expand(this.icons);
           this.icons.removeAttribute('drag-and-drop');
           this.attachInputHandlers(icon.container);
