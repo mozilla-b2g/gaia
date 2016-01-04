@@ -125,7 +125,7 @@
       url: evt.detail.url,
       origin: evt.detail.origin,
       manifestURL: evt.detail.manifestURL,
-      features: evt.detail.features,
+      features: evt.detail.features || {},
       rearWindow: this.app,
       oop: true
     };

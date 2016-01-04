@@ -41,7 +41,6 @@
       this.name = this.features.name;
     }
 
-    window.addEventListener('mozbrowserafterkeyup', this);
     this.container.element.addEventListener('_closed', this);
     this.element.addEventListener('_opened', this);
     this.element.addEventListener('_willdestroy', this);
@@ -101,7 +100,21 @@
     }
     if ((evt.keyCode === 27 || evt.key === 'Escape') &&
         !evt.embeddedCancelled) {
-      this.kill();
+      if (this.config.url.startsWith('app://')) {
+        this.kill();
+      } else {
+        var goBackReq = this.iframe.getCanGoBack();
+        goBackReq.onsuccess = () => {
+          if (goBackReq.result) {
+            this.iframe.goBack();
+          } else {
+            this.kill();
+          }
+        };
+        goBackReq.onerror = () => {
+          this.kill();
+        };
+      }
     }
   };
 
@@ -124,7 +137,6 @@
 
   PreviewWindow.prototype._handle__willdestroy = function(evt) {
     this.container.element.removeEventListener('_closed', this);
-    window.removeEventListener('mozbrowserafterkeyup', this);
 
     var previewOpenedTimes =
       JSON.parse(localStorage.getItem(PREVIEW_OPENED_TIMES_KEY) || '{}');
