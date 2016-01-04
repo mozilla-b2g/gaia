@@ -262,7 +262,6 @@
       var nodeName = item.nodeName.toUpperCase();
       var documentURI = item.data.documentURI;
       var uri = item.data.uri;
-      var text = item.data.text;
 
       switch (nodeName) {
         case 'A':
@@ -274,9 +273,7 @@
             id: 'open-in-new-private-window',
             label: _('open-in-new-private-window'),
             callback: this.openUrl.bind(this, uri, true)
-          },
-            this._getSaveUrlItem(uri, text),
-          {
+          }, {
             id: 'save-link',
             label: _('save-link'),
             callback: this.app.browser.element.download.bind(

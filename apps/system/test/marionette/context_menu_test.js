@@ -48,6 +48,13 @@ marionette('Test Context Menu Events', function() {
     client.helper.waitForElement('[data-id=open-in-new-window]');
     client.helper.waitForElement('[data-id=share-link]');
 
+    // Ensure that Pinning/Adding to homescreen option is not available
+    ['pin-to-home-screen', 'add-to-home-screen'].forEach(function(element) {
+      var selector = '[data-id=' + element + ']';
+      var items = client.findElements(selector);
+      assert(items.length === 0);
+    });
+
     // Cancel the context menu
     var cancel = client.helper.waitForElement('#ctx-cancel-button');
     cancel.click();
