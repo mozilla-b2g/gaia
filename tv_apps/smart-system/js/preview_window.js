@@ -37,6 +37,10 @@
 
     AppWindow.call(this, configs);
 
+    if (this.features.name) {
+      this.name = this.features.name;
+    }
+
     window.addEventListener('mozbrowserafterkeyup', this);
     this.container.element.addEventListener('_closed', this);
     this.element.addEventListener('_opened', this);
