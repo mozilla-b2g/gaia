@@ -4,6 +4,7 @@
 /* global BrowserFrame,
    EntrySheet,
    Notification,
+   NotificationHelper,
    MozActivity,
    Service,
    LazyLoader
@@ -20,9 +21,8 @@ var CaptivePortal = {
 
   handleLogin: function cp_handleLogin(id, url) {
     var wifiManager = window.navigator.mozWifiManager;
-    var _ = window.navigator.mozL10n.get;
     var settings = window.navigator.mozSettings;
-    var icon = window.location.protocol + '//' + window.location.hostname +
+    var icon = window.location.origin +
       '/style/icons/captivePortal.png';
 
     //captive portal login needed
@@ -30,7 +30,9 @@ var CaptivePortal = {
     var currentNetwork = wifiManager.connection.network;
     var networkName = (currentNetwork && currentNetwork.ssid) ?
         currentNetwork.ssid : '';
-    var message = _('captive-wifi-available', { networkName: networkName });
+    var message = { id: 'captive-wifi-available', 
+                    args: { networkName: networkName }
+                  };
 
     if (Service.query('isFtuRunning')) {
       settings.createLock().set({'wifi.connect_via_settings': false});
@@ -51,22 +53,21 @@ var CaptivePortal = {
       return;
     }
 
-    this.captiveNotification_onClick = (function() {
+    this.captiveNotification_onClick = () => {
       this.notification.removeEventListener('click',
-                                            this.captiveNotification_onClick);
+        this.captiveNotification_onClick);
       this.captiveNotification_onClick = null;
       var activity = new MozActivity({
         name: 'view',
         data: { type: 'url', url: url }
       });
-      this.notification.close();
       activity.onerror = function() {
         console.error('CaptivePortal Activity error: ' + this.error);
       };
-    }).bind(this);
+    };
 
     var options = {
-      body: message,
+      bodyL10n: message,
       icon: icon,
       tag: this.notificationPrefix + networkName,
       mozbehavior: {
@@ -74,12 +75,14 @@ var CaptivePortal = {
       }
     };
 
-    this.notification = new Notification('', options);
-    this.notification.addEventListener('click',
-      this.captiveNotification_onClick);
-    this.notification.addEventListener('close', (function() {
-      this.notification = null;
-    }).bind(this));
+    NotificationHelper.send('', options).then(notification => {
+      this.notification = notification;
+      notification.addEventListener('click',
+        this.captiveNotification_onClick);
+      notification.addEventListener('close', () => {
+        this.notification = null;
+      });
+    });
   },
 
   dismissNotification: function dismissNotification(id) {

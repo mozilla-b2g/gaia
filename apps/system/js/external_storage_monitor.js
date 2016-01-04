@@ -1,5 +1,5 @@
 'use strict';
-/* global Notification, MozActivity */
+/* global NotificationHelper, MozActivity */
 
 (function(exports) {
 
@@ -353,34 +353,34 @@
       var msg = '[ExternalStorageMonitor] createMessage(): action = ' + action;
       this.debug(msg);
 
-      var _ = navigator.mozL10n.get;
-
       // Prepare message for fire notification.
       var title, body;
       switch (action) {
         case 'detected-recognised':
           this.getTotalSpace(function(totalSpace) {
-            title = _('sdcard-detected-title');
-            body = _('sdcard-total-size-body', {
-              size: totalSpace.size,
-              unit: totalSpace.unit
-            });
+            title = 'sdcard-detected-title';
+            body = { id: 'sdcard-total-size-body',
+                     args: { 
+                       size: totalSpace.size,
+                       unit: totalSpace.unit
+                           }
+                   };
             this.fireNotification(title, body, true);
           }.bind(this));
           break;
         case 'detected-unrecognised':
-          title = _('sdcard-detected-title');
-          body = _('sdcard-unknown-size-then-tap-to-format-body');
+          title = 'sdcard-detected-title';
+          body = 'sdcard-unknown-size-then-tap-to-format-body';
           this.fireNotification(title, body, true);
           break;
         case 'normally-removed':
-          title = _('sdcard-removed-title');
-          body = _('sdcard-removed-ejected-successfully');
+          title = 'sdcard-removed-title';
+          body = 'sdcard-removed-ejected-successfully';
           this.fireNotification(title, body);
           break;
         case 'unexpectedly-removed':
-          title = _('sdcard-removed-title');
-          body = _('sdcard-removed-not-ejected-properly');
+          title = 'sdcard-removed-title';
+          body = 'sdcard-removed-not-ejected-properly';
           this.fireNotification(title, body);
           break;
       }
@@ -404,12 +404,13 @@
         tag: notificationId
       };
 
-      var notification = new Notification(title, options);
+      NotificationHelper.send(title, options).then(notification => {
 
-      // set onclick handler for the notification
-      notification.onclick =
-        this.notificationHandler.bind(this, notification, openSettings);
-    },
+        // set onclick handler for the notification
+        notification.onclick =
+          this.notificationHandler.bind(this, notification, openSettings);
+      });
+      },
 
     /**
      * Handle notification while it be triggered 'onclick' event.
@@ -509,11 +510,10 @@
       }
 
       var sizeDecimal = i < 2 ? Math.round(size) : Math.round(size * 10) / 10;
-      var _ = navigator.mozL10n.get;
 
       return {
         size: sizeDecimal,
-        unit: _('byteUnit-' + units[i])
+        unit: 'byteUnit-' + units[i]
       };
     },
 

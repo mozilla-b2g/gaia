@@ -11,6 +11,8 @@ var MockNotificationHelper = {
       addEventListener: function(type, cb) {
         self.mEvents[type] = cb;
       },
+      removeEventListener: function(type, cb) {
+      },
       close: sinon.stub()
     };
     sinon.spy(notification, 'addEventListener');

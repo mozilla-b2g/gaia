@@ -1,5 +1,5 @@
-/* globals SIMSlotManager, Notification, MozActivity, Promise,
-           LazyLoader, BaseModule */
+/* globals SIMSlotManager, Notification, NotificationHelper, MozActivity,
+           Promise, LazyLoader, BaseModule */
 'use strict';
 
 (function() {
@@ -261,29 +261,30 @@
      * @param {Number} serviceId
      */
     _showNotification: function(serviceId) {
-      var _ = navigator.mozL10n.get;
       var iconUrl =  window.location.origin + '/style/eu_roaming_manager/' +
         'eu_roaming.png';
       var options = {
-        body: _('euRoamingNotificationMsg'),
+        bodyL10n: 'euRoamingNotificationMsg',
         icon: iconUrl,
         tag: this.TAG_PREFIX + serviceId,
         mozbehavior: {
           showOnlyOnce: true
         }
       };
-      var notification =
-        new Notification(_('euRoamingNotificationTitle'), options);
+      return NotificationHelper.send('euRoamingNotificationTitle',
+                                     options).then(
+        notification => {
+          notification.onclick = function() {
+            this._triggerSettingsActivity(serviceId);
+          }.bind(this);
 
-      notification.onclick = function() {
-        this._triggerSettingsActivity(serviceId);
-        notification.close();
-      }.bind(this);
+          notification.onclose = function() {
+            this._setState(this.EU_ROAMING_NOTIFICATION_STATE_KEY + serviceId,
+              this.NOTIFICATION_STATES.OPENED);
+          };
+          return notification;
+      });
 
-      notification.onclose = function() {
-        this._setState(this.EU_ROAMING_NOTIFICATION_STATE_KEY + serviceId,
-          this.NOTIFICATION_STATES.OPENED);
-      }.bind(this);
     },
 
     /**

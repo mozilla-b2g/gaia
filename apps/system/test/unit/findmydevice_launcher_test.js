@@ -4,7 +4,7 @@
           MockMozActivity,
           MockNavigatormozSetMessageHandler,
           MockNavigatorSettings,
-          MockNotifications,
+          MockNotificationHelper,
           MockService,
           MockSettingsHelper,
           IAC_API_WAKEUP_REASON_LOGIN,
@@ -24,21 +24,22 @@ require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
-require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/js/findmydevice_iac_api.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
 
 const FMD_RETRIES = 5;
 const FMD_TAG = 'findmydevice.enable-failed';
 
 var mocksForFindMyDevice = new MocksHelper([
-  'Dump', 'Notification', 'SettingsHelper', 'MozActivity', 'Service'
+  'Dump', 'SettingsHelper', 'MozActivity', 'Service'
 ]).init();
 
 suite('FindMyDevice Launcher >', function() {
   var realMozSettings;
   var realMozL10n;
   var realMozSetMessageHandler;
+  var realNotificationHelper;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -46,6 +47,8 @@ suite('FindMyDevice Launcher >', function() {
     realMozSettings = navigator.mozSettings;
     realMozL10n = navigator.mozL10n;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
+    realNotificationHelper = window.NotificationHelper;
+    window.NotificationHelper = MockNotificationHelper;
 
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -60,6 +63,7 @@ suite('FindMyDevice Launcher >', function() {
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozL10n = realMozL10n;
+    window.NotificationHelper = realNotificationHelper;
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     MockNavigatorSettings.mTeardown();
     MockNavigatormozSetMessageHandler.mTeardown();
@@ -109,7 +113,7 @@ suite('FindMyDevice Launcher >', function() {
   });
 
   test('Notification appears only when FMD retry count >= limit', function() {
-    var notificationSpy = this.sinon.spy(window, 'Notification');
+    var notificationSpy = this.sinon.spy(window.NotificationHelper, 'send');
 
     // try a retry count less than the limit
     MockNavigatorSettings.mTriggerObservers('findmydevice.retry-count',
@@ -126,7 +130,6 @@ suite('FindMyDevice Launcher >', function() {
       {settingValue: FMD_RETRIES + 1});
     sinon.assert.callCount(notificationSpy, 2);
 
-    assert.isTrue(notificationSpy.calledWithNew());
     assert.equal(notificationSpy.firstCall.args[0], 'unable-to-connect');
 
     var options = notificationSpy.firstCall.args[1];
@@ -135,7 +138,13 @@ suite('FindMyDevice Launcher >', function() {
     assert.equal(options.data.systemMessageTarget, 'findmydevice');
   });
 
-  test('MozActivity is issued if notification clicked', function() {
+  test('MozActivity is issued if notification clicked', function(done) {
+    var notification = {
+      onclick: undefined,
+    };
+    this.sinon.stub(window.NotificationHelper, 'send').returns(
+      Promise.resolve(notification));
+
     MockNavigatorSettings.mTriggerObservers('findmydevice.retry-count',
       {settingValue: FMD_RETRIES});
 
@@ -149,11 +158,12 @@ suite('FindMyDevice Launcher >', function() {
       }
     };
 
-    var notification = MockNotifications.pop();
-    notification.onclick();
+    Promise.resolve().then(() => {
+      notification.onclick();
 
-    assert.isTrue(activitySpy.calledWithNew());
-    sinon.assert.calledWith(activitySpy, expectedActivity);
+      assert.isTrue(activitySpy.calledWithNew());
+      sinon.assert.calledWith(activitySpy, expectedActivity);
+    }).then(done, done);
   });
 
   test('FMD disabled if retry-count >= limit, notification tapped', function() {
