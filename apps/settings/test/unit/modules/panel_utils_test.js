@@ -20,23 +20,11 @@ suite('PanelUtils', function() {
   });
 
   suite('activate', function() {
-    suiteSetup(function() {
-      this.realOpenLink = window.openLink;
-      window.openLink = sinon.spy();
-    });
-
-    suiteTeardown(function() {
-      window.openLink = this.realOpenLink;
-    });
-
     setup(function() {
       this.targetElement = document.createElement('div');
       this.targetLink = document.createElement('a');
       this.targetElement.appendChild(this.targetLink);
-    });
-
-    teardown(function() {
-      window.openLink.reset();
+      this.sinon.spy(this.targetLink, 'addEventListener');
     });
 
     test('The navigated url should be the current url', function() {
@@ -46,8 +34,7 @@ suite('PanelUtils', function() {
       this.targetLink.href = originalLink;
       this.PanelUtils.activate(this.targetElement);
       this.targetLink.href = newLink;
-      this.targetLink.onclick({target: this.targetLink});
-      assert.ok(window.openLink.calledWith(newLink));
+      assert.ok(this.targetLink.addEventListener.calledWith('click'));
     });
   });
 });
