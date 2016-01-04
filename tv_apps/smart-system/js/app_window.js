@@ -415,6 +415,12 @@
       this.attentionWindow = null;
     }
 
+    // Remove registered global events
+    this.constructor.REGISTERED_GLOBAL_EVENTS.forEach(function iterator(evt) {
+      this.debug('removing ' + evt + ' global event handler ...');
+      window.removeEventListener(evt, this);
+    }, this);
+
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
 
@@ -700,6 +706,9 @@
      '_orientationchange', '_focus', '_hidewindow', '_sheetsgesturebegin',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
      '_closed'];
+
+  AppWindow.REGISTERED_GLOBAL_EVENTS =
+    ['mozbrowserafterkeyup'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -1037,6 +1046,22 @@
 
     };
 
+  AppWindow.prototype._handle_mozbrowserafterkeyup =
+    function aw__handle_mozbrowserafterkeyup(evt) {
+      if (document.activeElement !== this.iframe) {
+        return;
+      }
+      if ((evt.keyCode === 27 || evt.key === 'Escape') &&
+          !evt.embeddedCancelled && !this.config.url.startsWith('app://')) {
+        var goBackReq = this.iframe.getCanGoBack();
+        goBackReq.onsuccess = () => {
+          if (goBackReq.result) {
+            this.iframe.goBack();
+          }
+        };
+      }
+    };
+
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
     if (this.element === null) {
       this._dump();
@@ -1045,6 +1070,10 @@
     this.constructor.REGISTERED_EVENTS.forEach(function iterator(evt) {
       this.debug('adding ' + evt + ' event handler ...');
       this.element.addEventListener(evt, this);
+    }, this);
+    this.constructor.REGISTERED_GLOBAL_EVENTS.forEach(function iterator(evt) {
+      this.debug('adding ' + evt + ' global event handler ...');
+      window.addEventListener(evt, this);
     }, this);
   };
 
