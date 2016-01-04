@@ -13,6 +13,7 @@
     'mozChromeEvent',
     'appopened',
     'lockscreen-appopened',
+    'home',
     'applicationinstall'
   ];
 
@@ -61,6 +62,7 @@
               break;
           }
           break;
+        case 'home':
         case 'lockscreen-appopened':
           if (this._detail) {
             this.cancel();
