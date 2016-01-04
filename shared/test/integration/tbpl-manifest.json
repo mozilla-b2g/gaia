@@ -45,7 +45,6 @@
     "apps/keyboard/test/marionette/auto_correction_test.js": "Bug 1235574 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/auto_correction_test.js",
     "apps/keyboard/test/marionette/email_keyboard_test.js": "Bug 1233536 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/email_keyboard_test.js",
     "apps/keyboard/test/marionette/number_keyboard_test.js": "Bug 1233533 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/number_keyboard_test.js",
-    "apps/music/test/marionette/Player_test.js": "Bug 1235538 - Intermittent TEST-UNEXPECTED-FAIL | apps/music/test/marionette/Player_test.js | Music player tests Status bar Check the play icon is in the status bar. moztrap:9742",
     "apps/music/test/marionette/playlist_test.js": "Bug 1199530 - Intermittent TEST-UNEXPECTED-FAIL | apps/music/test/marionette/playlist_test.js",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/ringtones/test/marionette/share_test.js": "Bug 1222154 - Failing share_test.js | Share as ringtone Share activity Create new ringtone",
