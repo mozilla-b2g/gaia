@@ -1,243 +1,204 @@
 'use strict';
+let PassThrough = require('stream').PassThrough;
+let debug = require('debug')('host/Host');
+let denodeify = require('promise').denodeify;
+let emptyPort = denodeify(require('empty-port'));
+let eventToPromise = require('event-to-promise');
+let map = require('lodash/collection/map');
+let request = require('./lib/request');
+let spawn = require('child_process').spawn;
+let uuid = require('uuid').v1;
+let waitUntilUsed = require('tcp-port-used').waitUntilUsed;
 
-var EventEmitter = require('events').EventEmitter;
-var Promise = require('promise');
-var debug = require('debug')('host/host');
-var request = require('./lib/request');
-var spawn = require('child_process').spawn;
-var uuid = require('uuid');
-var _ = require('lodash');
-
-var VENV = 'VIRTUALENV_PATH' in process.env ?
+const VENV = 'VIRTUALENV_PATH' in process.env ?
   process.env.VIRTUALENV_PATH :
-  __dirname + '/../venv';
+  `${__dirname}/../venv`;
 
-var _FORCE_DEBUG = false;
-
-function Host(socketPath, process, log) {
-  debug('Created new host', socketPath);
-  this.socketPath = socketPath;
-  this.process = process;
-  this.log = log;
+/**
+ * @constructor
+ */
+function Host() {
+  this.log = new PassThrough();
   this.sessions = {};
   this.pendingSessions = [];
-  this.error = null;
-  this.restarting = Promise.resolve();
-  this.isRequestInProgress = false;
-  this.didCrashDuringRequest = false;
-  this.onerror = this.onerror.bind(this);
-  this.onexit = this.onexit.bind(this);
-
-  process.on('error', this.onerror);
-  process.on('exit', this.onexit);
-
-  var restart = this.restart.bind(this);
-  
-  // XXXDebug Pro Tip: set _FORCE_DEBUG to see this output instead of piping it.
-  if (!_FORCE_DEBUG) {
-    process.stdout.on('data', function(chunk) {
-      var str = chunk.toString();
-      if (str.indexOf('Exception') !== -1) {
-        console.info('Will restart -- Found error in "', str, '"');
-        restart();
-      }
-    });
-
-    process.stderr.on('data', function(chunk) {
-      var str = chunk.toString();
-
-      // Bad file descriptor is a non-issue. Don't restart when this happens.
-      // It simply means that the file descriptor we use to pipe the logs was
-      // closed pre-maturely. We'll recover from this.
-      if (str.indexOf('error') !== -1 &&
-          str.indexOf('Bad file descriptor') === -1) {
-        console.info('Will restart -- Found error in "', str, '"');
-        restart();
-      }
-    });
-  }
-
-  EventEmitter.call(this);
-}
-module.exports = Host;
-
-Host.prototype = {
-  __proto__: EventEmitter.prototype,
-
-  destroy: function() {
-    // If there are any pending session creates wait for those to cleanly finish
-    // first.
-    if (this.pendingSessions.length) {
-      return Promise.all(this.pendingSessions).then(this.destroy.bind(this));
-    }
-
-    return Promise.all(
-      _.map(this.sessions, function(session) {
-        return session.destroy();
-      })
-    )
-    .then(function() {
-      if (Object.keys(this.sessions).length !== 0) {
-        return Promise.reject(new Error('Not all sessions were deleted'));
-      }
-
-      var proc = this.process;
-      proc.removeListener('exit', this.onexit);
-      return new Promise(function(accept, reject) {
-        proc.once('exit', function() {
-          proc.removeListener('error', this.onerror);
-          if (this.error) return reject(this.error);
-          accept();
-        }.bind(this));
-
-        proc.kill();
-      }.bind(this));
-    }.bind(this));
-  },
-
-  restart: function() {
-    // Python died so let's restart! Yay! Long live python.
-    console.log('Python crashed! Will restart service...');
-    if (this.isRequestInProgress) {
-      console.log('There was a request in progress!');
-      this.didCrashDuringRequest = true;
-    }
-
-    this.restarting = new Promise(function(resolve) {
-      // Kill ourselves.
-      this.process.removeListener('error', this.onerror);
-      this.process.removeListener('exit', this.onexit);
-
-      if (!this.process.connected) {
-        return resolve();
-      }
-
-      this.process.on('exit', resolve);
-      this.process.kill();
-    }.bind(this))
-    .then(function() {
-      // Start a new python child.
-      return spawnPythonChild();
-    })
-    .then(function(details) {
-      this.socketPath = details.socketPath;
-      this.process = details.process;
-      this.log = details.log;
-      this.process.on('error', this.onerror);
-      this.process.on('exit', this.onexit);
-    }.bind(this));
-  },
-
-  /**
-  Issue a request to the hosts underlying python http server.
-  */
-  request: function(path, options) {
-    if (this.error) {
-      return Promise.reject(this.error);
-    }
-    
-    return this.restarting.then(function() {
-      this.isRequestInProgress = true;
-      return request(this.socketPath, path, options);
-    }.bind(this))
-    .catch(function() {})  // TODO(gaye): Replace with finally
-    .then(function(result) {
-      this.isRequestInProgress = false;
-      if (this.didCrashDuringRequest) {
-        console.log('Will retry ' + path + ' request...');
-        this.didCrashDuringRequest = false;
-        return this.request(path, options);
-      }
-
-      return result;
-    }.bind(this));
-  },
-
-  onerror: function(error) {
-    debug('Python process error', error.toString());
-    this.error = error;
-    this.process.removeListener('exit', this.onexit);
-    this.process.kill();
-  },
-
-  onexit: function(exit) {
-    debug('Python process exited unexpectedly', JSON.stringify(exit));
-    this.error = new Error('Python unexpected exit ' + JSON.stringify(exit));
-    this.process.removeListener('exit', this.onexit);
-  }
-};
-
-Host.create = function() {
-  return spawnPythonChild().then(function(details) {
-    return new Host(details.socketPath, details.process, details.log);
-  });
-};
-
-function spawnPythonChild() {
-  var socketPath = '/tmp/marionette-socket-host-' + uuid.v1() + '.sock';
-
-  // XXXDebug Pro Tip: set stdio to [0, 1, 2] to get Python output.
-  var pythonChild = spawnVirtualEnv(
-    'gaia-integration',
-    ['--path=' + socketPath],
-    { stdio: _FORCE_DEBUG === false ?
-               ['pipe', 'pipe', 'pipe', 'pipe'] :
-               [0, 1, 2] }
-  );
-
-  var failOnChildError = new Promise(function(accept, reject) {
-    function onError(error) {
-      debug('Python process error during initial connect', error.toString());
-      reject(error);
-    }
-
-    pythonChild.once('error', onError);
-    pythonChild.once('exit', function(exit) {
-      // Ensure we don't call error callback somehow...
-      pythonChild.removeListener('error', onError);
-      reject(new Error(
-        'Unexpected exit during connect: ' +
-        'signal = ' + exit.signal + ', ' +
-        'code = ' + exit.code
-      ));
-    });
-  });
-
-  var connect = request(socketPath, '/connect').then(function() {
-    pythonChild.removeAllListeners('error');
-    pythonChild.removeAllListeners('exit');
-    return {
-      socketPath: socketPath,
-      process: pythonChild,
-      log: pythonChild.stdio[3]
-    };
-  });
-
-  return Promise.race([connect, failOnChildError]);
 }
 
 /**
-Wrapper for spawning a python process which expects a venv with particular
-packages. Same interface as spawn but overrides path and ensures certain env
-variables are not set which conflict.
+ * @type {object<string, Session>}
+ */
+Host.prototype.sessions = null;
 
-@param {String} bin path to binary to execute.
-@param {Array} argv list of arguments.
-@param {Object} opts options for node's spawn.
-@return {ChildProcess}
-*/
-function spawnVirtualEnv(bin, argv, opts) {
-  opts = opts || {};
-  // Clone current environment variables...
-  var env = {};
-  _.assign(env, process.env);
-  opts.env = env;
+/**
+ * @type {Array<Promise<Session>>}
+ */
+Host.prototype.pendingSessions = null;
 
+/**
+ * @type {object}
+ */
+Host.prototype._deviceService = null;
+
+/**
+ * @type {object}
+ */
+Host.prototype._mozRunner = null;
+
+/**
+ * For historical reasons (and for the time being) we use a python service
+ * to run tests on mulet and emulators. For devices, we use
+ * fxos-device-service. We want to spawn servers here to handle either
+ * environment. This should go away once bug 1227580 is resolved.
+ *
+ * @return {Promise<void>}
+ */
+Host.prototype.start = function() {
+  debug('Will bring up host');
+  return Promise.all([
+    createDeviceService(),
+    createMozRunner()
+  ])
+  .then(result => {
+    let deviceService = result[0];
+    let mozRunner = result[1];
+    this._deviceService = deviceService;
+    this._mozRunner = mozRunner;
+    mozRunner.log.pipe(this.log);
+  });
+};
+
+/**
+ * @return {Promise<void>}
+ */
+Host.prototype.destroy = function() {
+  // If there are any sessions being created, wait for those to cleanly
+  // finish first.
+  if (this.pendingSessions.length) {
+    return Promise.all(this.pendingSessions).then(() => this.destroy());
+  }
+
+  return Promise.all(map(this.sessions, session => session.destroy()))
+  .then(() => {
+    if (Object.keys(this.sessions.length)) {
+      return Promise.reject(new Error('Not all sessions were deleted!'));
+    }
+
+    this.sessions = null;
+    this.pendingSessions = null;
+
+    return Promise.all(
+      [this._deviceService, this._mozRunner].map(handle => {
+        let proc = handle.proc;
+        proc.kill();
+        return eventToPromise(proc, 'exit');
+      })
+    );
+  });
+};
+
+/**
+ * @return {Promise<object>}
+ */
+Host.prototype.request = function(path, options) {
+  debug('request', path, JSON.stringify(options));
+  return request(this._mozRunner.socketPath, path, options);
+};
+
+/**
+ * @return {Promise<ChildProcess>}
+ */
+function createDeviceService() {
+  let proc, port;
+  return emptyPort({startPort: 60030})
+  .then(result => {
+    port = result;
+    let stdio = getStdio();
+    let env = Object.assign(process.env);
+    // Add node_modules/.bin/ to $PATH
+    env.PATH = `${__dirname}/../node_modules/.bin/:${env.PATH}`;
+    proc = spawn('fxos-device-service', [port], {env, stdio});
+    return Promise.race([
+      waitUntilUsed(port),
+      rejectOnProcessCrash(proc)
+    ]);
+  })
+  .then(() => {
+    debug('Device service running on port', port);
+    return {process: proc, port};
+  });
+}
+
+/**
+ * @return {Promise<object>}
+ */
+function createMozRunner() {
+  let runner = spawnMozRunner();
+  return Promise.race([
+    connectToMozRunner(runner),
+    rejectOnProcessCrash(runner.process)
+  ]);
+}
+
+/**
+ * @return {object}
+ */
+function spawnMozRunner() {
+  let socketPath = `/tmp/marionette-socket-host-${uuid()}.sock`;
+  let env = Object.assign(process.env);
   // Prepend binary wrappers to path.
-  env.PATH = VENV + '/bin/:' + process.env.PATH;
-
+  env.PATH = `${VENV}/bin/:${env.PATH}`;
   // Ensure we don't conflict with other wrappers or package managers.
   delete env.PYTHONHOME;
+  let stdio = getStdio();
+  let proc = spawn(
+    'gaia-integration',
+    [`--path=${socketPath}`],
+    {env, stdio}
+  );
 
-  return spawn(bin, argv, opts);
+  return {process: proc, socketPath, log: proc.stdio[3]};
 }
+
+/**
+ * @param {object} runner mozrunner process details.
+ * @return {Promise<object>}
+ */
+function connectToMozRunner(runner) {
+  return request(runner.socketPath, '/connect').then(() => {
+    debug('Connected to mozrunner on', runner.socketPath);
+    runner.process.removeAllListeners('error');
+    runner.process.removeAllListeners('exit');
+    return runner;
+  });
+}
+
+/**
+ * @param {ChildProcess} proc.
+ * @return {Promise<void}>
+ */
+function rejectOnProcessCrash(proc) {
+  return new Promise((resolve, reject) => {
+    function handleExit(exit) {
+      proc.removeListener('error', reject);
+      reject(new Error(`process unexpected exit ${JSON.stringify(exit)}`));
+    }
+
+    proc.once('error', reject);
+    proc.once('exit', handleExit);
+  });
+}
+
+/**
+ * @return {Array<number|string>}
+ */
+function getStdio() {
+  return isDebugMode() ? [0, 1, 2, 'pipe'] : ['pipe', 'pipe', 'pipe', 'pipe'];
+}
+
+/**
+ * @return {boolean}
+ */
+function isDebugMode() {
+  return ['DEBUG', 'NODE_DEBUG'].some(flag => !!flag);
+}
+
+module.exports = Host;
