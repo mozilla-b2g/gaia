@@ -10,13 +10,13 @@ from gaiatest.apps.phone.app import Phone
 
 class TestDialerDsdsMakePhoneCallWithDefaultSim(GaiaTestCase):
 
-    @parameterized("1", 0, 'SIM1')
-    @parameterized("2", 1, 'SIM2')
-    def test_dialer_dsds_make_phone_call_with_default_sim(self, default_sim_value, default_sim_name):
+    @parameterized("1", 1)
+    @parameterized("2", 2)
+    def test_dialer_dsds_make_phone_call_with_default_sim(self, default_sim):
         """
         Place a phone call with the default SIM.
         """
-        self.data_layer.set_setting('ril.telephony.defaultServiceId', default_sim_value)
+        self.data_layer.set_setting('ril.telephony.defaultServiceId', default_sim - 1)
         remote_phone_number = self.testvars['remote_phone_number']
 
         phone = Phone(self.marionette)
@@ -25,9 +25,7 @@ class TestDialerDsdsMakePhoneCallWithDefaultSim(GaiaTestCase):
         call_screen = phone.keypad.call_number(remote_phone_number)
         call_screen.wait_for_outgoing_call()
 
-        # TODO Replace the following line by a check on the l10n ID
-        # once bug 1104667 lands
-        self.assertTrue(default_sim_name in call_screen.outgoing_via_sim)
+        self.assertIn(str(default_sim), call_screen.via_sim)
         call_screen.hang_up()
 
     def tearDown(self):
