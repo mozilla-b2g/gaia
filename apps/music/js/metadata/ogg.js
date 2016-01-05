@@ -68,7 +68,7 @@ var OggMetadata = (function() {
      * @param {BlobView} blobview The audio file being parsed.
      */
     readIdentificationHeader: function(blobview) {
-      var header = this.readPageHeader(blobview);
+      var header = this._readPageHeader(blobview);
       if (header.segment_table.length !== 1) {
         throw new Error(
           'ogg identification header expected as only packet of first page'
@@ -86,16 +86,14 @@ var OggMetadata = (function() {
      * @return {Promise} A Promise that resolves with the completed metadata.
      */
     readVorbisComment: function(blobview) {
-      return new Promise(function(resolve, reject) {
+      return new Promise((resolve, reject) => {
 
-        this.done = function(metadata) {
+        this._readCommentHeader(blobview).then((metadata) => {
           LazyLoader.load('js/metadata/vorbis_picture.js').then(() => {
             return VorbisPictureComment.parsePictureComment(metadata);
-          }).then(resolve);
-        }.bind(this);
-
-        this.readCommentHeader(blobview);
-      }.bind(this));
+          }).then(resolve).catch(reject);
+        });
+      });
     },
 
     /**
@@ -104,57 +102,62 @@ var OggMetadata = (function() {
      * @param {BlobView} bloview The audio file being parsed.
      * @param {Metadata} metadata The (partially filled-in) metadata object.
      */
-    readCommentHeader: function(blobview) {
-      var metadata = {};
-      var header = this.readPageHeader(blobview);
+    _readCommentHeader: function(blobview) {
+      return new Promise((resolve, reject) => {
+        var metadata = {};
+        var header = this._readPageHeader(blobview);
 
-      var sum = function(a, b) { return a + b; };
-      this.page_length = Array.reduce(header.segment_table, sum, 0);
+        var sum = function(a, b) { return a + b; };
+        this.page_length = Array.reduce(header.segment_table, sum, 0);
 
-      blobview.getMore(blobview.index, this.page_length,
-                       function(fullpage, err) {
-        if (err) {
-          throw new Error(err);
-        }
-
-        // Look for a comment header from a supported codec
-        var first_byte = fullpage.readByte();
-        var valid = false;
-        switch (first_byte) {
-        case 3:
-          valid = fullpage.readBinaryText(6) === 'vorbis';
-          metadata.tag_format = 'vorbis';
-          break;
-        case 79:
-          valid = fullpage.readBinaryText(7) === 'pusTags';
-          metadata.tag_format = 'opus';
-          break;
-        }
-        if (!valid) {
-          throw new Error('malformed ogg comment packet');
-        }
-
-        var vendor_string_length = fullpage.readUnsignedInt(true);
-        fullpage.advance(vendor_string_length); // skip libvorbis vendor string
-
-        var num_comments = fullpage.readUnsignedInt(true);
-        var readLoop = function(fullpage, err) {
-          if(err) {
-            throw new Error(err);
+        blobview.getMore(blobview.index, this.page_length, (fullpage, err) => {
+          if (err) {
+            reject(Error(err));
           }
-          blobview.advance(this.page_length);
 
-          if(!this.readAllComments(fullpage, num_comments, metadata)) {
-            var header = this.readPageHeader(blobview);
-            this.page_length = Array.reduce(header.segment_table, sum, 0);
-
-            blobview.getMore(blobview.index, this.page_length, readLoop);
+          // Look for a comment header from a supported codec
+          var first_byte = fullpage.readByte();
+          var valid = false;
+          switch (first_byte) {
+          case 3:
+            valid = fullpage.readBinaryText(6) === 'vorbis';
+            metadata.tag_format = 'vorbis';
+            break;
+          case 79:
+            valid = fullpage.readBinaryText(7) === 'pusTags';
+            metadata.tag_format = 'opus';
+            break;
           }
-        }.bind(this);
+          if (!valid) {
+            reject(new Error('malformed ogg comment packet'));
+          }
 
-        readLoop(fullpage, null);
+          var vendor_string_length = fullpage.readUnsignedInt(true);
+          fullpage.advance(vendor_string_length);// skip libvorbis vendor string
 
-      }.bind(this));
+          var num_comments = fullpage.readUnsignedInt(true);
+          var readLoop = (fullpage, err) => {
+            if(err) {
+              reject(new Error(err));
+            }
+            blobview.advance(this.page_length);
+
+            if(!this._readAllComments(fullpage, num_comments, metadata)) {
+              try {
+                var header = this._readPageHeader(blobview);
+                this.page_length = Array.reduce(header.segment_table, sum, 0);
+              } catch(e) {
+                // _readPageHeader() will throw on error.
+                reject(e);
+              }
+              blobview.getMore(blobview.index, this.page_length, readLoop);
+            } else {
+              resolve(metadata);
+            }
+          };
+          readLoop(fullpage, null);
+        });
+      });
     },
 
     /**
@@ -163,7 +166,7 @@ var OggMetadata = (function() {
      * @param {BlobView} page The audio file being parsed.
      * @return {Object} An object containing the page's segment table.
      */
-    readPageHeader: function(page) {
+    _readPageHeader: function(page) {
       var capture_pattern = page.readBinaryText(4);
       if (capture_pattern !== 'OggS') {
         throw new Error('malformed ogg page header');
@@ -192,16 +195,105 @@ var OggMetadata = (function() {
      *
      * @param {BlobView} page The audio file being parsed.
      * @param {int} num_comments The number of comment to be parsed.
-     * @param {Metadata} metadata The (partially filled-in metadata object.
+     * @param {Metadata} metadata The (partially) filled-in metadata object.
+     * @return true when done reading all comments.
      */
-    readAllComments: function(page, num_comments, metadata) {
+    _readAllComments: function(page, num_comments, metadata) {
+
+      /**
+       * Read a single comment field.
+       *
+       * @param {BlobView} page The audio file being parsed.
+       */
+      function readComment(page) {
+        if (page.remaining() < 4) { // 4 bytes for comment-length variable
+          throw new EndOfPageError({
+            page: page,
+            index: page.tell(),
+            size: page.remaining()
+          });
+        }
+        var comment_length = page.readUnsignedInt(true);
+        if (comment_length > page.remaining()) {
+          throw new EndOfPageError({
+            page: page,
+            index: page.tell(),
+            size: page.remaining()
+          }, comment_length);
+        }
+
+        var comment = page.readUTF8Text(comment_length);
+        return decodeComment(comment);
+      }
+
+      function readContinuedComment(leftovers, comment_length, page) {
+        var buffer;
+        var left;
+        if (comment_length === undefined) {
+          buffer = new Uint8Array(4);
+          var size = Math.min(leftovers.size, 4);
+          var val = leftovers.page.readUnsignedByteArray(size);
+          buffer.set(val, 0);
+          if (size < 4) {
+            left = 4 - size;
+            val = page.readUnsginedByteArray(left);
+            buffer.set(val, size);
+          }
+          comment_length = DataView(buffer.buffer).getUint32(0, true);
+        }
+
+        left = leftovers.page.remaining();
+        var newBuffer = new Uint8Array(left + page.remaining());
+        if (left > 0) {
+          buffer = leftovers.page.readUnsignedByteArray(left);
+          newBuffer.set(buffer, 0);
+        }
+        buffer = page.readUnsignedByteArray(Math.min(comment_length - left,
+                                                     page.remaining()));
+        newBuffer.set(buffer, left);
+
+        var view = BlobView.getFromArrayBuffer(newBuffer.buffer, 0,
+                                               newBuffer.byteLength,
+                                               true);
+        if (comment_length > view.remaining()) {
+          throw new EndOfPageError({
+            page: view,
+            index: 0,
+            size: newBuffer.byteLength
+          }, comment_length);
+        }
+        return decodeComment(view.readUTF8Text(comment_length));
+      }
+
+      /**
+       * Decode the vorbis comment as coming from the buffer.
+       * @param {String} comment The comment data.
+       * @return {Object} a key value pair.
+       */
+      function decodeComment(comment) {
+        var equal = comment.indexOf('=');
+        if (equal === -1) {
+          throw new Error('missing delimiter in comment');
+        }
+
+        var fieldname = comment.substring(0, equal).
+            toLowerCase().replace(' ', '');
+        var propname = OGGFIELDS[fieldname];
+        if (propname) { // Do we care about this field?
+          var value = comment.substring(equal + 1);
+          if (INTFIELDS.indexOf(propname) !== -1) {
+            value = parseInt(value, 10);
+          }
+          return {field: propname, value: value};
+        }
+      }
 
       for (var i = this.read_comments; i < num_comments; i++) {
         try {
           var comment;
           if (this.continued) {
-            comment = readContinuedComment(this.leftovers, this.comment_length,
-                                           page);
+            comment = readContinuedComment(this.leftovers,
+                                           this.comment_length, page);
           } else {
             comment = readComment(page);
           }
@@ -227,98 +319,9 @@ var OggMetadata = (function() {
           console.warn('Error parsing ogg metadata frame', e.stack);
         }
       }
-      this.done(metadata);
       return true;
     }
   };
-
-  /**
-   * Read a single comment field.
-   *
-   * @param {BlobView} page The audio file being parsed.
-   */
-  function readComment(page) {
-    if (page.remaining() < 4) { // 4 bytes for comment-length variable
-      throw new EndOfPageError({
-        page: page,
-        index: page.tell(),
-        size: page.remaining()
-      });
-    }
-    var comment_length = page.readUnsignedInt(true);
-    if (comment_length > page.remaining()) {
-      throw new EndOfPageError({
-        page: page,
-        index: page.tell(),
-        size: page.remaining()
-      }, comment_length);
-    }
-
-    var comment = page.readUTF8Text(comment_length);
-    return decodeComment(comment);
-  }
-
-  function readContinuedComment(leftovers, comment_length, page) {
-    var buffer;
-    var left;
-    if (comment_length === undefined) {
-      buffer = new Uint8Array(4);
-      var size = Math.min(leftovers.size, 4);
-      var val = leftovers.page.readUnsignedByteArray(size);
-      buffer.set(val, 0);
-      if (size < 4) {
-        left = 4 - size;
-        val = page.readUnsginedByteArray(left);
-        buffer.set(val, size);
-      }
-      comment_length = DataView(buffer.buffer).getUint32(0, true);
-    }
-
-    left = leftovers.page.remaining();
-    var newBuffer = new Uint8Array(left + page.remaining());
-    if (left > 0) {
-      buffer = leftovers.page.readUnsignedByteArray(left);
-      newBuffer.set(buffer, 0);
-    }
-    buffer = page.readUnsignedByteArray(Math.min(comment_length - left,
-                                                 page.remaining()));
-    newBuffer.set(buffer, left);
-
-    var view = BlobView.getFromArrayBuffer(newBuffer.buffer, 0,
-                                           newBuffer.byteLength,
-                                           true);
-    if (comment_length > view.remaining()) {
-      throw new EndOfPageError({
-        page: view,
-        index: 0,
-        size: newBuffer.byteLength
-      }, comment_length);
-    }
-    return decodeComment(view.readUTF8Text(comment_length));
-  }
-
-  /**
-   * Decode the vorbis comment as coming from the buffer.
-   * @param {String} comment The comment data.
-   * @return {Object} a key value pair.
-   */
-  function decodeComment(comment) {
-    var equal = comment.indexOf('=');
-    if (equal === -1) {
-      throw new Error('missing delimiter in comment');
-    }
-
-    var fieldname = comment.substring(0, equal).toLowerCase().replace(' ', '');
-    var propname = OGGFIELDS[fieldname];
-    if (propname) { // Do we care about this field?
-      var value = comment.substring(equal + 1);
-      if (INTFIELDS.indexOf(propname) !== -1) {
-        value = parseInt(value, 10);
-      }
-      return {field: propname, value: value};
-    }
-
-  }
 
   return {
     parse: parse
