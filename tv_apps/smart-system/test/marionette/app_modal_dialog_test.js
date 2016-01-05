@@ -13,7 +13,7 @@ var Keys = {
 var assert = require('chai').assert;
 var AppModalDialog = require('./lib/app_modal_dialog');
 
-// 2nd try
+// 3rd try
 marionette('Test Modal Dialog Events', function() {
 
   var opts = {
