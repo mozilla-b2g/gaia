@@ -3,6 +3,7 @@
 var assert = require('chai').assert;
 var AppModalDialog = require('./lib/app_modal_dialog');
 
+// 2nd try
 marionette('Test Modal Dialog Events', function() {
 
   var APP_NAME = 'modaldialogapp';
