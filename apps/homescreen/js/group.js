@@ -29,34 +29,36 @@
     this.state = 0;
   };
 
-  proto.transferFromContainer = function(child, container) {
+  proto.transferFromContainer = function(child, container, callback) {
     container.removeChild(child, () => {
-      this.container.appendChild(child);
+      this.container.appendChild(child, callback);
       var icon = child.firstElementChild;
       icon.showName = false;
     });
   };
 
-  proto.transferToContainer = function(child, container) {
+  proto.transferToContainer = function(child, container, callback) {
     var icon = child.firstElementChild;
     this.container.removeChild(child, () => {
       icon.showName = true;
 
       this.removedChildren.push(child);
-      this.finishRemovingChildren(container);
+      this.finishRemovingChildren(container, callback);
     });
   };
 
-  proto.finishRemovingChildren = function(container) {
-    var reparentRemovedChildren = beforeChild => {
-      for (var child of this.removedChildren) {
-        container.insertBefore(child, beforeChild);
+  proto.finishRemovingChildren = function(container, callback) {
+    var reparentRemovedChildren = (beforeChild, callback) => {
+      for (var i = 0, iLen = this.removedChildren.length; i < iLen; i++) {
+        var child = this.removedChildren[i];
+        container.insertBefore(child, beforeChild,
+                               (i === iLen - 1) ? callback : null);
       }
       this.removedChildren = [];
     };
 
     if (this.container.children.length === 1) {
-      this.transferToContainer(this.container.firstChild, container);
+      this.transferToContainer(this.container.firstChild, container, callback);
     } else if (this.state !== COLLAPSING &&
                this.container.children.length === 0) {
       // The children will be added back to the parent container after the
@@ -72,9 +74,9 @@
       }
 
       container.removeChild(this.parentNode,
-        reparentRemovedChildren.bind(this, sibling));
+        reparentRemovedChildren.bind(this, sibling, callback));
     } else if (this.state === COLLAPSED) {
-      reparentRemovedChildren(this.parentNode);
+      reparentRemovedChildren(this.parentNode, callback);
     }
   };
 
@@ -197,7 +199,7 @@
     this.container.classList.add('expanding');
   };
 
-  proto.collapse = function(parent, callback) {
+  proto.collapse = function(parent, onPreComplete, onComplete) {
     switch (this.state) {
       case EXPANDED:
         break;
@@ -212,9 +214,10 @@
      * 2 Set style property on group background to have it return to its
      *   original position.
      * 3 Remove offsets on group, container and background.
-     * 4 Tidy up and call complete callback.
+     * 4 Tidy up and call pre-complete callback.
      * 5 Remove collapsing classes on document body and self
      * 6 Synchronise container and set style property to have it fade in.
+     * 7 Call complete callback.
      */
     this.state = COLLAPSING;
     this.classList.add('collapsing');
@@ -245,7 +248,9 @@
       // Part 4.
       this.parentNode.parentNode.style.zIndex = '';
       parent.setUseTransform(this.parentNode, true);
-      callback();
+      if (onPreComplete) {
+        onPreComplete();
+      }
 
       // Part 5.
       this.classList.remove('collapsing');
@@ -256,7 +261,7 @@
       this.container.synchronise();
 
       this.state = COLLAPSED;
-      this.finishRemovingChildren(parent);
+      this.finishRemovingChildren(parent, onComplete);
     };
     this.background.addEventListener('transitionend', afterCollapsing);
   };

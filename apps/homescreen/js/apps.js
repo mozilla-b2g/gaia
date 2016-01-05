@@ -473,22 +473,23 @@
       }
     },
 
-    addIconContainer: function(icon, entry) {
+    addIconContainer: function(icon, entry, parent) {
       var container = document.createElement('div');
-      container.classList.add('icon-container');
+      container.classList.add((icon.localName === 'homescreen-group') ?
+                              'group-container' : 'icon-container');
       container.order = -1;
       container.appendChild(icon);
 
       // Try to insert the container in the right order
       if (entry !== -1 && this.startupMetadata[entry].order >= 0) {
         container.order = this.startupMetadata[entry].order;
-        var children = this.icons.children;
+        var children = parent.children;
         for (var i = 0, iLen = children.length; i < iLen; i++) {
           var child = children[i];
           if (child.order !== -1 && child.order < container.order) {
             continue;
           }
-          this.icons.insertBefore(container, child);
+          parent.insertBefore(container, child);
           if (this.startupMetadata === null) {
             this.iconAdded(container);
           }
@@ -497,7 +498,7 @@
       }
 
       if (!container.parentNode) {
-        this.icons.appendChild(container);
+        parent.appendChild(container);
         if (this.startupMetadata === null) {
           this.iconAdded(container);
         }
@@ -528,11 +529,49 @@
         }
       }
 
+      // Check if the icon is grouped and create a group, fetch a group or
+      // delay adding as necessary
+      var parent = this.icons;
+      var groupId = (entry !== -1) ? this.startupMetadata[entry].group : '';
+      if (groupId !== '') {
+        if (groupId === id) {
+          // We need to create a group
+          var group = document.createElement('homescreen-group');
+          this.addIconContainer(group, entry, this.icons);
+          parent = group.container;
+        } else {
+          // We need to add to an existing group, or delay if one doesn't exist.
+          // In the situation that a group doesn't exist and we've finished
+          // startup, just add the icon without a group. This shouldn't happen,
+          // but we shouldn't fail if it somehow does.
+          var groupFound = false;
+          this.iterateIcons((icon, container, iconParent) => {
+            if (groupFound) {
+              return;
+            }
+            var id = this.getIconId(icon.app ? icon.app : icon.bookmark,
+                                    icon.entryPoint);
+            if (id === groupId) {
+              parent = iconParent;
+              groupFound = true;
+            }
+          });
+
+          if (parent === this.icons && this.startupMetadata !== null) {
+            // We didn't find the group and we're still starting up, so delay
+            // adding this icon.
+            this.pendingIcons[id] = Array.slice(arguments);
+            return;
+          }
+        }
+      }
+
       var icon = document.createElement('gaia-app-icon');
       if (entryPoint) {
         icon.entryPoint = entryPoint;
       }
-      var container = this.addIconContainer(icon, entry);
+
+      var container = this.addIconContainer(icon, entry, parent);
 
       if (appOrBookmark.id) {
         icon.bookmark = appOrBookmark;
@@ -551,7 +590,7 @@
         icon.app.addEventListener('downloadapplied',
           function(app, container) {
             handleRoleChange(app, container);
-            this.icons.synchronise();
+            container.parentNode.synchronise();
           }.bind(this, icon.app, container));
 
         handleRoleChange(icon.app, container);
@@ -620,13 +659,18 @@
     },
 
     storeAppOrder: function() {
-      // TODO: Store group information
       var i = 0;
       var storedOrders = [];
+      var group = '';
       this.iterateIcons((icon, container, parent) => {
         var id = this.getIconId(icon.app ? icon.app : icon.bookmark,
                                 icon.entryPoint);
-        storedOrders.push({ id: id, order: i++ });
+        if (parent === this.icons) {
+          group = '';
+        } else if (group === '') {
+          group = id;
+        }
+        storedOrders.push({ id: id, order: i++, group: group });
       });
 
       this.metadata.set(storedOrders).then(
@@ -925,7 +969,8 @@
           this.openGroup = null;
           this.attachInputHandlers(this.icons);
           this.icons.setAttribute('drag-and-drop', '');
-        });
+        },
+        this.storeAppOrder.bind(this));
       }
     },
 
@@ -1100,7 +1145,8 @@
           } else {
             group = this.addGroup(e.detail.dropTarget);
             group.transferFromContainer(e.detail.dropTarget, this.icons);
-            group.transferFromContainer(e.detail.target, this.icons);
+            group.transferFromContainer(e.detail.target, this.icons,
+                                        this.storeAppOrder.bind(this));
           }
           this.refreshGridSize();
           this.snapScrollPosition();
