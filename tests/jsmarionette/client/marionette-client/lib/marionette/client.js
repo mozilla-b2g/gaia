@@ -143,7 +143,7 @@
     CONTENT: 'content',
 
     /**
-     * Object of hoooks.
+     * Object of hooks.
      *
      *    {
      *      hookName: [hook1, hook2]
@@ -549,6 +549,7 @@
      *     unto the callback, will return the full object if undefined
      */
     _sendCommand: function(body, cb, key) {
+      assert(!!this.driver, body.name + ' called on client w/o driver!');
       try {
         return this.send(body, function(data) {
           var res, err;
