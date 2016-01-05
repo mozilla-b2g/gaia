@@ -7,6 +7,9 @@ var MockNavigatorMozWifiManager = {
   _cb: {
     onerror: []
   },
+  setMacAddress: function(mac) {
+    this.macAddress = mac;
+  },
   forget: function(network) {
     return {
       set onsuccess(callback) {
