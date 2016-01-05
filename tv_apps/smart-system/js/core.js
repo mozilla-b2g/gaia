@@ -36,16 +36,18 @@
     },
 
     _start: function() {
+      var promises = [];
       for (var api in this.REGISTRY) {
         this.debug('Detecting API: ' + api +
           ' and corresponding module: ' + this.REGISTRY[api]);
         if (navigator[api]) {
           this.debug('API: ' + api + ' found, starting the handler.');
-          this.startAPIHandler(api, this.REGISTRY[api]);
+          promises.push(this.startAPIHandler(api, this.REGISTRY[api]));
         } else {
           this.debug('API: ' + api + ' not found, skpping the handler.');
         }
       }
+      return Promise.all(promises);
     },
 
     startAPIHandler: function(api, handler) {
@@ -56,9 +58,13 @@
             BaseModule.instantiate(handler, navigator[api], this);
           if (!this[moduleName]) {
             reject();
+            return;
           }
-          this[moduleName].start && this[moduleName].start();
-          resolve();
+          if (this[moduleName].start) {
+            this[moduleName].start().then(() => resolve());
+          } else {
+            resolve();
+          }
         }.bind(this));
       }.bind(this));
     },
