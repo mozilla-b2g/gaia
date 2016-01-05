@@ -1,8 +1,6 @@
 /*jshint maxlen:false*/
 'use strict';
 
-require('/shared/js/l10n.js');
-
 suite('controllers/confirm', function() {
   suiteSetup(function(done) {
     var modules = this.modules = {};

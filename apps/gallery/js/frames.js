@@ -367,7 +367,7 @@ function panHandler(event) {
 
   // Don't swipe past the end of the last item or past the start of the first
   // Handle frameOffset reset in RTL when directions are reversed. See 1099458
-  if (navigator.mozL10n.language.direction === 'ltr') {
+  if (document.documentElement.dir === 'ltr') {
     if ((currentFileIndex === 0 && frameOffset > 0) ||
         (currentFileIndex === files.length - 1 && frameOffset < 0)) {
       frameOffset = 0;
@@ -401,7 +401,7 @@ function swipeHandler(event) {
   var direction = (frameOffset < 0) ? 1 : -1;
 
   // If we're in a right-to-left locale, reverse those directions
-  if (navigator.mozL10n.language.direction === 'rtl') {
+  if (document.documentElement.dir === 'rtl') {
     direction *= -1;
   }
 
@@ -537,7 +537,7 @@ function setFramesPosition() {
   var width = window.innerWidth + FRAME_BORDER_WIDTH;
   currentFrame.container.style.transform =
     'translateX(' + frameOffset + 'px)';
-  if (navigator.mozL10n.language.direction === 'ltr') {
+  if (document.documentElement.dir === 'ltr') {
     nextFrame.container.style.transform =
       'translateX(' + (frameOffset + width) + 'px)';
     previousFrame.container.style.transform =

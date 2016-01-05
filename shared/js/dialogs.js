@@ -20,7 +20,7 @@ var Dialogs = {
        */
       var addText = function (element, prefix, defaultId) {
         if (options[prefix + 'Id']) {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             element,
             options[prefix + 'Id'],
             options[prefix + 'Args'] //may be undefined but will still work

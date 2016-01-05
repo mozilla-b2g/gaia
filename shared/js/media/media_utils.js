@@ -31,14 +31,14 @@ var MediaUtils = {
     }
     var sizeDecimal = i < 2 ? Math.round(size) : Math.round(size * 10) / 10;
 
-    return navigator.mozL10n.formatValue('byteUnit-' + units[i]).then(
+    return document.l10n.formatValue('byteUnit-' + units[i]).then(
       (unit) => { return { size: sizeDecimal, unit }; }
     );
   },
 
   getLocalizedSize: function(size) {
     return this.getLocalizedSizeTokens(size).then((args) => {
-      return navigator.mozL10n.formatValue('fileSize', args);
+      return document.l10n.formatValue('fileSize', args);
     });
   },
 
@@ -86,7 +86,7 @@ var MediaUtils = {
             element.removeAttribute('data-l10n-id');
             element.textContent = data[id].raw;
           } else {
-            navigator.mozL10n.setAttributes(element,
+            document.l10n.setAttributes(element,
               data[id].id, data[id].args);
           }
         }

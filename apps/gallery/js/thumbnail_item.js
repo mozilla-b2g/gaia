@@ -50,7 +50,7 @@ ThumbnailItem.prototype.localize = function() {
   var descId = !this.data.metadata.video ?
     'imageDated' : 'videoDated';
 
-  navigator.mozL10n.setAttributes(this.imgNode, descId, {
+  document.l10n.setAttributes(this.imgNode, descId, {
     timeStamp: ThumbnailItem.formatter.format(date)
   });
 };
