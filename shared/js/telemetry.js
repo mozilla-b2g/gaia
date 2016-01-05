@@ -118,7 +118,6 @@
       }).then(function (imei) {
         return TelemetryRequest.createHash(imei);
       }).then(function (hashed) {
-        console.log('TAMARA:HASHED:' + hashed);
         resolve(hashed);
       }).catch(reject);
     });

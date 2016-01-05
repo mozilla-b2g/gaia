@@ -151,12 +151,6 @@ suite('Telemetry:', function() {
 
   suite('getDeviceID', function () {
 
-    setup(function() {
-    });
-
-    teardown(function() {
-    });
-
     test('Should resolve with hash identifier', function() {
       MockNavigatorMozWifiManager.setMacAddress('00:0a:f5:cb:63:dc');
       // Simulate a 15 digit IMEI
