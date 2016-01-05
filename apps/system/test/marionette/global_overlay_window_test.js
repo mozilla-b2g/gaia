@@ -34,18 +34,22 @@ marionette('GlobalOverlayWindow', function() {
   test('The global overlay window should be opened',
   function() {
     fakeGlobalOverlay.launch();
-    console.log ("launched");
+    console.log ('launched');
     fakeGlobalOverlay.waitForTitleShown(true);
-    console.log ("title shown");
+    console.log ('title shown');
     client.switchToFrame();
-    console.log ("switched to frame");
+    console.log ('switched to frame');
 
+    try {
     var globalOverlayWindow =
       client.helper.waitForElement('.globalOverlayWindow.active');
-    console.log ("waited for global overlay element");
+    } catch (e) {
+      console.log(e);
+    }
+    console.log('waited for global overlay element');
 
     client.waitFor(function() {
-      console.log ("testing... global overlay window displayed?");
+      console.log('testing... global overlay window displayed?');
       return globalOverlayWindow.displayed();
     });
 
