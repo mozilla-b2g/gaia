@@ -20,7 +20,6 @@ require('/views/shared/test/unit/mock_contact.js');
 require('/views/shared/test/unit/mock_contacts.js');
 require('/views/shared/test/unit/mock_messages.js');
 require('/services/test/unit/mock_message_manager.js');
-require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_notify.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_silent_sms.js');
@@ -37,7 +36,6 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Navigation',
   'NotificationHelper',
   'Notify',
-  'Settings',
   'SilentSms',
   'SMIL',
   'Utils'

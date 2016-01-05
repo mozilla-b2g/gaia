@@ -58,8 +58,8 @@ suite('MozSettingsClient >', function() {
       MozSettingsClient.init(APP_INSTANCE_ID);
     });
 
-    test('client method is called and returns valid number', function() {
-      size = 1024;
+    test('client method is called and returns valid number', function(done) {
+      size = 10240;
 
       clientStub.method.withArgs('get', key).returns(Promise.resolve(size));
       MozSettingsClient.mmsSizeLimitation().then((limit) => {
@@ -69,11 +69,11 @@ suite('MozSettingsClient >', function() {
           key
         );
 
-        assert.equal(limit, size);
-      });
+        assert.equal(limit, size - 5 * 1024);
+      }).then(done, done);
     });
 
-    test('client method is called and returns invalid number', function() {
+    test('client method is called and returns invalid number', function(done) {
       var size = 'invalid';
 
       clientStub.method.withArgs('get', key).returns(Promise.resolve(size));
@@ -85,7 +85,7 @@ suite('MozSettingsClient >', function() {
         );
 
         assert.equal(limit, 295 * 1024);
-      });
+      }).then(done, done);
     });
   });
 
@@ -97,7 +97,7 @@ suite('MozSettingsClient >', function() {
       MozSettingsClient.init(APP_INSTANCE_ID);
     });
 
-    test('client method is called and returns valid number', function() {
+    test('client method is called and returns valid number', function(done) {
       length = 5;
 
       clientStub.method.withArgs('get', key).returns(Promise.resolve(length));
@@ -109,10 +109,10 @@ suite('MozSettingsClient >', function() {
         );
 
         assert.equal(limit, length);
-      });
+      }).then(done, done);
     });
 
-    test('client method is called and returns invalid number', function() {
+    test('client method is called and returns invalid number', function(done) {
       var length = 'invalid';
 
       clientStub.method.withArgs('get', key).returns(Promise.resolve(length));
@@ -124,7 +124,7 @@ suite('MozSettingsClient >', function() {
         );
 
         assert.equal(limit, 10);
-      });
+      }).then(done, done);
     });
   });
 });

@@ -6,13 +6,13 @@
 
 /**
  * Name of the service that is responsible for settings functionality.
- * @type {string}
+ * @const {string}
  */
 const SERVICE_NAME = 'moz-settings-shim';
 
 /**
  * Disable default client timeout from bridge by setting the timeout to false.
- * @type {number|boolean}
+ * @const {number|boolean}
  */
 const TIMEOUT = false;
 
@@ -37,7 +37,7 @@ var client;
 
 var MozSettingsClient = {
   /**
-   * Initializes connection to mozSettingsShim hosted in iframe.
+   * Initializes connection to mozSettingsShim hosted in different compartment.
    * @param {string} appInstanceId Unique identifier of app instance
    * where client resides in.
    */
@@ -57,7 +57,7 @@ var MozSettingsClient = {
 
   /**
    * Limitation of the MMS size .
-   * @returns Promise.<Number> Promise of shim's method that returned the mms
+   * @returns {Promise.<Number>} Promise of shim's method that returned the mms
    *  limit in Bytes. Default limitation is 295KB.
    */
   mmsSizeLimitation() {
@@ -68,7 +68,7 @@ var MozSettingsClient = {
 
   /**
    * Maximum concatenated number of our SMS.
-   * @returns Promise.<Number> Promise of shim's method that return number of
+   * @returns {Promise.<Number>} Promise of shim's method that return number of
    *  maximum concatenated number of our SMS. Default maximum number is 10.
    */
   maxConcatenatedMessages() {

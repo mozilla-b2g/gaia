@@ -242,6 +242,7 @@ suite('conversation.js >', function() {
 
     ConversationView.recipients = null;
     ConversationView._isReady = false;
+
     mmsSizeLimitation = 295 * 1024;
     maxConcatenatedMessages = 10;
     MozSettingsClient.mmsSizeLimitation.returns(
@@ -250,19 +251,11 @@ suite('conversation.js >', function() {
     MozSettingsClient.maxConcatenatedMessages.returns(
       Promise.resolve(maxConcatenatedMessages)
     );
-    ConversationView.init().then(() => {
-      assert.isTrue(ConversationView._isReady);
-      assert.equal(ConversationView.mmsSizeLimitation, mmsSizeLimitation);
-      sinon.assert.calledWith(
-        Compose.init,
-        'messages-compose-form',
-        mmsSizeLimitation,
-        maxConcatenatedMessages
-      );
-    }).then(done, done);
 
     sticky = MockStickyHeader;
     MockOptionMenu.mSetup();
+
+    ConversationView.init().then(() => done(), done);
   });
 
   teardown(function() {
@@ -281,6 +274,13 @@ suite('conversation.js >', function() {
 
   test('View is ready after init()', function() {
     assert.ok(ConversationView.isReady());
+    assert.equal(ConversationView.mmsSizeLimitation, mmsSizeLimitation);
+    sinon.assert.calledWith(
+      Compose.init,
+      'messages-compose-form',
+      mmsSizeLimitation,
+      maxConcatenatedMessages
+    );
   });
 
   suite('scrolling', function() {

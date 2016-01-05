@@ -101,7 +101,11 @@ var Startup = exports.Startup = {
 
       InterInstanceEventDispatcher.connect();
 
+      // Init clients
       MozSettingsClient.init(App.instanceId);
+      MessagingClient.init(App.instanceId);
+      MozMobileConnectionsClient.init(App.instanceId);
+
       // dispatch contentInteractive when all the modules initialized
       SilentSms.init();
 
@@ -115,18 +119,18 @@ var Startup = exports.Startup = {
 
       // Init UI Managers
       TimeHeaders.init();
-      ConversationView.init().then(() => {
-        Navigation.setReady();
-
-        window.performance.mark('contentInteractive');
-
-        window.performance.mark('objectsInitEnd');
-      });
-      MessagingClient.init(App.instanceId);
-      MozMobileConnectionsClient.init(App.instanceId);
       Information.initDefaultViews();
+
+      return ConversationView.init();
     });
-    return lazyLoadPromise;
+    return lazyLoadPromise.then(() => {
+      Navigation.setReady();
+
+      window.performance.mark('contentInteractive');
+      window.performance.mark('objectsInitEnd');
+
+      return;
+    });
   },
 
   /**

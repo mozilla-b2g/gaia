@@ -27,7 +27,7 @@ const ActivityDataType = {
   VCARD: 'text/vcard'
 };
 
-const FILE_TOO_LARGE_ID = 'attached-files-too-large';
+const FILE_TOO_LARGE_L10N_ID = 'attached-files-too-large';
 
 var ActivityHandler = {
   init: function() {
@@ -122,19 +122,27 @@ var ActivityHandler = {
       return size;
     }, 0) : 0;
 
-    return MozSettingsClient.mmsSizeLimitation().then((limit) => {
-      if (size > limit) {
-        return Utils.alert({
-          id: FILE_TOO_LARGE_ID,
-          args: {
-            n: activityData.blobs.length,
-            mmsSize: (size / 1024).toFixed(0)
-          }
-        }).then(() => ActivityClient.postResult());
-      }
+    let sizeVerificationPromise;
 
-      return this.toView({ body: data });
-    });
+    if (size) {
+      sizeVerificationPromise = MozSettingsClient.mmsSizeLimitation().then(
+        (limit) => {
+
+        if (size > limit) {
+          return Utils.alert({
+            id: FILE_TOO_LARGE_L10N_ID,
+            args: { n: data.length, mmsSize: (size / 1024).toFixed(0) }
+          }).then(() => Promise.reject());
+        }
+      });
+    } else {
+      sizeVerificationPromise = Promise.resolve();
+    }
+
+    return sizeVerificationPromise.then(
+      () => this.toView({ body: data }),
+      () => ActivityClient.postResult()
+    );
   },
 
   /**
