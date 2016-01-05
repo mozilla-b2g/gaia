@@ -16,6 +16,28 @@
   100% { opacity: 0; }
 }
 
+@keyframes fade-scale-in {
+  from  {
+    transform: scale(0.5);
+    opacity: 0.0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1.0;
+  }
+}
+
+@keyframes fade-scale-out {
+  from  {
+    transform: scale(1.0);
+    opacity: 1.0;
+  }
+  to {
+    transform: scale(2);
+    opacity: 0.0;
+  }
+}
+
 html[dir="ltr"] .app-go-deeper-out {
   animation: current-to-left var(--transition-duration) forwards;
 }
