@@ -1,11 +1,24 @@
 /* exported Thumbnails */
 /* global ThumbnailList, ThumbnailDateGroup, MediaDB, LazyLoader */
-/* global photodb, files, picking, metadataParser */
+/* global photodb, files, picking, metadataParser, IntlHelper */
 (function(exports) {
   'use strict';
 
   // This is the object we export
   var thumbnails = exports.Thumbnails = {};
+
+  IntlHelper.define('date-group', 'datetime', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  IntlHelper.define('time-stamp', 'datetime', {
+    hour: 'numeric',
+    minute: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
 
   // This is the container element for the thumbnails.  We put them here
   // so that we can start creating them before the DOM is loaded. Once
@@ -18,10 +31,9 @@
   // contained in the thumbnailContainer.
   thumbnails.list = new ThumbnailList(ThumbnailDateGroup, thumbnails.container);
 
-  // Bug 1135256: Having a listener in ThumbnailList prevents them from
-  // being garbage collected since ready() holds a strong reference, so
-  // we have a singleton listener here.
-  navigator.mozL10n.ready(thumbnails.list.localize.bind(thumbnails.list));
+  // Reformatting eventlistener is handled by ThumbnailList
+  IntlHelper.observe('date-group',
+    thumbnails.list.localize.bind(thumbnails.list));
 
   // How many thumbnails are visible on a page.
   // Batch sizes are based on this.

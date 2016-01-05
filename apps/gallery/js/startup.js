@@ -297,6 +297,7 @@
       // fullyLoaded marker until we're completely stable and have
       // finished scanning.
       window.performance.mark('mediaEnumerated');
+      navigator.mozL10n.once(Thumbnails.list.localize.bind(Thumbnails.list));
 
       // Now that we've enumerated all the photos and videos we already know
       // about it is time to go and scan the filesystem for new ones. If the
