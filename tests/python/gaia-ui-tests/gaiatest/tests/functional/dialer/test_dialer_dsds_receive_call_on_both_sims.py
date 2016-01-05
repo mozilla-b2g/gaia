@@ -20,9 +20,9 @@ class TestDsdsReceiveCallOnBothSims(GaiaTestCase):
 
         GaiaTestCase.setUp(self)
 
-    @parameterized("1", 0, 'SIM1')
-    @parameterized("2", 1, 'SIM2')
-    def test_dsds_receive_call_on_both_sims(self, sim_value, sim_name):
+    @parameterized("1", 1)
+    @parameterized("2", 2)
+    def test_dsds_receive_call_on_both_sims(self, sim_number):
         """Make a phone call from Plivo to each SIM."""
 
         from gaiatest.utils.plivo.plivo_util import PlivoUtil
@@ -32,22 +32,16 @@ class TestDsdsReceiveCallOnBothSims(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.environment.phone_numbers[sim_value].replace('+', ''))
+            to_number=self.environment.phone_numbers[sim_number - 1].replace('+', ''))
 
         call_screen = CallScreen(self.marionette)
         call_screen.wait_for_incoming_call()
-
-        # TODO Replace the following line by a check on the l10n ID
-        # once bug 1104667 lands
-        self.assertTrue(sim_name in call_screen.incoming_via_sim)
+        self.assertIn(str(sim_number), call_screen.via_sim)
 
         call_screen.answer_call()
         self.plivo.wait_for_call_connected(self.call_uuid)
         Wait(self.marionette).until(lambda m: self.data_layer.active_telephony_state == 'connected')
-
-        # TODO Replace the following line by a check on the l10n ID
-        # once bug 1104667 lands
-        self.assertTrue(sim_name in call_screen.incoming_via_sim)
+        self.assertIn(str(sim_number), call_screen.via_sim)
 
         call_screen.hang_up()
         self.plivo.wait_for_call_completed(self.call_uuid)
