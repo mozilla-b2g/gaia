@@ -39,9 +39,9 @@ marionette('GlobalOverlayWindow', function() {
     console.log ('title shown');
     client.switchToFrame();
     console.log ('switched to frame');
-
+    var globalOverlayWindow;
     try {
-    var globalOverlayWindow =
+      globalOverlayWindow =
       client.helper.waitForElement('.globalOverlayWindow.active');
     } catch (e) {
       console.log(e);
