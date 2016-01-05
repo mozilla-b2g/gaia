@@ -3,7 +3,8 @@
 
 'use strict';
 
-/* global KeyboardManager, focusManager, Sanitizer */
+/* global KeyboardManager, focusManager, Sanitizer, SmartModalDialog,
+          SmartInputDialog */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -21,11 +22,8 @@ var ModalDialog = {
 
   // Get all elements when inited.
   getAllElements: function md_getAllElements() {
-    var elementsID = ['alert', 'alert-ok', 'alert-message',
-      'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
-      'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
-      'alert-title', 'confirm-title', 'prompt-title'];
+    var elementsID = [
+      'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -79,6 +77,12 @@ var ModalDialog = {
         elements[id].addEventListener('click', this);
       }
     }
+    this.smartModalDialog = new SmartModalDialog(this.dialog);
+    this.smartInputDialog = new SmartInputDialog(this.dialog);
+    // XXX: we just hide the clear button to screen reader.
+    this.smartInputDialog.clearButton.setAttribute('aria-hidden', true);
+    this.dialog.addEventListener('modal-dialog-will-open', this);
+    this.dialog.addEventListener('modal-dialog-closed', this);
     focusManager.addUI(this);
   },
 
@@ -87,9 +91,7 @@ var ModalDialog = {
     var elements = this.elements;
     switch (evt.type) {
       case 'click':
-        if (evt.currentTarget === elements.confirmCancel ||
-          evt.currentTarget === elements.promptCancel ||
-          evt.currentTarget === elements.selectOneCancel) {
+        if (evt.currentTarget === elements.selectOneCancel) {
           this.cancelHandler();
         } else if (evt.currentTarget === elements.selectOneMenu) {
           this.selectOneHandler(evt.target);
@@ -140,6 +142,10 @@ var ModalDialog = {
         var keyboardHeight = KeyboardManager.getHeight();
         this.setHeight(window.innerHeight - keyboardHeight);
         break;
+      case 'modal-dialog-will-open':
+      case 'modal-dialog-closed':
+        focusManager.focus();
+        break;
     }
   },
 
@@ -184,54 +190,58 @@ var ModalDialog = {
       title = '';
     }
 
-    function localizeElement(node, payload) {
-      if (typeof payload === 'string') {
-        node.setAttribute('data-l10n-id', payload);
-        return;
-      }
-
-      if (typeof payload === 'object') {
-        if (payload.raw) {
-          node.removeAttribute('data-l10n-id');
-          node.textContent = payload.raw;
-          return;
-        }
-
-        if (payload.id) {
-          navigator.mozL10n.setAttributes(node, payload.id, payload.args);
-          return;
-        }
-      }
-    }
-
     switch (type) {
       case 'alert':
-        localizeElement(elements.alertMessage, message);
-        elements.alert.classList.add('visible');
+        this.smartModalDialog.open({
+          message: {
+            textL10nId: message
+          },
+          buttonSettings: [{
+            textL10nId: evt.yesText || 'ok',
+            defaultFocus: true,
+            onClick: this.confirmHandler.bind(this)
+          }]
+        });
         this.setTitle('alert', title);
-        elements.alertOk.setAttribute('data-l10n-id', evt.yesText ?
-                                                        evt.yesText : 'ok');
         break;
 
       case 'prompt':
-        elements.prompt.classList.add('visible');
-        elements.promptInput.value = evt.detail.initialValue;
-        localizeElement(elements.promptMessage, message);
+        this.smartInputDialog.open({
+          message: {
+            textL10nId: message
+          },
+          initialInputValue: evt.detail.initialValue,
+          buttonSettings: [{
+            textL10nId: evt.yesText || 'ok',
+            defaultFocus: true,
+            onClick: this.confirmHandler.bind(this)
+          },
+          {
+            textL10nId: evt.noText || 'cancel',
+            onClick: this.cancelHandler.bind(this)
+          }],
+          onCancel: this.cancelHandler.bind(this)
+        });
         this.setTitle('prompt', title);
-        elements.promptOk.setAttribute('data-l10n-id', evt.yesText ?
-                                                        evt.yesText : 'ok');
-        elements.promptCancel.setAttribute('data-l10n-id', evt.noText ?
-                                                        evt.noText : 'cancel');
         break;
 
       case 'confirm':
-        elements.confirm.classList.add('visible');
-        localizeElement(elements.confirmMessage, message);
+        this.smartModalDialog.open({
+          message: {
+            textL10nId: message,
+          },
+          buttonSettings: [{
+            textL10nId: evt.yesText || 'ok',
+            defaultFocus: true,
+            onClick: this.confirmHandler.bind(this)
+          },
+          {
+            textL10nId: evt.noText || 'cancel',
+            onClick: this.cancelHandler.bind(this)
+          }],
+          onCancel: this.cancelHandler.bind(this)
+        });
         this.setTitle('confirm', title);
-        elements.confirmOk.setAttribute('data-l10n-id', evt.yesText ?
-                                                        evt.yesText : 'ok');
-        elements.confirmCancel.setAttribute('data-l10n-id', evt.noText ?
-                                                        evt.noText : 'cancel');
         break;
 
       case 'selectone':
@@ -247,39 +257,32 @@ var ModalDialog = {
   hide: function md_hide() {
     var evt = this.eventForCurrentOrigin;
     var type = evt.detail.promptType;
-    if (type == 'prompt') {
-      this.elements.promptInput.blur();
-    }
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
     this.elements[type].classList.remove('visible');
+    this.smartModalDialog.close();
+    this.smartInputDialog.close();
   },
 
   setTitle: function md_setTitle(type, title) {
-    this.elements[type + 'Title'].setAttribute('data-l10n-id', title);
+    // Title is now invisible by UX spec. We just leave it empty.
   },
 
   // When user clicks OK button on alert/confirm/prompt
   confirmHandler: function md_confirmHandler() {
     this.screen.classList.remove('modal-dialog');
-    var elements = this.elements;
-
     var evt = this.eventForCurrentOrigin;
 
     var type = evt.detail.promptType || evt.detail.type;
     switch (type) {
-      case 'alert':
-        elements.alert.classList.remove('visible');
-        break;
 
       case 'prompt':
-        evt.detail.returnValue = elements.promptInput.value;
-        elements.prompt.classList.remove('visible');
+        evt.detail.returnValue = this.smartInputDialog.textInput.value;
+        this.smartInputDialog.textInput.value = '';
         break;
 
       case 'confirm':
         evt.detail.returnValue = true;
-        elements.confirm.classList.remove('visible');
         break;
     }
 
@@ -303,20 +306,16 @@ var ModalDialog = {
 
     var type = evt.detail.promptType || evt.detail.type;
     switch (type) {
-      case 'alert':
-        elements.alert.classList.remove('visible');
-        break;
 
       case 'prompt':
         /* return null when click cancel */
         evt.detail.returnValue = null;
-        elements.prompt.classList.remove('visible');
+        this.smartInputDialog.textInput.value = '';
         break;
 
       case 'confirm':
         /* return false when click cancel */
         evt.detail.returnValue = false;
-        elements.confirm.classList.remove('visible');
         break;
 
       case 'selectone':
@@ -490,8 +489,19 @@ var ModalDialog = {
     if (this.isFocusable()) {
       document.activeElement.blur();
       var type = this.eventForCurrentOrigin.detail.promptType;
-      document.getElementById(this.prefix + type)
+      if (type === 'selectone') {
+        document.getElementById(this.prefix + 'select-one')
               .querySelector('button').focus();
+      } else {
+        if (this.smartModalDialog.element.classList.contains(
+                                                      'modal-dialog-opened')) {
+          this.smartModalDialog.focus();
+        }
+        if (this.smartInputDialog.element.classList.contains(
+                                                      'modal-dialog-opened')) {
+          this.smartInputDialog.focus();
+        }
+      }
     }
   },
 };
