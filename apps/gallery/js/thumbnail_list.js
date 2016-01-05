@@ -1,4 +1,5 @@
 'use strict';
+/* global IntlHelper */
 
 /**
  * ThumbnailList is the class reponsible for rendering all gallery content in to
@@ -36,6 +37,20 @@ function ThumbnailList(groupClass, container) {
   this.count = 0;
   this.groupClass = groupClass;
   this.container = container;
+
+  // Reformatting eventlistener is handled by ThumbnailList
+  IntlHelper.define('date-group', 'datetime', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  IntlHelper.define('time-stamp', 'datetime', {
+    hour: 'numeric',
+    minute: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
 }
 
 ThumbnailList.prototype.addItem = function(item) {
@@ -110,5 +125,5 @@ ThumbnailList.prototype.reset = function() {
 };
 
 ThumbnailList.prototype.localize = function() {
-  this.itemGroups.forEach(function(group) { group.localize(); });
+  // this.itemGroups.forEach(function(group) { group.localize(); });
 };
