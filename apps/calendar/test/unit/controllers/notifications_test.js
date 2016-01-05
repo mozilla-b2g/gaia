@@ -108,7 +108,12 @@ suite('controllers/notifications', function() {
         // Notably, even though our event description was null, we don't pass on
         // 'null' to the notification body.
         return sendNotification.calledWith(
-          'Birthday started pretty date', '');
+          {
+            id: 'alarm-started-notice',
+            args: { title: 'Birthday', distance: 'pretty date' }
+          },
+          { raw: '' }
+        );
       });
     });
   });
