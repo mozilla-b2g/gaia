@@ -144,6 +144,12 @@ var Kinto = (function() {
         }
       }
       return Promise.reject('not found!');
+    },
+
+    clear: function() {
+      Kinto.clearCalled = true;
+      listData[this.collectionName] = { data: [] };
+      return Promise.resolve();
     }
   };
 
@@ -160,6 +166,9 @@ empting to fetch resource.`));
     create() {},
     update() {},
     delete() {},
+    clear() {
+      Kinto.clearCalled = true;
+    },
   };
 
   var HttpCodeKintoCollectionMock = function(status) {
@@ -180,6 +189,9 @@ empting to fetch resource.`));
     create() {},
     update() {},
     delete() {},
+    clear() {
+      Kinto.clearCalled = true;
+    },
   };
 
 
@@ -231,10 +243,12 @@ empting to fetch resource.`));
   };
 
   Kinto.syncCount = {};
+  Kinto.clearCalled = false;
 
   Kinto.setMockProblem = (problem) => {
     mockProblem = problem;
     Kinto.syncCount = {};
+    Kinto.clearCalled = false;
     listData = {};
   };
 

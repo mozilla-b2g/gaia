@@ -22,6 +22,7 @@
 /* global
   asyncStorage,
   DataAdapters,
+  ERROR_SYNC_APP_RACE_CONDITION,
   LazyLoader
 */
 
@@ -41,6 +42,11 @@ var HistoryHelper = (() => {
     });
   }
 
+  /* SyncedCollectionMTime is the time of the last successful sync run.
+   * Subsequent sync runs will not check any records from the Kinto collection
+   * that have not been modified since then. This value is stored separately for
+   * each user (userid uniquely defines the FxSync account we're syncing with).
+   */
   function setSyncedCollectionMtime(mtime, userid) {
     return new Promise(resolve => {
       asyncStorage.setItem(userid + HISTORY_COLLECTION_MTIME, mtime, resolve);
@@ -59,6 +65,11 @@ var HistoryHelper = (() => {
     });
   }
 
+  /* LastRevisionId is the revisionId the DataStore had at the beginning of the
+   * last sync run. Even though there is only one DataStore, it is stored once
+   * for each userid, because a sync run only syncs with the FxSync account of
+   * the currently logged in user.
+   */
   function getLastRevisionId(userid) {
     return new Promise(resolve => {
       asyncStorage.getItem(userid + HISTORY_LAST_REVISIONID, resolve);
@@ -69,6 +80,12 @@ var HistoryHelper = (() => {
     return new Promise(resolve => {
       asyncStorage.setItem(userid + HISTORY_LAST_REVISIONID, lastRevisionId,
           resolve);
+    });
+  }
+
+  function removeLastRevisionId(userid) {
+    return new Promise(resolve => {
+      asyncStorage.removeItem(userid + HISTORY_LAST_REVISIONID, resolve);
     });
   }
 
@@ -115,6 +132,13 @@ var HistoryHelper = (() => {
       throw new Error('Inconsistent records on FxSync ID',
         localRecord, remoteRecord);
     }
+    // We remember if a record had already been created locally before we got
+    // remote data for that URL, so that we know not to remove it even when the
+    // remote data is deleted. This applies only to readonly sync, and will be
+    // removed when sync becomes read-write.
+    if (localRecord.createdLocally === undefined) {
+      localRecord.createdLocally = true;
+    }
 
     localRecord.visits = localRecord.visits || [];
     // If a localRecord is without any visit records or with older visit
@@ -156,35 +180,37 @@ var HistoryHelper = (() => {
           var newPlace = mergeRecordsToDataStore(existedPlace, place);
           return placesStore.put(newPlace, id, revisionId);
         }
+        // Setting createdLocally to false will cause the record to be deleted
+        // again if it's deleted remotely. This applies only to readonly sync,
+        // and will be removed when sync becomes read-write.
+        place.createdLocally = false;
         return placesStore.add(place, id, revisionId);
       }).then(() => {
         return setDataStoreId(place.fxsyncId, id, userid);
       });
     }).catch(e => {
-      console.error(e);
-    });
-  }
-
-  function updatePlaces(places, userid) {
-    return new Promise(resolve => {
-      places.reduce((reduced, current) => {
-        return reduced.then(() => {
-          if (current.url && Array.isArray(current.visits) &&
-              current.visits.length === 0) {
-            return deleteByDataStoreId(current.url);
-          }
-          if (current.deleted) {
-            return deletePlace(current.fxsyncId, userid);
-          }
-          return addPlace(current, userid);
+      if (e.name === 'ConstraintError' &&
+          e.message === 'RevisionId is not up-to-date') {
+        return LazyLoader.load(['shared/js/sync/errors.js']).then(() => {
+          throw new Error(ERROR_SYNC_APP_RACE_CONDITION);
         });
-      }, Promise.resolve()).then(resolve);
+      }
+      console.error(e);
     });
   }
 
   function deleteByDataStoreId(id) {
     return _ensureStore().then(store => {
-      return store.remove(id);
+      var revisionId = store.revisionId;
+      return store.get(id).then(record => {
+        // Do not delete records that were originally created locally, even if
+        // they are deleted remotely. This applies only for readonly sync, and
+        // will be removed in the future when we switch to two-way sync.
+        if (record.createdLocally) {
+          return Promise.resolve();
+        }
+        return store.remove(id, revisionId);
+      });
     });
   }
 
@@ -220,7 +246,21 @@ var HistoryHelper = (() => {
                 wasCleared
               });
             } else {
-              if (task.operation === 'clear') {
+              // In readonly mode, if the DataStore was cleared, or some records
+              // were removed, it's possible that previously imported data was
+              // lost. Therefore, we return wasCleared: true after playing the
+              // DataStore history to its current revisionId, so that
+              // removeSyncedCollectionMtime will be called, and a full
+              // re-import is triggered.
+              // If only one record was removed then it would not be necessary
+              // to re-import the whole Kinto collection, but right now we have
+              // no efficient way to retrieve just one record from the Kinto
+              // collection based on URL, because we don't have a mapping from
+              // URL to fxsyncId. Since readonly sync is idempotent, there is
+              // not much harm in this, but it could possibly be made more
+              // efficient, see
+              // https://bugzilla.mozilla.org/show_bug.cgi?id=1223418.
+              if (['clear', 'remove'].indexOf(task.operation) !== -1) {
                 wasCleared = true;
               }
               // Avoid stack overflow:
@@ -265,13 +305,22 @@ var HistoryHelper = (() => {
     });
   }
 
+  function reset(userid) {
+    return Promise.all([
+      removeSyncedCollectionMtime(userid),
+      removeLastRevisionId(userid)
+    ]);
+  }
+
   return {
-    mergeRecordsToDataStore: mergeRecordsToDataStore,
-    setSyncedCollectionMtime: setSyncedCollectionMtime,
-    getSyncedCollectionMtime: getSyncedCollectionMtime,
-    updatePlaces: updatePlaces,
-    deletePlace: deletePlace,
-    handleClear: handleClear
+    mergeRecordsToDataStore,
+    setSyncedCollectionMtime,
+    getSyncedCollectionMtime,
+    deletePlace,
+    deleteByDataStoreId,
+    addPlace,
+    handleClear,
+    reset
   };
 })();
 
@@ -336,46 +385,45 @@ DataAdapters.history = {
     "_status": "synced"
   }
 **/
-  _update(remoteRecords, lastModifiedTime, userid) {
-    var places = [];
-    for (var i = 0; i < remoteRecords.length; i++) {
-      var payload = remoteRecords[i].payload;
-      if (!Number.isInteger(remoteRecords[i].last_modified)) {
-        console.warn('Incorrect payload::last_modified? ', payload);
-        continue;
-      }
-      if (remoteRecords[i].last_modified <= lastModifiedTime) {
-        break;
-      }
-      if (payload.deleted) {
-        places.push({
-          deleted: true,
-          fxsyncId: payload.id
-        });
-        continue;
-      }
-      if (!payload.histUri || !payload.visits) {
-        console.warn('Incorrect payload? ', payload);
-        continue;
-      }
 
-      places.push({
-        url: payload.histUri,
-        title: payload.title,
-        visits: payload.visits.map(elem => Math.floor(elem.date / 1000)),
-        fxsyncId: payload.id
-      });
+  _updatePlace(payload, userid) {
+    if (payload.deleted) {
+      return HistoryHelper.deletePlace(payload.id, userid);
     }
 
-    if (places.length === 0) {
-      return Promise.resolve(false);
+    if (!payload.histUri || !payload.visits) {
+      console.warn('Incorrect payload?', payload);
+      return Promise.resolve();
     }
-    return HistoryHelper.updatePlaces(places, userid).then(() => {
-      var latestMtime = remoteRecords[0].last_modified;
-      return HistoryHelper.setSyncedCollectionMtime(latestMtime, userid);
-    }).then(() => {
-      // Always return false for a read-only operation.
-      return Promise.resolve(false);
+
+    if (payload.histUri && Array.isArray(payload.visits) &&
+        payload.visits.length === 0) {
+      return HistoryHelper.deleteByDataStoreId(payload.histUri);
+    }
+
+    return HistoryHelper.addPlace({
+      url: payload.histUri,
+      title: payload.title,
+      visits: payload.visits.map(elem => Math.floor(elem.date / 1000)),
+      fxsyncId: payload.id
+    }, userid);
+  },
+
+  _next(remoteRecords, lastModifiedTime, userid, cursor) {
+    if (cursor === remoteRecords.length) {
+      return Promise.resolve();
+    }
+    if (!Number.isInteger(remoteRecords[cursor].last_modified)) {
+      console.warn('Incorrect last_modified?', remoteRecords[cursor]);
+      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
+    }
+    if (remoteRecords[cursor].last_modified <= lastModifiedTime) {
+      return Promise.resolve();
+    }
+
+    return this._updatePlace(remoteRecords[cursor].payload, userid)
+        .then(() => {
+      return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
     });
   },
 
@@ -384,11 +432,15 @@ DataAdapters.history = {
       console.warn('Two-way sync not implemented yet for history.');
     }
     var mtime;
-    return LazyLoader.load(['shared/js/async_storage.js'])
-    .then(() => {
-      // FIXME: Decide how readonly DataAdapters should deal with local
-      // deletions on the phone.
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1219621
+    return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
+      // We iterate over the records in the Kinto collection until we find a
+      // record whose last modified time is older than the time of the last
+      // successful sync run. However, if the DataStore has been cleared, or
+      // records have been removed from the DataStore since the last sync run,
+      // we cannot be sure that all older records are still there. So in both
+      // those cases we remove the SyncedCollectionMtime from AsyncStorage, so
+      // that this sync run will iterate over all the records in the Kinto
+      // collection, and not only over the ones that were recently modified.
       return HistoryHelper.handleClear(options.userid);
     }).then(() => {
       return HistoryHelper.getSyncedCollectionMtime(options.userid);
@@ -396,9 +448,19 @@ DataAdapters.history = {
       mtime = _mtime;
       return remoteHistory.list();
     }).then(list => {
-      return this._update(list.data, mtime, options.userid);
+      return this._next(list.data, mtime, options.userid, 0).then(() => {
+        if (list.data.length === 0) {
+          return Promise.resolve();
+        }
+        var latestMtime = list.data[0].last_modified;
+        return HistoryHelper.setSyncedCollectionMtime(latestMtime,
+            options.userid);
+      }).then(() => {
+       // Always return false for a read-only operation.
+       return Promise.resolve(false);
+     });
     }).catch(err => {
-      console.error('History DataAdapter update error', err);
+      console.error('History DataAdapter update error', err.message);
       throw err;
     });
   },
@@ -407,5 +469,11 @@ DataAdapters.history = {
     // Because History adapter has not implemented record push yet,
     // handleConflict will always use remote records.
     return Promise.resolve(conflict.remote);
+  },
+
+  reset(options) {
+    return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
+      return HistoryHelper.reset(options.userid);
+    });
   }
 };
