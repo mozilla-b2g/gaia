@@ -37,6 +37,16 @@ suite('Views > LayoutPageView', function() {
     assert.equal(container.dataset.active, null);
   });
 
+  test(' > destroy() ', function() {
+    var pageView = new LayoutPageView(dummyLayout, {}, viewManager);
+    pageView.render();
+
+    pageView.destroy();
+
+    var container = pageView.element;
+    assert.equal(container.parentNode, null);
+  });
+
   suite(' > render()', function() {
     test('Should add last-row class to last row', function() {
       var layout = {

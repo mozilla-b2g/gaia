@@ -127,6 +127,16 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
     ((typeof currentIMEngine.displaysCandidates !== 'function') ||
       currentIMEngine.displaysCandidates()));
 
+  // Determine if the page is needed to be updated by IMEninge
+  if (currentPage.updateByIMEngine) {
+    if (typeof currentIMEngine.updatePageKeys !== 'function') {
+      throw new Error('LayoutRenderingManager: unable to update ' +
+        'page keys by IMEngine');
+    }
+
+    currentIMEngine.updatePageKeys(currentPage);
+  }
+
   var p = new Promise(function(resolve) {
     this.app.viewManager.render(currentPage, {
       uppercase: this.app.upperCaseStateManager.isUpperCase,

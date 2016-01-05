@@ -239,6 +239,7 @@
   {
     "id": "emoji",
     "name": "Emoji",
+    "imEngineId": "emoji",
     "nameL10nId": "layout-emoji",
     "preloaded": true,
     "types": [

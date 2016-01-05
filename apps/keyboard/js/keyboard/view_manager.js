@@ -75,6 +75,9 @@ ViewManager.prototype.setUpperCaseLock = function(state) {
 
 // Render the keyboard and its components. Meat is here.
 ViewManager.prototype.render = function (layout, flags, callback) {
+  this.app.console.log('ViewManager.render()');
+  this.app.console.time('ViewManager.render()');
+
   flags = flags || {};
 
   this.columnCount = layout.width || 10;
@@ -101,7 +104,9 @@ ViewManager.prototype.render = function (layout, flags, callback) {
     };
 
     pageView = this._createPageView(layout, options);
-    this.pageViews.set(pageId, pageView);
+    if (!layout.updateByIMEngine) {
+      this.pageViews.set(pageId, pageView);
+    }
 
     pageView.render();
     this.container.appendChild(pageView.element);
@@ -122,6 +127,11 @@ ViewManager.prototype.render = function (layout, flags, callback) {
     if (this.currentPageView) {
       this.currentPageView.hide();
     }
+    // Destroy the page which is not cached
+    if (this.currentPageView && this.currentPageView.layout.updateByIMEngine) {
+      this.currentPageView.destroy();
+    }
+
     pageView.show();
 
     this.currentPageView = pageView;
@@ -142,6 +152,8 @@ ViewManager.prototype.render = function (layout, flags, callback) {
       window.requestAnimationFrame(callback);
     }
   }
+
+  this.app.console.timeEnd('ViewManager.render()');
 };
 
 ViewManager.prototype.drawHandwritingPad = function(press,
