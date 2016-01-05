@@ -50,7 +50,9 @@ homescreen-group.collapsing {
   justify-content: flex-start;
   align-items: flex-start;
   align-content: flex-start;
-  padding: 1.6rem 0.6rem;
+  width: calc(100% - 0.6rem * 2);
+  height: calc(100% - 0.6rem * 2);
+  padding: 0.6rem;
 }
 
 #group-container > .gaia-container-child > * {
