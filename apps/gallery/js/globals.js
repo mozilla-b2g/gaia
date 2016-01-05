@@ -1,4 +1,4 @@
-/* exported files, picking, photodb */
+/* exported files, picking, photodb, DateFormatter, TimeFormatter */
 
 'use strict';
 
@@ -14,3 +14,9 @@ var picking = (window.location.hash === '#pick');
 
 // The MediaDB object that manages the filesystem and the database of metadata
 var photodb;
+
+// Formatting object to store date-group DateTimeFormat defined using IntlHelper
+var DateFormatter;
+
+// Formatting object to store time-stamp DateTimeFormat defined using IntlHelper
+var TimeFormatter;
