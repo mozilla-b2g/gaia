@@ -31,5 +31,5 @@ class TestSettingsDeviceInfo(GaiaTestCase):
 
         i = 1
         for expected_imei in self.environment.imei_numbers:
-            self.assertEqual(getattr(more_info, 'imei{}'.format(i)), expected_imei)
+            self.assertEqual(getattr(more_info, 'imei{}'.format(i)), u'\u2068' + expected_imei + u'\u2069')
             i += 1
