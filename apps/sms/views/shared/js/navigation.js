@@ -491,7 +491,7 @@ function executeNavigationStep(stepName) {
 }
 
 /**
- * Used in `waitForSlideAnimation` to help solving race conditions.
+ * Used in `waitForPanelAnimation` to help solving race conditions.
  * @type {Defer}
  */
 var previousAnimationDefer;
@@ -502,7 +502,7 @@ var previousAnimationDefer;
  * @param {Element} panelElement The element to watch.
  * @returns {Promise} Resolves when the animation ends.
  */
-function waitForSlideAnimation(panelElement) {
+function waitForPanelAnimation(panelElement) {
   if (previousAnimationDefer) {
     previousAnimationDefer.reject(new Error('A new animation started'));
   }
@@ -570,39 +570,50 @@ function switchPanel() {
     ));
   }
 
+  if (newPanelElement === oldPanelElement) {
+    return Promise.resolve();
+  }
+
   var isGoingBack = oldView && oldView.previous === newView.name;
 
   newPanelElement.style = '';
+  newPanelElement.classList.remove('panel-hidden');
+  newPanelElement.classList.add('panel-active');
 
   var doSlideAnimation =
     from && from.panel &&
     from.panel.behavior !== newView.behavior;
 
+  var doFadeInAnimation = !from || !from.panel;
+
   var animationPromise;
   if (doSlideAnimation) {
-
     var shouldGoRight = isGoingBack ^ (document.dir === 'rtl');
     newPanelElement.style.animationName =
-      shouldGoRight ? 'new-slide-right' : 'new-slide-left';
+      shouldGoRight ? 'left-to-current' : 'right-to-current';
     oldPanelElement.style.animationName =
-      shouldGoRight ? 'old-slide-right' : 'old-slide-left';
+      shouldGoRight ? 'current-to-right' : 'current-to-left';
+  } else if (doFadeInAnimation) {
+    newPanelElement.style.animationName = 'fade-in';
+  }
 
-    animationPromise = waitForSlideAnimation(newPanelElement).catch(
+  if (doFadeInAnimation || doSlideAnimation) {
+    animationPromise = waitForPanelAnimation(newPanelElement).catch(
       () => {}
     ).then(() => {
-      oldPanelElement.style = '';
+      if (oldPanelElement) {
+        oldPanelElement.style = '';
+      }
       newPanelElement.style = '';
     });
   }
 
   return (animationPromise || Promise.resolve()).then(() => {
-    if (oldView) {
+    if (oldPanelElement) {
       oldPanelElement.classList.remove('panel-active');
       oldPanelElement.setAttribute('aria-hidden', 'true');
     }
 
-    newPanelElement.classList.add('panel-active');
-    newPanelElement.classList.remove('panel-hidden');
     newPanelElement.setAttribute('aria-hidden', 'false');
   });
 }
