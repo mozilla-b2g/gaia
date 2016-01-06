@@ -3,7 +3,6 @@
 'use strict';
 
 var System = require('./lib/system');
-var assert = require('assert');
 var AudioChannelTestApp = require('./lib/audio_channel_test_app.js');
 var AudioChannelHelper = require('./lib/audio_channel_helper.js');
 
@@ -33,13 +32,13 @@ marionette('Audio channel played in foreground and background', function() {
       test(audioChannel + ' audio channel can be played in foreground',
         function() {
         playAudioChannel(audioChannel);
-        assert.ok(helper.isPlaying(testApp.origin, audioChannel));
+        helper.isPlaying(testApp.origin, audioChannel, true);
       });
 
       test(audioChannel + ' audio channel can be played in background',
         function() {
         playAudioChannelInBackground(audioChannel);
-        assert.ok(helper.isPlaying(testApp.origin, audioChannel));
+        helper.isPlaying(testApp.origin, audioChannel, true);
       });
     });
   });
