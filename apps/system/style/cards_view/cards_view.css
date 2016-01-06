@@ -455,3 +455,11 @@ html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="broken"] p.subtitle {
 #task-manager-new-sheet-button:active {
   background-image: url("../task-manager/images/tm_new_tab_press.png");
 }
+
+#task-manager.filtered #task-manager-new-private-sheet-button:not(:active) {
+  filter: brightness(0.5);
+}
+
+#task-manager.filtered #task-manager-new-sheet-button:not(:active) {
+  filter: brightness(0.5);
+}
