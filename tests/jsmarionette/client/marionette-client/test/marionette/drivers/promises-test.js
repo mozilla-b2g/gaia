@@ -11,6 +11,8 @@ suite('marionette/drivers/promises', function() {
 
   var Driver = require('../../../lib/marionette/drivers/promises');
   var net = require('net');
+  var subject;
+  var port = 60869;
 
   function issueFirstResponse(subject) {
     subject.tcp._onDeviceResponse({
@@ -20,23 +22,27 @@ suite('marionette/drivers/promises', function() {
   }
 
   setup(function() {
-  });
-
-  teardown(function() {
-  });
-
-  test('should return a fulfilled promise on connect', function(done) {
-    var port = 60769;
-    var subject = new Driver({ port: port });
-
-    var _promise = subject.connect(function(){
-    });
-
     setTimeout(function() {
       var server = net.createServer(function(socket) {
         issueFirstResponse(subject);
+        socket.on('data', function(data) {
+          socket.write(data);
+          server.close();
+        });
+
       }).listen(port);
     }, 50);
+
+    subject = new Driver({ port: port });
+  });
+
+  teardown(function() {
+    subject.close();
+  });
+
+  test('should return a fulfilled promise on connect', function(done) {
+    var _promise = subject.connect(function(){
+    });
 
     _promise.then(
       function onFulfill(){
@@ -49,25 +55,11 @@ suite('marionette/drivers/promises', function() {
   });
 
   test('should send an object and receive a promise', function(done) {
-    var port = 60869;
-    var subject = new Driver({ port: port });
     var sentobj = {type: 'foo'};
 
-    setTimeout(function() {
 
       var _promiseconnection = subject.connect(function(){
       });
-
-      setTimeout(function() {
-        var server = net.createServer(function(socket) {
-          issueFirstResponse(subject);
-          socket.on('data', function(data) {
-            socket.write(data);
-            server.close();
-          });
-
-        }).listen(port);
-      }, 50);
 
       _promiseconnection.then(
         function onFulfill(){
@@ -91,7 +83,6 @@ suite('marionette/drivers/promises', function() {
         function onReject(aRejectReason) {
         }
       );
-    });
    });
-  
+
 });
