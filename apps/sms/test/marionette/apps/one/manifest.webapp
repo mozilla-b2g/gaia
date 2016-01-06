@@ -1,0 +1,23 @@
+{
+  "name": "One App",
+  "description": "One App",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "activities": {
+    "share": {
+      "href": "/index.html",
+      "filters": {
+        "type": ["image/*", "audio/*", "video/*", "url", "text/vcard"],
+        "number": {
+          "max": 5
+        }
+      },
+      "disposition": "inline",
+      "returnValue": true
+    }
+  }
+}
