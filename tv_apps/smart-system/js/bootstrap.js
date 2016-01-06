@@ -38,6 +38,11 @@ window.addEventListener('load', function startup() {
   }
 
   function safelyLaunchFTU() {
+    window.addEventListener('homescreenloaded', function onHomescreenLoaded() {
+      window.removeEventListener('homescreenloaded', onHomescreenLoaded);
+      // To let GijTV tests know we are ready to test.
+      document.body.setAttribute('ready-state', 'fullyLoaded');
+    });
     window.addEventListener('homescreenwindowmanager-ready',
       function onHomescreenReady() {
         window.removeEventListener('homescreenwindowmanager-ready',
