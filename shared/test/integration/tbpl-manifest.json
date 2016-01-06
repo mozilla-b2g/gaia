@@ -35,7 +35,6 @@
     "apps/email/test/marionette/send_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/fm/test/marionette/fm_test.js": "Bug 1233777 - Intermittent TEST-UNEXPECTED-FAIL | apps/fm/test/marionette/fm_test.js | FM Radio test FM Radio favourites Test favouriting",
     "apps/ftu/test/marionette/late_customization_test.js": "Bug 1233522 - Intermittent TEST-UNEXPECTED-FAIL | apps/ftu/test/marionette/late_customization_test.js",
-    "apps/homescreen/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1235528 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/app_hosted_use_cached_icon_test.js | Homescreen - Hosted app cached icon fetch fallback to default icon",
     "apps/homescreen/test/marionette/pinning_edit_test.js": "Bug 1235799 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_edit_test.js",
     "apps/homescreen/test/marionette/pinning_the_web_test.js": "Bug 1233529 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_the_web_test.js | Homescreen - Pin the web Pinning a site from the browser context menu",
     "apps/homescreen/test/marionette/pinning_uninstall_test.js": "Bug 1233527 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_uninstall_test.js",
