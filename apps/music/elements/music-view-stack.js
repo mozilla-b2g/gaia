@@ -196,28 +196,26 @@ proto.destroyView = function(url) {
 
 proto.setRootView = function(url) {
   return this.loadView(url).then((view) => {
-    requestAnimationFrame(() => {
-      var oldActiveView = this.activeView;
-      if (oldActiveView) {
-        oldActiveView.frame.classList.add('fade', 'out');
-        oldActiveView.frame.classList.remove('active');
-        oldActiveView.frame.contentWindow.dispatchEvent(
-          new CustomEvent('viewhidden')
-        );
-      }
-
-      this.views = [view];
-      this.activeView = view;
-
-      var newActiveView = this.activeView;
-      newActiveView.frame.classList.add('fade', 'in');
-      newActiveView.frame.classList.add('active');
-      newActiveView.frame.contentWindow.dispatchEvent(
-        new CustomEvent('viewvisible')
+    var oldActiveView = this.activeView;
+    if (oldActiveView) {
+      oldActiveView.frame.classList.add('fade', 'out');
+      oldActiveView.frame.classList.remove('active');
+      oldActiveView.frame.contentWindow.dispatchEvent(
+        new CustomEvent('viewhidden')
       );
+    }
 
-      this.dispatchEvent(new CustomEvent('change', { detail: newActiveView }));
-    });
+    this.views = [view];
+    this.activeView = view;
+
+    var newActiveView = this.activeView;
+    newActiveView.frame.classList.add('fade', 'in');
+    newActiveView.frame.classList.add('active');
+    newActiveView.frame.contentWindow.dispatchEvent(
+      new CustomEvent('viewvisible')
+    );
+
+    this.dispatchEvent(new CustomEvent('change', { detail: newActiveView }));
   });
 };
 
