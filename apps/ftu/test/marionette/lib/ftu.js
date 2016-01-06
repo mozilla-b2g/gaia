@@ -72,6 +72,16 @@ Ftu.prototype = {
     }
   },
 
+  findElement: function(selector) {
+    // client.findElement wants to wait for the given selector to match?
+    // so check first to allow us to return negative results
+    var exists = this.client.executeScript(function(selector) {
+      var doc = window.wrappedJSObject.document;
+      return !!doc.querySelector(selector);
+    }, [selector]);
+    return exists ? this.client.findElement(selector) : null;
+  },
+
   clickThruToFinish: function() {
     this.waitForFtuReady();
     var finishScreen = this.client.findElement(Ftu.Selectors.finishScreen);
@@ -81,24 +91,34 @@ Ftu.prototype = {
   },
 
   waitForCurtainUp: function() {
+    this.switchToFtu();
     this.client.helper.waitForElementToDisappear(Ftu.Selectors.splashScreen);
   },
 
   waitForLanguagesToLoad: function() {
-    this.client.helper.waitForElement('#languages');
-    return this.client.waitFor(function() {
-      return this.client.findElements(Ftu.Selectors.languageItems).length > 1;
-    }.bind(this));
+    this.switchToFtu();
+    var panel = this.client.helper.waitForElement('#languages');
+    this.client.waitFor(function() {
+      return !!panel.getAttribute('data-languages-ready');
+    });
+    this.client.helper.waitForElement('#languages ul > li');
+  },
+
+  switchToFtu: function() {
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(Ftu.URL);
   },
 
   waitForFtuReady: function() {
+    console.log('waitForFtuReady');
     this.waitForCurtainUp();
     this.waitForLanguagesToLoad();
+    this.switchToFtu();
+    console.log('/waitForFtuReady');
   },
 
   selectLanguage: function(language) {
     this.waitForLanguagesToLoad();
-    this.client.helper.waitForElement('#languages');
     var item = this.client.findElement(
                 '#languages li[data-value="' + language + '"]');
     if (item) {

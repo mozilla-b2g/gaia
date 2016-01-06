@@ -52,7 +52,8 @@ var LanguageManager = {
   },
 
   buildLanguageList: function settings_buildLanguageList() {
-    var container = document.querySelector('#languages ul');
+    var panel = document.querySelector('#languages');
+    var container = panel.querySelector('ul');
     container.innerHTML = '';
     LanguageList.get(function fillLanguageList(allLanguages, currentLanguage) {
       for (var lang in allLanguages) {
@@ -77,6 +78,7 @@ var LanguageManager = {
         li.appendChild(radio);
         container.appendChild(li);
       }
+      panel.dataset.languagesReady = true;
       window.dispatchEvent(new CustomEvent('languagelistready'));
     });
   }
