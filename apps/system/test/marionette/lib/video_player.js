@@ -78,10 +78,11 @@ VideoPlayer.prototype = {
     var url = this.client.getUrl();
     return this.chromeClient.executeScript(function(url, name) {
       var Components = window.Components;
-      var systemFrame = document.getElementsByTagName('iframe')[0];
+      var systemFrame = document.querySelector(
+        'iframe[mozapp="app://system.gaiamobile.org/manifest.webapp"]');
       var systemDoc = systemFrame.contentWindow.document;
       var frame = systemDoc.querySelector('iframe[src="' + url + '"');
-      var video = frame.contentWindow.document.getElementsByTagName('video')[0];
+      var video = frame.contentWindow.document.querySelector('video');
       var a = Components.classes['@mozilla.org/inspector/dom-utils;1']
         .getService(Components.interfaces.inIDOMUtils)
         .getChildrenForNode(video, true);
