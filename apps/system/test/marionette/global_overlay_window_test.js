@@ -42,7 +42,7 @@ marionette('GlobalOverlayWindow', function() {
     var globalOverlayWindow;
     try {
       globalOverlayWindow =
-      client.helper.waitForElement('.globalOverlayWindow:active');
+      client.helper.waitForElement('.globalOverlayWindow');
     } catch (e) {
       console.log(e);
     }
