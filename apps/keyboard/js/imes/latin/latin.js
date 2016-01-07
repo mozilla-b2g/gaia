@@ -55,7 +55,7 @@
     setLayoutPage: setLayoutPage,
     setLayoutParams: setLayoutParams,
     setLanguage: setLanguage,
-    stateChange: stateChange,
+    selectionChange: selectionChange,
     generateNearbyKeyMap: findNearbyKeys
   };
 
@@ -206,7 +206,7 @@
   // them.
   function activate(lang, state, options) {
     inputMode = getInputMode(state.type, state.inputmode);
-    inputText = state.text;
+    inputText = state.value;
     cursor = state.selectionStart;
     if (state.selectionEnd > state.selectionStart) {
       selection = state.selectionEnd;
@@ -1252,19 +1252,22 @@
     return c === '.' || c === '?' || c === '!';
   }
 
-  function stateChange(state) {
-    var pendingSelection =
-      (state.selectionEnd > state.selectionStart) ? state.selectionEnd : 0;
-
-    if (cursor === state.selectionStart &&
-        selection === pendingSelection &&
-        inputText === state.text) {
+  function selectionChange(detail) {
+    // We would get selectionchange event when the user type each char,
+    // or accept a word suggestion, so don't update suggestions in these
+    // cases.
+    if (detail.ownAction) {
       return;
     }
 
-    cursor = state.selectionStart;
-    selection = pendingSelection;
-    inputText = state.text;
+    //XXX: Don't update inputText here, since textBeforeCursor would only
+    // contain 100 chars at most.
+    cursor = detail.selectionStart;
+    if (detail.selectionEnd > detail.selectionStart) {
+      selection = detail.selectionEnd;
+    } else {
+      selection = 0;
+    }
 
     dismissSuggestions();
     updateSuggestions();

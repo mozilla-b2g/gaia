@@ -130,6 +130,10 @@ suite('StateManager', function() {
       });
 
       assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledOnce);
+      assert.isTrue(app.inputMethodManager.updateInputContextData.calledOnce);
+      assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledBefore(
+        app.inputMethodManager.updateInputContextData),
+        'Engine deactivates before updateInputContextData.');
 
       assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
       assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
@@ -342,6 +346,10 @@ suite('StateManager', function() {
           });
 
         assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledOnce);
+        assert.isTrue(app.inputMethodManager.updateInputContextData.calledOnce);
+        assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledBefore(
+          app.inputMethodManager.updateInputContextData),
+          'Engine deactivates before updateInputContextData.');
 
         assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
         assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
