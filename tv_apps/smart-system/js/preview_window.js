@@ -42,6 +42,8 @@
       this.name = this.features.name;
     }
 
+    this.iframe.focus();
+
     this.container.element.addEventListener('_closed', this);
     this.element.addEventListener('_opened', this);
     this.element.addEventListener('_willdestroy', this);
@@ -94,9 +96,12 @@
     this.close();
   };
 
+  PreviewWindow.prototype.isFocusable = function() {
+    return this.isVisible();
+  };
+
   PreviewWindow.prototype._handle_mozbrowserafterkeyup = function(evt) {
-    if (document.activeElement !== this.iframe &&
-        document.activeElement !== this.container.iframe) {
+    if (document.activeElement !== this.iframe) {
       return;
     }
     if ((evt.keyCode === 27 || evt.key === 'Escape') &&
