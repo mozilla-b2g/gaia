@@ -400,7 +400,7 @@
         break;
       case 'date':
         // The format should be 2012-09-19
-        var dateValue = this._datePicker.getDateValue();
+        var dateValue = InputParser.exportDate(this._datePicker._value);
         this.app.debug('output value: ' + dateValue);
         this._im.setValue(dateValue);
         break;

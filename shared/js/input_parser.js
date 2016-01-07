@@ -105,13 +105,23 @@ var InputParser = (function() {
     },
 
     /**
-     * Export js date to HTML5 input[type="date"]
+     * Export js local date to HTML5 input[type="date"].
      *
      * @param {Date} value export value.
      * @return {String} date string (1997-12-19).
      */
     exportDate: function(value) {
-      return value.toISOString().split('T')[0];
+      var year = value.getFullYear();
+      var month = value.getMonth() + 1;
+      var day = value.getDate();
+
+      if (month < 10) {
+        month = `0${month}`;
+      }
+      if (day < 10) {
+        day = `0${day}`;
+      }
+      return `${year}-${month}-${day}`;
     },
 
     /**

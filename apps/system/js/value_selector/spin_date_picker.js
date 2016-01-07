@@ -369,10 +369,6 @@ var SpinDatePicker = (function() {
       }).bind(this));
     },
 
-    getDateValue: function() {
-      return this._value.toISOString().split('T')[0];
-    },
-
     /**
      * Called when the selected date changes.
      */
