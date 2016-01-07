@@ -10,7 +10,8 @@
     "desktop-notification" : {},
     "firefox-accounts": {},
     "moz-extremely-unstable-and-will-change-webcomponents":{},
-    "settings": { "access": "readwrite" }
+    "settings": { "access": "readwrite" },
+    "geolocation": {}
   },
   "locales": {
     "ar": {
