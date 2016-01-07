@@ -123,29 +123,29 @@ suite('latin.js', function() {
 
     var contentStates = {
       // empty input field
-      empty: { value: '', cursor: 0 },
+      empty: { text: '', cursor: 0 },
       // cursor is in the middle of a bunch of spaces
-      inSpace: { value: 'a      b', cursor: 4},
+      inSpace: { text: 'a      b', cursor: 4},
 
       // cursor is at the start, middle, or end of the input field
-      start: { value: 'word', cursor: 0 },
-      middle: { value: 'word', cursor: 2 },
-      end: { value: 'word', cursor: 4 },
+      start: { text: 'word', cursor: 0 },
+      middle: { text: 'word', cursor: 2 },
+      end: { text: 'word', cursor: 4 },
 
       // like the above, but all uppercase
-      startUppercase: { value: 'WORD', cursor: 0 },
-      middleUppercase: { value: 'WORD', cursor: 2 },
-      endUppercase: { value: 'WORD', cursor: 4 },
+      startUppercase: { text: 'WORD', cursor: 0 },
+      middleUppercase: { text: 'WORD', cursor: 2 },
+      endUppercase: { text: 'WORD', cursor: 4 },
 
       // cursor is at the start, middle, or end of a word in the middle
-      wordStart: { value: 'and then what', cursor: 4 },
-      wordMiddle: { value: 'and then what', cursor: 6 },
-      wordEnd: { value: 'and then what', cursor: 8 },
+      wordStart: { text: 'and then what', cursor: 4 },
+      wordMiddle: { text: 'and then what', cursor: 6 },
+      wordEnd: { text: 'and then what', cursor: 8 },
 
       // cursor is after a sentence, before another
-      afterSentence: { value: 'Foo. Bar.', cursor: 5 },
-      afterQuestion: { value: 'Foo? Bar.', cursor: 5 },
-      afterExclamation: { value: 'Foo! Bar.', cursor: 5 }
+      afterSentence: { text: 'Foo. Bar.', cursor: 5 },
+      afterQuestion: { text: 'Foo? Bar.', cursor: 5 },
+      afterExclamation: { text: 'Foo! Bar.', cursor: 5 }
     };
 
     // Utility function
@@ -273,7 +273,7 @@ suite('latin.js', function() {
                      '-' + input;
       var state = contentStates[statename];
       var expected =
-        inputs[input](input, type, mode, state.value, state.cursor);
+        inputs[input](input, type, mode, state.text, state.cursor);
 
       // Skip the test if the expected function returns nothing.
       // This is so we don't have too large a number of tests.
@@ -285,7 +285,7 @@ suite('latin.js', function() {
         engine.activate('en', {
           type: type,
           inputmode: mode,
-          value: state.value,
+          text: state.text,
           selectionStart: state.cursor,
           selectionEnd: state.cursor
         },{ suggest: false, correct: false });
@@ -346,7 +346,7 @@ suite('latin.js', function() {
       engine.activate('en', {
         type: 'text',
         inputmode: 'latin-prose',
-        value: value,
+        text: value,
         selectionStart: cursorStart || value.length,
         selectionEnd: cursorEnd || value.length
       }, {
@@ -832,8 +832,8 @@ suite('latin.js', function() {
               glue.sendCandidates, ['star', 'stak', 'stack']);
           }).then(done, done);
         });
-        test(`User dictionary word frequency is too low but still higher than
-              next built-in dictionary's frequency`,
+        test('User dictionary word frequency is too low but still higher' +
+          ' than next built-in dictionary\'s frequency',
         function(done){
           activateAndTestPrediction('ster', 'ster', [
             ['stery', 4],
@@ -855,7 +855,7 @@ suite('latin.js', function() {
       engine.activate('en', {
         type: 'text',
         inputmode: '',
-        value: '',
+        text: '',
         selectionStart: 0,
         selectionEnd: 0
       },{ suggest: false, correct: false });
@@ -888,12 +888,12 @@ suite('latin.js', function() {
     });
   });
 
-  suite('selectionchange', function() {
+  suite('stateChange', function() {
     setup(function(done) {
       engine.activate('en', {
         type: 'text',
         inputmode: '',
-        value: 'before after',
+        text: 'before after',
         selectionStart: 5,
         selectionEnd: 5
       }, { suggest: true, correct: true });
@@ -906,22 +906,28 @@ suite('latin.js', function() {
       engine.deactivate();
     });
 
-    test('will clear the suggestions if selectionchange', function() {
-      engine.selectionChange({
+    test('will clear the suggestions if stateChange', function() {
+      engine.stateChange({
+        ownAction: false,
+        type: 'text',
+        inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        ownAction: false
+        text: 'before after'
       });
 
       // will clear the suggestions since cursor changed
       sinon.assert.calledThrice(glue.sendCandidates);
     });
 
-    test('Do nothing if selectionchange is due to our own action', function() {
-      engine.selectionChange({
+    test('Do nothing if stateChange called w/o changes', function() {
+      engine.stateChange({
+        ownAction: true,
+        type: 'text',
+        inputmode: '',
+        text: 'before after',
         selectionStart: 5,
-        selectionEnd: 5,
-        ownAction: true
+        selectionEnd: 5
       });
 
       // will clear the suggestions since cursor changed
@@ -929,12 +935,12 @@ suite('latin.js', function() {
     });
   });
 
-  suite('layout handling', function() {
+  suite('Layout handling', function() {
     setup(function() {
       engine.activate('en', {
         type: 'text',
         inputmode: '',
-        value: '',
+        text: '',
         selectionStart: 0,
         selectionEnd: 0
       },{ suggest: false, correct: false });
