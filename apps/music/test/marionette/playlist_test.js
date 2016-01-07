@@ -52,6 +52,7 @@ marionette('Music player playlist', function() {
         music.switchToSongsView();
 
         // this will wait on the first song as well.
+        music.waitForListEnumerate(Music.Selector.activeViewFrame);
         var songs = music.songs;
         assert.equal(songs.length, 1);
         assert.equal(songs[0].title,
@@ -88,6 +89,7 @@ marionette('Music player playlist', function() {
 
       music.selectAlbum('Treasure Island');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 1;
       });
@@ -115,6 +117,7 @@ marionette('Music player playlist', function() {
 
       music.switchToArtistsView();
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       results = music.artistsListItemsData;
       var unknownArtistStr = client.executeAsyncScript(function () {
         window.wrappedJSObject.document.l10n.formatValue('unknownArtist').
@@ -155,6 +158,7 @@ marionette('Music player playlist', function() {
 
       music.selectAlbum('Where is Julian Assange?');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 3;
       });
@@ -181,6 +185,7 @@ marionette('Music player playlist', function() {
 
       music.selectPlaylist('Recently added');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 3;
       });
@@ -233,6 +238,7 @@ marionette('Music player playlist', function() {
 
       music.selectAlbum('We crash computers');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 6;
       });
@@ -298,6 +304,7 @@ marionette('Music player playlist', function() {
 
         music.selectAlbum('We crash computers');
 
+        music.waitForListEnumerate(Music.Selector.activeViewFrame);
         music.waitForSongs(function(songs) {
           return songs.length >= 6;
         });
@@ -326,6 +333,7 @@ marionette('Music player playlist', function() {
 
         music.selectPlaylist('Highest rated');
 
+        music.waitForListEnumerate(Music.Selector.activeViewFrame);
         music.waitForSongs(function(songs) {
           return songs.length >= 6;
         });
@@ -368,6 +376,7 @@ marionette('Music player playlist', function() {
 
       music.selectPlaylist('Recently added');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 6;
       });
@@ -444,6 +453,7 @@ marionette('Music player playlist', function() {
         music.selectPlaylist('Most played');
         music.waitForPlaylistDetailView();
 
+        music.waitForListEnumerate(Music.Selector.activeViewFrame);
         music.waitForSongs(function(songs) {
           return songs.length >= 6;
         });
@@ -463,6 +473,7 @@ marionette('Music player playlist', function() {
         music.selectPlaylist('Least played');
         music.waitForPlaylistDetailView();
 
+        music.waitForListEnumerate(Music.Selector.activeViewFrame);
         music.waitForSongs(function(songs) {
           return songs.length >= 6;
         });
