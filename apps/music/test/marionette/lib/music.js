@@ -645,7 +645,13 @@ Music.prototype = {
     assert.ok(frame);
     this.client.switchToFrame(frame);
 
-    this.client.helper.waitForElement(Music.Selector.playerCover).click();
+    var playerCover =
+        this.client.helper.waitForElement(Music.Selector.playerCover);
+    playerCover.click();
+
+    this.client.switchToShadowRoot(playerCover);
+    this.client.helper.waitForElement('#rating');
+    this.client.switchToShadowRoot();
 
     this.switchToMe();
   },
