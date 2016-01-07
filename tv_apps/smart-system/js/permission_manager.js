@@ -644,6 +644,10 @@
 
       // Make the screen visible
       this.overlay.classList.add('visible');
+
+      this._spatialNavigator.silent = true;
+      this._spatialNavigator.focus(this.no);
+      this._spatialNavigator.silent = false;
       focusManager.focus();
     },
 
@@ -711,7 +715,7 @@
     focus: function pm_focus() {
       setTimeout(function() {
         document.activeElement.blur();
-        this._spatialNavigator.focus(this.no);
+        this._spatialNavigator.focus();
       }.bind(this));
     },
 
