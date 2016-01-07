@@ -48,6 +48,10 @@ proto.createdCallback = function() {
   });
 
   this.selectedIndex = 0;
+
+  // Fixes issue where rAF-wrapped `reflow()` doesn't get
+  // called in the inherited <gaia-toolbar> `createdCallback()`.
+  this.reflow();
 };
 
 Object.defineProperty(proto, 'selectedElement', {
