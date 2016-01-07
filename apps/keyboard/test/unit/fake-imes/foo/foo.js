@@ -9,5 +9,6 @@ InputMethods.foo = {
   activate: sinon.stub(),
   deactivate: sinon.stub(),
   click: sinon.stub(),
-  stateChange: sinon.stub()
+  selectionChange: sinon.stub(),
+  surroundingtextChange: sinon.stub()
 };

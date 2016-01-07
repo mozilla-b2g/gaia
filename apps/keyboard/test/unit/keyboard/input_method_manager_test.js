@@ -431,9 +431,9 @@ suite('InputMethodManager', function() {
         inputMode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        text: 'foobar',
         textBeforeCursor: '',
         textAfterCursor: '',
+        getText: this.sinon.stub(),
         addEventListener: this.sinon.stub(),
         removeEventListener: this.sinon.stub()
       }
@@ -452,6 +452,15 @@ suite('InputMethodManager', function() {
   });
 
   test('activateIMEngine', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledTwice,
+      'Should getText() twice when calling updateInputContextData again.');
+
     var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
@@ -465,7 +474,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        text: 'foobar'
+        value: 'foobar'
       }, {
         suggest: true,
         correct: true,
@@ -492,6 +501,11 @@ suite('InputMethodManager', function() {
       autoCorrectPunctuation: false
     };
 
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
+
     var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
@@ -512,6 +526,11 @@ suite('InputMethodManager', function() {
   });
 
   test('activateIMEngine (failed loader)', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
+
     var p = manager.activateIMEngine('bar');
     p.then(function() {
       assert.isTrue(false, 'should not resolve');
@@ -520,7 +539,12 @@ suite('InputMethodManager', function() {
     }).then(done, done);
   });
 
-  test('activateIMEngine (deactivate and reload after loaded)', function(done) {
+  test('activateIMEngine (failed getText())', function(done) {
+    app.inputContext.getText.returns(Promise.reject());
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
+
     var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
@@ -534,7 +558,41 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        text: 'foobar'
+        value: ''
+      }, {
+        suggest: true,
+        correct: true,
+        correctPunctuation: true
+      }));
+      assert.equal(activateStub.getCall(0).thisValue, imEngine);
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
+      assert.isTrue(false, 'should not reject');
+    }).then(done, done);
+  });
+
+  test('activateIMEngine (deactivate and reload after loaded)', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
+
+    var p = manager.activateIMEngine('foo');
+    p.then(function() {
+      assert.isTrue(true, 'resolved');
+      var imEngine = manager.loader.getInputMethod('foo');
+      assert.isTrue(!!imEngine, 'foo loaded');
+      assert.equal(manager.currentIMEngine, imEngine, 'currentIMEngine is set');
+
+      var activateStub = imEngine.activate;
+      assert.isTrue(activateStub.calledWithExactly('xx-XX', {
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: 'foobar'
       }, {
         suggest: true,
         correct: true,
@@ -542,6 +600,8 @@ suite('InputMethodManager', function() {
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
+
+      manager.updateInputContextData();
 
       manager.deactivateIMEngine();
 
@@ -578,7 +638,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        text: 'foobar'
+        value: 'foobar'
       }, {
         suggest: true,
         correct: true,
@@ -595,6 +655,8 @@ suite('InputMethodManager', function() {
   });
 
   test('selectionchange', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+    manager.updateInputContextData();
     var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(app.inputContext.addEventListener.calledTwice);
@@ -612,18 +674,17 @@ suite('InputMethodManager', function() {
       assert.isTrue(false, 'should not reject');
     }).then(function() {
       var imEngine = manager.loader.getInputMethod('foo');
-      assert.isTrue(imEngine.stateChange.calledWithExactly({
-        ownAction: true,
-        type: 'text',
-        inputmode: '',
+      assert.isTrue(imEngine.selectionChange.calledWith({
         selectionStart: 0,
         selectionEnd: 0,
-        text: 'foobar'
+        ownAction: true
       }));
     }).then(done, done);
   });
 
   test('surroundingtextchange', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+    manager.updateInputContextData();
     var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(app.inputContext.addEventListener.calledTwice);
@@ -632,7 +693,6 @@ suite('InputMethodManager', function() {
         type: 'surroundingtextchange',
         target: app.inputContext,
         detail: {
-          text: '',
           textBeforeCursor: '',
           textAfterCursor: '',
           ownAction: true
@@ -642,13 +702,10 @@ suite('InputMethodManager', function() {
       assert.isTrue(false, 'should not reject');
     }).then(function() {
       var imEngine = manager.loader.getInputMethod('foo');
-      assert.isTrue(imEngine.stateChange.calledWithExactly({
-        ownAction: true,
-        type: 'text',
-        inputmode: '',
-        selectionStart: 0,
-        selectionEnd: 0,
-        text: 'foobar'
+      assert.isTrue(imEngine.surroundingtextChange.calledWith({
+        textBeforeCursor: '',
+        textAfterCursor: '',
+        ownAction: true
       }));
     }).then(done, done);
   });
