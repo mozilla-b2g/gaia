@@ -127,6 +127,7 @@ var KeypadManager = {
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
+    this._lastPressedKey = null;
 
     this.phoneNumberView.value = '';
     this.phoneNumberView
