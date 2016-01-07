@@ -960,6 +960,10 @@ return [
 
       evt.removeListener('folderPickerClosing', this.onFolderPickerClosing);
 
+      if (this.headerCursor) {
+        this.headerCursor.die();
+      }
+
       var model = this.model;
       model.removeListener('folder', this._folderChanged);
       model.removeListener('newInboxMessages', this.onNewMail);
