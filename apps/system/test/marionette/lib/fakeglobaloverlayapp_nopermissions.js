@@ -13,7 +13,7 @@ FakeGlobalOverlayAppNoPerms.DEFAULT_ORIGIN =
   'fakeglobaloverlayapp_noperms.gaiamobile.org';
 
 FakeGlobalOverlayAppNoPerms.Selector = Object.freeze({
-  title : 'h1'
+  title : 'h3'
 });
 
 FakeGlobalOverlayAppNoPerms.prototype = {

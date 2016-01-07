@@ -11,7 +11,7 @@ module.exports = FakeGlobalOverlayApp;
 FakeGlobalOverlayApp.DEFAULT_ORIGIN = 'fakeglobaloverlayapp.gaiamobile.org';
 
 FakeGlobalOverlayApp.Selector = Object.freeze({
-  title : 'h1'
+  title : 'h3'
 });
 
 FakeGlobalOverlayApp.prototype = {
