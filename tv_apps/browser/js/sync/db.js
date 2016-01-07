@@ -527,7 +527,7 @@ SyncBrowserDB.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
-      callback();
+      callback && callback();
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
