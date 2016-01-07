@@ -3,7 +3,6 @@
 'use strict';
 
 var System = require('./lib/system');
-var assert = require('assert');
 var AudioChannelTestApp = require('./lib/audio_channel_test_app.js');
 var AudioChannelHelper = require('./lib/audio_channel_helper.js');
 
@@ -21,17 +20,17 @@ marionette('Audio channel competing', function() {
 
   var sys, testApp1, testApp2, helper;
 
-  suite('Normal audio channel competes with audio channels', function() {
-    setup(function() {
-      client.setScriptTimeout(20000);
-      sys = new System(client);
-      testApp1 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp1.gaiamobile.org');
-      testApp2 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp2.gaiamobile.org');
-      helper = new AudioChannelHelper(client);
-    });
+  setup(function() {
+    client.setScriptTimeout(20000);
+    sys = new System(client);
+    testApp1 = new AudioChannelTestApp(
+      client, 'app://audiochanneltestapp1.gaiamobile.org');
+    testApp2 = new AudioChannelTestApp(
+      client, 'app://audiochanneltestapp2.gaiamobile.org');
+    helper = new AudioChannelHelper(client);
+  });
 
+  suite('Normal audio channel competes with audio channels', function() {
     test('Normal channel competes with normal channel', function() {
       assertPolicy1('normal', 'normal');
     });
@@ -67,15 +66,6 @@ marionette('Audio channel competing', function() {
   });
 
   suite('Content audio channel competes with audio channels', function() {
-    setup(function() {
-      client.setScriptTimeout(20000);
-      sys = new System(client);
-      testApp1 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp1.gaiamobile.org');
-      testApp2 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp2.gaiamobile.org');
-    });
-
     test('Content channel competes with normal channel', function() {
       assertPolicy1('content', 'normal');
     });
@@ -111,15 +101,6 @@ marionette('Audio channel competing', function() {
   });
 
   suite('Alarm audio channel competes with audio channels', function() {
-    setup(function() {
-      client.setScriptTimeout(20000);
-      sys = new System(client);
-      testApp1 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp1.gaiamobile.org');
-      testApp2 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp2.gaiamobile.org');
-    });
-
     test('Alarm channel competes with normal channel', function() {
       assertPolicy0('alarm', 'normal');
     });
@@ -154,15 +135,6 @@ marionette('Audio channel competing', function() {
   });
 
   suite('System audio channel competes with audio channels', function() {
-    setup(function() {
-      client.setScriptTimeout(20000);
-      sys = new System(client);
-      testApp1 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp1.gaiamobile.org');
-      testApp2 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp2.gaiamobile.org');
-    });
-
     test('System channel competes with normal channel', function() {
       assertPolicy0('system', 'normal');
     });
@@ -198,15 +170,6 @@ marionette('Audio channel competing', function() {
   });
 
   suite('Ringer audio channel competes with audio channels', function() {
-    setup(function() {
-      client.setScriptTimeout(20000);
-      sys = new System(client);
-      testApp1 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp1.gaiamobile.org');
-      testApp2 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp2.gaiamobile.org');
-    });
-
     test('Ringer channel competes with normal channel', function() {
       assertPolicy0('ringer', 'normal');
     });
@@ -242,15 +205,6 @@ marionette('Audio channel competing', function() {
   });
 
   suite('Telephony audio channel competes with audio channels', function() {
-    setup(function() {
-      client.setScriptTimeout(20000);
-      sys = new System(client);
-      testApp1 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp1.gaiamobile.org');
-      testApp2 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp2.gaiamobile.org');
-    });
-
     test('Telephony channel competes with normal channel', function() {
       assertPolicy0('telephony', 'normal');
     });
@@ -284,15 +238,6 @@ marionette('Audio channel competing', function() {
   });
 
   suite('Notification audio channel competes with audio channels', function() {
-    setup(function() {
-      client.setScriptTimeout(20000);
-      sys = new System(client);
-      testApp1 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp1.gaiamobile.org');
-      testApp2 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp2.gaiamobile.org');
-    });
-
     test('Notification channel competes with normal channel', function() {
       assertPolicy4('notification', 'normal');
     });
@@ -317,7 +262,8 @@ marionette('Audio channel competing', function() {
       assertPolicy0('notification', 'telephony');
     });
 
-    test('Notification channel competes with notification channel', function() {
+    test('Notification channel competes with ' +
+              'notification channel', function() {
       assertPolicy0('notification', 'notification');
     });
 
@@ -329,15 +275,6 @@ marionette('Audio channel competing', function() {
 
   suite('Public notification audio channel competes with ' +
         'audio channels', function() {
-    setup(function() {
-      client.setScriptTimeout(20000);
-      sys = new System(client);
-      testApp1 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp1.gaiamobile.org');
-      testApp2 = new AudioChannelTestApp(
-        client, 'app://audiochanneltestapp2.gaiamobile.org');
-    });
-
     test('Public notification channel competes with ' +
               'normal channel', function() {
       assertPolicy4('publicnotification', 'normal');
@@ -389,8 +326,8 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy0(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
+    helper.isPlaying(testApp1.origin, audioChannel1, true);
+    helper.isPlaying(testApp2.origin, audioChannel2, true);
   }
 
   /**
@@ -405,16 +342,16 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy1(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
-    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
+    helper.isPlaying(testApp2.origin, audioChannel2, true);
+    helper.isPlaying(testApp1.origin, audioChannel1, false);
 
     var testApp2Frame = sys.getAppIframe(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Pause'].click();
-    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
+    helper.isPlaying(testApp1.origin, audioChannel1, false);
 
     sys.waitForLaunch(testApp1.origin);
-    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
+    helper.isPlaying(testApp1.origin, audioChannel1, true);
   }
 
   /**
@@ -428,20 +365,20 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy2(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
-    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
+    helper.isPlaying(testApp2.origin, audioChannel2, true);
+    helper.isPlaying(testApp1.origin, audioChannel1, false);
 
     var testApp2Frame = sys.getAppIframe(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Pause'].click();
-    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
+    helper.isPlaying(testApp1.origin, audioChannel1, true);
  
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Play'].click();
-    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
+    helper.isPlaying(testApp2.origin, audioChannel2, true);
 
     sys.waitForLaunch(testApp1.origin);
-    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
+    helper.isPlaying(testApp1.origin, audioChannel1, true);
   }
 
   /**
@@ -454,16 +391,16 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy3(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(helper.isFadingOut(testApp1.origin, audioChannel1));
-    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
+    helper.isFadingOut(testApp1.origin, audioChannel1, true);
+    helper.isPlaying(testApp2.origin, audioChannel2, true);
 
     var testApp2Frame = sys.getAppIframe(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Pause'].click();
-    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
+    helper.isPlaying(testApp1.origin, audioChannel1, true);
     // Reenable it in Bug 1230074.
-    // assert.ok(!helper.isFadingOut(testApp1.origin, audioChannel1));
-    assert.ok(!helper.isPlaying(testApp2.origin, audioChannel2));
+    // helper.isFadingOut(testApp1.origin, audioChannel1, false);
+    helper.isPlaying(testApp2.origin, audioChannel2, false);
   }
 
   /**
@@ -476,15 +413,15 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy4(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(helper.isFadingOut(testApp2.origin, audioChannel2));
+    helper.isPlaying(testApp1.origin, audioChannel1, true);
+    helper.isFadingOut(testApp2.origin, audioChannel2, true);
 
     var testApp1Frame = sys.waitForLaunch(testApp1.origin);
     client.switchToFrame(testApp1Frame);
     testApp1[audioChannel1 + 'Pause'].click();
-    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(!helper.isFadingOut(testApp2.origin, audioChannel2));
-    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
+    helper.isPlaying(testApp1.origin, audioChannel1, false);
+    helper.isFadingOut(testApp2.origin, audioChannel2, false);
+    helper.isPlaying(testApp2.origin, audioChannel2, true);
   }
 
   /**
@@ -497,14 +434,14 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy5(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(helper.isVibrating(testApp1.origin, audioChannel1));
-    assert.ok(!helper.isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(helper.isPlaying(testApp2.origin, audioChannel2));
+    helper.isVibrating(testApp1.origin, audioChannel1, true);
+    helper.isPlaying(testApp1.origin, audioChannel1, false);
+    helper.isPlaying(testApp2.origin, audioChannel2, true);
 
     var testApp2Frame = sys.getAppIframe(testApp2.origin);
     client.switchToFrame(testApp2Frame);
     testApp2[audioChannel2 + 'Pause'].click();
-    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
+    helper.isPlaying(testApp1.origin, audioChannel1, true);
   }
 
   /**
@@ -517,9 +454,9 @@ marionette('Audio channel competing', function() {
    */
   function assertPolicy6(audioChannel1, audioChannel2) {
     playAudiosInDifferentApps(audioChannel1, audioChannel2);
-    assert.ok(helper.isPlaying(testApp1.origin, audioChannel1));
-    assert.ok(helper.isVibrating(testApp2.origin, audioChannel2));
-    assert.ok(!helper.isPlaying(testApp2.origin, audioChannel2));
+    helper.isPlaying(testApp1.origin, audioChannel1, true);
+    helper.isVibrating(testApp2.origin, audioChannel2, true);
+    helper.isPlaying(testApp2.origin, audioChannel2, false);
   }
 
   /**
