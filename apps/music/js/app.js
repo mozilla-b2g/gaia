@@ -1,4 +1,4 @@
-/* exported onSearchOpen, onSearchClose */
+/* exported onSearchOpen, onSearchClose, navigateBack */
 /* global SERVICE_WORKERS, bridge */
 'use strict';
 
@@ -28,8 +28,8 @@ const VIEWS = {
   ALBUMS:          {TAB: 'albums',    URL: '/views/albums/index.html'},
   ARTIST_DETAIL:   {TAB: 'artists',   URL: '/views/artist-detail/index.html'},
   ARTISTS:         {TAB: 'artists',   URL: '/views/artists/index.html'},
-  HOME:            {TAB: 'home',      URL: '/views/home/index.html'},
-  PLAYER:          {TAB: 'home',      URL: '/views/player/index.html'},
+  HOME:            {TAB: 'home',      URL: '/views/home-tv/index.html'},
+  PLAYER:          {TAB: 'home',      URL: '/views/player-tv/index.html'},
   PLAYLIST_DETAIL: {TAB: 'playlists', URL: '/views/playlist-detail/index.html'},
   PLAYLISTS:       {TAB: 'playlists', URL: '/views/playlists/index.html'},
   SONGS:           {TAB: 'songs',     URL: '/views/songs/index.html'}
@@ -290,6 +290,18 @@ function navigateToURL(url, replaceRoot) {
   }
 
   window.history.pushState(null, null, url);
+}
+
+function navigateBack() {
+  var isPlayerView = viewStack.activeView &&
+    viewStack.activeView.url === VIEWS.PLAYER.URL;
+
+  if (viewStack.views.length > 1) {
+    // Don't destroy the popped view if it is the "Player" view.
+    viewStack.popView(!isPlayerView);
+    window.history.back();
+    return;
+  }
 }
 
 function updateOverlays() {

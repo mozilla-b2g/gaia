@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html class="theme-media">
+<head>
+  <meta charset="utf-8">
+  <title>Music</title>
+  <meta name="description" content="Gaia Music">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+  <meta name="theme-group" content="theme-media">
+  <meta name="theme-color" content="var(--header-background)">
+  <!-- Localization -->
+  <meta name="defaultLanguage" content="en-US">
+  <meta name="availableLanguages" content="en-US">
+  <link rel="localization" href="/locales/music.{locale}.properties">
+  <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/components/gaia-icons/gaia-icons.css">
+  <link rel="stylesheet" href="/components/gaia-theme/gaia-theme.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/tv.css">
+  <!-- Deferred Scripts -->
+  <script defer src="/components/bridge/bridge.js"></script>
+  <script defer src="/shared/js/intl/l20n-service.js"></script>
+  <script defer src="/shared/js/intl/l20n-client.js"></script>
+  <script defer src="/shared/js/intl_helper.js"></script>
+  <script defer src="/components/gaia-header/dist/gaia-header.js"></script>
+  <script defer src="/components/gaia-toolbar/gaia-toolbar.js"></script>
+  <script defer src="/elements/music-overlay.js"></script>
+  <script defer src="/elements/music-scan-progress.js"></script>
+  <script defer src="/elements/music-tab-bar.js"></script>
+  <script defer src="/elements/music-view-stack.js"></script>
+  <script defer src="/shared/js/lazy_loader.js"></script>
+  <script defer src="/shared/js/mediadb.js"></script>
+  <script defer src="/js/db.js"></script>
+  <script defer src="/js/endpoint.js"></script>
+  <script defer src="/js/config.js"></script>
+  <script defer src="/js/app.js"></script>
+  <!-- Lazy-Loaded Scripts -->
+  <!--
+  <script src="/shared/js/media/remote_controls.js"></script>
+  <script src="/shared/js/omadrm/fl.js"></script>
+  <script src="/shared/js/async_storage.js"></script>
+  <script src="/shared/js/bluetooth_helper.js"></script>
+  <script src="/shared/js/image_utils.js"></script>
+  <script src="/shared/js/text_normalizer.js"></script>
+  <script src="/js/queue.js"></script>
+  <script src="/js/remote.js"></script>
+  <script src="/js/nfc_share.js"></script>
+  -->
+</head>
+<body role="application">
+  <gaia-header id="header" no-font-fit>
+    <h1 id="header-title" data-l10n-id="music"></h1>
+    <button id="player-button" data-icon="play-circle" data-l10n-id="go-to-player-view" hidden></button>
+    <button id="activity-done-button" hidden></button>
+  </gaia-header>
+
+  <music-view-stack id="view-stack">
+    <iframe src="/views/home-tv/index.html"></iframe>
+  </music-view-stack>
+
+  <music-tab-bar id="tab-bar">
+    <button value="home-tv"
+        data-url="/home-tv"
+        data-icon="grid"
+        data-l10n-id="home-tab">
+    </button>
+  </music-tab-bar>
+
+  <music-overlay id="empty-overlay"
+      heading-l10n-id="empty-title"
+      message-l10n-id="empty-text" hidden>
+  </music-overlay>
+
+  <music-overlay id="no-card-overlay"
+      heading-l10n-id="nocard2-title"
+      message-l10n-id="nocard3-text" hidden>
+  </music-overlay>
+
+  <music-overlay id="plugged-in-overlay"
+      heading-l10n-id="pluggedin-title"
+      message-l10n-id="pluggedin-text" hidden>
+  </music-overlay>
+
+  <music-overlay id="upgrade-overlay"
+      heading-l10n-id="upgrade-title"
+      message-l10n-id="upgrade-text" hidden>
+  </music-overlay>
+
+  <music-scan-progress id="scan-progress"
+      heading-l10n-id="unknownArtist"
+      subheading-l10n-id="unknownTitle">
+  </music-scan-progress>
+
+  <audio id="audio"></audio>
+</body>
+</html>
