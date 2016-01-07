@@ -6,18 +6,14 @@
 /* global
   crypto,
   CryptoKey,
-  expect,
   FxSyncWebCrypto,
-  FxSyncWebCryptoFixture,
-  requireApp,
-  suite,
-  test
+  FxSyncWebCryptoFixture
 */
 
-requireApp('sync/js/crypto/stringconversion.js');
-requireApp('sync/js/crypto/keyderivation.js');
-requireApp('sync/js/crypto/fxsyncwebcrypto.js');
-requireApp('sync/test/unit/fixtures/fxsyncwebcrypto.js');
+require('/shared/js/sync/crypto/stringconversion.js');
+require('/shared/js/sync/crypto/keyderivation.js');
+require('/shared/js/sync/crypto/fxsyncwebcrypto.js');
+requireApp('sharedtest/test/unit/sync/fixtures/fxsyncwebcrypto.js');
 
 suite('FxSyncWebCrypto', () => {
   suite('constructor', () => {

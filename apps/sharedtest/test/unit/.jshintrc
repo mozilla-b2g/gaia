@@ -2,6 +2,7 @@
   "extends": "../../../../.jshintrc",
   "predef": [
     "assert",
+    "expect",
     "require",
     "requireApp",
     "sinon"
