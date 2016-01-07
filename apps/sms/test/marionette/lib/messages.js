@@ -64,11 +64,20 @@ var ParticipantsAccessor = require('./views/participants/accessors');
 
         Participants: new ParticipantsAccessor(client),
 
-        launch() {
+        launch(doNotWaitForAppToBecomeReady) {
           client.switchToFrame();
           client.apps.launch(ORIGIN_URL);
           client.apps.switchToApp(ORIGIN_URL);
-          client.helper.waitForElement(SELECTORS.appReady);
+
+          // In 99.99% cases we'd like to wait for the app to become fully ready
+          // before we do anything in the tests, but sometimes we'd like to
+          // verify that app is actionable before it's marked as ready, in this
+          // case we just wait for the main app container to appear.
+          if (!doNotWaitForAppToBecomeReady) {
+            client.helper.waitForElement(SELECTORS.appReady);
+          } else {
+            client.helper.waitForElement(SELECTORS.main);
+          }
         },
 
         close: function() {

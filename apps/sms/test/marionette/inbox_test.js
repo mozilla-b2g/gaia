@@ -57,7 +57,7 @@ marionette('Inbox View tests', function() {
         conversations, ThreadGenerator.uniqueMessageId
       );
 
-      messagesApp.launch();
+      messagesApp.launch(true /* doNotWaitForAppToBecomeReady */);
     });
 
     test('User could navigate without waiting for the app to be fully loaded',
@@ -69,7 +69,6 @@ marionette('Inbox View tests', function() {
       newMessageView.assertRecipientsInputFocused();
 
       // We should enter new message view even if not all messages are rendered.
-      assert.isTrue(inboxView.hasConversation(10));
       assert.isFalse(inboxView.hasConversation(400));
 
       // And rendering should still continue.
