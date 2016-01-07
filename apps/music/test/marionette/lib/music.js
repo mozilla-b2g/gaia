@@ -397,10 +397,12 @@ Music.prototype = {
       });
     }.bind(this));
 
+    // Here we assume that if the body of the document
+    // is no longer hidden that we have content.
+    // See view.js:View.prototype.setupList
     this.client.waitFor(function() {
       return this.client.executeScript(function() {
-        var el = document.querySelector('#list');
-        return el; //.state === 'complete';
+        return document.body.hidden === false;
       });
     }.bind(this));
 
