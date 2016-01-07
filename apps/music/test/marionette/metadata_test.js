@@ -75,6 +75,7 @@ marionette('Music player metadata', function() {
         // We test the album art url.
         // an "app:" URL is the default placeholder.
         // a "blob:" URL is a blob. Produced from the metadata.
+        music.waitForListEnumerate(Music.Selector.activeViewFrame);
 
         var listItemsData = music.artistsListItemsData;
 
