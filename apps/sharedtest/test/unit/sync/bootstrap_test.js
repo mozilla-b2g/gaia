@@ -18,7 +18,7 @@
 
 
 require('/shared/js/sync/errors.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('sharedtest/test/unit/sync/improved_mock_lazy_loader.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 requireApp('sharedtest/test/unit/sync/fixtures/bootstrap.js');
 requireApp('sharedtest/test/unit/sync/sync-engine-mock.js');

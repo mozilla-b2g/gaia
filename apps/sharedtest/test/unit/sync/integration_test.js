@@ -18,7 +18,7 @@
 requireApp('system/test/unit/mock_iac_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('sharedtest/test/unit/sync/improved_mock_lazy_loader.js');
 
 require('/shared/js/sync/bootstrap.js');
 require('/shared/js/sync/engine.js');
