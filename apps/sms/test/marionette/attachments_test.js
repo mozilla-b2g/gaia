@@ -44,6 +44,8 @@ marionette('Attachment picking and sending tests', function() {
     });
 
     test('A contact can be enclosed as attachment', function() {
+
+try {
       messagesApp.addRecipient('+346666666');
 
       var composer = messagesApp.Composer;
@@ -65,6 +67,11 @@ marionette('Attachment picking and sending tests', function() {
       var fileName = client.helper.waitForElement(messagesApp.Selectors.
                                                             Message.fileName);
       assert.equal(fileName.text(), 'test_file.vcf');
+} catch(e) {
+  assert(false, 'message: ' + (e.message || e.name) + 'stack: ' +
+    (e.stack && e.stack.replace(/\n/g, '|')));
+}
+
     });
   });
 });
