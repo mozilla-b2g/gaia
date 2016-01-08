@@ -435,15 +435,23 @@ suite('Homescreen app', () => {
   });
 
   suite('App#addAppIcon()', () => {
-    var appIcon;
+    var appIcon, setElementIconStub;
 
     setup(() => {
       appIcon = { manifestURL: {}, addEventListener: () => {} };
       stubCreateElement();
+      setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
+        function() {
+          return {
+            then: () => {
+            }
+          };
+        });
     });
 
     teardown(() => {
       restoreCreateElement();
+      setElementIconStub.restore();
     });
 
     test('should call refresh() on a gaia-app-icon element', () => {
@@ -470,10 +478,8 @@ suite('Homescreen app', () => {
     });
 
     test('should set the best icon according to the size available', () => {
-      var getIconBlobSpy = sinon.spy(IconsHelper, 'setElementIcon');
       app.addAppIcon({ id: 'abc', addEventListener: () => {} });
-      assert.isTrue(getIconBlobSpy.called);
-      getIconBlobSpy.restore();
+      assert.isTrue(setElementIconStub.called);
     });
 
     test('icon activated signal should be forwarded', () => {
@@ -509,7 +515,12 @@ suite('Homescreen app', () => {
 
     test('calls IconsHelper.setElementIcon() on bookmark icons', () => {
       var setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
-                                          Promise.resolve);
+        function() {
+          return {
+            then: () => {
+            }
+          };
+        });
       app.refreshIcon(mockBookmarkIcon);
       assert.isTrue(setElementIconStub.calledOnce);
       setElementIconStub.restore();
@@ -517,7 +528,13 @@ suite('Homescreen app', () => {
 
     test('calls refresh if setElementIcon() Promise rejects', done => {
       var setElementIconStub = sinon.stub(MockIconsHelper, 'setElementIcon',
-                                          Promise.reject);
+        function() {
+          return {
+            then: () => {
+              throw'';
+            }
+          };
+        });
       sinon.stub(mockBookmarkIcon, 'refresh', () => {
         setElementIconStub.restore();
         done();
@@ -1106,7 +1123,7 @@ suite('Homescreen app', () => {
         test('icon can be dropped at the end of the container', () => {
           app.handleEvent(new CustomEvent('drag-end', {
             detail:
-              { target: 'def', dropTarget: null, clientX: 250, clientY: 600 }
+              { target: 'def', dropTarget: null, clientX: 250, clientY: 900 }
           }));
           assert.isTrue(reorderChildSpy.calledWith('def', null));
         });
