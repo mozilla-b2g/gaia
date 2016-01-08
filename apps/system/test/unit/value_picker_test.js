@@ -1,9 +1,20 @@
-/* global ValuePicker */
+/* global ValuePicker, MockL10n */
 'use strict';
 
 requireApp('system/js/value_selector/value_picker.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('value selector/value picker', function() {
+  var realL10n;
+
+  setup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  teardown(function() {
+    navigator.mozL10n = realL10n;
+  });
 
   suite('Month value picker', function() {
     var subject, dom, unitStyle;
@@ -102,6 +113,7 @@ suite('value selector/value picker', function() {
         optionsL10n: ['AM', 'PM'],
         className: 'picker-unit'
       };
+
       subject = new ValuePicker(dom, unitStyle);
     });
 

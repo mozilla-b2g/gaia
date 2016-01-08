@@ -142,11 +142,19 @@ var ValuePicker = (function() {
       this.element.style.transform = 'translateY(' + this._top + 'px)';
       this.container.setAttribute('aria-valuenow', index);
 
-      if (this._optionsL10n[index] &&
-          this._optionsL10n[index].hasOwnProperty('raw')) {
-        this.container.setAttribute('aria-valuetext',
-                                    this._optionsL10n[index].raw);
+      var valPromise;
+      if (typeof this._optionsL10n[index] === 'string') {
+        valPromise = navigator.mozL10n.formatValue(this._optionsL10n[index]);
+      } else if (this._optionsL10n[index].hasOwnProperty('id')) {
+        valPromise = navigator.mozL10n.formatValue(
+          this._optionsL10n[index].id, this._optionsL10n[index].args);
+      } else {
+        valPromise = Promise.resolve(this._optionsL10n[index].raw);
       }
+
+      valPromise.then(val => {
+        this.container.setAttribute('aria-valuetext', val);
+      });
     }
   };
 
