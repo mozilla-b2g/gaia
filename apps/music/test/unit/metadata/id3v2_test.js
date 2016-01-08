@@ -144,6 +144,31 @@ suite('id3v2 tags', function() {
       });
     });
 
+    test('id3v2.4 with utf-16 and odd size', function(done) {
+      var blob, filename = '/test-data/id3v2.4-picture-utf16-odd-size.mp3';
+      fetchBuffer(filename)
+        .then(function(buffer) {
+          return (blob = new Blob([buffer]));
+        })
+        .then(makeBlobView)
+        .then(ID3v2Metadata.parse)
+        .then(function(metadata) {
+          assert.strictEqual(metadata.artist, 'AC/DC');
+          assert.strictEqual(metadata.album, 'Dirty Deeds Done Dirt Cheap');
+          assert.strictEqual(metadata.title, 'Problem Child');
+          assert.strictEqual(metadata.tracknum, 5);
+          assert.strictEqual(metadata.picture.flavor, 'embedded');
+          assert.strictEqual(metadata.picture.type, 'image/jpeg');
+
+          return readPicSlice(blob, metadata.picture);
+        })
+        .then(function(buffer) {
+          var pic = new TextEncoder('utf-8').encode('odd number of bytes');
+          assertBuffersEqual(buffer, pic);
+        })
+        .then(pass(done), fail(done));
+    });
+
   });
 
   suite('extended header', function() {
