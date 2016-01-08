@@ -17,7 +17,7 @@ class TestVideo(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
-        self.video_URL = self.marionette.absolute_url('VID_0001.ogg')
+        self.video_URL = self.marionette.absolute_url('VID_counter.ogg')
 
     def test_play_video(self):
         """Confirm video playback
