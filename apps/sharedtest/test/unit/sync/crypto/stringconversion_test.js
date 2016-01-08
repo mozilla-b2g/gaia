@@ -3,18 +3,12 @@
 
 'use strict';
 
-/* global
-  expect,
-  requireApp,
-  StringConversion,
-  suite,
-  test
-*/
+/* global StringConversion */
 
-requireApp('sync/js/crypto/stringconversion.js');
-requireApp('sync/js/crypto/keyderivation.js');
-requireApp('sync/js/crypto/main.js');
-requireApp('sync/test/unit/fixtures/fxsyncwebcrypto.js');
+require('/shared/js/sync/crypto/stringconversion.js');
+require('/shared/js/sync/crypto/keyderivation.js');
+require('/shared/js/sync/crypto/main.js');
+requireApp('sharedtest/test/unit/sync/fixtures/fxsyncwebcrypto.js');
 
 suite('utils', () => {
   suite('rawStringToUint8Array', () => {

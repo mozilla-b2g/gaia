@@ -74,7 +74,7 @@ const KeyDerivation = Object.freeze((() => {
           if (++roundNumber <= numBlocks) {
             return doHKDFRound(roundNumber, digest, output, hkdfKey);
           }
-          return new Promise((resolve, reject) => {
+          return new Promise(resolve => {
             const truncated = bitSlice(
                 StringConversion.hexStringToUint8Array(output), 0, length * 8);
             resolve(truncated);

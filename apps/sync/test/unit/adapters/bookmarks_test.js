@@ -5,38 +5,29 @@
 'use strict';
 
 /* global
-  assert,
   asyncStorage,
-  DataAdapters,
   BOOKMARKS_COLLECTION_MTIME,
   BOOKMARKS_LAST_REVISIONID,
   BOOKMARKS_SYNCTOID_PREFIX,
   BookmarksHelper,
+  DataAdapters,
+  ERROR_SYNC_APP_RACE_CONDITION,
   MockasyncStorage,
   MockDatastore,
   MockLazyLoader,
-  MockNavigatorDatastore,
-  require,
-  requireApp,
-  setup,
-  sinon,
-  suite,
-  suiteSetup,
-  suiteTeardown,
-  teardown,
-  test
+  MockNavigatorDatastore
 */
 
-require('/apps/music/test/unit/mock_lazy_loader.js');
+require('/shared/js/sync/errors.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
 requireApp('sync/js/adapters/bookmarks.js');
 
 window.DataAdapters = {};
 
-suite('sync/adapters/bookmarks >', () => {
+suite('sync/adapters/bookmarks >', function() {
   var realDatastore, realLazyLoader, realAsyncStorage, testCollectionData;
-  var updateBookmarksSpy;
   var kintoCollection = {
     list() {
       return Promise.resolve({
@@ -58,7 +49,7 @@ suite('sync/adapters/bookmarks >', () => {
       'type',
       'iconable',
       'icon',
-      'syncNeeded',
+      'createdLocally',
       'fxsyncRecords'
     ];
     if (payload.type !== 'separator') {
@@ -155,24 +146,21 @@ suite('sync/adapters/bookmarks >', () => {
 
   setup(() => {
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
-    updateBookmarksSpy = sinon.spy(BookmarksHelper, 'updateBookmarks');
     testCollectionData = [];
     MockDatastore._tasks[1].revisionId = 'latest-not-cleared';
   });
 
   teardown(() => {
-    updateBookmarksSpy.restore();
     MockDatastore._inError = false;
     MockDatastore._records = Object.create(null);
     window.asyncStorage.mTeardown();
   });
 
-  test('update - empty records', done => {
+  test('update - empty records', function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks;
     bookmarksAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
         .then(result => {
       assert.equal(result, false);
-      assert.equal(updateBookmarksSpy.callCount, 0);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
           null);
       assert.equal(asyncStorage.mItems[BOOKMARKS_LAST_REVISIONID], null);
@@ -181,82 +169,85 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  suite('after a DataStore clear', function() {
-    suiteSetup(function() {
-      MockDatastore._taskCounter = 0;
-      MockDatastore._tasks = [
-        {
-          operation: 'clear',
-          id: 0,
-          data: {}
-        },
-        {
-          operation: 'add',
-          id: 0,
-          data: {}
-        },
-        {
-          operation: 'clear',
-          id: 0,
-          data: {}
-        },
-        {
-          operation: 'done',
-          id: 0,
-          revisionId: 'latest-after-clear',
-          data: null
-        }
-      ];
-    });
-    suiteTeardown(function() {
-      MockDatastore._taskCounter = 0;
-      MockDatastore._tasks = [
-        {
-          operation: 'update',
-          id: 0,
-          data: {}
-        },
-        {
-          operation: 'done',
-          id: 0,
-          data: null,
-          revisionId: 'latest-not-cleared'
-        }
-      ];
-    });
+  ['clear', 'remove'].forEach(task => {
+    suite(`after a DataStore ${task}`, function() {
+      suiteSetup(function() {
+        MockDatastore._taskCounter = 0;
+        MockDatastore._tasks = [
+          {
+            operation: 'clear',
+            id: 0,
+            data: {}
+          },
+          {
+            operation: 'add',
+            id: 0,
+            data: {}
+          },
+          {
+            operation: task,
+            id: 0,
+            data: {}
+          },
+          {
+            operation: 'done',
+            id: 0,
+            revisionId: `latest-after-${task}`,
+            data: null
+          }
+        ];
+      });
+      suiteTeardown(function() {
+        MockDatastore._taskCounter = 0;
+        MockDatastore._tasks = [
+          {
+            operation: 'update',
+            id: 0,
+            data: {}
+          },
+          {
+            operation: 'done',
+            id: 0,
+            data: null,
+            revisionId: 'latest-not-cleared'
+          }
+        ];
+      });
 
-    test('update - refills the DataStore', done => {
-      var bookmarksAdapter = DataAdapters.bookmarks;
-      testCollectionData = testDataGenerator(1, 1440000000, 5);
-      asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME] =
-          testCollectionData[0].last_modified;
-      bookmarksAdapter.update(kintoCollection,
-          { readonly: true, userid: 'foo' })
-      .then(() => {
-        assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
-            testCollectionData[0].last_modified);
-        getBookmarksStore().then(bookmarksStore => {
-          var ids = testCollectionData.map(item => {
-            return item.payload.bmkUri;
-          });
-          bookmarksStore.get.apply(bookmarksStore, ids).then(list => {
-            for (var i = 0; i < ids.length; i++) {
-              verifyBookmarks(testCollectionData[i], list[i]);
-              assert.equal(
-                asyncStorage.mItems['foo' + BOOKMARKS_SYNCTOID_PREFIX +
-                    testCollectionData[i].id],
-                    testCollectionData[i].payload.bmkUri);
-            }
-            assert.equal(asyncStorage.mItems[
-                'foo' + BOOKMARKS_LAST_REVISIONID], 'latest-after-clear');
-            done();
+      test('update - refills the DataStore', function(done) {
+        var bookmarksAdapter = DataAdapters.bookmarks;
+        testCollectionData = testDataGenerator(1, 1440000000, 5);
+        asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME] =
+            testCollectionData[0].last_modified;
+        bookmarksAdapter.update(kintoCollection,
+            { readonly: true, userid: 'foo' })
+        .then(() => {
+          assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
+              testCollectionData[0].last_modified);
+          getBookmarksStore().then(bookmarksStore => {
+            var ids = testCollectionData.map(item => {
+              return item.payload.bmkUri;
+            });
+            bookmarksStore.get.apply(bookmarksStore, ids).then(list => {
+              for (var i = 0; i < ids.length; i++) {
+                verifyBookmarks(testCollectionData[i], list[i]);
+                assert.equal(
+                  asyncStorage.mItems['foo' + BOOKMARKS_SYNCTOID_PREFIX +
+                      testCollectionData[i].id],
+                      testCollectionData[i].payload.bmkUri);
+              }
+              assert.equal(asyncStorage.mItems[
+                  'foo' + BOOKMARKS_LAST_REVISIONID], `latest-after-${task}`);
+              done();
+            });
           });
         });
       });
     });
   });
 
-  test('update - does not refill the DataStore if not cleared', done => {
+  test('update - does not refill the DataStore if nothing removed locally',
+      function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks;
     testCollectionData = testDataGenerator(1, 1440000000, 5);
     asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME] =
@@ -281,18 +272,45 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  test('update - 1 sync request with 5 new records', done => {
+  suite('if a DataStore race condition occurs', function() {
+    setup(function() {
+      MockDatastore._raceCondition = true;
+    });
+    teardown(function() {
+      delete MockDatastore._raceCondition;
+    });
+
+    test('update - rejects its promise', function(done) {
+      var bookmarksAdapter = DataAdapters.bookmarks;
+      var lazyLoaderSpy = this.sinon.spy(MockLazyLoader, 'load');
+
+      testCollectionData = testDataGenerator(1, 1440000000, 5);
+      bookmarksAdapter.update(kintoCollection,
+          { readonly: true, userid: 'foo' }).catch(error => {
+        assert.equal(lazyLoaderSpy.calledWith(['shared/js/sync/errors.js']),
+            true);
+        assert.equal(error.message, ERROR_SYNC_APP_RACE_CONDITION);
+        assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
+                     null);
+        done();
+      });
+    });
+  });
+
+  test('update - 1 sync request with 5 new records', function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks;
+    var lazyLoaderSpy = this.sinon.spy(MockLazyLoader, 'load');
     testCollectionData = testDataGenerator(1, 1440000000, 5);
     bookmarksAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
         .then(result => {
-      assert.equal(result, false);
       var mTime = testCollectionData[0].last_modified;
+      assert.equal(result, false);
+      assert.equal(lazyLoaderSpy.calledWith(['shared/js/async_storage.js']),
+          true);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
           mTime);
           assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
               'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       var ids = testCollectionData.map(item => {
@@ -312,7 +330,7 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  test('update - 2 sync requests', done => {
+  test('update - 2 sync requests', function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks;
     Promise.resolve().then(() => {
       testCollectionData = testDataGenerator(1, 100, 5)
@@ -326,7 +344,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = testDataGenerator(6, 500, 5)
@@ -340,7 +357,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 2);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       var ids = testCollectionData.map(item => {
@@ -360,7 +376,7 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  test('update - 2 sync requests with 2 deleted: true records', done => {
+  test('update - 2 sync requests with 2 deleted: true records', function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks, store;
     var deletedQueue = ['UNIQUE_ID_1', 'UNIQUE_ID_4'];
     Promise.resolve().then(() => {
@@ -375,7 +391,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = testDataGenerator(6, 500, 5)
@@ -402,7 +417,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 2);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       store = bookmarksStore;
@@ -427,7 +441,8 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  test('update - Add three records with the same URL and delete one', done => {
+  test('update - Add three records with the same URL and delete one',
+      function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks, store;
     Promise.resolve().then(() => {
       for (var i = 1; i <= 3; i++) {
@@ -451,7 +466,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData = [
@@ -493,7 +507,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 2);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       store = bookmarksStore;
@@ -505,7 +518,7 @@ suite('sync/adapters/bookmarks >', () => {
           type: 'url',
           iconable: false,
           icon: '',
-          syncNeeded: true,
+          createdLocally: false,
           fxsyncRecords: {
             UNIQUE_ID_1: {
               id: 'UNIQUE_ID_1',
@@ -540,7 +553,8 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  test('update - Add two records and add one, all with the same URL', done => {
+  test('update - Add two records and add one, all with the same URL',
+      function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks, store;
     Promise.resolve().then(() => {
       for (var i = 1; i <= 2; i++) {
@@ -564,7 +578,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(() => {
       testCollectionData.unshift({
@@ -586,7 +599,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 2);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       store = bookmarksStore;
@@ -598,7 +610,7 @@ suite('sync/adapters/bookmarks >', () => {
           type: 'url',
           iconable: false,
           icon: '',
-          syncNeeded: true,
+          createdLocally: false,
           fxsyncRecords: {
             UNIQUE_ID_1: {
               id: 'UNIQUE_ID_1',
@@ -636,7 +648,8 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  test('update - query, folder, livemark, and separator record', done => {
+  test('update - query, folder, livemark, and separator record',
+      function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks, store;
     var i = 1;
     testCollectionData.unshift({
@@ -686,7 +699,6 @@ suite('sync/adapters/bookmarks >', () => {
           mTime);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 1);
       return Promise.resolve();
     }).then(getBookmarksStore).then(bookmarksStore => {
       store = bookmarksStore;
@@ -711,7 +723,7 @@ suite('sync/adapters/bookmarks >', () => {
     });
   });
 
-  test('update - empty bookmarks-uri record', done => {
+  test('update - empty bookmarks-uri record', function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks;
     var i = 1;
     testCollectionData.unshift({
@@ -728,17 +740,16 @@ suite('sync/adapters/bookmarks >', () => {
         .then(result => {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
-          null);
+          110);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       done(reason || new Error('Rejected by undefined reason.'));
     });
   });
 
-  test('update - empty query-uri record', done => {
+  test('update - empty query-uri record', function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks;
     var i = 1;
     testCollectionData.unshift({
@@ -755,17 +766,16 @@ suite('sync/adapters/bookmarks >', () => {
         .then(result => {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
-          null);
+          110);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       done(reason || new Error('Rejected by undefined reason.'));
     });
   });
 
-  test('update - empty last_modified record', done => {
+  test('update - empty last_modified record', function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks;
     var i = 1;
     testCollectionData.unshift({
@@ -785,14 +795,13 @@ suite('sync/adapters/bookmarks >', () => {
           null);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       done(reason || new Error('Rejected by undefined reason.'));
     });
   });
 
-  test('update - unknown type record', done => {
+  test('update - unknown type record', function(done) {
     var bookmarksAdapter = DataAdapters.bookmarks;
     var i = 1;
     testCollectionData.unshift({
@@ -809,17 +818,17 @@ suite('sync/adapters/bookmarks >', () => {
         .then(result => {
       assert.equal(result, false);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
-          null);
+          1000);
       assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_LAST_REVISIONID],
           'latest-not-cleared');
-      assert.equal(updateBookmarksSpy.callCount, 0);
       return Promise.resolve();
     }).then(done, reason => {
       done(reason || new Error('Rejected by undefined reason.'));
     });
   });
 
-  test('BookmarksHelper - merge two records', done => {
+  test('BookmarksHelper - merge remote record into local record',
+      function(done) {
     var bookmark1 = {
       url: 'http://www.mozilla.org/en-US/',
       name: '',
@@ -841,6 +850,7 @@ suite('sync/adapters/bookmarks >', () => {
       url: 'http://www.mozilla.org/en-US/',
       name: 'Mozilla',
       type: 'url',
+      createdLocally: true,
       fxsyncRecords: {
         'XXXXX_ID_XXXXX': {}
       }
@@ -852,7 +862,8 @@ suite('sync/adapters/bookmarks >', () => {
     done();
   });
 
-  test('BookmarksHelper - merge two records with incorrect URL', done => {
+  test('BookmarksHelper - merge two records with incorrect URL',
+      function(done) {
     var bookmark1 = {
       url: 'dummy',
       name: '',
@@ -872,11 +883,13 @@ suite('sync/adapters/bookmarks >', () => {
     done();
   });
 
-  test('BookmarksHelper - merge two records with fxsyncRecords', done => {
+  test('BookmarksHelper - merge two records with fxsyncRecords',
+      function(done) {
     var bookmark1 = {
       url: 'http://www.mozilla.org/en-US/',
       name: '',
       type: 'url',
+      createdLocally: false,
       fxsyncRecords: {
         'XXXXX_ID_XXXXX_A': {
           id: 'XXXXX_ID_XXXXX_A'
@@ -901,6 +914,7 @@ suite('sync/adapters/bookmarks >', () => {
       url: 'http://www.mozilla.org/en-US/',
       name: 'Mozilla',
       type: 'url',
+      createdLocally: false,
       fxsyncRecords: {
         'XXXXX_ID_XXXXX_A': {
           id: 'XXXXX_ID_XXXXX_A'

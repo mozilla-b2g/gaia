@@ -61,6 +61,8 @@
 */
 
 var SyncEngine = (function() {
+  const HTTP_TIMEOUT_SECONDS = 180;
+
   var createFxSyncIdSchema = () => {
     return {
       generate: function() {
@@ -186,17 +188,42 @@ uld be a Function`);
     this._collections = {};
     this._controlCollections = {};
     this._fswc = new FxSyncWebCrypto();
+    this._engines = null;
     this._kinto = null;
     this._xClientState = null;
     this._haveUnsyncedConflicts = {};
     this._ready = false;
   };
 
+  function promiseWaterfall(self, tasks, executor) {
+    return tasks.reduce((reduced, current) => {
+      return reduced.then(() => {
+        return executor.apply(self, current);
+      });
+    }, Promise.resolve());
+  }
+
   SyncEngine.prototype = {
+    _reset: function(collectionName, userid) {
+      var collectionsToReset = ['meta', 'crypto'];
+      if (collectionName) {
+        collectionsToReset.push(collectionName);
+      }
+      return Promise.all(collectionsToReset.map(collectionName => {
+        var coll = this._getCollection(collectionName);
+        return coll.clear().then(() => {
+          if (this._adapters[collectionName]) {
+            return this._adapters[collectionName].reset({ userid });
+          }
+        });
+      }));
+    },
+
     _createKinto: function(kintoCredentials) {
       var kinto = new Kinto({
         bucket: kintoCredentials.xClientState,
         remote: kintoCredentials.URL,
+        timeout: HTTP_TIMEOUT_SECONDS * 1000,
         headers: {
           'Authorization': 'BrowserID ' + kintoCredentials.assertion
         }
@@ -241,48 +268,53 @@ uld be a Function`);
       }));
     },
 
-    _syncCollection: function(collectionName) {
+    _syncCollection: function(collectionName, collectionOptions) {
       var collection = this._getCollection(collectionName);
       // Let synchronization strategy default to 'manual', see
       // http://kintojs.readthedocs.org \
       //     /en/latest/api/#fetching-and-publishing-changes
 
-      return collection.sync().then(syncResults => {
-        if (syncResults.ok) {
-          return syncResults;
-        }
-        return Promise.reject(new SyncEngine.UnrecoverableError('SyncResults',
-            collectionName, syncResults));
+      var userid = collectionOptions && collectionOptions.userid;
+      return collection.sync({
+        fetchLimit: (collectionOptions && collectionOptions.limit) || undefined
       }).then(syncResults => {
+        if (syncResults && syncResults.errors && syncResults.errors.length) {
+          var error = new Error('Errors in SyncResults');
+          error.data = syncResults;
+          throw error;
+        }
         if (syncResults.conflicts.length) {
           return this._resolveConflicts(collectionName, syncResults.conflicts);
         }
       }).catch(err => {
-        if (err instanceof TypeError) {
-          // FIXME: document in which case Kinto.js throws a TypeError
-          throw new SyncEngine.UnrecoverableError(err);
-        } else if (err instanceof Error && typeof err.response === 'object') {
+        if (err instanceof Error && typeof err.response === 'object') {
           if (err.response.status === 401) {
-            throw new SyncEngine.AuthError(err);
+            throw new SyncEngine.AuthError(err.message);
           }
-          throw new SyncEngine.TryLaterError(err);
-        } else if (err.message === `HTTP 0; TypeError: NetworkError when attemp\
-ting to fetch resource.`) {
+          throw new SyncEngine.TryLaterError(err.message);
+        }
+        if (err.message === `HTTP 0; TypeError: NetworkError when attempting to\
+ fetch resource.`) {
           throw new SyncEngine.TryLaterError('Syncto server unreachable',
               this._kinto && this._kinto._options &&
               this._kinto._options.remote);
         }
-        throw new SyncEngine.UnrecoverableError(err);
+        return this._reset(collectionName, userid).then(
+          () => {
+          throw new SyncEngine.UnrecoverableError(err.message);
+        });
       });
     },
 
-    _storageVersionOK: function(metaGlobal) {
+    _checkMetaGlobal: function(metaGlobal) {
       var payloadObj;
       try {
         payloadObj = JSON.parse(metaGlobal.data.payload);
       } catch(e) {
         return false;
       }
+      this._engines = payloadObj.engines;
+
       return (typeof payloadObj === 'object' &&
           payloadObj.storageVersion === 5);
     },
@@ -295,7 +327,9 @@ ting to fetch resource.`) {
       }, err => {
         if (err === 'SyncKeys hmac could not be verified with current main ' +
             'key') {
-          throw new SyncEngine.UnrecoverableError(err);
+          this._reset().then(() => {
+            throw new SyncEngine.UnrecoverableError(err);
+          });
         }
         throw err;
       });
@@ -317,18 +351,22 @@ ting to fetch resource.`) {
       }).then(() => {
         return this._getItem('meta', 'global');
       }).then(metaGlobal => {
-        if (!this._storageVersionOK(metaGlobal)) {
-          return Promise.reject(new SyncEngine.UnrecoverableError(`Incompatible\
- storage version or storage version not recognized.`));
+        if (!this._checkMetaGlobal(metaGlobal)) {
+          throw new SyncEngine.UnrecoverableError(`Incompatible storage version\
+ or storage version not recognized.`);
         }
-        return this._getItem('crypto', 'keys', true /* syncIfNeeded */);
-      }).then((cryptoKeysRecord) => {
+      });
+    },
+
+    _getBulkKeyBundle: function() {
+      return this._getItem('crypto', 'keys', true /* syncIfNeeded */)
+          .then((cryptoKeysRecord) => {
         var cryptoKeys;
         try {
           cryptoKeys = JSON.parse(cryptoKeysRecord.data.payload);
         } catch (e) {
-          return Promise.reject(new SyncEngine.UnrecoverableError(`Could not pa\
-rse crypto/keys payload as JSON`));
+          throw new SyncEngine.UnrecoverableError(`Could not parse crypto/keys \
+payload as JSON`);
         }
         return cryptoKeys;
       }).then((cryptoKeys) => {
@@ -349,14 +387,21 @@ rse crypto/keys payload as JSON`));
     },
 
     _updateCollection: function(collectionName, collectionOptions) {
-      return this._syncCollection(collectionName).then(() => {
+      if (this._engines && !this._engines[collectionName]) {
+        console.warn(`Collection ${collectionName} not present on this FxSync a\
+ccount`);
+        return Promise.resolve();
+      }
+      return this._syncCollection(collectionName, collectionOptions)
+          .then(() => {
         return this._adapters[collectionName].update(
             this._collections[collectionName], collectionOptions);
       }).then(changed => {
         if (!changed && !this._haveUnsyncedConflicts[collectionName]) {
           return Promise.resolve();
         }
-        return this._syncCollection(collectionName).then(() => {
+        return this._syncCollection(collectionName, collectionOptions)
+            .then(() => {
           this._haveUnsyncedConflicts[collectionName] = false;
         });
       });
@@ -364,8 +409,9 @@ rse crypto/keys payload as JSON`));
 
     /**
       * syncNow - Syncs collections up and down between device and server.
-      * @param {object} collectionOptions The options per collection. Currently,
-      *                                   only readonly (defaults to true).
+      * @param {object} collectionOptions The options per collection. Can be:
+      *                                   {boolean} readonly (defaults to true)
+      *                                   {number} limit
       * @returns {Promise}
       */
     syncNow: function(collectionOptions) {
@@ -374,13 +420,19 @@ rse crypto/keys payload as JSON`));
             'collectionOptions should be an object'));
       }
       return this._ensureReady().then(() => {
-        var promises = [];
-        for (var collectionName in collectionOptions) {
-          collectionOptions[collectionName].userid = this._xClientState;
-          promises.push(this._updateCollection(collectionName,
-               collectionOptions[collectionName]));
+        if (Object.keys(collectionOptions).length === 0) {
+          // This can happen if the system app just wanted to check if an
+          // FxSync account exists for the credentials derived from kB.
+          return Promise.resolve();
         }
-        return Promise.all(promises);
+        return this._getBulkKeyBundle().then(() => {
+          var tasks = [];
+          for (var collectionName in collectionOptions) {
+            collectionOptions[collectionName].userid = this._xClientState;
+            tasks.push([ collectionName, collectionOptions[collectionName] ]);
+          }
+          return promiseWaterfall(this, tasks, this._updateCollection);
+        });
       });
     }
   };

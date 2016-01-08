@@ -3,10 +3,10 @@
 
 'use strict';
 
-/* global SynctoServerFixture, requireApp */
+/* global SynctoServerFixture */
 /* exported FxSyncWebCrypto */
 
-requireApp('sync/test/unit/fixtures/synctoserver.js');
+requireApp('sharedtest/test/unit/sync/fixtures/synctoserver.js');
 
 var FxSyncWebCrypto = function() {};
 FxSyncWebCrypto.prototype = {

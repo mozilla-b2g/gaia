@@ -5,6 +5,7 @@
 'use strict';
 
 /* global
+  DUMP,
   ERROR_SYNC_APP_SYNC_IN_PROGRESS,
   ERROR_SYNC_INVALID_REQUEST_OPTIONS,
   IACHandler,
@@ -21,17 +22,25 @@ var DataAdapters = {
   // To be filled by js/adapters/*.js
 };
 
+if (!window.DUMP) {
+  window.DUMP = () => {};
+}
+
+const DEBUG = (msg, args) => {
+  DUMP(`[Sync] ${msg}`, args);
+};
+
 const Bootstrap = (() => {
   var running = false;
 
   const loadMainScripts = () => {
     return LazyLoader.load([
-      'js/crypto/stringconversion.js',
-      'js/crypto/keyderivation.js',
-      'js/crypto/fxsyncwebcrypto.js',
+      'shared/js/sync/crypto/stringconversion.js',
+      'shared/js/sync/crypto/keyderivation.js',
+      'shared/js/sync/crypto/fxsyncwebcrypto.js',
 
-      'js/ext/kinto.min.js',
-      'js/sync-engine/syncengine.js'
+      'shared/js/sync/ext/kinto.min.js',
+      'shared/js/sync/engine.js'
     ]);
   };
 
@@ -58,13 +67,13 @@ const Bootstrap = (() => {
         (typeof request.keys.kB !== 'string') ||
         (typeof request.collections !== 'object')) {
       return loadErrorConstants().then(() => {
-        return Promise.reject(new Error(ERROR_SYNC_INVALID_REQUEST_OPTIONS));
+        throw new Error(ERROR_SYNC_INVALID_REQUEST_OPTIONS);
       });
     }
 
     if (running) {
       return loadErrorConstants().then(() => {
-        return Promise.reject(new Error(ERROR_SYNC_APP_SYNC_IN_PROGRESS));
+        throw new Error(ERROR_SYNC_APP_SYNC_IN_PROGRESS);
       });
     }
 
@@ -82,7 +91,6 @@ const Bootstrap = (() => {
         adapters: DataAdapters
       });
 
-      // Pending https://bugzilla.mozilla.org/show_bug.cgi?id=1209934
       return syncEngine.syncNow(request.collections);
     }).then(() => {
       running = false;
@@ -95,6 +103,7 @@ const Bootstrap = (() => {
   const sendPortMessage = message => {
     var port = IACHandler.getPort('gaia::sync::request', this);
     if (port) {
+      DEBUG('Port message', message);
       port.postMessage(message);
     } else {
       console.error('No gaia::sync::request port');
@@ -109,6 +118,9 @@ const Bootstrap = (() => {
     }
 
     const request = event.detail;
+
+    DEBUG('Sync request', request);
+
     switch (request.name) {
       case 'sync':
         handleSyncRequest(request).then(() => {
@@ -117,9 +129,10 @@ const Bootstrap = (() => {
           });
           window.close();
         }).catch(error => {
+          DEBUG('Sync request error', error.message || error.name || error);
           sendPortMessage({
             id: request.id,
-            error: error
+            error: { message: error.message }
           });
           window.close();
         });
