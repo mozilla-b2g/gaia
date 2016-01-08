@@ -85,6 +85,7 @@ marionette('Music views', function() {
     try {
       music.switchToAlbumsView();
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       var list = music.albumsListItemsData;
 
       var album = list[0].title;
@@ -102,6 +103,7 @@ marionette('Music views', function() {
     try {
       music.switchToArtistsView();
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       var list = music.artistsListItemsData;
 
       var artist = list[0].title;
@@ -119,6 +121,7 @@ marionette('Music views', function() {
     try {
       music.switchToSongsView();
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       var list = music.songsListItemsData;
 
       assert.equal(list[0].title, 'Abort');
