@@ -65,6 +65,20 @@ marionette('launch', function() {
         done();
       });
     });
+    
+    test('should be able to switchToApp from app to app', function(done) {
+      // already called switchToApp once by now, call it again.
+      switchToApp(client.mozApps, origin);
+
+      function remote() {
+        return window.wrappedJSObject.document.hasFocus();
+      }
+
+      client.executeScript(remote, function(err, result) {
+        assert.ok(result);
+        done();
+      });
+    });
   });
 
   suite('entrypoint', function() {
