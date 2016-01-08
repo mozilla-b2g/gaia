@@ -58,15 +58,13 @@ VideoPlayer.prototype = {
   },
 
   invokeControls: function() {
-    this.client.waitFor(function() {
-      return !this.visibleControls();
-    }.bind(this));
+    if (!this.visibleControls()) {
+      this.rootElement.tap();
 
-    this.rootElement.tap();
-
-    this.client.waitFor(function() {
-      return this.visibleControls();
-    }.bind(this));
+      this.client.waitFor(function() {
+        return this.visibleControls();
+      }.bind(this));
+    }
   },
 
   _tapVideoControl: function(name) {
