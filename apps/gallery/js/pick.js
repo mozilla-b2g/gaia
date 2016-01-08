@@ -220,12 +220,14 @@ var Pick = (function() {
     // then we use null as the type. This value is passed to
     // cropResizeRotate() and will leave the image unchanged if possible
     // or will use jpeg if changes are needed.
+    // EXIF should be preserved.
+
     if (Array.isArray(pickType)) {
       if (pickType.indexOf(pickedFileInfo.type) !== -1) {
         pickType = pickedFileInfo.type;
       }
       else if (pickType.indexOf('image/jpeg') !== -1) {
-        pickType = 'image/jpeg';
+        pickType = 'image/jpeg+exif';
       }
       else if (pickType.indexOf('image/png') !== -1) {
         pickType = 'image/png';
@@ -238,8 +240,13 @@ var Pick = (function() {
       pickType = null;   // Return unchanged or convert to JPEG
     }
 
-    if (pickType && pickType !== 'image/jpeg' && pickType !== 'image/png') {
+    if (pickType && pickType !== 'image/jpeg' &&
+        pickType !== 'image/jpeg+exif' && pickType !== 'image/png') {
       pickType = null;   // Return unchanged or convert to JPEG
+    }
+    else if (!pickType && pickedFileInfo.type == 'image/jpeg') {
+      // if we picked a JPEG image, then explicitly force EXIF copy.
+      pickType = 'image/jpeg+exif';
     }
 
     // In order to determine the cropRegion and outputSize arguments to
