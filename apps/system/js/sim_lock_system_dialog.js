@@ -477,7 +477,7 @@
 
   SimLockSystemDialog.prototype.close = function() {
     this._dispatchEvent('close');
-    this.element.close();
+    this.element && this.element.close();
     this._visible = false;
   };
 
