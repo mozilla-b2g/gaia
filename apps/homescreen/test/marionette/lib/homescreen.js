@@ -85,8 +85,16 @@ Homescreen.prototype = {
    * Waits for the homescreen to launch and switches to the frame.
    */
   waitForLaunch: function() {
-    this.client.helper.waitForElement('body');
-    this.client.apps.switchToApp(Homescreen.URL);
+    var client = this.client;
+    client.helper.waitForElement('body');
+    client.apps.switchToApp(Homescreen.URL);
+
+    // Wait for startup to complete
+    client.waitFor(function() {
+      return client.executeScript(function() {
+        return window.wrappedJSObject.appWindow.apps.startupMetadata === null;
+      });
+    });
   },
 
   /**
