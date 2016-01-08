@@ -71,6 +71,7 @@ HTMLOptimizer.prototype.process = function() {
         (jsAggregationBlacklist[appName]
           .indexOf(fileName) === -1) &&
          jsAggregationBlacklist[appName] !== '*')) {
+    this.minifyAllJs();
     this.aggregateJsResources();
   }
 
@@ -322,33 +323,10 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   var doc = this.document;
   var scripts = Array.prototype.slice.call(
     doc.head.querySelectorAll('script[src]'));
-  scripts = scripts.filter(function(script, idx) {
-    if ('skipOptimize' in script.dataset || script.hasAttribute('async')) {
+
+  scripts = scripts.filter(function(script) {
+    if (script.hasAttribute('async')) {
       return false;
-    }
-
-    var html = script.outerHTML;
-    // we inject the whole outerHTML into the comment for debugging so
-    // if there is something valuable in the html that effects the script
-    // that broke the app it should be fairly easy to tell what happened.
-    var content = '; /* "' + html + ' "*/\n\n';
-    // fetch the whole file append it to the comment.
-    var scriptFile = this.getFileByRelativePath(script.src);
-    content += scriptFile.content;
-
-    // We store the unminified content for comparing.
-    var originalContent = content;
-    try {
-      content = jsmin(content).code;
-    } catch (e) {
-      utils.log('Failed to minify content: ' + e);
-    }
-
-    // When BUILD_DEBUG is true, we'll do AST comparing in build time.
-    if (this.config.BUILD_DEBUG &&
-        !utils.jsComparator(originalContent, content)) {
-      throw 'minified ' + script.src + ' has different AST with' +
-            ' unminified script.';
     }
 
     var scriptConfig = normal;
@@ -356,9 +334,8 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
       scriptConfig = deferred;
     }
 
-    if (scriptFile.file && scriptFile.file.exists()) {
-      utils.writeContent(scriptFile.file, content);
-    }
+    var scriptFile = this.getFileByRelativePath(script.src);
+    var content = scriptFile.content;
 
     scriptConfig.content += content;
     scriptConfig.lastNode = script;
@@ -380,6 +357,44 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   scripts.forEach(function commentScript(script) {
     script.outerHTML = '<!-- ' + script.outerHTML + ' -->';
   });
+};
+
+HTMLOptimizer.prototype.minifyAllJs = function() {
+
+  var buildDir = utils.getFile(this.webapp.buildDirectoryFilePath);
+  utils.ls(buildDir, true).forEach(function(file) {
+    try {
+      if (!(file && file.exists() && file.isFile())) {
+        return;
+      }
+    } catch (err) {
+      utils.log('webapp-zip', 'minifyAllJs error with ' + file.path + '\n');
+      throw(err);
+    }
+
+    if (!/\.js$/.test(file.path)) {
+      return;
+    }
+
+    var content = utils.getFileContent(file);
+
+    // We store the unminified content for comparing.
+    var originalContent = content;
+    try {
+      content = jsmin(content).code;
+    } catch (e) {
+      utils.log('Failed to minify content: ' + e);
+    }
+
+    // When BUILD_DEBUG is true, we'll do AST comparing in build time.
+    if (this.config.BUILD_DEBUG &&
+        !utils.jsComparator(originalContent, content)) {
+      throw 'minified ' + file.path + ' has different AST with' +
+            ' unminified script.';
+    }
+
+    utils.writeContent(file, content);
+  }, this);
 };
 
 /**
