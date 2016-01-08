@@ -265,7 +265,12 @@
       } else if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
         if (index === 0) {
           lineText(nextLine(), 'emergencyCallsOnly');
+
+          if(SIMSlotManager.getSlots()[index].isLocked()){
+            lineText(nextLine(), 'emergencyCallsOnly-pinRequired');
+          }
         }
+
         simIDLine.hidden = true;
         return;
       }
@@ -333,4 +338,5 @@
 
   LockScreenConnInfoManager.prototype = LockScreenConnInfoManagerPrototype;
   exports.LockScreenConnInfoManager = LockScreenConnInfoManager;
+
 })(window);

@@ -322,6 +322,20 @@ suite('system/LockScreenConnInfoManager >', function() {
           'emergencyCallsOnly-unknownSIMState');
       });
 
+      test('pinRequired', function() {
+        mockMobileConnection.voice = {
+          connected: false,
+          emergencyCallsOnly: true,
+          isLocked: true
+        };
+        iccObj.cardState = 'pinRequired';
+
+        subject.updateConnStates();
+        assert.equal(domConnstateL1.dataset.l10nId, 'emergencyCallsOnly');
+        assert.equal(domConnstateL2.dataset.l10nId,
+          'emergencyCallsOnly-pinRequired');
+      });
+
       test('other card state', function() {
         mockMobileConnection.voice = {
           connected: false,
