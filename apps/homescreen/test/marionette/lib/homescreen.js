@@ -17,6 +17,7 @@ Homescreen.Selectors = {
   pages: '#pages',
   icon: '#apps gaia-app-icon',
   card: '#pages gaia-pin-card',
+  bottomBar: '#bottombar',
   remove: '#remove',
   rename: '#rename',
   done: '#done',
@@ -94,6 +95,18 @@ Homescreen.prototype = {
       return client.executeScript(function() {
         return window.wrappedJSObject.appWindow.apps.startupMetadata === null;
       });
+    });
+  },
+
+  /**
+   * Waits for the edit bar to fully appear.
+   */
+  waitForEditBar: function() {
+    var body = this.client.findElement('body');
+    var bar = this.client.helper.waitForElement(Homescreen.Selectors.bottomBar);
+    this.client.waitFor(function() {
+      var barRect = bar.rect();
+      return barRect.y === (body.rect().height - barRect.height);
     });
   },
 
