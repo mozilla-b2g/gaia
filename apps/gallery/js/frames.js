@@ -234,8 +234,10 @@ function shareSingleItem() {
     button.classList.add('disabled');
     Spinner.show();
     var maxsize = CONFIG_MAX_PICK_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
+    var outputType = (currentFrame.imageblob.type == 'image/jpeg') ?
+        'image/jpeg+exif' : null;
     cropResizeRotate(currentFrame.imageblob, null,
-                     maxsize || null, null, metadata,
+                     maxsize || null, outputType, metadata,
                      function(error, rotatedBlob) {
                        Spinner.hide();
                        button.classList.remove('disabled');
