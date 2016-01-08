@@ -82,11 +82,11 @@ const FxSyncWebCrypto = Object.freeze((() => {
           return Object.freeze(bulkKeyBundle);
         });
       } catch(e) {
-        return Promise.reject('Deciphered crypto keys, but not JSON');
+        throw new Error('Deciphered crypto keys, but not JSON');
       }
     }, () => {
-      return Promise.reject(
-          'Could not decrypt crypto keys using AES part of stretched kB key');
+      throw new Error(`Could not decrypt crypto keys using AES part of stretche\
+d kB key`);
     });
   };
 
@@ -129,8 +129,8 @@ const FxSyncWebCrypto = Object.freeze((() => {
                                 cryptoKeys.ciphertext,
                                 mainSyncKey.aes);
         }
-        return Promise.reject(`SyncKeys hmac could not be verified with current\
- main key`);
+        throw new Error(new Error(`SyncKeys hmac could not be verified with cur\
+rent main key`));
       });
     });
   };
@@ -154,7 +154,7 @@ const FxSyncWebCrypto = Object.freeze((() => {
     try {
       kBByteArray = StringConversion.hexStringToUint8Array(kB);
     } catch (e) {
-      return Promise.reject('Could not parse kB as a hex string');
+      return Promise.reject(new Error('Could not parse kB as a hex string'));
     }
 
     try {
@@ -183,10 +183,10 @@ const FxSyncWebCrypto = Object.freeze((() => {
    */
   const decrypt = function(payloadStrings, collectionName) {
     if (typeof payloadStrings !== 'object') {
-      throw new Error('PayloadStrings is not an object');
+      return Promise.reject(new Error('PayloadStrings is not an object'));
     }
     if (typeof collectionName !== 'string') {
-      throw new Error('collectionName is not a string');
+      return Promise.reject(new Error('collectionName is not a string'));
     }
 
     var keyBundle;
@@ -194,8 +194,8 @@ const FxSyncWebCrypto = Object.freeze((() => {
     try {
       keyBundle = this.bulkKeyBundle.defaultAsKeyBundle;
     } catch(e) {
-      throw new Error(`No key bundle found for ${collectionName} - did you call\
- setKeys?`);
+      return Promise.reject(new Error(`No key bundle found for \
+${collectionName} - did you call setKeys?`));
     }
 
     const payload = importFromStrings(payloadStrings);
@@ -219,12 +219,12 @@ ${collectionName}`);
         try {
           recordObj = JSON.parse(recordJSON);
         } catch(e) {
-          return Promise.reject('Deciphered record, but not JSON');
+          throw new Error('Deciphered record, but not JSON');
         }
         return recordObj;
       }, () => {
-        return Promise.reject(`Could not decrypt record using AES part of key b\
-undle for collection ${collectionName}`);
+        throw new Error(`Could not decrypt record using AES part of key bundle \
+for collection ${collectionName}`);
       });
     });
   };
@@ -262,10 +262,10 @@ undle for collection ${collectionName}`);
    */
   const encrypt = function(record, collectionName) {
     if (typeof record !== 'object') {
-      return Promise.reject('Record should be an object');
+      return Promise.reject(new Error('Record should be an object'));
     }
     if (typeof collectionName !== 'string') {
-      return Promise.reject('collectionName is not a string');
+      return Promise.reject(new Error('collectionName is not a string'));
     }
 
     var cleartextStr, keyBundle;
@@ -273,14 +273,14 @@ undle for collection ${collectionName}`);
     try {
       cleartextStr = JSON.stringify(record);
     } catch(e) {
-      return Promise.reject('Record cannot be JSON-stringified');
+      return Promise.reject(new Error('Record cannot be JSON-stringified'));
     }
     const cleartext = StringConversion.stringToUtf8Uint8Array(cleartextStr);
     try {
       keyBundle = this.bulkKeyBundle.defaultAsKeyBundle;
     } catch(e) {
-      return Promise.reject('No key bundle found for ' + collectionName +
-          ' - did you call setKeys?');
+      return Promise.reject(new Error(`No key bundle found for \
+${collectionName} - did you call setKeys?`));
     }
     return encryptAndSign(keyBundle, cleartext);
   };

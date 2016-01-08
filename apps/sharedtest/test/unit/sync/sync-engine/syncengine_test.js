@@ -5,31 +5,23 @@
 
 /* global
   AdapterMock,
-  expect,
   FxSyncWebCrypto,
   Kinto,
-  requireApp,
-  setup,
-  suite,
   SyncEngine,
-  SynctoServerFixture,
-  test
+  SynctoServerFixture
 */
 
-requireApp('sync/test/unit/sync-engine/adapter-mock.js');
-requireApp('sync/test/unit/fixtures/synctoserver.js');
-requireApp('sync/test/unit/sync-engine/fxsyncwebcrypto-mock.js');
-requireApp('sync/test/unit/sync-engine/kinto-mock.js');
-requireApp('sync/js/sync-engine/syncengine.js');
+requireApp('sharedtest/test/unit/sync/sync-engine/adapter-mock.js');
+requireApp('sharedtest/test/unit/sync/fixtures/synctoserver.js');
+requireApp('sharedtest/test/unit/sync/sync-engine/fxsyncwebcrypto-mock.js');
+requireApp('sharedtest/test/unit/sync/sync-engine/kinto-mock.js');
+require('/shared/js/sync/engine.js');
 
 var cloneObject = (obj) => {
   return JSON.parse(JSON.stringify(obj));
 };
 
 suite('SyncEngine', function() {
-  // NB: this.timeout only works when passing ES5-style functions to all suites
-  // and tests, see https://github.com/mochajs/mochajs.github.io/pull/14
-  this.timeout(500);
   suite('constructor', function() {
     test('constructs a SyncEngine object', function(done) {
       const options = SynctoServerFixture.syncEngineOptions;
@@ -122,14 +114,23 @@ ld be a Function`);
 
     test('resolves its promise', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
-      expect(se.syncNow({ history: {} })).to.eventually.deep.
-          equal([ undefined ]).and.notify(done);
+      expect(se.syncNow({ history: {} })).to.eventually.
+          equal(undefined).and.notify(done);
     });
 
     test('initializes the Kinto object', function(done) {
       var se = new SyncEngine(SynctoServerFixture.syncEngineOptions);
       se.syncNow({ history: {} }).then(function() {
         expect(se._kinto).to.be.instanceOf(Kinto);
+        expect(se._kinto.options).to.deep.equal({
+          bucket: SynctoServerFixture.xClientState,
+          remote: SynctoServerFixture.syncEngineOptions.URL,
+          timeout: 180 * 1000,
+          headers: {
+            'Authorization': 'BrowserID ' +
+                             SynctoServerFixture.syncEngineOptions.assertion
+          }
+        });
         done();
       });
     });
@@ -325,7 +326,8 @@ ould be an object`).and.notify(done);
           } else if (field === 'URL') {
             expect(err).to.be.instanceOf(SyncEngine.TryLaterError);
           } else {
-            expect(err).to.be.instanceOf(SyncEngine.UnrecoverableError);
+            expect(err).to.equal(`SyncKeys hmac could not be verified with curr\
+ent main key`);
           }
           done();
         });
@@ -381,6 +383,11 @@ ould be an object`).and.notify(done);
             expect(err.message).to.equal('try later');
           } else {
             expect(err.message).to.equal('unrecoverable');
+          }
+          if (['401', '404', '500', '503'].indexOf(problem) === -1) {
+            expect(Kinto.clearCalled).to.equal(true);
+          } else {
+            expect(Kinto.clearCalled).to.equal(false);
           }
           done();
         });
