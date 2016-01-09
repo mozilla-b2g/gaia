@@ -1,10 +1,7 @@
 'use strict';
 
-/* global require, exports */
-
-var utils = require('utils');
-var fsPath = require('sdk/fs/path');
-var config = require('config/build-config.json');
+var utils = require('./utils');
+var config = require('./config/build-config.json');
 
 function getTimestamp(dirPaths) {
   let timestamp = {};
@@ -15,7 +12,7 @@ function getTimestamp(dirPaths) {
     if (dir.exists() && dir.isDirectory()) {
       utils.ls(dir, true).filter(isFileWatched).forEach(function(file) {
         try {
-          let relativePath = fsPath.relative(dir.path, file.path);
+          let relativePath = utils.relativePath(dir.path, file.path);
           timestamp[dirPath][relativePath] = file.lastModifiedTime;
         } catch(e) {
           timestamp = Date.now();

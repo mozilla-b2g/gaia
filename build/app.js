@@ -3,7 +3,6 @@
 /* global require, exports, quit */
 
 var utils = require('utils');
-var rebuild = require('rebuild');
 var nodeHelper = new utils.NodeHelper();
 
 function getAppRegExp(options) {
@@ -117,7 +116,7 @@ exports.execute = function(options) {
   utils.ensureFolderExists(stageDir);
 
   if (options.BUILD_APP_NAME === '*') {
-    options.rebuildAppDirs = rebuild.execute(options);
+    options.rebuildAppDirs = nodeHelper.require('./rebuild', options);
   } else {
     options.rebuildAppDirs = options.GAIA_APPDIRS.split(' ')
       .filter(function(appDir) {

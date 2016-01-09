@@ -14,6 +14,7 @@ Cu.import('resource://gre/modules/reflect.jsm');
 
 var utils = require('./utils.js');
 var subprocess = require('sdk/system/child_process/subprocess');
+var fsPath = require('sdk/fs/path');
 var downloadMgr = require('./download-manager').getDownloadManager();
 
 const UUID_FILENAME = 'uuid.json';
@@ -987,7 +988,6 @@ function Commander(cmd) {
    *       support). We'll file another bug for migration things.
    */
   this.runWithSubprocess = function(args, options) {
-    log('cmd', _file.path + ' ' + args.join(' '));
     var p = subprocess.call({
       command: _file,
       arguments: args,
@@ -1269,8 +1269,33 @@ function NodeHelper() {
     var node = new Commander('node');
     node.initPath(getEnvPath());
     this.require = function(path, options) {
-      node.run(['--harmony', '-e', 'require("./build/' + path + '").execute(' +
-        JSON.stringify(options) + ')']);
+      var result = '';
+      var done = false;
+      node.runWithSubprocess(['--harmony', '-e',
+        'require("./build/' + path + '").execute(' +
+        JSON.stringify(options) + ')'], {
+          stdout: function(data) {
+            result += data;
+            dump(data);
+          },
+          stderr: function(err) {
+            dump(err);
+          },
+          done: function() {
+            done = true;
+          }
+        });
+
+      processEvents(function() {
+        return {
+          wait: !done
+        };
+      });
+
+      // XXX: Workaround rebuild.js to nodejs migration.
+      // We'll remove this once migration is complete.
+      var rebuildDir = /\[rebuild\] rebuildAppDirs: (\[.+\])/.exec(result);
+      return rebuildDir ? JSON.parse(rebuildDir[1]) : undefined;
     };
   } else {
     this.require = function(path, options) {
@@ -1280,9 +1305,7 @@ function NodeHelper() {
 }
 
 function relativePath(from, to) {
-  var fromFile = utils.getFile(from);
-  var toFile = utils.getFile(to);
-  return toFile.getRelativeDescriptor(fromFile);
+  return fsPath.relative(from, to);
 }
 
 function normalizePath(path) {
