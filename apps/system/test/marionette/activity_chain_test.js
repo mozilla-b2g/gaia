@@ -4,10 +4,12 @@
 (function() {
   var assert = require('assert');
   var ActivityCallerApp = require('./lib/activitycallerapp');
-
+  var Marionette = require('marionette-client');
   var INLINE_CALLEE_APP = 'activitycallee.gaiamobile.org';
   var WINDOW_CALLEE_APP = 'activitycalleewindow.gaiamobile.org';
   marionette('activity chain test', function() {
+    console.log('Agora mesmo chamando o cliente no teste');
+
     var client = marionette.client({
       profile: {
         apps: {
@@ -18,7 +20,8 @@
           'activitycalleewindow.gaiamobile.org':
             __dirname + '/../apps/activitycalleewindow'
         }
-      }
+      },
+      driver: Marionette.Drivers.TcpSync
     });
 
     // Bug 1035048: JSMarionette should be able to know displaying app.

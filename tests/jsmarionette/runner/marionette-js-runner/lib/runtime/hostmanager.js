@@ -103,11 +103,19 @@ HostManager.prototype = {
             connectionTimeout: (60 * 1000) * 5 // 5 minutes
           });
 
+
+      //    return driverInstance.connect.bind(driverInstance)();
+/*
+          console.log("Chamando o connect agora!", Promise.denodeify(
+            driverInstance.connect.bind(driverInstance)
+          )); */
           return Promise.denodeify(
             driverInstance.connect.bind(driverInstance)
           )();
         })
         .then(function() {
+          console.log("No then do connect no hostmanager!");
+
           client.resetWithDriver(driverInstance);
 
           for (var name in pluginReferences) {
@@ -131,6 +139,7 @@ HostManager.prototype = {
           }
 
           return new Promise(function(accept) {
+            console.log("Promise no then do host manager");
             client.startSession(accept, desiredCapabilities);
           });
         });

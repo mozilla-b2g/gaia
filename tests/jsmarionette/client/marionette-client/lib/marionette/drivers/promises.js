@@ -8,10 +8,26 @@ function Promises(options) {
   if (!options) {
     options = {};
   }
+  Tcp.call(this, options);
 
   this.tcp = new Tcp(options);
   this.tcp._handshaking = false;
   this.tcp._driver = this;
+
+  this.marionetteProtocol = function(){
+    console.log('pegando marionetteProtocol aqui!');
+    return this.tcp.marionetteProtocol;
+  }
+
+  this.applicationType = function(){
+    console.log('pegando applicationType aqui!');
+    return this.tcp.applicationType;
+  }
+
+  this.traits = function(){
+    console.log('pegando traits aqui!');
+    return this.tcp.traits;
+  }
 
   this.tcp.cbhandshake = function (data){
     // if we don't set the marionetteProtocol on the driver,
@@ -23,36 +39,57 @@ function Promises(options) {
 
   // receiving command from the server
   this.tcp._onClientCommand = function(data) {
+    var _response;
 
     if (this._handshaking){
       this.cbhandshake(data);
       this._handshaking = false;
+      _response = data;
+      console.log("Handshaking SIM");
+    } else {
+      //_response = Response.fromMsg(data);
+      _response = data;
+      console.log("Handshaking NAO");
     }
+    console.log("_handshaking e adding response ta passando aqui: data", data);
 
-    var _response = new Response(0, data);
+    console.log("_handshaking e adding response ta passando aqui: response", _response);
     this._onDeviceResponse({
       id: this.connectionId,
-      response: _response.toMsg()
+      response: _response
     });
   };
 }
 
+
+Promises.prototype = Object.create(Tcp.prototype);
+
 Promises.prototype.connect = function() {
+  console.log("NO CONNECT");
+
   var tcp = this.tcp;
   this.tcp._handshaking = true;
-
+/*
+  var e = new Error('dummy');
+  var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '') .replace(/^\s+at\s+/gm, '') .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@') .split('\n');
+  console.log(stack);
+*/
   return new Promise(function(resolve, reject) {
     tcp.connect(function(err) {
+      console.log('callback do connect!!! err:', err);
       err ? reject(err) : resolve();
     });
   });
 };
 
 Promises.prototype.send = function(obj) {
+
   var tcp = this.tcp;
 
   return new Promise(function(resolve, reject) {
     tcp.send(obj, function(res,err) {
+      console.log("NO SEND:", res);
+
       err ? reject(err) : resolve(res);
     });
 

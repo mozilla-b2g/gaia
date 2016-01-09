@@ -72,7 +72,8 @@ suite('marionette/drivers/promises', function() {
             _promisesend.then(
               // fulfill of send promise
               function onFulfill(res) {
-                if ( JSON.stringify(res[3]) === JSON.stringify(sentobj) ){
+                console.log('fulfill aqui', res);
+                if ( JSON.stringify(res) === JSON.stringify(sentobj) ){
                   done()
                 }
               },

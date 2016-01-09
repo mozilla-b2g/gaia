@@ -115,10 +115,15 @@
    * @param {Object} options options for driver.
    */
   function Client(driver, options) {
+    console.log('no consructor do cliente!!', driver, options);
+
+    var e = new Error('dummy');
+    var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '') .replace(/^\s+at\s+/gm, '') .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@') .split('\n');
+    console.log(stack);
+
     // when the driver is lazily added skip
     if (!driver && options && options.lazy)
       return;
-
     this.resetWithDriver(driver, options);
   }
 
@@ -265,10 +270,13 @@
      * @param {Object} options options for driver.
      */
     resetWithDriver: function(driver, options) {
+
       if (typeof(options) === 'undefined') {
         options = {};
       }
       this.driver = driver;
+      console.log('Comecando resetWitDriver', this.driver);
+
       this.defaultCallback =
         options.defaultCallback || driver.defaultCallback || function() {};
 
@@ -294,6 +302,7 @@
 
       // assume protocol level from driver, if set
       this.protocol = this.driver.marionetteProtocol || this.protocol;
+      console.log('Finished resetWitDriver', this.driver.marionetteProtocol, options);
     },
 
     /**
@@ -489,7 +498,25 @@
 
       var driverSent;
       try {
+        // here is the returned promise
         driverSent = this.driver.send(data, cb);
+
+        console.log("DriverSent is a Promise?", driverSent instanceof Promise);
+
+        if (driverSent instanceof Promise){
+          driverSent.then(
+            function onFulfill(res){
+              //console.log('DriverSend no FulFill. Calling:', cb);
+              console.log('DriverSend no FulFill. Antes de transformar:', res);
+              //res = new Response.fromMsg(res);
+              console.log('DriverSend no FulFill. DEPOIS de transformar:', res);
+              cb(res);
+            },
+            function onReject(aRejectReason) {
+            }
+          );
+        }
+
       } catch (e) {
         // !!! HACK HACK HACK !!!
         // single retry when not connected. this should never happen, but
@@ -551,6 +578,8 @@
     _sendCommand: function(body, cb, key) {
       try {
         return this.send(body, function(data) {
+          console.log("Resultado no sendCommand:", data);
+
           var res, err;
 
           if ('error' in data) {
@@ -568,7 +597,6 @@
           if (res) {
             res = this._unmarshalWebElement(res);
           }
-
           return this._handleCallback(cb, err, res);
         }.bind(this));
       } catch (e) {
@@ -742,6 +770,7 @@
         err = _err;
         result = _result;
       };
+
       var wait = function(ms) {
         setTimeout(marionetteScriptFinished, ms);
       };
@@ -800,6 +829,8 @@
      * @param {Object} desired capabilities
      */
     startSession: function startSession(callback, desiredCapabilities) {
+      console.log("1 no startSession comeco");
+
       callback = callback || this.defaultCallback;
       desiredCapabilities = desiredCapabilities || {};
 
@@ -810,27 +841,44 @@
           }
           this.runHook('startSession', callback);
         };
+        console.log("2 no startSession comeco");
 
         return this._getActorId(function() {
           // actor will not be set if we send the command then
           this._newSession(runHook, desiredCapabilities);
         }.bind(this));
       } else {
+        console.log("3 no startSession comeco");
+
         var newSession = function(err, res) {
+
           if (err) {
             callback(err);
           } else {
+
+            console.log("BINGO!!!! - callback de newSession no startSession. res:", res);
+
+            console.log("BINGO!!!! - callback de newSession no startSession. res.sessionId:", res.sessionId);
+
+            console.log("BINGO!!!! - callback de newSession no startSession. res:", res.capabilities);
+
             this.sessionId = res.sessionId;
             this.capabilities = res.capabilities;
             this.runHook('startSession', function() { callback(err, res); });
           }
         }.bind(this);
 
+        console.log("4 no startSession comeco");
+
+
         var body = {
           name: 'newSession',
           parameters: {capabilities: desiredCapabilities},
         };
+
+        console.log("5 no startSession", body, newSession);
         return this._sendCommand(body, newSession);
+
       }
     },
 

@@ -50,6 +50,8 @@ function Tcp(options) {
    * @type Number
    */
   this.port = options.port || 2828;
+
+  console.log("em tcp.js:", this.port);
 }
 
 Tcp.prototype = Object.create(Abstract.prototype);
