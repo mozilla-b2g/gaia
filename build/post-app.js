@@ -12,6 +12,10 @@ exports.execute = function(options, webapp) {
 
   nodeHelper.require('multilocale', options);
 
+  if (options.HOSTED !== '0') {
+    require('make-offline').execute(options);
+  }
+
   nodeHelper.require('copy-build-stage-data', options);
 
   // If we need to transform code for Raptor tests
