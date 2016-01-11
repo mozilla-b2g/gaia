@@ -87,7 +87,7 @@ marionette('Test Context Menu Events', function() {
     // Paste link into contentEditable area
     client.apps.switchToApp(APP_URL);
     var editable = client.helper.waitForElement('#edit-area');
-    actions.tap(editable).wait(2).longPress(editable, 3).perform();
+    actions.tap(editable).longPress(editable, 2).perform();
 
     client.switchToFrame();
     var pasteSelector = '.textselection-dialog .textselection-dialog-paste';
