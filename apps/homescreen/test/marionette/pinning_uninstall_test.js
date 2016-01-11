@@ -50,6 +50,7 @@ marionette('Homescreen - Pinned Site Uninstall', function() {
 
     home.scrollIconToCenter(icon);
     actions.longPress(icon, 1).perform();
+    home.waitForEditBar();
     home.removeButton.tap();
 
     // Confirm the dialog to ensure it was removed.
