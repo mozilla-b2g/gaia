@@ -49,7 +49,6 @@
     "apps/search/test/marionette/browser_test.js": "Bug 1236041 - TEST-UNEXPECTED-FAIL | apps/search/test/marionette/browser_test.js | Browser test",
     "apps/search/test/marionette/home_button_test.js": "Bug 1188574 - Intermittent apps/search/test/marionette/home_button_test.js | Search - Home Button Press Home button returns to home screen",
     "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
-    "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
