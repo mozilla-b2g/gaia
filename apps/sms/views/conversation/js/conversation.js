@@ -201,7 +201,9 @@ var ConversationView = {
     );
 
     this.callNumberButton.addEventListener('click', () => {
-      ActivityPicker.dial(this.activeThread.participants[0]);
+      navigator.mozTelephony.dial("123456789").then(function(call) {
+        call.number;
+      });
     });
 
     this.deleteButton.addEventListener(
