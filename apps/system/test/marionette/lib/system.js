@@ -505,6 +505,7 @@ System.prototype = {
   },
 
   waitForKeyboard: function() {
+    this.client.switchToFrame();
     this.client.helper.waitForElement(System.Selector.activeKeyboard);
   },
 
