@@ -7,6 +7,7 @@ var fork = require('child_process').fork;
 function post(client, url, json) {
   // must run in chrome so we can do cross domain xhr
   client = client.scope({ context: 'chrome' });
+  console.log('post: Attempting to post to url: ' + url);
   return client.executeAsyncScript(function(url, json) {
     window.fetch(url, {
       method: 'POST',
@@ -16,6 +17,8 @@ function post(client, url, json) {
       body: json
     }).then((response) => {
       marionetteScriptFinished(response);
+    }).catch((ex) => {
+      console.log('executeAsyncScript for window.fetch raised exepction:', ex);
     });
   }, [url, JSON.stringify(json)]);
 }

@@ -35,13 +35,19 @@ marionette('First Time Use >', function() {
 
     function createServerSetup(responseFilename, appNames) {
       return function(done) {
-        console.log('setup: responseFilename: ', responseFilename);
+        console.log('server setup: responseFilename: ',
+                    responseFilename);
         lateCustom.manifestResponseFilename = responseFilename;
         lateCustom.startServers(appNames, (err) => {
           if (!err) {
             var apiServer = lateCustom.server.api;
+            console.log('server setup: updating latecustomization.url ' +
+                        'setting value:',
+                        apiServer.url + '/' + responseFilename);
             client.settings.set('latecustomization.url',
                                 apiServer.url + '/' + responseFilename);
+            console.log('server setup: /updating ' +
+                        'latecustomization.url');
           }
           done(err);
         });
