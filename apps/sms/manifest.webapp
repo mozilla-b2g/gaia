@@ -10,7 +10,7 @@
   "permissions": {
     "telephony": {
       "description": "Required to control telephony functions"
-    }
+    },
     "themeable":{},
     "sms":{},
     "mobileconnection":{},
