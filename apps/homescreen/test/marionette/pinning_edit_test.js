@@ -47,6 +47,7 @@ marionette('Homescreen - Pinned Site Edit', function() {
 
     home.scrollIconToCenter(icon);
     actions.longPress(icon, 1).perform();
+    home.waitForEditBar();
     home.renameButton.tap();
 
     client.switchToFrame();
