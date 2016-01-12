@@ -38,6 +38,6 @@ class TestBatteryPowerSaveMode(GaiaTestCase):
         self.assertEqual(self.data_layer.get_setting('powersave.enabled'), False)
 
         battery_settings.tap_turn_on_auto()
-        battery_settings.select('never')
+        battery_settings.select('Never')
         self.assertEqual(self.data_layer.get_setting('powersave.threshold'), '-1')
         self.assertEqual(self.data_layer.get_setting('powersave.enabled'), False)

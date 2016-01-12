@@ -22,15 +22,15 @@ class StorageRegion(PageRegion):
 
     @property
     def music_size(self):
-        return self.root_element.find_element(*self._music_size_locator).text
+        return self.root_element.find_element(*self._music_size_locator).get_attribute('data-l10n-args')
 
     @property
     def movies_size(self):
-        return self.root_element.find_element(*self._movies_size_locator).text
+        return self.root_element.find_element(*self._movies_size_locator).get_attribute('data-l10n-args')
 
     @property
     def pictures_size(self):
-        return self.root_element.find_element(*self._pictures_size_locator).text
+        return self.root_element.find_element(*self._pictures_size_locator).get_attribute('data-l10n-args')
 
     @property
     def _sd_format_button(self):

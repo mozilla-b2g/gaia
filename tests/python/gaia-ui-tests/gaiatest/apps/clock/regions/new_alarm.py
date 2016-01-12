@@ -37,7 +37,8 @@ class NewAlarm(Clock):
 
     @property
     def alarm_repeat(self):
-        return self.marionette.find_element(*self._repeat_menu_locator).text
+        repeat = self.marionette.find_element(*self._repeat_menu_locator).get_attribute('data-l10n-id')
+        return repeat if repeat is not None else self.marionette.find_element(*self._repeat_menu_locator).text
 
     def select_repeat(self, value):
         self.marionette.find_element(*self._repeat_menu_locator).tap()
@@ -45,7 +46,7 @@ class NewAlarm(Clock):
 
     @property
     def alarm_snooze(self):
-        return self.marionette.find_element(*self._snooze_menu_locator).text
+        return self.marionette.find_element(*self._snooze_menu_locator).get_attribute('data-l10n-args')
 
     def select_snooze(self, value):
         self.marionette.find_element(*self._snooze_menu_locator).tap()
@@ -53,7 +54,7 @@ class NewAlarm(Clock):
 
     @property
     def alarm_sound(self):
-        return self.marionette.find_element(*self._sound_menu_locator).text
+        return self.marionette.find_element(*self._sound_menu_locator).get_attribute('data-l10n-id')
 
     def select_sound(self, value):
         self.marionette.find_element(*self._sound_menu_locator).tap()

@@ -19,7 +19,7 @@ class TestClockSetAlarm(GaiaTestCase):
 
         new_alarm = alarm.tap_new_alarm()
 
-        self.assertEquals(new_alarm.alarm_repeat, 'Never')
+        self.assertEquals(new_alarm.alarm_repeat, 'never')
 
         # Set label
         new_alarm.type_alarm_label("TestSetAlarmRepeat")
@@ -28,28 +28,28 @@ class TestClockSetAlarm(GaiaTestCase):
         for option in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
             new_alarm.select_repeat(option)
 
-        self.assertEqual('Weekdays', new_alarm.alarm_repeat)
+        self.assertEqual(new_alarm.alarm_repeat, 'weekdays')
 
         new_alarm.select_repeat('Sunday')
         # In this locale, Sunday is the first day of the week; it appears first.
-        self.assertEqual('Sun, Mon, Tue, Wed, Thu, Fri', new_alarm.alarm_repeat)
+        self.assertEqual(new_alarm.alarm_repeat, 'Sun, Mon, Tue, Wed, Thu, Fri')
 
         new_alarm.select_repeat('Sunday')
-        self.assertEqual('Weekdays', new_alarm.alarm_repeat)
+        self.assertEqual(new_alarm.alarm_repeat, 'weekdays')
 
         # Ensure sound has the default value
-        self.assertEquals(new_alarm.alarm_sound, 'Awake')
+        self.assertEquals(new_alarm.alarm_sound, 'ac_awake_opus')
 
         # Set sound
         new_alarm.select_sound('Digicloud')
-        self.assertEqual('Digicloud', new_alarm.alarm_sound)
+        self.assertEqual(new_alarm.alarm_sound, 'ac_digicloud_opus')
 
         # Ensure snooze has the default value
-        self.assertEquals(new_alarm.alarm_snooze, '10 minutes')
+        self.assertIn('10', new_alarm.alarm_snooze)
 
         # Set snooze
         new_alarm.select_snooze('15 minutes')
-        self.assertEqual('15 minutes', new_alarm.alarm_snooze)
+        self.assertIn('15', new_alarm.alarm_snooze)
 
         # Save the alarm
         alarm_view = new_alarm.tap_done()
@@ -59,9 +59,9 @@ class TestClockSetAlarm(GaiaTestCase):
         edit_alarm = alarm_view.alarm_items[0].tap()
 
         # Verify selected options
-        self.assertEqual('Weekdays', edit_alarm.alarm_repeat)
-        self.assertEqual('Digicloud', new_alarm.alarm_sound)
-        self.assertEqual('15 minutes', new_alarm.alarm_snooze)
+        self.assertEqual(edit_alarm.alarm_repeat, 'weekdays')
+        self.assertEqual(new_alarm.alarm_sound, 'ac_digicloud_opus')
+        self.assertIn('15', new_alarm.alarm_snooze)
 
         edit_alarm.tap_done()
         alarm_view.dismiss_banner()

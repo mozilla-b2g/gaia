@@ -199,8 +199,8 @@ class DeviceInfo(Base):
 
         def _get_imei(self, number):
             locator = getattr(self, '_imei{}_locator'.format(number))
-            imei = self.root_element.find_element(*locator).text
-            return imei.lstrip('IMEI {}:'.format(number))
+            imei = self.root_element.find_element(*locator).get_attribute('data-l10n-args')
+            return imei.lstrip('{{"index":{},"imei":"'.format(number)).rstrip('"{}')
 
         @property
         def iccid(self):
