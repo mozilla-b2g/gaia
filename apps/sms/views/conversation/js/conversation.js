@@ -202,7 +202,7 @@ var ConversationView = {
 
     this.callNumberButton.addEventListener('click', () => {
       navigator.mozTelephony.dial(this.activeThread.participants[0]).then(function(call) {
-        call.number;
+        call.id;
       });
     });
 
