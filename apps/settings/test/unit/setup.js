@@ -39,6 +39,21 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
       },
+      'unit/mock_download_store': {
+        exports: 'MockDownloadStore'
+      },
+      'unit/mock_download_ui': {
+        exports: 'MockDownloadUI'
+      },
+      'shared_mocks/mock_download_formatter': {
+        exports: 'MockDownloadFormatter'
+      },
+      'shared_mocks/mock_download_helper': {
+        exports: 'MockDownloadHelper'
+      },
+      'shared_mocks/mock_navigator_moz_downloads': {
+        exports: 'MockMozDownloads'
+      },
       'unit/mock_load_json': {
         exports: 'MockLoadJSON'
       },

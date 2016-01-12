@@ -35,6 +35,18 @@ require.config({
     'shared/device_storage/enumerate_all': {
       exports: 'enumerateAll'
     },
+    'shared/download/download_formatter': {
+      exports: 'DownloadFormatter'
+    },
+    'shared/download/download_store': {
+      exports: 'DownloadStore'
+    },
+    'shared/download/download_ui': {
+      exports: 'DownloadUI'
+    },
+    'shared/download/download_helper': {
+      exports: 'DownloadHelper'
+    },
     'shared/fxa_iac_client': {
       exports: 'FxAccountsIACHelper'
     },
@@ -56,6 +68,9 @@ require.config({
     },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
+    },
+    'shared/mime_mapper': {
+      exports: 'MimeMapper'
     },
     'shared/mobile_operator': {
       exports: 'MobileOperator'

@@ -1,4 +1,3 @@
-/* global DownloadFormatter */
 'use strict';
 
 /**
@@ -17,7 +16,8 @@
  *         href="/shared/locales/download/download.{locale}.properties">
  */
 
-window.DownloadItem = (function DownloadItem() {
+define(function(require) {
+  var DownloadFormatter = require('shared/download/download_formatter');
 
   // Generates the following DOM, take into account that
   // the css needed for the classes above is in settings app:
@@ -171,7 +171,7 @@ window.DownloadItem = (function DownloadItem() {
     // Update all the relevant instances of the item id.
     domElement.id = id;
     domElement.dataset.id = id;
-    domElement.getElementsByTagName('input')[0].value = id;
+    domElement.getElementsByTagName('gaia-checkbox')[0].value = id;
   };
 
   var getDownloadState = function getDownloadState(download) {
@@ -196,4 +196,4 @@ window.DownloadItem = (function DownloadItem() {
     'updateDownloadId': updateDownloadId
   };
 
-}());
+});

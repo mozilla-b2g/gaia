@@ -1,8 +1,10 @@
-/* global DownloadStore, DownloadFormatter, DownloadHelper,
-          DownloadUI, DownloadStore */
 'use strict';
 
-(function(exports) {
+define(function(require) {
+  var DownloadStore = require('shared/download/download_store');
+  var DownloadFormatter = require('shared/download/download_formatter');
+  var DownloadHelper = require('shared/download/download_helper');
+  var DownloadUI = require('shared/download/download_ui');
 
   var downloadsCache = {};
   var downloadsListener = null;
@@ -253,6 +255,6 @@
     }
   };
 
-  exports.DownloadApiManager = DownloadApiManager;
+  return DownloadApiManager;
 
-}(window));
+});
