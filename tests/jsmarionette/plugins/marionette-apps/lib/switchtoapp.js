@@ -18,9 +18,6 @@ function switchToApp(apps, origin, entrypoint, callback) {
   var client = apps._client;
   callback = callback || client.defaultCallback;
 
-  // Always go back to root (system) application.
-  client.switchToFrame();
-
   return getApp(apps, origin, entrypoint, function(err, app) {
     if (err) {
       return callback(err);
