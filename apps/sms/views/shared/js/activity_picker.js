@@ -20,13 +20,11 @@ function handleActivity(activity, onsuccess, onerror) {
 
 var ActivityPicker = {
   dial: function ap_call(number, onsuccess, onerror) {
-    handleActivity(new MozActivity({
-      name: 'dial',
-      data: {
-        type: 'webtelephony/number',
-        number: number
-      }
-    }), onsuccess, onerror);
+    handleActivity(
+      navigator.mozTelephony.dial(number).then(function(call) {
+        call.id;
+      })
+      , onsuccess, onerror);
   },
   email: function ap_email(email, onsuccess, onerror) {
     handleActivity(new MozActivity({
