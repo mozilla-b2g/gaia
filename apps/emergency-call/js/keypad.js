@@ -114,6 +114,7 @@ var KeypadManager = {
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
+    this._lastPressedKey = null;
 
     // Update the minimum phone number phone size.
     // The UX team states that the minimum font size should be
@@ -206,6 +207,10 @@ var KeypadManager = {
 
       this.deleteButton.classList.remove('hide');
     }
+  },
+
+  phoneNumber: function hk_phoneNumber() {
+    return this._phoneNumber;
   },
 
   makeCall: function hk_makeCall(event) {
@@ -414,17 +419,6 @@ var KeypadManager = {
       }, 400, this);
     }
 
-    // Voicemail long press (only if first digit pressed)
-    if (key === '1' && this._phoneNumber === '') {
-      this._holdTimer = setTimeout(function vm_call(self) {
-        self._longPress = true;
-        self._callVoicemail();
-
-        self._phoneNumber = '';
-        self._updatePhoneNumberView();
-      }, 400, this);
-    }
-
     if (key == 'delete') {
       this._deleteAtInsertPosition();
     } else if (this.phoneNumberViewContainer.classList.
@@ -556,20 +550,6 @@ var KeypadManager = {
       this.phoneNumberView.value = phoneNumber;
       this.formatPhoneNumber('dialpad');
     }
-  },
-
-  _callVoicemail: function kh_callVoicemail() {
-     var voicemail = navigator.mozVoicemail;
-     if (voicemail) {
-       // TODO: remove this backward compatibility check
-       // after bug-814634 is landed
-       var number = voicemail.number ||
-        voicemail.getNumber && voicemail.getNumber();
-
-       if (number) {
-         window.CallHandler.call(number);
-       }
-     }
   },
 
   _observePreferences: function kh_observePreferences() {
