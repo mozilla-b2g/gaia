@@ -193,8 +193,6 @@
         return 'left';
       case KeyEvent.DOM_VK_RETURN:
         return 'enter';
-      case KeyEvent.DOM_VK_ESCAPE:
-        return 'esc';
       case KeyEvent.DOM_VK_BACK_SPACE:
         return 'esc';
       default:// we don't consume other keys.
