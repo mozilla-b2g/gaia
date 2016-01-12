@@ -36,7 +36,6 @@
     "apps/fm/test/marionette/fm_test.js": "Bug 1233777 - Intermittent TEST-UNEXPECTED-FAIL | apps/fm/test/marionette/fm_test.js | FM Radio test FM Radio favourites Test favouriting",
     "apps/ftu/test/marionette/late_customization_test.js": "Bug 1233522 - Intermittent TEST-UNEXPECTED-FAIL | apps/ftu/test/marionette/late_customization_test.js",
     "apps/homescreen/test/marionette/pinning_the_web_test.js": "Bug 1233529 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_the_web_test.js | Homescreen - Pin the web Pinning a site from the browser context menu",
-    "apps/homescreen/test/marionette/pinning_uninstall_test.js": "Bug 1233527 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_uninstall_test.js",
     "apps/keyboard/test/marionette/auto_correction_test.js": "Bug 1235574 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/auto_correction_test.js",
     "apps/keyboard/test/marionette/email_keyboard_test.js": "Bug 1233536 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/email_keyboard_test.js",
     "apps/keyboard/test/marionette/number_keyboard_test.js": "Bug 1233533 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/number_keyboard_test.js",
