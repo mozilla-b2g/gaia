@@ -83,7 +83,6 @@
     "dev_apps/music-oga/test/marionette/metadata_test.js": "Bug 1238411 - Intermittent dev_apps/music-oga/test/marionette/metadata_test.js | Music player metadata Album art display Check album art is displayed. moztrap:8749",
     "dev_apps/music-oga/test/marionette/search_test.js": "Bug 1238201 - Intermittent dev_apps/music-oga/test/marionette/search_test.js | Music player search \"before each\" hook for \"Check simple search results in tracks.\"",
     "distros/raptor/apps/test-startup-limit/test/marionette/counter_test.js": "Bug 1171918 - Intermittent counter_test.js | counter + should increment count",
-    "tests/jsmarionette/client/marionette-client/test/integration/scope-test.js": "Bug 1181423 - Intermittent tests/jsmarionette/client/marionette-client/test/integration/scope-test.js",
-    "tests/jsmarionette/plugins/marionette-apps/test/app_test.js": "Bug 1189882 - Intermittent tests/jsmarionette/plugins/marionette-apps/test/app_test.js"
+    "tests/jsmarionette/client/marionette-client/test/integration/scope-test.js": "Bug 1181423 - Intermittent tests/jsmarionette/client/marionette-client/test/integration/scope-test.js"
   }
 }

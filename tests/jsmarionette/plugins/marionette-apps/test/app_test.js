@@ -3,7 +3,13 @@ var assert = require('assert');
 
 marionette('App', function() {
   var subject;
-  var client = marionette.client();
+
+  // We don't actually need to ensure that the application is visible and
+  // accessible, only that it is the correct one that's launched. We'll
+  // skip the a11y checks for these tests.
+  var client = marionette.client( {
+    desiredCapabilities: { raisesAccessibilityException: false }
+  });
 
   marionette.plugin('mozApps', require('../lib/apps'));
 
