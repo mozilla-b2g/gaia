@@ -14,6 +14,7 @@
     _onMessage: undefined,
     _onStateChange: undefined,
     _connection: undefined,
+    _sequence: undefined,
 
     init: function r_init() {
       this._onMessage = this._handleMessage.bind(this);
@@ -25,6 +26,7 @@
         this._connection = connection;
         this._connection.addEventListener('message', this._onMessage);
         this._connection.addEventListener('statechange', this._onStateChange);
+        this._sequence = 0;
       }.bind(this),
       function connectionError() {
         console.warn('Getting connection failed.');
@@ -37,7 +39,25 @@
         this._connection.removeEventListener(
                                             'statechange', this._onStateChange);
         this._connection = null;
+        this._sequence = 0;
       }
+    },
+
+    _sendMessage: function r_sendMessage(type, data) {
+      if (!this._connection) {
+        return;
+      }
+
+      var msg = {
+        'type': type,
+        'seq': ++this._sequence
+      };
+
+      for (var i in data) {
+        msg[i] = data [i];
+      }
+
+      this._connection.send(JSON.stringify(msg));
     },
 
     _renderMessage: function r_renderMessage(message) {
@@ -73,9 +93,11 @@
           ports.forEach(function(port) {
             port.postMessage(iacmsg);
           });
+          this._sendMessage('ack');
         }.bind(this),
         function () {
           console.warn('Sending view request failed.');
+          this._sendMessage('ack', {'error': 'webpage-open failed'});
         });
       }.bind(this);
     },
