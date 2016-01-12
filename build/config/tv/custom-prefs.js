@@ -26,3 +26,6 @@ user_pref('remotecontrol.service.pairing_required', true);
 user_pref('remotecontrol.client_page.prepath',
           'app://remote-control-client.gaiamobile.org');
 user_pref('remotecontrol.client_page.blacklist', '/client.html,/pairing.html');
+
+// Disable Firefox Accounts device registration because it depends on Sync.
+user_pref('identity.fxaccounts.skipDeviceRegistration', true);
