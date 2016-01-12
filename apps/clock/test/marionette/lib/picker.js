@@ -1,4 +1,5 @@
 'use strict';
+/* global KeyEvent */
 
 var $ = require('./mquery');
 
@@ -13,22 +14,20 @@ exports.getSpinnerValue = function(el) {
 
 exports.setSpinnerValue = function(el, value) {
   el = $(el);
-  var itemHeight = $('.picker-unit').height();
   var currentValue = exports.getSpinnerValue(el);
   var targetValue = parseInt(value, 10);
+  var delta = targetValue - currentValue;
 
-  var actions = $.client.loader.getActions();
-  var magnitude = Math.abs(currentValue - targetValue) / 2;
-  while (currentValue !== targetValue) {
-    var dir = (currentValue < targetValue ? -1 : 1);
-    actions
-      .flick(el.parent(), 50, itemHeight / 2,
-             50, itemHeight / 2 + dir * magnitude * itemHeight)
-      .perform();
-    exports.waitForSpinStop(el);
-    currentValue = exports.getSpinnerValue(el);
-    magnitude = Math.max(1, Math.abs(currentValue - targetValue) / 2);
-  }
+  el.parent().scriptWith(function(el, delta) {
+    var count = Math.abs(delta);
+    for (var i = 0; i < count; i++) {
+      var evt = new CustomEvent('keypress');
+      evt.keyCode = delta > 0 ? KeyEvent.DOM_VK_DOWN : KeyEvent.DOM_VK_UP;
+      el.dispatchEvent(evt);
+    }
+  }, [delta]);
+
+  exports.waitForSpinStop(el);
 };
 
 exports.waitForSpinStop = function(el) {
