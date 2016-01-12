@@ -62,14 +62,14 @@ NonReadyScreen.prototype.getMessageIdFor = function(cardState) {
 
   // SIM is absent
   if (!cardState || cardState === 'absent') {
-    message = 'no-sim2';
+    message = 'no-sim3';
 
   // SIM is locked
   } else if (
     cardState === 'pinRequired' ||
     cardState === 'pukRequired'
   ) {
-    message = 'sim-locked';
+    message = 'sim2-locked';
   } else if (cardState === 'airplaneMode') {
     message = 'airplane-mode';
   } else if (cardState === 'unknown') {
