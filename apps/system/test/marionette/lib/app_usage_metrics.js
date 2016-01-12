@@ -52,37 +52,40 @@ AppUsageMetrics.prototype = {
    */
   _getAppUsage: function(app, key, defaultValue) {
     var currentFrame = this.client.frame;
-    var self = this;
-
-    if (currentFrame) {
-      this.client.switchToFrame();
-    }
-
+    var client = this.client;
     var data = null;
-    self.client.executeScript(function(app) {
-      var metrics = window.wrappedJSObject.appUsageMetrics.metrics;
-      return metrics.getAppUsage(app);
-    }, [app], function(err, value) {
-      if (currentFrame) {
-        self.client.switchToFrame(currentFrame);
-      }
 
-      if (!err) {
-        data = value;
-      } else {
-        console.log(err);
-      }
+    client.switchToFrame();
+    client.waitFor(() => {
+      data = client.executeScript(function(app) {
+        var aum = window.wrappedJSObject.core.appUsageMetrics;
+        var metrics = aum && aum.metrics;
+        return metrics && metrics.getAppUsage(app);
+      }, [app]);
+      return !!data;
     });
-
+    if (currentFrame) {
+      client.switchToFrame(currentFrame);
+    }
     return data ? (data[key] || defaultValue) : defaultValue;
+  },
+
+  waitForAUMInstance: function() {
+    this.client.switchToFrame();
+    this.client.waitFor(() => {
+      return this.client.executeScript(function() {
+        return window.wrappedJSObject.core.appUsageMetrics;
+      });
+    });
   },
 
   /**
    * Start the AppUsageMetrics service and wait for it to finish
    */
   waitForStartup: function() {
+    this.waitForAUMInstance();
     this.client.executeAsyncScript(function() {
-      var AUM = window.wrappedJSObject.appUsageMetrics;
+      var AUM = window.wrappedJSObject.core.appUsageMetrics;
       if (AUM.collecting) {
         marionetteScriptFinished();
         return;

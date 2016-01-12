@@ -100,7 +100,6 @@
   ];
 
 
-  const MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com'];
 
   // This AppUsageMetrics() constructor is the value we export from
   // this module. This constructor does no initialization itself: that
@@ -123,6 +122,8 @@
 
   // Set to true to to enable debug output
   AUM.DEBUG = false;
+
+  AUM.MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com'];
 
   // This logging function is the only thing that is not exposed through
   // the AppUsageMetrics contstructor or its instance.
@@ -170,6 +171,7 @@
 
   // App name (static for Telemetry)
   AUM.TELEMETRY_APP_NAME = 'FirefoxOS';
+
 
   /*
    * AppUsageMetrics instance methods
@@ -908,7 +910,9 @@
       return true;
     }
 
-    if (MARKETPLACE_ORIGINS.indexOf(installOrigin) >= 0) {
+    debug('shouldTrackApp: MARKETPLACE_ORIGINS: ',
+                AUM.MARKETPLACE_ORIGINS);
+    if (AUM.MARKETPLACE_ORIGINS.indexOf(installOrigin) >= 0) {
       return true;
     }
 
@@ -959,7 +963,9 @@
 
   UsageData.prototype.recordInstall = function(app) {
     var self = this;
+    debug('recordInstall for app:', app);
     if (!this.shouldTrackApp(app)) {
+      debug('recordInstall, skip this one');
       return false;
     }
 
