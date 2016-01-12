@@ -197,11 +197,11 @@
 
     this._renderingPromise = this._renderer.renderTo(
       renderingInfo, attachmentContainer
-    ).then(
-      () => this.updateThumbnail()
     );
 
-    return this._renderingPromise;
+    return this._renderingPromise.then(
+      () => this.updateThumbnail()
+    );
   };
 
   AttachmentRenderer.prototype.updateFileSize = function() {
@@ -227,25 +227,27 @@
       return Promise.resolve();
     }
 
-    var attachmentContainer = this.getAttachmentContainer();
-    var contentNode = this._renderer.getContentContainer(attachmentContainer);
-    var thumbnailNode = contentNode.querySelector('.thumbnail');
-    var attachmentNode = contentNode.querySelector('.attachment');
-    var fileNode = contentNode.querySelector('.file-name');
-
-    if (!thumbnailNode) {
-      if (this._renderingPromise) {
-        // looks like render has not finished yet
-        return this._renderingPromise.then(() => this.updateThumbnail());
-      }
-
+    if (!this._renderingPromise) {
       return Promise.reject(
         new Error('updateThumbnail() needs to be called after a render().')
       );
     }
 
-    return this.getThumbnail().then(
-      (thumbnail) => {
+    var attachmentContainer = this.getAttachmentContainer();
+    return this._renderingPromise.then(
+      () => this._renderer.getContentContainer(attachmentContainer)
+    ).then((contentNode) => {
+      var thumbnailNode = contentNode.querySelector('.thumbnail');
+      var attachmentNode = contentNode.querySelector('.attachment');
+      var fileNode = contentNode.querySelector('.file-name');
+
+      if (!thumbnailNode) {
+        return Promise.reject(
+          new Error('no thumbnail node has been found, this should not happen.')
+        );
+      }
+
+      return this.getThumbnail().then((thumbnail) => {
         thumbnailNode.style.backgroundImage =
           'url("' + thumbnail.url + thumbnail.fragment + '")';
 
@@ -261,12 +263,12 @@
         } else {
           fileNode.setAttribute('data-l10n-id', 'unnamed-attachment');
         }
-      }
-    ).catch((e) => {
-      console.log('Error while getting a thumbnail', e);
-      contentNode.classList.add('nopreview');
-      contentNode.classList.remove('preview');
-      attachmentNode.classList.add('corrupted');
+      }).catch((e) => {
+        console.log('Error while getting a thumbnail', e);
+        contentNode.classList.add('nopreview');
+        contentNode.classList.remove('preview');
+        attachmentNode.classList.add('corrupted');
+      });
     });
   };
 
