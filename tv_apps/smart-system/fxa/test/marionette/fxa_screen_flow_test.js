@@ -17,7 +17,8 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
             'identity.fxaccounts.auth.uri': 'http://' +
               config.SERVER_HOST + ':' +
               config.SERVER_PORT + '/' +
-              config.SERVER_PATH
+              config.SERVER_PATH,
+            'identity.fxaccounts.skipDeviceRegistration': true
           }
         }
       });
