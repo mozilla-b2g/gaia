@@ -62,6 +62,7 @@ marionette('Browser Chrome - Open New Window', function() {
     });
   });
 
+/*
   test('open new window and edge swipe', function() {
     home.launchIcon(home.getIcon(CLOCK_APP));
     var url = server.url('sample.html');
@@ -107,4 +108,5 @@ marionette('Browser Chrome - Open New Window', function() {
     // Check that both are not displayed at the same time
     assert(!system.getAppIframe(NEW_WINDOW).displayed());
   });
+  */
 });
