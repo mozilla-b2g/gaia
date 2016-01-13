@@ -57,7 +57,6 @@ suite('marionette/drivers/promises', function() {
   test('should send an object and receive a promise', function(done) {
     var sentobj = {type: 'foo'};
 
-
       var _promiseconnection = subject.connect(function(){
       });
 
@@ -85,5 +84,4 @@ suite('marionette/drivers/promises', function() {
         }
       );
    });
-
 });

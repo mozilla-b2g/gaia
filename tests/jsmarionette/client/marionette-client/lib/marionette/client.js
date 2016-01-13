@@ -5,6 +5,11 @@
   var Element = ns.require('element');
   var Exception = ns.require('error');
   var message = ns.require('./message');
+  var suspend = require('suspend');
+
+  /*
+  console.log('print de suspend aqui', suspend);
+  */
 
   var DEFAULT_SCRIPT_TIMEOUT = 60000;
   var DEFAULT_SEARCH_TIMEOUT = 60000;
@@ -116,11 +121,11 @@
    */
   function Client(driver, options) {
     console.log('no consructor do cliente!!', driver, options);
-
+/*
     var e = new Error('dummy');
     var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '') .replace(/^\s+at\s+/gm, '') .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@') .split('\n');
     console.log(stack);
-
+*/
     // when the driver is lazily added skip
     if (!driver && options && options.lazy)
       return;
@@ -464,6 +469,7 @@
      * @param {Function} cb executed when response is sent.
      */
     send: function send(body, cb) {
+
       // first do scoping updates
       if (this._scope && this._bypassScopeChecks !== true) {
         // calling the methods may cause an infinite loop so make sure
@@ -507,9 +513,7 @@
           driverSent.then(
             function onFulfill(res){
               //console.log('DriverSend no FulFill. Calling:', cb);
-              console.log('DriverSend no FulFill. Antes de transformar:', res);
-              //res = new Response.fromMsg(res);
-              console.log('DriverSend no FulFill. DEPOIS de transformar:', res);
+              console.log('DriverSend no FulFill. Chamando callback:', res);
               cb(res);
             },
             function onReject(aRejectReason) {
@@ -537,6 +541,14 @@
       }
 
       return this;
+
+
+      /*
+      console.log("Resultado no send:", data);
+      var e = new Error('dummy');
+      var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '') .replace(/^\s+at\s+/gm, '') .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@') .split('\n');
+      console.log(stack);
+*/
     },
 
     _handleCallback: function() {
@@ -578,7 +590,7 @@
     _sendCommand: function(body, cb, key) {
       try {
         return this.send(body, function(data) {
-          console.log("Resultado no sendCommand:", data);
+          console.log("Enviando no sendCommand:", body);
 
           var res, err;
 
@@ -829,7 +841,7 @@
      * @param {Object} desired capabilities
      */
     startSession: function startSession(callback, desiredCapabilities) {
-      console.log("1 no startSession comeco");
+      console.log("1 no startSession comeco", callback);
 
       callback = callback || this.defaultCallback;
       desiredCapabilities = desiredCapabilities || {};
@@ -858,9 +870,9 @@
 
             console.log("BINGO!!!! - callback de newSession no startSession. res:", res);
 
-            console.log("BINGO!!!! - callback de newSession no startSession. res.sessionId:", res.sessionId);
+            //console.log("BINGO!!!! - callback de newSession no startSession. res.sessionId:", res.sessionId);
 
-            console.log("BINGO!!!! - callback de newSession no startSession. res:", res.capabilities);
+            //console.log("BINGO!!!! - callback de newSession no startSession. res:", res.capabilities);
 
             this.sessionId = res.sessionId;
             this.capabilities = res.capabilities;
@@ -877,6 +889,11 @@
         };
 
         console.log("5 no startSession", body, newSession);
+        var e = new Error('dummy');
+        var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '') .replace(/^\s+at\s+/gm, '') .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@') .split('\n');
+        console.log(stack);
+
+
         return this._sendCommand(body, newSession);
 
       }

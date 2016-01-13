@@ -13,19 +13,17 @@ function Promises(options) {
   this.tcp = new Tcp(options);
   this.tcp._handshaking = false;
   this.tcp._driver = this;
+  this.isSync = true;
 
   this.marionetteProtocol = function(){
-    console.log('pegando marionetteProtocol aqui!');
     return this.tcp.marionetteProtocol;
   }
 
   this.applicationType = function(){
-    console.log('pegando applicationType aqui!');
     return this.tcp.applicationType;
   }
 
   this.traits = function(){
-    console.log('pegando traits aqui!');
     return this.tcp.traits;
   }
 
@@ -51,9 +49,11 @@ function Promises(options) {
       _response = data;
       console.log("Handshaking NAO");
     }
+    /*
     console.log("_handshaking e adding response ta passando aqui: data", data);
 
-    console.log("_handshaking e adding response ta passando aqui: response", _response);
+    console.log("_handshaking e adding response ta passando aqui: response", _response); */
+    console.log("onDeviceResponse:",_response);
     this._onDeviceResponse({
       id: this.connectionId,
       response: _response
@@ -65,8 +65,6 @@ function Promises(options) {
 Promises.prototype = Object.create(Tcp.prototype);
 
 Promises.prototype.connect = function() {
-  console.log("NO CONNECT");
-
   var tcp = this.tcp;
   this.tcp._handshaking = true;
 /*
@@ -83,16 +81,13 @@ Promises.prototype.connect = function() {
 };
 
 Promises.prototype.send = function(obj) {
-
   var tcp = this.tcp;
-
+  var _this = this;
   return new Promise(function(resolve, reject) {
     tcp.send(obj, function(res,err) {
-      console.log("NO SEND:", res);
-
-      err ? reject(err) : resolve(res);
+      console.log('1- na promise no send:', _this);
+      err ? reject(err) : resolve([res, _this]);
     });
-
   });
 };
 

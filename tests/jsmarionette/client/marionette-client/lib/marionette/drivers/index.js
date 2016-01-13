@@ -10,6 +10,7 @@
     module.exports.Tcp = require('./tcp');
     module.exports.TcpSync = require('./tcp-sync');
     module.exports.Promises = require('./promises');
+
   } else {
     if (typeof(window.TCPSocket) !== 'undefined') {
       module.exports.MozTcp = ns.require('drivers/moz-tcp');

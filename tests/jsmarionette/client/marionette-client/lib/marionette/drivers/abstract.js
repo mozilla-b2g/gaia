@@ -205,7 +205,7 @@
     _onDeviceResponse: function _onDeviceResponse(data) {
       if (this.ready && data.id === this.connectionId) {
         this._waiting = false;
-        console.log('no abstract no ondevice resonse protocol:', this.marionetteProtocol);
+       // console.log('no abstract no ondevice resonse protocol:', this.marionetteProtocol);
 
         var resp;
         if (this.marionetteProtocol >= 3) {

@@ -489,7 +489,7 @@ System.prototype = {
 
   waitForFullyLoaded: function() {
     var body = this.client.findElement('body');
-    console.log(" NO WAIT FOR FULLY LOADED - body:", body);
+    console.log("NO WAIT FOR FULLY LOADED - body:", body);
     this.client.waitFor(function() {
       return body.getAttribute('ready-state') == 'fullyLoaded';
     }, { timeout: 120000 });

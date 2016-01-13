@@ -138,10 +138,15 @@ HostManager.prototype = {
             });
           }
 
+
           return new Promise(function(accept) {
             console.log("Promise no then do host manager");
-            client.startSession(accept, desiredCapabilities);
+            console.log ( 'Resultado do client.startsession no hostmanager:', client.startSession(accept, desiredCapabilities) );
           });
+
+
+        //  return client.startSession(accept, desiredCapabilities);
+
         });
     });
 

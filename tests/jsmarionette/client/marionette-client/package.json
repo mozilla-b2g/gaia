@@ -10,6 +10,7 @@
     "json-wire-protocol": "file:../json-wire-protocol",
     "socket-retry-connect": "file:../socket-retry-connect",
     "sockit-to-me": "file:../sockit-to-me",
+    "suspend": "~0.7.0",
     "promise": "7.0.4"
   },
 
