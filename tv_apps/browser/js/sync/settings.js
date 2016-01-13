@@ -61,12 +61,12 @@
     listener: 'onhistorychecked',
     init: 'onhistorychange'
   }, {
-    screen: [DISABLED, ENABLED],
+    screen: ENABLED,
     selector: '#fxsync-tos',
     event: 'click',
     listener: 'openTos'
   }, {
-    screen: [DISABLED, ENABLED],
+    screen: ENABLED,
     selector: '#fxsync-privacy',
     event: 'click',
     listener: 'openPrivacy'

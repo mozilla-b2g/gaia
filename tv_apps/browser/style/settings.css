@@ -248,6 +248,10 @@ p.fine-print {
   justify-content: space-between;
 }
 
+#fxsync-enabled > p {
+  width: 100%;
+}
+
 #fxsync-enabled[hidden] {
   display: none;
 }
@@ -269,6 +273,7 @@ p.fine-print {
   width: 100%;
   margin-top: 2rem;
   margin-left: 1rem;
+  margin-bottom: 2rem;
 }
 
 .settings-horizontal-list-item {
