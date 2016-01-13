@@ -35,7 +35,7 @@ marionette('Video', function() {
 
   // https://moztrap.mozilla.org/manage/case/6073/
   test('Confirm video playback', function() {
-    var videoUrl = server.url('VID_0001.mp4');
+    var videoUrl = server.url('VID_0001.webm');
     rocketbar.homescreenFocus();
     rocketbar.enterText(videoUrl, true);
     var browserFrame = system.waitForUrlLoaded(videoUrl);
@@ -76,6 +76,7 @@ marionette('Video', function() {
       return player.isFullScreen();
     });
 
+    client.helper.wait (1000);
     player.invokeControls();
     player.tapFullscreen();
 
