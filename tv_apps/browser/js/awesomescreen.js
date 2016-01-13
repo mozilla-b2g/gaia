@@ -1,5 +1,5 @@
 /* globals _, Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
-/* globals BrowserDialog, SmartList, BookmarkStore, HistoryStore */
+/* globals SmartList, BookmarkStore, HistoryStore */
 
 
 /* exported Awesomescreen */
@@ -2751,7 +2751,11 @@ var Awesomescreen = {
       Browser.refreshBookmarkButton();
       this.topsiteHidden();
     }else{
-      BrowserDialog.createDialog('close_browser', null);
+      navigator.mozL10n.formatValue('LT_BROWSER_CONFIRM_EXIT2').then(result => {
+        if (window.confirm(result)) {
+          window.close();
+        }
+      });
     }
   },
 

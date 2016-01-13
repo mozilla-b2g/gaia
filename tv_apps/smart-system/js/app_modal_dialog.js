@@ -262,6 +262,7 @@
             onClick: self.cancelHandler.bind(self)
           },{
             defaultFocus: true,
+            class: 'primary',
             onClick: self.confirmHandler.bind(self)
           }],
           onCancel: self.cancelHandler.bind(self)

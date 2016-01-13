@@ -2,7 +2,6 @@
 /* global Awesomescreen */
 /* global Browser */
 /* global BrowserDB */
-/* global BrowserDialog */
 /* global LazyLoader */
 /* global SearchResult */
 /* global SearchUtil */
@@ -328,7 +327,13 @@ var Toolbar = {
     Browser.currentInfo.dom.getCanGoBack().onsuccess = (function(ev) {
       if(!ev.target.result){
         // dialog
-        BrowserDialog.createDialog('close_browser', null);
+        // XXX: refactor this and the same code in awesomescreen.js
+        navigator.mozL10n.formatValue('LT_BROWSER_CONFIRM_EXIT2')
+        .then(result => {
+          if (window.confirm(result)) {
+            window.close();
+          }
+        });
         return;
       }
     }).bind(this);
