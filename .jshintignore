@@ -67,9 +67,7 @@ apps/homescreen/bower_components/**
 shared/js/sync/ext/kinto.min.js
 tv_apps/app-deck/bower_components/**
 tv_apps/browser/js/authentication_dialog.js
-tv_apps/browser/js/awesomescreen.js
 tv_apps/browser/js/browser_db.js
-tv_apps/browser/js/browser_dialog.js
 tv_apps/browser/js/index.js
 tv_apps/browser/js/search_result.js
 tv_apps/browser/js/search_util.js
