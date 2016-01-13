@@ -67,11 +67,12 @@ marionette('Software Home Button - File Open Error', function() {
     }
 
     var dialogHeight;
-    client.helper.waitFor(function() {
+    client.waitFor(function() {
       try {
         dialogHeight = system.downloadDialog.size().height;
       } catch (ex) {
         dialogHeight = -1;
+        console.log ('ALAAAMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM!!!!!!!');
       }
       return dialogHeight > -1;
     });
