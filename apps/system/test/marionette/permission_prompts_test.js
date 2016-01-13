@@ -39,22 +39,22 @@ marionette('Permission Prompts', function() {
     client.helper.waitForElement('#permission-dialog');
   }
 
-  test('Device Storage videos - ensure propmpt', function() {
+  test('Device Storage videos - ensure prompt', function() {
     tapButton('videos');
     ensurePermissionDialog();
   });
 
-  test('Device Storage pictures - ensure propmpt', function() {
+  test('Device Storage pictures - ensure prompt', function() {
     tapButton('pictures');
     ensurePermissionDialog();
   });
 
-  test('Device Storage music - ensure propmpt', function() {
+  test('Device Storage music - ensure prompt', function() {
     tapButton('music');
     ensurePermissionDialog();
   });
 
-  test('Device Storage sdcard - ensure propmpt', function() {
+  test('Device Storage sdcard - ensure prompt', function() {
     tapButton('sdcard');
     ensurePermissionDialog();
   });
