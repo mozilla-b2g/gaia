@@ -45,6 +45,7 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         self.device_name = self.marionette.session_capabilities.get('device', 'unknown')
 
     def tearDown(self):
+        GaiaTestCase.tearDown(self)
         """At the end of test execution, it checks for the errors"""
         self.assertTrue(self.test_passed, msg=self.failcomment)
 
