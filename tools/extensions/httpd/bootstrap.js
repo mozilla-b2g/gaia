@@ -46,7 +46,9 @@ function startup(data, reason) {
                                    'nsIScriptableInputStream',
                                    'init');
 
-  let DEBUG = false;
+  let debugEnv = env.get('DEBUG');
+  let DEBUG = debugEnv === '*' || debugEnv.includes('bootstrap');
+
   let l10nManager, utils;
   function debug(data) {
     if (!DEBUG)
