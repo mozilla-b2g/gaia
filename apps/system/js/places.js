@@ -551,7 +551,7 @@
         }
 
         // Update the title if it's not the default (matches the URL)
-        if (edits.title !== url) {
+        if (edits.title && edits.title !== url) {
           place.title = edits.title;
         }
 
@@ -576,8 +576,10 @@
         place = this.addToVisited(place);
         this.checkTopSites(place);
 
-        delete this._placeChanges[url];
         cb(place);
+      }).then(() => {
+        // Remove pending changes after successfully saving
+        delete this._placeChanges[url];
       });
     }
   });
