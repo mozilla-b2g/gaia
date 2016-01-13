@@ -43,6 +43,7 @@
     "apps/keyboard/test/marionette/uninstallation_test.js": "Bug 1237618 - Intermittent TEST-UNEXPECTED-FAIL | apps/keyboard/test/marionette/uninstallation_test.js",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/ringtones/test/marionette/share_test.js": "Bug 1222154 - Failing share_test.js | Share as ringtone Share activity Create new ringtone",
+    "apps/search/test/marionette/app_installed_test.js": "Bug 1236308 - Intermittent app_installed_test.js | Search - Installed Apps Test app result after install/uninstall",
     "apps/search/test/marionette/browser_test.js": "Bug 1236041 - TEST-UNEXPECTED-FAIL | apps/search/test/marionette/browser_test.js | Browser test",
     "apps/search/test/marionette/home_button_test.js": "Bug 1188574 - Intermittent apps/search/test/marionette/home_button_test.js | Search - Home Button Press Home button returns to home screen",
     "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
