@@ -1,5 +1,5 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
-         Compose, Attachment, MockMozActivity, Settings, Utils,
+         Compose, Attachment, MockMozActivity, Utils,
          Blob,
          InputEvent,
          MessageManager,
@@ -23,14 +23,12 @@ require('/views/shared/js/utils.js');
 
 require('/views/shared/test/unit/mock_attachment.js');
 require('/services/test/unit/mock_message_manager.js');
-require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_utils.js');
 require('/views/shared/test/unit/mock_moz_activity.js');
 require('/views/shared/test/unit/mock_subject_composer.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'MessageManager',
-  'Settings',
   'Utils',
   'MozActivity',
   'Attachment',
@@ -63,6 +61,8 @@ suite('compose_test.js', function() {
       name: 'other'
     }
   };
+  const defaultSize = 295 * 1024;
+  const defaultSegments = 10;
 
   function mockAttachment(opts) {
     var size = (opts && opts.size) || 12345;
@@ -158,11 +158,11 @@ suite('compose_test.js', function() {
     setup(function() {
       loadBodyHTML('/index.html');
       // this needs a proper DOM
-      Compose.init('messages-compose-form');
       message = document.getElementById('messages-input');
       sendButton = document.getElementById('messages-send-button');
       attachButton = document.getElementById('messages-attach-button');
       form = document.getElementById('messages-compose-form');
+      Compose.init('messages-compose-form', defaultSize, defaultSegments);
     });
 
     suite('Subject', function() {
@@ -733,16 +733,13 @@ suite('compose_test.js', function() {
         }).catch((err) => {
           assert.instanceOf(err, Error);
           assert.equal(err.message, 'file too large');
-          Settings.mmsSizeLimitation = origLimit;
         }).then(done, done);
 
         var activity = MockMozActivity.instances[0];
-        var origLimit = Settings.mmsSizeLimitation;
         var largeBlob;
 
-        Settings.mmsSizeLimitation = 45;
         largeBlob = new Blob([
-          new Array(Settings.mmsSizeLimitation + 3).join('a')
+          new Array(defaultSize + 3).join('a')
         ]);
 
         // Simulate a successful 'pick' MozActivity
@@ -867,7 +864,7 @@ suite('compose_test.js', function() {
                 assert.ok(
                   Utils.getResizedImgBlob.lastCall.calledWith(
                     sinon.match.any,
-                    Settings.mmsSizeLimitation * 0.4
+                    defaultSize * 0.4
                   ),
                   'getResizedImgBlob should set to 2/5 MMS size'
                 );
@@ -898,7 +895,7 @@ suite('compose_test.js', function() {
                 assert.ok(
                   Utils.getResizedImgBlob.lastCall.calledWith(
                     sinon.match.any,
-                    Settings.mmsSizeLimitation * 0.2
+                    defaultSize * 0.2
                   ),
                   'getResizedImgBlob should set to 1/5 MMS size'
                 );
@@ -1085,7 +1082,7 @@ suite('compose_test.js', function() {
       });
 
       test('disabled when oversized', function() {
-        Settings.mmsSizeLimitation = 1024;
+        Compose.init('messages-compose-form', 1024, defaultSegments);
 
         Compose.append(mockAttachment({ size: 512 }));
         assert.isFalse(sendButton.disabled);
@@ -1177,7 +1174,7 @@ suite('compose_test.js', function() {
       });
 
       test('enabled when message input size is at the maximum', function() {
-        Settings.mmsSizeLimitation = 1024;
+        Compose.init('messages-compose-form', 1024, defaultSegments);
 
         Compose.append(mockAttachment({ size: 1024 }));
 
@@ -1190,6 +1187,9 @@ suite('compose_test.js', function() {
   ['image', 'video', 'audio', 'other'].forEach(function(type) {
     suite(type + ' attachment pre-send menu display', function() {
       setup(function() {
+        loadBodyHTML('/index.html');
+        Compose.init('messages-compose-form', defaultSize, defaultSegments);
+
         this.attachment = mockAttachment({ type: type });
         Compose.clear();
         Compose.append(this.attachment);
@@ -1431,7 +1431,7 @@ suite('compose_test.js', function() {
       MessageManager.getSegmentInfo.returns(segmentInfoPromise);
 
       loadBodyHTML('/index.html');
-      Compose.init('messages-compose-form');
+      Compose.init('messages-compose-form', defaultSize, defaultSegments);
       // Compose.init does a Compose.clear which updates segmentInfo
       clock.tick(UPDATE_DELAY);
       waitForSegmentinfo().then(done);
@@ -1497,8 +1497,6 @@ suite('compose_test.js', function() {
     });
 
     test('set type to mms if the text is very long', function(done) {
-      Settings.maxConcatenatedMessages = 10;
-
       var expected = {
         segments: 11,
         charsAvailableInLastSegment: 20
@@ -1513,8 +1511,6 @@ suite('compose_test.js', function() {
     });
 
     test('set type back to sms if the text is shortened', function(done) {
-      Settings.maxConcatenatedMessages = 10;
-
       var result1 = {
         segments: 11,
         charsAvailableInLastSegment: 20
@@ -1666,7 +1662,7 @@ suite('compose_test.js', function() {
       loadBodyHTML('/index.html');
       messageCounter = document.querySelector('.js-message-counter');
 
-      Compose.init('messages-compose-form');
+      Compose.init('messages-compose-form', defaultSize, defaultSegments);
       waitForComposeEvent('segmentinfochange').then(done);
       clock.tick(UPDATE_DELAY);
 
@@ -1772,7 +1768,7 @@ suite('compose_test.js', function() {
   suite('Message "interact" event', function() {
     setup(function() {
       loadBodyHTML('/index.html');
-      Compose.init('messages-compose-form');
+      Compose.init('messages-compose-form', defaultSize, defaultSegments);
     });
 
     test('correctly calls "interact" event', function() {
@@ -1810,7 +1806,7 @@ suite('compose_test.js', function() {
 
       onComposeSubjectChangeStub = sinon.stub();
 
-      Compose.init('messages-compose-form');
+      Compose.init('messages-compose-form', defaultSize, defaultSegments);
       Compose.once('subject-change', onComposeSubjectChangeStub);
     });
 
@@ -1835,7 +1831,7 @@ suite('compose_test.js', function() {
 
       onComposeInputStub = sinon.stub();
 
-      Compose.init('messages-compose-form');
+      Compose.init('messages-compose-form', defaultSize, defaultSegments);
       Compose.once('input', onComposeInputStub);
     });
 
@@ -1855,7 +1851,7 @@ suite('compose_test.js', function() {
   suite('Add attachment button state',function() {
     var addAttachmentButton;
     setup(function() {
-      Settings.mmsSizeLimitation = 1024;
+      Compose.init('messages-compose-form', 1024, defaultSegments);
 
       addAttachmentButton = document.getElementById('messages-attach-button');
 

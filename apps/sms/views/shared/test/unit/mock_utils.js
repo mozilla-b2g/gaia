@@ -37,5 +37,6 @@ var MockUtils = {
   Promise: Utils.Promise,
   getSimNameByIccId: Utils.getSimNameByIccId,
   initializeShimHost: () => Promise.resolve(),
-  onceDocumentIsVisible: Utils.onceDocumentIsVisible
+  onceDocumentIsVisible: Utils.onceDocumentIsVisible,
+  hasSeveralSim: Utils.hasSeveralSim
 };

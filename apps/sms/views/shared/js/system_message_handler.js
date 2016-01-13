@@ -3,7 +3,6 @@
          Navigation,
          NotificationHelper,
          Notify,
-         Settings,
          SilentSms,
          SMIL,
          Utils
@@ -143,7 +142,7 @@
           contacts[0].name.length && contacts[0].name[0] ||
           message.sender;
 
-        if (Settings.hasSeveralSim() && message.iccId) {
+        if (Utils.hasSeveralSim() && message.iccId) {
           return Utils.getSimNameByIccId(message.iccId).then(
             (simName) => ({
               id: 'dsds-notification-title-with-sim',

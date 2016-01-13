@@ -7,8 +7,8 @@
          Draft,
          Drafts,
          MessageManager,
+         MozSettingsClient,
          Navigation,
-         Settings,
          Utils
 */
 /*exported ActivityHandler */
@@ -26,6 +26,8 @@ const ActivityDataType = {
   URL: 'url',
   VCARD: 'text/vcard'
 };
+
+const FILE_TOO_LARGE_L10N_ID = 'attached-files-too-large';
 
 var ActivityHandler = {
   init: function() {
@@ -73,7 +75,7 @@ var ActivityHandler = {
   },
 
   _onShareActivity: function shareHandler(activityData) {
-    var dataToShare = null;
+    var data;
 
     switch(activityData.type) {
       case ActivityDataType.AUDIO:
@@ -88,51 +90,59 @@ var ActivityHandler = {
           return attachment;
         });
 
-        var size = attachments.reduce(function(size, attachment) {
-          if (attachment.type !== 'img') {
-            size += attachment.size;
-          }
-
-          return size;
-        }, 0);
-
-        if (size > Settings.mmsSizeLimitation) {
-          Utils.alert({
-            id: 'attached-files-too-large',
-            args: {
-              n: activityData.blobs.length,
-              mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
-            }
-          }).then(() => ActivityClient.postResult());
-          return;
-        }
-
-        dataToShare = attachments;
+        data = attachments;
         break;
       case ActivityDataType.URL:
-        dataToShare = activityData.url;
+        data = activityData.url;
         break;
       // As for the moment we only allow to share one vcard we treat this case
       // in an specific block
       case ActivityDataType.VCARD:
-        dataToShare = new Attachment(activityData.blobs[0], {
+        data = new Attachment(activityData.blobs[0], {
           name: activityData.filenames[0],
           isDraft: true
         });
         break;
       default:
-        ActivityClient.postError(
+        return ActivityClient.postError(
           'Unsupported activity data type: ' + activityData.type
         );
-        return;
     }
 
-    if (!dataToShare) {
-      ActivityClient.postError('No data to share found!');
-      return;
+    if (!data) {
+      return ActivityClient.postError('No data to share found!');
     }
 
-    return this.toView({ body: dataToShare });
+    // Treat the non array data (url, vcard) size as 0
+    var size = Array.isArray(data) ? data.reduce(function(size, attachment) {
+      if (attachment.type !== 'img') {
+        size += attachment.size;
+      }
+
+      return size;
+    }, 0) : 0;
+
+    let sizeVerificationPromise;
+
+    if (size) {
+      sizeVerificationPromise = MozSettingsClient.mmsSizeLimitation().then(
+        (limit) => {
+
+        if (size > limit) {
+          return Utils.alert({
+            id: FILE_TOO_LARGE_L10N_ID,
+            args: { n: data.length, mmsSize: (size / 1024).toFixed(0) }
+          }).then(() => Promise.reject());
+        }
+      });
+    } else {
+      sizeVerificationPromise = Promise.resolve();
+    }
+
+    return sizeVerificationPromise.then(
+      () => this.toView({ body: data }),
+      () => ActivityClient.postResult()
+    );
   },
 
   /**

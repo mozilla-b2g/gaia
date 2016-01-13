@@ -28,6 +28,7 @@ require('/views/shared/js/contact_renderer.js');
 require('/views/shared/js/navigation.js');
 require('/services/test/unit/mock_threads.js');
 require('/services/test/unit/activity/mock_activity_client.js');
+require('/services/test/unit/moz_settings/mock_moz_settings_client.js');
 
 var mHelperIntegration = new MocksHelper([
   'MessageManager',
@@ -35,7 +36,8 @@ var mHelperIntegration = new MocksHelper([
   'Information',
   'Navigation',
   'Threads',
-  'ActivityClient'
+  'ActivityClient',
+  'MozSettingsClient'
 ]).init();
 
 suite('ConversationView Integration', function() {

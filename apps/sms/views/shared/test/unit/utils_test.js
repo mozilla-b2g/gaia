@@ -1881,3 +1881,27 @@ test('getClosestSampleSize', function() {
   assert.equal(Utils.getClosestSampleSize(8), 8);
   assert.equal(Utils.getClosestSampleSize(9), 8);
 });
+
+suite('hasSeveralSim', function() {
+  test('mozIccManager is not supported', function() {
+    delete navigator.mozIccManager;
+
+    assert.isFalse(Utils.hasSeveralSim());
+  });
+
+  test('length of iccIds > 1', function() {
+    navigator.mozIccManager = {
+      iccIds: [0, 1]
+    };
+
+    assert.isTrue(Utils.hasSeveralSim());
+  });
+
+  test('length of iccIds <= 1', function() {
+    navigator.mozIccManager = {
+      iccIds: [0]
+    };
+
+    assert.isFalse(Utils.hasSeveralSim());
+  });
+});

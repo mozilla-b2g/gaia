@@ -1,4 +1,5 @@
-/* global BridgeServiceMixin */
+/* global BridgeServiceMixin,
+          BroadcastChannel */
 
 /* exported MozSettingsShim */
 
@@ -20,14 +21,16 @@ const METHODS = Object.freeze(['get', 'set']);
 var mozSettings = null;
 
 var MozSettingsShim = {
-  init(settings) {
+  init(appInstanceId, settings) {
     if (!settings) {
       console.error('Invalid settings for shim initialization');
       return;
     }
     mozSettings = settings;
 
-    this.initService();
+    this.initService(
+      new BroadcastChannel(`${SERVICE_NAME}-channel-${appInstanceId}`)
+    );
   },
 
   /* Methods */
@@ -35,10 +38,10 @@ var MozSettingsShim = {
   /**
    * Shim for mozSettings.createLock().get API.
    * @param {String} key Key name for Settings.
-   * @returns {Promise} Promise that return the settings value from settings DB.
+   * @returns {Promise.<String>} The requested value from settings DB.
    */
   get(key) {
-    return mozSettings.createLock().get(key);
+    return mozSettings.createLock().get(key).then((result) => result[key]);
   },
 
   /**

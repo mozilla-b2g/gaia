@@ -17,7 +17,8 @@
          TaskRunner,
          Thread,
          MessagingClient,
-         MozMobileConnectionsClient
+         MozMobileConnectionsClient,
+         MozSettingsClient
 */
 
 'use strict';
@@ -61,6 +62,7 @@ require('/services/test/unit/activity/mock_activity_client.js');
 require('/services/test/unit/messaging/mock_messaging_client.js');
 require('/services/test/unit/moz_mobile_connections/' +
   'mock_moz_mobile_connections_client.js');
+require('/services/test/unit/moz_settings/mock_moz_settings_client.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -107,7 +109,8 @@ var mocksHelperForConversationView = new MocksHelper([
   'App',
   'Compose',
   'MessagingClient',
-  'MozMobileConnectionsClient'
+  'MozMobileConnectionsClient',
+  'MozSettingsClient'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -127,6 +130,9 @@ suite('conversation.js >', function() {
   var testImageBlob;
   var oversizedImageBlob;
   var testVideoBlob;
+
+  var mmsSizeLimitation;
+  var maxConcatenatedMessages;
 
   function mockAttachment(size) {
     return new MockAttachment({
@@ -208,7 +214,7 @@ suite('conversation.js >', function() {
     document.l10n = realMozL10n;
   });
 
-  setup(function() {
+  setup(function(done) {
     loadBodyHTML('/index.html');
 
     input = document.getElementById('messages-input');
@@ -226,17 +232,30 @@ suite('conversation.js >', function() {
     this.sinon.stub(MessageManager, 'on');
     this.sinon.stub(Compose, 'on');
     this.sinon.stub(Compose, 'off');
+    this.sinon.stub(Compose, 'init');
     this.sinon.stub(Threads, 'get');
+    this.sinon.stub(MozSettingsClient, 'mmsSizeLimitation');
+    this.sinon.stub(MozSettingsClient, 'maxConcatenatedMessages');
     this.sinon.useFakeTimers();
 
     this.sinon.stub(ActivityClient);
 
     ConversationView.recipients = null;
     ConversationView._isReady = false;
-    ConversationView.init();
+
+    mmsSizeLimitation = 295 * 1024;
+    maxConcatenatedMessages = 10;
+    MozSettingsClient.mmsSizeLimitation.returns(
+      Promise.resolve(mmsSizeLimitation)
+    );
+    MozSettingsClient.maxConcatenatedMessages.returns(
+      Promise.resolve(maxConcatenatedMessages)
+    );
 
     sticky = MockStickyHeader;
     MockOptionMenu.mSetup();
+
+    ConversationView.init().then(() => done(), done);
   });
 
   teardown(function() {
@@ -255,6 +274,13 @@ suite('conversation.js >', function() {
 
   test('View is ready after init()', function() {
     assert.ok(ConversationView.isReady());
+    assert.equal(ConversationView.mmsSizeLimitation, mmsSizeLimitation);
+    sinon.assert.calledWith(
+      Compose.init,
+      'messages-compose-form',
+      mmsSizeLimitation,
+      maxConcatenatedMessages
+    );
   });
 
   suite('scrolling', function() {
@@ -719,11 +745,15 @@ suite('conversation.js >', function() {
     });
 
     suite('at size limit in mms >', function() {
-      setup(function() {
-        Settings.mmsSizeLimitation = 1024;
-        yieldType('mms');
-        Compose.size = 1024;
-        Compose.on.withArgs('input').yield();
+      setup(function(done) {
+        MozSettingsClient.mmsSizeLimitation.returns(
+          Promise.resolve(1024)
+        );
+        ConversationView.initCompose().then(() => {
+          yieldType('mms');
+          Compose.size = 1024;
+          Compose.on.withArgs('input').yield();
+        }).then(done, done);
       });
 
       test('banner is displayed and stays', function() {
@@ -739,11 +769,15 @@ suite('conversation.js >', function() {
     });
 
     suite('over size limit in mms >', function() {
-      setup(function() {
-        Settings.mmsSizeLimitation = 1024;
-        yieldType('mms');
-        Compose.size = 1025;
-        Compose.on.withArgs('input').yield();
+      setup(function(done) {
+        MozSettingsClient.mmsSizeLimitation.returns(
+          Promise.resolve(1024)
+        );
+        ConversationView.initCompose().then(() => {
+          yieldType('mms');
+          Compose.size = 1025;
+          Compose.on.withArgs('input').yield();
+        }).then(done, done);
       });
 
       test('banner is displayed and stays', function() {
@@ -2260,7 +2294,7 @@ suite('conversation.js >', function() {
       var tests = ['A', 'B'];
       var promises;
       this.sinon.stub(Settings, 'getServiceIdByIccId');
-      this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
+      this.sinon.stub(Utils, 'hasSeveralSim').returns(false);
 
       // testing with serviceId both equal to 0 and not 0, to check we handle
       // correctly falsy correct values
@@ -2290,7 +2324,7 @@ suite('conversation.js >', function() {
         Settings.getServiceIdByIccId.withArgs(iccId).returns(serviceId);
       });
 
-      this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+      this.sinon.stub(Utils, 'hasSeveralSim').returns(true);
 
       tests.forEach((iccId, serviceId) => {
         promises.push(
@@ -5295,8 +5329,7 @@ suite('conversation.js >', function() {
       this.sinon.stub(MessageManager, 'sendSMS');
       this.sinon.stub(MessageManager, 'sendMMS');
 
-      this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
-      this.sinon.stub(Settings, 'isDualSimDevice').returns(false);
+      this.sinon.stub(Utils, 'hasSeveralSim').returns(false);
 
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
@@ -5464,8 +5497,7 @@ suite('conversation.js >', function() {
 
     suite('DSDS behavior', function() {
       setup(function() {
-        Settings.hasSeveralSim.returns(true);
-        Settings.isDualSimDevice.returns(true);
+        Utils.hasSeveralSim.returns(true);
       });
 
       test('MMS, SMS serviceId is the same than the MMS serviceId, sends asap',

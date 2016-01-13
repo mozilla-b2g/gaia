@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Settings, Utils, Attachment, MozActivity,
+/*global Utils, Attachment, MozActivity,
         MessageManager,
         SubjectComposer,
         Promise,
@@ -64,6 +64,11 @@ var Compose = (function() {
   };
 
   var subject = null;
+
+  var settings = {
+    mmsSizeLimitation: null,
+    maxConcatenatedMessages: null
+  };
 
   // Given a DOM element, we will extract an array of the
   // relevant nodes as attachment or text
@@ -212,7 +217,7 @@ var Compose = (function() {
   function imageAttachmentsHandling() {
     // There is need to resize image attachment if total compose
     // size doen't exceed mms size limitation.
-    if (Compose.size < Settings.mmsSizeLimitation) {
+    if (Compose.size < settings.mmsSizeLimitation) {
       onContentChanged();
       return;
     }
@@ -231,8 +236,8 @@ var Compose = (function() {
     // Total number of images >= 3
     //   => Set max image size to 1/5 message size limitation.
     var images = imgNodes.length;
-    var limit = images > 2 ? Settings.mmsSizeLimitation * 0.2 :
-                             Settings.mmsSizeLimitation * 0.4;
+    var limit = images > 2 ? settings.mmsSizeLimitation * 0.2 :
+                             settings.mmsSizeLimitation * 0.4;
 
     function imageSized() {
       if (++done === images) {
@@ -314,7 +319,7 @@ var Compose = (function() {
   }
 
   var compose = {
-    init: function composeInit(formId) {
+    init(formId, mmsSizeLimitation, maxConcatenatedMessages) {
       dom.form = document.getElementById(formId);
       dom.message = document.getElementById('messages-input');
       dom.sendButton = document.getElementById('messages-send-button');
@@ -322,6 +327,9 @@ var Compose = (function() {
       dom.counter = dom.form.querySelector('.js-message-counter');
       dom.messagesAttach = dom.form.querySelector('.messages-attach-container');
       dom.composerButton = dom.form.querySelector('.composer-button-container');
+
+      settings.mmsSizeLimitation = mmsSizeLimitation;
+      settings.maxConcatenatedMessages = maxConcatenatedMessages;
 
       subject = new SubjectComposer(
         dom.form.querySelector('.js-subject-composer')
@@ -607,7 +615,7 @@ var Compose = (function() {
       }
 
       var isTextTooLong =
-        state.segmentInfo.segments > Settings.maxConcatenatedMessages;
+        state.segmentInfo.segments > settings.maxConcatenatedMessages;
 
       return isTextTooLong || hasSubject() || hasAttachment() ? 'mms' : 'sms';
     },
@@ -628,7 +636,7 @@ var Compose = (function() {
       var isSendAllowedByLock = !state.lock.canSend || state.lock.canSend();
 
       var sizeExceedsLimit = this.type === 'mms' &&
-        Settings.mmsSizeLimitation && this.size > Settings.mmsSizeLimitation;
+        settings.mmsSizeLimitation && this.size > settings.mmsSizeLimitation;
 
       // We can't send if message is empty, we're in the process of resizing or
       // message is already too big.
@@ -640,7 +648,7 @@ var Compose = (function() {
       var isEditAllowedByLock = !state.lock.canEdit || state.lock.canEdit();
 
       var sizeExceedsOrEqualToLimit = this.type === 'mms' &&
-        Settings.mmsSizeLimitation && this.size >= Settings.mmsSizeLimitation;
+        settings.mmsSizeLimitation && this.size >= settings.mmsSizeLimitation;
 
       // User can continue to type message if it's either SMS, MMS which size
       // doesn't exceed maximum allowed size or maximum allowed size is not set.
@@ -654,7 +662,7 @@ var Compose = (function() {
           id: 'attached-files-too-large',
           args: {
             n: 1,
-            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+            mmsSize: (settings.mmsSizeLimitation / 1024).toFixed(0)
           }
         });
 
@@ -763,8 +771,8 @@ var Compose = (function() {
       var activity;
       var defer = Utils.Promise.defer();
 
-      if (Settings.mmsSizeLimitation) {
-        activityData.maxFileSizeBytes = Settings.mmsSizeLimitation;
+      if (settings.mmsSizeLimitation) {
+        activityData.maxFileSizeBytes = settings.mmsSizeLimitation;
       }
 
       activity = new MozActivity({
@@ -775,8 +783,8 @@ var Compose = (function() {
       activity.onsuccess = function() {
         var result = activity.result;
 
-        if (Settings.mmsSizeLimitation &&
-          result.blob.size > Settings.mmsSizeLimitation &&
+        if (settings.mmsSizeLimitation &&
+          result.blob.size > settings.mmsSizeLimitation &&
           Utils.typeFromMimeType(result.blob.type) !== 'img') {
 
           defer.reject(new Error('file too large'));

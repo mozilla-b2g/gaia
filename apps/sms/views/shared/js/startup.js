@@ -15,8 +15,8 @@
          MessageManager,
          MessagingClient,
          MozMobileConnectionsClient,
+         MozSettingsClient,
          Navigation,
-         Settings,
          SilentSms,
          SystemMessageHandler,
          TimeHeaders,
@@ -75,7 +75,8 @@ var Startup = exports.Startup = {
     '/lib/bridge/client.js',
     '/services/js/activity/activity_client.js',
     '/services/js/messaging/messaging_client.js',
-    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js'
+    '/services/js/moz_mobile_connections/moz_mobile_connections_client.js',
+    '/services/js/moz_settings/moz_settings_client.js'
   ],
 
   _lazyLoadStyles: [
@@ -100,6 +101,11 @@ var Startup = exports.Startup = {
 
       InterInstanceEventDispatcher.connect();
 
+      // Init clients
+      MozSettingsClient.init(App.instanceId);
+      MessagingClient.init(App.instanceId);
+      MozMobileConnectionsClient.init(App.instanceId);
+
       // dispatch contentInteractive when all the modules initialized
       SilentSms.init();
 
@@ -113,21 +119,18 @@ var Startup = exports.Startup = {
 
       // Init UI Managers
       TimeHeaders.init();
-      ConversationView.init();
-      MessagingClient.init(App.instanceId);
-      MozMobileConnectionsClient.init(App.instanceId);
       Information.initDefaultViews();
 
+      return ConversationView.init();
+    });
+    return lazyLoadPromise.then(() => {
       Navigation.setReady();
 
       window.performance.mark('contentInteractive');
-
-      // Fetch mmsSizeLimitation and max concat
-      Settings.init();
-
       window.performance.mark('objectsInitEnd');
+
+      return;
     });
-    return lazyLoadPromise;
   },
 
   /**

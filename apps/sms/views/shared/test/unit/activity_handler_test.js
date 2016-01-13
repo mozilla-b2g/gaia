@@ -5,8 +5,8 @@
          Drafts,
          MessageManager,
          MocksHelper,
+         MozSettingsClient,
          Navigation,
-         Settings,
          Utils
 */
 
@@ -23,6 +23,7 @@ require('/services/test/unit/mock_drafts.js');
 
 require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
+require('/services/test/unit/moz_settings/mock_moz_settings_client.js');
 
 require('/views/shared/js/activity_handler.js');
 
@@ -34,6 +35,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Draft',
   'Drafts',
   'MessageManager',
+  'MozSettingsClient',
   'Navigation',
   'Settings',
   'Utils'
@@ -61,6 +63,7 @@ suite('ActivityHandler', function() {
 
   suite('"share" activity', function() {
     var activityData;
+    const defaultSize = 295 * 1024;
 
     function onceShareActivityCompleted() {
       sinon.assert.called(ActivityHandler._onShareActivity);
@@ -73,6 +76,9 @@ suite('ActivityHandler', function() {
       this.sinon.spy(Drafts, 'add');
       this.sinon.spy(Drafts, 'store');
       this.sinon.spy(Drafts, 'request');
+      this.sinon.stub(MozSettingsClient, 'mmsSizeLimitation').returns(
+        Promise.resolve(defaultSize)
+      );
 
       activityData = {
         type: 'video/*',
@@ -121,35 +127,33 @@ suite('ActivityHandler', function() {
     test('Attachment size over max mms should not be appended', function(done) {
       // Adjust mmsSizeLimitation for verifying alert popup when size over
       // limitation.
-      Settings.mmsSizeLimitation = 1;
+      MozSettingsClient.mmsSizeLimitation.returns(Promise.resolve(1));
 
       ActivityClient.on.withArgs('share-activity-request').yield(
         activityData
       );
 
-      sinon.assert.calledWith(Utils.alert, {
-        id: 'attached-files-too-large',
-        args: { n: 5, mmsSize: '0' }
-      });
-
-      Utils.alert.lastCall.returnValue.then(() => {
+      onceShareActivityCompleted().then(() => {
         sinon.assert.calledWithExactly(ActivityClient.postResult);
         sinon.assert.notCalled(Navigation.toPanel);
+        sinon.assert.calledWith(Utils.alert, {
+          id: 'attached-files-too-large',
+          args: { n: 5, mmsSize: '0' }
+        });
       }).then(done, done);
     });
 
     test('Should append images even when they are big', function(done) {
       activityData.blobs = [new Blob(['test'], { type: 'image/jpeg' })];
 
-      Settings.mmsSizeLimitation = 1;
+      MozSettingsClient.mmsSizeLimitation.returns(Promise.resolve(1));
 
       ActivityClient.on.withArgs('share-activity-request').yield(
         activityData
       );
 
-      sinon.assert.notCalled(Utils.alert);
-
       onceShareActivityCompleted().then(() => {
+        sinon.assert.notCalled(Utils.alert);
         sinon.assert.calledWithMatch(Drafts.add, {
           recipients: null,
           type: 'mms',
@@ -172,9 +176,8 @@ suite('ActivityHandler', function() {
         activityData
       );
 
-      sinon.assert.notCalled(Utils.alert);
-
       onceShareActivityCompleted().then(() => {
+        sinon.assert.notCalled(Utils.alert);
         sinon.assert.calledWithMatch(Drafts.add, {
           recipients: null,
           type: 'mms',
@@ -201,9 +204,8 @@ suite('ActivityHandler', function() {
         urlActivityData
       );
 
-      sinon.assert.notCalled(Utils.alert);
-
       onceShareActivityCompleted().then(() => {
+        sinon.assert.notCalled(Utils.alert);
         sinon.assert.calledWithMatch(Drafts.add, {
           recipients: null,
           type: 'sms',
