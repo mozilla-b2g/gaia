@@ -45,21 +45,22 @@ class Base(object):
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def find_select_item(self, match_string):
-        _list_item_locator = (
-            By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" %
-            match_string)
+        _list_item_locator = (By.CSS_SELECTOR, 'section.value-selector-container li label')
+
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
         # TODO we should find something suitable to wait for, but this goes too
         # fast against desktop builds causing intermittent failures
         time.sleep(0.2)
 
-        li = Wait(self.marionette).until(expected.element_present(*_list_item_locator))
-        # We need to keep this because the Ok button may hang over the element and stop
-        # Marionette from scrolling the element entirely into view
-        self.marionette.execute_script(
-            'arguments[0].scrollIntoView(false);', [li])
-        return li
+        Wait(self.marionette).until(expected.element_present(*_list_item_locator))
+
+        for item in self.marionette.find_elements(*_list_item_locator):
+            if match_string == item.text.encode('ascii','ignore').strip():
+                # We need to keep this because the Ok button may hang over the element and stop
+                # Marionette from scrolling the element entirely into view
+                self.marionette.execute_script('arguments[0].scrollIntoView(false);', [item])
+                return item
 
     def wait_for_select_closed(self, by, locator):
         Wait(self.marionette).until(expected.element_not_displayed(by, locator))
