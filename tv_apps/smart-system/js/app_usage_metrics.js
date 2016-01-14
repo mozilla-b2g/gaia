@@ -101,7 +101,8 @@
   ];
 
 
-  const MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com'];
+  const MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com',
+                               'app://smart-system.gaiamobile.org'];
 
   // This AppUsageMetrics() constructor is the value we export from
   // this module. This constructor does no initialization itself: that
