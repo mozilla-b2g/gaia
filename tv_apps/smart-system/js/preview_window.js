@@ -7,6 +7,7 @@
 /* global AppInstallDialogs */
 /* global BookmarkManager */
 /* global InteractiveNotifications */
+/* global KeyEvent */
 /* global SystemBanner */
 
 (function(exports) {
@@ -104,7 +105,7 @@
     if (document.activeElement !== this.iframe) {
       return;
     }
-    if ((evt.keyCode === 27 || evt.key === 'Escape') &&
+    if (evt.keyCode === KeyEvent.DOM_VK_BACK_SPACE &&
         !evt.embeddedCancelled) {
       if (this.config.url.startsWith('app://')) {
         this.kill();

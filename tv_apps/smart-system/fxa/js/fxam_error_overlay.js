@@ -37,7 +37,7 @@ var FxaModuleErrorOverlay = {
     this.fxaErrorOk.addEventListener('keyup', e => {
       if (e.keyCode &&
           (e.keyCode === KeyEvent.DOM_VK_RETURN ||
-          e.keyCode === KeyEvent.DOM_VK_ESCAPE)) {
+          e.keyCode === KeyEvent.DOM_VK_BACK_SPACE)) {
         this.fxaErrorOk.classList.remove('active');
         this.hide();
       }

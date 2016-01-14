@@ -701,7 +701,6 @@ var Settings = {
         break;
 
       case KeyEvent.DOM_VK_BACK_SPACE :
-      case KeyEvent.DOM_VK_ESCAPE:
         if( Settings.isDialogHomepageDisplayed() ) {
           Settings.hideDialogHomepage();
           return true;
