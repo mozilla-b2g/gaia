@@ -66,7 +66,16 @@ marionette('Software Home Button - File Open Error', function() {
       return el.getBoundingClientRect();
     }
 
-    var dialogHeight = system.downloadDialog.size().height;
+    var dialogHeight;
+    client.helper.waitFor(function() {
+      try {
+        dialogHeight = system.downloadDialog.size().height;
+      } catch (ex) {
+        dialogHeight = -1;
+      }
+      return dialogHeight > -1;
+    });
+
     var shbRect = system.softwareButtons.scriptWith(rect);
 
     assert.equal(dialogHeight, expectedDialogHeight());
