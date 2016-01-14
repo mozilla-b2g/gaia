@@ -233,8 +233,9 @@ function serializeDocument(doc) {
   var docElt = doc.documentElement;
   var attrs = docElt.attributes;
   for (var i = 0; i < attrs.length; i++) {
-    htmlStr += ' ' + attrs[i].nodeName.toLowerCase() +
-               '="' + attrs[i].nodeValue + '"';
+    // Fallback to name and value since which is unsupported in jsdom
+    htmlStr += ' ' + (attrs[i].nodeName || attrs[i].name).toLowerCase() +
+               '="' + (attrs[i].nodeValue || attrs[i].value) + '"';
   }
   var innerHTML = docElt.innerHTML.replace(/  \n*<\/body>\n*/, '  </body>\n');
   htmlStr += '>\n  ' + innerHTML + '\n</html>\n';

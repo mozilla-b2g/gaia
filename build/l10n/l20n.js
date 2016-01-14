@@ -1,7 +1,5 @@
 'use strict';
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 function L10nError(message, id, lang) {
@@ -13,29 +11,33 @@ function L10nError(message, id, lang) {
 L10nError.prototype = Object.create(Error.prototype);
 L10nError.prototype.constructor = L10nError;
 
-function fetchResource(htmloptimizer, res, { code }) {
-  // We need to decode URI because build system DOM reader
-  // may replace `{locale}` with `%7Blocale%7D`. See bug 1098188
-  const url = decodeURI(res).replace('{locale}', code);
-  const { file, content } = htmloptimizer.getFileByRelativePath(url);
+function fetchResource(htmloptimizer, res, _ref) {
+  var code = _ref.code;
+
+  var url = decodeURI(res).replace('{locale}', code);
+
+  var _htmloptimizer$getFileByRelativePath = htmloptimizer.getFileByRelativePath(url);
+
+  var file = _htmloptimizer$getFileByRelativePath.file;
+  var content = _htmloptimizer$getFileByRelativePath.content;
+
   if (!file) {
     return Promise.reject(new L10nError('Not found: ' + url));
   }
 
-  const parsed = res.endsWith('.json') ? JSON.parse(content) : content;
+  var parsed = res.endsWith('.json') ? JSON.parse(content) : content;
   return Promise.resolve(parsed);
 }
 
-// Walk an entry node searching for content leaves
 function walkEntry(entry, fn) {
   if (typeof entry === 'string') {
     return fn(entry);
   }
 
-  const newEntry = Object.create(null);
+  var newEntry = Object.create(null);
 
   if (entry.value) {
-    newEntry.value = walkValue$1(entry.value, fn);
+    newEntry.value = walkValue(entry.value, fn);
   }
 
   if (entry.index) {
@@ -44,7 +46,7 @@ function walkEntry(entry, fn) {
 
   if (entry.attrs) {
     newEntry.attrs = Object.create(null);
-    for (let key in entry.attrs) {
+    for (var key in entry.attrs) {
       newEntry.attrs[key] = walkEntry(entry.attrs[key], fn);
     }
   }
@@ -52,104 +54,76 @@ function walkEntry(entry, fn) {
   return newEntry;
 }
 
-function walkValue$1(value, fn) {
+function walkValue(value, fn) {
   if (typeof value === 'string') {
     return fn(value);
   }
 
-  // skip expressions in placeables
   if (value.type) {
     return value;
   }
 
-  const newValue = Array.isArray(value) ? [] : Object.create(null);
-  const keys = Object.keys(value);
+  var newValue = Array.isArray(value) ? [] : Object.create(null);
+  var keys = Object.keys(value);
 
-  for (let i = 0, key; key = keys[i]; i++) {
-    newValue[key] = walkValue$1(value[key], fn);
+  for (var i = 0, key = undefined; key = keys[i]; i++) {
+    newValue[key] = walkValue(value[key], fn);
   }
 
   return newValue;
 }
 
-/* Pseudolocalizations
- *
- * pseudo is a dict of strategies to be used to modify the English
- * context in order to create pseudolocalizations.  These can be used by
- * developers to test the localizability of their code without having to
- * actually speak a foreign language.
- *
- * Currently, the following pseudolocales are supported:
- *
- *   fr-x-psaccent - Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ
- *
- *     In Accented English all English letters are replaced by accented
- *     Unicode counterparts which don't impair the readability of the content.
- *     This allows developers to quickly test if any given string is being
- *     correctly displayed in its 'translated' form.  Additionally, simple
- *     heuristics are used to make certain words longer to better simulate the
- *     experience of international users.
- *
- *   ar-x-psbidi - ɥsıʅƃuƎ ıpıԐ
- *
- *     Bidi English is a fake RTL locale.  All words are surrounded by
- *     Unicode formatting marks forcing the RTL directionality of characters.
- *     In addition, to make the reversed text easier to read, individual
- *     letters are flipped.
- *
- *     Note: The name above is hardcoded to be RTL in case code editors have
- *     trouble with the RLO and PDF Unicode marks.  In reality, it should be
- *     surrounded by those marks as well.
- *
- * See https://bugzil.la/900182 for more information.
- *
- */
-
 function createGetter(id, name) {
-  let _pseudo = null;
+  var _pseudo = null;
 
   return function getPseudo() {
     if (_pseudo) {
       return _pseudo;
     }
 
-    const reAlphas = /[a-zA-Z]/g;
-    const reVowels = /[aeiouAEIOU]/g;
-    const reWords = /[^\W0-9_]+/g;
-    // strftime tokens (%a, %Eb), template {vars}, HTML entities (&#x202a;)
-    // and HTML tags.
-    const reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
+    var reAlphas = /[a-zA-Z]/g;
+    var reVowels = /[aeiouAEIOU]/g;
+    var reWords = /[^\W0-9_]+/g;
 
-    const charMaps = {
+    var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
+
+    var charMaps = {
       'fr-x-psaccent': 'ȦƁƇḒḖƑƓĦĪĴĶĿḾȠǾƤɊŘŞŦŬṼẆẊẎẐ[\\]^_`ȧƀƈḓḗƒɠħīĵķŀḿƞǿƥɋřşŧŭṽẇẋẏẑ',
-      'ar-x-psbidi':
-      // XXX Use pɟפ˥ʎ as replacements for ᗡℲ⅁⅂⅄. https://bugzil.la/1007340
-      '∀ԐↃpƎɟפHIſӼ˥WNOԀÒᴚS⊥∩ɅＭXʎZ[\\]ᵥ_,ɐqɔpǝɟƃɥıɾʞʅɯuodbɹsʇnʌʍxʎz'
+      'ar-x-psbidi': '∀ԐↃpƎɟפHIſӼ˥WNOԀÒᴚS⊥∩ɅＭXʎZ[\\]ᵥ_,ɐqɔpǝɟƃɥıɾʞʅɯuodbɹsʇnʌʍxʎz'
     };
 
-    const mods = {
-      'fr-x-psaccent': val => val.replace(reVowels, match => match + match.toLowerCase()),
+    var mods = {
+      'fr-x-psaccent': function (val) {
+        return val.replace(reVowels, function (match) {
+          return match + match.toLowerCase();
+        });
+      },
 
-      // Surround each word with Unicode formatting codes, RLO and PDF:
-      //   U+202E:   RIGHT-TO-LEFT OVERRIDE (RLO)
-      //   U+202C:   POP DIRECTIONAL FORMATTING (PDF)
-      // See http://www.w3.org/International/questions/qa-bidi-controls
-      'ar-x-psbidi': val => val.replace(reWords, match => '‮' + match + '‬')
+      'ar-x-psbidi': function (val) {
+        return val.replace(reWords, function (match) {
+          return '‮' + match + '‬';
+        });
+      }
     };
 
-    // Replace each Latin letter with a Unicode character from map
-    const replaceChars = (map, val) => val.replace(reAlphas, match => map.charAt(match.charCodeAt(0) - 65));
+    var ASCII_LETTER_A = 65;
+    var replaceChars = function (map, val) {
+      return val.replace(reAlphas, function (match) {
+        return map.charAt(match.charCodeAt(0) - ASCII_LETTER_A);
+      });
+    };
 
-    const transform = val => replaceChars(charMaps[id], mods[id](val));
+    var transform = function (val) {
+      return replaceChars(charMaps[id], mods[id](val));
+    };
 
-    // apply fn to translatable parts of val
-    const apply = (fn, val) => {
+    var apply = function (fn, val) {
       if (!val) {
         return val;
       }
 
-      const parts = val.split(reExcluded);
-      const modified = parts.map(function (part) {
+      var parts = val.split(reExcluded);
+      var modified = parts.map(function (part) {
         if (reExcluded.test(part)) {
           return part;
         }
@@ -160,12 +134,14 @@ function createGetter(id, name) {
 
     return _pseudo = {
       name: transform(name),
-      process: str => apply(transform, str)
+      process: function (str) {
+        return apply(transform, str);
+      }
     };
   };
 }
 
-const pseudo$1 = Object.defineProperties(Object.create(null), {
+var pseudo = Object.defineProperties(Object.create(null), {
   'fr-x-psaccent': {
     enumerable: true,
     get: createGetter('fr-x-psaccent', 'Runtime Accented')
@@ -176,14 +152,13 @@ const pseudo$1 = Object.defineProperties(Object.create(null), {
   }
 });
 
-const KNOWN_MACROS$1 = ['plural'];
-const MAX_PLACEABLE_LENGTH$1 = 2500;
+var KNOWN_MACROS$1 = ['plural'];
+var MAX_PLACEABLE_LENGTH$1 = 2500;
 
-// Unicode bidi isolation characters
-const FSI$1 = '⁨';
-const PDI$1 = '⁩';
+var FSI$1 = '⁨';
+var PDI$1 = '⁩';
 
-const resolutionChain$1 = new WeakSet();
+var resolutionChain$1 = new WeakSet();
 
 function format$1(ctx, lang, args, entity) {
   if (typeof entity === 'string') {
@@ -196,10 +171,8 @@ function format$1(ctx, lang, args, entity) {
 
   resolutionChain$1.add(entity);
 
-  let rv;
-  // if format fails, we want the exception to bubble up and stop the whole
-  // resolving process;  however, we still need to remove the entity from the
-  // resolution chain
+  var rv = undefined;
+
   try {
     rv = resolveValue$1({}, ctx, lang, args, entity.value, entity.index);
   } finally {
@@ -221,13 +194,11 @@ function resolveIdentifier$1(ctx, lang, args, id) {
     }
   }
 
-  // XXX: special case for Node.js where still:
-  // '__proto__' in Object.create(null) => true
   if (id === '__proto__') {
     throw new L10nError('Illegal id: ' + id);
   }
 
-  const entity = ctx._getEntity(lang, id);
+  var entity = ctx._getEntity(lang, id);
 
   if (entity) {
     return format$1(ctx, lang, args, entity);
@@ -237,21 +208,24 @@ function resolveIdentifier$1(ctx, lang, args, id) {
 }
 
 function subPlaceable$1(locals, ctx, lang, args, id) {
-  let newLocals, value;
+  var newLocals = undefined,
+      value = undefined;
 
   try {
-    [newLocals, value] = resolveIdentifier$1(ctx, lang, args, id);
+    var _resolveIdentifier$1 = resolveIdentifier$1(ctx, lang, args, id);
+
+    newLocals = _resolveIdentifier$1[0];
+    value = _resolveIdentifier$1[1];
   } catch (err) {
     return [{ error: err }, FSI$1 + '{{ ' + id + ' }}' + PDI$1];
   }
 
   if (typeof value === 'number') {
-    const formatter = ctx._getNumberFormatter(lang);
+    var formatter = ctx._getNumberFormatter(lang);
     return [newLocals, formatter.format(value)];
   }
 
   if (typeof value === 'string') {
-    // prevent Billion Laughs attacks
     if (value.length >= MAX_PLACEABLE_LENGTH$1) {
       throw new L10nError('Too many characters in placeable (' + value.length + ', max allowed is ' + MAX_PLACEABLE_LENGTH$1 + ')');
     }
@@ -262,36 +236,38 @@ function subPlaceable$1(locals, ctx, lang, args, id) {
 }
 
 function interpolate$1(locals, ctx, lang, args, arr) {
-  return arr.reduce(function ([localsSeq, valueSeq], cur) {
+  return arr.reduce(function (_ref2, cur) {
+    var localsSeq = _ref2[0];
+    var valueSeq = _ref2[1];
+
     if (typeof cur === 'string') {
       return [localsSeq, valueSeq + cur];
     } else {
-      const [, value] = subPlaceable$1(locals, ctx, lang, args, cur.name);
-      // wrap the substitution in bidi isolate characters
+      var _subPlaceable$1 = subPlaceable$1(locals, ctx, lang, args, cur.name);
+
+      var value = _subPlaceable$1[1];
+
       return [localsSeq, valueSeq + value];
     }
   }, [locals, '']);
 }
 
 function resolveSelector$1(ctx, lang, args, expr, index) {
-  //XXX: Dehardcode!!!
-  let selectorName;
+  var selectorName = undefined;
   if (index[0].type === 'call' && index[0].expr.type === 'prop' && index[0].expr.expr.name === 'cldr') {
     selectorName = 'plural';
   } else {
     selectorName = index[0].name;
   }
-  const selector = resolveIdentifier$1(ctx, lang, args, selectorName)[1];
+  var selector = resolveIdentifier$1(ctx, lang, args, selectorName)[1];
 
   if (typeof selector !== 'function') {
-    // selector is a simple reference to an entity or args
     return selector;
   }
 
-  const argValue = index[0].args ? resolveIdentifier$1(ctx, lang, args, index[0].args[0].name)[1] : undefined;
+  var argValue = index[0].args ? resolveIdentifier$1(ctx, lang, args, index[0].args[0].name)[1] : undefined;
 
   if (selectorName === 'plural') {
-    // special cases for zero, one, two if they are defined on the hash
     if (argValue === 0 && 'zero' in expr) {
       return 'zero';
     }
@@ -319,18 +295,14 @@ function resolveValue$1(locals, ctx, lang, args, expr, index) {
     return interpolate$1(locals, ctx, lang, args, expr);
   }
 
-  // otherwise, it's a dict
   if (index) {
-    // try to use the index in order to select the right dict member
-    const selector = resolveSelector$1(ctx, lang, args, expr, index);
+    var selector = resolveSelector$1(ctx, lang, args, expr, index);
     if (selector in expr) {
       return resolveValue$1(locals, ctx, lang, args, expr[selector]);
     }
   }
 
-  // if there was no index or no selector was found, try the default
-  // XXX 'other' is an artifact from Gaia
-  const defaultKey = expr.__default || 'other';
+  var defaultKey = expr.__default || 'other';
   if (defaultKey in expr) {
     return resolveValue$1(locals, ctx, lang, args, expr[defaultKey]);
   }
@@ -338,7 +310,7 @@ function resolveValue$1(locals, ctx, lang, args, expr, index) {
   throw new L10nError('Unresolvable value');
 }
 
-const locales2rules = {
+var locales2rules = {
   'af': 3,
   'ak': 4,
   'am': 4,
@@ -511,7 +483,6 @@ const locales2rules = {
   'zu': 3
 };
 
-// utility functions for plural rules methods
 function isIn(n, list) {
   return list.indexOf(n) !== -1;
 }
@@ -519,9 +490,7 @@ function isBetween(n, start, end) {
   return typeof n === typeof start && start <= n && n <= end;
 }
 
-// list of all plural rules methods:
-// map an integer to the plural form name to use
-const pluralRules = {
+var pluralRules = {
   '0': function () {
     return 'other';
   },
@@ -774,8 +743,7 @@ const pluralRules = {
 };
 
 function getPluralRule(code) {
-  // return a function that gives the plural form name for a given integer
-  const index = locales2rules[code.replace(/-.*$/, '')];
+  var index = locales2rules[code.replace(/-.*$/, '')];
   if (!(index in pluralRules)) {
     return function () {
       return 'other';
@@ -784,8 +752,7 @@ function getPluralRule(code) {
   return pluralRules[index];
 }
 
-// Safari 9 and iOS 9 does not support Intl
-const L20nIntl = typeof Intl !== 'undefined' ? Intl : {
+var L20nIntl = typeof Intl !== 'undefined' ? Intl : {
   NumberFormat: function () {
     return {
       format: function (v) {
@@ -795,163 +762,190 @@ const L20nIntl = typeof Intl !== 'undefined' ? Intl : {
   }
 };
 
-let Context = (function () {
+var Context = (function () {
   function Context(env, langs, resIds) {
+    var _this = this;
+
     _classCallCheck(this, Context);
 
     this.langs = langs;
     this.resIds = resIds;
     this.env = env;
-    this.emit = (type, evt) => env.emit(type, evt, this);
+    this.emit = function (type, evt) {
+      return env.emit(type, evt, _this);
+    };
   }
 
-  _createClass(Context, [{
-    key: '_formatTuple',
-    value: function _formatTuple(lang, args, entity, id, key) {
-      try {
-        return format$1(this, lang, args, entity);
-      } catch (err) {
-        err.id = key ? id + '::' + key : id;
-        err.lang = lang;
-        this.emit('resolveerror', err);
-        return [{ error: err }, err.id];
+  Context.prototype._formatTuple = function _formatTuple(lang, args, entity, id, key) {
+    try {
+      return format$1(this, lang, args, entity);
+    } catch (err) {
+      err.id = key ? id + '::' + key : id;
+      err.lang = lang;
+      this.emit('resolveerror', err);
+      return [{ error: err }, err.id];
+    }
+  };
+
+  Context.prototype._formatEntity = function _formatEntity(lang, args, entity, id) {
+    var _formatTuple2 = this._formatTuple(lang, args, entity, id);
+
+    var value = _formatTuple2[1];
+
+    var formatted = {
+      value: value,
+      attrs: null
+    };
+
+    if (entity.attrs) {
+      formatted.attrs = Object.create(null);
+      for (var key in entity.attrs) {
+        var _formatTuple3 = this._formatTuple(lang, args, entity.attrs[key], id, key);
+
+        var attrValue = _formatTuple3[1];
+
+        formatted.attrs[key] = attrValue;
       }
     }
-  }, {
-    key: '_formatEntity',
-    value: function _formatEntity(lang, args, entity, id) {
-      const [, value] = this._formatTuple(lang, args, entity, id);
 
-      const formatted = {
-        value,
-        attrs: null
-      };
+    return formatted;
+  };
 
-      if (entity.attrs) {
-        formatted.attrs = Object.create(null);
-        for (let key in entity.attrs) {
-          /* jshint -W089 */
-          const [, attrValue] = this._formatTuple(lang, args, entity.attrs[key], id, key);
-          formatted.attrs[key] = attrValue;
-        }
+  Context.prototype._formatValue = function _formatValue(lang, args, entity, id) {
+    return this._formatTuple(lang, args, entity, id)[1];
+  };
+
+  Context.prototype.fetch = function fetch() {
+    var _this2 = this;
+
+    var langs = arguments.length <= 0 || arguments[0] === undefined ? this.langs : arguments[0];
+
+    if (langs.length === 0) {
+      return Promise.resolve(langs);
+    }
+
+    return Promise.all(this.resIds.map(function (resId) {
+      return _this2.env._getResource(langs[0], resId);
+    })).then(function () {
+      return langs;
+    });
+  };
+
+  Context.prototype._resolve = function _resolve(langs, keys, formatter, prevResolved) {
+    var _this3 = this;
+
+    var lang = langs[0];
+
+    if (!lang) {
+      return reportMissing.call(this, keys, formatter, prevResolved);
+    }
+
+    var hasUnresolved = false;
+
+    var resolved = keys.map(function (key, i) {
+      if (prevResolved && prevResolved[i] !== undefined) {
+        return prevResolved[i];
       }
 
-      return formatted;
-    }
-  }, {
-    key: '_formatValue',
-    value: function _formatValue(lang, args, entity, id) {
-      return this._formatTuple(lang, args, entity, id)[1];
-    }
-  }, {
-    key: 'fetch',
-    value: function fetch(langs = this.langs) {
-      if (langs.length === 0) {
-        return Promise.resolve(langs);
+      var _ref3 = Array.isArray(key) ? key : [key, undefined];
+
+      var id = _ref3[0];
+      var args = _ref3[1];
+
+      var entity = _this3._getEntity(lang, id);
+
+      if (entity) {
+        return formatter.call(_this3, lang, args, entity, id);
       }
 
-      return Promise.all(this.resIds.map(resId => this.env._getResource(langs[0], resId))).then(() => langs);
-    }
-  }, {
-    key: '_resolve',
-    value: function _resolve(langs, keys, formatter, prevResolved) {
-      const lang = langs[0];
+      _this3.emit('notfounderror', new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
+      hasUnresolved = true;
+    });
 
-      if (!lang) {
-        return reportMissing.call(this, keys, formatter, prevResolved);
+    if (!hasUnresolved) {
+      return resolved;
+    }
+
+    return this.fetch(langs.slice(1)).then(function (nextLangs) {
+      return _this3._resolve(nextLangs, keys, formatter, resolved);
+    });
+  };
+
+  Context.prototype.formatEntities = function formatEntities() {
+    var _this4 = this;
+
+    for (var _len = arguments.length, keys = Array(_len), _key = 0; _key < _len; _key++) {
+      keys[_key] = arguments[_key];
+    }
+
+    return this.fetch().then(function (langs) {
+      return _this4._resolve(langs, keys, _this4._formatEntity);
+    });
+  };
+
+  Context.prototype.formatValues = function formatValues() {
+    var _this5 = this;
+
+    for (var _len2 = arguments.length, keys = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      keys[_key2] = arguments[_key2];
+    }
+
+    return this.fetch().then(function (langs) {
+      return _this5._resolve(langs, keys, _this5._formatValue);
+    });
+  };
+
+  Context.prototype._getEntity = function _getEntity(lang, id) {
+    var cache = this.env.resCache;
+
+    for (var i = 0, resId = undefined; resId = this.resIds[i]; i++) {
+      var resource = cache.get(resId + lang.code + lang.src);
+      if (resource instanceof L10nError) {
+        continue;
       }
-
-      let hasUnresolved = false;
-
-      const resolved = keys.map((key, i) => {
-        if (prevResolved && prevResolved[i] !== undefined) {
-          return prevResolved[i];
-        }
-        const [id, args] = Array.isArray(key) ? key : [key, undefined];
-        const entity = this._getEntity(lang, id);
-
-        if (entity) {
-          return formatter.call(this, lang, args, entity, id);
-        }
-
-        this.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang));
-        hasUnresolved = true;
-      });
-
-      if (!hasUnresolved) {
-        return resolved;
-      }
-
-      return this.fetch(langs.slice(1)).then(nextLangs => this._resolve(nextLangs, keys, formatter, resolved));
-    }
-  }, {
-    key: 'formatEntities',
-    value: function formatEntities(...keys) {
-      return this.fetch().then(langs => this._resolve(langs, keys, this._formatEntity));
-    }
-  }, {
-    key: 'formatValues',
-    value: function formatValues(...keys) {
-      return this.fetch().then(langs => this._resolve(langs, keys, this._formatValue));
-    }
-  }, {
-    key: '_getEntity',
-    value: function _getEntity(lang, id) {
-      const cache = this.env.resCache;
-
-      // Look for `id` in every resource in order.
-      for (let i = 0, resId; resId = this.resIds[i]; i++) {
-        const resource = cache.get(resId + lang.code + lang.src);
-        if (resource instanceof L10nError) {
-          continue;
-        }
-        if (id in resource) {
-          return resource[id];
-        }
-      }
-      return undefined;
-    }
-  }, {
-    key: '_getNumberFormatter',
-    value: function _getNumberFormatter(lang) {
-      if (!this.env.numberFormatters) {
-        this.env.numberFormatters = new Map();
-      }
-      if (!this.env.numberFormatters.has(lang)) {
-        const formatter = L20nIntl.NumberFormat(lang);
-        this.env.numberFormatters.set(lang, formatter);
-        return formatter;
-      }
-      return this.env.numberFormatters.get(lang);
-    }
-  }, {
-    key: '_getMacro',
-
-    // XXX in the future macros will be stored in localization resources together
-    // with regular entities and this method will not be needed anymore
-    value: function _getMacro(lang, id) {
-      switch (id) {
-        case 'plural':
-          return getPluralRule(lang.code);
-        default:
-          return undefined;
+      if (id in resource) {
+        return resource[id];
       }
     }
-  }]);
+    return undefined;
+  };
+
+  Context.prototype._getNumberFormatter = function _getNumberFormatter(lang) {
+    if (!this.env.numberFormatters) {
+      this.env.numberFormatters = new Map();
+    }
+    if (!this.env.numberFormatters.has(lang)) {
+      var formatter = L20nIntl.NumberFormat(lang);
+      this.env.numberFormatters.set(lang, formatter);
+      return formatter;
+    }
+    return this.env.numberFormatters.get(lang);
+  };
+
+  Context.prototype._getMacro = function _getMacro(lang, id) {
+    switch (id) {
+      case 'plural':
+        return getPluralRule(lang.code);
+      default:
+        return undefined;
+    }
+  };
 
   return Context;
 })();
 
 function reportMissing(keys, formatter, resolved) {
-  const missingIds = new Set();
+  var _this6 = this;
 
-  keys.forEach((key, i) => {
+  var missingIds = new Set();
+
+  keys.forEach(function (key, i) {
     if (resolved && resolved[i] !== undefined) {
       return;
     }
-    const id = Array.isArray(key) ? key[0] : key;
+    var id = Array.isArray(key) ? key[0] : key;
     missingIds.add(id);
-    resolved[i] = formatter === this._formatValue ? id : { value: id, attrs: null };
+    resolved[i] = formatter === _this6._formatValue ? id : { value: id, attrs: null };
   });
 
   this.emit('notfounderror', new L10nError('"' + Array.from(missingIds).join(', ') + '"' + ' not found in any language', missingIds));
@@ -1017,7 +1011,8 @@ var PropertiesParser = {
   },
 
   parseEntity: function (id, value, entries) {
-    var name, key;
+    var name = undefined,
+        key = undefined;
 
     var pos = id.indexOf('[');
     if (pos !== -1) {
@@ -1034,7 +1029,7 @@ var PropertiesParser = {
       throw this.error('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
     }
 
-    var attr;
+    var attr = undefined;
     if (nameElements.length > 1) {
       name = nameElements[0];
       attr = nameElements[1];
@@ -1064,7 +1059,7 @@ var PropertiesParser = {
 
     if (attr) {
       if (isSimpleNode) {
-        const val = entries[id];
+        var val = entries[id];
         entries[id] = Object.create(null);
         entries[id].value = val;
       }
@@ -1081,7 +1076,7 @@ var PropertiesParser = {
     if (key) {
       isSimpleNode = false;
       if (typeof root[id] === 'string') {
-        const val = root[id];
+        var val = root[id];
         root[id] = Object.create(null);
         root[id].index = this.parseIndex(val);
         root[id].value = Object.create(null);
@@ -1163,8 +1158,10 @@ var PropertiesParser = {
     }
   },
 
-  error: function (msg, type = 'parsererror') {
-    const err = new L10nError(msg);
+  error: function (msg) {
+    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
+
+    var err = new L10nError(msg);
     if (this.emit) {
       this.emit(type, err);
     }
@@ -1172,7 +1169,7 @@ var PropertiesParser = {
   }
 };
 
-const MAX_PLACEABLES$1 = 100;
+var MAX_PLACEABLES$1 = 100;
 
 var L20nParser = {
   parse: function (emit, string) {
@@ -1192,7 +1189,6 @@ var L20nParser = {
         this.getEntry();
       } catch (e) {
         if (e instanceof L10nError) {
-          // we want to recover, but we don't need it in entries
           this.getJunkEntry();
           if (!this.emit) {
             throw e;
@@ -1213,7 +1209,7 @@ var L20nParser = {
   getEntry: function () {
     if (this._source[this._index] === '<') {
       ++this._index;
-      const id = this.getIdentifier();
+      var id = this.getIdentifier();
       if (this._source[this._index] === '[') {
         ++this._index;
         return this.getEntity(id, this.getItemList(this.getExpression, ']'));
@@ -1233,10 +1229,10 @@ var L20nParser = {
       throw this.error('Expected white space');
     }
 
-    const ch = this._source[this._index];
-    const hasIndex = index !== undefined;
-    const value = this.getValue(ch, hasIndex, hasIndex);
-    let attrs;
+    var ch = this._source[this._index];
+    var hasIndex = index !== undefined;
+    var value = this.getValue(ch, hasIndex, hasIndex);
+    var attrs = undefined;
 
     if (value === undefined) {
       if (ch === '>') {
@@ -1244,7 +1240,7 @@ var L20nParser = {
       }
       attrs = this.getAttributes();
     } else {
-      const ws1 = this.getRequiredWS();
+      var ws1 = this.getRequiredWS();
       if (this._source[this._index] !== '>') {
         if (!ws1) {
           throw this.error('Expected ">"');
@@ -1253,7 +1249,6 @@ var L20nParser = {
       }
     }
 
-    // skip '>'
     ++this._index;
 
     if (id in this.entries) {
@@ -1263,14 +1258,18 @@ var L20nParser = {
       this.entries[id] = value;
     } else {
       this.entries[id] = {
-        value,
-        attrs,
-        index
+        value: value,
+        attrs: attrs,
+        index: index
       };
     }
   },
 
-  getValue: function (ch = this._source[this._index], index = false, required = true) {
+  getValue: function () {
+    var ch = arguments.length <= 0 || arguments[0] === undefined ? this._source[this._index] : arguments[0];
+    var index = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+    var required = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
     switch (ch) {
       case '\'':
       case '"':
@@ -1283,21 +1282,21 @@ var L20nParser = {
       throw this.error('Unknown value type');
     }
 
-    return;
+    return undefined;
   },
 
   getWS: function () {
-    let cc = this._source.charCodeAt(this._index);
-    // space, \n, \t, \r
+    var cc = this._source.charCodeAt(this._index);
+
     while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
       cc = this._source.charCodeAt(++this._index);
     }
   },
 
   getRequiredWS: function () {
-    const pos = this._index;
-    let cc = this._source.charCodeAt(pos);
-    // space, \n, \t, \r
+    var pos = this._index;
+    var cc = this._source.charCodeAt(pos);
+
     while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
       cc = this._source.charCodeAt(++this._index);
     }
@@ -1305,20 +1304,16 @@ var L20nParser = {
   },
 
   getIdentifier: function () {
-    const start = this._index;
-    let cc = this._source.charCodeAt(this._index);
+    var start = this._index;
+    var cc = this._source.charCodeAt(this._index);
 
-    if (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || // A-Z
-    cc === 95) {
-      // _
+    if (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc === 95) {
       cc = this._source.charCodeAt(++this._index);
     } else {
       throw this.error('Identifier has to start with [a-zA-Z_]');
     }
 
-    while (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc >= 48 && cc <= 57 || // 0-9
-    cc === 95) {
-      // _
+    while (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc >= 48 && cc <= 57 || cc === 95) {
       cc = this._source.charCodeAt(++this._index);
     }
 
@@ -1326,10 +1321,9 @@ var L20nParser = {
   },
 
   getUnicodeChar: function () {
-    for (let i = 0; i < 4; i++) {
-      let cc = this._source.charCodeAt(++this._index);
+    for (var i = 0; i < 4; i++) {
+      var cc = this._source.charCodeAt(++this._index);
       if (cc > 96 && cc < 103 || cc > 64 && cc < 71 || cc > 47 && cc < 58) {
-        // 0-9
         continue;
       }
       throw this.error('Illegal unicode escape sequence');
@@ -1340,18 +1334,18 @@ var L20nParser = {
 
   stringRe: /"|'|{{|\\/g,
   getString: function (opchar, opcharLen) {
-    const body = [];
-    let placeables = 0;
+    var body = [];
+    var placeables = 0;
 
     this._index += opcharLen;
-    const start = this._index;
+    var start = this._index;
 
-    let bufStart = start;
-    let buf = '';
+    var bufStart = start;
+    var buf = '';
 
     while (true) {
       this.stringRe.lastIndex = this._index;
-      const match = this.stringRe.exec(this._source);
+      var match = this.stringRe.exec(this._source);
 
       if (!match) {
         throw this.error('Unclosed string literal');
@@ -1386,7 +1380,7 @@ var L20nParser = {
 
       if (match[0] === '\\') {
         this._index = match.index + 1;
-        const ch2 = this._source[this._index];
+        var ch2 = this._source[this._index];
         if (ch2 === 'u') {
           buf += this._source.slice(bufStart, match.index) + this.getUnicodeChar();
         } else if (ch2 === opchar || ch2 === '\\') {
@@ -1414,12 +1408,12 @@ var L20nParser = {
   },
 
   getAttributes: function () {
-    const attrs = Object.create(null);
+    var attrs = Object.create(null);
 
     while (true) {
       this.getAttribute(attrs);
-      const ws1 = this.getRequiredWS();
-      const ch = this._source.charAt(this._index);
+      var ws1 = this.getRequiredWS();
+      var ch = this._source.charAt(this._index);
       if (ch === '>') {
         break;
       } else if (!ws1) {
@@ -1430,8 +1424,8 @@ var L20nParser = {
   },
 
   getAttribute: function (attrs) {
-    const key = this.getIdentifier();
-    let index;
+    var key = this.getIdentifier();
+    var index = undefined;
 
     if (this._source[this._index] === '[') {
       ++this._index;
@@ -1444,8 +1438,8 @@ var L20nParser = {
     }
     ++this._index;
     this.getWS();
-    const hasIndex = index !== undefined;
-    const value = this.getValue(undefined, hasIndex);
+    var hasIndex = index !== undefined;
+    var value = this.getValue(undefined, hasIndex);
 
     if (key in attrs) {
       throw this.error('Duplicate attribute "' + key, 'duplicateerror');
@@ -1455,22 +1449,27 @@ var L20nParser = {
       attrs[key] = value;
     } else {
       attrs[key] = {
-        value,
-        index
+        value: value,
+        index: index
       };
     }
   },
 
   getHash: function (index) {
-    const items = Object.create(null);
+    var items = Object.create(null);
 
     ++this._index;
     this.getWS();
 
-    let defKey;
+    var defKey = undefined;
 
     while (true) {
-      const [key, value, def] = this.getHashItem();
+      var _getHashItem = this.getHashItem();
+
+      var key = _getHashItem[0];
+      var value = _getHashItem[1];
+      var def = _getHashItem[2];
+
       items[key] = value;
 
       if (def) {
@@ -1481,7 +1480,7 @@ var L20nParser = {
       }
       this.getWS();
 
-      const comma = this._source[this._index] === ',';
+      var comma = this._source[this._index] === ',';
       if (comma) {
         ++this._index;
         this.getWS();
@@ -1505,13 +1504,13 @@ var L20nParser = {
   },
 
   getHashItem: function () {
-    let defItem = false;
+    var defItem = false;
     if (this._source[this._index] === '*') {
       ++this._index;
       defItem = true;
     }
 
-    const key = this.getIdentifier();
+    var key = this.getIdentifier();
     this.getWS();
     if (this._source[this._index] !== ':') {
       throw this.error('Expected ":"');
@@ -1524,8 +1523,8 @@ var L20nParser = {
 
   getComment: function () {
     this._index += 2;
-    const start = this._index;
-    const end = this._source.indexOf('*/', start);
+    var start = this._index;
+    var end = this._source.indexOf('*/', start);
 
     if (end === -1) {
       throw this.error('Comment without a closing tag');
@@ -1535,10 +1534,10 @@ var L20nParser = {
   },
 
   getExpression: function () {
-    let exp = this.getPrimaryExpression();
+    var exp = this.getPrimaryExpression();
 
     while (true) {
-      let ch = this._source[this._index];
+      var ch = this._source[this._index];
       if (ch === '.' || ch === '[') {
         ++this._index;
         exp = this.getPropertyExpression(exp, ch === '[');
@@ -1554,7 +1553,7 @@ var L20nParser = {
   },
 
   getPropertyExpression: function (idref, computed) {
-    let exp;
+    var exp = undefined;
 
     if (computed) {
       this.getWS();
@@ -1587,7 +1586,7 @@ var L20nParser = {
   },
 
   getPrimaryExpression: function () {
-    const ch = this._source[this._index];
+    var ch = this._source[this._index];
 
     switch (ch) {
       case '$':
@@ -1611,8 +1610,8 @@ var L20nParser = {
   },
 
   getItemList: function (callback, closeChar) {
-    const items = [];
-    let closed = false;
+    var items = [];
+    var closed = false;
 
     this.getWS();
 
@@ -1624,7 +1623,7 @@ var L20nParser = {
     while (!closed) {
       items.push(callback.call(this));
       this.getWS();
-      let ch = this._source.charAt(this._index);
+      var ch = this._source.charAt(this._index);
       switch (ch) {
         case ',':
           ++this._index;
@@ -1643,9 +1642,9 @@ var L20nParser = {
   },
 
   getJunkEntry: function () {
-    const pos = this._index;
-    let nextEntity = this._source.indexOf('<', pos);
-    let nextComment = this._source.indexOf('/*', pos);
+    var pos = this._index;
+    var nextEntity = this._source.indexOf('<', pos);
+    var nextComment = this._source.indexOf('/*', pos);
 
     if (nextEntity === -1) {
       nextEntity = this._length;
@@ -1654,21 +1653,23 @@ var L20nParser = {
       nextComment = this._length;
     }
 
-    let nextEntry = Math.min(nextEntity, nextComment);
+    var nextEntry = Math.min(nextEntity, nextComment);
 
     this._index = nextEntry;
   },
 
-  error: function (message, type = 'parsererror') {
-    const pos = this._index;
+  error: function (message) {
+    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
 
-    let start = this._source.lastIndexOf('<', pos - 1);
-    const lastClose = this._source.lastIndexOf('>', pos - 1);
+    var pos = this._index;
+
+    var start = this._source.lastIndexOf('<', pos - 1);
+    var lastClose = this._source.lastIndexOf('>', pos - 1);
     start = lastClose > start ? lastClose + 1 : start;
-    const context = this._source.slice(start, pos + 10);
+    var context = this._source.slice(start, pos + 10);
 
-    const msg = message + ' at pos ' + pos + ': `' + context + '`';
-    const err = new L10nError(msg);
+    var msg = message + ' at pos ' + pos + ': `' + context + '`';
+    var err = new L10nError(msg);
     if (this.emit) {
       this.emit(type, err);
     }
@@ -1676,15 +1677,25 @@ var L20nParser = {
   }
 };
 
-function emit(listeners, ...args) {
-  const type = args.shift();
+function emit(listeners) {
+  var _this7 = this;
+
+  for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    args[_key3 - 1] = arguments[_key3];
+  }
+
+  var type = args.shift();
 
   if (listeners['*']) {
-    listeners['*'].slice().forEach(listener => listener.apply(this, args));
+    listeners['*'].slice().forEach(function (listener) {
+      return listener.apply(_this7, args);
+    });
   }
 
   if (listeners[type]) {
-    listeners[type].slice().forEach(listener => listener.apply(this, args));
+    listeners[type].slice().forEach(function (listener) {
+      return listener.apply(_this7, args);
+    });
   }
 }
 
@@ -1696,8 +1707,8 @@ function addEventListener(listeners, type, listener) {
 }
 
 function removeEventListener(listeners, type, listener) {
-  const typeListeners = listeners[type];
-  const pos = typeListeners.indexOf(listener);
+  var typeListeners = listeners[type];
+  var pos = typeListeners.indexOf(listener);
   if (pos === -1) {
     return;
   }
@@ -1705,7 +1716,7 @@ function removeEventListener(listeners, type, listener) {
   typeListeners.splice(pos, 1);
 }
 
-let Env = (function () {
+var Env = (function () {
   function Env(fetchResource) {
     _classCallCheck(this, Env);
 
@@ -1719,93 +1730,98 @@ let Env = (function () {
       l20n: L20nParser
     };
 
-    const listeners = {};
+    var listeners = {};
     this.emit = emit.bind(this, listeners);
     this.addEventListener = addEventListener.bind(this, listeners);
     this.removeEventListener = removeEventListener.bind(this, listeners);
   }
 
-  _createClass(Env, [{
-    key: 'createContext',
-    value: function createContext(langs, resIds) {
-      const ctx = new Context(this, langs, resIds);
-      resIds.forEach(resId => {
-        const usedBy = this.resRefs.get(resId) || 0;
-        this.resRefs.set(resId, usedBy + 1);
+  Env.prototype.createContext = function createContext(langs, resIds) {
+    var _this8 = this;
+
+    var ctx = new Context(this, langs, resIds);
+    resIds.forEach(function (resId) {
+      var usedBy = _this8.resRefs.get(resId) || 0;
+      _this8.resRefs.set(resId, usedBy + 1);
+    });
+
+    return ctx;
+  };
+
+  Env.prototype.destroyContext = function destroyContext(ctx) {
+    var _this9 = this;
+
+    ctx.resIds.forEach(function (resId) {
+      var usedBy = _this9.resRefs.get(resId) || 0;
+
+      if (usedBy > 1) {
+        return _this9.resRefs.set(resId, usedBy - 1);
+      }
+
+      _this9.resRefs.delete(resId);
+      _this9.resCache.forEach(function (val, key) {
+        return key.startsWith(resId) ? _this9.resCache.delete(key) : null;
       });
+    });
+  };
 
-      return ctx;
+  Env.prototype._parse = function _parse(syntax, lang, data) {
+    var _this10 = this;
+
+    var parser = this.parsers[syntax];
+    if (!parser) {
+      return data;
     }
-  }, {
-    key: 'destroyContext',
-    value: function destroyContext(ctx) {
-      ctx.resIds.forEach(resId => {
-        const usedBy = this.resRefs.get(resId) || 0;
 
-        if (usedBy > 1) {
-          return this.resRefs.set(resId, usedBy - 1);
-        }
+    var emitAndAmend = function (type, err) {
+      return _this10.emit(type, amendError$1(lang, err));
+    };
+    return parser.parse(emitAndAmend, data);
+  };
 
-        this.resRefs.delete(resId);
-        this.resCache.forEach((val, key) => key.startsWith(resId) ? this.resCache.delete(key) : null);
-      });
+  Env.prototype._create = function _create(lang, entries) {
+    if (lang.src !== 'pseudo') {
+      return entries;
     }
-  }, {
-    key: '_parse',
-    value: function _parse(syntax, lang, data) {
-      const parser = this.parsers[syntax];
-      if (!parser) {
-        return data;
-      }
 
-      const emit = (type, err) => this.emit(type, amendError$1(lang, err));
-      return parser.parse.call(parser, emit, data);
+    var pseudoentries = Object.create(null);
+    for (var key in entries) {
+      pseudoentries[key] = walkEntry(entries[key], pseudo[lang.code].process);
     }
-  }, {
-    key: '_create',
-    value: function _create(lang, entries) {
-      if (lang.src !== 'pseudo') {
-        return entries;
-      }
+    return pseudoentries;
+  };
 
-      const pseudoentries = Object.create(null);
-      for (let key in entries) {
-        pseudoentries[key] = walkEntry(entries[key], pseudo$1[lang.code].process);
-      }
-      return pseudoentries;
+  Env.prototype._getResource = function _getResource(lang, res) {
+    var _this11 = this;
+
+    var cache = this.resCache;
+    var id = res + lang.code + lang.src;
+
+    if (cache.has(id)) {
+      return cache.get(id);
     }
-  }, {
-    key: '_getResource',
-    value: function _getResource(lang, res) {
-      const cache = this.resCache;
-      const id = res + lang.code + lang.src;
 
-      if (cache.has(id)) {
-        return cache.get(id);
-      }
+    var syntax = res.substr(res.lastIndexOf('.') + 1);
 
-      const syntax = res.substr(res.lastIndexOf('.') + 1);
+    var saveEntries = function (data) {
+      var entries = _this11._parse(syntax, lang, data);
+      cache.set(id, _this11._create(lang, entries));
+    };
 
-      const saveEntries = data => {
-        const entries = this._parse(syntax, lang, data);
-        cache.set(id, this._create(lang, entries));
-      };
+    var recover = function (err) {
+      err.lang = lang;
+      _this11.emit('fetcherror', err);
+      cache.set(id, err);
+    };
 
-      const recover = err => {
-        err.lang = lang;
-        this.emit('fetcherror', err);
-        cache.set(id, err);
-      };
+    var langToFetch = lang.src === 'pseudo' ? { code: 'en-US', src: 'app', ver: lang.ver } : lang;
 
-      const langToFetch = lang.src === 'pseudo' ? { code: 'en-US', src: 'app', ver: lang.ver } : lang;
+    var resource = this.fetchResource(res, langToFetch).then(saveEntries, recover);
 
-      const resource = this.fetchResource(res, langToFetch).then(saveEntries, recover);
+    cache.set(id, resource);
 
-      cache.set(id, resource);
-
-      return resource;
-    }
-  }]);
+    return resource;
+  };
 
   return Env;
 })();
@@ -1815,30 +1831,26 @@ function amendError$1(lang, err) {
   return err;
 }
 
-const KNOWN_MACROS = ['plural'];
-const MAX_PLACEABLE_LENGTH = 2500;
+var KNOWN_MACROS = ['plural'];
+var MAX_PLACEABLE_LENGTH = 2500;
 
-// Matches characters outside of the Latin-1 character set
-const nonLatin1 = /[^\x01-\xFF]/;
+var nonLatin1 = /[^\x01-\xFF]/;
 
-// Unicode bidi isolation characters
-const FSI = '⁨';
-const PDI = '⁩';
+var FSI = '⁨';
+var PDI = '⁩';
 
-const resolutionChain = new WeakSet();
+var resolutionChain = new WeakSet();
 
 function createEntry(node) {
-  const keys = Object.keys(node);
+  var keys = Object.keys(node);
 
-  // the most common scenario: a simple string with no arguments
   if (typeof node.$v === 'string' && keys.length === 2) {
     return node.$v;
   }
 
-  let attrs;
+  var attrs = undefined;
 
-  for (let i = 0, key; key = keys[i]; i++) {
-    // skip $i (id), $v (value), $x (index)
+  for (var i = 0, key = undefined; key = keys[i]; i++) {
     if (key[0] === '$') {
       continue;
     }
@@ -1878,10 +1890,8 @@ function format(ctx, lang, args, entity) {
 
   resolutionChain.add(entity);
 
-  let rv;
-  // if format fails, we want the exception to bubble up and stop the whole
-  // resolving process;  however, we still need to remove the entity from the
-  // resolution chain
+  var rv = undefined;
+
   try {
     rv = resolveValue({}, ctx, lang, args, entity.value, entity.index);
   } finally {
@@ -1903,13 +1913,11 @@ function resolveIdentifier(ctx, lang, args, id) {
     }
   }
 
-  // XXX: special case for Node.js where still:
-  // '__proto__' in Object.create(null) => true
   if (id === '__proto__') {
     throw new L10nError('Illegal id: ' + id);
   }
 
-  const entity = ctx._getEntity(lang, id);
+  var entity = ctx._getEntity(lang, id);
 
   if (entity) {
     return format(ctx, lang, args, entity);
@@ -1919,7 +1927,7 @@ function resolveIdentifier(ctx, lang, args, id) {
 }
 
 function subPlaceable(locals, ctx, lang, args, id) {
-  let res;
+  var res = undefined;
 
   try {
     res = resolveIdentifier(ctx, lang, args, id);
@@ -1927,22 +1935,18 @@ function subPlaceable(locals, ctx, lang, args, id) {
     return [{ error: err }, '{{ ' + id + ' }}'];
   }
 
-  const value = res[1];
+  var value = res[1];
 
   if (typeof value === 'number') {
     return res;
   }
 
   if (typeof value === 'string') {
-    // prevent Billion Laughs attacks
     if (value.length >= MAX_PLACEABLE_LENGTH) {
       throw new L10nError('Too many characters in placeable (' + value.length + ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
     }
 
     if (locals.contextIsNonLatin1 || value.match(nonLatin1)) {
-      // When dealing with non-Latin-1 text
-      // we wrap substitutions in bidi isolate characters
-      // to avoid bidi issues.
       res[1] = FSI + value + PDI;
     }
 
@@ -1953,29 +1957,33 @@ function subPlaceable(locals, ctx, lang, args, id) {
 }
 
 function interpolate(locals, ctx, lang, args, arr) {
-  return arr.reduce(function ([localsSeq, valueSeq], cur) {
+  return arr.reduce(function (_ref4, cur) {
+    var localsSeq = _ref4[0];
+    var valueSeq = _ref4[1];
+
     if (typeof cur === 'string') {
       return [localsSeq, valueSeq + cur];
     } else if (cur.t === 'idOrVar') {
-      const [, value] = subPlaceable(locals, ctx, lang, args, cur.v);
+      var _subPlaceable = subPlaceable(locals, ctx, lang, args, cur.v);
+
+      var value = _subPlaceable[1];
+
       return [localsSeq, valueSeq + value];
     }
   }, [locals, '']);
 }
 
 function resolveSelector(ctx, lang, args, expr, index) {
-  const selectorName = index[0].v;
-  const selector = resolveIdentifier(ctx, lang, args, selectorName)[1];
+  var selectorName = index[0].v;
+  var selector = resolveIdentifier(ctx, lang, args, selectorName)[1];
 
   if (typeof selector !== 'function') {
-    // selector is a simple reference to an entity or args
     return selector;
   }
 
-  const argValue = index[1] ? resolveIdentifier(ctx, lang, args, index[1])[1] : undefined;
+  var argValue = index[1] ? resolveIdentifier(ctx, lang, args, index[1])[1] : undefined;
 
   if (selectorName === 'plural') {
-    // special cases for zero, one, two if they are defined on the hash
     if (argValue === 0 && 'zero' in expr) {
       return 'zero';
     }
@@ -2006,16 +2014,13 @@ function resolveValue(locals, ctx, lang, args, expr, index) {
     return interpolate(locals, ctx, lang, args, expr);
   }
 
-  // otherwise, it's a dict
   if (index) {
-    // try to use the index in order to select the right dict member
-    const selector = resolveSelector(ctx, lang, args, expr, index);
+    var selector = resolveSelector(ctx, lang, args, expr, index);
     if (expr.hasOwnProperty(selector)) {
       return resolveValue(locals, ctx, lang, args, expr[selector]);
     }
   }
 
-  // if there was no index or no selector was found, try 'other'
   if ('other' in expr) {
     return resolveValue(locals, ctx, lang, args, expr.other);
   }
@@ -2099,7 +2104,8 @@ var PropertiesParser$1 = {
   },
 
   parseEntity: function (id, value, ast) {
-    var name, key;
+    var name = undefined,
+        key = undefined;
 
     var pos = id.indexOf('[');
     if (pos !== -1) {
@@ -2116,7 +2122,7 @@ var PropertiesParser$1 = {
       throw new L10nError('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
     }
 
-    var attr;
+    var attr = undefined;
     if (nameElements.length > 1) {
       name = nameElements[0];
       attr = nameElements[1];
@@ -2132,7 +2138,8 @@ var PropertiesParser$1 = {
   },
 
   setEntityValue: function (id, attr, key, rawValue, ast) {
-    var pos, v;
+    var pos = undefined,
+        v = undefined;
 
     var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
 
@@ -2164,7 +2171,6 @@ var PropertiesParser$1 = {
       return;
     }
 
-    // Hash value
     if (key) {
       pos = this.entryIds[id];
       if (pos === undefined) {
@@ -2182,7 +2188,6 @@ var PropertiesParser$1 = {
       return;
     }
 
-    // simple value
     ast.push({ $i: id, $v: value });
     this.entryIds[id] = ast.length - 1;
   },
@@ -2233,7 +2238,6 @@ var PropertiesParser$1 = {
   }
 };
 
-// Recursively walk an AST node searching for content leaves
 function walkContent(node, fn) {
   if (typeof node === 'string') {
     return fn(node);
@@ -2243,11 +2247,10 @@ function walkContent(node, fn) {
     return node;
   }
 
-  const rv = Array.isArray(node) ? [] : {};
-  const keys = Object.keys(node);
+  var rv = Array.isArray(node) ? [] : {};
+  var keys = Object.keys(node);
 
-  for (let i = 0, key; key = keys[i]; i++) {
-    // don't change identifier ($i) nor indices ($x)
+  for (var i = 0, key = undefined; key = keys[i]; i++) {
     if (key === '$i' || key === '$x') {
       rv[key] = node[key];
     } else {
@@ -2257,8 +2260,6 @@ function walkContent(node, fn) {
   return rv;
 }
 
-// XXX babel's inheritance code triggers JavaScript warnings about modifying
-// the prototype object so we use regular prototypal inheritance here
 function LegacyEnv(fetchResource) {
   Env.call(this, fetchResource);
   this.parsers = {
@@ -2273,11 +2274,11 @@ LegacyEnv.prototype.createContext = function (langs, resIds) {
 };
 
 LegacyEnv.prototype._create = function (lang, ast) {
-  const entries = Object.create(null);
-  const create = lang.src === 'pseudo' ? createPseudoEntry : createEntry;
+  var entries = Object.create(null);
+  var create = lang.src === 'pseudo' ? createPseudoEntry : createEntry;
 
-  for (let i = 0, node; node = ast[i]; i++) {
-    const id = node.$i;
+  for (var i = 0, node = undefined; node = ast[i]; i++) {
+    var id = node.$i;
     if (id in entries) {
       this.emit('duplicateerror', new L10nError('Duplicate string "' + id + '" found in ' + lang.code, id, lang));
     }
@@ -2288,10 +2289,10 @@ LegacyEnv.prototype._create = function (lang, ast) {
 };
 
 function createPseudoEntry(node, lang) {
-  return createEntry(walkContent(node, pseudo$1[lang.code].process));
+  return createEntry(walkContent(node, pseudo[lang.code].process));
 }
 
-const observerConfig = {
+var observerConfig = {
   attributes: true,
   characterData: false,
   childList: true,
@@ -2299,38 +2300,40 @@ const observerConfig = {
   attributeFilter: ['data-l10n-id', 'data-l10n-args']
 };
 
-const observers = new WeakMap();
+var observers = new WeakMap();
 
 function disconnect(view, root, allRoots) {
-  const obs = observers.get(view);
+  var obs = observers.get(view);
   if (obs) {
     obs.observer.disconnect();
     if (allRoots) {
       return;
     }
     obs.roots.delete(root);
-    obs.roots.forEach(other => obs.observer.observe(other, observerConfig));
+    obs.roots.forEach(function (other) {
+      return obs.observer.observe(other, observerConfig);
+    });
   }
 }
 
 function reconnect(view) {
-  const obs = observers.get(view);
+  var obs = observers.get(view);
   if (obs) {
-    obs.roots.forEach(root => obs.observer.observe(root, observerConfig));
+    obs.roots.forEach(function (root) {
+      return obs.observer.observe(root, observerConfig);
+    });
   }
 }
 
-// match the opening angle bracket (<) in HTML tags, and HTML entities like
-// &amp;, &#0038;, &#x0026;.
-const reOverlay = /<|&#?\w+;/;
+var reOverlay = /<|&#?\w+;/;
 
-const allowed = {
+var allowed = {
   elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
   attributes: {
     global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
     a: ['download'],
     area: ['download', 'alt'],
-    // value is special-cased in isAttrAllowed
+
     input: ['alt', 'placeholder'],
     menuitem: ['label'],
     menu: ['label'],
@@ -2344,47 +2347,33 @@ const allowed = {
 };
 
 function overlayElement(element, translation) {
-  const value = translation.value;
+  var value = translation.value;
 
   if (typeof value === 'string') {
     if (!reOverlay.test(value)) {
       element.textContent = value;
     } else {
-      // start with an inert template element and move its children into
-      // `element` but such that `element`'s own children are not replaced
-      const tmpl = element.ownerDocument.createElement('template');
+      var tmpl = element.ownerDocument.createElement('template');
       tmpl.innerHTML = value;
-      // overlay the node with the DocumentFragment
+
       overlay(element, tmpl.content);
     }
   }
 
-  for (let key in translation.attrs) {
-    const attrName = camelCaseToDashed(key);
+  for (var key in translation.attrs) {
+    var attrName = camelCaseToDashed(key);
     if (isAttrAllowed({ name: attrName }, element)) {
       element.setAttribute(attrName, translation.attrs[key]);
     }
   }
 }
 
-// The goal of overlay is to move the children of `translationElement`
-// into `sourceElement` such that `sourceElement`'s own children are not
-// replaced, but onle have their text nodes and their attributes modified.
-//
-// We want to make it possible for localizers to apply text-level semantics to
-// the translations and make use of HTML entities. At the same time, we
-// don't trust translations so we need to filter unsafe elements and
-// attribtues out and we don't want to break the Web by replacing elements to
-// which third-party code might have created references (e.g. two-way
-// bindings in MVC frameworks).
 function overlay(sourceElement, translationElement) {
-  const result = translationElement.ownerDocument.createDocumentFragment();
-  let k, attr;
+  var result = translationElement.ownerDocument.createDocumentFragment();
+  var k = undefined,
+      attr = undefined;
 
-  // take one node from translationElement at a time and check it against
-  // the allowed list or try to match it with a corresponding element
-  // in the source
-  let childElement;
+  var childElement = undefined;
   while (childElement = translationElement.childNodes[0]) {
     translationElement.removeChild(childElement);
 
@@ -2393,35 +2382,27 @@ function overlay(sourceElement, translationElement) {
       continue;
     }
 
-    const index = getIndexOfType(childElement);
-    const sourceChild = getNthElementOfType(sourceElement, childElement, index);
+    var index = getIndexOfType(childElement);
+    var sourceChild = getNthElementOfType(sourceElement, childElement, index);
     if (sourceChild) {
-      // there is a corresponding element in the source, let's use it
       overlay(sourceChild, childElement);
       result.appendChild(sourceChild);
       continue;
     }
 
     if (isElementAllowed(childElement)) {
-      const sanitizedChild = childElement.ownerDocument.createElement(childElement.nodeName);
+      var sanitizedChild = childElement.ownerDocument.createElement(childElement.nodeName);
       overlay(sanitizedChild, childElement);
       result.appendChild(sanitizedChild);
       continue;
     }
 
-    // otherwise just take this child's textContent
     result.appendChild(translationElement.ownerDocument.createTextNode(childElement.textContent));
   }
 
-  // clear `sourceElement` and append `result` which by this time contains
-  // `sourceElement`'s original children, overlayed with translation
   sourceElement.textContent = '';
   sourceElement.appendChild(result);
 
-  // if we're overlaying a nested element, translate the allowed
-  // attributes; top-level attributes are handled in `translateElement`
-  // XXX attributes previously set here for another language should be
-  // cleared if a new language doesn't use them; https://bugzil.la/922577
   if (translationElement.attributes) {
     for (k = 0, attr; attr = translationElement.attributes[k]; k++) {
       if (isAttrAllowed(attr, sourceElement)) {
@@ -2431,30 +2412,28 @@ function overlay(sourceElement, translationElement) {
   }
 }
 
-// XXX the allowed list should be amendable; https://bugzil.la/922573
 function isElementAllowed(element) {
   return allowed.elements.indexOf(element.tagName.toLowerCase()) !== -1;
 }
 
 function isAttrAllowed(attr, element) {
-  const attrName = attr.name.toLowerCase();
-  const tagName = element.tagName.toLowerCase();
-  // is it a globally safe attribute?
+  var attrName = attr.name.toLowerCase();
+  var tagName = element.tagName.toLowerCase();
+
   if (allowed.attributes.global.indexOf(attrName) !== -1) {
     return true;
   }
-  // are there no allowed attributes for this element?
+
   if (!allowed.attributes[tagName]) {
     return false;
   }
-  // is it allowed on this element?
-  // XXX the allowed list should be amendable; https://bugzil.la/922573
+
   if (allowed.attributes[tagName].indexOf(attrName) !== -1) {
     return true;
   }
-  // special case for value on inputs with type button, reset, submit
+
   if (tagName === 'input' && attrName === 'value') {
-    const type = element.type.toLowerCase();
+    var type = element.type.toLowerCase();
     if (type === 'submit' || type === 'button' || type === 'reset') {
       return true;
     }
@@ -2462,14 +2441,9 @@ function isAttrAllowed(attr, element) {
   return false;
 }
 
-// Get n-th immediate child of context that is of the same type as element.
-// XXX Use querySelector(':scope > ELEMENT:nth-of-type(index)'), when:
-// 1) :scope is widely supported in more browsers and 2) it works with
-// DocumentFragments.
 function getNthElementOfType(context, element, index) {
-  /* jshint boss:true */
-  let nthOfType = 0;
-  for (let i = 0, child; child = context.children[i]; i++) {
+  var nthOfType = 0;
+  for (var i = 0, child = undefined; child = context.children[i]; i++) {
     if (child.nodeType === child.ELEMENT_NODE && child.tagName === element.tagName) {
       if (nthOfType === index) {
         return child;
@@ -2480,10 +2454,9 @@ function getNthElementOfType(context, element, index) {
   return null;
 }
 
-// Get the index of the element among siblings of the same type.
 function getIndexOfType(element) {
-  let index = 0;
-  let child;
+  var index = 0;
+  var child = undefined;
   while (child = element.previousElementSibling) {
     if (child.tagName === element.tagName) {
       index++;
@@ -2493,7 +2466,6 @@ function getIndexOfType(element) {
 }
 
 function camelCaseToDashed(string) {
-  // XXX workaround for https://bugzil.la/1141934
   if (string === 'ariaValueText') {
     return 'aria-valuetext';
   }
@@ -2503,15 +2475,15 @@ function camelCaseToDashed(string) {
   }).replace(/^-/, '');
 }
 
-const reHtml = /[&<>]/g;
-const htmlEntities = {
+var reHtml = /[&<>]/g;
+var htmlEntities = {
   '&': '&amp;',
   '<': '&lt;',
   '>': '&gt;'
 };
 
 function getTranslatables(element) {
-  const nodes = Array.from(element.querySelectorAll('[data-l10n-id]'));
+  var nodes = Array.from(element.querySelectorAll('[data-l10n-id]'));
 
   if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
     nodes.push(element);
@@ -2525,58 +2497,72 @@ function translateFragment(view, frag) {
 }
 
 function getElementsTranslation(view, elems) {
-  const keys = elems.map(elem => {
-    const id = elem.getAttribute('data-l10n-id');
-    const args = elem.getAttribute('data-l10n-args');
-    return args ? [id, JSON.parse(args.replace(reHtml, match => htmlEntities[match]))] : id;
+  var keys = elems.map(function (elem) {
+    var id = elem.getAttribute('data-l10n-id');
+    var args = elem.getAttribute('data-l10n-args');
+    return args ? [id, JSON.parse(args.replace(reHtml, function (match) {
+      return htmlEntities[match];
+    }))] : id;
   });
 
-  return view.formatEntities(...keys);
+  return view.formatEntities.apply(view, keys);
 }
 
 function translateElements(view, elements) {
-  return getElementsTranslation(view, elements).then(translations => applyTranslations(view, elements, translations));
+  return getElementsTranslation(view, elements).then(function (translations) {
+    return applyTranslations(view, elements, translations);
+  });
 }
 
 function applyTranslations(view, elems, translations) {
   disconnect(view, null, true);
-  for (let i = 0; i < elems.length; i++) {
+  for (var i = 0; i < elems.length; i++) {
     overlayElement(elems[i], translations[i]);
   }
   reconnect(view);
 }
 
 function getResourceLinks(head) {
-  return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), el => el.getAttribute('href'));
+  return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), function (el) {
+    return el.getAttribute('href');
+  });
 }
 
 function serializeContext(ctx) {
-  const lang = ctx.langs[0];
-  const cache = ctx.env.resCache;
-  return ctx.resIds.reduceRight(([errorsSeq, entriesSeq], cur) => {
-    const sourceRes = cache.get(cur + 'en-USapp');
-    const langRes = cache.get(cur + lang.code + lang.src);
-    const [errors, entries] = serializeEntries(lang, langRes instanceof L10nError ? {} : langRes, sourceRes instanceof L10nError ? {} : sourceRes);
+  var lang = ctx.langs[0];
+  var cache = ctx.env.resCache;
+  return ctx.resIds.reduceRight(function (_ref5, cur) {
+    var errorsSeq = _ref5[0];
+    var entriesSeq = _ref5[1];
+
+    var sourceRes = cache.get(cur + 'en-USapp');
+    var langRes = cache.get(cur + lang.code + lang.src);
+
+    var _serializeEntries = serializeEntries(lang, langRes instanceof L10nError ? {} : langRes, sourceRes instanceof L10nError ? {} : sourceRes);
+
+    var errors = _serializeEntries[0];
+    var entries = _serializeEntries[1];
+
     return [errorsSeq.concat(errors), Object.assign(entriesSeq, entries)];
   }, [[], Object.create(null)]);
 }
 
 function serializeEntries(lang, langEntries, sourceEntries) {
-  const errors = [];
-  const entries = Object.create(null);
+  var errors = [];
+  var entries = Object.create(null);
 
-  for (let id in sourceEntries) {
-    const sourceEntry = sourceEntries[id];
-    const langEntry = langEntries[id];
+  for (var id in sourceEntries) {
+    var sourceEntry = sourceEntries[id];
+    var langEntry = langEntries[id];
 
     if (!langEntry) {
-      errors.push(new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang));
+      errors.push(new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
       entries[id] = sourceEntry;
       continue;
     }
 
     if (!areEntityStructsEqual(sourceEntry, langEntry)) {
-      errors.push(new L10nError('"' + id + '"' + ' is malformed in ' + lang.code, id, lang));
+      errors.push(new L10nError('"' + id + '" is malformed in ' + lang.code, id, lang));
       entries[id] = sourceEntry;
       continue;
     }
@@ -2588,22 +2574,18 @@ function serializeEntries(lang, langEntries, sourceEntries) {
 }
 
 function resolvesToString(entity) {
-  return typeof entity === 'string' || // a simple string
-  typeof entity.value === 'string' || // a simple string, entity with attrs
-  Array.isArray(entity.value) || // a complex string
-  typeof entity.value === 'object' && // a dict with an index
-  entity.index !== null;
+  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || typeof entity.value === 'object' && entity.index !== null;
 }
 
 function areAttrsEqual(attrs1, attrs2) {
-  const keys1 = Object.keys(attrs1 || Object.create(null));
-  const keys2 = Object.keys(attrs2 || Object.create(null));
+  var keys1 = Object.keys(attrs1 || Object.create(null));
+  var keys2 = Object.keys(attrs2 || Object.create(null));
 
   if (keys1.length !== keys2.length) {
     return false;
   }
 
-  for (let i = 0; i < keys1.length; i++) {
+  for (var i = 0; i < keys1.length; i++) {
     if (keys2.indexOf(keys1[i]) === -1) {
       return false;
     }
@@ -2625,29 +2607,37 @@ function areEntityStructsEqual(source, translation) {
 }
 
 function serializeLegacyContext(ctx) {
-  const lang = ctx.langs[0];
-  const cache = ctx.env.resCache;
-  return ctx.resIds.reduce(([errorsSeq, entriesSeq], cur) => {
-    const sourceRes = cache.get(cur + 'en-USapp');
-    const langRes = cache.get(cur + lang.code + lang.src);
-    const [errors, entries] = serializeEntries$1(lang, langRes instanceof L10nError ? {} : langRes, sourceRes instanceof L10nError ? {} : sourceRes);
+  var lang = ctx.langs[0];
+  var cache = ctx.env.resCache;
+  return ctx.resIds.reduce(function (_ref6, cur) {
+    var errorsSeq = _ref6[0];
+    var entriesSeq = _ref6[1];
+
+    var sourceRes = cache.get(cur + 'en-USapp');
+    var langRes = cache.get(cur + lang.code + lang.src);
+
+    var _serializeEntries$1 = serializeEntries$1(lang, langRes instanceof L10nError ? {} : langRes, sourceRes instanceof L10nError ? {} : sourceRes);
+
+    var errors = _serializeEntries$1[0];
+    var entries = _serializeEntries$1[1];
+
     return [errorsSeq.concat(errors), entriesSeq.concat(entries)];
   }, [[], []]);
 }
 
 function serializeEntries$1(lang, langEntries, sourceEntries) {
-  const errors = [];
-  const entries = Object.keys(sourceEntries).map(id => {
-    const sourceEntry = sourceEntries[id];
-    const langEntry = langEntries[id];
+  var errors = [];
+  var entries = Object.keys(sourceEntries).map(function (id) {
+    var sourceEntry = sourceEntries[id];
+    var langEntry = langEntries[id];
 
     if (!langEntry) {
-      errors.push(new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang));
+      errors.push(new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
       return serializeEntry(sourceEntry, id);
     }
 
     if (!areEntityStructsEqual$1(sourceEntry, langEntry)) {
-      errors.push(new L10nError('"' + id + '"' + ' is malformed in ' + lang.code, id, lang));
+      errors.push(new L10nError('"' + id + '" is malformed in ' + lang.code, id, lang));
       return serializeEntry(sourceEntry, id);
     }
 
@@ -2662,7 +2652,7 @@ function serializeEntry(entry, id) {
     return { $i: id, $v: entry };
   }
 
-  const node = {
+  var node = {
     $i: id
   };
 
@@ -2674,7 +2664,7 @@ function serializeEntry(entry, id) {
     node.$x = entry.index;
   }
 
-  for (let key in entry.attrs) {
+  for (var key in entry.attrs) {
     node[key] = serializeAttribute(entry.attrs[key]);
   }
 
@@ -2686,7 +2676,7 @@ function serializeAttribute(attr) {
     return attr;
   }
 
-  const node = {};
+  var node = {};
 
   if (attr.value !== null) {
     node.$v = attr.value;
@@ -2700,22 +2690,18 @@ function serializeAttribute(attr) {
 }
 
 function resolvesToString$1(entity) {
-  return typeof entity === 'string' || // a simple string
-  typeof entity.value === 'string' || // a simple string, entity with attrs
-  Array.isArray(entity.value) || // a complex string
-  typeof entity.value === 'object' && // a dict with an index
-  entity.index !== null;
+  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || typeof entity.value === 'object' && entity.index !== null;
 }
 
 function areAttrsEqual$1(attrs1, attrs2) {
-  const keys1 = Object.keys(attrs1 || Object.create(null));
-  const keys2 = Object.keys(attrs2 || Object.create(null));
+  var keys1 = Object.keys(attrs1 || Object.create(null));
+  var keys2 = Object.keys(attrs2 || Object.create(null));
 
   if (keys1.length !== keys2.length) {
     return false;
   }
 
-  for (let i = 0; i < keys1.length; i++) {
+  for (var i = 0; i < keys1.length; i++) {
     if (keys2.indexOf(keys1[i]) === -1) {
       return false;
     }
@@ -2736,7 +2722,7 @@ function areEntityStructsEqual$1(source, translation) {
   return true;
 }
 
-let View = (function () {
+var View = (function () {
   function View(htmloptimizer, fetchResource) {
     _classCallCheck(this, View);
 
@@ -2745,33 +2731,25 @@ let View = (function () {
     this.resLinks = getResourceLinks(this.doc.head);
 
     this.isEnabled = this.doc.querySelector('link[rel="localization"]');
-    // XXX we should check if the app uses l10n.js instead, but due to lazy
-    // loading we can't rely on querySelector.
+
     this.isLegacy = !this.doc.querySelector('script[src*="l20n"]');
 
-    const EnvClass = this.isLegacy ? LegacyEnv : Env;
+    var EnvClass = this.isLegacy ? LegacyEnv : Env;
     this.env = new EnvClass(fetchResource);
     this.sourceCtx = this.env.createContext([{ code: 'en-US', src: 'app' }], this.resLinks);
 
-    // add the url of the currently processed webapp to all errors
     this.env.addEventListener('*', amendError.bind(this));
 
     this.stopBuildError = null;
-    const log = logError.bind(this);
-    const stop = stopBuild.bind(this);
+    var log = logError.bind(this);
+    var stop = stopBuild.bind(this);
 
-    // stop the build if these errors happen for en-US
-    // XXX tv_apps break the build https://bugzil.la/1179833
-    // this.env.addEventListener('fetcherror', stop);
     this.env.addEventListener('parseerror', stop);
     this.env.addEventListener('duplicateerror', stop);
     this.env.addEventListener('notfounderror', stop);
-    // XXX sms breaks the build https://bugzil.la/1178187
-    // this.env.addEventListener('resolveerror', stop);
 
     this.env.addEventListener('deprecatewarning', log);
 
-    // if LOCALE_BASEDIR is set alert about missing strings
     if (htmloptimizer.config.LOCALE_BASEDIR !== '') {
       this.env.addEventListener('fetcherror', log);
       this.env.addEventListener('parseerror', log);
@@ -2779,56 +2757,69 @@ let View = (function () {
     }
   }
 
-  _createClass(View, [{
-    key: 'formatEntities',
-    value: function formatEntities(...keys) {
-      return this.ctx.formatEntities(...keys);
-    }
-  }, {
-    key: 'translateDocument',
-    value: function translateDocument(code) {
-      const dir = getDirection(code);
-      const langs = [{ code, src: 'app' }, { code: 'en-US', src: 'app' }];
-      const setDocLang = () => {
-        this.doc.documentElement.lang = code;
-        this.doc.documentElement.dir = dir;
-      };
+  View.prototype.formatEntities = function formatEntities() {
+    var _ctx;
 
-      const ctx = this.env.createContext(langs, getResourceLinks(this.doc.head));
-      return translateFragment(ctx, this.doc.documentElement).then(setDocLang);
-    }
-  }, {
-    key: 'serializeResources',
-    value: function serializeResources(code) {
-      const langCtx = this.env.createContext([{ code, src: code in pseudo$1 ? 'pseudo' : 'app' }], this.resLinks);
+    return (_ctx = this.ctx).formatEntities.apply(_ctx, arguments);
+  };
 
-      return Promise.all([this.sourceCtx, langCtx].map(ctx => ctx.fetch())).then(() => {
-        const [errors, entries] = this.isLegacy ? serializeLegacyContext(langCtx) : serializeContext(langCtx);
+  View.prototype.translateDocument = function translateDocument(code) {
+    var _this12 = this;
 
-        if (errors.length) {
-          const notFoundErrors = errors.filter(err => err.message.indexOf('not found') > -1).map(err => err.id);
-          const malformedErrors = errors.filter(err => err.message.indexOf('malformed') > -1).map(err => err.id);
+    var dir = getDirection(code);
+    var langs = [{ code: code, src: 'app' }, { code: 'en-US', src: 'app' }];
+    var setDocLang = function () {
+      _this12.doc.documentElement.lang = code;
+      _this12.doc.documentElement.dir = dir;
+    };
 
-          if (notFoundErrors.length) {
-            this.htmloptimizer.dump('[l10n] [' + code + ']: ' + notFoundErrors.length + ' missing compared to en-US: ' + notFoundErrors.join(', '));
-          }
-          if (malformedErrors.length) {
-            this.htmloptimizer.dump('[l10n] [' + code + ']: ' + malformedErrors.length + ' malformed compared to en-US: ' + malformedErrors.join(', '));
-          }
+    var ctx = this.env.createContext(langs, getResourceLinks(this.doc.head));
+    return translateFragment(ctx, this.doc.documentElement).then(setDocLang);
+  };
+
+  View.prototype.serializeResources = function serializeResources(code) {
+    var _this13 = this;
+
+    var langCtx = this.env.createContext([{ code: code, src: code in pseudo ? 'pseudo' : 'app' }], this.resLinks);
+
+    return Promise.all([this.sourceCtx, langCtx].map(function (ctx) {
+      return ctx.fetch();
+    })).then(function () {
+      var _ref7 = _this13.isLegacy ? serializeLegacyContext(langCtx) : serializeContext(langCtx);
+
+      var errors = _ref7[0];
+      var entries = _ref7[1];
+
+      if (errors.length) {
+        var notFoundErrors = errors.filter(function (err) {
+          return err.message.indexOf('not found') > -1;
+        }).map(function (err) {
+          return err.id;
+        });
+        var malformedErrors = errors.filter(function (err) {
+          return err.message.indexOf('malformed') > -1;
+        }).map(function (err) {
+          return err.id;
+        });
+
+        if (notFoundErrors.length) {
+          _this13.htmloptimizer.dump('[l10n] [' + code + ']: ' + notFoundErrors.length + ' missing compared to en-US: ' + notFoundErrors.join(', '));
         }
+        if (malformedErrors.length) {
+          _this13.htmloptimizer.dump('[l10n] [' + code + ']: ' + malformedErrors.length + ' malformed compared to en-US: ' + malformedErrors.join(', '));
+        }
+      }
 
-        return entries;
-      });
-    }
-  }, {
-    key: 'checkError',
-    value: function checkError() {
-      return {
-        wait: false,
-        error: this.stopBuildError
-      };
-    }
-  }]);
+      return entries;
+    });
+  };
+
+  View.prototype.checkError = function checkError() {
+    return {
+      wait: false,
+      error: this.stopBuildError
+    };
+  };
 
   return View;
 })();
@@ -2848,20 +2839,21 @@ function stopBuild(err) {
 }
 
 function getDirection(code) {
-  const tag = code.split('-')[0];
+  var tag = code.split('-')[0];
   return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ? 'rtl' : 'ltr';
 }
 
 function getView(htmloptimizer) {
-  const htmlFetch = (...args) => fetchResource(htmloptimizer, ...args);
+  var htmlFetch = function () {
+    for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+      args[_key4] = arguments[_key4];
+    }
+
+    return fetchResource.apply(undefined, [htmloptimizer].concat(args));
+  };
   return new View(htmloptimizer, htmlFetch);
 }
 
 exports.getView = getView;
-exports.pseudo = pseudo$1;
-exports.walkValue = walkValue$1;
-// a-z
-// a-z
-// A-Z
-// a-f
-// A-F
+exports.pseudo = pseudo;
+exports.walkValue = walkValue;

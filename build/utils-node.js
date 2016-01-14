@@ -204,9 +204,7 @@ module.exports = {
   },
 
   getDocument: function(content) {
-    // In order to use document.querySelector, we have to pass level for
-    // jsdom-nogyp.
-    return jsdom.jsdom(content, jsdom.level(3, 'core'));
+    return jsdom.jsdom(content);
   },
 
   getXML: function(file) {
@@ -422,9 +420,13 @@ module.exports = {
   },
 
   getNewURI: function(uri) {
-    var result = url.parse(uri);
-    result.prePath = result.protocol + '//' + result.host;
-    return result;
+    return {
+      host: /[a-z]+:\/\/[@]?([^\/:]+)/.exec(uri)[1],
+      prePath: /[a-z]+:\/\/[^\/]+/.exec(uri)[0],
+      resolve: function(to) {
+        return url.resolve(uri, to);
+      }
+    };
   },
 
   isExternalApp: function(webapp) {
