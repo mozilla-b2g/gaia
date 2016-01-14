@@ -23,7 +23,7 @@ class TestSettingsMediaStorage(GaiaTestCase):
         self.apps.kill(settings.app)
 
         # Push media to the device
-        self.push_resource('VID_0001.3gp')
+        self.push_resource('VID_counter.3gp')
         self.push_resource('IMG_0001.jpg')
         self.push_resource('MUS_0001.mp3')
 
