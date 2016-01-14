@@ -774,8 +774,8 @@
 
     handleListKeyUp: function(e) {
       switch(e.keyCode){
-        case KeyEvent.DOM_VK_BACK_SPACE:
-          this.handleKeyBackspace();
+        case KeyEvent.DOM_VK_ESCAPE:
+          this.handleKeyEscape();
           break;
         default:
           return;
@@ -892,7 +892,7 @@
       }
     },
 
-    handleKeyBackspace: function() {
+    handleKeyEscape: function() {
       if (!this.navState) {
         this.close();
       } else {
