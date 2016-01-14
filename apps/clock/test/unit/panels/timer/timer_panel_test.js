@@ -254,7 +254,7 @@ suite('Timer.Panel', function() {
       this.sinon.spy(Timer.Panel.prototype, 'onclick');
 
       asyncStorage.getItem = function(key, callback) {
-        callback('{"duration":5000}');
+        callback({duration: 5000});
       };
 
       panel = new Timer.Panel(document.createElement('div'));

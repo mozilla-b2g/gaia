@@ -664,12 +664,13 @@ suite('Nfc Manager Functions', function() {
     test('_createNDEFActivityOptions called with proper args', function() {
       records.push(uriRecord);
 
-      this.sinon.stub(NDEF.payload, 'decode', () => 'decoded');
+      var decoded = {};
+      this.sinon.stub(NDEF.payload, 'decode', () => decoded);
       var spyCreateOptions = this.sinon.spy(nfcManager,
                                             '_createNDEFActivityOptions');
 
       nfcManager._fireNDEFDiscovered(records);
-      assert.isTrue(spyCreateOptions.withArgs('decoded').calledOnce);
+      assert.isTrue(spyCreateOptions.withArgs(decoded).calledOnce);
     }),
 
     test('MozActivity called with proper args, valid NDEF', function() {
