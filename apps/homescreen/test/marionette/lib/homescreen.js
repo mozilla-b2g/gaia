@@ -55,11 +55,16 @@ Homescreen.prototype = {
   },
 
   get visibleCards() {
-    return this.cards.filter(function(el) {
-      return el.scriptWith(function(el) {
-        return el.parentNode.style.display !== 'none';
-      });
-    });
+    return this.client.executeScript(function(selector) {
+      var cards = document.body.querySelectorAll(selector);
+      var visibles = [];
+      for (var i = cards.length - 1; i >= 0; i--) {
+        if (cards[i].parentNode.style.display !== 'none') {
+          visibles.push(cards[i]);
+        }
+      }
+      return visibles;
+    }, [Homescreen.Selectors.card]);
   },
 
   get removeButton() {

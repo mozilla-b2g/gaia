@@ -57,7 +57,9 @@ marionette('Pinning the Web', function() {
     var url = server.url('sample.html');
     pinTheWeb.openAndPinSiteFromBrowser(url);
 
-    assert(pinTheWeb.chromeIsPinned());
+    client.waitFor(function() {
+      return pinTheWeb.chromeIsPinned();
+    });
 
     // Check that browser chrome expands when tapped
     actions.wait(1).tap(system.appUrlbar).perform();
@@ -113,6 +115,7 @@ marionette('Pinning the Web', function() {
     client.switchToFrame();
     url = server.url('sample.html');
     pinTheWeb.openAndPinSiteFromBrowser(url);
+    system.closeBrowserByUrl(url);
     lastIconMatches(url);
 
     pinTheWeb.openAndPinSiteFromBrowser(url);
@@ -199,7 +202,6 @@ marionette('Pinning the Web', function() {
     var url, lastIconId;
 
     function lastIconMatches(id) {
-      system.goHome();
       client.switchToFrame(system.getHomescreenIframe());
       client.waitFor(function() {
         var ids = home.getIconIdentifiers();
@@ -251,16 +253,16 @@ marionette('Pinning the Web', function() {
     pinTheWeb.openAndPinSiteFromBrowser(url);
     client.switchToFrame();
 
-    var classes = system.currentWindow.getAttribute('class');
-    assert(classes.indexOf('collapsible') < 0);
+    client.waitFor(function() {
+      return pinTheWeb.chromeIsPinned();
+    });
 
     system.gotoBrowser(url);
     var link = client.helper.waitForElement('#remote-link');
     link.click();
     client.switchToFrame();
     client.waitFor(function() {
-      classes = system.currentWindow.getAttribute('class');
-      return classes.indexOf('collapsible') > 0;
+      return !pinTheWeb.chromeIsPinned();
     });
   });
 
@@ -291,9 +293,11 @@ marionette('Pinning the Web', function() {
 
     client.switchToFrame();
     pinTheWeb.openAndPinPage(url);
-    system.tapHome();
+    system.goHome();
     client.switchToFrame(system.getHomescreenIframe());
-    assert(home.visibleCards.length === 0, 'There is no pinned pages');
+    client.waitFor(function() {
+      return home.visibleCards.length === 0;
+    });
   });
 
   test('Opening quick settings should close pin dialog', function() {
