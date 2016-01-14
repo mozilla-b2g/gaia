@@ -41,7 +41,9 @@ ScreenLockPanel.prototype = {
   },
 
   isScreenLockChecked: function() {
-    return this.findElement('screenLockCheckbox').getAttribute('checked');
+    return !!this.findElement('screenLockCheckbox').scriptWith(function(el) {
+      return el.wrappedJSObject.checked;
+    });
   },
 
   isPasscodeLockEnabled: function() {
@@ -49,7 +51,9 @@ ScreenLockPanel.prototype = {
   },
 
   isPasscodeChecked: function() {
-    return this.findElement('passcodeCheckbox').getAttribute('checked');
+    return !!this.findElement('passcodeCheckbox').scriptWith(function(el) {
+      return el.wrappedJSObject.checked;
+    });
   },
 
   isPasscodeNotMatched: function() {
