@@ -125,8 +125,8 @@
           return m;
         }
       });
-      console.log('prepared canned response to: '+responsePathname,
-                  responseStr);
+      console.log('_setupAPIServerRoutes, prepared canned response to: ',
+                  responsePathname);
       server.setResponse(
         '/' + this.manifestResponseFilename,
         200, null, responseStr
@@ -196,7 +196,7 @@
         };
       }, [manifestURL]);
       this.client.apps.switchToApp(this.ftu.URL);
-      console.log('isInstalled result for url: ', manifestURL, result);
+      console.log('isInstalled, result for url: ', manifestURL, result);
       return result;
     }
 
