@@ -96,9 +96,9 @@ window.SmartDialog = (function(win) {
         }
         break;
       case 'keyup':
-        // close dialog when ESC is clicked
+        // close dialog when Backspace is clicked
         if (this.getAttribute('esc-close') != 'false' &&
-            (evt.keyCode === 27 || evt.key === 'Esc') &&
+            evt.keyCode === KeyEvent.DOM_VK_BACK_SPACE &&
             this.classList.contains('opened')) {
           this.close();
         }
