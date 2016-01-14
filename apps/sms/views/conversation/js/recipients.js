@@ -20,7 +20,7 @@
     var number;
 
     opts = opts || {};
-    this.name = opts.name || opts.number || '';
+    this.name = String(opts.name || opts.number || '');
     this.number = (opts.number || '') + '';
     this.email = opts.email || '';
     this.editable = opts.editable || 'true';

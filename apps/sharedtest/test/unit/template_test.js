@@ -61,8 +61,10 @@ suite('Template', function() {
 
   suite('interpolate', function() {
     var html = document.createElement('div');
+    var htmlNoIntrpltn = document.createElement('div');
     var css = document.createElement('div');
     html.appendChild(document.createComment('<span>${str}</span>'));
+    htmlNoIntrpltn.appendChild(document.createComment('<span>Nothing</span>'));
     css.appendChild(document.createComment('#foo { height: ${height}px; }'));
 
     test('interpolate(data) => html', function() {
@@ -81,6 +83,39 @@ suite('Template', function() {
       });
       assert.equal(typeof interpolated, 'string');
       assert.equal(interpolated, '#foo { height: 100px; }');
+    });
+
+    test('interpolate() => html', function() {
+      var tmpl = Template(htmlNoIntrpltn);
+      var interpolated = tmpl.interpolate();
+      assert.equal(typeof interpolated, 'string');
+      assert.equal(interpolated, '<span>Nothing</span>');
+    });
+
+    test('interpolate(data, options.safe[bad type]) => throws', function() {
+      var tmpl = Template(html);
+      var pseudoArray = { length: 1 };
+
+      assert.throw(() => tmpl.interpolate({}, { safe: pseudoArray }),
+        '"options.safe" must be an Array, not object');
+      assert.throw(() => tmpl.interpolate({}, { safe: 'badType' }),
+        '"options.safe" must be an Array, not string');
+    });
+
+    test('interpolate(data.undefined) => throws', function() {
+      var tmpl = Template(html);
+      assert.throw(tmpl.interpolate.bind(tmpl),
+        'No value provided for template identifier "str"');
+    });
+
+   test('interpolate(data.property[not a string]) => throws', function() {
+      var tmpl = Template(html);
+      assert.throw(() => tmpl.interpolate({ str: 666 }),
+        '"data.str" must be a String, not number');
+      assert.throw(() => tmpl.interpolate({ str: [] }),
+        '"data.str" must be a String, not object');
+      assert.throw(() => tmpl.interpolate({ str: {} }),
+        '"data.str" must be a String, not object');
     });
   });
 
