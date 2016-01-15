@@ -18,6 +18,7 @@
 /* global Service */
 /* global SyncErrors */
 /* global SyncRecoverableErrors */
+/* global Telemetry */
 /* global uuid */
 
 /**
@@ -218,7 +219,11 @@
         case 'disable':
         case 'sync':
           try {
-            Service.request('SyncStateMachine:' + request.name).catch(e => {
+            Service.request('SyncStateMachine:' + request.name).then(() => {
+              return LazyLoader.load('/shared/js/sync/telemetry.js');
+            }).then(() => {
+              Telemetry.logUserAction(request.name);
+            }).catch(e => {
               console.error(e);
             });
           } catch(e) {

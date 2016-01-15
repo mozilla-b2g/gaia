@@ -20,6 +20,7 @@ require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_sdcard.js');
 require('/shared/test/unit/mocks/mock_vcard_parser.js');
+require('/shared/test/unit/mocks/mock_advanced_telemetry_helper.js');
 
 requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
@@ -33,8 +34,6 @@ requireApp('communications/contacts/test/unit/mock_wakelock.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
-requireApp(
-  'communications/contacts/test/unit/mock_advanced_telemetry_helper.js');
 
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
