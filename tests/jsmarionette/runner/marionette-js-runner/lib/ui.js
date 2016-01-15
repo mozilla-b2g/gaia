@@ -47,7 +47,7 @@ MarionetteTest.prototype = {
 
             host.session.checkError(host.profileConfig, err)
               .then(fn)
-              .catch (fn);
+              .catch(fn);
 
             break;
           }
