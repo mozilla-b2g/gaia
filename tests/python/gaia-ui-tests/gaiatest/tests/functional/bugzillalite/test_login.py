@@ -1,5 +1,5 @@
 from gaiatest import GaiaTestCase
-from gaiatest.apps.bzlite.app import BugzillaLite
+from gaiatest.apps.bugzillalite.app import BugzillaLite
 
 
 class TestBugzillaLite(GaiaTestCase):
