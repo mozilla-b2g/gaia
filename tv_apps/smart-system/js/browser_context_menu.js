@@ -32,6 +32,7 @@
     this.instanceID = _id++;
     this._injected = false;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
+    this.systemBanner = new SystemBanner();
     return this;
   };
 
@@ -330,7 +331,7 @@
               if (this.app instanceof PreviewWindow) {
                 this.app.close();
               }
-              new SystemBanner().show({
+              this.systemBanner.show({
                 id: 'deleted-from-apps',
                 args: {
                   appName: name
@@ -360,7 +361,7 @@
                 url: url,
                 iconUrl: iconUrl
               }).then(() => {
-                new SystemBanner().show({
+                this.systemBanner.show({
                   id: 'added-to-apps',
                   args: {
                     appName: name
@@ -393,7 +394,7 @@
                   if (this.app instanceof PreviewWindow) {
                     this.app.close();
                   }
-                  new SystemBanner().show({
+                  this.systemBanner.show({
                     id: 'deleted-from-apps',
                     args: {
                       appName: bookmark.name
