@@ -29,9 +29,6 @@ var AppInstallManager = {
     'APP_CACHE_DOWNLOAD_ERROR': 'download-failed'
   },
 
-  ADD_TO_APPS_ICON_PATH: '/style/icons/add_to_apps.png',
-  DELETE_FROM_APPS_ICON_PATH: '/style/icons/delete_from_apps.png',
-
   init: function ai_init() {
     this.appInstallDialogs = new AppInstallDialogs(
       document.getElementById('app-install-dialogs'));
@@ -412,27 +409,15 @@ var AppInstallManager = {
     var manifest = app.manifest || app.updateManifest;
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
-    var msg;
+    var msgID = this.isMarketplaceAppActive() ?
+      'added-to-apps' : 'app-install-success';
 
-    if (this.isMarketplaceAppActive()) {
-      msg = {
-        title: name,
-        text: {
-          id: 'added-to-apps'
-        },
-        icon: this.ADD_TO_APPS_ICON_PATH
-      };
-     } else {
-      msg = {
-        text: {
-          id: 'app-install-success',
-          args: { appName: name }
-        },
-        icon: this.ADD_TO_APPS_ICON_PATH
-      };
-    }
-
-    this.systemBanner.show(msg);
+    this.systemBanner.show({
+      id: msgID,
+      args: {
+        appName: name
+      }
+    });
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {
@@ -532,13 +517,11 @@ var AppInstallManager = {
         console.info('downloadError event, error code is', errorName);
 
         var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
-
-        this.systemBanner.show({
-          title: name,
-          text: {
-            id: 'app-install-' + key
-          }
-        });
+        var msg = {
+          id: 'app-install-' + key,
+          args: { appName: name }
+        };
+        this.systemBanner.show(msg);
     }
 
     this.onDownloadStop(app);

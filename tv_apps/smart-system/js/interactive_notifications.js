@@ -152,32 +152,9 @@
     //      once we have it.
     banner.style.backgroundImage = msg.icon ? 'url("' + msg.icon + '")':
                                    'url("/style/icons/system_84.png")';
-
-    if (msg.title && msg.title.id) {
-      navigator.mozL10n.setAttributes(
-        title,
-        msg.title.id,
-        msg.title.args
-      );
-    } else {
-      title.removeAttribute('data-l10n-id');
-      title.removeAttribute('data-l10n-args');
-      title.textContent = msg.title || '';
-    }
-
-    if (msg.text && msg.text.id) {
-      navigator.mozL10n.setAttributes(
-        text,
-        msg.text.id,
-        msg.text.args
-      );
-    } else {
-      text.removeAttribute('data-l10n-id');
-      text.removeAttribute('data-l10n-args');
-      text.textContent = msg.text || '';
-    }
-
+    title.textContent = msg.title ? msg.title : '';
     banner.classList[msg.title ? 'add' : 'remove']('has-title');
+    text.textContent = msg.text ? msg.text : '';
 
     if (msg.buttons && msg.buttons.length) {
       buttonGroup.classList.remove('hidden');
@@ -204,7 +181,7 @@
     }
 
     banner.classList.remove('hidden');
-    banner.show({ animation: 'flying' });
+    banner.flyOpen();
   };
 
   proto._focusNotification = function in_focusNotification() {
