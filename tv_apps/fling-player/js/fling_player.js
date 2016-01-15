@@ -80,9 +80,7 @@
     this._keyNavAdapter.init();
     this._keyNavAdapter.on('enter', this.onKeyEnterDown.bind(this));
     this._keyNavAdapter.on('enter-keyup', this.onKeyEnterUp.bind(this));
-    this._keyNavAdapter.on('esc-keyup',
-      this.onDemandingControlPanel.bind(this)
-    );
+    this._keyNavAdapter.on('esc-keyup', this.onBackKeyUp.bind(this));
     this._keyNavAdapter.on('move-keyup',
       this.onDemandingControlPanel.bind(this)
     );
@@ -537,6 +535,18 @@
         break;
       }
     }
+  };
+
+  proto.onBackKeyUp = function () {
+    navigator.mozL10n.formatValue('want-to-end')
+      .then((txt) => {
+        var end = window.confirm(txt);
+        if (end) {
+          this._connector.reportStatus('stopped', {
+            'time': this._player.getRoundedCurrentTime() });
+          window.close();
+        }
+      });
   };
 
   proto.onDemandingControlPanel = function () {
