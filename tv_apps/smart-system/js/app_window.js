@@ -1,7 +1,6 @@
 /* global AppChrome */
 /* global AudioChannelController */
 /* global BrowserFrame */
-/* global KeyEvent */
 /* global layoutManager */
 /* global ManifestHelper */
 /* global OrientationManager */
@@ -1043,7 +1042,7 @@
       if (document.activeElement !== this.iframe) {
         return;
       }
-      if (evt.keyCode === KeyEvent.DOM_VK_BACK_SPACE &&
+      if ((evt.keyCode === 27 || evt.key === 'Escape') &&
           !evt.embeddedCancelled && !this.config.url.startsWith('app://')) {
         var goBackReq = this.iframe.getCanGoBack();
         goBackReq.onsuccess = () => {
