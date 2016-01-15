@@ -34,8 +34,7 @@ marionette('manipulate screenLock settings', function() {
       'screenlock is checked');
   });
 
-  // Disabled for intermittent failures. Bug 983171
-  test.skip('passcode can\'t be enabled when passcode is wrong', function() {
+  test('passcode can\'t be enabled when passcode is wrong', function() {
     screenLockPanel.toggleScreenLock();
     screenLockPanel.togglePasscodeLock();
     screenLockPanel.typePasscode('1234', '5678');
@@ -98,7 +97,7 @@ marionette('manipulate screenLock settings', function() {
       'passcode is not checked');
   });
 
-  test(
+  test.skip(
     'passcode is enabled and won\'t get disabled if you tap back button ' +
     'when we try to disable passcode directly',
     function() {
@@ -174,7 +173,6 @@ marionette('manipulate screenLock settings', function() {
         'passcode is checked');
 
 
-
       screenLockPanel.tapEditPasscode(newCode);
 
       screenLockPanel.waitForElement('passcodeIncorrectLabel');
@@ -186,8 +184,7 @@ marionette('manipulate screenLock settings', function() {
         'passcode is still checked');
   });
 
-  // Disabled for intermittent failures. Bug 983171
-  test.skip('passcode is enabled, then get changed successfully', function() {
+  test('passcode is enabled, then get changed successfully', function() {
     var oldCode = '1234';
     var newCode = '4567';
     screenLockPanel.toggleScreenLock();
@@ -203,12 +200,10 @@ marionette('manipulate screenLock settings', function() {
     screenLockPanel.tapEditPasscode(oldCode);
     screenLockPanel.typePasscode(newCode, newCode);
     screenLockPanel.tapChangePasscode();
-
   });
 
   // Disabled for intermittent failures. Bug 983171
-  test.skip(
-    'passcode is enabled, and we want to disable lockscreen directly ' +
+  test.skip('passcode is enabled, and we want to disable lockscreen directly ' +
     'but failed to enter the right code',
     function() {
       var rightCode = '1234';
