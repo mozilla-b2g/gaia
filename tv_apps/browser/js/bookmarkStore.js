@@ -70,7 +70,11 @@
 
 //IFDEF_FIREFOX_SYNC
         SyncManagerBridge.getInfo().then(message => {
-          this.isSynced = (message.state === 'enabled') ? true : false;
+          if (message.state === 'enabled' || message.state === 'syncing') {
+            this.isSynced = true;
+          } else {
+            this.isSynced = false;
+          }
           resolve();
         });
 //ENDIF_FIREFOX_SYNC
