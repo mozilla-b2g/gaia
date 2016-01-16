@@ -11,8 +11,6 @@ function execute(options) {
 
   require('./search-provider').execute(options);
 
-  require('./keyboard-layouts').execute(options);
-
   require('./preferences').execute(options);
 
   if (options.BUILD_APP_NAME == '*') {
