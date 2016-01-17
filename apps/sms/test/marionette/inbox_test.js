@@ -147,12 +147,11 @@ marionette('Inbox View tests', function() {
       storage.setMessagesStorage([
         ThreadGenerator.generate({
           numberOfMessages:2
-        })],ThreadGenerator.uniqueMessageId
-      );
+        })],ThreadGenerator.uniqueMessageId);
       // delete the first message in threads
       messagesApp.launch();
-      messagesApp.Inbox.openSettings();
-      messagesApp.goToThreads();
+      messagesApp.openSettings;
+      messagesApp.goToThreads;
     });
   });
 });

@@ -72,10 +72,10 @@ InboxAccessor.prototype = {
     this.client.loader.getActions().doubleTap(this.firstConversation).perform();
   },
   openSettings: function(){
-    return this.client.findElement(SELECTORS.threadSettings);
+    return this.client.findElement(SELECTORS.threadSettings).tap();
   },
   goToThreads: function(){
-    return this.client.findElement(SELECTORS.threadsList);
+    return this.client.findElement(SELECTORS.threadsList).tap();
   }
 };
 
