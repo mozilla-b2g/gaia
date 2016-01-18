@@ -13,6 +13,8 @@
   // now.
   // specifically for popping up FTE.
   var PIN_TO_CARD_ICON_NAME = 'ic_pin.png';
+  var ADD_TO_APPS_ICON_PATH = '/style/icons/add_to_apps.png';
+  var DELETE_FROM_APPS_ICON_PATH = '/style/icons/delete_from_apps.png';
 
   var _id = 0;
   /**
@@ -30,7 +32,6 @@
     this.instanceID = _id++;
     this._injected = false;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
-    this.systemBanner = new SystemBanner();
     return this;
   };
 
@@ -301,7 +302,7 @@
         resolve({
           type: BUTTON_TYPE,
           textRaw: _('add-to-apps'),
-          menuIcon: AppInstallManager.ADD_TO_APPS_ICON_PATH,
+          menuIcon: ADD_TO_APPS_ICON_PATH,
           onClick: () => {
             if (this.app instanceof PreviewWindow) {
               var app = applications.getByManifestURL(manifestURL);
@@ -320,7 +321,7 @@
         resolve({
           type: BUTTON_TYPE,
           textRaw: _('delete-from-apps'),
-          menuIcon: AppInstallManager.DELETE_FROM_APPS_ICON_PATH,
+          menuIcon: DELETE_FROM_APPS_ICON_PATH,
           onClick: () => {
             var app = applications.getByManifestURL(manifestURL);
             var name =
@@ -329,12 +330,11 @@
               if (this.app instanceof PreviewWindow) {
                 this.app.close();
               }
-              this.systemBanner.show({
-                title: name,
-                text: {
-                  id: 'deleted-from-apps'
-                },
-                icon: AppInstallManager.DELETE_FROM_APPS_ICON_PATH
+              new SystemBanner().show({
+                id: 'deleted-from-apps',
+                args: {
+                  appName: name
+                }
               });
             };
           }
@@ -353,19 +353,18 @@
           resolve({
             type: BUTTON_TYPE,
             textRaw: _('add-to-apps'),
-            menuIcon: AppInstallManager.ADD_TO_APPS_ICON_PATH,
+            menuIcon: ADD_TO_APPS_ICON_PATH,
             onClick: () => {
               BookmarkManager.add({
                 name: name,
                 url: url,
                 iconUrl: iconUrl
               }).then(() => {
-                this.systemBanner.show({
-                  title: name,
-                  text: {
-                    id: 'added-to-apps'
-                  },
-                  icon: AppInstallManager.ADD_TO_APPS_ICON_PATH
+                new SystemBanner().show({
+                  id: 'added-to-apps',
+                  args: {
+                    appName: name
+                  }
                 });
               });
             }
@@ -380,7 +379,7 @@
           resolve({
             type: BUTTON_TYPE,
             textRaw: _('delete-from-apps'),
-            menuIcon: AppInstallManager.DELETE_FROM_APPS_ICON_PATH,
+            menuIcon: DELETE_FROM_APPS_ICON_PATH,
             onClick: () => {
               AppInstallManager.appInstallDialogs.show(
                 AppInstallDialogs.TYPES.UninstallDialog,
@@ -394,12 +393,11 @@
                   if (this.app instanceof PreviewWindow) {
                     this.app.close();
                   }
-                  this.systemBanner.show({
-                    title: bookmark.name,
-                    text: {
-                      id: 'delete-from-apps'
-                    },
-                    icon: AppInstallManager.DELETE_FROM_APPS_ICON_PATH
+                  new SystemBanner().show({
+                    id: 'deleted-from-apps',
+                    args: {
+                      appName: bookmark.name
+                    }
                   });
                 });
               });

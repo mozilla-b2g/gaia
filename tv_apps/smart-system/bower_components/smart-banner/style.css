@@ -7,7 +7,6 @@
  *    5. closed (class name: closed)
  *    6. hiding (class name: hiding)
  *    8. flying (class name: flying)
- *    9. bouncing (class name: bouncing)
 **/
 
 /**
@@ -15,8 +14,7 @@
  *   open: closed -> opening -> opened
  *   close: opened -> closing -> closed
  *   hide: current state -> hiding -> closed
- *   flying: flying -> closed -> opening -> opened
- *   bouncing: bouncing
+ *   flyOpen: flying -> closed -> opening -> opened
 **/
 
 smart-banner {
@@ -128,30 +126,10 @@ smart-banner.hiding {
 }
 
 smart-banner.flying {
-  animation: flyingAnimaiton 1s;
+  animation: flyAnimation 1s;
 }
 
-@keyframes flyingAnimaiton {
-  from {
-    transform: translateY(20rem);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-smart-banner.bouncing {
-  padding-right: 4.4rem;
-  animation: bouncingAnimation 4s;
-}
-
-@keyframes bouncingAnimation {
-  from, to {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  12.5%, 87.5% {
-    transform: translateY(0);
-    opacity: 1;
-  }
+@keyframes flyAnimation {
+    from {transform: translateY(20rem);}
+    to {transform: translateY(0);}
 }
