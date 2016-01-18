@@ -221,8 +221,7 @@
     }
   };
 
-  AppModalDialog.prototype.kill = function amd_kill() {
-    this.containerElement.removeChild(this.element);
+  AppModalDialog.prototype._destroy = function amd__destroy() {
     focusManager.removeUI(this);
   };
 

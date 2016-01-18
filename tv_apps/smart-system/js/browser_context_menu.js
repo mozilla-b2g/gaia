@@ -94,9 +94,8 @@
                  'class="contextmenu"></div>';
   };
 
-  BrowserContextMenu.prototype.kill = function() {
+  BrowserContextMenu.prototype._destroy = function() {
     focusManager.removeUI(this);
-    this.element.removeChild(this.modalDialog.element);
   };
 
   BrowserContextMenu.prototype.show = function(evt) {

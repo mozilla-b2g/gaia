@@ -53,6 +53,10 @@
   };
 
   proto._getAncestors = function ff__getAncestors(elem) {
+    if (!elem) {
+      return [];
+    }
+
     var ret = [elem];
     var node = elem.parentNode;
 
