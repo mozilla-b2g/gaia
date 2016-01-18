@@ -45,6 +45,8 @@
   "permissions": {
     "webapps-manage": {},
     "open-remote-window":{},
+    "wifi-manage":{},
+    "settings":{ "access": "readwrite" },
     "systemXHR":{},
     "moz-extremely-unstable-and-will-change-webcomponents":{}
   },

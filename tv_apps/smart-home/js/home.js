@@ -2,7 +2,7 @@
 /* global Application, FilterManager, CardManager, Clock, Deck, Edit, Folder,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
           SharedUtils, SpatialNavigator, URL, XScrollable, Animations,
-          Utils, FTEWizard, AppBookmark */
+          Utils, FTEWizard, AppBookmark, WifiHelper */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -22,10 +22,10 @@
   Home.prototype = {
     navigableIds:
         ['search-button', 'search-input', 'edit-button', 'settings-button',
-            'filter-tab-group'],
+            'quick-wifi-button', 'filter-tab-group'],
 
     topElementIds: ['search-button', 'search-input', 'edit-button',
-            'settings-button'],
+            'settings-button', 'quick-wifi-button'],
 
     bottomElementIds: ['filter-tab-group', 'filter-all-button',
         'filter-tv-button', 'filter-device-button', 'filter-app-button',
@@ -36,6 +36,7 @@
     navigableScrollable: [],
     cardScrollable: undefined,
     folderScrollable: undefined,
+    wifiStatus: false,
     _focus: undefined,
     _focusScrollable: undefined,
     _folderCard: undefined,
@@ -49,6 +50,7 @@
     cardManager: undefined,
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
+    quickWifiButton: document.getElementById('quick-wifi-button'),
     searchButton: document.getElementById('search-button'),
     timeElem: document.getElementById('time'),
     fteElem: document.getElementById('fte'),
@@ -528,6 +530,8 @@
 
       if (focusElem === this.settingsButton) {
         this.openSettings();
+      } else if (focusElem === this.quickWifiButton) {
+        this.toggleWifi();
       } else if (focusElem === this.editButton) {
         this.cleanFolderScrollable();
         this.edit.toggleEditMode();
@@ -784,6 +788,51 @@
       window.requestAnimationFrame(initFolderAnimation);
     },
 
+    toggleWifi: function () {
+      const SSID = 'Mozilla Guest';
+      function getNetwork(ssid) {
+        return new Promise(resolve => {
+          var req = WifiHelper.getAvailableAndKnownNetworks();
+          req.onsuccess = function onScanSuccess() {
+            resolve(req.result.find(item => {return item.ssid === ssid;}));
+          };
+        });
+      }
+      function setSettings(key, value){
+        var o = {};
+        o[key] = value;
+        return new Promise(resolve => {
+          var lock    = navigator.mozSettings.createLock();
+          var setting = lock.set(o);
+          setting.onsuccess = function () {
+            console.log(setting.result);
+            resolve(setting.result);
+          };
+          setting.onerror = function () {
+            console.warn('An error occured: ' + setting.error);
+          };
+        });
+      }
+      this.wifiStatus = false; // Always try to enable WiFi
+      if (this.wifiStatus) {
+        console.log('Disable WiFi!!');
+        this.wifiStatus = false;
+        setSettings('wifi.enabled', false).then(() => {
+          getNetwork(SSID).then(l => {
+            navigator.mozWifiManager.forget(l);
+          });
+        });
+      } else {
+        console.log('Enable WiFi!!');
+        this.wifiStatus = true;
+        setSettings('wifi.enabled', true).then(() => {
+          getNetwork(SSID).then(l => {
+            navigator.mozWifiManager.associate(l);
+          });
+        });
+      }
+    },
+
     openSettings: function() {
       /* jshint nonew: false */
       new MozActivity({
@@ -828,4 +877,3 @@
 
   exports.Home = Home;
 }(window));
-

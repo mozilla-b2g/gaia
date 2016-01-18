@@ -1,5 +1,5 @@
 'use strict';
-/* global ScreenManager, ModalDialog */
+/* global ScreenManager */
 
 (function(exports) {
 
@@ -34,6 +34,8 @@
         ScreenManager.turnScreenOn();
       }
 
+      this._dispatchEvent(true);
+/*
       // Reusing the ModalDialog infrastructure.
       ModalDialog.showWithPseudoEvent({
         text: 'remoteDebuggerMessage',
@@ -41,6 +43,7 @@
         callback: this._dispatchEvent.bind(this, true),
         cancel: this._dispatchEvent.bind(this, false)
       });
+*/
     },
 
     /**

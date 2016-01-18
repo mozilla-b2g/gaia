@@ -20,6 +20,7 @@
     addNewFolderButton: document.getElementById('add-new-folder-button'),
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
+    quickWifiButton: document.getElementById('quick-wifi-button'),
 
     regularNavElements: undefined,
     editNavElements: undefined,
@@ -35,8 +36,8 @@
       this.cardScrollable = cardScrollable;
       this.folderScrollable = folderScrollable;
 
-      this.regularNavElements =
-              [this.searchButton, this.settingsButton, this.editButton];
+      this.regularNavElements = [this.searchButton, this.settingsButton,
+        this.editButton, this.quickWifiButton];
       this.editNavElements = [this.doneButton, this.addNewFolderButton];
 
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
