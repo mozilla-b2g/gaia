@@ -10,6 +10,8 @@ import shutil
 import tempfile
 import time
 import datetime
+import signal
+import thread
 
 from marionette import MarionetteTestCase, B2GTestCaseMixin
 from marionette_driver import expected, By, Wait
@@ -936,24 +938,25 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.start_video_capture()
 
     # saves the captured video in /sdcard/ folder (only logical choice)
-    # trigger screenrecord command as a background process since this does not return until explicitly killed
-    # (this is why os.system() was used instead of device.manager.shell(),
-    # since shell() cannot start a background process
-    # TBD: update deviceManagerADB.py with this method so we won't have to use _adbPath variable
+    # triggers screenrecord command as a thread since the command is blocking the main thread
     def start_video_capture(self):
         device_folder = "/sdcard"
 
         self.video_capture_filename = '%s_%s.mp4' \
                                       % (self.methodName, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
+
+        def screen_record_command():
+            self.device.manager.shellCheckOutput(cmd=['screenrecord',
+                                                      os.path.join(device_folder, self.video_capture_filename)])
+
         if self.device.manager.dirExists(device_folder):
-            os.system(self.device.manager._adbPath + " shell screenrecord " +
-                      os.path.join(device_folder, self.video_capture_filename) + "&")
+            thread.start_new_thread(screen_record_command, ())
         else:
             raise Exception('Unable to find internal storage folder')
 
     def stop_video_capture(self):
-        # killing the phone process with SIGINT, otherwise the video file will get corrupted
-        self.device.manager.killProcess("screenrecord", sig=2)
+        # video file gets corrupted if using another signal
+        self.device.manager.killProcess('screenrecord', sig=signal.SIGINT)
         # need to wait until the files are released, otherwise, files will be corrupted
         time.sleep(1)
 
