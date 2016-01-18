@@ -112,6 +112,7 @@
     var video = this._player.getVideo();
     this._player.init();
     video.addEventListener('loadedmetadata', this);
+    video.addEventListener('durationchange', this);
     video.addEventListener('timeupdate', this);
     video.addEventListener('waiting', this);
     video.addEventListener('playing', this);
@@ -385,6 +386,17 @@
         this.writeTimeInfo('elapsed', this._player.getRoundedCurrentTime());
         this.writeTimeInfo('duration', this._player.getRoundedDuration());
         this._connector.reportStatus('loaded', data);
+      break;
+
+      // XXX: Bug 1238862.
+      // On real TV, decoder would provide NaN duration at the loadedmetadata
+      // event, so duration of 00:00 would be displayed.
+      // However, valid duration would be available at the durationchange
+      // event afterwards.
+      // So we listen to the durationchange and display valid duration info
+      // to workaround this NaN duration issue,
+      case 'durationchange':
+        this.writeTimeInfo('duration', this._player.getRoundedDuration());
       break;
 
       case 'timeupdate':
