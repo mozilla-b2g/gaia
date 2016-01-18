@@ -115,18 +115,6 @@ var BrowserDialog = {
         };
         break;
 
-      case 'error_browser':
-        var msg_str = (evt.detail.type === 'certerror') ?
-          'WB_LT_CONNECTION_IS_UNTRUSTED' :
-          'WB_LT_PAGE_CANNOT_BE_DISPLAYED';
-        opt = {
-          title: null,
-          msg: msg_str,
-          bt1: 'LT_WB_OK',
-          bt2: null
-        };
-        break;
-
       case 'max_bookmark':
         opt = {
           title: null,
@@ -329,7 +317,6 @@ var BrowserDialog = {
     switch(type) {
       case 'del_cookie':
       case 'clear_history':
-      case 'error_browser':
       case 'max_bookmark':
       case 'alert':
       case 'prompt':

@@ -732,7 +732,15 @@ var Browser = {
           this.handleCrashed(tab);
         }
         setTimeout( function() {
-          BrowserDialog.createDialog('error_browser', evt);
+          var errorMessageL10nId = '';
+          if (evt.detail.type === 'certerror') {
+            errorMessageL10nId = 'WB_LT_CONNECTION_IS_UNTRUSTED';
+          } else {
+            errorMessageL10nId = 'WB_LT_PAGE_CANNOT_BE_DISPLAYED';
+          }
+          navigator.mozL10n.formatValue(errorMessageL10nId).then(result => {
+            window.alert(result);
+          });
         }, 800);
         break;
 
