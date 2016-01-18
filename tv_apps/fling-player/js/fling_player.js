@@ -42,9 +42,11 @@
   proto.MAX_DISPLAYED_VIDEO_TIME_SEC = 3600 * 99 + 60 * 59 + 59;
   proto.CONTROL_PANEL_HIDE_DELAY_MS = 3000;
   proto.SEEK_ON_KEY_PRESS_INTERVAL_MS = 150;
-  proto.SEEK_ON_LONG_KEY_PRESS_MS = 5000;
-  proto.SEEK_ON_KEY_PRESS_NORMAL_STEP_SEC = 10;
-  proto.SEEK_ON_KEY_PRESS_LARGE_STEP_SEC = 30;
+  proto.SEEK_ON_LONG_KEY_PRESS_MS = 3000;
+  proto.SEEK_ON_EXTRA_LONG_KEY_PRESS_MS = 6000;
+  proto.SEEK_ON_KEY_PRESS_NORMAL_STEP_SEC = 5;
+  proto.SEEK_ON_KEY_PRESS_LARGE_STEP_SEC = 10;
+  proto.SEEK_ON_KEY_PRESS_EXTRA_LARGE_STEP_SEC = 30;
   proto.INITIAL_MSG_MIN_DISPLAY_TIME_MS = 2000;
   proto.REFOCUS_PLAY_BUTTON_AFTER_HIDDING_SEC = 60000;
 
@@ -340,9 +342,15 @@
       var time = this._player.getRoundedCurrentTime();
       var factor = (this._seekOnKeyPressDirection == 'backward') ? -1 : 1;
       var seekDuration = (new Date()).getTime() - this._seekOnKeyPressStartTime;
-      var seekStep = (seekDuration > this.SEEK_ON_LONG_KEY_PRESS_MS) ?
-                      this.SEEK_ON_KEY_PRESS_LARGE_STEP_SEC :
-                      this.SEEK_ON_KEY_PRESS_NORMAL_STEP_SEC;
+      var seekStep;
+      if (seekDuration <= this.SEEK_ON_LONG_KEY_PRESS_MS) {
+        seekStep = this.SEEK_ON_KEY_PRESS_NORMAL_STEP_SEC;
+      } else if (seekDuration > this.SEEK_ON_LONG_KEY_PRESS_MS &&
+                 seekDuration <= this.SEEK_ON_EXTRA_LONG_KEY_PRESS_MS) {
+        seekStep = this.SEEK_ON_KEY_PRESS_LARGE_STEP_SEC;
+      } else {
+        seekStep = this.SEEK_ON_KEY_PRESS_EXTRA_LARGE_STEP_SEC;
+      }
 
       time += factor * seekStep;
       time = Math.min(Math.max(0, time), this._player.getRoundedDuration());
