@@ -30,7 +30,7 @@ class TestVideo(GaiaImageCompareTestCase):
         browser.switch_to_content()
         player = HTML5Player(self.marionette)
         player.wait_for_video_loaded()
-        play_time = 20.0
+        play_time = 20.8
         self.wait_for_condition(
             lambda m: player.current_timestamp == play_time,
             timeout=30,
