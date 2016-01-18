@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Services, dump, FileUtils, OS */
+/* global Services, Components, dump, FileUtils, OS */
 /* jshint -W118 */
 
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
@@ -140,7 +140,7 @@ function writeContent(file, content) {
  */
 function getFile() {
   try {
-    let first = utils.getOsType().indexOf('WIN') === -1 ?
+    let first = getOsType().indexOf('WIN') === -1 ?
       arguments[0] : arguments[0].replace(/\//g, '\\');
     let file = new FileUtils.File(first);
     if (arguments.length > 1) {
@@ -1289,6 +1289,25 @@ function normalizePath(path) {
   return OS.Path.normalize(path);
 }
 
+function createSandbox() {
+  return Cu.Sandbox(Services.scriptSecurityManager.getSystemPrincipal());
+}
+
+function runScriptInSandbox(filePath, sandbox) {
+  var fileURI = Services.io.newFileURI(filePath).spec;
+
+  // XXX: Dark matter. Reflect.jsm introduces slowness by instanciating Reflect
+  // API in Reflect.jsm scope (call JS_InitReflect on jsm global). For some
+  // reasons, most likely wrappers, Reflect API usages from another
+  // compartments/global ends up being slower...
+  Cu.evalInSandbox('new ' + function sandboxScope() {
+    var init = Components.classes['@mozilla.org/jsreflect;1'].createInstance();
+    init();
+  }, sandbox);
+
+  return Services.scriptloader.loadSubScript(fileURI, sandbox);
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -1355,3 +1374,5 @@ exports.relativePath = relativePath;
 exports.normalizePath = normalizePath;
 exports.getUUIDMapping = getUUIDMapping;
 exports.getMD5hash = getMD5hash;
+exports.createSandbox = createSandbox;
+exports.runScriptInSandbox= runScriptInSandbox;

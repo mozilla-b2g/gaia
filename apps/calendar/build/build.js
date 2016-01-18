@@ -1,7 +1,8 @@
 'use strict';
 
-var r = require('r-wrapper');
-var utils = require('utils');
+/* jshint node: true */
+
+var utils = require('../../build/utils');
 
 function createPresetsFile(options) {
   var presetsFile = utils.getFile(options.APP_DIR, 'js/common', 'presets.js');
@@ -22,21 +23,32 @@ function createPresetsFile(options) {
 }
 
 exports.execute = function(options) {
+  var appName = utils.basename(options.APP_DIR);
   var config = utils.getFile(options.APP_DIR, 'build', 'calendar.build.js');
-  var requirejs = r.get(options.GAIA_DIR);
+
+  var sandbox = utils.createSandbox();
+  sandbox.arguments = [];
+  sandbox.requirejsAsLib = true;
+  sandbox.print = function() {
+    if(options.VERBOSE === '1') {
+      utils.log(appName, Array.prototype.join.call(arguments, ' '));
+    }
+  };
+  utils.runScriptInSandbox(utils.getFile(
+    options.GAIA_DIR, 'build', 'r.js'), sandbox);
 
   createPresetsFile(options);
   utils.ensureFolderExists(utils.getFile(options.STAGE_APP_DIR));
 
-  dump('Will run rjs optimizer...\n');
-  var optimize = new Promise((accept, reject) => {
-    requirejs.optimize([config.path], accept, reject);
+  var optimize = 'optimize=none';
+  var build = new Promise(function(resolve, reject) {
+    sandbox.requirejs.optimize([config.path, optimize], resolve, reject);
   });
 
-  optimize.then(() => {
-    dump('[OK] rjs optimize\n');
-  })
-  .catch((err) => {
-    dump(err + '\n');
+  return build.then(function() {
+    utils.log(appName, 'require.js optimize done');
+  }).catch(function(err) {
+    utils.log(appName, 'require.js optimize failed');
+    throw err;
   });
 };
