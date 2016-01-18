@@ -1,3 +1,4 @@
+/* global SpatialNavigationHelper */
 define(function(require) {
   'use strict';
 
@@ -21,6 +22,16 @@ define(function(require) {
   };
 
   return function ctor_alertDialog(panelDOM, options) {
-    return new AlertDialog(panelDOM, options);
+    var dialog = new AlertDialog(panelDOM, options);
+    const SN_ROOT = 'body.spatial-navigation .current.' + dialog.DIALOG_CLASS;
+    // Support keyboard navigation in AlertDialog
+    SpatialNavigationHelper.add({
+      id: 'alert-dialog',
+      selector: SN_ROOT + ' button',
+      restrict: 'self-only',
+      enterTo: 'last-focused'
+    });
+    dialog.spatialNavigationId = dialog.DIALOG_CLASS;
+    return dialog;
   };
 });

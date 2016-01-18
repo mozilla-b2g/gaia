@@ -1,28 +1,39 @@
 'use strict';
 
 suite('SettingsPanel', function() {
+  var mockSpatialNavigationHelper, realSpatialNavigationHelper;
+
   suiteSetup(function(done) {
     testRequire([
       'modules/settings_panel',
       'modules/panel_utils',
       'modules/settings_cache',
-    ], (function(settingsPanelFunc, PanelUtils, SettingsCache) {
+      'unit/mock_spatial_navigation_helper'
+    ], (function(settingsPanelFunc, PanelUtils, SettingsCache,
+      MockSpatialNavigationHelper) {
       this.realL10n = document.l10n;
 
       this.PanelUtils = PanelUtils;
       this.SettingsCache = SettingsCache;
       this.SettingsPanel = settingsPanelFunc;
+      mockSpatialNavigationHelper = MockSpatialNavigationHelper;
       done();
     }).bind(this));
   });
 
   suite('Basic functions', function() {
+    var spySNHIsEnabled;
     setup(function() {
       this.panel = this.SettingsPanel();
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
+      spySNHIsEnabled =
+        this.sinon.spy(window.SpatialNavigationHelper, 'isEnabled');
     });
 
     teardown(function() {
       this.panel = null;
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
     });
 
     test('init()', function() {
@@ -38,6 +49,8 @@ suite('SettingsPanel', function() {
       assert.isTrue(this.panel.initialized);
       // PanelUtils.activate should be called with the panel element.
       sinon.assert.calledWith(activateSpy, panelElement);
+
+      assert.isTrue(spySNHIsEnabled.calledOnce);
 
       activateSpy.restore();
     });
@@ -67,6 +80,9 @@ suite('SettingsPanel', function() {
 
         settingsCacheRemoveEventListenerSpy.restore();
         panelRemoveEventListenerSpy.restore();
+
+        assert.isTrue(spySNHIsEnabled.calledTwice);
+
       }.bind(this)).then(done, done);
     });
 
@@ -146,9 +162,12 @@ suite('SettingsPanel', function() {
         onBeforeShow: function() {},
         onBeforeHide: function() {}
       };
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
     });
 
     teardown(function() {
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
       this.mockOptions = null;
     });
 

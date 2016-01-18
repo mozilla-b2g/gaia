@@ -1,3 +1,4 @@
+/* global SpatialNavigationHelper */
 require(['config/require'], function() {
   'use strict';
 
@@ -61,6 +62,14 @@ require(['config/require'], function() {
       // Activate the animation.
       document.body.dataset.ready = true;
     }, false);
+
+    SpatialNavigationHelper.init().then(() => {
+      // Recalculate keyboard navigation positions after animation is done
+      window.addEventListener('transitionend', function (evt) {
+        SpatialNavigationHelper.makeFocusable();
+        SpatialNavigationHelper.focus();
+      });
+    });
 
     window.addEventListener('telephony-settings-loaded',
       function onTelephonySettingsLoaded() {

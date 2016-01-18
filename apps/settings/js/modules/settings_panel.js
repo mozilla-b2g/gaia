@@ -7,6 +7,7 @@
  *
  * @module SettingsPanel
  */
+ /* global SpatialNavigationHelper */
 define(function(require) {
     'use strict';
 
@@ -81,6 +82,14 @@ define(function(require) {
       options.onBeforeShow = options.onBeforeShow || _emptyFunc;
       options.onBeforeHide = options.onBeforeHide || _emptyFunc;
 
+      var _goBackHandler = function panel_goBackHandler(evt) {
+        // Backspace (keyCode = 8) as the key to go back the previous panel.
+        if (evt.keyCode === 8) {
+          PanelUtils.goBack(_panel);
+        }
+      };
+      var boundGoBackHandler = _goBackHandler.bind(this);
+
       return Panel({
         onInit: function(panel, initOptions) {
           if (!panel) {
@@ -89,10 +98,16 @@ define(function(require) {
 
           _panel = panel;
           PanelUtils.activate(panel);
+          if (SpatialNavigationHelper.isEnabled()) {
+            window.addEventListener('keyup', boundGoBackHandler);
+          }
 
           return options.onInit(panel, initOptions);
         },
         onUninit: function() {
+          if (SpatialNavigationHelper.isEnabled()) {
+            window.removeEventListener('keyup', boundGoBackHandler);
+          }
           _removeListeners(_panel);
           _panel = null;
           options.onUninit();

@@ -9,6 +9,7 @@
  *
  * @module DialogManager
  */
+ /* global SpatialNavigationHelper */
 define(function(require) {
   'use strict';
 
@@ -176,6 +177,12 @@ define(function(require) {
         return self._transit('open', dialog, options);
       })
       .then(function() {
+        SpatialNavigationHelper.makeFocusable();
+        if (dialog.spatialNavigationId) {
+          SpatialNavigationHelper.focus(dialog.spatialNavigationId);
+        }
+      })
+      .then(function() {
         // 5. show that panel as a dialog
         return foundPanel.show(dialog.panel, options);
       });
@@ -232,6 +239,13 @@ define(function(require) {
       .then(function() {
         // 5. call hide
         return foundPanel.hide();
+      })
+      .then(() => {
+        if (dialog.spatialNavigationId) {
+          SpatialNavigationHelper.remove(dialog.spatialNavigationId);
+        }
+        SpatialNavigationHelper.makeFocusable();
+        SpatialNavigationHelper.focus();
       })
       .then(function() {
         // 6. Get result and cleanup dialog

@@ -295,6 +295,37 @@ gaia-switch[disabled] {
   pointer-events: none;
 }
 
+body.spatial-navigation section#root ul li > gaia-radio,
+body.spatial-navigation section#root ul li > gaia-checkbox,
+body.spatial-navigation section#root ul li > gaia-switch {
+  outline: medium none;
+  margin-inline-start: -15px;
+  padding: 5px 30px 5px 15px;
+}
+
+body.spatial-navigation section:not(#root) ul li > gaia-radio,
+body.spatial-navigation section:not(#root) ul li > gaia-checkbox,
+body.spatial-navigation section:not(#root) ul li > gaia-switch {
+  outline: medium none;
+  margin-inline-start: -15px;
+  padding: 5px 30px;
+}
+
+body.spatial-navigation .current .action-button:focus,
+body.spatial-navigation .current gaia-header button:focus,
+body.spatial-navigation .current li a.menu-item:focus,
+body.spatial-navigation .current li .icon:focus,
+body.spatial-navigation .current li .button:focus,
+body.spatial-navigation .current li button:focus,
+body.spatial-navigation .current li input:focus,
+body.spatial-navigation .current ul.wifi-availableNetworks li:not([data-state]):focus,
+body.spatial-navigation .current li gaia-radio:focus,
+body.spatial-navigation .current li gaia-checkbox:focus,
+body.spatial-navigation .current li gaia-switch:focus {
+  background-color: #b2f2ff !important;
+  color: #222;
+}
+
 /******************************************************************************
 * Media Storage settings
 */

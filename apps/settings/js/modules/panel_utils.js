@@ -220,6 +220,14 @@ define(function(require) {
       }
     },
 
+    goBack: function pu_goBack(panel) {
+      var backHeader = panel.querySelector('gaia-header[action="back"]');
+      var href = backHeader && backHeader.dataset.href;
+      if (backHeader && href) {
+        Settings.currentPanel = backHeader.dataset.href;
+      }
+    },
+
     /**
      * The function presets elements with the settings values.
      * The supported formats are:

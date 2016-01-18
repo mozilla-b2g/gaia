@@ -6,5 +6,6 @@
   "sync.collections.tabs.enabled": true,
   "sync.collections.history.limit": 500,
   "screen.timeout": 0,
+  "settings-app.spatial-navigation.enabled": true,
   "debug.performance_data.shared": true
 }
