@@ -57,32 +57,6 @@ suite('KeyboardHelper', function() {
   defaultSettings.default[keyboardAppManifestURL] = {en: true, number: true};
   defaultSettings.enabled = defaultSettings.default;
 
-  var DEPRECATE_KEYBOARD_SETTINGS = {
-    en: 'keyboard.layouts.english',
-    'en-Dvorak': 'keyboard.layouts.dvorak',
-    cs: 'keyboard.layouts.czech',
-    fr: 'keyboard.layouts.french',
-    de: 'keyboard.layouts.german',
-    hu: 'keyboard.layouts.hungarian',
-    nb: 'keyboard.layouts.norwegian',
-    my: 'keyboard.layouts.myanmar',
-    sl: 'keyboard.layouts.slovak',
-    tr: 'keyboard.layouts.turkish',
-    ro: 'keyboard.layouts.romanian',
-    ru: 'keyboard.layouts.russian',
-    ar: 'keyboard.layouts.arabic',
-    he: 'keyboard.layouts.hebrew',
-    'zh-Hant-Zhuyin': 'keyboard.layouts.zhuyin',
-    'zh-Hans-Pinyin': 'keyboard.layouts.pinyin',
-    el: 'keyboard.layouts.greek',
-    'jp-kanji': 'keyboard.layouts.japanese',
-    pl: 'keyboard.layouts.polish',
-    'pt-BR': 'keyboard.layouts.portuguese',
-    sr: 'keyboard.layouts.serbian',
-    es: 'keyboard.layouts.spanish',
-    ca: 'keyboard.layouts.catalan'
-  };
-
   function trigger(event) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(event, true, false, {});
@@ -125,17 +99,9 @@ suite('KeyboardHelper', function() {
 
   test('requests initial settings', function() {
     var requests = MockNavigatorSettings.mRequests;
-    assert.equal(requests.length, 25);
+    assert.equal(requests.length, 2);
     assert.ok(DEFAULT_KEY in requests[0].result, 'requested defaults');
     assert.ok(ENABLED_KEY in requests[1].result, 'requested enabled');
-
-    var i = 0;
-    for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
-      assert.ok(DEPRECATE_KEYBOARD_SETTINGS[key] in requests[2 + i].result,
-                'requested deprecated settings - ' +
-                DEPRECATE_KEYBOARD_SETTINGS[key]);
-      i++;
-    }
   });
 
   suite('isKeyboardType', function() {
@@ -660,59 +626,6 @@ suite('KeyboardHelper', function() {
         test('same data', function() {
           assert.deepEqual(KeyboardHelper.settings.enabled, this.oldSettings);
         });
-      });
-    });
-  });
-
-  suite('migrate old settings', function() {
-    var expectedSettings = {
-      'default': {},
-      enabled: {}
-    };
-
-    suite('old settings: cs enabled', function() {
-      setup(function() {
-        this.sinon.stub(KeyboardHelper, 'saveToSettings');
-        MockNavigatorSettings.mRequests[2].
-          result[DEPRECATE_KEYBOARD_SETTINGS.en] = false;
-        MockNavigatorSettings.mRequests[4].
-          result[DEPRECATE_KEYBOARD_SETTINGS.cs] = true;
-        MockNavigatorSettings.mReplyToRequests();
-      });
-
-      test('default settings loaded with cs', function() {
-        expectedSettings.enabled[keyboardAppManifestURL] =
-          {cs: true, number: true};
-
-        assert.deepEqual(KeyboardHelper.settings.enabled,
-                         expectedSettings.enabled);
-      });
-
-      test('saves settings', function() {
-        assert.isTrue(KeyboardHelper.saveToSettings.called);
-      });
-    });
-
-    suite('old settings: serbian enabled', function() {
-      setup(function() {
-        this.sinon.stub(KeyboardHelper, 'saveToSettings');
-        MockNavigatorSettings.mRequests[2].
-          result[DEPRECATE_KEYBOARD_SETTINGS.en] = false;
-        MockNavigatorSettings.mRequests[22].
-          result[DEPRECATE_KEYBOARD_SETTINGS.sr] = true;
-        MockNavigatorSettings.mReplyToRequests();
-      });
-
-      test('default settings loaded with cs', function() {
-        expectedSettings.enabled[keyboardAppManifestURL] =
-          {'sr-Cyrl': true, 'sr-Latn': true, number: true};
-
-        assert.deepEqual(KeyboardHelper.settings.enabled,
-                         expectedSettings.enabled);
-      });
-
-      test('saves settings', function() {
-        assert.isTrue(KeyboardHelper.saveToSettings.called);
       });
     });
   });
