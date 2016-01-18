@@ -2,7 +2,7 @@
 /* global Application, FilterManager, CardManager, Clock, Deck, Edit, Folder,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
           SharedUtils, SpatialNavigator, URL, XScrollable, Animations,
-          Utils, FTEWizard, AppBookmark */
+          Utils, AppBookmark */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -166,14 +166,6 @@
                         that.onCardRemoved.bind(that, that.folderScrollable));
           }
         });
-        that._fteWizard = new FTEWizard('homeFTE');
-        that._fteWizard.init({
-          container: that.fteElem,
-          onfinish: () => {
-            that.spatialNavigator.focus(that.cardScrollable);
-            that.isNavigable = true;
-          }
-        });
       });
     },
 
@@ -197,9 +189,7 @@
         })]).then(function() {
           // Catch focus back unless there is a pin activity since callback of
           // pinning would catch the focus for us.
-          if (that._fteWizard.running) {
-            that._fteWizard.focus();
-          } else if (!that.messageHandler.resumeActivity()) {
+          if (!that.messageHandler.resumeActivity()) {
             that.spatialNavigator.focus();
           }
 

@@ -1,8 +1,7 @@
 'use strict';
 /* global Folder, navigator, MockL10n, document, MocksHelper,
    XScrollable, MozActivity, SpatialNavigator, CardManager, MessageHandler,
-   Home, SearchBar, FilterManager, Edit, Utils, Application, MockMozActivity,
-   FTEWizard */
+   Home, SearchBar, FilterManager, Edit, Utils, Application, MockMozActivity */
 
 require('/bower_components/evt/index.js');
 require('/shared/js/uuid.js');
@@ -25,7 +24,6 @@ require('mock_utils.js');
 require('mock_filter_manager.js');
 require('/shared/test/unit/mocks/smart-screen/mock_spatial_navigator.js');
 require('/shared/test/unit/mocks/smart-screen/mock_key_navigation_adapter.js');
-require('/shared/test/unit/mocks/smart-screen/mock_f_t_e_wizard.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
@@ -43,8 +41,7 @@ var mocksHelperForHomeTest = new MocksHelper([
   'Edit',
   'MozActivity',
   'Utils',
-  'FilterManager',
-  'FTEWizard'
+  'FilterManager'
 ]).init();
 
 suite('home', function() {
@@ -107,7 +104,6 @@ suite('home', function() {
     subject.cardManager = new CardManager();
     subject.searchBar = new SearchBar();
     subject.filterManager = new FilterManager();
-    subject._fteWizard = new FTEWizard();
     subject.edit = new Edit();
     subject.cardListElem = document.createElement('div');
     subject.spatialNavigator.m_focusedElement = document.createElement('div');
