@@ -1,6 +1,6 @@
 /* global MozActivity, IconsHelper, LazyLoader, applications */
 /* global BookmarksDatabase, focusManager, SmartModalDialog */
-/* global FTEWizard, Template, AppInstallManager, AppInstallDialogs */
+/* global AppInstallManager, AppInstallDialogs */
 /* global PreviewWindow, SystemBanner, ManifestHelper, BookmarkManager */
 
 (function(window) {
@@ -11,8 +11,6 @@
   // XXX: We use icon filename to determine if we have pin-to-card option
   // because no additional informations can be sent by mozbrowsercontextmenu for
   // now.
-  // specifically for popping up FTE.
-  var PIN_TO_CARD_ICON_NAME = 'ic_pin.png';
 
   var _id = 0;
   /**
@@ -78,7 +76,6 @@
     var id = this.CLASS_NAME + this.instanceID;
     this.element = document.getElementById(id);
     this.modalDialog = new SmartModalDialog(this.element);
-    this.fteWizard = new FTEWizard('systemContextMenuFTE');
   };
 
   BrowserContextMenu.prototype._registerEvents = function bcm__regEvents() {
@@ -180,11 +177,7 @@
 
   BrowserContextMenu.prototype.focus = function() {
     document.activeElement.blur();
-    if (this.fteWizard.running) {
-      this.fteWizard.focus();
-    } else {
       this.modalDialog.focus();
-    }
 
   };
 
@@ -199,18 +192,6 @@
       this._injected = true;
     }
 
-    // Initialize FTE if necessary.
-    if (!this.fteWizard.launched) {
-      var hasPinIcon = menus.some((item) => {
-        return item.menuIcon &&
-          item.menuIcon.search(PIN_TO_CARD_ICON_NAME) !== -1;
-      });
-
-      if(hasPinIcon) {
-        this.initFTE(this.modalDialog.element);
-      }
-    }
-
     this.element.classList.add('visible');
     this.modalDialog.open({ 'buttonSettings': menus,
       'onButtonRendered': function buttonRendered(button, item) {
@@ -220,26 +201,6 @@
           icon.style.backgroundImage = 'url(' + item.menuIcon + ')';
           button.appendChild(icon);
         }
-      }
-    });
-  };
-
-  BrowserContextMenu.prototype.initFTE = function(parent) {
-    if (!this.fteWizard) {
-      return;
-    }
-
-    var template = new Template('fte_template');
-
-    var fteViewElem = document.createElement('div');
-    fteViewElem.className = 'ctxmenu-fte';
-    fteViewElem.insertAdjacentHTML('beforeend', template.interpolate());
-    parent.appendChild(fteViewElem);
-
-    this.fteWizard.init({
-      container: fteViewElem,
-      onfinish: () => {
-        this.focus();
       }
     });
   };
