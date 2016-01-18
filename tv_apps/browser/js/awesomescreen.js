@@ -1549,8 +1549,7 @@ var Awesomescreen = {
     }
     //title is I do check if empty
     var bmTitle = this.inputArea.value.trim(),
-        listUrl = this.bookmarkList.getFocusItemUri(),
-        listTitle = this.bookmarkList.getFocusItemTitle();
+        listUrl = this.bookmarkList.getFocusItemUri();
 
     // Animation end event
     var target = ev.currentTarget;
