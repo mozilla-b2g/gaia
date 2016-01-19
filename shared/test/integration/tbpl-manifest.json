@@ -55,7 +55,6 @@
     "apps/system/test/marionette/lockscreen_media_playback_test.js": "Bug 1110913",
     "apps/system/test/marionette/lockscreen_passcode_unlock_test.js": "Bug 1226340 - Intermittent lockscreen_passcode_unlock_test.js",
     "apps/system/test/marionette/notification_behavior_test.js": "Bug 1148336",
-    "apps/system/test/marionette/notification_events_test.js": "Bug 1235884 - Intermittent TEST-UNEXPECTED-FAIL | apps/system/test/marionette/notification_events_test.js",
     "apps/system/test/marionette/notification_test.js": "Bug 1191036 - Intermittent apps/system/test/marionette/notification_test.js",
     "apps/system/test/marionette/software_home_lockscreen_power_menu_test.js": "Bug 1192249 - Intermittent apps/system/test/marionette/software_home_lockscreen_power_menu_test.js",
     "apps/system/test/marionette/statusbar_icon_color_test.js": "Bug 1134018",
