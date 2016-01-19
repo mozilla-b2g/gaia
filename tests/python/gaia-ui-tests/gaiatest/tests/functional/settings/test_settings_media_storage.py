@@ -34,4 +34,4 @@ class TestSettingsMediaStorage(GaiaTestCase):
         # Check that media storage has updated to reflect the newly pushed media
         self.assertEqual(media_storage_settings.internal_storage.music_size, u'{"size":"120","unit":"KB"}')
         self.assertEqual(media_storage_settings.internal_storage.pictures_size, u'{"size":"348","unit":"KB"}')
-        self.assertEqual(media_storage_settings.internal_storage.movies_size, u'{"size":"120","unit":"KB"}')
+        self.assertEqual(media_storage_settings.internal_storage.movies_size, u'{"size":"680","unit":"KB"}')
