@@ -29,6 +29,7 @@ marionette('Contacts > List', function() {
     actions = client.loader.getActions();
     subject = new Contacts(client);
     subject.launch();
+    selectors = Contacts.Selectors;
   });
 
   suite('Visited contacts > ', function() {
@@ -36,7 +37,6 @@ marionette('Contacts > List', function() {
       agenda.forEach(function(contact) {
         subject.addContact(contact);
       });
-      selectors = Contacts.Selectors;
     });
 
     test('at least one has been visited by the imageLoader', function() {
@@ -48,6 +48,57 @@ marionette('Contacts > List', function() {
       client.findElement(selectors.searchLabel).click();
       client.helper.waitForElement(selectors.searchCancel).click();
       assert.ok(getNumberOfItemsVisited() === numItemsVisited);
+    });
+  });
+
+  suite('List Order > ', function() {
+    var data = [['GG', 'E'], ['AA', 'Z'],
+      ['XX', 'C'], ['CC', 'X'], ['EE', 'G'], ['FF', 'F'], ['HH', 'D'],
+      ['BB', 'Y'], ['YY', 'B'], ['ZZ', 'A'], ['DD', 'H']];
+    setup(function() {
+      data.forEach(contactData => {
+        contactsData.createMozContact({
+          givenName: [contactData[0]],
+          familyName: [contactData[1]]
+        }, false);
+      });
+    });
+
+    
+
+    function givenNameOrder(a, b) {
+      return a[0].localeCompare(b[0]);
+    }
+
+    function familyNameOrder(a, b) {
+      return a[1].localeCompare(b[1]);
+    }
+
+    test('Default to: given name > ', function() {
+      var names = subject.contactsNames;
+      var targetOrder = data.sort(givenNameOrder);
+      names.forEach((name, index) => {
+        assert.equal(name, targetOrder[index][0] + ' ' + targetOrder[index][1]);
+      });
+    });
+
+    test('Order by family name > ', function() {
+      subject.goToSettings();
+
+      // Change order
+      client.switchToShadowRoot(
+        client.helper.waitForElement(selectors.orderSwitch));
+      subject.clickOn(client.findElement(selectors.changeOrder));
+      client.switchToShadowRoot();
+      subject.clickOn(client.findElement(selectors.settingsClose));
+      subject.waitForFadeIn(client.helper.waitForElement(selectors.list));
+
+      var names = subject.contactsNames;
+      var targetOrder = data.sort(familyNameOrder);
+      names.forEach((name, index) => {
+        assert.equal(name, targetOrder[index][0] + ' ' + targetOrder[index][1]);
+      });
+
     });
   });
 

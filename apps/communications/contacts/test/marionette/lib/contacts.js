@@ -91,6 +91,7 @@ Contacts.Selectors = {
   list: '#view-contacts-list',
   listContactFirst: 'li:not([data-group="ice"]).contact-item',
   listContactFirstText: 'li:not([data-group="ice"]).contact-item p',
+  contactsItems: 'li:not([data-group="ice"]).contact-item p',
   contactListHeader: '#contacts-list-header',
 
   searchLabel: '#search-start',
@@ -104,6 +105,8 @@ Contacts.Selectors = {
   settingsView: '#view-settings',
   settingsClose: '#settings-close',
   bulkDelete: '#bulkDelete',
+  orderSwitch: '#settingsOrder gaia-switch',
+  changeOrder: '#switch',
 
   editForm: '#selectable-form',
   editMenu: '#select-all-wrapper',
@@ -414,6 +417,14 @@ Contacts.prototype = {
     });
   },
 
+  goToSettings: function() {
+    this.client.helper.waitForElement(
+      Contacts.Selectors.settingsButton).tap();
+    var settings = this.client.helper.waitForElement(
+      Contacts.Selectors.settingsView);
+    this.waitForFadeIn(settings);
+  },
+
   getElementStyle: function(selector, type) {
     return this.client.executeScript(function(selector, type) {
       return document.querySelector(selector).style[type];
@@ -421,11 +432,21 @@ Contacts.prototype = {
   },
 
   getNumberOfContacts: function() {
-    return this.client.executeScript(function() {
-      var selector = 'li:not([data-group="ice"]).contact-item';
-      return document.querySelectorAll(selector).length;
-    });
+    return this.contactsNames.length;
+  },
+
+  get contactsNames() {
+    try {
+      var contactElements = this.client.findElements(
+        Contacts.Selectors.contactsItems);
+      return contactElements.map((element) => {
+        return element.text();
+      });
+    } catch(e) {
+      return [];
+    }
   }
+
 };
 
 module.exports = Contacts;
