@@ -8,6 +8,7 @@
 function Contacts(client) {
   this.client = client;
   this.client.setSearchTimeout(10000);
+  this.actions = this.client.loader.getActions();
 }
 
 /**
@@ -123,10 +124,15 @@ Contacts.Selectors = {
   iceGroupOpen: '#section-group-ice',
   iceContact: '#ice-group .contact-item',
 
+  importContacts: '#importContacts',
+  importSDCard: '#import-sd-option button',
+  importHeader: '#import-settings-header',
+
   activityChooser: 'form[data-type="action"]',
   buttonActivityChooser: 'form[data-type="action"] button',
   actionMenu: '#action-menu',
   actionMenuList: '#value-menu',
+  actionButton: '.action-button',
 
   multipleSelectSave: '#save-button',
   multipleSelectStatus: '#statusMsg p',
