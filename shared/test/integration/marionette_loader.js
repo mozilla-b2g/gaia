@@ -2,6 +2,7 @@
 
 var MockManager = require('./manager_mock.js');
 
+var COMMS_APPS = ['dialer', 'contacts'];
 /**
  * @param {Marionette.Client} client Marionette client to use.
  * @constructor
@@ -37,6 +38,7 @@ MarionetteLoader.prototype = {
    */
   getAppClass: function(app, region, baseFolder) {
     region = region || app;
+    app = COMMS_APPS.indexOf(app) === -1 ? app : 'communications/' + app;
     baseFolder = baseFolder || 'apps';
     var AppClass = require(
       __dirname + '/../../../' +
