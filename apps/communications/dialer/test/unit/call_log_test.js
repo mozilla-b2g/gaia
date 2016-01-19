@@ -84,7 +84,8 @@ suite('dialer/call_log', function() {
       'call-log-upgrading',
       'call-log-upgrade-progress',
       'call-log-upgrade-percent',
-      'sticky'
+      'sticky',
+      'edit-mode'
     ];
 
     mainNodes.forEach(function(prop) {
