@@ -77,7 +77,7 @@ var ParticipantsAccessor = require('./views/participants/accessors');
         },
 
         loadMocks: function() {
-          this.client.loader.getMockManager('sms').inject([
+          client.loader.getMockManager('sms').inject([
             'test_storages',
             'test_blobs',
             'navigator_moz_icc_manager',
