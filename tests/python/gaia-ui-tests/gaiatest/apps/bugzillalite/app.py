@@ -10,7 +10,7 @@ class BugzillaLite(Base):
     _button_login = (By.CSS_SELECTOR, "#login input[type='submit']")
     _profile_icon = (By.CSS_SELECTOR, "a[href='/profile/']")
     _button_logout = (By.CSS_SELECTOR, "a[href='/logout/']")
-    _dashboard_navigator_locator = (By.ID, 'dashboardNav')
+    _dashboard_navigator_locator = (By.ID, 'navigation')
     _login_form_locator = (By.ID, 'login')
     _popup_intro = (By.ID, 'intro')
     _button_popup_intro = (By.ID, 'intro-submit')
