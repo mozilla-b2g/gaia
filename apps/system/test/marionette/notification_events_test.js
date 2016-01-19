@@ -2,22 +2,30 @@
 
 /* globals Notification */
 
-var assert = require('assert'),
-    fs = require('fs');
+var assert = require('assert');
 
-var EMAIL_APP = 'app://email.gaiamobile.org';
+var EMAIL_ORIGIN = 'email.gaiamobile.org';
+var EMAIL_APP = 'app://' + EMAIL_ORIGIN;
 var EMAIL_APP_MANIFEST = EMAIL_APP + '/manifest.webapp';
 
-marionette('Notification events', function() {
+var LONG_LAUNCH_ORIGIN = 'longlaunchapp.gaiamobile.org';
+var LONG_LAUNCH_APP = 'app://' + LONG_LAUNCH_ORIGIN;
+var LONG_LAUNCH_APP_MANIFEST = LONG_LAUNCH_APP + '/manifest.webapp';
 
-  var client = marionette.client();
+marionette('Notification events', function() {
+  var apps = {};
+  apps[LONG_LAUNCH_ORIGIN] = __dirname + '/../apps/longlaunchapp';
+  var client = marionette.client({
+    profile: {
+      apps: apps
+    }
+  });
   var details = {tag: 'test tag',
                  body: 'test body',
                  data: {number: 2,
                         string: '123',
                         array: [1, 2, 3],
                         obj: {test: 'test'}}};
-
   var system;
   setup(function() {
     system = client.loader.getAppClass('system');
@@ -359,9 +367,8 @@ marionette('Notification events', function() {
 
   test('custom data available via mozSetMessageHandler', function(done) {
     client.switchToFrame();
-
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.launch(LONG_LAUNCH_APP);
+    client.apps.switchToApp(LONG_LAUNCH_APP);
 
     client.executeScript(function(details) {
       var notification;
@@ -369,22 +376,10 @@ marionette('Notification events', function() {
     }, [details]);
 
     client.switchToFrame();
-    client.apps.close(EMAIL_APP);
-
-    // after closing live handlers should be lost, the callbacks too
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
-
-    client.executeScript(fs.readFileSync(
-      __dirname + '/lib/fake_moz_set_message_handler.js', 'utf8'));
-
-    // fake mozSetMessageHandler
-    client.executeScript(function() {
-      window.wrappedJSObject.mozSetMessageHandler('notification');
-    });
+    client.apps.close(LONG_LAUNCH_APP);
+    client.apps.launch(LONG_LAUNCH_APP);
 
     client.switchToFrame();
-
     client.executeScript(function(manifest) {
       // get notifications
       var container =
@@ -398,22 +393,24 @@ marionette('Notification events', function() {
         type: 'desktop-notification-click',
         id: node.dataset.notificationId
       });
-      window.dispatchEvent(event);
-    }, [EMAIL_APP_MANIFEST]);
+
+      // postponing event dispatching to ensure that
+      // LONG_LAUNCH_APP is already focused
+      var win = window;
+      setTimeout (function() { win.dispatchEvent(event); }, 1000);
+    }, [LONG_LAUNCH_APP_MANIFEST]);
 
     // get into the context containing the mocked api and the data object
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.switchToApp(LONG_LAUNCH_APP);
+    var data = null;
     client.waitFor(function() {
-      var data = client.executeScript(function() {
-        return window.wrappedJSObject.__getFakeData;
+      data = client.executeScript(function() {
+        return window.wrappedJSObject.getFakeData();
       });
-      return data != null;
-    });
-    var data = client.executeScript(function() {
-      return window.wrappedJSObject.__getFakeData;
+      return data != null && data.data != null;
     });
 
-    assert.equal(JSON.stringify(data), JSON.stringify(details.data),
+    assert.equal(JSON.stringify(data.data), JSON.stringify(details.data),
                  'Notification data should match');
     done();
   });

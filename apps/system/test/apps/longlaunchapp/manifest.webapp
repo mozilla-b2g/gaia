@@ -1,0 +1,11 @@
+{
+  "name": "long launch app",
+  "launch_path": "/index.html",
+  "type": "privileged",
+  "messages": [
+    { "notification": "/index.html" }
+  ],
+  "permissions": {
+    "desktop-notification": {}
+  }
+}
