@@ -1,11 +1,12 @@
 {
   "name": "marionette-js-runner",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Javascript ui testing framework built on top of mocha for testing webapps on gecko",
 
   "contributors": [
     "James Lal [:lightsofapollo] <jlal@mozilla.com>",
-    "Gareth Aye [:gaye] <gaye@mozilla.com>"
+    "Gareth Aye [:gaye] <gaye@mozilla.com>",
+    "Aus Lacroix [:auswerk] <aus@mozilla.com>"
   ],
 
   "bin": {
