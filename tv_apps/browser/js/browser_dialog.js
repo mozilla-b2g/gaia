@@ -3,7 +3,6 @@
 /* global Browser */
 /* global BrowserDB */
 /* global KeyEvent */
-/* global MozActivity */
 /* global Settings */
 
 'use strict';
@@ -114,15 +113,6 @@ var BrowserDialog = {
           msg: _('WB_LT_CLEAR_ALL_HISTORY'),
           bt1: _('LT_CANCEL'),
           bt2: _('WB_LT_CLEAR')
-        };
-        break;
-
-      case 'close_browser':
-        opt = {
-          title: null,
-          msg: _('LT_BROWSER_CONFIRM_EXIT2'),
-          bt1: _('LT_CANCEL'),
-          bt2: _('LT_WB_OK')
         };
         break;
 
@@ -329,7 +319,6 @@ var BrowserDialog = {
     switch(type) {
       case 'del_cookie':
       case 'clear_history':
-      case 'close_browser':
       case 'error_browser':
       case 'max_bookmark':
       case 'alert':
@@ -391,25 +380,6 @@ var BrowserDialog = {
               BrowserDialog.dialogButton2End(BrowserDialog.argEvt);
             }.bind(this));
         Awesomescreen.selectTopSites();
-        break;
-
-      case 'close_browser':
-        if (Browser.returnApp && Browser.returnApp == 'Search') {
-          var activity;
-          activity = new MozActivity({
-            name: 'search',
-            data: { keyword: '' }
-          });
-          activity.onsuccess == function () {
-            //console.log ('browser moaActivity succeeded');
-          };
-          activity.onerror == function () {
-            console.error ('browser launch search by moaActivity failed');
-          };
-        }
-        Browser.returnApp = null;
-        Browser.returnOpt = null;
-        self.close();
         break;
 
       case 'prompt':
