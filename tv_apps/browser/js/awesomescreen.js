@@ -915,17 +915,9 @@ var Awesomescreen = {
     if(Toolbar.isBookmarks()){
       Awesomescreen.optionDialogOpen('rmBookmark');
     }else{
-      //Bookmark maximum number check
-      if(bmList.length >= Browser.MAX_BOOKMARK_LIST){
-        //TODO This message I want to change later
-        Awesomescreen.dialogBannerMessage.setAttribute(
-          'data-l10n-id', 'WB_LT_BOOKMARK_ERROR_1');
-        Awesomescreen.showBannerMessage();
-      }else{
-        Awesomescreen.bmDialogSetting();
-        //dialog show
-        Awesomescreen.dialogShow();
-      }
+      Awesomescreen.bmDialogSetting();
+      //dialog show
+      Awesomescreen.dialogShow();
     }
   },
 
