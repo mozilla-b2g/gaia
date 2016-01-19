@@ -10,12 +10,6 @@ var Storage = require('./lib/storage.js');
 var InboxView = require('./lib/views/inbox/view');
 
 marionette('Messages Drafts', function() {
-  var MOCKS = [
-    '/mocks/mock_test_storages.js',
-    '/mocks/mock_test_blobs.js',
-    '/mocks/mock_navigator_moz_mobile_message.js'
-  ];
-
   var apps = {};
 
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
@@ -139,9 +133,11 @@ marionette('Messages Drafts', function() {
     messagesApp = Messages.create(client);
     storage = Storage.create(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'test_storages',
+      'test_blobs',
+      'navigator_moz_mobile_message'
+    ]);
   });
 
   suite('Messages Drafts Test Suite', function() {
@@ -448,4 +444,3 @@ marionette('Messages Drafts', function() {
     });
   });
 });
-

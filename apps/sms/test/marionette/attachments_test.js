@@ -28,12 +28,10 @@ marionette('Attachment picking and sending tests', function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
 
-     client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
-    );
+    client.loader.getMockManager('sms').inject([
+       'navigator_moz_icc_manager',
+       'navigator_moz_mobile_message'
+     ]);
   });
 
   suite('Test Suite', function() {
