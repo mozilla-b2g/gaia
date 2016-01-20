@@ -12,9 +12,21 @@
 
 /*exported MessageManager */
 
+/**
+ * MessageManager wraps around {@link http://mdn.io/MozMobileMessageManager}
+ * that makes access to SMS/MMS related operations (sending, handling
+ * read/delivery reports etc.) and respective events easier.
+ * @module MessageManager
+ */
 'use strict';
 (function(exports) {
 var MessageManager = {
+
+  /**
+   * Initializes MessageManager and subscribes for required
+   * {@link http://mdn.io/MozMobileMessageManager} events.
+   * Should be always called before calling any other MessageManager methods.
+   */
   init: function mm_init() {
     this._mozMobileMessage = navigator.mozMobileMessage;
 
@@ -41,28 +53,63 @@ var MessageManager = {
     );
   },
 
+  /**
+   * Event occurs when an SMS or MMS enters the send flow.
+   * @param {MozSmsEvent|MozMmsEvent} e Instance of
+   * {@link http://mdn.io/MozSmsEvent} or {@link http://mdn.io/MozMmsEvent}.
+   */
   onMessageSending: function mm_onMessageSending(e) {
     Threads.registerMessage(e.message);
 
     this.emit('message-sending', { message: e.message });
   },
 
+  /**
+   * Specifies an event listener to receive "failed" events. These events occur
+   * when sending an MMS or SMS has failed.
+   * @param {MozSmsEvent|MozMmsEvent} e Instance of
+   * {@link http://mdn.io/MozSmsEvent} or {@link http://mdn.io/MozMmsEvent}.
+   */
   onMessageFailed: function mm_onMessageFailed(e) {
     this.emit('message-failed-to-send', { message: e.message });
   },
 
+  /**
+   * Specifies an event listener to receive "deliverysuccess" events. These
+   * events occur when an SMS or MMS is delivered.
+   * @param {MozSmsEvent|MozMmsEvent} e Instance of
+   * {@link http://mdn.io/MozSmsEvent} or {@link http://mdn.io/MozMmsEvent}.
+   */
   onDeliverySuccess: function mm_onDeliverySuccess(e) {
     this.emit('message-delivered', { message: e.message });
   },
 
+  /**
+   * Specifies an event listener to receive "read" events. These events
+   * occur when MMS is read by recipient (read status isn't supported by SMS).
+   * @param {MozMmsEvent} e Instance of {@link http://mdn.io/MozMmsEvent}.
+   */
   onReadSuccess: function mm_onReadSuccess(e) {
     this.emit('message-read', { message: e.message });
   },
 
+  /**
+   * Specifies an event listener to receive "sent" events. These events occur
+   * when an SMS or MMS is sent.
+   * @param {MozSmsEvent|MozMmsEvent} e Instance of
+   * {@link http://mdn.io/MozSmsEvent} or {@link http://mdn.io/MozMmsEvent}.
+   */
   onMessageSent: function mm_onMessageSent(e) {
     this.emit('message-sent', { message: e.message });
   },
 
+  /**
+   * Specifies an event listener to receive "received" events. These events
+   * occur when an SMS or MMS is received. Event handler executed when new SMS
+   * or MMS is received.
+   * @param {MozSmsEvent|MozMmsEvent} e Instance of
+   * {@link http://mdn.io/MozSmsEvent} or {@link http://mdn.io/MozMmsEvent}.
+   */
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
 
@@ -72,7 +119,7 @@ var MessageManager = {
 
     // Here we can only have one sender, so deliveryInfo[0].deliveryStatus =>
     // message status from sender. Ignore 'pending' messages that are received
-    // this means we are in automatic download mode
+    // this means we are in automatic download mode.
     if (message.delivery === 'not-downloaded' &&
         message.deliveryInfo[0].deliveryStatus === 'pending') {
       return;
@@ -83,7 +130,13 @@ var MessageManager = {
     this.emit('message-received', { message: message });
   },
 
+  /**
+   * Event handler executed when message is deleted.
+   * @param {MozSmsEvent|MozMmsEvent} e Instance of
+   * {@link http://mdn.io/MozSmsEvent} or {@link http://mdn.io/MozMmsEvent}.
+   */
   onDeleted: function(e) {
+    // The method verifies that some threads have been deleted.
     if (e.deletedThreadIds && e.deletedThreadIds.length) {
       this.emit('threads-deleted', {
         ids: e.deletedThreadIds
@@ -91,16 +144,16 @@ var MessageManager = {
     }
   },
 
+  /**
+   * Obtains all the treads and takes a set of callback functions as an
+   * argument.
+   * @param {Object} options A set of callback functions as described below:-
+   * @param {function) options.each: callback function invoked for each message.
+   * @param {function} options.end: callback function run when cursor is "done".
+   * @param {function} options.done: callback function run when we iterated
+   * through all the threads or consumer requested to do so.
+   */
   getThreads: function mm_getThreads(options) {
-    /*
-    options {
-      each: callback function invoked for each message
-      end: callback function invoked when cursor is "done"
-      done: callback function invoked when we stopped iterating, either because
-            it's the end or because it was stopped. It's invoked after the "end"
-            callback.
-    }
-    */
 
     var each = options.each;
     var end = options.end;
@@ -108,7 +161,7 @@ var MessageManager = {
     var cursor = null;
 
     // WORKAROUND for bug 958738. We can remove 'try\catch' block once this bug
-    // is resolved
+    // is resolved.
     try {
       cursor = this._mozMobileMessage.getThreads();
     } catch(e) {
@@ -121,12 +174,14 @@ var MessageManager = {
 
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
+        // Invoking callback on each thread.
         each && each(this.result);
 
         this.continue();
         return;
       }
 
+      // Invoking terminating callbacks.
       end && end();
       done && done();
     };
@@ -137,28 +192,36 @@ var MessageManager = {
     };
   },
 
+  /**
+   * Method used to access message having a given id.
+   * @param {number} id The id of the message we wish to get.
+   * @return {DOMRequest<SmsMessage|MmsMessage>}
+   */
   getMessage: function mm_getMsg(id) {
     return this._mozMobileMessage.getMessage(id);
   },
 
+  /**
+   * Method to get the MMS object having a given id.
+   * @param {number} id The id of the MMS we wish to get.
+   * @return {DOMRequest<MmsMessage>}
+   */
   retrieveMMS: function mm_retrieveMMS(id) {
     return this._mozMobileMessage.retrieveMMS(id);
   },
 
+  /**
+   * Obtains all the messages using a given filter.
+   * @param {Object} options A set of callback functions as described below:-
+   * @param {function} options.each callback function invoked for each message.
+   * @param {function} options.end callback function run when cursor is "done".
+   * @param {function} options.endArgs specify arguments for the "end" callback.
+   * @param {function} options.done callback function invoked when we iterated
+   * through all the messages or consumer requested to do so.
+   * @param {function} options.filter a MobileMessageFilter or similar object.
+   * @param {boolean} invert option to invert the selection.
+   */
   getMessages: function mm_getMgs(options) {
-    /*
-    options {
-      each: callback function invoked for each message
-      end: callback function invoked when cursor is "done"
-      endArgs: specify arguments for the "end" callback
-      done: callback function invoked when we stopped iterating, either because
-            it's the end or because it was stopped. It's invoked after the "end"
-            callback.
-      filter: a MobileMessageFilter or similar object
-      invert: option to invert the selection
-    }
-
-     */
     var each = options.each;
     var invert = options.invert;
     var end = options.end;
@@ -173,8 +236,8 @@ var MessageManager = {
         if (each) {
           shouldContinue = each(this.result);
         }
-        // if each returns false the iteration stops
-        if (shouldContinue !== false) { // if this is undefined this is fine
+        // if each returns false the iteration stops.
+        if (shouldContinue !== false) { // if this is undefined this is fine.
           this.continue();
         } else {
           done && done();
@@ -191,9 +254,15 @@ var MessageManager = {
     };
   },
 
-  // 0 is a valid value so we need to take care to not consider it as a falsy
-  // value. We want to return null for anything that's not a number or a string
-  // containing a number.
+  /**
+   * Sanitizes the "serviceId". It works as follows:-
+   * 0 is a valid value so we need to take care to not consider it as a falsy
+   * value. We want to return null for anything that's not a number or a string
+   * containing a number.
+   * @param {number|string} id The service ID.
+   * @private
+   * @return {?number}
+   */
   _sanitizeServiceId: function mm_sanitizeServiceId(serviceId) {
     if (serviceId == null || // null or undefined
         isNaN(+serviceId)) {
@@ -205,6 +274,12 @@ var MessageManager = {
     return serviceId;
   },
 
+  /**
+   * Gets send options for the specified "serviceId".
+   * @param {number|string} id The service ID.
+   * @private
+   * @return {{ serviceId: number|string }}
+   */
   _getSendOptionsFromServiceId: function mm_gSOFSI(serviceId) {
     var sendOpts;
 
@@ -216,14 +291,14 @@ var MessageManager = {
     return sendOpts;
   },
 
-  // consider splitting this method for the different use cases
-  /*
-   * `opts` can have the following properties:
-   * - recipients (string or array of string): contains the list of
-   *   recipients for this message
-   * - content (string): the message's body
+  /**
+   * Sends an SMS based on the specified parameters object
+   * @param {Object} opts Options object that contains :-
+   * - recipients (string or array of string): contains the list of recipients
+   *   for this message.
+   * - content (string): the message's body.
    * - serviceId (optional long or string): the SIM serviceId we use to send the
-   *   message
+   *   message.
    * - onsuccess (optional function): will be called when one SMS has been
    *   sent successfully, with the request's result as argument. Can be called
    *   several times.
@@ -233,8 +308,8 @@ var MessageManager = {
    *   been sent. It's argument will have the following properties:
    *   + hasError (boolean): whether we had at least one error
    *   + return (array): each item is an object with the following properties:
-   *     . success (boolean): whether this is a success or an error
-   *     . result (request's result): the request's result object
+   *     . success (boolean): whether this is a success or an error.
+   *     . result (request's result): the request's result object.
    *     . recipient (string): the recipient used for this transmission.
    */
   sendSMS: function mm_send(opts) {
@@ -253,6 +328,8 @@ var MessageManager = {
     // Instead, It's an array of DOM requests.
     var i = 0;
     var requestResult = { hasError: false, return: [] };
+
+    // Getting serviceId field in sendOpts.
     var sendOpts = this._getSendOptionsFromServiceId(serviceId);
 
     var requests = this._mozMobileMessage.send(recipients, content, sendOpts);
@@ -261,6 +338,7 @@ var MessageManager = {
 
     requests.forEach(function(request, idx) {
       request.onsuccess = function onSuccess(event) {
+        // Callback functions executed message has been successfully sent.
         onsuccess && onsuccess(event.target.result);
 
         requestResult.return.push({
@@ -269,6 +347,7 @@ var MessageManager = {
           recipient: recipients[idx]
         });
 
+        // Last callback, oncomplete, executed at the end of the loop.
         if (i === numberOfRequests - 1) {
           oncomplete && oncomplete(requestResult);
         }
@@ -294,8 +373,9 @@ var MessageManager = {
     });
   },
 
-  /*
-   * opts is an object with the following properties:
+  /**
+   * Sends an MMS based on the specified parameters object
+   * @param {Object} opts is the options field with the following properties:
    * - recipients (string or array of string): recipients for this message
    * - subject (optional string): subject for this message
    * - content (array of SMIL slides): this is the content for the message (see
@@ -308,9 +388,7 @@ var MessageManager = {
    * - onsuccess (optional func): called only once, even for several recipients,
    *   when the message is successfully sent.
    * - onerror (optional func): called only once if there is an error.
-   *
    */
-
   sendMMS: function mm_sendMMS(opts) {
     var request;
     var recipients = opts.recipients,
@@ -344,7 +422,17 @@ var MessageManager = {
     };
   },
 
-  // takes a formatted message in case you happen to have one
+  /**
+   * Resends message with the given options.
+   * @param {Object} opts Options is the object with the following properties:-
+   * - message (object): the message object containing all the information
+   *   depending on the type of the message which can be 'sms' or 'mms'.
+   * - onsuccess (optional function): will be called when the message has been
+   *   sent successfully, with the request's result as argument. Can be called
+   *   several times.
+   * - onerror (optional function): will be called when the message transmission
+   *   failed, with the error object as argument. Can be called several times.
+   */
   resendMessage: function mm_resendMessage(opts) {
     var message = opts.message;
 
@@ -382,6 +470,11 @@ var MessageManager = {
     };
   },
 
+  /**
+   * Deletes messages using the message id provided.
+   * @param {number} id The ID of the message to be deleted.
+   * @return {Promise}
+   */
   deleteMessages: function mm_deleteMessages(id) {
     // As DOMRequest doesn't have "catch" method we should use "then" with
     // "null" for the success callback to handle reject case only.
@@ -396,26 +489,45 @@ var MessageManager = {
     });
   },
 
+  /**
+   * Marks a thread as read or unread depending on value of isRead as true or
+   * false respectively.
+   * @param {number|string} threadId The ID of the thread to be marked as read.
+   * @param {boolean} isRead If "true" then message is to be marked as read
+   * otherwise message is to be marked as unread.
+   */
   markThreadRead: function mm_markThreadRead(threadId, isRead = true) {
+    // Create filter object to mark all unread messages of the specified thread.
     var filter = {};
     filter.threadId = +threadId;
     filter.read = !isRead;
 
     var messagesUnreadIDs = [];
+
+    // Building the options field in getMessages() with above filter.
     var changeStatusOptions = {
       each: function addUnreadMessage(message) {
+        // First build up array of Unread message ID.
         messagesUnreadIDs.push(message.id);
         return true;
       },
       filter: filter,
       invert: true,
       end: function handleUnread() {
+        // end with marking each of them as read.
         MessageManager.markMessagesRead(messagesUnreadIDs, isRead);
       }
     };
     MessageManager.getMessages(changeStatusOptions);
   },
 
+  /**
+   * Marks messages with specified ids as read.
+   * @param {Array<Number>} list List of all the message IDs to be changed to
+   * read.
+   * @param {boolean} isRead Pass true if message is to be marked as read and
+   * false if message is to be marked as unread.
+   */
   markMessagesRead: function mm_markMessagesRead(list, isRead = true) {
     if (!this._mozMobileMessage || !list.length) {
       return;
@@ -448,6 +560,13 @@ var MessageManager = {
     };
   },
 
+  /**
+   * Method used to get the information necessary to create a multipart SMS for
+   * a given text.
+   * @param {string} text The text used to create the SMS.
+   * @return {Promise<MozSmsSegmentInfo>} Instance of
+   * {@link http://mdn.io/MozSmsSegmentInfo}
+   */
   getSegmentInfo: function mm_getSegmentInfo(text) {
     if (!(this._mozMobileMessage &&
           this._mozMobileMessage.getSegmentInfoForText)) {
@@ -468,6 +587,17 @@ var MessageManager = {
     return defer.promise;
   },
 
+  /**
+   * This method checks whether message is received from a sender with specified
+   * number or sent to this particular number. (in case of MMS only 1-to-1,
+   * non-group MMS's are counted).
+   * It's used to differentiate from broadcast messages ---> group MMS.
+   * @param {number} number Phone number.
+   * @param {Object} message A composite object having details about message
+   * delivery, type, sender and receiver.
+   * @private
+   * @return {boolean}
+   */
   _isMessageBelongTo1to1Conversation:
   function isMessageBelongTo1to1Conversation(number, message) {
     var isIncoming = message.delivery === 'received' ||
@@ -495,10 +625,10 @@ var MessageManager = {
   },
 
   /**
-   * findThreadFromNumber
-   *
    * Find a SMS/MMS thread from a number.
-   * @return Promise that resolve to a threadId or rejected if not found
+   * @param {number} number Phone number to find thread for.
+   * @return {Promise<number>} that is resolved to a threadId or rejected if
+   * not found
    */
   findThreadFromNumber: function mm_findThread(number) {
 
@@ -531,8 +661,16 @@ var MessageManager = {
     return deferred.promise;
   },
 
+  /**
+   * This method ensures that threads have been registered in the in-memory
+   * cache. In the case it has, the promise returned resolves immediately. If
+   * not, it loads the last message from the thread and creates a new entry in
+   * cache based on it. It can happen when application loaded from non default
+   * page and Thread cache hasn't been populated.
+   * @param {number|string} threadId The ID of the thread we wish to register.
+   * @return {Promise}
+   */
   ensureThreadRegistered(threadId) {
-    /** @function */
     var getOneMessageForThread = (threadId) => {
       var defer = Utils.Promise.defer();
       this.getMessages({
@@ -548,6 +686,7 @@ var MessageManager = {
       return defer.promise;
     };
 
+    // Checking whether Thread cache has this thread.
     if (Threads.has(threadId)) {
       return Promise.resolve();
     }
