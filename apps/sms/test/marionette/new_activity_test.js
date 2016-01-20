@@ -8,14 +8,6 @@ var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
 var Storage = require('./lib/storage.js');
 
 marionette('Messages as "new" activity target', function() {
-  var MOCKS = [
-    '/mocks/mock_test_storages.js',
-    '/mocks/mock_test_blobs.js',
-    '/mocks/mock_navigator_moz_icc_manager.js',
-    '/mocks/mock_navigator_moz_mobile_message.js',
-    '/mocks/mock_navigator_moz_contacts.js'
-  ];
-
   var apps = {};
 
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
@@ -73,9 +65,13 @@ marionette('Messages as "new" activity target', function() {
     activityCallerApp = MessagesActivityCaller.create(client);
     storage = Storage.create(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'test_storages',
+      'test_blobs',
+      'navigator_moz_icc_manager',
+      'navigator_moz_mobile_message',
+      'navigator_moz_contacts'
+    ]);
   });
 
   suite('Send new message', function() {

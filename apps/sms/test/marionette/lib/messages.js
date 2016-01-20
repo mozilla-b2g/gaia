@@ -1,6 +1,6 @@
 'use strict';
 
-/* global module, __dirname */
+/* global module */
 var InboxAccessor = require('./views/inbox/accessors');
 var NewMessageAccessor = require('./views/new-message/accessors');
 var NewMessageView = require('./views/new-message/view');
@@ -14,14 +14,6 @@ var ParticipantsAccessor = require('./views/participants/accessors');
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
   var MANIFEST_URL = ORIGIN_URL + '/manifest.webapp';
-
-  var MOCKS = [
-    '/../mocks/mock_test_storages.js',
-    '/../mocks/mock_test_blobs.js',
-    '/../mocks/mock_navigator_moz_icc_manager.js',
-    '/../mocks/mock_navigator_moz_mobile_message.js',
-    '/../mocks/mock_navigator_moz_contacts.js'
-  ];
 
   // TODO Move these constants to marionette, see bug 1207516
   var Chars = {
@@ -85,9 +77,13 @@ var ParticipantsAccessor = require('./views/participants/accessors');
         },
 
         loadMocks: function() {
-          MOCKS.forEach(function(mock) {
-            client.contentScript.inject(__dirname + mock);
-          });
+          client.loader.getMockManager('sms').inject([
+            'test_storages',
+            'test_blobs',
+            'navigator_moz_icc_manager',
+            'navigator_moz_mobile_message',
+            'navigator_moz_contacts'
+          ]);
         },
 
         /**

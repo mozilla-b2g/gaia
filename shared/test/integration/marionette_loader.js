@@ -1,5 +1,7 @@
 'use strict';
 
+var MockManager = require('./manager_mock.js');
+
 /**
  * @param {Marionette.Client} client Marionette client to use.
  * @constructor
@@ -43,6 +45,15 @@ MarionetteLoader.prototype = {
   },
 
   /**
+  * Returns an instance of MockManager that will look into the given app and the
+  * shared folder.
+  * @param {String} app
+  */
+  getMockManager: function(app) {
+    return new MockManager(this.client, app);
+  },
+
+  /**
    * Gets the marionette-client Actions class and instantiates it.
    * @param {String} helper.
    */
@@ -51,4 +62,3 @@ MarionetteLoader.prototype = {
     return new Actions(this.client);
   }
 };
-

@@ -1,4 +1,4 @@
-/* global require, marionette, setup, suite, test, __dirname */
+/* global require, marionette, setup, suite, test */
 'use strict';
 
 var assert = require('chai').assert;
@@ -11,13 +11,6 @@ var Storage = require('./lib/storage.js');
 var Tools = require('./lib/views/shared/tools.js');
 
 marionette('Conversation Panel Tests', function() {
-  var MOCKS = [
-    '/mocks/mock_test_storages.js',
-    '/mocks/mock_test_blobs.js',
-    '/mocks/mock_navigator_moz_icc_manager.js',
-    '/mocks/mock_navigator_moz_mobile_message.js',
-    '/mocks/mock_navigator_moz_contacts.js'
-  ];
 
   var client = marionette.client({
     desiredCapabilities: { raisesAccessibilityExceptions: false }
@@ -33,9 +26,13 @@ marionette('Conversation Panel Tests', function() {
     messagesApp = Messages.create(client);
     storage = Storage.create(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'test_storages',
+      'test_blobs',
+      'navigator_moz_icc_manager',
+      'navigator_moz_mobile_message',
+      'navigator_moz_contacts'
+    ]);
   });
 
   suite('General use cases', function() {

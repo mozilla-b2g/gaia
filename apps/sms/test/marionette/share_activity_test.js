@@ -7,11 +7,6 @@ var Messages = require('./lib/messages.js');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
 
 marionette('Messages as share target', function() {
-  var MOCKS = [
-    '/mocks/mock_navigator_moz_icc_manager.js',
-    '/mocks/mock_navigator_moz_mobile_message.js'
-  ];
-
   var apps = {};
 
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
@@ -30,9 +25,10 @@ marionette('Messages as share target', function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'navigator_moz_icc_manager',
+      'navigator_moz_mobile_message'
+    ]);
   });
 
   suite('Share via Messages', function() {
