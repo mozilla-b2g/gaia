@@ -12,7 +12,7 @@ marionette('Dimiss the keyboard', function() {
   var system = null;
   var actions;
 
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/apps/keyboardtestapp';
 
   var client = marionette.client({
     profile: {
@@ -33,27 +33,28 @@ marionette('Dimiss the keyboard', function() {
   }
 
   setup(function() {
+    systemInputMgmt = client.loader.getAppClass('system', 'input_management');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
     actions = client.loader.getActions();
-    systemInputMgmt = client.loader.getAppClass('system', 'input_management');
-    keyboard = new Keyboard(client);
 
-    // create a keyboard test app
+    keyboard = new Keyboard(client);
     keyboardTestApp = new KeyboardTestApp(client);
+
+    keyboard.waitForKeyboardReady();
+
     keyboardTestApp.launch();
+    keyboardTestApp.switchTo();
     keyboardTestApp.textInput.click();
 
-    // Wait for the keyboard pop up and switch to it
-    systemInputMgmt.waitForKeyboardFrameDisplayed();
-    systemInputMgmt.switchToActiveKeyboardFrame();
+    keyboard.switchTo();
   });
 
   test('Longpressing the space bar should dismiss the keyboard', function() {
     // The time needed for dismiss is 500ms.
     longPressSpaceBar(0.7);
 
-    client.waitFor(function() {
+    client.waitFor(() => {
       return !systemInputMgmt.keyboardFrameDisplayed();
     });
 
@@ -63,20 +64,16 @@ marionette('Dimiss the keyboard', function() {
   test('Longpressing for only 0.5 sec should not dimiss keyboard', function() {
     longPressSpaceBar(0.5);
 
-    var keyboardContainer =
-      client.findElement('.keyboard-type-container[data-active]');
+    var keyboardContainer = keyboard.currentPanel;
 
     assert.ok(keyboardContainer.displayed());
   });
 
   test('Click on a non-input field, should dimiss keyboard', function() {
-    // Switch to test app frame.
-    client.switchToFrame();
-    client.apps.switchToApp(KeyboardTestApp.ORIGIN);
-
+    keyboardTestApp.switchTo();
     keyboardTestApp.nonInputArea.click();
 
-    client.waitFor(function() {
+    client.waitFor(() => {
       return !systemInputMgmt.keyboardFrameDisplayed();
     });
 
@@ -86,7 +83,7 @@ marionette('Dimiss the keyboard', function() {
   test('Pressing [Home] button should dimiss keyboard', function() {
     system.tapHome();
 
-    client.waitFor(function() {
+    client.waitFor(() => {
       return !systemInputMgmt.keyboardFrameDisplayed();
     });
 
