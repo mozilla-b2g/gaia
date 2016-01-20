@@ -17,7 +17,7 @@ marionette('manipulate keyboard settings', function() {
   var apps = {};
 
   apps[KeyboardTestApp.ORIGIN] =
-    __dirname + '/../../../../keyboard/test/marionette/keyboardtestapp';
+    __dirname + '/../../../../keyboard/test/marionette/apps/keyboardtestapp';
   client = marionette.client({
     profile: {
       apps: apps,

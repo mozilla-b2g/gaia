@@ -4,14 +4,14 @@ var KeyboardTestApp = require('./lib/keyboard_test_app'),
     Keyboard = require('./lib/keyboard'),
     assert = require('assert');
 
-marionette('show Keyboard APP', function() {
+marionette('Launch Keyboard APP', function() {
   var apps = {};
   var keyboardTestApp = null;
-  var systemInputMgmt = null;
   var keyboard = null;
   var client = null;
+  var system = null;
 
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/apps/keyboardtestapp';
 
   client = marionette.client({
     profile: {
@@ -24,27 +24,28 @@ marionette('show Keyboard APP', function() {
   });
 
   setup(function() {
-    keyboard =  new Keyboard(client);
-    systemInputMgmt = client.loader.getAppClass('system', 'input_management');
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
 
-    // create a keyboard test app
+    keyboard =  new Keyboard(client);
     keyboardTestApp = new KeyboardTestApp(client);
+
+    keyboard.waitForKeyboardReady();
+
     keyboardTestApp.launch();
+    keyboardTestApp.switchTo();
     keyboardTestApp.textInput.click();
 
-    // Wait for the keyboard pop up and switch to it
-    systemInputMgmt.waitForKeyboardFrameDisplayed();
-    systemInputMgmt.switchToActiveKeyboardFrame();
+    keyboard.switchTo();
   });
 
-  test('should show lowercase layout', function() {
+  test('Should show lowercase layout', function() {
     // XXX: Workaround
     // To get the #keyboard element to instead of the body element.
     // The value of `client.findElement('body').displayed()` could not be true
     // when the keyboard app is show up in the screen currently.
     // Please refer to http://bugzil.la/995865.
-    var keyboardContainer =
-      client.findElement('.keyboard-type-container[data-active]');
+    var keyboardContainer = keyboard.currentPanel;
     assert.ok(keyboardContainer.displayed());
 
     var shiftKey = keyboard.shiftKey;
@@ -54,9 +55,8 @@ marionette('show Keyboard APP', function() {
     assert.ok(alphaKey.displayed());
   });
 
-  test('switch between inputs w/o waiting for layout loading', function() {
-    var keyboardContainer =
-      client.findElement('.keyboard-type-container[data-active]');
+  test('Switch between inputs w/o waiting for layout loading', function() {
+    var keyboardContainer = keyboard.currentPanel;
     assert.ok(keyboardContainer.displayed());
 
     var shiftKey = keyboard.shiftKey;
@@ -66,8 +66,7 @@ marionette('show Keyboard APP', function() {
     assert.ok(alphaKey.displayed());
 
     // Switch to test app frame.
-    client.switchToFrame();
-    client.apps.switchToApp(KeyboardTestApp.ORIGIN);
+    keyboardTestApp.switchTo();
 
     // Focus on the 2nd input
     keyboardTestApp.numberInput.click();
@@ -76,30 +75,29 @@ marionette('show Keyboard APP', function() {
     keyboardTestApp.textareaInput.click();
 
     // Switch back to keyboard
-    client.switchToFrame();
-    systemInputMgmt.switchToActiveKeyboardFrame();
+    keyboard.switchTo();
 
     // Should remain, or switched back to alpha keyboard.
-    client.waitFor(function() {
+    client.waitFor(() => {
       return alphaKey.displayed();
     });
 
     // Since the 3rd input is a <textarea>,
     // we should reach upper case at this point.
-    client.waitFor(function() {
+    client.waitFor(() => {
       return (shiftKey.getAttribute('aria-pressed') === 'true');
     });
   });
 
-  test('keys and buttons should be have aria-label set', function() {
+  test('Keys and buttons should be have aria-label set', function() {
     var returnKey = keyboard.returnKey;
-    client.waitFor(function() {
+    client.waitFor(() => {
       return (returnKey.getAttribute('aria-label') === 'return');
     });
 
-    var dismissSuggestionsButton = keyboard.dismissSuggestionsButton;
-    client.waitFor(function() {
-      var label = dismissSuggestionsButton.getAttribute('aria-label');
+    var dismissSuggestionsKey = keyboard.dismissSuggestionsKey;
+    client.waitFor(() => {
+      var label = dismissSuggestionsKey.getAttribute('aria-label');
       return (label === 'Dismiss');
     });
   });
@@ -112,10 +110,9 @@ marionette('show Keyboard APP', function() {
 
     client.helper.wait(3000);
 
-    systemInputMgmt.switchToActiveKeyboardFrame();
+    keyboard.switchTo();
 
-    var keyboardContainer =
-      client.findElement('.keyboard-type-container[data-active]');
+    var keyboardContainer = keyboard.currentPanel;
 
     assert.ok(keyboardContainer.displayed());
   });

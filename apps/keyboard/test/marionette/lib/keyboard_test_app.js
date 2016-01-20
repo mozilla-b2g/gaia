@@ -4,8 +4,9 @@ var Base = require('./base');
 
 
 function KeyboardTests(client) {
-  Base.call(this, client, KeyboardTests.ORIGIN, null);
+  Base.call(this, client, KeyboardTests.ORIGIN);
 }
+
 module.exports = KeyboardTests;
 
 KeyboardTests.ORIGIN = 'app://keyboardtestapp.gaiamobile.org';
@@ -73,5 +74,24 @@ KeyboardTests.prototype = {
 
   triggerPromptModalDialog: function() {
     this.triggerPromptButton.tap();
+  },
+
+  waitForReady: function() {
+    var inputs = [
+      this.textInput,
+      this.textareaInput,
+      this.urlInput,
+      this.emailInput,
+      this.passwordInput,
+      this.searchInput,
+      this.numberInput,
+      this.telInput
+    ];
+
+    this.client.waitFor(() => {
+      return inputs.every((ele) => {
+        return ele.displayed();
+      });
+    });
   }
 };

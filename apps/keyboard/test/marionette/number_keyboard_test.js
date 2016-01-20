@@ -1,5 +1,3 @@
-/* global suite */
-
 'use strict';
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
@@ -11,8 +9,9 @@ marionette('Number keyboard input tests', function() {
   var keyboardTestApp = null;
   var keyboard = null;
   var client = null;
+  var system = null;
 
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/apps/keyboardtestapp';
 
   client = marionette.client({
     profile: {
@@ -29,42 +28,47 @@ marionette('Number keyboard input tests', function() {
   });
 
   setup(function() {
-    keyboard =  new Keyboard(client);
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
 
-    // create a keyboard test app
+    keyboard =  new Keyboard(client);
     keyboardTestApp = new KeyboardTestApp(client);
+
+    keyboard.waitForKeyboardReady();
+
     keyboardTestApp.launch();
+    keyboardTestApp.switchTo();
+    keyboardTestApp.numberInput.tap();
+
+    keyboard.switchTo();
   });
 
-  suite('<input type="number"> tests', function() {
-    setup(function() {
-      // Switch to test app frame.
-      keyboardTestApp.switchTo();
-      keyboardTestApp.numberInput.tap();
-      // Wait for the keyboard pop up and switch to it
-      keyboard.switchTo();
-    });
+  test('Should be number layout', function() {
+    assert.equal(
+      keyboard.getCurrentKeyboardLayout(), Keyboard.TypeGroupMap.number);
+  });
 
-    test('switch to number layout', function() {
-      client.switchToFrame();
+  test('Alphabet should not present on keyboard', function() {
+    var testAlphabetKey = 'a';
 
-      assert.equal(
-        keyboard.getCurrentKeyboard(), Keyboard.TypeGroupMap.number);
-    });
+    assert.equal(keyboard.isKeyPresent(testAlphabetKey), false);
+  });
 
-    test('alphabet should not present on keyboard', function() {
-      var testAlphabetKey = 'a';
+  test('Type 1', function() {
+    var inputString = '1';
+    keyboard.type(inputString);
+    keyboardTestApp.switchTo();
 
-      assert.equal(keyboard.isKeyPresent(testAlphabetKey), false);
-    });
+    assert.equal(
+      keyboardTestApp.numberInput.getAttribute('value'), inputString);
+  });
 
-    test('Type 1', function() {
-      var inputString = '1';
-      keyboard.type(inputString);
-      keyboardTestApp.switchTo();
+  test('Type 7997979979', function() {
+    var inputString = '7997979979';
+    keyboard.type(inputString);
+    keyboardTestApp.switchTo();
 
-      assert.equal(
-        inputString, keyboardTestApp.numberInput.getAttribute('value'));
-    });
+    assert.equal(
+      keyboardTestApp.numberInput.getAttribute('value'), inputString);
   });
 });
