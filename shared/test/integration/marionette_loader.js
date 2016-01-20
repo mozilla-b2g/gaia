@@ -45,7 +45,8 @@ MarionetteLoader.prototype = {
   },
 
   /**
-  * Returns an instance of MockManager that will look into the given app folder.
+  * Returns an instance of MockManager that will look into the given app and the
+  * shared folder.
   * @param {String} app
   */
   getMockManager: function(app) {

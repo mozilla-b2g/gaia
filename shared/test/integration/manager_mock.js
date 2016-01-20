@@ -11,10 +11,10 @@ var fs = require('fs');
  * @param {String} app App folder to look into
  * @constructor
 */
-function MockManager(client, app) {
+function MockManager(client, appName) {
   this.client = client;
   this.potentialDirs = [
-    __dirname + '/../../../apps/' + app + '/test/marionette/mocks/',
+    __dirname + '/../../../apps/' + appName + '/test/marionette/mocks/',
     __dirname + '/' // points to shared/test/integration/
   ];
 }
@@ -34,26 +34,24 @@ MockManager.prototype = {
   },
 
   _findFilePath: function(fileName) {
-    var filePath = null;
-    var i = 0;
-    while(!filePath && i < this.potentialDirs.length) {
-      try {
-        this._raiseErrorIfFileIsNotAccessible(this.potentialDirs[i] + fileName);
-        filePath = this.potentialDirs[i] + fileName;
-      } catch(e) {
-        i++;
-      }
-    }
+    var index = this.potentialDirs.findIndex(function(dir) {
+      return this._isFileAccessible(dir + fileName);
+    }, this);
 
-    if(!filePath) {
+    if(index === -1) {
       throw new Error(fileName + ' was not found');
     }
 
-    return filePath;
+    return this.potentialDirs[index] + fileName;
   },
 
-  _raiseErrorIfFileIsNotAccessible: function(filePath) {
-    fs.accessSync(filePath);
+  _isFileAccessible: function(filePath) {
+    try {
+      fs.accessSync(filePath);
+      return true;
+    } catch(e) {
+      return false;
+    }
   }
 };
 
