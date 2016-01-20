@@ -21,7 +21,7 @@ exports.execute = function(options, webapp) {
 
   // Web app optimization steps (like precompling l10n, concatenating js files,
   // etc..).
-  require('./webapp-optimize').execute(options);
+  nodeHelper.require('./webapp-optimize', options);
 
   if (options.DEBUG === '0') {
     // Workaround for bug 955999, after multilocale, settings and system

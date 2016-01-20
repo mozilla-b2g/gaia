@@ -34,7 +34,7 @@ mime.define({'audio/ogg': ['opus']});
 module.exports = {
   Q: Q,
 
-  scriptParser: esprima,
+  scriptParser: esprima.parse,
 
   log: function() {
     var args = Array.prototype.slice.call(arguments);
@@ -64,7 +64,8 @@ module.exports = {
 
   getFile: function() {
     var self = module.exports;
-    var src = path.join.apply(path, arguments);
+    var args = Array.prototype.slice.call(arguments);
+    var src = path.resolve.apply(path, args);
     var fileStat;
     try {
       fileStat = fs.statSync(src);
