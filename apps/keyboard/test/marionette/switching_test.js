@@ -5,7 +5,7 @@ var ImeTestApp = require('./lib/ime_test_app');
 var Keyboard = require('./lib/keyboard');
 var assert = require('assert');
 
-marionette('switch Keyboard App', function() {
+marionette('Switch Keyboard App', function() {
   var keyboardTestApp = null;
   var keyboard = null;
   var systemInputMgmt = null;
@@ -13,12 +13,13 @@ marionette('switch Keyboard App', function() {
   var client = null;
   var actions = null;
   var apps = {};
+  var system = null;
 
   // Pre-install keyboard testing app
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/apps/keyboardtestapp';
 
   // And a testing 3rd-party IME app
-  apps[ImeTestApp.ORIGIN] = __dirname + '/imetestapp';
+  apps[ImeTestApp.ORIGIN] = __dirname + '/apps/imetestapp';
 
   var keyboardSettings = {};
   keyboardSettings[Keyboard.MANIFEST_URL] = {
@@ -53,25 +54,33 @@ marionette('switch Keyboard App', function() {
 
     // wait for the 2nd keyboard is loaded
     systemInputMgmt.ensureInputWindowCount(2);
-
     systemInputMgmt.switchToActiveKeyboardFrame();
+
     assert.ok(imeTestApp.sendKeyButton.displayed());
   }
 
   setup(function() {
     actions = client.loader.getActions();
-    keyboard = new Keyboard(client);
     systemInputMgmt = client.loader.getAppClass('system', 'input_management');
-    imeTestApp = new ImeTestApp(client);
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
 
-    // create a keyboard test app
+
+    imeTestApp = new ImeTestApp(client);
+    keyboard = new Keyboard(client);
     keyboardTestApp = new KeyboardTestApp(client);
+
+    keyboard.waitForKeyboardReady();
+
     keyboardTestApp.launch();
+    keyboardTestApp.switchTo();
+    keyboardTestApp.urlInput.click();
+    keyboard.switchTo();
+    keyboardTestApp.switchTo();
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    systemInputMgmt.waitForKeyboardFrameDisplayed();
-    systemInputMgmt.switchToActiveKeyboardFrame();
+    keyboard.switchTo();
   });
 
   test('Checking the switching IME function is available', function() {
