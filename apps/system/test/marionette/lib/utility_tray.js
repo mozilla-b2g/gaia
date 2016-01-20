@@ -121,7 +121,7 @@
         return element.displayed;
       });
       this.actions
-        .flick(element, 10, 10, 10, 400, 500)
+        .flick(element, 10, 10, 10, this.halfHeight * 2, 600)
         .perform();
     },
 
@@ -131,7 +131,7 @@
         return element.displayed;
       });
       this.actions
-        .flick(element, 10, 10, 10, -400, 500)
+        .flick(element, 10, 10, 10, -(this.halfHeight * 2), 600)
         .perform();
     }
 
