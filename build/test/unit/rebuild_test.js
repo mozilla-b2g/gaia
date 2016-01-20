@@ -3,7 +3,6 @@
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
 var mockUtils = require('./mock_utils.js');
-var fsPath = require('path');
 
 suite('rebuild.js', function() {
   var rebuild;
@@ -20,9 +19,8 @@ suite('rebuild.js', function() {
 
   setup(function() {
     var stubs = {
-      'utils': mockUtils,
-      'sdk/fs/path': fsPath,
-      'config/build-config.json': config
+      './utils': mockUtils,
+      './config/build-config.json': config
     };
     rebuild = proxyquire.noCallThru().load('../../rebuild', stubs);
 
@@ -38,6 +36,10 @@ suite('rebuild.js', function() {
 
     mockUtils.ls = function() {
       return files;
+    };
+
+    mockUtils.relativePath = function(from, to) {
+      return to.slice(from.length + 1);
     };
 
     mockUtils.getFileContent = function() {

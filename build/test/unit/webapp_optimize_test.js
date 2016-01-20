@@ -149,6 +149,10 @@ suite('webapp-optimize.js', function() {
       return 'Unix';
     };
 
+    mockUtils.relativePath = function(from, to) {
+      return to;
+    };
+
     mockConfig = {
       GAIA_DEFAULT_LOCALE: 'default-locale',
       GAIA_CONCAT_LOCALES: '1',

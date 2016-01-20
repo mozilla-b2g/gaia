@@ -495,7 +495,12 @@ module.exports = {
   },
 
   fileExists: function(path) {
-    return fs.existsSync(path);
+    try {
+      fs.accessSync(path);
+      return true;
+    } catch(err) {
+      return false;
+    }
   },
 
   listFiles: function(path, type, recursive, exclude) {
