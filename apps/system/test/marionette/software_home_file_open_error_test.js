@@ -54,28 +54,58 @@ marionette('Software Home Button - File Open Error', function() {
 
     // Tap on the toaster to open the download.
     // We could also open this from settings or the utility tray if needed.
-    var toasterTitle;
-    client.waitFor(function() {
-      toasterTitle = client.helper.waitForElement(
-        '#notification-toaster.displayed .toaster-title');
-      return toasterTitle.text().indexOf('Download complete') !== -1;
-    });
-    toasterTitle.tap();
+    getDownloadCompleteToast().tap();
 
-    function rect(el) {
-      return el.getBoundingClientRect();
-    }
+    var dialogHeight = getDownloadDialogHeight();
 
-    var dialogHeight = system.downloadDialog.size().height;
     var shbRect = system.softwareButtons.scriptWith(rect);
 
     assert.equal(dialogHeight, expectedDialogHeight());
     assert.equal(dialogHeight, shbRect.top);
   });
 
+  function rect(el) {
+    return el.getBoundingClientRect();
+  }
+
+  // Wait for/repeat execution of provided getter until no exception is thrown
+  function waitForNoException(getter) {
+    var obj;
+    client.waitFor(function() {
+      try {
+        obj = getter();
+        return true;
+      } catch (ex) {
+        return false;
+      }
+    });
+    return obj;
+  }
+
+  // Reliable retrieval of dialog's height. This is required, as
+  // downloadDialog.size() fails, if the dialog is not rooted in DOM tree
+  // (stale reference exception). This happens every now and then for very
+  // short periods of time.
+  function getDownloadDialogHeight() {
+    return waitForNoException(function() {
+      return system.downloadDialog.size().height;
+    });
+  }
+
   function expectedDialogHeight() {
     var winHeight = client.findElement('body').size().height;
     var shbHeight = system.softwareButtons.size().height;
     return (winHeight - shbHeight);
   }
+
+  function getDownloadCompleteToast() {
+    var toasterTitle;
+    client.waitFor(function() {
+      toasterTitle = client.helper.waitForElement(
+        '#notification-toaster.displayed .toaster-title');
+      return toasterTitle.text().indexOf('Download complete') !== -1;
+    });
+    return toasterTitle;
+  }
+
 });
