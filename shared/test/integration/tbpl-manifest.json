@@ -34,7 +34,6 @@
     "apps/email/test/marionette/search_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/send_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/fm/test/marionette/fm_test.js": "Bug 1233777 - Intermittent TEST-UNEXPECTED-FAIL | apps/fm/test/marionette/fm_test.js | FM Radio test FM Radio favourites Test favouriting",
-    "apps/homescreen/test/marionette/pinning_the_web_test.js": "Bug 1233529 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_the_web_test.js | Homescreen - Pin the web Pinning a site from the browser context menu",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/ringtones/test/marionette/share_test.js": "Bug 1222154 - Failing share_test.js | Share as ringtone Share activity Create new ringtone",
     "apps/search/test/marionette/app_installed_test.js": "Bug 1236308 - Intermittent app_installed_test.js | Search - Installed Apps Test app result after install/uninstall",
