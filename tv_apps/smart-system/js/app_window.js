@@ -708,7 +708,7 @@
      '_closed'];
 
   AppWindow.REGISTERED_GLOBAL_EVENTS =
-    ['mozbrowserafterkeyup'];
+    ['back'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -1037,13 +1037,11 @@
 
     };
 
-  AppWindow.prototype._handle_mozbrowserafterkeyup =
-    function aw__handle_mozbrowserafterkeyup(evt) {
+  AppWindow.prototype._handle_back = function aw__handle_back(evt) {
       if (document.activeElement !== this.iframe) {
         return;
       }
-      if ((evt.keyCode === 27 || evt.key === 'Escape') &&
-          !evt.embeddedCancelled && !this.config.url.startsWith('app://')) {
+      if (!this.config.url.startsWith('app://')) {
         var goBackReq = this.iframe.getCanGoBack();
         goBackReq.onsuccess = () => {
           if (goBackReq.result) {
