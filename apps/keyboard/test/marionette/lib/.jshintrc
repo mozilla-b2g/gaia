@@ -1,0 +1,10 @@
+{
+  "extends": "../../../../../.jshintrc",
+  "node": true,
+  "predef": [
+    "test",
+    "setup",
+    "marionette",
+    "client"
+  ]
+}

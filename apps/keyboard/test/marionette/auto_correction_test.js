@@ -4,7 +4,7 @@
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
     Keyboard = require('./lib/keyboard'),
-    KeyboardSettings = require('./lib/keyboard_settings.js'),
+    Settings = require('./lib/settings'),
     assert = require('assert');
 
 
@@ -12,11 +12,10 @@ marionette('Keyboard Auto correction tests', function() {
   var apps = {};
   var keyboardTestApp = null;
   var keyboard = null;
-  var keyboardSettings = null;
+  var settings = null;
   var client = null;
-  var system = null;
 
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/apps/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
 
   client = marionette.client({
     profile: {
@@ -26,47 +25,64 @@ marionette('Keyboard Auto correction tests', function() {
       },
       settings: {
         'lockscreen.enabled': false,
-        'ftu.manifestURL': null,
-        'keyboard.autocorrect': true
+        'ftu.manifestURL': null
       }
     },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {
-    system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
-
     keyboard =  new Keyboard(client);
-    keyboardSettings = new KeyboardSettings(client);
     keyboardTestApp = new KeyboardTestApp(client);
-
-    keyboard.waitForKeyboardReady();
+    settings = new Settings(client);
   });
 
-  suite('AutoCorrect switch', function() {
+  suite('autocorrect toggle', function() {
     setup(function() {
-      keyboardSettings.launch();
+      keyboard.launch();
+      keyboard.switchToBuiltInKeyboardSettings();
     });
 
-    test('Auto correct switch should equal to settings context',
+    test('auto correct switch should equal to settings context',
          function() {
-      var currentSwitch = client.settings.get('keyboard.autocorrect');
-
-      keyboardSettings.switchTo();
+      var currentSwitch = keyboard.autocorrect;
 
       // Toggle one time
-      keyboardSettings.clickAutoCorrectOption();
-      assert.equal(keyboardSettings.autoCorrect, !currentSwitch);
+      keyboard.clickAutocorrectOption();
+      assert.equal(keyboard.autocorrect, !currentSwitch);
 
       // Toggle again
-      keyboardSettings.clickAutoCorrectOption();
-      assert.equal(keyboardSettings.autoCorrect, !!currentSwitch);
+      keyboard.clickAutocorrectOption();
+      assert.equal(keyboard.autocorrect, !!currentSwitch);
+    });
+
+    test('re-open built-in keyboard settings', function() {
+      var currentSwitch = keyboard.autocorrect;
+
+      keyboard.clickAutocorrectOption();
+      keyboard.goBackToSettingsApp();
+      settings.close();
+
+      assert.equal(keyboard.autocorrect, !currentSwitch);
+
+      keyboard.launch();
+      keyboard.switchToBuiltInKeyboardSettings();
+      keyboard.clickAutocorrectOption();
+
+      assert.equal(keyboard.autocorrect, !!currentSwitch);
     });
   });
 
-  suite('With autocorrect on', function() {
+  suite('with autocorrect on', function() {
     setup(function () {
+      if (!keyboard.autocorrect) {
+        keyboard.launch();
+        keyboard.switchToBuiltInKeyboardSettings();
+        keyboard.clickAutocorrectOption();
+        keyboard.goBackToSettingsApp();
+        settings.close();
+      }
+
       keyboardTestApp.launch();
       keyboardTestApp.switchTo();
       keyboardTestApp.textInput.tap();
@@ -74,12 +90,12 @@ marionette('Keyboard Auto correction tests', function() {
       keyboard.switchTo();
     });
 
-    test('Predictive tests', function() {
+    test('predictive tests', function() {
       // Test 1 - type first 7 letters of the expected word
       // select suggestion will append a space.
       var expectedWord = 'keyboard ';
       keyboard.type(expectedWord.slice(0, 7));
-      keyboard.tapAutoCorrectWord();
+      keyboard.tapFirstPredictiveWord();
       keyboardTestApp.switchTo();
 
       assert.equal(
@@ -94,7 +110,7 @@ marionette('Keyboard Auto correction tests', function() {
         keyboardTestApp.textInput.getAttribute('value'), 'keyboard Tes');
 
       keyboard.switchTo();
-      keyboard.tapSuggestionWord('Tea');
+      keyboard.tapSuggestionKey('Tea');
       keyboardTestApp.switchTo();
 
       assert.equal(
@@ -126,7 +142,7 @@ marionette('Keyboard Auto correction tests', function() {
     });
 
     // For Bug 1073870
-    test('Move caret before autocorrect', function() {
+    test('move caret before autocorrect', function() {
       keyboard.type('Hello worl');
       keyboardTestApp.switchTo();
 
@@ -141,12 +157,19 @@ marionette('Keyboard Auto correction tests', function() {
 
       assert.equal(
         keyboardTestApp.textInput.getAttribute('value'), 'Hello  worl');
+
     });
   });
 
-  suite('With autocorrect off', function() {
+  suite('with autocorrect off', function() {
     setup(function () {
-      client.settings.set('keyboard.autocorrect', false); 
+      if (keyboard.autocorrect) {
+        keyboard.launch();
+        keyboard.switchToBuiltInKeyboardSettings();
+        keyboard.clickAutocorrectOption();
+        keyboard.goBackToSettingsApp();
+        settings.close();
+      }
 
       keyboardTestApp.launch();
       keyboardTestApp.switchTo();
@@ -155,7 +178,7 @@ marionette('Keyboard Auto correction tests', function() {
       keyboard.switchTo();
     });
 
-    test('No autocorrect while typing', function() {
+    test('no autocorrect while typing', function() {
       keyboard.type('Tes');
       keyboardTestApp.switchTo();
 
@@ -163,7 +186,7 @@ marionette('Keyboard Auto correction tests', function() {
         keyboardTestApp.textInput.getAttribute('value'), 'Tes');
 
       keyboard.switchTo();
-      keyboard.tapSuggestionWord('Tea');
+      keyboard.tapSuggestionKey('Tea');
       keyboardTestApp.switchTo();
 
       assert.equal(
