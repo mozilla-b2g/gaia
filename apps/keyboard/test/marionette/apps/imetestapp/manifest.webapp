@@ -18,7 +18,7 @@
       "launch_path": "/index.html",
       "name": "\\o/",
       "description": "LOL layout",
-      "types": ["text", "url", "number"]
+      "types": ["text", "number"]
     }
   },
   "default_locale": "en-US"

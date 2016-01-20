@@ -1,5 +1,3 @@
-/* global suite */
-
 'use strict';
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
@@ -11,8 +9,9 @@ marionette('Email keyboard input tests', function() {
   var keyboardTestApp = null;
   var keyboard = null;
   var client = null;
+  var system = null;
 
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/apps/keyboardtestapp';
 
   client = marionette.client({
     profile: {
@@ -29,56 +28,54 @@ marionette('Email keyboard input tests', function() {
   });
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
+
     keyboard =  new Keyboard(client);
     keyboardTestApp = new KeyboardTestApp(client);
 
+    keyboard.waitForKeyboardReady();
+
     keyboardTestApp.launch();
+    keyboardTestApp.switchTo();
+    keyboardTestApp.emailInput.tap();
+
+    keyboard.switchTo();
   });
 
-  suite('<input type="email"> tests', function() {
-    setup(function() {
-      keyboardTestApp.switchTo();
-      keyboardTestApp.emailInput.tap();
+  test('Should be email layout', function() {
+    var atSymbol = '@';
+    var commaSymbol = ',';
 
-      keyboard.switchTo();
-    });
+    assert.equal(keyboard.isKeyPresent(atSymbol), true);
+    assert.equal(keyboard.isKeyPresent(commaSymbol), false);
+  });
 
-    test('should be email layout', function() {
-      var atSymbol = '@';
-      var commaSymbol = ',';
+  test('Type post@mydomain.com', function() {
+    keyboard.type('post');
 
-      assert.equal(keyboard.isKeyPresent(atSymbol), true);
+    keyboardTestApp.switchTo();
+    keyboardTestApp.emailInput.tap();
+    keyboard.switchTo();
 
-      assert.equal(keyboard.isKeyPresent(commaSymbol), false);
-    });
+    keyboard.type('@');
+    keyboard.type('mydomain.com');
 
-    test('Type post@mydomain.com', function() {
-      keyboard.type('post');
+    keyboardTestApp.switchTo();
 
-      keyboardTestApp.switchTo();
-      keyboardTestApp.emailInput.tap();
-      keyboard.switchTo();
+    assert.equal(
+      keyboardTestApp.emailInput.getAttribute('value'), 'post@mydomain.com');
+  });
 
-      keyboard.type('@');
-      keyboard.type('mydomain.com');
+  test('Type post123@mydomain.com', function() {
+    keyboard.type('post123');
+    keyboard.type('@');
+    keyboard.type('mydomain.com');
 
-      keyboardTestApp.switchTo();
+    keyboardTestApp.switchTo();
 
-      assert.equal(
-        keyboardTestApp.emailInput.getAttribute('value'), 'post@mydomain.com');
-    });
-
-    test('Type post123@mydomain.com', function() {
-      keyboard.type('post123');
-      keyboard.type('@');
-      keyboard.type('mydomain.com');
-
-      keyboardTestApp.switchTo();
-
-      assert.equal(
-        keyboardTestApp.emailInput.getAttribute('value'),
-        'post123@mydomain.com');
-    });
-
+    assert.equal(
+      keyboardTestApp.emailInput.getAttribute('value'),
+      'post123@mydomain.com');
   });
 });

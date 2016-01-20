@@ -1,57 +1,88 @@
 'use strict';
 
-/*
- * A helper module for the built-in keyboard app.
- */
-
 var Base = require('./base');
 var Marionette = require('marionette-client');
 
+
 function Keyboard(client) {
-  Base.call(this, client, Keyboard.ORIGIN, Keyboard.Selector);
+  Base.call(this, client);
 
   this.actions = new Marionette.Actions(client);
+  this.currentLayout = null;
 }
 
 module.exports = Keyboard;
 
-Keyboard.ORIGIN =  'app://keyboard.gaiamobile.org';
-Keyboard.MANIFEST_URL =  'app://keyboard.gaiamobile.org/manifest.webapp';
-Keyboard.SETTINGS_LAUNCH_PATH = 'app://keyboard.gaiamobile.org/' +
-                                'settings.html';
-
-// Selectors for the DOM in built-in keyboard app.
-Keyboard.Selector = Object.freeze({
-  currentPanel: '.keyboard-type-container[data-active]',
-  imeSwitchingKey: '.keyboard-type-container[data-active] ' +
+Keyboard.Selectors = Object.freeze({
+  currentPanel:
+    '.keyboard-type-container[data-active]',
+  imeSwitchingKey:
+    '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-keycode="-3"]',
-  backspaceKey: '.keyboard-type-container[data-active] ' +
+  backspaceKey:
+    '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-keycode="8"]',
-  returnKey: '.keyboard-type-container[data-active] ' +
+  returnKey:
+    '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-l10n-id="returnKey2"]',
-  dismissSuggestionsButton: '.keyboard-type-container[data-active] ' +
+  dismissSuggestionsKey:
+    '.keyboard-type-container[data-active] ' +
     '.dismiss-suggestions-button',
-  shiftKey: '.keyboard-type-container[data-active] ' +
+  shiftKey:
+    '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-l10n-id="upperCaseKey2"]',
-  key: '.keyboard-type-container[data-active] ' +
+  autoCorrectWord:
+    '.keyboard-type-container[data-active] ' +
+    '.autocorrect',
+});
+
+Keyboard.Templates = Object.freeze({
+  key:
+    '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-keycode="%s"], ' +
     '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-keycode-upper="%s"]',
-  upperCaseKey: '.keyboard-type-container[data-active] ' +
+  upperCaseKey:
+    '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-keycode-upper="%s"]',
-  pageSwitchingKey: '.keyboard-type-container[data-active] ' +
+  pageSwitchingKey:
+    '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-target-page="%s"]',
-  activeKeyboardFrame: '#keyboards .inputWindow.active iframe',
-  predictiveWord: '.autocorrect',
-  suggestionKey: '.suggestions-container span[data-data="%s"]',
-
-  // Below selectors are for built-in keyboard settings
-  keyboardList: '.allKeyboardList li',
-  autocorrectCheckbox: '#cb-autoCorrect',
-  settingsHeader: '#general-header'
+  suggestionKey:
+    '.keyboard-type-container[data-active] ' +
+    '.suggestions-container span[data-data="%s"]',
 });
 
-Keyboard.TypeGroupMap = {
+Keyboard.LONGPRESS_CHARS = Object.freeze({
+  '0': 'º',
+  '?': '¿',
+  '$': '€£¥',
+  '!': '¡',
+  'a': 'áàâäåãāæ',
+  'c': 'çćč',
+  'e': 'éèêëēę€ɛ',
+  'i': 'įīîìíï',
+  'l': '£ł',
+  'n': 'ńñ',
+  'o': 'ɵøœōôòóö',
+  's': 'ßśš$',
+  'u': 'ūûùúü',
+  'y': '¥ÿ',
+  'z': 'žźż',
+  'A': 'ÁÀÂÄÅÃĀÆ',
+  'C': 'ÇĆČ',
+  'E': 'ÉÈÊËĒĘ€Ɛ',
+  'I': 'ĮĪÎÌÍÏ',
+  'L': '£Ł',
+  'N': 'ŃÑ',
+  'O': 'ƟØŒŌÔÒÓÖ',
+  'S': 'ŚŠŞ',
+  'U': 'ŪÛÙÚÜ',
+  'Y': '¥Ÿ',
+  'Z': 'ŽŹŻ'
+});
+
+Keyboard.TypeGroupMap = Object.freeze({
   'text': 'text',
   'textarea': 'text',
   'url': 'url',
@@ -60,107 +91,72 @@ Keyboard.TypeGroupMap = {
   'search': 'text',
   'number': 'number',
   'tel': 'number'
-};
+});
 
 Keyboard.prototype = {
-   __proto__: Base.prototype,
-
-  // getters for DOM elements in keyboard app
-  get imeSwitchingKey() {
-    return this.client.findElement(Keyboard.Selector.imeSwitchingKey);
-  },
-  get returnKey() {
-    return this.client.findElement(Keyboard.Selector.returnKey);
-  },
-  get dismissSuggestionsButton() {
-    return this.client.findElement(Keyboard.Selector.dismissSuggestionsButton);
-  },
+  __proto__: Base.prototype,
 
   get currentPanel() {
-    return this.client.findElement(Keyboard.Selector.currentPanel);
+    return this.client.findElement(Keyboard.Selectors.currentPanel);
   },
 
-  get shiftKey() {
-    return this.client.findElement(Keyboard.Selector.shiftKey);
+  get imeSwitchingKey() {
+    return this.client.findElement(Keyboard.Selectors.imeSwitchingKey);
   },
 
   get backspaceKey() {
-    return this.client.findElement(Keyboard.Selector.backspaceKey);
+    return this.client.findElement(Keyboard.Selectors.backspaceKey);
   },
 
-  get activeKeyboardFrame() {
-    return this.client.findElement(Keyboard.Selector.activeKeyboardFrame);
+  get returnKey() {
+    return this.client.findElement(Keyboard.Selectors.returnKey);
   },
 
-  get predictiveWord() {
-    return this.client.findElement(Keyboard.Selector.predictiveWord);
+  get shiftKey() {
+    return this.client.findElement(Keyboard.Selectors.shiftKey);
   },
 
-  get autocorrect() {
-    return this.client.settings.get('keyboard.autocorrect');
+  get dismissSuggestionsKey() {
+    return this.client.findElement(Keyboard.Selectors.dismissSuggestionsKey);
   },
 
-  getKey: function getKey(key) {
-    var keySelector = Keyboard.Selector.key;
+  get autoCorrectWord() {
+    return this.client.findElement(Keyboard.Selectors.autoCorrectWord);
+  },
 
-    if (key >= '0' && key <='9') {
-      if (this.getCurrentInputType() !== 'number' && 
-          this.getCurrentInputMode() !== 'numeric') {
-        this.switchToPage(1);
-      }
-    } else if (key >= 'A' && key <= 'Z') {
-      this.switchToPage(0);
-      this.switchCase(true);
-      keySelector = Keyboard.Selector.upperCaseKey;
-    } else if ((key >= 'a' && key <= 'z') ||
-               key == ' ') {
-      this.switchToPage(0);
-      this.switchCase(false);
-    } else if (key === ' ' || key === '\u0008' || key === '\u000d') {
-      // No need to switch -- should be on every page and every case.
-    } else {
-      var index = this.getSymbolPageIndex(key);
-      this.switchToPage(index);
-    }
-
-    return this.client.findElement(
-      keySelector.replace(/%s/g, key.charCodeAt(0)));
+  getKey: function(char) {
+    var selector = Keyboard.Templates.key.replace(/%s/g, char.charCodeAt(0));
+    return this.client.findElement(selector);
   },
 
   getPageSwitchingKey: function(index) {
-    var selector = Keyboard.Selector.pageSwitchingKey.replace(/%s/g, index);
+    var selector = Keyboard.Templates.pageSwitchingKey.replace(/%s/g, index);
     return this.client.findElement(selector);
-  },
-
-  getSymbolPageIndex: function(key) {
-    //First, try page 1
-    this.switchToPage(1);
-    var keySelector = Keyboard.Selector.key.replace(/%s/g, key.charCodeAt(0));
-
-    if (this.isElementPresent(keySelector)) {
-      return 1;
-    }
-
-    return 2;
   },
 
   getSuggestionKey: function(word) {
-    var selector = Keyboard.Selector.suggestionKey.replace(/%s/, word);
+    var selector = Keyboard.Templates.suggestionKey.replace(/%s/, word);
     return this.client.findElement(selector);
   },
 
-  getCurrentKeyboard: function() {
-    var activeFrame = this.activeKeyboardFrame;
+  getLongPressCharMiddleKey: function(char) {
+    var chars = Keyboard.LONGPRESS_CHARS;
 
-    return activeFrame.getAttribute('data-frame-name');
+    for (var middleChar in chars) {
+      if (chars[middleChar].indexOf(char) !== -1) {
+        return middleChar;
+      }
+    }
+
+    return undefined;
   },
 
-  getCurrentInputType: function () {
+  getCurrentInputType: function() {
     return this.client.executeScript(
       'return window.wrappedJSObject.app.getBasicInputType();');
   },
 
-  getCurrentInputMode: function () {
+  getCurrentInputMode: function() {
     return this.client.executeScript(
       'return window.wrappedJSObject.app.inputContext.inputMode;');
   },
@@ -170,14 +166,50 @@ Keyboard.prototype = {
       'return window.wrappedJSObject.app.layoutManager.currentPageIndex;');
   },
 
-  isUpperCase: function () {
+  getCurrentKeyboardLayout: function() {
+    var keyboardFrame;
+
+    this.client.switchToFrame();
+
+    keyboardFrame = this.client.findElement(
+      '#keyboards .inputWindow.active iframe');
+    this.currentLayout = keyboardFrame.getAttribute('data-frame-name');
+    this.switchTo();
+
+    return this.currentLayout;
+  },
+
+  getSymbolPageIndex: function(key) {
+    this.switchToPage(1);
+
+    if (this.isKeyPresent(key)) {
+      return 1;
+    }
+    return 2;
+  },
+
+  tapBackspaceKey: function(word) {
+    this.backspaceKey.tap();
+  },
+
+  tapAutoCorrectWord: function() {
+    this.client.waitFor(() => {
+      return this.autoCorrectWord.displayed();
+    });
+    this.autoCorrectWord.tap();
+  },
+
+  tapSuggestionWord: function(word) {
+    this.getSuggestionKey(word).tap();
+  },
+
+  isUpperCase: function() {
     return this.client.executeScript(
-        'return ' +
-        'window.wrappedJSObject.app.upperCaseStateManager.isUpperCase;');
+      'return ' +
+      'window.wrappedJSObject.app.upperCaseStateManager.isUpperCase;');
   },
 
   isElementPresent: function(selector) {
-    // XXX: Hack to use faster polling
     var pollClient = this.client.scope({ searchTimeout: 50 });
 
     try {
@@ -189,111 +221,86 @@ Keyboard.prototype = {
     return true;
   },
 
-  isKeyPresent: function (key) {
-    var keySelector = Keyboard.Selector.key;
+  isKeyPresent: function(key) {
+    var keyTemplate = Keyboard.Templates.key;
 
-    return this.isElementPresent(keySelector.replace(/%s/g, key.charCodeAt(0)));
+    return this.isElementPresent(keyTemplate.replace(/%s/g, key.charCodeAt(0)));
   },
-  
-  switchCase: function switchCase(upperCase) {
-    if (this.isUpperCase() === upperCase) {
+
+  switchCase: function(isUpperCase) {
+    if (isUpperCase === undefined || this.isUpperCase() === isUpperCase) {
       return;
     }
 
-    var shiftKey = this.shiftKey;
+    this.shiftKey.tap();
+    this.client.waitFor(() => {
+      var expected = isUpperCase ? 'true' : 'false';
 
-    shiftKey.tap();
-    this.client.waitFor(function() {
-      var expected = upperCase ? 'true' : 'false';
-      return (shiftKey.getAttribute('aria-pressed') === expected);
+      return (this.shiftKey.getAttribute('aria-pressed') === expected);
     });
   },
 
   switchToPage: function(index) {
     var pageIndex = this.getCurrentPageIndex();
-    if (pageIndex === index) {
+
+    if (index === undefined || pageIndex === index) {
       return;
     }
 
-    var pageSwitchingKey = this.getPageSwitchingKey(index);
-    pageSwitchingKey.tap();
+    this.getPageSwitchingKey(index).tap();
+    this.client.waitFor(() => {
+      return (this.getCurrentPageIndex() === index);
+    });
+    this.waitForPageReady();
+  },
+
+  switchToKeyLayout: function(key) {
+    var page;
+    var upperCase;
+    var currentLayout = this.currentLayout || this.getCurrentKeyboardLayout();
+
+    if (['number'].indexOf(currentLayout) !== -1) {
+      return;
+    }
+
+    if (key >= '0' && key <= '9') {
+      page = 1;
+    } else if (key >= 'A' && key <='Z') {
+      page = 0;
+      upperCase = true;
+    } else if (key >= 'a' && key <= 'z') {
+      page = 0;
+      upperCase = false;
+    } else if (key === ' ' || key === '\u0008' || key === '\u000d') {
+
+    } else {
+      page = this.getSymbolPageIndex(key);
+    }
+
+    this.switchToPage(page);
+    this.switchCase(upperCase);
   },
 
   type: function(string) {
-    string.split('').forEach(function(char) {
-      var middleChar = this.getLongPressCharMiddleChar(char);
+    string.split('').forEach((char) => {
+      var middleChar = this.getLongPressCharMiddleKey(char);
+      var lookingForKey = middleChar || char;
       var keyElement;
+
+      this.switchToKeyLayout(lookingForKey);
+
       if (!middleChar) {
-        // Does not need long press
         keyElement = this.getKey(char);
-        keyElement.tap();
+
+        this.actions.wait(0.1).tap(keyElement).perform();
       } else {
-        // This is the key to long press.
         keyElement = this.getKey(middleChar);
-        var chain = this.actions.press(keyElement).wait(1).perform();
 
-        var longPressKeyElement = this.client.findElement(
-          Keyboard.Selector.key.replace(/%s/g, char.charCodeAt(0)));
-        chain.move(longPressKeyElement).release().perform();
+        this.actions
+        .press(keyElement).wait(1.5).perform()
+        .move(this.getKey(char)).wait(0.2).release().perform();
       }
-    }, this);
-  },
-
-  tapBackspaceKey: function(word) {
-    this.backspaceKey.tap();
-  },
-
-  tapFirstPredictiveWord: function() {
-    this.client.waitFor(function() {
-      return this.predictiveWord.displayed();
-    }.bind(this));
-
-    this.predictiveWord.tap();
-  },
-
-  tapSuggestionKey: function(word) {
-    this.getSuggestionKey(word).tap();  
-  },
-
-  LONGPRESS_CHARS: Object.freeze({
-    '0': 'º',
-    '?': '¿',
-    '$': '€£¥',
-    '!': '¡',
-    'a': 'áàâäåãāæ',
-    'c': 'çćč',
-    'e': 'éèêëēę€ɛ',
-    'i': 'įīîìíï',
-    'l': '£ł',
-    'n': 'ńñ',
-    'o': 'ɵøœōôòóö',
-    's': 'ßśš$',
-    'u': 'ūûùúü',
-    'y': '¥ÿ',
-    'z': 'žźż',
-    'A': 'ÁÀÂÄÅÃĀÆ',
-    'C': 'ÇĆČ',
-    'E': 'ÉÈÊËĒĘ€Ɛ',
-    'I': 'ĮĪÎÌÍÏ',
-    'L': '£Ł',
-    'N': 'ŃÑ',
-    'O': 'ƟØŒŌÔÒÓÖ',
-    'S': 'ŚŠŞ',
-    'U': 'ŪÛÙÚÜ',
-    'Y': '¥Ÿ',
-    'Z': 'ŽŹŻ'
-  }),
-
-  getLongPressCharMiddleChar: function(char) {
-    var chars = this.LONGPRESS_CHARS;
-
-    for (var middleChar in chars) {
-      if (chars[middleChar].indexOf(char) !== -1) {
-        return middleChar;
-      }
-    }
-
-    return undefined;
+    });
   },
 
   switchTo: function() {
@@ -302,20 +309,22 @@ Keyboard.prototype = {
 
     systemInputMgmt.waitForKeyboardFrameDisplayed();
     systemInputMgmt.switchToActiveKeyboardFrame();
+
+    this.waitForPageReady();
   },
 
-  // For built-in keyboard settings
-  switchToBuiltInKeyboardSettings: function() {
-    Base.prototype.switchTo.call(this);
+  waitForPageReady: function() {
+    this.client.waitFor(() => {
+      return this.currentPanel.displayed();
+    });
   },
 
-  clickAutocorrectOption: function() {
-    this.waitForElement('autocorrectCheckbox').click(); 
-  },
+  waitForKeyboardReady: function() {
+    this.client.switchToFrame();
 
-  goBackToSettingsApp: function() {
-    var header = this.waitForElement('settingsHeader');
-
-    header.tap(25, 25);
+    this.client.waitFor(() => {
+      return this.client.findElement(
+        '#keyboards .inputWindow .browser-container');
+    });
   }
 };
