@@ -84,7 +84,8 @@ function buildApps(options) {
       }
 
       utils.copyToStage(appOptions);
-      require('./post-app').execute(appOptions, app);
+      appOptions.webapp = app;
+      nodeHelper.require('./post-app', appOptions);
     }
   });
 

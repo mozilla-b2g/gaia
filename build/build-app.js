@@ -3,6 +3,7 @@
 /* global require, exports */
 
 var utils = require('utils');
+var nodeHelper = new utils.NodeHelper();
 
 exports.execute = function(options) {
   var webapp = utils.getWebapp(options.APP_DIR, options);
@@ -14,5 +15,6 @@ exports.execute = function(options) {
     return { wait: false };
   });
 
-  require('post-app').execute(options, webapp);
+  options.webapp = webapp;
+  nodeHelper.require('./post-app', options);
 };

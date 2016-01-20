@@ -37,12 +37,12 @@ suite('app.js', function() {
     };
 
     mockUtils.NodeHelper = function() {
-      this.require = require;
+      this.require = function() {};
     };
 
     var stubs = {
       'utils': mockUtils,
-      'rebuild': {},
+      './rebuild': {},
       './post-app': { execute: function() {} }
     };
     app = proxyquire.noCallThru().load('../../app', stubs);

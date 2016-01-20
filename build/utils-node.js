@@ -445,8 +445,13 @@ module.exports = {
     }
   },
 
-  processEvents: function() {
-
+  processEvents: function(exitResultFunc) {
+    // FIXME: A fake blocking function for porting utils-xpc
+    // This workaround will be removed once node.js migration is done
+    var exitResult = exitResultFunc();
+    if (exitResult.error) {
+      throw exitResult.error;
+    }
   },
 
   writeContent :function(file, content) {
