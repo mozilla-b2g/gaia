@@ -80,7 +80,7 @@ var FxaModuleUI = {
       }, OFFLINE_TIMEOUT);
     });
 
-    this.enableEscapeButton();
+    this.enableBackButton();
 
     FxaModuleNavigation.init(flow);
   },
@@ -197,14 +197,18 @@ var FxaModuleUI = {
     this.fxaModuleDone.removeAttribute('disabled');
   },
   onkeypress: function(e) {
-    if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+    var inputElementTypes = ['INPUT', 'TEXTAREA'];
+    var active = document.activeElement;
+    var isInputElementType = inputElementTypes.indexOf(active.nodeName) !== -1;
+    if (e.keyCode === KeyEvent.DOM_VK_BACK_SPACE &&
+        (!isInputElementType || (isInputElementType && !active.value))) {
       FxaModuleNavigation.back();
     }
   },
-  disableEscapeButton: function() {
+  disableBackButton: function() {
     window.removeEventListener('keypress', this.onkeypress);
   },
-  enableEscapeButton: function() {
+  enableBackButton: function() {
     window.addEventListener('keypress', this.onkeypress);
   },
   focusDoneButton: function() {
