@@ -1,5 +1,7 @@
 /* global MockNavigatorSettings, MockNavigatorMozWifiManager */
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp(
+  'settings/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 
 suite('WifiContext', function() {
   'use strict';

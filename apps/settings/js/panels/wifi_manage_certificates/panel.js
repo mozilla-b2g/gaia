@@ -75,9 +75,9 @@ define(function(require) {
       },
       _deleteCertificate: function() {
         var countItemDeleted = 0;
-        var checkedInputList =
-          elements.certificateList.querySelectorAll(
-            'input[type=checkbox]:checked');
+        var checkedInputList = Array.prototype.filter.call(
+          elements.certificateList.querySelectorAll('gaia-checkbox'),
+          (node) => node.checked);
 
         var scanWhenDeleteFinish = (totalLength) => {
           if (++countItemDeleted == totalLength) {
@@ -111,9 +111,10 @@ define(function(require) {
         }
       },
       _isItemSelected: function() {
-        return elements.certificateList.querySelector('gaia-checkbox')
-          .filter(el => el.checked)
-          .length > 0;
+        var checkedInputList = Array.prototype.filter.call(
+          elements.certificateList.querySelectorAll('gaia-checkbox'),
+          (node) => node.checked);
+        return checkedInputList.length > 0;
       },
       _toggleImportCertificateBtn: function(enabled) {
         elements.importCertificateBtn.disabled = !enabled;
