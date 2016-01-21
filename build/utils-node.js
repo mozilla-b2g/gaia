@@ -595,5 +595,14 @@ module.exports = {
         throw error;
       }
     }
+  },
+
+  createSandbox: function() {
+    return {};
+  },
+
+  runScriptInSandbox: function(filePath, sandbox) {
+    var script = fs.readFileSync(filePath, { encoding: 'utf8' });
+    return vm.runInNewContext(script, sandbox);
   }
 };

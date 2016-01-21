@@ -1,25 +1,42 @@
 'use strict';
 
-/* global exports, require */
+/* jshint node: true */
 
-var utils = require('utils');
-var esomin = require('esomin');
+var utils = require('../../build/utils');
+var esomin = require('../../build/esomin');
 
-function optimize(options) {
-  var r = require('r-wrapper').get(options.GAIA_DIR);
-  var configFile = utils.getFile(options.APP_DIR, 'build',
+function execute(options) {
+  var appName = utils.basename(options.APP_DIR);
+  var config = utils.getFile(options.APP_DIR, 'build',
     'require_config.jslike');
-  var ropt = new Promise(function(resolve, reject) {
-    r.optimize([configFile.path, 'optimize=none'], resolve, reject);
+
+  var sandbox = utils.createSandbox();
+  sandbox.arguments = [];
+  sandbox.requirejsAsLib = true;
+  sandbox.print = function() {
+    if(options.VERBOSE === '1') {
+      utils.log(appName, Array.prototype.join.call(arguments, ' '));
+    }
+  };
+  utils.runScriptInSandbox(utils.getFile(
+    options.GAIA_DIR, 'build', 'r.js'), sandbox);
+
+  var optimize = 'optimize=none';
+  var build = new Promise(function(resolve, reject) {
+    sandbox.requirejs.optimize([config.path, optimize], resolve, reject);
   });
-  return ropt.then(function() {
+
+  return build.then(function() {
+    utils.log(appName, 'require.js optimize done');
+  })
+  .then(function() {
     if (options.GAIA_OPTIMIZE === '1') {
-      utils.log('camera', 'Using esomin to minify');
+      utils.log(appName, 'esomin minify done');
       return esomin.minifyDir(options.STAGE_APP_DIR);
     }
-  }).catch(function (err) {
-    utils.log(err);
-    utils.log(err.stack);
+  })
+  .catch(function(err) {
+    utils.log(appName, 'running customize build failed');
     throw err;
   });
 }
@@ -40,5 +57,5 @@ function copyUserConfig(options) {
 
 exports.execute = function(options) {
   copyUserConfig(options);
-  return optimize(options);
+  return execute(options);
 };
