@@ -1,4 +1,5 @@
 'use strict';
+/* global focusManager */
 
 (function(exports) {
 
@@ -21,69 +22,102 @@
     _banner: null,
 
     /**
+     * Set when the clicked callback called. Bypasses dismiss.
+     * @memberof SystemBanner.prototype
+     * @type {Boolean}
+     */
+    _clicked: false,
+
+    /**
+     * Callback when the user clicks on the system banner button.
+     * @memberof SystemBanner.prototype
+     * @type {Function}
+     */
+    _clickCallback: null,
+
+    /**
      * Generates and returns the banner if it does not exist
      * @memberof SystemBanner.prototype
      * @type {Function}
      */
     get banner() {
-      this._banner = this._banner ||
-        document.getElementById('system-banner-container');
+      if (!this._banner) {
+        this._banner = document.createElement('section');
+        this._banner.className = 'banner generic-dialog';
+        this._banner.setAttribute('role', 'dialog');
+        this._banner.dataset.zIndexLevel = 'system-notification-banner';
+        this._banner.dataset.button = 'false';
+        this._banner.innerHTML = '<div><p></p><button></button></div>';
+        document.getElementById('screen').appendChild(this._banner);
+      }
+
       return this._banner;
     },
 
     /**
      * Shows a banner with a given message.
+     * Optionally shows a button with a given label/callback/dismiss.
+     * 'dismiss' is called when the banner is dismissed and button
+     * has not been clicked. It is optional.
      * @memberof SystemBanner.prototype
-     * @param {Object} message The message to display
-     * - @param {String|Object} message.title The title of the banner.
-     *  if message.title is an object:
-     *  - @param {String} message.title.id The title L10n id of the banner.
-     *  - @param {String} message.title.args The title L10n args of the banner.
-     * - @param {String|Object} message.text The text of the banner.
-     *  if message.text is an object:
-     *  - @param {String} message.text.id The text L10n id of the banner.
-     *  - @param {String} message.text.args The text L10n args of the banner.
-     * @param {String} message.icon The icon url of the banner.
+     * @param {String} message The message to display
+     * @param {Object} buttonParams { label: ..., callback: ..., dismiss: ... }
      */
-    show: function(msg) {
+    show: function(message, buttonParams) {
       var banner = this.banner;
-      var title = banner.firstElementChild.children[0];
-      var text = banner.firstElementChild.children[1];
+      navigator.mozL10n.setAttributes(
+        banner.firstElementChild.firstElementChild,
+        message.id,
+        message.args
+      );
+      var button = banner.querySelector('button');
 
-      banner.style.backgroundImage = msg.icon ? 'url("' + msg.icon + '")': null;
-      if (msg.title && msg.title.id) {
-        navigator.mozL10n.setAttributes(
-          title,
-          msg.title.id,
-          msg.title.args
-        );
-      } else {
-        title.removeAttribute('data-l10n-id');
-        title.removeAttribute('data-l10n-args');
-        title.textContent = msg.title || '';
+      if (buttonParams) {
+        focusManager.addUI(this);
+        banner.dataset.button = true;
+        button.setAttribute('data-l10n-id', buttonParams.labelL10nId);
+        this._clickCallback = function() {
+          this._clicked = true;
+          buttonParams.callback();
+        }.bind(this);
+        button.addEventListener('click', this._clickCallback);
       }
 
-      if (msg.text && msg.text.id) {
-        navigator.mozL10n.setAttributes(
-          text,
-          msg.text.id,
-          msg.text.args
-        );
-      } else {
-        text.removeAttribute('data-l10n-id');
-        text.removeAttribute('data-l10n-args');
-        text.textContent = msg.text || '';
+      banner.addEventListener('animationend', function animationend() {
+        banner.removeEventListener('animationend', animationend);
+        banner.classList.remove('visible');
+
+        if (buttonParams) {
+          focusManager.removeUI(this);
+          if (buttonParams.dismiss && !this._clicked) {
+            buttonParams.dismiss();
+          }
+          banner.dataset.button = false;
+          button.removeEventListener('click', this._clickCallback);
+          button.classList.remove('visible');
+          this.banner.parentNode.removeChild(this.banner);
+        }
+        focusManager.focus();
+      }.bind(this));
+      focusManager.focus();
+      banner.classList.add('visible');
+    },
+
+    isFocusable: function() {
+      return this._banner && this._banner.classList.contains('visible');
+    },
+
+    getElement: function() {
+      if (this.isFocusable()) {
+        return this._banner;
       }
+    },
 
-      banner.classList[msg.title ? 'add' : 'remove']('has-title');
-
-      banner.addEventListener('hidden', function onHidden() {
-        banner.removeEventListener('hidden', onHidden);
-        banner.classList.add('hidden');
-      });
-
-      banner.classList.remove('hidden');
-      banner.show({ animation: 'bouncing' });
+    focus: function() {
+      if (this.isFocusable()) {
+        document.activeElement.blur();
+        this._banner.querySelector('button').focus();
+      }
     }
   };
 
