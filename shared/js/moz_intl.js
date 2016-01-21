@@ -375,6 +375,10 @@ global.mozIntl = {
     },
 
     getFormattedUnit: function(type, style, v) {
+      if (isNaN(parseInt(v))) {
+        return Promise.resolve(undefined);
+      }
+
       if (!unitFormatData.hasOwnProperty(type)) {
         throw new RangeError(`invalid type ${type}`);
       }

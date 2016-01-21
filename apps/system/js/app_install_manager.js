@@ -10,6 +10,7 @@
 /* global SystemBanner */
 /* global Sanitizer */
 /* global UtilityTray */
+/* global mozIntl */
 /* global applications */
 
 'use strict';
@@ -242,7 +243,9 @@
 
       if (manifest.size) {
         this.size.removeAttribute('data-l10n-id');
-        this.size.textContent = this.humanizeSize(manifest.size);
+        this.humanizeSize(manifest.size).then(val => {
+          this.size.textContent = val;
+        });
       } else {
         this.size.setAttribute('data-l10n-id', 'size-unknown');
       }
@@ -696,26 +699,31 @@
           id: 'downloadingAppProgressIndeterminate',
           args: null
         };
+        navigator.mozL10n.setAttributes(
+          progressNode,
+          message.id,
+          message.args);
         progressNode.removeAttribute('value'); // switch to indeterminate state
       } else if (appInfo.hasMax) {
-        message = {
-          id: 'downloadingAppProgress',
-          args: {
-            progress: this.humanizeSize(app.progress),
-            max: this.humanizeSize(progressNode.max)
-          }
-        };
         progressNode.value = app.progress;
+        return Promise.all([
+          this.humanizeSize(app.progress),
+          this.humanizeSize(progressNode.max)
+        ]).then(([progress, max]) => {
+          navigator.mozL10n.setAttributes(
+            progressNode,
+            'downloadingAppProgress',
+            {progress, max});
+        });
       } else {
-        message = {
-          id: 'downloadingAppProgressNoMax',
-          args: { progress: this.humanizeSize(app.progress) }
-        };
+        return this.humanizeSize(app.progress).then(progress => {
+          navigator.mozL10n.setAttributes(
+            progressNode,
+            'downloadingAppProgressNoMax',
+            {progress});
+        });
       }
-      navigator.mozL10n.setAttributes(
-        progressNode,
-        message.id,
-        message.args);
+      return Promise.resolve();
     },
 
     removeNotification: function ai_removeNotification(app) {
@@ -767,16 +775,7 @@
     },
 
     humanizeSize: function ai_humanizeSize(bytes) {
-      var _ = navigator.mozL10n.get;
-      var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
-
-      if (!bytes) {
-        return '0.00 ' + _(units[0]);
-      }
-
-      var e = Math.floor(Math.log(bytes) / Math.log(1024));
-      return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + ' ' +
-        _(units[e]);
+      return mozIntl._gaia.getFormattedUnit('digital', 'short', bytes);
     },
 
     showInstallCancelDialog: function ai_showInstallCancelDialog(evt) {

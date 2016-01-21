@@ -189,33 +189,6 @@ suite('system/bluetooth_transfer', function() {
       });
     });
 
-    suite('humanizeSize', function() {
-      test('should handle zero size ', function() {
-        var expectedSize = 'fileSize{"size":"0.00","unit":"byteUnit-B"}';
-        assert.equal(expectedSize, BluetoothTransfer.humanizeSize(0));
-      });
-
-      test('should handle bytes size ', function() {
-        var expectedSize = 'fileSize{"size":"42.00","unit":"byteUnit-B"}';
-        assert.equal(expectedSize, BluetoothTransfer.humanizeSize(42));
-      });
-
-      test('should handle kilobytes size ', function() {
-        var expectedSize = 'fileSize{"size":"1.00","unit":"byteUnit-KB"}';
-        assert.equal(expectedSize, BluetoothTransfer.humanizeSize(1024));
-      });
-
-      test('should handle megabytes size ', function() {
-        var expectedSize = 'fileSize{"size":"4.67","unit":"byteUnit-MB"}';
-        assert.equal(expectedSize, BluetoothTransfer.humanizeSize(4901024));
-      });
-
-      test('should handle gigabytes size ', function() {
-        var expectedSize = 'fileSize{"size":"3.73","unit":"byteUnit-GB"}';
-        assert.equal(expectedSize, BluetoothTransfer.humanizeSize(4000901024));
-      });
-    });
-
     suite('operate sending files queue ', function() {
       suiteSetup(function() {
         real_sendingFilesQueue = BluetoothTransfer._sendingFilesQueue;
