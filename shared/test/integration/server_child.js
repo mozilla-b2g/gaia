@@ -35,7 +35,7 @@ Server.prototype = {
 
   stop: function() {
     if (this.http) {
-      this.http.kill();
+      this.http.close();
     }
   },
 
