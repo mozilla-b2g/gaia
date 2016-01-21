@@ -30,6 +30,13 @@ global.MockMozIntl = {
       }
     };
   },
+  UnitFormat: function(locales, options) {
+    return {
+      format: function(value) {
+        return Promise.resolve();
+      }
+    };
+  },
   _gaia: {
     relativePart: function(ms) {
       return {
@@ -44,6 +51,9 @@ global.MockMozIntl = {
         },
         formatElement: function(element, time, maxDiff) {}
       };
+    },
+    getFormattedUnit(type, style, v) {
+      return Promise.resolve();
     },
   }
 };
