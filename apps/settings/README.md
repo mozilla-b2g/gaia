@@ -76,7 +76,7 @@ As we are using `require.js` for module management, scripts used in a panel shou
 ## Implementation Guide
 ### How to create a new panel in Settings?
 #### 1. Create an HTML template
-Create the template with the following format and place it under `elements/`.
+Create the template with the following format and place it under `views/phone/<panel>`.
 
 ```html
 <element name="{panel_name}" extends="section">
@@ -142,7 +142,7 @@ A panel module could be loaded by adding a <panel> tag with a `data-path` attrbu
 
 Note that there should be only one panel module specified in the template. All other dependent modules should be required in the panel module. `SettingsPanel` is used by default if no panel module is specified.
 
-All panels should be defined in the folder under `panels/` with the name identical to the panel's name. ex: battery panel should be defined in `panels/battery` folder.
+All panels should be defined in the folder under `views/<form_factor>` with the name identical to the panel's name. ex: battery panel for `phone` form-factor should be defined in `views/phone/battery` folder.
 
 Before set review for a new panel, you MUST use `reset-gaia` instead of `install-gaia` to check if it works after `r.js` compiles panel modules into a single file. Some shared modules should be excluded in `settings/js/config/require.js`.
 
@@ -151,7 +151,7 @@ Before set review for a new panel, you MUST use `reset-gaia` instead of `install
 Basically this could be done by following the previous two sections. Create a panel module and require the dependent modules converted from the original scripts, then add the panel module to the HTML template. Details are explained in the following.
 
 #### 1. Create a new panel module
-Follow this [section](#how-to-create-a-new-panel-in-settings) to create a new panel module and add it to the corresponding HTML template that could be found under `elements/`. The panel module must be placed under `panels/<panel_name>/` and named as `panel.js`. Remember to remove all script tags in the template because they should be required in the panel module.
+Follow this [section](#how-to-create-a-new-panel-in-settings) to create a new panel module and add it to the corresponding HTML template that could be found under `views/phone`. The panel module must be placed under `views/phone/<panel_name>/` and named as `panel.js`. Remember to remove all script tags in the template because they should be required in the panel module.
 
 #### 2. Convert original scripts to AMD modules
 Examine all dependent scripts carefully and convert them to reusable modules. Reusable means that the modules should not be bound to fixed UI elements so that we have the flexibility doing the binding dynamically. It also implies that the unit tests no longer depend on UI elements, which makes writing tests more easily.
