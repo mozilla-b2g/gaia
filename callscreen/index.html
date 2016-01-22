@@ -1,3 +1,4 @@
+<!doctype html>
 <html>
 <head>
   <meta charset='utf-8' />
@@ -57,11 +58,6 @@
                 holdAndAnswerOnly
               </a>
               <a
-                href='#modeSwitch'
-                class='block bold'>
-                modeSwitch
-              </a>
-              <a
                 href='#computeCallEndedFontSizeRules'
                 class='block bold'>
                 computeCallEndedFontSizeRules
@@ -75,6 +71,21 @@
                 href='#observeMutation'
                 class='block bold'>
                 observeMutation
+              </a>
+              <a
+                href='#renderPhoneNumber'
+                class='block bold'>
+                renderPhoneNumber
+              </a>
+              <a
+                href='#replacePhoneNumber'
+                class='block bold'>
+                replacePhoneNumber
+              </a>
+              <a
+                href='#restorePhoneNumber'
+                class='block bold'>
+                restorePhoneNumber
               </a>
               <a
                 href='#ConferenceGroupHandler'
@@ -231,9 +242,9 @@
     <ul class='suppress-p-margin'>
         <li> <strong>callback</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -249,9 +260,9 @@ information overlay.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>node</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -265,9 +276,9 @@ information overlay.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>node</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -287,10 +298,10 @@ information overlay.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>Returns true if we&apos;re in CDMA call waiting mode.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='cdmaCallWaiting' class='mt0'>
@@ -302,10 +313,10 @@ information overlay.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>enabled</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>Enables the CDMA call-waiting UI.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -320,32 +331,10 @@ displays only the hold-and-answer one.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>enabled</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>Enables hold-and-answer-only operation.</p>
 
-          </span>
-        </li>
-    </ul>
-</section>
-</div><div class='py1'><section class='py2 clearfix'>
-  <h2 id='modeSwitch' class='mt0'>
-    modeSwitch<span class='gray'>(mode, switcher)</span>
-  </h2>
-  
-    <h4>Parameters</h4>
-    <ul class='suppress-p-margin'>
-        <li> <strong>mode</strong>
-          :
-          <span class='force-inline'>
-            
-          </span>
-        </li>
-        <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code> <strong>switcher</strong>
-          :
-          <span class='force-inline'>
-            <p>true if mode is on, false if off.</p>
-
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -376,11 +365,65 @@ once it&apos;s displayed at the end of a call.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>mutations</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='renderPhoneNumber' class='mt0'>
+    renderPhoneNumber<span class='gray'>(number, ellipsisSide)</span>
+  </h2>
+  <p>This method renders a phone number. It can be used to display numbers typed
+during a call without altering the original number stored in the object.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>number</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+        <li> <strong>ellipsisSide</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='replacePhoneNumber' class='mt0'>
+    replacePhoneNumber<span class='gray'>(number, ellipsisSide)</span>
+  </h2>
+  <p>This method replaces the phone number in the call with a new number and
+renders it.</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>number</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+        <li> <strong>ellipsisSide</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='restorePhoneNumber' class='mt0'>
+    restorePhoneNumber<span class='gray'></span>
+  </h2>
+  <p>This method renders the number that was originally associated with this
+object in case it was altered (e.g. by typing numbers during a call).</p>
+
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='ConferenceGroupHandler' class='mt0'>
@@ -429,11 +472,11 @@ this timer on each successive invocation.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>timeout</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>{Integer} A duration in ms after which the callscreen
 should be closed.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -456,11 +499,11 @@ automatically close the callscreen if no more calls are present.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>{Object} The event delivered in the
 TelephonyCall.ondisconnected event-handler.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -479,6 +522,13 @@ shown.</p>
   </h2>
   <p>Check if any of the calls is currently on hold.</p>
 
+      <h4>Returns</h4>
+      <code></code>
+      :
+      <div class='force-inline'>
+        <p>true if a call is on hold, false otherwise</p>
+
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='isAnyCallSwitchable' class='mt0'>
@@ -486,6 +536,13 @@ shown.</p>
   </h2>
   <p>Check if any of the calls can be put on hold or resumed.</p>
 
+      <h4>Returns</h4>
+      <code></code>
+      :
+      <div class='force-inline'>
+        <p>true if a call can be put on hold or resumed, false otherwise</p>
+
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='isEstablishingCall' class='mt0'>
@@ -493,6 +550,13 @@ shown.</p>
   </h2>
   <p>Check if a call is being established.</p>
 
+      <h4>Returns</h4>
+      <code></code>
+      :
+      <div class='force-inline'>
+        <p>true if a call is being established, false otherwise</p>
+
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='isEveryCallMergeable' class='mt0'>
@@ -500,6 +564,13 @@ shown.</p>
   </h2>
   <p>Check if all non-conference calls are mergeable.</p>
 
+      <h4>Returns</h4>
+      <code></code>
+      :
+      <div class='force-inline'>
+        <p>true if all non-confernece calls can be merged, false otherwise</p>
+
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='isFirstCallOnCdmaNetwork' class='mt0'>
@@ -510,10 +581,10 @@ shown.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>Return true if we&apos;re first call on CDMA network.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='isGroupDetailsShown' class='mt0'>
@@ -525,11 +596,11 @@ information overlay.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>Visibility status of the ongoing conference call details
 information overlay.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='markCallsAsEnded' class='mt0'>
@@ -560,10 +631,10 @@ conference group call if one is present.</p>
       <h4>Returns</h4>
       <code><code>Integer</code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>The number of calls currently present.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='onCallsChanged' class='mt0'>
@@ -582,9 +653,9 @@ conference group call if one is present.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -598,10 +669,10 @@ conference group call if one is present.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>call</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The call object to which the wait tone is referred to.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -616,9 +687,9 @@ overlay.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>node</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -632,12 +703,12 @@ overlay.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> or <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>text</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The text to display, can be either a string
 in which case it&apos;s interpreted as an l10n id or an object holding
 both the l10n id &amp; args.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -651,11 +722,11 @@ both the l10n id &amp; args.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent">MouseEvent</a></code> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The mouse event requesting the showing of the
 ongoing conference call details overlay.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -694,9 +765,9 @@ automatically once 1) user answers incoming call or
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>

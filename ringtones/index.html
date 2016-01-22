@@ -1,3 +1,4 @@
+<!doctype html>
 <html>
 <head>
   <meta charset='utf-8' />
@@ -57,11 +58,6 @@
                 ActionsMenu
               </a>
                 <a
-                  href='#ActionsMenu._cancel'
-                  class='regular block'>
-                  #_cancel
-                </a>
-                <a
                   href='#ActionsMenu._delete'
                   class='regular block'>
                   #_delete
@@ -75,11 +71,6 @@
                   href='#ActionsMenu._share'
                   class='regular block'>
                   #_share
-                </a>
-                <a
-                  href='#ActionsMenu.close'
-                  class='regular block'>
-                  #close
                 </a>
                 <a
                   href='#ActionsMenu.open'
@@ -408,17 +399,17 @@ to extend makeItem() to do whatever you need!</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>titleID</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The l10n ID of the list&apos;s header</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling">Node</a></code> <strong>parent</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>(optional) The parent node to append this list to.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Instance members</h4>
@@ -427,11 +418,11 @@ to extend makeItem() to do whatever you need!</p>
             <code>
               #_append<span class='gray'>(tone)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Append a tone object to the end of the list. Useful when we know it
 belongs at the end.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -445,10 +436,10 @@ belongs at the end.</p>
                 <ul class='suppress-p-margin'>
                     <li><code>Tone</code> <strong>tone</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The tone to append.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -459,10 +450,10 @@ belongs at the end.</p>
             <code>
               #_insertSorted<span class='gray'>(tone)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Insert a tone object into the list based on its sort order.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -475,10 +466,10 @@ belongs at the end.</p>
                 <ul class='suppress-p-margin'>
                     <li><code>Tone</code> <strong>tone</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The tone to insert.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -489,10 +480,10 @@ belongs at the end.</p>
             <code>
               #add<span class='gray'>(tones)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Insert a tone or array of tones in sorted order into the list.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -505,10 +496,10 @@ belongs at the end.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>tones</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>A single tone object or an array thereof.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -519,10 +510,10 @@ belongs at the end.</p>
             <code>
               #makeItem<span class='gray'>(tone)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Create and return a list item for a tone.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -535,19 +526,19 @@ belongs at the end.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>tone</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The tone to use for the list item.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling">Node</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The list item.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -556,10 +547,10 @@ belongs at the end.</p>
             <code>
               #remove<span class='gray'>(tone)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Remove an item from the list.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -572,10 +563,10 @@ belongs at the end.</p>
                 <ul class='suppress-p-margin'>
                     <li><code>Tone</code> <strong>tone</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The tone to remove.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -594,52 +585,22 @@ the system.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling">Node</a></code> <strong>menuElement</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The DOM node for the menu.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Instance members</h4>
-        <div class='collapsible' id='ActionsMenu._cancel'>
-          <a href='#ActionsMenu._cancel'>
-            <code>
-              #_cancel<span class='gray'>(event)</span>
-            </code>
-            <span class='force-inline'>
-              <p>Handle clicking the &quot;cancel&quot; button.</p>
-
-            </span>
-          </a>
-          <div class='collapser border px2'>
-            <section class='py2 clearfix'>
-              <h2 id='ActionsMenu._cancel' class='mt0'>
-                _cancel<span class='gray'>(event)</span>
-              </h2>
-              <p>Handle clicking the &quot;cancel&quot; button.</p>
-            
-                <h4>Parameters</h4>
-                <ul class='suppress-p-margin'>
-                    <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event</a></code> <strong>event</strong>
-                      :
-                      <span class='force-inline'>
-                        <p>The event.</p>
-            
-                      </span>
-                    </li>
-                </ul>
-            </section>
-          </div>
-        </div>
         <div class='collapsible' id='ActionsMenu._delete'>
           <a href='#ActionsMenu._delete'>
             <code>
               #_delete<span class='gray'>(event)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Handle clicking the &quot;delete&quot; button.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -652,10 +613,10 @@ the system.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event</a></code> <strong>event</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The event.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -666,10 +627,10 @@ the system.</p>
             <code>
               #_finish<span class='gray'>(command)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Fire our callback function and clean up the internal state of the menu.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -682,10 +643,10 @@ the system.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>command</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The command that was selected.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -696,10 +657,10 @@ the system.</p>
             <code>
               #_share<span class='gray'>(event)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Handle clicking the &quot;share&quot; button.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -712,32 +673,12 @@ the system.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event</a></code> <strong>event</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The event.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
-            </section>
-          </div>
-        </div>
-        <div class='collapsible' id='ActionsMenu.close'>
-          <a href='#ActionsMenu.close'>
-            <code>
-              #close<span class='gray'></span>
-            </code>
-            <span class='force-inline'>
-              <p>Close the actions menu.</p>
-
-            </span>
-          </a>
-          <div class='collapser border px2'>
-            <section class='py2 clearfix'>
-              <h2 id='ActionsMenu.close' class='mt0'>
-                close<span class='gray'></span>
-              </h2>
-              <p>Close the actions menu.</p>
-            
             </section>
           </div>
         </div>
@@ -746,10 +687,10 @@ the system.</p>
             <code>
               #open<span class='gray'>(tone, inUseAs, callback)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Open the actions menu.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -762,25 +703,25 @@ the system.</p>
                 <ul class='suppress-p-margin'>
                     <li><code>Tone</code> <strong>tone</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The tone to perform actions on.</p>
             
-                      </span>
+                      </div>
                     </li>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>inUseAs</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>An array representing the places using this tone.</p>
             
-                      </span>
+                      </div>
                     </li>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>A callback to call when the actions menu is
             closed. Takes one argument: the action that was performed.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -797,19 +738,19 @@ the system.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>settingKey</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The name of the setting.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise returning the setting&apos;s value.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='_getSettingsBase' class='mt0'>
@@ -821,10 +762,10 @@ the system.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The type of the tone (&apos;ringtone&apos; or &apos;alerttone&apos;).</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -838,24 +779,24 @@ the system.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The kind of tone (ringtone or alerttone).</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>filename</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The filename of the ringtone.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>toneDef</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The tone&apos;s definition from list.json.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Instance members</h4>
@@ -864,9 +805,9 @@ the system.</p>
             <code>
               #_rootName<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -877,10 +818,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The filename without the extension.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -889,9 +830,9 @@ the system.</p>
             <code>
               #deletable<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -902,10 +843,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>Whether this ringtone is deletable (always false).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -914,9 +855,9 @@ the system.</p>
             <code>
               #filename<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -927,10 +868,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The filename of the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -939,10 +880,10 @@ the system.</p>
             <code>
               #getBlob<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Gets a blob for this tone.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -954,10 +895,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A promise returning a Blob of the audio data.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -966,9 +907,9 @@ the system.</p>
             <code>
               #id<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -979,10 +920,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A unique ID for the tone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -991,9 +932,9 @@ the system.</p>
             <code>
               #l10nID<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1004,10 +945,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The l10n ID for the tone&apos;s name.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1016,9 +957,9 @@ the system.</p>
             <code>
               #name<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1029,11 +970,11 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The localized name of the tone. Assumes that mozL10n has
             been initialized.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1042,9 +983,9 @@ the system.</p>
             <code>
               #shareable<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1055,10 +996,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>Whether this ringtone is shareable (always true).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1067,9 +1008,9 @@ the system.</p>
             <code>
               #type<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1080,10 +1021,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The type of the tone. Either &quot;ringtone&quot; or &quot;alerttone&quot;.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1092,9 +1033,9 @@ the system.</p>
             <code>
               #url<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1105,10 +1046,10 @@ the system.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A URL pointing to the tone&apos;s audio data.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1127,12 +1068,12 @@ this object mucks about with audio channels.</p>
             <code>
               #_setExclusiveMode<span class='gray'>(exclusive)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Creates an AudioContext with &quot;ringer&quot; priority to stop any background audio
 from playing once we&apos;ve started previewing ringtones, or destroys the
 context.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1147,11 +1088,11 @@ context.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code> <strong>exclusive</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>true to create the AudioContext, false to
             destroy.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -1162,10 +1103,10 @@ context.</p>
             <code>
               #currentTone<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Get the current tone that the TonePlayer is (or was) playing.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1182,10 +1123,10 @@ context.</p>
             <code>
               #isValid<span class='gray'>(callback)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Get the validation status of the currently-selected tone.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1198,12 +1139,12 @@ context.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>callback</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>A callback to call when we have the validation
             status. Takes one argument, which is a boolean representing whether the
             currently-selected tone is valid.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -1214,7 +1155,7 @@ context.</p>
             <code>
               #setTone<span class='gray'>(tone, [callback])</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Select a tone and start playing a preview of this (this has the happy side
 effect of ensuring the tone is actually playable before we save it). Note:
 if this function is called twice with the same tone while the preview is
@@ -1222,7 +1163,7 @@ still playing, this will stop the preview. This is nice for really long
 tones. However, it can be a bit confusing if the tone ends in a bunch of
 silence, since it stops it, but you&apos;d expect it to replay the tone.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1240,19 +1181,19 @@ silence, since it stops it, but you&apos;d expect it to replay the tone.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>tone</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The tone to select and preview.</p>
             
-                      </span>
+                      </div>
                     </li>
                     <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code>]</code> <strong>callback</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The callback to call when the playback status
             of the tone changes; takes a boolean value to indicate if the tone is
             currently playing.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -1263,13 +1204,13 @@ silence, since it stops it, but you&apos;d expect it to replay the tone.</p>
             <code>
               #stop<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Stop playing the current tone (if any). If we start playing it again,
 setTone will reset the current time to 0. Note: even though we&apos;re stopping,
 we don&apos;t want to clear the player&apos;s src URL, since we might need that to
 restart playback of the same song.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1295,7 +1236,7 @@ restart playback of the same song.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>info</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>An object containing info about the ringtone. Contains
 the following members:
 {String} name The name of the tone.
@@ -1307,14 +1248,14 @@ from other tones with the same name and subtitle.
 specified in the original name of the tone, false if it was inferred
 for de-duplication purposes.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>dbKey</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The database key of the tone.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Instance members</h4>
@@ -1323,9 +1264,9 @@ for de-duplication purposes.</p>
             <code>
               #deletable<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1336,10 +1277,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>Whether this ringtone is deletable (always true).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1348,9 +1289,9 @@ for de-duplication purposes.</p>
             <code>
               #filename<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1361,10 +1302,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The filename of the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1373,10 +1314,10 @@ for de-duplication purposes.</p>
             <code>
               #getBlob<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Gets a blob for this ringtone.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1388,10 +1329,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A promise returning a Blob of the audio data.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1400,9 +1341,9 @@ for de-duplication purposes.</p>
             <code>
               #id<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1413,10 +1354,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A unique ID for the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1425,9 +1366,9 @@ for de-duplication purposes.</p>
             <code>
               #name<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1438,10 +1379,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The name of the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1450,10 +1391,10 @@ for de-duplication purposes.</p>
             <code>
               #remove<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Delete this ringtone from the database.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1462,6 +1403,13 @@ for de-duplication purposes.</p>
               </h2>
               <p>Delete this ringtone from the database.</p>
             
+                  <h4>Returns</h4>
+                  <code></code>
+                  :
+                  <div class='force-inline'>
+                    <p>A promise returning upon completion of the deletion.</p>
+            
+                  </div>
             </section>
           </div>
         </div>
@@ -1470,9 +1418,9 @@ for de-duplication purposes.</p>
             <code>
               #shareable<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1483,10 +1431,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>Whether this ringtone is shareable (always true).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1495,9 +1443,9 @@ for de-duplication purposes.</p>
             <code>
               #subtitle<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1508,11 +1456,11 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The subtitle of the ringtone (e.g. the artist of the
             song), or null if there is no subtitle.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1521,9 +1469,9 @@ for de-duplication purposes.</p>
             <code>
               #type<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1534,11 +1482,11 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The type of the ringtone. XXX: Currently always
             &quot;ringtone&quot;.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1547,9 +1495,9 @@ for de-duplication purposes.</p>
             <code>
               #url<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1560,10 +1508,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A URL pointing to the ringtone&apos;s audio data.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1578,10 +1526,10 @@ for de-duplication purposes.</p>
     <ul class='suppress-p-margin'>
         <li><code>File</code> <strong>file</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>A File object for the ringtone.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Instance members</h4>
@@ -1590,9 +1538,9 @@ for de-duplication purposes.</p>
             <code>
               #deletable<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1603,10 +1551,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>Whether this ringtone is deletable (always true).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1615,9 +1563,9 @@ for de-duplication purposes.</p>
             <code>
               #filename<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1628,10 +1576,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The filename of the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1640,10 +1588,10 @@ for de-duplication purposes.</p>
             <code>
               #getBlob<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Gets a blob for this ringtone.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1655,10 +1603,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A promise returning a Blob of the audio data.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1667,9 +1615,9 @@ for de-duplication purposes.</p>
             <code>
               #id<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1680,10 +1628,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A unique ID for the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1692,9 +1640,9 @@ for de-duplication purposes.</p>
             <code>
               #name<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1705,10 +1653,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The name of the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1717,10 +1665,10 @@ for de-duplication purposes.</p>
             <code>
               #remove<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Delete this ringtone from the database.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1729,6 +1677,13 @@ for de-duplication purposes.</p>
               </h2>
               <p>Delete this ringtone from the database.</p>
             
+                  <h4>Returns</h4>
+                  <code></code>
+                  :
+                  <div class='force-inline'>
+                    <p>A promise returning upon completion of the deletion.</p>
+            
+                  </div>
             </section>
           </div>
         </div>
@@ -1737,9 +1692,9 @@ for de-duplication purposes.</p>
             <code>
               #shareable<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1750,10 +1705,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>Whether this ringtone is shareable (always true).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1762,9 +1717,9 @@ for de-duplication purposes.</p>
             <code>
               #subtitle<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1775,11 +1730,11 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The subtitle of the ringtone (always &quot;SD Card&quot; in this
             case).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1788,9 +1743,9 @@ for de-duplication purposes.</p>
             <code>
               #type<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1801,10 +1756,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The type of the tone. Either &quot;ringtone&quot; or &quot;alerttone&quot;.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1813,9 +1768,9 @@ for de-duplication purposes.</p>
             <code>
               #url<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1826,10 +1781,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A URL pointing to the ringtone&apos;s audio data.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1846,9 +1801,9 @@ for de-duplication purposes.</p>
             <code>
               #deletable<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1859,10 +1814,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>Whether this ringtone is deletable (always false).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1871,9 +1826,9 @@ for de-duplication purposes.</p>
             <code>
               #filename<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1884,10 +1839,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The filename of the ringtone (null in this case).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1896,10 +1851,10 @@ for de-duplication purposes.</p>
             <code>
               #getBlob<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Gets a blob for this tone.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1911,11 +1866,11 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A promise returning the audio data (always null, since
             this is a null ringtone).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1924,9 +1879,9 @@ for de-duplication purposes.</p>
             <code>
               #id<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1937,10 +1892,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A unique ID for the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1949,9 +1904,9 @@ for de-duplication purposes.</p>
             <code>
               #l10nID<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1962,10 +1917,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The l10n ID of the ringtone.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1974,9 +1929,9 @@ for de-duplication purposes.</p>
             <code>
               #name<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1987,11 +1942,11 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The localized name of the ringtone. Assumes mozL10n has
             been initialized.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -2000,9 +1955,9 @@ for de-duplication purposes.</p>
             <code>
               #shareable<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -2013,10 +1968,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>Whether this ringtone is shareable (always false).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -2025,9 +1980,9 @@ for de-duplication purposes.</p>
             <code>
               #type<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -2038,10 +1993,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The type of the tone (null in this case).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -2050,9 +2005,9 @@ for de-duplication purposes.</p>
             <code>
               #url<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -2063,10 +2018,10 @@ for de-duplication purposes.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The URL of the ringtone (null in this case).</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -2082,19 +2037,19 @@ appropriate. Assumes that mozL10n has already been fully initialized.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>htmlText</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The HTML text to turn into a proper DOM node.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling">Node</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>The converted DOM node.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='getSoundFilenames' class='mt0'>
@@ -2107,20 +2062,20 @@ This function caches its results so that subsequent calls are speedy.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The type of tones to get (&apos;ringtone&apos; or
 &apos;alerttone&apos;).</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise returning an array of filenames.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='idMatchesFilename' class='mt0'>
@@ -2132,33 +2087,33 @@ This function caches its results so that subsequent calls are speedy.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The BuiltInRingtone&apos;s ID.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The type of the tone held in <code>filename</code>.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>filename</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The filename.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>True if the id and filename match, false otherwise.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='idToDBKey' class='mt0'>
@@ -2170,19 +2125,19 @@ This function caches its results so that subsequent calls are speedy.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The ID.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>The DB key.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='idToFilename' class='mt0'>
@@ -2194,19 +2149,19 @@ This function caches its results so that subsequent calls are speedy.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The ID.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>The filename.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='idToToneType' class='mt0'>
@@ -2218,19 +2173,19 @@ This function caches its results so that subsequent calls are speedy.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The BuiltInRingtone&apos;s ID.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>The tone&apos;s type (&apos;ringtone&apos; or &apos;alerttone&apos;).</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='inferMimeType' class='mt0'>
@@ -2243,19 +2198,19 @@ XHRs don&apos;t do this for us automatically!</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>filename</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The filename of the ringtone.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>The MIME type.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='pathToType' class='mt0'>
@@ -2268,19 +2223,19 @@ XHRs don&apos;t do this for us automatically!</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>path</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The path to the tone.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>The tone&apos;s type.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='systemTones' class='mt0'>
@@ -2296,56 +2251,56 @@ Get the factory default tone.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The type of the tone (&apos;ringtone&apos; or &apos;alerttone&apos;).</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toneType</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The type of the tone (&apos;ringtone&apos; or &apos;alerttone&apos;).</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>tone</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The tone to store.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>tone</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The tone to check</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise returning the tone&apos;s ID.</p>
 <p>set():
 Set a tone as the systemwide tone.</p>
 
-      </span>
+      </div>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for setting the tone.</p>
 <p>isInUse():
 Check if a tone is currently in use (either as the default ringer or
 default alert tone).</p>
 
-      </span>
+      </div>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise returning an array of the tone types that the
 tone is in use as.</p>
 <p>XXX: In the future, it might make sense to add a get() function that returns
@@ -2354,7 +2309,7 @@ Probably the best way to do this would be to register all the tone providers
 (builtInRingtones, customRingtones, and NullRingtone) with the scheme in
 their IDs and just delegate to the correct provider&apos;s get() method.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='toneCompare' class='mt0'>
@@ -2367,24 +2322,24 @@ subtitle. Note: The empty ringtone is always the &quot;smallest&quot;.</p>
     <ul class='suppress-p-margin'>
         <li><code>Tone</code> <strong>a</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The first tone.</p>
 
-          </span>
+          </div>
         </li>
         <li><code>Tone</code> <strong>b</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The second tone.</p>
 
-          </span>
+          </div>
         </li>
         <li> <strong>Number</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>&lt;0 if a &lt; b, 0 if a == b, and &gt;0 if a &gt; b.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>

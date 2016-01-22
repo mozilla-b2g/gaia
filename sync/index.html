@@ -1,0 +1,288 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>  | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Source+Code+Pro:400,500,700' rel='stylesheet' type='text/css'>
+  <link href='assets/bass.css' type='text/css' rel='stylesheet' />
+  <link href='assets/style.css' type='text/css' rel='stylesheet' />
+  <link href='assets/github.css' type='text/css' rel='stylesheet' />
+</head>
+<body class='documentation'>
+  <div class='container'>
+    <div class='clearfix md-mxn2'>
+      <div class='fixed md-show fix-3 overflow-auto max-height-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'></h3>
+          <div class='mb1'><code></code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block field'
+            type='text' />
+          <div id='toc'>
+              <a
+                href='#_updateBookmark'
+                class='block bold'>
+                _updateBookmark
+              </a>
+              <a
+                href='#_updatePlace'
+                class='block bold'>
+                _updatePlace
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+              <a
+                href='#'
+                class='block bold'>
+                
+              </a>
+          </div>
+        </div>
+      </div>
+      <div class='fix-margin-3'>
+        <div class='px2'>
+<div class='py1'><section class='py2 clearfix'>
+  <h2 id='_updateBookmark' class='mt0'>
+    _updateBookmark<span class='gray'>(payload, last_modified, userid)</span>
+  </h2>
+  <p>KintoCollection.list() provides a list containing all the remotely retrieved
+Firefox Sync records sorted by &quot;last_modified&quot; property in descending order.
+After each sync request we save the &quot;last_modified&quot; property of the last
+processed record so we avoid going through the same records on following
+operations.</p>
+<p>Bookmark records are stored locally in a DataStore with format [1] while
+bookmark records coming from Firefox Sync (via Kinto collection) have
+format[2]. [4] is the detailed information for 6 different types defined in
+FxSync BC. We need to convert from [1] to [2] and viceversa. Also, we need to
+add the remote record ID[1.1] from the Kinto collection to its corresponding
+match in the local DataStore, so we can remove the local record afterwards
+when any deleting record requests with the format [3] are coming from FxSync.</p>
+<p>[1] Records stored in Bookmarks DataStore (BDS): {
+&quot;id&quot;: &quot;<a href="http://mozilla.org/">http://mozilla.org/</a>&quot;, // KEY in PDS
+&quot;url&quot;: &quot;<a href="http://mozilla.org/">http://mozilla.org/</a>&quot;,
+&quot;name&quot;: &quot;Mozilla&quot;,
+&quot;type&quot;: &quot;url&quot;,
+&quot;iconable&quot;: false,
+&quot;icon&quot;: &quot;<a href="http://www.lego.com/favicon.ico">http://www.lego.com/favicon.ico</a>&quot;,
+&quot;fxsyncRecords&quot;: {
+&apos;fxsyncID_A&apos;: fxsync_payload_A,
+&apos;fxsyncID_B&apos;: fxsync_payload_B,
+&apos;fxsyncID_C&apos;: fxsync_payload_C
+} // payload from BC
+}</p>
+<p>[2] Add/Update Records from Bookmark Collection (BC): {
+&quot;id&quot;: &quot;zMgfGkRinh92&quot;,
+&quot;sortindex&quot;: 2000,
+&quot;last_modified&quot;: 1442247272150,
+&quot;payload&quot;: {
+&quot;id&quot;: &quot;zMgfGkRinh92&quot;,
+&quot;type&quot;: &quot;bookmark&quot;,
+&quot;title&quot;: &quot;Mozilla&quot;,
+&quot;parentName&quot;: &quot;mobile&quot;,
+&quot;bmkUri&quot;: &quot;<a href="http://mozilla.org/">http://mozilla.org/</a>&quot;,
+&quot;tags&quot;: [],
+&quot;keyword&quot;: null,
+&quot;description&quot;: null,
+&quot;loadInSidebar&quot;: false,
+&quot;parentid&quot;: &quot;mobile&quot;
+},
+&quot;_status&quot;: &quot;synced&quot;
+}</p>
+<p>[3] Delete Records from Bookmark Collection (BC): {
+&quot;id&quot;: &quot;_Avscjx5srFy&quot;,
+&quot;sortindex&quot;: 100,
+&quot;last_modified&quot;: 1441985077970,
+&quot;payload&quot;: {
+&quot;id&quot;: &quot;_Avscjx5srFy&quot;,
+&quot;deleted&quot;: true
+},
+&quot;_status&quot;: &quot;synced&quot;
+}</p>
+<p>[4] The schema table for 6 different types from [5]:
++---------------+---------------+---------------+
+|   bookmark    | microsummary*<em>|     query     |
++---------------+---------------+---------------+
+|               | </em>generatorUri | <em>folderName   |
+|               | </em>staticTitle  | *queryId      |
+| title         | title         | title         |
+| bmkUri        | bmkUri        | bmkUri        |
+| description   | description   | description   |
+| loadInSidebar | loadInSidebar | loadInSidebar |
+| tags          | tags          | tags          |
+| keyword       | keyword       | keyword       |
+| parentid      | parentid      | parentid      |
+| parentName    | parentName    | parentName    |
+| predecessorid | predecessorid | predecessorid |
+| type          | type          | type          |
++---------------+---------------+---------------+</p>
+<p>+---------------+---------------+---------------+
+| folder        | livemark      | separator     |
++---------------+---------------+---------------+
+|               | <em>siteUri      | </em>pos          |
+|               | *feedUri      |               |
+| title         | title         |               |
+| parentid      | parentid      | parentid      |
+| parentName    | parentName    | parentName    |
+| predecessorid | predecessorid | predecessorid |
+| type          | type          | type          |
++---------------+---------------+---------------+</p>
+<p>[*] Special property for its type.
+[**] microsummary is OBSOLETED. Please see here:
+<a href="https://wiki.mozilla.org/Microsummaries">https://wiki.mozilla.org/Microsummaries</a></p>
+<p>[5] <a href="https://docs.services.mozilla.com/sync/objectformats.html#bookmarks">https://docs.services.mozilla.com/sync/objectformats.html#bookmarks</a></p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>payload</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+        <li> <strong>last_modified</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+        <li> <strong>userid</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='_updatePlace' class='mt0'>
+    _updatePlace<span class='gray'>(payload, userid)</span>
+  </h2>
+  <p>KintoCollection.list() provides a list containing all the remotely retrieved
+Firefox Sync records sorted by &quot;last_modified&quot; property in descending order.
+After each sync request we save the &quot;last_modified&quot; property of the last
+processed record so we avoid going through the same records on following
+operations.</p>
+<p>History records are stored locally in a DataStore with format [1] while
+history records coming from Firefox Sync (via Kinto collection) have
+format[2]. We need to convert from [1] to [2] and viceversa. Also, we need to
+add the remote record ID[1.1] from the Kinto collection to its corresponding
+match in the local DataStore, so we can remove the local record afterwards
+when any deleting record requests with the format [3] are coming from FxSync.</p>
+<p>[1] Records stored in Places DataStore (PDS): {
+&quot;url&quot;: &quot;<a href="http://mozilla.org/">http://mozilla.org/</a>&quot;, // KEY in PDS
+&quot;title&quot;: &quot;Mozilla&quot;,
+&quot;icons&quot;: {
+&quot;<a href="http://mozilla.org/favicon.ico">http://mozilla.org/favicon.ico</a>&quot;: {
+&quot;sizes&quot;: []
+}
+},
+&quot;frecency&quot;: 1,
+&quot;visits&quot;: [
+// NOTICE: date/time without ms
+1442247252490, 1442247250001
+],
+&quot;screenshot&quot;: {},
+&quot;fxsyncId&quot; &quot;REMOTE_ID&quot;, // [1.1]
+&quot;visited&quot;: 1442247252490
+}</p>
+<p>[2] Add/Update Records from History Collection (HC): {
+&quot;id&quot;: &quot;zMgfGkRinh92&quot;,
+&quot;sortindex&quot;: 2000,
+&quot;last_modified&quot;: 1442247272150,
+&quot;payload&quot;: {
+&quot;id&quot;: &quot;zMgfGkRinh92&quot;,
+&quot;histUri&quot;: &quot;<a href="http://mozilla.org/">http://mozilla.org/</a>&quot;,
+&quot;title&quot;: &quot;Mozilla&quot;,
+&quot;visits&quot;: [
+// NOTICE: date/time with ms
+{ &quot;date&quot;: 1442247252490018, &quot;type&quot;: 2 },
+{ &quot;date&quot;: 1442247250001234, &quot;type&quot;: 2 }
+]
+},
+&quot;_status&quot;: &quot;synced&quot;
+}</p>
+<p>[3] Delete Records from History Collection (HC): {
+&quot;id&quot;: &quot;_Avscjx5srFy&quot;,
+&quot;sortindex&quot;: 100,
+&quot;last_modified&quot;: 1441985077970,
+&quot;payload&quot;: {
+&quot;id&quot;: &quot;_Avscjx5srFy&quot;,
+&quot;deleted&quot;: true
+},
+&quot;_status&quot;: &quot;synced&quot;
+}</p>
+
+    <h4>Parameters</h4>
+    <ul class='suppress-p-margin'>
+        <li> <strong>payload</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+        <li> <strong>userid</strong>
+          :
+          <div class='force-inline'>
+            
+          </div>
+        </li>
+    </ul>
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>Bookmarks Data Adapter</p>
+<p>The purpose of the Bookmarks adapter is to retrieve bookmark records from
+Firefox Sync and merge them in a local bookmarks DataStore
+(&apos;sync_bookmarks_store&apos;) which will be hosting Firefox Sync records only.
+This adapter implements the API defined by SyncEngine. For now the
+implementation allows only to retrieve bookmarks from Sync but it is not ready
+for pushing any changes. The high level algorithm implemented here is the
+following:</p>
+<ul>
+<li>Traverse all the records coming from Firefox Sync and stored locally
+in Kinto.</li>
+<li>Convert any new bookmark from the Firefox Sync format to the
+&apos;sync_bookmarks_store&apos; DataStore one.</li>
+<li>For existing bookmarks merge the remote with the local bookmark after
+converting them to the proper &apos;sync_bookmarks_store&apos; DS format.</li>
+<li>Remove any existing bookmark that has been remotely deleted (these records
+come with a &apos;deleted: true&apos; property).</li>
+</ul>
+
+</section>
+</div><div class='py1'><section class='py2 clearfix'>
+  <h2 id='' class='mt0'>
+    <span class='gray'></span>
+  </h2>
+  <p>History Data Adapter</p>
+<p>The feature of History adapter is to retrieve History records from FxSync
+Service and merge to Places DataStore which has the same functionality, and
+the adapter is based on SyncEngine&apos;s design to handle &apos;update&apos; and
+&apos;handleConflict&apos; request. History Data Adapter provides Read-Only version
+currently, and the basic ideas are included:</p>
+<ul>
+<li>Traverse all records from History Collection (HC).</li>
+<li>Add a new or existed place to Places DataStore (PDS).</li>
+<li>Convert the records from HC to PDS format.</li>
+<li>Merge a new record and the existed one then write to PDS.</li>
+<li>Remove an existed place when receiving a &quot;deleted: true&quot; record.</li>
+</ul>
+
+</section>
+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/site.js'></script>
+</body>
+</html>

@@ -6,7 +6,7 @@
   margin:0;
 }
 
-.force-inline p {
+.force-inline, .force-inline p {
   display: inline;
   color: #222;
 }

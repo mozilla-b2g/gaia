@@ -1,3 +1,4 @@
+<!doctype html>
 <html>
 <head>
   <meta charset='utf-8' />
@@ -138,11 +139,11 @@
             <code>
               ._initWithConfig<span class='gray'>(stepsKey)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Continue initialization once config data is loaded
 Called as a part of the init sequence</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -156,11 +157,11 @@ Called as a part of the init sequence</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>stepsKey</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>a key into the tutorial config object, i
             i.e. a version or version delta like 1.3..2.0</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -171,10 +172,10 @@ Called as a part of the init sequence</p>
             <code>
               ._setStep<span class='gray'>(value)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Advance the tutorial to the given step (first step if no value given)</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -187,10 +188,10 @@ Called as a part of the init sequence</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>value</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>number of the step to show (1-based)</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -201,10 +202,10 @@ Called as a part of the init sequence</p>
             <code>
               .back<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Go back to the previous step in the tutorial</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -221,10 +222,10 @@ Called as a part of the init sequence</p>
             <code>
               .done<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Tutorial complete</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -241,10 +242,10 @@ Called as a part of the init sequence</p>
             <code>
               .handleEvent<span class='gray'>(evt)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>DOM Event handler</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -257,10 +258,10 @@ Called as a part of the init sequence</p>
                 <ul class='suppress-p-margin'>
                     <li><code>DOMEvent</code> <strong>evt</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>Event object</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -271,13 +272,13 @@ Called as a part of the init sequence</p>
             <code>
               .init<span class='gray'>(stepsKey, onLoaded)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Initialize the tutorial. This is async as a config file must be loaded.
 A Sequence (array of sync or async functions) is used to manage the init
 tasks.
 When complete, the tutorial is ready to be shown via the &apos;start&apos; method</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -293,18 +294,18 @@ When complete, the tutorial is ready to be shown via the &apos;start&apos; metho
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>stepsKey</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>a key into the tutorial config object, i
             i.e. a version or version delta like 1.3..2.0</p>
             
-                      </span>
+                      </div>
                     </li>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>onLoaded</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>optional callback for when init is complete</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -315,13 +316,13 @@ When complete, the tutorial is ready to be shown via the &apos;start&apos; metho
             <code>
               .loadConfig<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Load the config with steps and associated resources for the tutorial
 We have different config files for each screen category:
 phone is &apos;tiny&apos;, tablet is &apos;large&apos;
 and corresponding tiny.json, large.json</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -336,9 +337,9 @@ and corresponding tiny.json, large.json</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
                   
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -347,10 +348,10 @@ and corresponding tiny.json, large.json</p>
             <code>
               .next<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Advance to the next step in the tutorial</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -367,11 +368,11 @@ and corresponding tiny.json, large.json</p>
             <code>
               .reset<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Test helper to reset the tutorial to its pre-initialized state
 to allow init to be called again</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -389,13 +390,13 @@ to allow init to be called again</p>
             <code>
               .start<span class='gray'>(onReady)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Show the tutorial and play the first step
 May be called during or after the init process
 We defer rasing the &apos;tutorialinitialized&apos; event until this point
 as it signals the tutorial step content is loaded and displayed</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -411,10 +412,10 @@ as it signals the tutorial step content is loaded and displayed</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a></code> <strong>onReady</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>optional callback for when start is complete</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -432,18 +433,18 @@ The returned promise resolves with a true|false value</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>src</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>URL for video/image resource</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       
-      <span class='force-inline'>
+      <div class='force-inline'>
         
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='getBestAssetForDirection' class='mt0'>
@@ -455,18 +456,18 @@ The returned promise resolves with a true|false value</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>src</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>URL for video/image resource</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       
-      <span class='force-inline'>
+      <div class='force-inline'>
         
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='loadAndPlayMedia' class='mt0'>
@@ -478,25 +479,25 @@ The returned promise resolves with a true|false value</p>
     <ul class='suppress-p-margin'>
         <li><code>DOMNode</code> <strong>mediaElement</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>video or image to assign new src to</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>src</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>URL for video/image resource</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       
-      <span class='force-inline'>
+      <div class='force-inline'>
         
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='loadMedia' class='mt0'>
@@ -508,25 +509,25 @@ The returned promise resolves with a true|false value</p>
     <ul class='suppress-p-margin'>
         <li><code>DOMNode</code> <strong>mediaElement</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>video or image to assign new src to</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>src</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>URL for video/image resource</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       
-      <span class='force-inline'>
+      <div class='force-inline'>
         
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='Sequence' class='mt0'>
@@ -554,9 +555,9 @@ be fired</p>
     <ul class='suppress-p-margin'>
         <li> <strong>stepIndex</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>

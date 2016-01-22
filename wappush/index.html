@@ -1,3 +1,4 @@
+<!doctype html>
 <html>
 <head>
   <meta charset='utf-8' />
@@ -773,10 +774,10 @@ present in the list will be shown to the user, others will be discarded.</p>
             <code>
               ._whiteList<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>An array holding the list of MSISDNs</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -793,13 +794,13 @@ present in the list will be shown to the user, others will be discarded.</p>
             <code>
               .has<span class='gray'>(value)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>This reject handler is important here because in case of
 whitelist json file missing or empty, getJSON rejects the promise.
 If this handler is not present here, the returned promise from
 this function will fail for the outside code</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -815,9 +816,9 @@ this function will fail for the outside code</p>
                 <ul class='suppress-p-margin'>
                     <li> <strong>value</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -828,10 +829,10 @@ this function will fail for the outside code</p>
             <code>
               .has<span class='gray'>(value)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Checks if the element is in the whitelist.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -844,19 +845,19 @@ this function will fail for the outside code</p>
                 <ul class='suppress-p-margin'>
                     <li> <strong>value</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         
-                      </span>
+                      </div>
                     </li>
                 </ul>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>true if the element is in the whitelist, always return
             true if the whitelist is empty.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -865,11 +866,11 @@ this function will fail for the outside code</p>
             <code>
               .init<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Read the whitelist.json file from disk and initialize the whitelist with
 it. If the file is not present or empty the whitelist will be empty.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -978,10 +979,10 @@ the factory function from()</p>
     <ul class='suppress-p-margin'>
         <li><code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>]</code> <strong>obj</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>An object from which to copy the fields.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Static members</h4>
@@ -990,7 +991,7 @@ the factory function from()</p>
             <code>
               .from<span class='gray'>(message, timestamp)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Parse a message and returns an object holding its fields. The returned
 object will contain the following fields:</p>
 <ul>
@@ -1007,7 +1008,7 @@ object will contain the following fields:</p>
 <li>text: optional, text to be displayed</li>
 </ul>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -1034,27 +1035,27 @@ object will contain the following fields:</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>A WAP Push message as delivered by the system.</p>
             
-                      </span>
+                      </div>
                     </li>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>timestamp</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>A timestamp for the message reception time.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>An object holding the contents of the WAP message as
             separate fields.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1063,12 +1064,12 @@ object will contain the following fields:</p>
             <code>
               .load<span class='gray'>(timestamp)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Loads the message corresponding to the specified timestamp from the
 database. Returns a promise that resolves to the message. If the message
 is not present the promise will be rejected.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -1083,20 +1084,20 @@ is not present the promise will be rejected.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>timestamp</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The timestamp of the message we want to
             retrieve.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A promise for this operation.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1106,10 +1107,10 @@ is not present the promise will be rejected.</p>
             <code>
               #constructor<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Constructor, this is for internal use only</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1126,10 +1127,10 @@ is not present the promise will be rejected.</p>
             <code>
               #getUniqueId<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Gets the message unique identifier</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1141,10 +1142,10 @@ is not present the promise will be rejected.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>An identifier for this message</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1153,10 +1154,10 @@ is not present the promise will be rejected.</p>
             <code>
               #isExpired<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Returns true if the message has already expired</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1173,13 +1174,13 @@ is not present the promise will be rejected.</p>
             <code>
               #save<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Saves the message in the database.  Returns a promise that resolves
 to a string describing the status of the message: &apos;new&apos; if the message
 was new, &apos;updated&apos; if the message updated an existing message or
 &apos;discarded&apos; if the message was discarded.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1194,10 +1195,10 @@ was new, &apos;updated&apos; if the message updated an existing message or
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A promise for this operation.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1206,10 +1207,10 @@ was new, &apos;updated&apos; if the message updated an existing message or
             <code>
               #toJSON<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Creates an untyped object from a typed one</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1221,10 +1222,10 @@ was new, &apos;updated&apos; if the message updated an existing message or
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>An untyped representation of this object.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1256,9 +1257,9 @@ If only one APN then shows quit confirm.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1280,21 +1281,21 @@ from the pin screen.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>rootNode</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
         <li> <strong>key</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
         <li> <strong>value</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1316,15 +1317,15 @@ from the client install configuration screen.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>message</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1347,9 +1348,9 @@ from the client install configuration screen.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1364,9 +1365,9 @@ from the client provisioning quit app confirm dialog.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1381,9 +1382,9 @@ from the client provisioning screen.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1406,9 +1407,9 @@ from the client provisioning finish confirm dialog.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1430,9 +1431,9 @@ be stored to the user</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1447,9 +1448,9 @@ from the client provisioning quit app confirm dialog.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>evt</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1463,9 +1464,9 @@ from the client provisioning quit app confirm dialog.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>message</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1496,9 +1497,9 @@ wants to install the configuration information.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>message</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1512,9 +1513,9 @@ wants to install the configuration information.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>index</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1528,9 +1529,9 @@ wants to install the configuration information.</p>
     <ul class='suppress-p-margin'>
         <li> <strong>input</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Static members</h4>
@@ -1539,10 +1540,10 @@ wants to install the configuration information.</p>
             <code>
               .deserializeParameters<span class='gray'>(input)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Retrieves the parameters from an URL and forms an object with them</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -1555,19 +1556,19 @@ wants to install the configuration information.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>input</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>A string holding the parameters attached to an URL.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>An object built using the parameters.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1576,11 +1577,11 @@ wants to install the configuration information.</p>
             <code>
               .prepareMessageTitle<span class='gray'>(The, message)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Generate message title according from message sender and the
 serviceId if there are multiple SIMs.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -1594,16 +1595,16 @@ serviceId if there are multiple SIMs.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>The</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>message from which the title will be generated.</p>
             
-                      </span>
+                      </div>
                     </li>
                     <li> <strong>message</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         
-                      </span>
+                      </div>
                     </li>
                 </ul>
             </section>
@@ -1649,10 +1650,10 @@ in this document are the APN objects the device needs to set up data calls.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>provisioningDoc</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The WAP provisioning document (XML string).</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Static members</h4>
@@ -1661,11 +1662,11 @@ in this document are the APN objects the device needs to set up data calls.</p>
             <code>
               .from<span class='gray'>(provisioningDoc)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Parses a WAP provisioning document and returns the object holding the list
 of APN objects in the document.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2 m2'>
             <section class='py2 clearfix'>
@@ -1679,19 +1680,19 @@ of APN objects in the document.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>provisioningDoc</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>The WAP provisioning document (XML string).</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A ParsedProvisioningDoc object.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1701,10 +1702,10 @@ of APN objects in the document.</p>
             <code>
               #getApns<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Gets the list of APN objects in the WAP provisioning document.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1716,10 +1717,10 @@ of APN objects in the document.</p>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>The list of APN objects.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1728,10 +1729,10 @@ of APN objects in the document.</p>
             <code>
               #getNapDefNode<span class='gray'>(toNapId)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Given a network access point id it returns the NAPDEF node.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1744,19 +1745,19 @@ of APN objects in the document.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>toNapId</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>Network access point id.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">element</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>A NAPDEF node.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1765,12 +1766,12 @@ of APN objects in the document.</p>
             <code>
               #getPxPhysicalNodes<span class='gray'>(toProxyNode)</span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Given a PXLOGICAL node it returns the list of PXPHYSICAL (PXPHYSICAL
 characteristics convey information on physical instances of a logical
 proxy) nodes inside.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1785,19 +1786,19 @@ proxy) nodes inside.</p>
                 <ul class='suppress-p-margin'>
                     <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">element</a></code> <strong>toProxyNode</strong>
                       :
-                      <span class='force-inline'>
+                      <div class='force-inline'>
                         <p>A PXLOGICAL node.</p>
             
-                      </span>
+                      </div>
                     </li>
                 </ul>
                   <h4>Returns</h4>
                   <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/NodeList">NodeList</a></code></code>
                   :
-                  <span class='force-inline'>
+                  <div class='force-inline'>
                     <p>List of PXPHYSICAL nodes.</p>
             
-                  </span>
+                  </div>
             </section>
           </div>
         </div>
@@ -1806,11 +1807,11 @@ proxy) nodes inside.</p>
             <code>
               #parse<span class='gray'></span>
             </code>
-            <span class='force-inline'>
+            <div class='force-inline'>
               <p>Parses the WAP provisioning document. It mainly parses the document and
 saves the APN objects.</p>
 
-            </span>
+            </div>
           </a>
           <div class='collapser border px2'>
             <section class='py2 clearfix'>
@@ -1883,10 +1884,10 @@ resolved when the operation has completed. This does not fire events.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for this operation.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='mdb_deleteById' class='mt0'>
@@ -1899,17 +1900,17 @@ event for every message that was deleted.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>store</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The messages&apos; object store.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The si-id of the messages to be deleted.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1923,20 +1924,20 @@ event for every message that was deleted.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>timestamp</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The timestamp used to identify the messages to
 be deleted.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for this operation.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='mdb_deleteViewedMessages' class='mt0'>
@@ -1949,10 +1950,10 @@ user.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for this operation</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='mdb_dispatchEvent' class='mt0'>
@@ -1964,17 +1965,17 @@ user.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>type</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The event type.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>target</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The event target, usually a message.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -1989,10 +1990,10 @@ rejected with an error object.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for this operation.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='mdb_processMessage' class='mt0'>
@@ -2006,27 +2007,27 @@ with new messages by storing them.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>store</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The messages&apos; object store.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The message to be processed.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>Returns true if the message has been stored, false
 if it&apos;s been deleted.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='mdb_put' class='mt0'>
@@ -2041,19 +2042,19 @@ appropriate events.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>A parsed WAP Push message to be processed.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for this operation.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='mdb_retrieve' class='mt0'>
@@ -2070,20 +2071,20 @@ will resolve to the null value.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>timestamp</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The timestamp identifiying the message to be
 retrieved.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for this operation.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='mdb_transactionPromise' class='mt0'>
@@ -2096,20 +2097,20 @@ transaction completes or is rejected if it fails.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>transaction</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>An IDBTransaction object.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise that is resolved when the transaction
 completes or is rejected if an error occurs.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='MessageDB@delete' class='mt0'>
@@ -2165,39 +2166,39 @@ could be authenticate as the sender of the message.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>pin</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The PIN introduced by the user.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>auth</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>An object containing some info such as the
 security mechanism used, the MAC, the raw message
 data in binary format (Uint8Array object).</p>
 
-          </span>
+          </div>
         </li>
         <li> <strong>userPin</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
         <li> <strong>authInfo</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       
-      <span class='force-inline'>
+      <div class='force-inline'>
         
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='pa_sign' class='mt0'>
@@ -2209,33 +2210,33 @@ data in binary format (Uint8Array object).</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>key</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The key string.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array">Uint8Array</a></code> <strong>data</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The message data.</p>
 
-          </span>
+          </div>
         </li>
         <li><code>Integer</code> <strong>dataLength</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The length of the message data.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>The MAC we have generated.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='pa_userNetwPinAuthentication' class='mt0'>
@@ -2246,11 +2247,11 @@ data in binary format (Uint8Array object).</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A flag that indicates the sender of the message could be
 authenticated as valid.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='pa_userPinAuthentication' class='mt0'>
@@ -2261,11 +2262,11 @@ authenticated as valid.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A flag that indicates the sender of the message could be
 authenticated as valid.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='pa_userPinMacAuthentication' class='mt0'>
@@ -2276,11 +2277,11 @@ authenticated as valid.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A flag that indicates the sender of the message could be
 authenticated as valid.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='parseNapDefNode' class='mt0'>
@@ -2293,20 +2294,20 @@ Creates an untyped object from a NAPDEF node.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">element</a></code> <strong>napDefNode</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>An NAPDEF node.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>An untyped object holding the properties of an
 PXPHYSICAL node.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='parsePxPhysicalNode' class='mt0'>
@@ -2319,28 +2320,28 @@ Creates an untyped object from a PXPHYSICAL node.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element">element</a></code> <strong>pxPhysicalNode</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>An PXPHYSICAL node.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code> <strong>isMmsProxy</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>Determines whether PXPHYSICAL node is a
 proxy for MMS.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>An untyped object holding the properties of an
 PXPHYSICAL node.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='pendingMessages' class='mt0'>
@@ -2439,21 +2440,21 @@ settings database. The APNs are stored relaying on these codes.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>iccCardIndex</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>Index of the card on which the message was
 received. We are going to add the apns to
 the right card.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>callback</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>It will be called once the work is done (only
 useful for unit testing). This function doesn&apos;t
 any parameter.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -2467,27 +2468,27 @@ any parameter.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code> <strong>parameters</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The array containing the APNs.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code> <strong>iccCardIndex</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>Index of the card on which the message was
 received.</p>
 
-          </span>
+          </div>
         </li>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">function</a></code> <strong>callback</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>It will be called once the work is done (only
 useful for unit testing). This function doesn&apos;t
 accetp any parameter.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -2566,19 +2567,19 @@ to post notifications and display their contents</p>
     <ul class='suppress-p-margin'>
         <li> <strong>tag</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise that gets resolved once the notifications have
 been cleared and rejects in case of error.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='wpm_close' class='mt0'>
@@ -2601,20 +2602,20 @@ no-ops.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code> <strong>id</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The message id as a string.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise that resolves once the message has been
 displayed and the associated notification cleared.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='wpm_finish' class='mt0'>
@@ -2633,10 +2634,10 @@ are present and the application is not visible.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for the app object.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='wpm_getConfig' class='mt0'>
@@ -2647,10 +2648,10 @@ are present and the application is not visible.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise for the app configuration.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='wpm_init' class='mt0'>
@@ -2662,11 +2663,11 @@ wappush-received message handler at the moment.</p>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise that will be fullfilled once the component has
 been fully initialized.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='wpm_onDelete' class='mt0'>
@@ -2679,10 +2680,10 @@ the app if the message being viewed has been deleted.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>obj</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The deleted message in untyped form (i.e. JSON)</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -2706,10 +2707,10 @@ field.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>obj</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The new message in untyped form (i.e. JSON)</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -2723,10 +2724,10 @@ field.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The notification event.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -2740,16 +2741,16 @@ field.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>A</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>settings object holding the new value.</p>
 
-          </span>
+          </div>
         </li>
         <li> <strong>v</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -2764,10 +2765,10 @@ notification and possibly the message being shown to the user.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>obj</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The new message in untyped form (i.e. JSON)</p>
 
-          </span>
+          </div>
         </li>
     </ul>
 </section>
@@ -2792,21 +2793,21 @@ used outside of this file.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>wapMessage</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The WAP Push message as provided by the system.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise that is resolved when the method executed
 successfully or rejected with the error code that caused the
 method to fail.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='wpm_sendNotification' class='mt0'>
@@ -2818,20 +2819,20 @@ method to fail.</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>The message the user needs to be notified of</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>A promise that is resolved once the notification has been
 sent and its events hooked up properly.</p>
 
-      </span>
+      </div>
 </section>
 </div><div class='py1'><section class='py2 clearfix'>
   <h2 id='wpm_shouldDisplayMessage' class='mt0'>
@@ -2845,19 +2846,19 @@ or whitelisting is disabled</p>
     <ul class='suppress-p-margin'>
         <li><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code> <strong>message</strong>
           :
-          <span class='force-inline'>
+          <div class='force-inline'>
             <p>A parsed WAP Push message.</p>
 
-          </span>
+          </div>
         </li>
     </ul>
       <h4>Returns</h4>
       <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code></code>
       :
-      <span class='force-inline'>
+      <div class='force-inline'>
         <p>true if the message should be displayed, false otherwise.</p>
 
-      </span>
+      </div>
 </section>
 </div>
         </div>
