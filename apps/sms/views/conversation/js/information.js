@@ -208,7 +208,16 @@ function createListWithMsgInfo(message) {
   var list = [];
   if (message.delivery === 'received' ||
       message.delivery === 'not-downloaded') { // received message
-    list.push(message.sender);
+    if (message.type === 'mms') {
+      if (message.receivers) {
+        list.push(...message.receivers);
+      }
+      if (!list.includes(message.sender)) {
+        list.push(message.sender);
+      }
+    } else {
+      list.push(message.sender);
+    }
   } else if (message.type === 'mms') { // sent mms message
     message.deliveryInfo.forEach(function(info) {
       list.push({number: info.receiver,

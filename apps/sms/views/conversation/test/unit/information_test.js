@@ -316,7 +316,8 @@ suite('Information view', function() {
         contactTitle,
         sizeHide,
         sizeContent,
-        isIncoming
+        isIncoming,
+        expectedList
       } = opts;
 
       assert.equal(reportView.container.dataset.delivery, delivery);
@@ -367,7 +368,10 @@ suite('Information view', function() {
         );
       }
 
-      sinon.assert.called(reportView.renderContactList);
+      sinon.assert.calledWithMatch(
+        reportView.renderContactList,
+        expectedList
+      );
     }
 
     test('gaia-header is properly set up', function() {
@@ -389,7 +393,8 @@ suite('Information view', function() {
         sentTitle: 'message-sending',
         contactTitle: 'report-to-title',
         sizeHide: true,
-        isIncoming: false
+        isIncoming: false,
+        expectedList: [ sinon.match({ number: 'receiver' }) ]
       });
     });
 
@@ -410,7 +415,8 @@ suite('Information view', function() {
         sentTitle: 'message-sent',
         contactTitle: 'report-to-title',
         sizeHide: true,
-        isIncoming: false
+        isIncoming: false,
+        expectedList: [ sinon.match({ number: 'receiver' }) ]
       });
     });
 
@@ -430,7 +436,8 @@ suite('Information view', function() {
         sentTitle: 'message-error',
         contactTitle: 'report-to-title',
         sizeHide: true,
-        isIncoming: false
+        isIncoming: false,
+        expectedList: [ sinon.match({ number: 'receiver' }) ]
       });
     });
 
@@ -454,7 +461,8 @@ suite('Information view', function() {
         sentTitle: 'message-sent',
         contactTitle: 'report-to-title',
         sizeHide: true,
-        isIncoming: false
+        isIncoming: false,
+        expectedList: [ sinon.match({ number: 'receiver' }) ]
       });
     });
 
@@ -477,7 +485,8 @@ suite('Information view', function() {
         contactTitle: 'report-to-title',
         sizeHide: false,
         sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) },
-        isIncoming: false
+        isIncoming: false,
+        expectedList: [ sinon.match({ number: 'receiver' }) ]
       });
     });
 
@@ -494,13 +503,14 @@ suite('Information view', function() {
         sentTitle: 'message-sent',
         contactTitle: 'report-from-title',
         sizeHide: true,
-        isIncoming: true
+        isIncoming: true,
+        expectedList: [ 'sender' ]
       });
     });
 
     test('Incoming Message report(MMS)', function() {
       messageOpts = {
-        receiver: null,
+        receivers: ['345', '45678'],
         subject: 'Test subjuect',
         attachments: [{content: testImageBlob}]
       };
@@ -515,7 +525,8 @@ suite('Information view', function() {
         contactTitle: 'report-from-title',
         sizeHide: false,
         sizeContent: { n: (testImageBlob.size / 1024).toFixed(1) },
-        isIncoming: true
+        isIncoming: true,
+        expectedList: [ '345', '45678', 'sender' ]
       });
     });
 
@@ -534,7 +545,8 @@ suite('Information view', function() {
         sentTitle: 'message-sent',
         contactTitle: 'report-from-title',
         sizeHide: true,
-        isIncoming: true
+        isIncoming: true,
+        expectedList: [ 'sender' ]
       });
     });
 

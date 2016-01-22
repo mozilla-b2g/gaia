@@ -1671,7 +1671,7 @@ var ConversationView = {
     // Returning attachments would be different based on gecko version:
     // null in b2g18 / empty array in master.
     var noAttachment = (message.type === 'mms' && !isNotDownloaded &&
-      (message.attachments === null || message.attachments.length === 0));
+      (!message.attachments || message.attachments.length === 0));
     var invalidEmptyContent = (noAttachment && !message.subject);
 
     if (this.shouldShowReadStatus(message)) {
