@@ -14,6 +14,7 @@
 /* global expect */
 /* global FxAccountsClient */
 /* global IACHandler */
+/* global MockAdvancedTelemetryHelper */
 /* global MocksHelper */
 /* global MockNavigatormozSetMessageHandler */
 /* global MockNavigatorSettings */
@@ -31,9 +32,11 @@ requireApp('system/test/unit/mock_iac_handler.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 require('/shared/js/sync/errors.js');
+require('/shared/js/advanced_telemetry_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_advanced_telemetry_helper.js');
 
 var mocksForSyncManager = new MocksHelper([
   'asyncStorage',
@@ -46,16 +49,21 @@ var mocksForSyncManager = new MocksHelper([
 suite('system/SyncManager >', () => {
   var realMozSetMessageHandler;
   var realMozSettings;
+  var realTelemetryHelper;
   var systemMessageHandlerSpy;
 
   mocksForSyncManager.attachTestHelpers();
 
   suiteSetup(() => {
+    require('/shared/js/sync/telemetry.js');
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realTelemetryHelper = window.AdvancedTelemetryHelper;
+    window.AdvancedTelemetryHelper = MockAdvancedTelemetryHelper;
 
     MockNavigatormozSetMessageHandler.mSetup();
     MockNavigatorSettings.mSetup();
@@ -65,6 +73,7 @@ suite('system/SyncManager >', () => {
   suiteTeardown(() => {
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozSettings = realMozSettings;
+    window.AdvancedTelemetryHelper = realTelemetryHelper;
 
     MockNavigatorSettings.mTeardown();
   });
@@ -193,6 +202,7 @@ suite('system/SyncManager >', () => {
     var getPortStub;
     var getAccountStub;
     var port;
+    var telemetryHelperSpy;
 
     suiteSetup(() => {
       syncManager = BaseModule.instantiate('SyncManager');
@@ -216,16 +226,19 @@ suite('system/SyncManager >', () => {
           email: 'user@domain.org'
         });
       });
+
+      telemetryHelperSpy = this.sinon.spy(window, 'AdvancedTelemetryHelper');
     });
 
     teardown(() => {
       requestStub.restore();
       getPortStub.restore();
       getAccountStub.restore();
+      telemetryHelperSpy.restore();
     });
 
     ['enable', 'disable', 'sync'].forEach(name => {
-      test('receive ' + name + ' IAC request', () => {
+      test('receive ' + name + ' IAC request', done => {
         window.dispatchEvent(new CustomEvent('iac-gaia-sync-management', {
           detail: {
             name: name
@@ -233,6 +246,14 @@ suite('system/SyncManager >', () => {
         }));
         this.sinon.assert.calledOnce(requestStub);
         assert.ok(requestStub.calledWith('SyncStateMachine:' + name));
+        setTimeout(() => {
+          assert.isTrue(telemetryHelperSpy.calledWithNew());
+          var counter = telemetryHelperSpy.getCall(0).returnValue;
+          assert.equal(counter.name, 'telemetry_gaia_sync_user_action_' + name);
+          assert.equal(window.AdvancedTelemetryHelper.HISTOGRAM_COUNT,
+                       counter.type);
+          done();
+        });
       });
     });
 
