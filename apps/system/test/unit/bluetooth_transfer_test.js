@@ -713,7 +713,7 @@ suite('system/bluetooth_transfer', function() {
           this.sinon.stub(BluetoothTransfer, 'showCancelTransferPrompt');
 
         BluetoothTransfer.onCancelTransferTask({
-          target: {
+          currentTarget: {
             dataset: {
               id: 1234
             }

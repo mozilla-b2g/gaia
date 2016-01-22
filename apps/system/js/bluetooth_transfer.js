@@ -431,7 +431,7 @@ var BluetoothTransfer = {
   },
 
   onCancelTransferTask: function bt_onCancelTransferTask(evt) {
-    var address = evt.target.dataset.id;
+    var address = evt.currentTarget.dataset.id;
     // Show confirm dialog for user to cancel transferring task
     UtilityTray.hide();
     this.showCancelTransferPrompt(address);
