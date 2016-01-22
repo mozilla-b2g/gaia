@@ -624,6 +624,7 @@ suite('system/SyncManager >', () => {
 
     var updateStateSpy;
     var requestStub;
+    var logoutSpy;
 
     const ERROR_SYNC_APP_KILLED = 'fxsync-error-app-killed';
     const ERROR_SYNC_APP_SYNC_IN_PROGRESS =
@@ -640,6 +641,7 @@ suite('system/SyncManager >', () => {
     const ERROR_SYNC_INVALID_REQUEST_OPTIONS =
       'fxsync-error-invalid-request-options';
     const ERROR_SYNC_REQUEST = 'fxsync-error-request-failed';
+    const ERROR_NO_KEY_FETCH_TOKEN = 'fxsync-error-no-key-fetch-token';
     const ERROR_UNKNOWN = 'fxsync-error-unknown';
 
     suiteSetup(() => {
@@ -656,11 +658,13 @@ suite('system/SyncManager >', () => {
       requestStub = this.sinon.stub(MockService, 'request', () => {
         return Promise.resolve();
       });
+      logoutSpy = this.sinon.spy(FxAccountsClient, 'logout');
     });
 
     teardown(() => {
       updateStateSpy.restore();
       requestStub.restore();
+      logoutSpy.restore();
     });
 
     const errors = [
@@ -676,6 +680,7 @@ suite('system/SyncManager >', () => {
       ERROR_REQUEST_SYNC_REGISTRATION,
       ERROR_SYNC_INVALID_REQUEST_OPTIONS,
       ERROR_SYNC_REQUEST,
+      ERROR_NO_KEY_FETCH_TOKEN,
       ERROR_UNKNOWN
     ];
 
@@ -693,6 +698,8 @@ suite('system/SyncManager >', () => {
             this.sinon.assert.notCalled(requestStub);
           } else if (error == ERROR_INVALID_SYNC_ACCOUNT) {
             assert.ok(requestStub.calledWith('SyncStateMachine:enable'));
+          } else if (error == ERROR_NO_KEY_FETCH_TOKEN) {
+            assert.ok(logoutSpy.calledOnce);
           } else {
             assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
           }
@@ -717,6 +724,8 @@ suite('system/SyncManager >', () => {
           } else if (SyncRecoverableErrors.indexOf(error) > -1 ||
                      error == ERROR_INVALID_SYNC_ACCOUNT) {
             assert.ok(requestStub.calledWith('SyncStateMachine:enable'));
+          } else if (error == ERROR_NO_KEY_FETCH_TOKEN) {
+            assert.ok(logoutSpy.calledOnce);
           } else {
             assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
           }

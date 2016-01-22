@@ -6,6 +6,7 @@
 
 /* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_NO_KEY_FETCH_TOKEN */
 /* global ERROR_OFFLINE */
 /* global ERROR_SYNC_APP_TRY_LATER */
 /* global ERROR_UNKNOWN */
@@ -31,6 +32,9 @@
     ERROR_INVALID_SYNC_ACCOUNT: 'fxsync-error-invalid-account',
     // The device is offline.
     ERROR_OFFLINE: 'fxsync-error-offline',
+    // The current login is invalid as it does not contain the token to fetch
+    // sync keys.
+    ERROR_NO_KEY_FETCH_TOKEN: 'fxsync-error-no-key-fetch-token',
     // Cannot register sync request.
     ERROR_REQUEST_SYNC_REGISTRATION: 'fxsync-error-request-fxsync-registration',
     // The request options passed to the Sync app failed basic DataType checks.
@@ -70,7 +74,7 @@
   // Map between external (FxA, Syncto, kinto.js) and Sync errors.
   exports.SyncErrors = {
     'invalid account': ERROR_INVALID_SYNC_ACCOUNT,
-    'No keyFetchToken': ERROR_INVALID_SYNC_ACCOUNT,
+    'No keyFetchToken': ERROR_NO_KEY_FETCH_TOKEN,
     'OFFLINE': ERROR_OFFLINE,
     'try later': ERROR_SYNC_APP_TRY_LATER,
     'UI_ERROR': ERROR_DIALOG_CLOSED_BY_USER,
