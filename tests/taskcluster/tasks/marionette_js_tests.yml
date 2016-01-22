@@ -18,6 +18,7 @@ task:
       NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
+      HARNESS_ONLY: '1'
       NODE_MODULES_SRC: npm-cache
       HOST_LOG: artifacts/gecko_output.log
 
