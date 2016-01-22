@@ -170,10 +170,12 @@
     },
     "places": {
       "access": "readwrite",
+      "certified-only": false,
       "description": "Stores data about browsing history."
     },
     "icons": {
       "access": "readwrite",
+      "certified-only": false,
       "description": "Cache website icons."
     }
   },

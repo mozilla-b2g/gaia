@@ -42,6 +42,7 @@
   "datastores-owned": {
     "bookmarks_store": {
       "access": "readwrite",
+      "certified-only": false,
       "description": "Stores bookmarks"
     }
   }
