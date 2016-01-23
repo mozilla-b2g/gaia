@@ -1,11 +1,10 @@
-/* global require */
-/* global exports */
-
 'use strict';
+
+/* jshint node: true */
 
 var utils = require('utils');
 
-function execute(config) {
+exports.execute = function(config) {
   utils.copyToStage(config);
   var init = utils.getFile(config.STAGE_APP_DIR, 'js', 'config.js');
   var content = {
@@ -17,6 +16,4 @@ function execute(config) {
   utils.writeContent(init, 'Config = ' +
     utils.getDistributionFileContent('findmydevice', content, distDir) +
     ';');
-}
-
-exports.execute = execute;
+};

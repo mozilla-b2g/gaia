@@ -1,6 +1,7 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
+
 var utils = require('utils');
 
 var GalleryAppBuilder = function() {
@@ -20,22 +21,22 @@ GalleryAppBuilder.prototype.setOptions = function(options) {
 
 GalleryAppBuilder.prototype.concatenatedScripts = function() {
   var frameScriptsPaths = [
-    [this.sharedPath, 'js', 'gesture_detector.js'],
-    [this.sharedPath, 'js', 'format.js'],
-    [this.sharedPath, 'js', 'media', 'video_player.js'],
-    [this.sharedPath, 'js', 'media', 'media_frame.js'],
-    [this.options.APP_DIR, 'js', 'frames.js']
+    utils.joinPath(this.sharedPath, 'js', 'gesture_detector.js'),
+    utils.joinPath(this.sharedPath, 'js', 'format.js'),
+    utils.joinPath(this.sharedPath, 'js', 'media', 'video_player.js'),
+    utils.joinPath(this.sharedPath, 'js', 'media', 'media_frame.js'),
+    utils.joinPath(this.options.APP_DIR, 'js', 'frames.js')
   ];
   var frameScriptsPath = utils.joinPath(this.options.STAGE_APP_DIR, 'js',
     'frame_scripts.js');
   utils.concatenatedScripts(frameScriptsPaths, frameScriptsPath);
 
   var metadataScriptsPaths = [
-    [this.sharedPath, 'js', 'blobview.js'],
-    [this.sharedPath, 'js', 'media', 'jpeg_metadata_parser.js'],
-    [this.sharedPath, 'js', 'media', 'get_video_rotation.js'],
-    [this.sharedPath, 'js/media', 'image_size.js'],
-    [this.options.APP_DIR, 'js', 'MetadataParser.js']
+    utils.joinPath(this.sharedPath, 'js', 'blobview.js'),
+    utils.joinPath(this.sharedPath, 'js', 'media', 'jpeg_metadata_parser.js'),
+    utils.joinPath(this.sharedPath, 'js', 'media', 'get_video_rotation.js'),
+    utils.joinPath(this.sharedPath, 'js/media', 'image_size.js'),
+    utils.joinPath(this.options.APP_DIR, 'js', 'MetadataParser.js')
   ];
   var metadataScriptsPath = utils.joinPath(this.options.STAGE_APP_DIR, 'js',
     'metadata_scripts.js');

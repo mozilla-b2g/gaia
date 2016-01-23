@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
 
 var utils = require('utils');
 var preprocessor = require('preprocessor');
@@ -8,7 +8,6 @@ var preprocessor = require('preprocessor');
 var SystemAppBuilder = function() {
 };
 
-// set options
 SystemAppBuilder.prototype.setOptions = function(options) {
   this.stageDir = utils.getFile(options.STAGE_APP_DIR);
   this.appDir = utils.getFile(options.APP_DIR);
@@ -52,7 +51,6 @@ SystemAppBuilder.prototype.initConfigJsons = function() {
   utils.writeContent(euRoamingFile,
     utils.getDistributionFileContent('eu-roaming',
       euRoamingDefault, this.distDirPath));
-
 };
 
 /**

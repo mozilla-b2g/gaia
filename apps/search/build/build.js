@@ -1,8 +1,11 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
+
 var utils = require('utils');
-var SearchAppBuilder = function() {};
+
+var SearchAppBuilder = function() {
+};
 
 function pickAsset(root, filename, ppx) {
   if (ppx !== '1') {
