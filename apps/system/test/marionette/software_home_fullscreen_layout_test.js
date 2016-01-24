@@ -10,9 +10,6 @@ marionette('Software Home Button - Fullscreen Layout', function() {
 
   var client = marionette.client({
     profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'software-button.enabled': true,
         'hud.reflows': true

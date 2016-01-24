@@ -8,13 +8,7 @@
   marionette('activity action menu test', function() {
     var messagesApp, system, utilityTray, composer;
 
-    var client = marionette.client({
-      profile: {
-        prefs: {
-          'focusmanager.testmode': true
-        }
-      }
-    });
+    var client = marionette.client();
 
     setup(function() {
       system = client.loader.getAppClass('system');

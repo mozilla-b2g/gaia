@@ -19,10 +19,6 @@ marionette('switchToActivity', function() {
       'lockscreen.enabled': false,
       'screen.timeout': 0
     },
-    // Need this so that swithToApp can also focus on the app frame.
-    prefs: {
-      'focusmanager.testmode': true
-    },
     apps: apps
   };
 

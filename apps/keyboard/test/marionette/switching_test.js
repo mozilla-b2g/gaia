@@ -35,9 +35,6 @@ marionette('Switch Keyboard App', function() {
   client = marionette.client({
     profile: {
       apps: apps,
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'keyboard.enabled-layouts': keyboardSettings
       }

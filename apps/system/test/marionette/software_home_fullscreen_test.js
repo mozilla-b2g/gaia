@@ -6,9 +6,6 @@ marionette('Software Home Button - Fullscreen Request', function() {
 
   var client = marionette.client({
     profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'software-button.enabled': true
       },

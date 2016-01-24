@@ -12,9 +12,7 @@ function ClockAppActions(options) {
       prefs: {
         // we need to disable the keyboard to avoid intermittent failures on
         // Travis (transitions might take longer to run and block UI).
-        'dom.mozInputMethod.enabled': false,
-        // NOTE: We used to require 'focusmanager.testmode=true' for
-        // B2G-Desktop, but Mulet and Device tests do not require it.
+        'dom.mozInputMethod.enabled': false
       }
     },
     desiredCapabilities: options && options.desiredCapabilities

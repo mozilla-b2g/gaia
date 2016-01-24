@@ -15,10 +15,7 @@ marionette('Launch Keyboard APP', function() {
 
   client = marionette.client({
     profile: {
-      apps: apps,
-      prefs: {
-        'focusmanager.testmode': true
-      }
+      apps: apps
     },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });

@@ -7,13 +7,7 @@ marionette('Sim Dialog:', function() {
   var pinInput = 'input[name=simpin]';
   var submitBtn = '#simpin-dialog button[type=submit]';
 
-  var client = marionette.client({
-    profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      }
-    }
-  });
+  var client = marionette.client();
 
   setup(function() {
   });

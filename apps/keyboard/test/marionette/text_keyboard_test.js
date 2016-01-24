@@ -18,9 +18,6 @@ marionette('Text keyboard input tests', function() {
   client = marionette.client({
     profile: {
       apps: apps,
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'lockscreen.enabled': false,
         'ftu.manifestURL': null

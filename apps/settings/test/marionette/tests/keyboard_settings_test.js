@@ -21,9 +21,6 @@ marionette('manipulate keyboard settings', function() {
   client = marionette.client({
     profile: {
       apps: apps,
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'lockscreen.enabled': false,
         'ftu.manifestURL': null

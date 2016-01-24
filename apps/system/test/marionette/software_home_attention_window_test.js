@@ -10,9 +10,6 @@ marionette('Software Home Button - Attention window', function() {
 
   var client = marionette.client({
     profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'lockscreen.enabled': true,
         'software-button.enabled': true

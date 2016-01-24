@@ -7,9 +7,6 @@ marionette('First Time Use >', function() {
   var ftu, system;
   var client = marionette.client({
     profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'ftu.manifestURL': 'app://ftu.gaiamobile.org/manifest.webapp',
         'deviceinfo.os': '1.3.1-foo',

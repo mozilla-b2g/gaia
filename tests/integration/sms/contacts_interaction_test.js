@@ -19,9 +19,6 @@ marionette('Contacts', function() {
   var messagesApp;
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 

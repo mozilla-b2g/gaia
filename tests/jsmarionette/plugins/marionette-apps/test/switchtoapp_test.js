@@ -9,10 +9,6 @@ marionette('launch', function() {
     settings: {
       'ftu.manifestURL': null,
       'lockscreen.enabled': false
-    },
-    // Need this so that swithToApp can also focus on the app frame.
-    prefs: {
-      'focusmanager.testmode': true
     }
   };
 
@@ -65,7 +61,7 @@ marionette('launch', function() {
         done();
       });
     });
-    
+
     test('should be able to switchToApp from app to app', function(done) {
       // already called switchToApp once by now, call it again.
       switchToApp(client.mozApps, origin);

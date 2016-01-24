@@ -16,10 +16,7 @@ marionette('Dimiss the keyboard', function() {
 
   var client = marionette.client({
     profile: {
-      apps: apps,
-      prefs: {
-        'focusmanager.testmode': true
-      }
+      apps: apps
     },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });

@@ -13,10 +13,6 @@ marionette('Attachment picking and sending tests', function() {
 
   var client = marionette.client({
     profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      },
-
       apps: apps
     },
     desiredCapabilities: { raisesAccessibilityExceptions: false }

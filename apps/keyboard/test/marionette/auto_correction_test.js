@@ -21,9 +21,6 @@ marionette('Keyboard Auto correction tests', function() {
   client = marionette.client({
     profile: {
       apps: apps,
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'lockscreen.enabled': false,
         'ftu.manifestURL': null,
@@ -146,7 +143,7 @@ marionette('Keyboard Auto correction tests', function() {
 
   suite('With autocorrect off', function() {
     setup(function () {
-      client.settings.set('keyboard.autocorrect', false); 
+      client.settings.set('keyboard.autocorrect', false);
 
       keyboardTestApp.launch();
       keyboardTestApp.switchTo();

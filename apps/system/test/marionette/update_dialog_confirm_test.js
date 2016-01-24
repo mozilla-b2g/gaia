@@ -8,9 +8,6 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
 
   var client = marionette.client({
     profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'software-button.enabled': false
       }
