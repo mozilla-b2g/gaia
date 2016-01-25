@@ -237,24 +237,27 @@
                 // the indexedDB has remote history data. If there is
                 // any remote data, we create a folder item to show the
                 // synced history.
-                if(timestamp) {
-                  this.cacheIndexEndAt++;
-                  this.cache.set(this.cacheIndexEndAt, {
-                    id: 'sync_history',
-                    title: 'Synced History',
-                    type: 'folder',
-                    readOnly: true
-                  });
-                }
-
-                // get bookmark data from origin indexdDB
-                BrowserDB.getHistory(localHistory => {
-                  localHistory.forEach(history => {
+                navigator.mozL10n.formatValue('fxsync-synced-history')
+                                 .then(result => {
+                  if(timestamp) {
                     this.cacheIndexEndAt++;
-                    this.cache.set(this.cacheIndexEndAt, history);
+                    this.cache.set(this.cacheIndexEndAt, {
+                      id: 'sync_history',
+                      title: result,
+                      type: 'folder',
+                      readOnly: true
+                    });
+                  }
+
+                  // get bookmark data from origin indexdDB
+                  BrowserDB.getHistory(localHistory => {
+                    localHistory.forEach(history => {
+                      this.cacheIndexEndAt++;
+                      this.cache.set(this.cacheIndexEndAt, history);
+                    });
+                    this.lastDataIndex = this.cacheIndexEndAt;
+                    resolve();
                   });
-                  this.lastDataIndex = this.cacheIndexEndAt;
-                  resolve();
                 });
               }
             );
