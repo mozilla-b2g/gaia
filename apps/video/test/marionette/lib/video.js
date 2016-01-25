@@ -30,6 +30,7 @@ Video.Selector = Object.freeze({
   thumbnailsSingleDeleteButton: 'a.button.single-delete-button',
   thumbnailsSingleShareButton: 'a.button.single-share-button',
   player: 'video#player',
+  optionsButton: '#options',
   videoTitle: '#video-title',
   overlay: '#overlay',
   elapsedTime: '#elapsed-text',
@@ -146,6 +147,13 @@ Video.prototype = {
   },
 
   /**
+   * @return {Marionette.Element} video player option button element.
+   */
+  get optionsButton() {
+    return this.client.helper.waitForElement(Video.Selector.optionsButton);
+  },
+
+  /**
    * Called after tapping on a thumbnail to wait for the video to
    * begin playing.
    */
@@ -170,13 +178,17 @@ Video.prototype = {
 
     // Tap to display the controls and wait for them to be displayed.
     this.player.tap();
-    this.client.waitFor(function() { return elapsedElem.displayed(); });
-
+    this.waitForControls();
     // Wait for the video to play for at least one second (to allow
     // for validation checks).
     this.client.waitFor(() => {
       return this.getElapsedTimeSeconds() > 0;
     });
+  },
+
+  waitForControls: function() {
+    return this.client.helper.waitForElement(
+      Video.Selector.elapsedTime).displayed();
   },
 
   /**
@@ -260,6 +272,13 @@ Video.prototype = {
       var classList = firstItem.getAttribute('class').split(' ');
       return classList.indexOf('selected') > -1;
     });
+  },
+
+  /**
+   * Click option button from player view and wait for button selection
+   */
+  tapOption: function() {
+    this.optionsButton.click();
   },
 
   /**
