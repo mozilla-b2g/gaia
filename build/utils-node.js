@@ -575,10 +575,6 @@ module.exports = {
     this.copyDirTo(appDir, options.STAGE_DIR, appDir.leafName);
   },
 
-  exit: function(code) {
-    process.exit(code);
-  },
-
   scriptLoader: {
 
     scripts: {},
@@ -622,5 +618,9 @@ module.exports = {
 
   getHash: function(string) {
     return crypto.createHash('sha1').update(string).digest('hex');
+  },
+
+  exit: function(code) {
+    process.exit(code);
   }
 };

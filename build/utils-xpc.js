@@ -1428,5 +1428,5 @@ exports.getUUIDMapping = getUUIDMapping;
 exports.getMD5hash = getMD5hash;
 exports.createSandbox = createSandbox;
 exports.runScriptInSandbox= runScriptInSandbox;
-exports.exit = exit;
 exports.getHash = getHash;
+exports.exit = exit;

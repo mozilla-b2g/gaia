@@ -4,19 +4,12 @@
 
 var utils = require('utils');
 var esomin = require('esomin');
-var { Cc, Ci } = require('chrome');
-var converter =
-      Cc['@mozilla.org/intl/scriptableunicodeconverter'].
-      createInstance(Ci.nsIScriptableUnicodeConverter);
-converter.charset = 'UTF-8';
-var secClass = Cc['@mozilla.org/security/hash;1'];
-var nsICryptoHash = Ci.nsICryptoHash;
-var digests = [];
-var appName;
 
 // FIXME: It will be replace with webapp-shared.js
 // Taken from r.js css optimizing step.
 var cssImportRegExp = /\@import\s+(url\()?\s*([^);]+)\s*(\))?([\w, ]*)(;)?/ig;
+var digests = [];
+var appName;
 
 function stripCssComments(contents) {
   var index,
@@ -162,31 +155,16 @@ function generateServicesConfig(options) {
 }
 
 function onFileRead(contents) {
-  digests.push(getDigest(contents));
-}
-
-function getDigest(contents) {
-  var result = {};
-
-  // data is an array of bytes
-  var data = converter.convertToByteArray(contents, result);
-  var ch = secClass.createInstance(nsICryptoHash);
-  ch.init(ch.SHA1);
-  ch.update(data, data.length);
-  var hash = ch.finish(false);
-  // convert the binary hash data to a hex string.
-  return hash.split('').map(function(char, i) {
-    return toHexString(hash.charCodeAt(i));
-  }).join('');
+  digests.push(utils.getHash(contents));
 }
 
 function writeCacheValue(options) {
   // Update the cache value based on digest values of all files.
-  var finalDigest = getDigest(digests.join(',')),
-      cacheRegExp = /HTML_CACHE_VERSION\s*=\s*["'][^"']+["']/,
-      cacheFile = utils.getFile(options.STAGE_APP_DIR, 'js',
-        'html_cache_restore.js'),
-      contents = utils.getFileContent(cacheFile);
+  var finalDigest = utils.getHash(digests.join(','));
+  var cacheRegExp = /HTML_CACHE_VERSION\s*=\s*["'][^"']+["']/;
+  var cacheFile = utils.getFile(options.STAGE_APP_DIR, 'js',
+                                'html_cache_restore.js');
+  var contents = utils.getFileContent(cacheFile);
   contents = contents.replace(cacheRegExp,
     'HTML_CACHE_VERSION = \'' + finalDigest + '\'');
 
@@ -334,19 +312,16 @@ exports.execute = function(options) {
     requirejs = sandbox.requirejs;
   }
 
-  var promises = [
-    optimize(options, requirejs),
-    getParse(requirejs)
-  ];
-
-  return Promise.all(promises)
+  return optimize(options, requirejs)
+    .then(function() {
+      return getParse(requirejs);
+    })
     .then(function(result) {
-      var [buildText, parse] = result;
-
-      shared.js = getSharedJs(parse, options.APP_DIR,
+      shared.js = getSharedJs(result, options.APP_DIR,
         backendRegExp, onFileRead);
-      [shared.style, shared.style_unstable] =
-        getSharedStyles(options.APP_DIR, onFileRead);
+      var styles = getSharedStyles(options.APP_DIR, onFileRead);
+      shared.style = styles[0];
+      shared.style_unstable = styles[1];
       utils.writeContent(sharedJsonFile, JSON.stringify(shared, null, 2));
 
       writeCacheValue(options);
