@@ -74,8 +74,10 @@ NewMessageView.prototype = {
 
   clearRecipients: function() {
     var recipientsList = this.accessors.recipientsList;
-    recipientsList.tap();
+    this.accessors.recipientsInput.tap(); // tapping the available space
     while (recipientsList.text() !== '') {
+      // note: this works because in the app we handle the keys at the list
+      // level, but we should rather send the keys to the focussed element.
       recipientsList.sendKeys(this.KEYS.backspace);
     }
   },
