@@ -310,7 +310,7 @@ function execute(config) {
 
   var queue = utils.Q.defer();
   queue.resolve();
-
+  var wait = true;
   var result = queue.promise.then(function() {
     setWallpaper(settings, config);
   }).then(function() {
@@ -329,11 +329,15 @@ function execute(config) {
     setHomescreenURL(settings, config);
   }).then(function() {
     writeSettings(settings, config);
+    wait = false;
     return settings;
   });
-
   // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){return {wait : false};});
+  utils.processEvents(function(){
+    return {
+      wait : wait
+    };
+  });
 
   return result;
 }
