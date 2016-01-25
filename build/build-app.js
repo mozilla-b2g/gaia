@@ -20,7 +20,7 @@ exports.execute = function(options) {
     'ftu',
     'gallery',
     'homescreen',
-    //'keyboard',
+    'keyboard',
     'music',
     //'operatorvariant',
     'search',

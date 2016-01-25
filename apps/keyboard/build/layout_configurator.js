@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
 
 let utils = require('utils');
 
@@ -291,8 +291,8 @@ KeyboardLayoutConfigurator.prototype.copyFiles = function(distDir) {
   let layoutDest = utils.getFile(distDir.path, 'js', 'layouts');
   utils.ensureFolderExists(layoutDest);
   this.layoutDetails.forEach(function(layoutDetail) {
-    layoutDetail.layoutFile.copyTo(
-      layoutDest, layoutDetail.layoutFile.leafName);
+    var file = layoutDetail.layoutFile;
+    utils.copyFileTo(file.path, layoutDest.path, file.leafName);
   }, this);
 
   // Copy the entire imEngineDir or selected files if applicable.
@@ -310,8 +310,7 @@ KeyboardLayoutConfigurator.prototype._copyIMEngineDirs = function(distDir) {
       return;
     }
 
-    var imEngineDirDest = imeDest.clone();
-    imEngineDirDest.append(layoutDetail.imEngineId);
+    var imEngineDirDest = utils.getFile(imeDest.path, layoutDetail.imEngineId);
 
     // Don't try to copy the dir again.
     if (imEngineDirDest.exists()) {
@@ -326,15 +325,14 @@ KeyboardLayoutConfigurator.prototype._copyIMEngineDirs = function(distDir) {
           if (file.leafName === 'dictionaries') {
             return;
           }
-
-          file.copyTo(imEngineDirDest, file.leafName);
+          utils.copyFileTo(file.path, imEngineDirDest.path, file.leafName);
         });
 
         break;
 
       default:
-        layoutDetail.imEngineDir.copyTo(
-          imeDest, layoutDetail.imEngineDir.leafName);
+        let file = layoutDetail.imEngineDir;
+        utils.copyFileTo(file.path, imeDest.path, file.leafName);
 
         break;
     }
@@ -355,8 +353,8 @@ KeyboardLayoutConfigurator.prototype._copyDicts = function(distDir) {
         }
 
         utils.ensureFolderExists(dictDests.latin);
-        layoutDetail.dictFile.copyTo(
-          dictDests.latin, layoutDetail.dictFile.leafName);
+        let file = layoutDetail.dictFile;
+        utils.copyFileTo(file.path, dictDests.latin.path, file.leafName);
 
         break;
     }

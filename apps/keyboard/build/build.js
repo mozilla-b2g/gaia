@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
 
 var utils = require('utils');
 var KeyboardLayoutConfigurator =
@@ -52,12 +52,11 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
       [this.appDir.path].concat(filenameArr));
     var distSubDir = utils.getFile.apply(utils,
       [this.distDir.path].concat(filenameArr.slice(0, filenameArr.length - 1)));
-    var targetFile = distSubDir.clone();
-    targetFile.append(file.leafName);
+    var targetFile = utils.getFile(distSubDir.path, file.leafName);
     if (targetFile.exists()) {
       targetFile.remove(true);
     }
-    file.copyTo(distSubDir, file.leafName);
+    utils.copyFileTo(file.path, distSubDir.path, file.leafName);
   }.bind(this));
 };
 
