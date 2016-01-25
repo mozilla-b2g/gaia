@@ -39,10 +39,8 @@ marionette('Utility Tray - Gestures', function() {
   });
 
   test('Swiping down when already opened', function() {
-    client.waitFor(function() {
-      utilityTray.swipeDown();
-      return utilityTray.isOpened();
-    });
+    utilityTray.swipeDown();
+    utilityTray.waitForOpened();
 
     utilityTray.swipeDown();
     utilityTray.waitForOpened();
