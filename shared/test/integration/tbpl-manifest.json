@@ -65,7 +65,6 @@
     "apps/system/test/marionette/statusbar_icon_color_test.js": "Bug 1134018",
     "apps/system/test/marionette/text_selection_test.js": "Bug 1163853 - Intermittent text_selection_test.js",
     "apps/system/test/marionette/update_addon_test.js": "Bug 1225932 - Intermittent update_addon_test.js | Update add-on Basic add-on update test",
-    "apps/system/test/marionette/utility_tray_gestures_test.js": "Bug 1210301 - Intermittent utility_tray_gestures_test.js | Utility Tray - Gestures Swiping down when already opened",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/app_packaged_fail_test.js": "Bug 1197816 - Intermittent app_packaged_fail_test.js | Vertical Home - Packaged App Failed Download failed state then retry and launch",
     "apps/verticalhome/test/marionette/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group",

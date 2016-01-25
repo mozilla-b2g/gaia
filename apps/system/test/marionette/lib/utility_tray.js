@@ -71,14 +71,18 @@
       return this.client.findElement(this.Selectors.notification);
     },
 
+    isOpened: function() {
+      var element = this.client.findElement(this.Selectors.element);
+      var rect = element.scriptWith(function(el) {
+        return el.getBoundingClientRect();
+      });
+      var expectedTop = 0;
+      return (rect.top === expectedTop) && this._motionState === 'open';
+    },
+
     waitForOpened: function() {
       this.client.waitFor(function() {
-        var element = this.client.findElement(this.Selectors.element);
-        var rect = element.scriptWith(function(el) {
-          return el.getBoundingClientRect();
-        });
-        var expectedTop = 0;
-        return (rect.top === expectedTop) && this._motionState === 'open';
+        return this.isOpened();
       }.bind(this));
     },
 
@@ -121,7 +125,7 @@
         return element.displayed;
       });
       this.actions
-        .flick(element, 10, 10, 10, 400, 500)
+        .flick(element, 10, 10, 10, this.halfHeight * 2, 300)
         .perform();
     },
 
@@ -131,7 +135,7 @@
         return element.displayed;
       });
       this.actions
-        .flick(element, 10, 10, 10, -400, 500)
+        .flick(element, 10, 10, 10, -(this.halfHeight * 2), 300)
         .perform();
     }
 
