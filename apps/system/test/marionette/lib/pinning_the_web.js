@@ -117,7 +117,9 @@ PinningTheWeb.prototype = {
     var menu = this.system.appChromeContextMenu;
     this.system.appChromeContextMenuPin.tap();
     this.client.helper.waitForElementToDisappear(menu);
-    this.client.helper.waitForElement(this.pinDialog);
+    this.client.helper.waitForElement(this.pinDialog, {
+      timeout: 90000
+    });
   }
 };
 
