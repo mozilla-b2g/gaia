@@ -16,7 +16,8 @@ module.exports = function(options, done) {
       height: options.height
     } : options.size || null;
 
-  cropResizeRotate(blob, null, outputSize, null, function(error, resizedBlob) {
+  cropResizeRotate(blob, null, outputSize, 'image/jpeg+exif',
+                   function(error, resizedBlob) {
 
     // If we couldn't resize or rotate it, use the original
     if (error) {
