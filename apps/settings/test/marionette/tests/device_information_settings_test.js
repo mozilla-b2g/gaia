@@ -12,7 +12,7 @@ marionette('check device information settings', function() {
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var settingsApp;
-  var deviceInfoPanel;
+  var deviceInfoPanel, developerPanel;
 
   setup(function() {
     settingsApp = new Settings(client);
@@ -22,13 +22,13 @@ marionette('check device information settings', function() {
 
   test('check more info panel', function() {
     deviceInfoPanel.tapOnMoreInfoButton();
-    var isDevelopMenuDefaultEnabled = deviceInfoPanel.isDevelopMenuEnabled;
+    assert.equal(false, deviceInfoPanel.isDevelopMenuEnabled);
     deviceInfoPanel.triggerDevelopMenu();
-    assert.notEqual(deviceInfoPanel.isDevelopMenuEnabled,
-      isDevelopMenuDefaultEnabled);
+    assert.equal(true, deviceInfoPanel.isDevelopMenuEnabled);
+    deviceInfoPanel.tapMoreInfoBackBtn();
     deviceInfoPanel.tapDeviceInfoBackBtn();
-    assert.equal(false, deviceInfoPanel.isDeveloperMenuItemVisible);
-    assert.equal(false, isDevelopMenuDefaultEnabled);
+    assert.equal(true, deviceInfoPanel.isDeveloperMenuItemVisible);
+    developerPanel = settingsApp.developerPanel;
   });
 
   test('check your rights panel', function() {

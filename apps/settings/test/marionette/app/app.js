@@ -7,6 +7,7 @@ var BatteryPanel = require('./regions/battery');
 var BluetoothPanel = require('./regions/bluetooth');
 var BrowsingPrivacyPanel = require('./regions/browsing_privacy');
 var DateTimePanel = require('./regions/date_time');
+var DeveloperPanel = require('./regions/developer');
 var DeviceInfoPanel = require('./regions/device_info');
 var DisplayPanel = require('./regions/display');
 var DoNotTrackPanel = require('./regions/do_not_track');
@@ -49,6 +50,7 @@ Settings.Selectors = {
   'bluetoothMenuItem': '#menuItem-bluetooth',
   'browsingPrivacyMenuItem': '#menuItem-browsingPrivacy',
   'dateTimeMenuItem': '#menuItem-dateAndTime',
+  'developerMenuItem': '#menuItem-developer',
   'deviceInfoMenuItem': '#menuItem-deviceInfo',
   'displayMenuItem': '#menuItem-display',
   'doNotTrackMenuItem': '#menuItem-doNotTrack',
@@ -222,6 +224,13 @@ Settings.prototype = {
     this._aboutPanel = this._aboutPanel ||
       new DeviceInfoPanel(this.client);
     return this._aboutPanel;
+  },
+
+  get developerPanel() {
+    this.openPanel('developerMenuItem');
+    this._developerPanel = this._developerPanel ||
+      new DeveloperPanel(this.client);
+    return this._developerPanel;
   },
 
   get usbStoragePanel() {
