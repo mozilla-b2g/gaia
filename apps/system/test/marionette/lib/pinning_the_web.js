@@ -18,7 +18,9 @@ PinningTheWeb.prototype = {
   },
 
   get pinDialog() {
-    return this.client.helper.waitForElement(this.Selectors.pinDialog);
+    return this.client.helper.waitForElement(this.Selectors.pinDialog, {
+      timeout: 90000
+    });
   },
 
   get pinPageButton() {
@@ -117,9 +119,7 @@ PinningTheWeb.prototype = {
     var menu = this.system.appChromeContextMenu;
     this.system.appChromeContextMenuPin.tap();
     this.client.helper.waitForElementToDisappear(menu);
-    this.client.helper.waitForElement(this.pinDialog, {
-      timeout: 90000
-    });
+    this.client.helper.waitForElement(this.pinDialog);
   }
 };
 
