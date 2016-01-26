@@ -39,7 +39,7 @@ suite('Keyboard layouts building tests', function() {
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      var config = JSON.parse(process.env.BUILD_CONFIG_XPC);
+      var config = JSON.parse(process.env.BUILD_CONFIG);
       var layoutIds = ['ar',
                        'bn-Avro',
                        'bn-Probhat',
@@ -138,7 +138,7 @@ suite('Keyboard layouts building tests', function() {
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      var config = JSON.parse(process.env.BUILD_CONFIG_XPC);
+      var config = JSON.parse(process.env.BUILD_CONFIG);
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
@@ -245,7 +245,7 @@ suite('Keyboard layouts building tests', function() {
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      var config = JSON.parse(process.env.BUILD_CONFIG_XPC);
+      var config = JSON.parse(process.env.BUILD_CONFIG);
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
@@ -290,7 +290,7 @@ suite('Keyboard layouts building tests', function() {
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      var config = JSON.parse(process.env.BUILD_CONFIG_XPC);
+      var config = JSON.parse(process.env.BUILD_CONFIG);
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
