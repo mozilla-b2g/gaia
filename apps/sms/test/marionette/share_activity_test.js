@@ -95,7 +95,9 @@ marionette('Messages as share target', function() {
         messagesApp.waitForAppToDisappear();
       });
 
-      test('Should return to Conversation panel if in Participants panel',
+      // Temporarily skip due to intermittent failures - Participants view is
+      // not opened after tapping on the conversation header.
+      test.skip('Should return to Conversation panel if in Participants panel',
       function() {
         // Send group MMS message
         messagesApp.addRecipient('+1');
