@@ -689,7 +689,9 @@ Music.prototype = {
     var ratingEl = this.client.findElement('#rating');
     assert.ok(rating);
     this.client.switchToShadowRoot(ratingEl);
-    var star = this.client.findElement('button[value="' + rating + '"]');
+    // we must really wait that the element be visible. or click will fail.
+    var star = this.client.helper.waitForElement(
+      'button[value="' + rating + '"]');
     assert.ok(star);
     star.click();
     this.client.switchToShadowRoot();

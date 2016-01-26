@@ -140,6 +140,40 @@ suite('system/Places', function() {
       sendEvent('apploaded', url1);
     });
 
+    test('titlechange event while writeInProgress', function(done) {
+      var title = 'New Title!';
+      var originalEditPlace = subject.editPlace;
+      var firstCall = true;
+      this.sinon.stub(subject, 'editPlace', function(url, func) {
+        if (firstCall) {
+          // Is writeInProgress during the first call
+          firstCall = false;
+          return originalEditPlace.bind(subject)(url, func);
+        }
+        // On the second call, we allow to write
+        subject.writeInProgress = false;
+        return originalEditPlace.bind(subject)(url, func);
+      });
+      MockDatastore.addEventListener('change', function() {
+        assert.ok(url1 in MockDatastore._records);
+        assert.equal(MockDatastore._records[url1].title, title);
+        MockDatastore.removeEventListener();
+        done();
+      });
+      subject.writeInProgress = true;
+      window.dispatchEvent(new CustomEvent('apptitlechange', {
+        detail: {
+          isBrowser: function() { return true; },
+          isPrivateBrowser: function() { return false; },
+          title: title,
+          config: {
+            url: url1
+          }
+        }
+      }));
+      this.sinon.clock.tick(2000);
+    });
+
     test('Test icon event', function(done) {
 
       MockDatastore.addEventListener('change', function() {

@@ -102,8 +102,8 @@ suite('Pages', () => {
       title: 'Mock pinned page',
       url: 'Mock URL',
       pinTime: 4242,
+      screenshot: 'Mock screenshot',
       meta: {
-        'screenshot': 'Mock screenshot',
         'theme-color': 'Mock color'
       }
     };
@@ -154,7 +154,9 @@ suite('Pages', () => {
 
       pages.updatePinnedPage(mockCard, mockPinnedPage);
       clock.tick();
-      assert.equal(mockCard.meta, mockPinnedPage.meta);
+      var meta = mockCard.meta;
+      assert.equal(meta['theme-color'], mockPinnedPage.meta['theme-color']);
+      assert.equal(meta.screenshot, mockPinnedPage.screenshot);
     });
   });
 

@@ -116,6 +116,11 @@
       card.title = page.title;
       card.dataset.id = page.url;
       card.style.order = -Math.round(page.pinTime / 1000);
+      page.meta = page.meta || {};
+
+      if (page.screenshot) {
+        page.meta.screenshot = page.screenshot;
+      }
 
       setTimeout(function(card, page) {
         card.meta = page.meta;

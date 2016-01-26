@@ -199,10 +199,10 @@ suite('Widget Startup Modes Test Suite >', function() {
 
         Widget.init();
 
-        assertErrorMessage('widget-no-sim2-meta');
+        assertErrorMessage('widget-no-sim3-meta');
 
         assert.ok(showSimErrorSpy.calledOnce);
-        assert.ok(showSimErrorSpy.calledWith('no-sim2'));
+        assert.ok(showSimErrorSpy.calledWith('no-sim3'));
         showSimErrorSpy.restore();
       });
     }
@@ -212,7 +212,7 @@ suite('Widget Startup Modes Test Suite >', function() {
     showSimErrorSpy.restore();
     this.sinon.stub(Widget, 'showSimError', function(errorId) {
       done (function() {
-        assert.equal(errorId, 'sim-locked');
+        assert.equal(errorId, 'sim2-locked');
       });
     });
 
@@ -227,7 +227,7 @@ suite('Widget Startup Modes Test Suite >', function() {
     showSimErrorSpy.restore();
     this.sinon.stub(Widget, 'showSimError', function(errorId) {
       done (function() {
-        assert.equal(errorId, 'no-sim2');
+        assert.equal(errorId, 'no-sim3');
       });
     });
 
@@ -319,7 +319,7 @@ suite('Widget Startup Modes Test Suite >', function() {
     AirplaneModeHelper._status = 'disabled';
     Widget.init();
 
-    assertFTELayout('widget-nonauthed-sim-heading');
+    assertFTELayout('widget-nonauthed-sim2-heading');
   });
 
   test('normal start-up with DATA_USAGE_ONLY applicationMode', function(done) {

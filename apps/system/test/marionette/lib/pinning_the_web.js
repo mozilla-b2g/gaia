@@ -18,7 +18,9 @@ PinningTheWeb.prototype = {
   },
 
   get pinDialog() {
-    return this.client.helper.waitForElement(this.Selectors.pinDialog);
+    return this.client.helper.waitForElement(this.Selectors.pinDialog, {
+      timeout: 90000
+    });
   },
 
   get pinPageButton() {

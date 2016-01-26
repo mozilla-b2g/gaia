@@ -14,6 +14,7 @@
 /* global expect */
 /* global FxAccountsClient */
 /* global IACHandler */
+/* global MockAdvancedTelemetryHelper */
 /* global MocksHelper */
 /* global MockNavigatormozSetMessageHandler */
 /* global MockNavigatorSettings */
@@ -31,9 +32,11 @@ requireApp('system/test/unit/mock_iac_handler.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 require('/shared/js/sync/errors.js');
+require('/shared/js/advanced_telemetry_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_advanced_telemetry_helper.js');
 
 var mocksForSyncManager = new MocksHelper([
   'asyncStorage',
@@ -46,16 +49,21 @@ var mocksForSyncManager = new MocksHelper([
 suite('system/SyncManager >', () => {
   var realMozSetMessageHandler;
   var realMozSettings;
+  var realTelemetryHelper;
   var systemMessageHandlerSpy;
 
   mocksForSyncManager.attachTestHelpers();
 
   suiteSetup(() => {
+    require('/shared/js/sync/telemetry.js');
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realTelemetryHelper = window.AdvancedTelemetryHelper;
+    window.AdvancedTelemetryHelper = MockAdvancedTelemetryHelper;
 
     MockNavigatormozSetMessageHandler.mSetup();
     MockNavigatorSettings.mSetup();
@@ -65,6 +73,7 @@ suite('system/SyncManager >', () => {
   suiteTeardown(() => {
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozSettings = realMozSettings;
+    window.AdvancedTelemetryHelper = realTelemetryHelper;
 
     MockNavigatorSettings.mTeardown();
   });
@@ -193,6 +202,7 @@ suite('system/SyncManager >', () => {
     var getPortStub;
     var getAccountStub;
     var port;
+    var telemetryHelperSpy;
 
     suiteSetup(() => {
       syncManager = BaseModule.instantiate('SyncManager');
@@ -216,16 +226,19 @@ suite('system/SyncManager >', () => {
           email: 'user@domain.org'
         });
       });
+
+      telemetryHelperSpy = this.sinon.spy(window, 'AdvancedTelemetryHelper');
     });
 
     teardown(() => {
       requestStub.restore();
       getPortStub.restore();
       getAccountStub.restore();
+      telemetryHelperSpy.restore();
     });
 
     ['enable', 'disable', 'sync'].forEach(name => {
-      test('receive ' + name + ' IAC request', () => {
+      test('receive ' + name + ' IAC request', done => {
         window.dispatchEvent(new CustomEvent('iac-gaia-sync-management', {
           detail: {
             name: name
@@ -233,6 +246,14 @@ suite('system/SyncManager >', () => {
         }));
         this.sinon.assert.calledOnce(requestStub);
         assert.ok(requestStub.calledWith('SyncStateMachine:' + name));
+        setTimeout(() => {
+          assert.isTrue(telemetryHelperSpy.calledWithNew());
+          var counter = telemetryHelperSpy.getCall(0).returnValue;
+          assert.equal(counter.name, 'telemetry_gaia_sync_user_action_' + name);
+          assert.equal(window.AdvancedTelemetryHelper.HISTOGRAM_COUNT,
+                       counter.type);
+          done();
+        });
       });
     });
 
@@ -603,6 +624,7 @@ suite('system/SyncManager >', () => {
 
     var updateStateSpy;
     var requestStub;
+    var logoutSpy;
 
     const ERROR_SYNC_APP_KILLED = 'fxsync-error-app-killed';
     const ERROR_SYNC_APP_SYNC_IN_PROGRESS =
@@ -619,6 +641,7 @@ suite('system/SyncManager >', () => {
     const ERROR_SYNC_INVALID_REQUEST_OPTIONS =
       'fxsync-error-invalid-request-options';
     const ERROR_SYNC_REQUEST = 'fxsync-error-request-failed';
+    const ERROR_NO_KEY_FETCH_TOKEN = 'fxsync-error-no-key-fetch-token';
     const ERROR_UNKNOWN = 'fxsync-error-unknown';
 
     suiteSetup(() => {
@@ -635,11 +658,13 @@ suite('system/SyncManager >', () => {
       requestStub = this.sinon.stub(MockService, 'request', () => {
         return Promise.resolve();
       });
+      logoutSpy = this.sinon.spy(FxAccountsClient, 'logout');
     });
 
     teardown(() => {
       updateStateSpy.restore();
       requestStub.restore();
+      logoutSpy.restore();
     });
 
     const errors = [
@@ -655,6 +680,7 @@ suite('system/SyncManager >', () => {
       ERROR_REQUEST_SYNC_REGISTRATION,
       ERROR_SYNC_INVALID_REQUEST_OPTIONS,
       ERROR_SYNC_REQUEST,
+      ERROR_NO_KEY_FETCH_TOKEN,
       ERROR_UNKNOWN
     ];
 
@@ -672,6 +698,8 @@ suite('system/SyncManager >', () => {
             this.sinon.assert.notCalled(requestStub);
           } else if (error == ERROR_INVALID_SYNC_ACCOUNT) {
             assert.ok(requestStub.calledWith('SyncStateMachine:enable'));
+          } else if (error == ERROR_NO_KEY_FETCH_TOKEN) {
+            assert.ok(logoutSpy.calledOnce);
           } else {
             assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
           }
@@ -696,6 +724,8 @@ suite('system/SyncManager >', () => {
           } else if (SyncRecoverableErrors.indexOf(error) > -1 ||
                      error == ERROR_INVALID_SYNC_ACCOUNT) {
             assert.ok(requestStub.calledWith('SyncStateMachine:enable'));
+          } else if (error == ERROR_NO_KEY_FETCH_TOKEN) {
+            assert.ok(logoutSpy.calledOnce);
           } else {
             assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
           }

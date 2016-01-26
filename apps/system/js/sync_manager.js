@@ -7,6 +7,7 @@
 /* global asyncStorage */
 /* global BaseModule */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_NO_KEY_FETCH_TOKEN */
 /* global ERROR_REQUEST_SYNC_REGISTRATION */
 /* global ERROR_SYNC_APP_GENERIC */
 /* global ERROR_SYNC_APP_KILLED */
@@ -18,6 +19,7 @@
 /* global Service */
 /* global SyncErrors */
 /* global SyncRecoverableErrors */
+/* global Telemetry */
 /* global uuid */
 
 /**
@@ -218,7 +220,11 @@
         case 'disable':
         case 'sync':
           try {
-            Service.request('SyncStateMachine:' + request.name).catch(e => {
+            Service.request('SyncStateMachine:' + request.name).then(() => {
+              return LazyLoader.load('/shared/js/sync/telemetry.js');
+            }).then(() => {
+              Telemetry.logUserAction(request.name);
+            }).catch(e => {
               console.error(e);
             });
           } catch(e) {
@@ -390,6 +396,17 @@
         Service.request('SyncStateMachine:enable');
         return;
       }
+
+      // If the current FxA login does not contain the token to fetch sync keys
+      // we need to log the user out. Unfortunately the FxA auth server does not
+      // allow to obtain this token outside of the initial sign in flow.
+      if (error == ERROR_NO_KEY_FETCH_TOKEN) {
+        // No need to disable Sync here as we will be doing it as soon as the
+        // logout is done.
+        FxAccountsClient.logout();
+        return;
+      }
+
       this.debug('Unrecoverable error');
       Service.request('SyncStateMachine:disable');
     },

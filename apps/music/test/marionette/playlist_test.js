@@ -105,6 +105,7 @@ marionette('Music player playlist', function() {
     test('Check the lack of artist or album', function() {
       music.switchToAlbumsView();
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       var results = music.albumsListItemsData;
       var unknownAlbumStr = client.executeAsyncScript(function () {
         window.wrappedJSObject.document.l10n.formatValue('unknownAlbum').

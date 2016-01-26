@@ -22,11 +22,11 @@ ContactsListView.prototype = {
 		var element = this.client.findElement(
 		this.accessors.detailsSelector),
         location;
-    	var test = function() {
+    	var waitUntilPanelReachedLeftBorder = function() {
       	location = element.location();
       	return location.x <= 0;
     	};
-    	this.client.waitFor(test);
+    	this.client.waitFor(waitUntilPanelReachedLeftBorder);
 	},
 
 	goToContact: function() {

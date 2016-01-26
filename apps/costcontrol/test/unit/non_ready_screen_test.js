@@ -23,7 +23,7 @@ suite('SIM non-ready waiting screen >', function() {
     null, 'pinRequired', 'pukRequired', 'other', 'airplaneMode'
   ];
   var EXPECTED_IDS = [
-    'no-sim2', 'sim-locked', 'sim-locked', undefined, 'airplane-mode'
+    'no-sim3', 'sim2-locked', 'sim2-locked', undefined, 'airplane-mode'
   ];
   var EXPECTED_MODES = [
     assertMessageMode,

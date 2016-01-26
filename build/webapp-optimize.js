@@ -105,7 +105,6 @@ HTMLOptimizer.prototype.process = function() {
   }
 
   queue = queue.then(this.serializeNewHTMLDocumentOutput.bind(this));
-
   return queue.catch(dumpError.bind(this));
 };
 
@@ -559,11 +558,13 @@ WebappOptimize.prototype.processFile = function(file) {
     locales: this.locales,
     optimizeConfig: this.optimizeConfig
   });
-  htmlOptimizer.process();
-
-  // Don't quit xpcshell before all asynchronous code is done
-  utils.processEvents(
-    htmlOptimizer.l10n.checkError.bind(htmlOptimizer.l10n));
+  return htmlOptimizer.process().then(function() {
+    var result = htmlOptimizer.l10n.checkError();
+    if (result.error) {
+      utils.log('Error', result.error);
+      throw result.error;
+    }
+  });
 };
 
 WebappOptimize.prototype.execute = function(config) {
@@ -571,7 +572,7 @@ WebappOptimize.prototype.execute = function(config) {
   // if BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (this.config.BUILD_APP_NAME !== '*' &&
     this.webapp.sourceDirectoryName !== this.config.BUILD_APP_NAME) {
-    return;
+    return Promise.resolve();
   }
 
   // remove excluded condition /^(shared|tests?)$/)
@@ -592,7 +593,7 @@ WebappOptimize.prototype.execute = function(config) {
     }, this);
 
   this.numOfFiles = files.length;
-  files.forEach(this.processFile, this);
+  return Promise.all(files.map(this.processFile, this));
 };
 
 function execute(options) {
@@ -606,7 +607,7 @@ function execute(options) {
 
   var optimizeConfig = loadOptimizeConfig(options);
 
-  (new WebappOptimize()).execute({
+  return (new WebappOptimize()).execute({
     config: options,
     webapp: webapp,
     locales: locales,

@@ -445,8 +445,13 @@ module.exports = {
     }
   },
 
-  processEvents: function() {
-
+  processEvents: function(exitResultFunc) {
+    // FIXME: A fake blocking function for porting utils-xpc
+    // This workaround will be removed once node.js migration is done
+    var exitResult = exitResultFunc();
+    if (exitResult.error) {
+      throw exitResult.error;
+    }
   },
 
   writeContent :function(file, content) {
@@ -595,5 +600,14 @@ module.exports = {
         throw error;
       }
     }
+  },
+
+  createSandbox: function() {
+    return {};
+  },
+
+  runScriptInSandbox: function(filePath, sandbox) {
+    var script = fs.readFileSync(filePath, { encoding: 'utf8' });
+    return vm.runInNewContext(script, sandbox);
   }
 };

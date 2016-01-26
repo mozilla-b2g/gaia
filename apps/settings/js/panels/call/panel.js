@@ -67,7 +67,7 @@ define(function(require) {
 
         CallSettingsTaskScheduler.observe('isLocked', (isLocked) => {
           this._enableTapOn('callerIdItem', !isLocked);
-          this._enableTapOn('callWaitingItem', !isLocked);
+          this._enableTapOn('callWaitingInput', !isLocked);
         });
 
         this._refreshCallSettingItems();

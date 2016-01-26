@@ -1360,4 +1360,162 @@ suite('MozIntl', function() {
       });
     });
   });
+
+  suite('UnitFormat', function() {
+    setup(function() {
+      this.sinon.stub(navigator.mozL10n, 'formatValue',
+        arg => Promise.resolve(arg));
+    });
+
+    function testUnit(group, unit, style) {
+      var formatter = mozIntl.UnitFormat(navigator.languages, {
+        unit:  unit,
+        style: style
+      });
+      return formatter.format(0).then(result => {
+        assert.equal(result, `${group}-${unit}-${style}`);
+      });
+    }
+
+    test('uses correct unit group for durations', function(done) {
+      var units = ['second', 'minute', 'hour', 'day', 'month'];
+
+      var tests = units.map(unit => testUnit('duration', unit, 'narrow'));
+
+      Promise.all(tests).then(() => done(), done);
+    });
+
+    test('uses correct unit group for durations', function(done) {
+      var units = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte'];
+
+      var tests = [];
+
+      for (let unit of units) {
+        tests.push(testUnit('digital', unit, 'short'));
+      }
+
+      Promise.all(tests).then(() => done(), done);
+    });
+
+    test('throws range error for invalid unit', function() {
+      assert.throws(() => {
+        mozIntl.UnitFormat(navigator.languages, {
+          unit: 'foo'
+        });
+      }, RangeError);
+    });
+
+    test('throws range error for invalid style', function() {
+      assert.throws(() => {
+        mozIntl.UnitFormat(navigator.languages, {
+          unit: 'second',
+          style: 'foo'
+        });
+      }, RangeError);
+    });
+  });
+
+
+  /* _gaia suite */
+
+  suite('mozIntl._gaia methods', function() {
+    suite('getFormattedUnit', function() {
+      suite('digital type', function() {
+        test('should handle 0 bytes', function(done) {
+          mozIntl._gaia.getFormattedUnit('digital', 'short', 0).then(val => {
+            assert.equal(val, MockL10n._stringify('digital-byte-short', {
+              value: 0
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle bytes', function(done) {
+          mozIntl._gaia.getFormattedUnit('digital', 'short', 42).then(val => {
+            assert.equal(val, MockL10n._stringify('digital-byte-short', {
+              value: 42
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle kilobytes', function(done) {
+          mozIntl._gaia.getFormattedUnit('digital', 'short', 1024).then(val => {
+            assert.equal(val, MockL10n._stringify('digital-kilobyte-short', {
+              value: 1
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle megabytes', function(done) {
+          var v = 4901024;
+          mozIntl._gaia.getFormattedUnit('digital', 'short', v).then(val => {
+            assert.equal(val, MockL10n._stringify('digital-megabyte-short', {
+              value: 4.67
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle gigabytes', function(done) {
+          var v = 4000901024;
+          mozIntl._gaia.getFormattedUnit('digital', 'short', v).then(val => {
+            assert.equal(val, MockL10n._stringify('digital-gigabyte-short', {
+              value: 3.73
+            }));
+          }).then(done, done);
+        });
+      });
+
+      suite('duration type', function() {
+        test('should handle 0 seconds', function(done) {
+          mozIntl._gaia.getFormattedUnit('duration', 'narrow', 0).then(val => {
+            assert.equal(val, MockL10n._stringify('duration-second-narrow', {
+              value: 0
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle seconds', function(done) {
+          mozIntl._gaia.getFormattedUnit('duration', 'narrow', 42).then(val => {
+            assert.equal(val, MockL10n._stringify('duration-second-narrow', {
+              value: 42
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle minutes', function(done) {
+          mozIntl._gaia.getFormattedUnit('duration', 'narrow', 60).then(val => {
+            assert.equal(val, MockL10n._stringify('duration-minute-narrow', {
+              value: 1
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle hours', function(done) {
+          var v = 60 * 60 * 4;
+          mozIntl._gaia.getFormattedUnit('duration', 'narrow', v).then(val => {
+            assert.equal(val, MockL10n._stringify('duration-hour-narrow', {
+              value: 4
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle days', function(done) {
+          var v = 60 * 60 * 24 * 3;
+          mozIntl._gaia.getFormattedUnit('duration', 'narrow', v).then(val => {
+            assert.equal(val, MockL10n._stringify('duration-day-narrow', {
+              value: 3
+            }));
+          }).then(done, done);
+        });
+
+        test('should handle months', function(done) {
+          var v = 60 * 60 * 24 * 30 * 2;
+          mozIntl._gaia.getFormattedUnit('duration', 'narrow', v).then(val => {
+            assert.equal(val, MockL10n._stringify('duration-month-narrow', {
+              value: 2
+            }));
+          }).then(done, done);
+        });
+      });
+    });
+  });
 });

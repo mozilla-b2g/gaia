@@ -46,7 +46,7 @@ var Widget = (function() {
     // SIM is absent
     if (!cardState || cardState === 'absent') {
       debug('There is no SIM');
-      Widget.showSimError('no-sim2');
+      Widget.showSimError('no-sim3');
 
     // SIM is not initialized correctly
     } else if (cardState === 'unknown') {
@@ -58,7 +58,7 @@ var Widget = (function() {
       cardState === 'pinRequired' ||
       cardState === 'pukRequired'
     ) {
-      Widget.showSimError('sim-locked');
+      Widget.showSimError('sim2-locked');
       state = 'locked';
     }
 
@@ -264,9 +264,9 @@ var Widget = (function() {
     });
 
     var keyLookup = {
-        PREPAID: 'widget-authed-sim',
-        POSTPAID: 'widget-authed-sim',
-        DATA_USAGE_ONLY: 'widget-nonauthed-sim'
+        PREPAID: 'widget-authed-sim2',
+        POSTPAID: 'widget-authed-sim2',
+        DATA_USAGE_ONLY: 'widget-nonauthed-sim2'
     };
     var simKey = keyLookup[mode];
 
@@ -501,7 +501,7 @@ var Widget = (function() {
       AirplaneModeHelper.ready(function() {
         waitForIccAndCheckSim();
         var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
-                             'airplane-mode' : 'no-sim2';
+                             'airplane-mode' : 'no-sim3';
         console.warn('Error when trying to get the ICC ID');
         Widget.showSimError(errorMessageId);
       });
@@ -512,7 +512,7 @@ var Widget = (function() {
           Widget.showSimError('airplane-mode');
         } else if (isWaitingForIcc) {
           var updateTextOnly = true;
-          Widget.showSimError('no-sim2', updateTextOnly);
+          Widget.showSimError('no-sim3', updateTextOnly);
         }
       }
     );
@@ -529,7 +529,7 @@ var Widget = (function() {
           !window.navigator.mozIccManager ||
           !window.navigator.mozNetworkStats) {
         LazyLoader.load(SCRIPTS_NEEDED, function _showError() {
-          Widget.showSimError('no-sim2');
+          Widget.showSimError('no-sim3');
         });
       } else {
         SCRIPTS_NEEDED = [

@@ -825,6 +825,7 @@ suite('Firefox Sync panel >', () => {
   suite('onsyncchange "errored" - known errors', () => {
     var subject;
     const ERROR_OFFLINE = 'fxsync-error-offline';
+    const ERROR_NO_KEY_FETCH_TOKEN = 'fxsync-error-no-key-fetch-token';
 
     suiteSetup(() => {
       subject = suiteSetupCommon();
@@ -842,22 +843,25 @@ suite('Firefox Sync panel >', () => {
       alertSpy.reset();
     });
 
-    test('onsyncchange errored with ' + ERROR_OFFLINE +
-         ' should show alert', done => {
-      subject.onsyncchange({
-        state: 'errored',
-        error: ERROR_OFFLINE
-      });
+    [ERROR_OFFLINE,
+     ERROR_NO_KEY_FETCH_TOKEN].forEach(error => {
+      test('onsyncchange errored with ' + error +
+           ' should show alert', done => {
+        subject.onsyncchange({
+          state: 'errored',
+          error: error
+        });
 
-      setTimeout(() => {
-        this.sinon.assert.calledOnce(showScreenSpy);
-        this.sinon.assert.calledOnce(cleanSpy);
-        this.sinon.assert.calledOnce(alertSpy);
-        assert.equal(alertSpy.getCall(0).args[0],
-                     'fxsync-error-offline-explanation');
-        assert.equal(alertSpy.getCall(0).args[1].title,
-                     'fxsync-error-offline');
-        done();
+        setTimeout(() => {
+          this.sinon.assert.calledOnce(showScreenSpy);
+          this.sinon.assert.calledOnce(cleanSpy);
+          this.sinon.assert.calledOnce(alertSpy);
+          assert.equal(alertSpy.getCall(0).args[0],
+                       error + '-explanation');
+          assert.equal(alertSpy.getCall(0).args[1].title,
+                       error);
+          done();
+        });
       });
     });
   });

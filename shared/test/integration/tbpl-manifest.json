@@ -34,7 +34,6 @@
     "apps/email/test/marionette/search_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/send_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/fm/test/marionette/fm_test.js": "Bug 1233777 - Intermittent TEST-UNEXPECTED-FAIL | apps/fm/test/marionette/fm_test.js | FM Radio test FM Radio favourites Test favouriting",
-    "apps/homescreen/test/marionette/pinning_the_web_test.js": "Bug 1233529 - Intermittent TEST-UNEXPECTED-FAIL | apps/homescreen/test/marionette/pinning_the_web_test.js | Homescreen - Pin the web Pinning a site from the browser context menu",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/ringtones/test/marionette/share_test.js": "Bug 1222154 - Failing share_test.js | Share as ringtone Share activity Create new ringtone",
     "apps/search/test/marionette/app_installed_test.js": "Bug 1236308 - Intermittent app_installed_test.js | Search - Installed Apps Test app result after install/uninstall",
@@ -50,7 +49,6 @@
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
     "apps/system/test/marionette/app_usage_metrics_test.js": "Bug 1049137 - Intermittent failing test, TEST-UNEXPECTED-FAIL | App Usage Metrics > Uninstalled apps are counted",
     "apps/system/test/marionette/audio_channel_competing_test.js": "Bug 1239338 - Intermittent apps/system/test/marionette/audio_channel_competing_test.js | Audio channel competing Public notification audio channel competes with audio channels Public notification channel competes with system channel",
-    "apps/system/test/marionette/browser_chrome_new_window_test.js": "Bug 1180236 - Intermittent apps/system/test/marionette/browser_chrome_new_window_test.js | Browser Chrome - Open New Window open new window",
     "apps/system/test/marionette/browser_clear_browsing_history_test.js": "Bug 1236038 - TEST-UNEXPECTED-FAIL | apps/system/test/marionette/browser_clear_browsing_history_test.js | Browser test Clear browsing history",
     "apps/system/test/marionette/browser_launch_window_open_test.js": "Bug 1180238 - Intermittent TEST-UNEXPECTED-FAIL | apps/system/test/marionette/browser_launch_window_open_test.js | Browser - Launch the same origin after navigating away checks for web compat issues",
     "apps/system/test/marionette/browser_site_loading_background_test.js": "Bug 1233864 - Intermittent browser_site_loading_background_test.js | Browser - Site loading background validate loading background color",
@@ -66,7 +64,6 @@
     "apps/system/test/marionette/statusbar_icon_color_test.js": "Bug 1134018",
     "apps/system/test/marionette/text_selection_test.js": "Bug 1163853 - Intermittent text_selection_test.js",
     "apps/system/test/marionette/update_addon_test.js": "Bug 1225932 - Intermittent update_addon_test.js | Update add-on Basic add-on update test",
-    "apps/system/test/marionette/utility_tray_gestures_test.js": "Bug 1210301 - Intermittent utility_tray_gestures_test.js | Utility Tray - Gestures Swiping down when already opened",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/app_packaged_fail_test.js": "Bug 1197816 - Intermittent app_packaged_fail_test.js | Vertical Home - Packaged App Failed Download failed state then retry and launch",
     "apps/verticalhome/test/marionette/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group",
@@ -74,10 +71,13 @@
     "tests/jsmarionette/plugins/marionette-helper/test/input_select_test.js": "Bug 1189608 - Intermittent TEST-UNEXPECTED-FAIL | MarionetteHelper.fillInputFieldAndtapSelectOption should set date on input",
     "tests/jsmarionette/plugins/marionette-js-logger/test/client_test.js": "Bug 1222355 - Intermittent tests/jsmarionette/plugins/marionette-js-logger/test/client_test.js | client get logs from (nested) mozbrowser iframes",
     "apps/communications/contacts/test/marionette/form_test.js": "Bug 1205896 - Intermittent form_test.js | Contacts > Form > Edit Contact Simple edition of contact details. ORG field",
+    "dev_apps/music-oga/test/marionette/music_test.js": "Bug 1236275 - Intermittent apps/music/test/marionette/music_test.js | Music ui tests Test open activity Player shows with one song in database.",
     "dev_apps/music-oga/test/marionette/metadata_test.js": "Bug 1238411 - Intermittent dev_apps/music-oga/test/marionette/metadata_test.js | Music player metadata Album art display Check album art is displayed. moztrap:8749",
+    "dev_apps/music-oga/test/marionette/Player_test.js": "Bug 1238822 - Intermittent apps/music/test/marionette/Player_test.js | Music player tests Rating test Check Rating is saved. moztrap:2683",
     "dev_apps/music-oga/test/marionette/search_test.js": "Bug 1238201 - Intermittent dev_apps/music-oga/test/marionette/search_test.js | Music player search \"before each\" hook for \"Check simple search results in tracks.\"",
     "distros/raptor/apps/test-startup-limit/test/marionette/counter_test.js": "Bug 1171918 - Intermittent counter_test.js | counter + should increment count",
     "tests/jsmarionette/client/marionette-client/test/integration/scope-test.js": "Bug 1181423 - Intermittent tests/jsmarionette/client/marionette-client/test/integration/scope-test.js",
-    "tests/jsmarionette/plugins/marionette-apps/test/app_test.js": "Bug 1189882 - Intermittent tests/jsmarionette/plugins/marionette-apps/test/app_test.js"
+    "tests/jsmarionette/plugins/marionette-apps/test/app_test.js": "Bug 1189882 - Intermittent tests/jsmarionette/plugins/marionette-apps/test/app_test.js",
+    "tv_apps/smart-system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - TEST-UNEXPECTED-FAIL | /builds/slave/test/gaia/apps/system/fxa/test/marionette/fxa_screen_flow_test.js | Firefox Accounts Screen Flow Test (UITest app) should walk screen flow for existing user"
   }
 }

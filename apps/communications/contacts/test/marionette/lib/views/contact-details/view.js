@@ -12,17 +12,18 @@ function ContactsDetailsView(client) {
 ContactsDetailsView.prototype = {
 	makeFavorited: function() {
 		this.accessors.favoritesButton.tap();
-		return this.waitForFavorited;
+		this.waitForFavorited;
 	},
 
 	waitForFavorited: function() {
-		function waitFav(temp) {
-        	return temp.detailsHeader.getAttribute('class'
-        	).indexOf('favorite') != -1;
-      	}
-      	this.client.waitFor(waitFav(this.accessors));
+		var self = this;
+      	this.client.waitFor(
+      	'waitForHeaderToContainFavoriteClass', function() {
+      		return self.accessors.detailsHeader.getAttribute(
+   			'class').indexOf('favorite') != -1;
+      	});
 	},
-
+	//TO-DO: ADD THIS TO A CONTACT VIEW BASE CLASS
 	backToList: function() {
     	this.waitForFadeIn(this.client.helper.waitForElement(
     	this.accessors.detailsSelector));

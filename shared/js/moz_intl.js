@@ -291,6 +291,27 @@ global.mozIntl = {
     };
   },
 
+  UnitFormat: function(locales, options) {
+    const unitGroup = getUnitFormatGroupName(options.unit);
+    if (unitGroup === undefined) {
+      throw new RangeError(`invalid value ${options.unit} for option unit`);
+    }
+
+    if (!unitFormatGroups[unitGroup].styles.includes(options.style)) {
+      throw new RangeError(`invalid value ${options.style} for option style`);
+    }
+
+    const unit = `${unitGroup}-${options.unit}-${options.style}`;
+
+    return {
+      format: function(x) {
+        return document.l10n.formatValue(unit, {
+          value: x
+        });
+      },
+    };
+  },
+
   _gaia: {
     // This is an internal Firefox OS function, not part of the future standard
     relativePart: function(milliseconds) {
@@ -352,6 +373,34 @@ global.mozIntl = {
         },
       };
     },
+
+    getFormattedUnit: function(type, style, v) {
+      if (!unitFormatData.hasOwnProperty(type)) {
+        throw new RangeError(`invalid type ${type}`);
+      }
+      if (!unitFormatGroups[type].styles.includes(style)) {
+        throw new RangeError(`invalid style ${style} for type ${type}`);
+      }
+      var units = unitFormatData[type];
+
+      var scale = 0;
+
+      for (let i = 1; i < units.length; i++) {
+        if (v < units[i].value * unitFormatGroups[type].rounding) {
+          scale = i - 1;
+          break;
+        } else if (i === units.length - 1) {
+          scale = i;
+        }
+      }
+
+      var value = Math.round(v / units[scale].value * 100) / 100;
+
+      return global.mozIntl.UnitFormat(navigator.languages, {
+        unit: units[scale].name,
+        style: style
+      }).format(value);
+    },
   }
 };
 
@@ -366,6 +415,36 @@ const durationFormatElements = {
   'second': {value: 1000, token: 'ss'},
   // rounding milliseconds to tens
   'millisecond': {value: 10, token: 'SS'}
+};
+
+const unitFormatData = {
+  'duration': [
+    {'name': 'second', 'value': 1},
+    {'name': 'minute', 'value': 60},
+    {'name': 'hour', 'value': 60 * 60},
+    {'name': 'day', 'value': 24 * 60 * 60},
+    {'name': 'month', 'value': 30 * 24 * 60 * 60},
+  ],
+  'digital': [
+    {'name': 'byte', 'value': 1},
+    {'name': 'kilobyte', 'value': 1024},
+    {'name': 'megabyte', 'value': 1024 * 1024},
+    {'name': 'gigabyte', 'value': 1024 * 1024 * 1024},
+    {'name': 'terabyte', 'value': 1024 * 1024 * 1024 * 1024},
+  ],
+};
+
+const unitFormatGroups = {
+  'duration': {
+    'units': ['second', 'minute', 'hour', 'day', 'month'],
+    'styles': ['narrow'],
+    'rounding': 1
+  },
+  'digital': {
+    'units': ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte'],
+    'styles': ['short'],
+    'rounding': 0.8
+  }
 };
 
 /*
@@ -489,6 +568,15 @@ function relativeTimeFormatId(x, options) {
     unit: entry,
     value: Math.abs(v)
   };
+}
+
+function getUnitFormatGroupName(unitName) {
+  for (let groupName in unitFormatGroups) {
+    if (unitFormatGroups[groupName].units.includes(unitName)) {
+      return groupName;
+    }
+  }
+  return undefined;
 }
 
 })(this);
