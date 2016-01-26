@@ -70,7 +70,7 @@ let xpcshellScope = this; // jshint ignore:line
 let options;
 
 try {
-  options = JSON.parse(env.get('BUILD_CONFIG_XPC'));
+  options = JSON.parse(env.get('BUILD_CONFIG'));
 } catch (e) {
   // parsing BUILD_CONFIG error or this env variable is not available.
   // we simply skip this exception here and detect BUILD_CONFIG
