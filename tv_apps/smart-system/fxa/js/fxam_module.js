@@ -41,6 +41,13 @@ var FxaModule = (function() {
     },
 
     showErrorResponse: function fxam_showErrorResponse(response) {
+      var deferred;
+      var promise = new Promise((resolve, reject) => {
+        deferred = {
+          resolve: resolve,
+          reject: reject
+        };
+      });
       // special case: if a network error occurs during FTE,
       // we show a slightly different error message
       var resp = response;
@@ -52,8 +59,12 @@ var FxaModule = (function() {
       FxaModuleOverlay.hide();
       LazyLoader.load('js/fxam_errors.js', function() {
         var config = FxaModuleErrors.responseToParams(resp);
-        FxaModuleErrorOverlay.show(config.title, config.message);
+        FxaModuleErrorOverlay.show(config.title, config.message).then(() => {
+          deferred.resolve();
+        });
       });
+
+      return promise;
     },
 
     hideErrorResponse: function fxam_hideErrorResponse() {
