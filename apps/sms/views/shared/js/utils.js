@@ -940,7 +940,16 @@
         });
 
       return promise.then(
-        () => shimHostIframe.contentWindow.bootstrap(appInstanceId)
+        () => {
+          // Workaround for the Gecko XPCOM issue discussed in bug 1233552, in
+          // short if we pass handler function created inside nested iframe
+          // to the mozSetMessageHandler from the main window, then the handler
+          // could never be called in some cases (e.g. slow environment).
+          window.mozSetMessageHandler = function(type, handler) {
+            navigator.mozSetMessageHandler(type, (request) => handler(request));
+          };
+          shimHostIframe.contentWindow.bootstrap(appInstanceId);
+        }
       );
     },
 
