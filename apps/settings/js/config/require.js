@@ -3,7 +3,8 @@ require.config({
   paths: {
     'modules': 'modules',
     'panels': 'panels',
-    'shared': '../shared/js'
+    'shared': '../shared/js',
+    'views': '../views'
   },
   // This is the default value of the loading timeout, we will disable the
   // timeout in the production build
@@ -183,7 +184,7 @@ require.config({
       ]
     },
     {
-      name: 'panels/bluetooth/panel',
+      name: 'views/phone/bluetooth/panel',
       exclude: [
         'main',
         'modules/mvvm/list_view',

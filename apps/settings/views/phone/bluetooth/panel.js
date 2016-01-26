@@ -9,7 +9,7 @@ define(function(require) {
   var BtContext = require('modules/bluetooth/bluetooth_context');
   var BtConnectionManager =
     require('modules/bluetooth/bluetooth_connection_manager');
-  var BtTemplateFactory = require('panels/bluetooth/bt_template_factory');
+  var BtTemplateFactory = require('views/phone/bluetooth/bt_template_factory');
   var DialogService = require('modules/dialog_service');
   var ListView = require('modules/mvvm/list_view');
   var SettingsPanel = require('modules/settings_panel');
