@@ -18,7 +18,7 @@ define(function(require) {
   }
 
   /**
-   * @alias module:panels/root/storage_usb_item
+   * @alias module:views/phone/root/storage_usb_item
    * @class USBStorageItem
    * @param {Object} elements
                      elements displaying the usb and media storage information

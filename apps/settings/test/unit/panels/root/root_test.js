@@ -14,7 +14,7 @@ suite('Root', function() {
     }
   };
   var modules = [
-    'panels/root/root',
+    'views/phone/root/root',
     'MockLazyLoader',
     'shared_mocks/mock_navigator_moz_settings'
   ];

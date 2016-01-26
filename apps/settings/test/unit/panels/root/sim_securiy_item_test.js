@@ -5,7 +5,7 @@ suite('simSecurityItem', function() {
     'shared_mocks/mock_simslot_manager',
     'unit/mock_airplane_mode_helper',
     'modules/sim_security',
-    'panels/root/sim_security_item',
+    'views/phone/root/sim_security_item',
   ];
 
   var map = {

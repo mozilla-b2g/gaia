@@ -10,18 +10,18 @@ suite('RootPanel', function() {
   var MockAirplaneModeItem;
 
   var modules = [
-    'panels/root/panel',
+    'views/phone/root/panel',
     'shared_mocks/mock_navigator_moz_settings'
   ];
   var map = {
     '*': {
       'modules/settings_service': 'unit/mock_settings_service',
       'modules/settings_panel': 'MockSettingsPanel',
-      'panels/root/root': 'MockRoot',
-      'panels/root/airplane_mode_item': 'MockAirplaneModeItem',
-      'panels/root/themes_item': 'MockThemesItem',
-      'panels/root/addons_item': 'MockAddonsItem',
-      'panels/root/stk_item': 'MockStkItem',
+      'views/phone/root/root': 'MockRoot',
+      'views/phone/root/airplane_mode_item': 'MockAirplaneModeItem',
+      'views/phone/root/themes_item': 'MockThemesItem',
+      'views/phone/root/addons_item': 'MockAddonsItem',
+      'views/phone/root/stk_item': 'MockStkItem',
       'modules/bluetooth/version_detector': 'MockBluetoothVersionDetector'
     }
   };

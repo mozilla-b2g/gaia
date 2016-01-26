@@ -1,7 +1,7 @@
 /**
  * The moudle supports displaying bluetooth information on an element.
  *
- * @module panels/root/bluetooth_item
+ * @module views/phone/root/bluetooth_item
  */
 define(function(require) {
   'use strict';
@@ -18,7 +18,7 @@ define(function(require) {
   }
 
   /**
-   * @alias module:panels/root/bluetooth_item
+   * @alias module:views/phone/root/bluetooth_item
    * @class BluetoothItem
    * @requires module:modules/bluetooth
    * @param {HTMLElement} element

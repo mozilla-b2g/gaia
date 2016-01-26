@@ -2,7 +2,7 @@
  * This module is used to control the background stuff when users
  * toggle on/off airplane mode checkbox.
  *
- * @module panels/root/airplane_mode_item
+ * @module views/phone/root/airplane_mode_item
  */
 define(function(require) {
   'use strict';
@@ -10,7 +10,7 @@ define(function(require) {
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
 
   /**
-   * @alias module:panels/root/airplane_mode_item
+   * @alias module:views/phone/root/airplane_mode_item
    * @class AirplaneModeItem
    * @param {HTMLElement} element the checkbox for airplane mode
    * @returns {AirplaneModeItem}

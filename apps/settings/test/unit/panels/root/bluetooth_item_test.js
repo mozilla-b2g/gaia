@@ -4,7 +4,7 @@ suite('BluetoothItem', function() {
   var realL10n;
   var modules = [
     'shared_mocks/mock_l20n',
-    'panels/root/bluetooth_item'
+    'views/phone/root/bluetooth_item'
   ];
   var map = {
     '*': {

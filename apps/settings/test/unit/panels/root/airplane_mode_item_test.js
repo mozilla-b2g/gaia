@@ -8,7 +8,7 @@ suite('AirplaneModeItem', function() {
   };
 
   var modules = [
-    'panels/root/airplane_mode_item',
+    'views/phone/root/airplane_mode_item',
     'unit/mock_airplane_mode_helper'
   ];
 

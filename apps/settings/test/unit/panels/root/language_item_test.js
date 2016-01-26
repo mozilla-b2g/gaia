@@ -6,10 +6,10 @@ suite('LanguageItem', function() {
   var modules = [
     'shared_mocks/mock_l20n',
     'shared_mocks/mock_language_list',
-    'panels/root/language_item',
+    'views/phone/root/language_item',
   ];
   var map = {
-    'panels/root/language_item': {
+    'views/phone/root/language_item': {
       'shared/language_list': 'shared_mocks/mock_language_list'
     }
   };

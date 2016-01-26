@@ -16,7 +16,7 @@ suite('WifiItem', function() {
   };
 
   var modules = [
-    'panels/root/wifi_item'
+    'views/phone/root/wifi_item'
   ];
 
   setup(function(done) {

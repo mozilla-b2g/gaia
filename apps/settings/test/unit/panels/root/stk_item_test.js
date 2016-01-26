@@ -5,7 +5,7 @@ requireApp('settings/test/unit/mock_navigator_settings.js');
 
 suite('STK Item >', function() {
   var modules = [
-    'panels/root/stk_item',
+    'views/phone/root/stk_item',
     'shared_mocks/mock_l20n',
     'shared_mocks/mock_stk_helper',
     'shared_mocks/mock_dump',

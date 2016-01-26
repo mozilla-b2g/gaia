@@ -3,22 +3,22 @@
  * The module should only be loaded after the menu items are ready for user
  * interaction.
  *
- * @module panels/root/low_priority_items
+ * @module views/phone/root/low_priority_items
  */
 define(function(require) {
   'use strict';
 
   var items = {
-    BluetoothItem: require('panels/root/bluetooth_item'),
-    NFCItem: require('panels/root/nfc_item'),
-    LanguageItem: require('panels/root/language_item'),
-    BatteryItem: require('panels/root/battery_item'),
-    FindMyDeviceItem: require('panels/root/findmydevice_item'),
-    StorageUSBItem: require('panels/root/storage_usb_item'),
-    StorageAppItem: require('panels/root/storage_app_item'),
-    WifiItem: require('panels/root/wifi_item'),
-    ScreenLockItem: require('panels/root/screen_lock_item'),
-    SimSecurityItem: require('panels/root/sim_security_item')
+    BluetoothItem: require('views/phone/root/bluetooth_item'),
+    NFCItem: require('views/phone/root/nfc_item'),
+    LanguageItem: require('views/phone/root/language_item'),
+    BatteryItem: require('views/phone/root/battery_item'),
+    FindMyDeviceItem: require('views/phone/root/findmydevice_item'),
+    StorageUSBItem: require('views/phone/root/storage_usb_item'),
+    StorageAppItem: require('views/phone/root/storage_app_item'),
+    WifiItem: require('views/phone/root/wifi_item'),
+    ScreenLockItem: require('views/phone/root/screen_lock_item'),
+    SimSecurityItem: require('views/phone/root/sim_security_item')
   };
 
   return {

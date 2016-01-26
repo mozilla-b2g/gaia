@@ -1,7 +1,7 @@
 /**
  * The moudle supports displaying nfc toggle on an element.
  *
- * @module panels/root/nfc_item
+ * @module views/phone/root/nfc_item
  */
 define(function(require) {
   'use strict';
@@ -9,7 +9,7 @@ define(function(require) {
   var SettingsListener = require('shared/settings_listener');
 
   /**
-   * @alias module:panels/root/nfc_item
+   * @alias module:views/phone/root/nfc_item
    * @class NFCItem
    * @param {Object} elements
    * @param {HTMLElement} elements.nfcMenuItem

@@ -190,7 +190,7 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
 SettingsAppBuilder.prototype.enableDataSync = function(options) {
   var fileList = {
     process:[
-      ['elements', 'root.html'],
+      ['views', 'root', 'root.html'],
       ['index.html']
     ],
     remove:[
