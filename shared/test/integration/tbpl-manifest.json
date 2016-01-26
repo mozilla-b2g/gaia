@@ -46,7 +46,6 @@
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
     "apps/system/test/marionette/audio_channel_competing_test.js": "Bug 1239338 - Intermittent apps/system/test/marionette/audio_channel_competing_test.js | Audio channel competing Public notification audio channel competes with audio channels Public notification channel competes with system channel",
-    "apps/system/test/marionette/browser_chrome_new_window_test.js": "Bug 1180236 - Intermittent apps/system/test/marionette/browser_chrome_new_window_test.js | Browser Chrome - Open New Window open new window",
     "apps/system/test/marionette/browser_clear_browsing_history_test.js": "Bug 1236038 - TEST-UNEXPECTED-FAIL | apps/system/test/marionette/browser_clear_browsing_history_test.js | Browser test Clear browsing history",
     "apps/system/test/marionette/browser_site_loading_background_test.js": "Bug 1233864 - Intermittent browser_site_loading_background_test.js | Browser - Site loading background validate loading background color",
     "apps/system/test/marionette/cell_broadcast_system_test.js": "Bug 1230362 - Intermittent cell_broadcast_system_test.js | mozApps - lockscreen enabled CellBroadcastSystem is shown when a message arrives, and clear notification",

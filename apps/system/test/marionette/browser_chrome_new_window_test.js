@@ -35,7 +35,16 @@ marionette('Browser Chrome - Open New Window', function() {
     home.waitForLaunch();
   });
 
-  function newWindow() {
+  test('open new window', function() {
+    // Use the home-screen search box to open up the system browser
+    var url = server.url('sample.html');
+    rocketbar.homescreenFocus();
+    rocketbar.enterText(url, true);
+    system.waitForBrowser(url);
+
+    // Count the number of currently open app windows (shoud be 3)
+    var nApps = system.getAppWindows().length;
+
     // Open the context menu and click open new window
     client.switchToFrame();
     system.appChromeContextLink.click();
@@ -43,19 +52,8 @@ marionette('Browser Chrome - Open New Window', function() {
 
     var newWindowLink = system.appChromeContextMenuNewWindow;
     assert.ok(newWindowLink.displayed());
+
     newWindowLink.click();
-  }
-
-  test('open new window', function() {
-    // Use the home-screen search box to open up the system browser
-    var url = server.url('sample.html');
-    rocketbar.homescreenFocus();
-    rocketbar.enterText(url, true);
-
-    // Count the number of currently open apps
-    var nApps = system.getAppWindows().length;
-
-    newWindow();
 
     // Confirm that a new window was opened
     client.switchToFrame();
@@ -74,8 +72,31 @@ marionette('Browser Chrome - Open New Window', function() {
 
     // Opening a new window and immediatly switching to
     // the previous app
-    newWindow();
-    actions.flick(system.leftPanel, 0, 50, 100, 50, 10).perform();
+
+    // Open the context menu and click open new window
+    system.appChromeContextLink.click();
+    assert.ok(system.appChromeContextMenu.displayed());
+
+    var newWindowLink = system.appChromeContextMenuNewWindow;
+    assert.ok(newWindowLink.displayed());
+
+    // Deferring click event to ensure that the new window is not already there
+    // when flicking starts.
+    // 200ms is a carefully selected value for slow and fast test nodes.
+    // If clicking happens too early, the new window is alredy there when
+    // flicking starts -> the test will fail, as its intent is to check,
+    // weather swiping back interrupts a new window action.
+    // If clicking happens too late, the flicking already runs -> this could
+    // fail and invalidate the test scenario, as a user will not (be able to)
+    // tap the new window button during a swipe gesture.
+    newWindowLink.scriptWith(function(el) {
+      setTimeout(function() { el.click(); }, 200);
+    });
+
+    // This flicking has to happen as fast/soon as possible to ensure that the
+    // resulting swipe gesture will interrupt opening the window;
+    // 20ms is still enough time for swipe gesture recognition
+    actions.flick(system.leftPanel, 0, 50, 100, 50, 20).perform();
 
     client.waitFor(function() {
       return system.getActiveAppName() === 'Clock';
