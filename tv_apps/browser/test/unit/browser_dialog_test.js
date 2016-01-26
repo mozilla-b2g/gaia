@@ -77,7 +77,7 @@ suite('Browser Dialog >', function() {
       expect(subject.browserDialogTitle.getAttribute('data-l10n-id'))
         .to.equals('fxsync-confirm-sign-out-title');
       expect(subject.browserDialogMsg.getAttribute('data-l10n-id'))
-        .to.equals('fxsync-confirm-sign-out-message');
+        .to.equals('fxsync-confirm-sign-out-detail');
       expect(subject.browserDialogButton1.getAttribute('data-l10n-id'))
         .to.equals('LT_CANCEL');
       expect(subject.browserDialogButton1.dataset.type)
