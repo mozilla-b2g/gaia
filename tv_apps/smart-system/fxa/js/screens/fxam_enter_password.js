@@ -213,8 +213,10 @@ var FxaModuleEnterPassword = (function() {
           //     user to go to desktop or android to create the account and
           //     retry from the TV.
           FxModuleServerRequest.logout(() => {
-            this.showErrorResponse({error: ERROR_INVALID_SYNC_ACCOUNT});
-            FxaModuleManager.close('DIALOG_CLOSED_BY_USER');
+            this.showErrorResponse({error: ERROR_INVALID_SYNC_ACCOUNT})
+                .then(() => {
+                  FxaModuleManager.close('DIALOG_CLOSED_BY_USER');
+                });
           }, this.showErrorResponse);
           return;
         }
