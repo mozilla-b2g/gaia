@@ -132,12 +132,14 @@ var AuthenticationDialog = {
         //'the-username-or-password-is-incorrect');
       //this.httpAuthenticationMessage.classList.add('error');
     } else {
-      var msg = navigator.mozL10n.get('WB_LT_AUTH_MESSAGE_1_1')
-              + ' ' + evt.detail.host + ' '
-              + navigator.mozL10n.get('WB_LT_AUTH_MESSAGE_1_2') + '<br>'
-              + navigator.mozL10n.get('WB_LT_AUTH_MESSAGE_2') + ' '
-              + evt.detail.realm;
-      this.httpAuthenticationMessage.innerHTML = msg.trim();
+      navigator.mozL10n.setAttributes(
+        this.httpAuthenticationMessage,
+        'WB_LT_AUTH_MESSAGE',
+        {
+          host: evt.detail.host,
+          msg: evt.detail.realm
+        }
+      );
       /*
       navigator.mozL10n.setAttributes(this.httpAuthenticationMessage,
                                       'http-authentication-message',

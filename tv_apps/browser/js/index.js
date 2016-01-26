@@ -17,8 +17,6 @@
 /* global SyncBrowserDB */
 //ENDIF_FIREFOX_SYNC
 
-var _ = navigator.mozL10n.get;
-
 var Browser = {
 
   currentInfo: null,

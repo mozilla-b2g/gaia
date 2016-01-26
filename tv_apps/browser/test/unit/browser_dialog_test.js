@@ -69,23 +69,22 @@ suite('Browser Dialog >', function() {
 
     setup(function() {
       this.sinon.stub(subject, 'cancelDialog');
-      window._ = navigator.mozL10n.get;
     });
 
     test('signout_confirm dialog should add a deferred action',
          function(done) {
       promise = subject.createDialog('signout_confirm');
-      expect(subject.browserDialogTitle.innerHTML)
+      expect(subject.browserDialogTitle.getAttribute('data-l10n-id'))
         .to.equals('fxsync-confirm-sign-out-title');
-      expect(subject.browserDialogMsg.innerHTML)
+      expect(subject.browserDialogMsg.getAttribute('data-l10n-id'))
         .to.equals('fxsync-confirm-sign-out-message');
-      expect(subject.browserDialogButton1.textContent)
+      expect(subject.browserDialogButton1.getAttribute('data-l10n-id'))
         .to.equals('LT_CANCEL');
       expect(subject.browserDialogButton1.dataset.type)
         .to.equals('signout_confirm');
       expect(subject.browserDialogButton1.classList.contains('visible'))
         .to.equals(true);
-      expect(subject.browserDialogButton2.textContent)
+      expect(subject.browserDialogButton2.getAttribute('data-l10n-id'))
         .to.equals('fxsync-sign-out');
       expect(subject.browserDialogButton2.dataset.type)
         .to.equals('signout_confirm');
