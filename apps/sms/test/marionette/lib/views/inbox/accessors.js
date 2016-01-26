@@ -10,7 +10,9 @@ var SELECTORS = Object.freeze({
   conversationTitle: '.threadlist-item-title',
   navigateToComposerHeaderButton: '#threads-composer-link',
   threadSettings: '#hreads-options-button',
-  threadsList: 'data-l10n-id=["selectThreads-label"]'
+  threadsList: 'data-l10n-id=["selectThreads-label"]',
+  firstThread: 'data-mode=["threads"]',
+  buttonDeleteThread: '#threads-delete-button'
 });
 
 function InboxAccessor(client) {
@@ -76,6 +78,12 @@ InboxAccessor.prototype = {
   },
   goToThreads: function(){
     return this.client.findElement(SELECTORS.threadsList).tap();
+  },
+  gotToFirstThread: function(){
+    return this.client.findElement(SELECTORS.firstThread).tap();
+  },
+  deleteSelectedThread: function(){
+    return this.client.findElement(SELECTORS.buttonDeleteThread).tap();
   }
 };
 

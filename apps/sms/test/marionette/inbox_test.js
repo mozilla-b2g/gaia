@@ -152,6 +152,8 @@ marionette('Inbox View tests', function() {
       messagesApp.launch();
       messagesApp.openSettings;
       messagesApp.goToThreads;
+      messagesApp.gotToFirstThread;
+      messagesApp.deleteSelectedThread;
     });
   });
 });
