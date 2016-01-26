@@ -1,17 +1,10 @@
 <element name="net-error-confirm-dialog" extends="section">
   <template>
-    <form role="dialog" data-type="confirm">
-      <section>
-        <h1 id="error-title" class="title"></h1>
-        <p>
-          <progress class="still" id="retry-icon"></progress>
-          <span id="error-message" class="message"></span>
-        </p>
-      </section>
-      <menu id="actions">
-        <button id="close-btn" type="button" class="close" data-l10n-id="close"></button>
-        <button id="retry-btn" type="button" class="reload recommend" data-l10n-id="try-again"></button>
-      </menu>
-    </form>
+    <h1 id="error-title" class="net-error-dialog-title"></h1>
+    <p id="error-message" class="net-error-dialog-message"></p>
+    <div class="net-error-dialog-btn-group">
+      <smart-button id="close-btn" class="net-error-dialog-btn" type="rounded-corner-text" data-l10n-id="close" tabindex="0"></smart-button>
+      <smart-button id="retry-btn" class="net-error-dialog-btn" type="rounded-corner-text" data-l10n-id="try-again" tabindex="0"></smart-button>
+    </div>
   </template>
 </element>
