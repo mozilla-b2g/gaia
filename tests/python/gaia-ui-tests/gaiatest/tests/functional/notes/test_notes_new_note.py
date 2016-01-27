@@ -18,4 +18,4 @@ class TestNotes (GaiaTestCase):
         self.notes.launch()
 
         main_menu = self.notes.write_and_save_note(note_text)
-        self.assertEquals(main_menu.first_note_title, note_text)
+        self.assertEqual(main_menu.first_note_title, note_text)

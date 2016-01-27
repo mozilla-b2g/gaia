@@ -9,6 +9,7 @@ from gaiatest.apps.base import Base, PageRegion
 class Notes(Base):
 
     name = 'Notes'
+
     manifest_url = "https://marketplace.firefox.com/app/dcdaeefc-26f4-4af6-ad22-82eb93beadcd/manifest.webapp"
 
     _app_ready_locator = (By.CSS_SELECTOR, 'header')
@@ -23,9 +24,11 @@ class Notes(Base):
                 *self._app_ready_locator))))
 
     def write_and_save_note(self, text):
-        Wait(self.marionette).until(expected.element_displayed(
-           Wait(self.marionette).until(expected.element_present(*self._note_content_locator))))
-        note_content = self.marionette.find_element(*self._note_content_locator)
+        # Wait(self.marionette).until(expected.element_displayed(
+        #   Wait(self.marionette).until(expected.element_present(*self._note_content_locator))))
+        # note_content = self.marionette.find_element(*self._note_content_locator)
+        note_content = Wait(self.marionette).until(expected.element_present(*self._note_content_locator))
+        Wait(self.marionette).until(expected.element_displayed(note_content))
         note_content.tap()
         note_content.send_keys(text)
         self.marionette.find_element(*self._save_note).tap()
@@ -36,8 +39,6 @@ class Notes(Base):
         return self.marionette.find_element(*self._note_content_locator).text
 
 class NotesMainMenu(PageRegion):
-
-    name = 'NotesMainMenu'
 
     _main_locator = (By.ID, 'main')
     _note_content_locator = (By.ID, 'note-content')
