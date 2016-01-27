@@ -9,7 +9,8 @@
     "debug": "~0.6",
     "json-wire-protocol": "file:../json-wire-protocol",
     "socket-retry-connect": "file:../socket-retry-connect",
-    "sockit-to-me": "file:../sockit-to-me"
+    "sockit-to-me": "file:../sockit-to-me",
+    "promise": "7.0.4"
   },
 
   "devDependencies": {
