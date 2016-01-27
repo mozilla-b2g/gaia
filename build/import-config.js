@@ -9,7 +9,7 @@
  *
  */
 
-var utils = require('utils');
+var utils = require('./utils');
 
 // Returns the communications services configuration as a JS object
 function getCommsServices(gaiaDir) {
