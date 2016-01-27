@@ -22,10 +22,12 @@ task:
     env:
       PART: '{{chunk}}'
       NBPARTS: '{{totalChunks}}'
-      REPORTER: 'mocha-tbpl-reporter'
+      #REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
       GAIA_DEVICE_TYPE: 'tv'
       NODE_MODULES_SRC: npm-cache
+      REPORTER: 'spec'
+      VERBOSE: 1
 
     command:
       - entrypoint
