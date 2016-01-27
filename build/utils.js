@@ -287,7 +287,7 @@ var gaia = {
   }
 };
 
-
+exports.isNode = isNode;
 exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.isSubjectToDeviceType = isSubjectToDeviceType;

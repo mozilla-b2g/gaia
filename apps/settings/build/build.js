@@ -2,9 +2,9 @@
 
 /* jshint node: true */
 
-var utils = require('../../build/utils');
-var jsmin = require('../../build/jsmin');
-var preprocessor = require('../../build/preprocessor');
+var utils = require('utils');
+var jsmin = require('jsmin');
+var preprocessor = require('preprocessor');
 
 var jsSuffix = /\.js$/;
 
@@ -91,31 +91,37 @@ SettingsAppBuilder.prototype.executeRjs = function(options) {
   var appName = this.appName;
   var config = utils.getFile(options.APP_DIR, 'build',
     'settings.build.jslike');
+  var rjsPath = utils.joinPath(options.GAIA_DIR, 'build', 'r.js');
+  var requirejs;
 
-  var sandbox = utils.createSandbox();
-  sandbox.arguments = [];
-  sandbox.requirejsAsLib = true;
-  sandbox.print = function() {
-    if(options.VERBOSE === '1') {
+  if (utils.isNode()) {
+    requirejs = require(rjsPath);
+  } else {
+    var sandbox = utils.createSandbox();
+    sandbox.arguments = [];
+    sandbox.requirejsAsLib = true;
+    sandbox.print = function() {
       utils.log(appName, Array.prototype.join.call(arguments, ' '));
-    }
-  };
-  utils.runScriptInSandbox(utils.getFile(
-    options.GAIA_DIR, 'build', 'r.js'), sandbox);
+    };
+    utils.runScriptInSandbox(rjsPath, sandbox);
+    requirejs = sandbox.requirejs;
+  }
 
-  // Simply use r.js for merging scripts as it does not support es6 syntax.
-  // Minifying will be done by other tools later.
+  // logLevel set 4 for silent, set 0 for all
+  var log = 'logLevel=' + (options.VERBOSE === '1' ? '0' : '4');
   var optimize = 'optimize=none';
   var build = new Promise(function(resolve, reject) {
-    sandbox.requirejs.optimize([config.path, optimize], resolve, reject);
+    requirejs.optimize([config.path, optimize, log], resolve, reject);
   });
 
-  return build.then(function() {
-    utils.log(appName, 'require.js optimize done');
-  }).catch(function(err) {
-    utils.log(appName, 'require.js optimize failed');
-    throw err;
-  });
+  return build
+    .then(function() {
+      utils.log(appName, 'require.js optimize done');
+    })
+    .catch(function(err) {
+      utils.log(appName, 'require.js optimize failed');
+      utils.log(appName, err);
+    });
 };
 
 SettingsAppBuilder.prototype.executeJsmin = function(options) {
@@ -143,8 +149,8 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
     'gaia_commit_override.txt');
   var commitFile = utils.getFile(options.STAGE_APP_DIR, 'resources');
   utils.ensureFolderExists(commitFile);
+  commitFile = utils.getFile(commitFile.path, 'gaia_commit.txt');
 
-  commitFile.append('gaia_commit.txt');
   if (overrideCommitFile.exists()) {
     utils.copyFileTo(overrideCommitFile, commitFile.parent.path,
       commitFile.leafName);

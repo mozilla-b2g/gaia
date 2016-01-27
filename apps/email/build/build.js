@@ -2,8 +2,8 @@
 
 /* jshint node: true, evil: true */
 
-var utils = require('../../build/utils');
-var esomin = require('../../build/esomin');
+var utils = require('utils');
+var esomin = require('esomin');
 var { Cc, Ci } = require('chrome');
 var converter =
       Cc['@mozilla.org/intl/scriptableunicodeconverter'].
@@ -203,7 +203,7 @@ function runOptimizer(args, requirejs) {
   })
   .catch(function(err) {
     utils.log(appName, 'require.js optimize failed');
-    throw err;
+    utils.log(appName, err);
   });
 }
 
@@ -225,7 +225,8 @@ function optimize(options, r) {
 
   // Do gelam worker stuff first. This will copy over all of the js/ext
   // directory.
-  return runOptimizer([gelamConfigFile.path], r)
+  var logLevel = 'logLevel=' + (options.VERBOSE === '1' ? '0' : '4');
+  return runOptimizer([gelamConfigFile.path, logLevel], r)
   .then(function() {
     // Now do main-frame-setup build for the main thread side of gelam. It is
     // a single file optimization, so need to manually delete files it combines
@@ -238,7 +239,7 @@ function optimize(options, r) {
                            ')');
     // Up the log level so we can see what was built. By default, passing object
     // args to r.js will run it in silent mode.
-    mainFrameOptions.logLevel = 0;
+    mainFrameOptions.logLevel = (options.VERBOSE === '1') ? 0 : 4;
 
     // Update paths, since it is now relative to the current working directory
     // of this script, not the gelamConfigFile.
@@ -270,7 +271,7 @@ function optimize(options, r) {
   .then(function() {
     // Now the rest of the gaia app optimization. This build run explicitly
     // ignores the ext directory.
-    return runOptimizer([appConfigFile.path], r);
+    return runOptimizer([appConfigFile.path, logLevel], r);
   });
 }
 
@@ -317,20 +318,25 @@ exports.execute = function(options) {
   var stageAppDir = utils.getFile(options.STAGE_APP_DIR);
   utils.ensureFolderExists(stageAppDir);
 
-  var sandbox = utils.createSandbox();
-  sandbox.arguments = [];
-  sandbox.requirejsAsLib = true;
-  sandbox.print = function() {
-    if(options.VERBOSE === '1') {
+  var rjsPath = utils.joinPath(options.GAIA_DIR, 'build', 'r.js');
+  var requirejs;
+
+  if (utils.isNode()) {
+    requirejs = require(rjsPath);
+  } else {
+    var sandbox = utils.createSandbox();
+    sandbox.arguments = [];
+    sandbox.requirejsAsLib = true;
+    sandbox.print = function() {
       utils.log(appName, Array.prototype.join.call(arguments, ' '));
-    }
-  };
-  utils.runScriptInSandbox(utils.getFile(
-    options.GAIA_DIR, 'build', 'r.js'), sandbox);
+    };
+    utils.runScriptInSandbox(rjsPath, sandbox);
+    requirejs = sandbox.requirejs;
+  }
 
   var promises = [
-    optimize(options, sandbox.requirejs),
-    getParse(sandbox.requirejs)
+    optimize(options, requirejs),
+    getParse(requirejs)
   ];
 
   return Promise.all(promises)

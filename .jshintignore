@@ -11,8 +11,8 @@ apps/**/*.esp.js
 apps/system/camera/**
 build/r.js
 build/csslinter.js
-build/esomin/escodegen.js
-build/esomin/esprima.js
+build/escodegen.js
+build/esprima.js
 build/jsmin.js
 build/l10n/l20n.js
 apps/communications/contacts/oauth2/js/parameters.js

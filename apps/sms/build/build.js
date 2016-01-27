@@ -1,6 +1,6 @@
-/* global require, exports */
-
 'use strict';
+
+/* jshint node: true */
 
 var utils = require('utils');
 
@@ -29,7 +29,7 @@ function removeDesktopOnlyScripts(appStageDir) {
     );
 
     for (var mockScript of mockScripts) {
-      mockScript.remove();
+      mockScript.parentNode.removeChild(mockScript);
     }
 
     utils.writeContent(indexFile, utils.serializeDocument(indexDocument));

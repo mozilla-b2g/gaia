@@ -16,6 +16,7 @@ CommAppBuilder.prototype.setOptions = function(options) {
   this.gaia = utils.gaia.getInstance(options);
   this.gaia.stageDir = this.stageDir;
   this.gaia.gaiaDir = options.GAIA_DIR;
+  this.webapp = options.webapp;
 };
 
 CommAppBuilder.prototype.generateManifest = function() {
@@ -30,13 +31,12 @@ CommAppBuilder.prototype.generateAll = function() {
   importBuild.generateConfig('communications', 'contacts', this.gaia);
 };
 
-CommAppBuilder.prototype.execute = function(options, webapp) {
-  this.webapp = webapp;
+CommAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.generateAll();
 };
 
-exports.execute = function(options, webapp) {
+exports.execute = function(options) {
   utils.copyToStage(options);
-  (new CommAppBuilder()).execute(options, webapp);
+  (new CommAppBuilder()).execute(options);
 };
