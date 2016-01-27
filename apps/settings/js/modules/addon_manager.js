@@ -231,6 +231,7 @@ define(function(require) {
         return Promise.resolve([]);
       }
 
+      var matched;
       return AppsCache.apps()
         .then(apps => apps.filter(app => {
           var manifest = this._getManifest(app);
@@ -241,16 +242,11 @@ define(function(require) {
             this._privilegeCheck(addon, app);
         }))
         // Match apps based on add-on's content sctipts.
-        .then(apps => {
-          var matches = [];
-          apps.forEach(app => {
-            var matched;
-            if ((matched = this._matchContentScripts(contentScripts, app))) {
-              matches.push({ app: app, contentScripts: matched });
-            }
-          });
-          return matches;
-        })
+        .then(apps =>
+          [for (app of apps)
+            if (matched = this._matchContentScripts(contentScripts, app))
+              { app: app, contentScripts: matched }
+        ])
         .catch(() => []);
     },
 

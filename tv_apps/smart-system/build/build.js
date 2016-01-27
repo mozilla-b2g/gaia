@@ -1,13 +1,13 @@
 'use strict';
 
-/* jshint node: true */
-
+/* global require, exports */
 var utils = require('utils');
 var preprocessor = require('preprocessor');
 
 var SystemAppBuilder = function() {
 };
 
+// set options
 SystemAppBuilder.prototype.setOptions = function(options) {
   this.stageDir = utils.getFile(options.STAGE_APP_DIR);
   this.appDir = utils.getFile(options.APP_DIR);

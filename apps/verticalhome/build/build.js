@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint node: true */
-
+/* global require, exports */
 var utils = require('utils');
 var manager = require('homescreen-manager');
 var svoperapps = require('./homescreen-svoperapps');

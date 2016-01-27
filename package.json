@@ -25,7 +25,6 @@
     "ejs": "^2.3.4",
     "empty-port": "^0.0.1",
     "es6-promise": "^2",
-    "escodegen": "^1.8.0",
     "eslint": "^1.9.0",
     "eslint-plugin-no-unsafe-innerhtml": "^1.0.14",
     "eslint-plugin-no-wildcard-postmessage": "0.1.3",

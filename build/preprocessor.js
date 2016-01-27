@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('./utils');
+/* jshint node: true */
+var utils = require('utils');
 
 const jsSuffix = /\.js$/;
 const htmlSuffix = /\.(html|htm)$/;

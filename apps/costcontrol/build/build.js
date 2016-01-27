@@ -1,6 +1,6 @@
-'use strict';
+/* global require, exports */
 
-/* jshint node: true */
+'use strict';
 
 var utils = require('utils');
 
