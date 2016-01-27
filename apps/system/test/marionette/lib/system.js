@@ -90,6 +90,7 @@ System.prototype = {
   client: null,
 
   URL: System.URL,
+  origin: System.URL.substring(0, System.URL.indexOf('/manifest.webapp')),
 
   Selector: System.Selector,
 

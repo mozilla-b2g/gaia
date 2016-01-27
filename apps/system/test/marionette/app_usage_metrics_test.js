@@ -42,7 +42,7 @@ marionette('App Usage Metrics >', function() {
     }, callback);
   }
 
-  var sys, metrics, settings;
+  var sys, metrics, settings, confirmDialog;
   var appInstall, server, serverManifestURL, serverRootURL;
 
   suiteSetup(function(done) {
@@ -62,11 +62,11 @@ marionette('App Usage Metrics >', function() {
   });
 
   setup(function() {
-    client.setScriptTimeout(20000);
     appInstall = new AppInstall(client);
     settings = new Settings(client);
     metrics = new AppUsageMetrics(client);
     sys = client.loader.getAppClass('system');
+    confirmDialog = client.loader.getAppClass('system', 'confirm_dialog');
 
     sys.waitForStartup();
     metrics.waitForStartup();
@@ -86,6 +86,7 @@ marionette('App Usage Metrics >', function() {
     [MEDIA_APP, MUSIC_APP, ALARM_APP].forEach(function(app) {
       sys.waitForLaunch(app);
     });
+    client.switchToFrame();
 
     assert.equal(metrics.getAppInvocations(MEDIA_MANIFEST), 1);
     assert.ok(metrics.getAppUsageTime(MEDIA_MANIFEST) > 0);
@@ -101,20 +102,39 @@ marionette('App Usage Metrics >', function() {
     assert.ok(metrics.getAppUsageTime(ALARM_MANIFEST) > 0);
   });
 
-  test('Installed apps are counted', function(done) {
+  test('Installed apps are counted', function() {
+    var marketplaceOrigins = client.executeScript(function(testOrigin) {
+        var aum = window.wrappedJSObject.core.appUsageMetrics;
+        aum.constructor.MARKETPLACE_ORIGINS.push(testOrigin);
+        return aum.constructor.MARKETPLACE_ORIGINS;
+    }, [sys.origin]);
+    console.log('marketplaceOrigins: ', marketplaceOrigins);
+
     appInstall.install(serverManifestURL);
-    waitForEvent('applicationinstall', function(err) {
-      var installs = metrics.getAppInstalls(serverManifestURL);
-      assert.equal(installs, 1);
-      done();
+    client.waitFor(function() {
+      return appInstall.isAppInstalled(serverManifestURL);
     });
+    client.helper.waitForElementToDisappear(appInstall.installDialog);
+
+    var setupDialog = appInstall.setupDialog;
+    if (setupDialog) {
+      var cancelButton = client.helper.waitForElement('#setup-cancel-button');
+      cancelButton.click();
+      client.helper.waitForElementToDisappear(setupDialog);
+    }
+
+    var installs = metrics.getAppInstalls(serverManifestURL);
+    console.log('did it get installed? ',
+                appInstall.isAppInstalled(serverManifestURL));
+    assert.equal(installs, 1,
+                 installs +' were counted in usage metrics, expected 1');
   });
 
   test('Uninstalled apps are counted', function() {
     var frame = sys.waitForLaunch(Settings.ORIGIN);
     client.switchToFrame(frame);
-    client.helper.waitForElement(Settings.Selectors.menuItemsSection);
 
+    client.helper.waitForElement(Settings.Selectors.menuItemsSection);
     var panel = settings.appPermissionPanel;
     var apps = panel.appList.filter(function(element) {
       return TEMPLATE_NAME === element.text();
@@ -123,11 +143,10 @@ marionette('App Usage Metrics >', function() {
 
     apps[0].click();
     panel.uninstallButton.click();
+
+    // use confirm dialog helper to confirm uninstall
     client.switchToFrame();
-
-    var confirm = client.helper.waitForElement('.modal-dialog-confirm-ok');
-    confirm.click();
-
+    confirmDialog.confirm('remove');
     // Wait for the app to be uninstalled and the list item is gone.
     client.helper.waitForElementToDisappear(apps[0]);
 
@@ -135,7 +154,8 @@ marionette('App Usage Metrics >', function() {
     assert.equal(uninstalls, 1);
   });
 
-  test('App usage is counted after screen lock and unlock', function(done) {
+  test('App usage is counted after screen lock and unlock',
+  function(done) {
     var chromeClient = client.scope({ context: 'chrome' });
 
     function startTest() {
