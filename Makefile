@@ -1014,7 +1014,7 @@ csslint: b2g_sdk
 	@$(call $(BUILD_RUNNER),csslint)
 
 jsonlint: b2g_sdk
-	@$(call $(BUILD_RUNNER),jsonlint)
+	@$(call run-node-command,jsonlint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
