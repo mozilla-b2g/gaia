@@ -94,6 +94,8 @@ Contacts.Selectors = {
   contactsItems: 'li:not([data-group="ice"]).contact-item p',
   contactListHeader: '#contacts-list-header',
 
+  contactsIframe: '#iframe-contacts',
+
   searchLabel: '#search-start',
   searchInput: '#search-contact',
   searchCancel: '#cancel-search',
@@ -386,8 +388,31 @@ Contacts.prototype = {
     }
   },
 
+  getContactFirstName: function() {
+    var ci = this.client.findElement(Contacts.Selectors.contactsIframe);
+    this.client.switchToFrame(ci);
+
+    var contactInContactList = this.client.findElement(
+      Contacts.Selectors.listContactFirst
+    );
+    var contactName = contactInContactList.text();
+    return contactName;
+  },
+
   tapSave: function() {
     this.client.helper.waitForElement(Contacts.Selectors.formSave).click();
+  },
+
+  createNewContactAndReturnToDialer: function(contactName) {
+    this.client.helper.waitForElement(Contacts.Selectors.formGivenName);
+    this.client.helper.fillInputField(
+      Contacts.Selectors.formGivenName, contactName
+    );
+    this.client.helper.waitForElement(Contacts.Selectors.formSave).click();
+  
+    var dialer = this.client.loader.getAppClass('dialer');
+    dialer.switchTo();
+    return dialer;
   },
 
   tapUpdate: function() {

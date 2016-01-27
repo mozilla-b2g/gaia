@@ -1,5 +1,8 @@
 'use strict';
 
+/* global module */
+var KeypadView = require('./views/keypad/views.js');
+
 /**
  * Abstraction around dialer app.
  * @constructor
@@ -15,14 +18,19 @@ function Dialer(client) {
 Dialer.URL = 'app://communications.gaiamobile.org';
 
 Dialer.config = {
-  settings: {
-    'devtools.overlay': true,
-    'hud.reflows': true
-  },
-  prefs: {
-    'devtools.debugger.forbid-certified-apps': false
-  }
-};
+   profile: {
+    settings: {
+      'devtools.overlay': true,
+      'hud.reflows': true
+    },
+    prefs: {
+      'devtools.debugger.forbid-certified-apps': false
+    }
+   },
+   desiredCapabilities: {
+    'raisesAccessibilityExceptions': false
+   }
+ };
 
 Dialer.Selectors = {
   phoneNumber: '#phone-number-view',
@@ -41,11 +49,20 @@ Dialer.Selectors = {
   callLogNoResultsContainer: '#no-result-container',
   callLogItem: '.log-item',
   callLogEditForm: '#edit-mode',
+  noEntriesMessage: '#no-result-msg1',
+  callLogMissedTab: '#missed-filter',
+  noMissedCalls: '#no-result-msg3',
 
   contactsTabItem: '#option-contacts',
   contactsIframe: '#iframe-contacts',
+  contactsFormHeader: '#contact-form-header',
 
-  addToExistingContactMenuItem: 'button[data-l10n-id="addToExistingContact"]'
+  contactsAddIframe:'iframe[src*="form"]',
+  doneButton: 'button[data-l10n-id="done"]',
+  addNewContact: 'button[data-l10n-id="createNewContact"]',
+  addToExistingContactMenuItem: 'button[data-l10n-id="addToExistingContact"]',
+  contactNameField: '#givenName',
+  contactLocator: 'li[data-uuid]:not([data-group="ice"])'
 };
 
 Dialer.prototype = {
@@ -62,6 +79,12 @@ Dialer.prototype = {
     this.client.apps.close(Dialer.URL, 'dialer');
     this.launch();
   },
+  
+  goToContactList: function() {
+    this.contactListButton.tap();
+    var contacts = this.client.loader.getAppClass('contacts');
+    return contacts;
+  },
 
   switchTo: function() {
     this.client.switchToFrame();
@@ -72,6 +95,14 @@ Dialer.prototype = {
   get phoneNumber() {
     return this.client.helper.waitForElement(Dialer.Selectors.phoneNumber)
                              .getAttribute('value');
+  },
+
+  get keypadView() {
+    return new KeypadView(this.client);
+  },
+
+  get contactListButton() {
+    return this.client.helper.waitForElement(Dialer.Selectors.contactsTabItem);
   }
 };
 
