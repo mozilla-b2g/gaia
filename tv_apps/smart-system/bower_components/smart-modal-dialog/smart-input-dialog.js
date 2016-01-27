@@ -177,7 +177,7 @@
     this._createButtonGroup(options);
 
     this._focusedGroupIndex = 0;
-    this._focusedGroupIndex[INPUT_GROUP_INDEX] = 0;
+    this._focusedIndex[INPUT_GROUP_INDEX] = 0;
     // Put focusable element groups into verticalGroup,
     // so we can simply navigate up/down among these groups.
     this.verticalGroup = [this.inputElements, this.buttonElements];

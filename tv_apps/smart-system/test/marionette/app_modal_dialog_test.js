@@ -54,6 +54,7 @@ marionette('Test Modal Dialog Events', function() {
   };
 
   setup(function() {
+    console.log('------------ Test Start ------------ ');
     system = client.loader.getAppClass('smart-system', 'system', 'tv_apps');
     system.waitForFullyLoaded();
     appModalDialog = new AppModalDialog(client);
@@ -61,6 +62,25 @@ marionette('Test Modal Dialog Events', function() {
     client.apps.launch(APP_URL);
     client.apps.switchToApp(APP_URL);
   });
+
+  teardown(function () {
+    console.log('------------ Test End ------------');
+    console.log(' ');
+    console.log(' ');
+    console.log(' ');
+  });
+
+  function takeScreenshot(client) {
+      console.log(' ');
+      console.log(' ');
+      console.log(' ');
+      console.log('Screenshot: ' +
+                  'data:image/png;base64,' +
+                  client.screenshot());
+      console.log(' ');
+      console.log(' ');
+      console.log(' ');
+  }
 
   test('alert modal dialog should disappear', testOptions, function() {
     client.executeAsyncScript(function(options) {
@@ -103,19 +123,71 @@ marionette('Test Modal Dialog Events', function() {
 
   test('prompt modal dialog should disappear - ok', testOptions,
     function() {
+      // setTimeout(function () {
+      //   client.switchToFrame();
+      //   appModalDialog.find('.description', function (css, err, elem) {
+      //     if (err) {
+      //       console.log('No elem of ', css);
+      //       console.log(err);
+      //       takeScreenshot(client);
+      //       return;
+      //     }
+      //     console.log('Found elem of', css);
+      //   });
+      //   appModalDialog.find('.appWindow.active .smart-modal-dialog-container', function (css, err, elem) {
+      //     if (err) {
+      //       console.log('No elem of ', css);
+      //       console.log(err);
+      //       takeScreenshot(client);
+      //       return;
+      //     }
+      //     console.log('Found elem of', css);
+      //   });
+      //   appModalDialog.find('.modal-dialog-opened', function (css, err, elem) {
+      //     if (err) {
+      //       console.log('No elem of ', css);
+      //       console.log(err);
+      //       takeScreenshot(client);
+      //       return;
+      //     }
+      //     console.log('Found elem of', css);
+      //   });
+      //   appModalDialog.find('.appWindow.active .smart-modal-dialog-container .modal-dialog-opened', function (css, err, elem) {
+      //     if (err) {
+      //       console.log('No elem of ', css);
+      //       console.log(err);
+      //       takeScreenshot(client);
+      //       return;
+      //     }
+      //     console.log('Found elem of', css);
+      //   });
+      //   done();
+      // }, 1200);
+      // return;
+
       client.executeAsyncScript(function(options) {
         window.wrappedJSObject.showDialog('prompt', options.prompt.message);
         marionetteScriptFinished();
       }, [options]);
       client.switchToFrame();
 
-      appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
-
       appModalDialog.promptMessage.scriptWith(function(el) {
         return el.textContent;
       }, function (err, text) {
         assert.equal(text, options.prompt.message);
       });
+
+      // TMP
+      appModalDialog.find('.appWindow.active .smart-modal-dialog-container .modal-dialog-opened', function (css, err, elem) {
+        if (err) {
+          console.log('No elem of ', css);
+          console.log(err);
+          takeScreenshot(client);
+          return;
+        }
+        console.log('Found elem of', css);
+      });
+      // TMP end
 
       appModalDialog.sendKeyToElement(appModalDialog.promptOk, Keys.enter);
       appModalDialog.waitForDialogClosed(appModalDialog.promptDialog);
@@ -137,6 +209,18 @@ marionette('Test Modal Dialog Events', function() {
         assert.equal(text, options.prompt.message);
       });
 
+      // TMP
+      appModalDialog.find('.appWindow.active .smart-modal-dialog-container .modal-dialog-opened', function (css, err, elem) {
+        if (err) {
+          console.log('No elem of ', css);
+          console.log(err);
+          takeScreenshot(client);
+          return;
+        }
+        console.log('Found elem of', css);
+      });
+      // TMP end
+
       appModalDialog.sendKeyToElement(appModalDialog.promptCancel, Keys.enter);
       appModalDialog.waitForDialogClosed(appModalDialog.promptDialog);
     });
@@ -148,6 +232,18 @@ marionette('Test Modal Dialog Events', function() {
         marionetteScriptFinished();
       }, [options]);
       client.switchToFrame();
+
+      // TMP
+      appModalDialog.find('.appWindow.active .smart-modal-dialog-container .modal-dialog-opened', function (css, err, elem) {
+        if (err) {
+          console.log('No elem of ', css);
+          console.log(err);
+          takeScreenshot(client);
+          return;
+        }
+        console.log('Found elem of', css);
+      });
+      // TMP end
 
       appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
 

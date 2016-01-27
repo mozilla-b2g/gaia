@@ -9,7 +9,7 @@
  * @param {Marionette.Client} client Marionette client to use.
  */
 function ModalDialog(client) {
-  this.client = client.scope({ searchTimeout: 200000 });
+  this.client = client.scope({ searchTimeout: 10000 }); //200000
   this.client.helper = client.helper;
 }
 
@@ -119,6 +119,7 @@ ModalDialog.prototype = {
   waitForDialogOpened: function(element) {
     this.client.waitFor(function() {
       var dialogClass = element.getAttribute('class');
+      console.log('dialogClass =', dialogClass);
       return dialogClass.indexOf('visible') != -1;
     });
   },
@@ -131,6 +132,26 @@ ModalDialog.prototype = {
     this.client.waitFor(function() {
       var dialogClass = element.getAttribute('class');
       return dialogClass.indexOf('visible') == -1;
+    });
+  },
+
+  tryToWait: function (title, elem) {
+    console.log('>>> Try to wait for', title);
+    console.log('elem =', elem);
+    var count = 10;
+    this.client.waitFor(function() {
+      var clazz = elem.getAttribute('class');
+      console.log('class =', clazz);
+      count--;
+      if (count < 0 || clazz) return true;
+    });
+    console.log('<<< Try to wait for', title);
+  },
+
+  find: function (css, cb) {
+    console.log('>>> Try to find ', css);
+    return this.client.findElement(css, function (err, elem) {
+      cb(css, err, elem);
     });
   }
 };
