@@ -567,7 +567,7 @@ var Awesomescreen = {
     this.awesomescreen.classList.add('awesomescreen-screen-top');
     this.topSites.style.display = 'block';
     this.topSites.style.opacity = '1';
-    if(this.isDisplayedTab()){
+    if(this.isDisplayedTab() || window.FTE){
        Browser.switchCursorMode(false);
     }else{
        Browser.switchCursorMode(true);
