@@ -755,6 +755,27 @@ suite('dialer/call_log', function() {
           assert.isFalse(checkbox.checked);
         }
       });
+
+      test('should display all entries if filtering is disabled',
+      function() {
+        this.sinon.spy(CallLog, 'unfilter');
+
+        CallLog.callLogIconEdit.removeAttribute('disabled');
+        CallLog.showEditMode();
+        CallLog.hideEditMode();
+        sinon.assert.calledOnce(CallLog.unfilter);
+      });
+
+      test('should filter out non-missed entries if filtering is enabled',
+      function() {
+        this.sinon.spy(CallLog, 'filter');
+
+        CallLog.callLogIconEdit.removeAttribute('disabled');
+        CallLog.showEditMode();
+        CallLog.callLogContainer.classList.add('filter');
+        CallLog.hideEditMode();
+        sinon.assert.calledOnce(CallLog.filter);
+      });
     });
   });
 
