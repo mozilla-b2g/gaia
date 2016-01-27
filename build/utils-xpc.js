@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Services, Components, dump, FileUtils, OS */
+/* global Services, Components, dump, FileUtils, OS, quit */
 /* jshint -W118 */
 
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
@@ -1331,6 +1331,10 @@ function runScriptInSandbox(filePath, sandbox) {
   return Services.scriptloader.loadSubScript(fileURI, sandbox);
 }
 
+function exit(exitValue) {
+  return quit(exitValue);
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -1399,3 +1403,4 @@ exports.getUUIDMapping = getUUIDMapping;
 exports.getMD5hash = getMD5hash;
 exports.createSandbox = createSandbox;
 exports.runScriptInSandbox= runScriptInSandbox;
+exports.exit = exit;

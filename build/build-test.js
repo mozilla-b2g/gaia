@@ -1,12 +1,11 @@
 'use strict';
 
-/* global exports, require, quit */
-
 /**
  * This script is used to run test case for gaia build system.
  */
 
-var utils = require('utils');
+var utils = require('./utils');
+var Mocha = require('mocha');
 
 exports.execute = function(options) {
   var TEST_TYPE = utils.getEnv('TEST_TYPE');
@@ -18,12 +17,11 @@ exports.execute = function(options) {
   var thisChunk = utils.getEnv('THIS_CHUNK') || 1;
   var totalChunks = utils.getEnv('TOTAL_CHUNKS') || 1;
 
-  var args = [
-    '--harmony',
-    '--reporter', REPORTER,
-    '--ui', 'tdd',
-    '--timeout', TIMEOUT
-  ];
+  var args = {
+    ui: 'tdd',
+    reporter: REPORTER,
+    timeout: TIMEOUT
+  };
 
   // Specify build test libraries path for build script testing
   utils.setEnv('NODE_PATH', '$NODE_PATH:' + BUILD_TEST_PATH + TEST_TYPE);
@@ -63,12 +61,11 @@ exports.execute = function(options) {
     files = files.slice(chunk, chunk + chunkLength);
   }
 
-  args = args.concat(files);
-
   // Use Mocha to run test cases.
-  var mocha = new utils.Commander('mocha');
-  mocha.initPath(utils.getFile(options.GAIA_DIR, 'node_modules', '.bin').path);
-  mocha.run(args, function(exitValue) {
-    quit(exitValue);
+  var mocha = new Mocha(args);
+
+  files.forEach(file => mocha.addFile(file));
+  mocha.run(function(exitValue){
+    utils.exit(exitValue);
   });
 };
