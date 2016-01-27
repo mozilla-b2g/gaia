@@ -1,20 +1,19 @@
 'use strict';
 
-var APP_NAME = 'contextmenuapp';
-var APP_HOST = APP_NAME + '.gaiamobile.org';
-var APP_URL = 'app://' + APP_HOST;
-
-var Keys = {
-  'enter': '\ue006',
-  'right': '\ue014',
-  'esc': '\ue00c'
-};
-
 var assert = require('chai').assert;
 
-// Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
-// We should investigate the issue and re-enable the test later.
-marionette.skip('Test Context Menu Events', function() {
+marionette('Test Context Menu Events', function() {
+
+  var APP_NAME = 'contextmenuapp';
+  var APP_HOST = APP_NAME + '.gaiamobile.org';
+  var APP_URL = 'app://' + APP_HOST;
+
+  var Keys = {
+    'enter': '\ue006',
+    'right': '\ue014',
+    'esc': '\ue00c',
+    'backspace': '\ue003'
+  };
 
   var opts = {
     apps: {},
@@ -41,24 +40,18 @@ marionette.skip('Test Context Menu Events', function() {
   ];
 
   setup(function() {
-    actions = client.loader.getActions();
     system = client.loader.getAppClass('smart-system', 'system', 'tv_apps');
-  });
-
-  function launchContextMenu() {
+    system.waitForFullyLoaded();
+    actions = client.loader.getActions();
     // Launch test app
     client.apps.launch(APP_URL);
     client.apps.switchToApp(APP_URL);
+  });
 
+  test('press enter on first menu', { 'devices': ['tv'] }, function() {
     // Long press on a link
     var link = client.helper.waitForElement('#link');
     actions.longPress(link, 1.5).perform();
-
-  }
-
-  test('press enter on first menu', { 'devices': ['tv'] }, function() {
-    launchContextMenu();
-    client.switchToFrame();
 
     system.waitForEvent('appcontextmenu-shown');
 
@@ -66,9 +59,15 @@ marionette.skip('Test Context Menu Events', function() {
     // find the first context menu
     var firstMenu = client.helper.waitForElement(menuSelectors[0]);
     // check focus
-    assert.isTrue(firstMenu.scriptWith(function(el) {
+    firstMenu.scriptWith(function(el) {
       return document.activeElement === el;
-    }), 'first smart button should be focused.');
+    }, function (err, isActive) {
+      if (err) {
+        throw err;
+      }
+      assert.isTrue(isActive, 'first smart button should be focused.');
+    });
+
     // press enter and close it
     firstMenu.sendKeys(Keys.enter);
 
@@ -78,8 +77,9 @@ marionette.skip('Test Context Menu Events', function() {
   });
 
   test('press enter on second menu', { 'devices': ['tv'] }, function() {
-    launchContextMenu();
-    client.switchToFrame();
+    // Long press on a link
+    var link = client.helper.waitForElement('#link');
+    actions.longPress(link, 1.5).perform();
 
     system.waitForEvent('appcontextmenu-shown');
 
@@ -91,9 +91,15 @@ marionette.skip('Test Context Menu Events', function() {
     var menu = system.appChromeContextMenu;
     menu.sendKeys(Keys.right);
 
-    assert.isTrue(secondMenu.scriptWith(function(el) {
+    secondMenu.scriptWith(function(el) {
       return document.activeElement === el;
-    }), 'second smart button should be focused.');
+    }, function (err, isActive) {
+      if (err) {
+        throw err;
+      }
+      assert.isTrue(isActive, 'second smart button should be focused.');
+    });
+
     // press enter and close it
     secondMenu.sendKeys(Keys.enter);
 
@@ -103,8 +109,9 @@ marionette.skip('Test Context Menu Events', function() {
   });
 
   test('press esc after menu shown', { 'devices': ['tv'] }, function() {
-    launchContextMenu();
-    client.switchToFrame();
+    // Long press on a link
+    var link = client.helper.waitForElement('#link');
+    actions.longPress(link, 1.5).perform();
 
     system.waitForEvent('appcontextmenu-shown');
 
