@@ -41,7 +41,7 @@
  */
 
 /* global asyncStorage, SettingsListener, performance, uuid, TelemetryRequest,
-          applications, LazyLoader, homescreenWindowManager */
+          applications, LazyLoader, homescreenWindowManager, AppWindowManager */
 (function(exports) {
   'use strict';
 
@@ -61,6 +61,8 @@
   // same values when registering, unregistering and handling these.
   const APPOPENED = 'appopened';
   const APPLOADED = 'apploaded';
+  const PREVIEWOPENED = 'previewopened';
+  const PREVIEWTERMINATED = 'previewterminated';
   const HOMESCREEN = 'homescreenopened';
   const ACTIVITY = 'activitycreated';
   const LOCKED = 'lockscreen-appopened';    // In 2.0, use 'locked'
@@ -84,6 +86,8 @@
   const EVENT_TYPES = [
     APPOPENED,
     APPLOADED,
+    PREVIEWOPENED,
+    PREVIEWTERMINATED,
     HOMESCREEN,
     ACTIVITY,
     LOCKED,
@@ -437,6 +441,7 @@
     switch (e.type) {
 
     case APPOPENED:
+    case PREVIEWOPENED:
       // The user has opened an app or switched apps.
       // Record data about the app that was running and then
       // update the currently running app.
@@ -469,6 +474,13 @@
           loadedApp.manifestURL.startsWith(SENDTOTV_ORIGIN) === 0) {
         this.metrics.recordInvocation(loadedApp, 0, true);
       }
+      break;
+    case PREVIEWTERMINATED:
+      this.metrics.recordInvocation(this.getCurrentApp(),
+                                              now - this.getCurrentStartTime());
+      this.attentionWindows = [];
+      this.currentApp = AppWindowManager.getActiveApp();
+      this.currentAppStartTime = now;
       break;
     case HOMESCREEN:
       // The user has switched to homescrseen.
@@ -800,8 +812,8 @@
     var addOn = false;
 
     if (app !== null && typeof app === 'object') {
-      manifestURL = app.manifestURL;
-      addOn = (app.manifest.role === 'addon');
+      manifestURL = app.isAppLike ? app.identity : app.manifestURL;
+      addOn = (app.manifest && app.manifest.role === 'addon');
     } else {
       manifestURL = app;
     }
@@ -883,6 +895,10 @@
       return false;
     }
 
+    if (app.isAppLike) {
+      return true;
+    }
+
     // Gecko and the app window state machine do not send certain app properties
     // along in webapp-launch or appopened events, causing marketplace app usage
     // to not be properly recorded. We fall back on the system app's application
@@ -929,7 +945,7 @@
       usage.invocations++;
       usage.usageTime += time;
       this.needsSave = true;
-      debug(app.manifestURL, 'ran for', time);
+      debug(app.isAppLike ? app.identity : app.manifestURL, 'ran for', time);
     }
     return time > 0;
   };
@@ -950,7 +966,7 @@
       var usage = this.getAppUsage(app);
       usage.usageTime += time;
       this.needsSave = true;
-      debug(app.manifestURL, 'run for', time);
+      debug(app.isAppLike ? app.identity : app.manifestURL, 'run for', time);
     }
     return time > 0;
   };

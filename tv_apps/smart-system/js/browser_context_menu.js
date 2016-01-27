@@ -110,7 +110,7 @@
       evt.stopPropagation();
 
       var listItemTask;
-      if (this.app.isWebsite) {
+      if (this.app.isAppLike) {
         listItemTask = this._listAddWebsiteToAppsItem(
           this.app.identity, this.app.features.name, this.app.features.iconUrl);
       } else {

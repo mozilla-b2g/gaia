@@ -14,8 +14,7 @@
   const ADD_TO_APPS_ICON_PATH = '/style/icons/add_to_apps.png';
 
   /**
-   * This window is inherit the AppWindow, and modifies some properties
-   * different from the later.
+   * This window inherited AppWindow and altered some properties of the later.
    *
    * @constructor PreviewWindow
    * @augments AppWindow
@@ -26,7 +25,7 @@
       this.container = configs.rearWindow;
     }
 
-    this.isWebsite = !configs.manifestURL;
+    this.isAppLike = !configs.manifestURL;
     this.identity = configs.manifestURL || configs.url;
     this.features = configs.features || {};
 
@@ -166,7 +165,7 @@
       previewOpenedTimes[this.identity] == PREVIEW_OPENED_TIMES_TO_HINT;
     var options;
 
-    if (this.isWebsite) {
+    if (this.isAppLike) {
       if (needPrompt) {
         BookmarkManager.get(this.identity).then((bookmark) => {
           if (!bookmark) {
