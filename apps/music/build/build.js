@@ -1,11 +1,11 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
+
 var utils = require('utils');
 
 exports.execute = function(options) {
   utils.copyToStage(options);
-
   createConfigFile(options);
   createMetadataScripts(options);
 };
@@ -24,9 +24,9 @@ function createMetadataScripts(options) {
     'metadata', 'metadata_scripts.js');
   var sharedPath = utils.gaia.getInstance(options).sharedFolder.path;
   var files = [
-    [sharedPath, 'js', 'blobview.js'],
-    [options.APP_DIR, 'js', 'metadata', 'formats.js'],
-    [options.APP_DIR, 'js', 'metadata', 'core.js']
+    utils.joinPath(sharedPath, 'js', 'blobview.js'),
+    utils.joinPath(options.APP_DIR, 'js', 'metadata', 'formats.js'),
+    utils.joinPath(options.APP_DIR, 'js', 'metadata', 'core.js')
   ];
 
   utils.concatenatedScripts(files, targetPath);

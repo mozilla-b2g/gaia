@@ -12,7 +12,7 @@ Cu.import('resource://gre/modules/osfile.jsm');
 Cu.import('resource://gre/modules/Promise.jsm');
 Cu.import('resource://gre/modules/reflect.jsm');
 
-var utils = require('./utils.js');
+var utils = require('./utils');
 var subprocess = require('sdk/system/child_process/subprocess');
 var fsPath = require('sdk/fs/path');
 var downloadMgr = require('./download-manager').getDownloadManager();
@@ -188,7 +188,7 @@ function ensureFolderExists(file) {
  */
 function concatenatedScripts(scriptsPaths, targetPath) {
   var concatedScript = scriptsPaths.map(function(path) {
-    return getFileContent(getFile.apply(this, path));
+    return getFileContent(getFile(path));
   }).join('\n');
 
   var targetFile = getFile(targetPath);
@@ -991,6 +991,7 @@ function Commander(cmd) {
     var p = subprocess.call({
       command: _file,
       arguments: args,
+      environment: (options && options.environment) || [],
       stdin: (options && options.stdin) || function(){},
       stdout: (options && options.stdout) || function(){},
       stderr: (options && options.stderr) || function(){},
@@ -1273,7 +1274,11 @@ function NodeHelper() {
       var done = false;
       node.runWithSubprocess(['--harmony', '-e',
         'require("./build/' + path + '").execute(' +
-        JSON.stringify(options) + ')'], {
+        JSON.stringify(options) + ')', 'PATH=' + getEnv('Path')], {
+          environment: [
+            'PATH=' + getEnv('PATH'),
+            'NODE_PATH=' + joinPath(options.GAIA_DIR, 'build')
+          ],
           stdout: function(data) {
             result += data;
             dump(data);
@@ -1317,7 +1322,8 @@ function createSandbox() {
 }
 
 function runScriptInSandbox(filePath, sandbox) {
-  var fileURI = Services.io.newFileURI(filePath).spec;
+  var file = getFile(filePath);
+  var fileURI = Services.io.newFileURI(file).spec;
 
   // XXX: Dark matter. Reflect.jsm introduces slowness by instanciating Reflect
   // API in Reflect.jsm scope (call JS_InitReflect on jsm global). For some

@@ -1,6 +1,7 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
+
 var utils = require('utils');
 
 var WallPaperAppBuilder = function(options) {
@@ -35,11 +36,8 @@ WallPaperAppBuilder.prototype.copyDistributionWallpapers = function() {
 
   utils.log('Include wallpapers in distribution directory ...\n');
 
-  var files = utils.ls(dir);
-
-  files.forEach(function(file) {
-    file.copyTo(this.wallpaperDir, file.leafName);
-  }, this);
+  var dirParent = utils.getFile(this.wallpaperDir.path, '..');
+  utils.copyDirTo(dir.path, dirParent.path, this.wallpaperDir.leafName);
 };
 
 WallPaperAppBuilder.prototype.copyWallpapers = function() {
@@ -54,17 +52,13 @@ WallPaperAppBuilder.prototype.copyWallpapers = function() {
 
   utils.log('Include wallpapers in app configuration directory ...\n');
 
-  var files = utils.ls(dir);
-
-  files.forEach(function(file) {
-    file.copyTo(this.wallpaperDir, file.leafName);
-  }, this);
+  var dirParent = utils.getFile(this.wallpaperDir.path, '..');
+  utils.copyDirTo(dir.path, dirParent.path, this.wallpaperDir.leafName);
 };
 
 WallPaperAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.setOptions(options);
-
   this.copyWallpapers();
   this.copyDistributionWallpapers();
 };

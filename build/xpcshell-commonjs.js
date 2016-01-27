@@ -103,7 +103,8 @@ var CommonjsRunner = function(module, appOptions) {
   let paths = {
     'toolkit/': 'resource://gre/modules/commonjs/toolkit/',
     'sdk/': 'resource://gre/modules/commonjs/sdk/',
-    '': Services.io.newFileURI(buildDirFile).spec
+    '': Services.io.newFileURI(buildDirFile).spec,
+    '../../': Services.io.newFileURI(gaiaDirFile).spec
   };
 
   if (appBuildDirFile) {
