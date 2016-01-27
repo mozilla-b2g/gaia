@@ -1,10 +1,10 @@
 'use strict';
 
-/* jshint node: true */
+/* global require, exports */
 
 var utils = require('utils');
 
-exports.execute = function(config) {
+function execute(config) {
   utils.copyToStage(config);
   var distDir = config.GAIA_DISTRIBUTION_DIR;
 
@@ -13,4 +13,6 @@ exports.execute = function(config) {
   var content = utils.getDistributionFileContent('wappush-whitelist',
                                                   defaultContent, distDir);
   utils.writeContent(file, content);
-};
+}
+
+exports.execute = execute;

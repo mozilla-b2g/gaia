@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint node: true */
-
+/* global require, exports */
 var utils = require('utils');
 
 const APPS_CONF_FILENAME = 'singlevariantconf.json';
