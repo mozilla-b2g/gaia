@@ -4,10 +4,8 @@
 var SELECTORS = Object.freeze({
 	details: '#view-contact-details',
 	detailsFavoriteButton: '#toggle-favorite',
-	detailsHeader: '#details-view-header',
 	detailsCoverImage: '#cover-img',
 	detailsShareButton: '#contact-detail-inner #share_button',
-	list: '#view-contacts-list',
 	systemMenu: 'form[data-z-index-level="action-menu"]'
 });
 
@@ -25,18 +23,6 @@ ContactsDetailsAccessor.prototype = {
 		return this.client.helper.waitForElement(
 		SELECTORS.detailsHeader);
 	},
-
-	get listSelector () {
-	 	return SELECTORS.list;
-	 }, 
-
-	 get detailsSelector () {
-	 	return SELECTORS.details;
-	 },
-
-	 get detailsHeaderSelector () {
-	 	return SELECTORS.detailsHeader;
-	 },
 
 	 get detailsCoverImage () {
 	 	return SELECTORS.detailsCoverImage;
