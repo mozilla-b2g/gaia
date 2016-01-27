@@ -37,7 +37,8 @@ var FxaModuleErrorOverlay = {
     this.fxaErrorOk.addEventListener('keyup', e => {
       if (e.keyCode &&
           (e.keyCode === KeyEvent.DOM_VK_RETURN ||
-          e.keyCode === KeyEvent.DOM_VK_ESCAPE)) {
+          e.keyCode === KeyEvent.DOM_VK_ESCAPE ||
+          e.keyCode === KeyEvent.DOM_VK_BACK_SPACE)) {
         this.fxaErrorOk.classList.remove('active');
         this.hide();
       }
@@ -62,7 +63,7 @@ var FxaModuleErrorOverlay = {
     document.activeElement.blur();
     this.fxaErrorOk.focus();
 
-    FxaModuleUI.disableEscapeButton();
+    FxaModuleUI.disableBack();
   },
 
   hide: function fxam_overlay_hide() {
@@ -70,7 +71,7 @@ var FxaModuleErrorOverlay = {
 
     this.fxaErrorOverlay.classList.remove('show');
     FxaModuleKeyNavigation.enable();
-    FxaModuleUI.enableEscapeButton();
+    FxaModuleUI.enableBack();
   },
 
   prevent: function fxam_prevent(event) {
