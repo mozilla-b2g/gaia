@@ -136,6 +136,13 @@
     },
 
     /**
+     * Request to close video
+     */
+    close: {
+      name: 'close'
+    },
+
+    /**
      * Request to seek on video. The extra message properties:
      *   - time: Number. The time to seek.
      */
