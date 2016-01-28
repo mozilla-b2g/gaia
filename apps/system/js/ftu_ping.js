@@ -19,6 +19,7 @@
   const FTU_PING_URL = 'ftu.pingURL';
   const FTU_PING_TIMEOUT = 'ftu.pingTimeout';
   const FTU_PING_TRY_INTERVAL = 'ftu.pingTryInterval';
+  const FTU_PING_TELEMETRY_LEVEL_KEY = 'metrics.selectedMetrics.level';
 
   const DEFAULT_TRY_INTERVAL = 60 * 60 * 1000;
   const DEFAULT_MAX_NETWORK_FAILS = 24;
@@ -131,8 +132,11 @@
 
       function getSettings() {
         return new Promise(function(resolve, reject) {
-          var allSettings = [FTU_PING_URL, FTU_PING_TRY_INTERVAL,
-                             FTU_PING_TIMEOUT, FTU_PING_MAX_NETWORK_FAILS].
+          var allSettings = [FTU_PING_URL,
+                             FTU_PING_TRY_INTERVAL,
+                             FTU_PING_TIMEOUT,
+                             FTU_PING_MAX_NETWORK_FAILS,
+                             FTU_PING_TELEMETRY_LEVEL_KEY].
                             concat(OBSERVE_SETTINGS);
           allSettings = allSettings.concat(URL_SETTINGS);
 
@@ -143,6 +147,8 @@
             self._pingTimeout = settings[FTU_PING_TIMEOUT] || self._pingTimeout;
             self._maxNetworkFails = settings[FTU_PING_MAX_NETWORK_FAILS] ||
                                     self._maxNetworkFails;
+            self._pingData.metricsLevel =
+              settings[FTU_PING_TELEMETRY_LEVEL_KEY];
 
             var mozSettings = window.navigator.mozSettings;
             if (!self._settingObserver) {
