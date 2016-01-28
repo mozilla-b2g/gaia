@@ -1,0 +1,42 @@
+{
+  "acknowledged_risks": true,
+  "settings": {},
+  "prefs": {},
+  "local_phone_numbers": [""],
+  "imei": "",
+  "remote_phone_number": "",
+  "wifi": {
+    "ssid": ""
+  },
+  "email": {
+    "gmail": {
+      "name": "",
+      "email": "",
+      "password": ""
+    },
+    "IMAP": {
+      "name": "",
+      "email": "",
+      "password": "",
+      "imap_hostname": "",
+      "imap_name": "",
+      "imap_port": "",
+      "smtp_hostname": "",
+      "smtp_name": "",
+      "smtp_port": ""
+    },
+    "ActiveSync":{
+      "name": "",
+      "email": "",
+      "password": "",
+      "active_sync_hostname": "",
+      "active_sync_username": ""
+    }
+
+  },
+  "plivo": {
+    "auth_id": "",
+    "auth_token": "",
+    "phone_number": ""
+  }
+}
