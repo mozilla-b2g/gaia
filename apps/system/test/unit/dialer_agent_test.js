@@ -1,7 +1,7 @@
 'use strict';
 
 /* global DialerAgent, MocksHelper, MockNavigatorMozTelephony,
-          MockSettingsListener, MockSettingsURL, MockAudio, MockApplications,
+          MockNavigatorSettings, MockSettingsURL, MockAudio, MockApplications,
           MockService */
 
 require('/js/dialer_agent.js');
@@ -13,11 +13,11 @@ require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForDialerAgent = new MocksHelper([
   'Audio',
-  'SettingsListener',
   'SettingsURL',
   'LazyLoader',
   'Service'
@@ -25,7 +25,7 @@ var mocksForDialerAgent = new MocksHelper([
 
 suite('system/DialerAgent', function() {
   mocksForDialerAgent.attachTestHelpers();
-  var realTelephony, realVibrate, realApplications;
+  var realTelephony, realVibrate, realApplications, realMozSettings;
 
   var subject;
   var setVisibleSpy;
@@ -40,16 +40,27 @@ suite('system/DialerAgent', function() {
     realTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
     realVibrate = navigator.vibrate;
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
+    window.applications = realApplications;
     MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realTelephony;
     navigator.vibrate = realVibrate;
-    window.applications = realApplications;
+    navigator.mozSettings = realMozSettings;
   });
 
-  setup(function() {
+  setup(function(done) {
+    MockNavigatorSettings.mSetup();
+    MockNavigatorSettings.mSyncRepliesOnly = true;
+    MockNavigatorSettings.mSet({
+      'audio.volume.notification': 7,
+      'dialer.ringtone': null,
+      'vibration.enabled': true
+    });
+
     if (!('setVisible' in HTMLIFrameElement.prototype)) {
       HTMLIFrameElement.prototype.setVisible = function stub() {};
     }
@@ -57,13 +68,15 @@ suite('system/DialerAgent', function() {
 
     this.sinon.useFakeTimers();
     subject = new DialerAgent();
-    subject.start();
+    subject.start().then(done, done);
+    MockNavigatorSettings.mReplyToRequests();
   });
 
   teardown(function() {
     subject.stop();
     MockService.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
+    MockNavigatorSettings.mTeardown();
   });
 
   function MockCall(state) {
@@ -73,16 +86,18 @@ suite('system/DialerAgent', function() {
     this.hangUp = function() {};
   }
 
-  test('Should load tone player if just upgraded', function() {
+  test('Should load tone player if just upgraded', function(done) {
     window.toneUpgrader = {
       perform: this.sinon.spy()
     };
     subject.stop();
     MockService.mockQueryWith('justUpgraded', true);
-    subject.start();
-    assert.isTrue(window.toneUpgrader.perform.calledWith('ringtone'));
-    delete window.toneUpgrader;
-    subject.stop();
+    subject.start().then(function() {
+      assert.isTrue(window.toneUpgrader.perform.calledWith('ringtone'));
+      delete window.toneUpgrader;
+      subject.stop();
+    }).then(done, done);
+    MockNavigatorSettings.mReplyToRequests();
   });
 
   suite('Audio element setup', function() {
@@ -105,14 +120,16 @@ suite('system/DialerAgent', function() {
     });
 
     test('it should load the ringtone from the settings', function() {
-      assert.isUndefined(mockAudio.src);
+      assert.isNull(mockAudio.src);
 
       var blob = new Blob([], {type: 'audio/ogg'});
       var src = '----uniq----';
       this.sinon.stub(MockSettingsURL.prototype, 'set').withArgs(blob).returns(
         src
       );
-      MockSettingsListener.mTriggerCallback('dialer.ringtone', blob);
+      MockNavigatorSettings.mTriggerObservers(
+        'dialer.ringtone', { settingValue: blob }
+      );
 
       assert.equal(mockAudio.src, src);
     });
@@ -140,7 +157,9 @@ suite('system/DialerAgent', function() {
 
     suite('if the vibration is enabled', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('vibration.enabled', true);
+        MockNavigatorSettings.mTriggerObservers(
+          'vibration.enabled', { settingValue: true }
+        );
         callschanged();
       });
 
@@ -179,7 +198,9 @@ suite('system/DialerAgent', function() {
 
     suite('if the vibration is disabled', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('vibration.enabled', false);
+        MockNavigatorSettings.mTriggerObservers(
+          'vibration.enabled', { settingValue: false }
+        );
         callschanged();
       });
 
@@ -190,7 +211,9 @@ suite('system/DialerAgent', function() {
 
     suite('if the ringtone has a volume', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('audio.volume.notification', 7);
+        MockNavigatorSettings.mTriggerObservers(
+          'audio.volume.notification', { settingValue: 7 }
+        );
         callschanged();
       });
 
@@ -223,7 +246,9 @@ suite('system/DialerAgent', function() {
 
     suite('if the ringtone is muted', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('audio.volume.notification', 0);
+        MockNavigatorSettings.mTriggerObservers(
+          'audio.volume.notification', { settingValue: 0 }
+        );
         callschanged();
       });
 
@@ -289,7 +314,9 @@ suite('system/DialerAgent', function() {
 
     suite('if the vibration is enabled', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('vibration.enabled', true);
+        MockNavigatorSettings.mTriggerObservers(
+          'vibration.enabled', { settingValue: true }
+        );
         callschanged();
       });
 
@@ -328,7 +355,10 @@ suite('system/DialerAgent', function() {
 
     suite('even if the ringtone has a volume', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('audio.volume.notification', 7);
+        MockNavigatorSettings.mTriggerObservers(
+          'audio.volume.notification', { settingValue: 7 }
+        );
+        callschanged();
       });
 
       test('it should play the silent ringtone', function() {
@@ -357,7 +387,9 @@ suite('system/DialerAgent', function() {
 
     suite('even if the vibration is enabled', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('vibration.enabled', true);
+        MockNavigatorSettings.mTriggerObservers(
+          'vibration.enabled', { settingValue: true }
+        );
         callschanged();
       });
 
@@ -368,7 +400,9 @@ suite('system/DialerAgent', function() {
 
     suite('even if the ringtone has a volume', function() {
       setup(function() {
-        MockSettingsListener.mTriggerCallback('audio.volume.notification', 7);
+        MockNavigatorSettings.mTriggerObservers(
+          'audio.volume.notification', { settingValue: 7 }
+        );
         callschanged();
       });
 
@@ -395,15 +429,17 @@ suite('system/DialerAgent', function() {
   test('should not do anything if mozTelephony is unavailable', function() {
     subject.stop();
     MockAudio.mTeardown();
+    MockNavigatorSettings.mTeardown();
 
-    MockSettingsListener.mCallbacks = {};
     navigator.mozTelephony = undefined;
 
     subject = new DialerAgent();
     subject.start();
 
     assert.equal(MockAudio.instances.length, 0);
-    assert.deepEqual(MockSettingsListener.mCallbacks, {});
+    assert.deepEqual(
+      MockNavigatorSettings.mObservers, MockNavigatorSettings.mRemovedObservers
+    );
 
     navigator.mozTelephony = MockNavigatorMozTelephony;
   });
@@ -476,19 +512,22 @@ suite('system/DialerAgent', function() {
       assert.isFalse(subject.onCall());
     });
 
-    test('registers as a service when the dialer service is alive', function() {
+    test('registers as a service when the dialer service is alive',
+    function(done) {
       subject.stop();
 
       this.sinon.spy(MockService, 'registerState');
       this.sinon.spy(MockService, 'unregisterState');
 
       subject = new DialerAgent();
-      subject.start();
-      sinon.assert.calledOnce(MockService.registerState);
-      sinon.assert.calledWith(MockService.registerState, 'onCall', subject);
-      subject.stop();
-      sinon.assert.calledOnce(MockService.unregisterState);
-      sinon.assert.calledWith(MockService.unregisterState, 'onCall', subject);
+      subject.start().then(function() {
+        sinon.assert.calledOnce(MockService.registerState);
+        sinon.assert.calledWith(MockService.registerState, 'onCall', subject);
+        subject.stop();
+        sinon.assert.calledOnce(MockService.unregisterState);
+        sinon.assert.calledWith(MockService.unregisterState, 'onCall', subject);
+      }).then(done, done);
+      MockNavigatorSettings.mReplyToRequests();
     });
   });
 });

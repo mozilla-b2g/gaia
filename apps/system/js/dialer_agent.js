@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SettingsListener, SettingsURL */
+/* global SettingsURL */
 /* global Service, LazyLoader, toneUpgrader */
 /* r=? dialer+system peers for changes in this file. */
 
@@ -22,7 +22,6 @@
    * dialerAgent.stop();  // Deattach the event listeners.
    *
    * @class    DialerAgent
-   * @requires SettingsListener
    * @requires SettingsURL
    * @requires Service
    * @requires LazyLoader
@@ -41,6 +40,7 @@
     this._shouldVibrate = true;
     this._alerting = false;
     this._vibrateInterval = null;
+    this._prefsObservers = new Map();
 
     var player = new Audio();
     this._player = player;
@@ -49,6 +49,81 @@
     player.mozAudioChannelType = 'ringer';
     player.preload = 'metadata';
     player.loop = true;
+  };
+
+  /** Observer for the 'audio.volume.notification' pref. */
+  DialerAgent.prototype._observeAudioVolumeNotification = function() {
+    this._playRing();
+  };
+
+  /** Observer for the 'dialer.ringtone' pref. */
+  DialerAgent.prototype._observeDialerRingtone = function(value) {
+    LazyLoader.load(['shared/js/settings_url.js']).then(function() {
+      var phoneSoundURL = new SettingsURL();
+
+      this._player.pause();
+      this._player.src = phoneSoundURL.set(value);
+      this._playRing();
+    }.bind(this)).catch((err) => {
+      console.error(err);
+    });
+  };
+
+  /** Observer for the 'vibration.enabled' pref. */
+  DialerAgent.prototype._observeVibrationEnabled = function(value) {
+    this._shouldVibrate = !!value;
+  };
+
+  /**
+   * Register the listeners for the various preferences we're interested in and
+   * read the default values.
+   *
+   * @return {Promise} A promise that is resolved once all default preference
+   *         values have been read
+   */
+  DialerAgent.prototype._registerPrefObservers = function() {
+    this._prefsObservers.set(
+      'audio.volume.notification',
+      this._observeAudioVolumeNotification.bind(this)
+    );
+    this._prefsObservers.set('dialer.ringtone', function(evt) {
+      this._observeDialerRingtone(evt.settingValue);
+    }.bind(this));
+    this._prefsObservers.set('vibration.enabled', function(evt) {
+      this._observeVibrationEnabled(evt.settingValue);
+    }.bind(this));
+
+    for (var [ key, value ] of this._prefsObservers.entries()) {
+      navigator.mozSettings.addObserver(key, value);
+    }
+
+    var self = this;
+    var lock = navigator.mozSettings.createLock();
+
+    // Read the current ringtone value
+    var ringtonePromise = new Promise(function(resolve, reject) {
+      lock.get('dialer.ringtone').onsuccess = function() {
+        self._observeDialerRingtone(this.result['dialer.ringtone']);
+        resolve();
+      };
+    });
+
+    // Read the current vibration status
+    var vibrationPromise = new Promise(function(resolve, reject) {
+      lock.get('vibration.enabled').onsuccess = function() {
+        self._observeVibrationEnabled(this.result['vibration.enabled']);
+        resolve();
+      };
+    });
+
+    return Promise.all([ringtonePromise, vibrationPromise]);
+  };
+
+  /** Unregister the preferences' listeners. */
+  DialerAgent.prototype._unregisterPrefObservers = function() {
+    for (var [ key, value ] of this._prefsObservers.entries()) {
+      navigator.mozSettings.removeObserver(key, value);
+    }
   };
 
   DialerAgent.prototype.start = function da_start() {
@@ -61,43 +136,24 @@
     }
     this._started = true;
 
-    SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      this._playRing();
-    }.bind(this));
+    var self = this;
+    return this._registerPrefObservers().then(function() {
+      // We have new default ringtones in 2.0, so check if the version is
+      // upgraded then execute the necessary migration.
+      if (Service.query('justUpgraded')) {
+        LazyLoader.load('js/tone_upgrader.js').then(() => {
+          toneUpgrader.perform('ringtone');
+        });
+      }
 
-    SettingsListener.observe('dialer.ringtone', '', function(value) {
-      LazyLoader.load(['shared/js/settings_url.js']).then(function() {
-        var phoneSoundURL = new SettingsURL();
+      self._telephony.addEventListener('callschanged', self);
 
-        this._player.pause();
-        this._player.src = phoneSoundURL.set(value);
-        this._playRing();
-      }.bind(this)).catch((err) => {
-        console.error(err);
-      });
-    }.bind(this));
+      window.addEventListener('sleep', self);
+      window.addEventListener('wake', self);
+      window.addEventListener('volumedown', self);
 
-    // We have new default ringtones in 2.0, so check if the version is upgraded
-    // then execute the necessary migration.
-    if (Service.query('justUpgraded')) {
-      LazyLoader.load('js/tone_upgrader.js').then(() => {
-        toneUpgrader.perform('ringtone');
-      });
-    }
-
-    SettingsListener.observe('vibration.enabled', true, function(value) {
-      this._shouldVibrate = !!value;
-    }.bind(this));
-
-    this._telephony.addEventListener('callschanged', this);
-
-    window.addEventListener('sleep', this);
-    window.addEventListener('wake', this);
-    window.addEventListener('volumedown', this);
-
-    Service.registerState('onCall', this);
-
-    return this;
+      Service.registerState('onCall', self);
+    });
   };
 
   DialerAgent.prototype.stop = function da_stop() {
@@ -106,6 +162,7 @@
     }
     this._started = false;
 
+    this._unregisterPrefObservers();
     this._telephony.removeEventListener('callschanged', this);
 
     window.removeEventListener('sleep', this);
@@ -113,10 +170,6 @@
     window.removeEventListener('volumedown', this);
 
     Service.unregisterState('onCall', this);
-
-    // TODO: should remove the settings listener once the helper
-    // allows it.
-    // See bug 981373.
   };
 
   DialerAgent.prototype.handleEvent = function da_handleEvent(evt) {
@@ -178,7 +231,6 @@
 
     incomingCall.addEventListener('statechange', function callStateChange() {
       incomingCall.removeEventListener('statechange', callStateChange);
-
       self._stopAlerting();
     });
   };
