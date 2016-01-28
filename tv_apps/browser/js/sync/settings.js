@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* global Awesomescreen */
+/* global Browser */
 /* global BrowserDialog */
 /* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
@@ -378,7 +380,7 @@
         if (!Array.isArray(element.screen)) {
           element.screen = [element.screen];
         }
-        if (element.screen.indexOf(screen) >= -1) {
+        if (!this.elements[name]) {
           this.elements[name] = this.area.querySelector(element.selector);
           this.listeners.set(
             name,
@@ -391,6 +393,11 @@
           return;
         }
 
+        if (element.init) {
+          this[element.init]();
+          return;
+        }
+
         if (!this.listeners.has(name)) {
           return;
         }
@@ -399,10 +406,6 @@
           this.elements[name].checked = false;
         }
 
-        this.removeListener(this.elements[name],
-                            element.event, this.listeners.get(name));
-        this.listeners.delete(name);
-        this.elements[name] = null;
       });
     },
 
@@ -482,11 +485,17 @@
     },
 
     openTos() {
-      window.open('https://accounts.firefox.com/legal/terms');
+      this.showWebpage('https://accounts.firefox.com/legal/terms');
     },
 
     openPrivacy() {
-      window.open('https://accounts.firefox.com/legal/privacy');
+      this.showWebpage('https://accounts.firefox.com/legal/privacy');
+    },
+
+    showWebpage(url) {
+      Awesomescreen.createAddNewTab();
+      Browser.navigate(url);
+      Settings.hide();
     }
   };
 
