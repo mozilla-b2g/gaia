@@ -49,7 +49,8 @@ var CallLog = {
         'edit-mode-header',
         'header-edit-mode-text',
         'missed-filter',
-        'select-all-threads'
+        'select-all-threads',
+        'edit-mode'
       ];
 
       mainNodes.forEach(function(id) {
@@ -604,6 +605,7 @@ var CallLog = {
       event.stopPropagation();
       return;
     }
+    this.editMode.removeAttribute('hidden');
     this.headerEditModeText.setAttribute('data-l10n-id', 'edit');
     this.deleteButton.setAttribute('disabled', 'disabled');
     this.selectAllThreads.removeAttribute('disabled');
@@ -630,6 +632,8 @@ var CallLog = {
     } else {
       this.unfilter();
     }
+
+    this.editMode.setAttribute('hidden', '');
   },
 
   // In case we are in edit mode, just update the counter of selected rows.
