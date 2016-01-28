@@ -108,6 +108,7 @@
     this._connector.on('playRequest', this.onPlayRequest.bind(this));
     this._connector.on('seekRequest', this.onSeekRequest.bind(this));
     this._connector.on('pauseRequest', this.onPauseRequest.bind(this));
+    this._connector.on('closeRequest', this.onCloseRequest.bind(this));
   };
 
   proto._initPlayer = function () {
@@ -492,6 +493,10 @@
 
   proto.onPauseRequest = function () {
     this.pause();
+  };
+
+  proto.onCloseRequest = function () {
+    window.close();
   };
 
   proto.onSeekRequest = function (e) {

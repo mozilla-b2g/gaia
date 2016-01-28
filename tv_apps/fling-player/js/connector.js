@@ -182,6 +182,10 @@
           };
           this.fire('ControllingDeviceInfoUpdated');
         break;
+
+        case 'close':
+          this.fire('closeRequest');
+        break;
       }
     } catch (e) {
       err = e;
