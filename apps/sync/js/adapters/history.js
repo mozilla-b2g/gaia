@@ -287,7 +287,7 @@ var HistoryHelper = (() => {
     });
   }
 
-  function syncDataStore(userid, itemCallback) {
+  function retrieveModification(userid, itemCallback) {
     return getLastRevisionId(userid).then(revisionId => {
       console.log(revisionId);
       return new Promise((resolve, reject) => {
@@ -355,7 +355,7 @@ var HistoryHelper = (() => {
     deletePlace,
     deleteByDataStoreId,
     addPlace,
-    syncDataStore,
+    retrieveModification,
     updateFxSyncId,
     handleClear,
     reset
@@ -465,99 +465,88 @@ DataAdapters.history = {
     });
   },
 
+  _syncUpRecords(remoteCollection, options) {
+    return HistoryHelper.retrieveModification(options.userid, item => {
+      console.log(item);
+      if (item.operation === 'clear') {
+        console.log('ignore clear operation');
+        return Promise.resolve();
+      }
+      if (!item.id || !item.data) {
+        console.error('Invalid item for sync-up:', item);
+        return Promise.reject('Invalid item for sync-up');
+      }
+      if (item.data.url.indexOf('app://') === 0) {
+        // Ignore app history records.
+        console.log('ignore app history records');
+        return Promise.resolve();
+      }
+      if (item.data.fxsyncId) {
+        // update the record.
+        var editedRecord = {
+          id: item.data.fxsyncId,
+          payload: {
+            title: item.data.title,
+            id: item.data.fxsyncId,
+            histUri: item.data.url,
+            visits: []
+          }
+        };
+        item.data.visits.forEach(visit => {
+          editedRecord.payload.visits.push({
+            date: visit * 1000,
+            type: 2
+          });
+        });
+
+        console.log('Suppose to update a record.');
+        console.log(editedRecord);
+        return remoteCollection.update(editedRecord).then(result => {
+          console.log(result);
+          return Promise.resolve();
+        });
+      } else {
+        // create a new record.
+        var newRecord = {
+          payload: {
+            title: item.data.title,
+            id: null,
+            histUri: item.data.url,
+            visits: []
+          }
+        };
+
+        // Visit Type Constant Definition:
+        // https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/
+        //   Reference/Interface/nsINavHistoryService#Constants
+        item.data.visits.forEach(visit => {
+          newRecord.payload.visits.push({
+            date: visit * 1000,
+            type: 2
+          });
+        });
+        console.log('Suppose to create new record.');
+        return remoteCollection.create(newRecord).then(result => {
+          // write fxsyncId in result to PlacesDS.
+          var fxsyncId = result.data.id, url = item.data.url;
+          return HistoryHelper.updateFxSyncId(url, fxsyncId).then(() => {
+            result.data.payload.id = fxsyncId;
+            return remoteCollection.update(result.data);
+          });
+        });
+      }
+    });
+
+  },
+
   update(remoteHistory, options = { readonly: true }) {
-    if (!options.readonly) {
-      console.warn('Two-way sync not implemented yet for history.');
-    }
     var mtime;
     return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
-      // We iterate over the records in the Kinto collection until we find a
-      // record whose last modified time is older than the time of the last
-      // successful sync run. However, if the DataStore has been cleared, or
-      // records have been removed from the DataStore since the last sync run,
-      // we cannot be sure that all older records are still there. So in both
-      // those cases we remove the SyncedCollectionMtime from AsyncStorage, so
-      // that this sync run will iterate over all the records in the Kinto
-      // collection, and not only over the ones that were recently modified.
-      //return HistoryHelper.handleClear(options.userid);
-      return Promise.resolve();
-    }).then(() => {
-      return HistoryHelper.syncDataStore(options.userid, item => {
-        console.log(item);
-        if (item.operation === 'clear') {
-          console.log('ignore clear operation');
-          return Promise.resolve();
-        }
-        if (!item.id || !item.data) {
-          console.error('Invalid item for sync-up:', item);
-          return Promise.reject('Invalid item for sync-up');
-        }
-        if (item.data.url.indexOf('app://') === 0) {
-          // Ignore app history records.
-          console.log('ignore app history records');
-          return Promise.resolve();
-        }
-        if (item.data.fxsyncId) {
-          // update the record.
-          var editedRecord = {
-            id: item.data.fxsyncId,
-            payload: {
-              title: item.data.title,
-              id: item.data.fxsyncId,
-              histUri: item.data.url,
-              visits: []
-            }
-          };
-          item.data.visits.forEach(visit => {
-            editedRecord.payload.visits.push({
-              date: visit * 1000,
-              type: 2
-            });
-          });
-
-          console.log('Suppose to update a record.');
-          console.log(editedRecord);
-          return remoteHistory.update(editedRecord).then(result => {
-            // TODO: Write the edited record to kinto collection.
-            console.log(result);
-            return Promise.resolve();
-          });
-
-          // Ignore updating records case.
-          //return Promise.resolve();
-        } else {
-          // create a new record.
-          var newRecord = {
-            payload: {
-              title: item.data.title,
-              id: null,
-              histUri: item.data.url,
-              visits: []
-            }
-          };
-
-          // Visit Type Constant Definition:
-          // https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/
-          //   Reference/Interface/nsINavHistoryService#Constants
-          item.data.visits.forEach(visit => {
-            newRecord.payload.visits.push({
-              date: visit * 1000,
-              type: 2
-            });
-          });
-          console.log('Suppose to create new record.');
-          console.log(newRecord);
-          //return Promise.resolve();
-          return remoteHistory.create(newRecord).then(result => {
-            // write fxsyncId in result to PlacesDS.
-            var fxsyncId = result.data.id, url = item.data.url;
-            return HistoryHelper.updateFxSyncId(url, fxsyncId).then(() => {
-              result.data.payload.id = fxsyncId;
-              return remoteHistory.update(result.data);
-            });
-          });
-        }
-      });
+      if (options.readonly) {
+        return Promise.resolve();
+      } else {
+        return this._syncUpRecords(remoteHistory, options);
+      }
     }).then(() => {
       return HistoryHelper.getSyncedCollectionMtime(options.userid);
     }).then(_mtime => {
@@ -575,7 +564,7 @@ DataAdapters.history = {
         return HistoryHelper.handleClear(options.userid);
       }).then(() => {
        // Always return false for a read-only operation.
-       return Promise.resolve(true);
+       return Promise.resolve(!options.readonly);
       });
     }).catch(err => {
       console.error('History DataAdapter update error', err.message);
@@ -584,8 +573,6 @@ DataAdapters.history = {
   },
 
   handleConflict(conflict) {
-    // Because History adapter has not implemented record push yet,
-    // handleConflict will always use remote records.
     console.warn('CONFLICT!!!!');
     console.warn(conflict);
     return Promise.resolve(conflict.local);
