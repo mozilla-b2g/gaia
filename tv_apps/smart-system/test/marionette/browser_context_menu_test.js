@@ -48,10 +48,15 @@ marionette('Test Context Menu Events', function() {
     client.apps.switchToApp(APP_URL);
   });
 
+  function getContextMenuAppIframe(client) {
+    var c = client.scope({ searchTimeout: 10000 });
+    return c.findElement('.appWindow.active iframe[origin=app://contextmenuapp.gaiamobile.org]');
+  }
+
   test('press enter on first menu', { 'devices': ['tv'] }, function() {
     // Long press on a link
     var link = client.helper.waitForElement('#link');
-    actions.longPress(link, 1.5).perform();
+    actions.longPress(link, 1).perform();
 
     system.waitForEvent('appcontextmenu-shown');
 
@@ -79,7 +84,7 @@ marionette('Test Context Menu Events', function() {
   test('press enter on second menu', { 'devices': ['tv'] }, function() {
     // Long press on a link
     var link = client.helper.waitForElement('#link');
-    actions.longPress(link, 1.5).perform();
+    actions.longPress(link, 1).perform();
 
     system.waitForEvent('appcontextmenu-shown');
 
@@ -111,7 +116,7 @@ marionette('Test Context Menu Events', function() {
   test('press esc after menu shown', { 'devices': ['tv'] }, function() {
     // Long press on a link
     var link = client.helper.waitForElement('#link');
-    actions.longPress(link, 1.5).perform();
+    actions.longPress(link, 1).perform();
 
     system.waitForEvent('appcontextmenu-shown');
 
