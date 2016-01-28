@@ -99,27 +99,24 @@
     return this.isVisible();
   };
 
-  PreviewWindow.prototype._handle_mozbrowserafterkeyup = function(evt) {
+  PreviewWindow.prototype._handle_back = function(evt) {
     if (document.activeElement !== this.iframe) {
       return;
     }
-    if ((evt.keyCode === 27 || evt.key === 'Escape') &&
-        !evt.embeddedCancelled) {
-      if (this.config.url.startsWith('app://')) {
-        this.kill();
-      } else {
-        var goBackReq = this.iframe.getCanGoBack();
-        goBackReq.onsuccess = () => {
-          if (goBackReq.result) {
-            this.iframe.goBack();
-          } else {
-            this.kill();
-          }
-        };
-        goBackReq.onerror = () => {
+    if (this.config.url.startsWith('app://')) {
+      this.kill();
+    } else {
+      var goBackReq = this.iframe.getCanGoBack();
+      goBackReq.onsuccess = () => {
+        if (goBackReq.result) {
+          this.iframe.goBack();
+        } else {
           this.kill();
-        };
-      }
+        }
+      };
+      goBackReq.onerror = () => {
+        this.kill();
+      };
     }
   };
 

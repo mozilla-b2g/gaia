@@ -66,6 +66,9 @@
         case 'enter':
           this.fire(evtPrefix + 'enter' + evtPostfix);
           break;
+        case 'back':
+          this.fire(evtPrefix + 'back' + evtPostfix);
+          break;
         case 'esc':
           this.fire(evtPrefix + 'esc' + evtPostfix);
           break;
@@ -87,7 +90,7 @@
         case KeyEvent.DOM_VK_ESCAPE:
           return 'esc';
         case KeyEvent.DOM_VK_BACK_SPACE:
-          return 'esc';
+          return 'back';
         default:// we don't consume other keys.
           return null;
       }

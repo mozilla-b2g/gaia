@@ -403,6 +403,10 @@ var KeyboardManager = {
     this.transitionManager.hideImmediately();
   },
 
+  getHasActiveKeyboard: function km_getHasActiveKeyboard() {
+    return this._hasActiveKeyboard;
+  },
+
   setHasActiveKeyboard: function km_setHasActiveKeyboard(active) {
     this._hasActiveKeyboard = active;
   },
