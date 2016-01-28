@@ -22,7 +22,7 @@ exports.execute = function(options) {
     'homescreen',
     //'keyboard',
     'music',
-    //'operatorvariant',
+    'operatorvariant',
     'search',
     'settings',
     'sms',

@@ -1341,6 +1341,25 @@ function exit(exitValue) {
   return quit(exitValue);
 }
 
+function getHash(string) {
+  var converter = Cc['@mozilla.org/intl/scriptableunicodeconverter'].
+    createInstance(Ci.nsIScriptableUnicodeConverter);
+  converter.charset = 'UTF-8';
+  var result = {};
+  var data = converter.convertToByteArray(string, result);
+  var ch = Cc['@mozilla.org/security/hash;1'].createInstance(Ci.nsICryptoHash);
+  ch.init(ch.SHA1);
+  ch.update(data, data.length);
+  var hashStr = ch.finish(false);
+  var hex = '';
+
+  for (var i = 0; i < hashStr.length; i++) {
+    hex += ('0' + hashStr.charCodeAt(i).toString(16)).slice(-2);
+  }
+
+  return hex;
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -1410,3 +1429,4 @@ exports.getMD5hash = getMD5hash;
 exports.createSandbox = createSandbox;
 exports.runScriptInSandbox= runScriptInSandbox;
 exports.exit = exit;
+exports.getHash = getHash;

@@ -372,3 +372,4 @@ exports.getMD5hash = utils.getMD5hash;
 exports.createSandbox = utils.createSandbox;
 exports.runScriptInSandbox = utils.runScriptInSandbox;
 exports.exit = utils.exit;
+exports.getHash = utils.getHash;

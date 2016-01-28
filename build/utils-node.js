@@ -27,6 +27,7 @@ var jsdom = require('jsdom');
 var esprima = require('esprima');
 var procRunning = require('is-running');
 var mime = require('mime');
+var crypto = require('crypto');
 
 // Our gecko will transfer .opus file to audio/ogg datauri type.
 mime.define({'audio/ogg': ['opus']});
@@ -617,5 +618,9 @@ module.exports = {
   runScriptInSandbox: function(filePath, sandbox) {
     var script = fs.readFileSync(filePath, { encoding: 'utf8' });
     return vm.runInNewContext(script, sandbox);
+  },
+
+  getHash: function(string) {
+    return crypto.createHash('sha1').update(string).digest('hex');
   }
 };
