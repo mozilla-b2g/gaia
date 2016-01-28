@@ -14,12 +14,11 @@ task:
     # Chunking logic is actually in the Makefile here which may make it
     # confusing to figure out who calls what this should be improved.
     env:
-      PART: '{{chunk}}'
-      NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
       NODE_MODULES_SRC: npm-cache
       HOST_LOG: artifacts/gecko_output.log
+      TEST_FILES: apps/system/test/marionette/audio_channel_played_in_foreground_and_background_test.js
 
     command:
       - entrypoint
