@@ -11,6 +11,10 @@ function ReportView(client, parentView) {
 }
 
 ReportView.prototype = {
+  get headerAction() {
+    return this.accessors.header.getAttribute('action');
+  },
+
   back: function() {
     this.client.switchToShadowRoot(this.accessors.header);
     this.accessors.headerActionButton.tap();
