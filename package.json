@@ -37,7 +37,6 @@
     "istanbul": "^0.4.0",
     "jsdoc": "^3.3.3",
     "jshint": "2.7.0",
-    "lodash": "^4.0.0",
     "mail-fakeservers": "^0.0.42",
     "marionette-apps": "file:./tests/jsmarionette/plugins/marionette-apps",
     "marionette-client": "file:./tests/jsmarionette/client/marionette-client",

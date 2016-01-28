@@ -2,7 +2,6 @@
 
 /* global module */
 var KeypadView = require('./views/keypad/views.js');
-var TabsView = require('./views/tabs/view.js');
 
 /**
  * Abstraction around dialer app.
@@ -19,7 +18,7 @@ function Dialer(client) {
 Dialer.URL = 'app://communications.gaiamobile.org';
 
 Dialer.config = {
-  profile: {
+   profile: {
     settings: {
       'devtools.overlay': true,
       'hud.reflows': true
@@ -27,11 +26,11 @@ Dialer.config = {
     prefs: {
       'devtools.debugger.forbid-certified-apps': false
     }
-  },
-  desiredCapabilities: {
+   },
+   desiredCapabilities: {
     'raisesAccessibilityExceptions': false
-  }
-};
+   }
+ };
 
 Dialer.Selectors = {
   phoneNumber: '#phone-number-view',
@@ -44,12 +43,26 @@ Dialer.Selectors = {
   three: '.keypad-key[data-value="3"]',
   keypadCallBarAddContact: '#keypad-callbar-add-contact',
 
-  contactsTabItem: '#option-contacts',
   callLogTabItem: '#option-recents',
+  callLogEditButton: '#call-log-icon-edit',
   callLogTabs: '#call-log-filter',
+  callLogNoResultsContainer: '#no-result-container',
+  callLogItem: '.log-item',
   callLogEditForm: '#edit-mode',
+  noEntriesMessage: '#no-result-msg1',
+  callLogMissedTab: '#missed-filter',
+  noMissedCalls: '#no-result-msg3',
 
-  addToExistingContactMenuItem: 'button[data-l10n-id="addToExistingContact"]'
+  contactsTabItem: '#option-contacts',
+  contactsIframe: '#iframe-contacts',
+  contactsFormHeader: '#contact-form-header',
+
+  contactsAddIframe:'iframe[src*="form"]',
+  doneButton: 'button[data-l10n-id="done"]',
+  addNewContact: 'button[data-l10n-id="createNewContact"]',
+  addToExistingContactMenuItem: 'button[data-l10n-id="addToExistingContact"]',
+  contactNameField: '#givenName',
+  contactLocator: 'li[data-uuid]:not([data-group="ice"])'
 };
 
 Dialer.prototype = {
@@ -65,6 +78,12 @@ Dialer.prototype = {
   relaunch: function() {
     this.client.apps.close(Dialer.URL, 'dialer');
     this.launch();
+  },
+  
+  goToContactList: function() {
+    this.contactListButton.tap();
+    var contacts = this.client.loader.getAppClass('contacts');
+    return contacts;
   },
 
   switchTo: function() {
@@ -82,8 +101,8 @@ Dialer.prototype = {
     return new KeypadView(this.client);
   },
 
-  get tabs() {
-    return new TabsView(this.client);
+  get contactListButton() {
+    return this.client.helper.waitForElement(Dialer.Selectors.contactsTabItem);
   }
 };
 
