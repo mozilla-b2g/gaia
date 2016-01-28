@@ -120,48 +120,40 @@ marionette('Music player tests', function() {
 
   suite('Player icon tests', function() {
     test('Check the player icon hides before play some song', function() {
-      try {
-        music.launch();
-        music.waitForFirstTile();
-        music.checkPlayerIconShown(false);
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      music.launch();
+      music.waitForFirstTile();
+      music.checkPlayerIconShown(false);
     });
 
     test('Check the player icon displays after play some song', function() {
-      try {
-        music.launch();
-        music.waitForFirstTile();
-        music.switchToSongsView();
-        music.playFirstSong();
-        music.waitForPlayerView();
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      music.playFirstSong();
+      music.waitForPlayerView();
 
-        var frame = music.playerViewFrame;
-        assert.ok(frame);
-        client.switchToFrame(frame);
+      var frame = music.playerViewFrame;
+      assert.ok(frame);
+      client.switchToFrame(frame);
 
-        // Wait for cover overlay to hide to prevent intermittent fail
-        client.waitFor(function() {
-          var cover = client.findElement(Music.Selector.playerCover);
-          assert.ok(cover);
-          client.switchToShadowRoot(cover);
-          var container = client.findElement('#container');
-          assert.ok(container);
-          var isHidden = (container.getAttribute('class').split(' ').
-                          indexOf('show-overlay') === -1);
-          client.switchToShadowRoot();
-          return isHidden;
-        }.bind(this));
+      // Wait for cover overlay to hide to prevent intermittent fail
+      client.waitFor(function() {
+        var cover = client.findElement(Music.Selector.playerCover);
+        assert.ok(cover);
+        client.switchToShadowRoot(cover);
+        var container = client.findElement('#container');
+        assert.ok(container);
+        var isHidden = (container.getAttribute('class').split(' ').
+                        indexOf('show-overlay') === -1);
+        client.switchToShadowRoot();
+        return isHidden;
+      }.bind(this));
 
-        music.switchToMe();
+      music.switchToMe();
 
-        music.tapHeaderActionButton();
-        music.waitForSongsView();
-        music.checkPlayerIconShown(true);
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      music.tapHeaderActionButton();
+      music.waitForSongsView();
+      music.checkPlayerIconShown(true);
     });
   });
 
@@ -217,53 +209,49 @@ marionette('Music player tests', function() {
 
   suite('Rating test', function() {
     test('Check Rating is saved. moztrap:2683', function() {
-      try {
-        music.launch();
-        music.waitForFirstTile();
-        music.switchToSongsView();
-        music.playFirstSong();
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      music.playFirstSong();
 
-        // check there is no rating.
-        music.showSongInfo();
+      // check there is no rating.
+      music.showSongInfo();
 
-        var rating = music.getStarRating();
-        assert.equal(rating, 0);
+      var rating = music.getStarRating();
+      assert.equal(rating, 0);
 
-        var rating_value = 4;
-        music.tapRating(rating_value);
+      var rating_value = 4;
+      music.tapRating(rating_value);
 
-        // wait that the rating bar disappear.
-        music.waitForRatingOverlayHidden();
+      // wait that the rating bar disappear.
+      music.waitForRatingOverlayHidden();
 
-        // tap to make the rating bar reappear.
-        music.showSongInfo();
+      // tap to make the rating bar reappear.
+      music.showSongInfo();
 
-        rating = music.getStarRating();
-        assert.equal(rating, rating_value, 'Check rating is shown.');
+      rating = music.getStarRating();
+      assert.equal(rating, rating_value, 'Check rating is shown.');
 
-        // switch back and forth
-        music.tapHeaderActionButton();
-        music.playFirstSong();
+      // switch back and forth
+      music.tapHeaderActionButton();
+      music.playFirstSong();
 
-        rating = music.getStarRating();
-        assert.equal(rating, rating_value,
-                    'Incorrect rating after switching song.');
+      rating = music.getStarRating();
+      assert.equal(rating, rating_value,
+                   'Incorrect rating after switching song.');
 
-        // close the app because we want to test things are saved.
-        music.close();
+      // close the app because we want to test things are saved.
+      music.close();
 
-        // start it over.
-        music.launch();
-        music.waitForFirstTile();
-        music.switchToSongsView();
-        music.playFirstSong();
+      // start it over.
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      music.playFirstSong();
 
-        rating = music.getStarRating();
-        assert.equal(rating, rating_value,
-                     'Incorrect rating after restarting.');
-      } catch(e) {
-        assert.ok(false, 'Exception: ' + e.stack);
-      }
+      rating = music.getStarRating();
+      assert.equal(rating, rating_value,
+                   'Incorrect rating after restarting.');
     });
   });
 
@@ -271,70 +259,66 @@ marionette('Music player tests', function() {
     test('Check that the back button works', function() {
       var title;
 
-      try {
-        music.launch();
-        music.waitForFirstTile();
-        music.switchToSongsView();
-        title = music.header.findElement('#header-title').text();
-        music.playFirstSong();
-        music.waitForPlayerView();
-        assert.notEqual(title,
-          music.header.findElement('#header-title').text());
-        music.tapHeaderActionButton();
-        music.waitForSongsView();
-        client.switchToFrame(music.songsViewFrame);
-        music.firstSong;
-        music.switchToMe();
-        assert.equal(title,
-          music.header.findElement('#header-title').text());
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      title = music.header.findElement('#header-title').text();
+      music.playFirstSong();
+      music.waitForPlayerView();
+      assert.notEqual(title,
+                      music.header.findElement('#header-title').text());
+      music.tapHeaderActionButton();
+      music.waitForSongsView();
+      client.switchToFrame(music.songsViewFrame);
+      music.firstSong;
+      music.switchToMe();
+      assert.equal(title,
+                   music.header.findElement('#header-title').text());
 
-        music.switchToAlbumsView();
-        music.selectAlbum('A Minute With Brendan');
-        title = music.header.findElement('#header-title').text();
-        music.playFirstSongByAlbum();
-        music.waitForPlayerView();
-        assert.notEqual(title,
-          music.header.findElement('#header-title').text());
-        music.tapHeaderActionButton();
-        music.waitForAlbumDetailView();
-        client.switchToFrame(music.albumDetailViewFrame);
-        music.firstSong;
-        music.switchToMe();
-        assert.equal(title,
-          music.header.findElement('#header-title').text());
+      music.switchToAlbumsView();
+      music.selectAlbum('A Minute With Brendan');
+      title = music.header.findElement('#header-title').text();
+      music.playFirstSongByAlbum();
+      music.waitForPlayerView();
+      assert.notEqual(title,
+                      music.header.findElement('#header-title').text());
+      music.tapHeaderActionButton();
+      music.waitForAlbumDetailView();
+      client.switchToFrame(music.albumDetailViewFrame);
+      music.firstSong;
+      music.switchToMe();
+      assert.equal(title,
+                   music.header.findElement('#header-title').text());
 
-        music.switchToArtistsView();
-        music.selectArtist('Minute With');
-        title = music.header.findElement('#header-title').text();
-        music.playFirstSongByArtist();
-        music.waitForPlayerView();
-        assert.notEqual(title,
-          music.header.findElement('#header-title').text());
-        music.tapHeaderActionButton();
-        music.waitForArtistDetailView();
-        client.switchToFrame(music.artistDetailViewFrame);
-        music.firstSong;
-        music.switchToMe();
-        assert.equal(title,
-          music.header.findElement('#header-title').text());
+      music.switchToArtistsView();
+      music.selectArtist('Minute With');
+      title = music.header.findElement('#header-title').text();
+      music.playFirstSongByArtist();
+      music.waitForPlayerView();
+      assert.notEqual(title,
+                      music.header.findElement('#header-title').text());
+      music.tapHeaderActionButton();
+      music.waitForArtistDetailView();
+      client.switchToFrame(music.artistDetailViewFrame);
+      music.firstSong;
+      music.switchToMe();
+      assert.equal(title,
+                   music.header.findElement('#header-title').text());
 
-        music.switchToPlaylistsView();
-        music.selectPlaylist('Recently added');
-        title = music.header.findElement('#header-title').text();
-        music.playFirstSongByPlaylist();
-        music.waitForPlayerView();
-        assert.notEqual(title,
-          music.header.findElement('#header-title').text());
-        music.tapHeaderActionButton();
-        music.waitForPlaylistDetailView();
-        client.switchToFrame(music.playlistDetailViewFrame);
-        music.firstSong;
-        music.switchToMe();
-        assert.equal(title,
-          music.header.findElement('#header-title').text());
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      music.switchToPlaylistsView();
+      music.selectPlaylist('Recently added');
+      title = music.header.findElement('#header-title').text();
+      music.playFirstSongByPlaylist();
+      music.waitForPlayerView();
+      assert.notEqual(title,
+                      music.header.findElement('#header-title').text());
+      music.tapHeaderActionButton();
+      music.waitForPlaylistDetailView();
+      client.switchToFrame(music.playlistDetailViewFrame);
+      music.firstSong;
+      music.switchToMe();
+      assert.equal(title,
+                   music.header.findElement('#header-title').text());
     });
   });
 

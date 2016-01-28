@@ -66,70 +66,54 @@ marionette('Music views', function() {
 
 
   test('Check tile view', function() {
-    try {
-      client.switchToFrame(music.homeViewFrame);
-      var tile = client.findElement(Music.Selector.firstTile);
-      assert.ok(tile);
-      tile.tap();
-      music.switchToMe();
+    client.switchToFrame(music.homeViewFrame);
+    var tile = client.findElement(Music.Selector.firstTile);
+    assert.ok(tile);
+    tile.tap();
+    music.switchToMe();
 
-      music.waitForPlayerView();
-    } catch(e) {
-      assert.ok(false, e.stack);
-    }
+    music.waitForPlayerView();
   });
 
 
   // ported from GiP test_music_album_mp3.py
   test('Check album view. moztrap:3755', function() {
-    try {
-      music.switchToAlbumsView();
+    music.switchToAlbumsView();
 
-      music.waitForListEnumerate(Music.Selector.activeViewFrame);
-      var list = music.albumsListItemsData;
+    music.waitForListEnumerate(Music.Selector.activeViewFrame);
+    var list = music.albumsListItemsData;
 
-      var album = list[0].title;
-      assert.equal(album, 'We crash computers');
-      music.selectAlbum(album);
-      music.playFirstSongByAlbum();
-      music.waitForPlayerView();
-    } catch(e) {
-      assert.ok(false, e.stack);
-    }
+    var album = list[0].title;
+    assert.equal(album, 'We crash computers');
+    music.selectAlbum(album);
+    music.playFirstSongByAlbum();
+    music.waitForPlayerView();
   });
 
   // ported from GiP test_music_artist_mp3.py
   test('Check artist view. moztrap:4031', function() {
-    try {
-      music.switchToArtistsView();
+    music.switchToArtistsView();
 
-      music.waitForListEnumerate(Music.Selector.activeViewFrame);
-      var list = music.artistsListItemsData;
+    music.waitForListEnumerate(Music.Selector.activeViewFrame);
+    var list = music.artistsListItemsData;
 
-      var artist = list[0].title;
-      assert.equal(artist, 'The Angry Programmers');
-      music.selectArtist(artist);
-      music.playFirstSongByArtist();
-      music.waitForPlayerView();
-    } catch(e) {
-      assert.ok(false, e.stack);
-    }
+    var artist = list[0].title;
+    assert.equal(artist, 'The Angry Programmers');
+    music.selectArtist(artist);
+    music.playFirstSongByArtist();
+    music.waitForPlayerView();
   });
 
   // ported from GiP test_music_songs_mp3.py
   test('Check songs view. moztrap:4031', function() {
-    try {
-      music.switchToSongsView();
+    music.switchToSongsView();
 
-      music.waitForListEnumerate(Music.Selector.activeViewFrame);
-      var list = music.songsListItemsData;
+    music.waitForListEnumerate(Music.Selector.activeViewFrame);
+    var list = music.songsListItemsData;
 
-      assert.equal(list[0].title, 'Abort');
-      music.playFirstSong();
-      music.waitForPlayerView();
-    } catch(e) {
-      assert.ok(false, e.stack);
-    }
+    assert.equal(list[0].title, 'Abort');
+    music.playFirstSong();
+    music.waitForPlayerView();
   });
 
 });

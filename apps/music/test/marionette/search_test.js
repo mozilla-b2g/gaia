@@ -119,54 +119,46 @@ marionette('Music player search', function() {
     });
 
     test('Check simple search results in artists.', function() {
-      try {
-        music.searchTiles('the');
-        // check for the results in "artists"
-        var resultsList = testSearchResults(3);
+      music.searchTiles('the');
+      // check for the results in "artists"
+      var resultsList = testSearchResults(3);
 
-        assert.equal(resultsList[1].title, 'The NSA');
-        assert.equal(resultsList[1].section, 'artists');
-        // XXX fixme when we have the search highlights
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1209432
-        // assert.equal(resultsList[1].highlight, 'The');
-        assert.equal(resultsList[2].title, 'The Ecuadorian Embassy');
-        assert.equal(resultsList[2].section, 'songs');
+      assert.equal(resultsList[1].title, 'The NSA');
+      assert.equal(resultsList[1].section, 'artists');
+      // XXX fixme when we have the search highlights
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1209432
+      // assert.equal(resultsList[1].highlight, 'The');
+      assert.equal(resultsList[2].title, 'The Ecuadorian Embassy');
+      assert.equal(resultsList[2].section, 'songs');
 
-        music.searchTiles(' n');
-        resultsList = testSearchResults(1);
-      } catch(e) {
-        assert.ok(false, e.stack);
-      }
+      music.searchTiles(' n');
+      resultsList = testSearchResults(1);
     });
 
     test('Check empty results', function() {
-      try {
-        music.searchTiles('qwerty');
+      music.searchTiles('qwerty');
 
-        // current implement of empty result is ONE line
-        // with a string indicating nothing was found.
-        var resultsList = testSearchResults(1);
-        assert.equal(resultsList.length, 1);
+      // current implement of empty result is ONE line
+      // with a string indicating nothing was found.
+      var resultsList = testSearchResults(1);
+      assert.equal(resultsList.length, 1);
 
-        client.switchToFrame(music.activeViewFrame);
+      client.switchToFrame(music.activeViewFrame);
 
-        var search = client.findElement('music-search-results');
-        assert.ok(search);
+      var search = client.findElement('music-search-results');
+      assert.ok(search);
 
-        // ensure that we get the properly localized string.
-        var noResultString = client.executeAsyncScript(function () {
-          window.wrappedJSObject.document.l10n.formatValue('search-no-result').
-            then(function(noResult) {
-              marionetteScriptFinished(noResult);
-            });
-        });
+      // ensure that we get the properly localized string.
+      var noResultString = client.executeAsyncScript(function () {
+        window.wrappedJSObject.document.l10n.formatValue('search-no-result').
+          then(function(noResult) {
+            marionetteScriptFinished(noResult);
+          });
+      });
 
-        music.switchToMe();
+      music.switchToMe();
 
-        assert.equal(resultsList[0].title, noResultString);
-      } catch(e) {
-        assert.ok(false, e.stack);
-      }
+      assert.equal(resultsList[0].title, noResultString);
     });
   });
 
@@ -180,21 +172,17 @@ marionette('Music player search', function() {
     // Test contextual search
     // XXX fixme: currently make the app *crash*
     test('Check the context for artists', function() {
-      try {
-        music.switchToArtistsView();
+      music.switchToArtistsView();
 
-        music.showSearchInput('#list');
-        music.searchArtists('the');
+      music.showSearchInput('#list');
+      music.searchArtists('the');
 
-        var resultsList = testSearchResults(2);
+      var resultsList = testSearchResults(2);
 
-        assert.equal(resultsList[1].title, 'The NSA');
-        // XXX fix when we have highlights
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1209432
-        // assert.equal(resultsList[1].highlight, 'The');
-      } catch(e) {
-        assert.ok(false, e.stack);
-      }
+      assert.equal(resultsList[1].title, 'The NSA');
+      // XXX fix when we have highlights
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1209432
+      // assert.equal(resultsList[1].highlight, 'The');
     });
 
   });
