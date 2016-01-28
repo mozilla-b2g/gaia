@@ -57,11 +57,9 @@ var AudioMetadata = (function() {
     }
 
     // Read the start of the file, figure out what kind it is, and call
-    // the appropriate parser.  Start off with an 64kb chunk of data.
-    // If the metadata is in that initial chunk we won't have to read again.
+    // the appropriate parser.
     return new Promise(function(resolve, reject) {
-      var headersize = Math.min(64 * 1024, blob.size);
-      BlobView.get(blob, 0, headersize, function(header, error) {
+      BlobView.get(blob, 0, blob.size, function(header, error) {
         if (error) {
           reject(error);
           return;
