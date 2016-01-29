@@ -78,6 +78,8 @@
   const ENABLED = 'applicationenabled';
   const DISABLED = 'applicationdisabled';
   const UNDERLAYOPENED = 'homescreen-underlayopened';
+  const REQUESTSHUTDOWN = 'requestshutdown';
+  const BATTERYSHUTDOWN = 'batteryshutdown';
 
   // This is the list of event types we register handlers for
   const EVENT_TYPES = [
@@ -97,7 +99,9 @@
     IACMETRICS,
     ENABLED,
     DISABLED,
-    UNDERLAYOPENED
+    UNDERLAYOPENED,
+    REQUESTSHUTDOWN,
+    BATTERYSHUTDOWN
   ];
 
 
@@ -387,6 +391,18 @@
       // Register for idle events
       navigator.addIdleObserver(self.idleObserver);
 
+      // Register for poweroff events
+      var mozPower = navigator.mozPower;
+      if (!mozPower.addPowerStateListener) {
+        // XXX: Mocked addPowerStateListener for testing.
+        mozPower = {
+          addPowerStateListener: function(cb) {
+            setTimeout(cb, 10000, 'on-powerstate');
+            setTimeout(cb, 30000, 'off-powerstate');
+          }
+        };
+      }
+      mozPower.addPowerStateListener(self.onPowerStateChange.bind(self));
       if (done) {
         done();
       }
@@ -430,25 +446,31 @@
   AUM.prototype.handleEvent = function handleEvent(e) {
     var now = performance.now();
     debug('got an event: ', e.type);
+
+    var self = this;
+    function recordUnderlayAndHome() {
+      if (self._appIsUnderlay) {
+        // In this case, user launched an app from Home app while Home is
+        // overlaying on an app. We increase invocation count of underlying app
+        // without recording any usage time (since the usage time before home
+        // covers on has already recorded in HOMESCREEN event).
+        self.metrics.recordInvocation(self.getCurrentApp(), 0);
+        self.metrics.recordUsageTime(homescreenWindowManager.getHomescreen(),
+                                              now - self.getCurrentStartTime());
+        self._appIsUnderlay = false;
+      } else {
+        self.metrics.recordInvocation(self.getCurrentApp(),
+                                              now - self.getCurrentStartTime());
+      }
+    }
+
     switch (e.type) {
 
     case APPOPENED:
       // The user has opened an app or switched apps.
       // Record data about the app that was running and then
       // update the currently running app.
-      if (this._appIsUnderlay) {
-        // In this case, user launched an app from Home app while Home is
-        // overlaying on an app. We increase invocation count of underlying app
-        // without recording any usage time (since the usage time before home
-        // covers on has already recorded in HOMESCREEN event).
-        this.metrics.recordInvocation(this.getCurrentApp(), 0);
-        this.metrics.recordUsageTime(homescreenWindowManager.getHomescreen(),
-                                              now - this.getCurrentStartTime());
-        this._appIsUnderlay = false;
-      } else {
-        this.metrics.recordInvocation(this.getCurrentApp(),
-                                              now - this.getCurrentStartTime());
-      }
+      recordUnderlayAndHome();
 
       this.attentionWindows = [];
       this.currentApp = e.detail;
@@ -590,6 +612,14 @@
       break;
 
     case IDLE:
+      this.idle = true;
+      break;
+
+    case REQUESTSHUTDOWN:
+    case BATTERYSHUTDOWN:
+      recordUnderlayAndHome();
+
+      // Set idle to true to make sure calling metrics.save().
       this.idle = true;
       break;
 
@@ -757,6 +787,15 @@
         onerror: retry,
         onabort: retry,
         ontimeout: retry
+      });
+    }
+  };
+
+  AUM.prototype.onPowerStateChange = function onPowerStateChange(state) {
+    if (state === 'off-powerstate') {
+      this.handleEvent({
+        type: REQUESTSHUTDOWN,
+        detail: this
       });
     }
   };
