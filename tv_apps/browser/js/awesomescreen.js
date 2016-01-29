@@ -429,8 +429,9 @@ var Awesomescreen = {
    */
   openPrivateBrowsingMoreInfo:
     function awesomescreen_openPrivateBrowsingMoreInfo() {
-    window.open('https://support.mozilla.org/en-US/kb/' +
-      'private-browsing-use-firefox-without-history');
+    Awesomescreen.createAddNewTab();
+    Browser.navigate('https://support.mozilla.org/en-US/kb/' +
+             'private-browsing-use-firefox-without-history');
   },
 
   /**
