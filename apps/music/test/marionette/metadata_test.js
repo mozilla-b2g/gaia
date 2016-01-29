@@ -61,72 +61,67 @@ marionette('Music player metadata', function() {
     });
 
     test('Check album art is displayed. moztrap:8749', function() {
-      try {
+      music.launch();
+      music.waitForFirstTile();
 
-        music.launch();
-        music.waitForFirstTile();
+      music.switchToArtistsView();
 
-        music.switchToArtistsView();
+      music.waitForArtistsView();
 
-        music.waitForArtistsView();
+      var bg, placeholder, blue, red;
 
-        var bg, placeholder, blue, red;
+      // We test the album art url.
+      // an "app:" URL is the default placeholder.
+      // a "blob:" URL is a blob. Produced from the metadata.
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
 
-        // We test the album art url.
-        // an "app:" URL is the default placeholder.
-        // a "blob:" URL is a blob. Produced from the metadata.
-        music.waitForListEnumerate(Music.Selector.activeViewFrame);
+      var listItemsData = music.artistsListItemsData;
 
-        var listItemsData = music.artistsListItemsData;
+      placeholder = listItemsData[0].img;
 
-        placeholder = listItemsData[0].img;
+      assertStartsWith('app:', placeholder);
 
-        assertStartsWith('app:', placeholder);
+      blue = listItemsData[1].img;
+      assertStartsWith('blob:', blue);
 
-        blue = listItemsData[1].img;
-        assertStartsWith('blob:', blue);
+      red = listItemsData[2].img;
+      assertStartsWith('blob:', red);
 
-        red = listItemsData[2].img;
-        assertStartsWith('blob:', red);
+      assert.notEqual(placeholder, blue,
+                      'Placeholder and Blue should be different');
+      assert.notEqual(placeholder, red,
+                      'Placeholder and Red should be different');
+      assert.notEqual(blue, red, 'Red and Blue should be different');
 
-        assert.notEqual(placeholder, blue,
-                        'Placeholder and Blue should be different');
-        assert.notEqual(placeholder, red,
-                        'Placeholder and Red should be different');
-        assert.notEqual(blue, red, 'Red and Blue should be different');
+      //
 
-        //
+      music.switchToAlbumsView();
 
-        music.switchToAlbumsView();
+      listItemsData = music.albumsListItemsData;
 
-        listItemsData = music.albumsListItemsData;
+      bg = listItemsData[0].img;
+      assert.equal(bg, placeholder, 'Is not the placeholder art');
 
-        bg = listItemsData[0].img;
-        assert.equal(bg, placeholder, 'Is not the placeholder art');
+      bg = listItemsData[1].img;
+      assert.equal(bg, blue, 'Is not the blue art');
 
-        bg = listItemsData[1].img;
-        assert.equal(bg, blue, 'Is not the blue art');
+      bg = listItemsData[2].img;
+      assert.equal(bg, red, 'Is not the red art');
 
-        bg = listItemsData[2].img;
-        assert.equal(bg, red, 'Is not the red art');
+      //
 
-        //
+      music.switchToSongsView();
 
-        music.switchToSongsView();
+      listItemsData = music.songsListItemsData;
 
-        listItemsData = music.songsListItemsData;
+      bg = listItemsData[0].img;
+      assert.equal(bg, blue, 'Is not the blue art');
 
-        bg = listItemsData[0].img;
-        assert.equal(bg, blue, 'Is not the blue art');
+      bg = listItemsData[1].img;
+      assert.equal(bg, placeholder, 'Is not the placeholder art');
 
-        bg = listItemsData[1].img;
-        assert.equal(bg, placeholder, 'Is not the placeholder art');
-
-        bg = listItemsData[2].img;
-        assert.equal(bg, red, 'Is not the red art');
-      } catch(e) {
-        assert.ok(false, e.stack);
-      }
+      bg = listItemsData[2].img;
+      assert.equal(bg, red, 'Is not the red art');
     });
 
   });
