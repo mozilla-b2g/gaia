@@ -27,6 +27,10 @@ NewMessageView.prototype = {
     enter: '\ue007'
   },
 
+  get headerAction() {
+    return this.accessors.header.getAttribute('action');
+  },
+
   get recipients() {
     return this.accessors.recipients.map(function(recipient) {
       return recipient.text();
@@ -153,10 +157,14 @@ NewMessageView.prototype = {
     return conversationView;
   },
 
-  backToInbox: function() {
+  back: function() {
     this.client.switchToShadowRoot(this.accessors.header);
     this.accessors.headerActionButton.tap();
     this.client.switchToShadowRoot();
+  },
+
+  backToInbox: function() {
+    this.back();
 
     var InboxView = require('../inbox/view');
     var inboxView = new InboxView(this.client);

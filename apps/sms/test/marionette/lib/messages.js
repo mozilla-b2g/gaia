@@ -147,12 +147,6 @@ var ParticipantsAccessor = require('./views/participants/accessors');
           return matchResult && matchResult[1];
         },
 
-        getRecipient: function(number) {
-          return client.helper.waitForElement(
-            '#messages-recipients-list .recipient[data-number="' + number + '"]'
-          );
-        },
-
         clearRecipient: function() {
           newMessageView.clearRecipients();
         },
@@ -176,18 +170,6 @@ var ParticipantsAccessor = require('./views/participants/accessors');
         performHeaderAction: function() {
           client.switchToShadowRoot(this.NewMessage.header);
           this.NewMessage.headerActionButton.tap();
-          client.switchToShadowRoot();
-        },
-
-        performReportHeaderAction: function() {
-          client.switchToShadowRoot(this.Report.header);
-          this.Report.headerActionButton.tap();
-          client.switchToShadowRoot();
-        },
-
-        performGroupHeaderAction: function() {
-          client.switchToShadowRoot(this.Participants.header);
-          this.Participants.headerActionButton.tap();
           client.switchToShadowRoot();
         }
       };

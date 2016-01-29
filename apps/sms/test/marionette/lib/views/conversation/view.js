@@ -35,6 +35,10 @@ ConversationView.prototype = {
     return this.accessors.editHeaderTitle.text();
   },
 
+  get headerAction() {
+    return this.accessors.header.getAttribute('action');
+  },
+
   get toggleSelectionButtonTitle() {
     return this.accessors.toggleSelectionButton.text();
   },
@@ -121,7 +125,7 @@ ConversationView.prototype = {
     this.accessors.headerTitle.tap();
 
     var ParticipantsView = require('../participants/view');
-    var participantsView = new ParticipantsView(this.client);
+    var participantsView = new ParticipantsView(this.client, this);
     participantsView.accessors.waitToAppear();
     return participantsView;
   },
