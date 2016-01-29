@@ -11,7 +11,9 @@
     "firefox-accounts": {},
     "moz-extremely-unstable-and-will-change-webcomponents":{},
     "settings": { "access": "readwrite" },
-    "geolocation": {}
+    "geolocation": {},
+    "audio-capture": {},
+    "video-capture": {}
   },
   "locales": {
     "ar": {
