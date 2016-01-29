@@ -5,12 +5,13 @@
 /* global AppWindow */
 /* global AppInstallManager */
 /* global AppInstallDialogs */
-/* global SystemBanner */
 /* global BookmarkManager */
+/* global SystemBanner */
 
 (function(exports) {
   const PREVIEW_OPENED_TIMES_KEY = 'preview-opened-times';
   const PREVIEW_OPENED_TIMES_TO_HINT = 3;
+  const ADD_TO_APPS_ICON_PATH = '/style/icons/add_to_apps.png';
 
   /**
    * This window is inherit the AppWindow, and modifies some properties
@@ -132,9 +133,28 @@
     localStorage.setItem(PREVIEW_OPENED_TIMES_KEY,
       JSON.stringify(previewOpenedTimes));
 
-    this.systemBanner.show({
-      id: 'preview-app-hint'
-    });
+    var showPreviewHint = function() {
+      window.interactiveNotifications.showNotification(
+        window.InteractiveNotifications.TYPE.NORMAL, {
+          title: {
+            id: 'preview-app-hint'
+          },
+          text: {
+            id: 'add-to-apps'
+          },
+          icon: ADD_TO_APPS_ICON_PATH
+        });
+    };
+
+    if (this.isWebsite) {
+      BookmarkManager.get(this.identity).then((bookmark) => {
+        if (!bookmark) {
+          showPreviewHint();
+        }
+      });
+    } else if (!AppInstallManager.getAppAddedState(this.manifestURL)) {
+      showPreviewHint();
+    }
   };
 
   PreviewWindow.prototype._handle__willdestroy = function(evt) {
