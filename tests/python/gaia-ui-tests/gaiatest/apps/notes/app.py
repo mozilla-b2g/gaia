@@ -24,9 +24,6 @@ class Notes(Base):
                 *self._app_ready_locator))))
 
     def write_and_save_note(self, text):
-        # Wait(self.marionette).until(expected.element_displayed(
-        #   Wait(self.marionette).until(expected.element_present(*self._note_content_locator))))
-        # note_content = self.marionette.find_element(*self._note_content_locator)
         note_content = Wait(self.marionette).until(expected.element_present(*self._note_content_locator))
         Wait(self.marionette).until(expected.element_displayed(note_content))
         note_content.tap()
