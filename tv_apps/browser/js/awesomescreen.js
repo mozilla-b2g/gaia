@@ -2596,21 +2596,27 @@ var Awesomescreen = {
     }
 
     switch( ev.keyCode ) {
+      case KeyEvent.DOM_VK_ESCAPE:
+        switch(true){
+          case Awesomescreen.isDisplayedDialog() :
+            // close bookmark.history to dialog
+            Awesomescreen.hidePointerImg();
+            Awesomescreen.dialogHidden();
+            break;
+          default:
+            break;
+        }
+        state = false;
+        break;
+
       case KeyEvent.DOM_VK_BACK_SPACE:
         switch(true){
           case Awesomescreen.isDisplayedDialog() :
             // close bookmark.history to dialog
+            Awesomescreen.hidePointerImg();
             Awesomescreen.dialogHidden();
             break;
-          case this.bookmarkList.isDisplay():
-            // close bookmark
-            this.bookmarkList.close();
-            Awesomescreen.hidePointerImg();
-            break;
-          case this.historyList.isDisplay():
-            // close history
-            this.historyList.close();
-            Awesomescreen.hidePointerImg();
+          case Awesomescreen.isDisplayedList():
             break;
           case Awesomescreen.isDisplayedTab() :
             // close tabview

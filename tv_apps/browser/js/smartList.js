@@ -165,6 +165,8 @@
             var focusEl = this.listItemMap[0];
             this.pointerItem(focusEl);
             this.focusItem(focusEl);
+          } else {
+            this.focusItem(this.el);
           }
 
           var event = new Event('open');
@@ -209,6 +211,21 @@
       }
 
       this.hideListPointer();
+    },
+
+    /**
+     * Go back to previous folder. If there is no previous folder, close list.
+     */
+    goBack: function() {
+      if (!this.navState) {
+        this.close();
+      } else {
+        this.navHistory.pop();
+        this.navState = this.getCurNavHistory();
+        var folderId = this.navState ? this.navState.folderId : null;
+        this.reset();
+        this.switchListView(folderId);
+      }
     },
 
     /**
@@ -774,8 +791,9 @@
 
     handleListKeyUp: function(e) {
       switch(e.keyCode){
+        case KeyEvent.DOM_VK_ESCAPE:
         case KeyEvent.DOM_VK_BACK_SPACE:
-          this.handleKeyBackspace();
+          this.goBack();
           break;
         default:
           return;
@@ -889,18 +907,6 @@
           }
         });
         this.el.dispatchEvent(event);
-      }
-    },
-
-    handleKeyBackspace: function() {
-      if (!this.navState) {
-        this.close();
-      } else {
-        this.navHistory.pop();
-        this.navState = this.getCurNavHistory();
-        var folderId = this.navState ? this.navState.folderId : null;
-        this.reset();
-        this.switchListView(folderId);
       }
     },
 
