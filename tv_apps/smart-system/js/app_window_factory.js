@@ -1,6 +1,6 @@
 'use strict';
 /* globals applications, BrowserConfigHelper, AppWindowManager, AppWindow,
-          WrapperFactory */
+          WrapperFactory, SystemBanner */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -26,6 +26,9 @@
   function AppWindowFactory() {
     this.preHandleEvent = this.preHandleEvent.bind(this);
   }
+
+  const SENT_TAB_TO_TV_ORIGIN =
+                'app://notification-receiver.gaiamobile.org/manifest.webapp';
 
   AppWindowFactory.prototype = {
     /**
@@ -120,6 +123,16 @@
       // And we limit length to 3 to get rid of the <path> part.
       parseUrl.length = 3;
       manifestURL = parseUrl.join('/') + '/manifest.webapp';
+
+      // XXX: We put send to TV prompt message here because
+      // notification-receiver has no way to show a toast-like message.
+      // We should re-check the spec again on the next release.
+      if (manifestURL === SENT_TAB_TO_TV_ORIGIN) {
+        var systemBanner = new SystemBanner();
+        systemBanner.show({
+          id: 'opening-webpage'
+        });
+      }
 
       var config = new BrowserConfigHelper({
         url: detail.url,
