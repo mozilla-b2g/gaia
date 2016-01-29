@@ -37,6 +37,7 @@
     this._telephony = telephony;
 
     this._started = false;
+    this._powerHangsUp = false;
     this._shouldVibrate = true;
     this._alerting = false;
     this._vibrateInterval = null;
@@ -69,6 +70,11 @@
     });
   };
 
+  /** Observer for the 'dialer.power_hangsup' pref. */
+  DialerAgent.prototype._observePowerHangsUp = function(value) {
+    this._powerHangsUp = !!value;
+  };
+
   /** Observer for the 'vibration.enabled' pref. */
   DialerAgent.prototype._observeVibrationEnabled = function(value) {
     this._shouldVibrate = !!value;
@@ -89,6 +95,9 @@
     this._prefsObservers.set('dialer.ringtone', function(evt) {
       this._observeDialerRingtone(evt.settingValue);
     }.bind(this));
+    this._prefsObservers.set('dialer.power_hangsup', function(evt) {
+      this._observePowerHangsUp(evt.settingValue);
+    }.bind(this));
     this._prefsObservers.set('vibration.enabled', function(evt) {
       this._observeVibrationEnabled(evt.settingValue);
     }.bind(this));
@@ -108,6 +117,14 @@
       };
     });
 
+    // Read the current hang-up by power button status
+    var powerPromise = new Promise(function(resolve, reject) {
+      lock.get('dialer.power_hangsup').onsuccess = function() {
+        self._observePowerHangsUp(this.result['dialer.power_hangsup']);
+        resolve();
+      };
+    });
+
     // Read the current vibration status
     var vibrationPromise = new Promise(function(resolve, reject) {
       lock.get('vibration.enabled').onsuccess = function() {
@@ -116,7 +133,7 @@
       };
     });
 
-    return Promise.all([ringtonePromise, vibrationPromise]);
+    return Promise.all([ringtonePromise, powerPromise, vibrationPromise]);
   };
 
   /** Unregister the preferences' listeners. */
@@ -183,7 +200,7 @@
       return;
     }
 
-    if ((evt.type === 'sleep') && this.onCall()) {
+    if ((evt.type === 'sleep') && this.onCall() && this._powerHangsUp) {
       // Hangup all calls
       this._telephony.calls.forEach(call => call.hangUp());
 
