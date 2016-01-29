@@ -135,6 +135,7 @@
       }
       if (isAppLike) {
         browser_config.isAppLike = true;
+        browser_config.identity = origin;
       }
 
       this.launchWrapper(browser_config);
