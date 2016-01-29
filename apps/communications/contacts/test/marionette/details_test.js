@@ -10,17 +10,12 @@ marionette('Contacts > Details', function() {
     profile: Contacts.config,
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
-  var subject, actions;
   var selectors;
   var contactsData = new ContactsData(client);
   var testContact;
 
   setup(function() {
-    subject = new Contacts(client);
-    actions = client.loader.getActions();
-    subject.actions = actions;
-    subject.launch();
-
+    new Contacts(client).launch();
     selectors = Contacts.Selectors;
 
     testContact = {
@@ -57,19 +52,18 @@ marionette('Contacts > Details', function() {
 
   test('Regular contact is displayed correctly', function() {
     contactsData.createMozContact(testContact);
-    client.helper.waitForElement(selectors.listContactFirstText).click();
-    subject.waitSlideLeft('details');
+    var contactsListView = new ContactsListView(client);
+    contactsListView.goToContact();
     assertContactData(testContact);
   });
 
   test('Show contact with picture', function() {
     contactsData.createMozContact(testContact, true);
-    client.helper.waitForElement(selectors.listContactFirstText).click();
-    subject.waitSlideLeft('details');
-
+    var contactsListView = new ContactsListView(client);
+    var contactDetailsView = contactsListView.goToContact();
     assertContactData(testContact);
 
-    var coverImg = client.helper.waitForElement(selectors.detailsCoverImage);
+    var coverImg = contactDetailsView.waitForCoverImage();
     assert.ok(coverImg, 'Element should exist.');
     client.waitFor(function() {
       return coverImg.getAttribute('style').indexOf('background-image') != -1;
@@ -78,14 +72,13 @@ marionette('Contacts > Details', function() {
 
   test('Share Contact', function() {
     contactsData.createMozContact(testContact);
-
-    client.helper.waitForElement(selectors.listContactFirstText).click();
-    subject.waitSlideLeft('details');
+    var contactsListView = new ContactsListView(client);
+    var contactDetailsView = contactsListView.goToContact();
 
     // Click on share button
-    client.helper.waitForElement(selectors.detailsShareButton).click();
+    contactDetailsView.tapDetailsShareButton();
 
-    var sysMenu = subject.systemMenu;
+    var sysMenu = contactDetailsView.subjectSystemMenu();
 
     // In the sysMenu they should appear at least the Messages and email apps
     var menuOptions = sysMenu.findElements('button');
