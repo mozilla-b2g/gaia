@@ -1184,11 +1184,12 @@ var ConversationView = {
 
   /**
    * Navigates user to Composer or Thread panel with custom parameters.
-   * @param {Object} parameters Navigation parameters. `number` and `messageId`
-   * are mutually exclusive in the current implementation.
+   * @param {Object} parameters Navigation parameters. `number`, `messageId` and
+   * content are mutually exclusive in the current implementation.
    * @param {String} [parameters.number] Phone number or e-mail to send a
    * message to.
    * @param {Number} [parameters.messageId] Template message to resend.
+   * @param {Object} [parameters.content] Content to resend.
    * @returns {Promise} Promise that is resolved once navigation is completed.
    * Promise is rejected if no navigation happened, especially if the user did
    * not want to discard an existing message.
@@ -1197,13 +1198,17 @@ var ConversationView = {
     var navigateToComposer = () => {
       var draftCreatePromise;
 
+      var draft;
       if (parameters.messageId) {
         draftCreatePromise = this.storeDraftFromMessage(parameters.messageId);
       } else if (parameters.number) {
-        var draft = new Draft({
+        draft = new Draft({
           recipients: [parameters.number],
           type: Utils.isEmailAddress(parameters.number) ? 'mms' : 'sms'
         });
+        draftCreatePromise = Drafts.add(draft).store().then(() => draft.id);
+      } else if (parameters.content) {
+        draft = new Draft(parameters.content);
         draftCreatePromise = Drafts.add(draft).store().then(() => draft.id);
       } else {
         throw new TypeError('Unknown parameter');
@@ -1916,8 +1921,12 @@ var ConversationView = {
     }
     params.items.push(subjectItem);
 
-    // If we are on a thread, we can call to SelectMessages
+    // If we are on a thread, we can call to SelectMessages and add recipients
     if (Navigation.isCurrentPanel('thread')) {
+      params.items.push({
+        l10nId: 'includeSomeoneElse-label',
+        method: this.includeSomeoneElse.bind(this)
+      });
       params.items.push({
         l10nId: 'selectMessages-label',
         method: this.startEdit.bind(this)
@@ -1931,6 +1940,22 @@ var ConversationView = {
     });
 
     new OptionMenu(params).show();
+  },
+
+  /**
+   * Redirect to a new message prefilled with current composer content and
+   * recipients.
+   */
+  includeSomeoneElse: function() {
+    var content = {
+      recipients: this.activeThread.participants,
+      content: Compose.getContent(),
+      subject: Compose.getSubject(),
+      type: Compose.getType()
+    };
+    this.initiateNewMessage({ content });
+    // As we are creating a new draft, we can discard current Composer
+    Compose.clear();
   },
 
   startEdit: function conv_edit() {

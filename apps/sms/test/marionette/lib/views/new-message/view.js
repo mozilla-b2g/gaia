@@ -112,6 +112,15 @@ NewMessageView.prototype = {
     return this.composerAccessors.addAttachment();
   },
 
+  /**
+   * Take a screenshot of an attachment thumbnail in the composer.
+   * @param {Number} the attachment index
+   * @return {String} The screenshot
+   */
+  takeComposerAttachmentScreenshot: function(index) {
+    return this.composerAccessors.takeAttachmentScreenshot(index);
+  },
+
   typeSubject: function(subject) {
     this.composerAccessors.subjectInput.sendKeys(subject);
   },

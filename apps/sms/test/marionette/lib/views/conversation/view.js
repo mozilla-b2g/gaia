@@ -37,7 +37,7 @@ ConversationView.prototype = {
 
   get toggleSelectionButtonTitle() {
     return this.accessors.toggleSelectionButton.text();
-  },   
+  },
 
   /**
    * Returns the messages in this conversation, following an optional filter.
@@ -179,6 +179,15 @@ ConversationView.prototype = {
     return this.composerAccessors.addAttachment();
   },
 
+  /**
+   * Take a screenshot of an attachment thumbnail in the composer.
+   * @param {Number} The attachment index
+   * @return {String} The screenshot
+   */
+  takeComposerAttachmentScreenshot: function(index) {
+    return this.composerAccessors.takeAttachmentScreenshot(index);
+  },
+
   typeSubject: function(subject) {
     this.composerAccessors.subjectInput.sendKeys(subject);
   },
@@ -191,6 +200,20 @@ ConversationView.prototype = {
     this.showOptions();
     this.menuAccessors.selectAppMenuOption('Add subject');
     this.client.helper.waitForElement(this.composerAccessors.subjectInput);
+  },
+
+  /**
+   * Launch the "include someone else" action.
+   * @returns {NewMessageView} the new message view we navigated to.
+   */
+  includeSomeoneElse: function() {
+    this.showOptions();
+    this.menuAccessors.selectAppMenuOption('Include someone else');
+
+    var NewMessageView = require('../new-message/view');
+    var newMessageView = new NewMessageView(this.client);
+    newMessageView.accessors.waitToAppear();
+    return newMessageView;
   },
 
   hideSubject: function() {
@@ -227,7 +250,7 @@ ConversationView.prototype = {
       node.scrollIntoView();
     });
     this.accessors.toggleSelectionButton.tap();
-  }, 
+  },
 
   isSubjectVisible: function() {
     var subjectInput = this.composerAccessors.subjectInput;

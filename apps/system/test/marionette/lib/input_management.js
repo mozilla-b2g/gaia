@@ -38,9 +38,15 @@ InputManagement.prototype = {
    * Wait for keyboard frame trasition end.
    */
   waitForKeyboardFrameDisplayed: function() {
-    this.client.waitFor(function() {
+    this.client.waitFor(() => {
       return this.keyboardFrameDisplayed();
-    }.bind(this));
+    });
+  },
+
+  waitForKeyboardFrameHidden: function() {
+    this.client.waitFor(() => {
+      return this.keyboardFrameHidden();
+    });
   },
 
   keyboardFrameDisplayed: function() {

@@ -5099,6 +5099,20 @@ suite('conversation.js >', function() {
         }).then(done, done);
       });
 
+      test('initiate a new message with predefined content', function(done) {
+        var content = {
+          recipients: ['+123'],
+          content: 'content',
+          subject: 'subject',
+          type: 'sms'
+        };
+        ConversationView.initiateNewMessage({ content }).then(() => {
+          sinon.assert.calledWith(Navigation.toPanel, 'composer');
+          sinon.assert.calledWithMatch(Drafts.add, content);
+          sinon.assert.called(Drafts.store);
+        }).then(done, done);
+      });
+
       test('Rejects if called with a bad parameter', function(done) {
         ConversationView.initiateNewMessage({ test: 'test' }).then(
           () => new Error('Should not be resolved.'),
@@ -6305,8 +6319,11 @@ suite('conversation.js >', function() {
       test('should show option for adding subject', function() {
         assert.equal(options[0].l10nId, 'add-subject');
       });
+      test('should show option for adding recipients', function() {
+        assert.equal(options[1].l10nId, 'includeSomeoneElse-label');
+      });
       test('should show option for selecting messages', function() {
-        assert.equal(options[1].l10nId, 'selectMessages-label');
+        assert.equal(options[2].l10nId, 'selectMessages-label');
       });
     });
   });
