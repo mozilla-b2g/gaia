@@ -1253,9 +1253,6 @@ function play() {
 function pause() {
   loadingChecker.cancelEnsureVideoPlays();
 
-  // Switch the button icon
-  setButtonPaused(true);
-
   // Check the dragging is true or not before pausing
   if (dragging) {
     dragging = false;
@@ -1265,6 +1262,9 @@ function pause() {
   // Stop playing the video
   dom.player.pause();
   playing = false;
+
+  // Switch the button icon
+  setButtonPaused(true);
 
   //stop recording statistics and print them
   VideoStats.stop();
