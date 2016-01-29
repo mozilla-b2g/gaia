@@ -107,8 +107,7 @@
   ];
 
 
-  const MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com',
-                               'app://smart-system.gaiamobile.org'];
+  const MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com'];
 
   const SENDTOTV_ORIGIN = 'app://notification-receiver.gaiamobile.org';
 
