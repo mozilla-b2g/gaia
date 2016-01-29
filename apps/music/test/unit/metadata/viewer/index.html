@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple metadata Loader</title>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h3>Metadata JS</h3>
+    </div>
+    <div id="dropbox">
+      <span id="dropLabel">Open a music file <br>or<br></span>
+      <div class="wrapper">
+        <a id="saveButton" class="btn btn-success">Load File</a>
+        <div class="file-input-wrapper btn btn-default">
+          <input type="file" onchange="renderFile(this.files[0])" title="Choose a file...">
+        </div>
+      </div>
+      <a id="downloadSampleImage">Cover Art</a></span>
+      <div id="thumbnailContainer" style="display: none">
+          <img id="thumbnail"/>
+      </div>
+      <div id="metaData">
+        <table id="metadataTags"></table>
+      </div>
+    </div>
+  </div>
+  <script src="../../../../../../shared/js/sanitizer.js" type="text/javascript"></script>
+  <script src="../../../../../../shared/js/blobview.js" type="text/javascript"></script>
+  <script src="../../../../../../shared/test/unit/mocks/mock_lazy_loader.js" type="text/javascript"></script>
+  <script src="../../../../js/metadata/core.js" type="text/javascript"></script>
+  <script src="../../../../js/metadata/formats.js" type="text/javascript"></script>
+  <script src="../../../../js/metadata/ogg.js" type="text/javascript"></script>
+  <script src="../../../../js/metadata/id3v2.js" type="text/javascript"></script>
+  <script src="../../../../js/metadata/id3v1.js" type="text/javascript"></script>
+  <script src="../../../../js/metadata/mp4.js" type="text/javascript"></script>
+  <script src="../../../../js/metadata/flac.js" type="text/javascript"></script>
+  <script src="../../../../js/metadata/vorbis_picture.js" type="text/javascript"></script>
+  <script src="metadataViewer.js" type="text/javascript"></script>
+</script>
+</body>
+</html>
