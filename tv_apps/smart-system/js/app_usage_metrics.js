@@ -60,6 +60,7 @@
   // Various event types we use. Constants here to be sure we use the
   // same values when registering, unregistering and handling these.
   const APPOPENED = 'appopened';
+  const APPLOADED = 'apploaded';
   const HOMESCREEN = 'homescreenopened';
   const ACTIVITY = 'activitycreated';
   const LOCKED = 'lockscreen-appopened';    // In 2.0, use 'locked'
@@ -82,6 +83,7 @@
   // This is the list of event types we register handlers for
   const EVENT_TYPES = [
     APPOPENED,
+    APPLOADED,
     HOMESCREEN,
     ACTIVITY,
     LOCKED,
@@ -103,6 +105,8 @@
 
   const MARKETPLACE_ORIGINS = ['https://marketplace.firefox.com',
                                'app://smart-system.gaiamobile.org'];
+
+  const SENDTOTV_ORIGIN = 'app://notification-receiver.gaiamobile.org';
 
   // This AppUsageMetrics() constructor is the value we export from
   // this module. This constructor does no initialization itself: that
@@ -441,7 +445,7 @@
         // overlaying on an app. We increase invocation count of underlying app
         // without recording any usage time (since the usage time before home
         // covers on has already recorded in HOMESCREEN event).
-        this.metrics.recordInvocation(this.getCurrentApp(), 0);
+        this.metrics.recordInvocation(this.getCurrentApp(), 0, true);
         this.metrics.recordUsageTime(homescreenWindowManager.getHomescreen(),
                                               now - this.getCurrentStartTime());
         this._appIsUnderlay = false;
@@ -453,6 +457,18 @@
       this.attentionWindows = [];
       this.currentApp = e.detail;
       this.currentAppStartTime = now;
+      break;
+    case APPLOADED:
+      // For "send to TV" feature only.
+      // For now, notification-receiver launches every time it receive send to
+      // TV request. So invocation count of notification-receiver should be
+      // equal to the count of send to TV usage count. But notification-receiver
+      // is always launched in background, so we need to track it separately.
+      var loadedApp = e.detail;
+      if (loadedApp.manifestURL &&
+          loadedApp.manifestURL.startsWith(SENDTOTV_ORIGIN) === 0) {
+        this.metrics.recordInvocation(loadedApp, 0, true);
+      }
       break;
     case HOMESCREEN:
       // The user has switched to homescrseen.
@@ -899,7 +915,7 @@
     }
   };
 
-  UsageData.prototype.recordInvocation = function(app, time) {
+  UsageData.prototype.recordInvocation = function(app, time, forceRecord) {
     if (!this.shouldTrackApp(app)) {
       return false;
     }
@@ -908,7 +924,7 @@
     // don't record anything. (This can happen when we go to the
     // lockscreen right before sleeping, for example.)
     time = Math.round(time / 1000);
-    if (time > 0) {
+    if (time > 0 || forceRecord) {
       var usage = this.getAppUsage(app);
       usage.invocations++;
       usage.usageTime += time;
