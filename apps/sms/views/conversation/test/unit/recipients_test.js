@@ -143,6 +143,24 @@ suite('Recipients', function() {
       assertDeepEqual(recipient, fixture);
     });
 
+    test('recipients.add() parenthesis ', function(done) {
+        recipients.on('add', function(count, added) {
+          assert.isFalse(added.isQuestionable);
+          recipients.off('add');
+          done();
+        });
+
+        recipients.add({
+          number: '(555)555-5555',
+          source: 'manual'
+        });
+
+        recipients.add({
+          number: '(555)-555-5555',
+          source: 'manual'
+        });
+      });
+
     test('recipients.add() 2 ', function() {
       recipients.add({
         number: '999'

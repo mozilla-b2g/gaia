@@ -54,6 +54,7 @@
     // (ignoring the presense of a '+'), the input value
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
+    number = number.replace('(','').replace(')','');
 
     if (this.isEmail) {
       this.className += ' email';
