@@ -77,6 +77,21 @@ suite('system/AttentionWindow', function() {
   });
 
   suite('attention window instance.', function() {
+    test('create a regular attention window', function() {
+      var attention = new AttentionWindow(fakeAttentionConfig);
+      assert.isTrue(attention.isAttentionWindow);
+      assert.isFalse(attention.isCallscreenWindow);
+    });
+
+    test('create a dialer attention window', function() {
+      var fakeDialerAttentionConfig = Object.assign({}, fakeAttentionConfig);
+      fakeDialerAttentionConfig.url =
+        'app://communications.gaiamobile.org/dialer/oncall.html';
+      var attention = new AttentionWindow(fakeDialerAttentionConfig);
+      assert.isTrue(attention.isAttentionWindow);
+      assert.isTrue(attention.isCallscreenWindow);
+    });
+
     test('show()', function() {
       var attention = new AttentionWindow(fakeAttentionConfig);
       this.sinon.stub(attention, '_resize');

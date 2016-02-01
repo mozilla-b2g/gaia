@@ -302,25 +302,21 @@ suite('system/ScreenManager', function() {
       });
 
       test('with a call', function() {
-        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
         MockNavigatorMozTelephony.calls = [
           { 'addEventListener': stubAddListener }
         ];
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isFalse(stubAddListener.called);
       });
 
       test('with a conference call', function() {
-        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
         MockNavigatorMozTelephony.conferenceGroup.calls = [
           { 'addEventListener': stubAddListener },
           { 'addEventListener': stubAddListener }
         ];
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isFalse(stubAddListener.called);
       });
 
@@ -330,7 +326,6 @@ suite('system/ScreenManager', function() {
         });
 
         test('for an incoming call', function() {
-          var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
           var stubAddListener = this.sinon.stub();
           MockNavigatorMozTelephony.calls = [{
             addEventListener: stubAddListener,
@@ -338,7 +333,6 @@ suite('system/ScreenManager', function() {
           }];
           ScreenManager._cpuWakeLock = null;
           ScreenManager.handleEvent({'type': 'callschanged'});
-          assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
           assert.isTrue(stubAddListener.called);
         });
 
