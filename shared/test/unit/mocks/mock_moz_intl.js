@@ -53,8 +53,13 @@ global.MockMozIntl = {
       };
     },
     getFormattedUnit(type, style, v) {
-      return Promise.resolve();
+      var returnVal = global.MockMozIntl._gaia._stringifyUnit(type, style, v);
+      return Promise.resolve(returnVal);
     },
+    _stringifyUnit(type, style, v) {
+      var args = JSON.stringify({value: parseInt(v)});
+      return `${type}-selected-${style}${args}`;
+    }
   }
 };
 

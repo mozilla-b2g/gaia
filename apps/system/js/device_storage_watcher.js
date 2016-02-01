@@ -1,4 +1,4 @@
-/* global MozActivity, LazyLoader, Service, SystemBanner */
+/* global MozActivity, LazyLoader, mozIntl, Service, SystemBanner */
 
 /**
  * DeviceStorageWatcher listens for nsIDOMDeviceStorage.onchange events
@@ -19,8 +19,6 @@
     start: function dsw_init() {
       this._lowDeviceStorage = false;
       this._freeSpace = null;
-
-      this._ = navigator.mozL10n.get;
 
       this._appStorage = navigator.getDeviceStorage('apps');
       this._appStorage.addEventListener('change', this);
@@ -68,20 +66,22 @@
       }
     },
 
-    displayBanner: function dsw_displayBanner(space) {
-      var notification = ['low-device-storage'];
-      if (space && typeof space.size !== 'undefined' && space.unit) {
-        notification.push({
-          id: 'free-space',
-          args: {
-            value: space.size,
-            unit: space.unit
-          }
-        });
-      } else {
-        notification.push('unknown-free-space');
-      }
-      LazyLoader.load(['js/system_banner.js']).then(() => {
+    displayBanner: function dsw_displayBanner(v) {
+      return LazyLoader.load(['js/system_banner.js']).then(() => {
+        var notification = ['low-device-storage'];
+        if (v !== undefined) {
+          return this.formatSize(v).then(value => {
+            notification.push({
+              id: 'free-space2',
+              args: { value }
+            });
+            return notification;
+          });
+        } else {
+          notification.push('unknown-free-space');
+          return notification;
+        }
+      }).then(notification => {
         var systemBanner = new SystemBanner();
         systemBanner.show(notification);
       }).catch((err) => {
@@ -90,25 +90,27 @@
     },
 
     lowDiskSpaceNotification: function dsw_lowDiskSpaceNotification(space) {
-      this.displayBanner(space);
       this._message.setAttribute('data-l10n-id', 'low-device-storage');
-      this.updateAvailableSpace(space);
-      this.displayNotification();
+      return this.displayBanner(space).then(() => {
+        return this.updateAvailableSpace(space);
+      }).then(() => {
+        return this.displayNotification();
+      });
     },
 
-    updateAvailableSpace: function dsw_updateAvailableSpace(space) {
-      if (space && typeof space.size !== 'undefined' && space.unit) {
-        navigator.mozL10n.setAttributes(
-          this._availableSpace,
-          'free-space',
-          {
-            value: space.size,
-            unit: space.unit
-          }
-        );
+    updateAvailableSpace: function dsw_updateAvailableSpace(v) {
+      if (v !== undefined) {
+        return this.formatSize(v).then(value => {
+          navigator.mozL10n.setAttributes(
+            this._availableSpace,
+            'free-space2',
+            { value }
+          );
+        });
       } else {
         this._availableSpace.setAttribute('data-l10n-id', 'unknown-free-space');
       }
+      return Promise.resolve();
     },
 
     /**
@@ -116,37 +118,21 @@
      * nsIDOMDeviceStorage.freeSpace call in a more readable way.
      */
     formatSize: function dsw_formatSize(size) {
-      if (size === undefined || isNaN(size)) {
-        return;
-      }
-
-      var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-      var i = 0;
-      while (size >= 1024 && i < (units.length) - 1) {
-        size /= 1024;
-        ++i;
-      }
-
-      var sizeDecimal = i < 2 ? Math.round(size) : Math.round(size * 10) / 10;
-
-      return {
-        size: sizeDecimal,
-        unit: this._('byteUnit-' + units[i])
-      };
+      return mozIntl._gaia.getFormattedUnit('digital', 'short', size);
     },
 
     handleEvent: function dsw_handleEvent(evt) {
       // Display low storage banner every time an app opens with low storage.
       if (evt.type === 'appopening') {
         if (this._lowDeviceStorage) {
-          this.displayBanner(this._freeSpace);
+          return this.displayBanner(this._freeSpace);
         }
-        return;
+        return Promise.resolve();
       }
 
       // Otherwise if event is not a storage change event we ignore it.
       if (evt.type !== 'change') {
-        return;
+        return Promise.resolve();
       }
 
       switch (evt.reason) {
@@ -157,26 +143,21 @@
         // center, containing the remaining free space. Consecutive events with
         // a 'low-disk-space' reason will only update the remaining free space.
         case 'low-disk-space':
-          var req = this._appStorage.freeSpace();
-          req.onsuccess = () => {
-            if (typeof req.result !== 'undefined') {
-              this._freeSpace = this.formatSize(req.result);
-            }
+          return this._appStorage.freeSpace().then(result => {
+            this._freeSpace = result;
             if (this._lowDeviceStorage) {
-              this.updateAvailableSpace(this._freeSpace);
-              return;
+              return this.updateAvailableSpace(this._freeSpace);
             }
-            this.lowDiskSpaceNotification(this._freeSpace);
-          };
-          req.onerror = () => {
-            this.lowDiskSpaceNotification();
-          };
-          break;
+            return this.lowDiskSpaceNotification(this._freeSpace);
+          }, () => {
+            return this.lowDiskSpaceNotification();
+          });
 
         case 'available-disk-space':
           this.hideNotification();
           break;
       }
+      return Promise.resolve();
     }
   };
 

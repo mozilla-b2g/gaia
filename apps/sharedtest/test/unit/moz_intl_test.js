@@ -1421,6 +1421,17 @@ suite('MozIntl', function() {
   suite('mozIntl._gaia methods', function() {
     suite('getFormattedUnit', function() {
       suite('digital type', function() {
+        test('should handle undefined', function(done) {
+          mozIntl._gaia.getFormattedUnit('digital', 'short').then(val => {
+            assert.isUndefined(val);
+          }).then(done, done);
+        });
+
+        test('should handle NaN', function(done) {
+          mozIntl._gaia.getFormattedUnit('digital', 'short', 'NaN').then(
+            val => { assert.isUndefined(val); }).then(done, done);
+        });
+
         test('should handle 0 bytes', function(done) {
           mozIntl._gaia.getFormattedUnit('digital', 'short', 0).then(val => {
             assert.equal(val, MockL10n._stringify('digital-byte-short', {
