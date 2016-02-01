@@ -8,6 +8,9 @@
 
   /**
    * It handles everything related to contextmenu in app-deck.
+   * TODO: We need to split IAC/Activity related logic out since AppDeck
+   * also make use of them (e.g. AppDeck calls ContextMenu.sendUnpinMessage
+   * directly).
    *
    * @class ContextMenu
    * @requires Applications
@@ -103,10 +106,10 @@
      * To tell smart-home what app we would like to unpin
      *
      * @private
-     * @method  ContextMetnu#_sendUnpinMessage
+     * @method  ContextMetnu#sendUnpinMessage
      * @param  {HTMLElement} cardElem - the card we'd like to unpin from Home
      */
-    _sendUnpinMessage: function cm_sendUnpinMessage(cardElem) {
+    sendUnpinMessage: function cm_sendUnpinMessage(cardElem) {
       var type = cardElem.getAttribute('app-type');
       if (type === 'app') {
         // Notice that here we didn't specify launchURL because we assume all
@@ -140,7 +143,7 @@
       var dataset = cardElem.dataset;
 
       if (this._target.pinned) {
-        this._sendUnpinMessage(this._target.elem);
+        this.sendUnpinMessage(this._target.elem);
       } else if (type === 'app') {
         // XXX: preferredSize should be determined by
         // real offsetWidth of cardThumbnailElem in smart-home instead of
@@ -209,7 +212,6 @@
               class: 'danger',
               onClick: () => {
                 this._bookmarkManager.remove(elem.dataset.url);
-                this._sendUnpinMessage(elem);
               }
             }
           ]
