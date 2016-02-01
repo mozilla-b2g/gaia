@@ -74,6 +74,10 @@ suite('fling-player/castingMessage', function() {
         type : 'seek',
         seq : 1,
         time : 168
+      },
+      close : {
+        type : 'close',
+        seq : 1
       }
     };
   });
