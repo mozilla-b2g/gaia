@@ -349,5 +349,4 @@
     }
   });
 
-  exports.HomescreenWindowManager = HomescreenWindowManager;
 }(window));

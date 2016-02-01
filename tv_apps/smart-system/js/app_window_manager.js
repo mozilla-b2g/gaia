@@ -1,10 +1,67 @@
-/* global SettingsListener, homescreenWindowManager, KeyboardManager,
-          layoutManager, Service, SettingsCache */
+/* global KeyboardManager, layoutManager, Service, BaseModule */
 'use strict';
 
 (function(exports) {
   var screenElement = document.getElementById('screen');
 
+  function AppWindowManager() {}
+
+  AppWindowManager.SERVICES = [
+    'stopRecording',
+    'kill'
+  ];
+  AppWindowManager.STATES = [
+    'getApp',
+    'getAppInScope',
+    'getAppByURL',
+    'getApps',
+    'getUnpinnedWindows',
+    'slowTransition',
+    'getActiveApp',
+    'getActiveWindow',
+    'isBusyLoading'
+  ];
+  AppWindowManager.EVENTS = [
+    'appcreated',
+    'applicationuninstall',
+    'appopened',
+    'appopening',
+    'appterminated',
+    'apprequestclose',
+    'apprequestopen',
+    'appwindow-orientationchange',
+    'attentionopened',
+    'cardviewbeforeshow',
+    'displayapp',
+    'hidewindow',
+    'hidewindowforscreenreader',
+    'homegesture-disabled',
+    'homegesture-enabled',
+    'homescreen-changed',
+    'homescreencreated',
+    'homescreenopened',
+    'homescreenterminated',
+    'ftuskip',
+    'killapp',
+    'landing-app-changed',
+    'launchapp',
+    'localized',
+    'mozChromeEvent',
+    'reset-orientation',
+    'sheets-gesture-begin',
+    'sheets-gesture-end',
+    'showwindow',
+    'showwindowforscreenreader',
+    'system-resize'
+  ];
+  AppWindowManager.SUB_MODULES = [
+    'HomescreenWindowManager'
+  ];
+  AppWindowManager.SETTINGS = [
+    'continuous-transition.enabled',
+    'nfc.enabled',
+    'app-suspending.enabled'
+  ];
   /**
    * AppWindowManager manages the interaction of AppWindow instances.
    *
@@ -16,8 +73,10 @@
    *
    * @module AppWindowManager
    */
-  var AppWindowManager = {
+  BaseModule.create(AppWindowManager, {
     DEBUG: false,
+    name: 'AppWindowManager',
+    EVENT_PREFIX: 'appwindowmanager',
     CLASS_NAME: 'AppWindowManager',
     continuousTransition: false,
     /**
@@ -49,9 +108,7 @@
      * @return {AppWindow} The app is active.
      */
     getActiveApp: function awm_getActiveApp() {
-      return this._activeApp ||
-             (window.homescreenWindowManager ?
-              window.Service.query('getHomescreen') : null);
+      return this._activeApp || Service.query('getHomescreen');
     },
 
     /**
@@ -119,7 +176,7 @@
                                   eventType) {
       this._dumpAllWindows();
       var appCurrent = this._activeApp, appNext = newApp ||
-        homescreenWindowManager.getHomescreen('home' === eventType);
+        Service.query('getHomescreen', 'home' === eventType);
 
       if (!appNext) {
         this.debug('no next app.');
@@ -276,128 +333,13 @@
      *
      * @memberOf module:AppWindowManager
      */
-    init: function awm_init() {
+    _start: function awm_init() {
       if (this.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {
         this.element.classList.remove('slow-transition');
       }
-      window.addEventListener('cardviewbeforeshow', this);
-      window.addEventListener('launchapp', this);
       document.body.addEventListener('launchactivity', this, true);
-      window.addEventListener('appcreated', this);
-      window.addEventListener('appterminated', this);
-      window.addEventListener('homescreenterminated', this);
-      window.addEventListener('ftuskip', this);
-      window.addEventListener('appopened', this);
-      window.addEventListener('apprequestopen', this);
-      window.addEventListener('apprequestclose', this);
-      window.addEventListener('homescreenopened', this);
-      window.addEventListener('reset-orientation', this);
-      window.addEventListener('homescreencreated', this);
-      window.addEventListener('homescreen-changed', this);
-      window.addEventListener('landing-app-changed', this);
-      // Watch chrome event that order to close an app
-      window.addEventListener('killapp', this);
-      // Watch for event to bring a currently-open app to the foreground.
-      window.addEventListener('displayapp', this);
-      // Deal with application uninstall event
-      // if the application is being uninstalled,
-      // we ensure it stop running here.
-      window.addEventListener('applicationuninstall', this);
-      window.addEventListener('hidewindow', this);
-      window.addEventListener('showwindow', this);
-      window.addEventListener('hidewindowforscreenreader', this);
-      window.addEventListener('showwindowforscreenreader', this);
-      window.addEventListener('attentionopened', this);
-      window.addEventListener('homegesture-enabled', this);
-      window.addEventListener('homegesture-disabled', this);
-      window.addEventListener('system-resize', this);
-      window.addEventListener('appwindow-orientationchange', this);
-      window.addEventListener('sheets-gesture-begin', this);
-      window.addEventListener('sheets-gesture-end', this);
-      window.addEventListener('appopening', this);
-      window.addEventListener('localized', this);
-
-      window.addEventListener('mozChromeEvent', this);
-
-      this._settingsObserveHandler = {
-        // continuous transition controlling
-        'continuous-transition.enabled': {
-          defaultValue: null,
-          callback: function(value) {
-            if (!value) {
-              return;
-            }
-            this.continuousTransition = !!value;
-          }.bind(this)
-        },
-
-        'app-suspending.enabled': {
-          defaultValue: false,
-          callback: function(value) {
-            // Kill all instances if they are suspended.
-            if (!value) {
-              this.broadcastMessage('kill_suspended');
-            }
-          }.bind(this)
-        },
-      };
-
-      for (var name in this._settingsObserveHandler) {
-        SettingsCache.observe(
-          name,
-          this._settingsObserveHandler[name].defaultValue,
-          this._settingsObserveHandler[name].callback
-        );
-      }
-    },
-
-    /**
-     * Remove all event handlers. Currently we only call this function in unit
-     * tests to avoid breaking other tests.
-     * @memberOf module:AppWindowManager
-     */
-    uninit: function awm_uninit() {
-      window.removeEventListener('launchapp', this);
-      window.removeEventListener('appcreated', this);
-      window.removeEventListener('appterminated', this);
-      window.removeEventListener('homescreenterminated', this);
-      window.removeEventListener('ftuskip', this);
-      window.removeEventListener('appopened', this);
-      window.removeEventListener('apprequestopen', this);
-      window.removeEventListener('apprequestclose', this);
-      window.removeEventListener('homescreenopened', this);
-      window.removeEventListener('reset-orientation', this);
-      window.removeEventListener('homescreencreated', this);
-      window.removeEventListener('homescreen-changed', this);
-      window.removeEventListener('landing-app-changed', this);
-      window.removeEventListener('killapp', this);
-      window.removeEventListener('displayapp', this);
-      window.removeEventListener('applicationuninstall', this);
-      window.removeEventListener('hidewindow', this);
-      window.removeEventListener('showwindow', this);
-      window.removeEventListener('hidewindowforscreenreader', this);
-      window.removeEventListener('showwindowforscreenreader', this);
-      window.removeEventListener('attentionopened', this);
-      window.removeEventListener('homegesture-enabled', this);
-      window.removeEventListener('homegesture-disabled', this);
-      window.removeEventListener('system-resize', this);
-      window.removeEventListener('appwindow-orientationchange', this);
-      window.removeEventListener('sheets-gesture-begin', this);
-      window.removeEventListener('sheets-gesture-end', this);
-      window.removeEventListener('appopening', this);
-      window.removeEventListener('localized', this);
-      window.removeEventListener('mozChromeEvent', this);
-
-      for (var name in this._settingsObserveHandler) {
-        SettingsListener.unobserve(
-          name,
-          this._settingsObserveHandler[name].callback
-        );
-      }
-
-      this._settingsObserveHandler = null;
     },
 
     handleEvent: function awm_handleEvent(evt) {
@@ -448,7 +390,7 @@
           break;
 
         case 'ftuskip':
-          if (!homescreenWindowManager.ready) {
+          if (!this.homescreenWindowManager.ready) {
             var self = this;
             window.addEventListener('homescreenwindowmanager-ready',
               function _handleReady(){
@@ -714,14 +656,6 @@
       }
     },
 
-    publish: function awm_publish(event, detail) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent(event, true, false, detail || this);
-
-      this.debug('publish: ' + event);
-      window.dispatchEvent(evt);
-    },
-
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
       var appHasChanged = (this._activeApp !== this._apps[instanceID]);
 
@@ -919,8 +853,26 @@
         // And meanwhile, call the callback
         if (callback) { callback(); }
       };
-    }
-  };
+    },
+    stopRecording: function(cb) {
+      this.sendStopRecordingRequest(cb);
+    },
 
-  exports.AppWindowManager = AppWindowManager;
+    '_observe_continuous-transition.enabled': function(value) {
+      if (!value) {
+        return;
+      }
+      this.continuousTransition = !!value;
+    },
+
+    '_observe_app-suspending.enabled': function(value) {
+      // Kill all instances if they are suspended.
+      if (!value) {
+        this.broadcastMessage('kill_suspended');
+      }
+    }
+  });
+
+  exports.AppWindowManager = new AppWindowManager();
+
 }(window));

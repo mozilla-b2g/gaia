@@ -30,8 +30,6 @@ window.addEventListener('load', function startup() {
     window.systemDialogManager = window.systemDialogManager ||
       new SystemDialogManager();
 
-    window.AppWindowManager.init();
-
     window.BookmarkManager.init(
       'app://app-deck.gaiamobile.org/manifest.webapp', 'readwrite');
   }
@@ -48,14 +46,6 @@ window.addEventListener('load', function startup() {
                                    onHomescreenReady);
         FtuLauncher.retrieve();
       });
-    /** @global */
-    if (!window.homescreenLauncher) {
-      // We may have application.ready = true while reloading at firefox nightly
-      // browser. In this case, the window.homescreenLauncher haven't been
-      // created. We should create it and start it in this case.
-      window.homescreenLauncher = BaseModule.instantiate('HomescreenLauncher');
-    }
-    window.homescreenLauncher.start();
   }
 
   if (applications.ready) {
@@ -87,12 +77,6 @@ window.addEventListener('load', function startup() {
 
   ScreenManager.turnScreenOn();
 
-  // To make sure homescreen window manager can intercept webapps-launch event,
-  // we need to move the code here.
-  window.homescreenWindowManager =
-    BaseModule.instantiate('HomescreenWindowManager');
-  window.homescreenWindowManager.start();
-
   // Please sort it alphabetically
   window.activities = new Activities();
   window.accessibility = new Accessibility();
@@ -108,12 +92,6 @@ window.addEventListener('load', function startup() {
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
-  if (!window.homescreenLauncher) {
-    // If application.ready is true, we already create homescreenLauncher in
-    // safelyLaunchFTU(). We should use it. If it is false, we should create it
-    // here.
-    window.homescreenLauncher = BaseModule.instantiate('HomescreenLauncher');
-  }
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.permissionManager = new PermissionManager();
