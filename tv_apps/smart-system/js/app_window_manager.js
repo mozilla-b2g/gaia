@@ -51,7 +51,7 @@
     getActiveApp: function awm_getActiveApp() {
       return this._activeApp ||
              (window.homescreenWindowManager ?
-              window.homescreenWindowManager.getHomescreen() : null);
+              window.Service.query('getHomescreen') : null);
     },
 
     /**
@@ -223,7 +223,7 @@
           } else {
             // Homescreen might be dead due to OOM, we should ensure its opening
             // before updateActiveApp.
-            appNext = homescreenWindowManager.getHomescreen();
+            appNext = Service.query('getHomescreen');
             appNext.ensure(true);
           }
         }
@@ -791,7 +791,7 @@
       // be a method of AWM.
       var launchHomescreen = () => {
         // jshint ignore:line
-        var home = homescreenWindowManager.getHomescreen();
+        var home = Service.query('getHomescreen');
         if (home) {
           if (home.isActive()) {
             home.setVisible(true);
