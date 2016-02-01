@@ -1,4 +1,4 @@
-/* globals Service, AppWindowManager, homescreenLauncher, SettingsListener,
+/* globals Service, AppWindowManager, SettingsListener,
            AttentionIndicator, focusManager */
 'use strict';
 
@@ -200,7 +200,7 @@
             return;
           }
           this._topMostWindow = null;
-          var nextApp = homescreenLauncher.getHomescreen();
+          var nextApp = Service.query('getHomescreen');
           if (Service.locked) {
             this.closeAllAttentionWindows();
           } else if (nextApp && !nextApp.isDead()) {
