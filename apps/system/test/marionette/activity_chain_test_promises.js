@@ -21,7 +21,7 @@
             __dirname + '/../apps/activitycalleewindow'
         }
       },
-      driver: Marionette.Drivers.TcpSync
+      driver: Marionette.Drivers.Promises
     });
     console.log('Terminou de criar o cliente no teste');
 

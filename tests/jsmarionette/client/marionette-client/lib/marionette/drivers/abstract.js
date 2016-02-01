@@ -151,6 +151,8 @@
     connect: function connect(callback) {
       this.ready = true;
       this._responseQueue.push(function(data) {
+        console.log('dentro do connect no responseQueue!', data);
+
         this.marionetteProtocol = data.marionetteProtocol || 1;
         this.traits = data.traits;
         this.applicationType = data.applicationType;
@@ -203,6 +205,7 @@
     _onDeviceResponse: function _onDeviceResponse(data) {
       if (this.ready && data.id === this.connectionId) {
         this._waiting = false;
+       // console.log('no abstract no ondevice resonse protocol:', this.marionetteProtocol);
 
         var resp;
         if (this.marionetteProtocol >= 3) {
