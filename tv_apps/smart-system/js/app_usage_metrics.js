@@ -41,7 +41,7 @@
  */
 
 /* global asyncStorage, SettingsListener, performance, uuid, TelemetryRequest,
-          applications, LazyLoader, homescreenWindowManager, AppWindowManager */
+          applications, LazyLoader, Service, AppWindowManager */
 (function(exports) {
   'use strict';
 
@@ -450,7 +450,7 @@
         // without recording any usage time (since the usage time before home
         // covers on has already recorded in HOMESCREEN event).
         this.metrics.recordInvocation(this.getCurrentApp(), 0, true);
-        this.metrics.recordUsageTime(homescreenWindowManager.getHomescreen(),
+        this.metrics.recordUsageTime(Service.query('getHomescreen'),
                                               now - this.getCurrentStartTime());
         this._appIsUnderlay = false;
       } else {
@@ -494,7 +494,7 @@
       break;
     case UNDERLAYOPENED:
       // The user has hidden the homescreen and use underlying app again.
-      this.metrics.recordUsageTime(homescreenWindowManager.getHomescreen(),
+      this.metrics.recordUsageTime(Service.query('getHomescreen'),
                                                 now - this.currentAppStartTime);
 
       this._appIsUnderlay = false;
