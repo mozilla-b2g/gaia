@@ -137,9 +137,12 @@
           if (this._underlayApp) {
             // If we have _underlayApp but another app is launching, we need to
             // close the _underlayApp.
-            if (this._underlayApp.manifestURL ===
-                AppWindowManager.getActiveApp().manifestURL) {
-
+            var underlayAppIdentity = this._underlayApp.isAppLike ?
+              this._underlayApp.identity : this._underlayApp.manifestURL;
+            var currentApp = AppWindowManager.getActiveApp();
+            var currentAppIdentity = currentApp.isAppLike ?
+              currentApp.identity : currentApp.manifestURL;
+            if (underlayAppIdentity === currentAppIdentity) {
               this.publish('homescreen-underlayopened', this._underlayApp);
               focusManager.focus();
             } else {
