@@ -184,7 +184,7 @@
             }
           }
         }.bind(this));
-      } else if (AppWindowManager.getActiveApp()){
+      } else if (AppWindowManager && AppWindowManager.getActiveApp()){
         // no system UI, we set focus back to top-most AppWindow
         topMost = AppWindowManager.getActiveApp();
         // We will always have active app, except booting.
