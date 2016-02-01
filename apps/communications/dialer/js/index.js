@@ -1,4 +1,4 @@
-/* globals KeypadManager, NavbarManager, LazyLoader, CallHandler */
+/* globals KeypadManager, NavbarManager, LazyLoader, CallHandler, TonePlayer */
 'use strict';
 
 function onLoadDialer() {
@@ -13,6 +13,10 @@ function onLoadDialer() {
   if (navigator.mozAudioChannelManager) {
     navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
   }
+
+  // According to the UX sound spec, we should use the "system" type for the
+  // dialer pad. See the attachment of the bug1068219.
+  TonePlayer.init('system');
 
   KeypadManager.init(/* oncall */ false);
   // Keypad (app core content) is now bound

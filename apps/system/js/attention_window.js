@@ -57,6 +57,12 @@
    */
   var AttentionWindow = function AttentionWindow(config) {
     this.reConfig(config);
+
+    // HACK, we should create a generic mechanism to enforce special behavior
+    this.isCallscreenWindow = config.url.startsWith(
+      'app://communications.gaiamobile.org/dialer/oncall.html'
+    );
+
     this.render();
     if (this._DEBUG) {
       AttentionWindow[this.instanceID] = this;
@@ -84,10 +90,11 @@
   AttentionWindow.prototype._DEBUG = false;
   AttentionWindow.prototype.closedHeight = 40;
 
-  AttentionWindow.prototype.openAnimation = 'immediate';
-  AttentionWindow.prototype.closeAnimation = 'immediate';
+  AttentionWindow.prototype.openAnimation = 'slide-from-top';
+  AttentionWindow.prototype.closeAnimation = 'slide-to-top';
 
   AttentionWindow.prototype.isAttentionWindow = true;
+  AttentionWindow.prototype.isCallscreenWindow = false;
 
   AttentionWindow.prototype.view = function attw_view() {
     this.debug('intance id: ' + this.instanceID);

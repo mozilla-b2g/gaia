@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SettingsListener, SettingsURL, CallscreenWindow, applications */
+/* global SettingsListener, SettingsURL */
 /* global Service, LazyLoader, toneUpgrader */
 /* r=? dialer+system peers for changes in this file. */
 
@@ -12,7 +12,6 @@
    *
    * This simple module keeps the ringtone (blob) around and starts alerting the
    * user as soon as a new incoming call is detected via the mozTelephony API.
-   * And it opens an AttentionWindow with the preloaded callscreen app inside.
    *
    * We also listen for the sleep and volumedown hardware buttons to provide
    * the user with an easy way to stop the ringing.
@@ -50,17 +49,6 @@
     player.mozAudioChannelType = 'ringer';
     player.preload = 'metadata';
     player.loop = true;
-    this.freeCallscreenWindow = this.freeCallscreenWindow.bind(this);
-    this.makeFakeNotification = this.makeFakeNotification.bind(this);
-  };
-
-  DialerAgent.prototype.freeCallscreenWindow = function() {
-    /* Free the callscreen window unless there are active calls or the
-     * callscreen is visible. */
-    if (this._callscreenWindow && !this.onCall() &&
-        !this._callscreenWindow.isVisible()) {
-      this._callscreenWindow.free();
-    }
   };
 
   DialerAgent.prototype.start = function da_start() {
@@ -106,25 +94,10 @@
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
     window.addEventListener('volumedown', this);
-    window.addEventListener('mozmemorypressure', this.freeCallscreenWindow);
-
-    this._callscreenWindow = new CallscreenWindow();
-    this._callscreenWindow.hide();
-
-    if (applications && applications.ready) {
-      this.makeFakeNotification();
-    } else {
-      window.addEventListener('applicationready', this.makeFakeNotification);
-    }
 
     Service.registerState('onCall', this);
 
     return this;
-  };
-
-  DialerAgent.prototype.makeFakeNotification = function() {
-    window.removeEventListener('applicationready', this.makeFakeNotification);
-    this._callscreenWindow && this._callscreenWindow.makeNotification();
   };
 
   DialerAgent.prototype.stop = function da_stop() {
@@ -138,7 +111,6 @@
     window.removeEventListener('sleep', this);
     window.removeEventListener('wake', this);
     window.removeEventListener('volumedown', this);
-    window.removeEventListener('mozmemorypressure', this.freeCallscreenWindow);
 
     Service.unregisterState('onCall', this);
 
@@ -191,7 +163,8 @@
     });
 
     if (calling) {
-      this.openCallscreen();
+      // Show the callscreen window if it already exists.
+      Service.request('AttentionWindowManager:showCallscreenWindow');
     }
 
     var incomingCall = calls[calls.length - 1];
@@ -200,8 +173,8 @@
     }
 
     var self = this;
-
-    self._startAlerting();
+    // Silence the ringtone if more than one call is present
+    this._startAlerting(/* silent */ (this.numOpenLines() > 1));
 
     incomingCall.addEventListener('statechange', function callStateChange() {
       incomingCall.removeEventListener('statechange', callStateChange);
@@ -210,7 +183,7 @@
     });
   };
 
-  DialerAgent.prototype._playRing = function da_playRing () {
+  DialerAgent.prototype._playRing = function da_playRing() {
     // Notice that, even we are in the vibration mode, we would still play the
     // silence ringer. That is because when the incoming call is coming, other
     // playing sound should be paused. Therefore, we need to a silence ringer
@@ -220,7 +193,7 @@
     }
   };
 
-  DialerAgent.prototype._startAlerting = function da_startAlerting() {
+  DialerAgent.prototype._startAlerting = function da_startAlerting(silent) {
     this._alerting = true;
 
     if ('vibrate' in navigator && this._shouldVibrate) {
@@ -230,6 +203,7 @@
       navigator.vibrate([200]);
     }
 
+    this._player.volume = silent ? 0.0 : 1.0;
     this._playRing();
   };
 
@@ -245,18 +219,13 @@
     window.clearInterval(this._vibrateInterval);
   };
 
-  DialerAgent.prototype.openCallscreen = function() {
-    if (this._callscreenWindow) {
-      this._callscreenWindow.ensure();
-      this._callscreenWindow.requestOpen();
-    }
+  DialerAgent.prototype.numOpenLines = function() {
+    return this._telephony.calls.length +
+      (this._telephony.conferenceGroup.calls.length ? 1 : 0);
   };
 
   DialerAgent.prototype.onCall = function() {
-    var numOpenLines = this._telephony.calls.length +
-      (this._telephony.conferenceGroup.calls.length ? 1 : 0);
-
-    return (numOpenLines > 0);
+    return (this.numOpenLines() > 0);
   };
 
   exports.DialerAgent = DialerAgent;

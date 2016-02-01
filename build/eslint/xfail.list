@@ -167,7 +167,6 @@ apps/system/js/base_icon.js # line 113, col 9, Error - Unsafe call to insertAdja
 apps/system/js/base_ui.js # line 28, col 5, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/js/bluetooth_transfer.js # line 405, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/js/call_forwarding_icon.js # line 29, col 5, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
-apps/system/js/callscreen_window.js # line 89, col 5, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/js/entry_sheet.js # line 63, col 5, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/js/global_overlay_window.js # line 86, col 5, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/system/js/roaming_icon.js # line 22, col 5, Error - Unsafe call to insertAdjacentHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)

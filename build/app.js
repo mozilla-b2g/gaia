@@ -21,24 +21,7 @@ function buildApps(options) {
   var processes = [];
   var gaia = utils.gaia.getInstance(options);
 
-  // A workaround for bug 1093267 in order to handle callscreen's l10n broken.
-  // Callscreen will generate incorrect multilocale strings if
-  // build_stage/communications/dialer/locales is removed by webapp-optimize.
-  // After bug 1093267 has been resolved, we're going to get rid of this.
-  var callscreen;
-  var communications;
-  var webapps = gaia.rebuildWebapps.filter(function(app) {
-    var path = app.appDirPath;
-    if (path.indexOf('callscreen') !== -1) {
-      callscreen = app;
-      return false;
-    } else {
-      return true;
-    }
-  });
-  if (callscreen) {
-    webapps.push(callscreen);
-  }
+  var webapps = gaia.rebuildWebapps;
 
   webapps.forEach(function(app) {
     let appDir = app.appDirPath;
@@ -55,34 +38,16 @@ function buildApps(options) {
       utils.log('app', 'building ' + appDirFile.leafName + ' app...');
 
       if (parseInt(options.P) > 0) {
-        // A workaround for bug 1093267
-        if (appDir.indexOf('communications') !== -1) {
-          communications = utils.spawnProcess('build-app', appOptions);
-          processes.push({
-            name: 'communications',
-            instance: communications
-          });
-        } else {
-          processes.push({
-            name: appDirFile.leafName,
-            instance: utils.spawnProcess('build-app', appOptions)
-          });
-        }
+        processes.push({
+          name: appDirFile.leafName,
+          instance: utils.spawnProcess('build-app', appOptions)
+        });
       } else {
         require('./build-app').execute(appOptions);
       }
     }
     // Do not spawn a new process since too many processes will slow it down
     else {
-      // A workaround for bug 1093267
-      if (appDir.indexOf('callscreen') !== -1) {
-        if (communications) {
-          utils.processEvents(function () {
-            return { wait: utils.processIsRunning(communications) };
-          });
-        }
-      }
-
       utils.copyToStage(appOptions);
       appOptions.webapp = app;
       nodeHelper.require('./post-app', appOptions);

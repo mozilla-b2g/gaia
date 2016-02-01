@@ -13,7 +13,6 @@ require(
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
-require('/shared/test/unit/mocks/mock_voicemail.js');
 require('/dialer/test/unit/mock_call_log.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
@@ -36,6 +35,7 @@ require(
   '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
 
 require('/dialer/test/unit/mock_navigation.js');
+require('/dialer/test/unit/mock_voicemail.js');
 require('/dialer/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([

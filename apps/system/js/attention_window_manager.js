@@ -45,6 +45,14 @@
       return this._topMostWindow;
     },
 
+    showCallscreenWindow: function attwm_getCallscreenWindow() {
+      var callscreenWindow = this._instances.find(function(aw) {
+        return aw.isCallscreenWindow;
+      });
+
+      callscreenWindow && callscreenWindow.requestOpen();
+    },
+
     respondToHierarchyEvent: function(evt) {
       if (this['_handle_' + evt.type]) {
         return this['_handle_' + evt.type](evt);
@@ -120,10 +128,9 @@
       window.addEventListener('languagechange', this);
       window.addEventListener('updatepromptshown', this);
       Service.request('registerHierarchy', this);
+      Service.register('showCallscreenWindow', this);
       if (navigator.mozTelephony) {
         BaseModule.lazyLoad(['DialerAgent']).then(() => {
-          // DialerAgent will create callscreen window
-          // so it is 'CallscreenWindowLauncher' exactly.
           this.dialerAgent = new DialerAgent();
           this.dialerAgent.start();
         });
@@ -152,6 +159,7 @@
       window.removeEventListener('languagechange', this);
       window.removeEventListener('updatepromptshown', this);
       Service.request('unregisterHierarchy', this);
+      Service.unregister('showCallscreenWindow', this);
     },
 
     handleEvent: function attwm_handleEvent(evt) {
@@ -228,7 +236,6 @@
           }.bind(this));
           break;
 
-        // For callscreen window.
         case 'attentionshown':
           if (this._instances.indexOf(attention) < 0) {
             this._instances.push(attention);

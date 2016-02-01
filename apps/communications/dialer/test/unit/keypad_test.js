@@ -10,7 +10,6 @@
 'use strict';
 
 require('/shared/js/dialer/dtmf_tone.js');
-require('/shared/js/dialer/keypad.js');
 
 require('/contacts/test/unit/mock_confirm_dialog.js');
 require('/dialer/test/unit/mock_call_handler.js');
@@ -34,6 +33,8 @@ require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 require('/dialer/test/unit/mock_dialer_index.html.js');
 require(
   '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
+
+require('/dialer/js/keypad.js');
 
 var mocksHelperForKeypad = new MocksHelper([
   'LazyLoader',
@@ -187,15 +188,6 @@ suite('dialer/keypad', function() {
   });
 
   suite('Keypad Manager', function() {
-    test('initializates the TonePlayer to use the system audio channel',
-    function() {
-      this.sinon.spy(MockTonePlayer, 'init');
-      KeypadManager.init(/* oncall */ false);
-
-      sinon.assert.calledOnce(MockTonePlayer.init);
-      sinon.assert.calledWithExactly(MockTonePlayer.init, 'system');
-    });
-
     test('sanitizePhoneNumber', function(done) {
       var testCases = {
           '111-111-1111': '111-111-1111',
