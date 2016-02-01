@@ -348,7 +348,7 @@ var CallHandler = (function callHandler() {
     };
 
     var oncall = function() {
-      SuggestionBar.hideOverlay();
+      SuggestionBar.overlay && SuggestionBar.overlay.hide();
       SuggestionBar.clear();
     };
 
