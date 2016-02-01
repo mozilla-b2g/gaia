@@ -9,7 +9,7 @@ Keyboards.uk = {
   pages: [ {    //default page
     alt: {
       а: '@',
-      г: 'ґ'
+      г: 'ґ',
     },
     width: 12,
     keys: [
