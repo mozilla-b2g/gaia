@@ -217,6 +217,9 @@ var InboxView = {
         ].join(', ');
       } else {
         picture.firstElementChild.style.backgroundImage = null;
+        if (contact.title) {
+          picture.firstElementChild.textContent = contact.title[0];
+        }
       }
     }
 
