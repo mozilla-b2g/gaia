@@ -314,6 +314,7 @@
                 url: url,
                 iconUrl: iconUrl
               }).then(() => {
+                AppInstallManager.resetPreviewOpenedTimes(url);
                 this.systemBanner.show({
                   id: 'added-to-apps',
                   args: {
