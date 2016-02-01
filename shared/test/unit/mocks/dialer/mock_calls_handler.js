@@ -35,6 +35,7 @@ var MockCallsHandler = {
   updateMergeAndOnHoldStatus: function() {},
   updateMuteAndSpeakerStatus: function() {},
   setup: function () {},
+  holdAndAnswer: function() {},
 
   mTeardown: function() {
     this.mActiveCall = null;
