@@ -155,7 +155,7 @@ var BrowserDialog = {
       case 'signout_confirm':
         opt = {
           title: 'fxsync-confirm-sign-out-title',
-          msg: 'fxsync-confirm-sign-out-message',
+          msg: 'fxsync-confirm-sign-out-detail',
           bt1: 'LT_CANCEL',
           bt2: 'fxsync-sign-out'
         };
