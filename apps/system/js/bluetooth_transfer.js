@@ -2,7 +2,7 @@
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
-/* global MimeMapper, Service, LazyLoader,
+/* global MimeMapper, Service, LazyLoader, mozIntl,
           MozActivity, NotificationHelper, UtilityTray */
 /* exported BluetoothTransfer */
 (function(exports) {
@@ -130,23 +130,6 @@ var BluetoothTransfer = {
     console.log('[System Bluetooth Transfer]: ' + msg);
   },
 
-  humanizeSize: function bt_humanizeSize(bytes) {
-    var _ = navigator.mozL10n.get;
-    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    var size, e;
-    if (bytes) {
-      e = Math.floor(Math.log(bytes) / Math.log(1024));
-      size = (bytes / Math.pow(1024, e)).toFixed(2);
-    } else {
-      e = 0;
-      size = '0.00';
-    }
-    return _('fileSize', {
-      size: size,
-      unit: _('byteUnit-' + units[e])
-    });
-  },
-
   _onFilesSending: function bt__onFilesSending(evt) {
     // Notify user that we are sending files
     var icon = 'style/bluetooth_transfer/images/transfer.png';
@@ -204,7 +187,6 @@ var BluetoothTransfer = {
   showReceivePrompt: function bt_showReceivePrompt(evt) {
     var address = evt.address;
     var fileName = evt.fileName;
-    var fileSize = this.humanizeSize(evt.fileLength);
     var cancel = {
       title: 'deny',
       callback: this.declineReceive.bind(this, address)
@@ -217,17 +199,21 @@ var BluetoothTransfer = {
     };
 
     this.getDeviceName(address).then(function(deviceName) {
-      Service.request('showCustomDialog', 'acceptFileTransfer',
-        {
-          id: 'want-to-receive-file',
-          args: {
-            deviceName: deviceName,
-            fileName: fileName,
-            fileSize: fileSize
-          }
-        },
-        cancel,
-        confirm
+      mozIntl._gaia.getFormattedUnit('digital', 'short', evt.fileLength).then(
+        size => {
+          Service.request('showCustomDialog', 'acceptFileTransfer',
+            {
+              id: 'want-to-receive-file',
+              args: {
+                deviceName: deviceName,
+                fileName: fileName,
+                fileSize: size
+              }
+            },
+            cancel,
+            confirm
+          );
+        }
       );
     });
   },

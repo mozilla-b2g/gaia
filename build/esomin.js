@@ -1,4 +1,3 @@
-/*jshint node: true */
 'use strict';
 
 /**
@@ -8,9 +7,9 @@
  * methods allow passing in a function that handles the actual minification.
  */
 
-var esprima = require('./esomin/esprima');
-var escodegen = require('./esomin/escodegen');
-var utils = require('utils');
+var utils = require('./utils');
+var esprima = require('esprima');
+var escodegen = require('escodegen');
 var jsSuffix = /\.js$/;
 
 /**

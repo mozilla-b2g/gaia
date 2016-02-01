@@ -1,4 +1,3 @@
-/* global _ */
 /* global Awesomescreen */
 /* global Browser */
 /* global BrowserDB */
@@ -101,38 +100,26 @@ var BrowserDialog = {
       case 'del_cookie':
         opt = {
           title: null,
-          msg: _('WB_LT_CONFIRM_DELETE_COOKIES'),
-          bt1: _('LT_CANCEL'),
-          bt2: _('WB_LT_CLEAR')
+          msg: 'WB_LT_CONFIRM_DELETE_COOKIES',
+          bt1: 'LT_CANCEL',
+          bt2: 'WB_LT_CLEAR'
         };
         break;
 
       case 'clear_history':
         opt = {
           title: null,
-          msg: _('WB_LT_CLEAR_ALL_HISTORY'),
-          bt1: _('LT_CANCEL'),
-          bt2: _('WB_LT_CLEAR')
-        };
-        break;
-
-      case 'error_browser':
-        var msg_str = (evt.detail.type === 'certerror') ?
-          _('WB_LT_CONNECTION_IS_UNTRUSTED') :
-          _('WB_LT_PAGE_CANNOT_BE_DISPLAYED');
-        opt = {
-          title: null,
-          msg: msg_str,
-          bt1: _('LT_WB_OK'),
-          bt2: null
+          msg: 'WB_LT_CLEAR_ALL_HISTORY',
+          bt1: 'LT_CANCEL',
+          bt2: 'WB_LT_CLEAR'
         };
         break;
 
       case 'max_bookmark':
         opt = {
           title: null,
-          msg: _('WB_LT_BOOKMARK_ERROR_1'),
-          bt1: _('LT_CANCEL'),
+          msg: 'WB_LT_BOOKMARK_ERROR_1',
+          bt1: 'LT_CANCEL',
           bt2: null
         };
         break;
@@ -140,8 +127,8 @@ var BrowserDialog = {
       case 'alert':
         opt = {
           title: null,
-          msg: evt.detail.message,
-          bt1: _('LT_WB_OK'),
+          msg: {raw: evt.detail.message},
+          bt1: 'LT_WB_OK',
           bt2: null
         };
         break;
@@ -149,28 +136,28 @@ var BrowserDialog = {
       case 'prompt':
         opt = {
           title: null,
-          msg: evt.detail.message,
-          bt1: _('LT_CANCEL'),
-          bt2: _('LT_WB_OK')
+          msg: {raw: evt.detail.message},
+          bt1: 'LT_CANCEL',
+          bt2: 'LT_WB_OK'
         };
         break;
 
       case 'confirm':
         opt = {
           title: null,
-          msg: evt.detail.message,
-          bt1: _('LT_CANCEL'),
-          bt2: _('LT_WB_OK')
+          msg: {raw: evt.detail.message},
+          bt1: 'LT_CANCEL',
+          bt2: 'LT_WB_OK'
         };
         break;
 
 //IFDEF_FIREFOX_SYNC
       case 'signout_confirm':
         opt = {
-          title: _('fxsync-confirm-sign-out-title'),
-          msg: _('fxsync-confirm-sign-out-message'),
-          bt1: _('LT_CANCEL'),
-          bt2: _('fxsync-sign-out')
+          title: 'fxsync-confirm-sign-out-title',
+          msg: 'fxsync-confirm-sign-out-detail',
+          bt1: 'LT_CANCEL',
+          bt2: 'fxsync-sign-out'
         };
         var deferred = {};
         deferred.promise = new Promise(function(resolve, reject) {
@@ -188,12 +175,23 @@ var BrowserDialog = {
     Browser.switchCursorMode(false);
 
     // title
-    this.browserDialogTitle.textContent = opt.title;
+    if (opt.title) {
+      this.browserDialogTitle.setAttribute('data-l10n-id', opt.title);
+    } else {
+      this.browserDialogTitle.removeAttribute('data-l10n-id');
+      this.browserDialogTitle.textContent = '';
+    }
 
     // msg
     if(opt.msg) {
-      var msg = opt.msg.replace(/\\n/g, '<br>');
-      this.browserDialogMsg.innerHTML = msg;
+      if (typeof opt.msg === 'string') {
+        this.browserDialogMsg.setAttribute('data-l10n-id', opt.msg);
+      } else if (opt.msg.hasOwnProperty('raw')) {
+        this.browserDialogMsg.innerHTML = opt.msg.raw.replace(/\\n/g, '<br>');
+      }
+    } else {
+      this.browserDialogMsg.removeAttribute('data-l10n-id');
+      this.browserDialogMsg.textContent = '';
     }
 
     var countIndex = 0;
@@ -204,7 +202,7 @@ var BrowserDialog = {
     // button1
     if(opt.bt1) {
       this.browserDialogButton1.blur();
-      this.browserDialogButton1.textContent = opt.bt1;
+      this.browserDialogButton1.setAttribute('data-l10n-id', opt.bt1);
       this.browserDialogButton1.dataset.type = type;
       this.browserDialogButton1.classList.add('visible');
     }
@@ -212,7 +210,7 @@ var BrowserDialog = {
     // button2
     if(opt.bt2) {
       this.browserDialogButton2.blur();
-      this.browserDialogButton2.textContent = opt.bt2;
+      this.browserDialogButton2.setAttribute('data-l10n-id', opt.bt2);
       this.browserDialogButton2.dataset.type = type;
       this.browserDialogButton2.classList.add('visible');
     }
@@ -319,7 +317,6 @@ var BrowserDialog = {
     switch(type) {
       case 'del_cookie':
       case 'clear_history':
-      case 'error_browser':
       case 'max_bookmark':
       case 'alert':
       case 'prompt':

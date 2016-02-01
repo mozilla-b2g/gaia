@@ -73,9 +73,9 @@ var Tooltip = {
     var tips = null;
     if(ev.target.dataset.tips != null && ev.target.dataset.tips != undefined) {
       if(ev.target == Toolbar.searchInput) {
-        tips = ev.target.dataset.tips;
+        tips = {raw: ev.target.dataset.tips};
       } else {
-        tips = _(ev.target.dataset.tips);
+        tips = ev.target.dataset.tips;
       }
     }
     this.showTimeoutID = setTimeout(function(){
@@ -158,7 +158,11 @@ var Tooltip = {
     }
     this.show();
     this.tooltipBlock.style.left = '0px';
-    this.tooltipBlock.innerHTML = disp.text.replace(/\\n/g, '<br>');
+    if (typeof disp.text === 'string') {
+      this.tooltipBlock.setAttribute('data-l10n-id', disp.text);
+    } else if (disp.text.hasOwnProperty('raw')) {
+      this.tooltipBlock.innerHTML = disp.text.replace(/\\n/g, '<br>');
+    }
 
     // pos x adjustment
     // 25 = scrollbar margin

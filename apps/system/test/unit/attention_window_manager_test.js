@@ -524,4 +524,33 @@ suite('system/AttentionWindowManager', function() {
         });
     });
   });
+
+  suite('Services', function() {
+    var mockCallscreen;
+
+    setup(function() {
+      this.sinon.spy(MockService, 'register');
+      window.attentionWindowManager = new AttentionWindowManager();
+      window.attentionWindowManager.start();
+
+      mockCallscreen = new MockAttentionWindow(fakeAttentionConfig);
+      mockCallscreen.isCallscreenWindow = true;
+      this.sinon.spy(mockCallscreen, 'requestOpen');
+
+      window.dispatchEvent(new CustomEvent('attentioncreated', {
+        detail: mockCallscreen
+      }));
+    });
+
+    teardown(function() {
+      window.attentionWindowManager.stop();
+      window.attentionWindowManager = null;
+    });
+
+    test('showCallscreenWindow', function() {
+      sinon.assert.calledWith(MockService.register, 'showCallscreenWindow');
+      window.attentionWindowManager.showCallscreenWindow();
+      sinon.assert.calledOnce(mockCallscreen.requestOpen);
+    });
+  });
 });

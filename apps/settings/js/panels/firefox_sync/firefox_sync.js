@@ -4,6 +4,7 @@
 
 /* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_NO_KEY_FETCH_TOKEN */
 /* global ERROR_OFFLINE */
 /* global ERROR_SYNC_APP_KILLED */
 /* global ERROR_UNVERIFIED_ACCOUNT */
@@ -202,7 +203,8 @@ define(function(require) {
             var title;
 
             const KNOWN_ERRORS = [
-              ERROR_OFFLINE
+              ERROR_OFFLINE,
+              ERROR_NO_KEY_FETCH_TOKEN
             ];
 
             if (KNOWN_ERRORS.indexOf(message.error) > -1) {

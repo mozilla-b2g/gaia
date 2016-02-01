@@ -75,7 +75,7 @@ marionette('Browser Chrome - Open New Window', function() {
     // Opening a new window and immediatly switching to
     // the previous app
     newWindow();
-    actions.flick(system.leftPanel, 0, 50, 100, 50, 100).perform();
+    actions.flick(system.leftPanel, 0, 50, 100, 50, 10).perform();
 
     client.waitFor(function() {
       return system.getActiveAppName() === 'Clock';

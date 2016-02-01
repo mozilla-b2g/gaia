@@ -130,7 +130,6 @@
 
   proto._handleKeyEvent = function in_handleKeyEvent(e) {
     switch(e.keyCode) {
-      case KeyEvent.DOM_VK_ESCAPE:
       case KeyEvent.DOM_VK_BACK_SPACE:
         if (this._activeMessage) {
           this.hideNotification(this._activeType, this._activeMessage);
@@ -153,8 +152,32 @@
     banner.style.backgroundImage = msg.icon ? 'url("' + msg.icon + '")':
                                    'url("/style/icons/system_84.png")';
     title.textContent = msg.title ? msg.title : '';
+
+    if (msg.title && msg.title.id) {
+      navigator.mozL10n.setAttributes(
+        title,
+        msg.title.id,
+        msg.title.args
+      );
+    } else {
+      title.removeAttribute('data-l10n-id');
+      title.removeAttribute('data-l10n-args');
+      title.textContent = msg.title || '';
+    }
+
+    if (msg.text && msg.text.id) {
+      navigator.mozL10n.setAttributes(
+        text,
+        msg.text.id,
+        msg.text.args
+      );
+    } else {
+      text.removeAttribute('data-l10n-id');
+      text.removeAttribute('data-l10n-args');
+      text.textContent = msg.text || '';
+    }
+
     banner.classList[msg.title ? 'add' : 'remove']('has-title');
-    text.textContent = msg.text ? msg.text : '';
 
     if (msg.buttons && msg.buttons.length) {
       buttonGroup.classList.remove('hidden');

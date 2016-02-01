@@ -1,11 +1,12 @@
 'use strict';
 /* global ExternalStorageMonitor, MocksHelper, MockNotification, MockL10n,
           MockNotificationHelper, MockGetDeviceStorages, MockMozActivity,
-          MockNavigatorSettings */
+          MockNavigatorSettings, MockMozIntl */
 
 requireApp('system/js/external_storage_monitor.js');
 
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
@@ -25,6 +26,7 @@ var mocksForExternalStorageMonitor = new MocksHelper([
 suite('system/ExternalStorageMonitor', function() {
 
   var realL10n;
+  var realMozIntl;
   var realNotification;
   var realNotificationHelper;
   var realNavigatorGetDeviceStorages;
@@ -38,6 +40,9 @@ suite('system/ExternalStorageMonitor', function() {
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
 
     realNotification = window.Notification;
     window.Notification = MockNotification;
@@ -59,6 +64,7 @@ suite('system/ExternalStorageMonitor', function() {
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    window.mozIntl = realMozIntl;
     window.Notification = realNotification;
     window.NotificationHelper = realNotificationHelper;
     navigator.getDeviceStorages = realNavigatorGetDeviceStorages;
@@ -325,33 +331,27 @@ suite('system/ExternalStorageMonitor', function() {
 
     suite('createMessage > ', function() {
       suite('case: "detected-recognised" > ', function() {
-        var stubGetTotalSpace, fakeTotalSpace;
-        setup(function() {
-          fakeTotalSpace = {
-            size: '7.2',
-            unit: 'GB'
-          };
-          stubGetTotalSpace = this.sinon.stub(externalStorageMonitor,
-                                              'getTotalSpace');
-          this.sinon.stub(externalStorageMonitor, 'fireNotification');
-          externalStorageMonitor.createMessage('detected-recognised');
-        });
-
-        teardown(function() {
-          stubGetTotalSpace.restore();
+        setup(function(done) {
+          this.sinon.stub(externalStorageMonitor._storage, 'usedSpace', () => {
+            return Promise.resolve(20);
+          });
+          this.sinon.stub(externalStorageMonitor._storage, 'freeSpace', () => {
+            return Promise.resolve(10);
+          });
+          this.sinon.spy(externalStorageMonitor, 'getTotalSpace');
+          this.sinon.spy(externalStorageMonitor, 'fireNotification');
+          externalStorageMonitor.createMessage('detected-recognised').then(done,
+              done);
         });
 
         test('fireNotification() should be called ' +
           'after got total space..', function() {
-          assert.isTrue(stubGetTotalSpace.called);
-          var gotTotalSpaceCallback = stubGetTotalSpace.getCall(0).args[0];
-          gotTotalSpaceCallback(fakeTotalSpace);
+          assert.isTrue(externalStorageMonitor.getTotalSpace.called);
           var titleL10n = 'sdcard-detected-title';
           var bodyL10n = {
-            id: 'sdcard-total-size-body',
+            id: 'sdcard-total-size-body2',
             args: {
-              size: fakeTotalSpace.size,
-              unit: fakeTotalSpace.unit
+              size: MockMozIntl._gaia._stringifyUnit('digital', 'short', 30)
             }
           };
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
@@ -555,130 +555,30 @@ suite('system/ExternalStorageMonitor', function() {
       });
 
       suite('getTotalSpace > ', function() {
-        var callback;
-        setup(function() {
-          callback = this.sinon.stub();
+        var returnValue;
+        setup(function(done) {
           var storages = MockGetDeviceStorages('sdcard');
           externalStorageMonitor._storage = storages[0];
-          this.sinon.spy(externalStorageMonitor._storage, 'usedSpace');
-          this.sinon.spy(externalStorageMonitor._storage, 'freeSpace');
-          this.sinon.stub(externalStorageMonitor, 'formatSize').returns(400);
-          externalStorageMonitor.getTotalSpace(callback);
+          this.sinon.spy(externalStorageMonitor, 'formatSize');
+          this.sinon.stub(externalStorageMonitor._storage, 'usedSpace', () => {
+            return Promise.resolve(100);
+          });
+          this.sinon.stub(externalStorageMonitor._storage, 'freeSpace', () => {
+            return Promise.resolve(300);
+          });
+          externalStorageMonitor.getTotalSpace().then(v => {
+            returnValue = v;
+            done();
+          }, done);
         });
 
-        test('callback function should be called with total space', function() {
-          assert.isTrue(externalStorageMonitor._storage.usedSpace.called,
-            'usedSpace() should be called');
-          var req =
-            externalStorageMonitor._storage.usedSpace.getCall(0).returnValue;
-          req.fireSuccess(100);
-
-          assert.isTrue(externalStorageMonitor._storage.freeSpace.called,
-            'freeSpace() should be called');
-          var req2 =
-            externalStorageMonitor._storage.freeSpace.getCall(0).returnValue;
-          req2.fireSuccess(300);
-
-          assert.isTrue(externalStorageMonitor.formatSize.calledWith(400));
-          assert.isTrue(callback.calledWith(400));
-        });
-      });
-
-      suite('formatSize > ', function() {
-        test('empty size', function() {
-          assert.equal(externalStorageMonitor.formatSize(), undefined);
-        });
-
-        test('NaN', function() {
-          assert.equal(externalStorageMonitor.formatSize('NaN'), undefined);
-        });
-
-        test('bytes', function() {
-          var result = externalStorageMonitor.formatSize(1);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-B');
-        });
-
-        test('KB', function() {
-          var result = externalStorageMonitor.formatSize(1024);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-KB');
-        });
-
-        test('KB with decimal (round down)', function() {
-          var result = externalStorageMonitor.formatSize(1024 + 511);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-KB');
-        });
-
-        test('KB with decimal (round up)', function() {
-          var result = externalStorageMonitor.formatSize(1024 + 512);
-          assert.equal(result.size, 2);
-          assert.equal(result.unit, 'byteUnit-KB');
-        });
-
-        test('MB', function() {
-          var result = externalStorageMonitor.formatSize(1024 * 1024);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-MB');
-        });
-
-        test('MB with decimal (lower than 1K)', function() {
-          var result = externalStorageMonitor.formatSize(1024 * 1024 + 512);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-MB');
-        });
-
-        test('MB with decimal (0.5MB)', function() {
-          var result =
-            externalStorageMonitor.formatSize(1024 * 1024 + 512 * 1024);
-          assert.equal(result.size, 1.5);
-          assert.equal(result.unit, 'byteUnit-MB');
-        });
-
-        test('GB', function() {
-          var result =
-            externalStorageMonitor.formatSize(1024 * 1024 * 1024);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-GB');
-        });
-
-        test('TB', function() {
-          var result =
-            externalStorageMonitor.formatSize(1024 * 1024 * 1024 * 1024);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-TB');
-        });
-
-        test('PB', function() {
-          var result = externalStorageMonitor.formatSize(1024 * 1024 * 1024 *
-                                                         1024 * 1024);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-PB');
-        });
-
-        test('EB', function() {
-          var result = externalStorageMonitor.formatSize(1024 * 1024 * 1024 *
-                                                         1024 * 1024 * 1024);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-EB');
-        });
-
-        test('ZB', function() {
-          var result = externalStorageMonitor.formatSize(1024 * 1024 * 1024 *
-                                                         1024 * 1024 * 1024 *
-                                                         1024);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-ZB');
-        });
-
-        test('YB', function() {
-          var result = externalStorageMonitor.formatSize(1024 * 1024 * 1024 *
-                                                         1024 * 1024 * 1024 *
-                                                         1024 * 1024);
-          assert.equal(result.size, 1);
-          assert.equal(result.unit, 'byteUnit-YB');
-        });
+        test('formatSize function should be called with total space',
+          function() {
+            assert.isTrue(externalStorageMonitor.formatSize.calledWith(400));
+            assert.equal(returnValue,
+                MockMozIntl._gaia._stringifyUnit('digital', 'short', 400));
+          }
+        );
       });
     });
   });

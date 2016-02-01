@@ -5,16 +5,16 @@
 /* global AppWindow */
 /* global AppInstallManager */
 /* global AppInstallDialogs */
-/* global SystemBanner */
 /* global BookmarkManager */
+/* global SystemBanner */
 
 (function(exports) {
   const PREVIEW_OPENED_TIMES_KEY = 'preview-opened-times';
   const PREVIEW_OPENED_TIMES_TO_HINT = 3;
+  const ADD_TO_APPS_ICON_PATH = '/style/icons/add_to_apps.png';
 
   /**
-   * This window is inherit the AppWindow, and modifies some properties
-   * different from the later.
+   * This window inherited AppWindow and altered some properties of the later.
    *
    * @constructor PreviewWindow
    * @augments AppWindow
@@ -25,7 +25,7 @@
       this.container = configs.rearWindow;
     }
 
-    this.isWebsite = !configs.manifestURL;
+    this.isAppLike = !configs.manifestURL;
     this.identity = configs.manifestURL || configs.url;
     this.features = configs.features || {};
 
@@ -99,27 +99,24 @@
     return this.isVisible();
   };
 
-  PreviewWindow.prototype._handle_mozbrowserafterkeyup = function(evt) {
+  PreviewWindow.prototype._handle_back = function(evt) {
     if (document.activeElement !== this.iframe) {
       return;
     }
-    if ((evt.keyCode === 27 || evt.key === 'Escape') &&
-        !evt.embeddedCancelled) {
-      if (this.config.url.startsWith('app://')) {
-        this.kill();
-      } else {
-        var goBackReq = this.iframe.getCanGoBack();
-        goBackReq.onsuccess = () => {
-          if (goBackReq.result) {
-            this.iframe.goBack();
-          } else {
-            this.kill();
-          }
-        };
-        goBackReq.onerror = () => {
+    if (this.config.url.startsWith('app://')) {
+      this.kill();
+    } else {
+      var goBackReq = this.iframe.getCanGoBack();
+      goBackReq.onsuccess = () => {
+        if (goBackReq.result) {
+          this.iframe.goBack();
+        } else {
           this.kill();
-        };
-      }
+        }
+      };
+      goBackReq.onerror = () => {
+        this.kill();
+      };
     }
   };
 
@@ -135,9 +132,28 @@
     localStorage.setItem(PREVIEW_OPENED_TIMES_KEY,
       JSON.stringify(previewOpenedTimes));
 
-    this.systemBanner.show({
-      id: 'preview-app-hint'
-    });
+    var showPreviewHint = function() {
+      window.interactiveNotifications.showNotification(
+        window.InteractiveNotifications.TYPE.NORMAL, {
+          title: {
+            id: 'preview-app-hint'
+          },
+          text: {
+            id: 'add-to-apps'
+          },
+          icon: ADD_TO_APPS_ICON_PATH
+        });
+    };
+
+    if (this.isAppLike) {
+      BookmarkManager.get(this.identity).then((bookmark) => {
+        if (!bookmark) {
+          showPreviewHint();
+        }
+      });
+    } else if (!AppInstallManager.getAppAddedState(this.manifestURL)) {
+      showPreviewHint();
+    }
   };
 
   PreviewWindow.prototype._handle__willdestroy = function(evt) {
@@ -149,7 +165,7 @@
       previewOpenedTimes[this.identity] == PREVIEW_OPENED_TIMES_TO_HINT;
     var options;
 
-    if (this.isWebsite) {
+    if (this.isAppLike) {
       if (needPrompt) {
         BookmarkManager.get(this.identity).then((bookmark) => {
           if (!bookmark) {

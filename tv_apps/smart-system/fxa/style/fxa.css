@@ -300,7 +300,7 @@ gaia-header {
 #fxa-pw-clean-btn {
   position: absolute;
   top: 1.4rem;
-  right: 5em;
+  right: 0;
   display: none;
   width: 3rem;
   height: 3rem;

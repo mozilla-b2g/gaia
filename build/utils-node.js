@@ -10,7 +10,7 @@
  * which contains the complete functions used in 'utils.js'
  */
 
-var utils = require('./utils.js');
+var utils = require('./utils');
 var path = require('path');
 var childProcess = require('child_process');
 var fs = require('fs-extra');
@@ -27,6 +27,7 @@ var jsdom = require('jsdom');
 var esprima = require('esprima');
 var procRunning = require('is-running');
 var mime = require('mime');
+var crypto = require('crypto');
 
 // Our gecko will transfer .opus file to audio/ogg datauri type.
 mime.define({'audio/ogg': ['opus']});
@@ -65,7 +66,8 @@ module.exports = {
   getFile: function() {
     var self = module.exports;
     var args = Array.prototype.slice.call(arguments);
-    var src = path.resolve.apply(path, args);
+    var src = path.join.apply(path, args);
+    src = path.resolve(src);
     var fileStat;
     try {
       fileStat = fs.statSync(src);
@@ -103,8 +105,7 @@ module.exports = {
 
   Commander: function(cmd) {
     this.initPath = function() {};
-    this.run = function(args, callback) {
-      var q = Q.defer();
+    this.run = function(args, callback, options) {
       var cmds = args.join(' ');
 
       // In *nix and OSX version commands are run via sh -c YOUR_COMMAND,
@@ -119,15 +120,23 @@ module.exports = {
       // XXX: Most cmds should run synchronously, we should use either promise
       //      pattern inside each script or find a sync module which doesn't
       //      require recompile again since TPBL doesn't support that.
-      childProcess.exec(cmds,
-                        { maxBuffer: (4096 * 1024) },
-                        function(err, stdout) {
-        if (err === null && typeof callback === 'function') {
-          callback(stdout);
-        }
-        q.resolve();
+      return new Promise(function(resolve, reject) {
+        childProcess.exec(cmds, { maxBuffer: (4096 * 1024) },
+          function(err, stdout, stderr) {
+            if (err) {
+              options && options.stderr && options.stderr(stderr);
+              reject(stderr);
+            } else {
+              options && options.stdout && options.stdout(stdout);
+              callback && callback(stdout);
+              resolve(stdout);
+            }
+        });
       });
-      return q.promise;
+    };
+
+    this.runWithSubprocess = function(args, options) {
+      this.run(args, null, options);
     };
   },
 
@@ -298,7 +307,7 @@ module.exports = {
     }, this).join('\n');
 
     var targetFile = this.getFile(targetPath);
-    this.ensureFolderExists(targetFile.parent);
+
     this.writeContent(targetFile, concatedScript);
   },
 
@@ -609,5 +618,9 @@ module.exports = {
   runScriptInSandbox: function(filePath, sandbox) {
     var script = fs.readFileSync(filePath, { encoding: 'utf8' });
     return vm.runInNewContext(script, sandbox);
+  },
+
+  getHash: function(string) {
+    return crypto.createHash('sha1').update(string).digest('hex');
   }
 };

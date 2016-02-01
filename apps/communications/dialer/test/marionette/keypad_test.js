@@ -7,7 +7,7 @@ var ReflowHelper =
 marionette('Dialer > Keypad', function() {
   var assert = require('assert');
 
-  var client = marionette.client({ profile: Dialer.config });
+  var client = marionette.client(Dialer.config);
   var subject;
   var selectors;
   var actions;
@@ -90,6 +90,19 @@ marionette('Dialer > Keypad', function() {
       return (number.getAttribute('value') === '');
     });
   }
+
+  test('Add a contact from dialer', function() {
+        subject.keypadView.typePhoneNumber(12345);
+        var addToContactsActivities = subject.keypadView.addToContacts();
+        var newContact = addToContactsActivities.pickCreateNew();
+
+        var contactName = 'Name';
+        var dialer = newContact.createNewContactAndReturnToDialer(contactName);
+        var contactList = dialer.tabs.goToContactList();
+        var contactCreated = contactList.getContactFirstName();
+
+        assert.strictEqual(contactCreated, contactName);
+  });
 
   test('Entering a 3 digits number with the keypad', function() {
     loadSuggestionDOM();
@@ -315,4 +328,5 @@ marionette('Dialer > Keypad', function() {
     });
     assert.ok(true, 'cleaned the phone number view');
   });
+
 });

@@ -1,4 +1,4 @@
-/* globals _, Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
+/* globals Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
 /* globals SmartList, BookmarkStore, HistoryStore */
 
 
@@ -429,8 +429,9 @@ var Awesomescreen = {
    */
   openPrivateBrowsingMoreInfo:
     function awesomescreen_openPrivateBrowsingMoreInfo() {
-    window.open('https://support.mozilla.org/en-US/kb/' +
-      'private-browsing-use-firefox-without-history');
+    Awesomescreen.createAddNewTab();
+    Browser.navigate('https://support.mozilla.org/en-US/kb/' +
+             'private-browsing-use-firefox-without-history');
   },
 
   /**
@@ -567,7 +568,7 @@ var Awesomescreen = {
     this.awesomescreen.classList.add('awesomescreen-screen-top');
     this.topSites.style.display = 'block';
     this.topSites.style.opacity = '1';
-    if(this.isDisplayedTab()){
+    if(this.isDisplayedTab() || window.FTE){
        Browser.switchCursorMode(false);
     }else{
        Browser.switchCursorMode(true);
@@ -917,8 +918,8 @@ var Awesomescreen = {
       //Bookmark maximum number check
       if(bmList.length >= Browser.MAX_BOOKMARK_LIST){
         //TODO This message I want to change later
-        Awesomescreen.dialogBannerMessage.innerHTML =
-          _('WB_LT_BOOKMARK_ERROR_1');
+        Awesomescreen.dialogBannerMessage.setAttribute(
+          'data-l10n-id', 'WB_LT_BOOKMARK_ERROR_1');
         Awesomescreen.showBannerMessage();
       }else{
         Awesomescreen.bmDialogSetting();
@@ -935,7 +936,8 @@ var Awesomescreen = {
 
     this.focusList = [];
     this.blurFlag = false;
-    Awesomescreen.messageTitle.innerHTML = _('WB_LT_BOOKMARK_THIS_PAGE');
+    Awesomescreen.messageTitle.setAttribute(
+      'data-l10n-id', 'WB_LT_BOOKMARK_THIS_PAGE');
     Awesomescreen.bmtitleArea.classList.remove('invalid');
     Awesomescreen.inputArea.value = Browser.currentInfo.title;
     Awesomescreen.okButton.classList.remove('disable');
@@ -1111,7 +1113,8 @@ var Awesomescreen = {
         break;
 
       case 'rmBookmark':
-        this.messageTitle.innerHTML = _('WB_LT_REMOVE_FROM_BOOKMARKS');
+        this.messageTitle.setAttribute(
+          'data-l10n-id', 'WB_LT_REMOVE_FROM_BOOKMARKS');
         elementIDs = [this.messageArea, this.messageTitle,
                       this.removeConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
@@ -1123,7 +1126,8 @@ var Awesomescreen = {
         break;
 
       case 'clHistory': // remove One history item
-        this.messageTitle.innerHTML = _('WB_LT_REMOVE_HISTORY');
+        this.messageTitle.setAttribute(
+          'data-l10n-id', 'WB_LT_REMOVE_HISTORY');
         elementIDs = [this.messageArea, this.messageTitle,
                       this.removeConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
@@ -1135,7 +1139,8 @@ var Awesomescreen = {
         break;
 
       case 'rnBookmark':
-        this.messageTitle.innerHTML = _('WB_LT_RENAME_BOOKMARK');
+        this.messageTitle.setAttribute(
+          'data-l10n-id', 'WB_LT_RENAME_BOOKMARK');
         this.bmtitleArea.classList.remove('invalid');
         this.inputArea.value =
           this.bookmarkList.getFocusItemTitle();
@@ -1154,7 +1159,8 @@ var Awesomescreen = {
         break;
 
       case 'rmHistory': // remove All history
-        this.messageTitle.innerHTML = _('WB_LT_CLEAR_ALL_HISTORY');
+        this.messageTitle.setAttribute(
+          'data-l10n-id', 'WB_LT_CLEAR_ALL_HISTORY');
         elementIDs = [this.messageArea, this.messageTitle, this.clearButton,
                       this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
@@ -1373,8 +1379,8 @@ var Awesomescreen = {
     var title = this.selectList.childNodes[1].childNodes[0].textContent;
     Settings.setHomepage(url);
 
-    var strMessage = _('WB_LT_SET_HOMEPAGE', {value0:title});
-    this.dialogBannerMessage.textContent = strMessage;
+    navigator.mozL10n.setAttributes(this.dialogBannerMessage,
+       'WB_LT_SET_HOMEPAGE', {value0:title});
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -2591,21 +2597,27 @@ var Awesomescreen = {
     }
 
     switch( ev.keyCode ) {
+      case KeyEvent.DOM_VK_ESCAPE:
+        switch(true){
+          case Awesomescreen.isDisplayedDialog() :
+            // close bookmark.history to dialog
+            Awesomescreen.hidePointerImg();
+            Awesomescreen.dialogHidden();
+            break;
+          default:
+            break;
+        }
+        state = false;
+        break;
+
       case KeyEvent.DOM_VK_BACK_SPACE:
         switch(true){
           case Awesomescreen.isDisplayedDialog() :
             // close bookmark.history to dialog
+            Awesomescreen.hidePointerImg();
             Awesomescreen.dialogHidden();
             break;
-          case this.bookmarkList.isDisplay():
-            // close bookmark
-            this.bookmarkList.close();
-            Awesomescreen.hidePointerImg();
-            break;
-          case this.historyList.isDisplay():
-            // close history
-            this.historyList.close();
-            Awesomescreen.hidePointerImg();
+          case Awesomescreen.isDisplayedList():
             break;
           case Awesomescreen.isDisplayedTab() :
             // close tabview

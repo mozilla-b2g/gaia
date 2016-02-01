@@ -4,7 +4,7 @@
           MockApp, MockAppUpdatable, MockAppsMgmt, MockChromeEvent,
           MockCustomDialog, MocksHelper, MockL10n, MockMozActivity,
           MockNavigatorMozMobileConnections, MockNavigatorSettings,
-          MockNavigatorWakeLock, MockNotificationScreen,
+          MockNavigatorWakeLock, MockNotificationScreen, MockMozIntl,
           MockSettingsListener, MockSystemBanner, MockSystemUpdatable */
 
 require('/shared/js/component_utils.js');
@@ -29,6 +29,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 requireApp('system/test/unit/mock_asyncStorage.js');
 require('/test/unit/mock_update_manager.js');
@@ -47,6 +48,7 @@ var mocksForUpdateManager = new MocksHelper([
 
 suite('system/UpdateManager', function() {
   var realL10n;
+  var realMozIntl;
   var realWifiManager;
   var realRequestWakeLock;
   var realNavigatorSettings;
@@ -74,6 +76,9 @@ suite('system/UpdateManager', function() {
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    realMozIntl = window.mozIntl;
+    window.mozIntl = MockMozIntl;
 
     realWifiManager = navigator.mozWifiManager;
     navigator.mozWifiManager = {
@@ -111,6 +116,7 @@ suite('system/UpdateManager', function() {
     realNavigatorSettings = null;
 
     navigator.mozL10n = realL10n;
+    window.mozIntl = realMozIntl;
     navigator.mozWifiManager = realWifiManager;
     navigator.requestWakeLock = realRequestWakeLock;
     realRequestWakeLock = null;
@@ -606,14 +612,18 @@ suite('system/UpdateManager', function() {
         assert.isFalse(css.contains('downloading'));
       });
 
-      test('should show the downloading progress if downloading', function() {
+      test('should show the downloading progress if downloading',
+      function(done) {
         UpdateManager._downloading = true;
         UpdateManager.render();
 
-        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
 
-        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
-        assert.deepEqual(l10nAttrs.args, { progress: '0.00 bytes' });
+        Promise.resolve().then(() => {
+          var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+          assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+          assert.deepEqual(l10nAttrs.args, { progress:
+            MockMozIntl._gaia._stringifyUnit('digital', 'short', 0) });
+        }).then(done, done);
       });
 
       suite('if downloading', function() {
@@ -663,43 +673,55 @@ suite('system/UpdateManager', function() {
         UpdateManager.downloadProgressed(1234);
       });
 
-      test('downloadedBytes should be reset by startDownloads', function() {
+      test('downloadedBytes should be reset by startDownloads', function(done) {
         var evt = document.createEvent('MouseEvents');
         evt.initEvent('click', true, true);
         UpdateManager.startDownloads(evt);
 
-        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+        Promise.resolve().then(() => {
+          var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
 
-        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
-        assert.deepEqual(l10nAttrs.args, { progress: '0.00 bytes' });
+          assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+          assert.deepEqual(l10nAttrs.args, { progress:
+            MockMozIntl._gaia._stringifyUnit('digital', 'short', 0) });
+        }).then(done, done);
       });
 
       test('downloadedBytes should be reset when stopping the download',
-      function() {
+      function(done) {
 
         UpdateManager.removeFromDownloadsQueue(uAppWithDownloadAvailable);
         UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
 
-        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+        Promise.resolve().then(() => {
+          var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
 
-        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
-        assert.deepEqual(l10nAttrs.args, { progress: '0.00 bytes' });
+          assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+          assert.deepEqual(l10nAttrs.args, { progress:
+            MockMozIntl._gaia._stringifyUnit('digital', 'short', 0) });
+        }).then(done, done);
       });
 
-      test('should increment the downloadedBytes', function() {
+      test('should increment the downloadedBytes', function(done) {
         UpdateManager.downloadProgressed(100);
-        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+        Promise.resolve().then(() => {
+          var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
 
-        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
-        assert.deepEqual(l10nAttrs.args, { progress: '1.30 kB' });
+          assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+          assert.deepEqual(l10nAttrs.args, { progress:
+            MockMozIntl._gaia._stringifyUnit('digital', 'short', 1334) });
+        }).then(done, done);
       });
 
-      test('should not update if bytes <= 0', function() {
+      test('should not update if bytes <= 0', function(done) {
         UpdateManager.downloadProgressed(-100);
-        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+        Promise.resolve().then(() => {
+          var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
 
-        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
-        assert.deepEqual(l10nAttrs.args, { progress: '1.21 kB' });
+          assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+          assert.deepEqual(l10nAttrs.args, { progress:
+            MockMozIntl._gaia._stringifyUnit('digital', 'short', 1234) });
+        }).then(done, done);
       });
 
       test('should display the notification', function() {
@@ -728,7 +750,7 @@ suite('system/UpdateManager', function() {
       });
 
       suite('when we have various ongoing updates', function() {
-        setup(function() {
+        setup(function(done) {
           UpdateManager.addToUpdatableApps(uAppWithDownloadAvailable);
           UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
           UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
@@ -737,6 +759,7 @@ suite('system/UpdateManager', function() {
           UpdateManager.addToDownloadsQueue(systemUpdatable);
 
           UpdateManager.startedUncompressing();
+          Promise.resolve().then(done, done);
         });
 
         test('should stay in downloading mode', function() {
@@ -975,28 +998,6 @@ suite('system/UpdateManager', function() {
         this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
         assert.equal(1, MockSystemBanner.mShowCount);
-      });
-    });
-
-    suite('humanizeSize', function() {
-      test('should handle 0', function() {
-        assert.equal('0.00 bytes', UpdateManager._humanizeSize(0));
-      });
-
-      test('should handle bytes size', function() {
-        assert.equal('42.00 bytes', UpdateManager._humanizeSize(42));
-      });
-
-      test('should handle kilobytes size', function() {
-        assert.equal('1.00 kB', UpdateManager._humanizeSize(1024));
-      });
-
-      test('should handle megabytes size', function() {
-        assert.equal('4.67 MB', UpdateManager._humanizeSize(4901024));
-      });
-
-      test('should handle gigabytes size', function() {
-        assert.equal('3.73 GB', UpdateManager._humanizeSize(4000901024));
       });
     });
   });
@@ -1301,7 +1302,8 @@ suite('system/UpdateManager', function() {
             l10nAssert(item.children[1], 'systemUpdateWithVersion', {
               version: mockDisplayVersion
             });
-            assert.equal(item.children[2].textContent, '5.05 MB');
+            assert.equal(item.children[2].textContent,
+                MockMozIntl._gaia._stringifyUnit('digital', 'short', 5296345));
             l10nAssert(item.children[3], 'build-id', { buildid: mockBuildID });
             l10nAssert(item.children[4], 'view-release-notes');
           });
@@ -1347,7 +1349,8 @@ suite('system/UpdateManager', function() {
           test('should render packaged app items alphabetically with checkbox',
           function() {
             var item = UpdateManager.downloadDialogList.children[1];
-            assert.include(item.textContent, '413.53 kB');
+            assert.include(item.textContent,
+                MockMozIntl._gaia._stringifyUnit('digital', 'short', 423459));
 
             var name = item.querySelector('span.name');
             assert.equal(name.textContent, 'Angry birds');

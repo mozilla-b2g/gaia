@@ -1,4 +1,4 @@
-/* global require, marionette, setup, suite, test */
+/* global require, marionette, setup, suite, test, __dirname */
 'use strict';
 
 var assert = require('chai').assert;
@@ -9,14 +9,25 @@ var Messages = require('./lib/messages.js');
 var InboxView = require('./lib/views/inbox/view');
 var Storage = require('./lib/storage.js');
 var Tools = require('./lib/views/shared/tools.js');
+var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
+var Keyboard = require('../../../keyboard/test/marionette/lib/keyboard.js');
 
 marionette('Conversation Panel Tests', function() {
+  var apps = {};
+  apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
 
   var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: false }
+    desiredCapabilities: { raisesAccessibilityExceptions: false },
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+
+      apps: apps
+    }
   });
 
-  var messagesApp, storage;
+  var messagesApp, storage, activityCallerApp, keyboardApp;
 
   function assertIsDisplayed(element) {
     assert.isTrue(element.displayed(), 'Element should be displayed');
@@ -24,7 +35,9 @@ marionette('Conversation Panel Tests', function() {
 
   setup(function() {
     messagesApp = Messages.create(client);
+    keyboardApp = new Keyboard(client);
     storage = Storage.create(client);
+    activityCallerApp = MessagesActivityCaller.create(client);
 
     client.loader.getMockManager('sms').inject([
       'test_storages',
@@ -551,6 +564,120 @@ marionette('Conversation Panel Tests', function() {
           'Edit mode header should show correct number of messages'
         );
       });
+    });
+  });
+
+  suite('Add recipients from thread', function() {
+    var conversationView;
+    setup(function() {
+      var thread = ThreadGenerator.generate({
+        numberOfMessages: 1
+      });
+      storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
+
+      messagesApp.launch();
+
+      var inboxView = new InboxView(client);
+      conversationView = inboxView.goToConversation(thread.id);
+    });
+
+    test('With empty composer: recipients should be kept',
+    function() {
+      var newMessageView = conversationView.includeSomeoneElse();
+      // this also ensure we are on Composer view
+      assert.equal(newMessageView.recipients, '+123',
+          'Recipients should be kept');
+      assert.equal(newMessageView.messageText, '', 'SMS text should be empty');
+
+      // add a recipient, a subject and send a mms to create a thread with
+      // several recipients
+      newMessageView.typeMessage('message2');
+      newMessageView.addNewRecipient('+234');
+
+      newMessageView.showSubject();
+      newMessageView.typeSubject('subject1');
+      conversationView = newMessageView.send();
+
+      newMessageView = conversationView.includeSomeoneElse();
+      var recipients = newMessageView.recipients;
+      assert.lengthOf(recipients, 2, 'There should be 2 recipients');
+      assert.include(recipients, '+123', '+123 should be in the recipients');
+      assert.include(recipients, '+234', '+234 should be in the recipients');
+      assert.equal(newMessageView.messageText, '', 'MMS text should be empty');
+    });
+
+    test('Sms being written: message and recipients should be kept',
+    function() {
+      conversationView.typeMessage('message2');
+      var newMessageView = conversationView.includeSomeoneElse();
+      assert.equal(newMessageView.recipients, '+123',
+        'Recipient should be +123');
+      assert.equal(newMessageView.messageText, 'message2',
+        'message text should be kept');
+    });
+
+    test('Mms being written: all info must be kept', function() {
+      conversationView.typeMessage('message2');
+      // add a subject
+      conversationView.showSubject();
+      conversationView.typeSubject('subject1');
+      var newMessageView = conversationView.includeSomeoneElse();
+
+      // assert that we kept all the infos
+      assert.equal(newMessageView.recipients, '+123',
+        'Recipient should be +123');
+      assert.equal(newMessageView.messageText, 'message2',
+        'Message text should be kept');
+      assert.equal(newMessageView.subject, 'subject1',
+        'Subject should be kept');
+
+      // let's add a recipients and send the message.
+      // we will have a thread with several recipients
+      newMessageView.addNewRecipient('+234');
+      conversationView = newMessageView.send();
+      // write another MMS
+      conversationView.typeMessage('message3');
+      conversationView.showSubject();
+      conversationView.typeSubject('subject2');
+      // add a blob
+      conversationView.addAttachment().choose('Messages Activity Caller')
+        .pickImage();
+      messagesApp.switchTo();
+      // take screenshot of current attachment to compare it later
+      var beforeScreenshot = conversationView
+        .takeComposerAttachmentScreenshot(0);
+
+      // redirect to new message to add recipients
+      newMessageView = conversationView.includeSomeoneElse();
+
+      // assert the content
+      var recipients = newMessageView.recipients;
+      assert.lengthOf(recipients, 2, 'There should be 2 recipients');
+      assert.include(recipients, '+123', '+123 should be in the recipients');
+      assert.include(recipients, '+234', '+234 should be in the recipients');
+      assert.equal(newMessageView.messageText, 'message3',
+        'Message text should be kept');
+      assert.equal(newMessageView.subject, 'subject2',
+        'Subject should be kept');
+
+      // hide the keyboard: when it is displayed, the attachment is hidden,
+      // which prevents the screenshot to be taken
+      client.switchToFrame();
+      var systemInputMgmt = client.loader.getAppClass(
+        'system', 'input_management'
+      );
+      systemInputMgmt.waitForKeyboardFrameDisplayed();
+      keyboardApp.switchTo();
+      keyboardApp.longPressSpaceBar(0.7);
+      client.switchToFrame();
+      // wait for the keyboard to be hidden
+      systemInputMgmt.waitForKeyboardFrameHidden();
+
+      messagesApp.switchTo();
+      assert.equal(
+        beforeScreenshot,
+        newMessageView.takeComposerAttachmentScreenshot(0)
+      );
     });
   });
 });

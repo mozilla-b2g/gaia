@@ -10,7 +10,7 @@ window.addEventListener('load', function onLoad() {
   keyNav.init();
   keyNav.on('move', app.handleMove.bind(app));
   keyNav.on('enter', app.handleClick.bind(app));
-  keyNav.on('esc', app.handleBack.bind(app));
+  keyNav.on('back', app.handleBack.bind(app));
 
   Settings.start();
   Settings.once('ready', app.show.bind(app));

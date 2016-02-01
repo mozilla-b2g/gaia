@@ -27,6 +27,10 @@ NewMessageView.prototype = {
     enter: '\ue007'
   },
 
+  get headerAction() {
+    return this.accessors.header.getAttribute('action');
+  },
+
   get recipients() {
     return this.accessors.recipients.map(function(recipient) {
       return recipient.text();
@@ -74,8 +78,10 @@ NewMessageView.prototype = {
 
   clearRecipients: function() {
     var recipientsList = this.accessors.recipientsList;
-    recipientsList.tap();
+    this.accessors.recipientsInput.tap(); // tapping the available space
     while (recipientsList.text() !== '') {
+      // note: this works because in the app we handle the keys at the list
+      // level, but we should rather send the keys to the focussed element.
       recipientsList.sendKeys(this.KEYS.backspace);
     }
   },
@@ -110,6 +116,15 @@ NewMessageView.prototype = {
     return this.composerAccessors.addAttachment();
   },
 
+  /**
+   * Take a screenshot of an attachment thumbnail in the composer.
+   * @param {Number} the attachment index
+   * @return {String} The screenshot
+   */
+  takeComposerAttachmentScreenshot: function(index) {
+    return this.composerAccessors.takeAttachmentScreenshot(index);
+  },
+
   typeSubject: function(subject) {
     this.composerAccessors.subjectInput.sendKeys(subject);
   },
@@ -142,10 +157,14 @@ NewMessageView.prototype = {
     return conversationView;
   },
 
-  backToInbox: function() {
+  back: function() {
     this.client.switchToShadowRoot(this.accessors.header);
     this.accessors.headerActionButton.tap();
     this.client.switchToShadowRoot();
+  },
+
+  backToInbox: function() {
+    this.back();
 
     var InboxView = require('../inbox/view');
     var inboxView = new InboxView(this.client);

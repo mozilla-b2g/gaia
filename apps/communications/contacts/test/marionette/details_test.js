@@ -3,6 +3,7 @@
 var Contacts = require('./lib/contacts');
 var ContactsData = require('./lib/contacts_data');
 var assert = require('assert');
+var ContactsListView = require('./lib/views/contact-list/view');
 
 marionette('Contacts > Details', function() {
   var client = marionette.client({
@@ -75,26 +76,6 @@ marionette('Contacts > Details', function() {
     });
   });
 
-  test('Mark contact as favorite', function() {
-    contactsData.createMozContact(testContact);
-
-    client.helper.waitForElement(selectors.listContactFirstText).click();
-    subject.waitSlideLeft('details');
-
-    // It's not a favorite
-    var nameNode = client.helper.waitForElement(selectors.detailsContactName);
-    assert.equal(nameNode.getAttribute('class').indexOf('favorite'), -1);
-
-    // Click on favorite
-    client.helper.waitForElement(selectors.detailsFavoriteButton).click();
-    nameNode = client.helper.waitForElement(selectors.detailsHeader);
-    client.waitFor(function() {
-      return nameNode.getAttribute('class').indexOf('favorite') != -1;
-    });
-
-    assertContactData(testContact);
-  });
-
   test('Share Contact', function() {
     contactsData.createMozContact(testContact);
 
@@ -109,5 +90,27 @@ marionette('Contacts > Details', function() {
     // In the sysMenu they should appear at least the Messages and email apps
     var menuOptions = sysMenu.findElements('button');
     assert.ok(menuOptions.length >= 2);
+  }); 
+
+  suite('Favorite contact', function() {
+    setup(function(){
+      contactsData.createMozContact(testContact);
+    });
+    test('Mark contact as favorite', function() {
+      var contactsListView = new ContactsListView(client);
+      var contactDetailsView = contactsListView.goToContact();
+      contactDetailsView.makeFavorited();
+      assertContactData(testContact);
+    });
+
+    test('Favorite contact should appear in' +
+      ' favorite and regular lists', function() {
+      var contactsListView = new ContactsListView(client);
+      var contactDetailsView = contactsListView.goToContact();
+      contactDetailsView.makeFavorited();
+      contactsListView = contactDetailsView.backtoContactsList();
+      assert.ok(contactsListView.firstContact.displayed());
+      assert.ok(contactsListView.firstFavorite.displayed());
+    });
   });
 });

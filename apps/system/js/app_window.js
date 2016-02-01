@@ -92,8 +92,7 @@
   /**
    * This is telling us who is the hierarchy manager to manage this window.
    * * HierarchyManager ->
-   *  * AttentionWindowManager -> AttentionWindow, CallscreenWindow
-   *                              (-> its popup/activity)
+   *  * AttentionWindowManager -> AttentionWindow (-> its popup/activity)
    *  * SecureWindowManager -> SecureWindow (-> its popup/activity)
    *  * LockScreenWindowManager -> LockScreenWindow (-> its popup/activity)
    *  * GlobalOverlayWindowManager -> GlobalOverlayWindow

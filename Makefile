@@ -68,6 +68,8 @@ ifdef LOCALES_FILE
 	REBUILD=1
 endif
 
+RUN_ON_NODE?=0
+
 BUILD_RUNNER=run-js-command
 
 -include local.mk
@@ -563,7 +565,7 @@ define BUILD_CONFIG
   "REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
   "TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
   "SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
-  "FTU_PING_URL": "$(FTU_PING_URL)", \
+  "FTU_PING_URL" : "$(FTU_PING_URL)", \
   "KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
   "CONTACTS_IMPORT_SERVICES_PATH" : "$(CONTACTS_IMPORT_SERVICES_PATH)", \
   "EMAIL_SERVICES_PATH" : "$(EMAIL_SERVICES_PATH)", \
@@ -571,18 +573,19 @@ define BUILD_CONFIG
   "GAIA_APP_TARGET" : "$(GAIA_APP_TARGET)", \
   "BUILD_DEBUG" : "$(BUILD_DEBUG)", \
   "VARIANT_PATH" : "$(VARIANT_PATH)", \
-  "REBUILD": "$(REBUILD)", \
+  "REBUILD" : "$(REBUILD)", \
   "P" : "$(P)", \
   "VERBOSE" : "$(VERBOSE)", \
   "PERF_LOGGING" : "$(PERF_LOGGING)", \
-  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
-  "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
-  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)", \
-  "RAPTOR": "$(RAPTOR)", \
-  "RAPTOR_TRANSFORM": "$(RAPTOR_TRANSFORM)", \
-  "RAPTOR_TRANSFORMER_PATH": "$(RAPTOR_TRANSFORMER_PATH)", \
-  "NGA_SERVICE_WORKERS": "$(NGA_SERVICE_WORKERS)", \
-  "FIREFOX_SYNC": "$(FIREFOX_SYNC)" \
+  "SHARE_PERF_USAGE" : "$(SHARE_PERF_USAGE)", \
+  "DEFAULT_KEYBOAD_SYMBOLS_FONT" : "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
+  "DEFAULT_GAIA_ICONS_FONT" : "$(DEFAULT_GAIA_ICONS_FONT)", \
+  "RAPTOR" : "$(RAPTOR)", \
+  "RAPTOR_TRANSFORM" : "$(RAPTOR_TRANSFORM)", \
+  "RAPTOR_TRANSFORMER_PATH" : "$(RAPTOR_TRANSFORMER_PATH)", \
+  "NGA_SERVICE_WORKERS" : "$(NGA_SERVICE_WORKERS)", \
+  "FIREFOX_SYNC" : "$(FIREFOX_SYNC)", \
+  "RUN_ON_NODE" : "$(RUN_ON_NODE)" \
 }
 endef
 
@@ -1014,7 +1017,7 @@ csslint: b2g_sdk
 	@$(call $(BUILD_RUNNER),csslint)
 
 jsonlint: b2g_sdk
-	@$(call $(BUILD_RUNNER),jsonlint)
+	@$(call run-node-command,jsonlint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -1123,10 +1126,10 @@ really-clean: clean
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
 build-test-unit: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call $(BUILD_RUNNER),build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
+	@$(call run-node-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-integration: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call $(BUILD_RUNNER),build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
+	@$(call run-node-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)" NODE_PATH=build/test/integration)
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)

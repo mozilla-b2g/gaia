@@ -1,33 +1,8 @@
 'use strict';
 
-/* global require, exports */
-const utils = require('utils');
-const { Cc, Ci } = require('chrome');
+/* jshint node: true */
 
-function getHash(str) {
-  var converter =
-    Cc['@mozilla.org/intl/scriptableunicodeconverter'].
-      createInstance(Ci.nsIScriptableUnicodeConverter);
-
-  converter.charset = 'UTF-8';
-
-  var result = {};
-  var data = converter.convertToByteArray(str, result);
-  var ch = Cc['@mozilla.org/security/hash;1'].createInstance(Ci.nsICryptoHash);
-  ch.init(ch.SHA1);
-  ch.update(data, data.length);
-  var hash = ch.finish(false);
-
-  return toHexString(hash);
-}
-
-function toHexString(str) {
-  var hex = '';
-  for (var i = 0; i < str.length; i++) {
-    hex += ('0' + str.charCodeAt(i).toString(16)).slice(-2);
-  }
-  return hex;
-}
+var utils = require('utils');
 
 // Resources helper constructor
 var Resources = function(gaia, settings, appDomain) {
@@ -131,13 +106,13 @@ Resources.prototype.getWallpaperResource = function(wallpaper) {
         return;
       }
       uri = '/resources/' + file.leafName;
-      this.addEntry(file, file.leafname);
+      this.addEntry(file, file.leafName);
     }
 
     var content = { uri: uri,
                     default: this.settings['wallpaper.image'] };
 
-    var jsonName = 'wallpaper-' + getHash(wallpaper) + '.json';
+    var jsonName = 'wallpaper-' + utils.getHash(wallpaper) + '.json';
     return this.createJSON(jsonName, content);
   }
 };
@@ -145,7 +120,8 @@ Resources.prototype.getWallpaperResource = function(wallpaper) {
 // Create ringtone JSON and add file.
 Resources.prototype.getRingtoneResource = function(ringtone) {
   if (ringtone) {
-    var jsonName = 'ringtone-' + getHash(JSON.stringify(ringtone)) + '.json';
+    var jsonName = 'ringtone-' +
+      utils.getHash(JSON.stringify(ringtone)) + '.json';
 
     var ringtoneName = ringtone.name;
     if (!ringtoneName) {
@@ -161,7 +137,7 @@ Resources.prototype.getRingtoneResource = function(ringtone) {
         throw new Error('Missing path for ringtone in single variant conf.');
       }
       uri = '/resources/' + file.leafName;
-      this.addEntry(file, file.leafname);
+      this.addEntry(file, file.leafName);
     }
 
     var content = { uri: uri,
@@ -175,7 +151,7 @@ Resources.prototype.getRingtoneResource = function(ringtone) {
 // Create power JSON and add files.
 Resources.prototype.getPowerResource = function (power) {
   if (power) {
-    var jsonName = 'power-' + getHash(JSON.stringify(power)) + '.json';
+    var jsonName = 'power-' + utils.getHash(JSON.stringify(power)) + '.json';
     var powerJSON = power;
     var poweron = power.poweron;
     var poweronFile;
@@ -192,7 +168,7 @@ Resources.prototype.getPowerResource = function (power) {
         powerJSON.poweron[poweronType] = poweron[poweronType];
       } else {
         poweronFile = this.getFile(poweron[poweronType]);
-        this.addEntry(poweronFile, poweronFile.leafname);
+        this.addEntry(poweronFile, poweronFile.leafName);
         powerJSON.poweron[poweronType] = this.appURL + poweronFile.leafName;
       }
     }
@@ -210,7 +186,7 @@ Resources.prototype.getPowerResource = function (power) {
         powerJSON.poweroff[poweroffType] = poweroff[poweroffType];
       } else {
         poweroffFile = this.getFile(poweroff[poweroffType]);
-        this.addEntry(poweroffFile, poweroffFile.leafname);
+        this.addEntry(poweroffFile, poweroffFile.leafName);
         powerJSON.poweroff[poweroffType] = this.appURL + poweroffFile.leafName;
       }
     }
@@ -228,7 +204,7 @@ Resources.prototype.getSearchResource = function (searchPath) {
     searchContent.forEach(function(engine) {
       if (!engine.iconPath.startsWith(this.appPrefix)) {
         var searchFile = this.getFile(engine.iconPath);
-        this.addEntry(searchFile, searchFile.leafname);
+        this.addEntry(searchFile, searchFile.leafName);
         engine.iconUrl = this.appURL + searchFile.leafName;
         delete engine.iconPath;
       }
@@ -265,7 +241,7 @@ Resources.prototype.getKeyboardResource = function (keyboard) {
       }
     }
 
-    var jsonName = 'keyboard-' + getHash(keyboard) + '.json';
+    var jsonName = 'keyboard-' + utils.getHash(keyboard) + '.json';
     return this.createJSON(jsonName, content);
   }
 };
@@ -294,7 +270,7 @@ Resources.prototype.getNfcResource = function(nfc) {
   var content = { isEnabled: nfc,
                   default: this.settings['nfc.enabled'] };
 
-  var jsonName = 'nfc-' + getHash(JSON.stringify(content)) + '.json';
+  var jsonName = 'nfc-' + utils.getHash(JSON.stringify(content)) + '.json';
   return this.createJSON(jsonName, content);
 };
 
@@ -336,17 +312,17 @@ OperatorAppBuilder.prototype.generateCustomizeResources = function() {
     utils.writeContent(customizationFile, JSON.stringify(resources.json));
 
     resources.fileList.forEach(function(file) {
-      if (file instanceof Ci.nsILocalFile) {
-        file.copyTo(resourceDirFile, file.leafName);
+      if (!file.filename && !file.content) {
+        utils.copyFileTo(file.path, resourceDirFile.path, file.leafName);
       } else {
-        var resourceFile = resourceDirFile.clone();
-        resourceFile.append(file.filename);
+        var resourceFile = utils.getFile(resourceDirFile.path, file.filename);
         utils.writeContent(resourceFile, JSON.stringify(file.content));
       }
     });
   } else {
-    utils.log('operatorvariant', variantFile.path + ' not found. Single' +
-      ' variant resources will not be added.\n');
+    utils.log('operatorvariant',
+              'Single variant resources will not be added since ' +
+              variantFile.path + ' not found');
   }
 };
 

@@ -46,7 +46,7 @@
     openSaveButton: '#save',
     fullScreenToolBar: '#fullscreen-toolbar',
     fullScreenToolBarOptions: '#fullscreen-toolbar > a',
-
+    infoButton: '#fullscreen-info-button-tiny'
   });
 
   Fullscreen_View.prototype = {  
@@ -334,6 +334,13 @@
      */
     get openActivitySaveButton() {
       return this.client.findElement(Fullscreen_View.Selector.openSaveButton);
+    },
+
+    /**
+     * @return {Marionette.Element} info button that displays image data
+     */
+    get infoButton() {
+      return this.client.findElement(Fullscreen_View.Selector.infoButton);
     },
 
     /**
