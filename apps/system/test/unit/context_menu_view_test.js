@@ -56,12 +56,12 @@ suite('ContextMenuView', function() {
     assert.isTrue(contextMenu.element.classList.contains('visible'));
     // validate first menu item
     var menu1 = contextMenu.elements.list.querySelector('button:first-child');
-    assert.equal(menu1.textContent, fakeMenuItem1.label);
+    assert.equal(menu1.getAttribute('data-l10n-id'), fakeMenuItem1.label);
     assert.equal(menu1.style.backgroundImage,
                  'url("' + fakeMenuItem1.icon + '")');
     // validate second menu item
     var menu2 = contextMenu.elements.list.querySelector('button:nth-child(2)');
-    assert.equal(menu2.textContent, fakeMenuItem2.label);
+    assert.equal(menu2.getAttribute('data-l10n-id'), fakeMenuItem2.label);
     assert.equal(menu2.style.backgroundImage,
                  'url("' + fakeMenuItem2.icon + '")');
     assert.isTrue(requestStub.calledWith('focus'));

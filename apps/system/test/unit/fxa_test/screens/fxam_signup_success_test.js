@@ -36,9 +36,6 @@ suite('Screen: Signup Success', function() {
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    var l10nStub = sinon.stub(navigator.mozL10n, 'get');
-    l10nStub.withArgs('fxa-will-send-email2')
-      .returns('Will send email to {{email}}');
 
     mocksHelperForSignupSuccess.suiteSetup();
     // Load real HTML
@@ -55,7 +52,6 @@ suite('Screen: Signup Success', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n.get.restore();
     navigator.mozL10n = realL10n;
     document.body.innerHTML = '';
     mocksHelperForSignupSuccess.suiteTeardown();

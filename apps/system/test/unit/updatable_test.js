@@ -50,7 +50,6 @@ suite('system/Updatable', function() {
   var mockApp;
 
   var realDispatchEvent;
-  var realL10n;
   var realMozApps;
   var realMozSettings;
 
@@ -67,15 +66,6 @@ suite('system/Updatable', function() {
     realMozSettings = window.navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      }
-    };
-    var getSpy = sinon.spy(navigator.mozL10n, 'get');
-    getSpy.withArgs(SYSTEM_LOW_BATTERY_L10N_KEY);
-
     // we used to set subject._mgmt in setup
     // but now, this seems to work and feels cleaner
     realMozApps = navigator.mozApps;
@@ -83,7 +73,6 @@ suite('system/Updatable', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
     navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
   });
@@ -109,8 +98,6 @@ suite('system/Updatable', function() {
 
     MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_UNPLUGGED] = 25;
     MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED] = 10;
-
-    navigator.mozL10n.get.withArgs(SYSTEM_LOW_BATTERY_L10N_KEY).reset();
 
     fakeDispatchEvent = function(type, value) {
       lastDispatchedEvent = {

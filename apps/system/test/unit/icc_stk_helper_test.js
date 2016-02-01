@@ -24,16 +24,6 @@ suite('STK (stk_helper) >', function() {
     navigator.mozL10n = realMozL10n;
   });
 
-  setup(function() {
-    this.sinon.stub(navigator.mozL10n, 'get', function(key, args) {
-        return args ? 'default-text-args' : 'default-text';
-    });
-  });
-
-  teardown(function() {
-    this.sinon.restore();
-  });
-
   stkTestCommands = {
     STK_CMD_NO_ICONS: {
       iccId: '1010011010',

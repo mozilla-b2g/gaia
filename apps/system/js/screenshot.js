@@ -247,23 +247,24 @@
      * @memberof Screenshot.prototype
      */
     _notify: function notify(titleid, body, bodyid, onClick) {
-      var title = navigator.mozL10n.get(titleid) || titleid;
-      body = body || navigator.mozL10n.get(bodyid);
-      var notification = new window.Notification(title, {
-        body: body,
+      var options = {
+        bodyL10n: bodyid,
         icon: '/style/icons/Gallery.png',
         tag: 'screenshot:' + (new Date().getTime()),
         data: {
           systemMessageTarget: 'screenshot'
         }
-      });
-
-      notification.onclick = function() {
-        notification.close();
-        if (onClick) {
-          onClick();
-        }
       };
+      if (bodyid) {
+        options.bodyL10n = bodyid;
+      } else if (body) {
+        options.body = body;
+      }
+      window.NotificationHelper.send(titleid, options).then(notification => {
+        if (onClick) {
+          notification.onclick = onClick;
+        }
+      });
     }
   };
 

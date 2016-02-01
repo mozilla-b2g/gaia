@@ -260,7 +260,6 @@ suite('system/permission manager', function() {
       this.sinon.spy(permissionManager, 'cancelRequest');
       this.sinon.spy(permissionManager, 'showPermissionPrompt');
       this.sinon.spy(permissionManager, 'handlePermissionPrompt');
-      this.sinon.spy(navigator.mozL10n, 'get');
     });
 
     teardown(function() {
