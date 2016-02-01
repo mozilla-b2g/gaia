@@ -50,6 +50,33 @@
           return Promise.resolve(displayId);
         });
     },
+    choosePresentationDevice: function() {
+      this.debug('chooseDisplay for presentation device selection');
+
+      var deviceList = [];
+      return this.queryPresentationDevices()
+        .then((list) => {
+          deviceList = list.map((device, idx) => {
+            return {
+              name: device.name,
+              deviceId: device.id,
+              id: idx,
+            };
+          });
+          return Promise.resolve(deviceList);
+        })
+        .then(this.showMenu.bind(this))
+        .then((displayId) => {
+          this.debug('chosen display id: ' + displayId);
+
+          if (isNaN(displayId)) {
+            return Promise.reject();
+          }
+          return Promise.resolve(deviceList.find((device) => {
+            return device.id == displayId;
+          }).deviceId);
+        });
+    },
     showMenu: function(displays) {
       this.debug('showMenu is invoked');
 
@@ -108,6 +135,11 @@
         }));
       });
     },
+    queryPresentationDevices: function() {
+      this.debug('queryPresentationDevices is invoked');
+
+      return navigator.mozPresentationDeviceInfo.getAll();
+    },
     postMessage: function(target, type, detail) {
       this.debug('broadcast message to #' + target + ': ' +
         type + ', ' + JSON.stringify(detail));
@@ -127,10 +159,7 @@
       this.broadcastChannel.addEventListener('message', this);
     },
     _stop: function() {
-      if (this._enabled) {
-        window.removeEventListener('mozChromeEvent', this);
-        this._enabled = false;
-      }
+      this._enabled = false;
 
       this.broadcastChannel.close();
       this.broadcastChannel = null;
@@ -150,6 +179,39 @@
     _handle_mozChromeEvent: function(evt) {
       var detail = evt.detail;
 
+      switch (detail.type) {
+        case 'presentation-select-device':
+          this._presentationDeviceSelectionHandler(detail);
+          break;
+
+        case 'get-display-list-success':
+        case 'get-display-list-error':
+          this._displayListResultHandler(detail);
+          break;
+      }
+    },
+    _presentationDeviceSelectionHandler: function(detail) {
+      this.debug('handle presentation-select-device event');
+
+      this.choosePresentationDevice(null)
+      .then((deviceId) => {
+        window.dispatchEvent(new CustomEvent('mozContentEvent', {
+          detail: {
+            'type': 'presentation-select-result',
+            'deviceId': deviceId,
+            'id': detail.id,
+          }
+        }));
+      }).catch(() => {
+        window.dispatchEvent(new CustomEvent('mozContentEvent', {
+          detail: {
+            'type': 'presentation-select-deny',
+            'id': detail.id
+          }
+        }));
+      });
+    },
+    _displayListResultHandler: function(detail) {
       if (!this.queryPromiseCallback) {
         return;
       }
@@ -193,11 +255,6 @@
       }
 
       this._enabled = value;
-      if (this._enabled) {
-        window.addEventListener('mozChromeEvent', this);
-      } else {
-        window.removeEventListener('mozChromeEvent', this);
-      }
     }
   });
 }());

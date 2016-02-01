@@ -1,4 +1,3 @@
-/* global openLink */
 /**
  * Handle support panel functionality with SIM and without SIM
  */
@@ -23,8 +22,15 @@ define(function(require) {
        */
       this._callSupportInfo = null;
       var url = 'http://support.mozilla.org/products/firefox-os';
-      this._elements.userGuide.onclick =
-        function openUserGuide() { openLink(url); };
+      this._elements.userGuide.addEventListener('click', () => {
+        this._elements.userGuide.blur();
+        var activity = new window.MozActivity({
+          name: 'view',
+          data: { type: 'url', url: url }
+        });
+        // For workaround jshint.
+        activity.onsuccess = function() {};
+      });
 
       // parse support information from data
       this._getSupportInfo(this._displaySupportInfo.bind(this));

@@ -75,6 +75,7 @@
     this.isCrashed = false;
     this.launchTime = Date.now();
     this.metachangeDetails = [];
+    this.meta = {};
 
     return this;
   };
@@ -1150,6 +1151,7 @@
         this.favicons = {};
         this.webManifestURL = null;
         this.webManifest = null;
+        this.meta = {};
         this.config.url = evt.detail;
         if (!this.manifest && !this.nameChanged) {
           this.name = new URL(evt.detail).hostname;
@@ -1183,10 +1185,45 @@
       this.publish('iconchange');
     };
 
+
+  // We should create a helper in order to share network
+  // related methods.
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1230082
+  AppWindow.prototype.getBlobFromURL = function getBlobFromURL(url) {
+    return new Promise((resolve, reject) => {
+      var xhr = new XMLHttpRequest({
+        mozAnon: true,
+        mozSystem: true
+      });
+
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
+      xhr.send();
+
+      xhr.onload = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+          var blob = xhr.response;
+          resolve(blob);
+
+          return;
+        }
+
+        reject(new Error(
+          `Got HTTP status ${xhr.status} trying to load ${url}.`));
+      };
+
+      xhr.onerror = xhr.ontimeout = () => {
+        reject(new Error(`Error while getting ${url}.`));
+      };
+    });
+  };
+
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
 
       var detail = evt.detail;
+      this.meta = this.meta || {};
+
       if (!this.appChrome) {
         this.metachangeDetails = this.metachangeDetails || [];
         this.metachangeDetails.push(detail);
@@ -1211,7 +1248,15 @@
 
           break;
 
+        case 'og:image':
+          this.getBlobFromURL(detail.content).then((blob) => {
+            this.meta[detail.name] = blob;
+            this.publish('metachange');
+          });
+          break;
+
         case 'og:site_name':
+          this.meta[detail.name] = detail.content;
           if (this.nameChanged) {
             break;
           }
@@ -1227,6 +1272,11 @@
           this.name = name;
           this.nameChanged = true;
           this.publish('namechanged');
+          break;
+
+        default:
+          this.meta[detail.name] = detail.content;
+          this.publish('metachange');
           break;
       }
     };

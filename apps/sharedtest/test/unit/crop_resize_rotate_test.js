@@ -4,13 +4,126 @@
 /* global parseJPEGMetadata */
 /* global getImageSize */
 /* global Downsample */
-/* global cropResizeRotate */
+/* global cropResizeRotate, JPEGParser */
 
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/js/blobview.js');
 require('/shared/js/media/jpeg_metadata_parser.js');
 require('/shared/js/media/image_size.js');
 require('/shared/js/media/downsample.js');
 require('/shared/js/media/crop_resize_rotate.js');
+require('/shared/js/media/jpeg-exif.js');
+
+function fetchBlob(url) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.onload = function() {
+      if (xhr.status !== 200) {
+        reject(new Error('Failed with status: ' + xhr.status));
+      } else {
+        resolve(this.response);
+      }
+    };
+    xhr.onerror = xhr.ontimeout = function() {
+      reject(new Error('Failed' + xhr.status));
+    };
+    xhr.responseType = 'blob';
+    xhr.send();
+  });
+}
+
+suite('Metadata copy test', function() {
+  suiteSetup(function() {
+
+    // We need the mock lazy loader for jpeg-exif.
+    window.LazyLoader = window.MockLazyLoader;
+  });
+
+
+  [
+    // this one is horizontal
+    { fileName: '/test-data/blue.jpg', rotated: false,
+      targetSize: { width: 640, height: 480 },
+      date: '2015:07:16 09:42:26', make: 'QCOM-AA' },
+    { fileName: '/test-data/blue.jpg', rotated: false,
+      targetSize: null,
+      date: '2015:07:16 09:42:26', make: 'QCOM-AA' },
+    { fileName: '/test-data/blue.jpg', rotated: false,
+      targetCrop: { left: 10, top: 10, width: 150, height: 100 },
+      targetSize: null,
+      date: '2015:07:16 09:42:26', make: 'QCOM-AA' },
+    // this one is vertical (Exif orientation)
+    { fileName: '/test-data/red.jpg', rotated: true,
+      targetSize: { width: 480, height: 640 },
+      date: '2015:07:13 21:16:38', make: 'Sony' },
+    { fileName: '/test-data/red.jpg', rotated: true,
+      targetSize: null,
+      date: '2015:07:13 21:16:38', make: 'Sony' },
+    { fileName: '/test-data/red.jpg', rotated: true,
+      targetCrop: { left: 10, top: 10, width: 100, height: 150 },
+      targetSize: null,
+      date: '2015:07:13 21:16:38', make: 'Sony' }
+  ].
+    forEach(function (testFile) {
+      var testName = 'Testing metadata copy for ' + testFile.fileName;
+      if (testFile.targetSize) {
+        testName += ' resized to ' + testFile.targetSize.width +
+          'x' + testFile.targetSize.height;
+      }
+      test(testName, function(done) {
+
+        fetchBlob(testFile.fileName).then(function (blob) {
+          assert.ok(blob);
+
+          var targetSize = testFile.targetSize;
+          var targetCrop = testFile.targetCrop === undefined ? null :
+              testFile.targetCrop;
+          cropResizeRotate(
+            blob, targetCrop, targetSize, 'image/jpeg+exif',
+            function (error, outBlob) {
+              assert.equal(error, null);
+              assert.ok(outBlob);
+
+              JPEGParser.readExifMetaData(
+                outBlob, function (error, metaData) {
+                  assert.ok(metaData);
+                  // check metaData
+                  assert.equal(metaData.Orientation, 1);
+                  assert.equal(metaData.DateTimeOriginal, testFile.date);
+                  assert.equal(metaData.Make, testFile.make);
+
+                  var expectedX, expectedY;
+                  if (targetSize) {
+                    expectedX = targetSize.width;
+                    expectedY = targetSize.height;
+                  } else if (targetCrop) {
+                    expectedX = targetCrop.width;
+                    expectedY = targetCrop.height;
+                  } else {
+                    if (!testFile.rotated) {
+                      expectedX = 1280;
+                      expectedY = 960;
+                    } else {
+                      expectedX = 960;
+                      expectedY = 1280;
+                    }
+                  }
+
+                  assert.equal(metaData.PixelXDimension, expectedX);
+                  assert.equal(metaData.PixelYDimension, expectedY);
+
+                  done();
+                });
+            });
+        }).catch(function (e) {
+          assert(false, 'Caught error ' + e);
+          done(e);
+        });
+      });
+    });
+
+});
 
 function runCropResizeRotateTests(imageWidth, imageHeight) {
   var suitename = 'cropResizeRotate tests ' + imageWidth + 'x' + imageHeight;
@@ -18,6 +131,10 @@ function runCropResizeRotateTests(imageWidth, imageHeight) {
     const W = imageWidth, H = imageHeight;  // The size of the test image
 
     suiteSetup(function(done) {
+
+      // We need the mock lazy loader for jpeg-exif.
+      window.LazyLoader = window.MockLazyLoader;
+
       // We begin by creating a special image where each pixel value
       // encodes the coordinates of that pixel. This allows us to inspect
       // the pixels in the output image to verify that cropping and rotation
@@ -103,11 +220,14 @@ function runCropResizeRotateTests(imageWidth, imageHeight) {
       }
     }
 
-    test('prerequsite modules loaded', function() {
+    test('prerequisite modules loaded', function() {
       assert.isDefined(BlobView);
       assert.typeOf(parseJPEGMetadata, 'function');
       assert.typeOf(getImageSize, 'function');
       assert.typeOf(cropResizeRotate, 'function');
+      assert.ok(window.MockLazyLoader);
+      assert.ok(window.LazyLoader);
+      assert.isDefined(JPEGParser);
     });
 
     test('test image created successfully', function(done) {

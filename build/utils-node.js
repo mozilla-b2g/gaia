@@ -10,7 +10,7 @@
  * which contains the complete functions used in 'utils.js'
  */
 
-var utils = require('./utils.js');
+var utils = require('./utils');
 var path = require('path');
 var childProcess = require('child_process');
 var fs = require('fs-extra');
@@ -27,6 +27,7 @@ var jsdom = require('jsdom');
 var esprima = require('esprima');
 var procRunning = require('is-running');
 var mime = require('mime');
+var crypto = require('crypto');
 
 // Our gecko will transfer .opus file to audio/ogg datauri type.
 mime.define({'audio/ogg': ['opus']});
@@ -34,7 +35,7 @@ mime.define({'audio/ogg': ['opus']});
 module.exports = {
   Q: Q,
 
-  scriptParser: esprima,
+  scriptParser: esprima.parse,
 
   log: function() {
     var args = Array.prototype.slice.call(arguments);
@@ -64,7 +65,9 @@ module.exports = {
 
   getFile: function() {
     var self = module.exports;
-    var src = path.join.apply(path, arguments);
+    var args = Array.prototype.slice.call(arguments);
+    var src = path.join.apply(path, args);
+    src = path.resolve(src);
     var fileStat;
     try {
       fileStat = fs.statSync(src);
@@ -102,8 +105,7 @@ module.exports = {
 
   Commander: function(cmd) {
     this.initPath = function() {};
-    this.run = function(args, callback) {
-      var q = Q.defer();
+    this.run = function(args, callback, options) {
       var cmds = args.join(' ');
 
       // In *nix and OSX version commands are run via sh -c YOUR_COMMAND,
@@ -118,15 +120,23 @@ module.exports = {
       // XXX: Most cmds should run synchronously, we should use either promise
       //      pattern inside each script or find a sync module which doesn't
       //      require recompile again since TPBL doesn't support that.
-      childProcess.exec(cmds,
-                        { maxBuffer: (4096 * 1024) },
-                        function(err, stdout) {
-        if (err === null && typeof callback === 'function') {
-          callback(stdout);
-        }
-        q.resolve();
+      return new Promise(function(resolve, reject) {
+        childProcess.exec(cmds, { maxBuffer: (4096 * 1024) },
+          function(err, stdout, stderr) {
+            if (err) {
+              options && options.stderr && options.stderr(stderr);
+              reject(stderr);
+            } else {
+              options && options.stdout && options.stdout(stdout);
+              callback && callback(stdout);
+              resolve(stdout);
+            }
+        });
       });
-      return q.promise;
+    };
+
+    this.runWithSubprocess = function(args, options) {
+      this.run(args, null, options);
     };
   },
 
@@ -204,9 +214,7 @@ module.exports = {
   },
 
   getDocument: function(content) {
-    // In order to use document.querySelector, we have to pass level for
-    // jsdom-nogyp.
-    return jsdom.jsdom(content, jsdom.level(3, 'core'));
+    return jsdom.jsdom(content);
   },
 
   getXML: function(file) {
@@ -299,7 +307,7 @@ module.exports = {
     }, this).join('\n');
 
     var targetFile = this.getFile(targetPath);
-    this.ensureFolderExists(targetFile.parent);
+
     this.writeContent(targetFile, concatedScript);
   },
 
@@ -422,9 +430,13 @@ module.exports = {
   },
 
   getNewURI: function(uri) {
-    var result = url.parse(uri);
-    result.prePath = result.protocol + '//' + result.host;
-    return result;
+    return {
+      host: /[a-z]+:\/\/[@]?([^\/:]+)/.exec(uri)[1],
+      prePath: /[a-z]+:\/\/[^\/]+/.exec(uri)[0],
+      resolve: function(to) {
+        return url.resolve(uri, to);
+      }
+    };
   },
 
   isExternalApp: function(webapp) {
@@ -442,8 +454,13 @@ module.exports = {
     }
   },
 
-  processEvents: function() {
-
+  processEvents: function(exitResultFunc) {
+    // FIXME: A fake blocking function for porting utils-xpc
+    // This workaround will be removed once node.js migration is done
+    var exitResult = exitResultFunc();
+    if (exitResult.error) {
+      throw exitResult.error;
+    }
   },
 
   writeContent :function(file, content) {
@@ -493,7 +510,12 @@ module.exports = {
   },
 
   fileExists: function(path) {
-    return fs.existsSync(path);
+    try {
+      fs.accessSync(path);
+      return true;
+    } catch(err) {
+      return false;
+    }
   },
 
   listFiles: function(path, type, recursive, exclude) {
@@ -587,5 +609,18 @@ module.exports = {
         throw error;
       }
     }
+  },
+
+  createSandbox: function() {
+    return {};
+  },
+
+  runScriptInSandbox: function(filePath, sandbox) {
+    var script = fs.readFileSync(filePath, { encoding: 'utf8' });
+    return vm.runInNewContext(script, sandbox);
+  },
+
+  getHash: function(string) {
+    return crypto.createHash('sha1').update(string).digest('hex');
   }
 };

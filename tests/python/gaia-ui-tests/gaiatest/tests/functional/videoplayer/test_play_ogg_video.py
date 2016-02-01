@@ -13,7 +13,7 @@ class TestPlayOGGVideo(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # add video to storage
-        self.push_resource('VID_0001.ogg')
+        self.push_resource('VID_counter.ogg')
 
     def test_play_ogg_video(self):
         """https://moztrap.mozilla.org/manage/case/2478/"""

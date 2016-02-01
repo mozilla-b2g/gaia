@@ -2,9 +2,7 @@
 var Promise = require('es6-promise').Promise;   // jshint ignore:line
 
 marionette('LockScreen: ensure passcode unlock works', function() {
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: false }
-  });
+  var client = marionette.client();
   var LockScreenPasscodeUnlockActions, actions;
   var LockScreen = require('./lib/lockscreen.js');
   var lockScreen = (new LockScreen()).start(client);

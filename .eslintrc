@@ -1,10 +1,12 @@
 {
     "parser": "babel-eslint",
     "plugins": [
-        "no-unsafe-innerhtml"
+        "no-unsafe-innerhtml",
+        "no-wildcard-postmessage"
     ],
     "rules": {
         "no-unsafe-innerhtml/no-unsafe-innerhtml": 2,
+        "no-wildcard-postmessage/no-wildcard-postmessage": 2,
         "block-scoped-var": 0,
         "brace-style": 0,
         "camelcase": 0,

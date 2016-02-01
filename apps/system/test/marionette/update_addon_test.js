@@ -18,8 +18,7 @@ marionette('Update add-on', function() {
         'addons.auto_update': true,
         'addons.update_notify': true
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var appInstall, server, system, notificationList;

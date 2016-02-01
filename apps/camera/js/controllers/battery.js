@@ -146,18 +146,7 @@ BatteryController.prototype.getStatus = function(battery) {
   else { return 'healthy'; }
 };
 
-BatteryController.prototype.onLocalized = function() {
-  this.onStatusChange(this.app.get('batteryStatus'));
-};
-
 BatteryController.prototype.onStatusChange = function(status) {
-  // We need the app to be first localized
-  // before showing the battery status message
-  if (!this.app.localized()) {
-    this.app.once('localized', this.onLocalized);
-    return;
-  }
-
   this.clearLastNotification();
   this.displayNotification(status);
 };

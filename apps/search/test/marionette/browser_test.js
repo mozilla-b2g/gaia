@@ -8,7 +8,7 @@ var assert = require('chai').assert;
 marionette('Browser test', function() {
 
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var search, system, server, home, rocketbar;
 
@@ -19,36 +19,30 @@ marionette('Browser test', function() {
     });
   });
 
+  suiteTeardown(function() {
+    server.stop();
+  });
+
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     search = client.loader.getAppClass('search');
-    rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
+    rocketbar = new Rocketbar(client);
     system.waitForFullyLoaded();
   });
 
-
-  test.skip('Test title injecting html', function() {
+  test('Test title injecting html', function() {
     var url = server.url('xsstitle.html');
+    rocketbar.goToURL(url);
+    client.helper.wait(1500);
+    system.closeBrowserByUrl(url);
 
-    // Launch the rocketbar and trigger its first run notice
-    home.waitForLaunch();
-    home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
-
-    // Input a url and press enter to visit
-    rocketbar.enterText(url + '\uE006');
-    rocketbar.switchToBrowserFrame(url);
-
-    // Go home
-    client.switchToFrame();
-    home.pressHomeButton();
-
+    // Open browser app.
     client.apps.launch(search.URL);
     client.apps.switchToApp(search.URL);
 
     client.waitFor(function() {
-      return search.getHistoryResults().length == 1;
+      return search.getHistoryResults().length === 1;
     });
 
     var title = client.executeScript(function() {
@@ -58,26 +52,18 @@ marionette('Browser test', function() {
     assert.equal(title, '&lt;em&gt;test&lt;/em&gt;');
   });
 
-  test.skip('Large Icon', function() {
-
+  test('Large Icon', function() {
     var url = server.url('largeicon.html');
+    rocketbar.goToURL(url);
+    client.helper.wait(500);
+    system.closeBrowserByUrl(url);
 
-    home.waitForLaunch();
-    home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
-
-    // Input a url and press enter to visit
-    rocketbar.enterText(url + '\uE006');
-    rocketbar.switchToBrowserFrame(url);
-
-    client.switchToFrame();
-    home.pressHomeButton();
-
+    // Open browser app.
     client.apps.launch(search.URL);
     client.apps.switchToApp(search.URL);
 
     client.waitFor(function() {
-      return search.getHistoryResults().length == 1;
+      return search.getHistoryResults().length === 1;
     });
 
     var width = client.executeScript(function() {
@@ -88,29 +74,22 @@ marionette('Browser test', function() {
     assert.equal(width, 16);
   });
 
-  test.skip('Ensure fallback to url when no place title', function() {
-
+  test('Ensure fallback to url when no place title', function() {
     var url = server.url('notitle.html');
+    rocketbar.goToURL(url);
+    client.helper.wait(500);
+    system.closeBrowserByUrl(url);
 
-    home.waitForLaunch();
-    home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
-
-    // Input a url and press enter to visit
-    rocketbar.enterText(url + '\uE006');
-    rocketbar.switchToBrowserFrame(url);
-
-    client.switchToFrame();
-    home.pressHomeButton();
-
+    // Open browser app.
     client.apps.launch(search.URL);
     client.apps.switchToApp(search.URL);
 
     client.waitFor(function() {
-      return search.getTopSites().length == 1;
+      return search.getTopSites().length === 1;
     });
 
     var topSite = search.getTopSites()[0];
+
     assert.equal(topSite.text(), url);
   });
 });

@@ -5,13 +5,9 @@ var assert = require('assert');
 
 var Messages = require('./lib/messages.js');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
+const NewMessageView = require('./lib/views/new-message/view');
 
 marionette('Messages as share target', function() {
-  var MOCKS = [
-    '/mocks/mock_navigator_moz_icc_manager.js',
-    '/mocks/mock_navigator_moz_mobile_message.js'
-  ];
-
   var apps = {};
 
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
@@ -19,7 +15,8 @@ marionette('Messages as share target', function() {
   var client = marionette.client({
     profile: {
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var messagesApp,
@@ -29,110 +26,114 @@ marionette('Messages as share target', function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'navigator_moz_icc_manager',
+      'navigator_moz_mobile_message'
+    ]);
   });
 
   suite('Share via Messages', function() {
     suite('Activity close button', function() {
+      let newMessageView;
+
       setup(function() {
         activityCallerApp.launch();
         activityCallerApp.shareImage();
 
         messagesApp.switchTo();
+
+        newMessageView = new NewMessageView(client);
+      });
+
+      teardown(function() {
+        // Verify that Messages is dismissed.
+        messagesApp.waitForAppToDisappear();
       });
 
       test('Should close activity if in NewMessage view', function() {
         assert.equal(
-          messagesApp.NewMessage.header.getAttribute('action'), 'close',
+          newMessageView.headerAction,
+          'close',
           'Close activity button should be visible'
         );
 
-        // Exit from activity and verify that Messages is dismissed
-        messagesApp.performHeaderAction();
-        messagesApp.waitForAppToDisappear();
+        newMessageView.back();
       });
 
       test('Should close activity if in Conversation view', function() {
         // Send message to be forwarded to Conversation panel afterwards
-        messagesApp.addRecipient('+1');
-        messagesApp.send();
+        newMessageView.addNewRecipient('+1');
+        let conversationView = newMessageView.send();
 
         assert.equal(
-          messagesApp.NewMessage.header.getAttribute('action'), 'close',
+          conversationView.headerAction,
+          'close',
           'Close activity button should be visible'
         );
 
-        // Exit from activity and verify that Messages is dismissed
-        messagesApp.performHeaderAction();
-        messagesApp.waitForAppToDisappear();
+        newMessageView.back();
       });
 
       test('Should return to Conversation view if in Report view', function() {
         // Send message to be forwarded to Conversation panel afterwards
-        messagesApp.addRecipient('+1');
-        messagesApp.send();
+        newMessageView.addNewRecipient('+1');
+        let conversationView = newMessageView.send();
 
-        // Go to the Report panel
-        messagesApp.contextMenu(messagesApp.Conversation.message);
-        messagesApp.Menu.selectAppMenuOption('View message report');
-        messagesApp.Report.waitToAppear();
+        let reportView = conversationView.openReport(
+          conversationView.messages()[0].id
+        );
 
         assert.equal(
-          messagesApp.Report.header.getAttribute('action'), 'close',
+          reportView.headerAction,
+          'close',
           'Close activity button should be visible'
         );
 
         // Close report panel
-        messagesApp.performReportHeaderAction();
-        client.helper.waitForElement(messagesApp.Conversation.message);
+        reportView.back();
 
         assert.equal(
-          messagesApp.NewMessage.header.getAttribute('action'), 'close',
+          conversationView.headerAction,
+          'close',
           'Close activity button should be visible'
         );
 
-        // Exit from activity and verify that Messages is dismissed
-        messagesApp.performHeaderAction();
-        messagesApp.waitForAppToDisappear();
+        conversationView.back();
       });
 
       test('Should return to Conversation panel if in Participants panel',
       function() {
         // Send group MMS message
-        messagesApp.addRecipient('+1');
-        messagesApp.addRecipient('+2');
+        newMessageView.addNewRecipient('+1');
+        newMessageView.addNewRecipient('+2');
 
         // TODO: This should be moved to the appropriate test case in:
         // https://bugzilla.mozilla.org/show_bug.cgi?id=1043903
-        messagesApp.Composer.messageInput.sendKeys(
+        newMessageView.typeMessage(
           'very_very_very_very_very_very_long_message_i_can_ever_imagine'
         );
 
-        messagesApp.send();
+        let conversationView = newMessageView.send();
 
         // Go to Participants panel
-        messagesApp.Conversation.headerTitle.tap();
-        messagesApp.Participants.waitToAppear();
+        let participantsView = conversationView.openParticipants();
 
         assert.equal(
-          messagesApp.Participants.header.getAttribute('action'), 'back',
+          participantsView.headerAction,
+          'back',
           'Close activity button should be visible'
         );
 
         // Go back to Conversation panel
-        messagesApp.performGroupHeaderAction();
-        client.helper.waitForElement(messagesApp.Conversation.message);
+        participantsView.back();
 
         assert.equal(
-          messagesApp.NewMessage.header.getAttribute('action'), 'close',
+          conversationView.headerAction,
+          'close',
           'Close activity button should be visible'
         );
 
-        // Exit from activity and verify that Messages is dismissed
-        messagesApp.performHeaderAction();
-        messagesApp.waitForAppToDisappear();
+        conversationView.back();
       });
     });
   });

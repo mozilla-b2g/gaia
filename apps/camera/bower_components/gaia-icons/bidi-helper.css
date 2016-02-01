@@ -65,3 +65,10 @@
 [data-icon="send"]:-moz-dir(rtl):before {
   content: 'send-left';
 }
+
+[data-icon="edit"]:-moz-dir(ltr):before {
+  content: 'edit-left';
+}
+[data-icon="edit"]:-moz-dir(rtl):before {
+  content: 'edit-right';
+}

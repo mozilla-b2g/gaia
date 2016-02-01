@@ -60,26 +60,6 @@
         return;
       }
 
-      // <a href="" target="_blank"> should never be part of the app
-      // except while FTU is running: windows must be closable & parented by FTU
-      if (evt.detail.name == '_blank' &&
-          !window.Service.runningFTU &&
-          evt.detail.features !== 'attention') {
-        this.createNewWindow(evt);
-        evt.stopPropagation();
-        return;
-      }
-
-      // Check if this is a call to open the url in an known app.
-      if (evt.detail.isApp) {
-        this.app.publish('openwindow',
-          { manifestURL: evt.detail.name,
-            url: evt.detail.url,
-            timestamp: Date.now() });
-        evt.stopPropagation();
-        return;
-      }
-
       var caught = false;
       switch (evt.detail.features) {
         case 'dialog':
@@ -102,11 +82,11 @@
           caught = this.createChildWindow(evt);
           break;
         default:
-          if (ENABLE_IN_APP_SHEET) {
-            caught = this.createChildWindow(evt);
-          } else {
-            caught = this.createPopupWindow(evt);
+          // XXX: Every existed url should be a part of the app
+          if (evt.detail.url) {
+            this.app.iframe.src = evt.detail.url;
           }
+          caught = true;
           break;
       }
 
@@ -145,7 +125,9 @@
       url: evt.detail.url,
       origin: evt.detail.origin,
       manifestURL: evt.detail.manifestURL,
-      rearWindow: this.app
+      features: evt.detail.features || {},
+      rearWindow: this.app,
+      oop: true
     };
     var childWindow = new PreviewWindow(configObject);
     childWindow.element.addEventListener('_closing', this);

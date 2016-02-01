@@ -7,7 +7,7 @@
     "60": "/style/icons/Default.png"
   },
   "permissions": {
-    "overlay": {}
+    "global-clickthrough-overlay": {}
   },
   "developer": {
     "name": "The Gaia Team",

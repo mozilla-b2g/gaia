@@ -3,7 +3,7 @@
 /* global FxAccountsUI, MockService, MocksHelper */
 
 require('/js/fx_accounts_u_i.js');
-require('/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForFxAccountsUI = new MocksHelper([

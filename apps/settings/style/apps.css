@@ -723,7 +723,7 @@ section ul.operate-certificate {
     height: 21.5rem;
   }
 
-  p.fxsync-unverified-warning {
+  p.fxsync-warning {
     background-image: url('images/fxsync_error.png');
     background-repeat: no-repeat;
     background-size: 2rem;

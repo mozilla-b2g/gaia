@@ -24,7 +24,8 @@ marionette('Dialer', function() {
   var client = marionette.client({
     prefs: {
       'focusmanager.testmode': true
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var thread;

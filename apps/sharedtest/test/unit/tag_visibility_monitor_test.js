@@ -107,22 +107,38 @@ suite('tag_visibility_monitor', function() {
             child.index = '' + addMatch[1];
             container.appendChild(child);
           }
+          return scrollMatch;
       }
 
       function runNext() {
         if (i < tests.length) {
+          var waitForScroll = false;
           var test = tests[i];
           if (test.push) {
             for (var j = 0; j < test.length; j++) {
-              runTest(test[j]);
+              if (runTest(test[j])) {
+                waitForScroll = true;
+              }
             }
           }
           else {
-            runTest(test);
+            if (runTest(test)) {
+              waitForScroll = true;
+            }
           }
           logger.nextStep();
           i++;
-          setTimeout(runNext, TimeForScrollAndVisibilityMonitorEvents);
+
+          // If we changed the scroll position, wait for the scroll event
+          // before continuing. Otherwise, continue immediately
+          if (waitForScroll) {
+            addEventListener('scroll', function waiter() {
+              removeEventListener('scroll', waiter, true);
+              setTimeout(runNext, TimeForScrollAndVisibilityMonitorEvents);
+            }, true);
+          } else {
+            setTimeout(runNext, TimeForScrollAndVisibilityMonitorEvents);
+          }
         }
         else {
           done(logger);

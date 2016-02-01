@@ -8,7 +8,9 @@ var Server = require('../../../../shared/test/integration/server');
 var assert = require('assert');
 
 marionette('Homescreen - Pinning Favicon Failure', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var pinning, home, server, system;
 

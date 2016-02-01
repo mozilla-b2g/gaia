@@ -8,7 +8,6 @@
 
 /* global asyncStorage */
 /* global ERROR_GET_FXA_ASSERTION */
-/* global ERROR_SYNC_APP_KILLED */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global expect */
 /* global FxAccountsClient */
@@ -670,7 +669,7 @@ suite('smart-system/SyncManager >', () => {
         this.sinon.assert.calledOnce(getAssertionStub);
         this.sinon.assert.calledOnce(getKeysStub);
         this.sinon.assert.calledOnce(trySyncStub);
-        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(getAccountStub);
         this.sinon.assert.calledOnce(addEventListenerSpy);
         this.sinon.assert.calledWith(addEventListenerSpy,
                                      'mozFxAccountsUnsolChromeEvent');
@@ -1184,58 +1183,82 @@ suite('smart-system/SyncManager >', () => {
     });
   });
 
-  suite('killapp', () => {
+  suite('Synchronizer killed while syncing', () => {
     var syncManager;
-    var isSyncAppStub;
-    var isSyncApp;
+    var realMozApps;
+    var realUuid;
+    var port;
+    var _onclose;
     var errorStub;
-
-    function killapp() {
-      window.dispatchEvent(new CustomEvent('killapp', {
-        detail: {
-          origin: 'whatever'
-        }
-      }));
-    }
+    var deferred = {};
+    deferred.promise = new Promise(resolve => {
+      deferred.resolve = resolve;
+    });
 
     suiteSetup(() => {
       syncManager = new SyncManager();
       syncManager.start();
+
+      errorStub = this.sinon.stub(SyncStateMachine, 'error');
+
+      realMozApps = navigator.mozApps;
+      realUuid = window.uuid;
+
+      port = {
+        set onclose(cb) {
+          _onclose = cb;
+        },
+
+        postMessage() {
+          setTimeout(() => {
+            _onclose();
+            deferred.resolve();
+          });
+        }
+      };
+
+      var ports = [port];
+
+      var app = {
+        connect() {
+          return Promise.resolve(ports);
+        }
+      };
+
+      var onsuccess = {
+        set onsuccess(callback) {
+          setTimeout(() => {
+            callback({ target: { result: app } });
+          });
+        }
+      };
+
+      navigator.mozApps = {
+        getSelf: function() {
+          return onsuccess;
+        }
+      };
+
+      window.uuid = () => {
+        return Date.now();
+      };
     });
 
     suiteTeardown(() => {
       syncManager.stop();
-    });
-
-    setup(() => {
-      errorStub = this.sinon.stub(SyncStateMachine, 'error');
-      isSyncAppStub = this.sinon.stub(syncManager, 'isSyncApp', () => {
-        return isSyncApp ? Promise.resolve() : Promise.reject();
-      });
-    });
-
-    teardown(() => {
-      isSyncAppStub.restore();
+      navigator.mozApps = realMozApps;
+      window.uuid = realUuid;
       errorStub.restore();
     });
 
-    test('Is Sync app', done => {
-      isSyncApp = true;
-      killapp();
-      setTimeout(() => {
-        assert.ok(errorStub.calledOnce);
-        assert.equal(errorStub.getCall(0).args[0], ERROR_SYNC_APP_KILLED);
+    test('Should throw error if port closes while syncing', done => {
+      syncManager.state = 'syncing';
+      SyncStateMachine.state = 'syncing';
+      deferred.promise.then(() => {
+        this.sinon.assert.calledOnce(errorStub);
         done();
       });
-    });
-
-    test('Is not Sync app', done => {
-      isSyncApp = false;
-      killapp();
-      setTimeout(() => {
-        assert.ok(errorStub.notCalled);
-        done();
-      });
+      syncManager.doSync();
     });
   });
 
@@ -1387,6 +1410,8 @@ suite('smart-system/SyncManager >', () => {
     suiteSetup(() => {
       syncManager = new SyncManager();
       syncManager.start();
+
+      syncManager.state = 'enabled';
     });
 
     suiteTeardown(() => {

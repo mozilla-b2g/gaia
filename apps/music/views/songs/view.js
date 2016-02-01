@@ -65,9 +65,9 @@ SongsView.prototype.destroy = function() {
 };
 
 SongsView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
   return this.list.setModel(this.songs)
-    .then(() => this.list.cache());
+    .then(() => this.list.cache())
+    .then(this.onRenderDone);
 };
 
 SongsView.prototype.getSongs = function() {

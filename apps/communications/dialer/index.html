@@ -36,6 +36,7 @@
 
     <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
     <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/bidi-helper.css">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/option_menu.css">
 
@@ -137,7 +138,7 @@
                 <div id="no-result-container" hidden>
                   <div id="no-result-message">
                     <p id="no-result-msg1" data-l10n-id="no-logs-msg-1"></p>
-                    <p id="no-result-msg2" data-l10n-id="no-logs-msg-2"></p>
+                    <p id="no-result-msg2" data-l10n-id="no-logs-msg-4"></p>
                     <p id="no-result-msg3" data-l10n-id="no-logs-msg-3" hidden></p>
                   </div>
                 </div>
@@ -160,7 +161,7 @@
             <div class="phone-number-view-wrapper-input">
               <input id="phone-number-view" type="text" class="phone-number-font font-light textfield" readonly="readonly" data-l10n-id="phoneNumberInput">
             </div>
-            <button id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
+            <button role="key" id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
             </button>
           </div>
           <section id="suggestion-bar" class="suggestion-bar hide">

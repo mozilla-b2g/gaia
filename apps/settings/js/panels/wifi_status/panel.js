@@ -40,7 +40,7 @@ define(function(require) {
       _updateNetworkInfo: function() {
         var info = wifiManager.connectionInformation || {};
         elements.ip.textContent = info.ipAddress || '';
-        navigator.mozL10n.setAttributes(elements.speed,
+        document.l10n.setAttributes(elements.speed,
           'linkSpeedMbs', { linkSpeed: info.linkSpeed });
       }
     });

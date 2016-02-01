@@ -1,6 +1,6 @@
 /* exported Thumbnails */
 /* global ThumbnailList, ThumbnailDateGroup, MediaDB, LazyLoader */
-/* global photodb, files, picking, metadataParser */
+/* global ThumbnailItem, photodb, files, picking, metadataParser */
 (function(exports) {
   'use strict';
 
@@ -21,7 +21,11 @@
   // Bug 1135256: Having a listener in ThumbnailList prevents them from
   // being garbage collected since ready() holds a strong reference, so
   // we have a singleton listener here.
-  navigator.mozL10n.ready(thumbnails.list.localize.bind(thumbnails.list));
+  document.addEventListener('DOMRetranslated', () => {
+    ThumbnailDateGroup.resetFormatter();
+    ThumbnailItem.resetFormatter();
+    thumbnails.list.localize();
+  });
 
   // How many thumbnails are visible on a page.
   // Batch sizes are based on this.

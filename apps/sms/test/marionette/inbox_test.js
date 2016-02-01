@@ -8,15 +8,9 @@ var InboxView = require('./lib/views/inbox/view');
 var Storage = require('./lib/storage.js');
 
 marionette('Inbox View tests', function() {
-  var MOCKS = [
-    '/mocks/mock_test_storages.js',
-    '/mocks/mock_test_blobs.js',
-    '/mocks/mock_navigator_moz_icc_manager.js',
-    '/mocks/mock_navigator_moz_mobile_message.js',
-    '/mocks/mock_navigator_moz_contacts.js'
-  ];
-
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var messagesApp, storage;
 
@@ -24,9 +18,13 @@ marionette('Inbox View tests', function() {
     messagesApp = Messages.create(client);
     storage = Storage.create(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'test_storages',
+      'test_blobs',
+      'navigator_moz_icc_manager',
+      'navigator_moz_mobile_message',
+      'navigator_moz_contacts'
+    ]);
   });
 
   suite('Long list of conversations', function() {
@@ -55,7 +53,7 @@ marionette('Inbox View tests', function() {
         conversations, ThreadGenerator.uniqueMessageId
       );
 
-      messagesApp.launch();
+      messagesApp.launch(true /* doNotWaitForAppToBecomeReady */);
     });
 
     test('User could navigate without waiting for the app to be fully loaded',
@@ -67,12 +65,76 @@ marionette('Inbox View tests', function() {
       newMessageView.assertRecipientsInputFocused();
 
       // We should enter new message view even if not all messages are rendered.
-      assert.isTrue(inboxView.hasConversation(10));
       assert.isFalse(inboxView.hasConversation(400));
 
       // And rendering should still continue.
       client.waitFor(function() {
         return inboxView.hasConversation(400);
+      });
+    });
+  });
+
+  suite('Split Inbox view tests', function() {
+    const NUMBER_OF_CONVERSATIONS = 10;
+    const NUMBER_OF_MESSAGES_IN_CONVERSATION = 5;
+
+    setup(function() {
+      client.contentScript.inject(__dirname + '/mocks/mock_split_view_mode.js');
+
+      ThreadGenerator.uniqueThreadId = 0;
+
+      var conversations = [];
+      for (var i = 0; i < NUMBER_OF_CONVERSATIONS; i++) {
+        conversations.push(
+          ThreadGenerator.generate({
+            participants: ['+1234' + i],
+            numberOfMessages: NUMBER_OF_MESSAGES_IN_CONVERSATION
+          })
+        );
+      }
+
+      storage.setMessagesStorage(
+        conversations, ThreadGenerator.uniqueMessageId
+      );
+
+      messagesApp.launch();
+    });
+
+    test('All conversations are loaded', function() {
+      var inboxView = new InboxView(client);
+
+      client.waitFor(function() {
+        return inboxView.conversations.length === NUMBER_OF_CONVERSATIONS;
+      });
+    });
+
+    test('User can enter New Message view from Inbox and go back', function() {
+      var inboxView = new InboxView(client);
+
+      // Make sure we've entered new message view.
+      var newMessageView = inboxView.createNewMessage();
+      newMessageView.assertRecipientsInputFocused();
+
+      newMessageView.backToInbox();
+
+      client.waitFor(function() {
+        return inboxView.conversations.length === NUMBER_OF_CONVERSATIONS;
+      });
+    });
+
+    test('User can enter Conversation view from Inbox and go back', function() {
+      var inboxView = new InboxView(client);
+
+      // Make sure we've entered conversation view.
+      var conversationView = inboxView.goToConversation(1);
+      assert.equal(
+        conversationView.messages().length, NUMBER_OF_MESSAGES_IN_CONVERSATION
+      );
+
+      conversationView.backToInbox();
+
+      client.waitFor(function() {
+        return inboxView.conversations.length === NUMBER_OF_CONVERSATIONS;
       });
     });
   });

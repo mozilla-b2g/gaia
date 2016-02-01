@@ -197,6 +197,7 @@ var CallsHandler = (function callsHandler() {
     } else {
       if (window.location.hash.startsWith('#locked') &&
           (call.state === 'incoming')) {
+        CallScreen.initLockScreenLayout();
         CallScreen.render('incoming-locked');
       } else {
         CallScreen.render(call.state);

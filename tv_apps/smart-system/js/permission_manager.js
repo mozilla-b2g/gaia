@@ -1,5 +1,7 @@
-/* global LazyLoader, AppWindowManager, applications, ManifestHelper*/
-/* global Template, focusManager */
+/* global LazyLoader, applications, ManifestHelper*/
+/* global Template, focusManager, SpatialNavigator, KeyEvent */
+/* global KeyNavigationAdapter */
+
 'use strict';
 (function(exports) {
   /**
@@ -70,6 +72,12 @@
         function onLabelClick() {
         self.remember.checked = !self.remember.checked;
       });
+      this.rememberSection.addEventListener('keyup',
+        function onLabelKeyup(evt) {
+        if (evt.keyCode === KeyEvent.DOM_VK_RETURN) {
+          self.remember.checked = !self.remember.checked;
+        }
+      });
 
       window.addEventListener('mozChromeEvent', this);
       window.addEventListener('attentionopening', this);
@@ -97,6 +105,17 @@
       this.overlay.addEventListener('mousedown', function onMouseDown(evt) {
         evt.preventDefault();
       });
+
+      // Initialize key spatial navigator
+      this._spatialNavigator = new SpatialNavigator([
+        this.yes, this.no, this.moreInfoLink, this.hideInfoLink,
+        this.rememberSection]);
+      this._spatialNavigator.straightOnly = true;
+      this._spatialNavigator.ignoreHiddenElement = true;
+      this._spatialNavigator.rememberSource = true;
+
+      this._keyNavigationAdapter = new KeyNavigationAdapter();
+      this._keyNavigationAdapter.init();
 
       focusManager.addUI(this);
     },
@@ -142,6 +161,9 @@
       window.removeEventListener('attentionopened', this);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
+      this._spatialNavigator.off('focus');
+      this._keyNavigationAdapter.off('move');
+      this._keyNavigationAdapter.uninit();
     },
 
     /**
@@ -160,15 +182,12 @@
       if (this.message.classList.contains('hidden')) {
         this.message.classList.remove('hidden');
       }
-      if (!this.moreInfoBox.classList.contains('hidden')) {
-        this.moreInfoBox.classList.add('hidden');
-      }
       this.devices.innerHTML = '';
       if (!this.deviceSelector.classList.contains('hidden')) {
         this.deviceSelector.classList.add('hidden');
       }
+      this.toggleInfo(false);
       this.buttons.dataset.items = 2;
-      this.no.style.display = 'inline';
     },
 
     /**
@@ -226,9 +245,9 @@
           if (this.isAudio || this.isVideo) {
             if (!detail.isApp) {
               // Not show remember my choice option in website
-              this.rememberSection.style.display = 'none';
+              this.rememberSection.classList.add('hidden');
             } else {
-              this.rememberSection.style.display = 'block';
+              this.rememberSection.classList.remove('hidden');
             }
 
             // Set default options
@@ -248,10 +267,6 @@
           break;
         case 'cancel-permission-prompt':
           this.discardPermissionRequest();
-          break;
-        case 'fullscreenoriginchange':
-          delete this.overlay.dataset.type;
-          this.handleFullscreenOriginChange(detail);
           break;
       }
 
@@ -287,35 +302,6 @@
             link.disabled = true;
           }
         }
-      }
-    },
-
-    /**
-     * Show the request for the new domain
-     * @memberof PermissionManager.prototype
-     * @param {Object} detail The event detail object.
-     */
-    handleFullscreenOriginChange:
-      function pm_handleFullscreenOriginChange(detail) {
-      // If there's already a fullscreen request visible, cancel it,
-      // we'll show the request for the new domain.
-      if (this.fullscreenRequest !== undefined) {
-        this.cancelRequest(this.fullscreenRequest);
-        this.fullscreenRequest = undefined;
-      }
-      if (detail.fullscreenorigin !== AppWindowManager.getActiveApp().origin) {
-        // The message to be displayed on the approval UI.
-        var message = {
-          id: 'fullscreen-request',
-          args: { 'origin': detail.fullscreenorigin }
-        };
-        this.fullscreenRequest =
-          this.requestPermission(detail.id, detail.origin, detail.permission,
-                                 message, '',
-                                              /* yesCallback */ null,
-                                              /* noCallback */ function() {
-                                                document.mozCancelFullScreen();
-                                              });
       }
     },
 
@@ -423,8 +409,10 @@
       this.moreInfoLink.removeEventListener('click',
         this.moreInfoHandler);
       this.hideInfoLink.removeEventListener('click',
-        this.moreInfoHandler);
+        this.hideInfoHandler);
       this.moreInfo.classList.add('hidden');
+      this._spatialNavigator.off('focus');
+      this._keyNavigationAdapter.off('move');
       this.publish('permissiondialoghide');
       focusManager.focus();
     },
@@ -487,10 +475,10 @@
       this.showNextPendingRequest();
     },
 
-    toggleInfo: function pm_toggleInfo() {
-      this.moreInfoLink.classList.toggle('hidden');
-      this.hideInfoLink.classList.toggle('hidden');
-      this.moreInfoBox.classList.toggle('hidden');
+    toggleInfo: function pm_toggleInfo(forceValue) {
+      var value = this.overlay.classList.toggle('more-info', forceValue);
+      var nextFocus = value ? this.hideInfoLink : this.moreInfoLink;
+      this._spatialNavigator.focus(nextFocus);
     },
 
     /**
@@ -530,6 +518,7 @@
 
       // show description
       this.deviceSelector.classList.remove('hidden');
+      // TODO: Make spatial navigator for device lists.
       // build device list
       this.currentPermissions['video-capture'].forEach(function(option) {
         // Match currentChoices
@@ -609,13 +598,23 @@
       // customize camera selector dialog
       if (this.isCamSelector) {
         this.message.classList.add('hidden');
-        this.rememberSection.style.display = 'none';
+        this.rememberSection.classList.remove('hidden');
+
         this.buttons.dataset.items = 1;
         this.no.style.display = 'none';
         this.yes.setAttribute('data-l10n-id', 'ok');
       }
+
+      // activate spatial navigator
+      this._spatialNavigator.on('focus', this.onElemFocus.bind(this));
+      this._keyNavigationAdapter.on('move', this.onMove.bind(this));
+
       // Make the screen visible
       this.overlay.classList.add('visible');
+
+      this._spatialNavigator.silent = true;
+      this._spatialNavigator.focus(this.no);
+      this._spatialNavigator.silent = false;
       focusManager.focus();
     },
 
@@ -683,8 +682,16 @@
     focus: function pm_focus() {
       setTimeout(function() {
         document.activeElement.blur();
-        this.no.focus();
+        this._spatialNavigator.focus();
       }.bind(this));
+    },
+
+    onMove: function pm_onMove(key) {
+      this._spatialNavigator.move(key);
+    },
+
+    onElemFocus: function pm_onElemFocus(elem) {
+      elem.focus();
     }
   };
 

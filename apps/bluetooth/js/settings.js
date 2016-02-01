@@ -305,10 +305,10 @@ navigator.mozL10n.once(function bluetoothSettings() {
         this.unpairOpt.onclick = function() {
           setDeviceUnpair(self.device);
         };
-        this.menu.onsubmit = function closeMenu() {
+        this.menu.addEventListener('gaiamenu-cancel', function closeMenu() {
           return self.close();
-        };
-        this.menu.hidden = false;
+        });
+        this.menu.show();
       },
 
       showConfirm: function showConfirm() {
@@ -331,7 +331,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       },
 
       close: function closeMenu() {
-        this.menu.hidden = true;
+        this.menu.hide();
         this.confirmDlg.hidden = true;
         return false;
       }

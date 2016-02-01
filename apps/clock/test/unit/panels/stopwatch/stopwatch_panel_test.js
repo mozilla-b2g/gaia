@@ -9,7 +9,7 @@ suite('Stopwatch.Panel', function() {
   var Stopwatch;
 
   suiteSetup(function(done) {
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     window.mozIntl = MockMozIntl;
     window.IntlHelper = MockIntlHelper;
     var threeMin = 3 * 60 * 1000 + 130;

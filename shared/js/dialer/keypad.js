@@ -127,6 +127,7 @@ var KeypadManager = {
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
+    this._lastPressedKey = null;
 
     this.phoneNumberView.value = '';
     this.phoneNumberView
@@ -260,7 +261,7 @@ var KeypadManager = {
   },
 
   hangUpCallFromKeypad: function hk_hangUpCallFromKeypad(event) {
-    CallScreen.body.classList.remove('showKeypad');
+    CallScreen.hideKeypad();
     CallsHandler.end();
   },
 
@@ -691,7 +692,7 @@ var KeypadManager = {
     // If there are digits in the phone number, show the delete button
     // and enable the add contact button
     if (this._onCall) {
-      this.replacePhoneNumber(phoneNumber, ellipsisSide);
+      this.renderPhoneNumber(phoneNumber, ellipsisSide);
     } else {
       var visibility;
       if (phoneNumber.length > 0) {
@@ -715,11 +716,11 @@ var KeypadManager = {
     }
   },
 
-  replacePhoneNumber:
+  renderPhoneNumber:
     function kh_replacePhoneNumber(phoneNumber, ellipsisSide) {
       if (this._onCall && CallsHandler.activeCall) {
         CallsHandler.activeCall.
-          replacePhoneNumber({raw: phoneNumber} , ellipsisSide);
+          renderPhoneNumber({raw: phoneNumber} , ellipsisSide);
       }
   },
 

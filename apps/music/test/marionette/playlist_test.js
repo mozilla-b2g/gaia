@@ -21,7 +21,8 @@ marionette('Music player playlist', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var music;
@@ -44,21 +45,20 @@ marionette('Music player playlist', function() {
     });
 
     test('Check name with >, <, ~, &, markup and some Unicode. ' +
-         'moztrap:2346,2347,8499,8491', function() {
-      try {
-        music.launch();
-        music.waitForFirstTile();
-        music.switchToSongsView();
+         'moztrap:2346,2347,8499,8491',
+         function() {
 
-        // this will wait on the first song as well.
-        var songs = music.songs;
-        assert.equal(songs.length, 1);
-        assert.equal(songs[0].title,
-                     'dump 2>&1 < ~/® <b>&amp; Injection Vulnerablity</b>');
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
-    });
+           music.launch();
+           music.waitForFirstTile();
+           music.switchToSongsView();
+
+           // this will wait on the first song as well.
+           music.waitForListEnumerate(Music.Selector.activeViewFrame);
+           var songs = music.songs;
+           assert.equal(songs.length, 1);
+           assert.equal(songs[0].title,
+                        'dump 2>&1 < ~/® <b>&amp; Injection Vulnerablity</b>');
+         });
   });
 
   suite('Test empty metadata', function () {
@@ -87,6 +87,7 @@ marionette('Music player playlist', function() {
 
       music.selectAlbum('Treasure Island');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 1;
       });
@@ -102,6 +103,7 @@ marionette('Music player playlist', function() {
     test('Check the lack of artist or album', function() {
       music.switchToAlbumsView();
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       var results = music.albumsListItemsData;
       var unknownAlbumStr = client.executeAsyncScript(function () {
         window.wrappedJSObject.document.l10n.formatValue('unknownAlbum').
@@ -114,6 +116,7 @@ marionette('Music player playlist', function() {
 
       music.switchToArtistsView();
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       results = music.artistsListItemsData;
       var unknownArtistStr = client.executeAsyncScript(function () {
         window.wrappedJSObject.document.l10n.formatValue('unknownArtist').
@@ -154,6 +157,7 @@ marionette('Music player playlist', function() {
 
       music.selectAlbum('Where is Julian Assange?');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 3;
       });
@@ -180,6 +184,7 @@ marionette('Music player playlist', function() {
 
       music.selectPlaylist('Recently added');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 3;
       });
@@ -232,6 +237,7 @@ marionette('Music player playlist', function() {
 
       music.selectAlbum('We crash computers');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 6;
       });
@@ -289,55 +295,53 @@ marionette('Music player playlist', function() {
     });
 
     test('Highest rated playlist sort order. moztrap:3674', function() {
-      try {
-        music.launch();
-        music.waitForFirstTile();
+      music.launch();
+      music.waitForFirstTile();
 
-        music.switchToAlbumsView();
+      music.switchToAlbumsView();
 
-        music.selectAlbum('We crash computers');
+      music.selectAlbum('We crash computers');
 
-        music.waitForSongs(function(songs) {
-          return songs.length >= 6;
-        });
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
 
-        var songs = music.songs;
-        assert.equal(songs.length, 6);
+      var songs = music.songs;
+      assert.equal(songs.length, 6);
 
-        var title1 = songs[1].title;
-        var title3 = songs[3].title;
+      var title1 = songs[1].title;
+      var title3 = songs[3].title;
 
-        client.switchToFrame(music.activeViewFrame);
-        client.executeScript(function(songs) {
-          var w = window.wrappedJSObject;
-          w.view.fetch('/api/songs/rating/4/' + songs[3].filePath).
-            catch(function(error) {
-              throw error;
-            });
-          w.view.fetch('/api/songs/rating/5/' + songs[1].filePath).
-            catch(function(error) {
-              throw error;
-            });
-        }, [songs]);
-        music.switchToMe();
+      client.switchToFrame(music.activeViewFrame);
+      client.executeScript(function(songs) {
+        var w = window.wrappedJSObject;
+        w.view.fetch('/api/songs/rating/4/' + songs[3].filePath).
+          catch(function(error) {
+            throw error;
+          });
+        w.view.fetch('/api/songs/rating/5/' + songs[1].filePath).
+          catch(function(error) {
+            throw error;
+          });
+      }, [songs]);
+      music.switchToMe();
 
-        music.switchToPlaylistsView();
+      music.switchToPlaylistsView();
 
-        music.selectPlaylist('Highest rated');
+      music.selectPlaylist('Highest rated');
 
-        music.waitForSongs(function(songs) {
-          return songs.length >= 6;
-        });
-        songs = music.songs;
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
 
-        assert.equal(songs[0].index, '1');
-        assert.equal(songs[0].title, title1);
+      assert.equal(songs[0].index, '1');
+      assert.equal(songs[0].title, title1);
 
-        assert.equal(songs[1].index, '2');
-        assert.equal(songs[1].title, title3);
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      assert.equal(songs[1].index, '2');
+      assert.equal(songs[1].title, title3);
     });
 
     test('Recently added playlist sort order. moztrap:3675', function() {
@@ -367,6 +371,7 @@ marionette('Music player playlist', function() {
 
       music.selectPlaylist('Recently added');
 
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
       music.waitForSongs(function(songs) {
         return songs.length >= 6;
       });
@@ -406,75 +411,73 @@ marionette('Music player playlist', function() {
         assert.ok(!result);
       }
 
-      try {
-        music.launch();
-        music.waitForFirstTile();
+      music.launch();
+      music.waitForFirstTile();
 
-        music.switchToAlbumsView();
+      music.switchToAlbumsView();
 
-        music.selectAlbum('We crash computers');
+      music.selectAlbum('We crash computers');
 
-        var songs = music.songs;
-        assert.equal(songs.length, 6);
+      var songs = music.songs;
+      assert.equal(songs.length, 6);
 
-        var playCounts = {
-          'XOXO': 5,
-          'Crash': 4,
+      var playCounts = {
+        'XOXO': 5,
+        'Crash': 4,
 
-          'Break': 3,
-          'Windows BSOD': 2,
+        'Break': 3,
+        'Windows BSOD': 2,
 
-          'Yield to thread': 1,
-          'Abort': 0
-        };
+        'Yield to thread': 1,
+        'Abort': 0
+      };
 
-        music.switchToMe();
-        // we set the playcount.
-        songs.forEach(function (e) {
-          var c = playCounts[e.title];
-          if (c) {
-            incrementPlayCount(e.filePath, c);
-          }
-        });
+      music.switchToMe();
+      // we set the playcount.
+      songs.forEach(function (e) {
+        var c = playCounts[e.title];
+        if (c) {
+          incrementPlayCount(e.filePath, c);
+        }
+      });
 
-        music.switchToPlaylistsView();
+      music.switchToPlaylistsView();
 
-        // Most played
-        music.selectPlaylist('Most played');
-        music.waitForPlaylistDetailView();
+      // Most played
+      music.selectPlaylist('Most played');
+      music.waitForPlaylistDetailView();
 
-        music.waitForSongs(function(songs) {
-          return songs.length >= 6;
-        });
-        songs = music.songs;
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
 
-        assert.equal(songs[0].index, '1');
-        assert.equal(songs[0].title, 'XOXO');
+      assert.equal(songs[0].index, '1');
+      assert.equal(songs[0].title, 'XOXO');
 
-        assert.equal(songs[1].index, '2');
-        assert.equal(songs[1].title, 'Crash');
+      assert.equal(songs[1].index, '2');
+      assert.equal(songs[1].title, 'Crash');
 
 
-        music.tapHeaderActionButton();
-        music.waitForPlaylistsView();
+      music.tapHeaderActionButton();
+      music.waitForPlaylistsView();
 
-        // Least played
-        music.selectPlaylist('Least played');
-        music.waitForPlaylistDetailView();
+      // Least played
+      music.selectPlaylist('Least played');
+      music.waitForPlaylistDetailView();
 
-        music.waitForSongs(function(songs) {
-          return songs.length >= 6;
-        });
-        songs = music.songs;
+      music.waitForListEnumerate(Music.Selector.activeViewFrame);
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
 
-        assert.equal(songs[0].index, '1');
-        assert.equal(songs[0].title, 'Abort');
+      assert.equal(songs[0].index, '1');
+      assert.equal(songs[0].title, 'Abort');
 
-        assert.equal(songs[1].index, '2');
-        assert.equal(songs[1].title, 'Yield to thread');
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      assert.equal(songs[1].index, '2');
+      assert.equal(songs[1].title, 'Yield to thread');
     });
 
   });

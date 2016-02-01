@@ -89,7 +89,7 @@ define(function(require) {
           var span = document.createElement('span');
 
           if (imeis.length > 1) {
-            navigator.mozL10n.setAttributes(span,
+            document.l10n.setAttributes(span,
               'deviceInfo-IMEI-with-index', {
                 index: index + 1,
                 imei: imei
@@ -159,7 +159,7 @@ define(function(require) {
         var span = document.createElement('span');
         if (conn.iccId) {
           if (multiSim) {
-            navigator.mozL10n.setAttributes(span,
+            document.l10n.setAttributes(span,
               'deviceInfo-ICCID-with-index', {
                 index: index + 1,
                 iccid: conn.iccId
@@ -169,7 +169,7 @@ define(function(require) {
           }
         } else {
           if (multiSim) {
-            navigator.mozL10n.setAttributes(span,
+            document.l10n.setAttributes(span,
               'deviceInfo-ICCID-unavailable-sim', {
                 index: index + 1
             });

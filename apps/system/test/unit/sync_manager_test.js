@@ -9,12 +9,12 @@
 /* global asyncStorage */
 /* global BaseModule */
 /* global ERROR_GET_FXA_ASSERTION */
-/* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_SYNC_APP_KILLED */
 /* global ERROR_UNVERIFIED_ACCOUNT */
 /* global expect */
 /* global FxAccountsClient */
 /* global IACHandler */
+/* global MockAdvancedTelemetryHelper */
 /* global MocksHelper */
 /* global MockNavigatormozSetMessageHandler */
 /* global MockNavigatorSettings */
@@ -29,12 +29,14 @@ requireApp('system/js/sync_state_machine.js');
 requireApp('system/js/sync_manager.js');
 requireApp('system/test/unit/mock_fxa_client.js');
 requireApp('system/test/unit/mock_iac_handler.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 require('/shared/js/sync/errors.js');
+require('/shared/js/advanced_telemetry_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_advanced_telemetry_helper.js');
 
 var mocksForSyncManager = new MocksHelper([
   'asyncStorage',
@@ -47,16 +49,21 @@ var mocksForSyncManager = new MocksHelper([
 suite('system/SyncManager >', () => {
   var realMozSetMessageHandler;
   var realMozSettings;
+  var realTelemetryHelper;
   var systemMessageHandlerSpy;
 
   mocksForSyncManager.attachTestHelpers();
 
   suiteSetup(() => {
+    require('/shared/js/sync/telemetry.js');
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realTelemetryHelper = window.AdvancedTelemetryHelper;
+    window.AdvancedTelemetryHelper = MockAdvancedTelemetryHelper;
 
     MockNavigatormozSetMessageHandler.mSetup();
     MockNavigatorSettings.mSetup();
@@ -66,6 +73,7 @@ suite('system/SyncManager >', () => {
   suiteTeardown(() => {
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozSettings = realMozSettings;
+    window.AdvancedTelemetryHelper = realTelemetryHelper;
 
     MockNavigatorSettings.mTeardown();
   });
@@ -194,6 +202,7 @@ suite('system/SyncManager >', () => {
     var getPortStub;
     var getAccountStub;
     var port;
+    var telemetryHelperSpy;
 
     suiteSetup(() => {
       syncManager = BaseModule.instantiate('SyncManager');
@@ -217,16 +226,19 @@ suite('system/SyncManager >', () => {
           email: 'user@domain.org'
         });
       });
+
+      telemetryHelperSpy = this.sinon.spy(window, 'AdvancedTelemetryHelper');
     });
 
     teardown(() => {
       requestStub.restore();
       getPortStub.restore();
       getAccountStub.restore();
+      telemetryHelperSpy.restore();
     });
 
     ['enable', 'disable', 'sync'].forEach(name => {
-      test('receive ' + name + ' IAC request', () => {
+      test('receive ' + name + ' IAC request', done => {
         window.dispatchEvent(new CustomEvent('iac-gaia-sync-management', {
           detail: {
             name: name
@@ -234,6 +246,14 @@ suite('system/SyncManager >', () => {
         }));
         this.sinon.assert.calledOnce(requestStub);
         assert.ok(requestStub.calledWith('SyncStateMachine:' + name));
+        setTimeout(() => {
+          assert.isTrue(telemetryHelperSpy.calledWithNew());
+          var counter = telemetryHelperSpy.getCall(0).returnValue;
+          assert.equal(counter.name, 'telemetry_gaia_sync_user_action_' + name);
+          assert.equal(window.AdvancedTelemetryHelper.HISTOGRAM_COUNT,
+                       counter.type);
+          done();
+        });
       });
     });
 
@@ -540,14 +560,14 @@ suite('system/SyncManager >', () => {
         this.sinon.assert.calledOnce(getAssertionStub);
         this.sinon.assert.notCalled(getKeysStub);
         this.sinon.assert.notCalled(trySyncStub);
-        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(getAccountStub);
         this.sinon.assert.calledOnce(addEventListenerSpy);
         this.sinon.assert.calledWith(addEventListenerSpy,
                                      'mozFxAccountsUnsolChromeEvent');
         this.sinon.assert.calledOnce(requestStub);
         assert.equal(requestStub.getCall(0).args[0], 'SyncStateMachine:error');
         assert.equal(requestStub.getCall(0).args[1],
-                     ERROR_INVALID_SYNC_ACCOUNT);
+                     ERROR_UNVERIFIED_ACCOUNT);
         done();
       });
     });
@@ -587,7 +607,7 @@ suite('system/SyncManager >', () => {
         this.sinon.assert.calledOnce(getAssertionStub);
         this.sinon.assert.calledOnce(getKeysStub);
         this.sinon.assert.calledOnce(trySyncStub);
-        this.sinon.assert.notCalled(getAccountStub);
+        this.sinon.assert.calledOnce(getAccountStub);
         this.sinon.assert.calledOnce(addEventListenerSpy);
         this.sinon.assert.calledWith(addEventListenerSpy,
                                      'mozFxAccountsUnsolChromeEvent');
@@ -604,6 +624,7 @@ suite('system/SyncManager >', () => {
 
     var updateStateSpy;
     var requestStub;
+    var logoutSpy;
 
     const ERROR_SYNC_APP_KILLED = 'fxsync-error-app-killed';
     const ERROR_SYNC_APP_SYNC_IN_PROGRESS =
@@ -620,6 +641,7 @@ suite('system/SyncManager >', () => {
     const ERROR_SYNC_INVALID_REQUEST_OPTIONS =
       'fxsync-error-invalid-request-options';
     const ERROR_SYNC_REQUEST = 'fxsync-error-request-failed';
+    const ERROR_NO_KEY_FETCH_TOKEN = 'fxsync-error-no-key-fetch-token';
     const ERROR_UNKNOWN = 'fxsync-error-unknown';
 
     suiteSetup(() => {
@@ -636,11 +658,13 @@ suite('system/SyncManager >', () => {
       requestStub = this.sinon.stub(MockService, 'request', () => {
         return Promise.resolve();
       });
+      logoutSpy = this.sinon.spy(FxAccountsClient, 'logout');
     });
 
     teardown(() => {
       updateStateSpy.restore();
       requestStub.restore();
+      logoutSpy.restore();
     });
 
     const errors = [
@@ -656,11 +680,12 @@ suite('system/SyncManager >', () => {
       ERROR_REQUEST_SYNC_REGISTRATION,
       ERROR_SYNC_INVALID_REQUEST_OPTIONS,
       ERROR_SYNC_REQUEST,
+      ERROR_NO_KEY_FETCH_TOKEN,
       ERROR_UNKNOWN
     ];
 
     errors.forEach(error => {
-      test(`onerrored received - ${error}`, done => {
+      test(`onerrored received while NOT syncing - ${error}`, done => {
         window.dispatchEvent(new CustomEvent('onsyncerrored', {
           detail: {
             args: [error]
@@ -669,14 +694,22 @@ suite('system/SyncManager >', () => {
         setTimeout(() => {
           this.sinon.assert.calledOnce(updateStateSpy);
           assert.equal(syncManager.error, error);
-          assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
+          if (error == ERROR_UNVERIFIED_ACCOUNT) {
+            this.sinon.assert.notCalled(requestStub);
+          } else if (error == ERROR_INVALID_SYNC_ACCOUNT) {
+            assert.ok(requestStub.calledWith('SyncStateMachine:enable'));
+          } else if (error == ERROR_NO_KEY_FETCH_TOKEN) {
+            assert.ok(logoutSpy.calledOnce);
+          } else {
+            assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
+          }
           done();
         });
       });
     });
 
     errors.forEach(error => {
-      test(`onerrored received - ${error}`, done => {
+      test(`onerrored received while syncing - ${error}`, done => {
         window.dispatchEvent(new CustomEvent('onsyncerrored', {
           detail: {
             args: [error],
@@ -686,8 +719,13 @@ suite('system/SyncManager >', () => {
         setTimeout(() => {
           this.sinon.assert.calledOnce(updateStateSpy);
           assert.equal(syncManager.error, error);
-          if (SyncRecoverableErrors.indexOf(error) > -1) {
+          if (error == ERROR_UNVERIFIED_ACCOUNT) {
+            this.sinon.assert.notCalled(requestStub);
+          } else if (SyncRecoverableErrors.indexOf(error) > -1 ||
+                     error == ERROR_INVALID_SYNC_ACCOUNT) {
             assert.ok(requestStub.calledWith('SyncStateMachine:enable'));
+          } else if (error == ERROR_NO_KEY_FETCH_TOKEN) {
+            assert.ok(logoutSpy.calledOnce);
           } else {
             assert.ok(requestStub.calledWith('SyncStateMachine:disable'));
           }
@@ -1112,59 +1150,83 @@ suite('system/SyncManager >', () => {
     });
   });
 
-  suite('killapp', () => {
+  suite('Synchronizer killed while syncing', () => {
     var syncManager;
-    var isSyncAppStub;
-    var isSyncApp;
+    var realMozApps;
+    var realUuid;
+    var port;
+    var _onclose;
     var requestSpy;
-
-    function killapp() {
-      window.dispatchEvent(new CustomEvent('killapp', {
-        detail: {
-          origin: 'whatever'
-        }
-      }));
-    }
+    var deferred = {};
+    deferred.promise = new Promise(resolve => {
+      deferred.resolve = resolve;
+    });
 
     suiteSetup(() => {
       syncManager = BaseModule.instantiate('SyncManager');
       syncManager.start();
+
+      requestSpy = this.sinon.spy(MockService, 'request');
+
+      realMozApps = navigator.mozApps;
+      realUuid = window.uuid;
+
+      port = {
+        set onclose(cb) {
+          _onclose = cb;
+        },
+
+        postMessage() {
+          setTimeout(() => {
+            _onclose();
+            deferred.resolve();
+          });
+        }
+      };
+
+      var ports = [port];
+
+      var app = {
+        connect() {
+          return Promise.resolve(ports);
+        }
+      };
+
+      var onsuccess = {
+        set onsuccess(callback) {
+          setTimeout(() => {
+            callback({ target: { result: app } });
+          });
+        }
+      };
+
+      navigator.mozApps = {
+        getSelf: function() {
+          return onsuccess;
+        }
+      };
+
+      window.uuid = () => {
+        return Date.now();
+      };
     });
 
     suiteTeardown(() => {
       syncManager.stop();
-    });
-
-    setup(() => {
-      isSyncAppStub = this.sinon.stub(syncManager, 'isSyncApp', () => {
-        return isSyncApp ? Promise.resolve() : Promise.reject();
-      });
-      requestSpy = this.sinon.spy(MockService, 'request');
-    });
-
-    teardown(() => {
-      isSyncAppStub.restore();
+      navigator.mozApps = realMozApps;
+      window.uuid = realUuid;
       requestSpy.restore();
     });
 
-    test('Is Sync app', done => {
-      isSyncApp = true;
-      killapp();
-      setTimeout(() => {
-        assert.ok(requestSpy.calledOnce);
+    test('Should throw error if port closes while syncing', done => {
+      syncManager.state = 'syncing';
+      deferred.promise.then(() => {
         assert.equal(requestSpy.getCall(0).args[0], 'SyncStateMachine:error');
-        assert.equal(requestSpy.getCall(0).args[1], ERROR_SYNC_APP_KILLED);
+        assert.equal(requestSpy.getCall(0).args[1],
+                     ERROR_SYNC_APP_KILLED);
         done();
       });
-    });
-
-    test('Is not Sync app', done => {
-      isSyncApp = false;
-      killapp();
-      setTimeout(() => {
-        assert.ok(requestSpy.notCalled);
-        done();
-      });
+      syncManager.doSync();
     });
   });
 

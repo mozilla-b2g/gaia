@@ -9,7 +9,7 @@ define(function(require) {
 
   var SimSecurity = require('modules/sim_security');
   var DialogService = require('modules/dialog_service');
-  var l10n = window.navigator.mozL10n;
+  var l10n = document.l10n;
 
   var _debug = false;
   var debug = function() {};
@@ -469,7 +469,9 @@ define(function(require) {
       }
 
       this._elements.errorMsgHeader.setAttribute('data-l10n-id', headerL10nId);
-      this._localize(this._elements.errorMsgBody, bodyL10nId, args);
+      if (bodyL10nId) {
+        this._localize(this._elements.errorMsgBody, bodyL10nId, args);
+      }
       this._elements.errorMsg.hidden = false;
     },
 
@@ -593,6 +595,10 @@ define(function(require) {
           this._localize(this._elements.pukArea.querySelector('div'),
             'pukCode');
           this._localize(this._elements.dialogTitle, 'pukTitle');
+          this._localize(this._elements.newPinArea.querySelector('div'),
+            'newSimPinMsg');
+          this._localize(this._elements.confirmPinArea.querySelector('div'),
+            'confirmNewSimPinMsg');
           break;
 
         case 'unlock_puk2':

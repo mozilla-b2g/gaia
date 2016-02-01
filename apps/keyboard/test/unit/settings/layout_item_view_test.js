@@ -39,6 +39,7 @@ suite('LayoutItemView', function() {
     itemStub = this.sinon.stub(LayoutItem.prototype);
     itemStub.id = 'foo';
     itemStub.name = 'Pig Latin';
+    itemStub.nameL10nId = 'pig-latin';
     itemStub.fileSize = 24601;
     itemStub.state = itemStub.STATE_PRELOADED;
 
@@ -75,6 +76,7 @@ suite('LayoutItemView', function() {
     progressEl = view.container.querySelector('.progress');
 
     assert.equal(labelEl.textContent, 'Pig Latin');
+    assert.equal(labelEl.dataset.l10nId, 'pig-latin');
   });
 
   teardown(function() {

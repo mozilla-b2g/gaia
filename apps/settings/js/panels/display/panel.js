@@ -17,7 +17,11 @@ define(function(require) {
       onInit: function dp_onInit(panel) {
         displayElements = {
           brightnessManual: panel.querySelector('.brightness-manual'),
-          brightnessAuto: panel.querySelector('.brightness-auto')
+          brightnessManualInput:
+            panel.querySelector('.brightness-manual input'),
+          brightnessAuto: panel.querySelector('.brightness-auto'),
+          brightnessAutoCheckbox:
+            panel.querySelector('.brightness-auto gaia-checkbox')
         };
 
         LazyLoader.getJSON('/resources/device-features.json')

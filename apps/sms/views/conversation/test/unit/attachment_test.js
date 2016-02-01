@@ -51,6 +51,12 @@ suite('attachment_test.js', function() {
     assert.typeOf(attachment.name, 'string');
   });
 
+  test('Filename is not a string', function() {
+    var attachment = new Attachment(testImageBlob, {});
+
+    assert.equal(attachment.name, '');
+  });
+
   test('correct enumerable properties', function() {
     var expectedProperties = ['name', 'blob', 'isDraft'];
     var attachment = new Attachment(new Blob());

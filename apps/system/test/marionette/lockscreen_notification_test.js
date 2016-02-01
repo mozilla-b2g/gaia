@@ -8,8 +8,7 @@ marionette('LockScreen notification tests', function() {
       settings: {
         'lockscreen.enabled': true
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   setup(function() {

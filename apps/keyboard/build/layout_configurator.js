@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
 
 let utils = require('utils');
 
@@ -14,6 +14,7 @@ var KeyboardLayoutDetail = function(id) {
 // The actual nsIFile are "file" or "dir"s.
 KeyboardLayoutDetail.prototype.id = undefined;
 KeyboardLayoutDetail.prototype.label = undefined;
+KeyboardLayoutDetail.prototype.labelL10nId = undefined;
 KeyboardLayoutDetail.prototype.layoutFile = null;
 KeyboardLayoutDetail.prototype.types = null;
 KeyboardLayoutDetail.prototype.imEngineId = undefined;
@@ -70,6 +71,9 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
 
   // These properties exists in all layouts.
   this.label = win.Keyboards[id].menuLabel;
+  if (win.Keyboards[id].menuLabelL10nId) {
+    this.labelL10nId = 'layout-' + win.Keyboards[id].menuLabelL10nId;
+  }
   this.types = win.Keyboards[id].types.sort();
   this.imEngineId = win.Keyboards[id].imEngine;
   this.noIncludeInExpandLayoutIdSet =
@@ -133,6 +137,7 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
     case 'jsavrophonetic':
     case 'jstelex':
     case 'india':
+    case 'emoji':
     case 'jshangul':
     case 'vietnamese':
     case 'myanmar':
@@ -286,8 +291,8 @@ KeyboardLayoutConfigurator.prototype.copyFiles = function(distDir) {
   let layoutDest = utils.getFile(distDir.path, 'js', 'layouts');
   utils.ensureFolderExists(layoutDest);
   this.layoutDetails.forEach(function(layoutDetail) {
-    layoutDetail.layoutFile.copyTo(
-      layoutDest, layoutDetail.layoutFile.leafName);
+    var file = layoutDetail.layoutFile;
+    utils.copyFileTo(file.path, layoutDest.path, file.leafName);
   }, this);
 
   // Copy the entire imEngineDir or selected files if applicable.
@@ -305,8 +310,7 @@ KeyboardLayoutConfigurator.prototype._copyIMEngineDirs = function(distDir) {
       return;
     }
 
-    var imEngineDirDest = imeDest.clone();
-    imEngineDirDest.append(layoutDetail.imEngineId);
+    var imEngineDirDest = utils.getFile(imeDest.path, layoutDetail.imEngineId);
 
     // Don't try to copy the dir again.
     if (imEngineDirDest.exists()) {
@@ -321,15 +325,14 @@ KeyboardLayoutConfigurator.prototype._copyIMEngineDirs = function(distDir) {
           if (file.leafName === 'dictionaries') {
             return;
           }
-
-          file.copyTo(imEngineDirDest, file.leafName);
+          utils.copyFileTo(file.path, imEngineDirDest.path, file.leafName);
         });
 
         break;
 
       default:
-        layoutDetail.imEngineDir.copyTo(
-          imeDest, layoutDetail.imEngineDir.leafName);
+        let file = layoutDetail.imEngineDir;
+        utils.copyFileTo(file.path, imeDest.path, file.leafName);
 
         break;
     }
@@ -350,8 +353,8 @@ KeyboardLayoutConfigurator.prototype._copyDicts = function(distDir) {
         }
 
         utils.ensureFolderExists(dictDests.latin);
-        layoutDetail.dictFile.copyTo(
-          dictDests.latin, layoutDetail.dictFile.leafName);
+        let file = layoutDetail.dictFile;
+        utils.copyFileTo(file.path, dictDests.latin.path, file.leafName);
 
         break;
     }
@@ -369,6 +372,10 @@ KeyboardLayoutConfigurator.prototype.getLayoutsJSON = function() {
       types: layoutDetail.types,
       dictFileSize: layoutDetail.fileSize
     };
+
+    if (layoutDetail.labelL10nId) {
+      layout.nameL10nId = layoutDetail.labelL10nId;
+    }
 
     if (layoutDetail.dictFile) {
       layout.preloaded = layoutDetail.dictPreloaded;

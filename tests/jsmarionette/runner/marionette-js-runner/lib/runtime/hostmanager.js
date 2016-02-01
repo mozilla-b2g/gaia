@@ -144,10 +144,16 @@ HostManager.prototype = {
       }
 
       var deleteSession = Promise.denodeify(client.deleteSession.bind(client));
-      return deleteSession().then(function() {
-        if (typeof session.destroy === 'function') {
-          return session.destroy();
-        }
+      return deleteSession()
+      .then(function() {
+        return session.destroy();
+      })
+      .catch(function() {
+        // If something goes wrong during teardown we probably don't care
+        // since we've already run the test? We're swallowing this to ignore
+        // cases where we do a bad job of closing a marionette connection
+        // and then fail a test as in
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1104285
       });
     });
 

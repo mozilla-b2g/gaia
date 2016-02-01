@@ -1,7 +1,7 @@
 /* global MockMozBluetooth, BaseModule, MocksHelper, MockLazyLoader */
 'use strict';
 
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');

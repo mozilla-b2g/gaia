@@ -119,15 +119,12 @@ suite('reporter', function() {
       emit.on('helper end', function() {
         isTest(fails.sync, { state: 'failed' });
         isTest(fails.async, { state: 'failed' });
-        isTest(fails.uncaught, { state: 'failed' });
 
         assert.ok(fails.sync.sentErr, 'sync has err');
         assert.ok(fails.async.sentErr, 'async has err');
 
         isError(fails.sync.sentErr);
         isError(fails.async.sentErr);
-        isError(fails.uncaught.sentErr);
-        assert.ok(fails.uncaught.sentErr.uncaught, 'is uncaught');
 
         done();
       });

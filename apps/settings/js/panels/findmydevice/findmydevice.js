@@ -103,7 +103,7 @@ define(function(require) {
         return;
       }
       if (!window.navigator.onLine) {
-        navigator.mozL10n.formatValue('findmydevice-enable-network').then(
+        document.l10n.formatValue('findmydevice-enable-network').then(
           (msg) => window.alert(msg));
         return;
       }
@@ -163,7 +163,7 @@ define(function(require) {
         // checkbox is properly prevented.
         // formatValue is asynchronous so we don't need an artificial
         // setTimeout here.
-        navigator.mozL10n.formatValue('findmydevice-enable-network').then(
+        document.l10n.formatValue('findmydevice-enable-network').then(
           msg => window.alert(msg));
         return;
       }

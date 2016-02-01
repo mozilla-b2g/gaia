@@ -2,7 +2,7 @@
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
-/* global MimeMapper, Service, LazyLoader,
+/* global MimeMapper, Service, LazyLoader, mozIntl,
           MozActivity, NotificationHelper, UtilityTray */
 /* exported BluetoothTransfer */
 (function(exports) {
@@ -84,13 +84,13 @@ var BluetoothTransfer = {
 
   getDeviceName: function bt_getDeviceName(address) {
     return new Promise((resolve) => {
-      var _ = navigator.mozL10n.get;
       var adapter = Service.query('Bluetooth.getAdapter');
       if (adapter === null) {
         var msg = 'Since cannot get Bluetooth adapter, ' +
                   'resolve with an unknown device.';
         this.debug(msg);
-        resolve(_('unknown-device'));
+        navigator.mozL10n.formatValue('unknown-device').then(resolve);
+        return;
       }
       // Service Class Name: OBEXObjectPush, UUID: 0x1105
       // Specification: Object Push Profile (OPP)
@@ -111,13 +111,13 @@ var BluetoothTransfer = {
             }
           }
         } else {
-          resolve(_('unknown-device'));
+          navigator.mozL10n.formatValue('unknown-device').then(resolve);
         }
       };
       req.onerror = () => {
         var msg = 'Can not check is device connected from adapter.';
         this.debug(msg);
-        resolve(_('unknown-device'));
+        navigator.mozL10n.formatValue('unknown-device').then(resolve);
       };
     });
   },
@@ -128,23 +128,6 @@ var BluetoothTransfer = {
     }
 
     console.log('[System Bluetooth Transfer]: ' + msg);
-  },
-
-  humanizeSize: function bt_humanizeSize(bytes) {
-    var _ = navigator.mozL10n.get;
-    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    var size, e;
-    if (bytes) {
-      e = Math.floor(Math.log(bytes) / Math.log(1024));
-      size = (bytes / Math.pow(1024, e)).toFixed(2);
-    } else {
-      e = 0;
-      size = '0.00';
-    }
-    return _('fileSize', {
-      size: size,
-      unit: _('byteUnit-' + units[e])
-    });
   },
 
   _onFilesSending: function bt__onFilesSending(evt) {
@@ -204,7 +187,6 @@ var BluetoothTransfer = {
   showReceivePrompt: function bt_showReceivePrompt(evt) {
     var address = evt.address;
     var fileName = evt.fileName;
-    var fileSize = this.humanizeSize(evt.fileLength);
     var cancel = {
       title: 'deny',
       callback: this.declineReceive.bind(this, address)
@@ -217,17 +199,21 @@ var BluetoothTransfer = {
     };
 
     this.getDeviceName(address).then(function(deviceName) {
-      Service.request('showCustomDialog', 'acceptFileTransfer',
-        {
-          id: 'want-to-receive-file',
-          args: {
-            deviceName: deviceName,
-            fileName: fileName,
-            fileSize: fileSize
-          }
-        },
-        cancel,
-        confirm
+      mozIntl._gaia.getFormattedUnit('digital', 'short', evt.fileLength).then(
+        size => {
+          Service.request('showCustomDialog', 'acceptFileTransfer',
+            {
+              id: 'want-to-receive-file',
+              args: {
+                deviceName: deviceName,
+                fileName: fileName,
+                fileSize: size
+              }
+            },
+            cancel,
+            confirm
+          );
+        }
       );
     });
   },
@@ -385,16 +371,15 @@ var BluetoothTransfer = {
   },
 
   initProgress: function bt_initProgress(evt) {
-    var _ = navigator.mozL10n.get;
     // Create progress dynamically in notification center
     var address = evt.address;
     var transferMode =
       (evt.received === true) ?
-      _('bluetooth-receiving-progress2') : _('bluetooth-sending-progress2');
+      'bluetooth-receiving-progress2' : 'bluetooth-sending-progress2';
 
     var content =
       `<div data-icon="bluetooth-transfer-circle" aria-hidden="true"></div>
-      <div class="title-container">${transferMode}</div>
+      <div class="title-container" data-l10n-id="${transferMode}"></div>
       <progress value="0" max="1"></progress>`;
 
     var transferTask = document.createElement('div');
@@ -432,7 +417,7 @@ var BluetoothTransfer = {
   },
 
   onCancelTransferTask: function bt_onCancelTransferTask(evt) {
-    var address = evt.target.dataset.id;
+    var address = evt.currentTarget.dataset.id;
     // Show confirm dialog for user to cancel transferring task
     UtilityTray.hide();
     this.showCancelTransferPrompt(address);

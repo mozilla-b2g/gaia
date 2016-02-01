@@ -11,8 +11,7 @@ marionette('Vertical Home - App manifest', function() {
   clientOptions.apps = {};
   clientOptions.apps[manifestName] = __dirname + '/fixtures/short_name_app';
   var client = marionette.client({
-    profile: clientOptions,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    profile: clientOptions
   });
 
   var home, system;

@@ -4,7 +4,9 @@ var Settings = require('../app/app');
 var assert = require('assert');
 
 marionette('message settings', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var settingsApp;
   var messagePanel;
 

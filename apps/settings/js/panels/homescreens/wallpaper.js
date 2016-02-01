@@ -1,4 +1,3 @@
-/* global MozActivity */
 /**
  * Wallpaper:
  *   - Select wallpaper by calling wallpaper.selectWallpaper.
@@ -64,7 +63,7 @@ define(function(require) {
    * @private
    */
   Wallpaper.prototype._triggerActivity = function w_triggerActivity(secret) {
-    var mozActivity = new MozActivity({
+    var mozActivity = new window.MozActivity({
       name: 'pick',
       data: {
         type: ['wallpaper', 'image/*'],

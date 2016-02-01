@@ -351,6 +351,14 @@ LayoutPageView.prototype.getKeyHeight = function() {
   return keyHeightInRem * this.viewManager.getRemToPx();
 };
 
+LayoutPageView.prototype.destroy = function() {
+  if (this.element) {
+    // Remove DOM from the tree it belongs to, then main document retain
+    // no reference to it. Unreachable object will be garbage collected.
+    this.element.remove();
+  }
+};
+
 exports.LayoutPageView = LayoutPageView;
 
 })(window);

@@ -1,5 +1,5 @@
 /* global playerShowing,showThrobber,hideThrobber,updateDialog,videodb,
-  addVideo,getVideoRotation,THUMBNAIL_WIDTH,THUMBNAIL_HEIGHT */
+  addVideo,getVideoRotation,THUMBNAIL_WIDTH,THUMBNAIL_HEIGHT,MediaDB */
 /* exported addToMetadataQueue,stopParsingMetadata */
 // This file is part of the Gaia Video app.
 //
@@ -72,6 +72,14 @@ function startParsingMetadata() {
     return;
   }
 
+  // If our MediaDB object is not ready, it means that we can't read
+  // video files so can't process metadata yet. We just return in this
+  // case. The onready event handler in db.js will call this function
+  // when the db becomes ready.
+  if (videodb.state !== MediaDB.READY) {
+    return;
+  }
+
   // Start processing the queue
   processingQueue = true;
   showThrobber();
@@ -139,6 +147,14 @@ function processFirstQueuedItem() {
   // the next item on the queue.
   var fileinfo = metadataQueue.shift();
 
+  // XXX
+  // The code below is brittle because it does not have exception handlers.
+  // If anything goes wrong with this getFile() call or any of the nexted
+  // functions that get called asynchronously, then we may never advance to
+  // the next item in the queue and the metadata parsing process will just
+  // freeze up forever. The fix, I suppose is to add try/catch for each
+  // async step (or to convert to promises). See Bug 1229651 for a specific
+  // example of what happens when getFile() throws an exception.
   videodb.getFile(fileinfo.name, function(file) {
     getMetadata(file, function(metadata) {
       // Associate the metadata with this fileinfo object

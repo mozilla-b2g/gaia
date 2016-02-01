@@ -4,7 +4,7 @@ define(function(require) {
   var SIMSlotManager = require('shared/simslot_manager');
   var Messaging = require('modules/messaging');
   var SettingsPanel = require('modules/settings_panel');
-  var l10n = navigator.mozL10n;
+  var l10n = document.l10n;
 
   return function ctor_messaging_details_panel() {
     var elements = {};

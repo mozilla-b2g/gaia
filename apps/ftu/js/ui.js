@@ -566,8 +566,14 @@ var UIManager = {
     var currentTime = now.toLocaleFormat('%H:%M');
     var timeToSet = new Date(currentDate + 'T' + currentTime);
     TimeManager.set(timeToSet);
-    this.dateConfigurationLabel.innerHTML =
-      timeToSet.toLocaleFormat('%Y-%m-%d');
+    this.dateConfigurationLabel.textContent = timeToSet.toLocaleString(
+      navigator.languages,
+      {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      }
+    );
   },
 
   setTime: function ui_st() {

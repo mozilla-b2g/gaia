@@ -11,8 +11,7 @@ marionette('Ambient indicator', function() {
       settings: {
         'notifications.resend': false
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var ambientIndicator = new AmbientIndicator(client);

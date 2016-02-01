@@ -45,7 +45,7 @@
   // Sync specific error
   Errors[ERROR_INVALID_SYNC_ACCOUNT] = {
     title: 'fxsync-error-invalid-account',
-    message: 'fxsync-error-invalid-account-explanation'
+    message: 'fxsync-error-invalid-account-explanation-with-trademark'
   };
 
   function _getError(error) {

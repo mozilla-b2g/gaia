@@ -16,7 +16,8 @@ marionette('the gallery', function() {
         'device.storage.testing': true,
         'device.storage.prompt.testing': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {
@@ -69,8 +70,8 @@ marionette('the gallery', function() {
     client.waitFor(function() {
       return app.thumbnails.length == 2;
     });
-    assert.ok(fullscreen_view.displayed);    
-    
+    assert.ok(fullscreen_view.displayed);
+
     // go back to the thumbnail view, and click the first thumbnail
     fullscreen_view.fullscreenBackButton.click();
     client.waitFor(function() {
@@ -97,5 +98,52 @@ marionette('the gallery', function() {
     translateX = fullscreen_view.getFrameTranslation(
       fullscreen_view.fullscreenFrame3);
     assert.strictEqual(translateX, 0);
+  });
+
+  test('Change orientation of displayed image in fullscreen', function() {
+    app.tapFirstThumbnail();
+    client.waitFor(function() {
+      return fullscreen_view.displayed;
+    });
+
+    var screen_width = fullscreen_view.screenWidth;
+    var screen_height = fullscreen_view.screenHeight;
+
+    // Checks the image blob is currently being displayed
+    assert.ok(fullscreen_view.hasSrcImageBlobURL(Gallery.ORIGIN,
+      fullscreen_view.displayedImage));
+
+    // Check that there are 5 options displayed beneath the picture
+    assert.equal(fullscreen_view.toolBarOptions.length, 5);
+
+    // Verify that the screen orientation is in portrait mode
+    assert.equal(fullscreen_view.screenOrientation, 'portrait');
+    assert.ok(fullscreen_view.fullScreenToolBar.displayed);
+    assert.equal(fullscreen_view.toolBarWidth, screen_width);
+
+    // Change the screen orientation to landscape mode and verify that
+    // the screen is in landscape mode
+    fullscreen_view.changeOrientation('landscape');
+
+    // Wait for orientation changes to propagate
+    client.helper.wait(300);
+    assert.equal(fullscreen_view.screenOrientation, 'landscape');
+    assert.ok(fullscreen_view.fullScreenToolBar.displayed);
+    assert.equal(fullscreen_view.toolBarWidth, screen_height);
+
+    // Change the screen orientation back to portrait and verify the screen
+    // is in portrait mode
+    fullscreen_view.changeOrientation('portrait');
+
+    // Wait for orientation changes to propagate
+    client.helper.wait(300);
+    assert.equal(fullscreen_view.screenOrientation, 'portrait');
+    assert.ok(fullscreen_view.fullScreenToolBar.displayed);
+    assert.equal(fullscreen_view.toolBarWidth, screen_width);
+
+    // Unlock the screen before exiting test
+    client.executeScript(function () {
+      window.wrappedJSObject.screen.mozUnlockOrientation();
+    });
   });
 });

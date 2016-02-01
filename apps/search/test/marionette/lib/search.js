@@ -51,7 +51,8 @@ Search.prototype = {
    * Navigates to the search results frame.
    */
   goToResults: function() {
-    var iframe = this.client.findElement(Search.Selectors.iframe);
+    var frameSelector = Search.Selectors.iframe;
+    var iframe = this.client.helper.waitForElement(frameSelector);
     this.client.helper.waitForElement(iframe);
     this.client.switchToFrame(iframe);
     this.client.helper.waitForElement('body');

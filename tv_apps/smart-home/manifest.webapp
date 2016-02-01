@@ -17,16 +17,17 @@
   "activities": {
     "pin": {
       "filters": {
-        "manifestURL": {
+        "type": {
           "required": true
-        }
+        },
+        "manifestURL": { "pattern": "(https?|app):.{1,16384}" },
+        "url": { "pattern": "https?:.{1,16384}" }
       }
     },
     "unpin": {
       "filters": {
-        "manifestURL": {
-          "required": true
-        }
+        "manifestURL": { "pattern": "(https?|app):.{1,16384}" },
+        "url": { "pattern":"https?:.{1,16384}" }
       }
     }
   },

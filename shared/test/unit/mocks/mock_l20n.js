@@ -9,7 +9,7 @@
 
     formatValue: function(id, args) {
       return Promise.resolve(
-        stringify(args ? [id, args] : id));
+        args ? stringify(id, args) : stringify(id));
     },
 
     formatValues: function(...keys) {

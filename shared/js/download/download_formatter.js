@@ -26,9 +26,9 @@
       ++index;
     }
 
-    return navigator.mozL10n.
+    return document.l10n.
       formatValue('byteUnit-' + BYTE_SCALE[index]).then(unit => {
-      return navigator.mozL10n.formatValue('fileSize', {
+      return document.l10n.formatValue('fileSize', {
         size: bytes.toFixed(NUMBER_OF_DECIMALS),
         unit: unit
       });

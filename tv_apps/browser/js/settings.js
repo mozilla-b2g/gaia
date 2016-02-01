@@ -1,5 +1,4 @@
 /* exported Settings */
-/* global _ */
 /* global Awesomescreen */
 /* global Browser */
 /* global BrowserDB */
@@ -482,7 +481,7 @@ var Settings = {
   clearCookieFailed: function settings_clearCookieFailed() {
     // this.settingsBannerMessage.innerHTML =
     //    'Failed to clear cookies and stored data';
-    this.settingsBannerMessage.innerHTML = _('LT_FAILED_');
+    this.settingsBannerMessage.setAttribute('data-l10n-id', 'LT_FAILED_');
     this.showBannerMessage();
   },
 
@@ -701,7 +700,6 @@ var Settings = {
         break;
 
       case KeyEvent.DOM_VK_BACK_SPACE :
-      case KeyEvent.DOM_VK_ESCAPE:
         if( Settings.isDialogHomepageDisplayed() ) {
           Settings.hideDialogHomepage();
           return true;

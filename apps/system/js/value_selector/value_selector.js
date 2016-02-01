@@ -162,7 +162,7 @@
         </menu>
       </form>
       <div class="value-selector-time-picker-popup" role="dialog" data-type="time-selector" hidden>
-        <h1 data-l10n-id="select-time">Select time</h1>
+        <h1 data-l10n-id="select-time"></h1>
         <div class="value-selector-time-picker">
           <div class="value-selector-time-picker-container picker-container">
             <div class="picker-bar-background"></div>
@@ -245,14 +245,6 @@
       }, this);
   };
 
-  ValueSelector.prototype._format = function vs__format(date, format) {
-    if (!date) {
-      return '';
-    }
-    date = new Date(date);
-    return date.toLocaleFormat(format);
-  };
-
   ValueSelector.prototype.show = function vs_show(detail) {
     this.isShown = true;
 
@@ -311,8 +303,7 @@
 
       case 'datetime':
       case 'datetime-local':
-        this.showDatePicker(this._format(currentValue, '%Y-%m-%d'), min,
-          max);
+        this.showDatePicker(currentValue, min, max);
         break;
     }
   };
@@ -400,6 +391,7 @@
   ValueSelector.prototype.confirm = function vs_confirm() {
     var currentInputType = this._currentInputType;
 
+    // Time and Date value has to conform to RFC3339 spec
     switch (currentInputType) {
       case 'time':
         var timeValue = this._timePicker.getTimeValue();
@@ -408,7 +400,7 @@
         break;
       case 'date':
         // The format should be 2012-09-19
-        var dateValue = this._format(this._datePicker.value, '%Y-%m-%d');
+        var dateValue = InputParser.exportDate(this._datePicker._value);
         this.app.debug('output value: ' + dateValue);
         this._im.setValue(dateValue);
         break;
@@ -416,12 +408,12 @@
       case 'datetime-local':
         var currentDatetimeValue = this._currentDatetimeValue;
         if (this._currentPickerType === 'date') {
-          this.showTimePicker(this._format(currentDatetimeValue, '%H:%M'));
+          this.showTimePicker(currentDatetimeValue);
           return;
         } else if (this._currentPickerType === 'time') {
           var selectedDate = this._datePicker.value;
           var hour = this._timePicker.getHour();
-          var minute = this._timePicker.minute.getSelectedDisplayedText();
+          var minute = this._timePicker.minute.getSelectedIndex();
           var second = '';
           var millisecond = '';
           var date = null;
@@ -443,15 +435,7 @@
           selectedDate.setSeconds(second);
           selectedDate.setMilliseconds(millisecond);
 
-          var datetimeValue = '';
-          if (currentInputType === 'datetime') {
-            // The datetime format should be 1983-09-08T14:54:39.123Z
-            datetimeValue = selectedDate.toISOString();
-          } else { // if (currentInputType === 'datetime-local')
-            // The datetime-local format should be 1983-09-08T14:54:39.123
-            datetimeValue = selectedDate.toLocaleFormat('%Y-%m-%dT%H:%M:%S.') +
-                            selectedDate.getMilliseconds();
-          }
+          var datetimeValue = selectedDate.getTime();
           this.app.debug('output value: ' + datetimeValue);
           this._im.setValue(datetimeValue);
         }
@@ -541,7 +525,7 @@
         hour = (hour === 0) ? 12 : hour;
         // 24-hour state value selector: AM = 0, PM = 1
         var hour24State = (time.hours >= 12) ? 1 : 0;
-        this._timePicker.hour.setSelectedIndexByDisplayedText(hour);
+        this._timePicker.hour.setSelectedIndex(hour - 1);
         this._timePicker.hour24State.setSelectedIndex(hour24State);
       } else {
         this._timePicker.hour.setSelectedIndex(time.hours);
@@ -550,41 +534,24 @@
       this._timePicker.minute.setSelectedIndex(time.minutes);
     };
 
-  ValueSelector.prototype._str2Date = function vs__str2Date(str) {
-    if (!str) {
-      return null;
-    }
-
-    var dcs = str.split('-');
-    var date = new Date(dcs[0], parseInt(dcs[1]) - 1, dcs[2]);
-
-    if (isNaN(date.getTime())) {
-      date = null;
-    }
-
-    return date;
-  };
-
   ValueSelector.prototype.showDatePicker =
     function vs_showDatePicker(currentValue, min, max) {
       this._currentPickerType = 'date';
       this.showPanel('spinDatePickerPopup');
 
-      var minDate = null;
-      var maxDate = null;
-
-      minDate = this._str2Date(min);
-      maxDate = this._str2Date(max);
+      var minDate = min ? InputParser.formatInputDate(min) : null;
+      var maxDate = max ? InputParser.formatInputDate(max) : null;
 
       if (!this._datePicker) {
         this._datePicker = new SpinDatePicker(this.elements.spinDatePicker);
       }
+
       this._datePicker.setRange(minDate, maxDate);
 
       // Show current date as default value
       var date = new Date();
       if (currentValue) {
-        date = InputParser.formatInputDate(currentValue, '');
+        date = InputParser.formatInputDate(currentValue);
       }
       this._datePicker.value = date;
     };
@@ -592,7 +559,6 @@
   function TimePicker(element) {
     this.element = element;
     this._fetchElements();
-    var _ = navigator.mozL10n.get;
     var formatter = Intl.DateTimeFormat(navigator.languages, {
       hour12: navigator.mozHour12,
       hour: 'numeric'
@@ -603,21 +569,36 @@
     var unitClassName = 'picker-unit';
 
     this.is12hFormat = is12hFormat;
+
+    var hourFormatter = Intl.NumberFormat(navigator.languages, {
+      style: 'decimal',
+    });
+
     this.hour = new ValuePicker(this.elements.valuePickerHours, {
-      valueDisplayedText: this._setDisplayedText(startHour, endHour),
+      optionsL10n: 
+        this._setDisplayedText(startHour, endHour, function(value) {
+          return { raw: hourFormatter.format(value) };
+        }
+      ),
       className: unitClassName
     });
+
+    var minuteFormatter = Intl.NumberFormat(navigator.languages, {
+      style: 'decimal',
+      minimumIntegerDigits: 2
+    });
+
     this.minute = new ValuePicker(this.elements.valuePickerMinutes, {
-      valueDisplayedText: this._setDisplayedText(0, 60, function(value) {
-        return (value < 10) ? '0' + value : value;
+      optionsL10n: this._setDisplayedText(0, 60, function(value) {
+        return { raw: minuteFormatter.format(value) };
       }),
       className: unitClassName
     });
     if (is12hFormat) {
       this.hour24State = new ValuePicker(this.elements.valuePickerHour24State, {
-        valueDisplayedText: [
-          _('time_am'),
-          _('time_pm')
+        optionsL10n: [
+          'time_am',
+          'time_pm'
         ],
         className: unitClassName
       });
@@ -682,58 +663,66 @@
     },
 
     setTimePickerStyle: function tp_setTimePickerStyle() {
-      var style = 'format24h';
+      navigator.mozL10n.formatValue('timePickerOrder').then(tpOrder => {
+        var style = 'format24h';
 
-      if (this.is12hFormat) {
-        var timePickerOrder = navigator.mozL10n.get('timePickerOrder');
-        // handle revert appearance
-        var reversedPeriod =
-          (timePickerOrder.indexOf('p') < timePickerOrder.indexOf('M'));
-        style = (reversedPeriod) ? 'format12hrev' : 'format12h';
+        if (this.is12hFormat) {
+          // handle revert appearance
+          var reversedPeriod =
+            (tpOrder.indexOf('p') < tpOrder.indexOf('M'));
+          style = (reversedPeriod) ? 'format12hrev' : 'format12h';
 
-        if ('format12h' === style) {
-          this.element.classList.remove('format12hrev');
-          this.element.classList.remove('format24h');
-          if (!this.element.classList.contains(style)) {
-            this.element.classList.add(style);
+          if ('format12h' === style) {
+            this.element.classList.remove('format12hrev');
+            this.element.classList.remove('format24h');
+            if (!this.element.classList.contains(style)) {
+              this.element.classList.add(style);
+            }
+          } else {
+            this.element.classList.remove('format12h');
+            this.element.classList.remove('format24h');
+            if (!this.element.classList.contains(style)) {
+              this.element.classList.add(style);
+            }
           }
-        } else {
+        }
+
+        if ('format24h' === style) {
           this.element.classList.remove('format12h');
-          this.element.classList.remove('format24h');
+          this.element.classList.remove('format12hrev');
           if (!this.element.classList.contains(style)) {
             this.element.classList.add(style);
           }
         }
-      }
-
-      if ('format24h' === style) {
-        this.element.classList.remove('format12h');
-        this.element.classList.remove('format12hrev');
-        if (!this.element.classList.contains(style)) {
-          this.element.classList.add(style);
-        }
-      }
+      });
     },
 
     getHour: function tp_getHours() {
-      var hour = 0;
+      var hour = this.hour.getSelectedIndex();
       if (this.is12hFormat) { // hour + 12 if is PM
-        var hour24Offset = 12 * this.hour24State.getSelectedIndex();
-        hour = this.hour.getSelectedDisplayedText();
-        hour = (hour == 12) ? 0 : hour;
-        hour = hour + hour24Offset;
-      } else {
-        hour = this.hour.getSelectedIndex();
+        hour = (hour == 11) ? 0 : hour + 1;
+        if (this.hour24State.getSelectedIndex()) {
+          hour += 12;
+        }
       }
       return hour;
     },
 
-    // return a string for the time value, format: "16:37"
     getTimeValue: function tp_getTimeValue() {
       var hour = this.getHour();
-      var minute = this.minute.getSelectedDisplayedText();
+      var minute = this.minute.getSelectedIndex();
 
-      return (hour < 10 ? '0' : '') + hour + ':' + minute;
+      var date = new Date(0);
+      date.setHours(hour);
+      date.setMinutes(minute);
+
+      // For <input type=time> we have to build a time string
+      // matching RFC3339 spec: HH:mm(:ss)
+      return date.toLocaleString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
   };
 })(window);

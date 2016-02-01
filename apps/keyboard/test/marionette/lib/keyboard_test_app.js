@@ -1,32 +1,63 @@
 'use strict';
 
+var Base = require('./base');
+
+
 function KeyboardTests(client) {
-  this.client = client;
+  Base.call(this, client, KeyboardTests.ORIGIN);
 }
+
 module.exports = KeyboardTests;
 
 KeyboardTests.ORIGIN = 'app://keyboardtestapp.gaiamobile.org';
 
 KeyboardTests.Selector = Object.freeze({
-  textInput: '#textInput',
-  textInput2: '#textInput2',
-  textInput3: '#textInput3',
-  nonInputArea: '#nonInput',
-  triggerPromptButton: '#triggerPromptButton',
-  promptResult: '#promptResult'
+  textInput:            '#textInput',
+  textareaInput:        '#textareaInput',
+  urlInput:             '#urlInput',
+  emailInput:           '#emailInput',
+  passwordInput:        '#passwordInput',
+  searchInput:          '#searchInput',
+  numberInput:          '#numberInput',
+  telInput:             '#telInput',
+  nonInputArea:         '#nonInput',
+  triggerPromptButton:  '#triggerPromptButton',
+  promptResult:         '#promptResult'
 });
 
 KeyboardTests.prototype = {
+  __proto__: Base.prototype,
+
   get textInput() {
     return this.client.findElement(KeyboardTests.Selector.textInput);
   },
 
-  get textInput2() {
-    return this.client.findElement(KeyboardTests.Selector.textInput2);
+  get textareaInput() {
+    return this.client.findElement(KeyboardTests.Selector.textareaInput);
   },
 
-  get textInput3() {
-    return this.client.findElement(KeyboardTests.Selector.textInput3);
+  get urlInput() {
+    return this.client.findElement(KeyboardTests.Selector.urlInput);
+  },
+
+  get emailInput() {
+    return this.client.findElement(KeyboardTests.Selector.emailInput);
+  },
+
+  get passwordInput() {
+    return this.client.findElement(KeyboardTests.Selector.passwordInput);
+  },
+
+  get searchInput() {
+    return this.client.findElement(KeyboardTests.Selector.searchInput);
+  },
+
+  get numberInput() {
+    return this.client.findElement(KeyboardTests.Selector.numberInput);
+  },
+
+  get telInput() {
+    return this.client.findElement(KeyboardTests.Selector.telInput);
   },
 
   get nonInputArea() {
@@ -41,14 +72,26 @@ KeyboardTests.prototype = {
     return this.client.findElement(KeyboardTests.Selector.promptResult);
   },
 
-  launch: function() {
-    var client = this.client;
-    client.apps.launch(KeyboardTests.ORIGIN);
-    client.apps.switchToApp(KeyboardTests.ORIGIN);
-    client.helper.waitForElement('body');
-  },
-
   triggerPromptModalDialog: function() {
     this.triggerPromptButton.tap();
+  },
+
+  waitForReady: function() {
+    var inputs = [
+      this.textInput,
+      this.textareaInput,
+      this.urlInput,
+      this.emailInput,
+      this.passwordInput,
+      this.searchInput,
+      this.numberInput,
+      this.telInput
+    ];
+
+    this.client.waitFor(() => {
+      return inputs.every((ele) => {
+        return ele.displayed();
+      });
+    });
   }
 };

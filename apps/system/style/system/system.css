@@ -317,3 +317,10 @@ textarea,
   }
 }
 
+/* DIALOGS */
+/* We'll potentially move this code into the components */
+
+gaia-dialog > .dialog-content {
+  padding: 1.8rem;
+}
+

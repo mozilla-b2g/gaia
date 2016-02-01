@@ -35,36 +35,3 @@ class Battery(Base):
         Wait(self.marionette).until(expected.element_not_displayed(close_btn))
         self.apps.switch_to_displayed_app()
         Wait(self.marionette).until(expected.element_displayed(*self._power_save_checkbox_locator))
-
-    def select(self, match_string):
-        # This needs to be duplicated from base.py because when we return from the frame
-        # we don't return to the Settings app in its initial state,
-        # so the wait for in its launch method times out
-
-        # have to go back to top level to get the B2G select box wrapper
-        self.marionette.switch_to_frame()
-
-        Wait(self.marionette).until(
-            expected.elements_present(
-                By.CSS_SELECTOR, '.value-selector-container li'))
-
-        options = self.marionette.find_elements(By.CSS_SELECTOR, '.value-selector-container li')
-        close = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
-
-        # loop options until we find the match
-        for li in options:
-            if match_string == li.text:
-                li.tap()
-                break
-        else:
-            raise Exception("Element '%s' could not be found in select wrapper" % match_string)
-
-        close.tap()
-        Wait(self.marionette).until(expected.element_not_displayed(close))
-
-        # TODO we should find something suitable to wait for, but this goes too
-        # fast against desktop builds causing intermittent failures
-        time.sleep(0.2)
-
-        # now back to app
-        self.apps.switch_to_displayed_app()

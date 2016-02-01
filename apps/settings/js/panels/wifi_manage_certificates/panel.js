@@ -49,9 +49,10 @@ define(function(require) {
               this._toggleImportCertificateBtn(!option);
             };
 
-            var inputItems = list.querySelectorAll('input');
+            var inputItems = list.querySelectorAll('gaia-checkbox');
             for (var j = 0; j < inputItems.length; j++) {
-              inputItems[j].onchange = toggleBtnsWhenClicked;
+              inputItems[j].addEventListener('change',
+                toggleBtnsWhenClicked.bind(this));
             }
           } else {
             // show "no certificates" message
@@ -74,9 +75,9 @@ define(function(require) {
       },
       _deleteCertificate: function() {
         var countItemDeleted = 0;
-        var checkedInputList =
-          elements.certificateList.querySelectorAll(
-            'input[type=checkbox]:checked');
+        var checkedInputList = Array.prototype.filter.call(
+          elements.certificateList.querySelectorAll('gaia-checkbox'),
+          (node) => node.checked);
 
         var scanWhenDeleteFinish = (totalLength) => {
           if (++countItemDeleted == totalLength) {
@@ -110,8 +111,10 @@ define(function(require) {
         }
       },
       _isItemSelected: function() {
-        return elements.certificateList.querySelector(
-          'input[type=checkbox]:checked') != null;
+        var checkedInputList = Array.prototype.filter.call(
+          elements.certificateList.querySelectorAll('gaia-checkbox'),
+          (node) => node.checked);
+        return checkedInputList.length > 0;
       },
       _toggleImportCertificateBtn: function(enabled) {
         elements.importCertificateBtn.disabled = !enabled;

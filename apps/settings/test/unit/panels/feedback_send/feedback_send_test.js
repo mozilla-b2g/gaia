@@ -19,18 +19,6 @@ suite('sendFeedback > ', function() {
   });
 
   var mock_elements = {
-    alertDialog: {
-      hidden: false
-    },
-    alertMsg: {
-      _keys: {},
-      setAttribute: function(key, value) { this._keys[key] = value; },
-      getAttribute: function(key) { return this._keys[key]; },
-      removeAttribute: function(key) { delete this._keys[key]; },
-    },
-    doneDialog: {
-      hidden: true
-    },
     title: {
       _keys: {},
       setAttribute: function(key, value) { this._keys[key] = value; },
@@ -119,23 +107,12 @@ suite('sendFeedback > ', function() {
       });
     });
 
-    test('alertConfirm', function() {
-      sendFeedback.alertConfirm();
-      assert.equal(sendFeedback.elements.alertDialog.hidden, true);
-      assert.equal(sendFeedback.elements.alertMsg.textContent, '');
-    });
-
     test('_isHappy', function() {
       sendFeedback.options = mock_happy_options;
       assert.isTrue(sendFeedback._isHappy());
 
       sendFeedback.options = mock_sad_options;
       assert.isFalse(sendFeedback._isHappy());
-    });
-
-    test('done', function() {
-      sendFeedback.done();
-      assert.equal(sendFeedback.elements.doneDialog.hidden, true);
     });
 
     test('enableEmail', function() {
@@ -157,6 +134,8 @@ suite('sendFeedback > ', function() {
     });
 
     test('send', function() {
+      this.sinon.spy(sendFeedback, '_openDoneDialog');
+
       sendFeedback.elements.emailColumn.hidden = false;
       sendFeedback.elements.emailInput.value = 'testemailInput';
       sendFeedback.elements.description.value = 'testDescription';
@@ -177,46 +156,50 @@ suite('sendFeedback > ', function() {
 
       sendFeedback._xhr.readyState = 4;
       sendFeedback._xhr.triggerOnLoad(201);
-      assert.equal(sendFeedback.elements.doneDialog.hidden, false);
+      assert.equal(sendFeedback._openDoneDialog.called, true);
       assert.equal(sendFeedback.elements.sendBtn.disabled, false);
     });
 
     test('_responseHandler', function() {
       sendFeedback._xhr.readyState = 4;
 
+      this.sinon.spy(sendFeedback, '_openAlertDialog');
       sendFeedback._xhr.status = 400;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertMsg.getAttribute('data-l10n-id'),
-        'feedback-errormessage-unknown-error');
-      assert.equal(sendFeedback.elements.alertDialog.hidden, false);
+      assert.equal(
+        sendFeedback._openAlertDialog.calledWithExactly('unknown-error'), true);
 
       sendFeedback._xhr.status = 429;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertDialog.hidden, false);
+      assert.equal(sendFeedback._openAlertDialog.called, true);
 
       sendFeedback._xhr.status = 404;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertMsg.getAttribute('data-l10n-id'),
-        'feedback-errormessage-server-off');
+      assert.equal(
+        sendFeedback._openAlertDialog.calledWithExactly('server-off'), true);
 
       sendFeedback._xhr.status = 402;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertMsg.getAttribute('data-l10n-id'),
-        'feedback-errormessage-unknown-error');
+      assert.equal(
+        sendFeedback._openAlertDialog.calledWithExactly('unknown-error'), true);
     });
 
     suite('_messageHandler', function() {
       test('_messageHandler with success', function() {
+        this.sinon.spy(sendFeedback, '_openDoneDialog');
+
         sendFeedback._messageHandler('success');
-        assert.equal(sendFeedback.elements.doneDialog.hidden, false);
+        assert.equal(sendFeedback._openDoneDialog.called, true);
         assert.equal(sendFeedback.elements.sendBtn.disabled, false);
       });
 
       test('_messageHandler with failure', function() {
-        this.sinon.stub(sendFeedback, 'keepAllInputs');
+        this.sinon.spy(sendFeedback, 'keepAllInputs');
+        this.sinon.spy(sendFeedback, '_openAlertDialog');
+
         sendFeedback._messageHandler('wrong-email');
         assert.equal(sendFeedback.keepAllInputs.called, true);
-        assert.equal(sendFeedback.elements.alertDialog.hidden, false);
+        assert.equal(sendFeedback._openAlertDialog.called, true);
         assert.equal(sendFeedback.elements.sendBtn.disabled, false);
       });
     });

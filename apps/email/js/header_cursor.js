@@ -26,6 +26,9 @@ define(function(require) {
 
     this.model = model;
 
+    // Local binding since it is passed as an evt listener.
+    this.onLatestFolder = this.onLatestFolder.bind(this);
+
     // Need to distinguish between search and nonsearch slices,
     // since there can be two cards that both are listening for
     // slice changes, but one is for search output, and one is
@@ -78,7 +81,6 @@ define(function(require) {
       }.bind(this));
 
       // Listen to model for folder changes.
-      this.onLatestFolder = this.onLatestFolder.bind(this);
       this.model.latest('folder', this.onLatestFolder);
     },
 
@@ -218,7 +220,7 @@ define(function(require) {
     },
 
     endSearch: function() {
-      this.die();
+      this.resetMessageSlice();
       this.searchMode = 'nonsearch';
       this.freshMessagesSlice();
     },
@@ -232,7 +234,7 @@ define(function(require) {
      * @param  {Slice} messagesSlice the new messagesSlice.
      */
     bindToSlice: function(messagesSlice) {
-      this.die();
+      this.resetMessageSlice();
 
       this.messagesSlice = messagesSlice;
       this.sliceEvents.forEach(function(type) {
@@ -283,14 +285,20 @@ define(function(require) {
       this.setCurrentMessage(message);
     },
 
-    die: function() {
+    resetMessageSlice: function() {
       if (this.messagesSlice) {
         this.messagesSlice.die();
         this.messagesSlice = null;
       }
 
       this.currentMessage = null;
+    },
+
+    die: function() {
+      this.model.removeListener('folder', this.onLatestFolder);
+      this.resetMessageSlice();
     }
+
   });
 
   /*

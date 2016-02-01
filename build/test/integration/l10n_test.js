@@ -89,10 +89,9 @@ suite('L10n logic tests', function() {
   test('make test-l10n-missing detects a missing string', function(done) {
     helper.exec('APP=test-l10n-missing make',
       function(error, stdout, stderr) {
-        assert.isNotNull(error, 'Expected a "make" error');
         assert.include(
           stdout,
-          'L10nError: "entity0" not found in en-US ' +
+          '[Error] L10nError: "entity0" not found in en-US ' +
             '(app://test-l10n-missing.gaiamobile.org)');
         done();
       }
@@ -102,10 +101,9 @@ suite('L10n logic tests', function() {
   test('make test-l10n-duplicates detects a duplicate string', function(done) {
     helper.exec('APP=test-l10n-duplicates make',
       function(error, stdout, stderr) {
-        assert.isNotNull(error, 'Expected a "make" error');
         assert.include(
           stdout,
-          'L10nError: Duplicate string "entity1" found in en-US ' +
+          '[Error] L10nError: Duplicate string "entity1" found in en-US ' +
             '(app://test-l10n-duplicates.gaiamobile.org)');
         done();
       }

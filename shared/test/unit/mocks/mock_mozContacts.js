@@ -112,8 +112,18 @@ MockMozContactsObj.prototype = {
       }
     };
   },
-  getRevision: function(callback) {
-    return 'fakeRevision';
+  getRevision: function() {
+    var req = {
+      result: 'fakeRevision',
+      set onsuccess(callback) {
+        setTimeout(() => {
+          callback.call(this, { target: req });
+        });
+      },
+      set onerror(callback) {
+      }
+    };
+    return req;
   },
 
   setContacts: function(contacts) {

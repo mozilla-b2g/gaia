@@ -1,22 +1,12 @@
 'use strict';
 
-/* global require, exports */
+/* jshint node: true */
 
-let {Cc, Ci} = require('chrome');
-
-let utils = require('utils');
-
-let parser = Cc['@mozilla.org/xmlextras/domparser;1']
-             .createInstance(Ci.nsIDOMParser);
-let serializer = Cc['@mozilla.org/xmlextras/xmlserializer;1']
-                 .createInstance(Ci.nsIDOMSerializer);
+var utils = require('utils');
 
 // All layouts for handwriting should be contained.
 // When adding a new handwriting IME, add its layout here.
 const allHandwritingLayouts = ['zh-Hans-Handwriting'];
-
-exports.checkHandwriting = checkHandwriting;
-exports.addSettings = addSettings;
 
 // Check whether pre-installed layouts contain layout for handwriting.
 function checkHandwriting(allLayouts) {
@@ -33,7 +23,7 @@ function checkHandwriting(allLayouts) {
 function addSettings(appDirPath, distDirPath, enabledFeatures) {
   var settings = utils.getFile(appDirPath, 'settings.html');
   var content = utils.getFileContent(settings);
-  var domDoc = parser.parseFromString(content, 'text/html');
+  var domDoc = utils.getDocument(content);
 
   // Add scripts and modify html for handwriting and user dictionary settings.
   // If parse handwriting-settings.html to dom element, and
@@ -73,6 +63,9 @@ function addSettings(appDirPath, distDirPath, enabledFeatures) {
       udContent;
   }
 
-  var sDoc = serializer.serializeToString(domDoc);
+  var sDoc = utils.serializeDocument(domDoc);
   utils.writeContent(utils.getFile(distDirPath, 'settings.html'), sDoc);
 }
+
+exports.checkHandwriting = checkHandwriting;
+exports.addSettings = addSettings;

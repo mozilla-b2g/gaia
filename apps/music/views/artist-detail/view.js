@@ -37,8 +37,8 @@ ArtistDetailView.prototype.destroy = function() {
 };
 
 ArtistDetailView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
-  return this.list.setModel(this.songs);
+  return this.list.setModel(this.songs)
+    .then(this.onRenderDone);
 };
 
 ArtistDetailView.prototype.getArtist = function() {

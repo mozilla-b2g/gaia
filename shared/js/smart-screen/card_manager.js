@@ -1,5 +1,5 @@
 /* global evt, SharedUtils, Promise, PipedPromise, Application, CardStore,
-        Deck, Folder, AsyncSemaphore */
+          Deck, Folder, AsyncSemaphore, AppBookmark */
 
 (function(exports) {
   'use strict';
@@ -14,6 +14,7 @@
 
   CardManager.prototype = evt({
     HIDDEN_ROLES: ['system', 'homescreen', 'addon', 'langpack'],
+    TABLE_NAME: 'home_cards',
 
     // Only two modes available: readonly and readwrite (default)
     // 'readwrite' mode is for Smart-Home app only
@@ -48,12 +49,14 @@
     _deserializeCardEntry: function cm_deserializeCardEntry(cardEntry) {
       var cardInstance;
       switch (cardEntry.type) {
-        case 'AppBookmark':
         case 'Application':
           cardInstance = Application.deserialize(cardEntry, this.installedApps);
           break;
         case 'Deck':
           cardInstance = Deck.deserialize(cardEntry, this.installedApps);
+          break;
+        case 'AppBookmark':
+          cardInstance = AppBookmark.deserialize(cardEntry);
           break;
         case 'Folder':
           cardInstance = Folder.deserialize(cardEntry);
@@ -196,8 +199,8 @@
 
     _initCardStoreIfNeeded: function cm_initCardStore() {
       if (!this._cardStore) {
-        this._cardStore =
-          new CardStore(this._mode, this._manifestURLOfCardStore);
+        this._cardStore = new CardStore(
+                    this.TABLE_NAME, this._mode, this._manifestURLOfCardStore);
         this._cardStore.on('change', this._onCardStoreChange.bind(this));
       }
     },
@@ -342,9 +345,25 @@
 
     _onAppUninstall: function cm_onAppUninstall(evt) {
       var app = evt.application;
+
+      // XXX: Delete uninstalled app cards if any. The deletion should be
+      // performed only once, so we let only the owner of data store to do it.
+      // Notice the application object will be destroyed after uninstall event
+      // is done, and we won't be able to read any data inside card.nativeApp
+      // anymore (thus cause failure to FindCardFromCardList and etc.).
+      // So we let CardManager do it consciously to prevent zombie app cards.
+      // A possible way to improve it is to decouple AppMgmt and its app objects
+      // completely with CardManager and leave them inside applications.js.
+      if (this._cardStore.isOwner) {
+        var card = this.findCardFromCardList({
+          manifestURL: app.manifestURL
+        });
+        card && this.removeCard(card);
+      }
+
       if (this.installedApps[app.manifestURL]) {
-        delete this.installedApps[app.manifestURL];
         this.fire('uninstall', this.getAppEntries(app.manifestURL));
+        delete this.installedApps[app.manifestURL];
       }
     },
 
@@ -700,10 +719,13 @@
     },
 
     // TODO: need to be protected by semaphore
+    // TODO: some comparison are based on card type. We may move these part to
+    //       card class themselves.
     // There are three types of query:
     // 1. query by cardId
     // 2. query by manifestURL and optionally launchURL
-    // 3. query by cardEntry (i.e. serialized card)
+    // 3. query by bookmark url
+    // 4. query by cardEntry (i.e. serialized card)
     findCardFromCardList: function cm_findCardFromCardList(query) {
       var found;
       this._cardList.some(function(card) {
@@ -731,6 +753,11 @@
               return true;
             }
           } else {
+            found = card;
+            return true;
+          }
+        } else if (query.url) {
+          if (query.url === card.url) {
             found = card;
             return true;
           }
@@ -782,7 +809,7 @@
     }
   });
 
-  SharedUtils.addMixin(CardManager, new PipedPromise());
+  SharedUtils.addMixin(CardManager, PipedPromise);
 
   exports.CardManager = CardManager;
 }(window));

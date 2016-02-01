@@ -42,7 +42,6 @@
     'shared/toaster': 'empty:',
     'shared/wifi_helper': 'empty:',
     'shared/tz_select': 'empty:',
-    'utils': 'empty:',
     'vendor/jszip': 'empty:'
   },
 

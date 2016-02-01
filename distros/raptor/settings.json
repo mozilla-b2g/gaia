@@ -1,5 +1,6 @@
 {
   "screen.timeout": 0,
   "ftu.manifestURL": null,
-  "lockscreen.enabled": false
+  "lockscreen.enabled": false,
+  "dom.serviceWorkers.interception.enabled": true
 }

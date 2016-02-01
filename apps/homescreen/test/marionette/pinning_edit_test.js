@@ -7,7 +7,9 @@ var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Homescreen - Pinned Site Edit', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var actions, bookmark, pinning, home, server, system;
 
   suiteSetup(function(done) {
@@ -45,6 +47,7 @@ marionette('Homescreen - Pinned Site Edit', function() {
 
     home.scrollIconToCenter(icon);
     actions.longPress(icon, 1).perform();
+    home.waitForEditBar();
     home.renameButton.tap();
 
     client.switchToFrame();

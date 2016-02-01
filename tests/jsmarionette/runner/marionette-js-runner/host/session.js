@@ -31,10 +31,21 @@ Session.prototype = {
 
     return this.host.request('/get_crash_info', request)
     .then(function(info) {
+      // If info is empty, we didn't crash the process. We threw an error
+      // in JavaScript code instead.
+      if (Object.keys(info).length === 0) {
+        // The error we were passed originally will suffice in this case.
+        return err;
+      }
+
+      // Otherwise, check to see if the stackwalk binary return cleanly or with
+      // error.
       if (info.stackwalk_retcode !== 0) {
+        // Error during stackwalk.
         return parseCrashInfoWithStackwalkError(info);
       }
 
+      // Everything is OK with the stackwalk, let's format a nice error with it.
       return parseCrashInfo(info);
     });
   },

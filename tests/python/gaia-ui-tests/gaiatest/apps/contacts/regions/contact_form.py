@@ -144,13 +144,16 @@ class EditContact(ContactForm):
         update = Wait(self.marionette).until(expected.element_present(*self._update_locator))
         Wait(self.marionette).until(lambda m: update.location['y'] == 0 and update.is_displayed())
 
-    def tap_update(self, return_details=True):
+    def tap_update(self, return_class='ContactDetails'):
         self.wait_for_update_button_enabled()
         update = self.marionette.find_element(*self._update_locator)
         update.tap()
-        if return_details:
+        if return_class == 'ContactDetails':
             from gaiatest.apps.contacts.regions.contact_details import ContactDetails
             return ContactDetails(self.marionette)
+        elif return_class == 'Merge':
+            from gaiatest.apps.contacts.regions.merge import Merge
+            return Merge(self.marionette)
         else:
             # else we drop back to the underlying app
             from gaiatest.apps.contacts.app import Contacts

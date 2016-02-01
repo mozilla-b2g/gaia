@@ -11,8 +11,10 @@ function L10nError(message, id, lang) {
 L10nError.prototype = Object.create(Error.prototype);
 L10nError.prototype.constructor = L10nError;
 
-function fetchResource(htmloptimizer, res, lang) {
-  var url = decodeURI(res).replace('{locale}', lang.code);
+function fetchResource(htmloptimizer, res, _ref) {
+  var code = _ref.code;
+
+  var url = decodeURI(res).replace('{locale}', code);
 
   var _htmloptimizer$getFileByRelativePath = htmloptimizer.getFileByRelativePath(url);
 
@@ -35,7 +37,7 @@ function walkEntry(entry, fn) {
   var newEntry = Object.create(null);
 
   if (entry.value) {
-    newEntry.value = walkValue$1(entry.value, fn);
+    newEntry.value = walkValue(entry.value, fn);
   }
 
   if (entry.index) {
@@ -52,7 +54,7 @@ function walkEntry(entry, fn) {
   return newEntry;
 }
 
-function walkValue$1(value, fn) {
+function walkValue(value, fn) {
   if (typeof value === 'string') {
     return fn(value);
   }
@@ -65,7 +67,7 @@ function walkValue$1(value, fn) {
   var keys = Object.keys(value);
 
   for (var i = 0, key = undefined; key = keys[i]; i++) {
-    newValue[key] = walkValue$1(value[key], fn);
+    newValue[key] = walkValue(value[key], fn);
   }
 
   return newValue;
@@ -104,9 +106,10 @@ function createGetter(id, name) {
       }
     };
 
+    var ASCII_LETTER_A = 65;
     var replaceChars = function (map, val) {
       return val.replace(reAlphas, function (match) {
-        return map.charAt(match.charCodeAt(0) - 65);
+        return map.charAt(match.charCodeAt(0) - ASCII_LETTER_A);
       });
     };
 
@@ -138,7 +141,7 @@ function createGetter(id, name) {
   };
 }
 
-var pseudo$1 = Object.defineProperties(Object.create(null), {
+var pseudo = Object.defineProperties(Object.create(null), {
   'fr-x-psaccent': {
     enumerable: true,
     get: createGetter('fr-x-psaccent', 'Runtime Accented')
@@ -148,724 +151,6 @@ var pseudo$1 = Object.defineProperties(Object.create(null), {
     get: createGetter('ar-x-psbidi', 'Runtime Bidi')
   }
 });
-
-var MAX_PLACEABLES$1 = 100;
-
-var L20nParser = {
-  parse: function (emit, string) {
-    this._source = string;
-    this._index = 0;
-    this._length = string.length;
-    this.entries = Object.create(null);
-    this.emit = emit;
-
-    return this.getResource();
-  },
-
-  getResource: function () {
-    this.getWS();
-    while (this._index < this._length) {
-      try {
-        this.getEntry();
-      } catch (e) {
-        if (e instanceof L10nError) {
-          this.getJunkEntry();
-          if (!this.emit) {
-            throw e;
-          }
-        } else {
-          throw e;
-        }
-      }
-
-      if (this._index < this._length) {
-        this.getWS();
-      }
-    }
-
-    return this.entries;
-  },
-
-  getEntry: function () {
-    if (this._source[this._index] === '<') {
-      ++this._index;
-      var id = this.getIdentifier();
-      if (this._source[this._index] === '[') {
-        ++this._index;
-        return this.getEntity(id, this.getItemList(this.getExpression, ']'));
-      }
-      return this.getEntity(id);
-    }
-
-    if (this._source.startsWith('/*', this._index)) {
-      return this.getComment();
-    }
-
-    throw this.error('Invalid entry');
-  },
-
-  getEntity: function (id, index) {
-    if (!this.getRequiredWS()) {
-      throw this.error('Expected white space');
-    }
-
-    var ch = this._source[this._index];
-    var value = this.getValue(ch, index === undefined);
-    var attrs = undefined;
-
-    if (value === undefined) {
-      if (ch === '>') {
-        throw this.error('Expected ">"');
-      }
-      attrs = this.getAttributes();
-    } else {
-      var ws1 = this.getRequiredWS();
-      if (this._source[this._index] !== '>') {
-        if (!ws1) {
-          throw this.error('Expected ">"');
-        }
-        attrs = this.getAttributes();
-      }
-    }
-
-    ++this._index;
-
-    if (id in this.entries) {
-      throw this.error('Duplicate entry ID "' + id, 'duplicateerror');
-    }
-    if (!attrs && !index && typeof value === 'string') {
-      this.entries[id] = value;
-    } else {
-      this.entries[id] = {
-        value: value,
-        attrs: attrs,
-        index: index
-      };
-    }
-  },
-
-  getValue: function () {
-    var ch = arguments.length <= 0 || arguments[0] === undefined ? this._source[this._index] : arguments[0];
-    var optional = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-
-    switch (ch) {
-      case '\'':
-      case '"':
-        return this.getString(ch, 1);
-      case '{':
-        return this.getHash();
-    }
-
-    if (!optional) {
-      throw this.error('Unknown value type');
-    }
-
-    return;
-  },
-
-  getWS: function () {
-    var cc = this._source.charCodeAt(this._index);
-
-    while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
-      cc = this._source.charCodeAt(++this._index);
-    }
-  },
-
-  getRequiredWS: function () {
-    var pos = this._index;
-    var cc = this._source.charCodeAt(pos);
-
-    while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
-      cc = this._source.charCodeAt(++this._index);
-    }
-    return this._index !== pos;
-  },
-
-  getIdentifier: function () {
-    var start = this._index;
-    var cc = this._source.charCodeAt(this._index);
-
-    if (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc === 95) {
-      cc = this._source.charCodeAt(++this._index);
-    } else {
-      throw this.error('Identifier has to start with [a-zA-Z_]');
-    }
-
-    while (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc >= 48 && cc <= 57 || cc === 95) {
-      cc = this._source.charCodeAt(++this._index);
-    }
-
-    return this._source.slice(start, this._index);
-  },
-
-  getUnicodeChar: function () {
-    for (var i = 0; i < 4; i++) {
-      var cc = this._source.charCodeAt(++this._index);
-      if (cc > 96 && cc < 103 || cc > 64 && cc < 71 || cc > 47 && cc < 58) {
-        continue;
-      }
-      throw this.error('Illegal unicode escape sequence');
-    }
-    this._index++;
-    return String.fromCharCode(parseInt(this._source.slice(this._index - 4, this._index), 16));
-  },
-
-  stringRe: /"|'|{{|\\/g,
-  getString: function (opchar, opcharLen) {
-    var body = [];
-    var placeables = 0;
-
-    this._index += opcharLen;
-    var start = this._index;
-
-    var bufStart = start;
-    var buf = '';
-
-    while (true) {
-      this.stringRe.lastIndex = this._index;
-      var match = this.stringRe.exec(this._source);
-
-      if (!match) {
-        throw this.error('Unclosed string literal');
-      }
-
-      if (match[0] === '"' || match[0] === '\'') {
-        if (match[0] !== opchar) {
-          this._index += opcharLen;
-          continue;
-        }
-        this._index = match.index + opcharLen;
-        break;
-      }
-
-      if (match[0] === '{{') {
-        if (placeables > MAX_PLACEABLES$1 - 1) {
-          throw this.error('Too many placeables, maximum allowed is ' + MAX_PLACEABLES$1);
-        }
-        placeables++;
-        if (match.index > bufStart || buf.length > 0) {
-          body.push(buf + this._source.slice(bufStart, match.index));
-          buf = '';
-        }
-        this._index = match.index + 2;
-        this.getWS();
-        body.push(this.getExpression());
-        this.getWS();
-        this._index += 2;
-        bufStart = this._index;
-        continue;
-      }
-
-      if (match[0] === '\\') {
-        this._index = match.index + 1;
-        var ch2 = this._source[this._index];
-        if (ch2 === 'u') {
-          buf += this._source.slice(bufStart, match.index) + this.getUnicodeChar();
-        } else if (ch2 === opchar || ch2 === '\\') {
-          buf += this._source.slice(bufStart, match.index) + ch2;
-          this._index++;
-        } else if (this._source.startsWith('{{', this._index)) {
-          buf += this._source.slice(bufStart, match.index) + '{{';
-          this._index += 2;
-        } else {
-          throw this.error('Illegal escape sequence');
-        }
-        bufStart = this._index;
-      }
-    }
-
-    if (body.length === 0) {
-      return buf + this._source.slice(bufStart, this._index - opcharLen);
-    }
-
-    if (this._index - opcharLen > bufStart || buf.length > 0) {
-      body.push(buf + this._source.slice(bufStart, this._index - opcharLen));
-    }
-
-    return body;
-  },
-
-  getAttributes: function () {
-    var attrs = Object.create(null);
-
-    while (true) {
-      this.getAttribute(attrs);
-      var ws1 = this.getRequiredWS();
-      var ch = this._source.charAt(this._index);
-      if (ch === '>') {
-        break;
-      } else if (!ws1) {
-        throw this.error('Expected ">"');
-      }
-    }
-    return attrs;
-  },
-
-  getAttribute: function (attrs) {
-    var key = this.getIdentifier();
-    var index = undefined;
-
-    if (this._source[this._index] === '[') {
-      ++this._index;
-      this.getWS();
-      index = this.getItemList(this.getExpression, ']');
-    }
-    this.getWS();
-    if (this._source[this._index] !== ':') {
-      throw this.error('Expected ":"');
-    }
-    ++this._index;
-    this.getWS();
-    var value = this.getValue();
-
-    if (key in attrs) {
-      throw this.error('Duplicate attribute "' + key, 'duplicateerror');
-    }
-
-    if (!index && typeof value === 'string') {
-      attrs[key] = value;
-    } else {
-      attrs[key] = {
-        value: value,
-        index: index
-      };
-    }
-  },
-
-  getHash: function () {
-    var items = Object.create(null);
-
-    ++this._index;
-    this.getWS();
-
-    var defKey = undefined;
-
-    while (true) {
-      var _getHashItem = this.getHashItem();
-
-      var key = _getHashItem[0];
-      var value = _getHashItem[1];
-      var def = _getHashItem[2];
-
-      items[key] = value;
-
-      if (def) {
-        if (defKey) {
-          throw this.error('Default item redefinition forbidden');
-        }
-        defKey = key;
-      }
-      this.getWS();
-
-      var comma = this._source[this._index] === ',';
-      if (comma) {
-        ++this._index;
-        this.getWS();
-      }
-      if (this._source[this._index] === '}') {
-        ++this._index;
-        break;
-      }
-      if (!comma) {
-        throw this.error('Expected "}"');
-      }
-    }
-
-    if (defKey) {
-      items.__default = defKey;
-    }
-
-    return items;
-  },
-
-  getHashItem: function () {
-    var defItem = false;
-    if (this._source[this._index] === '*') {
-      ++this._index;
-      defItem = true;
-    }
-
-    var key = this.getIdentifier();
-    this.getWS();
-    if (this._source[this._index] !== ':') {
-      throw this.error('Expected ":"');
-    }
-    ++this._index;
-    this.getWS();
-
-    return [key, this.getValue(), defItem];
-  },
-
-  getComment: function () {
-    this._index += 2;
-    var start = this._index;
-    var end = this._source.indexOf('*/', start);
-
-    if (end === -1) {
-      throw this.error('Comment without a closing tag');
-    }
-
-    this._index = end + 2;
-  },
-
-  getExpression: function () {
-    var exp = this.getPrimaryExpression();
-
-    while (true) {
-      var ch = this._source[this._index];
-      if (ch === '.' || ch === '[') {
-        ++this._index;
-        exp = this.getPropertyExpression(exp, ch === '[');
-      } else if (ch === '(') {
-        ++this._index;
-        exp = this.getCallExpression(exp);
-      } else {
-        break;
-      }
-    }
-
-    return exp;
-  },
-
-  getPropertyExpression: function (idref, computed) {
-    var exp = undefined;
-
-    if (computed) {
-      this.getWS();
-      exp = this.getExpression();
-      this.getWS();
-      if (this._source[this._index] !== ']') {
-        throw this.error('Expected "]"');
-      }
-      ++this._index;
-    } else {
-      exp = this.getIdentifier();
-    }
-
-    return {
-      type: 'prop',
-      expr: idref,
-      prop: exp,
-      cmpt: computed
-    };
-  },
-
-  getCallExpression: function (callee) {
-    this.getWS();
-
-    return {
-      type: 'call',
-      expr: callee,
-      args: this.getItemList(this.getExpression, ')')
-    };
-  },
-
-  getPrimaryExpression: function () {
-    var ch = this._source[this._index];
-
-    switch (ch) {
-      case '$':
-        ++this._index;
-        return {
-          type: 'var',
-          name: this.getIdentifier()
-        };
-      case '@':
-        ++this._index;
-        return {
-          type: 'glob',
-          name: this.getIdentifier()
-        };
-      default:
-        return {
-          type: 'id',
-          name: this.getIdentifier()
-        };
-    }
-  },
-
-  getItemList: function (callback, closeChar) {
-    var items = [];
-    var closed = false;
-
-    this.getWS();
-
-    if (this._source[this._index] === closeChar) {
-      ++this._index;
-      closed = true;
-    }
-
-    while (!closed) {
-      items.push(callback.call(this));
-      this.getWS();
-      var ch = this._source.charAt(this._index);
-      switch (ch) {
-        case ',':
-          ++this._index;
-          this.getWS();
-          break;
-        case closeChar:
-          ++this._index;
-          closed = true;
-          break;
-        default:
-          throw this.error('Expected "," or "' + closeChar + '"');
-      }
-    }
-
-    return items;
-  },
-
-  getJunkEntry: function () {
-    var pos = this._index;
-    var nextEntity = this._source.indexOf('<', pos);
-    var nextComment = this._source.indexOf('/*', pos);
-
-    if (nextEntity === -1) {
-      nextEntity = this._length;
-    }
-    if (nextComment === -1) {
-      nextComment = this._length;
-    }
-
-    var nextEntry = Math.min(nextEntity, nextComment);
-
-    this._index = nextEntry;
-  },
-
-  error: function (message) {
-    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
-
-    var pos = this._index;
-
-    var start = this._source.lastIndexOf('<', pos - 1);
-    var lastClose = this._source.lastIndexOf('>', pos - 1);
-    start = lastClose > start ? lastClose + 1 : start;
-    var context = this._source.slice(start, pos + 10);
-
-    var msg = message + ' at pos ' + pos + ': `' + context + '`';
-    var err = new L10nError(msg);
-    if (this.emit) {
-      this.emit(type, err);
-    }
-    return err;
-  }
-};
-
-var MAX_PLACEABLES = 100;
-
-var PropertiesParser = {
-  patterns: null,
-  entryIds: null,
-  emit: null,
-
-  init: function () {
-    this.patterns = {
-      comment: /^\s*#|^\s*$/,
-      entity: /^([^=\s]+)\s*=\s*(.*)$/,
-      multiline: /[^\\]\\$/,
-      index: /\{\[\s*(\w+)(?:\(([^\)]*)\))?\s*\]\}/i,
-      unicode: /\\u([0-9a-fA-F]{1,4})/g,
-      entries: /[^\r\n]+/g,
-      controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g,
-      placeables: /\{\{\s*([^\s]*?)\s*\}\}/
-    };
-  },
-
-  parse: function (emit, source) {
-    if (!this.patterns) {
-      this.init();
-    }
-    this.emit = emit;
-
-    var entries = {};
-
-    var lines = source.match(this.patterns.entries);
-    if (!lines) {
-      return entries;
-    }
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i];
-
-      if (this.patterns.comment.test(line)) {
-        continue;
-      }
-
-      while (this.patterns.multiline.test(line) && i < lines.length) {
-        line = line.slice(0, -1) + lines[++i].trim();
-      }
-
-      var entityMatch = line.match(this.patterns.entity);
-      if (entityMatch) {
-        try {
-          this.parseEntity(entityMatch[1], entityMatch[2], entries);
-        } catch (e) {
-          if (!this.emit) {
-            throw e;
-          }
-        }
-      }
-    }
-    return entries;
-  },
-
-  parseEntity: function (id, value, entries) {
-    var name, key;
-
-    var pos = id.indexOf('[');
-    if (pos !== -1) {
-      name = id.substr(0, pos);
-      key = id.substring(pos + 1, id.length - 1);
-    } else {
-      name = id;
-      key = null;
-    }
-
-    var nameElements = name.split('.');
-
-    if (nameElements.length > 2) {
-      throw this.error('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
-    }
-
-    var attr;
-    if (nameElements.length > 1) {
-      name = nameElements[0];
-      attr = nameElements[1];
-
-      if (attr[0] === '$') {
-        throw this.error('Attribute can\'t start with "$"');
-      }
-    } else {
-      attr = null;
-    }
-
-    this.setEntityValue(name, attr, key, this.unescapeString(value), entries);
-  },
-
-  setEntityValue: function (id, attr, key, rawValue, entries) {
-    var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
-
-    var isSimpleValue = typeof value === 'string';
-    var root = entries;
-
-    var isSimpleNode = typeof entries[id] === 'string';
-
-    if (!entries[id] && (attr || key || !isSimpleValue)) {
-      entries[id] = Object.create(null);
-      isSimpleNode = false;
-    }
-
-    if (attr) {
-      if (isSimpleNode) {
-        var val = entries[id];
-        entries[id] = Object.create(null);
-        entries[id].value = val;
-      }
-      if (!entries[id].attrs) {
-        entries[id].attrs = Object.create(null);
-      }
-      if (!entries[id].attrs && !isSimpleValue) {
-        entries[id].attrs[attr] = Object.create(null);
-      }
-      root = entries[id].attrs;
-      id = attr;
-    }
-
-    if (key) {
-      isSimpleNode = false;
-      if (typeof root[id] === 'string') {
-        var val = root[id];
-        root[id] = Object.create(null);
-        root[id].index = this.parseIndex(val);
-        root[id].value = Object.create(null);
-      }
-      root = root[id].value;
-      id = key;
-      isSimpleValue = true;
-    }
-
-    if (isSimpleValue && (!entries[id] || isSimpleNode)) {
-      if (id in root) {
-        throw this.error();
-      }
-      root[id] = value;
-    } else {
-      if (!root[id]) {
-        root[id] = Object.create(null);
-      }
-      root[id].value = value;
-    }
-  },
-
-  parseString: function (str) {
-    var chunks = str.split(this.patterns.placeables);
-    var complexStr = [];
-
-    var len = chunks.length;
-    var placeablesCount = (len - 1) / 2;
-
-    if (placeablesCount >= MAX_PLACEABLES) {
-      throw this.error('Too many placeables (' + placeablesCount + ', max allowed is ' + MAX_PLACEABLES + ')');
-    }
-
-    for (var i = 0; i < chunks.length; i++) {
-      if (chunks[i].length === 0) {
-        continue;
-      }
-      if (i % 2 === 1) {
-        complexStr.push({ type: 'idOrVar', name: chunks[i] });
-      } else {
-        complexStr.push(chunks[i]);
-      }
-    }
-    return complexStr;
-  },
-
-  unescapeString: function (str) {
-    if (str.lastIndexOf('\\') !== -1) {
-      str = str.replace(this.patterns.controlChars, '$1');
-    }
-    return str.replace(this.patterns.unicode, function (match, token) {
-      return String.fromCodePoint(parseInt(token, 16));
-    });
-  },
-
-  parseIndex: function (str) {
-    var match = str.match(this.patterns.index);
-    if (!match) {
-      throw new L10nError('Malformed index');
-    }
-    if (match[2]) {
-      return [{
-        type: 'call',
-        expr: {
-          type: 'prop',
-          expr: {
-            type: 'glob',
-            name: 'cldr'
-          },
-          prop: 'plural',
-          cmpt: false
-        }, args: [{
-          type: 'idOrVar',
-          name: match[2]
-        }]
-      }];
-    } else {
-      return [{ type: 'idOrVar', name: match[1] }];
-    }
-  },
-
-  error: function (msg) {
-    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
-
-    var err = new L10nError(msg);
-    if (this.emit) {
-      this.emit(type, err);
-    }
-    return err;
-  }
-};
 
 var KNOWN_MACROS$1 = ['plural'];
 var MAX_PLACEABLE_LENGTH$1 = 2500;
@@ -951,9 +236,9 @@ function subPlaceable$1(locals, ctx, lang, args, id) {
 }
 
 function interpolate$1(locals, ctx, lang, args, arr) {
-  return arr.reduce(function (_ref, cur) {
-    var localsSeq = _ref[0];
-    var valueSeq = _ref[1];
+  return arr.reduce(function (_ref2, cur) {
+    var localsSeq = _ref2[0];
+    var valueSeq = _ref2[1];
 
     if (typeof cur === 'string') {
       return [localsSeq, valueSeq + cur];
@@ -1467,12 +752,28 @@ function getPluralRule(code) {
   return pluralRules[index];
 }
 
+var L20nIntl = typeof Intl !== 'undefined' ? Intl : {
+  NumberFormat: function () {
+    return {
+      format: function (v) {
+        return v;
+      }
+    };
+  }
+};
+
 var Context = (function () {
-  function Context(env) {
+  function Context(env, langs, resIds) {
+    var _this = this;
+
     _classCallCheck(this, Context);
 
-    this._env = env;
-    this._numberFormatters = null;
+    this.langs = langs;
+    this.resIds = resIds;
+    this.env = env;
+    this.emit = function (type, evt) {
+      return env.emit(type, evt, _this);
+    };
   }
 
   Context.prototype._formatTuple = function _formatTuple(lang, args, entity, id, key) {
@@ -1481,7 +782,7 @@ var Context = (function () {
     } catch (err) {
       err.id = key ? id + '::' + key : id;
       err.lang = lang;
-      this._env.emit('resolveerror', err, this);
+      this.emit('resolveerror', err);
       return [{ error: err }, err.id];
     }
   };
@@ -1514,20 +815,24 @@ var Context = (function () {
     return this._formatTuple(lang, args, entity, id)[1];
   };
 
-  Context.prototype.fetch = function fetch(langs) {
+  Context.prototype.fetch = function fetch() {
+    var _this2 = this;
+
+    var langs = arguments.length <= 0 || arguments[0] === undefined ? this.langs : arguments[0];
+
     if (langs.length === 0) {
       return Promise.resolve(langs);
     }
 
-    var resIds = Array.from(this._env._resLists.get(this));
-
-    return Promise.all(resIds.map(this._env._getResource.bind(this._env, langs[0]))).then(function () {
+    return Promise.all(this.resIds.map(function (resId) {
+      return _this2.env._getResource(langs[0], resId);
+    })).then(function () {
       return langs;
     });
   };
 
   Context.prototype._resolve = function _resolve(langs, keys, formatter, prevResolved) {
-    var _this = this;
+    var _this3 = this;
 
     var lang = langs[0];
 
@@ -1542,18 +847,18 @@ var Context = (function () {
         return prevResolved[i];
       }
 
-      var _ref2 = Array.isArray(key) ? key : [key, undefined];
+      var _ref3 = Array.isArray(key) ? key : [key, undefined];
 
-      var id = _ref2[0];
-      var args = _ref2[1];
+      var id = _ref3[0];
+      var args = _ref3[1];
 
-      var entity = _this._getEntity(lang, id);
+      var entity = _this3._getEntity(lang, id);
 
       if (entity) {
-        return formatter.call(_this, lang, args, entity, id);
+        return formatter.call(_this3, lang, args, entity, id);
       }
 
-      _this._env.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang), _this);
+      _this3.emit('notfounderror', new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
       hasUnresolved = true;
     });
 
@@ -1562,31 +867,38 @@ var Context = (function () {
     }
 
     return this.fetch(langs.slice(1)).then(function (nextLangs) {
-      return _this._resolve(nextLangs, keys, formatter, resolved);
+      return _this3._resolve(nextLangs, keys, formatter, resolved);
     });
   };
 
-  Context.prototype.resolveEntities = function resolveEntities(langs, keys) {
-    var _this2 = this;
+  Context.prototype.formatEntities = function formatEntities() {
+    var _this4 = this;
 
-    return this.fetch(langs).then(function (langs) {
-      return _this2._resolve(langs, keys, _this2._formatEntity);
+    for (var _len = arguments.length, keys = Array(_len), _key = 0; _key < _len; _key++) {
+      keys[_key] = arguments[_key];
+    }
+
+    return this.fetch().then(function (langs) {
+      return _this4._resolve(langs, keys, _this4._formatEntity);
     });
   };
 
-  Context.prototype.resolveValues = function resolveValues(langs, keys) {
-    var _this3 = this;
+  Context.prototype.formatValues = function formatValues() {
+    var _this5 = this;
 
-    return this.fetch(langs).then(function (langs) {
-      return _this3._resolve(langs, keys, _this3._formatValue);
+    for (var _len2 = arguments.length, keys = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      keys[_key2] = arguments[_key2];
+    }
+
+    return this.fetch().then(function (langs) {
+      return _this5._resolve(langs, keys, _this5._formatValue);
     });
   };
 
   Context.prototype._getEntity = function _getEntity(lang, id) {
-    var cache = this._env._resCache;
-    var resIds = Array.from(this._env._resLists.get(this));
+    var cache = this.env.resCache;
 
-    for (var i = 0, resId = undefined; resId = resIds[i]; i++) {
+    for (var i = 0, resId = undefined; resId = this.resIds[i]; i++) {
       var resource = cache.get(resId + lang.code + lang.src);
       if (resource instanceof L10nError) {
         continue;
@@ -1599,17 +911,15 @@ var Context = (function () {
   };
 
   Context.prototype._getNumberFormatter = function _getNumberFormatter(lang) {
-    if (!this._numberFormatters) {
-      this._numberFormatters = new Map();
+    if (!this.env.numberFormatters) {
+      this.env.numberFormatters = new Map();
     }
-    if (!this._numberFormatters.has(lang)) {
-      var formatter = Intl.NumberFormat(lang, {
-        useGrouping: false
-      });
-      this._numberFormatters.set(lang, formatter);
+    if (!this.env.numberFormatters.has(lang)) {
+      var formatter = L20nIntl.NumberFormat(lang);
+      this.env.numberFormatters.set(lang, formatter);
       return formatter;
     }
-    return this._numberFormatters.get(lang);
+    return this.env.numberFormatters.get(lang);
   };
 
   Context.prototype._getMacro = function _getMacro(lang, id) {
@@ -1625,7 +935,7 @@ var Context = (function () {
 })();
 
 function reportMissing(keys, formatter, resolved) {
-  var _this4 = this;
+  var _this6 = this;
 
   var missingIds = new Set();
 
@@ -1635,32 +945,756 @@ function reportMissing(keys, formatter, resolved) {
     }
     var id = Array.isArray(key) ? key[0] : key;
     missingIds.add(id);
-    resolved[i] = formatter === _this4._formatValue ? id : { value: id, attrs: null };
+    resolved[i] = formatter === _this6._formatValue ? id : { value: id, attrs: null };
   });
 
-  this._env.emit('notfounderror', new L10nError('"' + Array.from(missingIds).join(', ') + '"' + ' not found in any language', missingIds), this);
+  this.emit('notfounderror', new L10nError('"' + Array.from(missingIds).join(', ') + '"' + ' not found in any language', missingIds));
 
   return resolved;
 }
 
-function emit(listeners) {
-  var _this5 = this;
+var MAX_PLACEABLES = 100;
 
-  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    args[_key - 1] = arguments[_key];
+var PropertiesParser = {
+  patterns: null,
+  entryIds: null,
+  emit: null,
+
+  init: function () {
+    this.patterns = {
+      comment: /^\s*#|^\s*$/,
+      entity: /^([^=\s]+)\s*=\s*(.*)$/,
+      multiline: /[^\\]\\$/,
+      index: /\{\[\s*(\w+)(?:\(([^\)]*)\))?\s*\]\}/i,
+      unicode: /\\u([0-9a-fA-F]{1,4})/g,
+      entries: /[^\r\n]+/g,
+      controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g,
+      placeables: /\{\{\s*([^\s]*?)\s*\}\}/
+    };
+  },
+
+  parse: function (emit, source) {
+    if (!this.patterns) {
+      this.init();
+    }
+    this.emit = emit;
+
+    var entries = {};
+
+    var lines = source.match(this.patterns.entries);
+    if (!lines) {
+      return entries;
+    }
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+
+      if (this.patterns.comment.test(line)) {
+        continue;
+      }
+
+      while (this.patterns.multiline.test(line) && i < lines.length) {
+        line = line.slice(0, -1) + lines[++i].trim();
+      }
+
+      var entityMatch = line.match(this.patterns.entity);
+      if (entityMatch) {
+        try {
+          this.parseEntity(entityMatch[1], entityMatch[2], entries);
+        } catch (e) {
+          if (!this.emit) {
+            throw e;
+          }
+        }
+      }
+    }
+    return entries;
+  },
+
+  parseEntity: function (id, value, entries) {
+    var name = undefined,
+        key = undefined;
+
+    var pos = id.indexOf('[');
+    if (pos !== -1) {
+      name = id.substr(0, pos);
+      key = id.substring(pos + 1, id.length - 1);
+    } else {
+      name = id;
+      key = null;
+    }
+
+    var nameElements = name.split('.');
+
+    if (nameElements.length > 2) {
+      throw this.error('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
+    }
+
+    var attr = undefined;
+    if (nameElements.length > 1) {
+      name = nameElements[0];
+      attr = nameElements[1];
+
+      if (attr[0] === '$') {
+        throw this.error('Attribute can\'t start with "$"');
+      }
+    } else {
+      attr = null;
+    }
+
+    this.setEntityValue(name, attr, key, this.unescapeString(value), entries);
+  },
+
+  setEntityValue: function (id, attr, key, rawValue, entries) {
+    var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
+
+    var isSimpleValue = typeof value === 'string';
+    var root = entries;
+
+    var isSimpleNode = typeof entries[id] === 'string';
+
+    if (!entries[id] && (attr || key || !isSimpleValue)) {
+      entries[id] = Object.create(null);
+      isSimpleNode = false;
+    }
+
+    if (attr) {
+      if (isSimpleNode) {
+        var val = entries[id];
+        entries[id] = Object.create(null);
+        entries[id].value = val;
+      }
+      if (!entries[id].attrs) {
+        entries[id].attrs = Object.create(null);
+      }
+      if (!entries[id].attrs && !isSimpleValue) {
+        entries[id].attrs[attr] = Object.create(null);
+      }
+      root = entries[id].attrs;
+      id = attr;
+    }
+
+    if (key) {
+      isSimpleNode = false;
+      if (typeof root[id] === 'string') {
+        var val = root[id];
+        root[id] = Object.create(null);
+        root[id].index = this.parseIndex(val);
+        root[id].value = Object.create(null);
+      }
+      root = root[id].value;
+      id = key;
+      isSimpleValue = true;
+    }
+
+    if (isSimpleValue) {
+      if (id in root) {
+        throw this.error('Duplicated id: ' + id);
+      }
+      root[id] = value;
+    } else {
+      if (!root[id]) {
+        root[id] = Object.create(null);
+      }
+      root[id].value = value;
+    }
+  },
+
+  parseString: function (str) {
+    var chunks = str.split(this.patterns.placeables);
+    var complexStr = [];
+
+    var len = chunks.length;
+    var placeablesCount = (len - 1) / 2;
+
+    if (placeablesCount >= MAX_PLACEABLES) {
+      throw this.error('Too many placeables (' + placeablesCount + ', max allowed is ' + MAX_PLACEABLES + ')');
+    }
+
+    for (var i = 0; i < chunks.length; i++) {
+      if (chunks[i].length === 0) {
+        continue;
+      }
+      if (i % 2 === 1) {
+        complexStr.push({ type: 'idOrVar', name: chunks[i] });
+      } else {
+        complexStr.push(chunks[i]);
+      }
+    }
+    return complexStr;
+  },
+
+  unescapeString: function (str) {
+    if (str.lastIndexOf('\\') !== -1) {
+      str = str.replace(this.patterns.controlChars, '$1');
+    }
+    return str.replace(this.patterns.unicode, function (match, token) {
+      return String.fromCodePoint(parseInt(token, 16));
+    });
+  },
+
+  parseIndex: function (str) {
+    var match = str.match(this.patterns.index);
+    if (!match) {
+      throw new L10nError('Malformed index');
+    }
+    if (match[2]) {
+      return [{
+        type: 'call',
+        expr: {
+          type: 'prop',
+          expr: {
+            type: 'glob',
+            name: 'cldr'
+          },
+          prop: 'plural',
+          cmpt: false
+        }, args: [{
+          type: 'idOrVar',
+          name: match[2]
+        }]
+      }];
+    } else {
+      return [{ type: 'idOrVar', name: match[1] }];
+    }
+  },
+
+  error: function (msg) {
+    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
+
+    var err = new L10nError(msg);
+    if (this.emit) {
+      this.emit(type, err);
+    }
+    return err;
+  }
+};
+
+var MAX_PLACEABLES$1 = 100;
+
+var L20nParser = {
+  parse: function (emit, string) {
+    this._source = string;
+    this._index = 0;
+    this._length = string.length;
+    this.entries = Object.create(null);
+    this.emit = emit;
+
+    return this.getResource();
+  },
+
+  getResource: function () {
+    this.getWS();
+    while (this._index < this._length) {
+      try {
+        this.getEntry();
+      } catch (e) {
+        if (e instanceof L10nError) {
+          this.getJunkEntry();
+          if (!this.emit) {
+            throw e;
+          }
+        } else {
+          throw e;
+        }
+      }
+
+      if (this._index < this._length) {
+        this.getWS();
+      }
+    }
+
+    return this.entries;
+  },
+
+  getEntry: function () {
+    if (this._source[this._index] === '<') {
+      ++this._index;
+      var id = this.getIdentifier();
+      if (this._source[this._index] === '[') {
+        ++this._index;
+        return this.getEntity(id, this.getItemList(this.getExpression, ']'));
+      }
+      return this.getEntity(id);
+    }
+
+    if (this._source.startsWith('/*', this._index)) {
+      return this.getComment();
+    }
+
+    throw this.error('Invalid entry');
+  },
+
+  getEntity: function (id, index) {
+    if (!this.getRequiredWS()) {
+      throw this.error('Expected white space');
+    }
+
+    var ch = this._source[this._index];
+    var hasIndex = index !== undefined;
+    var value = this.getValue(ch, hasIndex, hasIndex);
+    var attrs = undefined;
+
+    if (value === undefined) {
+      if (ch === '>') {
+        throw this.error('Expected ">"');
+      }
+      attrs = this.getAttributes();
+    } else {
+      var ws1 = this.getRequiredWS();
+      if (this._source[this._index] !== '>') {
+        if (!ws1) {
+          throw this.error('Expected ">"');
+        }
+        attrs = this.getAttributes();
+      }
+    }
+
+    ++this._index;
+
+    if (id in this.entries) {
+      throw this.error('Duplicate entry ID "' + id, 'duplicateerror');
+    }
+    if (!attrs && !index && typeof value === 'string') {
+      this.entries[id] = value;
+    } else {
+      this.entries[id] = {
+        value: value,
+        attrs: attrs,
+        index: index
+      };
+    }
+  },
+
+  getValue: function () {
+    var ch = arguments.length <= 0 || arguments[0] === undefined ? this._source[this._index] : arguments[0];
+    var index = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+    var required = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
+    switch (ch) {
+      case '\'':
+      case '"':
+        return this.getString(ch, 1);
+      case '{':
+        return this.getHash(index);
+    }
+
+    if (required) {
+      throw this.error('Unknown value type');
+    }
+
+    return undefined;
+  },
+
+  getWS: function () {
+    var cc = this._source.charCodeAt(this._index);
+
+    while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
+      cc = this._source.charCodeAt(++this._index);
+    }
+  },
+
+  getRequiredWS: function () {
+    var pos = this._index;
+    var cc = this._source.charCodeAt(pos);
+
+    while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
+      cc = this._source.charCodeAt(++this._index);
+    }
+    return this._index !== pos;
+  },
+
+  getIdentifier: function () {
+    var start = this._index;
+    var cc = this._source.charCodeAt(this._index);
+
+    if (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc === 95) {
+      cc = this._source.charCodeAt(++this._index);
+    } else {
+      throw this.error('Identifier has to start with [a-zA-Z_]');
+    }
+
+    while (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc >= 48 && cc <= 57 || cc === 95) {
+      cc = this._source.charCodeAt(++this._index);
+    }
+
+    return this._source.slice(start, this._index);
+  },
+
+  getUnicodeChar: function () {
+    for (var i = 0; i < 4; i++) {
+      var cc = this._source.charCodeAt(++this._index);
+      if (cc > 96 && cc < 103 || cc > 64 && cc < 71 || cc > 47 && cc < 58) {
+        continue;
+      }
+      throw this.error('Illegal unicode escape sequence');
+    }
+    this._index++;
+    return String.fromCharCode(parseInt(this._source.slice(this._index - 4, this._index), 16));
+  },
+
+  stringRe: /"|'|{{|\\/g,
+  getString: function (opchar, opcharLen) {
+    var body = [];
+    var placeables = 0;
+
+    this._index += opcharLen;
+    var start = this._index;
+
+    var bufStart = start;
+    var buf = '';
+
+    while (true) {
+      this.stringRe.lastIndex = this._index;
+      var match = this.stringRe.exec(this._source);
+
+      if (!match) {
+        throw this.error('Unclosed string literal');
+      }
+
+      if (match[0] === '"' || match[0] === '\'') {
+        if (match[0] !== opchar) {
+          this._index += opcharLen;
+          continue;
+        }
+        this._index = match.index + opcharLen;
+        break;
+      }
+
+      if (match[0] === '{{') {
+        if (placeables > MAX_PLACEABLES$1 - 1) {
+          throw this.error('Too many placeables, maximum allowed is ' + MAX_PLACEABLES$1);
+        }
+        placeables++;
+        if (match.index > bufStart || buf.length > 0) {
+          body.push(buf + this._source.slice(bufStart, match.index));
+          buf = '';
+        }
+        this._index = match.index + 2;
+        this.getWS();
+        body.push(this.getExpression());
+        this.getWS();
+        this._index += 2;
+        bufStart = this._index;
+        continue;
+      }
+
+      if (match[0] === '\\') {
+        this._index = match.index + 1;
+        var ch2 = this._source[this._index];
+        if (ch2 === 'u') {
+          buf += this._source.slice(bufStart, match.index) + this.getUnicodeChar();
+        } else if (ch2 === opchar || ch2 === '\\') {
+          buf += this._source.slice(bufStart, match.index) + ch2;
+          this._index++;
+        } else if (this._source.startsWith('{{', this._index)) {
+          buf += this._source.slice(bufStart, match.index) + '{{';
+          this._index += 2;
+        } else {
+          throw this.error('Illegal escape sequence');
+        }
+        bufStart = this._index;
+      }
+    }
+
+    if (body.length === 0) {
+      return buf + this._source.slice(bufStart, this._index - opcharLen);
+    }
+
+    if (this._index - opcharLen > bufStart || buf.length > 0) {
+      body.push(buf + this._source.slice(bufStart, this._index - opcharLen));
+    }
+
+    return body;
+  },
+
+  getAttributes: function () {
+    var attrs = Object.create(null);
+
+    while (true) {
+      this.getAttribute(attrs);
+      var ws1 = this.getRequiredWS();
+      var ch = this._source.charAt(this._index);
+      if (ch === '>') {
+        break;
+      } else if (!ws1) {
+        throw this.error('Expected ">"');
+      }
+    }
+    return attrs;
+  },
+
+  getAttribute: function (attrs) {
+    var key = this.getIdentifier();
+    var index = undefined;
+
+    if (this._source[this._index] === '[') {
+      ++this._index;
+      this.getWS();
+      index = this.getItemList(this.getExpression, ']');
+    }
+    this.getWS();
+    if (this._source[this._index] !== ':') {
+      throw this.error('Expected ":"');
+    }
+    ++this._index;
+    this.getWS();
+    var hasIndex = index !== undefined;
+    var value = this.getValue(undefined, hasIndex);
+
+    if (key in attrs) {
+      throw this.error('Duplicate attribute "' + key, 'duplicateerror');
+    }
+
+    if (!index && typeof value === 'string') {
+      attrs[key] = value;
+    } else {
+      attrs[key] = {
+        value: value,
+        index: index
+      };
+    }
+  },
+
+  getHash: function (index) {
+    var items = Object.create(null);
+
+    ++this._index;
+    this.getWS();
+
+    var defKey = undefined;
+
+    while (true) {
+      var _getHashItem = this.getHashItem();
+
+      var key = _getHashItem[0];
+      var value = _getHashItem[1];
+      var def = _getHashItem[2];
+
+      items[key] = value;
+
+      if (def) {
+        if (defKey) {
+          throw this.error('Default item redefinition forbidden');
+        }
+        defKey = key;
+      }
+      this.getWS();
+
+      var comma = this._source[this._index] === ',';
+      if (comma) {
+        ++this._index;
+        this.getWS();
+      }
+      if (this._source[this._index] === '}') {
+        ++this._index;
+        break;
+      }
+      if (!comma) {
+        throw this.error('Expected "}"');
+      }
+    }
+
+    if (defKey) {
+      items.__default = defKey;
+    } else if (!index) {
+      throw this.error('Unresolvable Hash Value');
+    }
+
+    return items;
+  },
+
+  getHashItem: function () {
+    var defItem = false;
+    if (this._source[this._index] === '*') {
+      ++this._index;
+      defItem = true;
+    }
+
+    var key = this.getIdentifier();
+    this.getWS();
+    if (this._source[this._index] !== ':') {
+      throw this.error('Expected ":"');
+    }
+    ++this._index;
+    this.getWS();
+
+    return [key, this.getValue(), defItem];
+  },
+
+  getComment: function () {
+    this._index += 2;
+    var start = this._index;
+    var end = this._source.indexOf('*/', start);
+
+    if (end === -1) {
+      throw this.error('Comment without a closing tag');
+    }
+
+    this._index = end + 2;
+  },
+
+  getExpression: function () {
+    var exp = this.getPrimaryExpression();
+
+    while (true) {
+      var ch = this._source[this._index];
+      if (ch === '.' || ch === '[') {
+        ++this._index;
+        exp = this.getPropertyExpression(exp, ch === '[');
+      } else if (ch === '(') {
+        ++this._index;
+        exp = this.getCallExpression(exp);
+      } else {
+        break;
+      }
+    }
+
+    return exp;
+  },
+
+  getPropertyExpression: function (idref, computed) {
+    var exp = undefined;
+
+    if (computed) {
+      this.getWS();
+      exp = this.getExpression();
+      this.getWS();
+      if (this._source[this._index] !== ']') {
+        throw this.error('Expected "]"');
+      }
+      ++this._index;
+    } else {
+      exp = this.getIdentifier();
+    }
+
+    return {
+      type: 'prop',
+      expr: idref,
+      prop: exp,
+      cmpt: computed
+    };
+  },
+
+  getCallExpression: function (callee) {
+    this.getWS();
+
+    return {
+      type: 'call',
+      expr: callee,
+      args: this.getItemList(this.getExpression, ')')
+    };
+  },
+
+  getPrimaryExpression: function () {
+    var ch = this._source[this._index];
+
+    switch (ch) {
+      case '$':
+        ++this._index;
+        return {
+          type: 'var',
+          name: this.getIdentifier()
+        };
+      case '@':
+        ++this._index;
+        return {
+          type: 'glob',
+          name: this.getIdentifier()
+        };
+      default:
+        return {
+          type: 'id',
+          name: this.getIdentifier()
+        };
+    }
+  },
+
+  getItemList: function (callback, closeChar) {
+    var items = [];
+    var closed = false;
+
+    this.getWS();
+
+    if (this._source[this._index] === closeChar) {
+      ++this._index;
+      closed = true;
+    }
+
+    while (!closed) {
+      items.push(callback.call(this));
+      this.getWS();
+      var ch = this._source.charAt(this._index);
+      switch (ch) {
+        case ',':
+          ++this._index;
+          this.getWS();
+          break;
+        case closeChar:
+          ++this._index;
+          closed = true;
+          break;
+        default:
+          throw this.error('Expected "," or "' + closeChar + '"');
+      }
+    }
+
+    return items;
+  },
+
+  getJunkEntry: function () {
+    var pos = this._index;
+    var nextEntity = this._source.indexOf('<', pos);
+    var nextComment = this._source.indexOf('/*', pos);
+
+    if (nextEntity === -1) {
+      nextEntity = this._length;
+    }
+    if (nextComment === -1) {
+      nextComment = this._length;
+    }
+
+    var nextEntry = Math.min(nextEntity, nextComment);
+
+    this._index = nextEntry;
+  },
+
+  error: function (message) {
+    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
+
+    var pos = this._index;
+
+    var start = this._source.lastIndexOf('<', pos - 1);
+    var lastClose = this._source.lastIndexOf('>', pos - 1);
+    start = lastClose > start ? lastClose + 1 : start;
+    var context = this._source.slice(start, pos + 10);
+
+    var msg = message + ' at pos ' + pos + ': `' + context + '`';
+    var err = new L10nError(msg);
+    if (this.emit) {
+      this.emit(type, err);
+    }
+    return err;
+  }
+};
+
+function emit(listeners) {
+  var _this7 = this;
+
+  for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    args[_key3 - 1] = arguments[_key3];
   }
 
   var type = args.shift();
 
   if (listeners['*']) {
     listeners['*'].slice().forEach(function (listener) {
-      return listener.apply(_this5, args);
+      return listener.apply(_this7, args);
     });
   }
 
   if (listeners[type]) {
     listeners[type].slice().forEach(function (listener) {
-      return listener.apply(_this5, args);
+      return listener.apply(_this7, args);
     });
   }
 }
@@ -1682,20 +1716,19 @@ function removeEventListener(listeners, type, listener) {
   typeListeners.splice(pos, 1);
 }
 
-var parsers = {
-  properties: PropertiesParser,
-  l20n: L20nParser
-};
-
 var Env = (function () {
-  function Env(defaultLang, fetchResource) {
+  function Env(fetchResource) {
     _classCallCheck(this, Env);
 
-    this.defaultLang = defaultLang;
     this.fetchResource = fetchResource;
 
-    this._resLists = new Map();
-    this._resCache = new Map();
+    this.resCache = new Map();
+    this.resRefs = new Map();
+    this.numberFormatters = null;
+    this.parsers = {
+      properties: PropertiesParser,
+      l20n: L20nParser
+    };
 
     var listeners = {};
     this.emit = emit.bind(this, listeners);
@@ -1703,36 +1736,47 @@ var Env = (function () {
     this.removeEventListener = removeEventListener.bind(this, listeners);
   }
 
-  Env.prototype.createContext = function createContext(resIds) {
-    var ctx = new Context(this);
-    this._resLists.set(ctx, new Set(resIds));
+  Env.prototype.createContext = function createContext(langs, resIds) {
+    var _this8 = this;
+
+    var ctx = new Context(this, langs, resIds);
+    resIds.forEach(function (resId) {
+      var usedBy = _this8.resRefs.get(resId) || 0;
+      _this8.resRefs.set(resId, usedBy + 1);
+    });
+
     return ctx;
   };
 
   Env.prototype.destroyContext = function destroyContext(ctx) {
-    var _this6 = this;
+    var _this9 = this;
 
-    var lists = this._resLists;
-    var resList = lists.get(ctx);
+    ctx.resIds.forEach(function (resId) {
+      var usedBy = _this9.resRefs.get(resId) || 0;
 
-    lists.delete(ctx);
-    resList.forEach(function (resId) {
-      return deleteIfOrphan(_this6._resCache, lists, resId);
+      if (usedBy > 1) {
+        return _this9.resRefs.set(resId, usedBy - 1);
+      }
+
+      _this9.resRefs.delete(resId);
+      _this9.resCache.forEach(function (val, key) {
+        return key.startsWith(resId) ? _this9.resCache.delete(key) : null;
+      });
     });
   };
 
   Env.prototype._parse = function _parse(syntax, lang, data) {
-    var _this7 = this;
+    var _this10 = this;
 
-    var parser = parsers[syntax];
+    var parser = this.parsers[syntax];
     if (!parser) {
       return data;
     }
 
-    var emit = function (type, err) {
-      return _this7.emit(type, amendError$1(lang, err));
+    var emitAndAmend = function (type, err) {
+      return _this10.emit(type, amendError$1(lang, err));
     };
-    return parser.parse.call(parser, emit, data);
+    return parser.parse(emitAndAmend, data);
   };
 
   Env.prototype._create = function _create(lang, entries) {
@@ -1742,15 +1786,15 @@ var Env = (function () {
 
     var pseudoentries = Object.create(null);
     for (var key in entries) {
-      pseudoentries[key] = walkEntry(entries[key], pseudo$1[lang.code].process);
+      pseudoentries[key] = walkEntry(entries[key], pseudo[lang.code].process);
     }
     return pseudoentries;
   };
 
   Env.prototype._getResource = function _getResource(lang, res) {
-    var _this8 = this;
+    var _this11 = this;
 
-    var cache = this._resCache;
+    var cache = this.resCache;
     var id = res + lang.code + lang.src;
 
     if (cache.has(id)) {
@@ -1760,17 +1804,17 @@ var Env = (function () {
     var syntax = res.substr(res.lastIndexOf('.') + 1);
 
     var saveEntries = function (data) {
-      var entries = _this8._parse(syntax, lang, data);
-      cache.set(id, _this8._create(lang, entries));
+      var entries = _this11._parse(syntax, lang, data);
+      cache.set(id, _this11._create(lang, entries));
     };
 
     var recover = function (err) {
       err.lang = lang;
-      _this8.emit('fetcherror', err);
+      _this11.emit('fetcherror', err);
       cache.set(id, err);
     };
 
-    var langToFetch = lang.src === 'pseudo' ? { code: this.defaultLang, src: 'app' } : lang;
+    var langToFetch = lang.src === 'pseudo' ? { code: 'en-US', src: 'app', ver: lang.ver } : lang;
 
     var resource = this.fetchResource(res, langToFetch).then(saveEntries, recover);
 
@@ -1781,20 +1825,6 @@ var Env = (function () {
 
   return Env;
 })();
-
-function deleteIfOrphan(cache, lists, resId) {
-  var isNeeded = Array.from(lists).some(function (_ref3) {
-    var ctx = _ref3[0];
-    var resIds = _ref3[1];
-    return resIds.has(resId);
-  });
-
-  if (!isNeeded) {
-    cache.forEach(function (val, key) {
-      return key.startsWith(resId) ? cache.delete(key) : null;
-    });
-  }
-}
 
 function amendError$1(lang, err) {
   err.lang = lang;
@@ -1998,8 +2028,8 @@ function resolveValue(locals, ctx, lang, args, expr, index) {
   throw new L10nError('Unresolvable value');
 }
 
-function LegacyContext(env) {
-  Context.call(this, env);
+function LegacyContext(env, langs, resIds) {
+  Context.call(this, env, langs, resIds);
 }
 
 LegacyContext.prototype = Object.create(Context.prototype);
@@ -2010,7 +2040,7 @@ LegacyContext.prototype._formatTuple = function (lang, args, entity, id, key) {
   } catch (err) {
     err.id = key ? id + '::' + key : id;
     err.lang = lang;
-    this._env.emit('resolveerror', err, this);
+    this.env.emit('resolveerror', err, this);
     return [{ error: err }, err.id];
   }
 };
@@ -2074,7 +2104,8 @@ var PropertiesParser$1 = {
   },
 
   parseEntity: function (id, value, ast) {
-    var name, key;
+    var name = undefined,
+        key = undefined;
 
     var pos = id.indexOf('[');
     if (pos !== -1) {
@@ -2091,7 +2122,7 @@ var PropertiesParser$1 = {
       throw new L10nError('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
     }
 
-    var attr;
+    var attr = undefined;
     if (nameElements.length > 1) {
       name = nameElements[0];
       attr = nameElements[1];
@@ -2107,7 +2138,8 @@ var PropertiesParser$1 = {
   },
 
   setEntityValue: function (id, attr, key, rawValue, ast) {
-    var pos, v;
+    var pos = undefined,
+        v = undefined;
 
     var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
 
@@ -2228,25 +2260,17 @@ function walkContent(node, fn) {
   return rv;
 }
 
-function LegacyEnv(defaultLang, fetchResource) {
-  Env.call(this, defaultLang, fetchResource);
+function LegacyEnv(fetchResource) {
+  Env.call(this, fetchResource);
+  this.parsers = {
+    properties: PropertiesParser$1
+  };
 }
 
 LegacyEnv.prototype = Object.create(Env.prototype);
 
-LegacyEnv.prototype.createContext = function (resIds) {
-  var ctx = new LegacyContext(this);
-  this._resLists.set(ctx, new Set(resIds));
-  return ctx;
-};
-
-LegacyEnv.prototype._parse = function (syntax, lang, data) {
-  var _this9 = this;
-
-  var emit = function (type, err) {
-    return _this9.emit(type, amendError$1(lang, err));
-  };
-  return PropertiesParser$1.parse.call(PropertiesParser$1, emit, data);
+LegacyEnv.prototype.createContext = function (langs, resIds) {
+  return new LegacyContext(this, langs, resIds);
 };
 
 LegacyEnv.prototype._create = function (lang, ast) {
@@ -2265,7 +2289,40 @@ LegacyEnv.prototype._create = function (lang, ast) {
 };
 
 function createPseudoEntry(node, lang) {
-  return createEntry(walkContent(node, pseudo$1[lang.code].process));
+  return createEntry(walkContent(node, pseudo[lang.code].process));
+}
+
+var observerConfig = {
+  attributes: true,
+  characterData: false,
+  childList: true,
+  subtree: true,
+  attributeFilter: ['data-l10n-id', 'data-l10n-args']
+};
+
+var observers = new WeakMap();
+
+function disconnect(view, root, allRoots) {
+  var obs = observers.get(view);
+  if (obs) {
+    obs.observer.disconnect();
+    if (allRoots) {
+      return;
+    }
+    obs.roots.delete(root);
+    obs.roots.forEach(function (other) {
+      return obs.observer.observe(other, observerConfig);
+    });
+  }
+}
+
+function reconnect(view) {
+  var obs = observers.get(view);
+  if (obs) {
+    obs.roots.forEach(function (root) {
+      return obs.observer.observe(root, observerConfig);
+    });
+  }
 }
 
 var reOverlay = /<|&#?\w+;/;
@@ -2425,12 +2482,6 @@ var htmlEntities = {
   '>': '&gt;'
 };
 
-function getResourceLinks(head) {
-  return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), function (el) {
-    return el.getAttribute('href');
-  });
-}
-
 function getTranslatables(element) {
   var nodes = Array.from(element.querySelectorAll('[data-l10n-id]'));
 
@@ -2441,11 +2492,11 @@ function getTranslatables(element) {
   return nodes;
 }
 
-function translateFragment(view, langs, frag) {
-  return translateElements(view, langs, getTranslatables(frag));
+function translateFragment(view, frag) {
+  return translateElements(view, getTranslatables(frag));
 }
 
-function getElementsTranslation(view, langs, elems) {
+function getElementsTranslation(view, elems) {
   var keys = elems.map(function (elem) {
     var id = elem.getAttribute('data-l10n-id');
     var args = elem.getAttribute('data-l10n-args');
@@ -2454,36 +2505,33 @@ function getElementsTranslation(view, langs, elems) {
     }))] : id;
   });
 
-  return view._resolveEntities(langs, keys);
+  return view.formatEntities.apply(view, keys);
 }
 
-function translateElements(view, langs, elements) {
-  return getElementsTranslation(view, langs, elements).then(function (translations) {
+function translateElements(view, elements) {
+  return getElementsTranslation(view, elements).then(function (translations) {
     return applyTranslations(view, elements, translations);
   });
 }
 
 function applyTranslations(view, elems, translations) {
-  view._disconnect();
+  disconnect(view, null, true);
   for (var i = 0; i < elems.length; i++) {
     overlayElement(elems[i], translations[i]);
   }
-  view._observe();
+  reconnect(view);
 }
 
-if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
-  NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
+function getResourceLinks(head) {
+  return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), function (el) {
+    return el.getAttribute('href');
+  });
 }
 
-function getDirection(code) {
-  var tag = code.split('-')[0];
-  return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ? 'rtl' : 'ltr';
-}
-
-function serializeContext(ctx, lang) {
-  var cache = ctx._env._resCache;
-  var resIds = Array.from(ctx._env._resLists.get(ctx));
-  return resIds.reduceRight(function (_ref5, cur) {
+function serializeContext(ctx) {
+  var lang = ctx.langs[0];
+  var cache = ctx.env.resCache;
+  return ctx.resIds.reduceRight(function (_ref5, cur) {
     var errorsSeq = _ref5[0];
     var entriesSeq = _ref5[1];
 
@@ -2508,13 +2556,13 @@ function serializeEntries(lang, langEntries, sourceEntries) {
     var langEntry = langEntries[id];
 
     if (!langEntry) {
-      errors.push(new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang));
+      errors.push(new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
       entries[id] = sourceEntry;
       continue;
     }
 
     if (!areEntityStructsEqual(sourceEntry, langEntry)) {
-      errors.push(new L10nError('"' + id + '"' + ' is malformed in ' + lang.code, id, lang));
+      errors.push(new L10nError('"' + id + '" is malformed in ' + lang.code, id, lang));
       entries[id] = sourceEntry;
       continue;
     }
@@ -2558,10 +2606,10 @@ function areEntityStructsEqual(source, translation) {
   return true;
 }
 
-function serializeLegacyContext(ctx, lang) {
-  var cache = ctx._env._resCache;
-  var resIds = Array.from(ctx._env._resLists.get(ctx));
-  return resIds.reduce(function (_ref6, cur) {
+function serializeLegacyContext(ctx) {
+  var lang = ctx.langs[0];
+  var cache = ctx.env.resCache;
+  return ctx.resIds.reduce(function (_ref6, cur) {
     var errorsSeq = _ref6[0];
     var entriesSeq = _ref6[1];
 
@@ -2584,12 +2632,12 @@ function serializeEntries$1(lang, langEntries, sourceEntries) {
     var langEntry = langEntries[id];
 
     if (!langEntry) {
-      errors.push(new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang));
+      errors.push(new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
       return serializeEntry(sourceEntry, id);
     }
 
     if (!areEntityStructsEqual$1(sourceEntry, langEntry)) {
-      errors.push(new L10nError('"' + id + '"' + ' is malformed in ' + lang.code, id, lang));
+      errors.push(new L10nError('"' + id + '" is malformed in ' + lang.code, id, lang));
       return serializeEntry(sourceEntry, id);
     }
 
@@ -2680,14 +2728,15 @@ var View = (function () {
 
     this.htmloptimizer = htmloptimizer;
     this.doc = htmloptimizer.document;
+    this.resLinks = getResourceLinks(this.doc.head);
 
     this.isEnabled = this.doc.querySelector('link[rel="localization"]');
 
     this.isLegacy = !this.doc.querySelector('script[src*="l20n"]');
 
     var EnvClass = this.isLegacy ? LegacyEnv : Env;
-    this.env = new EnvClass(htmloptimizer.config.GAIA_DEFAULT_LOCALE, fetchResource);
-    this.ctx = this.env.createContext(getResourceLinks(this.doc.head));
+    this.env = new EnvClass(fetchResource);
+    this.sourceCtx = this.env.createContext([{ code: 'en-US', src: 'app' }], this.resLinks);
 
     this.env.addEventListener('*', amendError.bind(this));
 
@@ -2708,37 +2757,35 @@ var View = (function () {
     }
   }
 
-  View.prototype._observe = function _observe() {};
+  View.prototype.formatEntities = function formatEntities() {
+    var _ctx;
 
-  View.prototype._disconnect = function _disconnect() {};
-
-  View.prototype._resolveEntities = function _resolveEntities(langs, keys) {
-    return this.ctx.resolveEntities(langs, keys);
+    return (_ctx = this.ctx).formatEntities.apply(_ctx, arguments);
   };
 
   View.prototype.translateDocument = function translateDocument(code) {
-    var _this10 = this;
+    var _this12 = this;
 
     var dir = getDirection(code);
-    var langs = [{ code: code, src: 'app' }];
+    var langs = [{ code: code, src: 'app' }, { code: 'en-US', src: 'app' }];
     var setDocLang = function () {
-      _this10.doc.documentElement.lang = code;
-      _this10.doc.documentElement.dir = dir;
+      _this12.doc.documentElement.lang = code;
+      _this12.doc.documentElement.dir = dir;
     };
-    return this.ctx.fetch(langs).then(function (langs) {
-      return translateFragment(_this10, langs, _this10.doc.documentElement);
-    }).then(setDocLang);
+
+    var ctx = this.env.createContext(langs, getResourceLinks(this.doc.head));
+    return translateFragment(ctx, this.doc.documentElement).then(setDocLang);
   };
 
   View.prototype.serializeResources = function serializeResources(code) {
-    var _this11 = this;
+    var _this13 = this;
 
-    var lang = {
-      code: code,
-      src: code in pseudo$1 ? 'pseudo' : 'app'
-    };
-    return fetchContext(this.ctx, lang).then(function () {
-      var _ref7 = _this11.isLegacy ? serializeLegacyContext(_this11.ctx, lang) : serializeContext(_this11.ctx, lang);
+    var langCtx = this.env.createContext([{ code: code, src: code in pseudo ? 'pseudo' : 'app' }], this.resLinks);
+
+    return Promise.all([this.sourceCtx, langCtx].map(function (ctx) {
+      return ctx.fetch();
+    })).then(function () {
+      var _ref7 = _this13.isLegacy ? serializeLegacyContext(langCtx) : serializeContext(langCtx);
 
       var errors = _ref7[0];
       var entries = _ref7[1];
@@ -2756,10 +2803,10 @@ var View = (function () {
         });
 
         if (notFoundErrors.length) {
-          _this11.htmloptimizer.dump('[l10n] [' + lang.code + ']: ' + notFoundErrors.length + ' missing compared to en-US: ' + notFoundErrors.join(', '));
+          _this13.htmloptimizer.dump('[l10n] [' + code + ']: ' + notFoundErrors.length + ' missing compared to en-US: ' + notFoundErrors.join(', '));
         }
         if (malformedErrors.length) {
-          _this11.htmloptimizer.dump('[l10n] [' + lang.code + ']: ' + malformedErrors.length + ' malformed compared to en-US: ' + malformedErrors.join(', '));
+          _this13.htmloptimizer.dump('[l10n] [' + code + ']: ' + malformedErrors.length + ' malformed compared to en-US: ' + malformedErrors.join(', '));
         }
       }
 
@@ -2791,17 +2838,15 @@ function stopBuild(err) {
   }
 }
 
-function fetchContext(ctx, lang) {
-  var sourceLang = { code: 'en-US', src: 'app' };
-  return Promise.all([sourceLang, lang].map(function (lang) {
-    return ctx.fetch([lang]);
-  }));
+function getDirection(code) {
+  var tag = code.split('-')[0];
+  return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ? 'rtl' : 'ltr';
 }
 
 function getView(htmloptimizer) {
   var htmlFetch = function () {
-    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
+    for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+      args[_key4] = arguments[_key4];
     }
 
     return fetchResource.apply(undefined, [htmloptimizer].concat(args));
@@ -2810,5 +2855,5 @@ function getView(htmloptimizer) {
 }
 
 exports.getView = getView;
-exports.pseudo = pseudo$1;
-exports.walkValue = walkValue$1;
+exports.pseudo = pseudo;
+exports.walkValue = walkValue;

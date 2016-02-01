@@ -25,7 +25,7 @@
     "tag": "v0.1.1",
     "commit": "f5195ba8fe78c2a4f421b26caf431f385fa6b61d"
   },
-  "_source": "git://github.com/gaia-components/attach.git",
-  "_target": "~0.1.1",
-  "_originalSource": "gaia-components/attach"
+  "_source": "git://github.com/fxos-components/attach.git",
+  "_target": "0.1.1",
+  "_originalSource": "fxos-components/attach"
 }

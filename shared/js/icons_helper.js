@@ -174,10 +174,10 @@
             .then(iconBlob => {
               icon.icon = iconBlob;
               return Promise.resolve();
-            }, Promise.reject);
+            }, Promise.reject.bind(Promise)); // XXXbz Why second arg?
         }
         return Promise.reject('No icon data found');
-      }, Promise.reject);
+      }, Promise.reject.bind(Promise));  // XXXbz Why bother with second arg?
   }
 
   function getBestIconFromWebManifest(webManifest, iconSize) {
@@ -265,7 +265,8 @@
         iconURL = uri;
         bestSize = nearestSize;
       }
-      if (potentialIcon.rel === 'apple-touch-icon') {
+      if (potentialIcon.rel === 'apple-touch-icon' ||
+          potentialIcon.rel === 'apple-touch-icon-precomposed') {
         var moreInfoUrl = 'https://developer.mozilla.org/en-US/' +
           'Apps/Build/Icon_implementation_for_apps#General_icons_for_web_apps';
         console.warn('Warning: The apple-touch icons are being used ' +

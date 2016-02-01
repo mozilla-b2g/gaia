@@ -22,6 +22,7 @@ InputApp.prototype.getInputs = function() {
   var inputId;
   for (inputId in this.domApp.manifest.inputs) {
     dict[inputId] = this.domApp.manifest.inputs[inputId];
+    delete dict[inputId].nameL10nId;
   }
   for (inputId in this.dynamicInputs) {
     if (inputId in dict) {
@@ -31,6 +32,15 @@ InputApp.prototype.getInputs = function() {
 
     dict[inputId] = this.dynamicInputs[inputId];
     dict[inputId].isDynamic = true;
+  }
+
+  // Special case: we'll need to localize the one and only layout label
+  // "Emoji"; all other layouts are named in their native scripts so require
+  // no localization.
+  if (this.domApp.manifest.type === 'certified') {
+    if ('emoji' in dict) {
+      dict.emoji.nameL10nId = 'keyboard-layout-emoji';
+    }
   }
 
   return dict;

@@ -6,11 +6,11 @@
   var Exception = ns.require('error');
   var message = ns.require('./message');
 
-  var DEFAULT_SCRIPT_TIMEOUT = 20000;
-  var DEFAULT_SEARCH_TIMEOUT = 20000;
+  var DEFAULT_SCRIPT_TIMEOUT = 60000;
+  var DEFAULT_SEARCH_TIMEOUT = 60000;
 
   var DEFAULT_WAIT_FOR_INTERVAL = 100;
-  var DEFAULT_WAIT_FOR_TIMEOUT = 20000;
+  var DEFAULT_WAIT_FOR_TIMEOUT = 60000;
 
   var SCOPE_TO_METHOD = Object.freeze({
     scriptTimeout: 'setScriptTimeout',
@@ -143,7 +143,7 @@
     CONTENT: 'content',
 
     /**
-     * Object of hoooks.
+     * Object of hooks.
      *
      *    {
      *      hookName: [hook1, hook2]
@@ -549,6 +549,7 @@
      *     unto the callback, will return the full object if undefined
      */
     _sendCommand: function(body, cb, key) {
+      assert(!!this.driver, body.name + ' called on client w/o driver!');
       try {
         return this.send(body, function(data) {
           var res, err;
@@ -1266,23 +1267,26 @@
      * @return {Object} self.
      */
     executeJsScript: function executeJsScript(script, args, timeout, callback) {
-      if (typeof(timeout) === 'function') {
+      if (typeof timeout === 'function') {
         callback = timeout;
         timeout = null;
       }
-      if (typeof(args) === 'function') {
+      if (typeof args === 'function') {
         callback = args;
         args = null;
       }
 
       timeout = (typeof(timeout) === 'boolean') ? timeout : true;
 
+      // the simpletest sandbox exposes
+      // necessary assertion functions in the global scope
       return this._executeScript({
         name: 'executeJSScript',
         parameters: {
           script: script,
           timeout: timeout,
-          args: args
+          args: args,
+          sandbox: 'simpletest',
         }
       }, callback || this.defaultCallback);
     },
@@ -1322,30 +1326,39 @@
      *
      * @method executeScript
      * @chainable
-     * @param {String} script to run.
-     * @param {Array} [args] optional args for script.
-     * @param {Function} callback will receive result of the return \
-     *                            call in the script if there is one.
-     * @param {String} optional sandbox is a tag referring to the sandbox you
-     *                 wish to use; if you specify a new tag, a new sandbox
-     *                 will be created. If you use the special tag 'system',
-     *                 the sandbox will be created using the system principal
-     *                 which has elevated privileges.
-     * @return {Object} self.
+
+     * @param {string} script
+     *     The script to evaluate.
+     * @param {Array.<?>} args
+     *     Optional args for script that will  be available as
+     *     {@code arguments} in the scope the script runs in.
+     * @param {function} callback
+     *     The callback will receive result of the return call in the
+     *     script if there is one.
+     * @param {string} sandbox
+     *     Name of the sandbox to evaluate the script in.  If undefined,
+     *     the default sandbox will be used.  If you specify "system",
+     *     the sandbox will have the system principal which gives
+     *     elevated privileges.
+     *
+     * @return {Marionette}
+     *     Reference to self.
      */
     executeScript: function executeScript(script, args, callback, sandbox) {
-      if (typeof(args) === 'function') {
+      if (typeof args === 'function') {
         callback = args;
         args = null;
       }
-      if (typeof(sandbox) === 'undefined')
+      if (typeof sandbox === 'undefined') {
         sandbox = 'default';
+      }
+
       return this._executeScript({
         name: 'executeScript',
         parameters: {
           script: script,
           args: args,
-          sandbox: sandbox
+          sandbox: sandbox,
         }
       }, callback || this.defaultCallback);
     },
@@ -1371,22 +1384,39 @@
      *
      * @method executeAsyncScript
      * @chainable
-     * @param {String} script script to run.
-     * @param {Array} [args] optional args for script.
-     * @param {Function} callback will receive result of the return \
-     *                            call in the script if there is one.
-     * @return {Object} self.
+     *
+     * @param {string} script
+     *     The script to evaluate.
+     * @param {Array.<?>} args
+     *     Optional args for script that will  be available as
+     *     {@code arguments} in the scope the script runs in.
+     * @param {function} callback
+     *     The callback will receive result of the return call in the
+     *     script if there is one.
+     * @param {string} sandbox
+     *     Name of the sandbox to evaluate the script in.  If undefined,
+     *     the default sandbox will be used.  If you specify "system",
+     *     the sandbox will have the system principal which gives
+     *     elevated privileges.
+     *
+     * @return {Marionette}
+     *     Reference to self.
      */
-    executeAsyncScript: function executeAsyncScript(script, args, callback) {
-      if (typeof(args) === 'function') {
+    executeAsyncScript: function(script, args, callback, sandbox) {
+      if (typeof args === 'function') {
         callback = args;
         args = null;
       }
+      if (typeof sandbox === 'undefined') {
+        sandbox = 'default';
+      }
+
       return this._executeScript({
         name: 'executeAsyncScript',
         parameters: {
           script: script,
-          args: args
+          args: args,
+          sandbox: sandbox,
         }
       }, callback || this.defaultCallback);
     },

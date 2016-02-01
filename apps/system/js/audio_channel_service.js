@@ -47,7 +47,7 @@
       this._audioChannelWeights = new Map([
         ['none', 0], ['system', 1], ['normal', 2], ['content', 3],
         ['alarm', 4], ['ringer', 5], ['telephony', 6],
-        ['notification', 7], ['publicNotification', 8]
+        ['notification', 7], ['publicnotification', 8]
       ]);
       this._interruptedAudioChannels = [];
       this._muteSystemAudioChannels();
@@ -134,8 +134,10 @@
     _resetAudioChannel: function(audioChannel) {
       audioChannel.setPolicy({ isAllowedToPlay: false });
       this._handleAudioChannel(audioChannel);
-      audioChannel.name === 'notification' &&
+      if (audioChannel.name === 'notification' ||
+          audioChannel.name === 'publicnotification') {
         this._fadeInFadedOutAudioChannels();
+      }
     },
 
     /**

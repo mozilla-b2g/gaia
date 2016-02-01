@@ -2,18 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
 from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
 
-from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
 
 class CardsView(PageRegion):
 
-    # Home/Cards view locators
     _root_locator = (By.ID, 'task-manager')
     _card_locator = (By.CSS_SELECTOR, '#cards-view .card')
     _cards_no_recent_windows_locator = (By.ID, 'cards-no-recent-windows')

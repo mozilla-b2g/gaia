@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint node: true */
-/* global dump */
+
 var utils = require('utils');
 var jsmin = require('jsmin');
 var preprocessor = require('preprocessor');
@@ -14,12 +14,11 @@ function hasGitCommand() {
       var cmd = utils.getFile(path, 'git');
       return cmd.exists();
     } catch (e) {
-      // path nout found
+      // path not found
     }
     return false;
   });
 }
-
 
 // FIXME: execute any command without shell does not work on build machine for
 // flame, so we need this workaround to fix this issue. please remove it if
@@ -89,26 +88,44 @@ SettingsAppBuilder.prototype.writeEuRoamingJSON = function(options) {
 };
 
 SettingsAppBuilder.prototype.executeRjs = function(options) {
-  var deferred = utils.Q.defer();
-
-  var configFile = utils.getFile(options.APP_DIR, 'build',
+  var appName = this.appName;
+  var config = utils.getFile(options.APP_DIR, 'build',
     'settings.build.jslike');
-  var r = require('r-wrapper').get(options.GAIA_DIR);
-  // Simply use r.js for merging scripts as it does not support es6 syntax.
-  // Minifying will be done by other tools later.
-  r.optimize([configFile.path, 'optimize=none'], function() {
-    dump('r.js optimize ok\n');
-    deferred.resolve();
-  }, function(err) {
-    dump('r.js optmize failed:\n');
-    dump(err + '\n');
-    deferred.resolve();
+  var rjsPath = utils.joinPath(options.GAIA_DIR, 'build', 'r.js');
+  var requirejs;
+
+  if (utils.isNode()) {
+    requirejs = require(rjsPath);
+  } else {
+    var sandbox = utils.createSandbox();
+    sandbox.arguments = [];
+    sandbox.requirejsAsLib = true;
+    sandbox.print = function() {
+      utils.log(appName, Array.prototype.join.call(arguments, ' '));
+    };
+    utils.runScriptInSandbox(rjsPath, sandbox);
+    requirejs = sandbox.requirejs;
+  }
+
+  // logLevel set 4 for silent, set 0 for all
+  var log = 'logLevel=' + (options.VERBOSE === '1' ? '0' : '4');
+  var optimize = 'optimize=none';
+  var build = new Promise(function(resolve, reject) {
+    requirejs.optimize([config.path, optimize, log], resolve, reject);
   });
 
-  return deferred.promise;
+  return build
+    .then(function() {
+      utils.log(appName, 'require.js optimize done');
+    })
+    .catch(function(err) {
+      utils.log(appName, 'require.js optimize failed');
+      utils.log(appName, err);
+    });
 };
 
 SettingsAppBuilder.prototype.executeJsmin = function(options) {
+  var appName = this.appName;
   if (options.GAIA_OPTIMIZE === '1') {
     utils.listFiles(options.STAGE_APP_DIR, utils.FILE_TYPE_FILE, true).forEach(
       function(filePath) {
@@ -118,7 +135,7 @@ SettingsAppBuilder.prototype.executeJsmin = function(options) {
             var content = utils.getFileContent(file);
             utils.writeContent(file, jsmin(content).code);
           } catch(e) {
-            utils.log('Error minifying content: ' + filePath);
+            utils.log(appName, 'Error minifying content: ' + filePath);
           }
         }
     });
@@ -126,13 +143,14 @@ SettingsAppBuilder.prototype.executeJsmin = function(options) {
 };
 
 SettingsAppBuilder.prototype.writeGitCommit = function(options) {
+  var appName = this.appName;
   var gitDir = utils.getFile(options.GAIA_DIR, '.git');
   var overrideCommitFile = utils.getFile(options.GAIA_DIR,
     'gaia_commit_override.txt');
   var commitFile = utils.getFile(options.STAGE_APP_DIR, 'resources');
   utils.ensureFolderExists(commitFile);
+  commitFile = utils.getFile(commitFile.path, 'gaia_commit.txt');
 
-  commitFile.append('gaia_commit.txt');
   if (overrideCommitFile.exists()) {
     utils.copyFileTo(overrideCommitFile, commitFile.parent.path,
       commitFile.leafName);
@@ -155,12 +173,12 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
         if (data.exitCode !== 0) {
           var errStr = 'Error writing git commit file!\n' + 'stderr: \n' +
             stderr + '\nstdout: ' + stdout;
-          utils.log('settings-app-build', errStr);
-          utils.log('settings-app-build', 'fallback to execute git by shell');
+          utils.log(appName, errStr);
+          utils.log(appName, 'fallback to execute git by shell');
           // FIXME: see comment on executeGitByShell()
           executeGitByShell(gitDir.path, commitFile.path);
         } else {
-          utils.log('settings-app-build', 'Writing git commit information ' +
+          utils.log(appName, 'Writing git commit information ' +
             'to: ' + commitFile.path);
           utils.writeContent(commitFile, stdout);
         }
@@ -196,6 +214,7 @@ SettingsAppBuilder.prototype.enableDataSync = function(options) {
 };
 
 SettingsAppBuilder.prototype.execute = function(options) {
+  this.appName = utils.basename(options.APP_DIR);
   this.writeGitCommit(options);
   this.writeDeviceFeaturesJSON(options);
   this.writeSupportsJSON(options);

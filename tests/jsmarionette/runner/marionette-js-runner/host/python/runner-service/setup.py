@@ -9,9 +9,9 @@ try:
 except ImportError:
     pass
 
-PACKAGE_VERSION = '0.3'
+PACKAGE_VERSION = '0.4'
 
-deps = ['mozrunner >= 6.6',
+deps = ['mozrunner >= 6.11',
         'mozprofile >= 0.21']
 
 setup(name='gaia-runner-service',

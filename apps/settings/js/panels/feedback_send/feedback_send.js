@@ -1,6 +1,7 @@
 define(function(require) {
   'use strict';
 
+  var DialogService = require('modules/dialog_service');
   var SettingsService = require('modules/settings_service');
   var SettingsCache = require('modules/settings_cache');
   require('shared/async_storage');
@@ -56,21 +57,6 @@ define(function(require) {
       this.elements.emailInput.value = data.email || '';
       this._showEmail = !data.emailEnable;
       this.enableEmail();
-    },
-
-    alertConfirm: function() {
-      this.elements.alertDialog.hidden = true;
-      this.elements.alertMsg.textContent = '';
-      this.elements.alertMsg.removeAttribute('data-l10n-id');
-    },
-
-    /**
-     * Once the data is sent successfully and user click 'ok' button,
-     * we'll go back to improveBrowserOS panel.
-     */
-    done: function() {
-      this._SettingsService.navigate('improveBrowserOS');
-      this.elements.doneDialog.hidden = true;
     },
 
     send: function() {
@@ -164,14 +150,35 @@ define(function(require) {
 
     _messageHandler: function(type) {
       if (type === 'success') {
-        this.elements.doneDialog.hidden = false;
+        this._openDoneDialog();
       } else {
         this.keepAllInputs();
-        this.elements.alertMsg.setAttribute('data-l10n-id',
-          'feedback-errormessage-' + type);
-        this.elements.alertDialog.hidden = false;
+        this._openAlertDialog(type);
       }
       this.elements.sendBtn.disabled = false;
+    },
+
+    _openAlertDialog: function(type) {
+      DialogService.alert({
+        id: 'feedback-errormessage-' + type
+      }, {
+        submitButton: { id: 'ok', style: 'full' }
+      });
+    },
+
+    /**
+     * Once the data is sent successfully and user click 'done' button,
+     * we'll go back to improveBrowserOS panel.
+     */
+    _openDoneDialog: function() {
+      DialogService.alert({
+        id: 'feedback-complete-msg'
+      }, {
+        title: 'sendFeedbackTitle',
+        submitButton: { id: 'done', style: 'full' }
+      }).then(function() {
+        this._SettingsService.navigate('improveBrowserOS');
+      }.bind(this));
     }
   };
   return function ctor_send_feedback() {

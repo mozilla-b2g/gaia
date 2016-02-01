@@ -1,9 +1,10 @@
-/* globals CallHandler, CallLogDBManager, ConfirmDialog, FontSizeManager,
+/* globals CallHandler, CallLogDBManager, CallScreen, ConfirmDialog,
+           CustomDialog, CustomElementsHelper, FontSizeManager,
            gTonesFrequencies, KeypadManager, MockCall, MockCallsHandler,
-           MockIccManager, MockNavigatorMozTelephony, MockNavigatorSettings,
-           MockSettingsListener, MocksHelper, MockTonePlayer, telephonyAddCall,
-           MockMultiSimActionButtonSingleton, MockL10n,  CustomDialog,
-           MockMozActivity, SimSettingsHelper, CustomElementsHelper
+           MockIccManager, MockL10n, MockMozActivity,
+           MockMultiSimActionButtonSingleton, MockNavigatorMozTelephony,
+           MockNavigatorSettings, MockSettingsListener, MocksHelper,
+           MockTonePlayer, SimSettingsHelper, telephonyAddCall
 */
 
 'use strict';
@@ -86,6 +87,23 @@ suite('dialer/keypad', function() {
   }
 
   /**
+   * Simulate a touchmove event
+   *
+   * @param x {Integer} Horizontal coordinate of the touch event
+   * @param y {Integer} Vertical coordinate of the touch event
+   */
+  function mockTouchMove(x, y) {
+    var fakeEvent = {
+      target: dummyNode,
+      preventDefault: function() {},
+      stopPropagation: function() {},
+      type: 'touchmove',
+      touches: [ { pageX: x, pageY: y } ]
+    };
+    subject.keyHandler(fakeEvent);
+  }
+
+  /**
    * Simulate a touchend event
    *
    * @param key {String} The target's dataset value, the touched key
@@ -99,6 +117,19 @@ suite('dialer/keypad', function() {
     };
     dummyNode.dataset.value = key;
     subject.keyHandler(fakeEvent);
+  }
+
+  /**
+   * Simulate a long-press event
+   *
+   * @param key {String} The target's dataset value, the touched key
+   * @param clock {Object} The fake sinon clock used in this test
+   * @param duration {Integer} The duration of the event in ms (default: 400)
+   */
+  function mockLongPress(key, clock, duration) {
+    mockTouchStart(key);
+    clock.tick(duration || 400);
+    mockTouchEnd(key);
   }
 
   /**
@@ -316,9 +347,9 @@ suite('dialer/keypad', function() {
         var startSpy = this.sinon.spy(MockTonePlayer, 'start');
         var stopSpy = this.sinon.spy(MockTonePlayer, 'stop');
 
-        subject._touchStart('1');
+        mockTouchStart('1');
         assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], true));
-        subject._touchEnd('1');
+        mockTouchEnd('1');
         assert.isTrue(stopSpy.calledOnce);
       });
 
@@ -326,9 +357,9 @@ suite('dialer/keypad', function() {
         var startSpy = this.sinon.spy(MockTonePlayer, 'start');
 
         MockSettingsListener.mCallbacks['phone.ring.keypad'](false);
-        subject._touchStart('1');
+        mockTouchStart('1');
         assert.isTrue(startSpy.notCalled);
-        subject._touchEnd('1');
+        mockTouchEnd('1');
         assert.isTrue(startSpy.notCalled);
       });
 
@@ -338,9 +369,10 @@ suite('dialer/keypad', function() {
         var stopToneSpy =
           this.sinon.spy(MockNavigatorMozTelephony, 'stopTone');
 
-        subject._touchStart('1');
+        mockTouchStart('1');
         assert.isTrue(stopToneSpy.notCalled);
         assert.isTrue(startToneSpy.notCalled);
+        mockTouchEnd('1');
       });
     });
 
@@ -353,14 +385,14 @@ suite('dialer/keypad', function() {
       test('vibrates if setting is set', function() {
         MockSettingsListener.mCallbacks['keyboard.vibration'](true);
 
-        subject._touchStart('1');
+        mockTouchStart('1');
         sinon.assert.calledWith(navigator.vibrate, 50);
       });
 
       test('does not vibrate if setting is not set', function() {
         MockSettingsListener.mCallbacks['keyboard.vibration'](false);
 
-        subject._touchStart('1');
+        mockTouchStart('1');
         sinon.assert.notCalled(navigator.vibrate);
       });
     });
@@ -410,28 +442,28 @@ suite('dialer/keypad', function() {
         test('Pressing a button during a call plays a long tone', function() {
           var startSpy = this.sinon.spy(MockTonePlayer, 'start');
 
-          subject._touchStart('1');
+          mockTouchStart('1');
           assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], false));
-          subject._touchEnd('1');
+          mockTouchEnd('1');
         });
 
         test('Short tones are enabled via prefs', function() {
           var startSpy = this.sinon.spy(MockTonePlayer, 'start');
 
           MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
-          subject._touchStart('1');
+          mockTouchStart('1');
           assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], true));
-          subject._touchEnd('1');
+          mockTouchEnd('1');
         });
 
         test('Pressing a button during a call plays a DTMF tone', function() {
           this.sinon.spy(MockNavigatorMozTelephony, 'startTone');
           this.sinon.spy(MockNavigatorMozTelephony, 'stopTone');
 
-          subject._touchStart('1');
+          mockTouchStart('1');
           sinon.assert.calledWith(MockNavigatorMozTelephony.stopTone, 0);
           sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '1', 0);
-          subject._touchEnd('1');
+          mockTouchEnd('1');
           sinon.assert.calledTwice(MockNavigatorMozTelephony.stopTone);
         });
 
@@ -441,11 +473,11 @@ suite('dialer/keypad', function() {
 
           MockSettingsListener.mCallbacks['phone.dtmf.type']('long');
 
-          subject._touchStart('1');
+          mockTouchStart('1');
           sinon.assert.calledWith(MockNavigatorMozTelephony.stopTone, 0);
           sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '1', 0);
           document.elementFromPoint.returns({ dataset: { value: '2' }});
-          subject._touchMove({ pageX: 0, pageY: 0 });
+          mockTouchMove(0, 0);
           sinon.assert.calledTwice(MockNavigatorMozTelephony.stopTone);
         });
 
@@ -455,7 +487,7 @@ suite('dialer/keypad', function() {
 
           MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
 
-          subject._touchStart('1');
+          mockTouchStart('1');
           this.sinon.clock.tick(119);
           sinon.assert.calledWith(MockNavigatorMozTelephony.stopTone, 0);
           sinon.assert.calledOnce(MockNavigatorMozTelephony.startTone, '1', 0);
@@ -477,12 +509,12 @@ suite('dialer/keypad', function() {
           this.sinon.spy(MockNavigatorMozTelephony, 'startTone');
           this.sinon.spy(MockNavigatorMozTelephony, 'stopTone');
 
-          subject._touchStart('1');
+          mockTouchStart('1');
           sinon.assert.calledWith(MockNavigatorMozTelephony.stopTone, 0);
           sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '1', 0);
           this.sinon.clock.tick();
           assert.ok(true, 'got here');
-          subject._touchEnd('1');
+          mockTouchEnd('1');
           sinon.assert.calledWith(MockNavigatorMozTelephony.stopTone, 0);
         });
 
@@ -510,9 +542,9 @@ suite('dialer/keypad', function() {
       var testNumberAfterLongPress = function(initialNumber, pressTime,
         expectedNumber) {
       subject._phoneNumber = initialNumber;
-      subject._touchStart('*', false);
+      mockTouchStart('*', false);
       this.sinon.clock.tick(pressTime);
-      subject._touchEnd('*');
+      mockTouchEnd('*');
         assert.equal(KeypadManager.phoneNumber(), expectedNumber);
       };
 
@@ -549,8 +581,6 @@ suite('dialer/keypad', function() {
         fakeVoicemail = '888';
         KeypadManager._phoneNumber = '';
 
-        doLongPress = doLongPress.bind(this);
-
         this.sinon.spy(CallHandler, 'call');
 
         MockMozActivity.mSetup();
@@ -559,13 +589,6 @@ suite('dialer/keypad', function() {
       teardown(function() {
         MockMozActivity.mTeardown();
       });
-
-      var doLongPress = function(digit, time) {
-        time = time || 400;
-        subject._touchStart(digit);
-        this.sinon.clock.tick(time);
-        subject._touchEnd(digit);
-      };
 
       var shouldRemove1FromPhoneNumber = function() {
         assert.equal(KeypadManager.phoneNumber(), '');
@@ -590,7 +613,7 @@ suite('dialer/keypad', function() {
           navigator.mozIccManager.iccIds[0] = 0;
           MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
 
-          doLongPress('1');
+          mockLongPress('1', this.sinon.clock);
 
           MockNavigatorSettings.mReplyToRequests();
         });
@@ -606,7 +629,7 @@ suite('dialer/keypad', function() {
           var showSpy = this.sinon.spy(CustomDialog, 'show');
           MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = '';
 
-          doLongPress('1');
+          mockLongPress('1', this.sinon.clock);
           MockNavigatorSettings.mReplyToRequests();
 
           var expectedVoicemailDialog = {
@@ -646,7 +669,7 @@ suite('dialer/keypad', function() {
 
           simPicker = document.getElementById('sim-picker');
           this.sinon.spy(simPicker, 'getOrPick');
-          doLongPress('1');
+          mockLongPress('1', this.sinon.clock);
 
           MockNavigatorSettings.mReplyToRequests();
           
@@ -681,7 +704,7 @@ suite('dialer/keypad', function() {
         navigator.mozIccManager.iccIds[0] = 0;
         MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
 
-        doLongPress('1', 399);
+        mockLongPress('1', this.sinon.clock, 399);
         MockNavigatorSettings.mReplyToRequests();
 
         sinon.assert.notCalled(CallHandler.call);
@@ -691,10 +714,10 @@ suite('dialer/keypad', function() {
         navigator.mozIccManager.iccIds[0] = 0;
         MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
 
-        doLongPress('2');
+        mockLongPress('2', this.sinon.clock);
         MockNavigatorSettings.mReplyToRequests();
 
-        doLongPress('1');
+        mockLongPress('1', this.sinon.clock);
         MockNavigatorSettings.mReplyToRequests();
 
         sinon.assert.notCalled(CallHandler.call);
@@ -813,6 +836,27 @@ suite('dialer/keypad', function() {
           }).then(done, done);
         });
       });
+    });
+  });
+
+  suite('hangUpCallFromKeypad', function() {
+    /* XXX: We don't import the full mock here because it still lives in the
+     * dialer sources and there's no point in moving it just for this test.
+     * This will go away as soon as the dialer and keypad are reunited. */
+    setup(function() {
+      window.CallScreen = { hideKeypad: this.sinon.stub() };
+    });
+
+    teardown(function() {
+      delete window.CallScreen;
+    });
+
+    test('hide the keypad before hanging up', function() {
+      this.sinon.spy(MockCallsHandler, 'end');
+
+      subject.hangUpCallFromKeypad();
+
+      CallScreen.hideKeypad.calledBefore(MockCallsHandler.end);
     });
   });
 

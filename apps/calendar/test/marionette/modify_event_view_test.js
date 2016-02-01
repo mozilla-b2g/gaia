@@ -15,7 +15,8 @@ marionette('modify event view', function() {
         // system window manager) in order for it to do focus-related things.
         'focusmanager.testmode': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var editEvent;
 
@@ -119,16 +120,6 @@ marionette('modify event view', function() {
       assert.equal(
         editEvent.errors,
         'The event cannot end before its start date',
-        'show the correct error message'
-      );
-    });
-
-    test('start datetime could not equal end datetime', function() {
-      editEvent.endDate = startDate;
-      editEvent.endTime = startDate;
-      assert.equal(
-        editEvent.errors,
-        'The event cannot end before its start time',
         'show the correct error message'
       );
     });

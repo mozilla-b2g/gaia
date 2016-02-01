@@ -22,8 +22,7 @@ marionette('Test Context Menu Events', function() {
   opts.apps[APP_HOST] = __dirname + '/../apps/' + APP_NAME;
 
   var client = marionette.client({
-    profile: opts,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    profile: opts
   });
   var actions;
 
@@ -48,6 +47,13 @@ marionette('Test Context Menu Events', function() {
     client.switchToFrame();
     client.helper.waitForElement('[data-id=open-in-new-window]');
     client.helper.waitForElement('[data-id=share-link]');
+
+    // Ensure that Pinning/Adding to homescreen option is not available
+    ['pin-to-home-screen', 'add-to-home-screen'].forEach(function(element) {
+      var selector = '[data-id=' + element + ']';
+      var items = client.findElements(selector);
+      assert(items.length === 0);
+    });
 
     // Cancel the context menu
     var cancel = client.helper.waitForElement('#ctx-cancel-button');
@@ -81,7 +87,7 @@ marionette('Test Context Menu Events', function() {
     // Paste link into contentEditable area
     client.apps.switchToApp(APP_URL);
     var editable = client.helper.waitForElement('#edit-area');
-    actions.tap(editable).wait(2).longPress(editable, 3).perform();
+    actions.tap(editable).longPress(editable, 2).perform();
 
     client.switchToFrame();
     var pasteSelector = '.textselection-dialog .textselection-dialog-paste';

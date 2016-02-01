@@ -137,6 +137,10 @@ View.prototype.destroy = function() {
 };
 
 View.prototype.render = function() {
+  // No-op in the base class.
+};
+
+View.prototype.onRenderDone = function() {
   if (window.frameElement) {
     window.frameElement.dispatchEvent(new CustomEvent('rendered'));
   }

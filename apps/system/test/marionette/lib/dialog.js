@@ -43,11 +43,11 @@ Dialog.prototype = {
   },
 
   get current() {
-    return this.client.findElement(Dialog.Selector.visibleDialog);
+    return this.client.helper.waitForElement(Dialog.Selector.visibleDialog);
   },
 
   get okButton() {
-    return this.client.findElement(Dialog.Selector.okButton);
+    return this.client.helper.waitForElement(Dialog.Selector.okButton);
   },
 
   get menu() {
@@ -55,7 +55,7 @@ Dialog.prototype = {
   },
 
   get title() {
-    return this.client.findElement(Dialog.Selector.title);
+    return this.client.helper.waitForElement(Dialog.Selector.title);
   },
 
   get messageContainer() {

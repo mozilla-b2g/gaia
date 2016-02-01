@@ -71,6 +71,10 @@
       });
     },
 
+    focus(element) {
+      this.spatialNavigator.focus(element);
+    },
+
     add(param) {
       var elements = [];
       Array.isArray(param) ?

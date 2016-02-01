@@ -7,7 +7,9 @@
   function dump_on(msg, optionalObject) {
     var output = msg;
     if (optionalObject) {
-      output += JSON.stringify(optionalObject);
+      try {
+        output += JSON.stringify(optionalObject);
+      } catch(e) {}
     }
     if (dump) {
       var appName = document.location.hostname.replace(/\..*$/, '');

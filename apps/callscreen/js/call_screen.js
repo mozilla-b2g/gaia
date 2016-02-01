@@ -57,9 +57,6 @@ var CallScreen = {
   lockedDate: document.getElementById('lockscreen-date'),
 
   statusMessage: document.getElementById('statusMsg'),
-  configs: {
-    lockMode: 'incoming-call'
-  },
   showStatusMessage: function cs_showStatusMessage(message) {
     var STATUS_TIME = 2000;
     var paragraph = this.statusMessage.querySelector('p');
@@ -160,35 +157,27 @@ var CallScreen = {
     this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
     window.addEventListener('resize', this.resizeHandler.bind(this));
-    window.addEventListener('hashchange', this.hashchangeHandler.bind(this));
-    this.hashchangeHandler();
 
     SettingsListener.observe('wallpaper.image', null,
                              this._wallpaperImageHandler.bind(this));
 
+    // Interaction with the lockscreen
+    this._lockScreenLayoutInitialized = false;
+    navigator.mozSettings.addObserver(
+      'lockscreen.locked', this._lockscreenStateChange.bind(this)
+    );
+
     this.syncSpeakerEnabled();
   },
 
-  _connInfoManagerInitialized: false,
   initLockScreenConnInfoManager: function cs_initLockScreenConnInfoManager() {
-    if (this._connInfoManagerInitialized) {
-      return;
-    }
-
     /* mobile connection state on lock screen */
     if (window.navigator.mozMobileConnections) {
       new window.LockScreenConnInfoManager(CallScreen.lockscreenConnStates);
-      CallScreen._connInfoManagerInitialized = true;
     }
   },
 
-  _slideInitialized: false,
   initLockScreenSlide: function cs_initLockScreenSlide() {
-    if (this._slideInitialized) {
-      return;
-    }
-    this._slideInitialized = true;
-
     // Setup incoming call screen slider
     this.hangUpIcon = document.getElementById('lockscreen-area-hangup');
     this.pickUpIcon = document.getElementById('lockscreen-area-pickup');
@@ -238,6 +227,23 @@ var CallScreen = {
     });
   },
 
+  _lockscreenStateChange: function cs_lockscreenStateChange(event) {
+    if (event.settingValue) {
+      if (this.screen.dataset.layout === 'incoming') {
+        this.initLockScreenLayout();
+        this.render('incoming-locked');
+      }
+
+      this.initUnlockerEvents();
+    } else {
+      if (this.screen.dataset.layout === 'incoming-locked') {
+        this.render('incoming');
+      }
+
+      this.suspendUnlockerEvents();
+    }
+  },
+
   _wallpaperImageHandler: function cs_wallpaperImageHandler(image) {
     this.mainContainer.style.backgroundImage = 'url(' +
       (typeof image === 'string' ? image : URL.createObjectURL(image)) + ')';
@@ -276,15 +282,14 @@ var CallScreen = {
     }
   },
 
-  hashchangeHandler: function cs_hashchangeHandler() {
-    if (window.location.hash.startsWith('#locked')) {
-      this.initLockScreenConnInfoManager();
-      this.showClock(new Date());
-      this.initLockScreenSlide();
+  _lockScreenLayoutInitialized: false,
+  initLockScreenLayout: function cs_initLockScreenLayout() {
+    this.showClock(new Date());
 
-      if (!this.screen.dataset.layout) {
-        this.render('incoming-locked');
-      }
+    if (!this._lockScreenLayoutInitialized) {
+      this.initLockScreenConnInfoManager();
+      this.initLockScreenSlide();
+      this._lockScreenLayoutInitialized = true;
     }
   },
 
@@ -550,27 +555,6 @@ var CallScreen = {
       case 'lockscreenslide-activate-right':
         CallsHandler.answer();
         break;
-      case 'lockscreen-mode-on':
-        this.modeSwitch(evt.detail, true);
-        break;
-      case 'lockscreen-mode-off':
-        this.modeSwitch(evt.detail, false);
-        break;
-    }
-  },
-
-  /**
-   * @param {boolean} switcher - true if mode is on, false if off.
-   */
-  modeSwitch: function cs_modeSwitch(mode, switcher) {
-    if (switcher) {
-      if (mode !== this.configs.lockMode) {
-        this.suspendUnlockerEvents();
-      }
-    } else {
-      if (mode !== this.configs.lockMode) {
-        this.initUnlockerEvents();
-      }
     }
   },
 

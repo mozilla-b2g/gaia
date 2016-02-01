@@ -15,6 +15,8 @@
 
   /**
   * Gets actual base file name (name.extension) from its path.
+  * @param {String} filepath
+  * @return {String} actual base file name i.e name.extension
   */
   function getBaseName(filePath) {
     if (!filePath) {
@@ -23,11 +25,19 @@
     return filePath.substring(filePath.lastIndexOf('/') + 1);
   }
 
+  /**
+  * set Property of Attachment from given blob and options object.
+  * @param {Object, Object} (blob object, options object)
+  */
   function Attachment(blob, options) {
     options = options || {};
     this.blob = blob;
-    this.name = blob.name || options.name || '';
     this.isDraft = !!options.isDraft;
+    this.name = blob.name || options.name || '';
+
+    if (typeof this.name !== 'string') {
+      this.name = '';
+    }
 
     // force the _renderer property to be non enumerable so that we don't try to
     // store it in IndexedDB

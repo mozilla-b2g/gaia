@@ -13,12 +13,14 @@ function PinningTheWeb(client) {
 PinningTheWeb.prototype = {
   Selectors: {
     pinDialog: '#pin-page-dialog',
-    pinPageButton: '#pin-page-container button',
-    pinSiteButton: '#pin-site-container button'
+    pinPageButton: '#pin-page-container gaia-button',
+    pinSiteButton: '#pin-site-container gaia-button'
   },
 
   get pinDialog() {
-    return this.client.helper.waitForElement(this.Selectors.pinDialog);
+    return this.client.helper.waitForElement(this.Selectors.pinDialog, {
+      timeout: 90000
+    });
   },
 
   get pinPageButton() {
@@ -67,21 +69,22 @@ PinningTheWeb.prototype = {
   },
 
   // Open a URL, open the pin dialog and tap the pin site button.
-  openAndPinSiteFromBrowser: function openAndPinSite(url) {
+  openAndPinSiteFromBrowser: function (url) {
     this._openUrl(url);
     this._clickPinContextMenu();
+    var pinDialog = this.pinDialog;
     // When running tests in mulet locally, part of the pin site button
     // is cut off at the bottom of the screen. To work around this we
     // tap the pin button in the upper left hand corner.
-    this.pinSiteButton.tap(0, 0);
-    this.client.helper.waitForElementToDisappear(this.pinDialog);
+    this.pinSiteButton.click();
+    this.client.helper.waitForElementToDisappear(pinDialog);
   },
 
   // Open a URL, open the pin dialog and tap the pin/unpin page button.
   openAndPinPage: function openAndPinPage(url) {
     this._openUrl(url);
     this._clickPinContextMenu();
-    this.pinPageButton.tap();
+    this.pinPageButton.click();
     this.client.helper.waitForElementToDisappear(this.pinDialog);
   },
 

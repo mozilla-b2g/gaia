@@ -15,8 +15,7 @@ marionette('First Time Use >', function() {
         'deviceinfo.os': '1.3.1-foo',
         'deviceinfo.previous_os': '3.0.0-bar'
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   setup(function() {

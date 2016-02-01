@@ -29,6 +29,7 @@ var LayoutItem = function(list, layout) {
 
   this.id = layout.id;
   this.name = layout.name;
+  this.nameL10nId = layout.nameL10nId;
   this.imEngineId = layout.imEngineId;
   this.dictFilePath = layout.dictFilePath;
   this.fileSize = layout.dictFileSize;
@@ -62,6 +63,7 @@ LayoutItem.prototype.oninstall = null;
 
 LayoutItem.prototype.id = '';
 LayoutItem.prototype.name = '';
+LayoutItem.prototype.nameL10nId = '';
 LayoutItem.prototype.types = null;
 LayoutItem.prototype.fileSize = 0;
 LayoutItem.prototype.downloadLoadedSize = 0;

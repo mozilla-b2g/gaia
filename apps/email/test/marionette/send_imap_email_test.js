@@ -5,7 +5,9 @@ var serverHelper = require('./lib/server_helper');
 
 marionette('send email via IMAP', function() {
   var app,
-      client = marionette.client();
+      client = marionette.client({
+        desiredCapabilities: { raisesAccessibilityExceptions: false }
+      });
 
   setup(function() {
     app = new Email(client);

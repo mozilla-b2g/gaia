@@ -29,9 +29,9 @@ AlbumsView.prototype.destroy = function() {
 };
 
 AlbumsView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
   return this.list.setModel(this.albums)
-    .then(() => this.list.cache());
+    .then(() => this.list.cache())
+    .then(this.onRenderDone);
 };
 
 AlbumsView.prototype.getAlbums = function() {

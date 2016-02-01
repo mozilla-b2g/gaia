@@ -50,11 +50,11 @@ function ThumbnailDateGroup(item) {
   this.groupID = ThumbnailDateGroup.getGroupID(item);
   this.date = item.date;
 
-  var htmlText = ThumbnailDateGroup.view();
+  var wrappedHtmlText = ThumbnailDateGroup.view();
 
   // create dummy node for converting to DOM node.
   var dummyDiv = document.createElement('DIV');
-  dummyDiv.innerHTML = htmlText;
+  dummyDiv.innerHTML = Sanitizer.unwrapSafeHTML(wrappedHtmlText);
   var domNode = dummyDiv.firstElementChild;
 
   if (!domNode) {
@@ -69,7 +69,7 @@ function ThumbnailDateGroup(item) {
 
 // static functions
 ThumbnailDateGroup.view = function() {
-  return Sanitizer.escapeHTML `<li role="presentation">
+  return Sanitizer.createSafeHTML `<li role="presentation">
       <div class="thumbnail-group-header" role="heading"
            aria-level="1"></div>
       <ul class="thumbnail-group-container" role="listbox"

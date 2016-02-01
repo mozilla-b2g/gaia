@@ -17,6 +17,7 @@ FtuAppBuilder.prototype.setOptions = function(options) {
   this.gaia.stageDir = this.stageDir;
   this.gaia.gaiaDir = options.GAIA_DIR;
   this.raptorMode = options.RAPTOR === '1';
+  this.webapp = options.webapp;
 };
 
 FtuAppBuilder.prototype.generateManifest = function() {
@@ -38,13 +39,12 @@ FtuAppBuilder.prototype.generateAll = function() {
   importBuild.generateConfig('ftu', '/', this.gaia);
 };
 
-FtuAppBuilder.prototype.execute = function(options, webapp) {
-  this.webapp = webapp;
+FtuAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.generateAll();
 };
 
-exports.execute = function(options, webapp) {
+exports.execute = function(options) {
   utils.copyToStage(options);
-  (new FtuAppBuilder()).execute(options, webapp);
+  (new FtuAppBuilder()).execute(options);
 };

@@ -80,7 +80,7 @@ define(function(require) {
       }
       if (descText) {
         var text = _updating ? 'callSettingsQuery' : inputValue();
-        navigator.mozL10n.setAttributes(descText, text);
+        document.l10n.setAttributes(descText, text);
       }
     }
 

@@ -116,6 +116,14 @@
     this.debug(' AAD>> got event: ' + evt.type);
     evt.preventDefault();
     evt.stopPropagation();
+
+    // We don't want to show the auth dialog when we are trying to fetch
+    // the favicon. Check bug 1180330.
+    if (evt.detail.path && evt.detail.path.indexOf('favicon.ico') > -1) {
+      evt.detail.cancel();
+      return;
+    }
+
     this._event = evt;
     if (!this._injected) {
       this.render();

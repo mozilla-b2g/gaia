@@ -63,7 +63,7 @@ textarea,
 #passkey {
   position: absolute;
   bottom: 11rem;
-  left: 1.5rem;
+  offset-inline-start: 1.5rem;
   width: calc(100% - 3rem);
   font-size: 3rem;
   font-weight: 400;

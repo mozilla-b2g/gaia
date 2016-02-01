@@ -403,11 +403,11 @@ var InboxView = {
   markReadUnread: function inbox_markReadUnread(selected, isRead) {
     selected.forEach((id) => {
       var thread = Threads.get(+id);
-
+      var readStatusMatched = !!thread.unreadCount ^ isRead;
       var markable = thread && !thread.isDraft &&
         (isRead || !thread.getDraft());
 
-      if (markable) {
+      if (markable && !readStatusMatched) {
         thread.unreadCount = isRead ? 0 : 1;
         this.mark(thread.id, isRead ? 'read' : 'unread');
 
@@ -700,7 +700,10 @@ var InboxView = {
     MessageManager.getThreads({
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
-      done: () => this.emit('fully-loaded')
+      // We should emit 'fully-loaded' event only when drafts are loaded and
+      // processed, Drafts keeps track of single "request" promise, so there is
+      // no overhead here.
+      done: () => Drafts.request().then(() => this.emit('fully-loaded'))
     });
   },
 
@@ -786,7 +789,7 @@ var InboxView = {
     li.innerHTML = this.tmpl.thread.interpolate({
       hash: isDraft ? '#/composer' : '#/thread?id=' + id,
       mode: isDraft ? 'drafts' : 'threads',
-      id: isDraft ? draft.id : id,
+      id: String(isDraft ? draft.id : id),
       timestamp: String(timestamp)
     }, {
       safe: ['id']

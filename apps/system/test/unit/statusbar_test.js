@@ -20,7 +20,7 @@ require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_base_icon.js');
-require('/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksForStatusbar = new MocksHelper([
   'UtilityTray',

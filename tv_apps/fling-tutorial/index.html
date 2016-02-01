@@ -3,10 +3,21 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <title>Send video to TV</title>
+    <title>Send to TV</title>
 
     <!-- stylesheets of building blocks -->
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
     <link rel="stylesheet" type="text/css" href="style/index.css">
+    <link rel="stylesheet" type="text/css" href="style/offline_content.css">
+
+    <!-- building block -->
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="bower_components/smart-button/script.js"></script>
+
+    <!-- shared libraries -->
+    <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+    <script defer src="shared/js/smart-screen/f_t_e_wizard.js"></script>
 
     <!-- For test purpose on phone only -->
     <script defer src="shared/js/gesture_detector.js"></script>
@@ -14,10 +25,29 @@
 
     <!-- main javascript code -->
     <script defer src="js/index.js"></script>
+
+    <!-- Shared L10n libraries -->
+    <script defer src="shared/js/l10n.js"></script>
+
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/fling-tutorial.{locale}.properties"/>
   </head>
 
   <body>
-    <iframe id="mozIframe" mozbrowser></iframe>
+    <iframe id="moz-iframe" class="hidden" mozbrowser></iframe>
+    <div id="offline-content" class="hidden">
+      <article class="slide">
+        <section id="description-section" class="slide-section">
+          <p class="slide-description txt-large" data-l10n-id="learn-use-firefox"></p>
+          <p class="slide-description txt-mid" data-l10n-id="please-connect-to-internet"></p>
+        </section>
+        <section id="button-section" class="slide-section">
+          <smart-button data-behavior="finish" class="slide-button primary" type="rounded-corner-text" data-l10n-id="ok"></smart-button>
+        </section>
+      </article>
+    </div>
   </body>
 
 </html>

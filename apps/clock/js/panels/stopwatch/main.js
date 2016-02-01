@@ -258,7 +258,7 @@ define(function(require) {
       li.querySelector('.lap-duration').textContent = formatter.format(time);
     });
     var lapFormatter = IntlHelper.get('lap-number');
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: lapFormatter.format(num) }
@@ -271,7 +271,7 @@ define(function(require) {
       li.querySelector('.lap-duration').textContent = formatter.format(time);
     });
     var lapFormatter = IntlHelper.get('lap-number');
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: lapFormatter.format(num) }

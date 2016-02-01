@@ -29,7 +29,7 @@
     "tag": "v0.4.7",
     "commit": "a1b3220e6ae53503b0809eb04de22f28bc701612"
   },
-  "_source": "git://github.com/gaia-components/gaia-theme.git",
+  "_source": "git://github.com/fxos-components/gaia-theme.git",
   "_target": "~0.4.1",
-  "_originalSource": "gaia-components/gaia-theme"
+  "_originalSource": "fxos-components/gaia-theme"
 }

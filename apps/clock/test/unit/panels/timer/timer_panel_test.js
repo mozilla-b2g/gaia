@@ -7,7 +7,7 @@ suite('Timer.Panel', function() {
   var View, Timer, Utils;
 
   suiteSetup(function(done) {
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     window.mozIntl = MockMozIntl;
     window.IntlHelper = MockIntlHelper;
     window.IntlHelper.define('digit-nopadding', 'number', {
@@ -254,7 +254,7 @@ suite('Timer.Panel', function() {
       this.sinon.spy(Timer.Panel.prototype, 'onclick');
 
       asyncStorage.getItem = function(key, callback) {
-        callback('{"duration":5000}');
+        callback({duration: 5000});
       };
 
       panel = new Timer.Panel(document.createElement('div'));

@@ -130,9 +130,10 @@ MarionetteHelper.prototype = {
   /**
    * Wait for an element to be added to the DOM and displayed
    * @param {Marionette.Element|string} el element or some css selector.
+   * @param {Object} [options] options object to be passed to client.waitFor.
    * @return {Marionette.Element} Element we find with css selector.
    */
-  waitForElement: function(el) {
+  waitForElement: function(el, options) {
     var client = this.client;
 
     if (!isElement(el)) {
@@ -150,7 +151,7 @@ MarionetteHelper.prototype = {
         // the client threw an unexpected error, rethrow it
         throw err;
       }
-    });
+    }, options);
     return el;
   },
 
@@ -174,8 +175,9 @@ MarionetteHelper.prototype = {
   /**
    * Wait for an element either hidden or removed from the dom
    * @param {Marionette.Element|string} el element or some css selector.
+   * @param {Object} [options] options object to be passed to client.waitFor.
    */
-  waitForElementToDisappear: function(el) {
+  waitForElementToDisappear: function(el, options) {
     if (!isElement(el)) {
       try {
         el = this.client.findElement(el);
@@ -204,7 +206,7 @@ MarionetteHelper.prototype = {
         // the client threw an unexpected error, rethrow it
         throw err;
       }
-    });
+    }, options);
   },
 
   /**

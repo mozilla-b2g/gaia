@@ -5,10 +5,7 @@ var assert = require('chai').assert;
 
 marionette('First Time Use >', function() {
   var ftu;
-  var client = marionette.client({
-    profile: Ftu.clientOptions,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client({ profile: Ftu.clientOptions });
 
   setup(function() {
     ftu = new Ftu(client);
@@ -25,8 +22,7 @@ marionette('First Time Use >', function() {
 
   test('FTU user timing', function() {
     client.apps.switchToApp(Ftu.URL);
-    ftu.waitForLanguagesToLoad();
-    ftu.client.helper.waitForElement('#languages');
+    ftu.waitForFtuReady();
 
     var markersByName = client.executeScript(function() {
       var byName = {};

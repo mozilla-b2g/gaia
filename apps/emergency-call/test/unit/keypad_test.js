@@ -180,9 +180,9 @@ suite('Keypad', function() {
         var startSpy = this.sinon.spy(MockTonePlayer, 'start');
         var stopSpy = this.sinon.spy(MockTonePlayer, 'stop');
 
-        subject._touchStart('1');
+        mockTouchStart('1');
         assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], true));
-        subject._touchEnd('1');
+        mockTouchEnd('1');
         assert.isTrue(stopSpy.calledOnce);
       });
 
@@ -190,9 +190,9 @@ suite('Keypad', function() {
         var startSpy = this.sinon.spy(MockTonePlayer, 'start');
 
         MockSettingsListener.mCallbacks['phone.ring.keypad'](false);
-        subject._touchStart('1');
+        mockTouchStart('1');
         assert.isTrue(startSpy.notCalled);
-        subject._touchEnd('1');
+        mockTouchEnd('1');
         assert.isTrue(startSpy.notCalled);
       });
 
@@ -202,7 +202,7 @@ suite('Keypad', function() {
         var stopToneSpy =
           this.sinon.spy(MockNavigatorMozTelephony, 'stopTone');
 
-        subject._touchStart('1');
+        mockTouchStart('1');
         assert.isTrue(stopToneSpy.notCalled);
         assert.isTrue(startToneSpy.notCalled);
       });
@@ -217,15 +217,26 @@ suite('Keypad', function() {
       test('vibrates if setting is set', function() {
         MockSettingsListener.mCallbacks['keyboard.vibration'](true);
 
-        subject._touchStart('1');
+        mockTouchStart('1');
         sinon.assert.calledWith(navigator.vibrate, 50);
       });
 
       test('does not vibrate if setting is not set', function() {
         MockSettingsListener.mCallbacks['keyboard.vibration'](false);
 
-        subject._touchStart('1');
+        mockTouchStart('1');
         sinon.assert.notCalled(navigator.vibrate);
+      });
+    });
+
+    suite('Long press', function() {
+      setup(function() {
+        this.sinon.spy(window, 'setTimeout');
+      });
+
+      test('should not try to detect the voicemail action', function() {
+        mockTouchStart('1');
+        sinon.assert.calledOnce(window.setTimeout);
       });
     });
   });

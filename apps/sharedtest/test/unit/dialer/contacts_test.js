@@ -78,9 +78,11 @@ suite('dialer/contacts', function() {
   });
 
   suite('> Contacts Revision', function() {
-    test('> Should return revision', function() {
+    test('> Should return revision', function(done) {
       Contacts.getRevision(function(status) {
-        assert.deepEqual(status, 'fakeRevision');
+        done(function() {
+          assert.deepEqual(status, 'fakeRevision');
+        });
       });
     });
   });

@@ -101,7 +101,7 @@ suite('system/SyncStateMachine >', () => {
           } catch(e) {
             assert.ok(true, 'Expected exception');
             assert.equal(e.message, 'Transition ' + transition +
-                         ' invalid for the current state');
+                         ' invalid for the current state ' + config.from);
             assert.equal(Service.query('SyncStateMachine.state'),
                          config.from);
           }

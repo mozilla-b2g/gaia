@@ -23,6 +23,7 @@ apps/search
 apps/setringtone
 apps/settings
 apps/sms
+apps/sync
 apps/system
 apps/video
 apps/wallpaper

@@ -24,7 +24,7 @@ suite('Error manager', function() {
     },
     COPPA_ERROR: {
       title: 'fxa-coppa-failure-error-title',
-      message: 'fxa-coppa-failure-error-message2'
+      message: 'fxa-coppa-failure-error-message3'
     },
     COPPA_FTU_ERROR: {
       title: 'fxa-coppa-failure-error-title',

@@ -72,7 +72,7 @@ function MediaFrame(container, includeVideo, maxImageSize) {
 // WeakMap with the container nodes as keys and MediaFrame instances as values.
 MediaFrame.instancesToLocalize = new WeakMap();
 
-navigator.mozL10n.ready(function() {
+function localize() {
   // Retrieve MediaFrame instances by searching for container nodes.
   for (var container of document.querySelectorAll('.media-frame-container')) {
     var instance = MediaFrame.instancesToLocalize.get(container);
@@ -80,7 +80,9 @@ navigator.mozL10n.ready(function() {
       instance.localize();
     }
   }
-});
+}
+
+document.addEventListener('DOMRetranslated', localize);
 
 MediaFrame.computeMaxImageDecodeSize = function(mem) {
   if (!mem) {
@@ -178,11 +180,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   // Keep track of what kind of content we have
   this.displayingImage = true;
 
-  // If a locale is present and ready, go ahead and localize now.
-  // Otherwise, localization will be handled by the ready() callback above.
-  if (navigator.mozL10n.readyState === 'complete') {
-    this.localize();
-  }
+  this.localize();
 
   function isValidPreview(preview) {
     // If no preview at all, we can't use it.
@@ -445,7 +443,7 @@ MediaFrame.prototype.localize = function localize() {
   var orientationL10nId = portrait ? 'orientationPortrait' :
     'orientationLandscape';
 
-  navigator.mozL10n.formatValue(orientationL10nId).then((orientationText) => {
+  document.l10n.formatValue(orientationL10nId).then((orientationText) => {
     if (timestamp) {
       if (!this.dtf) {
         // XXX: add localized/timeformatchange event to reset
@@ -461,7 +459,7 @@ MediaFrame.prototype.localize = function localize() {
 
       var ts = this.dtf.format(new Date(timestamp));
 
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.image,
         'imageDescription',
         {
@@ -470,7 +468,7 @@ MediaFrame.prototype.localize = function localize() {
         }
       );
     } else {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.image,
         'imageDescriptionNoTimestamp',
         { orientation: orientationText }

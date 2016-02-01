@@ -273,12 +273,19 @@ suite('conversation.js >', function() {
       for (var i = 0; i < 99; i++) {
         innerHTML += ConversationView.tmpl.message.interpolate({
           id: String(i),
-          bodyHTML: 'test #' + i
+          bodyHTML: 'test #' + i,
+          subject: '',
+          simInformationHTML: '',
+          timestamp: '',
+          messageStatusHTML: ''
         });
       }
       container.innerHTML = innerHTML;
       // This crudely emulates the CSS styles applied to the message list
       container.lastElementChild.style.paddingBottom = '16px';
+
+      // force reflow
+      container.scrollTop;
     });
 
     test('scroll 100px, should be detected as a manual scroll', function() {
@@ -2489,12 +2496,13 @@ suite('conversation.js >', function() {
       });
 
       suite('infinite rendering test', function() {
-        var chunkSize;
+        var chunkSize, firstChunkSize;
         var message;
         var onVisuallyLoaded;
 
         setup(function() {
           chunkSize = ConversationView.CHUNK_SIZE;
+          firstChunkSize = ConversationView.FIRST_CHUNK_SIZE;
           onVisuallyLoaded = sinon.stub();
           ConversationView.once('visually-loaded', onVisuallyLoaded);
         });
@@ -2504,14 +2512,14 @@ suite('conversation.js >', function() {
         });
 
         test('Messages are hidden before first chunk ready', function(done) {
-          for (var i = 1; i < chunkSize; i++) {
+          for (var i = 1; i < firstChunkSize; i++) {
             MessageManager.getMessages.yieldTo(
               'each', MockMessages.sms({ id: i })
             );
           }
 
           TaskRunner.prototype.push.lastCall.returnValue.then(() => {
-            for (var i = 1; i < chunkSize; i++) {
+            for (var i = 1; i < firstChunkSize; i++) {
               message = document.getElementById('message-' + i);
               assert.ok(
                 message.classList.contains('hidden'),
@@ -2524,14 +2532,14 @@ suite('conversation.js >', function() {
         });
 
         test('First chunk ready', function(done) {
-          for (var i = 1; i <= chunkSize; i++) {
+          for (var i = 1; i <= firstChunkSize; i++) {
             MessageManager.getMessages.yieldTo(
               'each', MockMessages.sms({ id: i })
             );
           }
 
           TaskRunner.prototype.push.lastCall.returnValue.then(() => {
-            var id = chunkSize +1;
+            var id = chunkSize + 1;
             assert.isNull(
               container.querySelector('li.hidden'),
               'all previously hidden messages should now be displayed'
@@ -2551,6 +2559,51 @@ suite('conversation.js >', function() {
             });
           }).then(done, done);
         });
+
+        test('second chunk ready, then scroll up', function(done) {
+          function assertVisibilityOfMessages(messages, lastVisibleId) {
+            Array.from(messages).forEach((message) => {
+              var id = +message.dataset.messageId;
+              if (id <= lastVisibleId) {
+                assert.isFalse(
+                  message.classList.contains('hidden'),
+                  `Message ${id} should be displayed`
+                );
+              } else {
+                assert.isTrue(
+                  message.classList.contains('hidden'),
+                  `Message ${id} should be hidden`
+                );
+              }
+            });
+          }
+
+          var messagesCount = firstChunkSize + 2 * chunkSize;
+          for (var i = 1; i <= messagesCount; i++) {
+            MessageManager.getMessages.yieldTo(
+              'each', MockMessages.sms({ id: i })
+            );
+          }
+
+          TaskRunner.prototype.push.lastCall.returnValue.then(() => {
+            var messages = container.querySelectorAll('.message');
+
+            assert.lengthOf(messages, messagesCount);
+            assertVisibilityOfMessages(messages, firstChunkSize);
+
+            // Simulate a scroll to the top
+            container.scrollTop = 0;
+            dispatchScrollEvent(container);
+
+            assertVisibilityOfMessages(messages, firstChunkSize + chunkSize);
+
+            // Simulate another scroll to the top
+            container.scrollTop = 0;
+            dispatchScrollEvent(container);
+
+            assertVisibilityOfMessages(messages, messagesCount);
+          }).then(done, done);
+        });
       });
 
       suite('scrolling behavior for first chunk', function() {
@@ -2560,7 +2613,7 @@ suite('conversation.js >', function() {
 
           this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
 
-          for (var i = 1; i < ConversationView.CHUNK_SIZE; i++) {
+          for (var i = 1; i < ConversationView.FIRST_CHUNK_SIZE; i++) {
             MessageManager.getMessages.yieldTo(
               'each', MockMessages.sms({ id: i })
             );
@@ -2574,7 +2627,7 @@ suite('conversation.js >', function() {
 
         test('should scroll to the end', function(done) {
           MessageManager.getMessages.yieldTo(
-            'each', MockMessages.sms({ id: ConversationView.CHUNK_SIZE })
+            'each', MockMessages.sms({ id: ConversationView.FIRST_CHUNK_SIZE })
           );
 
           TaskRunner.prototype.push.lastCall.returnValue.then(() => {
@@ -2587,7 +2640,7 @@ suite('conversation.js >', function() {
           Navigation.isCurrentPanel.withArgs('thread').returns(false);
 
           MessageManager.getMessages.yieldTo(
-            'each', MockMessages.sms({ id: ConversationView.CHUNK_SIZE })
+            'each', MockMessages.sms({ id: ConversationView.FIRST_CHUNK_SIZE })
           );
 
           TaskRunner.prototype.push.lastCall.returnValue.then(() => {
@@ -4398,7 +4451,11 @@ suite('conversation.js >', function() {
         // fake content so that there is something to scroll
         container.innerHTML = ConversationView.tmpl.message.interpolate({
           id: '1',
-          bodyHTML: 'test #1'
+          bodyHTML: 'test #1',
+          subject: '',
+          simInformationHTML: '',
+          timestamp: '',
+          messageStatusHTML: ''
         });
 
         message = MockMessages.mms();
@@ -5039,6 +5096,20 @@ suite('conversation.js >', function() {
           sinon.assert.calledWith(
             Navigation.toPanel, 'thread', { id: 100, focus: 'composer' }
           );
+        }).then(done, done);
+      });
+
+      test('initiate a new message with predefined content', function(done) {
+        var content = {
+          recipients: ['+123'],
+          content: 'content',
+          subject: 'subject',
+          type: 'sms'
+        };
+        ConversationView.initiateNewMessage({ content }).then(() => {
+          sinon.assert.calledWith(Navigation.toPanel, 'composer');
+          sinon.assert.calledWithMatch(Drafts.add, content);
+          sinon.assert.called(Drafts.store);
         }).then(done, done);
       });
 
@@ -6248,8 +6319,11 @@ suite('conversation.js >', function() {
       test('should show option for adding subject', function() {
         assert.equal(options[0].l10nId, 'add-subject');
       });
+      test('should show option for adding recipients', function() {
+        assert.equal(options[1].l10nId, 'includeSomeoneElse-label');
+      });
       test('should show option for selecting messages', function() {
-        assert.equal(options[1].l10nId, 'selectMessages-label');
+        assert.equal(options[2].l10nId, 'selectMessages-label');
       });
     });
   });

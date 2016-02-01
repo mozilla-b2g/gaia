@@ -334,30 +334,31 @@ suite('system/BrowserContextMenu', function() {
     var app1, md1;
 
     setup(function() {
-      app1 = new AppWindow(fakeAppConfig1);
+      app1 = new AppWindow(fakeBrowserConfig);
       md1 = BaseModule.instantiate('BrowserContextMenu', app1);
       md1.start();
     });
 
-    test('Shows pinning option when pref enabled', function(done) {
+    test('Shows pinning when clicking on the context button', function(done) {
       this.sinon.stub(md1.contextMenuView, 'show', function(items) {
-        assert.isTrue(items[2].id === 'pin-to-home-screen');
+        assert.isTrue(items[3].id === 'pin-to-home-screen');
         done();
       });
       var settingObj = {};
       settingObj[PINNING_PREF] = true;
       MockNavigatorSettings.mSet(settingObj);
-      md1.handleEvent(fakeSystemContextMenuEvents[0]);
+      md1.showDefaultMenu();
       MockNavigatorSettings.mReplyToRequests();
     });
 
-    test('Shows bookmark option when pref enabled', function(done) {
+    test('Does not show pinning when longpressing link', function(done) {
       this.sinon.stub(md1.contextMenuView, 'show', function(items) {
-        assert.isTrue(items[2].id === 'add-to-homescreen');
+        assert.isFalse(items[2].id === 'add-to-homescreen');
+        assert.isFalse(items[2].id === 'pin-to-homescreen');
         done();
       });
       var settingObj = {};
-      settingObj[PINNING_PREF] = false;
+      settingObj[PINNING_PREF] = true;
       MockNavigatorSettings.mSet(settingObj);
       md1.handleEvent(fakeSystemContextMenuEvents[0]);
       MockNavigatorSettings.mReplyToRequests();

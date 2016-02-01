@@ -3,6 +3,7 @@
   MockNavigatormozApps,
   MockNotification,
   MockNotifications,
+  NotificationHelper,
   MocksHelper,
   Notify,
   Utils
@@ -28,7 +29,6 @@ var mocksHelperForAttention = new MocksHelper([
 
 suite('Network Alerts - Attention Screen', function() {
   var title,
-      localizedTitle,
       body;
 
   var realL10n = navigator.mozL10n;
@@ -58,7 +58,6 @@ suite('Network Alerts - Attention Screen', function() {
     loadBodyHTML('/attention.html');
 
     title = 'title-id';
-    localizedTitle = 'some title';
     body = 'some body';
 
     this.sinon.stub(Utils, 'parseParams');
@@ -67,8 +66,6 @@ suite('Network Alerts - Attention Screen', function() {
 
     navigator.mozL10n = MockL10n;
     this.sinon.stub(navigator.mozL10n, 'once').yields();
-    this.sinon.stub(navigator.mozL10n, 'get').withArgs(title)
-                                             .returns(localizedTitle);
 
     navigator.mozApps = MockNavigatormozApps;
   });
@@ -103,11 +100,15 @@ suite('Network Alerts - Attention Screen', function() {
     });
 
     test('Notification should be displayed and alert is played', function() {
+      this.sinon.stub(NotificationHelper, 'send').returns(Promise.resolve({}));
       MockNavigatormozApps.mTriggerLastRequestSuccess();
 
-      assert.equal(MockNotifications[0].title, localizedTitle);
-      assert.equal(MockNotifications[0].body, body);
-      assert.ok(MockNotifications[0].icon.endsWith('titleID=' + title));
+      sinon.assert.calledOnce(NotificationHelper.send);
+      sinon.assert.calledWithMatch(NotificationHelper.send, title, {
+        body: body,
+        icon: 'sms',
+        data: { title }
+      });
 
       sinon.assert.called(Notify.notify);
     });

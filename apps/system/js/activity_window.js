@@ -181,7 +181,8 @@
     'valueSelector': 'ValueSelector',
     'authDialog': 'AppAuthenticationDialog',
     'childWindowFactory': 'ChildWindowFactory',
-    'statusbar': 'AppStatusbar'
+    'statusbar': 'AppStatusbar',
+    'textSelectionDialog': 'AppTextSelectionDialog'
   };
 
   ActivityWindow.SUB_MODULES = {

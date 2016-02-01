@@ -7,6 +7,9 @@
 
     <!-- stylesheets of building blocks -->
     <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-dialog/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-bubbles/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-modal-dialog/style.css">
 
     <link rel="stylesheet" type="text/css" href="style/app_deck.css">
     <link rel="stylesheet" type="text/css" href="style/app_deck_list.css">
@@ -36,10 +39,16 @@
     <script defer src="shared/js/smart-screen/cards/application.js"></script>
     <script defer src="shared/js/smart-screen/cards/deck.js"></script>
     <script defer src="shared/js/smart-screen/cards/folder.js"></script>
+    <script defer src="shared/js/smart-screen/cards/app_bookmark.js"></script>
     <script defer src="shared/js/smart-screen/card_manager.js"></script>
+    <script defer src="shared/js/smart-screen/bookmark_manager.js"></script>
 
     <!-- building blocks -->
     <script defer src="bower_components/smart-button/script.js"></script>
+    <script defer src="bower_components/smart-dialog/script.js"></script>
+    <script defer src="bower_components/smart-bubbles/script.js"></script>
+    <script defer src="bower_components/smart-modal-dialog/base-modal-dialog.js"></script>
+    <script defer src="bower_components/smart-modal-dialog/smart-modal-dialog.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/promotion_list.js"></script>
@@ -80,6 +89,7 @@
       </section>
       <menu type="context" id="context-menu">
         <menuitem icon="style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-to-home"></menuitem>
+        <menuitem icon="style/icons/ic_pin.png" data-l10n-id="unpin-from-home" id="unpin-from-home"></menuitem>
         <menuitem icon="style/icons/ic_delete.png" data-l10n-id="remove-card" id="remove-card"></menuitem>
       </menu>
     </article>

@@ -89,7 +89,7 @@ var FxaModuleRefreshAuth = (function() {
       );
 
       this.fxaPwInputRefresh.addEventListener('input', (function(event) {
-        if(this.fxaPwInput.value) {
+        if(this.fxaPwInputRefresh.value) {
           this.fxaPwCleanBtn.classList.add('show');
         } else {
           this.fxaPwCleanBtn.classList.remove('show');
@@ -102,7 +102,9 @@ var FxaModuleRefreshAuth = (function() {
         function onCleanButtonClick(e) {
           if(e.button === 0 ||
             (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN)) {
-            this.fxaPwInput.value = '';
+            this.fxaPwInputRefresh.value = '';
+            FxaModuleKeyNavigation.focus(this.fxaPwInputRefresh);
+            this.fxaPwCleanBtn.classList.remove('show');
           }
         }.bind(this)
       );

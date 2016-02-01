@@ -28,7 +28,7 @@
     <link rel="stylesheet" type="text/css" href="style/dialog.css">
     <link rel="stylesheet" type="text/css" href="style/icc.css">
     <!-- Panel Stylesheets
-    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/bidi-helper.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="style/homescreens.css"/>
@@ -41,6 +41,7 @@
     <link rel="stylesheet" type="text/css" href="style/developer_service_workers.css"/>
     <script defer="" src="shared/elements/gaia_buttons/script.js"></script>
     <script defer="" src="shared/elements/gaia_confirm/script.js"></script>
+    <script defer="" src="shared/elements/gaia_menu/script.js"></script>
     -->
 
     <!-- Shared resources
@@ -77,11 +78,12 @@
     <link rel="localization" href="shared/locales/tz/tz.{locale}.properties">
     <link rel="localization" href="shared/locales/sounds/sounds.{locale}.properties">
     <link rel="localization" href="shared/locales/firefox_sync/firefox_sync.{locale}.properties">
+    <link rel="localization" href="shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="locales/settings.{locale}.properties">
     <link rel="localization" href="locales/device_type/settings.device.{locale}.properties">
     <link rel="localization" href="shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
 
-    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/intl/l20n.js"></script>
     <script src="shared/js/moz_intl.js"></script>
     <script defer src="shared/js/date_time_helper.js"></script>
 
@@ -168,7 +170,7 @@
     <link rel="import" href="/elements/operator_settings.html">
     <link rel="import" href="/elements/carrier_detail.html">
     <link rel="import" href="/elements/carrier.html">
-    <link rel="import" href="/elements/bluetooth.html">
+    <link rel="import" href="/views/phone/bluetooth/bluetooth.html">
     <link rel="import" href="/elements/hotspot_wifi_settings.html">
     <link rel="import" href="/elements/hotspot.html">
     <link rel="import" href="/elements/sound.html">
@@ -469,18 +471,6 @@
 
     <!-- Main List -->
     <section role="region" is="root" id="root"></section>
-
-    <!-- Warning Dialog :: Incompatible Settings :: USB Storage & USB Tethering & Wifi Tethering -->
-    <form data-type="confirm" role="dialog" class="incompatible-settings-dialog" hidden>
-      <section>
-        <h1 class="is-warning-head"></h1>
-        <p class="is-warning-message"></p>
-      </section>
-      <menu>
-        <button class="incompatible-settings-cancel-btn" data-l10n-id="cancel">Cancel</button>
-        <button class="incompatible-settings-ok-btn recommend" data-l10n-id="enable">Enable</button>
-      </menu>
-    </form>
 
     <div class="settings-dialog-overlay" hidden></div>
 

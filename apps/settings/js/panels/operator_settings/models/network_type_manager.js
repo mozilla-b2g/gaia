@@ -1,4 +1,3 @@
-/* global getSupportedNetworkInfo */
 /**
  * NetworkTypeManager provides a supported network type list of a mobile
  * connection. It wraps setPreferredNetworkType and is responsible for updating
@@ -13,6 +12,7 @@ define(function(require) {
   var Observable = require('modules/mvvm/observable');
   var ObservableArray = require('modules/mvvm/observable_array');
   var SettingsHelper = require('shared/settings_helper');
+  var NetworkInfo = require('modules/mobile/supported_network_info');
 
   const SETTINGS_KEY = 'ril.radio.preferredNetworkType';
 
@@ -108,7 +108,7 @@ define(function(require) {
       return Promise.resolve(this._supportedNetworkInfo);
     } else {
       return new Promise((resolve) => {
-        getSupportedNetworkInfo(this._conn, (info) => {
+        NetworkInfo.getSupportedNetworkInfo(this._conn, (info) => {
           this._supportedNetworkInfo = info;
           resolve(info);
         });

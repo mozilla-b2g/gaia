@@ -8,14 +8,6 @@ var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
 var Storage = require('./lib/storage.js');
 
 marionette('Messages as "new" activity target', function() {
-  var MOCKS = [
-    '/mocks/mock_test_storages.js',
-    '/mocks/mock_test_blobs.js',
-    '/mocks/mock_navigator_moz_icc_manager.js',
-    '/mocks/mock_navigator_moz_mobile_message.js',
-    '/mocks/mock_navigator_moz_contacts.js'
-  ];
-
   var apps = {};
 
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
@@ -73,9 +65,13 @@ marionette('Messages as "new" activity target', function() {
     activityCallerApp = MessagesActivityCaller.create(client);
     storage = Storage.create(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'test_storages',
+      'test_blobs',
+      'navigator_moz_icc_manager',
+      'navigator_moz_mobile_message',
+      'navigator_moz_contacts'
+    ]);
   });
 
   suite('Send new message', function() {
@@ -102,7 +98,7 @@ marionette('Messages as "new" activity target', function() {
         return !!window.wrappedJSObject.Compose;
       }), 'XSS should not be performed');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -137,9 +133,9 @@ marionette('Messages as "new" activity target', function() {
       launchAsActivity({ body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       assert.isFalse(messagesApp.Composer.sendButton.enabled());
       assert.equal(messagesApp.NewMessage.recipients.length, 0);
@@ -159,16 +155,16 @@ marionette('Messages as "new" activity target', function() {
       launchAsActivity({ number: number, body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), number);
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -185,16 +181,16 @@ marionette('Messages as "new" activity target', function() {
       launchAsActivity({ number: '+100', body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), 'Alan Turing');
       assert.equal(recipients[0].getAttribute('data-source'), 'contacts');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',
@@ -238,16 +234,16 @@ marionette('Messages as "new" activity target', function() {
       launchAsActivity({ number: '+200', body: content });
 
       // Wait until message input is filled with the content
-      client.scope({ searchTimeout: 100 }).waitFor(function() {
-        return messagesApp.Composer.messageInput.text() === content;
-      });
+      client.waitFor(
+        () => messagesApp.Composer.messageInput.text() === content
+      );
 
       var recipients = messagesApp.NewMessage.recipients;
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), '+200');
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
 
-      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+      client.waitFor(() => messagesApp.Composer.sendButton.enabled());
 
       assert.equal(
         messagesApp.NewMessage.header.getAttribute('action'), 'close',

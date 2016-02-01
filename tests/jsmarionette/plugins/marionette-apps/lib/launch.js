@@ -1,27 +1,6 @@
 'use strict';
 var getApp = require('./getapp').getApp;
-var url = require('url');
 var waitForApp = require('./waitforapp').waitForApp;
-
-var homescreenURL;
-function getHomescreen(client) {
-  var chrome = client.scope({ context: 'chrome' });
-  if (!homescreenURL) {
-    var app = chrome.executeAsyncScript(function() {
-      var lock = window.navigator.mozSettings.createLock();
-      var req = lock.get('homescreen.manifestURL');
-      req.onsuccess = function() {
-        marionetteScriptFinished(req.result['homescreen.manifestURL']);
-      };
-      req.onerror = function() {
-        console.error('Error while fetching setting: ' + req.error.name);
-        marionetteScriptFinished({ error: req.error.name });
-      };
-    });
-    homescreenURL = url.parse(app).hostname;
-  }
-  return homescreenURL;
-}
 
 /**
  * Launch an application based on its origin and optionally entrypoint.
@@ -44,29 +23,12 @@ function launch(apps, origin, entrypoint, callback) {
 
   callback = callback || apps._client.defaultCallback;
 
-  // Wait for Homescreen app is rendered.
-  var client = apps._client.scope({ searchTimeout: 10000,
-                                    scriptTimeout: 10000 });
-  var homescreenApp = getHomescreen(client);
-
+  // Wait for the system to be fully loaded.
+  var client = apps._client;
+  var body = client.findElement('body');
   client.waitFor(function() {
-    var el;
-    try {
-      el = client.findElement('iframe[src*="' + homescreenApp + '"]');
-    } catch (e) {
-      return false;
-    }
-
-    var frameClass = el.scriptWith(function(el) {
-      return el.parentNode.getAttribute('class');
-    });
-
-    if (frameClass !== null) {
-      return frameClass.indexOf('render') !== -1;
-    } else {
-      return el.displayed();
-    }
-  });
+    return body.getAttribute('ready-state') == 'fullyLoaded';
+  }, { timeout: 60000 });
 
   // launch the given app
   return getApp(apps, origin, entrypoint, function(err, app) {

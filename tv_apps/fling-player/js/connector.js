@@ -23,6 +23,7 @@
     this._lastSeq = -1; // The sequence of the last message received
     this._isInit = false;
     this._isInitConnection = false;
+    this._controllingDeviceInfo = null;
   }
 
   var proto = evt(Connector.prototype);
@@ -74,7 +75,26 @@
   proto.sendMsg = function (msg) {
     mDBG.log('Connector#sendMsg');
     mDBG.log('msg = ', msg);
-    this._connection.send(castingMessage.stringify(msg));
+    try {
+      var txt = castingMessage.stringify(msg);
+      this._connection.send(txt);
+    } catch (e) {
+      mDBG.error(e);
+    }
+  };
+
+  proto.getControllingDeviceInfo = function () {
+    return new Promise((resolve, reject) => {
+      if (this._controllingDeviceInfo) {
+        resolve(this._controllingDeviceInfo);
+      } else {
+        var handle = () => {
+          this.off('ControllingDeviceInfoUpdated', handle);
+          resolve(this._controllingDeviceInfo);
+        };
+        this.on('ControllingDeviceInfoUpdated', handle);
+      }
+    });
   };
 
   proto.replyACK = function (msg, error) {
@@ -154,6 +174,13 @@
               time);
           }
           this.fire('seekRequest', { time : time });
+        break;
+
+        case 'device-info':
+          this._controllingDeviceInfo = {
+            displayName: msg.displayName
+          };
+          this.fire('ControllingDeviceInfoUpdated');
         break;
       }
     } catch (e) {

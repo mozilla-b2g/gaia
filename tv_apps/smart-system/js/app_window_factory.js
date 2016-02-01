@@ -106,18 +106,21 @@
       var parseUrl = detail.url.split('/');
       var protocol = parseUrl[0].toUpperCase();
       var self = this;
-      var manifestURL;
+      var manifestURL = null;
       var requestId = detail.id;
+
+      // Check the protocol type
+      if (protocol !== 'APP:') {
+        this._sendPresentationDenied(requestId);
+        return;
+      }
 
       // We assume the URL is in the following format:
       // app://<domain name>/<path>
       // And we limit length to 3 to get rid of the <path> part.
       parseUrl.length = 3;
-      if (protocol === 'APP:') {
-        manifestURL = parseUrl.join('/') + '/manifest.webapp';
-      } else {
-        manifestURL = null;
-      }
+      manifestURL = parseUrl.join('/') + '/manifest.webapp';
+
       var config = new BrowserConfigHelper({
         url: detail.url,
         manifestURL: manifestURL

@@ -1,5 +1,3 @@
-/* global Utils */
-
 'use strict';
 
 (function(exports) {
@@ -18,7 +16,7 @@ function onNotification(message) {
     return;
   }
 
-  var title = Utils.parseParams(message.imageURL).titleID;
+  var title = message.data.title;
 
   var url = [
     'attention.html?title=',

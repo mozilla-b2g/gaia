@@ -397,10 +397,12 @@ Music.prototype = {
       });
     }.bind(this));
 
+    // Here we assume that if the body of the document
+    // is no longer hidden that we have content.
+    // See view.js:View.prototype.setupList
     this.client.waitFor(function() {
       return this.client.executeScript(function() {
-        var el = document.querySelector('#list');
-        return el; //.state === 'complete';
+        return document.body.hidden === false;
       });
     }.bind(this));
 
@@ -643,7 +645,13 @@ Music.prototype = {
     assert.ok(frame);
     this.client.switchToFrame(frame);
 
-    this.client.helper.waitForElement(Music.Selector.playerCover).click();
+    var playerCover =
+        this.client.helper.waitForElement(Music.Selector.playerCover);
+    playerCover.click();
+
+    this.client.switchToShadowRoot(playerCover);
+    this.client.helper.waitForElement('#rating');
+    this.client.switchToShadowRoot();
 
     this.switchToMe();
   },
@@ -681,7 +689,9 @@ Music.prototype = {
     var ratingEl = this.client.findElement('#rating');
     assert.ok(rating);
     this.client.switchToShadowRoot(ratingEl);
-    var star = this.client.findElement('button[value="' + rating + '"]');
+    // we must really wait that the element be visible. or click will fail.
+    var star = this.client.helper.waitForElement(
+      'button[value="' + rating + '"]');
     assert.ok(star);
     star.click();
     this.client.switchToShadowRoot();

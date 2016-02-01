@@ -3,7 +3,7 @@
           MocksHelper, TimeIcon, MockMozIntl */
 'use strict';
 
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');

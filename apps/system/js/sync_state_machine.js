@@ -134,12 +134,16 @@
      */
     _createTransition: function(name, event) {
       return (...args) => {
+        var from = this._state;
+
         // Checks if the transition is valid in the current state.
         if (!transitions[name][this._state]) {
-          throw new Error(`Transition ${name} invalid for the current state`);
+          var error = 'Transition ' + name + ' invalid for the current ' +
+                      'state ' + from;
+          this.debug(error);
+          throw new Error(error);
         }
 
-        var from = this._state;
         var to = event[from];
 
         if (from == to) {
@@ -148,6 +152,8 @@
 
         // Transition to the next state.
         this._state = to;
+
+        this.debug(`Transition from ${from} to ${to}`, args);
 
         // Publish the syncSTATE event.
         this.publish(to, {

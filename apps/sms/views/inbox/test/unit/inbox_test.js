@@ -605,6 +605,7 @@ suite('thread_list_ui', function() {
   suite('markReadUnread', function() {
     setup(function() {
       this.sinon.stub(Threads, 'get');
+      this.sinon.stub(MessageManager, 'markThreadRead');
 
       var threads = [{
         id: 1,
@@ -667,6 +668,9 @@ suite('thread_list_ui', function() {
 
       assert.isFalse(firstThreadNode.classList.contains('unread'));
       assert.isFalse(secondThreadNode.classList.contains('unread'));
+      sinon.assert.neverCalledWith(MessageManager.markThreadRead, 1, true);
+      sinon.assert.calledWith(MessageManager.markThreadRead, 2, true);
+      sinon.assert.callCount(MessageManager.markThreadRead, 1);
     });
 
     test('both Threads are unread', function() {
@@ -683,6 +687,9 @@ suite('thread_list_ui', function() {
 
       assert.isFalse(firstThreadNode.classList.contains('unread'));
       assert.isFalse(secondThreadNode.classList.contains('unread'));
+      sinon.assert.calledWith(MessageManager.markThreadRead, 3, true);
+      sinon.assert.calledWith(MessageManager.markThreadRead, 4, true);
+      sinon.assert.callCount(MessageManager.markThreadRead, 2);
     });
 
     test('both Threads are read', function() {
@@ -699,6 +706,9 @@ suite('thread_list_ui', function() {
 
       assert.isTrue(firstThreadNode.classList.contains('unread'));
       assert.isTrue(secondThreadNode.classList.contains('unread'));
+      sinon.assert.calledWith(MessageManager.markThreadRead, 5, false);
+      sinon.assert.calledWith(MessageManager.markThreadRead, 6, false);
+      sinon.assert.callCount(MessageManager.markThreadRead, 2);
     });
   });
 
@@ -2194,16 +2204,21 @@ suite('thread_list_ui', function() {
   });
 
   suite('On fully loaded event', function() {
-    test('only fires when all threads are rendered', function(done) {
+    var resolveDraftsRequest;
+    setup(function() {
+      this.sinon.stub(Drafts, 'request').returns(
+        new Promise((resolve) => resolveDraftsRequest = resolve)
+      );
+
       this.sinon.stub(MessageManager, 'getThreads');
+    });
 
-      var visuallyLoaded = sinon.stub();
+    test('only fires when all threads and drafts are rendered', function(done) {
+      var visuallyLoadedStub = sinon.stub();
+      var fullyLoadedStub = sinon.stub();
 
-      InboxView.once('visually-loaded', visuallyLoaded);
-
-      InboxView.once('fully-loaded', () => done(() => {
-        sinon.assert.calledOnce(visuallyLoaded);
-      }));
+      InboxView.once('visually-loaded', visuallyLoadedStub);
+      InboxView.once('fully-loaded', fullyLoadedStub);
 
       InboxView.renderThreads();
 
@@ -2213,6 +2228,19 @@ suite('thread_list_ui', function() {
       );
       MessageManager.getThreads.yieldTo('end');
       MessageManager.getThreads.yieldTo('done');
+
+      sinon.assert.calledOnce(visuallyLoadedStub);
+      sinon.assert.notCalled(fullyLoadedStub);
+
+      // Clean micro-queue to make sure that fullyLoaded depends on Drafts
+      // request promise specifically, not on any other promise.
+      Promise.resolve().then(() => {
+        sinon.assert.notCalled(fullyLoadedStub);
+
+        resolveDraftsRequest();
+      }).then(() => {
+        sinon.assert.calledOnce(fullyLoadedStub);
+      }).then(done, done);
     });
   });
 

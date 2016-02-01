@@ -38,12 +38,6 @@ SwipeablePanelView.prototype.render = function() {
   var panel = document.createElement('div');
   panel.classList.add('swipe-panel');
 
-  this.swipingDetector = new SwipingDetector(panel);
-  this.swipingDetector.start();
-  this.swipingDetector.ontouchstart = this._handleTouchStart.bind(this);
-  this.swipingDetector.onpan = this._handlePan.bind(this);
-  this.swipingDetector.onswipe = this._handleSwipe.bind(this);
-
   var i = 0;
   while (true) {
     var section = this._renderSection(i);
@@ -57,18 +51,13 @@ SwipeablePanelView.prototype.render = function() {
     i++;
   }
 
-  // Create section indicator
-  var indicatorContainer = document.createElement('div');
-  indicatorContainer.classList.add('section-indicator-container');
-  for (var j = 0; j < this.sections.length; j++) {
-    var dot = document.createElement('span');
-    dot.classList.add('section-indicator');
-    this.indicators.push(dot);
-    indicatorContainer.appendChild(dot);
+  // SwipingDetector and SectionIndicator should be initialized
+  // only when there are more than one sections in panel.
+  if (this.sections.length > 1) {
+    this._createSwipingDetector(panel);
+    this._renderSectionIndicator(panel);
   }
-  this._updateIndicator();
 
-  panel.appendChild(indicatorContainer);
   this.element = panel;
 };
 
@@ -105,6 +94,27 @@ SwipeablePanelView.prototype.gotoSection = function(index) {
   this._updateIndicator();
 };
 
+SwipeablePanelView.prototype.resize = function resize(totalWidth) {
+  this.options.totalWidth = totalWidth;
+  this.swipeDetectingPaused = true;
+
+  // Reposition sections when resize;
+  this.sections.forEach(function(section, index) {
+    var translateX;
+    
+    if (index === this.currentSectionIndex) {
+      translateX = 0; 
+    } else if (this.currentSectionIndex > index) {
+      translateX = -totalWidth;
+    } else {
+      translateX = totalWidth; 
+    }
+
+    section.style.transform = 'translateX(' + translateX + 'px)';
+  }, this);
+
+};
+
 SwipeablePanelView.prototype._moveSection = function(index, distance) {
   var style = this.sections[index].style;
   style.transform = 'translateX(' + distance + 'px)';
@@ -122,9 +132,14 @@ SwipeablePanelView.prototype._updateIndicator = function() {
 SwipeablePanelView.prototype._handleTouchStart = function(evt) {
   this.startX = evt.position.clientX;
   this.deltaX = 0;
+  this.swipeDetectingPaused = false;
 };
 
 SwipeablePanelView.prototype._handlePan = function(evt) {
+  if (this.swipeDetectingPaused) {
+    return;
+  }
+
   var totalWidth = this.options.totalWidth;
 
   // Clear all transition styles
@@ -184,8 +199,11 @@ SwipeablePanelView.prototype._handlePan = function(evt) {
 };
 
 SwipeablePanelView.prototype._handleSwipe = function(evt) {
-  var totalWidth = this.options.totalWidth;
+  if (this.swipeDetectingPaused) {
+    return;
+  }
 
+  var totalWidth = this.options.totalWidth;
   var targetIndex = this.currentSectionIndex;
   var forward = evt.direction === 'left';
 
@@ -233,6 +251,28 @@ SwipeablePanelView.prototype._renderSection = function(index) {
 
   this.element = section;
   return section;
+};
+
+SwipeablePanelView.prototype._renderSectionIndicator = function(panel) {
+  var indicatorContainer = document.createElement('div');
+  indicatorContainer.classList.add('section-indicator-container');
+  for (var j = 0; j < this.sections.length; j++) {
+    var dot = document.createElement('span');
+    dot.classList.add('section-indicator');
+    this.indicators.push(dot);
+    indicatorContainer.appendChild(dot);
+  }
+  this._updateIndicator();
+
+  panel.appendChild(indicatorContainer);
+};
+
+SwipeablePanelView.prototype._createSwipingDetector = function(panel) {
+  this.swipingDetector = new SwipingDetector(panel);
+  this.swipingDetector.start();
+  this.swipingDetector.ontouchstart = this._handleTouchStart.bind(this);
+  this.swipingDetector.onpan = this._handlePan.bind(this);
+  this.swipingDetector.onswipe = this._handleSwipe.bind(this);
 };
 
 SwipeablePanelView.prototype._createKeyView = function(keyObject) {

@@ -6,28 +6,26 @@
   var assert = require('assert');
 
   marionette('activity action menu test', function() {
-    var messagesApp, system, utilityTray;
+    var messagesApp, system, utilityTray, composer;
 
     var client = marionette.client({
       profile: {
         prefs: {
           'focusmanager.testmode': true
         }
-      },
-      desiredCapabilities: { raisesAccessibilityExceptions: true }
+      }
     });
 
     setup(function() {
       system = client.loader.getAppClass('system');
       messagesApp = Messages.create(client);
+      messagesApp.loadMocks();
       utilityTray = new UtilityTray(client);
-    });
-
-    test('works after opening an app', function() {
       messagesApp.launch();
       messagesApp.Inbox.navigateToComposer();
       system.waitForKeyboard();
-      var composer = messagesApp.Composer;
+      messagesApp.switchTo();
+      composer = messagesApp.Composer;
 
       client.waitFor(function() {
         return composer.attachButton.enabled();
@@ -35,6 +33,9 @@
       composer.attachButton.tap();
       client.switchToFrame();
       system.waitForActivityMenu();
+    });
+
+    test('works after opening an app', function() {
       utilityTray.open();
       utilityTray.quickSettings.click();
       messagesApp.launch();
@@ -44,17 +45,6 @@
     });
 
     test('works after home button', function(done) {
-      messagesApp.launch();
-      messagesApp.Inbox.navigateToComposer();
-      system.waitForKeyboard();
-      var composer = messagesApp.Composer;
-
-      client.waitFor(function() {
-        return composer.attachButton.enabled();
-      });
-      composer.attachButton.tap();
-      client.switchToFrame();
-      system.waitForActivityMenu();
       system.tapHome();
       messagesApp.launch();
       composer.attachButton.tap();
@@ -66,17 +56,6 @@
     });
 
     test('it only creates 1 action menu div', function() {
-      messagesApp.launch();
-      messagesApp.Inbox.navigateToComposer();
-      system.waitForKeyboard();
-      var composer = messagesApp.Composer;
-
-      client.waitFor(function() {
-        return composer.attachButton.enabled();
-      });
-      composer.attachButton.tap();
-      client.switchToFrame();
-      system.waitForActivityMenu();
       system.cancelActivity.tap();
       messagesApp.switchTo();
       composer.attachButton.tap();

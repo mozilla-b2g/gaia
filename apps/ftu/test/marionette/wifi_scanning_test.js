@@ -4,10 +4,7 @@ var Ftu = require('./lib/ftu');
 
 marionette('First Time Use > Wifi Scanning Test', function() {
   var ftu;
-  var client = marionette.client({
-    profile: Ftu.clientOptions,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client({ profile: Ftu.clientOptions });
 
   setup(function() {
     ftu = new Ftu(client);
@@ -15,6 +12,7 @@ marionette('First Time Use > Wifi Scanning Test', function() {
 
   test('FTU Wifi Scanning Tests', function() {
     client.apps.switchToApp(Ftu.URL);
+    ftu.waitForFtuReady();
     ftu.clickThruPanel('#languages', '#forward');
     ftu.clickThruPanel('#wifi', '#forward');
     ftu.clickThruPanel('#date_and_time', '#back');

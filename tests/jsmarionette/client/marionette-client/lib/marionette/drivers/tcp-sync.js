@@ -179,7 +179,8 @@ TcpSync.prototype._readResponse = function() {
  *     An object that can be dumped into a JSON data structure,
  *     or a message that can be marshaled.
  * @param {Function} cb
- *     Callback to be called when a response for the request is received.
+ *     Callback to be invoked when a response for the request is
+ *     received.
  *
  * @return {?}
  *     The return value from the passed in callback.
@@ -198,7 +199,7 @@ TcpSync.prototype.send = function(obj, cb) {
  * @param {(Command|Response)} msg
  *     The message to send.
  * @param {Function} cb
- *     Callback to be called when a response for the command is received.
+ *     Callback to be invoked when a response for the request is received.
  *
  * @return {?}
  *     The return value from the passed in callback.
@@ -214,7 +215,7 @@ TcpSync.prototype.sendMessage = function(msg, cb) {
  * @param {Object} data
  *     An object that can be marshaled into a JSON data structure.
  * @param {Function} cb
- *     Callback to be called when a response for the request is received.
+ *     Callback to be invoked when a response for the request is received.
  *
  * @return {?}
  *     The return value from the passed in callback.

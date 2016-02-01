@@ -47,7 +47,7 @@ function ThumbnailList(groupClass, container) {
 
   // If the locale changes while we're running, then we need to
   // re-localize the dates in the group headers
-  navigator.mozL10n.ready(this.localize.bind(this));
+  document.addEventListener('DOMRetranslated', this.localize.bind(this));
 }
 
 ThumbnailList.prototype.addItem = function(item) {

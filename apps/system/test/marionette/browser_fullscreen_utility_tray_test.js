@@ -7,7 +7,9 @@ var UtilityTray = require('./lib/utility_tray');
 
 marionette('Browser - fullscreen utility tray access', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var actions, utilityTray, rocketbar, system, frame, server;
   var screenHeight;

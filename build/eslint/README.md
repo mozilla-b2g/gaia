@@ -7,7 +7,7 @@ performing custom checks for outdated APIs or [unsafe coding practices]
 
 ## How
 
-For now ESLint will use the jshint ignore file `.jshintignore`. Every other 
+To bypass ESLint checks on specific files use `build/eslint/xfail.list`. Every other 
 configuration specific to ESLint is in `.eslintrc`. 
 
 From the Gaia root directory:

@@ -1,5 +1,7 @@
 /* global MockNavigatorSettings, MockNavigatorMozWifiManager */
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp(
+  'settings/shared/test/unit/mocks/mock_navigator_moz_wifi_manager.js');
 
 suite('WifiContext', function() {
   'use strict';
@@ -120,6 +122,25 @@ suite('WifiContext', function() {
     test('when wifiManager.onconnectioninfoupdate, trigger cb', function() {
       wifiManager.onconnectioninfoupdate();
       assert.isTrue(fakeCb.called);
+    });
+  });
+
+  suite('WifiNetworkForgotten', function() {
+    var fakeCb;
+
+    setup(function() {
+      fakeCb = sinon.spy();
+      wifiContext.addEventListener('wifiNetworkForgotten', fakeCb);
+    });
+
+    teardown(function() {
+      wifiContext.removeEventListener('wifiNetworkForgotten', fakeCb);
+    });
+
+    test('when wifiContext.forgetNetwork callback, trigger cb', function() {
+      wifiContext.forgetNetwork({}, () => {
+        assert.isTrue(fakeCb.called);
+      });
     });
   });
 

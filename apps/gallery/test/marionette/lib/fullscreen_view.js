@@ -43,7 +43,10 @@
     editCropCanvas: '#edit-crop-canvas',
     openTitle: '#filename',
     openImage: '#frame > .image-view',
-    openSaveButton: '#save'
+    openSaveButton: '#save',
+    fullScreenToolBar: '#fullscreen-toolbar',
+    fullScreenToolBarOptions: '#fullscreen-toolbar > a',
+
   });
 
   Fullscreen_View.prototype = {  
@@ -245,8 +248,6 @@
         Fullscreen_View.Selector.editCropCanvas);
     },
 
-
-
     /**
      * @return {Marionette.Element} Element to click for sharing image.
      */
@@ -255,7 +256,61 @@
         Fullscreen_View.Selector.shareButton);
     },
 
-      /**
+    /**
+     * @return {Marionette.Element} Element containing fullScreenView toolbar
+     */
+    get fullScreenToolBar() {
+      return this.client.helper.waitForElement(
+        Fullscreen_View.Selector.fullScreenToolBar);
+    },
+
+    /**
+    * @return {numeric} fullScreenToolBar width.
+    */
+    get toolBarWidth() {
+      return this.fullScreenToolBar.size().width;
+    },
+
+    /**
+     * @return {Marionette.Element}  List of elements of toolbar options.
+     */
+    get toolBarOptions() {
+      this.waitFor(Fullscreen_View.Selector.fullScreenToolBarOptions);
+      return this.client.findElements(
+        Fullscreen_View.Selector.fullScreenToolBarOptions);
+    },
+
+    /**
+     * @return {String} screen orientation
+     */
+    get screenOrientation() {
+      var orientation = this.client.executeScript(function () {
+        return window.wrappedJSObject.screen.mozOrientation;
+      });
+      return orientation;
+    },
+
+    /**
+     * @return {numeric} screen width
+     */
+    get screenWidth() {
+      var width = this.client.executeScript(function () {
+        return window.wrappedJSObject.screen.width;
+      });
+      return width;
+    },
+
+    /**
+     * @return {numeric} screen height
+     */
+    get screenHeight() {
+      var height = this.client.executeScript(function () {
+        return window.wrappedJSObject.screen.height;
+      });
+      return height;
+    },
+
+    /**
      * @return {Marionette.Element} element to display image opened using
      * gallery app open activity.
      */
@@ -375,6 +430,12 @@
         return this.editEnhanceButton
                           .getAttribute('class').split(' ').indexOf('on') < 0;
       }.bind(this));
+    },
+
+    changeOrientation: function(orientation) {
+      this.client.executeScript(function(orientation) {
+        window.wrappedJSObject.screen.mozLockOrientation(orientation);
+      }, [orientation]);
     }
   };
 })(module);

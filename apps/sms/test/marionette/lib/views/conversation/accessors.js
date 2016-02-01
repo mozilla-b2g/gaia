@@ -23,7 +23,7 @@ var SELECTORS = Object.freeze({
 
 var EDIT_MODE_SELECTORS = Object.freeze({
   toggleSelectionButton: '#messages-check-uncheck-all-button',
-  editHeaderTitle: '#messages-edit-mode'  
+  editHeaderTitle: '#messages-edit-mode'
 });
 
 function ConversationAccessor(client) {
@@ -52,7 +52,7 @@ ConversationAccessor.prototype = {
     return this.client.helper.waitForElement(
       EDIT_MODE_SELECTORS.editHeaderTitle
     );
-  },  
+  },
 
   get headerActionButton() {
     return this.client.helper.waitForElement(SELECTORS.headerActionButton);
@@ -122,9 +122,15 @@ ConversationAccessor.prototype = {
 
   waitToAppear: function() {
     var conversationPanel = this.client.helper.waitForElement(SELECTORS.main);
-    this.client.waitFor(function() {
-      return conversationPanel.location().x === 0;
+
+    this.client.waitFor(() => {
+      return conversationPanel.rect().x === 0 && this.client.executeScript(
+        function() {
+          return window.wrappedJSObject.Navigation.isCurrentPanel('thread');
+        }
+      );
     });
+
     return conversationPanel;
   }
 };

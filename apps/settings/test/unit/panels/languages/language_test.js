@@ -9,7 +9,7 @@ suite('Languages > ', function() {
   var OSVersion = '' + Math.random();
 
   var modules = [
-    'shared_mocks/mock_l10n',
+    'shared_mocks/mock_l20n',
     'shared_mocks/mock_keyboard_helper',
     'shared_mocks/mock_moz_activity',
     'unit/mock_settings_cache',
@@ -38,8 +38,8 @@ suite('Languages > ', function() {
       MockL10n, MockKeyboardHelper, MockMozActivity, MockSettingsCache,
       Languages) {
       // mock l10n
-      realL10n = window.navigator.mozL10n;
-      window.navigator.mozL10n = MockL10n;
+      realL10n = document.l10n;
+      document.l10n = MockL10n;
 
       // mock keyboard helper
       mockKeyboardHelper = MockKeyboardHelper;
@@ -65,7 +65,7 @@ suite('Languages > ', function() {
 
   suiteTeardown(function() {
     this.MockSettingsCache.mTeardown();
-    window.navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.MozActivity = realMozActivity;
   });
 

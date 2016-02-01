@@ -104,7 +104,7 @@ FormButton.prototype = {
         this.button.removeAttribute('data-l10n-id');
         this.button.textContent = l10nId.raw;
       } else if (l10nId.id) {
-        navigator.mozL10n.setAttributes(this.button, l10nId.id, l10nId.args);
+        document.l10n.setAttributes(this.button, l10nId.id, l10nId.args);
       }
     });
   },

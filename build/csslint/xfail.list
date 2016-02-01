@@ -2,8 +2,8 @@
 # Each line contains 3 informations:
 # - the filename, the numbers or known errors, the numbers of known warnings
 #
-apps/bluetooth/style/icons.css 0 1
-apps/bluetooth/style/settings.css 0 1
+apps/bluetooth/style/lists.css 5 0
+apps/bluetooth/style/settings.css 2 1
 apps/calendar/style/event_view.css 2 0
 apps/calendar/style/modify_account_view.css 1 0
 apps/calendar/style/modify_event_view.css 4 4
@@ -112,7 +112,6 @@ apps/system/style/modal_dialog/prompt.css 1 0
 apps/system/style/net_error.css 2 0
 apps/system/style/notifications/notifications.css 8 0
 apps/system/style/permission_manager/permission_manager.css 5 0
-apps/system/style/pin_page_system_dialog.css 2 0
 apps/system/style/rocketbar/rocketbar.css 2 0
 apps/system/style/sound_manager/sound_manager.css 5 3
 apps/system/style/statusbar/statusbar.css 1 0
@@ -126,7 +125,7 @@ apps/system/style/update_manager/update_manager.css 4 0
 apps/system/style/utility_tray/utility_tray.css 4 0
 apps/system/style/window.css 0 3
 apps/system/style/wrapper/wrapper.css 0 1
-apps/system/style/zindex.css 0 4
+apps/system/style/zindex.css 0 5
 apps/video/style/info.css 0 2
 apps/video/style/video.css 0 9
 apps/video/style/video_tablet.css 0 11

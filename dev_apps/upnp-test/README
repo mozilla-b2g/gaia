@@ -1,0 +1,20 @@
+UPnP Test App (Bug 1235679)
+---------------------------
+UPnP test app search for UPnP media servers in the network and browse and play media files.
+
+Key features
+----------------
+a) Discover uPnP Servers
+b) Plays media files when browsed and clicked on same screen
+c) Shows response logs returned from uPnP services
+
+Links to libraries used
+------------------------
+- APP leverages SSDP service API (Bug 751172) that uses UDPSocket to make UPnP requests (Bug 745283).
+  https://github.com/schien/ssdp.js/blob/master/src/ssdp.js
+
+- A Network Service Messaging framework for use on top of the W3C Network Service Discovery specification.
+  https://github.com/richtr/plug.play.js/blob/master/lib/plug.upnp.js
+  https://github.com/richtr/plug.play.js/blob/master/lib/ContentDirectory/plug.upnp_contentdirectory.js
+
+  Updated plug.upnp.js at Line 830 to add {mozSystem: true} to allow Cross origin XHR requests.

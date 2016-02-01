@@ -21,7 +21,8 @@ marionette('Messages Composer', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var messagesApp, activityCallerApp;
@@ -35,23 +36,19 @@ marionette('Messages Composer', function() {
     assert.isFalse(element.displayed(), 'Element should not be displayed');
   }
 
-  var MOCKS = [
-    '/mocks/mock_test_storages.js',
-    '/mocks/mock_test_blobs.js',
-    '/mocks/mock_navigator_moz_icc_manager.js',
-    '/mocks/mock_navigator_moz_mobile_message.js',
-    '/mocks/mock_navigator_moz_contacts.js'
-  ];
-
   setup(function() {
     messagesApp = Messages.create(client);
     storage = Storage.create(client);
 
     activityCallerApp = MessagesActivityCaller.create(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'test_storages',
+      'test_blobs',
+      'navigator_moz_icc_manager',
+      'navigator_moz_mobile_message',
+      'navigator_moz_contacts'
+    ]);
   });
 
   suite('Preserve message input while navigating', function() {
@@ -249,10 +246,9 @@ marionette('Messages Composer', function() {
 
       // Case #14: add an email recipient, the message is converted to MMS.
       messagesApp.addRecipient('a@b.com');
-      assertIsDisplayed(composer.mmsLabel);
+      client.helper.waitForElement(composer.mmsLabel);
 
       // Case #15: remove the email recipient, the message is converted to SMS.
-      messagesApp.getRecipient('a@b.com').tap();
       messagesApp.clearRecipient();
       client.helper.waitForElementToDisappear(composer.mmsLabel);
     });

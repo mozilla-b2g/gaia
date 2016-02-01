@@ -4,7 +4,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/js/bookmarks_database.js');
 
 requireApp('system/js/service.js');

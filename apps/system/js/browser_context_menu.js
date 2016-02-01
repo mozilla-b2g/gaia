@@ -219,24 +219,27 @@
         url: url,
         iconable: false,
         title: this.app.title,
-        themeColor: this.app.themeColor,
+        meta: this.app.meta,
         app: this.app
       };
 
-      this.app.getScreenshot(function() {
-        data.screenshot = this.app._screenshotBlob;
-        this.app.getSiteIconUrl(SITE_ICON_SIZE)
-        .then(iconObject => {
-          if (iconObject) {
-            data.icon = iconObject.blob;
-          }
-          this.publish('pin-page-dialog-requestopen', data);
-        })
-        .catch((err) => {
-          this.app.debug('bookmarkUrl, error from getSiteIcon: %s', err);
+      this.app.getSiteIconUrl(SITE_ICON_SIZE)
+      .then(iconObject => {
+        if (iconObject) {
+          data.icon = iconObject.blob;
+        }
+        this.app.getScreenshot(() => {
+          data.meta.screenshot = this.app._screenshotBlob;
           this.publish('pin-page-dialog-requestopen', data);
         });
-      }.bind(this));
+      })
+      .catch((err) => {
+        this.app.debug('bookmarkUrl, error from getSiteIcon: %s', err);
+        this.app.getScreenshot(() => {
+          data.meta.screenshot = this.app._screenshotBlob;
+          this.publish('pin-page-dialog-requestopen', data);
+        });
+      });
     },
 
     newWindow: function(manifest, isPrivate) {
@@ -259,7 +262,6 @@
       var nodeName = item.nodeName.toUpperCase();
       var documentURI = item.data.documentURI;
       var uri = item.data.uri;
-      var text = item.data.text;
 
       switch (nodeName) {
         case 'A':
@@ -271,9 +273,7 @@
             id: 'open-in-new-private-window',
             label: _('open-in-new-private-window'),
             callback: this.openUrl.bind(this, uri, true)
-          },
-            this._getSaveUrlItem(uri, text),
-          {
+          }, {
             id: 'save-link',
             label: _('save-link'),
             callback: this.app.browser.element.download.bind(

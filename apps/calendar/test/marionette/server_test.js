@@ -10,7 +10,9 @@ var calendarName = 'firefox-os';
 
 marionette('interop basic', function() {
   var app, server;
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var vanillaEvent = Object.freeze({
     title: 'Vanilla event',

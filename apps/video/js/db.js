@@ -1,7 +1,7 @@
 /* global videodb:true,storageState:true,firstScanEnded:true,
   MediaDB,updateDialog,playerShowing,hidePlayer,updateLoadingSpinner,
   addToMetadataQueue,thumbnailList,currentVideo,resetCurrentVideo,
-  hideSelectView,thumbnailClickHandler */
+  hideSelectView,thumbnailClickHandler,startParsingMetadata */
 /* exported initDB */
 'use strict';
 //
@@ -72,6 +72,10 @@ function initDB() {
   videodb.onready = function() {
     storageState = false;
     updateDialog();
+    // It is possible during startup to queue metadata to parse before
+    // the MediaDB is ready to be able to parse it. So now that we are
+    // ready, we should try again and parse metadata for any queued videos.
+    startParsingMetadata();
   };
 }
 

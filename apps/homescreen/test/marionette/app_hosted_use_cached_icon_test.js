@@ -45,6 +45,21 @@ marionette('Homescreen - Hosted app cached icon fetch', function() {
 
     // ensure it is cached
     home.waitForIconImageUrl(icon, 'app-icon');
+    var id = home.getIconId(icon);
+    client.waitFor(function() {
+      var metadata = client.executeAsyncScript(function() {
+        window.wrappedJSObject.appWindow.apps.metadata.getAll().then(
+          marionetteScriptFinished);
+      });
+
+      for (var i = 0, iLen = metadata.length; i < iLen; i++) {
+        if (metadata[i].id.startsWith(id) &&
+            typeof metadata[i].icon !== 'undefined') {
+          return true;
+        }
+      }
+      return false;
+    });
 
     // ensure http fails so we use the cached icon
     server.fail(iconURL);

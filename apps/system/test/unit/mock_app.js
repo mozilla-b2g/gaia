@@ -84,7 +84,7 @@ MockApp.prototype.mTriggerDownloadProgress = function(progress) {
   this.progress = progress;
 
   if (this.onprogress) {
-    this.onprogress({
+    return this.onprogress({
         application: this
     });
   }

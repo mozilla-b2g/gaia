@@ -478,14 +478,14 @@ suite('Utils', function() {
     test('Single no carrier', function() {
       // ie. contact.tel [ ... ]
       var tel = [
-        {value: '201', type: ['Mobile'], carrier: null}
+        {value: '201', type: ['Mobile'], carrier: ''}
       ];
 
       var a = Utils.getPhoneDetails('201', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
-        carrier: null,
+        carrier: '',
         number: tel[0].value
       });
     });
@@ -493,14 +493,14 @@ suite('Utils', function() {
     test('No carrier, no type', function() {
       // ie. contact.tel [ ... ]
       var tel = [
-        {value: '201', type: [], carrier: null}
+        {value: '201', type: [], carrier: ''}
       ];
 
       var a = Utils.getPhoneDetails('201', tel);
 
       assert.deepEqual(a, {
-        type: null,
-        carrier: null,
+        type: '',
+        carrier: '',
         number: tel[0].value
       });
     });
@@ -571,12 +571,12 @@ suite('Utils', function() {
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
-        carrier: null,
+        carrier: '',
         number: tel[0].value
       });
       assert.deepEqual(b, {
         type: tel[1].type[0],
-        carrier: null,
+        carrier: '',
         number: tel[1].value
       });
     });

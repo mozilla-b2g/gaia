@@ -15,15 +15,15 @@ class TestSettingsMediaStorage(GaiaTestCase):
         media_storage_settings = settings.open_media_storage()
 
         # Check that no media is on the internal sdcard
-        self.assertEqual(media_storage_settings.internal_storage.music_size, '0 B')
-        self.assertEqual(media_storage_settings.internal_storage.pictures_size, '0 B')
-        self.assertEqual(media_storage_settings.internal_storage.movies_size, '0 B')
+        self.assertEqual(media_storage_settings.internal_storage.music_size, u'{"size":"0","unit":"B"}')
+        self.assertEqual(media_storage_settings.internal_storage.pictures_size, u'{"size":"0","unit":"B"}')
+        self.assertEqual(media_storage_settings.internal_storage.movies_size, u'{"size":"0","unit":"B"}')
 
         # Close the settings application. We need to kill it to re-init the UI
         self.apps.kill(settings.app)
 
         # Push media to the device
-        self.push_resource('VID_0001.3gp')
+        self.push_resource('VID_counter.3gp')
         self.push_resource('IMG_0001.jpg')
         self.push_resource('MUS_0001.mp3')
 
@@ -32,6 +32,6 @@ class TestSettingsMediaStorage(GaiaTestCase):
         media_storage_settings = settings.open_media_storage()
 
         # Check that media storage has updated to reflect the newly pushed media
-        self.assertEqual(media_storage_settings.internal_storage.music_size, '120 KB')
-        self.assertEqual(media_storage_settings.internal_storage.pictures_size, '348 KB')
-        self.assertEqual(media_storage_settings.internal_storage.movies_size, '120 KB')
+        self.assertEqual(media_storage_settings.internal_storage.music_size, u'{"size":"120","unit":"KB"}')
+        self.assertEqual(media_storage_settings.internal_storage.pictures_size, u'{"size":"348","unit":"KB"}')
+        self.assertEqual(media_storage_settings.internal_storage.movies_size, u'{"size":"680","unit":"KB"}')

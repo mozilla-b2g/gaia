@@ -1,4 +1,3 @@
-/* global openIncompatibleSettingsDialog */
 /*
 * Handle USB transfer protocol functionality.
 * Including key migration and carry value for compatibility.
@@ -142,8 +141,19 @@ define(function(require) {
           cset[umsSettingKey] = true;
           navigator.mozSettings.createLock().set(cset);
         } else {
-          openIncompatibleSettingsDialog('incompatible-settings-warning',
-            umsSettingKey, oldSetting, null);
+          DialogService.confirm('is-warning-storage-tethering-message', {
+            title: 'is-warning-storage-header',
+            submitButton: { id: 'enable', style: 'recommend' },
+            cancelButton: { id: 'cancel' }
+          }).then((result) => {
+            var enabled = result.type === 'submit';
+            var lock = navigator.mozSettings.createLock();
+            var cset = {};
+
+            cset[umsSettingKey] = enabled;
+            cset[oldSetting] = !enabled;
+            lock.set(cset);
+          });
         }
     },
 

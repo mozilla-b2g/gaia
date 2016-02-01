@@ -71,9 +71,12 @@ exports.LanguageList = {
       code => !(code in languages) && (code === currentLang || pseudoEnabled));
 
     function obj(arr1, arr2) {
-      // JSHint doesn't work with array comprehensions 
-      /* jshint ignore: start */
-      const zipped = [for (x of arr1) for (y of arr2) [x, y]];
+      const zipped = [];
+      arr1.forEach(x => {
+        arr2.forEach(y => {
+          zipped.push([x, y]);
+        });
+      });
       return zipped.reduce(
         (obj, [x, y]) => Object.assign(obj, { [x]: y }), {});
       /* jshint ignore: end */
@@ -101,7 +104,7 @@ exports.LanguageList = {
   _removeWithNoSpeech: function(languages, srEnabled) {
     if (srEnabled) {
       var speechLangs = new Set(
-        [for (v of window.speechSynthesis.getVoices()) v.lang.split('-')[0]]);
+        window.speechSynthesis.getVoices().map(v => v.lang.split('-')[0]));
       for (var langName in languages) {
         if (!speechLangs.has(langName.split('-')[0])) {
           delete languages[langName];
@@ -131,7 +134,7 @@ exports.LanguageList = {
       var langs = this._copyObj(langsFromFile);
       return Promise.all([
         this._extendPseudo(langs, current, pseudoEnabled),
-        this._readSetting('deviceinfo.os'),
+        this._readSetting('langpack.channel'),
         current,
         this._readSetting('accessibility.screenreader'),
         navigator.mozApps.getAdditionalLanguages()

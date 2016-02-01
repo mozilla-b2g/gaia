@@ -127,6 +127,8 @@ var FxaModuleEnterEmail = (function() {
         if(e.button === 0 ||
           (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN)) {
           this.fxaEmailInput.value = '';
+          FxaModuleKeyNavigation.focus(this.fxaEmailInput);
+          this.fxaEmailCleanBtn.classList.remove('show');
         }
       }.bind(this)
     );

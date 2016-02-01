@@ -1,5 +1,5 @@
 /* global AppUpdatable, LazyLoader, MozActivity, NotificationScreen, Service,
-          SettingsListener, SystemBanner, SystemUpdatable */
+          SettingsListener, SystemBanner, mozIntl, SystemUpdatable */
 
 'use strict';
 
@@ -406,7 +406,9 @@
 
         if (updatable.size) {
           var sizeItem = document.createElement('span');
-          sizeItem.textContent = this._humanizeSize(updatable.size);
+          this._humanizeSize(updatable.size).then(val => {
+            sizeItem.textContent = val;
+          });
           nameDetails.appendChild(sizeItem);
         } else {
           nameDetails.classList.add('nosize');
@@ -442,6 +444,7 @@
       }, this);
 
       window.dispatchEvent(new CustomEvent('updatepromptshown'));
+      this._hasDialog = true;
       this.downloadDialog.classList.add('visible');
       this.updateDownloadButton();
     },
@@ -593,8 +596,8 @@
         if (this._uncompressing && this.downloadsQueue.length === 1) {
           _localize(this.message, 'uncompressingMessage');
         } else {
-          _localize(this.message, 'downloadingUpdateMessage', {
-            progress: this._humanizeSize(this._downloadedBytes)
+          this._humanizeSize(this._downloadedBytes).then(progress => {
+            _localize(this.message, 'downloadingUpdateMessage', { progress });
           });
         }
       } else {
@@ -813,7 +816,9 @@
           break;
         case 'home':
         case 'holdhome':
-          this.cancelPrompt();
+          if (this._hasDialog) {
+            this.cancelPrompt();
+          }
           break;
       }
 
@@ -935,18 +940,8 @@
       window.dispatchEvent(event);
     },
 
-    // This is going to be part of l10n.js
     _humanizeSize: function um_humanizeSize(bytes) {
-      var _ = navigator.mozL10n.get;
-      var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
-
-      if (!bytes) {
-        return '0.00 ' + _(units[0]);
-      }
-
-      var e = Math.floor(Math.log(bytes) / Math.log(1024));
-      return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + ' ' +
-        _(units[e]);
+      return mozIntl._gaia.getFormattedUnit('digital', 'short', bytes);
     },
 
     _closeDownloadDialog: function um_closeDownloadDialog() {

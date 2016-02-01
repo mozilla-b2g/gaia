@@ -10,7 +10,7 @@ requireApp('system/js/pin_page_system_dialog.js');
 require('/shared/js/component_utils.js');
 require('/shared/js/lazy_loader.js');
 require('/shared/elements/gaia_pin_card/script.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_bookmarks_database.js');
 
 var mocksForPinDialog = new MocksHelper([
@@ -19,7 +19,7 @@ var mocksForPinDialog = new MocksHelper([
 
 suite('Pin Page dialog', function() {
   var subject, container, stubPin, stubPinSite, stubUnpinSite,
-      toastStub, bookmark, inScopeStub, scope;
+      toastStub, bookmark, inScopeStub, scope, mockPin;
 
   mocksForPinDialog.attachTestHelpers();
 
@@ -32,6 +32,11 @@ suite('Pin Page dialog', function() {
     inScopeStub = this.sinon.stub();
     toastStub = document.createElement('div');
     toastStub.show = this.sinon.stub();
+
+    mockPin = {
+      url: 'http://test.com',
+      meta: {}
+    };
 
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -96,22 +101,25 @@ suite('Pin Page dialog', function() {
       this.sinon.stub(SystemDialog.prototype, 'show');
       subject = new PinPageSystemDialog();
       subject.start();
+      subject.element.open = this.sinon.stub();
     });
 
     test('shows the dialog when requestopen', function() {
       window.dispatchEvent(new CustomEvent('pin-page-dialog-requestopen', {
-        detail: {}
+        detail: mockPin
       }));
       assert.isTrue(SystemDialog.prototype.show.called);
+      assert.isTrue(subject.element.open.called);
       assert.isTrue(subject.publish.calledWith('started'));
     });
 
     test('does not show the dialog when requestopen and stopped', function() {
       subject.stop();
       window.dispatchEvent(new CustomEvent('pin-page-dialog-requestopen', {
-        detail: {}
+        detail: mockPin
       }));
       assert.isFalse(SystemDialog.prototype.show.called);
+      assert.isFalse(subject.element.open.called);
       assert.isTrue(subject.publish.calledWith('stopped'));
     });
   });
@@ -120,11 +128,10 @@ suite('Pin Page dialog', function() {
     var data;
 
     setup(function() {
-      data = {
-        url: 'http://test.com'
-      };
+      data = mockPin;
       subject = new PinPageSystemDialog();
       this.sinon.stub(SystemDialog.prototype, 'show');
+      subject.element.open = this.sinon.stub();
     });
 
     test('updates the title', function() {
@@ -175,6 +182,7 @@ suite('Pin Page dialog', function() {
       setup(function() {
         subject = new PinPageSystemDialog();
         this.sinon.stub(subject, 'close');
+        subject.element.close = this.sinon.stub();
       });
 
       test('saves the pinned url', function() {

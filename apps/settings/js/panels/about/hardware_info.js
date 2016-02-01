@@ -95,7 +95,7 @@ define(function(require) {
         var msisdn = iccInfo.msisdn || iccInfo.mdn;
         if (msisdn) {
           if (isMultiSim) {
-            navigator.mozL10n.setAttributes(span,
+            document.l10n.setAttributes(span,
               'deviceInfo-MSISDN-with-index', {
                 index: index + 1,
                 msisdn: msisdn
@@ -105,7 +105,7 @@ define(function(require) {
           }
         } else {
           if (isMultiSim) {
-            navigator.mozL10n.setAttributes(span,
+            document.l10n.setAttributes(span,
               'unknown-phoneNumber-sim', { index: index + 1 });
           } else {
             span.setAttribute('data-l10n-id', 'unknown-phoneNumber');

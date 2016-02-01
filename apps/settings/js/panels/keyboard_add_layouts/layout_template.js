@@ -24,6 +24,10 @@ define(function(require) {
       container.appendChild(checkbox);
     }
 
+    if (layout.nameL10nId) {
+      nameBdi.dataset.l10nId = layout.nameL10nId;
+    }
+
     checkbox.addEventListener('change', function(e) {
       layout.enabled = e.target.checked;
     });

@@ -60,6 +60,7 @@
   LockScreenBasicComponent.prototype.transferTo = function(clazz) {
     var nextState = new clazz(this);
     var currentState = this._activeState;
+    this._previousState = currentState;
     this._activeState = nextState;
     this.logger.transfer(currentState.configs.name, nextState.configs.name);
     return currentState.stop()

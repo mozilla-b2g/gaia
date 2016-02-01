@@ -1,6 +1,6 @@
 'use strict';
 
-/* global MozActivity, Applications, SharedUtils */
+/* global MozActivity, Applications, BookmarkManager, SmartModalDialog */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -18,12 +18,14 @@
 
   ContextMenu.prototype = {
     pinToHomeElem: document.getElementById('pin-to-home'),
+    unpinFromHomeElem: document.getElementById('unpin-from-home'),
     mainSection: document.getElementById('main-section'),
     removeElem: document.getElementById('remove-card'),
     contextMenuElem: document.getElementById('context-menu'),
 
     _appDeck: undefined,
-    _app: undefined,
+    _target: {},
+
 
     /**
      * Initialize ContextMenu
@@ -33,16 +35,23 @@
      * @param  {AppDeck} appDeck - instance of {@link AppDeck}
      */
     init: function cm_init(appDeck) {
-      this.mainSection.addEventListener('contextmenu',
-        this.onContextMenu.bind(this));
-
       this._appDeck = appDeck;
-      this._appDeck.on('focus-on-pinable', this.onFocusOnPinable.bind(this));
-      this._appDeck.on('focus-on-nonpinable',
-        this.onFocusOnNonpinable.bind(this));
+      this._appDeck.on('focus', this.onFocus.bind(this));
+
+      this._bookmarkManager = BookmarkManager;
+
+      this._modalDialog = new SmartModalDialog();
 
       this.pinToHomeElem.addEventListener('click', this.pinOrUnpin.bind(this));
-      this.removeElem.addEventListener('click', this.uninstall.bind(this));
+      this.unpinFromHomeElem.addEventListener(
+                                          'click', this.pinOrUnpin.bind(this));
+
+      this.removeElem.addEventListener('click', this.onRemove.bind(this));
+
+      this._modalDialog.container.addEventListener('modal-dialog-closed',
+                            this._appDeck.enableNavigation.bind(this._appDeck));
+      this._modalDialog.container.addEventListener('modal-dialog-will-open',
+                           this._appDeck.disableNavigation.bind(this._appDeck));
     },
 
     _selfApp: undefined,
@@ -91,35 +100,28 @@
     },
 
     /**
-     * Shorthand function to derive launchURL from [app](http://mzl.la/1DJP6oZ)
-     * instance
-     *
-     * @private
-     * @method ContextMenu#_composeLaunchURL
-     * @param  {DOMApplication} app - see [here](http://mzl.la/1DJP6oZ)
-     * @return {String}  launchURL
-     */
-    _composeLaunchURL: function cm_composeLaunchURL(app) {
-      return app.manifestURL.replace('manifest.webapp', '') + app.entryPoint;
-    },
-
-    /**
      * To tell smart-home what app we would like to unpin
      *
      * @private
      * @method  ContextMetnu#_sendUnpinMessage
-     * @param  {DOMApplication} app - the [app](http://mzl.la/1DJP6oZ) we'd like
-     *                              to unpin from Home
+     * @param  {HTMLElement} cardElem - the card we'd like to unpin from Home
      */
-    _sendUnpinMessage: function cm_sendUnpinMessage(app) {
-      // Notice that here we didn't specify launchURL because we assume all
-      // 'Application' in app-deck are launched by calling app.launch().
-      // However, in the case of other deck-like app, if we are going to pin
-      // application which is launched by different launchURL, we must specify
-      // 'launchURL' here.
-      this.sendMessage('unpin', {
-        manifestURL: app.manifestURL
-      });
+    _sendUnpinMessage: function cm_sendUnpinMessage(cardElem) {
+      var type = cardElem.getAttribute('app-type');
+      if (type === 'app') {
+        // Notice that here we didn't specify launchURL because we assume all
+        // 'Application' in app-deck are launched by calling app.launch().
+        // However, in the case of other deck-like app, if we are going to pin
+        // application which is launched by different launchURL, we must specify
+        // 'launchURL' here.
+        this.sendMessage('unpin', {
+          manifestURL: cardElem.dataset.manifestURL
+        });
+      } else if (type === 'bookmark') {
+        this.sendMessage('unpin', {
+          url: cardElem.dataset.url
+        });
+      }
     },
 
     /**
@@ -133,81 +135,116 @@
      * @method  ContextMenu#pinOrUnpin
      */
     pinOrUnpin: function cm_pinOrUnpin() {
-      if (this._app) {
-        var app = this._app;
-        if (app.pinned) {
-          this._sendUnpinMessage(app);
-        } else {
-          // XXX: preferredSize should be determined by
-          // real offsetWidth of cardThumbnailElem in smart-home instead of
-          // hard-coded value
-          Applications.getIconBlob(app.manifestURL, app.entryPoint, 354,
-            function(blob) {
-              // Notice that here we didn't specify launchURL because we assume
-              // all 'Application' in app-deck are launched by calling
-              // app.launch().
-              // However, in the case of other deck-like app, if we are going to
-              // pin application which is launched by different launchURL, we
-              // must specify 'launchURL' here.
-              new MozActivity({
-                name: 'pin',
-                data: {
-                  type: 'Application',
-                  group: 'application',
-                  manifestURL: app.manifestURL,
-                  // We use app's original icon instead of screenshot here
-                  // because we are in app deck. For the case of getting
-                  // screenshot, please refer to bug 1100238.
-                  thumbnail: blob
-                }
-              });
+      var cardElem = this._target.elem;
+      var type = this._getTargetType();
+      var dataset = cardElem.dataset;
 
-            });
-        }
+      if (this._target.pinned) {
+        this._sendUnpinMessage(this._target.elem);
+      } else if (type === 'app') {
+        // XXX: preferredSize should be determined by
+        // real offsetWidth of cardThumbnailElem in smart-home instead of
+        // hard-coded value
+        Applications.getIconBlob(
+                        dataset.manifestURL, dataset.entryPoint, 354, blob => {
+          // Notice that here we didn't specify launchURL because we assume
+          // all 'Application' in app-deck are launched by calling
+          // app.launch().
+          // However, in the case of other deck-like app, if we are going to
+          // pin application which is launched by different launchURL, we
+          // must specify 'launchURL' here.
+          new MozActivity({
+            name: 'pin',
+            data: {
+              type: 'Application',
+              group: 'application',
+              manifestURL: dataset.manifestURL,
+              // We use app's original icon instead of screenshot here
+              // because we are in app deck. For the case of getting
+              // screenshot, please refer to bug 1100238.
+              thumbnail: blob
+            }
+          });
+        });
+      } else if (type === 'bookmark') {
+        this._bookmarkManager.get(dataset.url).then(card => {
+          new MozActivity({
+            name: 'pin',
+            data: {
+              name: {raw: card.name},
+              type: 'AppBookmark',
+              group: 'application',
+              url: card.url,
+              thumbnail: card.icon
+            }
+          });
+        });
       }
+    },
+
+    onRemove: function cm_onRemove() {
+      var type = this._getTargetType();
+      var elem = this._target.elem;
+      if (type === 'app') {
+        this.uninstall(elem);
+
+      } else if (type === 'bookmark') {
+        this._appDeck.disableNavigation();
+        this._modalDialog.open({
+          message: {
+            textL10nId: {
+              id: 'delete-bookmark-alert',
+              args: {
+                name: elem.getAttribute('label')
+              }
+            }
+          },
+          buttonSettings: [
+            {
+              textL10nId: 'cancel',
+              defaultFocus: true,
+            },
+            {
+              textL10nId: 'delete',
+              class: 'danger',
+              onClick: () => {
+                this._bookmarkManager.remove(elem.dataset.url);
+                this._sendUnpinMessage(elem);
+              }
+            }
+          ]
+        });
+      }
+    },
+
+    _getTargetType: function cm_getType() {
+      return this._target.elem && this._target.elem.getAttribute('app-type');
     },
 
     /**
      * Uninstall app represented by current focused SmartButton
      * @public
      * @method  ContextMenu#uninstall
+     * @param  {HTMLElement} cardElem - the card we'd like to unpin from Home
      */
-    uninstall: function cm_uninstall() {
-      if (this._app && this._app.removable) {
-        var app = this._app;
-        // unpin app before uninstall it
-        if (app.pinned) {
-          this._sendUnpinMessage(app);
-        }
-        var appInstance = Applications.installedApps[app.manifestURL];
-        if (appInstance) {
-          navigator.mozApps.mgmt.uninstall(appInstance);
-        }
+    uninstall: function cm_uninstall(cardElem) {
+      var appInstance =
+                      Applications.installedApps[cardElem.dataset.manifestURL];
+      if (appInstance) {
+        navigator.mozApps.mgmt.uninstall(appInstance);
       }
     },
 
-    onFocusOnPinable: function cm_onFocusOnPinable(detail) {
-      this._app = detail;
-      var l10nPayload =
-        (detail && detail.pinned) ? 'unpin-from-home' : 'pin-to-home';
-      SharedUtils.localizeElement(this.pinToHomeElem, l10nPayload);
-      if (detail.removable === false) {
-        this.contextMenuElem.removeChild(this.removeElem);
+    onFocus: function cm_onFocus(target) {
+      this._target = target;
+
+      this.contextMenuElem.innerHTML = '';
+      if (target.pinned) {
+        this.contextMenuElem.appendChild(this.unpinFromHomeElem);
       } else {
-        this.contextMenuElem.insertBefore(this.removeElem,
-          this.pinToHomeElem.nextElementSibling);
+        this.contextMenuElem.appendChild(this.pinToHomeElem);
       }
-    },
-
-    onFocusOnNonpinable: function cm_onFocusOnNonpinable() {
-      this._app = undefined;
-    },
-
-    onContextMenu: function cm_onContextMenu(evt) {
-      // stop showing context menu if we are not focus on pinable element
-      if (!this._app) {
-        evt.preventDefault();
-      }
+      this.contextMenuElem.appendChild(this.removeElem);
     }
   };
 

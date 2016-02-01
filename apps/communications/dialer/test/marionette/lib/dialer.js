@@ -1,5 +1,9 @@
 'use strict';
 
+/* global module */
+var KeypadView = require('./views/keypad/views.js');
+var TabsView = require('./views/tabs/view.js');
+
 /**
  * Abstraction around dialer app.
  * @constructor
@@ -15,12 +19,17 @@ function Dialer(client) {
 Dialer.URL = 'app://communications.gaiamobile.org';
 
 Dialer.config = {
-  settings: {
-    'devtools.overlay': true,
-    'hud.reflows': true
+  profile: {
+    settings: {
+      'devtools.overlay': true,
+      'hud.reflows': true
+    },
+    prefs: {
+      'devtools.debugger.forbid-certified-apps': false
+    }
   },
-  prefs: {
-    'devtools.debugger.forbid-certified-apps': false
+  desiredCapabilities: {
+    'raisesAccessibilityExceptions': false
   }
 };
 
@@ -35,15 +44,10 @@ Dialer.Selectors = {
   three: '.keypad-key[data-value="3"]',
   keypadCallBarAddContact: '#keypad-callbar-add-contact',
 
-  callLogTabItem: '#option-recents',
-  callLogEditButton: '#call-log-icon-edit',
-  callLogTabs: '#call-log-filter',
-  callLogNoResultsContainer: '#no-result-container',
-  callLogItem: '.log-item',
-  callLogEditForm: '#edit-mode',
-
   contactsTabItem: '#option-contacts',
-  contactsIframe: '#iframe-contacts',
+  callLogTabItem: '#option-recents',
+  callLogTabs: '#call-log-filter',
+  callLogEditForm: '#edit-mode',
 
   addToExistingContactMenuItem: 'button[data-l10n-id="addToExistingContact"]'
 };
@@ -72,6 +76,14 @@ Dialer.prototype = {
   get phoneNumber() {
     return this.client.helper.waitForElement(Dialer.Selectors.phoneNumber)
                              .getAttribute('value');
+  },
+
+  get keypadView() {
+    return new KeypadView(this.client);
+  },
+
+  get tabs() {
+    return new TabsView(this.client);
   }
 };
 

@@ -32,15 +32,15 @@ BluetoothPanel.prototype = {
 
   enableBluetooth: function() {
     this.waitForElement('bluetoothEnabledCheckbox').tap();
-      this.client.waitFor(function() {
-        return this.isBluetoothEnabled;
+    this.client.waitFor(function() {
+      return this.isBluetoothEnabled;
     }.bind(this));
   },
 
   disableBluetooth: function() {
     this.waitForElement('bluetoothEnabledCheckbox').tap();
-      this.client.waitFor(function() {
-        return !this.isBluetoothEnabled;
+    this.client.waitFor(function() {
+      return !this.isBluetoothEnabled;
     }.bind(this));
   }
 

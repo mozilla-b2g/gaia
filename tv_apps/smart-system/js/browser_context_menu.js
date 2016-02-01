@@ -1,6 +1,7 @@
 /* global MozActivity, IconsHelper, LazyLoader, applications */
 /* global BookmarksDatabase, focusManager, SmartModalDialog */
-/* global FTEWizard, Template */
+/* global FTEWizard, Template, AppInstallManager, AppInstallDialogs */
+/* global PreviewWindow, SystemBanner, ManifestHelper, BookmarkManager */
 
 (function(window) {
   'use strict';
@@ -12,6 +13,8 @@
   // now.
   // specifically for popping up FTE.
   var PIN_TO_CARD_ICON_NAME = 'ic_pin.png';
+  var ADD_TO_APPS_ICON_PATH = '/style/icons/add_to_apps.png';
+  var DELETE_FROM_APPS_ICON_PATH = '/style/icons/delete_from_apps.png';
 
   var _id = 0;
   /**
@@ -29,6 +32,7 @@
     this.instanceID = _id++;
     this._injected = false;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
+    this.systemBanner = new SystemBanner();
     return this;
   };
 
@@ -91,9 +95,8 @@
                  'class="contextmenu"></div>';
   };
 
-  BrowserContextMenu.prototype.kill = function() {
+  BrowserContextMenu.prototype._destroy = function() {
     focusManager.removeUI(this);
-    this.element.removeChild(this.modalDialog.element);
   };
 
   BrowserContextMenu.prototype.show = function(evt) {
@@ -101,6 +104,49 @@
 
     var hasContextMenu = detail.contextmenu &&
       detail.contextmenu.items.length > 0;
+
+    if (this.app instanceof PreviewWindow) {
+      evt.preventDefault();
+      evt.stopPropagation();
+
+      var listItemTask;
+      if (this.app.isAppLike) {
+        listItemTask = this._listAddWebsiteToAppsItem(
+          this.app.identity, this.app.features.name, this.app.features.iconUrl);
+      } else {
+        listItemTask = this._listAddAppToAppsItem(this.app.manifestURL);
+      }
+
+      listItemTask.then((item) => {
+        this.showMenu([item]);
+      });
+
+      return;
+    } else if (hasContextMenu && AppInstallManager.isMarketplaceAppActive()) {
+      // XXX: Since there's no proper API to handle "Add to Apps" and "Delete
+      //      from Apps" within the Marketplace app, we ask it to set the label
+      //      of the menuitem in a predefined format so the system app can
+      //      override it and do the corresponding action.
+      //
+      // Format: Base on different content types:
+      //         - App: '#app:<manifestURL>'
+      //         - Website: '#website:<url>,<name>,<iconUrl>'
+      var addToAppsChoice = detail.contextmenu.items.find((choice) => {
+        return choice.label && choice.label.charAt(0) == '#';
+      });
+
+      if (addToAppsChoice) {
+        evt.preventDefault();
+        evt.stopPropagation();
+
+        this._listAddToAppsItem(addToAppsChoice).then((item) => {
+          this.showMenu([item]);
+        });
+
+        return;
+      }
+    }
+
     var hasSystemTargets = detail.systemTargets &&
       detail.systemTargets.length > 0;
 
@@ -156,8 +202,10 @@
 
     // Initialize FTE if necessary.
     if (!this.fteWizard.launched) {
-      var hasPinIcon = menus.some(
-                    item => item.menuIcon.search(PIN_TO_CARD_ICON_NAME) !== -1);
+      var hasPinIcon = menus.some((item) => {
+        return item.menuIcon &&
+          item.menuIcon.search(PIN_TO_CARD_ICON_NAME) !== -1;
+      });
 
       if(hasPinIcon) {
         this.initFTE(this.modalDialog.element);
@@ -182,15 +230,17 @@
       return;
     }
 
-    var template = new Template('fte_template');
-
-    var fteViewElem = document.createElement('div');
-    fteViewElem.className = 'ctxmenu-fte';
-    fteViewElem.insertAdjacentHTML('beforeend', template.interpolate());
-    parent.appendChild(fteViewElem);
+    if (!this.fteViewElem) {
+      var template = new Template('fte_template');
+      var fteViewElem = document.createElement('div');
+      fteViewElem.className = 'ctxmenu-fte';
+      fteViewElem.insertAdjacentHTML('beforeend', template.interpolate());
+      parent.appendChild(fteViewElem);
+      this.fteViewElem = fteViewElem;
+    }
 
     this.fteWizard.init({
-      container: fteViewElem,
+      container: this.fteViewElem,
       onfinish: () => {
         this.focus();
       }
@@ -204,7 +254,7 @@
     // context menu api
     if (detail.contextmenu && detail.contextmenu.items.length) {
       var that = this;
-      detail.contextmenu.items.forEach(function(choice, index) {
+      detail.contextmenu.items.forEach(function(choice) {
         items.push({
           type: BUTTON_TYPE,
           textRaw: choice.label,
@@ -229,6 +279,135 @@
     }
 
     return items;
+  };
+
+  BrowserContextMenu.prototype._listAddToAppsItem = function(choice) {
+    //XXX: Please refer to the definition of the label's format mentioned above.
+    if (choice.label.startsWith('#app:')) {
+      var manifestURL = choice.label.substr('#app:'.length);
+      return this._listAddAppToAppsItem(manifestURL);
+    } else if (choice.label.startsWith('#website:')) {
+      var data = choice.label.substr('#website:'.length).split(',')
+        .map((value) => {
+          return decodeURIComponent(value);
+        });
+      return this._listAddWebsiteToAppsItem(data[0], data[1], data[2]);
+    }
+
+    return Promise.reject();
+  };
+
+  BrowserContextMenu.prototype._listAddAppToAppsItem = function(manifestURL) {
+    return new Promise((resolve, reject) => {
+      var _ = navigator.mozL10n.get;
+      if (!AppInstallManager.getAppAddedState(manifestURL)) {
+        resolve({
+          type: BUTTON_TYPE,
+          textRaw: _('add-to-apps'),
+          menuIcon: ADD_TO_APPS_ICON_PATH,
+          onClick: () => {
+            if (this.app instanceof PreviewWindow) {
+              var app = applications.getByManifestURL(manifestURL);
+              AppInstallManager.handleAddAppToApps(app);
+            } else {
+              // Since AppInstallManager treats all install requests coming from
+              // Marketplace as preview requests, we have to pause this
+              // mechanism first when we want to "real" install a app without
+              // the preview.
+              AppInstallManager.pausePreview = true;
+              navigator.mozApps.install(manifestURL);
+            }
+          }
+        });
+      } else {
+        resolve({
+          type: BUTTON_TYPE,
+          textRaw: _('delete-from-apps'),
+          menuIcon: DELETE_FROM_APPS_ICON_PATH,
+          onClick: () => {
+            var app = applications.getByManifestURL(manifestURL);
+            var name =
+              new ManifestHelper(app.manifest || app.updateManifest).name;
+            navigator.mozApps.mgmt.uninstall(app).onsuccess = () => {
+              if (this.app instanceof PreviewWindow) {
+                this.app.close();
+              }
+              this.systemBanner.show({
+                id: 'deleted-from-apps',
+                args: {
+                  appName: name
+                }
+              });
+            };
+          }
+        });
+      }
+    });
+  };
+
+  BrowserContextMenu.prototype._listAddWebsiteToAppsItem =
+    function(url, name, iconUrl) {
+
+    return new Promise((resolve, reject) => {
+      BookmarkManager.get(url).then((bookmark) => {
+        var _ = navigator.mozL10n.get;
+        if (!bookmark) {
+          resolve({
+            type: BUTTON_TYPE,
+            textRaw: _('add-to-apps'),
+            menuIcon: ADD_TO_APPS_ICON_PATH,
+            onClick: () => {
+              BookmarkManager.add({
+                name: name,
+                url: url,
+                iconUrl: iconUrl
+              }).then(() => {
+                this.systemBanner.show({
+                  id: 'added-to-apps',
+                  args: {
+                    appName: name
+                  }
+                });
+              });
+            }
+          });
+        } else {
+          // We have 3 places that use the same type of dialog.
+          // 1. removeing card in smart-home.
+          // 2. uninstalling bookmark in app-deck.
+          // 3. here.
+          // If we need further changes on the behavior of confirmation, be sure
+          // to check these 3 places.
+          resolve({
+            type: BUTTON_TYPE,
+            textRaw: _('delete-from-apps'),
+            menuIcon: DELETE_FROM_APPS_ICON_PATH,
+            onClick: () => {
+              AppInstallManager.appInstallDialogs.show(
+                AppInstallDialogs.TYPES.UninstallDialog,
+                {
+                  manifest: {
+                    name: bookmark.name
+                  }
+                }
+              ).then(() => {
+                BookmarkManager.remove(url).then(() => {
+                  if (this.app instanceof PreviewWindow) {
+                    this.app.close();
+                  }
+                  this.systemBanner.show({
+                    id: 'deleted-from-apps',
+                    args: {
+                      appName: bookmark.name
+                    }
+                  });
+                });
+              });
+            }
+          });
+        }
+      }).catch(reject);
+    });
   };
 
   BrowserContextMenu.prototype.hide = function() {

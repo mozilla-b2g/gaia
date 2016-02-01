@@ -330,7 +330,7 @@
         setControlsVisibility(false);
       }, 2000);
 
-      navigator.mozL10n.setAttributes(dom.timeSlider, 'seek-bar',
+      document.l10n.setAttributes(dom.timeSlider, 'seek-bar',
         { duration: formattedDuration });
       dom.timeSlider.setAttribute('aria-valuemin', 0);
       dom.timeSlider.setAttribute('aria-valuemax', dom.player.duration);
@@ -382,7 +382,7 @@
   }
 
   function handleError(l10nId) {
-    navigator.mozL10n.formatValue(l10nId).then((msg) => {
+    document.l10n.formatValue(l10nId).then((msg) => {
       alert(msg);
       done();
     });
@@ -448,7 +448,7 @@
   }
 
   function movePlayHead(percent) {
-    if (navigator.mozL10n.language.direction === 'ltr') {
+    if (document.documentElement.dir === 'ltr') {
       dom.playHead.style.left = percent;
     }
     else {
@@ -517,7 +517,7 @@
     }
 
     function getTouchPos() {
-      return (navigator.mozL10n.language.direction === 'ltr') ?
+      return (document.documentElement.dir === 'ltr') ?
          (touch.clientX - sliderRect.left) :
          (sliderRect.right - touch.clientX);
     }
@@ -555,7 +555,7 @@
   }
 
   function showBanner(l10n) {
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       dom.message,
       l10n.id,
       l10n.args);

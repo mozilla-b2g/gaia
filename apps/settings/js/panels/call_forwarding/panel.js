@@ -111,7 +111,7 @@ define(function(require) {
         }
 
         if (number) {
-          navigator.mozL10n.setAttributes(element,
+          document.l10n.setAttributes(element,
             'callForwardingForwardingVoiceToNumber', {
               number: number
           });

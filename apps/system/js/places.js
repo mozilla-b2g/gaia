@@ -89,13 +89,35 @@
         window.addEventListener('applocationchange', this);
         window.addEventListener('apptitlechange', this);
         window.addEventListener('appiconchange', this);
+        window.addEventListener('appmetachange', this);
         window.addEventListener('apploaded', this);
 
         asyncStorage.getItem('top-sites', results => {
-          this.topSites = results || [];
+          this.topSites = this._removeDupes(results || []);
           resolve();
         });
       });
+    },
+
+    /**
+     * Remove duplicated entries.
+     * @param {Array} topSites array of places object from asyncStorage()
+     * @return {Array} of places object without duplicated entries
+     */
+    _removeDupes: function(ts) {
+      var copy = [];
+      var copied = {};
+      ts.forEach(function(place) {
+        // Copy everything except for places we already did the copy. Since
+        // |checkTopSites()| does the ordering by decreasing frecency before
+        // saving to asyncStorage, then we know the first one we will copy will
+        // be the biggest frecency value.
+        if (place.url && !(place.url in copied)) {
+          copied[place.url] = true;
+          copy.push(place);
+        }
+      });
+      return copy;
     },
 
     getStore: function() {
@@ -138,6 +160,9 @@
           break;
         case 'appiconchange':
           this.onIconChange(app.config.url, app.favicons);
+          break;
+        case 'appmetachange':
+          this.onMetaChange(app.config.url, app.meta);
           break;
         case 'apploaded':
           if (app.config.url in this.screenshotQueue) {
@@ -194,6 +219,7 @@
         url: url,
         title: url,
         icons: {},
+        meta : {},
         frecency: 0,
         // An array containing previous visits to this url
         visits: [],
@@ -323,6 +349,16 @@
       var lastTopSite = this.topSites[numTopSites - 1];
       if (numTopSites < this.MAX_TOP_SITES ||
         place.frecency > lastTopSite.frecency) {
+        // Remove any pre-existing entry from topSites that matches that
+        // specific place URL to avoid duplicates. We will push the new place
+        // after.
+        var newTopSites = [];
+        this.topSites.forEach(e => {
+          if (e.url !== place.url) {
+            newTopSites.push(e);
+          }
+        });
+        this.topSites = newTopSites;
         this.topSites.push(place);
         this.screenshotRequested(place.url);
         this.topSites.sort(function(a, b) {
@@ -473,6 +509,19 @@
     },
 
     /**
+     * Set place meta.
+     *
+     * @param {String} url URL of place to update.
+     * @param {Object} meta The meta object
+     * @memberof Places.prototype
+     */
+    onMetaChange: function(url, meta) {
+      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
+      this._placeChanges[url].meta = meta;
+      this.debounce(url);
+    },
+
+    /**
      * Creates a timeout to save place data.
      *
      * @param {String} url URL of place.
@@ -502,7 +551,7 @@
         }
 
         // Update the title if it's not the default (matches the URL)
-        if (edits.title !== url) {
+        if (edits.title && edits.title !== url) {
           place.title = edits.title;
         }
 
@@ -517,6 +566,9 @@
         if (!place.icons) {
           place.icons = {};
         }
+
+        place.meta = edits.meta || {};
+
         for (var iconUri in edits.icons) {
           place.icons[iconUri] = edits.icons[iconUri];
         }
@@ -524,8 +576,10 @@
         place = this.addToVisited(place);
         this.checkTopSites(place);
 
-        delete this._placeChanges[url];
         cb(place);
+      }).then(() => {
+        // Remove pending changes after successfully saving
+        delete this._placeChanges[url];
       });
     }
   });

@@ -1,8 +1,6 @@
 'use strict';
 
-/* global dump, require, exports */
-const utils = require('utils');
-
+const utils = require('./utils');
 const BASE_ICON_SIZE = 60;
 
 function isAbsoluteURL(url) {
@@ -57,8 +55,8 @@ function getAppMetadata(config, directory, appName, entryPoint) {
   var manifestURL = null;
 
   if (!config.webappsMapping[appName]) {
-    dump('Warning: Can not find application ' + appName +
-         ' at ' + directory + '\n');
+    utils.log('homescreen-manager', 'Warning: Can not find application ' +
+      appName + ' at ' + directory + '\n');
     return;
   }
 

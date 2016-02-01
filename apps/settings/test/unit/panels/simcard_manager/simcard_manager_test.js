@@ -8,7 +8,7 @@ requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('SimCardManager > ', function() {
   var realL10n;
@@ -35,14 +35,14 @@ suite('SimCardManager > ', function() {
     realMozIccManager = window.navigator.mozIccManager;
     window.navigator.mozIccManager = MockNavigatorMozIccManager;
 
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
     window.navigator.mozMobileConnections = realMozMobileConnections;
     window.navigator.mozIccManager = MockNavigatorMozIccManager;
-    window.navigator.mozL10n = MockL10n;
+    document.l10n = realL10n;
   });
 
   setup(function(done) {

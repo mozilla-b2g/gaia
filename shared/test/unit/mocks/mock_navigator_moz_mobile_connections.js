@@ -112,7 +112,9 @@
       },
       get mEventListeners() {
         return eventListeners;
-      }
+      },
+      supportedNetworkTypes: function() {},
+      setPreferredNetworkType: function() {}
     };
 
     mnmmc_init();

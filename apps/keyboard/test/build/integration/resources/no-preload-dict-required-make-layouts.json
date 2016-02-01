@@ -239,6 +239,8 @@
   {
     "id": "emoji",
     "name": "Emoji",
+    "imEngineId": "emoji",
+    "nameL10nId": "layout-emoji",
     "preloaded": true,
     "types": [
       "email",
@@ -393,6 +395,17 @@
     "preloaded": false,
     "dictFilename": "eu.dict",
     "dictFilePath": "dictionaries/eu.dict"
+  },
+  {
+    "id": "fa",
+    "name": "فارسی",
+    "types": [
+      "email",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 12345,
+    "preloaded": true
   },
   {
     "id": "ff",

@@ -10,7 +10,8 @@ var createAppServer = require('./server/parent');
 marionette('Homescreen - App uninstall while pending', function() {
 
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var actions, home, system, appInstall;
 
@@ -48,16 +49,11 @@ marionette('Homescreen - App uninstall while pending', function() {
 
   test('uninstall the app', function() {
     var icon = home.getIcon(server.packageManifestURL);
-
-    // XXX: work around issues where the icon is hidden by other
-    //      status messages on the system app.
-    icon.scriptWith(function(el) {
-      // effectively scroll to the bottom of the screen.
-      el.scrollIntoView(false);
-    });
+    home.scrollIconToCenter(icon);
 
     // remove the icon
     actions.longPress(icon, 1).perform();
+    home.waitForEditBar();
     home.removeButton.tap();
 
     // confirm the dialog to ensure it was removed.

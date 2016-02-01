@@ -10,12 +10,9 @@ function ManifestHelper_get(prop) {
   var manifest = this;
   var value = manifest[prop];
 
-  var lang = navigator.mozL10n.language.code || '';
+  var lang = document.documentElement.lang || '';
 
-  if (lang in navigator.mozL10n.qps &&
-      (prop === 'name' || prop === 'description' || prop == 'short_name')) {
-    value = navigator.mozL10n.qps[navigator.language].translate(value);
-  } else if (manifest.locales) {
+  if (manifest.locales) {
     // try to replace values from the locales object using the best language
     // match.  stop when a replacement is found
     [lang, lang.substr(0, lang.indexOf('-'))].some(function tryLanguage(lang) {

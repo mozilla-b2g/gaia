@@ -1,4 +1,3 @@
-/* global DeviceStorageHelper */
 /**
  * Links the root panel list item with USB Mass Storage(UMS).
  * Will disable Media Storage panel when UMS enabled.
@@ -8,6 +7,7 @@ define(function(require) {
 
   var SettingsListener = require('shared/settings_listener');
   var MediaStorage = require('modules/media_storage');
+  var StorageHelper = require('modules/storage_helper');
 
   var _debug = false;
   var debug = function() {};
@@ -58,14 +58,14 @@ define(function(require) {
         MediaStorage.observe('volumeState', this._boundUpdateVolumeState);
         MediaStorage.observe('freeSize', this._boundUpdateVolumeState);
 
-        window.addEventListener('localized', this);
+        document.addEventListener('DOMRetranslated', this);
       } else { //unobserve
         SettingsListener.unobserve(this._keyUmsEnabled,
           this._boundUmsEnabledHandler);
         MediaStorage.unobserve('volumeState', this._boundUpdateVolumeState);
         MediaStorage.unobserve('freeSize', this._boundUpdateVolumeState);
 
-        window.removeEventListener('localized', this);
+        document.removeEventListener('DOMRetranslated', this);
       }
     },
 
@@ -77,7 +77,7 @@ define(function(require) {
 
     handleEvent: function storage_handleEvent(evt) {
       switch (evt.type) {
-        case 'localized':
+        case 'DOMRetranslated':
           this._updateVolumeState();
           break;
       }
@@ -104,7 +104,7 @@ define(function(require) {
       this._updateUmsDesc();
       switch (MediaStorage.volumeState) {
         case 'available':
-          DeviceStorageHelper.showFormatedSize(this._elements.mediaStorageDesc,
+          StorageHelper.showFormatedSize(this._elements.mediaStorageDesc,
             'availableSize', MediaStorage.freeSize);
           this._lockMediaStorageMenu(false);
           break;

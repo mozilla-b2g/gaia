@@ -1,8 +1,6 @@
 /* global require, marionette, setup, suite, test, __dirname */
 'use strict';
 
-var assert = require('assert');
-
 var Music = require('./lib/music.js');
 var FakeActivityCaller = require('./lib/fakeactivitycaller.js');
 
@@ -36,27 +34,19 @@ marionette('Music ui tests', function() {
     });
 
     test('Overlay visible when storage has no songs', function() {
-      try {
-        music.launch();
-        music.waitFinishedScanning();
-        music.waitForMessageOverlayShown(true);
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      music.launch();
+      music.waitFinishedScanning();
+      music.waitForMessageOverlayShown(true);
     });
 
     test('Overlay hidden when storage has some songs', function() {
       client.fileManager.add([
         { type: 'music', filePath: 'test_media/samples/Music/b2g.ogg' }
       ]);
-      try {
-        music.launch();
-        music.waitFinishedScanning();
-        music.waitForFirstTile();
-        music.waitForMessageOverlayShown(false);
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      music.launch();
+      music.waitFinishedScanning();
+      music.waitForFirstTile();
+      music.waitForMessageOverlayShown(false);
     });
   });
 
@@ -64,17 +54,13 @@ marionette('Music ui tests', function() {
     var activitycaller;
 
     function performTest(shown) {
-      try {
-        activitycaller.launch();
-        activitycaller.tapPickButton();
-        activitycaller.selectMusicApp();
+      activitycaller.launch();
+      activitycaller.tapPickButton();
+      activitycaller.selectMusicApp();
 
-        music.switchToMe();
-        music.waitFinishedScanning();
-        music.waitForMessageOverlayShown(shown);
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      music.switchToMe();
+      music.waitFinishedScanning();
+      music.waitForMessageOverlayShown(shown);
     }
 
     setup(function() {
@@ -99,17 +85,13 @@ marionette('Music ui tests', function() {
     var activitycaller;
 
     function performTest() {
-      try {
-        activitycaller.launch();
-        activitycaller.tapOpenButton();
-        activitycaller.selectMusicApp();
+      activitycaller.launch();
+      activitycaller.tapOpenButton();
+      activitycaller.selectMusicApp();
 
-        music.switchToMe();
-        music.waitFinishedScanning();
-        music.waitForPlayerView();
-      } catch(e) {
-        assert.ok(false, 'Exception ' + e.stack);
-      }
+      music.switchToMe();
+      music.waitFinishedScanning();
+      music.waitForPlayerView();
     }
 
     setup(function() {

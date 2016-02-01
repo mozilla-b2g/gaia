@@ -22,9 +22,9 @@
       }
 
       return getTemplate('phone-details-tmpl').prepare({
-        type: details.type,
-        number: details.number,
-        carrier: details.carrier,
+        type: details.type || '',
+        number: details.number || '',
+        carrier: details.carrier || '',
         hasTypeClass: !!details.type ? 'has-phone-type' : '',
         hasCarrierClass: !!details.carrier ? 'has-phone-carrier' : ''
       }, interpolationOptions);

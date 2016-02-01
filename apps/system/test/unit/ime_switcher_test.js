@@ -42,10 +42,8 @@ suite('IMESwitcher', function() {
       fakeUtilityTrayContainer.querySelector.calledWith('.fake-notification')
     );
     assert.equal(imeSwitcher._notificationTitle, 'msgElem');
-    assert.equal(imeSwitcher._notificationTip, 'tipElem');
     assert.equal(notificationContainer.querySelector.args[0][0],
       '.title-container');
-    assert.equal(notificationContainer.querySelector.args[1][0], '.detail');
 
     assert.isTrue(
       notificationContainer.addEventListener.calledWith(
@@ -65,7 +63,6 @@ suite('IMESwitcher', function() {
 
     imeSwitcher._utilityTrayContainer = 'UTC';
     imeSwitcher._notificationTitle = 'NT';
-    imeSwitcher._notificationTip = 'NTP';
     imeSwitcher.ontap = 'OT';
 
     imeSwitcher.stop();
@@ -79,7 +76,6 @@ suite('IMESwitcher', function() {
     assert.strictEqual(imeSwitcher._utilityTrayContainer, null);
     assert.strictEqual(imeSwitcher._notificationContainer, null);
     assert.strictEqual(imeSwitcher._notificationTitle, null);
-    assert.strictEqual(imeSwitcher._notificationTip, null);
     assert.strictEqual(imeSwitcher.ontap, undefined);
   });
 
@@ -114,42 +110,36 @@ suite('IMESwitcher', function() {
       stubDispatchEvent.restore();
     });
 
-    test('show()', function() {
+    test('show()', function(done) {
       imeSwitcher._notificationTitle = document.createElement('div');
-
-      imeSwitcher._notificationTip = document.createElement('div');
 
       var realMozL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
 
       imeSwitcher.show('DummyKBApp', 'DummyKBKB');
 
-      assert.isTrue(stubDispatchEvent.calledWith({
-        type: 'keyboardimeswitchershow'
-      }));
+      Promise.resolve().then(() => {
+        assert.isTrue(stubDispatchEvent.calledWith({
+          type: 'keyboardimeswitchershow'
+        }));
 
-      assert.equal(
-        imeSwitcher._notificationTitle.dataset.l10nId,
-        'ime-switching-title'
-      );
-      assert.equal(
-        imeSwitcher._notificationTitle.dataset.l10nArgs,
-        JSON.stringify({
-          appName: 'DummyKBApp',
-          name: 'DummyKBKB'
-        })
-      );
+        assert.equal(
+          imeSwitcher._notificationTitle.dataset.l10nId,
+          'ime-switching-title'
+        );
+        assert.equal(
+          imeSwitcher._notificationTitle.dataset.l10nArgs,
+          JSON.stringify({
+            appName: 'DummyKBApp',
+            name: 'DummyKBKB'
+          })
+        );
 
-      assert.equal(
-        imeSwitcher._notificationTip.dataset.l10nId,
-        'ime-switching-tip'
-      );
+        assert.isTrue(imeSwitcher._notificationContainer
+          .classList.add.calledWith('activated'));
 
-      assert.isTrue(
-        imeSwitcher._notificationContainer.classList.add.calledWith('activated')
-      );
-
-      navigator.mozL10n = realMozL10n;
+        navigator.mozL10n = realMozL10n;
+      }).then(done, done);
     });
 
     test('hide()', function() {

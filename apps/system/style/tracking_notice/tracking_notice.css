@@ -133,11 +133,6 @@
 
 @media all and (orientation:landscape) {
 
-  #screen.software-button-enabled #tracking-notice {
-    height: 100%;
-    padding: 2.86rem  0;
-  }
-
   #tracking-notice > div.panel {
     width: 33rem;
     margin: 0 auto;
@@ -167,6 +162,10 @@
     line-height: 5.2rem;
     margin: 0;
     margin-left: 2.67rem;
+  }
+
+  #screen.software-button-enabled #tracking-notice {
+    height: 100%;
   }
 }
 

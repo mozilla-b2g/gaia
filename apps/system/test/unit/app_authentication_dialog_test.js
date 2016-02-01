@@ -56,6 +56,7 @@ suite('system/AppAuthenticationDialog', function() {
       detail: {
         host: '',
         realm: '',
+        path: 'whatever',
         authenticate: function() {}
       }
     });
@@ -69,5 +70,23 @@ suite('system/AppAuthenticationDialog', function() {
 
     assert.isTrue(auth1.element.classList.contains('visible'));
     assert.isTrue(stubStopPropagation.called);
+  });
+
+  test('favicon.ico request should not show dialog', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var auth1 = new AppAuthenticationDialog(app1);
+    var detail = {
+      host: '',
+      path: 'favicon.ico',
+      realm: '',
+      cancel: function() {}
+    };
+    var cancelSpy = this.sinon.spy(detail, 'cancel');
+    var evt = new CustomEvent('mozbrowserusernameandpasswordrequired', {
+      detail: detail
+    });
+    auth1.handleEvent(evt);
+    assert.isUndefined(auth1.element);
+    assert.isTrue(cancelSpy.called);
   });
 });

@@ -116,6 +116,7 @@
     flex-direction: column;
     justify-content: flex-end;
     height: calc(100% - 16rem);
+    min-height: 35rem;
     background: rgba(255, 255, 255, 0.85);
     position: absolute;
     bottom: 0;
@@ -933,6 +934,11 @@
     color: #333;
     font-weight: normal;
     background: rgba(255, 255, 255, 0.85);
+  }
+
+  #call-screen[data-layout="incoming-locked"] #calls > section.ended .numberWrapper .number,
+  #call-screen[data-layout="incoming-locked"] #calls > section.ended .additionalContactInfo {
+    color: #ada9a7;
   }
 
   #call-screen[data-layout="incoming-locked"] .number {

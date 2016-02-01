@@ -325,8 +325,8 @@ function fileCreated(fileinfo) {
         var banner = $('edit-copy-save-banner');
         // Show latest saved file inserted at index insertPosition
         showFile(insertPosition);
-        navigator.mozL10n.setAttributes($('edit-copy-save-status'),
-                                        'edit-copy-saved');
+        document.l10n.setAttributes($('edit-copy-save-status'),
+                                    'edit-copy-saved');
         banner.hidden = false;
         setTimeout(function() { banner.hidden = true; }, 3000);
       } else {
@@ -519,7 +519,7 @@ function clearSelection() {
   selectedFileNamesToBlobs = {};
   $('thumbnails-delete-button').classList.add('disabled');
   $('thumbnails-share-button').classList.add('disabled');
-  navigator.mozL10n.setAttributes(
+  document.l10n.setAttributes(
     $('thumbnails-number-selected'),
     'number-selected2',
     { n: 0 }
@@ -586,7 +586,7 @@ function updateSelection(thumbnail) {
 
   // Now update the UI based on the number of selected thumbnails
   var numSelected = selectedFileNames.length;
-  navigator.mozL10n.setAttributes(
+  document.l10n.setAttributes(
     $('thumbnails-number-selected'),
     'number-selected2',
     { n: numSelected }
@@ -724,7 +724,7 @@ function share(blobs, blobName) {
 
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
-      navigator.mozL10n.formatValue('share-noprovider').then(alert);
+      document.l10n.formatValue('share-noprovider').then(alert);
     }
     else {
       console.warn('share activity error:', a.error.name);

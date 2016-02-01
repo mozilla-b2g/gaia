@@ -12,10 +12,6 @@
 
 var utils = require('./utils');
 var jsmin = require('./jsmin');
-
-// We need to be able to run in node 0.10, 0.12 and in XPC
-var CrossCompatPromise = typeof Promise === 'undefined' ?
-  require('es6-promise').Promise : Promise;
 var l20n = require('./l10n/l20n');
 
 /**
@@ -52,7 +48,7 @@ HTMLOptimizer.prototype.dump = function(str) {
 };
 
 HTMLOptimizer.prototype.process = function() {
-  var queue = CrossCompatPromise.resolve();
+  var queue = Promise.resolve();
 
   // only optimize files which are l10n-enabled
   if (!this.l10n.isEnabled) {
@@ -109,7 +105,6 @@ HTMLOptimizer.prototype.process = function() {
   }
 
   queue = queue.then(this.serializeNewHTMLDocumentOutput.bind(this));
-
   return queue.catch(dumpError.bind(this));
 };
 
@@ -132,7 +127,7 @@ function serializeResources(view, lang) {
  * embedded in HTML and one for locales-obj/
  */
 HTMLOptimizer.prototype.serializeL10nResources = function() {
-  return CrossCompatPromise.all(
+  return Promise.all(
     this.locales.map(serializeResources.bind(this, this.l10n)));
 };
 
@@ -323,7 +318,8 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   var scripts = Array.prototype.slice.call(
     doc.head.querySelectorAll('script[src]'));
   scripts = scripts.filter(function(script, idx) {
-    if ('skipOptimize' in script.dataset || script.hasAttribute('async')) {
+    if (script.hasAttribute('data-skip-optimize') ||
+      script.hasAttribute('async')) {
       return false;
     }
 
@@ -390,10 +386,8 @@ HTMLOptimizer.prototype.writeAggregatedContent = function(conf) {
     return;
   }
   var doc = this.document;
-  var rootDirectory = this.htmlFile.parent;
-
-  var target = rootDirectory.clone();
-  target.append(conf.name);
+  var rootDirectory = utils.getFile(this.htmlFile.path, '..');
+  var target = utils.getFile(rootDirectory.path, conf.name);
 
   // write the contents of the aggregated script
   utils.writeContent(target, conf.content);
@@ -472,7 +466,7 @@ HTMLOptimizer.prototype.optimizeDeviceTypeCSS = function() {
   var doc = this.document;
   let links = doc.querySelectorAll('link[data-device-type]');
   Array.prototype.forEach.call(links, function(el) {
-    if (el.dataset.deviceType !== this.config.GAIA_DEVICE_TYPE) {
+    if (el.getAttribute('data-device-type') !== this.config.GAIA_DEVICE_TYPE) {
       el.parentNode.removeChild(el);
     }
   }.bind(this));
@@ -495,28 +489,21 @@ HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
     paths.shift();
     file = utils.getFile(this.webapp.buildDirectoryFilePath);
   } else {
-    file = this.htmlFile.parent.clone();
+    file = utils.getFile(this.htmlFile.path, '..');
   }
 
-  paths.forEach(function appendPath(name) {
-    if (name === '..') {
-      file = file.parent;
-      return;
-    }
-    file.append(name);
-  }, this);
+  paths.unshift(file.path);
+  file = utils.getFile.apply(utils, paths);
 
-  var dirName = file.parent.path;
+  var dirName = utils.getFile(file.path, '..').path;
   var fileName = file.leafName;
   if (utils.isSubjectToBranding(dirName)) {
-    file = file.parent;
-    file.append((this.config.OFFICIAL === '1') ? 'official' : 'unofficial');
-    file.append(fileName);
+    var type = (this.config.OFFICIAL === '1') ? 'official' : 'unofficial';
+    file = utils.getFile(file.path, '..', type, fileName);
   }
   if (utils.isSubjectToDeviceType(file.path)) {
-    file = file.parent;
-    file.append(this.config.GAIA_DEVICE_TYPE);
-    file.append(fileName);
+    file = utils.getFile(file.path, '..', this.config.GAIA_DEVICE_TYPE,
+      fileName);
   }
 
   try {
@@ -571,11 +558,13 @@ WebappOptimize.prototype.processFile = function(file) {
     locales: this.locales,
     optimizeConfig: this.optimizeConfig
   });
-  htmlOptimizer.process();
-
-  // Don't quit xpcshell before all asynchronous code is done
-  utils.processEvents(
-    htmlOptimizer.l10n.checkError.bind(htmlOptimizer.l10n));
+  return htmlOptimizer.process().then(function() {
+    var result = htmlOptimizer.l10n.checkError();
+    if (result.error) {
+      utils.log('Error', result.error);
+      throw result.error;
+    }
+  });
 };
 
 WebappOptimize.prototype.execute = function(config) {
@@ -583,7 +572,7 @@ WebappOptimize.prototype.execute = function(config) {
   // if BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (this.config.BUILD_APP_NAME !== '*' &&
     this.webapp.sourceDirectoryName !== this.config.BUILD_APP_NAME) {
-    return;
+    return Promise.resolve();
   }
 
   // remove excluded condition /^(shared|tests?)$/)
@@ -595,9 +584,8 @@ WebappOptimize.prototype.execute = function(config) {
   });
 
   // We need to optimize shared pages as well
-  var sharedPagesDir = buildDirectoryFile;
-  sharedPagesDir.append('shared');
-  sharedPagesDir.append('pages');
+  var sharedPagesDir = utils.getFile(this.webapp.buildDirectoryFilePath,
+    'shared', 'pages');
   var filesSharedPages = utils.ls(sharedPagesDir, true);
   files = files.concat(filesSharedPages)
     .filter(function(file) {
@@ -605,7 +593,7 @@ WebappOptimize.prototype.execute = function(config) {
     }, this);
 
   this.numOfFiles = files.length;
-  files.forEach(this.processFile, this);
+  return Promise.all(files.map(this.processFile, this));
 };
 
 function execute(options) {
@@ -619,7 +607,7 @@ function execute(options) {
 
   var optimizeConfig = loadOptimizeConfig(options);
 
-  (new WebappOptimize()).execute({
+  return (new WebappOptimize()).execute({
     config: options,
     webapp: webapp,
     locales: locales,

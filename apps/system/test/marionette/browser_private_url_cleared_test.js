@@ -6,7 +6,9 @@ var Rocketbar = require('./lib/rocketbar');
 
 marionette('Private Browser - URL Persistence', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var home, rocketbar, search, server, system;
 

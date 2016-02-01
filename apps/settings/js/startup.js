@@ -362,7 +362,7 @@
         this._started = true;
       }
 
-      navigator.mozL10n.once(function l10nDone() {
+      document.l10n.ready.then(function l10nDone() {
         // Since the settings app contains its chrome already existing in the
         // DOM, we can fire that it's loaded as soon as the DOM is localized
         window.performance.mark('navigationLoaded');

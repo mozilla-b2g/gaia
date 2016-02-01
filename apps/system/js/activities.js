@@ -13,6 +13,7 @@
     'mozChromeEvent',
     'appopened',
     'lockscreen-appopened',
+    'home',
     'applicationinstall'
   ];
 
@@ -61,6 +62,7 @@
               break;
           }
           break;
+        case 'home':
         case 'lockscreen-appopened':
           if (this._detail) {
             this.cancel();
@@ -251,6 +253,7 @@
           this._detail.choices[choice].manifest);
       }
 
+      this.publish('activitychoosen');
       this._sendEvent(returnedChoice);
       delete this._detail;
     },
@@ -271,6 +274,7 @@
       };
 
       this._sendEvent(returnedChoice);
+      this.publish('activitycanceled');
       delete this._detail;
     },
 

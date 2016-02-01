@@ -3,13 +3,15 @@
 (function(exports) {
   'use strict';
 
-  var CardStore = function(mode, manifestURL) {
+  var CardStore = function(name, mode, manifestURL) {
     var that = this;
     this._mode = mode || 'readwrite';
+    this._name = name;
     if (manifestURL) {
       this._manifestURL = manifestURL;
       this._getStore();
     } else {
+      this._isOwner = true;
       navigator.mozApps.getSelf().onsuccess = function(evt) {
         var app = evt.target.result;
         that._manifestURL = app.manifestURL;
@@ -19,8 +21,6 @@
   };
 
   CardStore.prototype = evt({
-    STORE_NAME: 'home_cards',
-
     _dataStore: undefined,
 
     _appRevisionId: undefined,
@@ -50,7 +50,7 @@
           resolve(that._dataStore);
           return;
         }
-        navigator.getDataStores(that.STORE_NAME).then(
+        navigator.getDataStores(that._name).then(
         function(stores) {
           stores.forEach(function(store) {
             if (store.owner === that._manifestURL) {
@@ -104,10 +104,64 @@
           resolve();
         }
       });
+    },
+
+    iterateData: function cs_listData(cb) {
+      return new Promise((resolve, reject) => {
+
+        this._getStore().then(store => {
+          return store.sync();
+
+        // For a brand-new cursor, when calling next() continuously, the task
+        // sequence looks like:
+        // 1st call: operation 'clear'
+        // 2st call: operation 'add' with 1st entry
+        // 3rd call: operation 'add' with 2nd
+        // ...
+        // n+1st call: operation 'add' with nth data entry
+        // n+2nd call: operation 'done'
+        }).then(function iterateTask(cursor) {
+          cursor.next().then(task => {
+            if (task.operation == 'add') {
+              cb(task.data, task.id);
+              iterateTask(cursor);
+            } else if (task.operation == 'clear') {
+              iterateTask(cursor);
+            } else if (task.operation == 'done') {
+              cursor.close();
+              resolve();
+            } else {
+              iterateTask(cursor);
+            }
+          });
+        });
+      });
+    },
+
+    addData: function cs_addData(data, id) {
+      return this._getStore().then(store => {
+        return store.add(data, id);
+      });
+    },
+
+    removeData: function cs_removeData(id) {
+      return this._getStore().then(store => {
+        return store.remove(id);
+      });
+    },
+
+    getLength: function cs_getLength() {
+      return this._getStore().then(store => {
+        return store.getLength();
+      });
+    },
+
+    get isOwner() {
+      return this._isOwner;
     }
   });
 
-  SharedUtils.addMixin(CardStore, new PipedPromise());
+  SharedUtils.addMixin(CardStore, PipedPromise);
 
   exports.CardStore = CardStore;
 }(window));

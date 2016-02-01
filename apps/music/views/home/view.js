@@ -143,7 +143,7 @@ HomeView.prototype.loadTile = function(tile) {
       img.onload = () => {
         setTimeout(() => {
           requestAnimationFrame(() => {
-            img.classList.add('loaded');
+            tile.classList.add('loaded');
             resolve();
           });
         });
@@ -159,8 +159,6 @@ HomeView.prototype.destroy = function() {
 };
 
 HomeView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
-
   return document.l10n.formatValues(
     'unknownArtist', 'unknownAlbum'
   ).then(([unknownArtist, unknownAlbum]) => {
@@ -168,11 +166,12 @@ HomeView.prototype.render = function() {
 
     this.albums.forEach((album) => {
       var template =
-Sanitizer.createSafeHTML `<a class="tile" dir="auto"
-    href="/player"
-    data-artist="${album.metadata.artist || unknownArtist}"
-    data-album="${album.metadata.album || unknownAlbum}"
-    data-file-path="${album.name}">
+Sanitizer.createSafeHTML `
+<a class="${album.metadata.picture ? 'tile' : 'tile show-title'}" dir="auto"
+   href="/player"
+   data-artist="${album.metadata.artist || unknownArtist}"
+   data-album="${album.metadata.album || unknownAlbum}"
+   data-file-path="${album.name}">
   <img>
 </a>`;
 
@@ -180,8 +179,11 @@ Sanitizer.createSafeHTML `<a class="tile" dir="auto"
     });
 
     this.tiles.innerHTML = Sanitizer.unwrapSafeHTML(...html);
-    return this.loadVisibleImages();
-  });
+    return Promise.all([
+      this.loadVisibleImages(),
+      document.l10n.ready
+    ]);
+  }).then(this.onRenderDone);
 };
 
 HomeView.prototype.getAlbums = function() {

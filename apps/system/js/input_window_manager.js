@@ -118,6 +118,8 @@
     window.addEventListener('actionmenuopening', this);
     window.addEventListener('actionmenuhide', this);
     window.addEventListener('activityrequesting', this);
+    window.addEventListener('activitycanceled', this);
+    window.addEventListener('activitychoosen', this);
     window.addEventListener('activityopening', this);
     window.addEventListener('activityclosing', this);
     window.addEventListener('attentionrequestopen', this);
@@ -233,14 +235,18 @@
       // pairs:
       // actionmenuopening - actionmenuhide
       // attentionopening - attentionopened
+      // activityrequesting - activitycanceled/activitychoosen
       case 'actionmenuopening':
       case 'attentionopening':
+      case 'activityrequesting':
         this.blockInput = true;
         this.hideInputWindowImmediately();
         navigator.mozInputMethod.removeFocus();
         break;
       case 'actionmenuhide':
       case 'activityclosing':
+      case 'activitychoosen':
+      case 'activitycanceled':
       case 'attentionrequestopen':
       case 'attentionrecovering':
       case 'activityopening':

@@ -4,7 +4,6 @@ require(['config/require'], function() {
   define('boot', function(require) {
     // The following are the scripts used by many other scripts. We load them
     // at once here.
-    require('utils');
     require('shared/settings_listener');
     require('modules/mvvm/observable');
     require('modules/mvvm/observable_array');

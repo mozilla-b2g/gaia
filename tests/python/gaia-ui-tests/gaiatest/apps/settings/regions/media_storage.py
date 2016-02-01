@@ -19,8 +19,8 @@ class MediaStorage(Base):
     _external0_storage_header_locator = (By.CSS_SELECTOR, '[data-l10n-id="storage-name-external-0"]')
 
     _media_location_selector_locator = (By.ID, 'defaultMediaLocation')
-    _default_change_cancel_locator = (By.ID, 'default-location-cancel-btn')
-    _default_change_confirm_locator = (By.ID, 'default-location-change-btn')
+    _default_change_cancel_locator = (By.CSS_SELECTOR, 'button[type="reset"]')
+    _default_change_confirm_locator = (By.CSS_SELECTOR, 'button[type="submit"]')
     _default_change_ok_button_locator = (By.CLASS_NAME, 'value-option-confirm')
 
     def __init__(self, marionette):

@@ -346,4 +346,50 @@ suite('Views > SwipeablePanelView', function() {
       assert.equal(panelView.sections[1].style.transform, 'translateX(320px)');
     });
   });
+
+  suite('rotate',  function() {
+    var rootElement = document.createElement('div');
+
+    setup(function() {
+      document.body.appendChild(rootElement);
+      var options = { totalWidth: 320 };
+
+      panelView = new SwipeablePanelView(layout, options,
+        viewManager);
+
+      panelView.render();
+    });
+
+    teardown(function() {
+      rootElement.innerHTML = '';
+    });
+
+    test('> rotate to landscape - at first section', function() {
+      panelView.resize(590);
+
+      assert.equal(panelView.sections[0].style.transform, 'translateX(0px)');
+      assert.equal(panelView.sections[1].style.transform, 'translateX(590px)');
+    });
+
+    test('> rotate to landscape - at second section', function() {
+      panelView.gotoSection(1);
+      panelView.resize(590);
+
+      assert.equal(panelView.sections[0].style.transform, 'translateX(-590px)');
+      assert.equal(panelView.sections[1].style.transform, 'translateX(0px)');
+      assert.equal(panelView.sections[2].style.transform, 'translateX(590px)');
+    });
+
+    test('> rotate to landscape - at last section', function() {
+      panelView.gotoSection(sectionCount - 1);
+      panelView.resize(590);
+
+      assert.equal(
+        panelView.sections[sectionCount - 1].style.transform,
+        'translateX(0px)');
+      assert.equal(
+        panelView.sections[sectionCount - 2].style.transform,
+        'translateX(-590px)');
+    });
+  });
 });

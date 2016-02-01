@@ -32,7 +32,8 @@
     this.transitionController.OPENING_TRANSITION_TIMEOUT = 5000;
     this.transitionController.CLOSING_TRANSITION_TIMEOUT = 5000;
 
-    // ui-test need this
+    // Set the ID onto the element so Gij tests 
+    // can probe it with Keyboard#getCurrentKeyboard.
     this.browser.element.dataset.frameName = configs.id;
   };
 

@@ -1,21 +1,41 @@
 'use strict';
 
-/* global exports, require, dump */
+/* jshint node: true */
 
-var r = require('r-wrapper');
 var utils = require('utils');
 
 exports.execute = function(options) {
-  var stageAppDir = utils.getFile(options.STAGE_APP_DIR);
-  var configFile = utils.getFile(options.APP_DIR, 'build',
+  var appName = utils.basename(options.APP_DIR);
+  var config = utils.getFile(options.APP_DIR, 'build',
     'require_config.jslike');
+  var rjsPath = utils.joinPath(options.GAIA_DIR, 'build', 'r.js');
+  var requirejs;
 
-  utils.ensureFolderExists(stageAppDir);
-  var requirejs = r.get(options.GAIA_DIR);
-  requirejs.optimize([configFile.path], function() {
-    dump('require.js optimize ok\n');
-  }, function(err) {
-    dump('require.js optmize failed:\n');
-    dump(err + '\n');
+  if (utils.isNode()) {
+    requirejs = require(rjsPath);
+  } else {
+    var sandbox = utils.createSandbox();
+    sandbox.arguments = [];
+    sandbox.requirejsAsLib = true;
+    sandbox.print = function() {
+      utils.log(appName, Array.prototype.join.call(arguments, ' '));
+    };
+    utils.runScriptInSandbox(rjsPath, sandbox);
+    requirejs = sandbox.requirejs;
+  }
+
+  // logLevel set 4 for silent, set 0 for all
+  var log = 'logLevel=' + (options.VERBOSE === '1' ? '0' : '4');
+  var optimize = 'optimize=none';
+  var build = new Promise(function(resolve, reject) {
+    requirejs.optimize([config.path, optimize, log], resolve, reject);
   });
+
+  return build
+    .then(function() {
+      utils.log(appName, 'require.js optimize done');
+    }).catch(function(err) {
+      utils.log(appName, 'require.js optimize failed');
+      utils.log(appName, err);
+    });
 };

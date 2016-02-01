@@ -5,9 +5,8 @@
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_default_activity_helper.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_action_menu.js');
 requireApp('system/shared/js/manifest_helper.js');
@@ -119,6 +118,20 @@ suite('system/Activities', function() {
       };
       this.sinon.stub(subject, 'cancel');
       subject.handleEvent({type: 'lockscreen-appopened'});
+      assert.ok(subject.cancel.calledOnce);
+    });
+
+    test('cancel choice when pressing home button', function() {
+      subject._detail = {
+        id: 'foo',
+        name: 'testactivity',
+        activityType: 'testtype',
+        choices: [{
+          manifest: 'manifest'
+        }]
+      };
+      this.sinon.stub(subject, 'cancel');
+      subject.handleEvent({type: 'home'});
       assert.ok(subject.cancel.calledOnce);
     });
   });
@@ -360,12 +373,14 @@ suite('system/Activities', function() {
       test('with a default activity set >', function() {
         var set_default = true;
         formatted.setAsDefault = set_default;
+        this.sinon.stub(subject, 'publish');
         subject.choose(0, set_default);
 
         assert.ok(sendEvent.calledWith(formatted),
           'calls _sendEvent WITH default activity set');
         assert.ok(defaultAct.calledWith('testactivity', 'testtype', 'manifest'),
           'should call the helper with the proper values');
+        assert.ok(subject.publish.calledWith('activitychoosen'));
       });
     });
 
@@ -374,6 +389,7 @@ suite('system/Activities', function() {
         subject._detail = {
           id: 'foo'
         };
+        this.sinon.stub(subject, 'publish');
         var stub = this.sinon.stub(subject, '_sendEvent');
         var formatted = {
           id: 'foo',
@@ -382,6 +398,7 @@ suite('system/Activities', function() {
         };
         subject.cancel();
         assert.ok(stub.calledWith(formatted));
+        assert.ok(subject.publish.calledWith('activitycanceled'));
       });
 
       test('does not destroy the action menu', function() {

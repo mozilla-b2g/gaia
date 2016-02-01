@@ -6,7 +6,8 @@ var Server = require('../../../../shared/test/integration/server');
 marionette('Search - Switch Providers Test', function() {
 
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var home, search, rocketbar, system, server;
 

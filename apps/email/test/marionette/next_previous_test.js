@@ -19,7 +19,9 @@ function isHeaderButtonEnabled(button) {
 
 marionette('email next previous', function() {
   var app;
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var server = serverHelper.use(null, this);
 
   setup(function() {

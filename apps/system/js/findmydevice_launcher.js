@@ -2,6 +2,7 @@
 /* global SettingsHelper */
 /* global wakeUpFindMyDevice */
 /* global Notification */
+/* global NotificationHelper */
 /* global MozActivity */
 /* global Service */
 /* global LazyLoader */
@@ -78,25 +79,23 @@ function FMDInit() {
       if (event.settingValue >= FMD_MAX_REGISTRATION_RETRIES) {
         fmdEnabledHelper.set(false);
 
-        var _ = navigator.mozL10n.get;
         var icon = 'style/find_my_device/images/findMyDevice.png';
-        var title = _('unable-to-connect');
-        var body = _('tap-to-check-settings');
+        var titleL10n = 'unable-to-connect';
+        var bodyL10n = 'tap-to-check-settings';
 
-        var notification = new Notification(title,
+        NotificationHelper.send(titleL10n,
           {
-            body:body,
-            icon:icon,
+            bodyL10n: bodyL10n,
+            icon: icon,
             tag: FMD_ENABLE_FAILURE_NOTIFICATION_TAG,
             data: {
               systemMessageTarget: 'findmydevice'
             }
-          });
-
-        notification.onclick = function(evt) {
-          FMDOpenSettings();
-          notification.close();
-        };
+          }).then(notification => {
+            notification.onclick = function(evt) {
+              FMDOpenSettings();
+            };
+        });
       }
     });
 

@@ -33,6 +33,16 @@
     switch (evt.type) {
       case 'screenchange':
         if (evt.detail.screenEnabled) {
+          // Bug 1234731 mentioned that if we update clock in tick,
+          // asynchronous step means it will be queued after other incidents
+          // at the moment screen get light up (ex: ril events in Gecko),
+          // so there is a visual lag that we need to deal with.
+          //
+          // The solution is we update the clock before we transfer to the
+          // Tick state, so that the first painting will be earlier, and using
+          // another entry in tick to transfer to, so that we can avoid
+          // calling the function again in the Tick state.
+          this.component.updateClock();
           return this.transferToTick();
         }
     }

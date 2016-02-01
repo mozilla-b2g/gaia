@@ -21,6 +21,21 @@ class GaiaArguments(object):
          {'default': "undefined",
           'help': 'locale for the device, This value overrides the value from testvars.json file',
           }],
+        [['--capture'],
+         {'dest': 'capture',
+          'default': "off",
+          'help': 'Enabling screen video capture for max 3 minutes, saves in /sdcard folder of the device, '
+                  'then pulls it to the specified directory '
+                  'always: always pull the video file '
+                  'whenfail: only pull when the test failed '
+                  'off: off',
+          }],
+        [['--capturefolder'],
+         {'dest': 'capturefolder',
+          'default': 'videocapture',
+          'help': 'directory path to saved video captures, relative to the current location, '
+                  'Default folder is %(default)s',
+          }],
     ]
 
 

@@ -17,6 +17,7 @@ Homescreen.Selectors = {
   pages: '#pages',
   icon: '#apps gaia-app-icon',
   card: '#pages gaia-pin-card',
+  bottomBar: '#bottombar',
   remove: '#remove',
   rename: '#rename',
   done: '#done',
@@ -54,11 +55,16 @@ Homescreen.prototype = {
   },
 
   get visibleCards() {
-    return this.cards.filter(function(el) {
-      return el.scriptWith(function(el) {
-        return el.parentNode.style.display !== 'none';
-      });
-    });
+    return this.client.executeScript(function(selector) {
+      var cards = document.body.querySelectorAll(selector);
+      var visibles = [];
+      for (var i = cards.length - 1; i >= 0; i--) {
+        if (cards[i].parentNode.style.display !== 'none') {
+          visibles.push(cards[i]);
+        }
+      }
+      return visibles;
+    }, [Homescreen.Selectors.card]);
   },
 
   get removeButton() {
@@ -85,8 +91,28 @@ Homescreen.prototype = {
    * Waits for the homescreen to launch and switches to the frame.
    */
   waitForLaunch: function() {
-    this.client.helper.waitForElement('body');
-    this.client.apps.switchToApp(Homescreen.URL);
+    var client = this.client;
+    client.helper.waitForElement('body');
+    client.apps.switchToApp(Homescreen.URL);
+
+    // Wait for startup to complete
+    client.waitFor(function() {
+      return client.executeScript(function() {
+        return window.wrappedJSObject.appWindow.apps.startupMetadata === null;
+      });
+    });
+  },
+
+  /**
+   * Waits for the edit bar to fully appear.
+   */
+  waitForEditBar: function() {
+    var body = this.client.findElement('body');
+    var bar = this.client.helper.waitForElement(Homescreen.Selectors.bottomBar);
+    this.client.waitFor(function() {
+      var barRect = bar.rect();
+      return barRect.y === (body.rect().height - barRect.height);
+    });
   },
 
   /**

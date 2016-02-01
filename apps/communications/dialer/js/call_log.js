@@ -49,7 +49,8 @@ var CallLog = {
         'edit-mode-header',
         'header-edit-mode-text',
         'missed-filter',
-        'select-all-threads'
+        'select-all-threads',
+        'edit-mode'
       ];
 
       mainNodes.forEach(function(id) {
@@ -604,6 +605,7 @@ var CallLog = {
       event.stopPropagation();
       return;
     }
+    this.editMode.removeAttribute('hidden');
     this.headerEditModeText.setAttribute('data-l10n-id', 'edit');
     this.deleteButton.setAttribute('disabled', 'disabled');
     this.selectAllThreads.removeAttribute('disabled');
@@ -624,6 +626,14 @@ var CallLog = {
     for (i = 0, l = logItems.length; i < l; i++) {
       logItems[i].setAttribute('aria-selected', false);
     }
+
+    if (this.callLogContainer.classList.contains('filter')) {
+      this.filter();
+    } else {
+      this.unfilter();
+    }
+
+    this.editMode.setAttribute('hidden', '');
   },
 
   // In case we are in edit mode, just update the counter of selected rows.
@@ -700,7 +710,8 @@ var CallLog = {
   unfilter: function cl_unfilter() {
     // If the call log is empty display the appropriate message, otherwise hide
     // the empty call log message and enable edit mode
-    if (this._empty) {
+    var logItems = this.callLogContainer.querySelectorAll('.log-item');
+    if (logItems.length === 0) {
       this.renderEmptyCallLog();
     } else {
       var noResultContainer = document.getElementById('no-result-container');
@@ -788,19 +799,8 @@ var CallLog = {
       title: 'delete',
       isDanger: true,
       callback: function deleteLogGroup() {
-
         ConfirmDialog.hide();
-        var disabledSelector = 'input[type="checkbox"]:not(:checked)';
-        var inputsNotSelected =
-            self.callLogContainer.querySelectorAll(disabledSelector);
 
-        if (inputsNotSelected.length === 0) {
-          CallLogDBManager.deleteAll(function onDeleteAll() {
-            self.renderEmptyCallLog();
-            document.body.classList.remove('recents-edit');
-          });
-          return;
-        }
         var logGroupsToDelete = [];
         for (var i = 0, l = inputsSelected.length; i < l; i++) {
           var logGroup = inputsSelected[i].parentNode.parentNode;
@@ -823,7 +823,7 @@ var CallLog = {
         }
 
         CallLogDBManager.deleteGroupList(logGroupsToDelete, function() {
-          document.body.classList.remove('recents-edit');
+          self.hideEditMode();
         });
       }
     };

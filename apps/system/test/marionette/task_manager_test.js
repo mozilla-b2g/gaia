@@ -19,7 +19,8 @@ marionette('Task Manager', function() {
   var client = marionette.client({
     profile: {
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var actions;

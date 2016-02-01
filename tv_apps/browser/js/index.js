@@ -17,8 +17,6 @@
 /* global SyncBrowserDB */
 //ENDIF_FIREFOX_SYNC
 
-var _ = navigator.mozL10n.get;
-
 var Browser = {
 
   currentInfo: null,
@@ -734,7 +732,13 @@ var Browser = {
           this.handleCrashed(tab);
         }
         setTimeout( function() {
-          BrowserDialog.createDialog('error_browser', evt);
+          var errorMessageL10nId = '';
+          if (evt.detail.type === 'certerror') {
+            errorMessageL10nId = 'WB_LT_CONNECTION_IS_UNTRUSTED';
+            navigator.mozL10n.formatValue(errorMessageL10nId).then(result => {
+              window.alert(result);
+            });
+          }
         }, 800);
         break;
 

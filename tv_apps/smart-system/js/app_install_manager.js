@@ -45,6 +45,8 @@ var AppInstallManager = {
     this.appInfos = {};
     this.setupQueue = [];
     this.isSetupInProgress = false;
+    this.pausePreview = false;
+    this.previewOpenedTimes = {};
 
     window.addEventListener('mozChromeEvent', (evt) => {
       var detail = evt.detail;
@@ -56,7 +58,9 @@ var AppInstallManager = {
               this.dispatchResponse(detail.id, 'webapps-install-denied');
             } else {
               this.dispatchResponse(detail.id, 'webapps-install-granted');
-              this.setPreviewAppManifestURL(detail.app.manifestURL);
+              if (!this.pausePreview) {
+                this.setPreviewAppManifestURL(detail.app.manifestURL);
+              }
             }
           } else {
             this.handleAppInstallPrompt(detail);
@@ -330,28 +334,10 @@ var AppInstallManager = {
     }
 
     var marketplaceApp = AppWindowManager.getActiveApp();
-    var manifestURL = app.manifestURL;
-    var appURL = app.origin + app.manifest.launch_path;
-
-    var handlePreviewOpened = () => {
-      window.removeEventListener('previewopened', handlePreviewOpened);
-      this.systemBanner.show({
-        id: 'preview-app-hint'
-      });
-    };
-
-    var handlePreviewTerminated = () => {
-      window.removeEventListener('previewterminated', handlePreviewTerminated);
-      this.uninstallPreviewApp();
-    };
-
-    window.addEventListener('previewopened', handlePreviewOpened);
-    window.addEventListener('previewterminated', handlePreviewTerminated);
-
     marketplaceApp.publish('launchpreviewapp', {
-      url: appURL,
+      url: app.origin + app.manifest.launch_path,
       origin: app.origin,
-      manifestURL: manifestURL
+      manifestURL: app.manifestURL
     });
   },
 
@@ -369,8 +355,20 @@ var AppInstallManager = {
       var app = applications.getByManifestURL(previewAppManifestURL);
       if (app) {
         navigator.mozApps.mgmt.uninstall(app);
+      } else {
+        this.setPreviewAppManifestURL('');
       }
     }
+  },
+
+  getAppAddedState: function(manifestURL) {
+    return this.getPreviewAppManifestURL() !== manifestURL &&
+      applications.getByManifestURL(manifestURL);
+  },
+
+  handleAddAppToApps: function(app) {
+    this.setPreviewAppManifestURL('');
+    this.showInstallSuccess(app);
   },
 
   handleInstallSuccess: function ai_handleInstallSuccess(app) {
@@ -384,10 +382,13 @@ var AppInstallManager = {
       return;
     }
 
-    if (app.manifestURL === this.getPreviewAppManifestURL()) {
+    if (!this.pausePreview &&
+      app.manifestURL === this.getPreviewAppManifestURL()) {
       this.previewApp(app);
       return;
     }
+
+    this.pausePreview = false;
 
     if (this.configurations[role]) {
       this.setupQueue.push(app);
@@ -408,11 +409,15 @@ var AppInstallManager = {
     var manifest = app.manifest || app.updateManifest;
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
-    var msg = {
-      id: 'app-install-success',
-      args: { appName: name }
-    };
-    this.systemBanner.show(msg);
+    var msgID = this.isMarketplaceAppActive() ?
+      'added-to-apps' : 'app-install-success';
+
+    this.systemBanner.show({
+      id: msgID,
+      args: {
+        appName: name
+      }
+    });
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {

@@ -1,8 +1,6 @@
 'use strict';
 
-/* global exports, require, dump */
-
-var utils = require('utils');
+var utils = require('./utils');
 var RE_JSON = /\.json$/;
 
 exports.execute = function(options) {
@@ -22,7 +20,7 @@ exports.execute = function(options) {
     try {
       JSON.parse(utils.getFileContent(json));
     } catch (e) {
-      dump('JSON lint error: ' + json.path + '\n');
+      utils.log('jsonlint', 'JSON lint error: ' + json.path + '\n');
       throw e;
     }
   });

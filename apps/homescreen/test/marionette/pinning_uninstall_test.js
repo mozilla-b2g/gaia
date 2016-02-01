@@ -10,7 +10,9 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Homescreen - Pinned Site Uninstall', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var actions, pinning, home, server, system, bookmark;
 
   suiteSetup(function(done) {
@@ -48,6 +50,7 @@ marionette('Homescreen - Pinned Site Uninstall', function() {
 
     home.scrollIconToCenter(icon);
     actions.longPress(icon, 1).perform();
+    home.waitForEditBar();
     home.removeButton.tap();
 
     // Confirm the dialog to ensure it was removed.

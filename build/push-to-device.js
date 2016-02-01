@@ -1,7 +1,5 @@
 'use strict';
 
-/* jshint node: true */
-
 var utils = require('./utils');
 var sh = new utils.Commander('sh');
 var Q = utils.Q;

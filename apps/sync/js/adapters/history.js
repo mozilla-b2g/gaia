@@ -472,6 +472,8 @@ DataAdapters.history = {
   },
 
   reset(options) {
-    return HistoryHelper.reset(options.userid);
+    return LazyLoader.load(['shared/js/async_storage.js']).then(() => {
+      return HistoryHelper.reset(options.userid);
+    });
   }
 };

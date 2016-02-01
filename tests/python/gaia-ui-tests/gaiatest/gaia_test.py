@@ -4,10 +4,14 @@
 
 import json
 import os
+import sys
 import posixpath
 import shutil
 import tempfile
 import time
+import datetime
+import signal
+import thread
 
 from marionette import MarionetteTestCase, B2GTestCaseMixin
 from marionette_driver import expected, By, Wait
@@ -49,7 +53,8 @@ DEFAULT_SETTINGS = {
 
 DEFAULT_PREFS = {
     'webapps.update.enabled': False,  # disable web apps update
-    'ui.caretBlinkTime': 0  # Make caret permanently visible so imagecompare screenshots are consistent
+    'ui.caretBlinkTime': 0,  # Make caret permanently visible so imagecompare screenshots are consistent
+    'layers.screen-recording.enabled': True # Enable the screen recording by default so it can be triggered
 }
 
 
@@ -860,6 +865,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
         self.locale = kwargs.pop('locale')
+        self.capture = kwargs.pop('capture')
+        self.capturefolder = kwargs.pop('capturefolder')
         MarionetteTestCase.__init__(self, *args, **kwargs)
         B2GTestCaseMixin.__init__(self, *args, **kwargs)
 
@@ -926,6 +933,37 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.cleanup_gaia(full_reset=False)
         else:
             self.cleanup_gaia(full_reset=True)
+
+        if self.capture != "off":
+            self.start_video_capture()
+
+    # saves the captured video in /sdcard/ folder (only logical choice)
+    # triggers screenrecord command as a thread since the command is blocking the main thread
+    def start_video_capture(self):
+        device_folder = "/sdcard"
+
+        self.video_capture_filename = '%s_%s.mp4' \
+                                      % (self.methodName, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
+
+        def screen_record_command():
+            self.device.manager.shellCheckOutput(cmd=['screenrecord',
+                                                      os.path.join(device_folder, self.video_capture_filename)])
+
+        if self.device.manager.dirExists(device_folder):
+            thread.start_new_thread(screen_record_command, ())
+        else:
+            raise Exception('Unable to find internal storage folder')
+
+    def stop_video_capture(self):
+        # video file gets corrupted if using another signal
+        self.device.manager.killProcess('screenrecord', sig=signal.SIGINT)
+        # need to wait until the files are released, otherwise, files will be corrupted
+        time.sleep(1)
+
+    def pull_video_capture(self):
+        # pull to the currently active directory
+        self.device.manager.getFile(os.path.join("/sdcard", self.video_capture_filename),
+                                    os.path.join(self.capturefolder, self.video_capture_filename))
 
     def cleanup_data(self):
         self.device.file_manager.remove('/cache/*')
@@ -1119,12 +1157,24 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def wait_for_condition(self, method, timeout=None, message=None):
         Wait(self.marionette, timeout).until(method, message=message)
 
+    @property
+    def _has_thrown_any_exception_during_run(self):
+        return sys.exc_info()[0] is not None
+
     def tearDown(self):
         self.marionette.switch_to_frame()
         if self.device.is_desktop_b2g and self.device.storage_path:
             shutil.rmtree(self.device.storage_path, ignore_errors=True)
         self.apps = None
         self.data_layer = None
+
+        if self.capture != "off":
+            self.stop_video_capture()
+            # pull video file when there was an exception, or always set to pull
+            if self.capture == "always" or \
+                    (self.capture == "whenfail" and self._has_thrown_any_exception_during_run):
+                self.pull_video_capture()
+
         MarionetteTestCase.tearDown(self)
 
 

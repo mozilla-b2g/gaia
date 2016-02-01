@@ -49,6 +49,7 @@
     <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
 
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
+    <link rel="localization" href="/shared/locales/telephony/telephony.{locale}.properties">
 
     <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer src="/contacts/js/utilities/performance_helper.js"></script>
@@ -63,10 +64,12 @@
     <link rel="localization" href="/shared/locales/phone_types/phone_types.{locale}.properties">
 
     <link rel="import" href="/contacts/elements/details.html">
+    <link rel="import" href="/shared/elements/confirmation-message.html">
   </head>
 
   <body role="application" class="app-contacts skin-comms theme-communications hidden">
     <section is="view-contact-details" id='view-contact-details' role="region" class="view view-contact-profile view-noscroll current"></section>
     <iframe src="/shared/pages/import/curtain.html" id="iframe_curtain"></iframe>
+    <form is="confirmation-message" id="confirmation-message" class="hide" role="dialog" data-type="confirm"></form>
   </body>
 </html>

@@ -7,9 +7,7 @@ var assert = require('assert');
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('Notification.get():', function() {
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client();
 
   var system;
   setup(function() {

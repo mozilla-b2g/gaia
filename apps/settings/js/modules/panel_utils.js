@@ -1,4 +1,3 @@
-/* global openLink */
 /**
  * PanelUtils is a singleton that defines panel related utility functions.
  *
@@ -48,6 +47,25 @@ define(function(require) {
         }
         Settings.currentPanel = origin; // hide dialog box
       };
+    }
+  }
+
+  /* Open a link with a web activity */
+  function openLink(url) {
+    if (url.startsWith('tel:')) { // dial a phone number
+      var telActivity = new window.MozActivity({
+        name: 'dial',
+        data: { type: 'webtelephony/number', number: url.substr(4) }
+      });
+      // For workaround jshint.
+      telActivity.onsuccess = function() {};
+    } else if (!url.startsWith('#')) { // browse a URL
+      var linkActivity = new window.MozActivity({
+        name: 'view',
+        data: { type: 'url', url: url }
+      });
+      // For workaround jshint.
+      linkActivity.onsuccess = function() {};
     }
   }
 
@@ -164,13 +182,14 @@ define(function(require) {
       });
       LazyLoader.load(scripts_src);
 
-      var _onclick = function() {
+      var _onclick = function(evt) {
         if (!this.dataset.href) {
           this.dataset.href = this.href;
           this.href = '#';
         }
         var href = this.dataset.href;
         if (!href.startsWith('#')) { // external link
+          evt.target.blur();
           openLink(href);
         } else if (!href.endsWith('Settings')) { // generic dialog
           openDialog(href.substr(1));
@@ -187,7 +206,7 @@ define(function(require) {
 
       for (i = 0, count = links.length; i < count; i++) {
         if (links[i].tagName !== 'GAIA-HEADER') {
-          links[i].onclick = _onclick;
+          links[i].addEventListener('click', _onclick);
         }
       }
 
@@ -312,7 +331,7 @@ define(function(require) {
               //XXX bug 816899 will also provide 'deviceinfo.software' from
               // Gecko which is {os name + os version}
               case 'deviceinfo.software':
-                navigator.mozL10n.setAttributes(spanFields[i],
+                document.l10n.setAttributes(spanFields[i],
                   'deviceInfo_software',
                   { os: result['deviceinfo.os'] });
                 break;

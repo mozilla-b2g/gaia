@@ -25,8 +25,6 @@ define(function(require) {
           panel.querySelector('.fdnAction-edit');
         this._elements.fdnActionMenuRemove =
           panel.querySelector('.fdnAction-delete');
-        this._elements.fdnActionMenuCancel =
-          panel.querySelector('.fdnAction-cancel');
         this._elements.contactsContainer =
           panel.querySelector('.fdn-contactsContainer');
 
@@ -97,9 +95,6 @@ define(function(require) {
               ' number ' + this._currentContact.number);
           };
         };
-
-        this._elements.fdnActionMenuCancel.onclick =
-          this._hideActionMenu.bind(this);
       },
 
       /**
@@ -154,7 +149,7 @@ define(function(require) {
         this._currentContact = contact;
         this._elements.fdnActionMenuName.textContent = contact.name;
         this._elements.fdnActionMenuNumber.textContent = contact.number;
-        this._elements.fdnActionMenu.hidden = false;
+        this._elements.fdnActionMenu.show();
       },
 
       /**
@@ -163,7 +158,7 @@ define(function(require) {
        * @type {Function}
        */
       _hideActionMenu: function() {
-        this._elements.fdnActionMenu.hidden = true;
+        this._elements.fdnActionMenu.hide();
       },
 
       /**

@@ -5,7 +5,8 @@ suite('AppStorageItem', function() {
 
   var map = {
     '*': {
-      'modules/app_storage': 'MockAppStorage'
+      'modules/app_storage': 'MockAppStorage',
+      'modules/storage_helper': 'MockStorageHelper'
     }
   };
 
@@ -21,15 +22,23 @@ suite('AppStorageItem', function() {
       unobserve: function() {}
     };
 
-    var requireCtx = testRequire([], map, function() {});
-    define('MockAppStorage', function() {
-      return this.MockAppStorage;
-    }.bind(this));
+    this.MockStorageHelper = {
+      showFormatedSize: function(element, l10nId, size) {return size;}
+    };
 
-    requireCtx(modules, function(StorageAppItem) {
+    var requireCtx = testRequire([], map, function() {});
+    define('MockAppStorage', () => {
+      return this.MockAppStorage;
+    });
+
+    define('MockStorageHelper', () => {
+      return this.MockStorageHelper;
+    });
+
+    requireCtx(modules, StorageAppItem => {
       this.StorageAppItem = StorageAppItem;
       done();
-    }.bind(this));
+    });
   });
 
   setup(function() {

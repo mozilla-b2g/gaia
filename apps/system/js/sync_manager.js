@@ -6,6 +6,8 @@
 
 /* global asyncStorage */
 /* global BaseModule */
+/* global ERROR_INVALID_SYNC_ACCOUNT */
+/* global ERROR_NO_KEY_FETCH_TOKEN */
 /* global ERROR_REQUEST_SYNC_REGISTRATION */
 /* global ERROR_SYNC_APP_GENERIC */
 /* global ERROR_SYNC_APP_KILLED */
@@ -17,6 +19,7 @@
 /* global Service */
 /* global SyncErrors */
 /* global SyncRecoverableErrors */
+/* global Telemetry */
 /* global uuid */
 
 /**
@@ -92,6 +95,13 @@
     'sync.collections.passwords.readonly',
     'sync.collections.bookmarks.readonly',
 
+    // Limit the number of records fetched from the server in a single request.
+    // Once the sync engine supports pagination, the limit will be the page
+    // size.
+    'sync.collections.history.limit',
+    'sync.collections.passwords.limit',
+    'sync.collections.bookmarks.limit',
+
     'sync.server.url',
     'sync.scheduler.interval',
     'sync.scheduler.wifionly',
@@ -112,7 +122,6 @@
     'onsyncsyncing',
 
     /** Sync app lifecycle **/
-    'killapp',
     'appterminated'
   ];
 
@@ -211,7 +220,11 @@
         case 'disable':
         case 'sync':
           try {
-            Service.request('SyncStateMachine:' + request.name).catch(e => {
+            Service.request('SyncStateMachine:' + request.name).then(() => {
+              return LazyLoader.load('/shared/js/sync/telemetry.js');
+            }).then(() => {
+              Telemetry.logUserAction(request.name);
+            }).catch(e => {
               console.error(e);
             });
           } catch(e) {
@@ -227,7 +240,7 @@
             this.managementPortMessage({
               id: request.id,
               state: this.state,
-              error: this.state == 'errored' ? this.error : undefined,
+              error: this.error,
               lastSync: this.lastSync,
               user: this.user
             });
@@ -246,6 +259,7 @@
       this.updateState();
       this.user = null;
       this.lastSync = null;
+      this.error = null;
       this.cleanup();
     },
 
@@ -310,6 +324,8 @@
         return this.getKeys();
       }).then(keys => {
         args.push(keys);
+        return this.getAccount();
+      }).then(() => {
         // We request a sync without any collection. This should fetch the
         // crypto/keys object. If it is available, we will successfully
         // continue the enabling process. If it is not available, that probably
@@ -317,8 +333,6 @@
         // In that case, until we are able to create new Sync user, we need
         // to disable Sync and let the user know about this situation.
         return this.trySync.apply(this, args);
-      }).then(() => {
-        return this.getAccount();
       }).then(() => {
         // We save default settings so we can revert user changes to the
         // default values when the user logs out from Sync. So new users don't
@@ -333,18 +347,12 @@
         error = error.message || error.name || error.error || error;
         console.error('Could not enable sync', error);
 
-        /**
-         * XXX Until we have a way to create new Sync users, we won't progress
-         *     the UNVERIFIED_ACCOUNT error. Instead, we consider this error
-         *     as the INVALID_SYNC_USER one, so we can present a more sane UX
-         *     to the user.
-         *
         if (error == 'UNVERIFIED_ACCOUNT') {
           this.getAccount().then(() => {
             Service.request('SyncStateMachine:error', ERROR_UNVERIFIED_ACCOUNT);
           });
           return;
-        }*/
+        }
 
         error = SyncErrors[error] || error;
 
@@ -367,12 +375,38 @@
       this.updateState();
 
       var from = event.detail && event.detail.from;
+
+      // There are some cases where we want to show to the user
+      // the enabled state but warn her about the invalid state of her
+      // account. So we stay in the errored state.
+      if ([ERROR_UNVERIFIED_ACCOUNT].indexOf(error) > -1) {
+        return;
+      }
+
       // If the error is recoverable and we are coming from the syncing
       // state, we go back to the enabled state, otherwise, we disable Sync.
-      if (SyncRecoverableErrors.indexOf(error) > -1 && from === 'syncing') {
+      if ((SyncRecoverableErrors.indexOf(error) > -1 && from === 'syncing') ||
+          // XXX ERROR_INVALID_SYNC_ACCOUNT is an unrecoverable error, but we
+          // temporarily treat it in a different way depending on the device.
+          // On TVs, we show a dialog asking the user to go to Desktop or
+          // Android to create an account and we move to the disabled state.
+          // On phones, we move to the enabled state, but we show a warning to
+          // the user about her account being empty.
+          error == ERROR_INVALID_SYNC_ACCOUNT) {
         Service.request('SyncStateMachine:enable');
         return;
       }
+
+      // If the current FxA login does not contain the token to fetch sync keys
+      // we need to log the user out. Unfortunately the FxA auth server does not
+      // allow to obtain this token outside of the initial sign in flow.
+      if (error == ERROR_NO_KEY_FETCH_TOKEN) {
+        // No need to disable Sync here as we will be doing it as soon as the
+        // logout is done.
+        FxAccountsClient.logout();
+        return;
+      }
+
       this.debug('Unrecoverable error');
       Service.request('SyncStateMachine:disable');
     },
@@ -396,7 +430,8 @@
       COLLECTIONS.forEach(name => {
         if (this._settings['sync.collections.' + name + '.enabled']) {
           collections[name] = {
-            readonly: this._settings['sync.collections.' + name + '.readonly']
+            readonly: this._settings['sync.collections.' + name + '.readonly'],
+            limit: this._settings['sync.collections.' + name + '.limit']
           };
         }
       });
@@ -451,17 +486,7 @@
       }
     },
 
-    _handle_killapp: function(event) {
-      // The synchronizer app can be killed while it's handling a sync
-      // request. In that case, we need to record an error and notify
-      // the state machine about it. Otherwise we could end up on a
-      // permanent 'syncing' state.
-      this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
-        Service.request('SyncStateMachine:error', ERROR_SYNC_APP_KILLED);
-      });
-    },
-
-    _handle_appterminated: function(event) {
+    _handle_appterminated(event) {
       // If the Sync app is closed, we need to release the reference to
       // its IAC port, so we can get a new connection on the next sync
       // request. Unfortunately, the IAC API doesn't take care of
@@ -474,13 +499,26 @@
       });
     },
 
+    onportclose() {
+      // The synchronizer app can be killed while it's handling a sync
+      // request. In that case, we need to record an error and notify
+      // the state machine about it. Otherwise we could end up on a
+      // permanent 'syncing' state.
+      if (this.state !== 'syncing') {
+        return;
+      }
+      this.debug('Synchronizer closed before completing the sync request');
+      Service.request('SyncStateMachine:error', ERROR_SYNC_APP_KILLED);
+    },
+
     /** Helpers **/
 
     initStore: function() {
       var promises = [];
       [SYNC_STATE,
        SYNC_STATE_ERROR,
-       SYNC_LAST_TIME].forEach(key => {
+       SYNC_LAST_TIME,
+       SYNC_USER].forEach(key => {
         var promise = new Promise(resolve => {
           asyncStorage.getItem(key, value => {
             this.debug(key + ': ' + value);
@@ -599,11 +637,15 @@
       return new Promise((resolve, reject) => {
         navigator.mozApps.getSelf().onsuccess = event => {
           var app = event.target.result;
-          app.connect(SYNC_REQUEST_IAC_KEYWORD).then(ports => {
+          app.connect(SYNC_REQUEST_IAC_KEYWORD, {
+            // For now we only allow one synchronizer app.
+            pageURLs: 'app://sync.gaiamobile.org'
+          }).then(ports => {
             if (!ports || !ports.length) {
               return reject();
             }
             this._port = ports[0];
+            this._port.onclose = this.onportclose.bind(this);
             resolve(this._port);
           }).catch(error => {
             console.error(error);
@@ -651,6 +693,10 @@
           Service.request('SyncStateMachine:error', error);
           return;
         }
+
+        // If we made a successfull synchronization we are good and so
+        // we don't care about past errors anymore.
+        this.error = null;
 
         this.debug('Sync succeded');
         this.lastSync = Date.now();
@@ -814,9 +860,9 @@
       set: function(state) {
         state = state || Service.query('SyncStateMachine.state');
         this.debug('Setting state', state);
+        this.store.set(SYNC_STATE, state);
         this.updateStateDeferred = new Promise(resolve => {
           asyncStorage.setItem(SYNC_STATE, state, () => {
-            this.store.set(SYNC_STATE, state);
             if (state === 'disabled' || state === 'enabled' ||
                 state === 'enabling') {
               this.updateStatePreference().then(() => {
@@ -837,9 +883,8 @@
 
     error: {
       set: function(error) {
-        asyncStorage.setItem(SYNC_STATE_ERROR, error, () => {
-          this.store.set(SYNC_STATE_ERROR, error);
-        });
+        this.store.set(SYNC_STATE_ERROR, error);
+        asyncStorage.setItem(SYNC_STATE_ERROR, error);
       },
       get: function() {
         return this.store.get(SYNC_STATE_ERROR);
@@ -849,9 +894,8 @@
     lastSync: {
       set: function(now) {
         var lastSync = now;
-        asyncStorage.setItem(SYNC_LAST_TIME, lastSync, () => {
-          this.store.set(SYNC_LAST_TIME, lastSync);
-        });
+        this.store.set(SYNC_LAST_TIME, lastSync);
+        asyncStorage.setItem(SYNC_LAST_TIME, lastSync);
       },
       get: function() {
         return this.store.get(SYNC_LAST_TIME);

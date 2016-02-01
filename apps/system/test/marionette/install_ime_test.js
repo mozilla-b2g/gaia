@@ -4,7 +4,9 @@ var AppInstall = require('./lib/app_install');
 var assert = require('assert');
 
 marionette('IME installation', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var system;
   var server;

@@ -10,7 +10,8 @@ var createAppServer = require('./server/parent');
 marionette('Homescreen - App Uninstall', function() {
 
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var actions, home, system, appInstall;
 
@@ -33,17 +34,16 @@ marionette('Homescreen - App Uninstall', function() {
 
     client.apps.launch(home.URL);
     home.waitForLaunch();
-
-    // install an app
-    client.switchToFrame();
-    appInstall.install(server.manifestURL);
-    appInstall.dismissToast();
-
-    client.switchToFrame(system.getHomescreenIframe());
   });
 
-  test('uninstall the app', function() {
-    var icon = home.getIcon(server.manifestURL);
+  function test_app_uninstall(manifestURL) {
+    // Install the app
+    client.switchToFrame();
+    appInstall.install(manifestURL);
+    appInstall.dismissToast();
+    client.switchToFrame(system.getHomescreenIframe());
+
+    var icon = home.getIcon(manifestURL);
 
     // XXX: work around issues where the icon is hidden by other
     //      status messages on the system app.
@@ -72,7 +72,14 @@ marionette('Homescreen - App Uninstall', function() {
       icon = home.getIcon(server.packageManifestURL);
     } catch(e) { }
     assert.ok(!icon, 'app was not removed');
+  }
+
+  test('uninstall hosted app', function() {
+    test_app_uninstall(server.manifestURL);
   });
 
+  test('uninstall packaged app', function() {
+    test_app_uninstall(server.packageManifestURL);
+  });
 });
 

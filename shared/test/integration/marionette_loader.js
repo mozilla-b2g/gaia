@@ -1,5 +1,8 @@
 'use strict';
 
+var MockManager = require('./manager_mock.js');
+
+var COMMS_APPS = ['dialer', 'contacts'];
 /**
  * @param {Marionette.Client} client Marionette client to use.
  * @constructor
@@ -35,11 +38,21 @@ MarionetteLoader.prototype = {
    */
   getAppClass: function(app, region, baseFolder) {
     region = region || app;
+    app = COMMS_APPS.indexOf(app) === -1 ? app : 'communications/' + app;
     baseFolder = baseFolder || 'apps';
     var AppClass = require(
       __dirname + '/../../../' +
       baseFolder + '/' + app + '/test/marionette/lib/' + region);
     return new AppClass(this.client);
+  },
+
+  /**
+  * Returns an instance of MockManager that will look into the given app and the
+  * shared folder.
+  * @param {String} app
+  */
+  getMockManager: function(app) {
+    return new MockManager(this.client, app);
   },
 
   /**
@@ -51,4 +64,3 @@ MarionetteLoader.prototype = {
     return new Actions(this.client);
   }
 };
-

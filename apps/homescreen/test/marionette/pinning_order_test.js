@@ -7,7 +7,9 @@ var Pinning = require(
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Homescreen - Pin order', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var actions, pinning, home, server, system;
 
   suiteSetup(function(done) {

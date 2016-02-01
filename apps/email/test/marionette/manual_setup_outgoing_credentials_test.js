@@ -4,7 +4,9 @@ var serverHelper = require('./lib/server_helper');
 
 marionette('Use a different outgoing password', function() {
   var app,
-      client = marionette.client();
+      client = marionette.client({
+        desiredCapabilities: { raisesAccessibilityExceptions: false }
+      });
 
   setup(function() {
     app = new Email(client);

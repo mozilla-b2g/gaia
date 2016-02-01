@@ -264,7 +264,7 @@ CameraController.prototype.showSizeLimitAlert = function() {
   var alertL10nId = this.activity.pick ?
     'activity-size-limit-reached' :
     'storage-size-limit-reached';
-  navigator.mozL10n.formatValue(alertL10nId).then(alert);
+  document.l10n.formatValue(alertL10nId).then(alert);
   this.sizeLimitAlertActive = false;
 };
 

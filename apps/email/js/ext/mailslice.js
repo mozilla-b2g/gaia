@@ -193,6 +193,12 @@ MailSlice.prototype = {
       this._bridgeHandle.userCanGrowDownwards = val;
     return val;
   },
+  get headerCount() {
+    if (this._bridgeHandle) {
+      return this._bridgeHandle.headerCount;
+    }
+    return null;
+  },
   set headerCount(val) {
     if (this._bridgeHandle)
       this._bridgeHandle.headerCount = val;
@@ -222,6 +228,7 @@ MailSlice.prototype = {
   reset: function() {
     if (!this._bridgeHandle)
       return;
+    this.headerCount = this._storage.headerCount;
 
     if (this.headers.length) {
       this._bridgeHandle.sendSplice(0, this.headers.length, [], false, true);
@@ -2435,6 +2442,9 @@ FolderStorage.prototype = {
     // in order to avoid having the slice have data fed into it if there were
     // other synchronizations already in progress.
     this._slices.push(slice);
+    // refresh the headerCount; it might have gotten stalled out if a
+    // double-open happened.
+    slice.headerCount = this.headerCount;
     var doneCallback = function doneSyncCallback(err, reportSyncStatusAs,
                                                  moreExpected) {
       if (!reportSyncStatusAs) {
@@ -2506,6 +2516,11 @@ FolderStorage.prototype = {
         slice.ignoreHeaders = true;
       }
       this._curSyncSlice = slice;
+      // headerCount is updated as changes occur, but as a base case we need to
+      // update it here.  (Note: the slice also initialized itself with this
+      // value when created, but since this is by definition an async
+      // callback...)
+      slice.headerCount = this.headerCount;
     }.bind(this);
 
     // The slice flags are not yet valid; we are primarily interested in having
@@ -2772,6 +2787,11 @@ FolderStorage.prototype = {
         slice.setStatus('synchronizing', false, true, false,
                         SYNC_START_MINIMUM_PROGRESS);
       this._curSyncSlice = slice;
+      // headerCount is updated as changes occur, but as a base case we need to
+      // update it here.  (Note: the slice also initialized itself with this
+      // value when created, but since this is by definition an async
+      // callback...)
+      slice.headerCount = this.headerCount;
       slice.waitingOnData = 'grow';
       // We only add the desired count now that we are sure we are growing; if
       // we did it earlier we might boost the desiredHeaders count and then
@@ -3030,11 +3050,11 @@ FolderStorage.prototype = {
       triggerNow = true;
     }
 
-    if (headers.length) {
-      // Claim there are more headers coming since we will trigger setStatus
-      // right below and we want that to be the only edge transition.
-      slice.batchAppendHeaders(headers, -1, true);
-    }
+    // (always call this even if there are no headers so metadata like
+    // headerCount can be propagated.)
+    // Claim there are more headers coming since we will trigger setStatus
+    // right below and we want that to be the only edge transition.
+    slice.batchAppendHeaders(headers, -1, true);
 
     if (!moreMessagesComing) {
       slice.desiredHeaders = slice.headers.length;

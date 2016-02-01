@@ -16,7 +16,8 @@ marionette('AppWindowManager - Pinning sites',
         'homescreen.manifestURL':
           'app://homescreen.gaiamobile.org/manifest.webapp'
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var home, rocketbar, server, search, system, url, nApps, pinning;
@@ -34,15 +35,7 @@ marionette('AppWindowManager - Pinning sites',
 
   function pinAndKill(url) {
     pinning.openAndPinSiteFromBrowser(url);
-    // Kill the pinned browser window
-    var winId = client.executeScript(function(url) {
-      var win = window.wrappedJSObject;
-      var activeApp = win.appWindowManager.getActiveApp();
-      activeApp.kill();
-      return activeApp.element.id;
-    }, [url]);
-    client.helper.waitForElementToDisappear('#' + winId);
-    client.switchToFrame();
+    system.closeBrowserByUrl(url);
   }
 
   function openUrl(url) {

@@ -1,0 +1,44 @@
+{
+  "meta": {},
+  "objects": [
+    {
+      "author": "Fake App Developer",
+      "content_ratings": {},
+      "current_version": "1.8",
+      "device_types": [
+          "desktop"
+      ],
+      "icons": {
+      },
+      "id": 12,
+      "is_disabled": false,
+      "latecustomization_id": 15,
+      "latecustomization_type": "webapp",
+      "manifest_url": "http://scone.host/manifest.webapp",
+      "name": {
+          "en-US": "Exquisite Scone"
+      }
+    },
+    {
+      "author": "Fake App Developer",
+      "current_version": "1.0",
+      "device_types": [
+          "firefoxos"
+      ],
+      "icons": {
+          "128": "http://bakewell.host/icons/128.png",
+          "32": "http://bakewell.host/icons/32.png",
+          "48": "http://bakewell.host/icons/48.png",
+          "64": "http://bakewell.host/icons/64.png"
+      },
+      "id": 80,
+      "is_disabled": false,
+      "latecustomization_id": 18,
+      "latecustomization_type": "webapp",
+      "manifest_url": "http://bakewell.host/manifest.webapp",
+      "name": {
+          "en-US": "Bakewell Tart"
+      }
+    }
+  ]
+}

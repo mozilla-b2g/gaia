@@ -39,7 +39,6 @@ var CallHandler = (function callHandler() {
   var FB_SYNC_ERROR_PARAM = 'isSyncError';
 
   /* === Settings === */
-  var screenState = null;
   var engineeringModeKey = null;
 
   /* === WebActivity === */
@@ -415,13 +414,6 @@ var CallHandler = (function callHandler() {
       }
     });
     LazyLoader.load('/shared/js/settings_listener.js', function() {
-      SettingsListener.observe('lockscreen.locked', null, function(value) {
-        if (value) {
-          screenState = 'locked';
-        } else {
-          screenState = 'unlocked';
-        }
-      });
       SettingsListener.observe('engineering-mode.key', null, function(value) {
         engineeringModeKey = value || null;
       });

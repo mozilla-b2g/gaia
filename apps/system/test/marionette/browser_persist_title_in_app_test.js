@@ -4,7 +4,9 @@ var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser Chrome - Title content', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var home, rocketbar, search, system;
 

@@ -75,7 +75,7 @@ define(function(require) {
      */
     _showEnabledDefaultDialog: function kal_showDialog(layout, missingType) {
       require(['modules/dialog_service'], function(DialogService) {
-        navigator.mozL10n.formatValue('keyboardType-' + missingType).then(
+        document.l10n.formatValue('keyboardType-' + missingType).then(
           type => {
             DialogService.alert({
               id: 'defaultKeyboardEnabled',

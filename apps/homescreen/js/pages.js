@@ -116,17 +116,14 @@
       card.title = page.title;
       card.dataset.id = page.url;
       card.style.order = -Math.round(page.pinTime / 1000);
+      page.meta = page.meta || {};
+
+      if (page.screenshot) {
+        page.meta.screenshot = page.screenshot;
+      }
 
       setTimeout(function(card, page) {
-        var background = {};
-        if (page.screenshot) {
-          background.src = URL.createObjectURL(page.screenshot);
-        }
-        if (page.themeColor) {
-          background.themeColor = page.themeColor;
-        }
-        card.background = background;
-
+        card.meta = page.meta;
         IconsHelper.getIconBlob(page.url, PAGES_ICON_SIZE, page)
           .then((iconObj) => {
             if (iconObj.blob) {

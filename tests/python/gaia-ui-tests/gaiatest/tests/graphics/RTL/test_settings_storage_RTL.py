@@ -35,9 +35,8 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
         # when USB is enabled, need to capture the 'Not Available' text
         mediastorage_page = settings.open_media_storage()
         self.take_screenshot('media_storage')
-
         if options == "disable":
-            mediastorage_page.internal_storage.tap_format()
+            mediastorage_page.internal_storage.tap_internal_format()
             self.take_screenshot('media_storage-format_internal')
             mediastorage_page.internal_storage.cancel_format()
 
@@ -45,7 +44,7 @@ class TestSettingsRTL(GaiaImageCompareTestCase):
                                             mediastorage_page.screen_element.size['height'],
                                             screen = mediastorage_page.screen_element)
             self.take_screenshot('media_storage')
-            mediastorage_page.external_storage0.tap_format()
+            mediastorage_page.external_storage0.tap_sd_format()
             self.take_screenshot('media_storage-format_SD')
             mediastorage_page.external_storage0.cancel_format()
             mediastorage_page.external_storage0.tap_eject()

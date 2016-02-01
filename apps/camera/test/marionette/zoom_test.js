@@ -6,7 +6,9 @@ marionette('Zoom', function() {
   });
 
   var assert = require('assert');
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var camera = new (require('./lib/camera'))(client);
 
   setup(function() {

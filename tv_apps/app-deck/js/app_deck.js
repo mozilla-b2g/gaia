@@ -1,5 +1,6 @@
 /* global SpatialNavigator, SharedUtils, Applications, URL, evt, XScrollable,
-  KeyNavigationAdapter, ContextMenu, CardManager, PromotionList */
+  KeyNavigationAdapter, ContextMenu, CardManager, PromotionList,
+  BookmarkManager */
 
 (function(exports) {
   'use strict';
@@ -20,8 +21,7 @@
    * @requires CardManager
    * @requires {@link PromotionList}
    *
-   * @fires AppDeck#focus-on-pinable
-   * @fires AppDeck#focus-on-nonpinable
+   * @fires AppDeck#focus
    */
   var AppDeck = function() {
   };
@@ -43,8 +43,11 @@
 
     _cardManager: undefined,
 
+    _bookmarkManager: undefined,
+
     _outOfControlArea: true,
 
+    _disableNavigation: false,
     /**
      * Initialize AppDeck. This is the main entry of the whole app.
      *
@@ -63,6 +66,10 @@
                              that.onCardListChanged.bind(that));
       });
 
+      this._bookmarkManager = BookmarkManager;
+      this._bookmarkManager.init(null, 'readwrite');
+      this._bookmarkManager.on('change', that.onBookmarkChanged.bind(that));
+
       // Because module Applications use manifest helper to get localized app
       // name. We cannot initialize Applications until l10n is ready.
       // See bug 1170083.
@@ -71,6 +78,19 @@
         var appGridElements = apps.map(that._createAppGridElement.bind(that));
         appGridElements.forEach(function(appGridElem) {
           that._appDeckGridViewElem.appendChild(appGridElem);
+        });
+
+        // Add Bookmarks
+        var bookmarkArr = [];
+        that._bookmarkManager.iterate(function(bookmark) {
+          bookmarkArr.push(bookmark);
+        }).then(function() {
+          bookmarkArr.sort((a, b) => a.date - b.date);
+          bookmarkArr.forEach(bookmark => {
+            var elem = that._createBookmarkGridElement(bookmark);
+            that._appDeckGridViewElem.appendChild(elem);
+            that._spatialNavigator.add(elem);
+          });
         });
 
         // promotion list must be created before XScrollable because it creates
@@ -162,55 +182,97 @@
       return appButton;
     },
 
+    _createBookmarkGridElement: function ad_createBookmarkElement(bookmark) {
+      var bookmarkButton = document.createElement('smart-button');
+      bookmarkButton.dataset.url = bookmark.url;
+      bookmarkButton.dataset.name = bookmark.name;
+      bookmarkButton.dataset.removable = true;
+      bookmarkButton.setAttribute('type', 'app-button');
+      bookmarkButton.setAttribute('app-type', 'bookmark');
+      bookmarkButton.classList.add('app-button');
+      bookmarkButton.classList.add('navigable');
+      bookmarkButton.setAttribute('label', bookmark.name);
+
+      if(bookmark.icon) {
+        var iconURL = URL.createObjectURL(bookmark.icon);
+        bookmarkButton.dataset.revokableURL = iconURL;
+        bookmarkButton.style.backgroundImage = 'url("' + iconURL + '")';
+      }
+      return bookmarkButton;
+    },
+
     onCardListChanged: function ad_onCardListChanged() {
       if (this._focusElem) {
         this.fireFocusEvent(this._focusElem);
       }
     },
 
+    onBookmarkChanged: function ad_onBookmarkChanged(evt) {
+      var targetElem;
+      switch (evt.operation) {
+        case 'added':
+          this._bookmarkManager.get(evt.id).then(bookmark => {
+            targetElem = this._createBookmarkGridElement(bookmark);
+            this._appDeckGridViewElem.appendChild(targetElem);
+            this._spatialNavigator.add(targetElem);
+          });
+          break;
+        case 'removed':
+          targetElem = this._appDeckGridViewElem.querySelector(
+                                    'smart-button[data-url="' + evt.id +'"]');
+          // Move focus to next or previous element of `elem`, because
+          // we are going to remove `elem` from DOM tree
+          var nextFocus = targetElem.nextElementSibling ||
+                          targetElem.previousElementSibling;
+          this._spatialNavigator.focus(nextFocus);
+
+          this._appDeckGridViewElem.removeChild(targetElem);
+          this._spatialNavigator.remove(targetElem);
+          URL.revokeObjectURL(targetElem.dataset.revokableURL);
+          break;
+      }
+    },
+
     /**
-     * Notify other module that currently focused element is pinable (could be
-     * pinned on Home) or nonpinable (could not be pinned on Home)
+     * Notify other modules about details of currently focused element.
      *
      * @public
      * @method  AppDeck#fireFocusEvent
      * @param  {HTMLElement} elem - currently focused element
      */
+    /**
+     * This event is fired whenever the focus in AppDeck moves to a pinnable
+     * element (For now it's an app or a bookmark).
+     * @event AppDeck#focus
+     * @type {Object}
+     * @property {HTMLElement} elem - currently focused element
+     * @property {Boolean} pinned - Has it been pinned to Home
+     */
     fireFocusEvent: function ad_fireFocusEvent(elem) {
       var that = this;
-      if (elem && elem.dataset && elem.dataset.manifestURL) {
-        this._cardManager.isPinned({
+      var type = elem && elem.getAttribute('app-type');
+
+      var query;
+      if (type === 'app') {
+        query = {
           manifestURL: elem.dataset.manifestURL,
           entryPoint: elem.dataset.entryPoint
-        }).then(function(pinned) {
-          /**
-           * This event fires whenever focus in AppDeck move to a pinable
-           * element (representing na app).
-           * @event AppDeck#focus-on-pinable
-           * @type {Object}
-           * @property {Boolean} pinned - Is current focused pinable element
-           *                            pinned or not
-           * @property {String} manifestURL - manifestURL of current focused
-           *                                element
-           * @property {String} name - name of current focused pinable element
-           * @property {Boolean} removable - Is current focused pinable element
-           *                               removable or not
-           */
-          that.fire('focus-on-pinable', {
-            pinned: pinned,
-            manifestURL: elem.dataset.manifestURL,
-            // entryPoint is deprecated
-            entryPoint: elem.dataset.entryPoint,
-            name: elem.dataset.name,
-            removable: elem.dataset.removable === 'true'
-          });
-        });
+        };
+      } else if (type === 'bookmark') {
+        query = {
+          url: elem.dataset.url
+        };
       } else {
-        /**
-         * @event AppDeck#focus-on-nonpinable
-         */
-        this.fire('focus-on-nonpinable');
+        // We have no other types for now.
+        return;
       }
+
+      this._cardManager.isPinned(query).then(pinned => {
+        that.fire('focus', {
+          elem: elem,
+          pinned: pinned
+        });
+      });
     },
 
     onFocus: function ad_onFocus(elem) {
@@ -272,14 +334,24 @@
       },
 
     onEnter: function ad_onEnter() {
+      if (this._disableNavigation) {
+        return;
+      }
+
       var focused = this._spatialNavigator.getFocusedElement();
       if (focused && focused.dataset && focused.dataset.manifestURL) {
         Applications.launch(
           focused.dataset.manifestURL, focused.dataset.entryPoint);
+      } else if (focused && focused.dataset && focused.dataset.url) {
+        window.open(focused.dataset.url, '_blank', 'remote=true,applike=true');
       }
     },
 
     onMove: function ad_onMove(key) {
+      if (this._disableNavigation) {
+        return;
+      }
+
       // When we are not in the SpatialNavigator's control area,
       // use XScrollable object's spatial navigator to move.
       // If it fails to move, and it's a 'down' operation, then we
@@ -303,8 +375,11 @@
     onAppInstalled: function ad_onAppInstalled(apps) {
       var that = this;
       var appGridElements = apps.map(this._createAppGridElement.bind(this));
+      var firstBookmarkElem = this._appDeckGridViewElem.querySelector(
+        'smart-button[app-type="bookmark"]');
+
       appGridElements.forEach(function(elem) {
-        that._appDeckGridViewElem.appendChild(elem);
+        that._appDeckGridViewElem.insertBefore(elem, firstBookmarkElem);
         that._spatialNavigator.add(elem);
       });
     },
@@ -369,6 +444,15 @@
         return false;
       });
       return found;
+    },
+
+    disableNavigation: function ad_stopNavigation() {
+      this._disableNavigation = true;
+    },
+
+    enableNavigation: function ad_stopNavigation() {
+      this._disableNavigation = false;
+      this._spatialNavigator.focus();
     }
   });
 

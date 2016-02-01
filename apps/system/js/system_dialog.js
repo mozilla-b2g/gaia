@@ -170,6 +170,7 @@
    */
   SystemDialog.prototype.resize = function sd_resize() {
     this.updateHeight();
+    this.updateWidth();
   };
 
   /**
@@ -185,10 +186,20 @@
   };
 
   /**
+   * Update dialog width via LayoutManager
+   */
+  SystemDialog.prototype.updateWidth = function sd_updateWidth() {
+    var width = Service.query('LayoutManager.width');
+    this.containerElement.style.width = width + 'px';
+    this.debug('updateWidth: new width = ' + width);
+  };
+
+  /**
    * Publish 'show' event for activate the dialog
    */
   SystemDialog.prototype.show = function sd_show() {
     this.publish('opening');
+    this.resize();
     this.element.hidden = false;
     this.element.classList.add(this.customID);
     this.onShow();
@@ -202,6 +213,14 @@
    * @param  {boolean} isManagerRequest True: The caller is SystemDialogManager.
    */
   SystemDialog.prototype.hide = function sd_hide(reason, isManagerRequest) {
+    // If we are using the gaia-dialog component, we should close
+    // the dialog first before hiding the container. This method
+    // will be called again on the 'closed' event.
+    if (this.element && this.element.opened) {
+      this.element.close();
+      return;
+    }
+
     this.publish('closing');
     // The 'reason' is coming from the dialog controller or SystemDialogManager.
     // After the dialog is hidden, pass the reason to its controller via onHide.

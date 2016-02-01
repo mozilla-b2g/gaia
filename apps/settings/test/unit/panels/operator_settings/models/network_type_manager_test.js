@@ -1,24 +1,30 @@
+/* global MockNavigatorMozMobileConnections */
 'use strict';
+
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
 suite('NetworkTypeManager', function() {
   var NetworkTypeManager;
-  var mockConn;
+  var networkTypeManager;
+  var _mobileConnection;
+  var realMozMobileConnections;
+  var mockNetworkInfo;
   var mockSupportedNetworkTypes = [
-    'lte/wcdma/gsm',
-    'lte/wcdma',
+    'wcdma/gsm',
     'gsm',
     'wcdma',
     'wcdma/gsm-auto',
-    'wcdma/gsm',
-    'lte'
+    'cdma/evdo',
+    'cdma',
+    'evdo',
+    'wcdma/gsm/cdma/evdo',
+    'lte/cdma/evdo',
+    'lte/wcdma/gsm',
+    'lte/wcdma/gsm/cdma/evdo',
+    'lte',
+    'lte/wcdma'
   ];
   var mockSettingshelper;
-  var mockPreferredNetworkType = 'mockNetworkType';
-
-  var realGetSupportedNetworkInfo;
-  var realMozMobileConnections;
-
-  var networkTypeManager;
 
   var modules = [
     'panels/operator_settings/models/network_type_manager'
@@ -26,7 +32,8 @@ suite('NetworkTypeManager', function() {
 
   var map = {
     '*': {
-      'shared/settings_helper': 'MockSettingsHelper'
+      'shared/settings_helper': 'MockSettingsHelper',
+      'modules/mobile/suppoted_network_info': 'MockNetworkInfo'
     }
   };
 
@@ -43,30 +50,27 @@ suite('NetworkTypeManager', function() {
       };
     });
 
-    mockConn = {
-      getPreferredNetworkType:
-        sinon.stub().returns(Promise.resolve(mockPreferredNetworkType)),
-      setPreferredNetworkType: function() {}
+    mockNetworkInfo = {
+      getSupportedNetworkInfo: function(conn, callback) {}
     };
-    realMozMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = [mockConn];
+    define('MockNetworkInfo', function() {
+      return mockNetworkInfo;
+    });
 
-    realGetSupportedNetworkInfo = window.getSupportedNetworkInfo;
-    window.getSupportedNetworkInfo = function(conn, callback) {
-      callback({
-        networkTypes: mockSupportedNetworkTypes
-      });
-    };
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+    _mobileConnection = MockNavigatorMozMobileConnections[0];
+    _mobileConnection.supportedNetworkTypes = mockSupportedNetworkTypes;
 
     requireCtx(modules, (_NetworkTypeManager) => {
       NetworkTypeManager = _NetworkTypeManager;
-      networkTypeManager = NetworkTypeManager(mockConn);
+      networkTypeManager = NetworkTypeManager(_mobileConnection);
       done();
     });
   });
 
   teardown(function() {
-    window.getSupportedNetworkInfo = realGetSupportedNetworkInfo;
+    _mobileConnection = null;
     navigator.mozMobileConnections = realMozMobileConnections;
   });
 
@@ -85,10 +89,11 @@ suite('NetworkTypeManager', function() {
       });
 
       test('preferredNetworkType', function(done) {
+        networkTypeManager._preferredNetworkType = 'mockNetworkType';
         var doAssert = function() {
           if (networkTypeManager.preferredNetworkType !== null) {
             assert.equal(networkTypeManager.preferredNetworkType,
-              mockPreferredNetworkType);
+              'mockNetworkType');
             done();
           }
         };
@@ -97,46 +102,22 @@ suite('NetworkTypeManager', function() {
       });
 
       test('_serviceId', function() {
-        assert.equal(networkTypeManager._serviceId,
-          navigator.mozMobileConnections.indexOf(mockConn));
+        assert.equal(networkTypeManager._serviceId, 0);
       });
     });
 
     suite('does not support setting preferred network type', function() {
       test('should throw an exception', function() {
         assert.throw(() => {
-          NetworkTypeManager({});
+          networkTypeManager({});
         }, Error);
       });
     });
   });
 
   suite('getSupportedNetworkInfo', function() {
-    suite('_supportedNetworkInfo is null', function() {
-      var mockResult;
-
-      setup(function() {
-        mockResult = {};
-        sinon.stub(window, 'getSupportedNetworkInfo');
-        networkTypeManager._supportedNetworkInfo = null;
-      });
-
-      test('should return the result from window.getSupportedNetworkInfo',
-        function(done) {
-          assert.becomes(networkTypeManager.getSupportedNetworkInfo(),
-            mockResult).notify(done);
-          window.getSupportedNetworkInfo.args[0][1](mockResult);
-      });
-
-      test('should save the result in _supportedNetworkInfo', function() {
-        networkTypeManager.getSupportedNetworkInfo();
-        window.getSupportedNetworkInfo.args[0][1](mockResult);
-        assert.equal(mockResult, networkTypeManager._supportedNetworkInfo);
-      });
-    });
-
     suite('_supportedNetworkInfo is not null', function() {
-      test('shodul return the value of _supportedNetworkInfo', function(done) {
+      test('should return the value of _supportedNetworkInfo', function(done) {
         var mockResult = {};
         networkTypeManager._supportedNetworkInfo = mockResult;
         assert.becomes(networkTypeManager.getSupportedNetworkInfo(),
@@ -149,10 +130,14 @@ suite('NetworkTypeManager', function() {
     var mockNetworkType = 'mockNetworkType';
 
     setup(function() {
-      sinon.stub(mockConn, 'setPreferredNetworkType', function() {
+      sinon.stub(_mobileConnection, 'setPreferredNetworkType', function() {
         return Promise.resolve();
       });
-      networkTypeManager = NetworkTypeManager(mockConn);
+      networkTypeManager = NetworkTypeManager(_mobileConnection);
+    });
+
+    teardown(function() {
+      _mobileConnection.setPreferredNetworkType.restore();
     });
 
     test('preferredNetworkType should change to the setting value',

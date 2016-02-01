@@ -19,7 +19,9 @@
   photodb,
   setView,
   showFile,
-  Spinner
+  Spinner,
+  LazyLoader,
+  JPEGParser
 */
 /* exported
   editPhotoIfCardNotFull
@@ -95,7 +97,7 @@ function editPhotoIfCardNotFull(n) {
       editPhoto(n);
     }
     else {
-      navigator.mozL10n.formatValue('memorycardfull').then(alert);
+      document.l10n.formatValue('memorycardfull').then(alert);
     }
   });
 }
@@ -119,7 +121,7 @@ var exposureSlider = (function() {
   thumb.addEventListener('pan', function(e) {
     // Handle delta so that slider moves correct way
     // when user drags it for RTL locales
-    var delta = navigator.mozL10n.language.direction === 'ltr' ?
+    var delta = document.documentElement.dir === 'ltr' ?
                 e.detail.absolute.dx : - e.detail.absolute.dx;
 
     var exposureDelta = delta / parseInt(bar.clientWidth, 10) * 6;
@@ -297,6 +299,14 @@ function editPhoto(n) {
     // image even further than we would otherwise.
     var imagesize = metadata.width * metadata.height;
     var maxsize = CONFIG_MAX_EDIT_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
+
+    if (file.type === 'image/jpeg') {
+      LazyLoader.load(['shared/js/media/jpeg-exif.js'], () => {
+        JPEGParser.readExifMetaData(file, (error, metaData) => {
+          editSettings.EXIF = metaData || {};
+        });
+      });
+    }
 
     if (metadata.rotation || metadata.mirrored || imagesize > maxsize) {
       Spinner.show();
@@ -596,7 +606,7 @@ function setAutoEnhanceState(isEnhanced) {
   }
 
   function showStatus(msgId) {
-    navigator.mozL10n.setAttributes(statusLabel, msgId);
+    document.l10n.setAttributes(statusLabel, msgId);
     banner.hidden = false;
     setTimeout(function() {
       banner.hidden = true;
@@ -1189,8 +1199,8 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
         // Update the progress bar
         processed_pixels += rect.w * rect.h;
         if (progress) {
-          // Processing the pixels takes 90% of our time (as a rough guess)
-          progress(0.05 + 0.9 * processed_pixels / total_pixels);
+          // Processing the pixels takes 85% of our time (as a rough guess)
+          progress(0.05 + 0.85 * processed_pixels / total_pixels);
         }
       });
     promises.push(promise);
@@ -1204,13 +1214,7 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
     // than they might otherwise be garbage collected.
     processors.forEach(function(processor) { processor.destroy(); });
 
-    // Finally, convert the editd image to a blob and pass to the callback.
-    canvas.toBlob(function(blob) {
-      // Now that we've got the blob, we don't need the canvas anymore
-      context = null;
-      canvas.width = canvas.height = 0;
-      canvas = null;
-
+    function gotEncodedBlob(blob) {
       // Move the progress bar to the end
       if (progress) {
         progress(1.0);
@@ -1221,8 +1225,62 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
       setTimeout(function() {
         done(blob);
       });
+    }
+
+    // we need to save these for Exif rewrite.
+    var canvasW = canvas.width;
+    var canvasH = canvas.height;
+
+    function updateExif(blob, metaData, callback) {
+      metaData.Orientation = 1;
+      if (metaData.PixelXDimension) {
+        metaData.PixelXDimension = canvasW;
+      }
+      if (metaData.PixelYDimension) {
+        metaData.PixelYDimension = canvasH;
+      }
+      JPEGParser.writeExifMetaData(
+        blob, metaData,
+        (error, modifiedBlob) => {
+          if (error) {
+            console.error('Error' + error);
+          }
+          // Process modified file
+          callback(modifiedBlob);
+        });
+    }
+
+    var originalBlob = this.imageBlob;
+    var originalExif = this.edits.EXIF;
+
+    // Finally, convert the edited image to a blob and pass to the callback.
+    canvas.toBlob(function(blob) {
+      // Now that we've got the blob, we don't need the canvas anymore
+      context = null;
+      canvas.width = canvas.height = 0;
+      canvas = null;
+      progress(0.95);
+
+      if (type == 'image/jpeg') {
+        // we are most likely to have originalExif here.
+        if (originalExif) {
+          updateExif(blob, originalExif, gotEncodedBlob);
+        } else {
+          LazyLoader.load(['shared/js/media/jpeg-exif.js'], () => {
+            JPEGParser.readExifMetaData(originalBlob, (error, metaData) => {
+              if (error || !metaData) {
+                gotEncodedBlob(blob);
+                return;
+              }
+              updateExif(blob, metaData, gotEncodedBlob);
+            });
+          });
+        }
+      } else {
+        gotEncodedBlob(blob);
+      }
     }, type);
-  });
+  }.bind(this));
 };
 
 ImageEditor.prototype.isCropOverlayShown = function() {

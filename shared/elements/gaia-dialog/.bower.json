@@ -1,0 +1,41 @@
+{
+  "name": "gaia-dialog",
+  "homepage": "https://github.com/gaia-components/gaia-dialog",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "gaia-dialog.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "index.html",
+    "package.json",
+    "README.md"
+  ],
+  "devDependencies": {
+    "base": "gaia-components/base",
+    "pressed": "gaia-components/pressed",
+    "gaia-fonts": "gaia-components/gaia-fonts",
+    "gaia-theme": "gaia-components/gaia-theme",
+    "gaia-button": "gaia-components/gaia-button"
+  },
+  "dependencies": {
+    "gaia-text-input": "gaia-components/gaia-text-input",
+    "gaia-icons": "gaia-components/gaia-icons#^1.0.0",
+    "gaia-component": "gaia-components/gaia-component#^0.3.9"
+  },
+  "version": "0.2.4",
+  "_release": "0.2.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.2.4",
+    "commit": "ddaea4f4ca5e5fe0fbb71816fb04d30052cfc10e"
+  },
+  "_source": "git://github.com/gaia-components/gaia-dialog.git",
+  "_target": "*",
+  "_originalSource": "gaia-components/gaia-dialog"
+}

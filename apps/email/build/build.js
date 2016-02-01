@@ -1,10 +1,9 @@
 'use strict';
 
-/*global require, exports */
-/*jshint evil: true */
+/* jshint node: true, evil: true */
+
 var utils = require('utils');
 var esomin = require('esomin');
-var sharedUtils = require('shared-utils');
 var { Cc, Ci } = require('chrome');
 var converter =
       Cc['@mozilla.org/intl/scriptableunicodeconverter'].
@@ -13,6 +12,125 @@ converter.charset = 'UTF-8';
 var secClass = Cc['@mozilla.org/security/hash;1'];
 var nsICryptoHash = Ci.nsICryptoHash;
 var digests = [];
+var appName;
+
+// FIXME: It will be replace with webapp-shared.js
+// Taken from r.js css optimizing step.
+var cssImportRegExp = /\@import\s+(url\()?\s*([^);]+)\s*(\))?([\w, ]*)(;)?/ig;
+
+function stripCssComments(contents) {
+  var index,
+      start = 0,
+      end = contents.length,
+      result = '',
+      startComment = '/*',
+      endComment = '*/';
+
+  while ((index = contents.indexOf(startComment, start)) !== -1) {
+    result += contents.substring(start, index);
+    start = index;
+    index = contents.indexOf(endComment, start);
+    if (index === -1) {
+      start = end - 1;
+    } else {
+      start = index + 2;
+    }
+  }
+
+  if (start !== end - 1) {
+    result += contents.substring(start, end);
+  }
+
+  return result;
+}
+
+/**
+ * Find javascript dependencies in shared directory for all JS files in js
+ * directory for each app directory, and also call onFileRead for all js and
+ * HTML files.
+ * @param  {Object}   parse      Parser module from r.js
+ * @param  {String}   appDir     App directory in gaia source tree
+ * @param  {RegExp}   exclude    exclude expression for js files
+ * @param  {Function} onFileRead Event handler when file contents has been
+ *                               retrieved.
+ * @return {String[]}            javascript dependencies in shared directory
+ */
+function getSharedJs(parse, appDir, exclude, onFileRead) {
+  var sharedJs = [];
+  var jsExtRegExp = /\.js$/;
+
+  var files = utils.ls(utils.getFile(appDir, 'js'), true)
+    .filter(function(file) {
+      return /\.(js|html)/.test(file.path) && file.isFile();
+    });
+  files.forEach(function(file) {
+    var contents = utils.getFileContent(file);
+    onFileRead(contents);
+
+    // If JS, scan for shared resources.
+    if (jsExtRegExp.test(file.path) && !exclude.test(file.path)) {
+      var deps = parse.findDependencies(file.path, contents);
+
+      deps.forEach(function (dep) {
+        if (dep.indexOf('shared/') === 0) {
+          var sharedDep = dep.replace(/shared\/js\//, '') + '.js';
+          // Avoid duplicate entries for cleanliness
+          if (sharedJs.indexOf(sharedDep) === -1) {
+            sharedJs.push(sharedDep);
+          }
+        }
+      });
+    }
+  });
+  return sharedJs;
+}
+
+/**
+ * Find CSS references in shared directory for all the CSS files and call
+ * onFileRead() in style directory for each app directory.
+ * @param  {String} appDir     App directory in gaia source tree
+ * @param  {[type]} onFileRead Event handler when file contents has been
+ *                             retrieved.
+ * @return {String[][]}        an array contains style and style_unstable css
+ *                             files in shared directory.
+ */
+function getSharedStyles(appDir, onFileRead) {
+  var sharedStyle = [];
+  var sharedStyleUnstable = [];
+  var sharedElements = [];
+  var files = utils.ls(utils.getFile(appDir, 'style'), true)
+    .filter(function(file) {
+      return /\.css$/.test(file.path);
+    });
+  files.forEach(function(file) {
+    var url, match, index,
+        contents = utils.getFileContent(file);
+    onFileRead(contents);
+    contents = stripCssComments(contents);
+    cssImportRegExp.lastIndex = 0;
+
+    while ((match = cssImportRegExp.exec(contents))) {
+      // Grab the URL without quotes
+      url = match[2].replace(/['"]/g, '');
+      if (url) {
+        index = url.indexOf('/shared/');
+        if (index !== -1) {
+          if (url.indexOf('shared/elements') !== -1) {
+            sharedElements.push(url.substring(index + 1)
+                                    .replace(/shared\/elements\//, ''));
+          } else if (url.indexOf('style_unstable') === -1) {
+            sharedStyle.push(url.substring(index + 1)
+                                 .replace(/shared\/style\//, ''));
+          } else {
+            sharedStyleUnstable.push(url.substring(index + 1)
+                                .replace(/shared\/style_unstable\//, ''));
+          }
+        }
+      }
+    }
+  });
+  return [sharedStyle, sharedStyleUnstable, sharedElements];
+}
 
 // Adapted from:
 // https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsICryptoHash#Computing_the_Hash_of_a_String
@@ -75,14 +193,18 @@ function writeCacheValue(options) {
   utils.writeContent(cacheFile, contents);
 }
 
-function runOptimizer(args, r) {
-  var deferred = utils.Q.defer();
-  r.optimize(args, function(buildText) {
-    deferred.resolve(buildText);
-  }, function(err) {
-    deferred.reject(err);
+function runOptimizer(args, requirejs) {
+  var build = new Promise(function(resolve, reject) {
+    requirejs.optimize(args, resolve, reject);
   });
-  return deferred.promise;
+
+  return build.then(function() {
+    utils.log(appName, 'require.js optimize done');
+  })
+  .catch(function(err) {
+    utils.log(appName, 'require.js optimize failed');
+    utils.log(appName, err);
+  });
 }
 
 function optimize(options, r) {
@@ -103,7 +225,8 @@ function optimize(options, r) {
 
   // Do gelam worker stuff first. This will copy over all of the js/ext
   // directory.
-  return runOptimizer([gelamConfigFile.path], r)
+  var logLevel = 'logLevel=' + (options.VERBOSE === '1' ? '0' : '4');
+  return runOptimizer([gelamConfigFile.path, logLevel], r)
   .then(function() {
     // Now do main-frame-setup build for the main thread side of gelam. It is
     // a single file optimization, so need to manually delete files it combines
@@ -116,7 +239,7 @@ function optimize(options, r) {
                            ')');
     // Up the log level so we can see what was built. By default, passing object
     // args to r.js will run it in silent mode.
-    mainFrameOptions.logLevel = 0;
+    mainFrameOptions.logLevel = (options.VERBOSE === '1') ? 0 : 4;
 
     // Update paths, since it is now relative to the current working directory
     // of this script, not the gelamConfigFile.
@@ -148,7 +271,7 @@ function optimize(options, r) {
   .then(function() {
     // Now the rest of the gaia app optimization. This build run explicitly
     // ignores the ext directory.
-    return runOptimizer([appConfigFile.path], r);
+    return runOptimizer([appConfigFile.path, logLevel], r);
   });
 }
 
@@ -173,16 +296,17 @@ function removeFiles(options) {
 }
 
 function getParse(r) {
-  var deferred = utils.Q.defer();
-  r.tools.useLib(function(req) {
-    req(['parse'], function(parse) {
-      deferred.resolve(parse);
+  return new Promise(function(resolve, reject) {
+    r.tools.useLib(function(req) {
+      req(['parse'], function(parse) {
+        resolve(parse);
+      });
     });
   });
-  return deferred.promise;
 }
 
 exports.execute = function(options) {
+  appName = utils.basename(options.APP_DIR);
   var shared = {
     js: [],
     style: [],
@@ -193,19 +317,36 @@ exports.execute = function(options) {
 
   var stageAppDir = utils.getFile(options.STAGE_APP_DIR);
   utils.ensureFolderExists(stageAppDir);
-  var r = require('r-wrapper').get(options.GAIA_DIR);
+
+  var rjsPath = utils.joinPath(options.GAIA_DIR, 'build', 'r.js');
+  var requirejs;
+
+  if (utils.isNode()) {
+    requirejs = require(rjsPath);
+  } else {
+    var sandbox = utils.createSandbox();
+    sandbox.arguments = [];
+    sandbox.requirejsAsLib = true;
+    sandbox.print = function() {
+      utils.log(appName, Array.prototype.join.call(arguments, ' '));
+    };
+    utils.runScriptInSandbox(rjsPath, sandbox);
+    requirejs = sandbox.requirejs;
+  }
+
   var promises = [
-    optimize(options, r),
-    getParse(r)
+    optimize(options, requirejs),
+    getParse(requirejs)
   ];
-  return utils.Q.all(promises)
+
+  return Promise.all(promises)
     .then(function(result) {
       var [buildText, parse] = result;
 
-      shared.js = sharedUtils.getSharedJs(parse, options.APP_DIR,
+      shared.js = getSharedJs(parse, options.APP_DIR,
         backendRegExp, onFileRead);
       [shared.style, shared.style_unstable] =
-        sharedUtils.getSharedStyles(options.APP_DIR, onFileRead);
+        getSharedStyles(options.APP_DIR, onFileRead);
       utils.writeContent(sharedJsonFile, JSON.stringify(shared, null, 2));
 
       writeCacheValue(options);
@@ -214,13 +355,13 @@ exports.execute = function(options) {
     })
     .then(function() {
       if (options.GAIA_OPTIMIZE === '1') {
-        utils.log('email', 'Using esomin to minify');
+        utils.log(appName, 'esomin minify done');
         return esomin.minifyDir(stageAppDir);
       }
     })
-    .catch(function (err) {
-      utils.log(err);
-      utils.log(err.stack);
+    .catch(function(err) {
+      utils.log(err)
+      utils.log(appName, 'running customize build failed');
       throw err;
     });
 };

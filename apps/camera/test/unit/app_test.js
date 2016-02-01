@@ -54,8 +54,6 @@ suite('app', function() {
       };
     }
 
-    navigator.mozL10n = { readyState: null };
-
     navigator.mozSettings = {
       addObserver: function() {},
       removeObserver: function() {}
@@ -323,7 +321,7 @@ suite('app', function() {
       });
 
       test('Should relay window \'localized\' event', function() {
-        sinon.assert.calledWith(this.app.win.addEventListener, 'localized', '<localized-firer>');
+        sinon.assert.calledWith(this.app.doc.addEventListener, 'DOMRetranslated', '<localized-firer>');
       });
 
       test('It indicates the app is \'busy\' when the camera \'willchange\'', function() {

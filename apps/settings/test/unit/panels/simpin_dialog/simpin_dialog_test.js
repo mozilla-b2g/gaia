@@ -1,7 +1,7 @@
 /* global MockL10n */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('SimPinDialog > ', function() {
 
@@ -29,7 +29,7 @@ suite('SimPinDialog > ', function() {
       };
     });
 
-    window.navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
 
     var requireCtx = testRequire([], map, function() {});
     requireCtx(modules, function(SimPinDialog, MockSettingsUtils,

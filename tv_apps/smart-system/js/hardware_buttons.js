@@ -9,6 +9,7 @@
   var HardwareButtonsBaseState;
   var HardwareButtonsHomeState;
   var HardwareButtonsSleepState;
+  var HardwareButtonsBackState;
   var HardwareButtonsVolumeState;
   var HardwareButtonsWakeState;
   var HardwareButtonsScreenshotState;
@@ -16,7 +17,7 @@
   /**
    * After bug 989198 landing, we will be able to listen to KeyboardEvent
    * (e.g. keydown and keyup). Also there will be new events called
-   * BeforeAfterKeybaordEvent for mozbrowser-embedder iframe, say system app,
+   * BeforeAfterKeyboardEvent for mozbrowser-embedder iframe, say system app,
    * to control or override the bahavior of keydown/keyup event in
    * mozbrowser-embedded iframes (other apps or homescreen app).
    * These events are:
@@ -34,7 +35,7 @@
    * For detail, please see
    * https://wiki.mozilla.org/WebAPI/BrowserAPI/KeyboardEvent
    *
-   * This module listens for KeyboardEvent and BeforeAfterKeybaordEvent,
+   * This module listens for KeyboardEvent and BeforeAfterKeyboardEvent,
    * processes them (with the help of BrowserKeyEventManager submodule)
    * and generates higher-level events to handle autorepeat on
    * the volume keys, long presses on Home and Sleep, and the Volume Down+Sleep
@@ -52,6 +53,7 @@
    * | home        | short press and release of home button                    |
    * | holdhome    | long press and hold of home button                        |
    * | sleep       | short press and release of sleep button                   |
+   * | back        | short press and release of back button                    |
    * | wake        | sleep or home pressed while sleeping                      |
    * | holdsleep   | long press and hold of sleep button                       |
    * | volumeup    | volume up pressed and released or autorepeated            |
@@ -229,11 +231,24 @@
         case 'volume-up-button-release':
         case 'volume-down-button-press':
         case 'volume-down-button-release':
+        case 'back-button-press':
+        case 'back-button-release':
           this.state.process(type);
           break;
       }
     } else {
       var buttonEventType = this.browserKeyEventManager.getButtonEventType(evt);
+
+      // In case of website only calling preventDefault() for keydown or keyup.
+      // If preventDefault() is called in keydown, we set state to base to exit
+      // previous state and force FSM do nothing for upcoming keyup / *-release.
+      // If preventDefault() is called in keyup, we set state to base to exit
+      // previous state for preventing "hold" event or infinity repeat emitted
+      // from previous state.
+      if (evt.embeddedCancelled &&
+          this.browserKeyEventManager.isAppCancelledKeyEvent(evt)) {
+        this.setState('base');
+      }
       // having a falsey buttonEventType value means the event should be
       // ignored by System
       if (!buttonEventType) {
@@ -292,10 +307,14 @@
       case 'volume-down-button-press':
         this.hardwareButtons.setState('volume', type);
         return;
+      case 'back-button-press':
+        this.hardwareButtons.setState('back', type);
+        return;
       case 'home-button-release':
       case 'sleep-button-release':
       case 'volume-up-button-release':
       case 'volume-down-button-release':
+      case 'back-button-release':
         // Ignore button releases that occur in this state.
         // These can happen after volumedown+sleep and home+volume.
         return;
@@ -433,6 +452,70 @@
         this.hardwareButtons.setState('base', type);
         return;
       case 'home-button-press':
+        this.hardwareButtons.setState('base', type);
+        return;
+    }
+    console.error('Unexpected hardware key: ', type);
+    this.hardwareButtons.setState('base', type);
+  };
+
+  /**
+   * We enter the back state when the user presses the Back button
+   * We can fire back event from this state
+   *
+   * @class HardwareButtonsBackState
+   */
+  HardwareButtonsBackState =
+    HardwareButtons.STATES.back = function HardwareButtonsBackState(hb) {
+      this.hardwareButtons = hb;
+      this.timer = undefined;
+    };
+
+  /**
+   * Entering the state.
+   * @memberof HardwareButtonsBackState.prototype
+   */
+  HardwareButtonsBackState.prototype.enter = function() {
+    this.timer = setTimeout(function() {
+      /**
+       * When the user holds Back button more than HOLD_INTERVAL.
+       * @event HardwareButtonsBackState#holdback
+       */
+      this.hardwareButtons.publish('holdback');
+      this.hardwareButtons.setState('base');
+    }.bind(this), this.hardwareButtons.HOLD_INTERVAL);
+  };
+
+  /**
+   * Leaving the state.
+   * @memberof HardwareButtonsBackState.prototype
+   */
+  HardwareButtonsBackState.prototype.exit = function() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  };
+
+  /**
+   * Pressing any other hardware button will cancel this state.
+   * @memberof HardwareButtonsBackState.prototype
+   * @param  {String} type Name of the event to process.
+   */
+  HardwareButtonsBackState.prototype.process = function(type) {
+    switch (type) {
+      case 'back-button-release':
+        /**
+         * When the user releases Back button before HOLD_INTERVAL.
+         * @event HardwareButtonsHomeState#back
+         */
+        this.hardwareButtons.publish('back');
+        this.hardwareButtons.setState('base', type);
+        return;
+      case 'home-button-press':
+      case 'volume-up-button-press':
+      case 'volume-down-button-press':
+      case 'sleep-button-press':
         this.hardwareButtons.setState('base', type);
         return;
     }
@@ -672,7 +755,6 @@
   HardwareButtonsScreenshotState.prototype.process = function(type) {
     this.hardwareButtons.setState('base', type);
   };
-
 
   /*
    * Start the hardware buttons events.

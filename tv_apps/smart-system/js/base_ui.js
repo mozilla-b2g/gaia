@@ -103,9 +103,17 @@
 
   };
 
+  /**
+   * Overwrite me if you need to destruct something.
+   */
+  BaseUI.prototype._destroy = function bu__destroy() {
+
+  };
+
   BaseUI.prototype.destroy = function bu_destroy() {
     this.publish('willdestroy');
     this._unregisterEvents();
+    this._destroy();
     if (this.element) {
       this.element.parentNode.removeChild(this.element);
       this.element = null;

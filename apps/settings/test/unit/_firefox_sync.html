@@ -21,11 +21,14 @@
     <li role="presentation">
       <p class="description" data-l10n-id="fxsync-sync-user"></p>
       <p class="explanation">
-        <span class="fxsync-user"></span>
+      <span class="fxsync-user"></span>
       </p>
     </li>
     <li role="presentation" class="fxsync-unverified description" hidden>
-      <p class="fxsync-unverified-warning" data-l10n-id="fxa-please-verify"></p>
+      <p class="fxsync-warning" data-l10n-id="fxa-please-verify"></p>
+    </li>
+    <li role="presentation" class="fxsync-empty-account description" hidden>
+      <p class="fxsync-warning" data-l10n-id="fxsync-empty-account"></p>
     </li>
     <li role="presentation">
       <label>
@@ -36,8 +39,8 @@
     </li>
     <li role="presentation">
       <button class="fxsync-sync-now" data-l10n-id="fxsync-sync-now"></button>
-      <p class="explanation fxsync-last-sync" hidden>
-        <span data-l10n-id="fxsync-last-synced"></span>
+      <p class="explanation fxsync-last-sync hidden">
+      <span data-l10n-id="fxsync-last-synced"></span>
       </p>
     </li>
   </ul>
@@ -46,7 +49,7 @@
     <h2 data-l10n-id="fxsync-collections">Collections</h2>
   </header>
   <ul role="presentation">
-    <li role="presentation">
+    <li role="presentation" hidden>
       <gaia-switch class="fxsync-collections-bookmarks"
                    name="sync.collections.bookmarks.enabled">
         <label data-l10n-id="fxsync-collections-bookmarks"></label>
@@ -86,4 +89,3 @@
     </li>
   </ul>
 </div>
-

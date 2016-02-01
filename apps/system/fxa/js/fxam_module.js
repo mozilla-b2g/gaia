@@ -50,37 +50,42 @@ var FxaModule = (function() {
       }
 
       FxaModuleOverlay.hide();
-      LazyLoader.load('js/fxam_errors.js', function() {
+      LazyLoader.load('js/fxam_errors.js', () => {
         var config = FxaModuleErrors.responseToParams(resp);
-        FxaModuleErrorOverlay.show(config.title, config.message);
-        if (resp === 'COPPA_ERROR') {
+        FxaModuleErrorOverlay.show(config.title, config.message, resp);
+        if (resp && resp.error === 'COPPA_ERROR') {
           var link =
-            FxaModuleErrorOverlay.fxaErrorMsg.getElementById('coppa-link');
-          link.addEventListener('click', e => {
-            e.preventDefault();
-            if (this.entrySheet) {
-              this.entrySheet.close();
-              this.entrySheet = null;
-            }
-            var coppaUrl = 'http://www.ftc.gov/news-events/media-resources/' +
-              'protecting-consumer-privacy/kids-privacy-coppa';
-
-            this.entrySheet = new EntrySheet(
-              window.top.document.getElementById('screen'),
-              'URL:' + coppaUrl,
-              new BrowserFrame({
-                url: coppaUrl,
-                oop: true
-              })
-            );
-
-            this.entrySheet.open();
-          });
+            FxaModuleErrorOverlay.fxaErrorMsgCoppa.querySelector('#coppa-link');
+          link.addEventListener('click', this.onCopaLinkClick);
         }
       });
     },
 
+    onCopaLinkClick: function(e) {
+      e.preventDefault();
+      if (this.entrySheet) {
+        this.entrySheet.close();
+        this.entrySheet = null;
+      }
+      var coppaUrl = 'http://www.ftc.gov/news-events/media-resources/' +
+        'protecting-consumer-privacy/kids-privacy-coppa';
+
+      this.entrySheet = new EntrySheet(
+        window.top.document.getElementById('screen'),
+        'URL:' + coppaUrl,
+        new BrowserFrame({
+          url: coppaUrl,
+          oop: true
+        })
+      );
+
+      this.entrySheet.open();
+    },
+
     hideErrorResponse: function fxam_hideErrorResponse() {
+      var link =
+        FxaModuleErrorOverlay.fxaErrorMsgCoppa.querySelector('#coppa-link');
+      link.removeEventListener('click', this.onCopaLinkClick);
       FxaModuleErrorOverlay.hide();
       FxaModuleOverlay.hide();
     }

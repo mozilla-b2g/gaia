@@ -373,16 +373,16 @@ suite('Import Friends Test Suite', function() {
         var MockFbConnector = {
           name: 'facebook',
           listAllContacts: function(token, cb) {
-            cb.success({data: fbContacts});
+            cb.success({data: fbContacts.map(name => ({ name, uid: name }))});
           },
           listDeviceContacts: function(cb) {
-            cb.success(deviceContacts);
+            cb.success(deviceContacts.map(name => ({ name, uid: name })));
           },
           adaptDataForShowing: function(data) {
             return data;
           },
           getContactUid: function(data) {
-            return data;
+            return data.uid;
           }
         };
 

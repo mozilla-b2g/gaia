@@ -16,7 +16,8 @@ marionette('week view', function() {
         // system window manager) in order for it to do focus-related things.
         'focusmanager.testmode': true,
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   setup(function() {

@@ -25,7 +25,8 @@
                                            '/../apps/activitycaller',
           'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee'
         }
-      }
+      },
+      desiredCapabilities: { raisesAccessibilityExceptions: false }
     });
 
     function getDisplayAppOrigin() {

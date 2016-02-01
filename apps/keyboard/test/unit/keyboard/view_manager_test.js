@@ -1,7 +1,8 @@
 'use strict';
-/* global ViewManager */
+/* global ViewManager, KeyboardConsole*/
 
 require('/js/keyboard/view_manager.js');
+require('/js/keyboard/console.js');
 require('/js/views/key_view.js');
 require('/js/views/base_view.js');
 require('/js/views/layout_page_view.js');
@@ -63,7 +64,8 @@ suite('View Manager', function() {
     Object.defineProperty(container, 'clientWidth', makeDescriptor(320));
 
     app = {
-      layoutRenderingManager: fakeRenderingManager
+      layoutRenderingManager: fakeRenderingManager,
+      console: this.sinon.stub(KeyboardConsole.prototype)
     };
 
     viewManager = new ViewManager(app);
@@ -235,6 +237,43 @@ suite('View Manager', function() {
       viewManager.render(layout);
       assert.equal(viewManager.container.classList.contains('candidate-panel'),
                    false);
+    });
+
+    suite('UpdateByIMEngine', function() {
+      test('page shouldnt be cached if updateByIMEngine is true', function() {
+        var layout = {
+          keys: [],
+          updateByIMEngine: true
+        };
+        viewManager.render(layout);
+        this.sinon.stub(viewManager.pageViews, 'set');
+        assert.equal(viewManager.pageViews.set.called, false);
+      });
+
+      test('updateByIMEngine page should be destoryed when switch', function() {
+        var layout = {
+          keys: [],
+          layoutName: 'cachedLayout',
+        };
+        var layout2 = {
+          keys: [],
+          updateByIMEngine: true
+        };
+        var firstPage, secondPage;
+
+        viewManager.render(layout);
+        firstPage = viewManager.currentPageView;
+        this.sinon.stub(firstPage, 'destroy');
+
+        viewManager.render(layout2);
+        secondPage = viewManager.currentPageView;
+        this.sinon.stub(secondPage, 'destroy');
+
+        viewManager.render(layout);
+
+        assert.equal(firstPage.destroy.called, false);
+        assert.equal(secondPage.destroy.calledOnce, true);
+      });
     });
 
     suite('Dimensions', function() {

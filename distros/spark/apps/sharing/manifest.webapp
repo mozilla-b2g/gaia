@@ -11,10 +11,6 @@
     "webapps-manage": {
       "description": "For installing apps"
     },
-    "storage": {
-      "description": "For writing apps to storage",
-      "access": "readwrite"
-    },
     "device-storage:apps": {
       "description": "For installing apps",
       "access": "readwrite"

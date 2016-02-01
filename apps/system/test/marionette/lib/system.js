@@ -43,6 +43,7 @@ System.Selector = Object.freeze({
     '.appWindow.active:not(.homescreen) [data-id=add-to-homescreen]',
   appChromeContextMenuPin: '.appWindow.active [data-id=pin-to-home-screen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
+  appChromeContextMenuSaveImage: '.appWindow.active [data-id=save-image]',
   appChromeContextMenuCancel: '.appWindow.active #ctx-cancel-button',
   appChromeReloadButton: '.appWindow.active .controls .reload-button',
   appChromeStopButton: '.appWindow.active .controls .stop-button',
@@ -54,6 +55,8 @@ System.Selector = Object.freeze({
   downloadDialog: '#downloadConfirmUI',
   imeMenu: '.ime-menu',
   inlineActivity: '.appWindow.inline-activity',
+  permissionDialog: '#permission-dialog',
+  permissionYes: '#permission-yes',
   pinDialog: '.appWindow.active .chrome .pin-dialog',
   pinButton: '.appWindow.active .chrome .pin-button',
   sleepMenuContainer: '#sleep-menu-container',
@@ -68,6 +71,7 @@ System.Selector = Object.freeze({
   statusbarIcons: '#statusbar-icons',
   statusbarOperator: '.statusbar-operator',
   systemBanner: '#screen > gaia-toast.banner',
+  toaster: '#notification-toaster',
   topPanel: '#top-panel',
   trustedWindow: '.appWindow.active.trustedwindow',
   trustedWindowChrome: '.appWindow.active.trustedwindow .chrome',
@@ -86,6 +90,7 @@ System.prototype = {
   client: null,
 
   URL: System.URL,
+  origin: System.URL.substring(0, System.URL.indexOf('/manifest.webapp')),
 
   Selector: System.Selector,
 
@@ -195,6 +200,11 @@ System.prototype = {
       System.Selector.appChromeContextMenuShare);
   },
 
+  get appChromeContextMenuSaveImage() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuSaveImage);
+  },
+
   get appChromeReloadButton() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeReloadButton);
@@ -234,6 +244,14 @@ System.prototype = {
 
   get inlineActivity() {
     return this.client.helper.waitForElement(System.Selector.inlineActivity);
+  },
+
+  get permissionDialog() {
+    return this.client.helper.waitForElement(System.Selector.permissionDialog);
+  },
+
+  get permissionYes() {
+    return this.client.helper.waitForElement(System.Selector.permissionYes);
   },
 
   get pinDialog() {
@@ -300,6 +318,16 @@ System.prototype = {
     return this.client.findElement(System.Selector.utilityTrayMotion);
   },
 
+  get toaster() {
+    var toaster;
+    this.client.waitFor(function() {
+      toaster = this.client.findElement(System.Selector.toaster);
+      return toaster ? true : false;
+    }.bind(this));
+
+    return toaster;
+  },
+
   get topPanel() {
     return this.client.findElement(System.Selector.topPanel);
   },
@@ -354,6 +382,43 @@ System.prototype = {
     return iframe;
   },
 
+  shareLink: function() {
+    this.appChromeContextLink.tap();
+    this.client.waitFor(function() {
+      return this.appChromeContextMenu.displayed();
+    }.bind(this));
+    this.appChromeContextMenuShare.tap();
+    this.waitForActivityMenu();
+  },
+
+  saveImage: function() {
+    this.client.switchToFrame();
+    this.client.waitFor(function() {
+      return this.appChromeContextMenu.displayed();
+    }.bind(this));
+    this.appChromeContextMenuSaveImage.tap();
+  },
+
+  getSdCardFilesMatching: function(name) {
+    return this.client.executeAsyncScript(function(name) {
+      var navigator = window.wrappedJSObject.navigator;
+      var storage = navigator.getDeviceStorage('sdcard');
+      var req = storage.enumerate();
+      var matchingFiles = [];
+      req.onsuccess = function() {
+        var file = req.result;
+        if (file) {
+          if (file.indexOf(name) > 1) {
+            matchingFiles.push(file);
+          }
+          req.continue();
+        } else {
+          marionetteScriptFinished(matchingFiles);
+        }
+      };
+    }, [name]);
+  },
+
   /**
    * Clicks the bottom of the screen, where we expect the software home button
    * to exist. There are several different variations in the same spot, this
@@ -368,10 +433,37 @@ System.prototype = {
   },
 
   gotoBrowser: function(url) {
-    var frame = this.client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    this.client.switchToFrame();
+    var frame = this.waitForUrlLoaded(url);
     this.client.switchToFrame(frame);
     this.client.helper.waitForElement('body');
+  },
+
+  waitForUrlLoaded: function(url) {
+    var frame = this.client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    return frame;
+  },
+
+  closeBrowserByUrl: function(url) {
+    var winId = this.client.executeScript(function(url) {
+      var win = window.wrappedJSObject;
+      var activeApp = win.appWindowManager.getActiveApp();
+      activeApp.kill();
+      return activeApp.element.id;
+    }, [url]);
+    this.client.helper.waitForElementToDisappear('#' + winId);
+    this.client.switchToFrame();
+  },
+
+  goBack: function(url) {
+    this.client.switchToFrame();
+    this.appChromeBack.tap();
+  },
+
+  goForward: function(url) {
+    this.client.switchToFrame();
+    this.appChromeForward.tap();
   },
 
   getHomescreenIframe: function() {
@@ -393,17 +485,14 @@ System.prototype = {
   },
 
   waitForStartup: function() {
-    var osLogo = this.client.findElement('#os-logo');
-    this.client.waitFor(function() {
-      return osLogo.getAttribute('class') == 'hide';
-    });
+    this.client.helper.waitForElementToDisappear('#os-logo');
   },
 
   waitForFullyLoaded: function() {
     var body = this.client.findElement('body');
     this.client.waitFor(function() {
       return body.getAttribute('ready-state') == 'fullyLoaded';
-    });
+    }, { timeout: 120000 });
   },
 
   // Since the getScreenshot call is asynchronous and does not have any
@@ -417,6 +506,7 @@ System.prototype = {
   },
 
   waitForKeyboard: function() {
+    this.client.switchToFrame();
     this.client.helper.waitForElement(System.Selector.activeKeyboard);
   },
 

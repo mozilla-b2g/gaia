@@ -23,6 +23,7 @@ define(function(require) {
       LazyLoader.load(['shared/style/action_menu.css',
                        'shared/style/confirm.css',
                        'shared/style/progress_activity.css',
+                       'shared/elements/gaia-icons/bidi-helper.css',
                        'shared/elements/gaia_buttons/script.js',
                        'shared/elements/gaia_confirm/script.js',
                        'style/homescreens.css',

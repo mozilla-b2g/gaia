@@ -1,4 +1,3 @@
-/* global DeviceStorageHelper */
 /**
  * Used to show Storage/App Storage panel
  */
@@ -7,6 +6,7 @@ define(function(require) {
 
   var SettingsPanel = require('modules/settings_panel');
   var AppStorage = require('modules/app_storage');
+  var StorageHelper = require('modules/storage_helper');
 
   return function ctor_app_storage_panel() {
     var _spaceBarElement = null;
@@ -19,7 +19,7 @@ define(function(require) {
     };
 
     var _refreshText = function(element, size) {
-      DeviceStorageHelper.showFormatedSize(element,
+      StorageHelper.showFormatedSize(element,
         'storageSize', size);
     };
     var _updateTotalSize = function() {

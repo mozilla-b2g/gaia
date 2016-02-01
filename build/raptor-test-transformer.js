@@ -8,7 +8,7 @@
  * 3. Check if such file exists
  * 4. Run this transformer + espect to apply the esp file on to target file
  */
-var utils = require('utils');
+var utils = require('./utils');
 
 exports.execute = function(options) {
   var webapp = options.webapp;

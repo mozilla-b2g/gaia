@@ -380,7 +380,8 @@ suite('Bluetooth app > PairManager ', function() {
       optionsResult = {
         bodyL10n: { raw: pairingInfo.evt.deviceName },
         icon: 'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png',
-        tag: 'pairing-request'
+        tag: 'pairing-request',
+        closeOnClick: false
       };
     });
 

@@ -151,9 +151,53 @@ function main(argv) {
 
   var reporter = new args[0].reporter(runner.mochaRunnerProxy);
 
-  runner.process.stdout.pipe(process.stdout);
-  runner.process.stderr.pipe(process.stderr);
-  runner.process.on('exit', process.exit);
+  // make sure we only output complete lines to stdout and stderr to ensure
+  // cohesive logs.
+  function logLine(outputData, isError) {
+    // direct to the appropriate output.
+    var _log = isError ? console.error : console.log;
+    // search from end to beginning of string, should typically be faster.
+    var lineEnd = outputData.lastIndexOf('\n');
+    if (lineEnd !== -1) {
+      // looks like we found an entire line, write it out and flush the data
+      // from the buffer.
+      var logMessage = outputData.substr(0, lineEnd);
+      // write it out the either stdout or stderr.
+      _log(logMessage);
+      // return the remainder.
+      return outputData.substr(lineEnd + 1);
+    }
+    // looks like we don't have an entire line yet
+    // return the buffer unmodified.
+    return outputData;
+  }
+
+  var stdoutBuffer = '';
+  runner.process.stdout.on('data', function(stdoutData) {
+    // append to the global stdout buffer.
+    stdoutBuffer += stdoutData;
+    // and log it. logLine takes care of managing the buffer.
+    stdoutBuffer = logLine(stdoutBuffer);
+  });
+  var stderrBuffer = '';
+  runner.process.stderr.on('data', function(stderrData) {
+    // append to the global stderr buffer.
+    stderrBuffer += stderrData;
+    stderrBuffer = logLine(stderrBuffer, true);
+  });
+
+  // when the mocha child exits, we want to exit as well.
+  runner.process.on('exit', function(exitCode) {
+    // flush stdout buffer before exiting.
+    if (stdoutBuffer.length) {
+      console.log(stdoutBuffer);
+    }
+    // flush stderr buffer before exiting.
+    if (stderrBuffer.length) {
+      console.error(stderrBuffer);
+    }
+    process.exit(exitCode);
+  });
 
   process.once('SIGINT', function() {
     // Let the child die whenever but we need to cleanup hosts in this

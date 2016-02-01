@@ -8,9 +8,6 @@ define(function(require) {
     var elements = {};
     var sendFeedback = SendFeedback();
     var eventMapping = [
-      { elementName: 'alertBtn', eventType: 'click',
-        methodName: 'alertConfirm' },
-      { elementName: 'doneBtn', eventType: 'click', methodName: 'done' },
       { elementName: 'sendBtn', eventType: 'click', methodName: 'send' },
       { elementName: 'emailEnable', eventType: 'change',
         methodName: 'enableEmail' },
@@ -38,11 +35,6 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         elements = {
-          alertDialog: panel.querySelector('#feedback-alert'),
-          alertMsg: panel.querySelector('#feedback-alert-msg'),
-          alertBtn: panel.querySelector('#feedback-alert-btn'),
-          doneDialog: panel.querySelector('#feedback-done'),
-          doneBtn: panel.querySelector('#feedback-done-btn'),
           title: panel.querySelector('#feedback-title'),
           description: panel.querySelector('#feedback-description'),
           emailInput: panel.querySelector('#feedback-email'),

@@ -5,7 +5,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_service.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -809,17 +809,20 @@ suite('KeyboardManager', function() {
       var imeMenu = MockImeMenu.instances[0];
       assert.deepEqual(imeMenu.listItems,
         [{
-          layoutName: 'English',
+          name: 'English',
+          nameL10nId: undefined,
           appName: 'Built-in Keyboard',
           value: 0,
           selected: false
         }, {
-          layoutName: 'French',
+          name: 'French',
+          nameL10nId: undefined,
           appName: 'Built-out Keyboard',
           value: 1,
           selected: false
         }, {
-          layoutName: 'Chinese',
+          name: 'Chinese',
+          nameL10nId: undefined,
           appName: 'Built-inout Keyboard',
           value: 2,
           selected: true

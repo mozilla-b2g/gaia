@@ -12,8 +12,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
       apps: {
         'fullscreennavapp.gaiamobile.org': FULLSCREENNAVAPP,
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var actions, home, rocketbar, search, system, frame, server;

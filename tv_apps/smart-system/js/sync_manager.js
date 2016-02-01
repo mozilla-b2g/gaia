@@ -67,13 +67,16 @@
     'sync.collections.bookmarks.enabled',
     'sync.collections.history.enabled',
     'sync.collections.passwords.enabled',
+    'sync.collections.bookmarks.limit',
+    'sync.collections.history.limit',
+    'sync.collections.passwords.limit',
     'sync.collections.bookmarks.readonly',
     'sync.collections.history.readonly',
     'sync.collections.passwords.readonly',
-    'sync.server.url',
+    'sync.fxa.audience',
     'sync.scheduler.interval',
     'sync.scheduler.wifionly',
-    'sync.fxa.audience'
+    'sync.server.url'
   ];
 
   // Keys of asyncStorage persisted data.
@@ -116,8 +119,6 @@
           window.addEventListener('iac-' + SYNC_MANAGEMENT_API_IAC_KEYWORD,
                                   this.oniacrequestListener);
           // Sync app lifecycle.
-          this.onkillappListener = this.onkillapp.bind(this);
-          window.addEventListener('killapp', this.onkillappListener);
           this.onappterminatedListener = this.onappterminated.bind(this);
           window.addEventListener('appterminated',
                                   this.onappterminatedListener);
@@ -176,7 +177,6 @@
       window.removeEventListener('iac-' + SYNC_MANAGEMENT_API_IAC_KEYWORD,
                                  this.oniacrequestListener);
       window.removeEventListener(FXA_EVENT, this.fxaEventHandler);
-      window.removeEventListener('killapp', this.onkillappListener);
       window.removeEventListener('appterminated',
                                  this.onappterminatedListener);
     },
@@ -186,9 +186,9 @@
     set state(state) {
       state = state || SyncStateMachine.state;
       this.debug('Setting state', state);
+      this.store.set(SYNC_STATE, state);
       this.updateStateDeferred = new Promise(resolve => {
         asyncStorage.setItem(SYNC_STATE, state, () => {
-          this.store.set(SYNC_STATE, state);
           if (state === 'disabled' || state === 'enabled' ||
               state === 'enabling') {
             this.updateStatePreference().then(() => {
@@ -208,9 +208,8 @@
     },
 
     set error(error) {
-      asyncStorage.setItem(SYNC_STATE_ERROR, error, () => {
-        this.store.set(SYNC_STATE_ERROR, error);
-      });
+      this.store.set(SYNC_STATE_ERROR, error);
+      asyncStorage.setItem(SYNC_STATE_ERROR, error);
     },
 
     get error() {
@@ -219,9 +218,8 @@
 
     set lastSync(now) {
       var lastSync = now;
-      asyncStorage.setItem(SYNC_LAST_TIME, lastSync, () => {
-        this.store.set(SYNC_LAST_TIME, lastSync);
-      });
+      this.store.set(SYNC_LAST_TIME, lastSync);
+      asyncStorage.setItem(SYNC_LAST_TIME, lastSync);
     },
 
     get lastSync() {
@@ -304,6 +302,7 @@
       this.updateState();
       this.user = null;
       this.lastSync = null;
+      this.error = null;
       this.cleanup();
     },
 
@@ -372,6 +371,8 @@
         return this.getKeys();
       }).then(keys => {
         args.push(keys);
+        return this.getAccount();
+      }).then(() => {
         // We request a sync without any collection. This should fetch the
         // crypto/keys object. If it is available, we will successfully
         // continue the enabling process. If it is not available, that probably
@@ -379,8 +380,6 @@
         // In that case, until we are able to create new Sync user, we need
         // to disable Sync and let the user know about this situation.
         return this.trySync.apply(this, args);
-      }).then(() => {
-        return this.getAccount();
       }).then(() => {
         // We save default settings so we can revert user changes to
         // the default values when the user logs out from Sync. So new
@@ -459,7 +458,8 @@
         if (this.settings.has('sync.collections.' + name + '.enabled')) {
           collections[name] = {
             readonly: this.settings.get('sync.collections.' + name +
-                                        '.readonly')
+                                        '.readonly'),
+            limit: this.settings.get('sync.collections.' + name + '.limit')
           };
         }
       });
@@ -514,16 +514,6 @@
       }
     },
 
-    onkillapp(event) {
-      // The synchronizer app can be killed while it's handling a sync
-      // request. In that case, we need to record an error and notify
-      // the state machine about it. Otherwise we could end up on a
-      // permanent 'syncing' state.
-      this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
-        SyncStateMachine.error(ERROR_SYNC_APP_KILLED);
-      });
-    },
-
     onappterminated(event) {
       // If the Sync app is closed, we need to release the reference to
       // its IAC port, so we can get a new connection on the next sync
@@ -535,6 +525,18 @@
       this.isSyncApp(event.detail ? event.detail.origin : null).then(() => {
         this._port = null;
       });
+    },
+
+    onportclose() {
+      // The synchronizer app can be killed while it's handling a sync
+      // request. In that case, we need to record an error and notify
+      // the state machine about it. Otherwise we could end up on a
+      // permanent 'syncing' state.
+      if (this.state !== 'syncing') {
+        return;
+      }
+      this.debug('Synchronizer closed before completing the sync request');
+      SyncStateMachine.error(ERROR_SYNC_APP_KILLED);
     },
 
     /** Helpers **/
@@ -778,11 +780,15 @@
       return new Promise((resolve, reject) => {
         navigator.mozApps.getSelf().onsuccess = event => {
           var app = event.target.result;
-          app.connect(SYNC_REQUEST_IAC_KEYWORD).then(ports => {
+          app.connect(SYNC_REQUEST_IAC_KEYWORD, {
+            // For now we only allow one synchronizer app.
+            pageURLs: 'app://sync.gaiamobile.org'
+          }).then(ports => {
             if (!ports || !ports.length) {
               return reject();
             }
             this._port = ports[0];
+            this._port.onclose = this.onportclose.bind(this);
             resolve(this._port);
           }).catch(error => {
             console.error(error);

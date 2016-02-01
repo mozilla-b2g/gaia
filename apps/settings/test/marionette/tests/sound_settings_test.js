@@ -3,7 +3,9 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('manipulate sound settings', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var settingsApp;
   var soundPanel;
 
@@ -66,14 +68,16 @@ marionette('manipulate sound settings', function() {
 
   test('check default ringtone name', function() {
     var ringtone_name = soundPanel.selectedRingtone;
-    assert.ok(ringtone_name === 'Firefox' ||
-              ringtone_name === 'Default');
+    // We can't do `===` because the string may be in RTL marks
+    assert.ok(ringtone_name.includes('Firefox') ||
+              ringtone_name.includes('Default'));
   });
 
   test('check default alert tone name', function() {
     var alerttone_name = soundPanel.selectedAlertTone;
-    assert.ok(alerttone_name === 'Firefox' ||
-              alerttone_name === 'Default');
+    // We can't do `===` because the string may be in RTL marks
+    assert.ok(alerttone_name.includes('Firefox') ||
+              alerttone_name.includes('Default'));
   });
 
   /* Other sounds */

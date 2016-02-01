@@ -9,7 +9,9 @@ var serverHelper = require('./lib/server_helper');
  * the queue, refreshing them, etc.
  */
 marionette('outbox', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
 
   var INVALID_EMAIL = 'invalid@@';
   var app;

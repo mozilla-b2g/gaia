@@ -29,22 +29,9 @@ suite('system/EdgeSwipeDetector >', function() {
   mocksForEdgeSwipeDetector.attachTestHelpers();
   var screen;
   var subject;
-  var realDPX;
 
   suiteSetup(function(done) {
-    realDPX = window.devicePixelRatio;
-    Object.defineProperty(window, 'devicePixelRatio', {
-      configurable: true,
-      get: function() { return 1; }
-    });
     requireApp('system/js/edge_swipe_detector.js', done);
-  });
-
-  suiteTeardown(function() {
-    Object.defineProperty(window, 'devicePixelRatio', {
-      configurable: true,
-      get: function() { return realDPX; }
-    });
   });
 
   setup(function() {
@@ -604,10 +591,10 @@ suite('system/EdgeSwipeDetector >', function() {
         var recvEvents = verticalSwipe();
 
         var call = fwSpy.secondCall;
-        assert.equal(call.args[0], recvEvents[7]);
+        assert.equal(call.args[0], recvEvents[12]);
 
         call = fwSpy.thirdCall;
-        assert.equal(call.args[0], recvEvents[8]);
+        assert.equal(call.args[0], recvEvents[13]);
       });
 
       test('it should still forward touch move for inward swipes',
@@ -616,10 +603,10 @@ suite('system/EdgeSwipeDetector >', function() {
         var recvEvents = verticalSwipeInward();
 
         var call = fwSpy.secondCall;
-        assert.equal(call.args[0], recvEvents[7]);
+        assert.equal(call.args[0], recvEvents[12]);
 
         call = fwSpy.thirdCall;
-        assert.equal(call.args[0], recvEvents[8]);
+        assert.equal(call.args[0], recvEvents[13]);
       });
 
       test('not horizontal anymore, should snap the sheets', function() {

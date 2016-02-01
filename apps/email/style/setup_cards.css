@@ -191,6 +191,8 @@ li button.signature-button.button.icon {
 }
 
 .signature-button-content {
+  /* Padding added to assist ar language when italicized, bug 1229315. */
+  padding: 0 0.3rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;

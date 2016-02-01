@@ -11,8 +11,8 @@ apps/**/*.esp.js
 apps/system/camera/**
 build/r.js
 build/csslinter.js
-build/esomin/escodegen.js
-build/esomin/esprima.js
+build/escodegen.js
+build/esprima.js
 build/jsmin.js
 build/l10n/l20n.js
 apps/communications/contacts/oauth2/js/parameters.js
@@ -24,6 +24,7 @@ apps/clock/js/ext/**
 apps/clock/js/text_builder.js
 shared/js/uuid.js
 shared/js/intl/l20n*.js
+shared/js/media/jpeg-exif.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
 apps/keyboard/js/imes/handwriting/hwr/**
@@ -34,6 +35,9 @@ shared/elements/gaia-header/dist/gaia-header.js
 shared/elements/gaia-component/gaia-component.js
 shared/elements/gaia-icons/gaia-icons.js
 shared/elements/gaia-toast/gaia-toast.js
+shared/elements/gaia-dialog/*.js
+shared/elements/gaia-text-input/*.js
+shared/elements/gaia-button/gaia-button.js
 shared/pages/import/js/parameters.js
 apps/sharedtest/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
@@ -53,7 +57,6 @@ apps/keyboard/build/keyboard-config.js
 apps/settings/js/vendor/alameda.js
 apps/settings/js/vendor/jszip.js
 apps/sms/lib/**
-apps/sync/js/ext/kinto.min.js
 apps/findmydevice/js/lib/*
 apps/findmydevice/js/config.js
 apps/system/js/uuid.js
@@ -61,11 +64,10 @@ apps/camera/bower_components/**
 apps/bluetooth/js/vendor/alameda.js
 apps/bluetooth/js/settings.js
 apps/homescreen/bower_components/**
+shared/js/sync/ext/kinto.min.js
 tv_apps/app-deck/bower_components/**
 tv_apps/browser/js/authentication_dialog.js
-tv_apps/browser/js/awesomescreen.js
 tv_apps/browser/js/browser_db.js
-tv_apps/browser/js/browser_dialog.js
 tv_apps/browser/js/index.js
 tv_apps/browser/js/search_result.js
 tv_apps/browser/js/search_util.js

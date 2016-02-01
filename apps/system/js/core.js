@@ -80,7 +80,6 @@
         'GeolocationCore',
         'TetheringMonitor',
         'UsbCore',
-        'TextSelectionDialog',
         'AppTextSelectionDialog',
         'ExternalStorageMonitor',
         'DeviceStorageWatcher',

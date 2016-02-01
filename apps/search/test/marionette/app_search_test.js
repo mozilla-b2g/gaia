@@ -9,7 +9,8 @@ marionette('Search - App search', function() {
     'layers.async-pan-zoom.enabled': false
   };
   var client = marionette.client({
-    profile: profile
+    profile: profile,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   var home, search, rocketbar, system;
 

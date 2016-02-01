@@ -192,7 +192,7 @@
         }
 
         if (!this.locked) {
-          this.overlay.hidden = true;
+          this.overlay.classList.add('unlocked');
           this.unlockDetail = undefined;
         }
         break;
@@ -531,13 +531,11 @@
     this.overlay.classList.toggle('no-transition', instant);
     this.dispatchEvent('lockscreen-request-unlock', this._unlockingMessage);
     this.dispatchEvent('secure-modeoff');
-    this.overlay.classList.add('unlocked');
-
-    // If we don't unlock instantly here,
-    // these are run in transitioned callback.
     if (instant) {
-      this.overlay.hidden = true;
+      this.overlay.classList.add('unlocked');
+      // Otherwise, postpone it to transitionend.
     }
+
     // Clear the state after we send the request.
     this._unlockingMessage = {};
   };
@@ -546,8 +544,6 @@
     this.overlay.focus();
     this.overlay.classList.toggle('no-transition', instant);
     this.overlay.classList.remove('unlocked');
-    this.overlay.hidden = false;
-
   };
 
   LockScreen.prototype.lock =

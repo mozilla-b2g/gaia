@@ -4,7 +4,7 @@
 'use strict';
 
 require('/shared/js/toaster.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 var ToasterTestHelper = {
   thereShouldBeNoToastShowed: function tth_thereShouldBeNoToastShowed(elem) {
@@ -32,12 +32,12 @@ suite('Toaster', function() {
   var realMozL10n;
 
   suiteSetup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
   });
 
   suite(' > Initialize methods', function() {

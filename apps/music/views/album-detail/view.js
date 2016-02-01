@@ -34,8 +34,8 @@ AlbumDetailView.prototype.destroy = function() {
 };
 
 AlbumDetailView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
-  this.list.setModel(this.songs);
+  return this.list.setModel(this.songs)
+    .then(this.onRenderDone);
 };
 
 AlbumDetailView.prototype.getAlbum = function() {

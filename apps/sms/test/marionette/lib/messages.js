@@ -13,7 +13,7 @@ var ParticipantsAccessor = require('./views/participants/accessors');
 (function(module) {
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
-  var MANIFEST_URL= ORIGIN_URL + '/manifest.webapp';
+  var MANIFEST_URL = ORIGIN_URL + '/manifest.webapp';
 
   // TODO Move these constants to marionette, see bug 1207516
   var Chars = {
@@ -23,6 +23,7 @@ var ParticipantsAccessor = require('./views/participants/accessors');
 
   var SELECTORS = Object.freeze({
     main: '#main-wrapper',
+    appReady: 'body.js-app-ready',
 
     Message: {
       content: '.message-content > p:first-child',
@@ -55,15 +56,34 @@ var ParticipantsAccessor = require('./views/participants/accessors');
 
         Participants: new ParticipantsAccessor(client),
 
-        launch: function() {
+        launch(doNotWaitForAppToBecomeReady) {
           client.switchToFrame();
           client.apps.launch(ORIGIN_URL);
           client.apps.switchToApp(ORIGIN_URL);
-          client.helper.waitForElement(SELECTORS.main);
+
+          // In 99.99% cases we'd like to wait for the app to become fully ready
+          // before we do anything in the tests, but sometimes we'd like to
+          // verify that app is actionable before it's marked as ready, in this
+          // case we just wait for the main app container to appear.
+          if (!doNotWaitForAppToBecomeReady) {
+            client.helper.waitForElement(SELECTORS.appReady);
+          } else {
+            client.helper.waitForElement(SELECTORS.main);
+          }
         },
 
         close: function() {
           client.apps.close(ORIGIN_URL);
+        },
+
+        loadMocks: function() {
+          client.loader.getMockManager('sms').inject([
+            'test_storages',
+            'test_blobs',
+            'navigator_moz_icc_manager',
+            'navigator_moz_mobile_message',
+            'navigator_moz_contacts'
+          ]);
         },
 
         /**
@@ -99,6 +119,15 @@ var ParticipantsAccessor = require('./views/participants/accessors');
           client.switchToFrame();
 
           client.apps.switchToApp(ORIGIN_URL);
+          client.helper.waitForElement(SELECTORS.appReady);
+        },
+
+        waitForAppToAppear: function() {
+          client.switchToFrame();
+          var frame = client.scope({ searchTimeout: 50 }).helper.waitForElement(
+            'iframe[src*="' + ORIGIN_URL + '"]'
+          );
+          return frame;
         },
 
         waitForAppToDisappear: function() {
@@ -116,12 +145,6 @@ var ParticipantsAccessor = require('./views/participants/accessors');
           var cls = client.findElement('.panel-active').getAttribute('class');
           var matchResult = /\bpanel-([A-Z]\w+)\b/g.exec(cls);
           return matchResult && matchResult[1];
-        },
-
-        getRecipient: function(number) {
-          return client.helper.waitForElement(
-            '#messages-recipients-list .recipient[data-number="' + number + '"]'
-          );
         },
 
         clearRecipient: function() {
@@ -147,18 +170,6 @@ var ParticipantsAccessor = require('./views/participants/accessors');
         performHeaderAction: function() {
           client.switchToShadowRoot(this.NewMessage.header);
           this.NewMessage.headerActionButton.tap();
-          client.switchToShadowRoot();
-        },
-
-        performReportHeaderAction: function() {
-          client.switchToShadowRoot(this.Report.header);
-          this.Report.headerActionButton.tap();
-          client.switchToShadowRoot();
-        },
-
-        performGroupHeaderAction: function() {
-          client.switchToShadowRoot(this.Participants.header);
-          this.Participants.headerActionButton.tap();
           client.switchToShadowRoot();
         }
       };

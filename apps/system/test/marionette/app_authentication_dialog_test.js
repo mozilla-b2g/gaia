@@ -11,7 +11,8 @@ marionette('App Authentication Dialog',
       prefs: {
         'focusmanager.testmode': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
   var home, rocketbar, search, server, system;

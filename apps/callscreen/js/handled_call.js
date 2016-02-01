@@ -334,8 +334,12 @@ HandledCall.prototype.formatPhoneNumber =
     }
 };
 
-HandledCall.prototype.replacePhoneNumber =
-  function hc_replacePhoneNumber(number, ellipsisSide) {
+/**
+ * This method renders a phone number. It can be used to display numbers typed
+ * during a call without altering the original number stored in the object.
+ */
+HandledCall.prototype.renderPhoneNumber =
+  function hc_renderPhoneNumber(number, ellipsisSide) {
     if (typeof(number) === 'string') {
       navigator.mozL10n.setAttributes(this.numberNode, number);
     } else if (number.id) {
@@ -347,10 +351,22 @@ HandledCall.prototype.replacePhoneNumber =
       this.numberNode.textContent = number.raw;
       this.formatPhoneNumber(ellipsisSide);
     }
+};
 
+/**
+ * This method replaces the phone number in the call with a new number and
+ * renders it.
+ */
+HandledCall.prototype.replacePhoneNumber =
+  function hc_replacePhoneNumber(number, ellipsisSide) {
+    this.renderPhoneNumber(number, ellipsisSide);
     this._cachedInfo = number;
 };
 
+/**
+ * This method renders the number that was originally associated with this
+ * object in case it was altered (e.g. by typing numbers during a call).
+ */
 HandledCall.prototype.restorePhoneNumber =
   function hc_restorePhoneNumber() {
     this._cachedInfo && this.replacePhoneNumber(this._cachedInfo, 'end');

@@ -13,14 +13,14 @@ define(function(require) {
       onBeforeShow: function() {
         languages.buildList();
         languages.updateDateTime();
-        window.addEventListener('localized', onLocalized);
+        document.addEventListener('DOMRetranslated', onLocalized);
         navigator.mozSettings.addObserver(
           'accessibility.screenreader', onAdditionalLanguagesChange);
         document.addEventListener(
           'additionallanguageschange', onAdditionalLanguagesChange);
       },
       onBeforeHide: function() {
-        window.removeEventListener('localized', onLocalized);
+        document.removeEventListener('DOMRetranslated', onLocalized);
         navigator.mozSettings.removeObserver(
           'accessibility.screenreader', onAdditionalLanguagesChange);
         document.removeEventListener(

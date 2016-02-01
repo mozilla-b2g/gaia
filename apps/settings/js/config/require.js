@@ -3,7 +3,8 @@ require.config({
   paths: {
     'modules': 'modules',
     'panels': 'panels',
-    'shared': '../shared/js'
+    'shared': '../shared/js',
+    'views': '../views'
   },
   // This is the default value of the loading timeout, we will disable the
   // timeout in the production build
@@ -35,6 +36,21 @@ require.config({
     'shared/device_storage/enumerate_all': {
       exports: 'enumerateAll'
     },
+    'shared/download/download_formatter': {
+      exports: 'DownloadFormatter'
+    },
+    'shared/download/download_store': {
+      exports: 'DownloadStore'
+    },
+    'shared/download/download_ui': {
+      exports: 'DownloadUI'
+    },
+    'shared/download/download_helper': {
+      exports: 'DownloadHelper'
+    },
+    'shared/fxa_iac_client': {
+      exports: 'FxAccountsIACHelper'
+    },
     'shared/homescreens/homescreen_settings': {
       exports: 'homescreenSettings'
     },
@@ -53,6 +69,9 @@ require.config({
     },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
+    },
+    'shared/mime_mapper': {
+      exports: 'MimeMapper'
     },
     'shared/mobile_operator': {
       exports: 'MobileOperator'
@@ -94,6 +113,9 @@ require.config({
     'shared/stk_helper': {
       exports: 'STKHelper'
     },
+    'shared/text_normalizer': {
+      exports: 'Normalizer'
+    },
     'shared/toaster': {
       exports: 'Toaster'
     },
@@ -109,9 +131,6 @@ require.config({
     },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
-    },
-    'utils': {
-      exports: ''
     },
     'vendor/jszip': {
       exports: 'JSZip'
@@ -160,11 +179,12 @@ require.config({
       name: 'panels/app_storage/panel',
       exclude: [
         'main',
-        'modules/app_storage'
+        'modules/app_storage',
+        'modules/storage_helper'
       ]
     },
     {
-      name: 'panels/bluetooth/panel',
+      name: 'views/phone/bluetooth/panel',
       exclude: [
         'main',
         'modules/mvvm/list_view',
@@ -224,6 +244,10 @@ require.config({
         'main',
         'modules/settings_utils'
       ]
+    },
+    {
+      name: 'panels/firefox_accounts/panel',
+      exclude: ['main']
     },
     {
       name: 'panels/firefox_sync/panel',
@@ -308,7 +332,8 @@ require.config({
         'modules/state_model',
         'modules/mvvm/list_view',
         'modules/dialog_service',
-        'modules/customized_network_type_map'
+        'modules/customized_network_type_map',
+        'modules/mobile/supported_network_info'
       ]
     },
     {
@@ -317,7 +342,8 @@ require.config({
         'main',
         'panels/root/low_priority_items',
         'modules/apps_cache',
-        'modules/addon_manager'
+        'modules/addon_manager',
+        'modules/storage_helper'
       ]
     },
     {
@@ -360,7 +386,10 @@ require.config({
     },
     {
       name: 'panels/sound/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/mobile/supported_network_info'
+      ]
     },
     {
       name: 'panels/usb_storage/panel',

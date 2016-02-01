@@ -18,7 +18,7 @@ module.exports = View.extend({
 
   initialize: function(options) {
     this.model = options.model;
-    this.l10n = options.l10n || navigator.mozL10n;
+    this.l10n = options.l10n || document.l10n;
     this.on('destroy', this.onDestroy);
     attach(this.el, 'click', 'li', this.onOptionClick);
     attach(this.el, 'click', '.js-back', this.firer('click:back'));
@@ -94,7 +94,7 @@ module.exports = View.extend({
     return '<div class="inner">' +
       '<div class="settings_header">' +
         '<div class="settings-back-btn js-back" ' +
-          'data-icon="back" role="button" data-l10n-id="back-button"></div>' +
+          'data-icon="left" role="button" data-l10n-id="back-button"></div>' +
         '<h2 aria-level="1" class="settings_title" data-l10n-id="' +
           data.header + '"></h2>' +
       '</div>' +

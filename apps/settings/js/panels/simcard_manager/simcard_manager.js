@@ -9,7 +9,7 @@
 define(function(require) {
   'use strict';
 
-  var l10n = window.navigator.mozL10n;
+  var l10n = document.l10n;
   var Sanitizer = require('shared/sanitizer');
   var SimSettingsHelper = require('shared/sim_settings_helper');
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
@@ -151,8 +151,8 @@ define(function(require) {
         if (prevCardIndex !== newCardIndex) {
           // UX needs additional hint for users to make sure
           // they really want to change data connection
-          l10n.formatValue('change-outgoing-data-confirm').then(msg => {
-            var wantToChange = window.confirm(msg);
+          l10n.formatValue('change-outgoing-data-confirm').then(value => {
+            var wantToChange = window.confirm(value);
 
             if (wantToChange) {
               SimSettingsHelper.setServiceOnCard('outgoingData',
@@ -519,7 +519,7 @@ define(function(require) {
     _addLocalizedChangeEventOnIccs:
       function scm__addLocalizedChangeEventOnIccs() {
         var conns = window.navigator.mozMobileConnections;
-        window.addEventListener('localized', function() {
+        document.addEventListener('DOMRetranslated', function() {
           for (var i = 0; i < conns.length; i++) {
             var iccId = conns[i].iccId;
             this._updateCardStateWithUI(i, iccId);

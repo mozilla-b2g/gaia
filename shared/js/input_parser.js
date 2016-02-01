@@ -25,9 +25,10 @@ var InputParser = (function() {
         seconds: 0
       };
 
-      if (typeof(value) !== 'string') {
+      if (!value) {
         return result;
       }
+
 
       var parts = value.split(':');
       var part;
@@ -54,17 +55,12 @@ var InputParser = (function() {
      * @return {String} 17:39:57.
      */
     exportTime: function(value) {
-      var hour = value.getHours();
-      var minute = value.getMinutes();
-      var second = value.getSeconds();
-
-      var result = '';
-
-      result += InputParser.padNumber(hour) + ':';
-      result += InputParser.padNumber(minute) + ':';
-      result += InputParser.padNumber(second);
-
-      return result;
+      return value.toLocaleString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
     },
 
     /**
@@ -79,6 +75,10 @@ var InputParser = (function() {
         month: 0,
         date: 0
       };
+
+      if (!value) {
+        return result;
+      }
 
       var parts = value.split('-');
       var part;
@@ -105,7 +105,7 @@ var InputParser = (function() {
     },
 
     /**
-     * Export js date to HTML5 input[type="date"]
+     * Export js local date to HTML5 input[type="date"].
      *
      * @param {Date} value export value.
      * @return {String} date string (1997-12-19).
@@ -113,15 +113,15 @@ var InputParser = (function() {
     exportDate: function(value) {
       var year = value.getFullYear();
       var month = value.getMonth() + 1;
-      var date = value.getDate();
+      var day = value.getDate();
 
-      var result = '';
-
-      result += InputParser.padNumber(year) + '-';
-      result += InputParser.padNumber(month) + '-';
-      result += InputParser.padNumber(date);
-
-      return result;
+      if (month < 10) {
+        month = `0${month}`;
+      }
+      if (day < 10) {
+        day = `0${day}`;
+      }
+      return `${year}-${month}-${day}`;
     },
 
     /**
@@ -146,19 +146,6 @@ var InputParser = (function() {
         time.seconds
       );
     },
-
-    /**
-     * @param {Numeric} numeric value.
-     * @return {String} Pad the numeric with a leading zero if < 10.
-     */
-    padNumber: function(numeric) {
-      var value = String(numeric);
-      if (numeric < 10) {
-        return '0' + value;
-      }
-
-      return value;
-    }
   };
 
   return InputParser;

@@ -397,6 +397,16 @@ ModifyEvent.prototype = {
       endTime
     );
 
+    // Yahoo uses the same start and end date & time for all day events.
+    // In order to distinguish all-day event from Yahoo calendar and event
+    // with 0 duration we set duration of the event starting and ending at
+    // the same date and time to 1 millisecond.
+    if (!allday && fields.endDate.getTime() === fields.startDate.getTime()) {
+      fields.endDate.setTime(
+        fields.startDate.getTime() + 1
+      );
+    }
+
     if (allday) {
       // when the event is all day we display the same
       // day that the entire event spans but we must actually
@@ -582,13 +592,13 @@ ModifyEvent.prototype = {
 
         // We only auto change the end date and end time
         // when user changes start date or start time,
-        // or end datetime is NOT after start datetime
+        // or end datetime is before start datetime
         // after changing end date or end time.
         // Otherwise, we don't auto change end date and end time.
         if (targetElement.id === 'start-date-locale' ||
             targetElement.id === 'start-time-locale') {
           this._setEndDateTimeWithCurrentDuration();
-        } else if (this._getEndDateTime() <= this._getStartDateTime()) {
+        } else if (this._getEndDateTime() < this._getStartDateTime()) {
           this._setEndDateTimeWithCurrentDuration();
           this.showErrors({
             name: type === 'date' ?

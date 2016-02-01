@@ -321,14 +321,8 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#onRecordingError()', function() {
     setup(function() {
-      this.navigatorMozl10n = navigator.mozL10n;
-      navigator.mozL10n = { get: sinon.stub() };
       this.sandbox.stub(window, 'alert');
       sinon.spy(this.camera, 'set');
-    });
-
-    teardown(function() {
-      navigator.mozL10n = this.navigatorMozl10n;
     });
 
     test('It calls ready()', function() {
@@ -694,8 +688,6 @@ suite('lib/camera/camera', function() {
         resumePreview: sinon.stub()
       };
 
-      this.navigatorMozl10n = navigator.mozL10n;
-      navigator.mozL10n = { get: sinon.stub() };
       this.sandbox.stub(window, 'alert');
     });
 
@@ -807,7 +799,7 @@ suite('lib/camera/camera', function() {
       this.camera.mozCamera.takePicture.returns({
         then: function(onSuccess, onError) { onError({name: 'NS_ERROR_FAILURE'}); }
       });
-      navigator.mozL10n = {
+      document.l10n = {
         formatValue: function(id, args) {
           return Promise.resolve(id);
         }

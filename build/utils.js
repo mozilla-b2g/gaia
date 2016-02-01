@@ -233,8 +233,9 @@ function serializeDocument(doc) {
   var docElt = doc.documentElement;
   var attrs = docElt.attributes;
   for (var i = 0; i < attrs.length; i++) {
-    htmlStr += ' ' + attrs[i].nodeName.toLowerCase() +
-               '="' + attrs[i].nodeValue + '"';
+    // Fallback to name and value since which is unsupported in jsdom
+    htmlStr += ' ' + (attrs[i].nodeName || attrs[i].name).toLowerCase() +
+               '="' + (attrs[i].nodeValue || attrs[i].value) + '"';
   }
   var innerHTML = docElt.innerHTML.replace(/  \n*<\/body>\n*/, '  </body>\n');
   htmlStr += '>\n  ' + innerHTML + '\n</html>\n';
@@ -286,7 +287,7 @@ var gaia = {
   }
 };
 
-
+exports.isNode = isNode;
 exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.isSubjectToDeviceType = isSubjectToDeviceType;
@@ -368,3 +369,7 @@ exports.NodeHelper = utils.NodeHelper;
 exports.relativePath = utils.relativePath;
 exports.normalizePath = utils.normalizePath;
 exports.getMD5hash = utils.getMD5hash;
+exports.createSandbox = utils.createSandbox;
+exports.runScriptInSandbox = utils.runScriptInSandbox;
+exports.exit = utils.exit;
+exports.getHash = utils.getHash;

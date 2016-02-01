@@ -58,35 +58,3 @@ class Language(Base):
     @property
     def screen_element(self):
         return self.marionette.find_element(*self._language_locator)
-
-    def select(self, match_string):
-        # This needs to be duplicated from base.py for a few reasons:
-        # 1. When we return from the frame we don't return to the Settings app in its initial state,
-        #    so the wait for in its launch method times out
-        # 2. We need to use in instead of == on the match text because of the directional strings
-
-        # have to go back to top level to get the B2G select box wrapper
-        self.marionette.switch_to_frame()
-
-        options = Wait(self.marionette).until(expected.elements_present(
-            By.CSS_SELECTOR, '.value-selector-container li'))
-        close = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
-
-        # loop options until we find the match
-        for li in options:
-            if match_string in li.text:
-                self.marionette.execute_script('arguments[0].scrollIntoView(false);', [li])
-                li.tap()
-                break
-        else:
-            raise Exception("Element '%s' could not be found in select wrapper" % match_string)
-
-        close.tap()
-        Wait(self.marionette).until(expected.element_not_displayed(close))
-
-        # TODO we should find something suitable to wait for, but this goes too
-        # fast against desktop builds causing intermittent failures
-        time.sleep(0.2)
-
-        # now back to app
-        self.apps.switch_to_displayed_app()

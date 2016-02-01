@@ -13,7 +13,7 @@ require('/js/browser.js');
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/test/unit/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_applications.js');
 

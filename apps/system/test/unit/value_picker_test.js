@@ -1,9 +1,20 @@
-/* global ValuePicker */
+/* global ValuePicker, MockL10n */
 'use strict';
 
 requireApp('system/js/value_selector/value_picker.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('value selector/value picker', function() {
+  var realL10n;
+
+  setup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  teardown(function() {
+    navigator.mozL10n = realL10n;
+  });
 
   suite('Month value picker', function() {
     var subject, dom, unitStyle;
@@ -15,9 +26,20 @@ suite('value selector/value picker', function() {
 
       // month value picker
       unitStyle = {
-        valueDisplayedText: ['January', 'February', 'March', 'April', 'May',
-                             'June', 'July', 'August', 'September', 'October',
-                             'November', 'December'],
+        optionsL10n: [
+          {raw: 'January'},
+          {raw: 'February'},
+          {raw: 'March'},
+          {raw: 'April'},
+          {raw: 'May'},
+          {raw: 'June'},
+          {raw: 'July'},
+          {raw: 'August'},
+          {raw: 'September'},
+          {raw: 'October'},
+          {raw: 'November'},
+          {raw: 'December'}
+        ],
         className: 'value-picker-month'
       };
       dom = document.querySelector('.value-picker-month');
@@ -55,18 +77,7 @@ suite('value selector/value picker', function() {
       subject.setSelectedIndex(3);
       assert.isFalse(currentlySelected.classList.contains('selected'));
       assert.equal(subject.element.querySelector('.selected').textContent,
-        unitStyle.valueDisplayedText[3]);
-    });
-
-    test('getSelectedDisplayedText', function() {
-      assert.equal(subject.getSelectedDisplayedText(),
-        unitStyle.valueDisplayedText[0]);
-    });
-
-    test('setSelectedDisplayedText', function() {
-      subject._currentIndex = 3;
-      assert.equal(subject.getSelectedDisplayedText(),
-      unitStyle.valueDisplayedText[3]);
+        unitStyle.optionsL10n[3].raw);
     });
 
     test('setRange', function() {
@@ -99,9 +110,10 @@ suite('value selector/value picker', function() {
       dom = document.querySelector('.value-picker-hour24-state');
       parent = document.querySelector('.value-picker-hour24-wrapper');
       unitStyle = {
-        valueDisplayedText: ['AM', 'PM'],
+        optionsL10n: ['AM', 'PM'],
         className: 'picker-unit'
       };
+
       subject = new ValuePicker(dom, unitStyle);
     });
 

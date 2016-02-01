@@ -1,8 +1,6 @@
-/* global _ */
 /* global Awesomescreen */
 /* global Browser */
 /* global BrowserDB */
-/* global BrowserDialog */
 /* global LazyLoader */
 /* global SearchResult */
 /* global SearchUtil */
@@ -168,8 +166,11 @@ var Toolbar = {
     engineName = engineName.charAt(0).toUpperCase() + engineName.slice(1);
     this.searchInput.placeholder = engineName;
     // tooltip
-    this.searchInput.dataset.tips =
-      engineName + ' ' + _('WB_LT_TIPS_SEARCH_BAR');
+    navigator.mozL10n.formatValue('WB_LT_TIPS_SEARCH_BAR2', {
+      engine: engineName
+    }).then(val => {
+      this.searchInput.dataset.tips = val;
+    });
   },
 
   /**
@@ -328,7 +329,13 @@ var Toolbar = {
     Browser.currentInfo.dom.getCanGoBack().onsuccess = (function(ev) {
       if(!ev.target.result){
         // dialog
-        BrowserDialog.createDialog('close_browser', null);
+        // XXX: refactor this and the same code in awesomescreen.js
+        navigator.mozL10n.formatValue('LT_BROWSER_CONFIRM_EXIT2')
+        .then(result => {
+          if (window.confirm(result)) {
+            window.close();
+          }
+        });
         return;
       }
     }).bind(this);
@@ -678,8 +685,9 @@ var Toolbar = {
   clickModeButtonBlock: function toolbar_clickModeButtonBlock() {
     if(Browser.getCursorPanMode() == 'cursor') {
       Browser.setCursorPanMode('pan');
-      this.modeButtonTitle.innerHTML = _('WB_LT_PAN_MODE');
-      this.panCursorBannerMessage.innerHTML = _('WB_LT_SWITCH_PAN_MODE');
+      this.modeButtonTitle.setAttribute('data-l10n-id', 'WB_LT_PAN_MODE');
+      this.panCursorBannerMessage.setAttribute(
+        'data-l10n-id', 'WB_LT_SWITCH_PAN_MODE');
     } else {
       this.clearDragMode();
     }
@@ -693,8 +701,9 @@ var Toolbar = {
   clearDragMode: function toolbar_clearDragMode(){
     if(Browser.getCursorPanMode() == 'pan') {
       Browser.setCursorPanMode('cursor');
-      this.modeButtonTitle.innerHTML = _('WB_LT_CURSOR_MODE');
-      this.panCursorBannerMessage.innerHTML = _('WB_LT_SWITCH_CURSOR_MODE');
+      this.modeButtonTitle.setAttribute('data-l10n-id', 'WB_LT_CURSOR_MODE');
+      this.panCursorBannerMessage.setAttribute(
+        'data-l10n-id', 'WB_LT_SWITCH_CURSOR_MODE');
     }
   },
 

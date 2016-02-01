@@ -31,8 +31,8 @@ PlaylistDetailView.prototype.destroy = function() {
 };
 
 PlaylistDetailView.prototype.render = function() {
-  View.prototype.render.call(this); // super();
-  return this.list.setModel(this.songs);
+  return this.list.setModel(this.songs)
+    .then(this.onRenderDone);
 };
 
 PlaylistDetailView.prototype.getPlaylist = function() {

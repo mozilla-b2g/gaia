@@ -32,6 +32,8 @@ FxA.SERVER_ARGS = [
     config.SERVER_PATH
 ];
 
+FxA.COPPA_YEAR = new Date().getFullYear() - 13;
+
 FxA.Selectors = {
     body: 'body',
     bodyReady: 'body .view-body',
@@ -63,8 +65,8 @@ FxA.Selectors = {
     pwRefresh: '#fxa-pw-input-refresh',
     COPPAElementId: '#fxa-coppa',
     COPPASelectId: '#fxa-age-select',
-    COPPAOptionVal: '2002 or earlier',
-    COPPAOptionValToFail: '2002',
+    COPPAOptionVal: FxA.COPPA_YEAR + ' or earlier',
+    COPPAOptionValToFail: FxA.COPPA_YEAR.toString(),
     moduleNext: '#fxa-module-next',
     moduleDone: '#fxa-module-done',
     errorOK: '#fxa-error-ok'

@@ -221,8 +221,7 @@
     }
   };
 
-  AppModalDialog.prototype.kill = function amd_kill() {
-    this.containerElement.removeChild(this.element);
+  AppModalDialog.prototype._destroy = function amd__destroy() {
     focusManager.removeUI(this);
   };
 
@@ -234,6 +233,7 @@
     var type = evt.detail.promptType || evt.detail.type;
 
     var option;
+    var textRawPromises = [];
     switch (type) {
       case 'alert':
         option = {
@@ -247,9 +247,12 @@
         if (evt.yesText) {
           option.buttonSettings[0].textRaw = evt.yesText;
         } else {
-          option.buttonSettings[0].textL10nId = 'ok';
+          textRawPromises.push(navigator.mozL10n.formatValue('ok')
+            .then(text => option.buttonSettings[0].textRaw = text));
         }
-        this.smartModalDialog.open(option);
+
+        Promise.all(textRawPromises)
+          .then(() => this.smartModalDialog.open(option));
         break;
 
       case 'confirm':
@@ -259,6 +262,7 @@
             onClick: self.cancelHandler.bind(self)
           },{
             defaultFocus: true,
+            class: 'primary',
             onClick: self.confirmHandler.bind(self)
           }],
           onCancel: self.cancelHandler.bind(self)
@@ -267,15 +271,19 @@
         if (evt.yesText) {
           option.buttonSettings[1].textRaw = evt.yesText;
         } else {
-          option.buttonSettings[1].textL10nId = 'ok';
+          textRawPromises.push(navigator.mozL10n.formatValue('ok')
+            .then(text => option.buttonSettings[1].textRaw = text));
         }
 
         if (evt.noText) {
           option.buttonSettings[0].textRaw = evt.noText;
         } else {
-          option.buttonSettings[0].textL10nId = 'cancel';
+          textRawPromises.push(navigator.mozL10n.formatValue('cancel')
+            .then(text => option.buttonSettings[0].textRaw = text));
         }
-        this.smartModalDialog.open(option);
+
+        Promise.all(textRawPromises)
+          .then(() => this.smartModalDialog.open(option));
         break;
 
       case 'prompt':
@@ -296,15 +304,19 @@
         if (evt.yesText) {
           option.buttonSettings[1].textRaw = evt.yesText;
         } else {
-          option.buttonSettings[1].textL10nId = 'ok';
+          textRawPromises.push(navigator.mozL10n.formatValue('ok')
+            .then(text => option.buttonSettings[1].textRaw = text));
         }
 
         if (evt.noText) {
           option.buttonSettings[0].textRaw = evt.noText;
         } else {
-          option.buttonSettings[0].textL10nId = 'cancel';
+          textRawPromises.push(navigator.mozL10n.formatValue('cancel')
+            .then(text => option.buttonSettings[0].textRaw = text));
         }
-        this.smartInputDialog.open(option);
+
+        Promise.all(textRawPromises)
+          .then(() => this.smartInputDialog.open(option));
         break;
     }
 

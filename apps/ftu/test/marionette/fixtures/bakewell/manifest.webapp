@@ -1,0 +1,23 @@
+{
+    "icons": {
+        "16": "/icons/16.png",
+        "256": "/icons/256.png",
+        "32": "/icons/32.png"
+    },
+    "locales": {
+        "en-US": {
+            "description": "This packaged app has been automatically generated",
+            "name": "Bakewell Tart"
+        },
+        "es-ES": {
+            "description": "This packaged app has been automatically generated",
+            "name": "espa\u00f1ol Bakewell Tart"
+        }
+    },
+    "name": "Bakewell Tart",
+    "short_name": "Bakewell",
+    "launch_path": "/index.html",
+    "package_path": "app.zip",
+    "release_notes": "",
+    "version": "1.0"
+}

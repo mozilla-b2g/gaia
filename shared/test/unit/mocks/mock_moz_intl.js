@@ -30,6 +30,13 @@ global.MockMozIntl = {
       }
     };
   },
+  UnitFormat: function(locales, options) {
+    return {
+      format: function(value) {
+        return Promise.resolve();
+      }
+    };
+  },
   _gaia: {
     relativePart: function(ms) {
       return {
@@ -45,6 +52,14 @@ global.MockMozIntl = {
         formatElement: function(element, time, maxDiff) {}
       };
     },
+    getFormattedUnit(type, style, v) {
+      var returnVal = global.MockMozIntl._gaia._stringifyUnit(type, style, v);
+      return Promise.resolve(returnVal);
+    },
+    _stringifyUnit(type, style, v) {
+      var args = JSON.stringify({value: parseInt(v)});
+      return `${type}-selected-${style}${args}`;
+    }
   }
 };
 

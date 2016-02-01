@@ -68,7 +68,7 @@ define(function(require) {
         if (showNotInRange && networkNotInRange) {
           small.setAttribute('data-l10n-id', 'notInRange');
         } else {
-          navigator.mozL10n.setAttributes(small, 'securedBy',
+          document.l10n.setAttributes(small, 'securedBy',
             { capabilities: keys.join(', ') });
         }
         icon.classList.add('secured');

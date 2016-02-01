@@ -3,7 +3,6 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
     <!-- Shared code -->
@@ -29,7 +28,6 @@
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/value_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
@@ -51,6 +49,9 @@
     <!-- <script defer src="/shared/elements/gaia_confirm/script.js"></script> -->
     <!-- <script defer src="/shared/elements/gaia_menu/script.js"></script> -->
     <!-- <script defer src="/shared/elements/gaia_switch/script.js"></script> -->
+    <!-- <script defer src="shared/elements/gaia-dialog/gaia-dialog.js"></script> -->
+    <!-- <script defer src="shared/elements/gaia-button/gaia-button.js"></script> -->
+    <!-- <script defer src="shared/elements/gaia-text-input/gaia-text-input.js"></script> -->
     <script defer src="shared/elements/gaia_buttons/script.js"></script>
     <script defer src="shared/elements/gaia_checkbox/script.js"></script>
     <script defer src="shared/elements/gaia_progress/script.js"></script>
@@ -203,6 +204,8 @@
      <script defer src="shared/js/achievements-service.js"></script>
      <script defer src="/shared/js/passcode_helper.js"></script>
      <script defer src="/shared/js/sync/errors.js"></script>
+     <script defer src="/shared/js/sync/telemetry.js"></script>
+     <script defer src="/shared/js/advanced_telemetry_helper.js"></script>
     -->
   </head>
 
@@ -288,7 +291,7 @@
                   <div class="fake-notification" role="link">
                     <div data-icon="keyboard-circle" aria-hidden="true"></div>
                     <div class="title-container"></div>
-                    <div class="detail"></div>
+                    <div class="detail" data-l10n-id="ime-switching-tip"></div>
                   </div>
                 </div>
                 <!-- Media recording status -->

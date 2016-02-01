@@ -72,24 +72,28 @@
   overflow: hidden;
   white-space: pre;
   text-overflow: ellipsis;
-  top: 40%;
+  top: 1.5rem;
 }
 
-.pin-card.no-content p.description {
+.pin-card.no-content header {
+  top: 2.5rem;
+}
+
+.pin-card.no-content .description {
   display: none;
 }
 
-.pin-card p.description {
+.pin-card .description p {
   position: relative;
+  display: block;
   overflow: hidden;
   text-align: left;
-  top: 6.4rem;
   height: 3rem;
   line-height: 1.4rem;
   font-size: 1.2rem;
   font-weight: 300;
   color: #5f5f5f;
   padding: 0 0.8rem;
-  margin: 0;
+  margin: 2rem 0;
 }
 

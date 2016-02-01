@@ -1,5 +1,4 @@
-/* global Notification,
-  NotificationHelper,
+/* global NotificationHelper,
   Notify,
   Promise,
   Utils
@@ -31,26 +30,26 @@ function sendNotification() {
   }
 
   return new Promise(function(resolve, reject) {
-    var title = params.title;
+    var titleL10n = params.title;
     var body = params.body;
     var req = navigator.mozApps.getSelf();
 
     req.onsuccess = function onsuccess(event) {
       var app = event.target.result;
 
-      var notification = new Notification(
-        navigator.mozL10n.get(title), {
-          body: body,
-          tag: '' + Date.now(), // needs to be unique
-          icon: NotificationHelper.getIconURI(app) + '?titleID=' + title
-        }
-      );
+      NotificationHelper.send(titleL10n, { 
+        body: body,
+        tag: '' + Date.now(), // needs to be unique
+        icon: NotificationHelper.getIconURI(app),
+        data: { title: titleL10n },
+        closeOnClick: false
+      }).then(function(notification){
+          notification.onerror = function onerror() {
+            reject(new Error('CMAS: notification API error'));
+          };
 
-      notification.onerror = function onerror() {
-        reject(new Error('CMAS: notification API error'));
-      };
-
-      notification.onshow = resolve;
+          notification.onshow = resolve;
+      });
     };
 
     req.onerror = function onerror() {

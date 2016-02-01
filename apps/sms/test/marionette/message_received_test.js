@@ -1,4 +1,4 @@
-/* global require, marionette, setup, suite, test, __dirname */
+/* global require, marionette, setup, suite, test */
 'use strict';
 
 var assert = require('chai').assert;
@@ -13,13 +13,6 @@ var NotificationList = require(
 ).NotificationList;
 
 marionette('Incoming messages tests', function() {
-  var MOCKS = [
-    '/mocks/mock_test_storages.js',
-    '/mocks/mock_test_blobs.js',
-    '/mocks/mock_navigator_moz_icc_manager.js',
-    '/mocks/mock_navigator_moz_mobile_message.js'
-  ];
-
   var client = marionette.client();
 
   var messagesApp, storage, notificationList, system;
@@ -32,9 +25,12 @@ marionette('Incoming messages tests', function() {
     storage = Storage.create(client);
     notificationList = new NotificationList(client);
 
-    MOCKS.forEach(function(mock) {
-      client.contentScript.inject(__dirname + mock);
-    });
+    client.loader.getMockManager('sms').inject([
+      'test_storages',
+      'test_blobs',
+      'navigator_moz_icc_manager',
+      'navigator_moz_mobile_message'
+    ]);
   });
 
   suite('SMS received', function() {

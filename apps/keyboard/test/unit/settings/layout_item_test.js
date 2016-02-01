@@ -96,6 +96,7 @@ suite('LayoutItem', function() {
     var layout = {
       'id': 'fr',
       'name': 'Français',
+      'nameL10nId': 'french',
       'imEngineId': 'latin',
       'preloaded': true,
       'installed': true,
@@ -107,6 +108,14 @@ suite('LayoutItem', function() {
 
     item = new LayoutItem(layoutItemListStub, layout);
     item.start();
+
+    assert.equal(item.id, layout.id);
+    assert.equal(item.name, layout.name);
+    assert.equal(item.nameL10nId, layout.nameL10nId);
+    assert.equal(item.imEngineId, layout.imEngineId);
+    assert.equal(item.dictFilePath, layout.dictFilePath);
+    assert.equal(item.fileSize, layout.dictFileSize);
+    assert.deepEqual(item.types, layout.types);
 
     assert.equal(item.state, item.STATE_PRELOADED);
     assert.isFalse(layoutItemListStub.dictionaryList.getDictionary.calledOnce);

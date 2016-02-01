@@ -36,9 +36,14 @@ InboxView.prototype = {
   goToConversation: function(conversationId) {
     var conversation = this.accessors.findConversation(conversationId);
 
+    // We should retrieve all required info from the conversation node before we
+    // tap on it, as in split view mode tap triggers document to change and
+    // the node will be discarded.
+    var isConversationLessDraft = !!conversation.getAttribute('data-draft-id');
+
     conversation.tap();
 
-    return !!conversation.getAttribute('data-draft-id') ?
+    return isConversationLessDraft ?
       this._createNewMessageView() :
       this._createConversationView();
   },

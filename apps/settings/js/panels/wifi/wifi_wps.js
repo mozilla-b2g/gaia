@@ -71,7 +71,7 @@ define(function(require) {
 
         req.onsuccess = function() {
           if (method === 'myPin') {
-            navigator.mozL10n.formatValue('wpsPinInput', {
+            document.l10n.formatValue('wpsPinInput', {
               pin: req.result
             }).then(msg => {
               alert(msg);

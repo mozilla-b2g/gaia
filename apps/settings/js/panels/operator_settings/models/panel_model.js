@@ -1,4 +1,3 @@
-/* global getSupportedNetworkInfo */
 /**
  * PanelModel determines the current connecting mode based on the the voice type
  * and hardware supported network modes.
@@ -10,6 +9,7 @@ define(function(require) {
 
   var Module = require('modules/base/module');
   var Observable = require('modules/mvvm/observable');
+  var NetworkInfo = require('modules/mobile/supported_network_info');
 
   const NETWORK_TYPE_CATEGORY = {
     'gprs': 'gsm',
@@ -41,7 +41,7 @@ define(function(require) {
     this.super(Observable).call(this);
 
     this._voiceType = conn.voice && conn.voice.type;
-    getSupportedNetworkInfo(conn, (result) => {
+    NetworkInfo.getSupportedNetworkInfo(conn, (result) => {
       if (result.gsm || result.wcdma || result.lte) {
         this._hardwareSupportedMode = 'gsm';
       } else {
@@ -88,7 +88,7 @@ define(function(require) {
     dependency: ['_voiceType', '_hardwareSupportedMode'],
     get: function() {
       if (this._voiceType) {
-        return NETWORK_TYPE_CATEGORY[this._voiceType];     
+        return NETWORK_TYPE_CATEGORY[this._voiceType];
       } else {
         return this._hardwareSupportedMode;
       }

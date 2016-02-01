@@ -2,10 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* global Awesomescreen */
+/* global Browser */
 /* global BrowserDialog */
 /* global ERROR_DIALOG_CLOSED_BY_USER */
 /* global ERROR_INVALID_SYNC_ACCOUNT */
 /* global ERROR_OFFLINE */
+/* global ERROR_SYNC_APP_KILLED */
 /* global ERROR_UNKNOWN */
 /* global LazyLoader */
 /* global Settings */
@@ -60,12 +63,12 @@
     listener: 'onhistorychecked',
     init: 'onhistorychange'
   }, {
-    screen: [DISABLED, ENABLED],
+    screen: ENABLED,
     selector: '#fxsync-tos',
     event: 'click',
     listener: 'openTos'
   }, {
-    screen: [DISABLED, ENABLED],
+    screen: ENABLED,
     selector: '#fxsync-privacy',
     event: 'click',
     listener: 'openPrivacy'
@@ -162,6 +165,17 @@
       }
       switch (message.state) {
         case 'disabled':
+          // We want to show a dialog once Sync is disabled
+          // but we only want to do that if it's disabled via user action
+          // and the user has already logged in.
+          // (and not because it is already disabled from a previous run).
+          if (this.state === 'disabling' &&
+             (this.previousState === 'enabled' ||
+              this.previousState === 'syncing')) {
+            navigator.mozL10n.formatValue('fxsync-disabled').then(result => {
+              window.alert(result);
+            });
+          }
           this.showScreen(DISABLED);
           this.hideEnabling();
           break;
@@ -193,7 +207,8 @@
         case 'errored':
           LazyLoader.load('shared/js/sync/errors.js', () => {
             const IGNORED_ERRORS = [
-              ERROR_DIALOG_CLOSED_BY_USER
+              ERROR_DIALOG_CLOSED_BY_USER,
+              ERROR_SYNC_APP_KILLED
             ];
 
             if (IGNORED_ERRORS.indexOf(message.error) > -1) {
@@ -224,6 +239,7 @@
           });
           break;
       }
+      this.previousState = this.state;
       this.state = message.state;
     },
 
@@ -364,7 +380,7 @@
         if (!Array.isArray(element.screen)) {
           element.screen = [element.screen];
         }
-        if (element.screen.indexOf(screen) >= -1) {
+        if (!this.elements[name]) {
           this.elements[name] = this.area.querySelector(element.selector);
           this.listeners.set(
             name,
@@ -377,6 +393,11 @@
           return;
         }
 
+        if (element.init) {
+          this[element.init]();
+          return;
+        }
+
         if (!this.listeners.has(name)) {
           return;
         }
@@ -385,10 +406,6 @@
           this.elements[name].checked = false;
         }
 
-        this.removeListener(this.elements[name],
-                            element.event, this.listeners.get(name));
-        this.listeners.delete(name);
-        this.elements[name] = null;
       });
     },
 
@@ -468,11 +485,17 @@
     },
 
     openTos() {
-      window.open('https://accounts.firefox.com/legal/terms');
+      this.showWebpage('https://accounts.firefox.com/legal/terms');
     },
 
     openPrivacy() {
-      window.open('https://accounts.firefox.com/legal/privacy');
+      this.showWebpage('https://accounts.firefox.com/legal/privacy');
+    },
+
+    showWebpage(url) {
+      Awesomescreen.createAddNewTab();
+      Browser.navigate(url);
+      Settings.hide();
     }
   };
 

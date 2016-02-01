@@ -9,7 +9,7 @@ require('/test/unit/mock_wifi_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_power.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');

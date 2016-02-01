@@ -68,6 +68,8 @@ ifdef LOCALES_FILE
 	REBUILD=1
 endif
 
+RUN_ON_NODE?=0
+
 BUILD_RUNNER=run-js-command
 
 -include local.mk
@@ -136,6 +138,9 @@ SHARE_PERF_USAGE?=1
 NODE_VERSION=v4.2
 # the minimum major version is absolutely required.
 NODE_MIN_VERSION=4
+
+# what version of npm we expect to run for ideal support.
+NPM_VERSION=2
 
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
@@ -499,6 +504,8 @@ endif
 TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
 TEST_AGENT_COVERAGE="./build/config/test-agent-coverage.json"
 
+CAPABILITIES=$(GAIA_DIR)$(SEP)tests$(SEP)jsmarionette$(SEP)capabilities.json
+
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
@@ -558,7 +565,7 @@ define BUILD_CONFIG
   "REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
   "TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
   "SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
-  "FTU_PING_URL": "$(FTU_PING_URL)", \
+  "FTU_PING_URL" : "$(FTU_PING_URL)", \
   "KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
   "CONTACTS_IMPORT_SERVICES_PATH" : "$(CONTACTS_IMPORT_SERVICES_PATH)", \
   "EMAIL_SERVICES_PATH" : "$(EMAIL_SERVICES_PATH)", \
@@ -566,18 +573,19 @@ define BUILD_CONFIG
   "GAIA_APP_TARGET" : "$(GAIA_APP_TARGET)", \
   "BUILD_DEBUG" : "$(BUILD_DEBUG)", \
   "VARIANT_PATH" : "$(VARIANT_PATH)", \
-  "REBUILD": "$(REBUILD)", \
+  "REBUILD" : "$(REBUILD)", \
   "P" : "$(P)", \
   "VERBOSE" : "$(VERBOSE)", \
   "PERF_LOGGING" : "$(PERF_LOGGING)", \
-  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
-  "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
-  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)", \
-  "RAPTOR": "$(RAPTOR)", \
-  "RAPTOR_TRANSFORM": "$(RAPTOR_TRANSFORM)", \
-  "RAPTOR_TRANSFORMER_PATH": "$(RAPTOR_TRANSFORMER_PATH)", \
-  "NGA_SERVICE_WORKERS": "$(NGA_SERVICE_WORKERS)", \
-  "FIREFOX_SYNC": "$(FIREFOX_SYNC)" \
+  "SHARE_PERF_USAGE" : "$(SHARE_PERF_USAGE)", \
+  "DEFAULT_KEYBOAD_SYMBOLS_FONT" : "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
+  "DEFAULT_GAIA_ICONS_FONT" : "$(DEFAULT_GAIA_ICONS_FONT)", \
+  "RAPTOR" : "$(RAPTOR)", \
+  "RAPTOR_TRANSFORM" : "$(RAPTOR_TRANSFORM)", \
+  "RAPTOR_TRANSFORMER_PATH" : "$(RAPTOR_TRANSFORMER_PATH)", \
+  "NGA_SERVICE_WORKERS" : "$(NGA_SERVICE_WORKERS)", \
+  "FIREFOX_SYNC" : "$(FIREFOX_SYNC)", \
+  "RUN_ON_NODE" : "$(RUN_ON_NODE)" \
 }
 endef
 
@@ -782,7 +790,6 @@ npm-cache:
 	@echo "Using pre-deployed cache."
 	$(NPM) install
 	touch -c node_modules
-#	@echo $(shell $(NODEJS) --version |awk -F. '{print $1, $2}')
 
 node_modules: package.json
 ifneq ($(strip $(NODEJS)),)
@@ -790,7 +797,11 @@ ifneq ($(NODE_VERSION),$(shell $(NODEJS) --version | awk -F. '{print $$1"."$$2}'
 	@printf '\033[0;33mPlease use $(NODE_VERSION) of nodejs or it may cause unexpected error.\033[0m\n'
 endif
 ifneq (1,$(shell expr `node --version | cut -c2` \>= $(NODE_MIN_VERSION)))
-	@printf '\033[0;33mMinimum required version of nodejs v$(NODE_MIN_VERSION) not satisfied. Aborting. Install the required minimum version before you continuing.\033[0m\n'
+	@printf '\033[0;33mMinimum required version of nodejs v$(NODE_MIN_VERSION) not satisfied. Aborting. Install the required minimum version before continuing.\033[0m\n'
+	exit 1
+endif
+ifneq ($(NPM_VERSION),$(shell $(NPM) --version | cut -d. -f1))
+	@printf '\033[0;33mRequired version of npm v$(NPM_VERSION) not satisfied. Aborting. No other major versions are supported at this time.\033[0m\n'
 	exit 1
 endif
 endif
@@ -835,7 +846,7 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test: mulet node_modules
-	TEST_MANIFEST=$(TEST_MANIFEST) $(NPM) run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
+	TEST_MANIFEST=$(TEST_MANIFEST) $(NPM) run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)" --marionette-capabilities="$(CAPABILITIES)"
 
 .PHONY: jsmarionette-unit-tests
 jsmarionette-unit-tests: mulet node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
@@ -1006,7 +1017,7 @@ csslint: b2g_sdk
 	@$(call $(BUILD_RUNNER),csslint)
 
 jsonlint: b2g_sdk
-	@$(call $(BUILD_RUNNER),jsonlint)
+	@$(call run-node-command,jsonlint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -1115,10 +1126,10 @@ really-clean: clean
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
 build-test-unit: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call $(BUILD_RUNNER),build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
+	@$(call run-node-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-integration: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call $(BUILD_RUNNER),build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
+	@$(call run-node-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)" NODE_PATH=build/test/integration)
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)
@@ -1126,7 +1137,3 @@ build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
 	gulp docs
-
-.PHONY: watch
-watch: $(NPM_INSTALLED_PROGRAMS)
-	node build/watcher.js

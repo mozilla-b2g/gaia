@@ -95,7 +95,7 @@ define(function(require) {
     function _showErrorMessage(type) {
       _passcodePanel.dataset.passcodeStatus = 'error';
       var tag = 'callBarring-passcode-error-' + type || 'generic';
-      navigator.mozL10n.setAttributes(_passcodeError, tag);
+      document.l10n.setAttributes(_passcodeError, tag);
     }
 
     function _hideErrorMessage() {

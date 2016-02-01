@@ -1,4 +1,7 @@
 'use strict';
+
+/* global KeyboardManager */
+
 (function(exports) {
   var BrowserKeyEventManager = function BrowserKeyEventManager() {
   };
@@ -32,6 +35,7 @@
       'power': 'sleep-button',
       'exit': 'home-button',
       'home': 'home-button',
+      'backspace': 'back-button',
       'mozhomescreen': 'home-button',
       'volumeup': 'volume-up-button',
       'volumedown': 'volume-down-button'
@@ -52,6 +56,12 @@
     _isSystemOnlyKey: function bkem_isSystemOnlyKey(event) {
       var key = this._getLowerCaseKeyName(event);
       return (this.SYSTEM_ONLY_KEYS.indexOf(key) > -1);
+    },
+    _isBackspace: function bkem_isBackspace(event) {
+      var key = this._getLowerCaseKeyName(event);
+      return (key === 'backspace' ||
+              event.keyCode === window.KeyEvent.DOM_VK_BACK_SPACE) &&
+        !KeyboardManager.getHasActiveKeyboard();
     },
     _isAppCancelledKey: function bkem_isAppCancelledKey(event) {
       var key = this._getLowerCaseKeyName(event);
@@ -80,11 +90,11 @@
           (this._isBeforeEvent(event) || this._isKeyEvent(event))) {
         event.preventDefault();
         needTranslation = true;
-      } else if (this._isAppCancelledKey(event) && this._isAfterEvent(event)) {
+      } else if (this.isAppCancelledKeyEvent(event) &&
+                 this._isAfterEvent(event)) {
         // if embedded frame cancel the event, we need to translate it then
         needTranslation = !event.embeddedCancelled;
-      } else if (this._isKeyEvent(event) &&
-          !this._targetToIframe(event)) {
+      } else if (this._isKeyEvent(event) && !this._targetToIframe(event)) {
         // When focus is on embedded iframe and user press hardware key, system
         // app will receive an extra keydown keyup event targeted to the iframe.
         // We should ignore this event otherwise we will have strange state
@@ -101,6 +111,9 @@
     },
     isHardwareKeyEvent: function bkem_isHardwareKeyEvent(type) {
       return (this.KEY_EVENTS.indexOf(type) > -1);
+    },
+    isAppCancelledKeyEvent: function bkem_isAppCancelledKeyEvent(event) {
+      return this._isAppCancelledKey(event) || this._isBackspace(event);
     },
     getButtonEventType: function bkem_getButtonEventType(event) {
       var translatedType;

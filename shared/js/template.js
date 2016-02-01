@@ -103,35 +103,56 @@
   /**
    * template.interpolate
    *
-   * Interpolate template string with values provided by
-   * data object. Optionally allow properties to retain
-   * HTML that is known to be safe.
+   * Interpolate template string with values provided by data object.
+   * Optionally allow properties to retain HTML that is known to be safe.
    *
-   * @param {Object} data     properties correspond to substitution.
-   *                          - identifiers in template string.
-   * @param {Object} options  optional.
-   *                          - safe, a list of properties that contain
-   *                          HTML that is known and are
-   *                          "known" to ignore.
-   */
-  Template.prototype.interpolate = function(data, options) {
-    // This _should_ be rewritten to use Firefox's support for ES6
-    // default parameters:
-    // ... = function(data, options = { safe: [] }) {
-    //
-    options = options || {};
-    options.safe = options.safe || [];
+   * @param {Object} data   - key/value properties correspond to substitution,
+   *                        with keys as identifiers in template string and
+   *                        values as replacement strings.
+   *
+   * @param {Object} [options]      - optional
+   * @param {Array}  options.safe   - array of identifiers in the data parameter
+   *                                that contain HTML that is known and
+   *                                are "known" to ignore.
+   *                                Unless identifiers are listed here,
+   *                                there corresponding string will be escaped.
+  */
+  Template.prototype.interpolate = function(data = {}, options = {}) {
+    var safeList = options.safe;
+
+    if (safeList && !Array.isArray(safeList)) {
+      throw new TypeError(
+        `If present "options.safe" must be an Array, not ${typeof options.safe}`
+      );
+    }
+
+    var hasSafeProperties = safeList && safeList.length;
 
     return this.extract().replace(rmatcher, function(match, property) {
       property = property.trim();
-      // options.safe is an array of properties that can be ignored
-      // by the "suspicious" html strategy.
-      return options.safe.indexOf(property) === -1 ?
-        // Any field that is not explicitly listed as "safe" is
-        // to be treated as suspicious
-        Template.escape(data[property]) :
-        // Otherwise, return the string of rendered markup
-        data[property];
+
+      if (!(property in data)) {
+        throw new Error(
+          `No value provided for template identifier "${property}"`
+        );
+      }
+
+      var unsafeString = data[property];
+
+      if (typeof unsafeString !== 'string') {
+        throw new TypeError(
+          `"data.${property}" must be a String, not ${typeof unsafeString}`
+        );
+      }
+
+      var isPropertySafe = hasSafeProperties && safeList.includes(property);
+
+      return isPropertySafe ?
+        // If the property is explicitly listed as "safe"
+        // return the string of rendered markup
+        unsafeString:
+        // Otherwise the string is to be treated as suspicious
+        Template.escape(unsafeString);
     });
   };
 

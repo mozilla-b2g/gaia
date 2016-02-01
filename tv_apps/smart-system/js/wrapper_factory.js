@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, AppWindowManager, AppWindow */
+/*global applications, AppWindowManager, AppWindow, AppInstallManager */
 
 (function(window) {
   /**
@@ -38,6 +38,23 @@
           return acc;
         }, {});
 
+      if ('preview' in features && features.preview === 'true' &&
+          AppInstallManager.isMarketplaceAppActive()) {
+
+        var marketplaceApp = AppWindowManager.getActiveApp();
+        marketplaceApp.publish('launchpreviewapp', {
+          url: detail.url,
+          origin: detail.url,
+          features: {
+            name: features.name,
+            iconUrl: features.iconUrl
+          }
+        });
+
+        evt.stopImmediatePropagation();
+        return;
+      }
+
       // Handles only call to window.open with `remote=true` feature.
       if (!('remote' in features) || features.remote !== 'true') {
         return;
@@ -67,19 +84,21 @@
 
       var name = detail.name;
       var url = detail.url;
+      var isAppLike = (features.applike === 'true');
       var app;
 
       // Use fake origin for named windows in order to be able to reuse them,
       // otherwise always open a new window for '_blank'.
       var origin = null;
       if (name == '_blank') {
-
-        // If we already have a browser and we receive an open request,
-        // display it in the current browser frame.
-        var activeApp = AppWindowManager.getActiveApp();
-        if (activeApp && activeApp.isBrowser()) {
-          activeApp.navigate(url);
-          return;
+        if (!isAppLike) {
+          // If we already have a browser and we receive an open request,
+          // display it in the current browser frame.
+          var activeApp = AppWindowManager.getActiveApp();
+          if (activeApp && activeApp.isBrowser()) {
+            activeApp.navigate(url);
+            return;
+          }
         }
 
         origin = url;
@@ -114,6 +133,10 @@
       if (!browser_config.title) {
         browser_config.title = url;
       }
+      if (isAppLike) {
+        browser_config.isAppLike = true;
+        browser_config.identity = origin;
+      }
 
       this.launchWrapper(browser_config);
     },
@@ -122,7 +145,7 @@
       var app = AppWindowManager.getApp(config.origin);
       if (!app) {
         config.chrome = {
-          scrollable: true
+          scrollable: !config.isAppLike
         };
         app = new AppWindow(config);
       } else {

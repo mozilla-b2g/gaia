@@ -8,9 +8,8 @@ var Fm = require('./lib/fm.js');
 marionette('FM Radio test', function() {
 
   var client = marionette.client({
-    profile: {
-
-    }
+    profile: {},
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
 

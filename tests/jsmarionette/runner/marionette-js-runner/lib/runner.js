@@ -18,7 +18,8 @@ var emptyPort = Promise.denodeify(require('empty-port'));
 var MOCHA_BINARY = resolveModule('mocha', 'bin', '_mocha');
 var PROXY_BINARY = resolveModule('mocha-json-proxy', 'reporter.js');
 
-var STARTING_PORT = 60030;
+var STARTING_PORT = 1024;
+var MAX_PORT = 65535;
 var MARIONETTE_ENABLED_PREF = 'marionette.defaultPrefs.enabled';
 var MARIONETTE_PORT_PREF = 'marionette.defaultPrefs.port';
 
@@ -115,7 +116,7 @@ Runner.prototype = {
 
     var build = Promise.denodeify(builder.build.bind(builder));
 
-    return emptyPort({ startPort: STARTING_PORT })
+    return emptyPort({ startPort: STARTING_PORT, maxPort: MAX_PORT })
       .then(function(port) {
         config.port = port;
         var profileOptions = self.profileOptions(port, overrides);

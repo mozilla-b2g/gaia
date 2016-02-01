@@ -1,5 +1,5 @@
-/* globals _, Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
-/* globals BrowserDialog, SmartList, BookmarkStore, HistoryStore */
+/* globals Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
+/* globals SmartList, BookmarkStore, HistoryStore */
 
 
 /* exported Awesomescreen */
@@ -93,6 +93,9 @@ var Awesomescreen = {
     this.inputArea.addEventListener('blur',
         this.handleinputAreaBlur.bind(this));
 
+    this.inputArea.addEventListener('input',
+        this.handleinputAreaInput.bind(this));
+
     this.checkBox.addEventListener('mouseup',
         this.pintohomeCheck.bind(this));
 
@@ -139,7 +142,7 @@ var Awesomescreen = {
         this.clickClearButton.bind(this));
 
     this.privateBrowsingBlock.addEventListener('mouseup',
-        this.hidePrivateBrowsingBlock.bind(this));
+        this.handlePrivateBrowsingBlockMouseUp.bind(this));
 
     // init BookmarkStore
     BookmarkStore.init();
@@ -378,6 +381,10 @@ var Awesomescreen = {
    */
   hidePrivateBrowsingBlock: function hidePrivateBrowsingBlock() {
     this.privateBrowsingBlock.classList.remove('visible');
+    var moreInfoEl =
+      document.getElementById('private-browsing-more-info-link');
+    moreInfoEl
+      .removeEventListener('click', this.openPrivateBrowsingMoreInfo);
   },
 
   /**
@@ -398,10 +405,33 @@ var Awesomescreen = {
     this.privateBrowsingBlock.classList.remove('visible');
     if(Toolbar.isPrivateBrowsing()) {
       this.privateBrowsingBlock.classList.add('visible');
-      var privateBrowsingInfoText =
-        document.getElementById('private-browsing-info-text');
-      privateBrowsingInfoText.innerHTML = _('WB_LT_PRIVATE_BROWSING_2');
+      var moreInfoEl =
+        document.getElementById('private-browsing-more-info-link');
+      moreInfoEl
+        .addEventListener('click', this.openPrivateBrowsingMoreInfo);
     }
+  },
+
+  /**
+   * handle private browsing block mouse up event
+   */
+  handlePrivateBrowsingBlockMouseUp:
+    function awesomescreen_handlePrivateBrowsingBlockMouseUp(e) {
+      var moreInfoEl =
+        document.getElementById('private-browsing-more-info-link');
+      if(e.target !== moreInfoEl) {
+        this.hidePrivateBrowsingBlock();
+      }
+  },
+
+  /**
+   * open private browsing more info link
+   */
+  openPrivateBrowsingMoreInfo:
+    function awesomescreen_openPrivateBrowsingMoreInfo() {
+    Awesomescreen.createAddNewTab();
+    Browser.navigate('https://support.mozilla.org/en-US/kb/' +
+             'private-browsing-use-firefox-without-history');
   },
 
   /**
@@ -538,7 +568,7 @@ var Awesomescreen = {
     this.awesomescreen.classList.add('awesomescreen-screen-top');
     this.topSites.style.display = 'block';
     this.topSites.style.opacity = '1';
-    if(this.isDisplayedTab()){
+    if(this.isDisplayedTab() || window.FTE){
        Browser.switchCursorMode(false);
     }else{
        Browser.switchCursorMode(true);
@@ -888,8 +918,8 @@ var Awesomescreen = {
       //Bookmark maximum number check
       if(bmList.length >= Browser.MAX_BOOKMARK_LIST){
         //TODO This message I want to change later
-        Awesomescreen.dialogBannerMessage.innerHTML =
-          _('WB_LT_BOOKMARK_ERROR_1');
+        Awesomescreen.dialogBannerMessage.setAttribute(
+          'data-l10n-id', 'WB_LT_BOOKMARK_ERROR_1');
         Awesomescreen.showBannerMessage();
       }else{
         Awesomescreen.bmDialogSetting();
@@ -906,8 +936,11 @@ var Awesomescreen = {
 
     this.focusList = [];
     this.blurFlag = false;
-    Awesomescreen.messageTitle.innerHTML = _('WB_LT_BOOKMARK_THIS_PAGE');
+    Awesomescreen.messageTitle.setAttribute(
+      'data-l10n-id', 'WB_LT_BOOKMARK_THIS_PAGE');
+    Awesomescreen.bmtitleArea.classList.remove('invalid');
     Awesomescreen.inputArea.value = Browser.currentInfo.title;
+    Awesomescreen.okButton.classList.remove('disable');
     var elementIDs = [Awesomescreen.bmtitleArea, Awesomescreen.checkArea,
                       Awesomescreen.okButton, Awesomescreen.cancelButton,
                       Awesomescreen.messageArea];
@@ -941,6 +974,9 @@ var Awesomescreen = {
     this.inputArea.style.color = '#020202';
     Awesomescreen.inputArea.value = '';
     Awesomescreen.inputArea.style.color = '#fff';
+    Awesomescreen.bmtitleArea.classList.add('invalid');
+    Awesomescreen.okButton.classList.add('disable');
+    Awesomescreen.renameConfirmButton.classList.add('disable');
   },
 
   /**
@@ -973,11 +1009,12 @@ var Awesomescreen = {
       return;
     }
 
-    //title is I do check if empty
-    var bmTitle = this.inputArea.value;
-    if(bmTitle === '') {
-      bmTitle =  Browser.currentInfo.title;
+    if(!this.isInputAreaValid()) {
+      return;
     }
+
+    //remove whitespace from both side of the title
+    var bmTitle = this.inputArea.value.trim();
 
     //Check confirmation of "pin to home"
     if(this.checkBox.classList.contains('true')){
@@ -1076,7 +1113,8 @@ var Awesomescreen = {
         break;
 
       case 'rmBookmark':
-        this.messageTitle.innerHTML = _('WB_LT_REMOVE_FROM_BOOKMARKS');
+        this.messageTitle.setAttribute(
+          'data-l10n-id', 'WB_LT_REMOVE_FROM_BOOKMARKS');
         elementIDs = [this.messageArea, this.messageTitle,
                       this.removeConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
@@ -1088,7 +1126,8 @@ var Awesomescreen = {
         break;
 
       case 'clHistory': // remove One history item
-        this.messageTitle.innerHTML = _('WB_LT_REMOVE_HISTORY');
+        this.messageTitle.setAttribute(
+          'data-l10n-id', 'WB_LT_REMOVE_HISTORY');
         elementIDs = [this.messageArea, this.messageTitle,
                       this.removeConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
@@ -1100,9 +1139,12 @@ var Awesomescreen = {
         break;
 
       case 'rnBookmark':
-        this.messageTitle.innerHTML = _('WB_LT_RENAME_BOOKMARK');
+        this.messageTitle.setAttribute(
+          'data-l10n-id', 'WB_LT_RENAME_BOOKMARK');
+        this.bmtitleArea.classList.remove('invalid');
         this.inputArea.value =
           this.bookmarkList.getFocusItemTitle();
+        this.renameConfirmButton.classList.remove('disable');
         elementIDs = [this.messageArea, this.bmtitleArea, this.messageTitle,
                       this.renameConfirmButton, this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
@@ -1117,7 +1159,8 @@ var Awesomescreen = {
         break;
 
       case 'rmHistory': // remove All history
-        this.messageTitle.innerHTML = _('WB_LT_CLEAR_ALL_HISTORY');
+        this.messageTitle.setAttribute(
+          'data-l10n-id', 'WB_LT_CLEAR_ALL_HISTORY');
         elementIDs = [this.messageArea, this.messageTitle, this.clearButton,
                       this.cancelButton];
         this.elementSetDisplayBlock(elementIDs);
@@ -1249,6 +1292,22 @@ var Awesomescreen = {
     Awesomescreen.showPointerImg();
   },
 
+  handleinputAreaInput: function awesomescreen_handleinputAreaInput(ev) {
+    if(Awesomescreen.isInputAreaValid()) {
+      Awesomescreen.bmtitleArea.classList.remove('invalid');
+      Awesomescreen.okButton.classList.remove('disable');
+      Awesomescreen.renameConfirmButton.classList.remove('disable');
+    } else {
+      Awesomescreen.bmtitleArea.classList.add('invalid');
+      Awesomescreen.okButton.classList.add('disable');
+      Awesomescreen.renameConfirmButton.classList.add('disable');
+    }
+  },
+
+  isInputAreaValid: function awesomescreen_isInputAreaValid() {
+    return Awesomescreen.inputArea.validity.valid;
+  },
+
   clickEditButton: function awesomescreen_clickEditButton(ev) {
     if( ev ){
       ev.preventDefault();
@@ -1320,8 +1379,8 @@ var Awesomescreen = {
     var title = this.selectList.childNodes[1].childNodes[0].textContent;
     Settings.setHomepage(url);
 
-    var strMessage = _('WB_LT_SET_HOMEPAGE', {value0:title});
-    this.dialogBannerMessage.textContent = strMessage;
+    navigator.mozL10n.setAttributes(this.dialogBannerMessage,
+       'WB_LT_SET_HOMEPAGE', {value0:title});
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -1490,16 +1549,14 @@ var Awesomescreen = {
     if(ev.button == 2){
       return;
     }
-    //title is I do check if empty
-    var bmTitle = '',
-        listUrl = this.bookmarkList.getFocusItemUri(),
-        listTitle = this.bookmarkList.getFocusItemTitle();
 
-    if(this.inputArea.value === ''){
-      bmTitle =  listTitle;
-    }else{
-      bmTitle = this.inputArea.value;
+    if(!this.isInputAreaValid()) {
+      return;
     }
+    //title is I do check if empty
+    var bmTitle = this.inputArea.value.trim(),
+        listUrl = this.bookmarkList.getFocusItemUri();
+
     // Animation end event
     var target = ev.currentTarget;
     var end_event = (function() {
@@ -2540,21 +2597,27 @@ var Awesomescreen = {
     }
 
     switch( ev.keyCode ) {
+      case KeyEvent.DOM_VK_ESCAPE:
+        switch(true){
+          case Awesomescreen.isDisplayedDialog() :
+            // close bookmark.history to dialog
+            Awesomescreen.hidePointerImg();
+            Awesomescreen.dialogHidden();
+            break;
+          default:
+            break;
+        }
+        state = false;
+        break;
+
       case KeyEvent.DOM_VK_BACK_SPACE:
         switch(true){
           case Awesomescreen.isDisplayedDialog() :
             // close bookmark.history to dialog
+            Awesomescreen.hidePointerImg();
             Awesomescreen.dialogHidden();
             break;
-          case this.bookmarkList.isDisplay():
-            // close bookmark
-            this.bookmarkList.close();
-            Awesomescreen.hidePointerImg();
-            break;
-          case this.historyList.isDisplay():
-            // close history
-            this.historyList.close();
-            Awesomescreen.hidePointerImg();
+          case Awesomescreen.isDisplayedList():
             break;
           case Awesomescreen.isDisplayedTab() :
             // close tabview
@@ -2700,7 +2763,11 @@ var Awesomescreen = {
       Browser.refreshBookmarkButton();
       this.topsiteHidden();
     }else{
-      BrowserDialog.createDialog('close_browser', null);
+      navigator.mozL10n.formatValue('LT_BROWSER_CONFIRM_EXIT2').then(result => {
+        if (window.confirm(result)) {
+          window.close();
+        }
+      });
     }
   },
 

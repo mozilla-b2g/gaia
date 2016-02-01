@@ -79,6 +79,30 @@ marionette('MarionetteHelper', function() {
     subject.waitForElement('#' + myRandomID);
   });
 
+  test('#waitForElement with custom timeout', function(done) {
+    this.timeout(10000); // make this fail fast.
+    var myRandomID = 'YAAAAAAYRandomWow' + Date.now();
+    client.executeScript(function(myRandomID) {
+      setTimeout(function() {
+        var el = document.createElement('div');
+        el.id = myRandomID;
+        el.innerHTML = 'Hello Test!';
+        document.body.appendChild(el);
+      }, 500);
+    }, [myRandomID]);
+
+    // Ensure the waitFor times out.
+    client.onScriptTimeout = function() {
+      assert(true, 'this should timeout');
+      done();
+    };
+
+    try {
+      subject.waitForElementToDisappear('#' + myRandomID, { timeout: 10 });
+      assert(false, 'should timeout before disappearing');
+    } catch (e) {}
+  });
+
   test('#waitForChild, element added to DOM', function() {
     var myRandomID = 'YAAAAAAYRandomWow' + Date.now();
     client.executeScript(function(myRandomID) {
@@ -171,6 +195,31 @@ marionette('MarionetteHelper', function() {
       }, 500);
     }, [myRandomID]);
     subject.waitForElementToDisappear('#' + myRandomID);
+  });
+
+  test('#waitForElementToDisappear with custom timeout', function(done) {
+    this.timeout(10000); // make this fail fast.
+    var myRandomID = 'YAAAAAAYRandomWow' + Date.now();
+    client.executeScript(function(myRandomID) {
+      var el = document.createElement('div');
+      el.id = myRandomID;
+      el.innerHTML = 'Hello Test!';
+      document.body.appendChild(el);
+      setTimeout(function() {
+        el.style.display = 'none';
+      }, 500);
+    }, [myRandomID]);
+
+    // Ensure the waitFor times out.
+    client.onScriptTimeout = function() {
+      assert(true, 'this should timeout');
+      done();
+    };
+
+    try {
+      subject.waitForElementToDisappear('#' + myRandomID, { timeout: 10 });
+      assert(false, 'should timeout before disappearing');
+    } catch (e) {}
   });
 
   suite.skip('#waitForAlert', function() {

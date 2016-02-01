@@ -80,25 +80,20 @@
     function il_transformLayout(layout) {
     var transformedLayout = {
       id: layout.layoutId,
+      name: layout.inputManifest.name,
+      nameL10nId: layout.inputManifest.nameL10nId,
       origin: layout.app.origin,
       manifestURL: layout.app.manifestURL,
       path: layout.inputManifest.launch_path
     };
 
-    // tiny helper - bound to the manifests
-    var getName = function () {
-      return this.name;
-    };
-
-    // define properties for name that resolve at display time
-    // to the correct language via the ManifestHelper
+    // define properties for names that resolve at display time
+    // to the correct language via the ManifestHelper.
     Object.defineProperties(transformedLayout, {
-      name: {
-        get: getName.bind(layout.inputManifest),
-        enumerable: true
-      },
       appName: {
-        get: getName.bind(layout.manifest),
+        get: function() {
+          return layout.manifest.name;
+        },
         enumerable: true
       }
     });

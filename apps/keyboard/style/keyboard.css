@@ -833,7 +833,7 @@ bubble above the key when you tap and hold. */
   background: none;
   font-size: 3rem;
   min-height: 5rem;
-  min-width: 5rem;
+  min-width: 16.66vw;
   padding: 0;
   flex: 1;
 }
@@ -1041,6 +1041,32 @@ bubble above the key when you tap and hold. */
 }
 .landscape .my .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
   font-size: 2rem;
+}
+
+/* Persian */
+.fa .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 1.9rem;
+}
+
+.fa .keyboard-type-container > .visual-wrapper > .key-element[data-label="﷼"] {
+  font-size: 1.9rem;
+}
+
+.fa .keyboard-key > .visual-wrapper > .key-element[data-label="ض"],
+.fa .keyboard-key > .visual-wrapper > .key-element[data-label="ش"] {
+  margin-left:-.5rem;
+}
+
+.fa .keyboard-key > .visual-wrapper > .key-element[data-label="س"] {
+  margin-left:-.2rem;
+}
+
+.fa .keyboard-key > .visual-wrapper > .key-element[data-label="ص"] {
+  margin-left:-.1rem;
+}
+
+.fa .keyboard-key > .visual-wrapper > .key-element[data-label="◂┇▸"] {
+  font-size: 1.2rem;
 }
 
 /* Tamil */

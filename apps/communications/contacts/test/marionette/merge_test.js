@@ -4,7 +4,10 @@ var Contacts = require('./lib/contacts');
 var assert = require('assert');
 
 marionette('Contacts > Merge contacts', function() {
-  var client = marionette.client({ profile: Contacts.config });
+  var client = marionette.client({
+    profile: Contacts.config,
+    desiredCapabilities: { raisesAccessibilityExceptions: false }
+  });
   var subject;
   var selectors;
 

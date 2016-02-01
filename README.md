@@ -26,7 +26,7 @@ and talk to us on IRC:
 
 ## Autolander (bot)
 
-Autolander is a bot which integrations github and bugzilla workflows.
+Autolander is a bot which integrates github and bugzilla workflows.
 
 Features available:
   - Automatic pull request to bugzilla attachment linking.
@@ -79,44 +79,44 @@ https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
 
 Gaia uses
 [marionette-js-runner](https://developer.mozilla.org/en-US/Firefox_OS/Automated_testing/Gaia_integration_tests)
-for ui testing. For the time being, tests need to live in `apps/<some
+for ui testing. Tests need to live in `apps/<some
 app>/test/marionette` and should be named `*_test.js`. Gaia's marionette
 tests run on nodejs and you'll need nodejs>=v0.12 and npm>=v2.0 installed.
 
-Also for the time being, shared code for tests lives in plugins at
+Shared code for tests lives in plugins at
 `tests/jsmarionette/plugins` or in helpers at `shared/test/integration`.
+
+For more details on writing integration tests, see:
+https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Automated_testing/Gaia_integration_tests
 
 #### Running integration tests
 
 ```sh
-npm run marionette
-```
-
-#### Invoking specific test files
-
-```sh
-TEST_FILES="/abs/path/to/some_test.js /abs/path/to/other_test.js" npm run marionette
+make test-integration
 ```
 
 #### Invoking tests for a specific app
 
 ```sh
-APP=<APP> npm run marionette
+APP=<APP> make test-integration
 ```
 
-#### Skipping a test file
+#### Invoking specific test files
 
 ```sh
-SKIP_TEST_FILES="/abs/path/to/skipped_test.js /abs/path/to/other/skipped_test.js" npm run marionette
+TEST_FILES="/abs/path/to/some_test.js /abs/path/to/other_test.js" make test-integration
 ```
 
-#### Moar things
+##### Running tests on device
+
+You can run tests on device by plugging in your phone and adding the BUILDAPP=device to the make command:
+```sh
+BUILDAPP=device make test-integration
+```
+
+#### More things
 
 + `VERBOSE=1` pipes gecko logs to your command line process for debugging.
-
-+ If you don't have a b2g/ folder one will be downloaded for you.
-  This can be problematic if you're offline. You can symlink a
-  b2g-desktop directory to b2g/ in gaia to avoid the download.
 
 ### Build System Tests
 

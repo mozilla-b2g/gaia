@@ -192,5 +192,22 @@ AppInstall.prototype = {
    */
   waitForDialog: function waitForAppInstallDialog(element) {
     return this.client.helper.waitForElement(element);
+  },
+
+  isAppInstalled: function(app) {
+    if (typeof app !== 'string') {
+      app = app.manifestURL;
+    }
+    var isInstalled = this.client.executeAsyncScript(function(url) {
+      var win = window.wrappedJSObject;
+      var mgmt = win.navigator.mozApps.mgmt;
+      mgmt.getAll().onsuccess = function(e) {
+        var matchedApp = e.target.result.find(function(app) {
+          return app.manifestURL === url;
+        });
+        marionetteScriptFinished(!!matchedApp);
+      };
+    }, [app]);
+    return isInstalled;
   }
 };

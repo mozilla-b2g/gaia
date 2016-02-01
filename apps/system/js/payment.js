@@ -188,16 +188,20 @@ var Payment = {
     // the mozPay caller application as title.
     var app = Service.query('getTopMostWindow');
     var title = app ? app.manifest.name : null;
-    title = title ? title : navigator.mozL10n.get('payment-flow');
+    var titlePromise = title ?
+      Promise.resolve(title) :
+      navigator.mozL10n.formatValue('payment-flow');
 
-    window.dispatchEvent(new CustomEvent('launchtrusted', {
-      detail: {
-        name: title,
-        frame: frame,
-        requestId: requestId,
-        chromeId: chromeEventId
-      }
-    }));
+    titlePromise.then(value => {
+      window.dispatchEvent(new CustomEvent('launchtrusted', {
+        detail: {
+          name: value,
+          frame: frame,
+          requestId: requestId,
+          chromeId: chromeEventId
+        }
+      }));
+    });
   },
 
   addPaymentWindow: function addPaymentWindow(requestId, chromeEventId) {
