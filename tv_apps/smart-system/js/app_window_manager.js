@@ -8,7 +8,8 @@
 
   AppWindowManager.SERVICES = [
     'stopRecording',
-    'kill'
+    'kill',
+    'display'
   ];
   AppWindowManager.STATES = [
     'getApp',
@@ -76,7 +77,6 @@
   BaseModule.create(AppWindowManager, {
     DEBUG: false,
     name: 'AppWindowManager',
-    EVENT_PREFIX: 'appwindowmanager',
     CLASS_NAME: 'AppWindowManager',
     continuousTransition: false,
     /**
@@ -210,7 +210,7 @@
 
       var that = this;
       if (appCurrent && layoutManager.keyboardEnabled) {
-        this.sendStopRecordingRequest();
+        this.stopRecording();
 
         // Ask keyboard to hide before we switch the app.
         window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
@@ -226,7 +226,7 @@
           KeyboardManager.hideKeyboardImmediately();
         }
       } else {
-        this.sendStopRecordingRequest(function() {
+        this.stopRecording(function() {
           this.switchApp(appCurrent, appNext, switching,
                          openAnimation, closeAnimation);
         }.bind(this));
@@ -826,7 +826,7 @@
      * private.broadcast.attention_screen_opening setting hack in
      * attention_screen.js
      */
-    sendStopRecordingRequest: function sendStopRecordingRequest(callback) {
+    stopRecording: function stopRecording(callback) {
       // If we are not currently recording anything, just call
       // the callback synchronously
       if (!window.mediaRecording.isRecording) {
@@ -854,9 +854,6 @@
         if (callback) { callback(); }
       };
     },
-    stopRecording: function(cb) {
-      this.sendStopRecordingRequest(cb);
-    },
 
     '_observe_continuous-transition.enabled': function(value) {
       if (!value) {
@@ -872,7 +869,5 @@
       }
     }
   });
-
-  exports.AppWindowManager = new AppWindowManager();
 
 }(window));

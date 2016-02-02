@@ -9,7 +9,7 @@
 /* global Template */
 /* global focusManager */
 /* global AppInstallDialogs */
-/* global AppWindowManager */
+/* global Service */
 /* global applications */
 
 'use strict';
@@ -59,8 +59,8 @@ var AppInstallManager = {
               this.dispatchResponse(detail.id, 'webapps-install-denied');
             } else {
               this.dispatchResponse(detail.id, 'webapps-install-granted');
-              if (AppWindowManager.getActiveApp().
-                  config.url.indexOf('#preview') > -1) {
+              if (Service.query('getActiveApp')
+                  .config.url.indexOf('#preview') > -1) {
                 this.setPreviewAppManifestURL(detail.app.manifestURL);
               }
             }
@@ -110,7 +110,7 @@ var AppInstallManager = {
   isMarketplaceAppActive: function ai_isMarketplaceAppActive() {
     const MARKETPLACE_DOMAIN = 'https://marketplace.firefox.com/';
 
-    var activeApp = AppWindowManager.getActiveApp();
+    var activeApp = Service.query('getActiveApp');
     return activeApp && activeApp.manifestURL.startsWith(MARKETPLACE_DOMAIN);
   },
 
@@ -335,7 +335,7 @@ var AppInstallManager = {
       return;
     }
 
-    var marketplaceApp = AppWindowManager.getActiveApp();
+    var marketplaceApp = Service.query('getActiveApp');
     marketplaceApp.publish('launchpreviewapp', {
       url: app.origin + app.manifest.launch_path,
       origin: app.origin,

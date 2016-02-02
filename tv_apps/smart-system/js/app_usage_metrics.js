@@ -41,7 +41,7 @@
  */
 
 /* global asyncStorage, SettingsListener, performance, uuid, TelemetryRequest,
-          applications, LazyLoader, Service, AppWindowManager */
+          applications, LazyLoader, Service */
 (function(exports) {
   'use strict';
 
@@ -478,7 +478,7 @@
       this.metrics.recordInvocation(this.getCurrentApp(),
                                               now - this.getCurrentStartTime());
       this.attentionWindows = [];
-      this.currentApp = AppWindowManager.getActiveApp();
+      this.currentApp = Service.query('getActiveApp');
       this.currentAppStartTime = now;
       break;
     case HOMESCREEN:

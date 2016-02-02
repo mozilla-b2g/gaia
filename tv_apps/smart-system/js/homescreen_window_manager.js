@@ -1,4 +1,4 @@
-/* global Service, FtuLauncher, AppWindowManager, focusManager, BaseModule */
+/* global Service, FtuLauncher, Service, focusManager, BaseModule */
 
 'use strict';
 (function(exports) {
@@ -106,7 +106,7 @@
             // close the _underlayApp.
             var underlayAppIdentity = this._underlayApp.isAppLike ?
               this._underlayApp.identity : this._underlayApp.manifestURL;
-            var currentApp = AppWindowManager.getActiveApp();
+            var currentApp = Service.query('getActiveApp');
             var currentAppIdentity = currentApp.isAppLike ?
               currentApp.identity : currentApp.manifestURL;
             if (underlayAppIdentity === currentAppIdentity) {
@@ -164,7 +164,7 @@
           if (this._underlayApp && !this.landingAppLauncher.hasLandingApp) {
             // If we don't have landing app, pressing home key should switch
             // between underlayApp and homescreen.
-            AppWindowManager.display(this._underlayApp);
+            Service.request('display', this._underlayApp);
           }
           else {
             this.showHomeApp();
@@ -204,7 +204,7 @@
     },
 
     showHomeApp: function hwm_showHomeApp() {
-      var originApp = AppWindowManager.getActiveApp();
+      var originApp = Service.query('getActiveApp');
       var homeApp = this.getHomescreen(true);
       if (originApp.instanceID === homeApp.instanceID) {
         // If we open an activity at home and press home, the originApp is home

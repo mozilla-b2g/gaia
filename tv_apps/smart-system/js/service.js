@@ -216,21 +216,6 @@
       return window.applications && window.applications.ready;
     },
 
- 
-    /**
-     * Indicates the system is busy doing something.
-     * Now it stands for the foreground app is not loaded yet.
-     *
-     * XXX: AppWindowManager should register a service
-     * for isBusyLoading query by
-     * Service.register('isBusyLoading', appWindowManager).
-     */
-
-    isBusyLoading: function() {
-      var app = window.AppWindowManager.getActiveApp();
-      return app && !app.loaded;
-    },
-
     /**
      * Record the start time of the system for later debugging usage.
      * @access private
