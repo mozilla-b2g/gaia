@@ -69,7 +69,6 @@ suite('Keyboard layouts building tests', function() {
                        'ta',
                        'te',
                        'th',
-                       'uk',
                        'vi-Qwerty',
                        'vi-Telex',
                        'vi-Typewriter',
@@ -206,6 +205,7 @@ suite('Keyboard layouts building tests', function() {
         'js/imes/latin/dictionaries/sr-Latn.dict',
         'js/imes/latin/dictionaries/sv.dict',
         'js/imes/latin/dictionaries/tr.dict',
+        'js/imes/latin/dictionaries/uk.dict',
         'js/imes/latin/dictionaries/af.dict'
       ];
 
