@@ -10,15 +10,23 @@ function ActivitiesView(client) {
 
 ActivitiesView.prototype = {
   pickCreateNew: function() {
-      this.client.waitFor(function() {
-        return this.accessors.addNewContactMenuItem.enabled();
-      }.bind(this));
-      var button = this.accessors.addNewContactMenuItem;
-      button.tap();
+    this.openElement(this.accessors.addNewContactMenuItem);
+      
+    var contacts = this.client.loader.getAppClass('contacts');
+    contacts.switchToCreateNewContactActivity();
+    return contacts;
+  },
 
-      var contacts = this.client.loader.getAppClass('contacts');
-      contacts.switchToCreateNewContactActivity();
-      return contacts;
+  pickAddToContact: function() {
+    this.openElement(this.accessors.addToContactMenuItem);
+
+    var contacts = this.client.loader.getAppClass('contacts');
+    contacts.switchToApp();
+    return contacts;
+  },
+
+  openElement: function(accessorToTap){
+      accessorToTap.tap();
   }
 };
 
