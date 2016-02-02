@@ -575,16 +575,26 @@
 
     // Pack the Addon Histograms.
     for (var addon in nameAddonHist) {
-      for (var hist in nameAddonHist[addon]) {
-        nameAddonHist[addon][hist] =
-          this.packHistogram(nameAddonHist[addon][hist]);
+      // Discard any Histograms with no data.
+      if (Object.keys(nameAddonHist[addon]).length === 0) {
+        delete nameAddonHist[addon];
+      } else {
+        for (var hist in nameAddonHist[addon]) {
+          nameAddonHist[addon][hist] =
+            this.packHistogram(nameAddonHist[addon][hist]);
+        }
       }
     }
 
     // Pack the Keyed Histograms.
     for (var key in nameKeyHist) {
-      for (var hist2 in nameKeyHist[key]) {
-        nameKeyHist[key][hist2] = this.packHistogram(nameKeyHist[key][hist2]);
+      // Discard any Histograms with no data.
+      if (Object.keys(nameKeyHist[key]).length === 0) {
+        delete nameKeyHist[key];
+      } else {
+        for (var hist2 in nameKeyHist[key]) {
+          nameKeyHist[key][hist2] = this.packHistogram(nameKeyHist[key][hist2]);
+        }
       }
     }
   };
