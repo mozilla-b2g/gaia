@@ -1,5 +1,4 @@
-/* globals Service, AppWindowManager, SettingsListener,
-           AttentionIndicator, focusManager */
+/* globals Service, SettingsListener, AttentionIndicator, focusManager */
 'use strict';
 
 (function(exports) {
@@ -119,7 +118,7 @@
           var candidate = null;
           if (this._openedInstances.size === 0) {
             this._topMostWindow = null;
-            candidate = AppWindowManager.getActiveApp();
+            candidate = Service.query('getActiveApp');
           } else {
             this._openedInstances.forEach(function(instance) {
               candidate = instance;

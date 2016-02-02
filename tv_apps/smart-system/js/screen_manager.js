@@ -1,6 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global SettingsCache, AppWindowManager */
+/* global SettingsCache, Service */
 'use strict';
 
 var ScreenManager = {
@@ -365,7 +365,7 @@ var ScreenManager = {
     // Remove idle timer if screen wake lock is acquired or
     // if no app has been displayed yet.
     if (this._screenWakeLocked || typeof(AppWindowManager) !== 'object' ||
-        !AppWindowManager.getActiveApp()) {
+        !Service.query('getActiveApp')) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
