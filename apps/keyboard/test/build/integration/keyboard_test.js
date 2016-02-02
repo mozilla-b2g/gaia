@@ -69,7 +69,6 @@ suite('Keyboard layouts building tests', function() {
                        'ta',
                        'te',
                        'th',
-                       'uk',
                        'vi-Qwerty',
                        'vi-Telex',
                        'vi-Typewriter',

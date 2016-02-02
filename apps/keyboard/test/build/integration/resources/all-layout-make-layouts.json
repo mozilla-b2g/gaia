@@ -968,11 +968,14 @@
     "imEngineId": "latin",
     "types": [
       "email",
+      "password",
       "text",
       "url"
     ],
-    "dictFileSize": 2518,
-    "preloaded": true
+    "dictFileSize": 1530541,
+    "preloaded": true,
+    "dictFilename": "uk.dict",
+    "dictFilePath": "dictionaries/uk.dict"
   },
   {
     "id": "vi-Qwerty",
