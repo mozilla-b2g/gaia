@@ -1,6 +1,6 @@
 'use strict';
 
-/* global AppWindowManager */
+/* global Service */
 
 var StackManager = {
   init: function sm_init() {
@@ -23,7 +23,7 @@ var StackManager = {
     // Until then we can get into edge cases where the app currently
     // displayed is not part of the stack and we don't want to break.
     if (!app) {
-      app = AppWindowManager.getActiveApp();
+      app = Service.query('getActiveApp');
     }
 
     return app;
@@ -312,7 +312,7 @@ var StackManager = {
     }
 
     if (this._broadcastTimeout === null) {
-      AppWindowManager.sendStopRecordingRequest();
+      Service.request('stopRecording');
     }
 
     clearTimeout(this._broadcastTimeout);

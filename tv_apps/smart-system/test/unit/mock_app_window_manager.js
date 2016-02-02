@@ -52,7 +52,7 @@ MockAppWindowManager.prototype = {
   broadcastMessage: function() {
   },
 
-  sendStopRecordingRequest: function(callback) {
+  stopRecording: function(callback) {
     if (callback) {
       callback();
     }
