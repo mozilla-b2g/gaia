@@ -14,6 +14,8 @@ var SearchResult = {
   updateInProgress: false,
   pendingUpdateFilter: null,
 
+  historyLimit: 500,
+
   /**
    * Intialise SearchResult.
    */
@@ -27,6 +29,14 @@ var SearchResult = {
     // Create template elements
     this.listTemplate = this.createList();
     this.searchResultTemplate = this.createSearchTemplate();
+
+    var setting = 'sync.collections.history.limit';
+    var req = navigator.mozSettings.createLock().get(setting)
+    req.onsuccess = () => {
+      if (req.result[setting]) {
+        this.historyLimit = req.result.setting;
+      }
+    };
   },
 
   /**
@@ -113,20 +123,23 @@ var SearchResult = {
     }
 
     this.allResult = [];
-    BrowserDB.getBookmarks((function(bookmarks) {
+    BrowserDB.getBookmarks(bookmarks => {
       this.resultFiltering(filter, bookmarks);
-      BrowserDB.getHistory((function(history) {
-        this.resultFiltering(filter, history);
-        this.populateResults(filter);
+      SyncBrowserDB.getHistory(this.historyLimit, syncHistory => {
+      this.resultFiltering(filter, syncHistory);
+        BrowserDB.getHistory(history => {
+          this.resultFiltering(filter, history);
+          this.populateResults(filter);
 
-        this.updateInProgress = false;
-        var pendingUpdateFilter = this.pendingUpdateFilter;
-        if (pendingUpdateFilter !== null) {
-          this.pendingUpdateFilter = null;
-          this.resultUpdate(pendingUpdateFilter);
-        }
-      }).bind(this));
-    }).bind(this));
+          this.updateInProgress = false;
+          var pendingUpdateFilter = this.pendingUpdateFilter;
+          if (pendingUpdateFilter !== null) {
+            this.pendingUpdateFilter = null;
+            this.resultUpdate(pendingUpdateFilter);
+          }
+        });
+      });
+    });
   },
 
   resultFiltering: function result_resultFiltering(filter, data) {
