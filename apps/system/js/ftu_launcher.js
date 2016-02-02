@@ -72,8 +72,6 @@
         LazyLoader.load(['js/ftu_ping.js', 'js/ftu_late_customization.js'])
       ]).then((results) => {
           var [customizationURL] = results;
-          this._ftuPing = new FtuPing();
-          this._ftuPing.ensurePing();
           if (customizationURL) {
             this._isFtuCustomizing = true;
             this._lateCustomization =
@@ -231,6 +229,10 @@
       this._isRunningFirstTime = false;
       this._isUpgrading = false;
       this._done = true;
+
+      this._ftuPing = new FtuPing();
+      this._ftuPing.ensurePing();
+
       window.asyncStorage.setItem('ftu.enabled', false);
       // update the previous_os setting (asyn)
       // so we dont try and handle upgrade again

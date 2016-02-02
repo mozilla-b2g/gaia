@@ -69,7 +69,7 @@ suite('launch ftu >', function() {
 
   suite('ftu.enabled >', function() {
     setup(function() {
-      startAllPromise.mFulfillToValue([]);
+      subject.close();
     });
     test('ftu ping is called', function() {
       assert.ok(subject.getFtuPing().ensurePingCalled);
