@@ -575,6 +575,7 @@ DataAdapters.history = {
   handleConflict(conflict) {
     console.warn('CONFLICT!!!!');
     console.warn(conflict);
+    console.warn(JSON.stringify(conflict));
     return Promise.resolve(conflict.local);
   },
 

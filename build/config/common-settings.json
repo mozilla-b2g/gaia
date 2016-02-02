@@ -241,7 +241,7 @@
    "sync.collections.history.enabled": true,
    "sync.collections.passwords.enabled": false,
    "sync.collections.bookmarks.enabled": false,
-   "sync.collections.history.readonly": true,
+   "sync.collections.history.readonly": false,
    "sync.collections.passwords.readonly": true,
    "sync.collections.bookmarks.readonly": true,
    "sync.collections.history.limit": 50,
