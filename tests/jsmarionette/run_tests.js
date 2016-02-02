@@ -14,6 +14,7 @@ var configs = Object.freeze({
       'test/node/connection-manager-test',
       'test/marionette/drivers/abstract-test',
       'test/marionette/drivers/tcp-test',
+      'test/marionette/drivers/promises-test',
       'test/marionette/drivers/tcp-sync-test',
       'test/marionette/actions-test',
       'test/marionette/client-test',
