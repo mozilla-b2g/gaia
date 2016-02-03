@@ -127,9 +127,7 @@
         Applications.on('uninstall', that.onAppUninstalled.bind(that));
       };
 
-      navigator.mozL10n.once(function() {
-        Applications.init(afterApplicationsInit);
-      });
+      Applications.init(afterApplicationsInit);
     },
 
     /**
