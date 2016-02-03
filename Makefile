@@ -444,12 +444,6 @@ endif
 
 GAIA_ALLAPPDIRS=$(shell find -L $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps $(GAIA_DIR)$(SEP)tv_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
 
-GAIA_APPDIRS?=$(shell $(call run-js-command,scan-appdir, \
-		GAIA_APP_CONFIG="$(GAIA_APP_CONFIG)" \
-		GAIA_DIR="$(GAIA_DIR)" \
-		GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)" \
-		GAIA_APP_SRCDIRS="$(GAIA_APP_SRCDIRS)"))
-
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
   $(shell mkdir -p outoftree_apps \
     $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
@@ -459,7 +453,6 @@ endif
 
 GAIA_LOCALES_PATH?=locales
 LOCALES_FILE?=shared/resources/languages.json
-GAIA_LOCALE_SRCDIRS=$(GAIA_DIR)$(SEP)shared $(GAIA_APPDIRS)
 GAIA_DEFAULT_LOCALE?=en-US
 GAIA_PRETRANSLATE?=1
 GAIA_CONCAT_LOCALES?=1
@@ -560,6 +553,7 @@ define BUILD_CONFIG
   "GAIA_PRETRANSLATE" : "$(GAIA_PRETRANSLATE)", \
   "GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
   "GAIA_ENGINE" : "xpcshell", \
+  "GAIA_APP_CONFIG" : "$(GAIA_APP_CONFIG)", \
   "GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
   "GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
   "GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
