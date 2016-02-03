@@ -732,10 +732,10 @@ var Browser = {
         if (evt.detail.type === 'fatal') {
           if( Awesomescreen.isDisplayedTab() ) Awesomescreen.tabviewHidden();
           this.handleCrashed(tab);
+          setTimeout( function() {
+            BrowserDialog.createDialog('error_browser', evt);
+          }, 800);
         }
-        setTimeout( function() {
-          BrowserDialog.createDialog('error_browser', evt);
-        }, 800);
         break;
 
       case 'mozbrowserasyncscroll':

@@ -4,9 +4,6 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <link rel="stylesheet" href="style/net_error.css" type="text/css" />
-    <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
-    <link rel="stylesheet" href="shared/style/action_menu.css" type="text/css" />
-    <link rel="stylesheet" href="shared/style/progress_activity.css" type="text/css" />
 
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
@@ -15,12 +12,18 @@
     <script defer src="shared/js/lazy_loader.js"></script>
 
     <link rel="import" href="/elements/net_error_confirm_dialog.html">
-    <link rel="import" href="/elements/net_error_action_menu.html">
+
+    <!-- Include tv shared web components -->
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
+    <script defer src="bower_components/smart-button/script.js"></script>
+
+    <!-- Helper libraries -->
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
   </head>
   <body id="net-error">
-    <section is="net-error-confirm-dialog" id="net-error-confirm-dialog"></section>
-    <section is="net-error-action-menu" id="net-error-action-menu"></section>
-    
+    <section is="net-error-confirm-dialog" id="net-error-confirm-dialog" class="net-error-dialog"></section>
+
     <script defer src="js/net_error.js"></script>
   </body>
   <!-- add smart-system manifest url to our global object for net_error -->
