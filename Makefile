@@ -444,11 +444,24 @@ endif
 
 GAIA_ALLAPPDIRS=$(shell find -L $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps $(GAIA_DIR)$(SEP)tv_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
 
-GAIA_APPDIRS?=$(shell $(call run-js-command,scan-appdir, \
+# XXX: Using run-node-command would cause a circular reference error, but
+# attempts to move the scan-appdir action to js (app.js) caused a strange issue
+# with spawnProcess for xpcshell (unable to pass GAIA_APPDIRS in the options).
+# Also need to make sure it runs xpcshell if RUN_ON_NODE is not turned on
+# because b2g-inbound still runs node 0.10 rather than 4.x, and will break
+# when parsing arrow function.
+ifeq ($(RUN_ON_NODE),0)
+	APPDIRS_BUILD_RUNNER=run-js-command
+else
+	APPDIRS_BUILD_RUNNER=run-node-command-without-config
+endif
+
+GAIA_APPDIRS?=$(shell $(call $(APPDIRS_BUILD_RUNNER),scan-appdir, \
 		GAIA_APP_CONFIG="$(GAIA_APP_CONFIG)" \
 		GAIA_DIR="$(GAIA_DIR)" \
 		GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)" \
 		GAIA_APP_SRCDIRS="$(GAIA_APP_SRCDIRS)"))
+
 
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
   $(shell mkdir -p outoftree_apps \
