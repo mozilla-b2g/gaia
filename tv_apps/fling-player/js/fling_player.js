@@ -82,7 +82,7 @@
     this._keyNavAdapter.init();
     this._keyNavAdapter.on('enter', this.onKeyEnterDown.bind(this));
     this._keyNavAdapter.on('enter-keyup', this.onKeyEnterUp.bind(this));
-    this._keyNavAdapter.on('esc-keyup', this.onBackKeyUp.bind(this));
+    this._keyNavAdapter.on('back-keyup', this.onBackKeyUp.bind(this));
     this._keyNavAdapter.on('move-keyup',
       this.onDemandingControlPanel.bind(this)
     );
