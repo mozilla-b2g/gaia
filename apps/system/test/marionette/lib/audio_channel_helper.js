@@ -19,8 +19,8 @@ AudioChannelHelper.prototype = {
     client.switchToFrame();
     client.waitFor(function() {
       return isPlaying === client.executeScript(function(url, audioChannel) {
-        return window.wrappedJSObject.Service.query('getApp', url)
-          .audioChannels.get(audioChannel).isPlaying();
+        return window.wrappedJSObject.core.appCore.appWindowManager
+          .getApp(url).audioChannels.get(audioChannel).isPlaying();
       }, [url, audioChannel]);
     });
   },
@@ -37,8 +37,8 @@ AudioChannelHelper.prototype = {
     client.switchToFrame();
     client.waitFor(function() {
       return isFadingOut === client.executeScript(function(url, audioChannel) {
-        return window.wrappedJSObject.Service.query('getApp', url)
-          .audioChannels.get(audioChannel).isFadingOut();
+        return window.wrappedJSObject.core.appCore.appWindowManager
+          .getApp(url).audioChannels.get(audioChannel).isFadingOut();
       }, [url, audioChannel]);
     });
   },
@@ -55,8 +55,8 @@ AudioChannelHelper.prototype = {
     client.switchToFrame();
     client.waitFor(function() {
       return isVibrating === client.executeScript(function(url, audioChannel) {
-        return window.wrappedJSObject.Service.query('getApp', url)
-          .audioChannels.get(audioChannel).isVibrating();
+        return window.wrappedJSObject.core.appCore.appWindowManager
+          .getApp(url).audioChannels.get(audioChannel).isVibrating();
       }, [url, audioChannel]);
     });
   }
