@@ -21,7 +21,11 @@ Statusbar.prototype = {
 
   waitForPlayingIndicatorShown: function(shouldBeShown) {
     if (shouldBeShown) {
-      this.client.helper.waitForElement(this.playingIndicator);
+      this.client.switchToFrame();
+      this.client.helper.waitFor(function() {
+        var el = this.client.findElement(Statusbar.Selector.playingIndicator);
+        return el;
+      }.bind(this));
     } else {
       this.client.helper.waitForElementToDisappear(this.playingIndicator);
     }
