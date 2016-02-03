@@ -92,17 +92,6 @@ global.mozIntl = {
     resolvedOptions.locale = intlFormat.resolvedOptions().locale;
     resolvedOptions.hour12 = intlFormat.resolvedOptions().hour12;
 
-    // This is needed for a workaround for bug 1208808
-    // Remove when that bug is fixed
-    var hourFormatter;
-    if (resolvedOptions.dayperiod !== undefined &&
-        resolvedOptions.hour12 === true) {
-      hourFormatter = Intl.DateTimeFormat(locales, {
-        hour: 'numeric',
-        hour12: false
-      });
-    }
-
     return {
       resolvedOptions() { return resolvedOptions; },
       format: function(date, tokenFormats) {
@@ -112,16 +101,11 @@ global.mozIntl = {
 
         if (resolvedOptions.dayperiod === false &&
             resolvedOptions.hour12 === true) {
-          dayPeriod = getDayPeriodTokenForDate(date, hourFormatter);
+          dayPeriod = getDayPeriodTokenForDate(date, intlFormat);
           string = string.replace(dayPeriod, '').trim();
         } else if (resolvedOptions.dayperiod === true &&
            options.hour === undefined) {
-          dayPeriod = getDayPeriodTokenForDate(date, hourFormatter);
-          const hour = date.toLocaleString(navigator.languages, {
-            hour12: true,
-            hour: 'numeric'
-          }).replace(dayPeriod, '').trim();
-          string = string.replace(hour, '').trim();
+          string = getDayPeriodTokenForDate(date, intlFormat);
         }
 
         for (var token in tokenFormats) {
@@ -134,7 +118,7 @@ global.mozIntl = {
           };
 
           var formatter = global.mozIntl.DateTimeFormat(
-            navigator.languages, localOptions);
+            locales, localOptions);
           var tokenString = formatter.format(date);
           string = string.replace(tokenString, tokenFormats[token]);
         }
@@ -499,20 +483,12 @@ function trimDurationPattern(string, maxUnit, minUnit) {
 
 /**
  * This helper function is used by mozIntl.DateTimeFormat
- *
- * This is necessary because sometimes toLocaleFormat
- * uses different timezone than Intl API
- * which leads to it resolving %p to 'PM' while Intl is in 'AM'
- *
- * So what we do here, is we force the same hour in toLocaleFormat API
- * as we use in Intl API, to enforce the same dayperiod to remove it.
- * Remove once bug 1208808 is fixed
  */
 function getDayPeriodTokenForDate(date, hourFormatter) {
-  const hourToken = hourFormatter.format(date);
-  const newDate = new Date(date);
-  newDate.setHours(parseInt(hourToken));
-  return newDate.toLocaleFormat('%p');
+  const hourParts = hourFormatter.formatToParts(date);
+  const dayPeriodToken = hourParts.find(part => part.type === 'dayperiod');
+
+  return dayPeriodToken ? dayPeriodToken.value : '';
 }
 
 /*
