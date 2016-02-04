@@ -57,7 +57,6 @@
     "node-static": "^0.7.7",
     "npmr": "^0.0.3",
     "proxyquire": "^1.7.3",
-    "q": "^1.4.1",
     "request": "^2.65.0",
     "restify": "^4.0.3",
     "rimraf": "^2.4.3",

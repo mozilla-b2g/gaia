@@ -35,11 +35,13 @@ function execute(options) {
     }
 
     if (mainManifestFile) {
-      webappsJSON[app].manifestHash = utils.getMD5hash(mainManifestFile);
+      webappsJSON[app].manifestHash =
+        utils.getHash(mainManifestFile, 'binary', 'md5');
     }
 
     if (utils.fileExists(packageJSON)) {
-      webappsJSON[app].packageHash = utils.getMD5hash(packageJSON);
+      webappsJSON[app].packageHash =
+        utils.getHash(packageJSON, 'binary', 'md5');
     }
   }
 

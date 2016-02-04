@@ -262,39 +262,19 @@ function execute(config) {
     settings['screen.timeout'] = screenTimeout;
   }
 
-  var queue = utils.Q.defer();
-  queue.resolve();
-  var wait = true;
-  var result = queue.promise.then(function() {
-    setWallpaper(settings, config);
-  }).then(function() {
-    setMediatone(settings, config);
-  }).then(function() {
-    setAlarmtone(settings, config);
-  }).then(function() {
-    setRingtone(settings, config);
-  }).then(function() {
-    setNotification(settings, config);
-  }).then(function() {
-    deviceTypeSettings(settings, config);
-  }).then(function() {
-    overrideSettings(settings, config);
-  }).then(function() {
-    setHomescreenURL(settings, config);
-  }).then(function() {
-    writeSettings(settings, config);
-    wait = false;
-    return settings;
-  });
-  // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){
-    return {
-      wait : wait
-    };
-  });
+  setWallpaper(settings, config);
+  setMediatone(settings, config);
+  setAlarmtone(settings, config);
+  setRingtone(settings, config);
+  setNotification(settings, config);
+  deviceTypeSettings(settings, config);
+  overrideSettings(settings, config);
+  setHomescreenURL(settings, config);
+  writeSettings(settings, config);
 
-  return result;
+  return settings;
 }
+
 exports.execute = execute;
 exports.setWallpaper = setWallpaper;
 exports.setMediatone = setMediatone;
