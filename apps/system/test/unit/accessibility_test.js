@@ -277,16 +277,17 @@ suite('system/Accessibility', function() {
     });
 
     test('captions when accessibility.screenreader-captions is set',
-      function() {
+      function(done) {
         var stubShowSpeech = this.sinon.stub(speechSynthesizer,
           'showSpeech');
         var stubHideSpeech = this.sinon.stub(speechSynthesizer,
           'hideSpeech');
         SettingsListener.mTriggerCallback(
           'accessibility.screenreader-captions', true);
-        speechSynthesizer.speak(fakeSentence, {});
-        assert.isTrue(stubShowSpeech.called);
-        assert.isTrue(stubHideSpeech.called);
+        speechSynthesizer.speak(fakeSentence, {}).then(() => {
+          assert.isTrue(stubShowSpeech.called);
+          assert.isTrue(stubHideSpeech.called);
+        }).then(done, done);
       });
 
     test('showSpeech', function() {

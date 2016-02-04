@@ -4,7 +4,6 @@
 (function(window) {
   'use strict';
 
-  var _ = navigator.mozL10n.get;
   const PINNING_PREF = 'dev.gaia.pinning_the_web';
   const SITE_ICON_SIZE = 72;
 
@@ -93,14 +92,14 @@
             case 'copy-link':
               itemObj = {
                 id: choice.id,
-                label: _(choice.id),
+                label: choice.id,
               };
               break;
 
             default:
               // Customized menu items
               itemObj = {
-                label: choice.label,
+                label: {raw: choice.label},
                 icon: choice.icon,
               };
           }
@@ -172,14 +171,14 @@
       if (this.pinningEnabled) {
         return {
           id: 'pin-to-home-screen',
-          label: _('pin-to-home-screen'),
+          label: 'pin-to-home-screen',
           callback: this.pinUrl.bind(this, url, name)
         };
       }
 
       return {
         id: 'add-to-homescreen',
-        label: _('add-link-to-home-screen'),
+        label: 'add-link-to-home-screen',
         callback: this.bookmarkUrl.bind(this, url, name)
       };
     },
@@ -267,20 +266,20 @@
         case 'A':
           return [{
             id: 'open-in-new-window',
-            label: _('open-in-new-window'),
+            label: 'open-in-new-window',
             callback: this.openUrl.bind(this, uri)
           }, {
             id: 'open-in-new-private-window',
-            label: _('open-in-new-private-window'),
+            label: 'open-in-new-private-window',
             callback: this.openUrl.bind(this, uri, true)
           }, {
             id: 'save-link',
-            label: _('save-link'),
+            label: 'save-link',
             callback: this.app.browser.element.download.bind(
               this.app.browser.element, uri, { referrer: documentURI })
           }, {
             id: 'share-link',
-            label: _('share-link'),
+            label: 'share-link',
             callback: this.shareUrl.bind(this, uri)
           }];
 
@@ -299,12 +298,12 @@
 
           return [{
             id: 'save-' + type,
-            label: _('save-' + type),
+            label: 'save-' + type,
             callback: this.app.browser.element.download.bind(
               this.app.browser.element, uri, { referrer: documentURI })
           }, {
             id: 'share-' + type,
-            label: _('share-' + type),
+            label: 'share-' + type,
             callback: this.shareUrl.bind(this, uri)
           }];
 
@@ -327,19 +326,19 @@
 
           menuData.push({
             id: 'new-window',
-            label: _('new-window'),
+            label: 'new-window',
             callback: this.newWindow.bind(this, manifest)
           });
 
           menuData.push({
             id: 'new-private-window',
-            label: _('new-private-window'),
+            label: 'new-private-window',
             callback: this.newWindow.bind(this, manifest, true)
           });
 
           menuData.push({
             id: 'show-windows',
-            label: _('show-windows'),
+            label: 'show-windows',
             callback: this.showWindows.bind(this)
           });
 
@@ -355,7 +354,7 @@
 
           menuData.push({
             id: 'share',
-            label: _('share'),
+            label: 'share',
             callback: this.shareUrl.bind(this, config.url)
           });
 

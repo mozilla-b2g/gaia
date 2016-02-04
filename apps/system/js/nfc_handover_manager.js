@@ -358,10 +358,9 @@
      * @memberof NfcHandoverManager.prototype
      */
     _showFailedNotification: function _showFailedNotification(title, msg) {
-      var body = (msg !== undefined) ? msg : '';
       var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
       NotificationHelper.send(title, {
-        body: body,
+        bodyL10n: msg,
         icon: icon
       });
     },
@@ -371,9 +370,8 @@
      * @memberof NfcHandoverManager.prototype
      */
     _showTryAgainNotification: function _showTryAgainNotification() {
-      var _ = navigator.mozL10n.get;
       this._showFailedNotification('transferFinished-sentFailed-title',
-                                  _('transferFinished-try-again-description'));
+                                  'transferFinished-try-again-description');
     },
 
     /**
@@ -388,7 +386,7 @@
       var job = this.sendFileQueue.pop();
       job.onerror();
       this._showFailedNotification('transferFinished-sentFailed-title',
-                                   job.blob.name);
+                                   {raw: job.blob.name});
       this._restoreBluetoothStatus();
     },
 
@@ -496,7 +494,7 @@
         onerror();
         this._restoreBluetoothStatus();
         this._showFailedNotification('transferFinished-sentFailed-title',
-                                     msg.blob.name);
+                                     {raw: msg.blob.name});
         return;
       }
       var job = {nfcPeer: msg.peer, blob: msg.blob, requestId: msg.requestId,
@@ -516,7 +514,7 @@
         this._clearTimeout();
         this._restoreBluetoothStatus();
         this._showFailedNotification('transferFinished-sentFailed-title',
-                                     msg.blob.name);
+                                     {raw: msg.blob.name});
       });
       this._clearTimeout();
       this.responseTimeoutFunction =
