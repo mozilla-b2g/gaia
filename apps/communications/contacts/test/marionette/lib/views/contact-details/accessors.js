@@ -2,10 +2,11 @@
 
 /* global module */
 var SELECTORS = Object.freeze({
-	detailsFavoriteButton: '#toggle-favorite',
-	detailsHeader: '#details-view-header',
 	details: '#view-contact-details',
-	list: '#view-contacts-list'
+	detailsFavoriteButton: '#toggle-favorite',
+	detailsCoverImage: '#cover-img',
+	detailsShareButton: '#contact-detail-inner #share_button',
+	systemMenu: 'form[data-z-index-level="action-menu"]'
 });
 
 function ContactsDetailsAccessor(client) {
@@ -23,16 +24,16 @@ ContactsDetailsAccessor.prototype = {
 		SELECTORS.detailsHeader);
 	},
 
-	get listSelector () {
-	 	return SELECTORS.list;
-	 }, 
-
-	 get detailsSelector () {
-	 	return SELECTORS.details;
+	 get detailsCoverImage () {
+	 	return SELECTORS.detailsCoverImage;
 	 },
 
-	 get detailsHeaderSelector () {
-	 	return SELECTORS.detailsHeader;
+	 get detailsShareButton () {
+	 	return SELECTORS.detailsShareButton;
+	 },
+
+	 get systemMenu () {
+	 	return SELECTORS.systemMenu;
 	 }
 };
 

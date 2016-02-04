@@ -18,27 +18,18 @@ ContactsListView.prototype = {
 		return this.accessors.firstFavorite;
 	},
 
-	waitSlideLeftDetails: function() {
-		var element = this.client.findElement(
-		this.accessors.detailsSelector),
-        location;
-    	var waitUntilPanelReachedLeftBorder = function() {
-      	location = element.location();
-      	return location.x <= 0;
-    	};
-    	this.client.waitFor(waitUntilPanelReachedLeftBorder);
-	},
-
 	goToContact: function() {
 		this.firstContact.tap();
-		this.waitSlideLeftDetails();
+		var ContactsBaseView = require('../contact-base/view');
+		var contactsBaseView = new ContactsBaseView(this.client);
+		contactsBaseView.waitSlideLeft(this.accessors.detailsSelector);
 		return this._createContactsDetailsView();
 	},
 
 	_createContactsDetailsView: function() {
 		var ContactsDetailsView = require('../contact-details/view');
 		var contactsDetailsView = new ContactsDetailsView(
-		this.client, this.subject);
+		this.client);
 		return contactsDetailsView;
 	}
 
