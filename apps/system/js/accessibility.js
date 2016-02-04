@@ -804,7 +804,10 @@
       }
 
       return this.buildUtterance(aData).then(sentence => {
-        return new Promise((resolve, reject) => {
+        if (!sentence) {
+          return Promise.resolve();
+        }
+        return new Promise((resolve) => {
           var utterance = new this.utterance(sentence);
           utterance.volume = aVolume;
           utterance.rate = aRate;
