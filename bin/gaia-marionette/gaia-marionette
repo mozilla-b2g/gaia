@@ -151,6 +151,9 @@ fi
 DEVICE_TYPE_OPT=""
 if [ -z "$GAIA_DEVICE_TYPE" ] || [ "$GAIA_DEVICE_TYPE" = "phone" ]; then
   DEVICE_TYPE_OPT="--device-type phone"
+else if [ "$GAIA_DEVICE_TYPE" = "tv" ]; then
+  DEVICE_TYPE_OPT="--device-type tv"
+  TEST_FILES=$(find "$BINDIR/.." -path "*/tv_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES)
 else
   DEVICE_TYPE_OPT="--device-type $GAIA_DEVICE_TYPE"
 fi
