@@ -9,7 +9,7 @@
  * @param {Marionette.Client} client Marionette client to use.
  */
 function ModalDialog(client) {
-  this.client = client.scope({ searchTimeout: 200000 });
+  this.client = client.scope({ searchTimeout: 10000 }); //200000
   this.client.helper = client.helper;
 }
 
@@ -48,55 +48,107 @@ ModalDialog.Selector = Object.freeze({
 ModalDialog.prototype = {
 
   get alertDialog() {
-    return this.client.findElement(ModalDialog.Selector.alert.dialog);
+    if(!this._alertDialog) {
+      this._alertDialog =
+        this.client.findElement(ModalDialog.Selector.alert.dialog);
+    }
+    return this._alertDialog;
   },
 
   get alertOk() {
-    return this.client.findElement(ModalDialog.Selector.alert.ok);
+    if(!this._alertOk) {
+      this._alertOk =
+        this.client.findElement(ModalDialog.Selector.alert.ok);
+    }
+    return this._alertOk;
   },
 
   get alertMessage() {
-    return this.client.findElement(ModalDialog.Selector.alert.message);
+    if(!this._alertMessage) {
+      this._alertMessage =
+        this.client.findElement(ModalDialog.Selector.alert.message);
+    }
+    return this._alertMessage;
   },
 
   get promptDialog() {
-    return this.client.findElement(ModalDialog.Selector.prompt.dialog);
+    if(!this._promptDialog) {
+      this._promptDialog =
+        this.client.findElement(ModalDialog.Selector.prompt.dialog);
+    }
+    return this._promptDialog;
   },
 
   get promptOk() {
-    return this.client.findElement(ModalDialog.Selector.prompt.ok);
+    if(!this._promptOk) {
+      this._promptOk =
+        this.client.findElement(ModalDialog.Selector.prompt.ok);
+    }
+    return this._promptOk;
   },
 
   get promptCancel() {
-    return this.client.findElement(ModalDialog.Selector.prompt.cancel);
+    if(!this._promptCancel) {
+      this._promptCancel =
+        this.client.findElement(ModalDialog.Selector.prompt.cancel);
+    }
+    return this._promptCancel;
   },
 
   get promptTitle() {
-    return this.client.findElement(ModalDialog.Selector.prompt.title);
+    if(!this._promptTitle) {
+      this._promptTitle =
+        this.client.findElement(ModalDialog.Selector.prompt.title);
+    }
+    return this._promptTitle;
   },
 
   get promptMessage() {
-    return this.client.findElement(ModalDialog.Selector.prompt.message);
+    if(!this._promptMessage) {
+      this._promptMessage =
+        this.client.findElement(ModalDialog.Selector.prompt.message);
+    }
+    return this._promptMessage;
   },
 
   get promptInput() {
-    return this.client.findElement(ModalDialog.Selector.prompt.input);
+    if(!this._promptInput) {
+      this._promptInput =
+        this.client.findElement(ModalDialog.Selector.prompt.input);
+    }
+    return this._promptInput;
   },
 
   get confirmDialog() {
-    return this.client.findElement(ModalDialog.Selector.confirm.dialog);
+    if(!this._confirmDialog) {
+      this._confirmDialog =
+        this.client.findElement(ModalDialog.Selector.confirm.dialog);
+    }
+    return this._confirmDialog;
   },
 
   get confirmOk() {
-    return this.client.findElement(ModalDialog.Selector.confirm.ok);
+    if(!this._confirmOk) {
+      this._confirmOk =
+        this.client.findElement(ModalDialog.Selector.confirm.ok);
+    }
+    return this._confirmOk;
   },
 
   get confirmCancel() {
-    return this.client.findElement(ModalDialog.Selector.confirm.cancel);
+    if(!this._confirmCancel) {
+      this._confirmCancel =
+        this.client.findElement(ModalDialog.Selector.confirm.cancel);
+    }
+    return this._confirmCancel;
   },
 
   get confirmMessage() {
-    return this.client.findElement(ModalDialog.Selector.confirm.message);
+    if(!this._confirmMessage) {
+      this._confirmMessage =
+        this.client.findElement(ModalDialog.Selector.confirm.message);
+    }
+    return this._confirmMessage;
   },
 
   /**
@@ -119,6 +171,7 @@ ModalDialog.prototype = {
   waitForDialogOpened: function(element) {
     this.client.waitFor(function() {
       var dialogClass = element.getAttribute('class');
+      console.log('dialogClass =', dialogClass);
       return dialogClass.indexOf('visible') != -1;
     });
   },
@@ -131,6 +184,26 @@ ModalDialog.prototype = {
     this.client.waitFor(function() {
       var dialogClass = element.getAttribute('class');
       return dialogClass.indexOf('visible') == -1;
+    });
+  },
+
+  tryToWait: function (title, elem) {
+    console.log('>>> Try to wait for', title);
+    console.log('elem =', elem);
+    var count = 10;
+    this.client.waitFor(function() {
+      var clazz = elem.getAttribute('class');
+      console.log('class =', clazz);
+      count--;
+      if (count < 0 || clazz) return true;
+    });
+    console.log('<<< Try to wait for', title);
+  },
+
+  find: function (css, cb) {
+    console.log('>>> Try to find ', css);
+    return this.client.findElement(css, function (err, elem) {
+      cb(css, err, elem);
     });
   }
 };

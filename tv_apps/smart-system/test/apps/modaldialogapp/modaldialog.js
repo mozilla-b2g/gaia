@@ -8,11 +8,16 @@ function showDialog(type, message) {
         alert(message);
         break;
       case 'prompt':
+        var p = document.querySelector('.description');
+        p.innerHTML = p.innerHTML + ' prompted';
         prompt(message);
+        p.innerHTML = p.innerHTML + ' and returned';
         break;
       case 'confirm':
         confirm(message);
         break;
     }
-  }, 1000);
+  }, 500);
 }
+// showDialog('prompt', 'prompt');
+// showDialog('prompt', 'showDialog');

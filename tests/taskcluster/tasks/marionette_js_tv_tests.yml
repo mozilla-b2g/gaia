@@ -14,7 +14,7 @@ task:
     - docker-worker:cache:gaia-misc-caches
 
   payload:
-    maxRunTime: 7200
+    maxRunTime: 2400
     cache:
       gaia-misc-caches: /home/worker/caches/
     # Chunking logic is actually in the Makefile here which may make it
@@ -22,10 +22,12 @@ task:
     env:
       PART: '{{chunk}}'
       NBPARTS: '{{totalChunks}}'
-      REPORTER: 'mocha-tbpl-reporter'
+      #REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
       GAIA_DEVICE_TYPE: 'tv'
       NODE_MODULES_SRC: npm-cache
+      VERBOSE: 1
+      REPORTER: 'spec'
 
     command:
       - entrypoint
