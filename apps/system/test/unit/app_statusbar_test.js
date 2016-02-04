@@ -1,7 +1,7 @@
 /* global MockAppWindow, AppStatusbar, MocksHelper, MockTouchForwarder */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_app_window.js');
 require('/test/unit/mock_touch_forwarder.js');
 requireApp('system/js/service.js');

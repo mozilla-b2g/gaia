@@ -158,7 +158,7 @@
     if (typeof(l10nAttrs) === 'string') {
       element.setAttribute('data-l10n-id', l10nAttrs);
     } else {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         element, l10nAttrs.id, l10nAttrs.args);
     }
   }

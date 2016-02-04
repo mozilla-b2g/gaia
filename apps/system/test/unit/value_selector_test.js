@@ -4,7 +4,7 @@
  Sanitizer */
 
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/shared/js/sanitizer.js');
 requireApp('system/test/unit/mock_app_window.js');
@@ -52,8 +52,8 @@ suite('value selector/value selector', function() {
 
   setup(function(done) {
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realKeyboard = window.navigator.mozInputMethod;
     window.navigator.mozInputMethod = sinon.stub();
@@ -80,7 +80,7 @@ suite('value selector/value selector', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.navigator.mozInputMethod = realKeyboard;
     rafStub.restore();
     document.body.innerHTML = '';
@@ -111,7 +111,7 @@ suite('value selector/value selector', function() {
   test('Time Picker (en-US)', function(done) {
     var stubPublish = this.sinon.stub(vs, 'publish');
     stubMozl10n =
-      this.sinon.stub(navigator.mozL10n,
+      this.sinon.stub(document.l10n,
           'formatValue').returns(Promise.resolve('%I:%M %p'));
     navigator.mozHour12 = true;
 
@@ -148,7 +148,7 @@ suite('value selector/value selector', function() {
 
   test('Time Picker (zh-CN)', function(done) {
     stubMozl10n =
-      this.sinon.stub(navigator.mozL10n,
+      this.sinon.stub(document.l10n,
           'formatValue').returns(Promise.resolve('%p %I:%M'));
     navigator.mozHour12 = true;
 
@@ -166,7 +166,7 @@ suite('value selector/value selector', function() {
   test('Time Picker reset at language change', function(done) {
     // start with 12h format
     var sinon = this.sinon;
-    stubMozl10n = sinon.stub(navigator.mozL10n,
+    stubMozl10n = sinon.stub(document.l10n,
         'formatValue').returns(Promise.resolve('%I:%M %p'));
     navigator.mozHour12 = true;
 
@@ -182,7 +182,7 @@ suite('value selector/value selector', function() {
       vs.handleEvent(fakeLocalizedEvent);
     }).then(() => {
       assert.isNull(vs._timePicker);
-      stubMozl10n = sinon.stub(navigator.mozL10n,
+      stubMozl10n = sinon.stub(document.l10n,
           'formatValue').returns(Promise.resolve('%H:%M'));
       navigator.mozHour12 = false;
       vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
@@ -197,7 +197,7 @@ suite('value selector/value selector', function() {
   test('Time Picker reset at timeformat change', function(done) {
     // start with 12h format
     var sinon = this.sinon;
-    stubMozl10n = sinon.stub(navigator.mozL10n,
+    stubMozl10n = sinon.stub(document.l10n,
         'formatValue').returns(Promise.resolve('%I:%M %p'));
     navigator.mozHour12 = true;
 
@@ -214,7 +214,7 @@ suite('value selector/value selector', function() {
       vs.handleEvent(fakeTimeFormatChangeEvent);
     }).then(() => {
       assert.isNull(vs._timePicker);
-      stubMozl10n = sinon.stub(navigator.mozL10n,
+      stubMozl10n = sinon.stub(document.l10n,
           'formatValue').returns(Promise.resolve('%H:%M'));
       navigator.mozHour12 = false;
       vs.handleEvent(fakeTimeInputMethodContextChangeEvent);

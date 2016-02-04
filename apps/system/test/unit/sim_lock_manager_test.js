@@ -7,7 +7,7 @@
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_version_helper.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -38,7 +38,7 @@ suite('SimLockManager', function() {
   }
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
   });
 
   setup(function() {

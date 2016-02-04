@@ -1,7 +1,7 @@
 'use strict';
 /* global MocksHelper, MockL10n, ModalDialog, RemoteDebugger, MockService */
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_screen_manager.js');
@@ -22,12 +22,12 @@ suite('system/RemoteDebugger', function() {
   });
 
   suiteSetup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
   });
 
   suite('constructor', function() {

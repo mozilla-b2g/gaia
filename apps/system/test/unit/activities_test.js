@@ -3,7 +3,7 @@
           ActionMenu, BaseModule, DefaultActivityHelper, MockService
 */
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_default_activity_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -40,8 +40,8 @@ suite('system/Activities', function() {
   mocksForActivities.attachTestHelpers();
 
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realApplications = window.applications;
     realDefaultActivityHelper = window.DefaultActivityHelper;
     realService = window.Service;
@@ -52,7 +52,7 @@ suite('system/Activities', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.applications = realApplications;
     window.Service = realService;
     window.DefaultActivityHelper = realDefaultActivityHelper;

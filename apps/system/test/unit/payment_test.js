@@ -8,7 +8,7 @@ requireApp('system/js/payment.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 var mocksHelperForPayment = new MocksHelper([
   'Service'
@@ -21,12 +21,12 @@ suite('system/Payment', function() {
   mocksHelperForPayment.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('Open payment flow', function() {

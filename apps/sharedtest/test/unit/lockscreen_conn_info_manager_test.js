@@ -4,7 +4,7 @@
            SIMSlotManager */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -31,8 +31,8 @@ suite('system/LockScreenConnInfoManager >', function() {
   mocksHelperForLockScreenConnInfoManager.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = window.MockL10n;
+    realL10n = document.l10n;
+    document.l10n = window.MockL10n;
 
     realIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
@@ -42,7 +42,7 @@ suite('system/LockScreenConnInfoManager >', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozIccManager = realIccManager;
     navigator.mozSettings = realMozSettings;
   });
@@ -230,7 +230,7 @@ suite('system/LockScreenConnInfoManager >', function() {
 
         subject._cellbroadcastLabel = DUMMYTEXT1;
 
-        var l10nSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
+        var l10nSpy = sinon.spy(document.l10n, 'setAttributes');
 
         var l10nArgs = {
           carrier: carrier,
@@ -243,7 +243,7 @@ suite('system/LockScreenConnInfoManager >', function() {
                                      'operator-info',
                                      l10nArgs));
 
-        navigator.mozL10n.setAttributes.restore();
+        document.l10n.setAttributes.restore();
 
         subject._cellbroadcastLabel = null;
     });
@@ -273,7 +273,7 @@ suite('system/LockScreenConnInfoManager >', function() {
         roaming: true
       };
 
-      var l10nSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
+      var l10nSpy = sinon.spy(document.l10n, 'setAttributes');
 
       var l10nArgs = {
         operator: MockMobileOperator.mOperator
@@ -285,7 +285,7 @@ suite('system/LockScreenConnInfoManager >', function() {
                                    'roaming',
                                    l10nArgs));
 
-      navigator.mozL10n.setAttributes.restore();
+      document.l10n.setAttributes.restore();
     });
 
     test('Show localized roaming',
@@ -300,12 +300,12 @@ suite('system/LockScreenConnInfoManager >', function() {
           operator: 'operator'
         };
 
-        var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
+        var l10nSpy = this.sinon.spy(document.l10n, 'setAttributes');
         subject.updateConnStates();
         assert.ok(l10nSpy.calledWith(domConnstateL1, 'roaming', l10nArgs),
           'Roaming network name displayed localized with proper string');
 
-        navigator.mozL10n.setAttributes.restore();
+        document.l10n.setAttributes.restore();
     });
 
     suite('Show correct card states when emergency calls only', function() {
@@ -540,7 +540,7 @@ suite('system/LockScreenConnInfoManager >', function() {
       });
 
       test('Should show carrier and region on Line 2', function() {
-        var l10nSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
+        var l10nSpy = sinon.spy(document.l10n, 'setAttributes');
 
         var l10nArgs = {
           carrier: MockMobileOperator.mCarrier,

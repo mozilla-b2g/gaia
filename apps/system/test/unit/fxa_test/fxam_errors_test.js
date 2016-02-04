@@ -1,7 +1,7 @@
 /* global FxaModuleErrors, MockL10n */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/fxa/js/fxam_errors.js');
 
 suite('Error manager', function() {
@@ -42,12 +42,12 @@ suite('Error manager', function() {
   var response;
   var realL10n;
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
 

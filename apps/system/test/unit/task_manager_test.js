@@ -22,7 +22,7 @@ requireApp('system/test/unit/mock_stack_manager.js');
 require('/shared/js/event_safety.js');
 require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_service.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
@@ -80,7 +80,7 @@ suite('system/TaskManager >', function() {
     </div>
     `;
 
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
 
     requireApp('system/js/task_manager_utils.js');
     requireApp('system/js/base_ui.js');

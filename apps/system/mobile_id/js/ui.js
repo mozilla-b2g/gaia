@@ -232,7 +232,7 @@
     // Remove the progress bar
     verificationCodeTimer.classList.remove('show');
     // Update the string
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       successExplanation,
       'successMessage',
       {
@@ -409,7 +409,7 @@
       // Cache the name of the app
       appName = name;
       // Let's localize the explanation
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         stepsExplanation,
         'mobileIDExplanation',
         {
@@ -450,7 +450,7 @@
           identifications[i].msisdn ||
           identifications[i].operator;
         if (!name.textContent) {
-          navigator.mozL10n.setAttributes(name, 'simLabel', {
+          document.l10n.setAttributes(name, 'simLabel', {
             id: +identifications[i].serviceId + 1 });
         }
 
@@ -513,7 +513,7 @@
       _enablePanel('verification');
 
       // Update the string
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         verificationExplanation,
         'verificationCodeExplanation',
         {

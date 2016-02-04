@@ -2,18 +2,18 @@
 'use strict';
 
 requireApp('system/js/value_selector/value_picker.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('value selector/value picker', function() {
   var realL10n;
 
   setup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('Month value picker', function() {

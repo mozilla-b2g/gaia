@@ -252,7 +252,7 @@
 
       // Wrap manifest to get localized properties
       manifest = new ManifestHelper(manifest);
-      navigator.mozL10n.setAttributes(this.msg, 'install-app', {
+      document.l10n.setAttributes(this.msg, 'install-app', {
         'name': manifest.displayName
       });
 
@@ -483,7 +483,7 @@
       var appName = appManifest.displayName;
       var appDescription = appManifest.description;
       this.setupAppDescription.textContent = appDescription;
-      navigator.mozL10n.setAttributes(this.setupAppName,
+      document.l10n.setAttributes(this.setupAppName,
                                       'app-install-success',
                                       { appName: appName });
       this.setupInstalledAppDialog.classList.add('visible');
@@ -658,7 +658,7 @@
 
       var manifest = app.manifest || app.updateManifest;
 
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         newNode.querySelector('.title-container'),
         'downloadingAppMessage',
         { appName: new ManifestHelper(manifest).displayName }
@@ -699,7 +699,7 @@
           id: 'downloadingAppProgressIndeterminate',
           args: null
         };
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           progressNode,
           message.id,
           message.args);
@@ -710,14 +710,14 @@
           this.humanizeSize(app.progress),
           this.humanizeSize(progressNode.max)
         ]).then(([progress, max]) => {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             progressNode,
             'downloadingAppProgress',
             {progress, max});
         });
       } else {
         return this.humanizeSize(app.progress).then(progress => {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             progressNode,
             'downloadingAppProgressNoMax',
             {progress});
@@ -809,7 +809,7 @@
 
       var title = dialog.querySelector('h1');
 
-      navigator.mozL10n.setAttributes(title, 'stopDownloading', {
+      document.l10n.setAttributes(title, 'stopDownloading', {
         app: new ManifestHelper(manifest).displayName
       });
 

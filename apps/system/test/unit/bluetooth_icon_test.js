@@ -6,21 +6,21 @@ requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 requireApp('system/js/bluetooth_icon.js');
 requireApp('system/test/unit/mock_bluetooth.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('system/BluetoothIcon', function() {
   var subject, realL10n;
 
   setup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     subject = new BluetoothIcon(MockBluetooth);
     subject.start();
     subject.element = document.createElement('div');
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     subject.stop();
   });
 

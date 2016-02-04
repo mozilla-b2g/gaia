@@ -9,11 +9,11 @@ require('/shared/test/unit/mocks/mock_settings_listener.js');
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_utility_tray.js');
@@ -117,8 +117,8 @@ suite('system/Statusbar', function() {
 
     realService = window.Service;
     window.Service = MockService;
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
     prepareDOM();
 
@@ -139,7 +139,7 @@ suite('system/Statusbar', function() {
 
   teardown(function() {
     fakeStatusbarNode.parentNode.removeChild(fakeStatusbarNode);
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     window.Service = realService;
   });
 

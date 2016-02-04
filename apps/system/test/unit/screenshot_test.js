@@ -13,7 +13,7 @@ requireApp('system/shared/test/unit/mocks/mock_event_target.js');
 requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_navigator_get_device_storage.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
 
@@ -69,8 +69,8 @@ suite('system/Screenshot', function() {
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realNotificationHelper = window.NotificationHelper;
     window.NotificationHelper = MockNotificationHelper;
@@ -91,7 +91,7 @@ suite('system/Screenshot', function() {
     screenshot.stop();
 
     navigator.getDeviceStorage = realNavigatorGetDeviceStorage;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.NotificationHelper = realNotificationHelper;
     window.MozActivity = realMozActivity;
 

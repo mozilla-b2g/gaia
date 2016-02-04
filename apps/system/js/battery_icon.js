@@ -29,7 +29,7 @@
     }
 
     icon.dataset.level = level;
-    navigator.mozL10n.setAttributes(
+    document.l10n.setAttributes(
       icon,
       battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
       {level: level}

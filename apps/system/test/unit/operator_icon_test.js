@@ -13,7 +13,7 @@ requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 var mocksForOperatorIcon = new MocksHelper([
   'Service',
@@ -28,8 +28,8 @@ suite('system/OperatorIcon', function() {
   mocksForOperatorIcon.attachTestHelpers();
 
   setup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     subject = new OperatorIcon({
       mobileConnections: MockNavigatorMozMobileConnections
     });
@@ -39,7 +39,7 @@ suite('system/OperatorIcon', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     subject.stop();
   });
 

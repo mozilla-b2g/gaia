@@ -4,7 +4,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot.js');
 requireApp('system//shared/test/unit/mocks/mock_simslot_manager.js');
@@ -22,17 +22,17 @@ var mocksForSimLockSystemDialog = new MocksHelper([
 ]).init();
 
 suite('sim lock dialog', function() {
-  var realL10n = window.navigator.mozL10n;
+  var realL10n = window.document.l10n;
   var stubByQuery, stubById;
   var subject, stubLockOrientation;
 
   mocksForSimLockSystemDialog.attachTestHelpers();
   suiteSetup(function() {
-    window.navigator.mozL10n = MockL10n;
+    window.document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
+    window.document.l10n = realL10n;
   });
 
   function mockElement() {

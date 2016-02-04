@@ -20,16 +20,16 @@
   var APP_READY = 'ready';
 
   function localizeString(str) {
-    var userLang = document.documentElement.lang;
+    //var userLang = document.documentElement.lang;
 
     // We want to make sure that we translate only if we're using
     // a runtime pseudolocale.
-    // mozL10n.ctx.qps contains only runtime pseudolocales
-    if (navigator.mozL10n &&
-        navigator.mozL10n.ctx.qps.indexOf(userLang) !== -1) {
-      return navigator.mozL10n.qps[userLang].translate(str);
-    }
-    return str;
+    // document.l10n.pseudo contains only runtime pseudolocales
+    /*if (document.l10n &&
+        document.l10n.pseudo.hasOwnProperty(userLang)) {
+      return document.l10n.pseudo[userLang].processString(str);
+    }*/
+    return Promise.resolve(str);
   }
 
   /**
@@ -198,11 +198,6 @@
 
     get name() {
       var userLang = document.documentElement.lang;
-
-      if (navigator.mozL10n && userLang in navigator.mozL10n.qps) {
-        return navigator.mozL10n.qps[userLang].
-          translate(this.descriptor.short_name || this.descriptor.name);
-      }
 
       var locales = this.descriptor.locales;
       var localized =

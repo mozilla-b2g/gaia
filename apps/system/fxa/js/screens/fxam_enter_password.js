@@ -120,7 +120,7 @@ var FxaModuleEnterPassword = (function() {
     this.isFTU = !!(options && options.isftu);
     this.email = options.email;
 
-    navigator.mozL10n.setAttributes(this.fxaHelloKnownUser, 'fxa-hello-user2', {
+    document.l10n.setAttributes(this.fxaHelloKnownUser, 'fxa-hello-user2', {
       email: this.email
     });
 

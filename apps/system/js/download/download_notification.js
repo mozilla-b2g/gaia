@@ -167,20 +167,20 @@ DownloadNotification.prototype = {
     var textPromise;
 
     if (state === 'downloading') {
-      textPromise = navigator.mozL10n.formatValue(
+      textPromise = document.l10n.formatValue(
         'download_downloading_text_2', {
           name: this.fileName,
           percentage: DownloadFormatter.getPercentage(this.download)
         }
       );
     } else {
-      textPromise = navigator.mozL10n.formatValue('download_text_by_default', {
+      textPromise = document.l10n.formatValue('download_text_by_default', {
         name: this.fileName
       });
     }
 
     return Promise.all([
-      navigator.mozL10n.formatValue('download_' + state),
+      document.l10n.formatValue('download_' + state),
       textPromise
     ]).then(([title, text]) => {
       return {

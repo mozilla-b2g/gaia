@@ -14,7 +14,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
@@ -34,8 +34,8 @@ suite('power save >', function() {
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = window.document.l10n;
+    window.document.l10n = MockL10n;
 
     MockBatteryOverlay._battery = MockNavigatorBattery;
     subject = new PowerSave(MockBatteryOverlay);
@@ -45,7 +45,7 @@ suite('power save >', function() {
     subject = null;
 
     navigator.mozSettings = realMozSettings;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('restores state >', function() {

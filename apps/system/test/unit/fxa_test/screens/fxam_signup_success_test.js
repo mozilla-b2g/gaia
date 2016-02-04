@@ -11,7 +11,7 @@ requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 
 // Mockuped code
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 requireApp('system/fxa/js/fxam_ui.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_ui.js');
@@ -34,8 +34,8 @@ suite('Screen: Signup Success', function() {
   var emailTest = 'testuser@testuser.com';
   var realL10n;
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     mocksHelperForSignupSuccess.suiteSetup();
     // Load real HTML
@@ -52,7 +52,7 @@ suite('Screen: Signup Success', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     document.body.innerHTML = '';
     mocksHelperForSignupSuccess.suiteTeardown();
   });

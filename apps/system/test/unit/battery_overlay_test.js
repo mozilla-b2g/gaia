@@ -12,7 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/base_ui.js');
@@ -43,8 +43,8 @@ suite('battery manager >', function() {
     navigator.mozSettings = MockNavigatorSettings;
 
     // for PowerSave
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
@@ -52,7 +52,7 @@ suite('battery manager >', function() {
     realBattery = null;
     navigator.mozSettings = realMozSettings;
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   setup(function() {

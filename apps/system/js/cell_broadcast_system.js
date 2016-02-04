@@ -106,13 +106,13 @@
 
       // XXX: 'undefined' test until bug-1021177 lands
       if (msg.etws && (!body || (body == 'undefined'))) {
-        body = navigator.mozL10n.formatValue('cb-etws-warningType-' +
+        body = document.l10n.formatValue('cb-etws-warningType-' +
           (msg.etws.warningType ? msg.etws.warningType : 'other'));
       }
 
       return Promise.all([
         body,
-        navigator.mozL10n.formatValue('cb-channel', { channel: id })
+        document.l10n.formatValue('cb-channel', { channel: id })
       ]).then(([body, message]) => {
         CarrierInfoNotifier.show(body, message);
       });

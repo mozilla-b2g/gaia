@@ -2,7 +2,7 @@
 /* global MockNavigatorSettings, MockL10n, SettingsMigrator, MockLazyLoader */
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/migrators/settings_migrator.js');
 
@@ -14,15 +14,15 @@ suite('system/settings_migrator', function() {
 
   suiteSetup(function() {
     clock = sinon.useFakeTimers();
-    realL10n = navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    window.document.l10n = MockL10n;
     realSettings = window.navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
     window.navigator.mozSettings = realSettings;
-    window.navigator.mozL10n = realL10n;
+    window.document.l10n = realL10n;
     clock.restore();
   });
 

@@ -3,7 +3,7 @@
 /* globals NfcConnectSystemDialog, document, MockL10n, MocksHelper,
    MockService */
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 var mocksForNfcConnectDialog = new MocksHelper([
@@ -18,9 +18,9 @@ suite('NfcConnectSystemDialog', function() {
   var stubQuerySelector;
 
   setup(function(done) {
-    realMozL10n = navigator.mozL10n;
+    realMozL10n = document.l10n;
 
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
 
     // Stub necessary DOM calls.
     stubGetElementById = this.sinon.stub(document, 'getElementById',
@@ -39,7 +39,7 @@ suite('NfcConnectSystemDialog', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     stubGetElementById.restore();
     stubQuerySelector.restore();
   });
@@ -144,8 +144,8 @@ suite('NfcConnectSystemDialog', function() {
     var stubResize;
 
     setup(function() {
-      realL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
+      realL10n = document.l10n;
+      document.l10n = MockL10n;
 
       nfcDialog = new NfcConnectSystemDialog();
       stubResize = this.sinon.stub(nfcDialog, 'resize',
@@ -155,7 +155,7 @@ suite('NfcConnectSystemDialog', function() {
     });
 
     teardown(function() {
-      navigator.mozL10n = realL10n;
+      document.l10n = realL10n;
       nfcDialog.hide();
       stubResize.restore();
     });

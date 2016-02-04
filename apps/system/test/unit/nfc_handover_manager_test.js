@@ -8,7 +8,7 @@
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_moz_nfc.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
@@ -57,12 +57,12 @@ suite('Nfc Handover Manager Functions', function() {
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
-    realL10n = navigator.mozL10n;
+    realL10n = document.l10n;
     realMozNfc = navigator.mozNfc;
     realMozBluetooth = navigator.mozBluetooth;
     navigator.mozSettings = MockNavigatorSettings;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     navigator.mozNfc = MockMozNfc;
     switchReadOnlyProperty(window.navigator, 'mozBluetooth', MockMozBluetooth);
 
@@ -73,7 +73,7 @@ suite('Nfc Handover Manager Functions', function() {
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozSettings = realMozSettings;
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozNfc = realMozNfc;
     switchReadOnlyProperty(window.navigator, 'mozBluetooth', realMozBluetooth);
   });

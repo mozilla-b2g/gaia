@@ -118,7 +118,7 @@ var SpinDatePicker = (function() {
    * @param {Promise<String>} date format.
    */
   function getDateComponentOrder() {
-    return  navigator.mozL10n.formatValue('datePickerOrder');
+    return  document.l10n.formatValue('datePickerOrder');
   }
 
   /**

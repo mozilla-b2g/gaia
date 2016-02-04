@@ -184,7 +184,7 @@
     }
 
     if (l10nId) {
-      navigator.mozL10n.setAttributes(node, l10nId, l10nArgs);
+      document.l10n.setAttributes(node, l10nId, l10nArgs);
     } else {
       node.removeAttribute('data-l10n-id');
       if (text) {

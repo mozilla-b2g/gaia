@@ -6,14 +6,14 @@ requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 requireApp('system/js/battery_icon.js');
 requireApp('system/test/unit/mock_navigator_battery.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('system/BatteryIcon', function() {
   var subject, realMozL10n;
 
   setup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
     MockNavigatorBattery.level = 0.95;
     MockNavigatorBattery.charging = false;
     subject = new BatteryIcon({
@@ -24,7 +24,7 @@ suite('system/BatteryIcon', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     subject.stop();
   });
 

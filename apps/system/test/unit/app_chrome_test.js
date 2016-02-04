@@ -10,7 +10,7 @@ require('/shared/js/component_utils.js');
 require('/shared/js/event_safety.js');
 require('/shared/elements/gaia_progress/script.js');
 require('/shared/elements/gaia_pin_card/script.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_promise.js');
@@ -44,8 +44,8 @@ suite('system/AppChrome', function() {
   mocksForAppChrome.attachTestHelpers();
 
   setup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
@@ -66,7 +66,7 @@ suite('system/AppChrome', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     stubById.restore();
   });
 

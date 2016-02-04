@@ -5,7 +5,7 @@
 
 requireApp('system/mobile_id/js/ui.js');
 requireApp('system/mobile_id/js/controller.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 suite('MobileID Controller', function() {
@@ -25,8 +25,8 @@ suite('MobileID Controller', function() {
   ];
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     loadBodyHTML('/mobile_id/index.html');
 
@@ -34,18 +34,17 @@ suite('MobileID Controller', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     realL10n = null;
 
     document.body.innerHTML = '';
   });
 
-  test(' when "init" is launched, we listen mozL10n ready and we render',
+  test(' when "init" is launched, we render',
     function() {
     this.sinon.useFakeTimers();
     this.sinon.stub(UI, 'localize');
     this.sinon.stub(UI, 'render');
-    this.sinon.spy(navigator.mozL10n, 'ready');
     var eventToLaunch = new CustomEvent(
       'init',
       {
@@ -57,7 +56,6 @@ suite('MobileID Controller', function() {
     );
     window.dispatchEvent(eventToLaunch);
     this.sinon.clock.tick();
-    assert.isTrue(navigator.mozL10n.ready.calledOnce);
     assert.isTrue(UI.render.calledOnce);
     assert.isTrue(UI.localize.calledOnce);
     this.sinon.clock.restore();

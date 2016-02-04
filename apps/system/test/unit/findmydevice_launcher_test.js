@@ -21,7 +21,7 @@ require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_dump.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_service.js');
@@ -45,7 +45,7 @@ suite('FindMyDevice Launcher >', function() {
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
-    realMozL10n = navigator.mozL10n;
+    realMozL10n = document.l10n;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     realNotificationHelper = window.NotificationHelper;
     window.NotificationHelper = MockNotificationHelper;
@@ -57,12 +57,12 @@ suite('FindMyDevice Launcher >', function() {
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
 
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     window.NotificationHelper = realNotificationHelper;
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     MockNavigatorSettings.mTeardown();

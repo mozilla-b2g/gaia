@@ -24,7 +24,7 @@
         this.show();
         icon.dataset.connecting = true;
         icon.dataset.level = 0;
-        navigator.mozL10n.setAttributes(icon, 'statusbarWiFiConnecting');
+        document.l10n.setAttributes(icon, 'statusbarWiFiConnecting');
         if (!previousConnecting) {
           this.publish('changed');
         }
@@ -42,7 +42,7 @@
           delete icon.dataset.connecting;
         }
         icon.dataset.level = level;
-        navigator.mozL10n.setAttributes(icon, 'statusbarWiFiConnected',
+        document.l10n.setAttributes(icon, 'statusbarWiFiConnected',
           {level: level});
         if (level !== previousLevel || previousConnecting) {
           this.publish('changed');

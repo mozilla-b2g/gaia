@@ -3,7 +3,7 @@
 
 requireApp('system/js/identity.js');
 requireApp('system/test/unit/mock_chrome_event.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('identity', function() {
   var subject;
@@ -11,12 +11,12 @@ suite('identity', function() {
   suiteSetup(function() {
     subject = Identity;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('open popup', function() {

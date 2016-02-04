@@ -20,7 +20,7 @@ requireApp('system/js/operator_icon.js');
 requireApp('system/js/mobile_connection_icon.js');
 requireApp('system/js/radio.js');
 requireApp('system/js/settings_core.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 var mocksForRadio = new MocksHelper([
   'NavigatorMozMobileConnections',
@@ -35,13 +35,13 @@ suite('Radio > ', function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     MockNavigatorSettings.mSyncRepliesOnly = true;
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = window.document.l10n;
+    window.document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
-    window.navigator.mozL10n = realL10n;
+    window.document.l10n = realL10n;
   });
 
   setup(function() {

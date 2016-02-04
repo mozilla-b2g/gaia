@@ -6,9 +6,7 @@
   'use strict';
 
   function _localize(appName) {
-    navigator.mozL10n.ready(function localized() {
-      UI.localize(appName);
-    });
+    UI.localize(appName);
   }
 
   var Controller = {
