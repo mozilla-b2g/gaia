@@ -35,6 +35,7 @@ window.addEventListener('load', function startup() {
 
     window.BookmarkManager.init(
       'app://app-deck.gaiamobile.org/manifest.webapp', 'readwrite');
+    window.BookmarkHandler.init();
   }
 
   function safelyLaunchFTU() {

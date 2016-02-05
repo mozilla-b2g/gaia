@@ -220,7 +220,6 @@
         case 'removed':
           targetElem = this._appDeckGridViewElem.querySelector(
                                     'smart-button[data-url="' + evt.id +'"]');
-          this._contextMenu.sendUnpinMessage(targetElem);
 
           // Move focus to next or previous element of `elem`, because
           // we are going to remove `elem` from DOM tree
