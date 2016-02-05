@@ -16,6 +16,8 @@
  */
 
 var FxaModuleErrorOverlay = {
+  _deferred: null,
+
   init: function fxam_error_overlay_init() {
     if (this.initialized) {
       return;
@@ -48,6 +50,13 @@ var FxaModuleErrorOverlay = {
   },
 
   show: function fxam_error_overlay_show(titleL10n, messageL10n) {
+    var promise = new Promise((resolve, reject) => {
+      FxaModuleErrorOverlay._deferred = {
+        resolve: resolve,
+        reject: reject
+      };
+    });
+
     this.init();
 
     this.fxaErrorTitle.setAttribute('data-l10n-id', titleL10n);
@@ -63,6 +72,8 @@ var FxaModuleErrorOverlay = {
     this.fxaErrorOk.focus();
 
     FxaModuleUI.disableBackButton();
+
+    return promise;
   },
 
   hide: function fxam_overlay_hide() {
@@ -71,6 +82,9 @@ var FxaModuleErrorOverlay = {
     this.fxaErrorOverlay.classList.remove('show');
     FxaModuleKeyNavigation.enable();
     FxaModuleUI.enableBackButton();
+
+    FxaModuleErrorOverlay._deferred.resolve();
+    FxaModuleErrorOverlay._deferred = null;
   },
 
   prevent: function fxam_prevent(event) {
