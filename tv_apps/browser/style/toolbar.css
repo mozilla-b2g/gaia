@@ -819,6 +819,7 @@ input::-moz-focus-inner {
 
 #mode-button-block.visible {
   display: -moz-box;
+  z-index: 100;
 }
 
 #mode-button-panel {

@@ -64,6 +64,7 @@ a {
   height: -moz-calc(100% - 100px);
   cursor: default;
   top: 100px;
+  z-index: 100;
 }
 
 /* --------------- other --------------- */

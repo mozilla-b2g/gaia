@@ -273,6 +273,13 @@
   z-index: 0;
 }
 
+/* This rule is moved from ua.css as a temporary workaround to keep the current
+ * behavior in gaia. This, as well as the overlay promoting code below, should
+  be removed in the future. See bug 1235470, bug 1235471, and bug 1235472. */
+*|*:-moz-full-screen:not(:root) {
+  z-index: 2147483647 !important;
+}
+
 /* We promote the following overlays on top of the fullscreen web content. */
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],
