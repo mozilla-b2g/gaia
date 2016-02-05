@@ -33,7 +33,6 @@ var Browser = {
   //By multiplying 0.8, image of the designated size can be obtained
   DEVICE_RATIO: 0.8,
 
-  MAX_BOOKMARK_LIST: 60,
   MAX_HISTORY_LIST: 60,
   MAX_TOPSITE_LIST: 18,
   MAX_ICON_LIST: 120,
@@ -320,7 +319,6 @@ var Browser = {
 
     // indexedDB MaxNum Check Type
     var checkTypeTbl = [
-      {'type':'bookmarks', 'maxNum': Browser.MAX_BOOKMARK_LIST},
       {'type':'visits'   , 'maxNum': Browser.MAX_HISTORY_LIST},
       {'type':'places'   , 'maxNum': Browser.MAX_TOPSITE_LIST},
       {'type':'icons'    , 'maxNum': Browser.MAX_ICON_LIST}

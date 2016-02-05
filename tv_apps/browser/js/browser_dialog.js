@@ -115,15 +115,6 @@ var BrowserDialog = {
         };
         break;
 
-      case 'max_bookmark':
-        opt = {
-          title: null,
-          msg: 'WB_LT_BOOKMARK_ERROR_1',
-          bt1: 'LT_CANCEL',
-          bt2: null
-        };
-        break;
-
       case 'alert':
         opt = {
           title: null,
@@ -317,7 +308,6 @@ var BrowserDialog = {
     switch(type) {
       case 'del_cookie':
       case 'clear_history':
-      case 'max_bookmark':
       case 'alert':
       case 'prompt':
       case 'confirm':
