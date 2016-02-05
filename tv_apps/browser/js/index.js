@@ -707,17 +707,19 @@ var Browser = {
 
       case 'mozbrowsershowmodalprompt':
         this.debug('mozbrowsershowmodalprompt[' + tab.id + ']');
+        evt.preventDefault();
         switch( evt.detail.promptType ) {
           case 'alert' :
-            BrowserDialog.createDialog('alert', evt);
+            window.alert(evt.detail.message);
             break;
           case 'prompt' :
-            BrowserDialog.createDialog('prompt', evt);
+            evt.detail.returnValue = window.prompt(evt.detail.message);
             break;
           case 'confirm' :
-            BrowserDialog.createDialog('confirm', evt);
+            evt.detail.returnValue = window.confirm(evt.detail.message);
             break;
         }
+        evt.detail.unblock();
         break;
 
       case 'mozbrowsererror':

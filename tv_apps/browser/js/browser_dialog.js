@@ -7,8 +7,7 @@
 'use strict';
 
 /**
- * The dialog listen to mozbrowsershowmodalprompt event.
- * (alert/confirm/prompt)
+ * The dialogs that are specific to the browser app.
  *
  * @namespace Dialog
  */
@@ -115,33 +114,6 @@ var BrowserDialog = {
         };
         break;
 
-      case 'alert':
-        opt = {
-          title: null,
-          msg: {raw: evt.detail.message},
-          bt1: 'LT_WB_OK',
-          bt2: null
-        };
-        break;
-
-      case 'prompt':
-        opt = {
-          title: null,
-          msg: {raw: evt.detail.message},
-          bt1: 'LT_CANCEL',
-          bt2: 'LT_WB_OK'
-        };
-        break;
-
-      case 'confirm':
-        opt = {
-          title: null,
-          msg: {raw: evt.detail.message},
-          bt1: 'LT_CANCEL',
-          bt2: 'LT_WB_OK'
-        };
-        break;
-
 //IFDEF_FIREFOX_SYNC
       case 'signout_confirm':
         opt = {
@@ -211,21 +183,7 @@ var BrowserDialog = {
       width -= Browser.SIDE_WINDOW_WIDTH;
     }
 
-    if(type == 'prompt') {
-      this.browserDialogInput.style.display = 'block';
-      this.browserDialogInput.classList.remove('exfocus');
-      this.browserDialogInput.classList.remove('input');
-      this.browserDialogInputClear.tabIndex = 0;
-      countIndex = 0;
-      this.focusElement[1][countIndex++] = this.browserDialogInputArea;
-      this.focusElement[1][countIndex++] = this.browserDialogInputClear;
-      //this.browserDialogInput.insertBefore(this.browserDialogInputArea,
-      //                                     this.browserDialogInputClear);
-      this.browserDialogInputArea.type = 'text';
-      this.browserDialogInputArea.value = '';
-    } else {
-      this.browserDialogInput.style.display = 'none';
-    }
+    this.browserDialogInput.style.display = 'none';
 
     // initialize position
     countIndex = 0;
@@ -308,9 +266,6 @@ var BrowserDialog = {
     switch(type) {
       case 'del_cookie':
       case 'clear_history':
-      case 'alert':
-      case 'prompt':
-      case 'confirm':
       case 'signout_confirm':
         this.dialogButton2End(evt.currentTarget);
         break;
@@ -367,30 +322,6 @@ var BrowserDialog = {
               BrowserDialog.dialogButton2End(BrowserDialog.argEvt);
             }.bind(this));
         Awesomescreen.selectTopSites();
-        break;
-
-      case 'prompt':
-        if (this.dialogEvt != null) {
-          this.dialogEvt.detail.returnValue = this.browserDialogInputArea.value;
-          if (this.dialogEvt.detail.unblock) {
-            this.dialogEvt.detail.unblock();
-          }
-          this.dialogEvt = null;
-        }
-        //this.cancelDialog();
-        this.dialogButton2End(this.argEvt);
-        break;
-
-      case 'confirm':
-        if (this.dialogEvt != null) {
-          this.dialogEvt.detail.returnValue = true;
-          if (this.dialogEvt.detail.unblock) {
-            this.dialogEvt.detail.unblock();
-          }
-          this.dialogEvt = null;
-        }
-        //this.cancelDialog();
-        this.dialogButton2End(this.argEvt);
         break;
 
       case 'signout_confirm':
@@ -465,26 +396,6 @@ var BrowserDialog = {
   cancelDialog: function dialog_cancelDialog() {
     if( !BrowserDialog.isDisplayed() ) {
       return;
-    }
-    switch( BrowserDialog.browserDialogButton1.dataset.type ) {
-      case 'alert':
-      case 'prompt':
-        if( BrowserDialog.dialogEvt != null ) {
-          BrowserDialog.dialogEvt.detail.returnValue = null;
-          if( BrowserDialog.dialogEvt.detail.unblock ) {
-            BrowserDialog.dialogEvt.detail.unblock();
-          }
-        }
-        break;
-
-      case 'confirm':
-        if( BrowserDialog.dialogEvt != null ) {
-          BrowserDialog.dialogEvt.detail.returnValue = false;
-          if( BrowserDialog.dialogEvt.detail.unblock ) {
-            BrowserDialog.dialogEvt.detail.unblock();
-          }
-        }
-        break;
     }
     if( BrowserDialog.dialogEvt != null ) {
       BrowserDialog.dialogEvt = null;
