@@ -1,4 +1,4 @@
-/* global KeyboardManager, layoutManager, Service, BaseModule */
+/* global KeyboardManager, Service, BaseModule */
 'use strict';
 
 (function(exports) {
@@ -56,7 +56,11 @@
     'system-resize'
   ];
   AppWindowManager.SUB_MODULES = [
-    'HomescreenWindowManager'
+    'FtuLauncher',
+    'AppWindowFactory',
+    'HomescreenWindowManager',
+    'AppInstallManager',
+    'WrapperFactory'
   ];
   AppWindowManager.SETTINGS = [
     'continuous-transition.enabled',
@@ -210,7 +214,7 @@
       this._updateActiveApp(appNext.instanceID);
 
       var that = this;
-      if (appCurrent && layoutManager.keyboardEnabled) {
+      if (appCurrent && Service.query('LayoutManager.keyboardEnabled')) {
         this.stopRecording();
 
         // Ask keyboard to hide before we switch the app.
@@ -305,8 +309,9 @@
           immediateTranstion = true;
         }
 
+        var MATCH = 'LayoutManager.match';
         if (appNext.resized &&
-            !layoutManager.match(appNext.width, appNext.height)) {
+          !Service.query(MATCH, appNext.width, appNext.height)) {
           immediateTranstion = true;
         }
 

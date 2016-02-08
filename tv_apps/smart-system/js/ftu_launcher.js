@@ -1,10 +1,20 @@
 'use strict';
-/* globals applications, dump, FtuPing, SettingsCache */
+/* globals applications, dump, FtuPing, SettingsCache, BaseModule */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
 
-var FtuLauncher = {
+function FtuLauncher() {}
+
+FtuLauncher.SERVICES = [
+  'retrieve'
+];
+
+FtuLauncher.STATES = [
+  'getFtuManifestURL'
+];
+
+BaseModule.create(FtuLauncher, {
   /* The application object of ftu got from Application module */
   _ftu: null,
 
@@ -23,6 +33,8 @@ var FtuLauncher = {
   _isUpgrading: false,
 
   _bypassHomeEvent: false,
+
+  name: 'FtuLauncher',
 
   isFtuRunning: function fl_isFtuRunning() {
     return this._isRunningFirstTime;
@@ -183,6 +195,4 @@ var FtuLauncher = {
       }
     });
   }
-};
-
-FtuLauncher.init();
+});
