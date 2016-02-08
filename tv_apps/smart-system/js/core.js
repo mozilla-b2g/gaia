@@ -11,7 +11,15 @@
   };
 
   Core.SUB_MODULES = [
-    'AppCore'
+    // 'SleepMenu',
+    'OrientationManager',
+    'HierarchyManager',
+    'FeatureDetector',
+    'SystemDialogManager',
+    'WallpaperManager',
+    'LayoutManager',
+    'AppCore',
+    'ScreenManager'
   ];
 
   Core.SERVICES = [

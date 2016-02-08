@@ -8,6 +8,7 @@
    * @module WrapperFactory
    */
   var WrapperFactory = {
+    name: 'WrapperFactory',
     init: function wf_init() {
       window.addEventListener('mozbrowseropenwindow', this, true);
     },
@@ -194,5 +195,4 @@
     }
   };
   window.WrapperFactory = WrapperFactory;
-  WrapperFactory.init();
 }(window));

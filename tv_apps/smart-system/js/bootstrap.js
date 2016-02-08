@@ -2,11 +2,11 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ActivityWindowManager, VisibilityManager, UsbStorage,
-         FtuLauncher, ScreenManager, Activities, AppUsageMetrics, RemoteControl,
+         Activities, AppUsageMetrics, RemoteControl,
          DeveloperHUD, RemoteDebugger, HomeGesture,
          SuspendingAppPriorityManager, TTLView,
-         MediaRecording, AppWindowFactory, SystemDialogManager,
-         applications, LayoutManager, PermissionManager, Accessibility,
+         MediaRecording, Service,
+         applications, PermissionManager, Accessibility,
          SleepMenu, InteractiveNotifications, ExternalStorageMonitor,
          BaseModule */
 
@@ -26,10 +26,6 @@ window.addEventListener('load', function startup() {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
 
-    /** @global */
-    window.systemDialogManager = window.systemDialogManager ||
-      new SystemDialogManager();
-
     window.BookmarkManager.init(
       'app://app-deck.gaiamobile.org/manifest.webapp', 'readwrite');
   }
@@ -44,7 +40,7 @@ window.addEventListener('load', function startup() {
       function onHomescreenReady() {
         window.removeEventListener('homescreenwindowmanager-ready',
                                    onHomescreenReady);
-        FtuLauncher.retrieve();
+        Service.request('retrieve');
       });
   }
 
@@ -75,14 +71,10 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-  ScreenManager.turnScreenOn();
-
   // Please sort it alphabetically
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
-  window.appWindowFactory = new AppWindowFactory();
-  window.appWindowFactory.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
   /** @global */
@@ -92,8 +84,6 @@ window.addEventListener('load', function startup() {
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
-  window.layoutManager = new LayoutManager();
-  window.layoutManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.remoteDebugger = new RemoteDebugger();
@@ -102,8 +92,6 @@ window.addEventListener('load', function startup() {
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();
-  window.wallpaperManager = new window.WallpaperManager();
-  window.wallpaperManager.start();
 
   // unit tests call start() manually
   if (navigator.mozL10n) {
@@ -142,7 +130,7 @@ window.addEventListener('load', function startup() {
 
 window.usbStorage = new UsbStorage();
 
-// Define the default background to use for all homescreens
+// Define the default background to use for all as
 window.addEventListener('wallpaperchange', function(evt) {
   document.getElementById('screen').style.backgroundImage =
     'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),' +

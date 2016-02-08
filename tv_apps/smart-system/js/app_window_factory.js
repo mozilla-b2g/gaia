@@ -39,6 +39,8 @@
      */
     _started: false,
 
+    name: 'AppWindowFactory',
+
     /**
      * Register all event handlers.
      * @memberof AppWindowFactory.prototype

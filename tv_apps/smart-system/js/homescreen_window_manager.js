@@ -1,4 +1,4 @@
-/* global Service, FtuLauncher, Service, focusManager, BaseModule */
+/* global Service, Service, focusManager, BaseModule */
 
 'use strict';
 (function(exports) {
@@ -79,7 +79,7 @@
           break;
         case 'appopened':
           detail = evt.detail;
-          if (detail.manifestURL === FtuLauncher.getFtuManifestURL()) {
+          if (detail.manifestURL === Service.query('getFtuManifestURL')) {
             // we don't need to set activeHome as anything if it is ftu.
             break;
           } else if (detail.isHomescreen) {
