@@ -7,7 +7,7 @@
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, Service,
          applications, PermissionManager, Accessibility,
-         SleepMenu, InteractiveNotifications, ExternalStorageMonitor,
+         InteractiveNotifications, ExternalStorageMonitor,
          BaseModule */
 
 'use strict';
@@ -87,8 +87,6 @@ window.addEventListener('load', function startup() {
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.remoteDebugger = new RemoteDebugger();
-  window.sleepMenu = new SleepMenu();
-  window.sleepMenu.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();

@@ -11,7 +11,7 @@
   };
 
   Core.SUB_MODULES = [
-    // 'SleepMenu',
+    'SleepMenu',
     'OrientationManager',
     'HierarchyManager',
     'FeatureDetector',
