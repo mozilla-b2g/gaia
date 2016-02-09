@@ -5,7 +5,7 @@ require('/shared/test/unit/load_body_html_helper.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/system_dialog.js');
 requireApp('system/js/action_menu.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/js/event_safety.js');
 require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_checkbox/script.js');
@@ -28,8 +28,8 @@ suite('ActionMenu', function() {
   }
 
   setup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     rafStub = this.sinon.stub(window, 'requestAnimationFrame',
                          function(callback) { callback(); });
@@ -53,7 +53,7 @@ suite('ActionMenu', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('Instantation > ', function() {

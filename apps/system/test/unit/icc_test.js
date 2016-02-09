@@ -5,7 +5,7 @@
 
 
 require('/shared/test/unit/mocks/mock_service.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -41,8 +41,8 @@ suite('STK (icc) >', function() {
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     MockNavigatormozSetMessageHandler.mSetup();
     realNavigatormozSetMessageHandler = navigator.mozSetMessageHandler;
@@ -60,7 +60,7 @@ suite('STK (icc) >', function() {
     MockNavigatorMozIccManager.mTeardown();
     navigator.mozIccManager = realMozIccManager;
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
 
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozSetMessageHandler = realNavigatormozSetMessageHandler;
@@ -344,7 +344,7 @@ suite('STK (icc) >', function() {
     assert.equal(document.getElementById('icc-input-msg').textContent,
       testCmd.command.options.text);
 
-    var l10nAttrs = navigator.mozL10n.getAttributes(
+    var l10nAttrs = document.l10n.getAttributes(
       document.getElementById('icc-input-btn'));
 
     assert.equal(l10nAttrs.id, 'okCharsLeft');
@@ -379,7 +379,7 @@ suite('STK (icc) >', function() {
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
 
-    var l10nAttrs = navigator.mozL10n.getAttributes(
+    var l10nAttrs = document.l10n.getAttributes(
       document.getElementById('icc-input-btn'));
 
     assert.equal(l10nAttrs.id, 'okCharsLeft');
@@ -390,7 +390,7 @@ suite('STK (icc) >', function() {
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
 
-    l10nAttrs = navigator.mozL10n.getAttributes(
+    l10nAttrs = document.l10n.getAttributes(
       document.getElementById('icc-input-btn'));
 
     assert.deepEqual(l10nAttrs.args, { n: (testCmd.command.options.maxLength -
@@ -400,7 +400,7 @@ suite('STK (icc) >', function() {
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
 
-    l10nAttrs = navigator.mozL10n.getAttributes(
+    l10nAttrs = document.l10n.getAttributes(
       document.getElementById('icc-input-btn'));
 
     assert.deepEqual(l10nAttrs.args, { n: (testCmd.command.options.maxLength -
@@ -410,7 +410,7 @@ suite('STK (icc) >', function() {
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
 
-    l10nAttrs = navigator.mozL10n.getAttributes(
+    l10nAttrs = document.l10n.getAttributes(
       document.getElementById('icc-input-btn'));
 
     assert.deepEqual(l10nAttrs.args, { n: (testCmd.command.options.maxLength -
@@ -420,7 +420,7 @@ suite('STK (icc) >', function() {
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
 
-    l10nAttrs = navigator.mozL10n.getAttributes(
+    l10nAttrs = document.l10n.getAttributes(
       document.getElementById('icc-input-btn'));
 
     assert.deepEqual(l10nAttrs.args, { n: (testCmd.command.options.maxLength -
@@ -430,7 +430,7 @@ suite('STK (icc) >', function() {
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
 
-    l10nAttrs = navigator.mozL10n.getAttributes(
+    l10nAttrs = document.l10n.getAttributes(
       document.getElementById('icc-input-btn'));
 
     assert.deepEqual(l10nAttrs.args, { n: (testCmd.command.options.maxLength -

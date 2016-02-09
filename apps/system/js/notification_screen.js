@@ -673,7 +673,7 @@ var NotificationScreen = {
         return;
       }
       this.ambientIndicator.classList.add('unread');
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.ambientIndicator,
         'statusbarNotifications-unread',
         {n: this.unreadNotifications.length}

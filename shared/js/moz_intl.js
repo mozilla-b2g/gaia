@@ -14,7 +14,7 @@ global.mozIntl = {
    * @returns {Promise} A promise of a string
    */
   formatList: function(list) {
-    return navigator.mozL10n.formatValue('listSeparator_middle').then(
+    return document.l10n.formatValue('listSeparator_middle').then(
       sep => list.join(sep)
     );
   },
@@ -139,7 +139,7 @@ global.mozIntl = {
   calendarInfo: function(token) {
     switch (token) {
       case 'firstDayOfTheWeek':
-        return navigator.mozL10n.formatValue('firstDayOfTheWeek').then(
+        return document.l10n.formatValue('firstDayOfTheWeek').then(
           firstDayOfTheWeek => parseInt(firstDayOfTheWeek) % 7);
       default:
         throw new Error('Unknown token: ' + token);
@@ -197,7 +197,7 @@ global.mozIntl = {
     const minUnitIdx = getDurationUnitIdx(resolvedOptions.minUnit,
       durationFormatOrder.length - 1);
 
-    return navigator.mozL10n.formatValue('durationPattern').then(fmt => ({
+    return document.l10n.formatValue('durationPattern').then(fmt => ({
       resolvedOptions: function() { return resolvedOptions; },
       format: function(input) {
         // Rounding minUnit to closest visible unit
@@ -263,12 +263,12 @@ global.mozIntl = {
       /*
        * ECMA 402 rev 3., 1.3.4, FormatRelativeTime
        *
-       * Notes: This is a modified version of the function to use mozL10n
+       * Notes: This is a modified version of the function to use L20n
        * and simplified to match current data set in data.properties
        */
       format: function(x) {
         const {unit, value} = relativeTimeFormatId(x, options);
-        return navigator.mozL10n.formatValue(unit, {
+        return document.l10n.formatValue(unit, {
           value
         });
       },
@@ -326,7 +326,7 @@ global.mozIntl = {
           maxDiff = maxDiff || 86400 * 10; // default = 10 days
           const secDiff = (Date.now() - time) / 1000;
           if (isNaN(secDiff)) {
-            return navigator.mozL10n.formatValue('incorrectDate');
+            return document.l10n.formatValue('incorrectDate');
           }
 
           if (secDiff > maxDiff) {
@@ -334,7 +334,7 @@ global.mozIntl = {
           }
 
           const {unit, value} = relativeTimeFormatId(time, relativeFmtOptions);
-          return navigator.mozL10n.formatValue(unit, {
+          return document.l10n.formatValue(unit, {
             value
           });
         },
@@ -351,7 +351,7 @@ global.mozIntl = {
           }
 
           const {unit, value} = relativeTimeFormatId(time, relativeFmtOptions);
-          navigator.mozL10n.setAttributes(element, unit, {
+          document.l10n.setAttributes(element, unit, {
             value
           });
         },

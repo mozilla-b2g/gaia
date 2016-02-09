@@ -8,7 +8,7 @@ require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_homescreen_launcher.js');
@@ -789,8 +789,8 @@ suite('KeyboardManager', function() {
       var stubWaitForSwitchTimeout;
       var stubImeMenuCallback;
 
-      oldMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
+      oldMozL10n = document.l10n;
+      document.l10n = MockL10n;
 
       stubWaitForSwitchTimeout =
         this.sinon.stub(KeyboardManager, '_waitForSwitchTimeout');
@@ -837,7 +837,7 @@ suite('KeyboardManager', function() {
 
       imeMenu.mTeardown();
 
-      navigator.mozL10n = oldMozL10n;
+      document.l10n = oldMozL10n;
     });
 
     suite('imeMenuCallback', function() {

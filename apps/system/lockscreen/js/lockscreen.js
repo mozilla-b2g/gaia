@@ -360,7 +360,8 @@
 		}
       }).bind(this));
 
-      navigator.mozL10n.ready(this.l10nInit.bind(this));
+      document.l10n.ready.then(this.l10nInit.bind(this));
+      document.addEventListener('DOMRetranslated', this.l10nInit.bind(this));
 
       // when lockscreen is just initialized,
       // it will lock itself (if enabled) before calling updatebackground,

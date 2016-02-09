@@ -113,7 +113,7 @@
       } else if (item.label.hasOwnProperty('raw')) {
         action.textContent = item.label.raw;
       } else {
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           action, item.label.id, item.label.args);
       }
 

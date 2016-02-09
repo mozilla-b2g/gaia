@@ -4,7 +4,7 @@
    MockWifiManager, QuickSettings, MockService */
 
 require('/test/unit/mock_activity.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/test/unit/mock_wifi_manager.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -36,8 +36,8 @@ suite('quick settings > ', function() {
     navigator.mozWifiManager = MockWifiManager;
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
   });
@@ -45,7 +45,7 @@ suite('quick settings > ', function() {
   suiteTeardown(function() {
     navigator.mozWifiManager = realWifiManager;
     navigator.MozMobileConnections = realMozMobileConnections;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozSettings = realSettings;
     window.AirplaneMode = realAirplaneMode;
   });

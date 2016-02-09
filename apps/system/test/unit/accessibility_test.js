@@ -9,7 +9,7 @@ requireApp('system/test/unit/mock_speech_synthesis.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/accessibility.js');
 requireApp('system/js/accessibility_quicknav_menu.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForA11y = new MocksHelper([
@@ -133,7 +133,7 @@ suite('system/Accessibility', function() {
 
   var fakeSentence = 'This is captions text';
 
-  var realL10n = navigator.mozL10n;
+  var realL10n = document.l10n;
 
   mocksForA11y.attachTestHelpers();
   setup(function() {
@@ -147,11 +147,11 @@ suite('system/Accessibility', function() {
     this.sinon.stub(speechSynthesizer, 'utterance',
       MockSpeechSynthesisUtterance);
     MockSettingsHelper.instances['language.current'] = { value: 'en-US' };
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     screenNode.parentNode.removeChild(screenNode);
   });
 

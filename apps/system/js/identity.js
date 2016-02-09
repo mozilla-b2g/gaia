@@ -75,7 +75,7 @@ var Identity = (function() {
             }).bind(this);
             window.addEventListener('trustedclosed', ontrustedclosed);
 
-            navigator.mozL10n.formatValue('persona-signin').then(value => {
+            document.l10n.formatValue('persona-signin').then(value => {
               window.dispatchEvent(new CustomEvent('launchtrusted', {
                 detail: {
                   name: value,
@@ -122,6 +122,6 @@ var Identity = (function() {
 })();
 
 // unit tests call init() manually
-if (navigator.mozL10n) {
-  navigator.mozL10n.once(Identity.init.bind(Identity));
+if (document.l10n) {
+  document.l10n.ready.then(Identity.init.bind(Identity));
 }

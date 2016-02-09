@@ -10,7 +10,7 @@ require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_custom_dialog.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/js/async_semaphore.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
@@ -92,14 +92,14 @@ suite('system/sound manager', function() {
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');
-    realL10n = navigator.mozL10n;
+    realL10n = document.l10n;
     realMozSettings = navigator.mozSettings;
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozSettings = realMozSettings;
     document.body.innerHTML = '';
   });

@@ -193,7 +193,7 @@
     if (!this.element && !this.isVisible()) {
       return;
     }
-    navigator.mozL10n.setAttributes(this.element, (active ?
+    document.l10n.setAttributes(this.element, (active ?
       'statusbarIconOnActive-' : 'statusbarIconOn-') + type);
   };
   /**

@@ -10,7 +10,7 @@ requireApp('system/test/unit/mock_download_store.js');
 requireApp('system/test/unit/mock_download_ui.js');
 requireApp('system/test/unit/mock_download_formatter.js');
 requireApp('system/test/unit/mock_download_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_activity.js');
 
@@ -51,8 +51,8 @@ suite('system/DownloadNotification >', function() {
     // This suite checks the life cycle of a download notification
     download = new Download();
     download.resume = function() {};
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
       configurable: true,
@@ -62,7 +62,7 @@ suite('system/DownloadNotification >', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }

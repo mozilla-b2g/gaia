@@ -439,17 +439,20 @@ window.GaiaAppIcon = (function(exports) {
     this._image.src = this._pendingIconUrl = this._predefinedIcons[name];
   };
 
-  proto._localizeString = function(str) {
-    var userLang = document.documentElement.lang;
+  proto._localizeElement = function(elem, str) {
+    //var userLang = document.documentElement.lang;
 
     // We want to make sure that we tranlsate only if we're using
     // a runtime pseudolocale.
-    // mozL10n.ctx.qps contains only runtime pseudolocales
-    if (navigator.mozL10n &&
-        navigator.mozL10n.ctx.qps.indexOf(userLang) !== -1) {
-      return navigator.mozL10n.qps[userLang].translate(str);
-    }
-    return str;
+    // document.l10n.pseudo contains only runtime pseudolocales
+    /*if (document.l10n &&
+        document.l10n.pseudo.hasOwnProperty(userLang)) {
+      document.l10n.pseudo[userLang].processString(str).then(
+        val => elem.textContent = str);
+    } else {
+      elem.textContent = str;
+    }*/
+    elem.textContent = str;
   };
 
   proto.updateName = function() {
@@ -459,12 +462,12 @@ window.GaiaAppIcon = (function(exports) {
 
       this.app.getLocalizedValue('short_name', userLang, ep).then(
         (shortName) => {
-          this._subtitle.textContent = this._localizeString(shortName);
+          this._localizeElement(this._subtitle, shortName);
         },
         () => {
           this.app.getLocalizedValue('name', userLang, ep).then(
           (name) => {
-            this._subtitle.textContent = this._localizeString(name);
+            this._localizeElement(this._subtitle, name);
           },
           (e) => {
             // Try to fall back to manifest app name
@@ -472,8 +475,8 @@ window.GaiaAppIcon = (function(exports) {
             if (manifest) {
               var nameObject = (manifest.entry_points && this.entryPoint) ?
                 manifest.entry_points[this.entryPoint] : manifest;
-              this._subtitle.textContent =
-                this._localizeString(nameObject.short_name || nameObject.name);
+              this._localizeElement(this._subtitle,
+                nameObject.short_name || nameObject.name);
             } else {
               console.error('Error retrieving app name', e);
               this._subtitle.textContent = '';

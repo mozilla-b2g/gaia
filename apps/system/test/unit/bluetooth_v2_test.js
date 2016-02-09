@@ -15,7 +15,7 @@ requireApp('system/js/base_icon.js');
 requireApp('system/js/bluetooth_icon.js');
 requireApp('system/js/bluetooth_transfer_icon.js');
 requireApp('system/js/bluetooth_headphone_icon.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
   Object.defineProperty(originObject, propName, {
@@ -54,8 +54,8 @@ suite('system/bluetooth_v2', function() {
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
 
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = window.document.l10n;
+    window.document.l10n = MockL10n;
 
     requireApp('system/js/bluetooth_v2.js', done);
   });
@@ -65,7 +65,7 @@ suite('system/bluetooth_v2', function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     window.SettingsListener = realSettingsListener;
     switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   setup(function() {

@@ -2,19 +2,19 @@
 'use strict';
 /* global ManifestHelper, MockL10n */
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/shared/js/manifest_helper.js');
 
 suite('ManifestHelper', function() {
   var realL10n;
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   test('All properties the same when no locales', function() {

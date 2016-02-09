@@ -94,7 +94,7 @@ var FxaModuleUI = {
         }
         this.setProgressBar(params.count);
 
-        navigator.mozL10n.once(function() {
+        document.l10n.ready.then(function() {
           // fire module's init method
           params.onload && params.onload();
 

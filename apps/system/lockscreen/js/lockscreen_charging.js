@@ -73,7 +73,7 @@ LockScreenChargingStatus.prototype.refresh = function cs_refresh() {
 
   // Update data here since changing textContent will replace the text node and
   // could cause flickering while transitioning docshell.isActive to true.
-  navigator.mozL10n.formatValue(l10nAttrs.id, l10nAttrs.args).then((value) => {
+  document.l10n.formatValue(l10nAttrs.id, l10nAttrs.args).then((value) => {
     this.elements.charging.firstChild.data = value;
   });
 
