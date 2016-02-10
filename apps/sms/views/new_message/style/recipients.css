@@ -120,6 +120,7 @@ html[dir="rtl"] .recipient[contenteditable].email {
   height: 2.8rem;
   line-height: 2.8rem;
   border-radius: 0;
+  overflow-x: auto;
 
   word-wrap: unset;
 
