@@ -1933,13 +1933,34 @@ var ConversationView = {
       });
     }
 
-    // Last item is the Cancel button
-    params.items.push({
-      l10nId: 'cancel',
-      incomplete: true
-    });
-
-    new OptionMenu(params).show();
+    var participants = this.activeThread.participants;
+    // Do I need to do this when only one participant?
+    if (participants) {
+      Contacts.findByAddress(participants[0]).then(function(results) {
+        if (results && results.length) {
+          var contact = results[0];
+          var props = [{ id: contact.id }];
+          params.items.push({
+            l10nId: 'viewContact',
+            method: () => ActivityPicker.viewContact(props),
+            params: props
+          });
+        }
+        // Last item is the Cancel button
+        params.items.push({
+          l10nId: 'cancel',
+          incomplete: true
+        });
+        new OptionMenu(params).show();
+      });
+    } else {
+      // Last item is the Cancel button
+      params.items.push({
+        l10nId: 'cancel',
+        incomplete: true
+      });
+      new OptionMenu(params).show();
+    }
   },
 
   /**
