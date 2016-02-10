@@ -5,7 +5,7 @@
 require('/shared/test/unit/mocks/smart-screen/mock_spatial_navigator.js');
 require('/shared/test/unit/mocks/smart-screen/mock_key_navigation_adapter.js');
 require('/shared/test/unit/mocks/smart-screen/mock_clock.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/test/unit/mock_epg_controller.js');
 require('/js/epg_program.js');
 require('/js/epg.js');
@@ -53,14 +53,25 @@ suite('tv-epg/epg', function() {
   });
 
   setup(function() {
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
+
+    if (!Intl.DateTimeFormat.prototype.formatToParts) {
+      Intl.DateTimeFormat.prototype.formatToParts = function(now) {
+        return [
+          {type: 'hour', value: '12'},
+          {type: 'minute', value: '25'},
+          {type: 'dayperiod', value: 'AM'}
+        ];
+      };
+    }
+
     epg = new EPG();
     this.sinon.stub(epg, '_updateClock');
   });
 
   teardown(function() {
-    window.navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('_addTimeline', function() {
