@@ -76,7 +76,7 @@
       l10nArgs.operator += ' ' + operatorInfos.region;
     }
 
-    document.l10n.setAttributes(label, 'statusbarOperator', l10nArgs);
+    navigator.mozL10n.setAttributes(label, 'statusbarOperator', l10nArgs);
   };
   exports.OperatorIcon = OperatorIcon;
 }(window));

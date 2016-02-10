@@ -4,7 +4,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
@@ -60,8 +60,8 @@ suite('system/CrashReporter', function() {
 
   mocksForCrashReporter.attachTestHelpers();
   setup(function(done) {
-    realL10n = document.l10n;
-    document.l10n = MockL10n;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -88,7 +88,7 @@ suite('system/CrashReporter', function() {
     clock.restore();
     spyL10n.restore();
 
-    document.l10n = realL10n;
+    navigator.mozL10n = realL10n;
     navigator.mozSettings = realMozSettings;
     MockNavigatorSettings.mTeardown();
 

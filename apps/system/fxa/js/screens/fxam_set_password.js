@@ -82,7 +82,7 @@ var FxaModuleSetPassword = (function() {
 
     this.email = options.email;
 
-    document.l10n.setAttributes(this.fxaHelloUser, 'fxa-hello-user2', {
+    navigator.mozL10n.setAttributes(this.fxaHelloUser, 'fxa-hello-user2', {
       email: this.email
     });
 

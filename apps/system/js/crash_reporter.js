@@ -26,14 +26,14 @@ var CrashReporter = (function() {
   function showDialog(crashID, isChrome) {
     var elem = document.getElementById('crash-dialog-title');
     if (isChrome) {
-      document.l10n.setAttributes(elem, 'crash-dialog2-os');
+      navigator.mozL10n.setAttributes(elem, 'crash-dialog2-os');
     } else {
       var appNamePromise = crashedAppName ?
         Promise.resolve(crashedAppName) :
-        document.l10n.formatValue('crash-dialog-app-noname');
+        navigator.mozL10n.formatValue('crash-dialog-app-noname');
 
       appNamePromise.then(appName => {
-        document.l10n.setAttributes(
+        navigator.mozL10n.setAttributes(
           elem,
           'crash-dialog-app',
           { name: appName }
@@ -90,7 +90,7 @@ var CrashReporter = (function() {
   function showBanner(crashID, isChrome) {
     var appNamePromise = crashedAppName ?
       Promise.resolve(crashedAppName) :
-      document.l10n.formatValue('crash-dialog-app-noname');
+      navigator.mozL10n.formatValue('crash-dialog-app-noname');
 
     var button = null;
     if (showReportButton) {

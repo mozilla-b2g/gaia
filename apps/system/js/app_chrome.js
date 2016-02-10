@@ -565,13 +565,13 @@
 
   AppChrome.prototype.setPinDialogCard = function ac_setPinDialogCard() {
     if (this.pinned) {
-      document.l10n.setAttributes(this.pinType, 'pinning-unpin-type', {
+      navigator.mozL10n.setAttributes(this.pinType, 'pinning-unpin-type', {
         'type': this.app.name
       });
       this.pinButton.setAttribute('data-l10n-id', 'pinning-unpin-site');
       this.pinButton.dataset.action = 'unpin';
     } else {
-      document.l10n.setAttributes(this.pinType, 'pinning-pin-type', {
+      navigator.mozL10n.setAttributes(this.pinType, 'pinning-pin-type', {
         'type': this.app.name
       });
       this.pinButton.setAttribute('data-l10n-id', 'pinning-pin');

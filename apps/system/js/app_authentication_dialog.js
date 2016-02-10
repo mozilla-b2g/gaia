@@ -164,7 +164,7 @@
     var elements = this.elements;
     this.element.classList.add('visible');
     this.debug(' AAD>> showing');
-    document.l10n.setAttributes(
+    navigator.mozL10n.setAttributes(
       elements.httpAuthenticationMessage,
       'http-authentication-message2',
       {host: evt.detail.host}

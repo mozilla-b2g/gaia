@@ -347,7 +347,7 @@ var icc = {
     // Clear previous icons
     this.icc_alert_icons.innerHTML = '';
 
-    document.l10n.setAttributes(
+    navigator.mozL10n.setAttributes(
       this.icc_alert_subtitle,
       'icc-message-subtitle',
       { 'id': this.getSIMNumber(stkMessage.iccId) }
@@ -401,7 +401,7 @@ var icc = {
       callback = function() {};
     }
 
-    document.l10n.setAttributes(
+    navigator.mozL10n.setAttributes(
       this.icc_confirm_subtitle,
       'icc-message-subtitle',
       { 'id': this.getSIMNumber(stkMessage.iccId) }
@@ -474,7 +474,7 @@ var icc = {
     // Clear previous icons
     this.icc_asyncconfirm_icons.innerHTML = '';
 
-    document.l10n.setAttributes(
+    navigator.mozL10n.setAttributes(
       this.icc_asyncconfirm_subtitle,
       'icc-message-subtitle',
       { 'id': this.getSIMNumber(stkMessage.iccId) }
@@ -561,7 +561,7 @@ var icc = {
     function checkInputLengthValid(inputLen, minLen, maxLen) {
       // Update input counter
       var charactersLeft = maxLen - inputLen;
-      document.l10n.setAttributes(
+      navigator.mozL10n.setAttributes(
         self.icc_input_btn,
         'okCharsLeft',
         { n: charactersLeft }
@@ -605,11 +605,11 @@ var icc = {
 
     function formatL10n(l10n) {
       if (typeof(l10n) === 'string') {
-        return document.l10n.formatValue(l10n);
+        return navigator.mozL10n.formatValue(l10n);
       } else if (l10n.hasOwnProperty('raw')) {
         return Promise.resolve(l10n.raw);
       } else {
-        return document.l10n.formatValue(l10n.id, l10n.args);
+        return navigator.mozL10n.formatValue(l10n.id, l10n.args);
       }
     }
 
@@ -639,7 +639,7 @@ var icc = {
 
     this.icc_input_maintitle.setAttribute('data-l10n-id',
       'icc-message-maintitle');
-    document.l10n.setAttributes(
+    navigator.mozL10n.setAttributes(
       this.icc_input_subtitle,
       'icc-message-subtitle',
       { 'id': this.getSIMNumber(stkMessage.iccId) }
@@ -788,7 +788,7 @@ var icc = {
       elem.removeAttribute('data-l10n-id');
       elem.textContent = l10n.raw;
     } else {
-      document.l10n.setAttributes(elem, l10n.id, l10n.args);
+      navigator.mozL10n.setAttributes(elem, l10n.id, l10n.args);
     }
   }
 };
