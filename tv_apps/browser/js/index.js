@@ -735,7 +735,7 @@ var Browser = {
           var errorMessageL10nId = '';
           if (evt.detail.type === 'certerror') {
             errorMessageL10nId = 'WB_LT_CONNECTION_IS_UNTRUSTED';
-            navigator.mozL10n.formatValue(errorMessageL10nId).then(result => {
+            document.l10n.formatValue(errorMessageL10nId).then(result => {
               window.alert(result);
             });
           }
@@ -1211,11 +1211,14 @@ window.onhashchange = Browser.hashChange;
 window.addEventListener('load', function browserOnLoad(evt) {
   Browser.debug('browser browserOnLoad...');
   window.removeEventListener('load', browserOnLoad, false);
-  var mozL10n = navigator.mozL10n;
-  mozL10n.ready(function() {
+  // hash change param
+  Browser.hashChange();
+  Browser.init();
+
+  document.addEventListener('DOMRetranslated', () => {
     // hash change param
     Browser.hashChange();
     Browser.init();
-  }.bind(this));
+  });
 });
 
