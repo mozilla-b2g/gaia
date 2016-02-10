@@ -1,4 +1,4 @@
-/* global layoutManager, AppWindow */
+/* global AppWindow, Service */
 'use strict';
 
 (function(window) {
@@ -93,8 +93,8 @@
       }
 
       var req = this.iframe.getScreenshot(
-        width || this.width || layoutManager.width,
-        height || this.height || layoutManager.height);
+        width || this.width || Service.query('LayoutManager.width'),
+        height || this.height || Service.query('LayoutManager.height'));
 
       req.onsuccess = function gotScreenshotFromFrame(evt) {
         var result = evt.target.result;

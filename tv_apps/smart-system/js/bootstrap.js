@@ -6,7 +6,7 @@
          DeveloperHUD, RemoteDebugger, HomeGesture,
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
-         applications, LayoutManager, PermissionManager, Accessibility,
+         applications, PermissionManager, Accessibility,
          SleepMenu, InteractiveNotifications, ExternalStorageMonitor,
          BaseModule */
 
@@ -92,8 +92,6 @@ window.addEventListener('load', function startup() {
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
-  window.layoutManager = new LayoutManager();
-  window.layoutManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.remoteDebugger = new RemoteDebugger();

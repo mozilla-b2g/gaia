@@ -1,7 +1,6 @@
 /* global AppChrome */
 /* global AudioChannelController */
 /* global BrowserFrame */
-/* global layoutManager */
 /* global ManifestHelper */
 /* global OrientationManager */
 /* global ScreenLayout */
@@ -832,8 +831,8 @@
     }
 
     // Resize only the overlays not the app
-    var width = layoutManager.width;
-    var height = layoutManager.height;
+    var width = Service.query('LayoutManager.width');
+    var height = Service.query('LayoutManager.height');
 
     this.iframe.style.width = this.width + 'px';
     this.iframe.style.height = this.height + 'px';
@@ -1398,7 +1397,7 @@
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
-    if (layoutManager.keyboardEnabled) {
+    if (Service.query('LayoutManager.keyboardEnabled')) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1415,10 +1414,10 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.height;
+    height = Service.query('LayoutManager.height');
 
     // If we have sidebar in the future, change layoutManager then.
-    width = layoutManager.width;
+    width = Service.query('LayoutManager.width');
 
     this.width = width;
     this.height = height;
