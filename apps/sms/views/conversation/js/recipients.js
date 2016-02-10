@@ -15,6 +15,7 @@
   var events = new WeakMap();
   var relation = new WeakMap();
   var rdigit = /^\d/;
+  var rIgnoredFirstChar = /^[+(].*$/;
 
   function Recipient(opts) {
     var number;
@@ -53,8 +54,11 @@
     // the trimmed, typed text starts with a non-number
     // (ignoring the presense of a '+'), the input value
     // is questionable and may be invalid.
-    number = this.number[0] === '+' ? this.number.slice(1) : this.number;
-    number = number.replace('(','').replace(')','');
+
+    number = this.number;
+    while (rIgnoredFirstChar.test(number)) {
+      number = number.slice(1);
+    }
 
     if (this.isEmail) {
       this.className += ' email';
