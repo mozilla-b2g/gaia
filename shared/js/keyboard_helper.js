@@ -11,7 +11,7 @@
 /* jshint validthis: true */
 
 /**
- * The set of "basic keyboard" types
+ * The set of 'basic keyboard' types
  */
 var BASE_TYPES = new Set([
   'text', 'url', 'email', 'password', 'number', 'option'
@@ -23,36 +23,6 @@ var BASE_TYPES = new Set([
 var SETTINGS_KEYS = {
   ENABLED: 'keyboard.enabled-layouts',
   DEFAULT: 'keyboard.default-layouts'
-};
-
-var DEPRECATE_KEYBOARD_SETTINGS = {
-  en: 'keyboard.layouts.english',
-  'en-Dvorak': 'keyboard.layouts.dvorak',
-  cs: 'keyboard.layouts.czech',
-  fr: 'keyboard.layouts.french',
-  de: 'keyboard.layouts.german',
-  hu: 'keyboard.layouts.hungarian',
-  nb: 'keyboard.layouts.norwegian',
-  my: 'keyboard.layouts.myanmar',
-  sl: 'keyboard.layouts.slovak',
-  tr: 'keyboard.layouts.turkish',
-  ro: 'keyboard.layouts.romanian',
-  ru: 'keyboard.layouts.russian',
-  ar: 'keyboard.layouts.arabic',
-  he: 'keyboard.layouts.hebrew',
-  'zh-Hant-Zhuyin': 'keyboard.layouts.zhuyin',
-  'zh-Hans-Pinyin': 'keyboard.layouts.pinyin',
-  el: 'keyboard.layouts.greek',
-  'jp-kanji': 'keyboard.layouts.japanese',
-  pl: 'keyboard.layouts.polish',
-  'pt-BR': 'keyboard.layouts.portuguese',
-  sr: 'keyboard.layouts.serbian',
-  es: 'keyboard.layouts.spanish',
-  ca: 'keyboard.layouts.catalan'
-};
-
-var MULTI_LAYOUT_MAP = {
-  sr: ['sr-Cyrl', 'sr-Latn']
 };
 
 // In order to provide default defaults, we need to know the default keyboard
@@ -122,8 +92,102 @@ function map2dClone(obj) {
 // callbacks when something changes
 var watchQueries = [];
 
-// holds the result of keyboard_layouts.json
-var defaultLayoutConfig;
+// Hold the mapping between locale -> layout
+var defaultLayoutConfig = {
+  locales: {
+    'af': [ 'af', 'en' ],
+    'am': [ 'en' ],
+    'ar': [ 'ar', 'en' ],
+    'as': [ 'en' ],
+    'bg': [ 'bg-BDS', 'en' ],
+    'bm': [ 'en' ],
+    'bn-BD': [ 'bn-Avro', 'bn-Probhat', 'en' ],
+    'bn-IN': [ 'bn-Avro', 'bn-Probhat', 'en' ],
+    'bs': [ 'bs' ],
+    'ca': [ 'ca' ],
+    'cs': [ 'cs' ],
+    'cy': [ 'cy' ],
+    'da': [ 'da' ],
+    'de': [ 'de' ],
+    'dsb': [ 'en' ],
+    'ee': [ 'en-Africa' ],
+    'el': [ 'el', 'en' ],
+    'en-GB': [ 'en-GB' ],
+    'en-US': [ 'en' ],
+    'eo': [ 'eo' ],
+    'es': [ 'es' ],
+    'et': [ 'en' ],
+    'eu': [ 'eu', 'es', 'fr', 'en' ],
+    'fa': [ 'en' ],
+    'ff': [ 'ff', 'fr', 'en' ],
+    'fi': [ 'en' ],
+    'fr': [ 'fr' ],
+    'fy-NL': [ 'fy' ],
+    'ga-IE': [ 'ga' ],
+    'gd': [ 'gd' ],
+    'gl': [ 'es' ],
+    'ha': [ 'en-Africa' ],
+    'he': [ 'he', 'en' ],
+    'hi-IN': [ 'hi', 'en' ],
+    'hr': [ 'hr' ],
+    'hsb': [ 'en' ],
+    'ht': [ 'en' ],
+    'hu': [ 'hu' ],
+    'hy-AM': [ 'en' ],
+    'id': [ 'en' ],
+    'ig': [ 'en-Africa' ],
+    'it': [ 'it' ],
+    'ja': [ 'jp-kanji', 'en' ],
+    'ko': [ 'ko', 'en' ],
+    'lg': [ 'en-Africa' ],
+    'lij': [ 'en' ],
+    'ln': [ 'en-Africa' ],
+    'lv': [ 'lv' ],
+    'mk': [ 'mk' ],
+    'ml': [ 'en' ],
+    'mg': [ 'en' ],
+    'mr': [ 'en' ],
+    'my': [ 'my' ],
+    'nb': [ 'nb' ],
+    'nl': [ 'nl' ],
+    'or': [ 'en' ],
+    'pa': [ 'en' ],
+    'pl': [ 'pl' ],
+    'pt-BR': [ 'pt-BR' ],
+    'pt-PT': [ 'pt-PT' ],
+    'fr-x-psaccent': [ 'en' ],
+    'ar-x-psbidi': [ 'en' ],
+    'ro': [ 'ro' ],
+    'ru': [ 'ru', 'en' ],
+    'sk': [ 'sk' ],
+    'sl': [ 'en' ],
+    'son': [ 'en' ],
+    'sq': [ 'sq' ],
+    'sr': [ 'sr-Cyrl', 'sr-Latn' ],
+    'sr-Cyrl': [ 'sr-Cyrl' ],
+    'sr-Latn': [ 'sr-Latn' ],
+    'sv-SE': [ 'sv' ],
+    'sw': [ 'en-Africa' ],
+    'ta': [ 'ta', 'en' ],
+    'te': [ 'en' ],
+    'th': [ 'th' ],
+    'tn': [ 'en-Africa' ],
+    'tl': [ 'en' ],
+    'tr': [ 'tr-Q', 'tr-F' ],
+    'uk': [ 'uk' ],
+    'ur': [ 'en' ],
+    'vi': [ 'vi-Typewriter', 'fr' ],
+    'wo': [ 'wo' ],
+    'xh': [ 'en-Africa' ],
+    'yo': [ 'en-Africa' ],
+    'zam': [ 'es-Americas', 'es' ],
+    'zh-CN': [ 'zh-Hans-Pinyin', 'en' ],
+    'zh-TW': [ 'zh-Hant-Zhuyin', 'en' ],
+    'zu': [ 'en-Africa' ]
+  },
+  langIndependentLayouts: [ 'number' ],
+  fallbackLayouts: [ 'en' ]
+};
 
 /**
  * Sends any watchers the result of their query.
@@ -243,150 +307,6 @@ function kh_parseEnabled() {
 }
 
 /**
- * Parse and migrate the result for the deprecated settings (v1.1) for enabled
- * layouts.
- */
-function kh_migrateDeprecatedSettings(deprecatedSettings) {
-  /* jshint loopfunc: true */
-  var settingEntry = DEPRECATE_KEYBOARD_SETTINGS.en;
-
-  // No need to do migration if the deprecated settings are not available
-  if (deprecatedSettings[settingEntry] === undefined) {
-    return;
-  }
-
-  // reset the enabled layouts
-  currentSettings.enabledLayouts[defaultKeyboardManifestURL] = {
-    number: true
-  };
-
-  var hasEnabledLayout = false;
-  for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
-    settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
-    // this layout was set as enabled in the old settings
-    if (deprecatedSettings[settingEntry]) {
-      hasEnabledLayout = true;
-
-      if (key in MULTI_LAYOUT_MAP) {
-        MULTI_LAYOUT_MAP[key].forEach(function enableLayout(layoutId) {
-          map2dSet.call(currentSettings.enabledLayouts,
-                        defaultKeyboardManifestURL, layoutId);
-        });
-      } else {
-        map2dSet.call(currentSettings.enabledLayouts,
-                      defaultKeyboardManifestURL, key);
-      }
-    }
-  }
-
-  // None of the layouts has been set enabled, so enable English by default
-  if (!hasEnabledLayout) {
-    map2dSet.call(currentSettings.enabledLayouts,
-                  defaultKeyboardManifestURL, 'en');
-  }
-
-  // Clean up all the deprecated settings
-  var deprecatedSettingsQuery = {};
-  for (key in DEPRECATE_KEYBOARD_SETTINGS) {
-    // the deprecated setting entry, e.g. keyboard.layout.english
-    settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
-
-    // Set the default value for each entry
-    deprecatedSettingsQuery[settingEntry] = null;
-  }
-  window.navigator.mozSettings.createLock().set(deprecatedSettingsQuery);
-
-  KeyboardHelper.saveToSettings();
-}
-
-/**
- * JSON loader
- */
-function kh_loadJSON(href, callback) {
-  if (!callback) {
-    return;
-  }
-  var xhr = new XMLHttpRequest();
-  xhr.onerror = function() {
-    console.error('Failed to fetch file: ' + href, xhr.statusText);
-  };
-  xhr.onload = function() {
-    callback(xhr.response);
-  };
-  xhr.open('GET', href, true); // async
-  xhr.responseType = 'json';
-  xhr.send();
-}
-
-//
-// getSettings: Query the value of multiple settings at once.
-//
-// settings is an object whose property names are the settings to query
-// and whose property values are the default values to use if no such
-// setting is found.  This function will create a setting lock and
-// request the value of each of the specified settings.  Once it receives
-// a response to all of the queries, it passes all the settings values to
-// the specified callback function.  The argument to the callback function
-// is an object just like the settings object, where the property name is
-// the setting name and the property value is the setting value (or the
-// default value if the setting was not found).
-//
-function kh_getMultiSettings(settings, callback) {
-  var results = {};
-  try {
-    var lock = navigator.mozSettings.createLock();
-  }
-  catch (e) {
-    // If settings is broken, just return the default values
-    console.warn('Exception in mozSettings.createLock():', e,
-                 '\nUsing default values');
-    for (var p in settings) {
-      results[p] = settings[p];
-    }
-    callback(results);
-  }
-  var settingNames = Object.keys(settings);
-  var numSettings = settingNames.length;
-  var numResults = 0;
-
-  for (var i = 0; i < numSettings; i++) {
-    requestSetting(settingNames[i]);
-  }
-
-  function requestSetting(name) {
-    var request;
-    try {
-      request = lock.get(name);
-    }
-    catch (e) {
-      console.warn('Exception querying setting', name, ':', e,
-                   '\nUsing default value');
-      recordResult(name, settings[name]);
-      return;
-    }
-    request.onsuccess = function() {
-      var value = request.result[name];
-      if (value === undefined) {
-        value = settings[name]; // Use the default value
-      }
-      recordResult(name, value);
-    };
-    request.onerror = function(evt) {
-      console.warn('Error querying setting', name, ':', evt.error);
-      recordResult(name, settings[name]);
-    };
-  }
-
-  function recordResult(name, value) {
-    results[name] = value;
-    numResults++;
-    if (numResults === numSettings) {
-      callback(results);
-    }
-  }
-}
-
-/**
  * Creates an object that describes a keyboard layout.  The objects prototype
  * will give it accessors for 'default' and 'enabled' that will read or change
  * the proper setting from currentSettings.
@@ -476,23 +396,14 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
     // load the current settings, and watch for changes to settings
     var settings = window.navigator.mozSettings;
-    if (settings) {
-      kh_getSettings();
-      settings.addObserver(SETTINGS_KEYS.ENABLED, kh_getSettings);
-      settings.addObserver(SETTINGS_KEYS.DEFAULT, kh_getSettings);
-
-      // read deprecated settings
-      var deprecatedSettingsQuery = {};
-      for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
-        // the deprecated setting entry, e.g. keyboard.layout.english
-        var settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
-
-        // Set the default value for each entry
-        deprecatedSettingsQuery[settingEntry] = undefined;
-      }
-      kh_getMultiSettings(deprecatedSettingsQuery,
-                          kh_migrateDeprecatedSettings);
+    if (!settings) {
+      console.error('KeyboardHelper: No mozSettings!');
+      return;
     }
+
+    kh_getSettings();
+    settings.addObserver(SETTINGS_KEYS.ENABLED, kh_getSettings);
+    settings.addObserver(SETTINGS_KEYS.DEFAULT, kh_getSettings);
 
     window.addEventListener('applicationinstallsuccess', this);
   },
@@ -759,57 +670,60 @@ var KeyboardHelper = exports.KeyboardHelper = {
     });
   },
 
-  // Read keyboard_layouts for language -> layouts mapping
-  getDefaultLayoutConfig: function kh_getDefaultLayoutConfig(callback) {
-    if (!callback) {
-      return;
-    }
-
-    if (defaultLayoutConfig) {
-      callback(defaultLayoutConfig);
-    } else {
-      var KEYBOARDS = '/shared/resources/keyboard_layouts.json';
-      kh_loadJSON(KEYBOARDS, function loadKeyboardLayouts(data) {
-        if (data) {
-          defaultLayoutConfig = data;
-          callback(defaultLayoutConfig);
-        }
-      });
-    }
-  },
-
   // Change the default layouts set according to the language
-  // language: the current system language, used to look up the mapping table
+  // locale: the current system language, used to look up the mapping table
   // reset: if set as true, will reset the current enabled layouts
-  changeDefaultLayouts: function kh_changeDefaultLayouts(language, reset) {
-    this.getDefaultLayoutConfig(function gotDefaultLayouts(keyboards) {
-      var newKbLayouts = keyboards.layout[language];
+  changeDefaultLayouts: function kh_changeDefaultLayouts(locale, reset) {
+    this.getApps(function(inputApps) {
+      var defaultInputApp = inputApps.find(function(inputApp) {
+        return inputApp.domApp.manifestURL === defaultKeyboardManifestURL;
+      });
 
-      // XXX: change this so that it could support multiple built-in
-      // keyboard apps
-      var kbManifestURL = defaultKeyboardManifestURL;
+      if (!defaultInputApp) {
+        console.error('KeyboardHelper: Built-in Keyboard app not installed!');
+        return;
+      }
 
       // reset the set of default layouts
       currentSettings.defaultLayouts = {};
 
       // set the language-independent default layouts
-      var langIndependentLayouts = keyboards.langIndependentLayouts;
+      var langIndependentLayouts = defaultLayoutConfig.langIndependentLayouts;
       for (var i = langIndependentLayouts.length - 1; i >= 0; i--) {
-        this.setLayoutIsDefault(kbManifestURL,
-                                langIndependentLayouts[i].layoutId,
-                                true);
+        this.setLayoutIsDefault(
+          defaultKeyboardManifestURL, langIndependentLayouts[i], true);
       }
 
       if (reset) {
-        // reset the set of default layouts
+        // reset the set of enabled layouts
         currentSettings.enabledLayouts =
           map2dClone(currentSettings.defaultLayouts);
       }
 
-      // Enable the language specific keyboard layout group
-      for (i = newKbLayouts.length - 1; i >= 0; i--) {
-        this.setLayoutIsDefault(kbManifestURL, newKbLayouts[i].layoutId, true);
-        this.setLayoutEnabled(kbManifestURL, newKbLayouts[i].layoutId, true);
+      var layoutsToAdd;
+      if (defaultLayoutConfig.locales[locale]) {
+        layoutsToAdd = defaultLayoutConfig.locales[locale];
+      } else {
+        console.warn('KeyboardHelper: Unknown locale; use fallback layouts.');
+        layoutsToAdd = [];
+      }
+
+      // Check if the layouts are available first
+      layoutsToAdd = layoutsToAdd.filter(function(inputId) {
+        return !!defaultInputApp.getInputs()[inputId];
+      });
+
+      if (layoutsToAdd.length === 0) {
+        layoutsToAdd = defaultLayoutConfig.fallbackLayouts;
+      }
+
+      // Enable the language specific keyboard layout group,
+      // or the fallback layouts.
+      for (i = layoutsToAdd.length - 1; i >= 0; i--) {
+        this.setLayoutIsDefault(
+          defaultKeyboardManifestURL, layoutsToAdd[i], true);
+        this.setLayoutEnabled(
+          defaultKeyboardManifestURL, layoutsToAdd[i], true);
       }
 
       this.saveToSettings(); // save changes to settings
