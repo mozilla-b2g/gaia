@@ -825,7 +825,7 @@ suite('system/Updatable', function() {
       });
 
       test('battery prompt callback', function() {
-        assert.equal(subject.declineInstallBattery.name,
+        assert.equal(`bound ${subject.declineInstallBattery.name}`,
                      MockCustomDialog.mShowedCancel.callback.name);
 
         subject.declineInstallBattery();
@@ -843,7 +843,7 @@ suite('system/Updatable', function() {
     });
 
     test('apply prompt cancel callback', function() {
-      assert.equal(subject.declineInstall.name,
+      assert.equal(`bound ${subject.declineInstall.name}`,
                    MockCustomDialog.mShowedCancel.callback.name);
 
       subject.declineInstallWait();
@@ -854,7 +854,7 @@ suite('system/Updatable', function() {
     });
 
     test('apply prompt confirm callback', function() {
-      assert.equal(subject.acceptInstall.name,
+      assert.equal(`bound ${subject.acceptInstall.name}`,
                    MockCustomDialog.mShowedConfirm.callback.name);
 
       subject.acceptInstall();
