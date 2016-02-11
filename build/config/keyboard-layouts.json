@@ -89,7 +89,7 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "fi": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "fi", "app": ["apps", "keyboard"]}
     ],
     "fr": [
         {"layoutId": "fr", "app": ["apps", "keyboard"]}
