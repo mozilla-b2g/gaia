@@ -54,12 +54,13 @@ marionette('Test Modal Dialog Events', function() {
   };
 
   setup(function() {
-    system = client.loader.getAppClass('smart-system', 'system', 'tv_apps');
+    system = client.loader.getAppClass('system');
+    system.waitForStartup();
     system.waitForFullyLoaded();
     appModalDialog = new AppModalDialog(client);
     // Launch test app
-    client.apps.launch(APP_URL);
-    client.apps.switchToApp(APP_URL);
+    var frame = system.waitForLaunch(APP_URL);
+    client.switchToFrame(frame);
   });
 
   test('alert modal dialog should disappear', testOptions, function() {
