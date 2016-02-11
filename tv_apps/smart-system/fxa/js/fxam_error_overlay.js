@@ -27,6 +27,7 @@ var FxaModuleErrorOverlay = {
       'fxa-error-overlay',
       'fxa-error-title',
       'fxa-error-msg',
+      'fxa-error-msg-coppa',
       'fxa-error-ok'
     );
 
@@ -49,7 +50,7 @@ var FxaModuleErrorOverlay = {
     this.initialized = true;
   },
 
-  show: function fxam_error_overlay_show(titleL10n, messageL10n) {
+  show: function fxam_error_overlay_show(titleL10n, messageL10n, resp) {
     var promise = new Promise((resolve, reject) => {
       FxaModuleErrorOverlay._deferred = {
         resolve: resolve,
@@ -60,9 +61,14 @@ var FxaModuleErrorOverlay = {
     this.init();
 
     this.fxaErrorTitle.setAttribute('data-l10n-id', titleL10n);
-    if (typeof(messageL10n) === 'object') {
-      this.fxaErrorMsg.innerHTML = messageL10n.html;
+
+    if (resp && resp.error === 'COPPA_ERROR') {
+      this.fxaErrorMsg.style.display = 'none';
+      this.fxaErrorMsgCoppa.style.display = 'inline';
+      this.fxaErrorMsgCoppa.setAttribute('data-l10n-id', messageL10n);
     } else {
+      this.fxaErrorMsg.style.display = 'inline';
+      this.fxaErrorMsgCoppa.style.display = 'none';
       this.fxaErrorMsg.setAttribute('data-l10n-id', messageL10n);
     }
 
