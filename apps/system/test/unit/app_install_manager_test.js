@@ -281,21 +281,21 @@ suite('system/AppInstallManager >', function() {
     });
 
     test('should bind to the click event', function() {
-      assert.equal(AppInstallManager.handleInstall.name,
+      assert.equal(`bound ${AppInstallManager.handleInstall.name}`,
                    AppInstallManager.installButton.onclick.name);
-      assert.equal(AppInstallManager.showInstallCancelDialog.name,
+      assert.equal(`bound ${AppInstallManager.showInstallCancelDialog.name}`,
                    AppInstallManager.cancelButton.onclick.name);
-      assert.equal(AppInstallManager.handleInstallCancel.name,
+      assert.equal(`bound ${AppInstallManager.handleInstallCancel.name}`,
                    AppInstallManager.confirmCancelButton.onclick.name);
-      assert.equal(AppInstallManager.hideInstallCancelDialog.name,
+      assert.equal(`bound ${AppInstallManager.hideInstallCancelDialog.name}`,
                    AppInstallManager.resumeButton.onclick.name);
-      assert.equal(AppInstallManager.handleSetupCancelAction.name,
+      assert.equal(`bound ${AppInstallManager.handleSetupCancelAction.name}`,
                    AppInstallManager.setupCancelButton.onclick.name);
-      assert.equal(AppInstallManager.handleSetupConfirmAction.name,
+      assert.equal(`bound ${AppInstallManager.handleSetupConfirmAction.name}`,
                    AppInstallManager.setupConfirmButton.onclick.name);
-      assert.equal(AppInstallManager.hideIMEList.name,
+      assert.equal(`bound ${AppInstallManager.hideIMEList.name}`,
                    AppInstallManager.imeCancelButton.onclick.name);
-      assert.equal(AppInstallManager.handleImeConfirmAction.name,
+      assert.equal(`bound ${AppInstallManager.handleImeConfirmAction.name}`,
                    AppInstallManager.imeConfirmButton.onclick.name);
 
     });
