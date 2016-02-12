@@ -230,9 +230,9 @@
 
       if (!this.isSpeaking && timeStamp > this.expectedCompleteTimeStamp) {
         this.speechSynthesizer.cancel();
-        this.announceScreenReader(function onEnd() {
+        this.announceScreenReader().then(() => {
           this.resetSpeaking(timeStamp + this.REPEAT_BUTTON_PRESS);
-        }.bind(this));
+        });
         return;
       }
 
@@ -346,29 +346,25 @@
     /**
      * Based on whether the screen reader is currently enabled, announce the
      * instructions of how to enable/disable it.
-     * @param {Function} aCallback A callback after the speech synthesis is
-     * completed.
      * @memberof Accessibility.prototype
      */
-    announceScreenReader: function ar_announceScreenReader(aCallback) {
+    announceScreenReader: function ar_announceScreenReader() {
       var enabled = this.settings['accessibility.screenreader'];
       this.isSpeaking = true;
-      this.speak({
+      return this.speak({
         string: enabled ? 'disableScreenReaderSteps' : 'enableScreenReaderSteps'
-      }, aCallback, {enqueue: false});
+      }, {enqueue: false});
     },
 
     /**
      * Use speechSynthesis to speak screen reader utterances.
      * @param  {?Array} aData Speech data before it is localized.
-     * @param  {?Function} aCallback aCallback A callback after the speech
-     * synthesis is completed.
      * @param  {?Object} aOptions = {} Speech options such as enqueue etc.
      * @memberof Accessibility.prototype
      */
-    speak: function ar_speak(aData, aCallback, aOptions = {}) {
-      this.speechSynthesizer.speak(aData, aOptions, this.rate, this.volume,
-        aCallback);
+    speak: function ar_speak(aData, aOptions = {}) {
+      return this.speechSynthesizer.speak(
+        aData, aOptions, this.rate, this.volume);
     }
   };
 
@@ -467,7 +463,7 @@
           return aData;
         }, data);
       }
-      return navigator.mozL10n.get(string, data);
+      return navigator.mozL10n.formatValue(string, data);
     },
 
     /**
@@ -480,19 +476,12 @@
       if (!Array.isArray(aData)) {
         aData = [aData];
       }
-      var words = [], localize = this.localize;
-      aData.reduce(function(words, details) {
-        var localized = localize(details);
-        if (localized) {
-          var word = localized.trim();
-          if (word) {
-            words.push(word);
-          }
-        }
-        return words;
-      }, words);
+      var l10nPromises = aData.map(this.localize);
 
-      return words.join(' ');
+      return Promise.all(l10nPromises).then(words => {
+        words = words.filter(word => word.trim());
+        return words.join(' ');
+      });
     },
 
     /**
@@ -542,15 +531,10 @@
      * }
      * @param {Number} aRate Speech rate.
      * @param {Number} aVolume Speech volume.
-     * @param {Function} aCallback A callback after the speech synthesis is
-     * completed.
      * @memberof speechSynthesizer
      */
-    speak: function ss_speak(aData, aOptions, aRate, aVolume, aCallback) {
+    speak: function ss_speak(aData, aOptions, aRate, aVolume) {
       if (!this.speech || !this.utterance) {
-        if (aCallback) {
-          aCallback();
-        }
         return;
       }
 
@@ -558,30 +542,27 @@
         this.cancel();
       }
 
-      var sentence = this.buildUtterance(aData);
-      if (!sentence) {
-        if (aCallback) {
-          aCallback();
+      return this.buildUtterance(aData).then(sentence => {
+        if (!sentence) {
+          return Promise.resolve();
         }
-        return;
-      }
+        return new Promise((resolve) => {
+          var utterance = new this.utterance(sentence);
+          utterance.volume = aVolume;
+          utterance.rate = aRate;
+          utterance.addEventListener('end', () => {
+            if (this.captions) {
+              this.hideSpeech();
+            }
+            resolve();
+          });
 
-      var utterance = new this.utterance(sentence);
-      utterance.volume = aVolume;
-      utterance.rate = aRate;
-      utterance.addEventListener('end', function() {
-        if (this.captions) {
-          this.hideSpeech();
-        }
-        if (aCallback) {
-          aCallback();
-        }
-      }.bind(this));
-
-      if (this.captions) {
-        this.showSpeech(sentence);
-      }
-      this.speech.speak(utterance);
+          if (this.captions) {
+            this.showSpeech(sentence);
+          }
+          this.speech.speak(utterance);
+        });
+      });
     }
   };
 

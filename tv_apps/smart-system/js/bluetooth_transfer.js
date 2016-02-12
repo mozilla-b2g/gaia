@@ -3,7 +3,7 @@
 /* API Summary:
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
-/* global Bluetooth, NotificationHelper, CustomDialog, MimeMapper,
+/* global Bluetooth, NotificationHelper, CustomDialog, MimeMapper, mozIntl,
           MozActivity, focusManager */
 'use strict';
 
@@ -46,14 +46,13 @@ var BluetoothTransfer = {
   },
 
   getDeviceName: function bt_getDeviceName(address) {
-    var _ = navigator.mozL10n.get;
     var length = this.pairList.index.length;
     for (var i = 0; i < length; i++) {
       if (this.pairList.index[i].address == address) {
-        return this.pairList.index[i].name;
+        return Promise.resolve(this.pairList.index[i].name);
       }
     }
-    return _('unknown-device');
+    return navigator.mozL10n.formatValue('unknown-device');
   },
 
   getPairedDevice: function bt_getPairedDevice(callback) {
@@ -98,23 +97,6 @@ var BluetoothTransfer = {
     focusManager.focus();
   },
 
-  humanizeSize: function bt_humanizeSize(bytes) {
-    var _ = navigator.mozL10n.get;
-    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    var size, e;
-    if (bytes) {
-      e = Math.floor(Math.log(bytes) / Math.log(1024));
-      size = (bytes / Math.pow(1024, e)).toFixed(2);
-    } else {
-      e = 0;
-      size = '0.00';
-    }
-    return _('fileSize', {
-      size: size,
-      unit: _('byteUnit-' + units[e])
-    });
-  },
-
   onFilesSending: function bt_onFilesSending(evt) {
 
     // Notify user that we are sending files
@@ -140,18 +122,19 @@ var BluetoothTransfer = {
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
 
     this.getPairedDevice(function getPairedDeviceComplete() {
-      var deviceName = self.getDeviceName(address);
-      var msg = {
-        'id': 'transfer-confirmation-title',
-        'args': { deviceName: deviceName }
-      };
-      NotificationHelper.send(msg, {
-        'bodyL10n': 'transfer-confirmation-description',
-        'icon': icon
-      }).then(function(notification) {
-        notification.onclick = function() {
-          self.showReceivePrompt(evt);
+      self.getDeviceName(address).then(deviceName => {
+        var msg = {
+          'id': 'transfer-confirmation-title',
+          'args': { deviceName: deviceName }
         };
+        NotificationHelper.send(msg, {
+          'bodyL10n': 'transfer-confirmation-description',
+          'icon': icon
+        }).then(function(notification) {
+          notification.onclick = function() {
+            self.showReceivePrompt(evt);
+          };
+        });
       });
     });
   },
@@ -160,7 +143,6 @@ var BluetoothTransfer = {
 
     var address = evt.address;
     var fileName = evt.fileName;
-    var fileSize = this.humanizeSize(evt.fileLength);
     var cancel = {
       title: 'deny',
       callback: this.declineReceive.bind(this, address)
@@ -172,26 +154,29 @@ var BluetoothTransfer = {
       recommend: true
     };
 
-    var deviceName = '';
     var screen = document.getElementById('screen');
     this.getPairedDevice(function getPairedDeviceComplete() {
-      deviceName = this.getDeviceName(address);
-      this.customDialog = CustomDialog.show(
-        'acceptFileTransfer',
-        {
-          id: 'wantToReceiveFile',
-          args: {
-            deviceName: deviceName,
-            fileName: fileName,
-            fileSize: fileSize
-          }
-        },
-        cancel,
-        confirm,
-        screen
-      );
-      this.customDialog.setAttribute('data-z-index-level', 'system-dialog');
-      focusManager.focus();
+      Promise.all([
+        this.getDeviceName(address),
+        mozIntl._gaia.getFormattedUnit('digital', 'short', evt.fileLength)
+      ]).then(([deviceName, fileSize]) => {
+        this.customDialog = CustomDialog.show(
+          'acceptFileTransfer',
+          {
+            id: 'wantToReceiveFile',
+            args: {
+              deviceName: deviceName,
+              fileName: fileName,
+              fileSize: fileSize
+            }
+          },
+          cancel,
+          confirm,
+          screen
+        );
+        this.customDialog.setAttribute('data-z-index-level', 'system-dialog');
+        focusManager.focus();
+      });
     }.bind(this));
   },
 

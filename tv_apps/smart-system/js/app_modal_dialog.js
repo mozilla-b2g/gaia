@@ -1,9 +1,8 @@
-/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation,
+/* global AppModalDialog, SimpleKeyNavigation,
           SmartModalDialog, SmartInputDialog, focusManager */
 'use strict';
 
 (function(exports) {
-  var _ = navigator.mozL10n.get;
   var _id = 0;
 
   /**
@@ -138,26 +137,6 @@
       focusManager.focus();
       evt.preventDefault();
     }.bind(this));
-  };
-
-  AppModalDialog.prototype.getTitle = function amd_getTitle() {
-    if (AirplaneMode && AirplaneMode.enabled) {
-      return _('airplane-is-on');
-    } else if (!navigator.onLine) {
-      return _('network-connection-unavailable');
-    } else {
-      return _('error-title', { name: this.app.name });
-    }
-  };
-
-  AppModalDialog.prototype.getMessage = function amd_getMessage() {
-    if (AirplaneMode && AirplaneMode.enabled) {
-      return _('airplane-is-turned-on', { name: this.app.name });
-    } else if (!navigator.onLine) {
-      return _('network-error', { name: this.app.name });
-    } else {
-      return _('error-message', { name: this.app.name });
-    }
   };
 
   AppModalDialog.prototype.view = function amd_view() {

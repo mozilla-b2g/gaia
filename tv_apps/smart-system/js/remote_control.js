@@ -2,8 +2,6 @@
 'use strict';
 
 (function(exports) {
-  var _ = navigator.mozL10n.get;
-
   var SETTINGS = 'remote-control.enabled';
 
   var WATCHED_EVENTS = [
@@ -125,13 +123,13 @@
         this._destroyPIN();
       }
       this._activePIN = {
-        title: _('pairing-code-notification-title'),
+        title: {id: 'pairing-code-notification-title'},
         text: pincode,
         icon: null,
         timeout: 30000,
         buttons: [{
           id: 'dismiss',
-          label: _('dismiss-pairing-code')
+          label: {id: 'dismiss-pairing-code'}
         }],
         onClosed: (button) => {
           if (button == 'dismiss') {
