@@ -17,7 +17,7 @@ requireApp('system/js/entry_sheet.js');
 requireApp('system/fxa/js/fxam_error_overlay.js');
 
 // Mockuped code
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 requireApp('system/fxa/js/fxam_ui.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_ui.js');
@@ -47,14 +47,8 @@ var mocksHelperForEmailModule = new MocksHelper([
 suite('Screen: Enter email', function() {
   var realL10n;
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-    // we have to special-case the l10n stub for the fxa-notice element
-    var l10nStub = sinon.stub(navigator.mozL10n, 'get');
-    var noticeStr = 'By proceeding, I agree to the {{ tos }} and {{ pn }} ' +
-                    'Firefox cloud services';
-    l10nStub.withArgs('fxa-notice')
-      .returns(noticeStr);
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     mocksHelperForEmailModule.suiteSetup();
     // Load real HTML
@@ -69,7 +63,7 @@ suite('Screen: Enter email', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     document.body.innerHTML = '';
     mocksHelperForEmailModule.suiteTeardown();
   });

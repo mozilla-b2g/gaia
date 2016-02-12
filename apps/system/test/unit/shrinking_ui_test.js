@@ -517,16 +517,6 @@ suite('system/shrinkingUI', function() {
   });
 
   test('Shrinking UI SlidingTip', function() {
-    var fakeMozL10n = false;
-    if(!('mozL10n' in navigator)){
-      navigator.mozL10n = {
-        get: function(){
-          return 'dummy';
-        }
-      };
-      fakeMozL10n = true;
-    }
-
     var tip = shrinkingUI._slidingTip();
     var tipText = tip.children[0];
     var tipArrow = tip.children[1];
@@ -537,10 +527,6 @@ suite('system/shrinkingUI', function() {
     assert.equal(tipArrow.tagName.toLowerCase(), 'div');
     assert.equal(tipArrow.id, 'shrinking-tip-arrow');
     assert.equal(tipArrow.textContent, '\u00A0');
-
-    if(fakeMozL10n){
-      delete navigator.mozL10n;
-    }
   });
 
   test('Shrinking UI DisableSlidingCover', function() {

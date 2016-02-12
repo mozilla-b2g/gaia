@@ -8,7 +8,7 @@ require('/shared/test/unit/mocks/mock_basket_client.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 
 var mocksHelperForNewsletterManager = new MocksHelper([
@@ -34,10 +34,10 @@ suite('Newsletter Manager >', function() {
       set: function(status) { this.fakeOnLine = status; }
     });
 
-    realL10n = navigator.mozL10n;
+    realL10n = document.l10n;
     mockOnce = MockL10n.once;
-    navigator.mozL10n = MockL10n;
-    navigator.mozL10n.once = function(callback) {
+    document.l10n = MockL10n;
+    document.l10n.once = function(callback) {
       callback();
     };
 
@@ -54,7 +54,7 @@ suite('Newsletter Manager >', function() {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }
     MockL10n.once = mockOnce;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.getDataStores = realDatastores;
   });
 

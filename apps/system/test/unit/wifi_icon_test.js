@@ -5,14 +5,14 @@ requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 requireApp('system/js/wifi_icon.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('system/WifiIcon', function() {
   var subject, manager, realL10n;
 
   setup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     manager = {
       wifiEnabled: false,
       wifiManager: {
@@ -30,7 +30,7 @@ suite('system/WifiIcon', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     subject.stop();
   });
 

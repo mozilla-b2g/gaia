@@ -6,7 +6,7 @@
 requireApp('system/js/carrier_info_notifier.js');
 requireApp('system/js/cell_broadcast_system.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require('/shared/js/l10n.js');
+require('/shared/js/intl/l20n.js');
 
 var mocksForCBS = new MocksHelper([
   'NavigatorMozMobileConnections'
@@ -75,7 +75,7 @@ suite('system/CellBroadcastSystem', function() {
       window.MobileOperator = realMobileOperator;
     });
 
-    test('if SIM1 is Brazil mcc, will send out event', function() {
+    test('if SIM1 is Brazil mcc, will send out event', function(done) {
       subject.show({
         message: {
           messageId: fakeMessageID,
@@ -83,13 +83,13 @@ suite('system/CellBroadcastSystem', function() {
           body: {},
           serviceId: 0
         }
-      });
-
-      sinon.assert.called(window.dispatchEvent);
-      sinon.assert.notCalled(CarrierInfoNotifier.show);
+      }).then(() => {
+        sinon.assert.called(window.dispatchEvent);
+        sinon.assert.notCalled(CarrierInfoNotifier.show);
+      }).then(done, done);
     });
 
-    test('if SIM 2 is not Brazil mcc, will not send out event', function() {
+    test('if SIM 2 is not Brazil mcc, will not send out event', function(done) {
       subject.show({
         message: {
           messageId: fakeMessageID,
@@ -97,13 +97,13 @@ suite('system/CellBroadcastSystem', function() {
           body: {},
           serviceId: 1
         }
-      });
-
-      sinon.assert.notCalled(window.dispatchEvent);
-      sinon.assert.called(CarrierInfoNotifier.show);
+      }).then(() => {
+        sinon.assert.notCalled(window.dispatchEvent);
+        sinon.assert.called(CarrierInfoNotifier.show);
+      }).then(done, done);
     });
 
-    test('return while message is GSM CMAS', function() {
+    test('return while message is GSM CMAS', function(done) {
       subject.show({
         message: {
           messageId: 4370,
@@ -111,12 +111,12 @@ suite('system/CellBroadcastSystem', function() {
           body: {}
         },
         serviceId: 0,
-      });
-
-      sinon.assert.notCalled(CarrierInfoNotifier.show);
+      }).then(() => {
+        sinon.assert.notCalled(CarrierInfoNotifier.show);
+      }).then(done, done);
     });
 
-    test('return while message is CDMA CMAS', function() {
+    test('return while message is CDMA CMAS', function(done) {
       subject.show({
         message: {
           messageId: 0,
@@ -124,9 +124,9 @@ suite('system/CellBroadcastSystem', function() {
           body: {}
         },
         serviceId: 0,
-      });
-
-      sinon.assert.notCalled(CarrierInfoNotifier.show);
+      }).then(() => {
+        sinon.assert.notCalled(CarrierInfoNotifier.show);
+      }).then(done, done);
     });
   });
 

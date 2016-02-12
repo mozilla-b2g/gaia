@@ -34,6 +34,11 @@ Video.Selector = Object.freeze({
   videoTitle: '#video-title',
   overlay: '#overlay',
   elapsedTime: '#elapsed-text',
+  forwardButton: '#seek-forward',
+  backwardButton: '#seek-backward',
+  playpauseButton: '#play',
+  pauseIcon: '[data-l10n-id="pause-button"]',
+  playIcon: '[data-l10n-id="play-button"]',
   durationText: '#duration-text',
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailSelectTop: '#thumbnail-select-top',
@@ -192,6 +197,65 @@ Video.prototype = {
   },
 
   /**
+   * Taps 'pause' button and checks that playback has stopped.
+   * returns false if the icon is not changed.
+   */
+  pausePlayback: function() {
+    this.client.helper.waitForElement(Video.Selector.playpauseButton).click();
+
+    // wait for the icon to change by checking for play icon
+    return this.client.helper.waitForElement(Video.Selector.playIcon)
+    .displayed();
+  },
+
+  /**
+   * Taps 'play' button and checks that the counter is progressing.
+   * returns false if the icon is not changed.
+   */
+  startPlayback: function() {
+    var initialTime = this.getElapsedTimeSeconds();
+    
+    this.client.helper.waitForElement(Video.Selector.playpauseButton).click();
+    
+    // wait until the counter has progressed
+    this.client.waitFor(() => {
+      return this.getElapsedTimeSeconds() > initialTime;
+    },{ interval: 10, timeout: 3000 });
+
+    // wait for the icon to change by checking for play icon
+    return this.client.helper.waitForElement(Video.Selector.pauseIcon)
+    .displayed();
+  },
+
+  /**
+   * Taps forward seek button and checks that it is incremented 
+   */
+  tapForward: function() {
+    var initialTime = this.getElapsedTimeSeconds();
+
+    this.client.findElement(Video.Selector.forwardButton).click();
+    
+    // wait until the counter has progressed
+    this.client.waitFor(() => {
+      return this.getElapsedTimeSeconds() > initialTime;
+    },{ interval: 10, timeout: 3000 });
+  },
+
+   /**
+   * Taps rewind button and checks that it is decremented 
+   */
+   tapRewind: function() {
+    var initialTime = this.getElapsedTimeSeconds();
+    
+    this.client.findElement(Video.Selector.backwardButton).click();
+    
+    // wait until the counter has progressed
+    this.client.waitFor(() => {
+      return this.getElapsedTimeSeconds() < initialTime;
+    },{ interval: 10, timeout: 3000 });
+  },
+
+  /**
    * Taps 'back' button on gaia-header to return from the video player view
    * to the thumbnails view.
    */
@@ -209,8 +273,17 @@ Video.prototype = {
     return elapsedTimeElem;
   },
 
+  getVideoLength: function() {
+    var videoLengthElem = this.client.findElement(Video.Selector.durationText);
+    return videoLengthElem;
+  },
+
   getElapsedTimeSeconds: function() {
     return parseInt(this.getElapsedTime().text().split(':').pop());
+  },
+
+  getVideoLengthSeconds: function() {
+    return parseInt(this.getVideoLength().text().split(':').pop());
   },
 
   videoTitle: function() {

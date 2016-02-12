@@ -19,7 +19,7 @@ requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -59,8 +59,8 @@ suite('captive portal > ', function() {
     navigator.mozWifiManager = MockWifiManager;
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realNotificationHelper = window.NotificationHelper;
     window.NotificationHelper = MockNotificationHelper;
     try {
@@ -82,7 +82,7 @@ suite('captive portal > ', function() {
     } catch (e) {
       console.log('Access MozActivity failed, passed MozActivity assignment');
     }
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozSettings = realSettings;
     window.NotificationHelper = realNotificationHelper;
     document.body.appendChild(fakeScreenNode);

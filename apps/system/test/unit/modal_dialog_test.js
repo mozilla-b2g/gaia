@@ -7,7 +7,7 @@
 
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/modal_dialog.js');
 
@@ -41,8 +41,8 @@ suite('system/ModalDialog >', function() {
   }
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     window.layoutManager = new MockLayoutManager();
 
@@ -55,7 +55,7 @@ suite('system/ModalDialog >', function() {
 
   suiteTeardown(function() {
     stubById.restore();
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   test('call buildSelectOneDialog >', function() {

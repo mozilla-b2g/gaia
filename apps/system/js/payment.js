@@ -190,7 +190,7 @@ var Payment = {
     var title = app ? app.manifest.name : null;
     var titlePromise = title ?
       Promise.resolve(title) :
-      navigator.mozL10n.formatValue('payment-flow');
+      document.l10n.formatValue('payment-flow');
 
     titlePromise.then(value => {
       window.dispatchEvent(new CustomEvent('launchtrusted', {
@@ -254,6 +254,6 @@ var Payment = {
 };
 
 // unit tests call init() manually
-if (navigator.mozL10n) {
-  navigator.mozL10n.once(Payment.init.bind(Payment));
+if (document.l10n) {
+  document.l10n.ready.then(Payment.init.bind(Payment));
 }

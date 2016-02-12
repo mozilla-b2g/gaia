@@ -52,11 +52,11 @@ var icc_worker = {
   '0x10': function STK_CMD_SET_UP_CALL(message) {
     function formatL10n(l10n) {
       if (typeof(l10n) === 'string') {
-        return navigator.mozL10n.formatValue(l10n);
+        return document.l10n.formatValue(l10n);
       } else if (l10n.hasOwnProperty('raw')) {
         return Promise.resolve(l10n.raw);
       } else {
-        return navigator.mozL10n.formatValue(l10n.id, l10n.args);
+        return document.l10n.formatValue(l10n.id, l10n.args);
       }
     }
 

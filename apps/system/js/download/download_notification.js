@@ -20,11 +20,11 @@ function DownloadNotification(download) {
   this.download.addEventListener('statechange', this.listener);
 
   if (download.state === 'started') {
-    NotificationScreen.addNotification(this._getInfo());
+    this.ready = this._getInfo().then(NotificationScreen.addNotification);
   } else {
     // For adopted downloads, it is possible for the download to already be
     // completed.
-    this._update();
+    this.ready = this._update();
   }
 }
 
@@ -58,19 +58,20 @@ DownloadNotification.prototype = {
     if (this.download.state === 'stopped') {
       this._onStopped();
     }
-    var info = this._getInfo();
-    if (noNotify) {
-      info.noNotify = true;
-    }
-    if (this.state === 'downloading') {
-      info.mozbehavior = {
-        noscreen: true
-      };
-    }
-    NotificationScreen.addNotification(info);
-    if (this.state === 'succeeded') {
-      this._onSucceeded();
-    }
+    return this._getInfo().then(info => {
+      if (noNotify) {
+        info.noNotify = true;
+      }
+      if (this.state === 'downloading') {
+        info.mozbehavior = {
+          noscreen: true
+        };
+      }
+      NotificationScreen.addNotification(info);
+      if (this.state === 'succeeded') {
+        this._onSucceeded();
+      }
+    });
   },
 
   _onStopped: function dn_onStopped() {
@@ -162,27 +163,34 @@ DownloadNotification.prototype = {
    */
   _getInfo: function dn_getInfo() {
     var state = this.state;
-    var _ = navigator.mozL10n.get;
 
-    var info = {
-      id: this.id,
-      title: _('download_' + state),
-      icon: this._getIcon(),
-      type: 'download-notification-' + state
-    };
+    var textPromise;
 
     if (state === 'downloading') {
-      info.text = _('download_downloading_text_2', {
-        name: this.fileName,
-        percentage: DownloadFormatter.getPercentage(this.download)
-      });
+      textPromise = document.l10n.formatValue(
+        'download_downloading_text_2', {
+          name: this.fileName,
+          percentage: DownloadFormatter.getPercentage(this.download)
+        }
+      );
     } else {
-      info.text = _('download_text_by_default', {
+      textPromise = document.l10n.formatValue('download_text_by_default', {
         name: this.fileName
       });
     }
 
-    return info;
+    return Promise.all([
+      document.l10n.formatValue('download_' + state),
+      textPromise
+    ]).then(([title, text]) => {
+      return {
+        id: this.id,
+        title: title,
+        text: text,
+        icon: this._getIcon(),
+        type: 'download-notification-' + state
+      };
+    });
   },
 
   /**

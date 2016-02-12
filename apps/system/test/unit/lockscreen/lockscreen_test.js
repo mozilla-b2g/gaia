@@ -2,7 +2,7 @@
           MockService, PasscodeHelper */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_canvas.js');
 require('/shared/test/unit/mocks/mock_canvas_rendering_context_2d.js');
@@ -87,8 +87,8 @@ suite('system/LockScreen >', function() {
       this.src = src;
     };
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = window.MockL10n;
+    realL10n = document.l10n;
+    document.l10n = window.MockL10n;
 
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = window.MockNavigatorMozTelephony;
@@ -136,8 +136,8 @@ suite('system/LockScreen >', function() {
        'there is already one', function() {
     var stubConnInfoManager = this.sinon.stub(window,
       'LockScreenConnInfoManager');
-    var originalMozl10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = {
+    var originalMozl10n = window.document.l10n;
+    window.document.l10n = {
       get: function() { return ''; }
     };
     var originalMozMobileConnections = window.navigator.mozMobileConnections;
@@ -154,7 +154,7 @@ suite('system/LockScreen >', function() {
       'the l10nInit still instantiate the conn info manager even it\'s NOT' +
       'undefined');
     window.navigator.mozMobileConnections = originalMozMobileConnections;
-    window.navigator.mozL10n = originalMozl10n;
+    window.document.l10n = originalMozl10n;
     delete subject._lockscreenConnInfoManager;
   });
 
@@ -234,8 +234,8 @@ suite('system/LockScreen >', function() {
        ' undefined', function() {
     var stubConnInfoManager = this.sinon.stub(window,
       'LockScreenConnInfoManager');
-    var originalMozl10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = {
+    var originalMozl10n = window.document.l10n;
+    window.document.l10n = {
       get: function() { return ''; }
     };
     var originalMozMobileConnections = window.navigator.mozMobileConnections;
@@ -252,7 +252,7 @@ suite('system/LockScreen >', function() {
        'the l10nInit doesn\'t instantiate the conn info manager even it\'s ' +
        'undefined');
     window.navigator.mozMobileConnections = originalMozMobileConnections;
-    window.navigator.mozL10n = originalMozl10n;
+    window.document.l10n = originalMozl10n;
     delete subject._lockscreenConnInfoManager;
   });
 
@@ -940,7 +940,7 @@ suite('system/LockScreen >', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozTelephony = realMozTelephony;
     window.Audio = realAudio;
     window.Clock = realClock;

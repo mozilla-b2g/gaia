@@ -490,6 +490,13 @@
       var driverSent;
       try {
         driverSent = this.driver.send(data, cb);
+        if (driverSent instanceof Promise){
+          driverSent.then(
+            function onFulfill(res){
+              cb(res);
+            }
+          );
+        }
       } catch (e) {
         // !!! HACK HACK HACK !!!
         // single retry when not connected. this should never happen, but

@@ -2,25 +2,35 @@
 
 /* globals Notification */
 
-var assert = require('assert'),
-    fs = require('fs');
+var assert = require('assert');
+var NotificationList = require('./lib/notification.js').NotificationList;
 
-var EMAIL_APP = 'app://email.gaiamobile.org';
+var EMAIL_ORIGIN = 'email.gaiamobile.org';
+var EMAIL_APP = 'app://' + EMAIL_ORIGIN;
 var EMAIL_APP_MANIFEST = EMAIL_APP + '/manifest.webapp';
 
-marionette('Notification events', function() {
+var MESSAGE_HANDLER_ORIGIN = 'messagehandlerapp.gaiamobile.org';
+var MESSAGE_HANDLER_APP = 'app://' + MESSAGE_HANDLER_ORIGIN;
 
-  var client = marionette.client();
+marionette('Notification events', function() {
+  var apps = {};
+  apps[MESSAGE_HANDLER_ORIGIN] = __dirname + '/../apps/messagehandlerapp';
+  var client = marionette.client({
+    profile: {
+      apps: apps
+    }
+  });
   var details = {tag: 'test tag',
                  body: 'test body',
                  data: {number: 2,
                         string: '123',
                         array: [1, 2, 3],
                         obj: {test: 'test'}}};
-
   var system;
+  var notificationList;
   setup(function() {
     system = client.loader.getAppClass('system');
+    notificationList = new NotificationList(client);
     system.waitForFullyLoaded();
   });
 
@@ -359,9 +369,8 @@ marionette('Notification events', function() {
 
   test('custom data available via mozSetMessageHandler', function(done) {
     client.switchToFrame();
-
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.launch(MESSAGE_HANDLER_APP);
+    client.apps.switchToApp(MESSAGE_HANDLER_APP);
 
     client.executeScript(function(details) {
       var notification;
@@ -369,51 +378,28 @@ marionette('Notification events', function() {
     }, [details]);
 
     client.switchToFrame();
-    client.apps.close(EMAIL_APP);
-
-    // after closing live handlers should be lost, the callbacks too
-    client.apps.launch(EMAIL_APP);
-    client.apps.switchToApp(EMAIL_APP);
-
-    client.executeScript(fs.readFileSync(
-      __dirname + '/lib/fake_moz_set_message_handler.js', 'utf8'));
-
-    // fake mozSetMessageHandler
-    client.executeScript(function() {
-      window.wrappedJSObject.mozSetMessageHandler('notification');
-    });
+    client.apps.close(MESSAGE_HANDLER_APP);
+    client.apps.launch(MESSAGE_HANDLER_APP);
 
     client.switchToFrame();
 
-    client.executeScript(function(manifest) {
-      // get notifications
-      var container =
-        document.getElementById('desktop-notifications-container');
-      var selector = '[data-manifest-u-r-l="' + manifest + '"]';
-      var node = container.querySelectorAll(selector)[0];
-
-      // simulate tapping
-      var event = document.createEvent('CustomEvent');
-      event.initCustomEvent('mozContentNotificationEvent', true, true, {
-        type: 'desktop-notification-click',
-        id: node.dataset.notificationId
-      });
-      window.dispatchEvent(event);
-    }, [EMAIL_APP_MANIFEST]);
+    notificationList.waitForNotificationCount(1);
+    notificationList.refresh();
+    // closes all monitored notifications
+    // -> mozSetMessageHandler should get the corresponding close events
+    notificationList.clear();
 
     // get into the context containing the mocked api and the data object
-    client.apps.switchToApp(EMAIL_APP);
+    client.apps.switchToApp(MESSAGE_HANDLER_APP);
+    var data = null;
     client.waitFor(function() {
-      var data = client.executeScript(function() {
-        return window.wrappedJSObject.__getFakeData;
+      data = client.executeScript(function() {
+        return window.wrappedJSObject.getLastMessageData();
       });
-      return data != null;
-    });
-    var data = client.executeScript(function() {
-      return window.wrappedJSObject.__getFakeData;
+      return data != null && data.data != null;
     });
 
-    assert.equal(JSON.stringify(data), JSON.stringify(details.data),
+    assert.equal(JSON.stringify(data.data), JSON.stringify(details.data),
                  'Notification data should match');
     done();
   });

@@ -123,12 +123,14 @@
      * @param  {[Date} date The date to be displayed.
      */
     _changeDate: function (date) {
-      var dateTimeFormat = new navigator.mozL10n.DateTimeFormat();
-      navigator.mozL10n.formatValue('dateFormat').then(function (format) {
-        var formatted = dateTimeFormat.localeFormat(date, format);
-        this.elements.today.dataset.l10nArgs =
-          JSON.stringify({ 'date': formatted });
-      }.bind(this));
+      var dateTimeFormat = Intl.DateTimeFormat(navigator.languages, {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric'
+      });
+      var formatted = dateTimeFormat.format(date);
+      this.elements.today.dataset.l10nArgs =
+        JSON.stringify({ 'date': formatted });
     }
 
   };

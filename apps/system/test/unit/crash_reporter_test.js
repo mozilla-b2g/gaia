@@ -4,7 +4,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
@@ -60,8 +60,8 @@ suite('system/CrashReporter', function() {
 
   mocksForCrashReporter.attachTestHelpers();
   setup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -79,7 +79,7 @@ suite('system/CrashReporter', function() {
     app = { isActive: function() { return true; }, name: null };
 
     clock = this.sinon.useFakeTimers();
-    spyL10n = this.sinon.spy(MockL10n, 'get');
+    spyL10n = this.sinon.spy(MockL10n, 'formatValue');
 
     requireApp('system/js/crash_reporter.js', done);
   });
@@ -88,7 +88,7 @@ suite('system/CrashReporter', function() {
     clock.restore();
     spyL10n.restore();
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozSettings = realMozSettings;
     MockNavigatorSettings.mTeardown();
 
@@ -111,7 +111,7 @@ suite('system/CrashReporter', function() {
     assert.isTrue(spyL10n.calledWith('crash-dialog-app-noname'));
   });
 
-  test('should handle null app names in banner', function() {
+  test('should handle null app names in banner', function(done) {
     // Show the banner instead of the dialog this time.
     MockNavigatorSettings.mSettings['crashReporter.dialogShown'] = true;
 
@@ -122,9 +122,11 @@ suite('system/CrashReporter', function() {
     CrashReporter.handleCrash(0, false);
     clock.tick(TICK);
 
-    assert.equal(MockSystemBanner.mShowCount, 1);
-    assert.equal(
-      MockSystemBanner.mMessage.args.name, 'crash-dialog-app-noname'
-    );
+    Promise.resolve().then(() => {
+      assert.equal(MockSystemBanner.mShowCount, 1);
+      assert.equal(
+        MockSystemBanner.mMessage.args.name, 'crash-dialog-app-noname'
+      );
+    }).then(done, done);
   });
 });

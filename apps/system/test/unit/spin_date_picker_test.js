@@ -3,7 +3,7 @@
 
 requireApp('system/js/value_selector/value_picker.js');
 requireApp('system/js/value_selector/spin_date_picker.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('value selector/spin date picker', function() {
   var subject;
@@ -11,12 +11,12 @@ suite('value selector/spin date picker', function() {
   var stubById;
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   teardown(function() {

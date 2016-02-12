@@ -2166,25 +2166,16 @@
       navigator.mozL10n.ctx.requestLocales.apply(
         navigator.mozL10n.ctx, langs);
     },
-    pseudo: {
-      'fr-x-psaccent': {
-        getName: function() {
-          return Promise.resolve(navigator.mozL10n.qps['fr-x-psaccent'].name);
-        },
-        processString: function(s) {
-          return Promise.resolve(
-            navigator.mozL10n.qps['fr-x-psaccent'].translate(s));
-        }
-      },
-      'ar-x-psbidi': {
-        getName: function() {
-          return Promise.resolve(navigator.mozL10n.qps['ar-x-psbidi'].name);
-        },
-        processString: function(s) {
-          return Promise.resolve(
-            navigator.mozL10n.qps['ar-x-psbidi'].translate(s));
-        }
+    get pseudo() {
+      var result = {};
+      for (var code in navigator.mozL10n.qps) {
+        result[code] = {
+          getName: () => Promise.resolve(navigator.mozL10n.qps[code].name),
+          processString: (s) => Promise.resolve(
+            navigator.mozL10n.qps[code].translate(s))
+        };
       }
+      return result;
     },
   };
 

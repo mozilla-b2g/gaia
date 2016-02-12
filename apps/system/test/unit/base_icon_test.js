@@ -4,7 +4,7 @@
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('system/BaseIcon', function() {
   var subject, manager, realL10n, container;
@@ -24,14 +24,14 @@ suite('system/BaseIcon', function() {
         }
       };
     });
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     subject = new BaseIcon(manager);
     subject.shouldDisplay = function() {};
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     subject.stop();
   });
 

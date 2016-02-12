@@ -13,7 +13,7 @@ requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 require('/shared/js/component_utils.js');
@@ -59,9 +59,9 @@ suite('system/AppInstallManager >', function() {
 
   mocksForAppInstallManager.attachTestHelpers();
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
+    realL10n = document.l10n;
 
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
 
     realMozIntl = window.mozIntl;
     window.mozIntl = MockMozIntl;
@@ -95,7 +95,7 @@ suite('system/AppInstallManager >', function() {
     AppInstallManager.installCallback = null;
     AppInstallManager.cancelCallback = null;
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.mozIntl = realMozIntl;
     AppInstallManager.dispatchResponse = realDispatchResponse;
 
@@ -281,21 +281,21 @@ suite('system/AppInstallManager >', function() {
     });
 
     test('should bind to the click event', function() {
-      assert.equal(AppInstallManager.handleInstall.name,
+      assert.equal(`bound ${AppInstallManager.handleInstall.name}`,
                    AppInstallManager.installButton.onclick.name);
-      assert.equal(AppInstallManager.showInstallCancelDialog.name,
+      assert.equal(`bound ${AppInstallManager.showInstallCancelDialog.name}`,
                    AppInstallManager.cancelButton.onclick.name);
-      assert.equal(AppInstallManager.handleInstallCancel.name,
+      assert.equal(`bound ${AppInstallManager.handleInstallCancel.name}`,
                    AppInstallManager.confirmCancelButton.onclick.name);
-      assert.equal(AppInstallManager.hideInstallCancelDialog.name,
+      assert.equal(`bound ${AppInstallManager.hideInstallCancelDialog.name}`,
                    AppInstallManager.resumeButton.onclick.name);
-      assert.equal(AppInstallManager.handleSetupCancelAction.name,
+      assert.equal(`bound ${AppInstallManager.handleSetupCancelAction.name}`,
                    AppInstallManager.setupCancelButton.onclick.name);
-      assert.equal(AppInstallManager.handleSetupConfirmAction.name,
+      assert.equal(`bound ${AppInstallManager.handleSetupConfirmAction.name}`,
                    AppInstallManager.setupConfirmButton.onclick.name);
-      assert.equal(AppInstallManager.hideIMEList.name,
+      assert.equal(`bound ${AppInstallManager.hideIMEList.name}`,
                    AppInstallManager.imeCancelButton.onclick.name);
-      assert.equal(AppInstallManager.handleImeConfirmAction.name,
+      assert.equal(`bound ${AppInstallManager.handleImeConfirmAction.name}`,
                    AppInstallManager.imeConfirmButton.onclick.name);
 
     });
@@ -892,7 +892,7 @@ suite('system/AppInstallManager >', function() {
 
           test('notification should have a message', function() {
             var l10nAttrs =
-              navigator.mozL10n.getAttributes(
+              document.l10n.getAttributes(
                 fakeNotif.querySelector('.title-container'));
             assert.equal(l10nAttrs.id, 'downloadingAppMessage');
             assert.deepEqual(
@@ -970,7 +970,7 @@ suite('system/AppInstallManager >', function() {
               var progressNode = fakeNotif.querySelector('progress');
               assert.equal(progressNode.position, -1);
 
-              var l10nAttrs = navigator.mozL10n.getAttributes(progressNode);
+              var l10nAttrs = document.l10n.getAttributes(progressNode);
 
               assert.equal(l10nAttrs.id, 'downloadingAppProgressNoMax');
               assert.equal(l10nAttrs.args.progress,
@@ -1047,7 +1047,7 @@ suite('system/AppInstallManager >', function() {
         });
 
         test('notification should have a message', function() {
-          var l10nAttrs = navigator.mozL10n.getAttributes(
+          var l10nAttrs = document.l10n.getAttributes(
             fakeNotif.querySelector('.title-container'));
 
           assert.equal(l10nAttrs.id, 'downloadingAppMessage');
@@ -1114,7 +1114,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('notification should have a message', function() {
-            var l10nAttrs = navigator.mozL10n.getAttributes(
+            var l10nAttrs = document.l10n.getAttributes(
               fakeNotif.querySelector('.title-container'));
 
             assert.equal(l10nAttrs.id, 'downloadingAppMessage');
@@ -1195,7 +1195,7 @@ suite('system/AppInstallManager >', function() {
               var progressNode = fakeNotif.querySelector('progress');
               assert.equal(progressNode.position, ratio);
 
-              var l10nAttrs = navigator.mozL10n.getAttributes(progressNode);
+              var l10nAttrs = document.l10n.getAttributes(progressNode);
 
               assert.equal(l10nAttrs.id, 'downloadingAppProgress');
               assert.deepEqual(l10nAttrs.args, {
@@ -1334,7 +1334,7 @@ suite('system/AppInstallManager >', function() {
         fakeNotif.querySelector('.fake-notification').click();
         var title = fakeDownloadCancelDialog.querySelector('h1');
 
-        var l10nAttrs = navigator.mozL10n.getAttributes(title);
+        var l10nAttrs = document.l10n.getAttributes(title);
 
         assert.equal(l10nAttrs.id, 'stopDownloading');
         assert.deepEqual(l10nAttrs.args, { app: 'Mock app' });
@@ -1429,7 +1429,7 @@ suite('system/AppInstallManager >', function() {
       AppInstallManager.start();
       MockService.mockQueryWith('isOutOfProcessEnabled', true);
 
-      navigator.mozL10n = MockL10n;
+      document.l10n = MockL10n;
       mockAppName = 'Fake keyboard app';
       mockApp = new MockApp({
         manifest: {

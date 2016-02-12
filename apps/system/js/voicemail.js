@@ -85,12 +85,12 @@
 
       if (!SIMSlotManager.hasOnlyOneSIMCardDetected()) {
         if (typeof titleL10n === 'string') {
-          subTitlePromise = navigator.mozL10n.formatValue(titleL10n);
+          subTitlePromise = document.l10n.formatValue(titleL10n);
         } else if (titleL10n.raw) {
           subTitlePromise = Promise.resolve(titleL10n.raw);
         } else {
           subTitlePromise =
-            navigator.mozL10n.formatValue(titleL10n.id, titleL10n.args);
+            document.l10n.formatValue(titleL10n.id, titleL10n.args);
         }
         titlePromise = subTitlePromise.then(subtitle => {
           return {

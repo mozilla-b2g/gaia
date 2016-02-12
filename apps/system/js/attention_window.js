@@ -246,7 +246,7 @@
     var manifest = this.manifest;
     var title = this.notificationTitle;
 
-    navigator.mozL10n.once(function() {
+    document.l10n.ready.then(function() {
       var helper = new ManifestHelper(manifest);
       title.textContent = helper.name;
     });

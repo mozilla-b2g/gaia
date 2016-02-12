@@ -4,7 +4,7 @@
 
 requireApp('system/mobile_id/js/controller.js');
 requireApp('system/mobile_id/js/ui.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/elements/gaia-header/dist/gaia-header.js');
 requireApp(
@@ -28,8 +28,8 @@ suite('MobileID UI ', function() {
   ];
 
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     MockNavigatorMozMobileConnections.mAddMobileConnection();
@@ -40,7 +40,7 @@ suite('MobileID UI ', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozMobileConnections = realMobileConnections;
     MockNavigatorMozMobileConnections.mTeardown();
     realL10n = null;

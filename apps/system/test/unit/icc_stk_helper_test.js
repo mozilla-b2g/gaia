@@ -2,7 +2,7 @@
 /* global MockL10n, MocksHelper, STKHelper */
 
 require('/shared/js/stk_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 'use strict';
 
@@ -16,22 +16,12 @@ suite('STK (stk_helper) >', function() {
   var stkTestCommands = {};
 
   suiteSetup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
-  });
-
-  setup(function() {
-    this.sinon.stub(navigator.mozL10n, 'get', function(key, args) {
-        return args ? 'default-text-args' : 'default-text';
-    });
-  });
-
-  teardown(function() {
-    this.sinon.restore();
+    document.l10n = realMozL10n;
   });
 
   stkTestCommands = {

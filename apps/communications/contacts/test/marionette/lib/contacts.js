@@ -391,7 +391,6 @@ Contacts.prototype = {
   getContactFirstName: function() {
     var ci = this.client.findElement(Contacts.Selectors.contactsIframe);
     this.client.switchToFrame(ci);
-
     var contactInContactList = this.client.findElement(
       Contacts.Selectors.listContactFirst
     );
@@ -408,11 +407,25 @@ Contacts.prototype = {
     this.client.helper.fillInputField(
       Contacts.Selectors.formGivenName, contactName
     );
-    this.client.helper.waitForElement(Contacts.Selectors.formSave).click();
-  
+    return this._saveAndReturnToDialer();
+  },
+
+  addToContactAndReturnToDialer: function(contactName) {
+    this.tapContact(contactName);
+    return this._saveAndReturnToDialer();
+  },
+
+  _saveAndReturnToDialer: function() {
+    this.tapSave();
     var dialer = this.client.loader.getAppClass('dialer');
     dialer.switchTo();
     return dialer;
+  },
+
+  getContactSecondPhoneNumber: function(contactName) {
+    this.tapContact(contactName);
+    var secondPhoneNumber = this.client.findElement('#call-or-pick-1');
+    return secondPhoneNumber.text();
   },
 
   tapUpdate: function() {

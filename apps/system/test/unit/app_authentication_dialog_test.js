@@ -5,7 +5,7 @@
 /* global MockL10n */
 
 requireApp('system/test/unit/mock_app_window.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 var mocksForAppAuthDialog = new MocksHelper([
   'AppWindow'
@@ -20,8 +20,8 @@ suite('system/AppAuthenticationDialog', function() {
     stubQuerySelector = this.sinon.stub(e, 'querySelector');
     stubQuerySelector.returns(document.createElement('div'));
     stubById.returns(e);
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
@@ -31,7 +31,7 @@ suite('system/AppAuthenticationDialog', function() {
   teardown(function() {
     stubById.restore();
     stubQuerySelector.restore();
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   var fakeAppConfig1 = {

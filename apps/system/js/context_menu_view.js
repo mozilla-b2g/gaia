@@ -108,7 +108,14 @@
       var action = document.createElement('button');
       action.dataset.id = item.id;
       action.dataset.value = item.value;
-      action.textContent = item.label;
+      if (typeof item.label === 'string') {
+        action.setAttribute('data-l10n-id', item.label);
+      } else if (item.label.hasOwnProperty('raw')) {
+        action.textContent = item.label.raw;
+      } else {
+        document.l10n.setAttributes(
+          action, item.label.id, item.label.args);
+      }
 
       if (item.icon) {
         action.classList.add(item.iconClass || 'icon');

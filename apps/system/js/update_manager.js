@@ -345,7 +345,7 @@
     },
 
     showDownloadPrompt: function um_showDownloadPrompt() {
-      var _localize = navigator.mozL10n.setAttributes;
+      var _localize = document.l10n.setAttributes;
 
       this._systemUpdateDisplayed = false;
       _localize(this.downloadDialogTitle, 'numberOfUpdates', {
@@ -580,7 +580,7 @@
     },
 
     render: function um_render() {
-      var _localize = navigator.mozL10n.setAttributes;
+      var _localize = document.l10n.setAttributes;
       var l10nId = 'updateAvailableInfo';
 
       if ((this.updatesQueue.length === 1) &&
@@ -874,7 +874,7 @@
     },
 
     _openDownloadViaDataDialog: function um_downloadViaDataDialog() {
-      var _ = navigator.mozL10n.setAttributes;
+      var _ = document.l10n.setAttributes;
       var connections = window.navigator.mozMobileConnections;
       var dataType;
       var sim;

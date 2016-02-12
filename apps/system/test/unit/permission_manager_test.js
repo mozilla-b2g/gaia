@@ -5,7 +5,7 @@
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_app_window.js');
@@ -58,8 +58,8 @@ suite('system/permission manager', function() {
 
   suiteSetup(function(done) {
     loadBodyHTML('/index.html');
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     requireApp('system/js/permission_manager.js', function() {
       permissionManager = new PermissionManager();
@@ -70,7 +70,7 @@ suite('system/permission manager', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   setup(function() {
@@ -260,7 +260,6 @@ suite('system/permission manager', function() {
       this.sinon.spy(permissionManager, 'cancelRequest');
       this.sinon.spy(permissionManager, 'showPermissionPrompt');
       this.sinon.spy(permissionManager, 'handlePermissionPrompt');
-      this.sinon.spy(navigator.mozL10n, 'get');
     });
 
     teardown(function() {
@@ -288,7 +287,7 @@ suite('system/permission manager', function() {
     test('showPermissionPrompt must use the right strings', function() {
       sendFullscreenRequest();
       var l10nAttrs =
-        navigator.mozL10n.getAttributes(permissionManager.message);
+        document.l10n.getAttributes(permissionManager.message);
       assert.equal(l10nAttrs.id, 'fullscreen-request');
 
       var detail = permissionManager.showPermissionPrompt.args[0][0];
@@ -738,7 +737,6 @@ suite('system/permission manager', function() {
           'audio-capture': ['']
         }
       );
-      this.sinon.spy(navigator.mozL10n, 'get');
     });
 
     teardown(function() {

@@ -90,7 +90,7 @@
         (cdmaCategory >= 0x1000 && cdmaCategory <= 0x10FF);
 
       if (isGSMCmas || isCDMACmas) {
-        return;
+        return Promise.resolve();
       }
 
       if (conn && conn.voice && conn.voice.network &&
@@ -99,19 +99,23 @@
         var evt = new CustomEvent('cellbroadcastmsgchanged',
           { detail: msg.body });
         window.dispatchEvent(evt);
-        return;
+        return Promise.resolve();
       }
 
       var body = msg.body;
 
       // XXX: 'undefined' test until bug-1021177 lands
       if (msg.etws && (!body || (body == 'undefined'))) {
-        body = navigator.mozL10n.get('cb-etws-warningType-' +
+        body = document.l10n.formatValue('cb-etws-warningType-' +
           (msg.etws.warningType ? msg.etws.warningType : 'other'));
       }
 
-      CarrierInfoNotifier.show(body,
-        navigator.mozL10n.get('cb-channel', { channel: id }));
+      return Promise.all([
+        body,
+        document.l10n.formatValue('cb-channel', { channel: id })
+      ]).then(([body, message]) => {
+        CarrierInfoNotifier.show(body, message);
+      });
     },
 
     /**

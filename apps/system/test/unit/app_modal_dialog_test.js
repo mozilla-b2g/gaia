@@ -1,7 +1,7 @@
 /* global MocksHelper, MockL10n, AppWindow, AppModalDialog */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
@@ -13,8 +13,8 @@ suite('system/AppModalDialog', function() {
   var realL10n, app, md, fragment;
   mocksForAppModalDialog.attachTestHelpers();
   setup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
@@ -34,7 +34,7 @@ suite('system/AppModalDialog', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     document.body.removeChild(fragment);
     fragment = null;
     md = null;

@@ -52,7 +52,7 @@ suite('system/AppTextSelectionDialog', function() {
   });
 
   teardown(function() {
-    // navigator.mozL10n = realL10n;
+    // document.l10n = realL10n;
     document.body.removeChild(fragment);
     fragment = null;
     td.globalStates.resetAllStates();

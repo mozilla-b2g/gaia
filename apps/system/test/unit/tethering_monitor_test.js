@@ -11,7 +11,7 @@ requireApp('system/js/base_icon.js');
 requireApp('system/js/tethering_icon.js');
 requireApp('system/js/settings_core.js');
 requireApp('system/js/tethering_monitor.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 var mocksForTetheringMonitor = new MocksHelper([
   'NavigatorSettings',
@@ -26,13 +26,13 @@ suite('system/TetheringMonitor', function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     MockNavigatorSettings.mSyncRepliesOnly = true;
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = window.document.l10n;
+    window.document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   setup(function() {

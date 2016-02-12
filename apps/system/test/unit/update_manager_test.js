@@ -28,7 +28,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 
 requireApp('system/test/unit/mock_asyncStorage.js');
@@ -74,8 +74,8 @@ suite('system/UpdateManager', function() {
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realMozIntl = window.mozIntl;
     window.mozIntl = MockMozIntl;
@@ -115,7 +115,7 @@ suite('system/UpdateManager', function() {
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
 
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.mozIntl = realMozIntl;
     navigator.mozWifiManager = realWifiManager;
     navigator.requestWakeLock = realRequestWakeLock;
@@ -293,22 +293,23 @@ suite('system/UpdateManager', function() {
 
     test('should bind to the click event', function() {
       UpdateManager.start();
-      assert.equal(UpdateManager.containerClicked.name,
+      assert.equal(`bound ${UpdateManager.containerClicked.name}`,
                    UpdateManager.container.onclick.name);
 
-      assert.equal(UpdateManager.toasterClicked.name,
+      assert.equal(`bound ${UpdateManager.toasterClicked.name}`,
                    UpdateManager.toaster.onclick.name);
 
-      assert.equal(UpdateManager.requestDownloads.name,
+      assert.equal(`bound ${UpdateManager.requestDownloads.name}`,
                    UpdateManager.downloadButton.onclick.name);
 
-      assert.equal(UpdateManager.cancelPrompt.name,
+      assert.equal(`bound ${UpdateManager.cancelPrompt.name}`,
                    UpdateManager.laterButton.onclick.name);
 
-      assert.equal(UpdateManager.cancelDataConnectionUpdatesPrompt.name,
-                  UpdateManager.notnowButton.onclick.name);
+      assert.equal(
+              `bound ${UpdateManager.cancelDataConnectionUpdatesPrompt.name}`,
+              UpdateManager.notnowButton.onclick.name);
 
-      assert.equal(UpdateManager.requestDownloads.name,
+      assert.equal(`bound ${UpdateManager.requestDownloads.name}`,
                    UpdateManager.downloadViaDataConnectionButton.onclick.name);
     });
   });
@@ -1405,7 +1406,7 @@ suite('system/UpdateManager', function() {
       });
 
       test('should handle cancellation', function() {
-        assert.equal('um_cancelPrompt',
+        assert.equal('bound um_cancelPrompt',
                      MockCustomDialog.mShowedCancel.callback.name);
 
         UpdateManager.cancelPrompt();
@@ -1413,7 +1414,7 @@ suite('system/UpdateManager', function() {
       });
 
       test('should handle confirmation', function() {
-        assert.equal('um_cancelAllDownloads',
+        assert.equal('bound um_cancelAllDownloads',
                      MockCustomDialog.mShowedConfirm.callback.name);
 
         UpdateManager.cancelAllDownloads();
@@ -1443,7 +1444,7 @@ suite('system/UpdateManager', function() {
       test('should observe the setting', function() {
         assert.equal('gaia.system.checkForUpdates', MockSettingsListener.mName);
         assert.equal(false, MockSettingsListener.mDefaultValue);
-        assert.equal(UpdateManager.checkForUpdates.name,
+        assert.equal(`bound ${UpdateManager.checkForUpdates.name}`,
                      MockSettingsListener.mCallback.name);
       });
 

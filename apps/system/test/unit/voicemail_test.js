@@ -22,7 +22,7 @@ requireApp('system/js/settings_core.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_activity.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('system/test/unit/mock_navigator_moz_voicemail.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
@@ -58,8 +58,8 @@ suite('voicemail notification', function() {
     realSIMSlotManager = window.SIMSlotManager;
     window.SIMSlotManager = MockSIMSlotManager;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
@@ -88,7 +88,7 @@ suite('voicemail notification', function() {
   suiteTeardown(function() {
     navigator.mozVoicemail = realMozVoicemail;
     navigator.mozSettings = realMozSettings;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     window.SIMSlotManager = realSIMSlotManager;
     navigator.mozTelephony = realMozTelephony;
     window.MozActivity = realMozActivity;

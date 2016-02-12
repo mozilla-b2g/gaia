@@ -2,7 +2,7 @@
 
 /* global IMESwitcher, MocksHelper, MockL10n */
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/js/ime_switcher.js');
 
 var mocksForIMESwitcher = new MocksHelper([
@@ -113,8 +113,8 @@ suite('IMESwitcher', function() {
     test('show()', function(done) {
       imeSwitcher._notificationTitle = document.createElement('div');
 
-      var realMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
+      var realMozL10n = document.l10n;
+      document.l10n = MockL10n;
 
       imeSwitcher.show('DummyKBApp', 'DummyKBKB');
 
@@ -138,7 +138,7 @@ suite('IMESwitcher', function() {
         assert.isTrue(imeSwitcher._notificationContainer
           .classList.add.calledWith('activated'));
 
-        navigator.mozL10n = realMozL10n;
+        document.l10n = realMozL10n;
       }).then(done, done);
     });
 

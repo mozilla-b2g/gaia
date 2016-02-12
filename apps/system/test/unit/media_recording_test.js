@@ -2,7 +2,7 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
@@ -31,8 +31,8 @@ suite('system/media recording', function() {
 
   suiteSetup(function(done) {
     loadBodyHTML('/index.html');
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     requireApp('system/js/media_recording.js', function() {
       mediaRecording = new MediaRecording();
       done();
@@ -40,7 +40,7 @@ suite('system/media recording', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     document.body.innerHTML = '';
   });
 

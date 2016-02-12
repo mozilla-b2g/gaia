@@ -39,13 +39,13 @@
 
     var p;
     if (nameL10nId) {
-      p = navigator.mozL10n.formatValue(nameL10nId);
+      p = document.l10n.formatValue(nameL10nId);
     } else {
       p = Promise.resolve(imeName);
     }
 
     p.then(function(imeName) {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this._notificationTitle,
         'ime-switching-title',
         { appName: appName, name: imeName }

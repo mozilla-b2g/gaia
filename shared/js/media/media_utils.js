@@ -6,6 +6,8 @@
  *
  */
 
+var exifDateSplitRe = /[:\s]/;
+
 var MediaUtils = {
   //Format Date
   formatDate: function(timestamp) {
@@ -17,6 +19,77 @@ var MediaUtils = {
       'year': 'numeric',
       'day': 'numeric'
     });
+  },
+
+  formatExifDate: function(dateString) {
+    var [y, m, d] = dateString.split(exifDateSplitRe, 3);
+
+    return new Date(y, m - 1, d).toLocaleString(navigator.languages, {
+      'month': 'numeric',
+      'year': 'numeric',
+      'day': 'numeric'
+    });
+  },
+
+  // exposure is a fraction
+  formatExifExposure: function(exposureTime) {
+    if (!exposureTime || exposureTime.numerator === undefined ||
+        exposureTime.numerator === 0 ||
+        exposureTime.denominator === undefined ||
+        exposureTime.denominator === 0) {
+      return null;
+    }
+    if (exposureTime.numerator > exposureTime.denominator) {
+      return (exposureTime.numerator / exposureTime.denominator).toString();
+    }
+    // trivial fraction simplification.
+    var num = exposureTime.numerator;
+    var den = exposureTime.denominator;
+    if (den % num === 0) {
+      den = den / num;
+      num = 1;
+    }
+    return num + '/' + den;
+  },
+
+  formatExifFlash: function(flashValue) {
+    // uncomment and reorder these mask when you need them,
+    // to make the linter happy.
+    // var FLASH_RETURN_MASK = 0x6;
+    // var FLASH_FUNCTION_MASK = 0x20;
+    var FLASH_FIRED_MASK = 0x1;
+    var FLASH_MODE_MASK = 0x18;
+    var FLASH_REDEYE_MASK = 0x40;
+
+    if(flashValue === undefined || flashValue === null) {
+      return ;
+    }
+    if(flashValue === 0) {
+      return ['flash-none'];
+    }
+
+    var values = [];
+
+    switch (flashValue & FLASH_MODE_MASK) {
+    case 0x08:
+      values.push('flash-on');
+      break;
+    case 0x10:
+      values.push('flash-off');
+      break;
+    case 0x18:
+      values.push('flash-auto');
+      break;
+    }
+    if (flashValue & FLASH_FIRED_MASK) {
+      values.push('flash-fired');
+    } else {
+      values.push('flash-not-fired');
+    }
+    if (flashValue & FLASH_REDEYE_MASK) {
+      values.push('flash-red-eye');
+    }
+    return values;
   },
 
   getLocalizedSizeTokens: function(size) {

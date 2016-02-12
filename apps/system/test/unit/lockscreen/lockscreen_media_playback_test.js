@@ -3,7 +3,7 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForMediaPlayback = new MocksHelper([
@@ -17,8 +17,8 @@ suite('system/media playback widget', function() {
 
   suiteSetup(function(done) {
     loadBodyHTML('/lockscreen/lockscreen.html');
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     requireApp('system/lockscreen/js/lockscreen_media_playback.js', function() {
       widget = new LockScreenMediaPlaybackWidget(
         document.getElementById('lockscreen-media-container'),
@@ -30,7 +30,7 @@ suite('system/media playback widget', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     document.body.innerHTML = '';
   });
 

@@ -133,34 +133,33 @@
      */
     generateItems: function sm_generateItems() {
       var items = [];
-      var _ = navigator.mozL10n.get;
       var options = {
         airplane: {
-          label: _('airplane'),
+          label: 'airplane',
           value: 'airplane'
         },
         airplaneOff: {
-          label: _('airplaneOff'),
+          label: 'airplaneOff',
           value: 'airplane'
         },
         silent: {
-          label: _('silent'),
+          label: 'silent',
           value: 'silent'
         },
         silentOff: {
-          label: _('normal'),
+          label: 'normal',
           value: 'silentOff'
         },
         restart: {
-          label: _('restart'),
+          label: 'restart',
           value: 'restart'
         },
         power: {
-          label: _('power'),
+          label: 'power',
           value: 'power'
         },
         viewSource: {
-          label: _('viewSource'),
+          label: 'viewSource',
           value: 'viewSource'
         }
       };
@@ -221,7 +220,7 @@
       items.forEach(function traveseItems(item) {
         var item_li = document.createElement('li');
         item_li.dataset.value = item.value;
-        item_li.textContent = item.label;
+        item_li.setAttribute('data-l10n-id', item.label);
         item_li.setAttribute('role', 'menuitem');
         this.elements.container.appendChild(item_li);
       }, this);

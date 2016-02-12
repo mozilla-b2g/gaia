@@ -125,7 +125,7 @@ var ValuePicker = (function() {
     } else if (l10n.hasOwnProperty('raw')) {
       unit.textContent = l10n.raw;
     } else {
-      navigator.mozL10n.setAttributes(unit, l10n.id, l10n.args);
+      document.l10n.setAttributes(unit, l10n.id, l10n.args);
     }
     this.element.appendChild(unit);
   };
@@ -144,9 +144,9 @@ var ValuePicker = (function() {
 
       var valPromise;
       if (typeof this._optionsL10n[index] === 'string') {
-        valPromise = navigator.mozL10n.formatValue(this._optionsL10n[index]);
+        valPromise = document.l10n.formatValue(this._optionsL10n[index]);
       } else if (this._optionsL10n[index].hasOwnProperty('id')) {
-        valPromise = navigator.mozL10n.formatValue(
+        valPromise = document.l10n.formatValue(
           this._optionsL10n[index].id, this._optionsL10n[index].args);
       } else {
         valPromise = Promise.resolve(this._optionsL10n[index].raw);

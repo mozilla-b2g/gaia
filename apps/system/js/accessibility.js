@@ -711,7 +711,7 @@
           return aData;
         }, data);
       }
-      return navigator.mozL10n.get(string, data);
+      return document.l10n.formatValue(string, data);
     },
 
     /**
@@ -724,19 +724,13 @@
       if (!Array.isArray(aData)) {
         aData = [aData];
       }
-      var words = [], localize = this.localize;
-      aData.reduce(function(words, details) {
-        var localized = localize(details);
-        if (localized) {
-          var word = localized.trim();
-          if (word) {
-            words.push(word);
-          }
-        }
-        return words;
-      }, words);
 
-      return words.join(' ');
+      var l10nPromises = aData.map(this.localize);
+
+      return Promise.all(l10nPromises).then(words => {
+        words = words.filter(word => word.trim());
+        return words.join(' ');
+      });
     },
 
     /**
@@ -809,26 +803,26 @@
         this.speech.resume();
       }
 
-      var sentence = this.buildUtterance(aData);
-      if (!sentence) {
-        return Promise.resolve();
-      }
-
-      return new Promise(resolve => {
-        var utterance = new this.utterance(sentence);
-        utterance.volume = aVolume;
-        utterance.rate = aRate;
-        utterance.addEventListener('end', () => {
-          if (this.captions) {
-            this.hideSpeech();
-          }
-          resolve();
-        });
-
-        if (this.captions) {
-          this.showSpeech(sentence);
+      return this.buildUtterance(aData).then(sentence => {
+        if (!sentence) {
+          return Promise.resolve();
         }
-        this.speech.speak(utterance);
+        return new Promise((resolve) => {
+          var utterance = new this.utterance(sentence);
+          utterance.volume = aVolume;
+          utterance.rate = aRate;
+          utterance.addEventListener('end', () => {
+            if (this.captions) {
+              this.hideSpeech();
+            }
+            resolve();
+          });
+
+          if (this.captions) {
+            this.showSpeech(sentence);
+          }
+          this.speech.speak(utterance);
+        });
       });
     }
   };

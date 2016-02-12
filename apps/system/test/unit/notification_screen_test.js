@@ -16,7 +16,7 @@ require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_navigator_moz_chromenotifications.js');
 require('/test/unit/mock_version_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
@@ -132,9 +132,9 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeToasterTitle);
     document.body.appendChild(fakeToasterDetail);
 
-    realMozL10n = navigator.mozL10n;
+    realMozL10n = document.l10n;
     realMozIntl = window.mozIntl;
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
     window.mozIntl = MockMozIntl;
 
     isDocumentHidden = false;
@@ -160,7 +160,7 @@ suite('system/NotificationScreen >', function() {
     fakeToaster.parentNode.removeChild(fakeToaster);
     fakeButton.parentNode.removeChild(fakeButton);
 
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     window.mozIntl = realMozIntl;
   });
 
@@ -264,7 +264,7 @@ suite('system/NotificationScreen >', function() {
       incrementNotications(2);
       assert.equal(NotificationScreen.unreadNotifications.length, 2);
 
-      var l10nAttrs = navigator.mozL10n.getAttributes(
+      var l10nAttrs = document.l10n.getAttributes(
         NotificationScreen.ambientIndicator);
       assert.deepEqual(l10nAttrs.args, { n : 2 });
       var event = new CustomEvent('utilitytrayshow');
@@ -278,7 +278,7 @@ suite('system/NotificationScreen >', function() {
     test('should change the read status', function() {
       incrementNotications(1);
       assert.equal(document.body.getElementsByClassName('unread').length, 1);
-      var l10nAttrs = navigator.mozL10n.getAttributes(
+      var l10nAttrs = document.l10n.getAttributes(
         NotificationScreen.ambientIndicator);
       assert.deepEqual(l10nAttrs.args, { n : 1 });
     });
@@ -319,7 +319,7 @@ suite('system/NotificationScreen >', function() {
         'aria-label'));
       NotificationScreen.removeUnreadNotification('other-id');
       assert.equal(NotificationScreen.unreadNotifications.length, 1);
-      var l10nAttrs = navigator.mozL10n.getAttributes(
+      var l10nAttrs = document.l10n.getAttributes(
         NotificationScreen.ambientIndicator);
       assert.deepEqual(l10nAttrs.args, { n : 1 });
     });

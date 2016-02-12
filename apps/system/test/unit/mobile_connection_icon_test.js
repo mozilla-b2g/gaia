@@ -14,7 +14,7 @@ requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 var mocksForMobileConnectionIcon = new MocksHelper([
   'SIMSlotManager',
@@ -28,12 +28,12 @@ suite('system/MobileConnectionIcon', function() {
   mocksForMobileConnectionIcon.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   setup(function() {

@@ -15,7 +15,7 @@ exports.execute = function(options) {
     'clock',
     'communications',
     'costcontrol',
-    //'email',
+    'email',
     'findmydevice',
     'ftu',
     'gallery',

@@ -309,13 +309,6 @@
             if (this.app instanceof PreviewWindow) {
               var app = applications.getByManifestURL(manifestURL);
               AppInstallManager.handleAddAppToApps(app);
-            } else {
-              // Since AppInstallManager treats all install requests coming from
-              // Marketplace as preview requests, we have to pause this
-              // mechanism first when we want to "real" install a app without
-              // the preview.
-              AppInstallManager.pausePreview = true;
-              navigator.mozApps.install(manifestURL);
             }
           }
         });
@@ -362,6 +355,7 @@
                 url: url,
                 iconUrl: iconUrl
               }).then(() => {
+                AppInstallManager.resetPreviewOpenedTimes(url);
                 this.systemBanner.show({
                   id: 'added-to-apps',
                   args: {

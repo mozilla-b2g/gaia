@@ -148,16 +148,15 @@
      * @param {Function} callback executes
      *   after successfully connecting to the server.
      */
-    connect: function connect(callback) {
+    connect: function connect(callback, callbackpromises) {
       this.ready = true;
       this._responseQueue.push(function(data) {
         this.marionetteProtocol = data.marionetteProtocol || 1;
         this.traits = data.traits;
         this.applicationType = data.applicationType;
-
         callback();
       }.bind(this));
-      this._connect();
+      this._connect(callbackpromises);
     },
 
     /**
@@ -213,6 +212,11 @@
         }
 
         var cb = this._responseQueue.shift();
+
+        if (this.callbackpromises){
+          this.callbackpromises();
+        }
+
         cb(resp);
 
         this._nextCommand();

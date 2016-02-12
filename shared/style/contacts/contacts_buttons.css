@@ -44,7 +44,7 @@ li button.icon-email:before {
   color: #5F5F5F;
   font-style: normal;
   line-height: 4rem;
-  height: 4rem;
+  height: 3.8rem;
   text-align: end;
   margin: 0;
   background: url("/shared/elements/gaia_sim_picker/images/long-tap-indicator.png") no-repeat right bottom 0.2rem / 1.4rem 1rem;
@@ -129,10 +129,6 @@ li .activity > b {
   white-space: nowrap;
   display: block;
   position: absolute;
-  left: 1.5rem;
-  right: 3rem;
-  top: 1rem;
-  bottom: 0;
 }
 
 .remark {
@@ -158,11 +154,6 @@ html[dir="rtl"] .pull-left {
 
 html[dir="rtl"] .pull-right {
   float: left;
-}
-
-html[dir="rtl"] li .activity > b {
-  left: 3rem;
-  right: 1.5rem;
 }
 
 html[dir="rtl"] li .icon-call {

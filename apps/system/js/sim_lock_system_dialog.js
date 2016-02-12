@@ -213,7 +213,7 @@
   };
 
   SimLockSystemDialog.prototype.handleCardState = function() {
-    var _ = navigator.mozL10n.setAttributes;
+    var _ = document.l10n.setAttributes;
 
     if (!this._currentSlot) {
       return;
@@ -292,7 +292,7 @@
   };
 
   SimLockSystemDialog.prototype.showErrorMsg = function(retry, type) {
-    var _ = navigator.mozL10n.setAttributes;
+    var _ = document.l10n.setAttributes;
     var l10nArgs = { n: retry };
 
     _(this.triesLeftMsg, 'inputCodeRetriesLeft', l10nArgs);
@@ -317,7 +317,7 @@
   };
 
   SimLockSystemDialog.prototype.unlockPuk = function() {
-    var _ = navigator.mozL10n.setAttributes;
+    var _ = document.l10n.setAttributes;
 
     var puk = this.pukInput.value;
     var newPin = this.newPinInput.value;

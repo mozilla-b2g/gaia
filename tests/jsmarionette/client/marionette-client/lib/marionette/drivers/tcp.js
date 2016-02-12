@@ -66,15 +66,17 @@ Tcp.prototype._sendCommand = function _sendCommand(cmd) {
 /**
  * Opens TCP socket for marionette client.
  */
-Tcp.prototype._connect = function connect() {
+Tcp.prototype._connect = function connect(callbackpromises) {
   var options = {
     port: this.port,
     host: this.host,
     tries: this.tries
   };
-
   retrySocket.waitForSocket(options, function(err, socket) {
     debug('got socket starting command stream');
+    if (callbackpromises){
+      this.callbackpromises = callbackpromises;
+    }
     this.socket = socket;
     this.client = new CommandStream(this.socket);
     this.client.on('command', this._onClientCommand.bind(this));

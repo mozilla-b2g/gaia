@@ -150,6 +150,6 @@ var CaptivePortal = {
 };
 
 // unit tests call init() manually
-if (navigator.mozL10n) {
-  navigator.mozL10n.once(CaptivePortal.init.bind(CaptivePortal));
+if (document.l10n) {
+  document.l10n.ready.then(CaptivePortal.init.bind(CaptivePortal));
 }

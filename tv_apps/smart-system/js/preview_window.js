@@ -9,8 +9,6 @@
 /* global SystemBanner */
 
 (function(exports) {
-  const PREVIEW_OPENED_TIMES_KEY = 'preview-opened-times';
-  const PREVIEW_OPENED_TIMES_TO_HINT = 3;
   const ADD_TO_APPS_ICON_PATH = '/style/icons/add_to_apps.png';
 
   /**
@@ -121,17 +119,6 @@
   };
 
   PreviewWindow.prototype._handle__opened = function(evt) {
-    var previewOpenedTimes =
-      JSON.parse(localStorage.getItem(PREVIEW_OPENED_TIMES_KEY) || '{}');
-
-    if (!previewOpenedTimes[this.identity]) {
-      previewOpenedTimes[this.identity] = 0;
-    }
-    previewOpenedTimes[this.identity]++;
-
-    localStorage.setItem(PREVIEW_OPENED_TIMES_KEY,
-      JSON.stringify(previewOpenedTimes));
-
     var showPreviewHint = function() {
       window.interactiveNotifications.showNotification(
         window.InteractiveNotifications.TYPE.NORMAL, {
@@ -148,10 +135,12 @@
     if (this.isAppLike) {
       BookmarkManager.get(this.identity).then((bookmark) => {
         if (!bookmark) {
+          AppInstallManager.increasePreviewOpenedTimes(this.identity);
           showPreviewHint();
         }
       });
     } else if (!AppInstallManager.getAppAddedState(this.manifestURL)) {
+      AppInstallManager.increasePreviewOpenedTimes(this.identity);
       showPreviewHint();
     }
   };
@@ -159,10 +148,10 @@
   PreviewWindow.prototype._handle__willdestroy = function(evt) {
     this.container.element.removeEventListener('_closed', this);
 
-    var previewOpenedTimes =
-      JSON.parse(localStorage.getItem(PREVIEW_OPENED_TIMES_KEY) || '{}');
-    var needPrompt =
-      previewOpenedTimes[this.identity] == PREVIEW_OPENED_TIMES_TO_HINT;
+    var previewOpenedTimes = JSON.parse(localStorage.getItem(
+      AppInstallManager.PREVIEW_OPENED_TIMES_KEY) || '{}');
+    var needPrompt = previewOpenedTimes[this.identity] ===
+      AppInstallManager.PREVIEW_OPENED_TIMES_TO_HINT;
     var options;
 
     if (this.isAppLike) {
@@ -184,6 +173,7 @@
                 });
               })
               .then(() => {
+                AppInstallManager.resetPreviewOpenedTimes(this.identity);
                 this.systemBanner.show({
                   id: 'added-to-apps',
                   args: {

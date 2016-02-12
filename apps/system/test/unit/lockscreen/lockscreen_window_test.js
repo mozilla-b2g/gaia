@@ -8,7 +8,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForLockScreenWindow = new window.MocksHelper([
@@ -54,8 +54,8 @@ suite('system/LockScreenWindow', function() {
     window.layoutManager = new LayoutManager();
     window.layoutManager.start();
 
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = window.document.l10n;
+    window.document.l10n = MockL10n;
 
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
@@ -66,7 +66,7 @@ suite('system/LockScreenWindow', function() {
   });
 
   teardown(function() {
-    window.navigator.mozL10n = realL10n;
+    window.document.l10n = realL10n;
     stubById.restore();
   });
 

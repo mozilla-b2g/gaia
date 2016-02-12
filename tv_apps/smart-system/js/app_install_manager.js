@@ -18,6 +18,9 @@
 // remove it.
 
 var AppInstallManager = {
+  PREVIEW_OPENED_TIMES_KEY: 'preview-opened-times',
+  PREVIEW_OPENED_TIMES_TO_HINT: 3,
+
   mapDownloadErrorsToMessage: {
     'NETWORK_ERROR': 'download-failed',
     'DOWNLOAD_ERROR': 'download-failed',
@@ -45,8 +48,6 @@ var AppInstallManager = {
     this.appInfos = {};
     this.setupQueue = [];
     this.isSetupInProgress = false;
-    this.pausePreview = false;
-    this.previewOpenedTimes = {};
 
     window.addEventListener('mozChromeEvent', (evt) => {
       var detail = evt.detail;
@@ -58,7 +59,8 @@ var AppInstallManager = {
               this.dispatchResponse(detail.id, 'webapps-install-denied');
             } else {
               this.dispatchResponse(detail.id, 'webapps-install-granted');
-              if (!this.pausePreview) {
+              if (AppWindowManager.getActiveApp().
+                  config.url.indexOf('#preview') > -1) {
                 this.setPreviewAppManifestURL(detail.app.manifestURL);
               }
             }
@@ -349,6 +351,25 @@ var AppInstallManager = {
     localStorage.setItem('preview-app', manifestURL);
   },
 
+  resetPreviewOpenedTimes: function(id) {
+    var openedTimes = JSON.parse(
+      localStorage.getItem(this.PREVIEW_OPENED_TIMES_KEY) || '{}');
+    if (openedTimes[id]) {
+      openedTimes[id] = 0;
+      localStorage.setItem(this.PREVIEW_OPENED_TIMES_KEY,
+        JSON.stringify(openedTimes));
+    }
+  },
+
+  increasePreviewOpenedTimes: function(id) {
+    var openedTimes = JSON.parse(localStorage.getItem(
+        this.PREVIEW_OPENED_TIMES_KEY) || '{}');
+    openedTimes[id] = openedTimes[id] || 0;
+    openedTimes[id]++;
+    localStorage.setItem(this.PREVIEW_OPENED_TIMES_KEY,
+      JSON.stringify(openedTimes));
+  },
+
   uninstallPreviewApp: function() {
     var previewAppManifestURL = this.getPreviewAppManifestURL();
     if (previewAppManifestURL) {
@@ -382,13 +403,10 @@ var AppInstallManager = {
       return;
     }
 
-    if (!this.pausePreview &&
-      app.manifestURL === this.getPreviewAppManifestURL()) {
+    if (app.manifestURL === this.getPreviewAppManifestURL()) {
       this.previewApp(app);
       return;
     }
-
-    this.pausePreview = false;
 
     if (this.configurations[role]) {
       this.setupQueue.push(app);
@@ -412,6 +430,7 @@ var AppInstallManager = {
     var msgID = this.isMarketplaceAppActive() ?
       'added-to-apps' : 'app-install-success';
 
+    this.resetPreviewOpenedTimes(app.manifestURL);
     this.systemBanner.show({
       id: msgID,
       args: {

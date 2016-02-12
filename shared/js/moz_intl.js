@@ -14,7 +14,7 @@ global.mozIntl = {
    * @returns {Promise} A promise of a string
    */
   formatList: function(list) {
-    return navigator.mozL10n.formatValue('listSeparator_middle').then(
+    return document.l10n.formatValue('listSeparator_middle').then(
       sep => list.join(sep)
     );
   },
@@ -92,17 +92,6 @@ global.mozIntl = {
     resolvedOptions.locale = intlFormat.resolvedOptions().locale;
     resolvedOptions.hour12 = intlFormat.resolvedOptions().hour12;
 
-    // This is needed for a workaround for bug 1208808
-    // Remove when that bug is fixed
-    var hourFormatter;
-    if (resolvedOptions.dayperiod !== undefined &&
-        resolvedOptions.hour12 === true) {
-      hourFormatter = Intl.DateTimeFormat(locales, {
-        hour: 'numeric',
-        hour12: false
-      });
-    }
-
     return {
       resolvedOptions() { return resolvedOptions; },
       format: function(date, tokenFormats) {
@@ -112,16 +101,11 @@ global.mozIntl = {
 
         if (resolvedOptions.dayperiod === false &&
             resolvedOptions.hour12 === true) {
-          dayPeriod = getDayPeriodTokenForDate(date, hourFormatter);
+          dayPeriod = getDayPeriodTokenForDate(date, intlFormat);
           string = string.replace(dayPeriod, '').trim();
         } else if (resolvedOptions.dayperiod === true &&
            options.hour === undefined) {
-          dayPeriod = getDayPeriodTokenForDate(date, hourFormatter);
-          const hour = date.toLocaleString(navigator.languages, {
-            hour12: true,
-            hour: 'numeric'
-          }).replace(dayPeriod, '').trim();
-          string = string.replace(hour, '').trim();
+          string = getDayPeriodTokenForDate(date, intlFormat);
         }
 
         for (var token in tokenFormats) {
@@ -134,7 +118,7 @@ global.mozIntl = {
           };
 
           var formatter = global.mozIntl.DateTimeFormat(
-            navigator.languages, localOptions);
+            locales, localOptions);
           var tokenString = formatter.format(date);
           string = string.replace(tokenString, tokenFormats[token]);
         }
@@ -155,7 +139,7 @@ global.mozIntl = {
   calendarInfo: function(token) {
     switch (token) {
       case 'firstDayOfTheWeek':
-        return navigator.mozL10n.formatValue('firstDayOfTheWeek').then(
+        return document.l10n.formatValue('firstDayOfTheWeek').then(
           firstDayOfTheWeek => parseInt(firstDayOfTheWeek) % 7);
       default:
         throw new Error('Unknown token: ' + token);
@@ -213,7 +197,7 @@ global.mozIntl = {
     const minUnitIdx = getDurationUnitIdx(resolvedOptions.minUnit,
       durationFormatOrder.length - 1);
 
-    return navigator.mozL10n.formatValue('durationPattern').then(fmt => ({
+    return document.l10n.formatValue('durationPattern').then(fmt => ({
       resolvedOptions: function() { return resolvedOptions; },
       format: function(input) {
         // Rounding minUnit to closest visible unit
@@ -279,12 +263,12 @@ global.mozIntl = {
       /*
        * ECMA 402 rev 3., 1.3.4, FormatRelativeTime
        *
-       * Notes: This is a modified version of the function to use mozL10n
+       * Notes: This is a modified version of the function to use L20n
        * and simplified to match current data set in data.properties
        */
       format: function(x) {
         const {unit, value} = relativeTimeFormatId(x, options);
-        return navigator.mozL10n.formatValue(unit, {
+        return document.l10n.formatValue(unit, {
           value
         });
       },
@@ -342,7 +326,7 @@ global.mozIntl = {
           maxDiff = maxDiff || 86400 * 10; // default = 10 days
           const secDiff = (Date.now() - time) / 1000;
           if (isNaN(secDiff)) {
-            return navigator.mozL10n.formatValue('incorrectDate');
+            return document.l10n.formatValue('incorrectDate');
           }
 
           if (secDiff > maxDiff) {
@@ -350,7 +334,7 @@ global.mozIntl = {
           }
 
           const {unit, value} = relativeTimeFormatId(time, relativeFmtOptions);
-          return navigator.mozL10n.formatValue(unit, {
+          return document.l10n.formatValue(unit, {
             value
           });
         },
@@ -367,7 +351,7 @@ global.mozIntl = {
           }
 
           const {unit, value} = relativeTimeFormatId(time, relativeFmtOptions);
-          navigator.mozL10n.setAttributes(element, unit, {
+          document.l10n.setAttributes(element, unit, {
             value
           });
         },
@@ -499,20 +483,12 @@ function trimDurationPattern(string, maxUnit, minUnit) {
 
 /**
  * This helper function is used by mozIntl.DateTimeFormat
- *
- * This is necessary because sometimes toLocaleFormat
- * uses different timezone than Intl API
- * which leads to it resolving %p to 'PM' while Intl is in 'AM'
- *
- * So what we do here, is we force the same hour in toLocaleFormat API
- * as we use in Intl API, to enforce the same dayperiod to remove it.
- * Remove once bug 1208808 is fixed
  */
 function getDayPeriodTokenForDate(date, hourFormatter) {
-  const hourToken = hourFormatter.format(date);
-  const newDate = new Date(date);
-  newDate.setHours(parseInt(hourToken));
-  return newDate.toLocaleFormat('%p');
+  const hourParts = hourFormatter.formatToParts(date);
+  const dayPeriodToken = hourParts.find(part => part.type === 'dayperiod');
+
+  return dayPeriodToken ? dayPeriodToken.value : '';
 }
 
 /*

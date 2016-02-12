@@ -141,7 +141,7 @@ TaskManager.prototype = {
       });
     }
 
-    navigator.mozL10n.setAttributes(this.noRecentWindowsEl,
+    document.l10n.setAttributes(this.noRecentWindowsEl,
       this._browserOnly ?
         'no-recent-browser-windows' : 'no-recent-app-windows');
     this.element.classList.toggle('filtered', !!this._browserOnly);

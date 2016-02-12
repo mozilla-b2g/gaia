@@ -225,6 +225,7 @@ suite('FtuPing', function() {
       mockSettings['deviceinfo.firmware_revision'] = 'test_revision';
       mockSettings['deviceinfo.hardware'] = 'test_hardware';
       mockSettings['app.update.channel'] = 'test_channel';
+      mockSettings['metrics.selectedMetrics.level'] = 'test_level';
 
       doneCallback = function() {
         var pingData = FtuPing.assemblePingData();
@@ -246,7 +247,7 @@ suite('FtuPing', function() {
         assert.equal(infoData['deviceinfo.platform_build_id'], 'test_build_id');
         assert.equal(infoData['deviceinfo.platform_version'], 'test_version');
         assert.equal(infoData['app.update.channel'], 'test_channel');
-
+        assert.equal(pingData.metricsLevel, 'test_level');
         done();
       };
       FtuPing.ensurePing();

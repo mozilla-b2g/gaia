@@ -2,7 +2,7 @@
    MockL10n,
    MockMozActivity,
    MockNavigatorGetDeviceStorage,
-   MockNotification,
+   MockNotificationHelper,
    MockService,
    Screenshot
 */
@@ -13,9 +13,9 @@ requireApp('system/shared/test/unit/mocks/mock_event_target.js');
 requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_navigator_get_device_storage.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
-requireApp('system/shared/test/unit/mocks/mock_notification.js');
 
 var mocksForScreenshot = new MocksHelper([
   'Service'
@@ -30,7 +30,7 @@ suite('system/Screenshot', function() {
   var realL10n;
   var realMozActivity;
   var realNavigatorGetDeviceStorage;
-  var realNotification;
+  var realNotificationHelper;
 
   var fireCustomEvent = function(type, prop) {
     var evt = new CustomEvent(type, prop);
@@ -69,11 +69,11 @@ suite('system/Screenshot', function() {
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
-    realNotification = window.Notification;
-    window.Notification = MockNotification;
+    realNotificationHelper = window.NotificationHelper;
+    window.NotificationHelper = MockNotificationHelper;
 
     window.CustomEvent = function MockCustomEvent(type, prop) {
       this.type = type;
@@ -91,8 +91,8 @@ suite('system/Screenshot', function() {
     screenshot.stop();
 
     navigator.getDeviceStorage = realNavigatorGetDeviceStorage;
-    navigator.mozL10n = realL10n;
-    window.Notification = realNotification;
+    document.l10n = realL10n;
+    window.NotificationHelper = realNotificationHelper;
     window.MozActivity = realMozActivity;
 
     window.CustomEvent = CustomEvent;
@@ -130,7 +130,7 @@ suite('system/Screenshot', function() {
 
       var deviceStorageSpy = this.sinon.spy(navigator, 'getDeviceStorage');
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
-      var notificationSpy = this.sinon.spy(window, 'Notification');
+      var notificationSpy = this.sinon.spy(window.NotificationHelper, 'send');
 
       fireCustomEvent('volumedown+sleep');
 
@@ -141,12 +141,11 @@ suite('system/Screenshot', function() {
       availableRequest.fireSuccess('unavailable');
 
       assert.isTrue(notificationSpy.calledOnce);
-      assert.isTrue(notificationSpy.calledWithNew());
       assert.equal(notificationSpy.firstCall.args[0],
         'screenshotFailed');
 
       var options = notificationSpy.firstCall.args[1];
-      assert.equal(options.body, 'screenshotNoSDCard');
+      assert.equal(options.bodyL10n, 'screenshotNoSDCard');
       assert.equal(options.icon, '/style/icons/Gallery.png');
 
       var tagSplit = options.tag.split(':');
@@ -162,7 +161,7 @@ suite('system/Screenshot', function() {
 
       var deviceStorageSpy = this.sinon.spy(navigator, 'getDeviceStorage');
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
-      var notificationSpy = this.sinon.spy(window, 'Notification');
+      var notificationSpy = this.sinon.spy(window.NotificationHelper, 'send');
 
       fireCustomEvent('volumedown+sleep');
 
@@ -173,12 +172,11 @@ suite('system/Screenshot', function() {
       availableRequest.fireSuccess('shared');
 
       assert.isTrue(notificationSpy.calledOnce);
-      assert.isTrue(notificationSpy.calledWithNew());
       assert.equal(notificationSpy.firstCall.args[0],
         'screenshotFailed');
 
       var options = notificationSpy.firstCall.args[1];
-      assert.equal(options.body, 'screenshotSDCardInUse');
+      assert.equal(options.bodyL10n, 'screenshotSDCardInUse');
       assert.equal(options.icon, '/style/icons/Gallery.png');
 
       var tagSplit = options.tag.split(':');
@@ -195,7 +193,7 @@ suite('system/Screenshot', function() {
       var deviceStorageSpy = this.sinon.spy(navigator, 'getDeviceStorage');
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
-      var notificationSpy = this.sinon.spy(window, 'Notification');
+      var notificationSpy = this.sinon.spy(window.NotificationHelper, 'send');
 
       fireCustomEvent('volumedown+sleep');
 
@@ -210,12 +208,11 @@ suite('system/Screenshot', function() {
       freeSpaceRequest.fireSuccess(256);
 
       assert.isTrue(notificationSpy.calledOnce);
-      assert.isTrue(notificationSpy.calledWithNew());
       assert.equal(notificationSpy.firstCall.args[0],
         'screenshotFailed');
 
       var options = notificationSpy.firstCall.args[1];
-      assert.equal(options.body, 'screenshotSDCardLow');
+      assert.equal(options.bodyL10n, 'screenshotSDCardLow');
       assert.equal(options.icon, '/style/icons/Gallery.png');
 
       var tagSplit = options.tag.split(':');
@@ -234,7 +231,7 @@ suite('system/Screenshot', function() {
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
       var addNamedSpy = this.sinon.spy(mockDeviceStorage, 'addNamed');
-      var notificationSpy = this.sinon.spy(window, 'Notification');
+      var notificationSpy = this.sinon.spy(window.NotificationHelper, 'send');
 
       var mockFile = {};
       fireCustomEvent('mozChromeEvent',
@@ -256,7 +253,6 @@ suite('system/Screenshot', function() {
       addNamedRequest.fireSuccess(Number.MAX_VALUE);
 
       assert.isTrue(notificationSpy.calledOnce);
-      assert.isTrue(notificationSpy.calledWithNew());
       assert.equal(notificationSpy.firstCall.args[0],
         'screenshotSaved');
 

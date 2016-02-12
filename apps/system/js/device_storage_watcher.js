@@ -101,7 +101,7 @@
     updateAvailableSpace: function dsw_updateAvailableSpace(v) {
       if (v !== undefined) {
         return this.formatSize(v).then(value => {
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             this._availableSpace,
             'free-space2',
             { value }

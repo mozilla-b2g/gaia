@@ -23,6 +23,18 @@ suite('MozIntl', function() {
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    if (!Intl.DateTimeFormat.prototype.formatToParts) {
+      // We temporarily need this because formatToParts is not exposed to
+      // Gu tests and the tests fail.
+      // This feature is really tested by Gij tests which run certified
+      // apps.
+      Intl.DateTimeFormat.prototype.formatToParts = function(d) {
+        return [
+          {type: 'dayperiod', value: (new Date()).toLocaleFormat('%p')}
+        ];
+      };
+    }
   });
 
   suiteTeardown(function() {
