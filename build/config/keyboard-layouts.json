@@ -31,6 +31,11 @@
         {"layoutId": "bn-Probhat", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "br": [
+      {"layoutId": "br", "app": ["apps", "keyboard"]},
+      {"layoutId": "fr", "app": ["apps", "keyboard"]},
+      {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "bs": [
         {"layoutId": "bs", "app": ["apps", "keyboard"]}
     ],
