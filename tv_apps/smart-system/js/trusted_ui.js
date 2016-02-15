@@ -1,7 +1,7 @@
 /* -*- Mode: js2; js2-basic-offset: 2; indent-tabs-mode: nil -*- */
 /* vim: set ft=javascript sw=2 ts=2 autoindent cindent expandtab: */
 
-/* global AppWindowManager, KeyboardManager, focusManager */
+/* global Service, KeyboardManager, focusManager */
 'use strict';
 
 var TrustedUIManager = {
@@ -162,7 +162,7 @@ var TrustedUIManager = {
   },
 
   _hideCallerApp: function trui_hideCallerApp(origin, callback) {
-    var app = AppWindowManager.getApp(origin);
+    var app = Service.query('getApp', origin);
     if (app == null || app.isHomescreen) {
       return;
     }
@@ -191,13 +191,13 @@ var TrustedUIManager = {
   },
 
   _restoreCallerApp: function trui_restoreCallerApp(origin) {
-    var frame = AppWindowManager.getApp(origin).frame;
+    var frame = Service.query('getApp', origin).frame;
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
-    if (!AppWindowManager.getActiveApp().isHomescreen) {
+    if (!Service.query('getActiveApp').isHomescreen) {
       this.publish('trusteduihide', { origin: origin });
     }
-    if (AppWindowManager.getActiveApp().origin == origin) {
+    if (Service.query('getActiveApp').origin == origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);

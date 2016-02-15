@@ -1,5 +1,4 @@
-/* globals Service, AppWindowManager, homescreenLauncher, SettingsListener,
-           AttentionIndicator, focusManager */
+/* globals Service, SettingsListener, AttentionIndicator, focusManager */
 'use strict';
 
 (function(exports) {
@@ -119,7 +118,7 @@
           var candidate = null;
           if (this._openedInstances.size === 0) {
             this._topMostWindow = null;
-            candidate = AppWindowManager.getActiveApp();
+            candidate = Service.query('getActiveApp');
           } else {
             this._openedInstances.forEach(function(instance) {
               candidate = instance;
@@ -200,7 +199,7 @@
             return;
           }
           this._topMostWindow = null;
-          var nextApp = homescreenLauncher.getHomescreen();
+          var nextApp = Service.query('getHomescreen');
           if (Service.locked) {
             this.closeAllAttentionWindows();
           } else if (nextApp && !nextApp.isDead()) {
