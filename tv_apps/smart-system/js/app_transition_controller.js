@@ -1,5 +1,5 @@
-/* global AppWindowManager, SettingsCache, Service, Animations,
-          homescreenWindowManager, focusManager */
+/* global SettingsCache, Service, Animations, focusManager */
+
 'use strict';
 
 (function(exports) {
@@ -155,7 +155,7 @@
         }
         this.app.broadcast('closingtimeout');
       },
-      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
+      Service.query('slowTransition') ? this.SLOW_TRANSITION_TIMEOUT :
                                         this.CLOSING_TRANSITION_TIMEOUT);
 
       if (!this.app || !this.app.element) {
@@ -189,8 +189,8 @@
             // XXX: show the homescreen's fadeoverlay so we will not see the
             // system background during fast-fade-in transition. We may create
             // another overlay instead of reusing this overlay in the future
-            homescreenWindowManager.getHomescreen().fadeOut();
-            homescreenWindowManager.getHomescreen().showFadeOverlay(color);
+            Service.query('getHomescreen').fadeOut();
+            Service.query('getHomescreen').showFadeOverlay(color);
             this.app.element.classList.add('fast-fade-in');
           }.bind(this));
       } else {
@@ -202,7 +202,7 @@
       this._openingTimeout = window.setTimeout(function() {
         this.app.broadcast('openingtimeout');
       }.bind(this),
-      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
+      Service.query('slowTransition') ? this.SLOW_TRANSITION_TIMEOUT :
                                         this.OPENING_TRANSITION_TIMEOUT);
       this.app.debug(this.app.element.classList);
     };
@@ -398,7 +398,7 @@
           evt.stopPropagation();
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
-          if (Service.isBusyLoading()) {
+          if (Service.query('isBusyLoading')) {
             this._waitingForLoad = true;
             if (this.app.isHomescreen && this._transitionState == 'opening') {
               /**
