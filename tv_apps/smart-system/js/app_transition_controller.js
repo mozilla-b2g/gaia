@@ -191,7 +191,7 @@
             // another overlay instead of reusing this overlay in the future
             homescreenWindowManager.getHomescreen().fadeOut();
             homescreenWindowManager.getHomescreen().showFadeOverlay(color);
-            this.app.element.classList.add('fast-fade-in');
+            this.app && this.app.element.classList.add('fast-fade-in');
           }.bind(this));
       } else {
         this.app.element.classList.add('transition-opening');
