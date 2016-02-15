@@ -1,14 +1,13 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, HomescreenLauncher, HomescreenWindowManager,
-         FtuLauncher, ScreenManager, Activities, AppUsageMetrics, RemoteControl,
+/*global ActivityWindowManager, VisibilityManager, UsbStorage,
+         Activities, AppUsageMetrics, RemoteControl,
          DeveloperHUD, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage,
          SuspendingAppPriorityManager, TTLView,
-         MediaRecording, AppWindowFactory, SystemDialogManager,
-         applications, LayoutManager, PermissionManager, Accessibility,
-         SleepMenu, InteractiveNotifications, ExternalStorageMonitor,
+         MediaRecording, Service,
+         applications, PermissionManager, Accessibility,
+         InteractiveNotifications, ExternalStorageMonitor,
          BaseModule */
 
 'use strict';
@@ -27,12 +26,6 @@ window.addEventListener('load', function startup() {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
 
-    /** @global */
-    window.systemDialogManager = window.systemDialogManager ||
-      new SystemDialogManager();
-
-    window.AppWindowManager.init();
-
     window.BookmarkManager.init(
       'app://app-deck.gaiamobile.org/manifest.webapp', 'readwrite');
   }
@@ -47,16 +40,8 @@ window.addEventListener('load', function startup() {
       function onHomescreenReady() {
         window.removeEventListener('homescreenwindowmanager-ready',
                                    onHomescreenReady);
-        FtuLauncher.retrieve();
+        Service.request('retrieve');
       });
-    /** @global */
-    if (!window.homescreenLauncher) {
-      // We may have application.ready = true while reloading at firefox nightly
-      // browser. In this case, the window.homescreenLauncher haven't been
-      // created. We should create it and start it in this case.
-      window.homescreenLauncher = new HomescreenLauncher();
-    }
-    window.homescreenLauncher.start();
   }
 
   if (applications.ready) {
@@ -86,19 +71,10 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-  ScreenManager.turnScreenOn();
-
-  // To make sure homescreen window manager can intercept webapps-launch event,
-  // we need to move the code here.
-  window.homescreenWindowManager = new HomescreenWindowManager();
-  window.homescreenWindowManager.start();
-
   // Please sort it alphabetically
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
-  window.appWindowFactory = new AppWindowFactory();
-  window.appWindowFactory.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
   /** @global */
@@ -108,24 +84,12 @@ window.addEventListener('load', function startup() {
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
-  if (!window.homescreenLauncher) {
-    // If application.ready is true, we already create homescreenLauncher in
-    // safelyLaunchFTU(). We should use it. If it is false, we should create it
-    // here.
-    window.homescreenLauncher = new HomescreenLauncher();
-  }
-  window.layoutManager = new LayoutManager();
-  window.layoutManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.remoteDebugger = new RemoteDebugger();
-  window.sleepMenu = new SleepMenu();
-  window.sleepMenu.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();
-  window.wallpaperManager = new window.WallpaperManager();
-  window.wallpaperManager.start();
 
   // unit tests call start() manually
   if (navigator.mozL10n) {
@@ -164,7 +128,7 @@ window.addEventListener('load', function startup() {
 
 window.usbStorage = new UsbStorage();
 
-// Define the default background to use for all homescreens
+// Define the default background to use for all as
 window.addEventListener('wallpaperchange', function(evt) {
   document.getElementById('screen').style.backgroundImage =
     'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),' +

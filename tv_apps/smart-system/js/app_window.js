@@ -1,7 +1,6 @@
 /* global AppChrome */
 /* global AudioChannelController */
 /* global BrowserFrame */
-/* global layoutManager */
 /* global ManifestHelper */
 /* global OrientationManager */
 /* global ScreenLayout */
@@ -832,8 +831,8 @@
     }
 
     // Resize only the overlays not the app
-    var width = layoutManager.width;
-    var height = layoutManager.height;
+    var width = Service.query('LayoutManager.width');
+    var height = Service.query('LayoutManager.height');
 
     this.iframe.style.width = this.width + 'px';
     this.iframe.style.height = this.height + 'px';
@@ -1311,13 +1310,13 @@
 
   var OrientationRotationTable = {
     'portrait-primary': [0, 180, 0, 90,
-              270, 90, OrientationManager.isDefaultPortrait() ? 0 : 90],
+              270, 90, Service.query('isDefaultPortrait') ? 0 : 90],
     'landscape-primary': [270, 90, 270, 0,
-              180, 0, OrientationManager.isDefaultPortrait() ? 270 : 0],
+              180, 0, Service.query('isDefaultPortrait') ? 270 : 0],
     'portrait-secondary': [180, 0, 180, 270,
-              90, 270, OrientationManager.isDefaultPortrait() ? 180 : 270],
+              90, 270, Service.query('isDefaultPortrait') ? 180 : 270],
     'landscape-secondary': [90, 270, 90, 180,
-              0, 180, OrientationManager.isDefaultPortrait() ? 180 : 90]
+              0, 180, Service.query('isDefaultPortrait') ? 180 : 90]
   };
 
   AppWindow.prototype.determineRotationDegree =
@@ -1330,7 +1329,7 @@
       var orientation = this.determineOrientation(appOrientation);
       var table =
         OrientationRotationTable[
-          OrientationManager.defaultOrientation];
+          Service.query('defaultOrientation')];
       var degree = table[OrientationRotationArray.indexOf(orientation)];
       this.rotatingDegree = degree;
       if (degree == 90 || degree == 270) {
@@ -1346,7 +1345,7 @@
       }
 
       // XXX: Assume homescreen's orientation is just device default.
-      var homeOrientation = OrientationManager.defaultOrientation;
+      var homeOrientation = Service.query('defaultOrientation');
       var currentOrientation = OrientationManager
         .fetchCurrentOrientation();
       this.debug(currentOrientation);
@@ -1398,7 +1397,7 @@
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
-    if (layoutManager.keyboardEnabled) {
+    if (Service.query('LayoutManager.keyboardEnabled')) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1415,10 +1414,10 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = layoutManager.height;
+    height = Service.query('LayoutManager.height');
 
     // If we have sidebar in the future, change layoutManager then.
-    width = layoutManager.width;
+    width = Service.query('LayoutManager.width');
 
     this.width = width;
     this.height = height;
@@ -1501,8 +1500,8 @@
   AppWindow.prototype.lockOrientation = function() {
     var manifest = this.manifest || this.config.manifest;
     var orientation = manifest ? (manifest.orientation ||
-                      OrientationManager.globalOrientation) :
-                      OrientationManager.globalOrientation;
+                      Service.query('globalOrientation')) :
+                      Service.query('globalOrientation');
     if (orientation) {
       var rv = screen.mozLockOrientation(orientation);
       if (rv === false) {

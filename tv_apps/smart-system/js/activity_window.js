@@ -1,4 +1,4 @@
-/* global AppWindow, BrowserFrame, OrientationManager, focusManager */
+/* global AppWindow, Service, BrowserFrame, focusManager */
 'use strict';
 
 (function(exports) {
@@ -149,7 +149,7 @@
                             this.config.manifest.orientation : null;
         var orientation3 = (this.rearWindow.manifest) ?
                             this.rearWindow.manifest.orientation : null;
-        var orientation4 = OrientationManager.globalOrientation;
+        var orientation4 = Service.query('globalOrientation');
 
         var orientation = orientation1 ||
                           orientation2 ||

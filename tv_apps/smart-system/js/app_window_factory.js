@@ -1,5 +1,5 @@
 'use strict';
-/* globals applications, BrowserConfigHelper, AppWindowManager, AppWindow,
+/* globals applications, BrowserConfigHelper, Service, AppWindow,
           WrapperFactory, SystemBanner */
 /* jshint nonew: false */
 
@@ -38,6 +38,8 @@
      * @memberof AppWindowFactory.prototype
      */
     _started: false,
+
+    name: 'AppWindowFactory',
 
     /**
      * Register all event handlers.
@@ -147,7 +149,7 @@
       }
 
       return new Promise(function(resolve, reject) {
-        var app = AppWindowManager.getApp(config.origin, config.manifestURL);
+        var app = Service.query('getApp', config.origin, config.manifestURL);
 
         window.addEventListener('appcreated', function awf_onappcreated(evt) {
           if (evt.detail.config.url !== config.url) {
@@ -302,7 +304,7 @@
         return;
       }
 
-      var app = AppWindowManager.getApp(config.origin, config.manifestURL);
+      var app = Service.query('getApp', config.origin, config.manifestURL);
       if (app) {
         if (config.evtType === 'appopenwindow' ||
             config.evtType === 'iac-customlaunchpath') {

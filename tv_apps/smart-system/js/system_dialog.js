@@ -176,7 +176,7 @@
   SystemDialog.prototype.updateHeight = function sd_updateHeight() {
     // The LayoutManager is already taking care of the keyboard height,
     // so we don't need to worry about that here.
-    var height = window.layoutManager.height;
+    var height = window.Service.query('LayoutManager.height');
     this.containerElement.style.height = height + 'px';
     this.debug('updateHeight: new height = ' + height);
     // Scroll up so as to show simpin input box

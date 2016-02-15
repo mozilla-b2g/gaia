@@ -11,8 +11,15 @@
   };
 
   Core.SUB_MODULES = [
-    'AudioChannelService',
-    'SystemWindow'
+    'SleepMenu',
+    'OrientationManager',
+    'HierarchyManager',
+    'FeatureDetector',
+    'SystemDialogManager',
+    'WallpaperManager',
+    'LayoutManager',
+    'AppCore',
+    'ScreenManager'
   ];
 
   Core.SERVICES = [

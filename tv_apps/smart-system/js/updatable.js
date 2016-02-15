@@ -1,4 +1,4 @@
-/* global ManifestHelper, UpdateManager, AppWindowManager, SettingsCache,
+/* global ManifestHelper, UpdateManager, Service, SettingsCache,
           CustomDialog, asyncStorage */
 'use strict';
 
@@ -77,8 +77,8 @@ AppUpdatable.prototype.availableCallBack = function() {
 
 AppUpdatable.prototype.successCallBack = function() {
   var app = this.app;
-  if (AppWindowManager.getActiveApp() &&
-      AppWindowManager.getActiveApp().origin !== app.origin) {
+  if (Service.query('getActiveApp') &&
+      Service.query('getActiveApp').origin !== app.origin) {
     this.applyUpdate();
   } else {
     var self = this;
@@ -94,7 +94,7 @@ AppUpdatable.prototype.successCallBack = function() {
 };
 
 AppUpdatable.prototype.applyUpdate = function() {
-  AppWindowManager.kill(this.app.origin);
+  Service.request('kill', this.app.origin);
   this._mgmt.applyDownload(this.app);
 };
 

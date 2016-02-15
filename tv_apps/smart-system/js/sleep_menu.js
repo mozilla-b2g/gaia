@@ -3,7 +3,7 @@
 /* global CustomLogoPath */
 /* global Event */
 /* global LogoLoader */
-/* global OrientationManager */
+/* global Service */
 /* global SettingsCache */
 /* global focusManager */
 
@@ -18,7 +18,7 @@
    * @requires AirplaneMode
    * @requires InitLogoHandler
    * @requires LogoLoader
-   * @requires OrientationManager
+   * @requires Service
    * @requires SettingsListener
    */
   function SleepMenu() {}
@@ -200,7 +200,7 @@
       this.buildMenu(this.generateItems());
       this.elements.overlay.classList.add('visible');
       // Lock to default orientation
-      screen.mozLockOrientation(OrientationManager.defaultOrientation);
+      screen.mozLockOrientation(Service.query('defaultOrientation'));
       // let focus manager to calculate the top most and focus for us.
       focusManager.focus();
     },
