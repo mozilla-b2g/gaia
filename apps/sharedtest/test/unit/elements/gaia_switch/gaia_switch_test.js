@@ -81,6 +81,41 @@ suite('GaiaSwitch', function() {
     });
   });
 
+  test('Dispatches change event by pressing Enter key', function(done) {
+    function key(keycode, type, dom) {
+      var keyboardEvent = document.createEvent('KeyboardEvent');
+
+      keyboardEvent.initKeyEvent(
+        type, // event type : keydown, keyup, keypress
+        true, // bubbles
+        true, // cancelable
+        window, // viewArg: should be window
+        false, // ctrlKeyArg
+        false, // altKeyArg
+        false, // shiftKeyArg
+        false, // metaKeyArg
+        keycode, // keyCodeArg : unsigned long the virtual key code, else 0
+        0
+      );
+      dom.dispatchEvent(keyboardEvent);
+    }
+
+    this.container.innerHTML = `<div id="wrapper"><gaia-switch>
+    </gaia-switch></div>`;
+    var wrapper = this.container.firstElementChild;
+    var element = wrapper.firstElementChild;
+    var input = element.shadowRoot.querySelector('input');
+    assert.equal(input.checked, false);
+
+    wrapper.addEventListener('change', function(e) {
+      assert.equal(e.type, 'change');
+      assert.equal(e.target, element);
+      done();
+    });
+
+    key(13, 'keyup', element);
+  });
+
   test('Clicking link element does not toggle switch', function() {
     this.container.innerHTML = `<div id="wrapper">
       <gaia-switch>
