@@ -38,10 +38,36 @@ suite('Homescreen app', () => {
     icon.bookmark = null;
     icon.icon = null;
     icon.size = 100;
+    icon.launch = () => {};
     icon.appendChild(iconChild);
     var container = document.createElement('div');
     container.appendChild(icon);
     return container;
+  };
+
+  var getGroup = () => {
+    var group = document.createElement('div');
+    Object.defineProperty(group, 'localName', {
+      value: 'homescreen-group',
+      configurable: true
+    });
+    group.expand = () => {};
+    group.collapse = () => {};
+    group.container = document.createElement('div');
+    Object.defineProperty(group.container, 'localName', {
+      value: 'gaia-container',
+      configurable: true
+    });
+    var container = document.createElement('div');
+    container.appendChild(group);
+    return container;
+  };
+
+  var fakeIconParent = icon => {
+    Object.defineProperty(icon, 'parentNode', {
+      configurable: true,
+      get: () => { return { parentNode: app.container }; }
+    });
   };
 
   var stubCreateElement = () => {
@@ -93,6 +119,7 @@ suite('Homescreen app', () => {
         height: child.offsetHeight
       };
     };
+    icons.getChildFromPoint = () => null;
     app = new Apps();
   });
 
@@ -183,8 +210,8 @@ suite('Homescreen app', () => {
       var metadataGetAllStub = sinon.stub(AppsMetadata.prototype, 'getAll',
         callback => {
           var results = [
-            { id: 'abc/', icon: 'abc', order: 0 },
-            { id: 'def/', icon: 'def', order: 1 }
+            { id: 'abc/', icon: 'abc', order: 0, group: '' },
+            { id: 'def/', icon: 'def', order: 1, group: '' }
           ];
           for (var result of results) {
             callback(result);
@@ -205,7 +232,7 @@ suite('Homescreen app', () => {
       var metadataGetAllStub = sinon.stub(AppsMetadata.prototype, 'getAll',
         callback => {
           var results = [
-            { id: 'abc/', icon: 'abc', order: 0 },
+            { id: 'abc/', icon: 'abc', order: 0, group: '' },
           ];
           for (var result of results) {
             callback(result);
@@ -270,28 +297,148 @@ suite('Homescreen app', () => {
     });
   });
 
+  suite('App#attachInputHandlers', () => {
+    var realContainer;
+
+    function createDummyContainer() {
+      return {
+        addEventListener: () => {},
+        removeEventListener: () => {}
+      };
+    }
+
+    setup(() => {
+      realContainer = app.container;
+      app.container = null;
+    });
+
+    teardown(() => {
+      app.container = realContainer;
+    });
+
+    test('should set container', () => {
+      var container = createDummyContainer();
+      app.attachInputHandlers(container);
+      assert.equal(app.container, container);
+    });
+
+    test('should attach to gaia-container events', () => {
+      var container = createDummyContainer();
+      var attachSpy = sinon.spy(container, 'addEventListener');
+      app.attachInputHandlers(container);
+
+      assert.isTrue(attachSpy.calledWith('activate'));
+      assert.isTrue(attachSpy.calledWith('drag-start'));
+      assert.isTrue(attachSpy.calledWith('drag-move'));
+      assert.isTrue(attachSpy.calledWith('drag-end'));
+      assert.isTrue(attachSpy.calledWith('drag-rearrange'));
+      assert.isTrue(attachSpy.calledWith('drag-finish'));
+    });
+
+    test('should detach old container', () => {
+      app.container = createDummyContainer();
+      var detachSpy = sinon.spy(app.container, 'removeEventListener');
+      app.attachInputHandlers(createDummyContainer());
+
+      assert.isTrue(detachSpy.calledWith('activate'));
+      assert.isTrue(detachSpy.calledWith('drag-start'));
+      assert.isTrue(detachSpy.calledWith('drag-move'));
+      assert.isTrue(detachSpy.calledWith('drag-end'));
+      assert.isTrue(detachSpy.calledWith('drag-rearrange'));
+      assert.isTrue(detachSpy.calledWith('drag-finish'));
+    });
+  });
+
   suite('App#iconSize', () => {
-    test('should be 0 by default', () => {
-      assert.equal(app.iconSize, 0);
+    var size;
+
+    setup(() => {
+      app._iconSize = 0;
+      app.settings.small = false;
+      size = Math.round((app.icons.clientWidth - 12) / 3 - 16);
     });
 
-    test('should be updated at each call when it equals 0', () => {
-      assert.equal(app.iconSize, 0);
-      app.icons.appendChild(getIcon('abc'));
-      assert.equal(app.iconSize, 100);
+    test('should be a third of grid width, minus padding', () => {
+      assert.equal(app.iconSize, size);
     });
 
-    test('should be the size of the first icon', () => {
-      app.icons.appendChild(getIcon('abc'));
-      assert.equal(app.iconSize, 100);
+    test('should recalculate when cleared', () => {
+      assert.equal(app.iconSize, size);
+      assert.equal(app._iconSize, size);
+      app._iconSize = 0;
+      assert.equal(app.iconSize, size);
+      assert.equal(app._iconSize, size);
+    });
+  });
+
+  suite('App#iterateIcons()', () => {
+    var realIcons, fakeIcons;
+
+    function addFakeIcon(group) {
+      var fakeIcon = {
+        firstElementChild: {
+          localName: 'gaia-app-icon'
+        }
+      };
+      if (group) {
+        group.firstElementChild.container.children.push(fakeIcon);
+      } else {
+        fakeIcons.children.push(fakeIcon);
+      }
+      return fakeIcon;
+    }
+
+    function addFakeGroup() {
+      var fakeGroup = {
+        firstElementChild: {
+          localName: 'homescreen-group',
+          container: {
+            children: []
+          }
+        }
+      };
+      fakeIcons.children.push(fakeGroup);
+      return fakeGroup;
+    }
+
+    setup(() => {
+      realIcons = app.icons;
+      app.icons = fakeIcons = { children: [] };
     });
 
-    test('should be the size of the first visible icon', () => {
-      app.icons.appendChild(getIcon('abc'));
-      app.icons.appendChild(getIcon('def'));
-      app.icons.firstChild.firstChild.style.display = 'none';
-      app.icons.firstChild.firstChild.firstChild.style.width = '200px';
-      assert.equal(app.iconSize, 100);
+    teardown(() => {
+      app.icons = realIcons;
+    });
+
+    test('should iterate over icons', () => {
+      addFakeIcon();
+      addFakeIcon();
+      var calls = 0;
+      app.iterateIcons((icon, container, parent) => {
+        assert.equal(container, fakeIcons.children[calls]);
+        assert.equal(icon, fakeIcons.children[calls].firstElementChild);
+        assert.equal(parent, fakeIcons);
+        calls ++;
+      });
+      assert.equal(calls, 2);
+    });
+
+    test('should iterate over icons in groups', () => {
+      var group = addFakeGroup();
+      addFakeIcon(group);
+      addFakeIcon(group);
+      addFakeIcon();
+      var calls = 0;
+      var groupContainer = group.firstElementChild.container;
+      app.iterateIcons((icon, container, parent) => {
+        if (calls < 2) {
+          assert.equal(container, groupContainer.children[calls]);
+          assert.equal(icon, groupContainer.children[calls].firstElementChild);
+          assert.equal(parent, groupContainer);
+        }
+        calls ++;
+      });
+      assert.equal(calls, 3);
     });
   });
 
@@ -388,23 +535,37 @@ suite('Homescreen app', () => {
 
       test('should return a HTML element with an order property', () => {
         app.startupMetadata = [{ order: 1 }];
-        var container = app.addIconContainer(document.createElement('div'), 0);
+        var container =
+          app.addIconContainer(document.createElement('div'), 0, app.icons);
 
         assert.isTrue(container instanceof HTMLDivElement);
-        assert.isTrue(container instanceof HTMLElement);
         assert.isNumber(container.order);
       });
 
+      test('should name icon and group containers accordingly', () => {
+        var iconDiv = document.createElement('div');
+        var container = app.addIconContainer(iconDiv, -1, app.icons);
+        assert.isTrue(container.classList.contains('icon-container'));
+
+        var groupDiv = document.createElement('div');
+        Object.defineProperty(groupDiv, 'localName', {
+          value: 'homescreen-group',
+          configurable: true
+        });
+        container = app.addIconContainer(groupDiv, -1, app.icons);
+        assert.isTrue(container.classList.contains('group-container'));
+      });
+
       test('should call iconAdded() when adding children', () => {
-        app.addIconContainer(document.createElement('div'), -1);
-        app.addIconContainer(document.createElement('div'), -1);
+        app.addIconContainer(document.createElement('div'), -1, app.icons);
+        app.addIconContainer(document.createElement('div'), -1, app.icons);
 
         assert.isTrue(appendChildStub.calledTwice);
         assert.isTrue(iconAddedSpy.calledTwice);
       });
 
       test('should call refreshGridSize() when adding visible children', () => {
-        app.addIconContainer(document.createElement('div'), -1);
+        app.addIconContainer(document.createElement('div'), -1, app.icons);
 
         assert.isTrue(appendChildStub.called);
         assert.isTrue(refreshGridSizeStub.called);
@@ -413,19 +574,19 @@ suite('Homescreen app', () => {
       test('should not call refreshGridSize() when adding ' +
            'invisible children', () => {
         childIsVisible = false;
-        app.addIconContainer(document.createElement('div'), -1);
+        app.addIconContainer(document.createElement('div'), -1, app.icons);
         assert.isFalse(refreshGridSizeStub.called);
       });
     });
 
     test('should insert a container in the right order', () => {
       app.startupMetadata = [{ order: 1 }, { order: 2 }, { order: 3 }];
-      app.addIconContainer(document.createElement('div'), 0);
-      app.addIconContainer(document.createElement('div'), 2);
+      app.addIconContainer(document.createElement('div'), 0, app.icons);
+      app.addIconContainer(document.createElement('div'), 2, app.icons);
 
       assert.equal(app.icons.children.length, 2);
 
-      app.addIconContainer(document.createElement('div'), 1);
+      app.addIconContainer(document.createElement('div'), 1, app.icons);
 
       assert.equal(app.icons.children.length, 3);
       assert.equal(app.icons.children[0].order, 1);
@@ -527,8 +688,15 @@ suite('Homescreen app', () => {
   });
 
   suite('App#storeAppOrder()', () => {
+    var clock;
+
     setup(() => {
       app.metadata.mSetup();
+      clock = sinon.useFakeTimers();
+    });
+
+    teardown(() => {
+      clock.restore();
     });
 
     test('should persist apps in sorted order', () => {
@@ -536,11 +704,39 @@ suite('Homescreen app', () => {
       app.icons.appendChild(getIcon('def'));
       app.icons.appendChild(getIcon('ghi'));
       app.storeAppOrder();
+      clock.tick(1000);
       assert.deepEqual(app.metadata._data, [
-        { id: 'abc/', order: 0 },
-        { id: 'def/', order: 1 },
-        { id: 'ghi/', order: 2 }
+        { id: 'abc/', order: 0, group: '' },
+        { id: 'def/', order: 1, group: '' },
+        { id: 'ghi/', order: 2, group: '' }
       ]);
+    });
+
+    test('should persist group information', () => {
+      var group = getGroup();
+      group.firstElementChild.container.appendChild(getIcon('abc'));
+      group.firstElementChild.container.appendChild(getIcon('def'));
+      app.icons.appendChild(group);
+      app.icons.appendChild(getIcon('ghi'));
+      app.storeAppOrder();
+      clock.tick(1000);
+      assert.deepEqual(app.metadata._data, [
+        { id: 'abc/', order: 0, group: 'abc/' },
+        { id: 'def/', order: 1, group: 'abc/' },
+        { id: 'ghi/', order: 2, group: '' }
+      ]);
+    });
+
+    test('should coalesce multiple calls', () => {
+      var setMetadataStub = sinon.stub(app.metadata, 'set', () => {
+        return Promise.resolve();
+      });
+      app.storeAppOrder();
+      app.storeAppOrder();
+      app.storeAppOrder();
+      clock.tick(1000);
+      assert.isTrue(setMetadataStub.calledOnce);
+      setMetadataStub.restore();
     });
   });
 
@@ -958,11 +1154,74 @@ suite('Homescreen app', () => {
     });
   });
 
+  suite('App#isGroup()', () => {
+    test('returns true for groups', () => {
+      assert.isTrue(app.isGroup(getGroup()));
+    });
+
+    test('returns false for non-groups', () => {
+      assert.isFalse(app.isGroup(getIcon('abc')));
+    });
+
+    test('handles null parameter', () => {
+      assert.isFalse(app.isGroup(null));
+    });
+  });
+
+  suite('App#closeOpenGroup', () => {
+    var freezeStub, thawStub, attachInputHandlersStub, setAttributeStub,
+      collapseSpy, storeAppOrderStub;
+
+    setup(() => {
+      var fakeGroup = {
+        collapse: (icons, callback1, callback2) => {
+          assert.equal(icons, app.icons);
+          callback1();
+          callback2();
+        }
+      };
+      freezeStub = sinon.stub(app.icons, 'freeze');
+      thawStub = sinon.stub(app.icons, 'thaw');
+      attachInputHandlersStub = sinon.stub(app, 'attachInputHandlers');
+      setAttributeStub = sinon.stub(app.icons, 'setAttribute');
+      collapseSpy = sinon.spy(fakeGroup, 'collapse');
+      storeAppOrderStub = sinon.stub(app, 'storeAppOrder');
+
+      app.openGroup = fakeGroup;
+      app.closeOpenGroup();
+    });
+
+    teardown(() => {
+      freezeStub.restore();
+      thawStub.restore();
+      attachInputHandlersStub.restore();
+      setAttributeStub.restore();
+      collapseSpy.restore();
+      storeAppOrderStub.restore();
+      app.openGroup = null;
+    });
+
+    test('Closes group', () => {
+      assert.isTrue(freezeStub.calledOnce);
+      assert.isTrue(collapseSpy.calledOnce);
+      assert.isTrue(thawStub.calledOnce);
+      assert.equal(app.openGroup, null);
+      assert.isTrue(attachInputHandlersStub.calledWith(app.icons));
+      assert.isTrue(setAttributeStub.calledWith('drag-and-drop', ''));
+      assert.isTrue(storeAppOrderStub.calledOnce);
+    });
+  });
+
   suite('App#handleEvent()', () => {
     suite('activate', () => {
+      var icon;
+
+      setup(() => {
+        icon = getIcon('abc');
+        fakeIconParent(icon);
+      });
+
       test('should be preventDefaulted', () => {
-        var icon = getIcon('abc');
-        icon.firstElementChild.launch = () => {};
         var defaultPrevented = false;
         app.handleEvent({
           type: 'activate',
@@ -972,9 +1231,33 @@ suite('Homescreen app', () => {
         assert.isTrue(defaultPrevented);
       });
 
+      test('group should be expanded', () => {
+        var group = getGroup();
+        fakeIconParent(group);
+
+        var expandStub = sinon.stub(group.firstElementChild, 'expand');
+        var attachInputHandlersStub = sinon.stub(app, 'attachInputHandlers');
+        var removeAttributeStub = sinon.stub(app.icons, 'removeAttribute');
+
+        app.handleEvent({
+          type: 'activate',
+          preventDefault: () => {},
+          detail: { target: group }
+        });
+
+        assert.equal(app.openGroup, group.firstElementChild);
+        assert.isTrue(expandStub.calledWith(app.icons));
+        assert.isTrue(removeAttributeStub.calledWith('drag-and-drop'));
+        assert.isTrue(attachInputHandlersStub.
+          calledWith(group.firstElementChild.container));
+
+        app.openGroup = null;
+        attachInputHandlersStub.restore();
+        removeAttributeStub.restore();
+      });
+
       test('unrecoverable app should be removed', () => {
         var uninstallStub = sinon.stub(MockNavigatormozApps.mgmt, 'uninstall');
-        var icon = getIcon('abc');
         icon.firstElementChild.state = 'unrecoverable';
         app.handleEvent(new CustomEvent('activate',
           { detail: { target: icon } }));
@@ -983,7 +1266,6 @@ suite('Homescreen app', () => {
 
       test('installing app should open a cancel download dialog', () => {
         var showActionDialogStub = sinon.stub(app, 'showActionDialog');
-        var icon = getIcon('abc');
         icon.firstElementChild.state = 'installing';
         icon.firstElementChild.name = 'Name';
         app.handleEvent(new CustomEvent('activate',
@@ -1000,6 +1282,7 @@ suite('Homescreen app', () => {
         var testApp = state => {
           showActionDialogStub = sinon.stub(app, 'showActionDialog');
           var icon = getIcon('abc');
+          fakeIconParent(icon);
           icon.firstElementChild.state = state;
           icon.firstElementChild.name = 'Name';
           app.handleEvent(new CustomEvent('activate',
@@ -1022,6 +1305,46 @@ suite('Homescreen app', () => {
           assert.isTrue(showActionDialogStub.called);
           var stubCall = showActionDialogStub.getCall(0);
           assert.equal(stubCall.args[0], app.resumeDownload);
+        });
+      });
+
+      suite('touchstart', () => {
+        var realContainer, closeGroupStub;
+
+        setup(() => {
+          realContainer = app.container;
+          app.openGroup = getGroup().firstElementChild;
+          app.container = app.openGroup.container;
+          closeGroupStub = sinon.stub(app, 'closeOpenGroup');
+        });
+
+        teardown(() => {
+          app.openGroup = null;
+          app.container = realContainer;
+          closeGroupStub.restore();
+        });
+
+        test('touch outside of open group closes group', () => {
+          var icon = getIcon('abc');
+          app.handleEvent({
+            type: 'touchstart',
+            preventDefault: () => {},
+            target: icon
+          });
+
+          assert.isTrue(closeGroupStub.calledOnce);
+        });
+
+        test('touch inside open group does nothing', () => {
+          var icon = getIcon('abc');
+          app.container.appendChild(icon);
+          app.handleEvent({
+            type: 'touchstart',
+            preventDefault: () => {},
+            target: icon
+          });
+
+          assert.isFalse(closeGroupStub.called);
         });
       });
 
@@ -1071,17 +1394,174 @@ suite('Homescreen app', () => {
           assert.isTrue(clearIntervalStub.calledWith('abc'));
           delete app.icons.getChildFromPoint;
         });
+
+        suite('Icons hint at drop position when dragged', () => {
+          var returnChild, getChildIndexStub, getChildFromPointStub,
+            getChildOffsetRectStub;
+
+          setup(() => {
+            returnChild = getIcon('abc');
+            getChildIndexStub = sinon.stub(app,
+              'getChildIndex', () => 1);
+            getChildFromPointStub = sinon.stub(app.container,
+              'getChildFromPoint', () => returnChild);
+            getChildOffsetRectStub = sinon.stub(app.container,
+              'getChildOffsetRect', () => {
+                return {
+                  top: 0,
+                  right: 100,
+                  bottom: 100,
+                  left: 0,
+                  width: 100,
+                  height: 100
+                };
+              });
+          });
+
+          teardown(() => {
+            getChildFromPointStub.restore();
+            app.hoverIcon = null;
+          });
+
+          test('hover-before', () => {
+            app.draggedIndex = 2;
+            app.handleEvent(new CustomEvent('drag-move', { detail: {
+              clientX: 0,
+              clientY: 250
+            }}));
+            assert.isTrue(returnChild.classList.contains('hover-before'));
+          });
+
+          test('hover-after', () => {
+            app.draggedIndex = 0;
+            app.handleEvent(new CustomEvent('drag-move', { detail: {
+              clientX: 100,
+              clientY: 250
+            }}));
+            assert.isTrue(returnChild.classList.contains('hover-after'));
+          });
+
+          test('hover-over', () => {
+            var event = new CustomEvent('drag-move', { detail: {
+              clientX: 100,
+              clientY: 250
+            }});
+            app.shouldCreateGroup = true;
+
+            app.draggedIndex = 2;
+            app.handleEvent(event);
+            assert.isTrue(app.hoverIcon.classList.contains('hover-over'));
+            app.hoverIcon.classList.remove('hover-before');
+
+            app.draggedIndex = 0;
+            event.detail.clientX = 0;
+            app.handleEvent(event);
+            assert.isTrue(app.hoverIcon.classList.contains('hover-over'));
+          });
+
+          test('hover-over-group', () => {
+            var target = getIcon('abc');
+            var event = new CustomEvent('drag-move', { detail: {
+              clientX: 100,
+              clientY: 250,
+              target: target
+            }});
+
+            app.shouldCreateGroup = false;
+            app.draggedIndex = 2;
+            app.handleEvent(event);
+
+            assert.isTrue(target.classList.contains('hover-over-group'));
+          });
+
+          test('removes hints from old hovered icon', () => {
+            returnChild = null;
+            var hoverIcon = app.hoverIcon = getIcon('abc');
+            app.hoverIcon.classList.add(
+              'hover-before', 'hover-after', 'hover-over');
+            var target = getIcon('def');
+            target.classList.add('hover-over-group');
+            var event = new CustomEvent('drag-move', { detail: {
+              clientX: 100,
+              clientY: 250,
+              target: target
+            }});
+            app.handleEvent(event);
+
+            assert.equal(hoverIcon.className.length, 0);
+            assert.equal(target.className.length, 0);
+          });
+        });
       });
 
       suite('drag-finish', () => {
+        test('dragging classes should be removed', () => {
+          app.dragging = true;
+          app.container.classList.add('dragging');
+          document.body.classList.add('dragging');
+
+          app.handleEvent(new CustomEvent('drag-finish', { detail: {} }));
+
+          assert.isFalse(app.dragging);
+          assert.isFalse(app.container.classList.contains('dragging'));
+          assert.isFalse(document.body.classList.contains('dragging'));
+        });
+
+        test('auto-scroll style should be removed', () => {
+          document.body.classList.add('autoscroll');
+          app.handleEvent(new CustomEvent('drag-finish', { detail: {} }));
+          assert.isFalse(document.body.classList.contains('autoscroll'));
+        });
+
+        test('scrollable overflow should be unset', () => {
+          app.scrollable.style.overflow = 'hidden';
+          app.handleEvent(new CustomEvent('drag-finish', { detail: {} }));
+          assert.equal(app.scrollable.style.overflow, '');
+        });
+
         test('auto-scroll interval should be cancelled', () => {
           var clearIntervalStub = sinon.stub(window, 'clearInterval');
           app.autoScrollInterval = 'abc';
-          app.handleEvent(new CustomEvent('drag-finish'));
+          app.handleEvent(new CustomEvent('drag-finish', { detail: {} }));
           clearIntervalStub.restore();
 
           assert.isTrue(clearIntervalStub.calledWith('abc'));
           assert.equal(app.autoScrollTimeout, null);
+        });
+
+        test('auto-scroll overflow timeout should be cancelled', () => {
+          var clearTimeoutStub = sinon.stub(window, 'clearTimeout');
+          app.autoScrollOverflowTimeout = 'abc';
+          app.handleEvent(new CustomEvent('drag-finish', { detail: {} }));
+          clearTimeoutStub.restore();
+
+          assert.isTrue(clearTimeoutStub.calledWith('abc'));
+          assert.equal(app.autoScrollOverflowTimeout, null);
+        });
+
+        test('hoverIcon hover styles should be removed', () => {
+          var div = app.hoverIcon = document.createElement('div');
+          app.hoverIcon.classList.add(
+            'hover-before', 'hover-after', 'hover-over');
+          app.handleEvent(new CustomEvent('drag-finish', { detail: {} }));
+          assert.equal(div.className.length, 0);
+          assert.equal(app.hoverIcon, null);
+        });
+
+        test('hover-over-group style should be removed', () => {
+          var target = document.createElement('div');
+          target.classList.add('hover-over-group');
+          app.shouldCreateGroup = false;
+          app.handleEvent(new CustomEvent('drag-finish', {
+            detail: { target: target }
+          }));
+          assert.equal(target.className.length, 0);
+        });
+
+        test('restores default drag-and-drop timeout', () => {
+          app.container.dragAndDropTimeout = 100;
+          app.handleEvent(new CustomEvent('drag-finish', { detail: {} }));
+          assert.equal(app.container.dragAndDropTimeout, -1);
         });
       });
 
@@ -1104,7 +1584,7 @@ suite('Homescreen app', () => {
           });
 
           realIcons = app.icons;
-          app.icons = {
+          app.container = app.icons = {
             firstChild: 'abc',
             getChildOffsetRect: () => {
               return { left: 0, top: 0, right: 10, bottom: 10 };
@@ -1119,6 +1599,8 @@ suite('Homescreen app', () => {
 
         teardown(() => {
           app.icons = realIcons;
+          app.shouldEnterEditMode = false;
+          app.shouldCreateGroup = false;
           reorderChildSpy.restore();
           Object.defineProperty(window, 'innerHeight', realInnerHeight);
           Object.defineProperty(window, 'innerWidth', realInnerWidth);
@@ -1180,10 +1662,91 @@ suite('Homescreen app', () => {
           enterEditModeStub.restore();
           iconEditableStub.restore();
         });
+
+        suite('app grouping', () => {
+          var refreshGridSizeStub, snapScrollPositionStub, addGroupStub,
+              mockGroup, transferFromContainerStub, transferToContainerStub;
+
+          setup(() => {
+            refreshGridSizeStub = sinon.stub(app, 'refreshGridSize');
+            snapScrollPositionStub = sinon.stub(app, 'snapScrollPosition');
+
+            mockGroup = {
+              container: {
+                getBoundingClientRect: () => {
+                  return {
+                    top: 100,
+                    bottom: 200
+                  };
+                },
+                children: {
+                  length: 10
+                }
+              },
+              transferFromContainer: () => {},
+              transferToContainer: () => {}
+            };
+
+            addGroupStub = sinon.stub(app, 'addGroup', () => mockGroup);
+            transferFromContainerStub =
+              sinon.stub(mockGroup, 'transferFromContainer');
+            transferToContainerStub =
+              sinon.stub(mockGroup, 'transferToContainer');
+          });
+
+          teardown(() => {
+            refreshGridSizeStub.restore();
+            snapScrollPositionStub.restore();
+            addGroupStub.restore();
+          });
+
+          test('dropping icon onto another icon creates group', () => {
+            app.shouldCreateGroup = true;
+            app.handleEvent(new CustomEvent('drag-end', {
+              detail: { target: 'abc', dropTarget: 'def' }
+            }));
+            assert.isTrue(addGroupStub.calledOnce);
+            assert.equal(transferFromContainerStub.firstCall.args[0], 'def');
+            assert.equal(transferFromContainerStub.secondCall.args[0], 'abc');
+          });
+
+          test('dropping icon onto group adds icon to group', () => {
+            var isGroupStub = sinon.stub(app, 'isGroup', () => true);
+            var fakeGroupContainer = { firstElementChild: mockGroup };
+            app.shouldCreateGroup = true;
+            app.handleEvent(new CustomEvent('drag-end', {
+              detail: { target: 'abc', dropTarget: fakeGroupContainer }
+            }));
+            assert.isTrue(transferFromContainerStub.calledOnce);
+            assert.isTrue(transferFromContainerStub.calledWith('abc'));
+            isGroupStub.restore();
+          });
+
+          test('dropping icon outside of group removes icon from group', () => {
+            app.openGroup = mockGroup;
+            app.handleEvent(new CustomEvent('drag-end', {
+              detail: { target: 'abc', dropTarget: null, clientY: 0 }
+            }));
+            assert.isTrue(transferToContainerStub.calledOnce);
+            assert.isTrue(transferToContainerStub.calledWith('abc'));
+          });
+
+          test('dropping penultimate icon outside group closes group', () => {
+            var closeGroupStub = sinon.stub(app, 'closeOpenGroup');
+            app.openGroup = mockGroup;
+            mockGroup.container.children.length = 1;
+            app.handleEvent(new CustomEvent('drag-end', {
+              detail: { target: 'abc', dropTarget: null, clientY: 0 }
+            }));
+            assert.isTrue(closeGroupStub.calledOnce);
+            closeGroupStub.restore();
+          });
+        });
       });
 
       test('app with default state should be launched', done => {
         var icon = getIcon('abc');
+        fakeIconParent(icon);
         icon.firstElementChild.state = 'unknownState';
         icon.firstElementChild.name = 'Name';
         icon.firstElementChild.launch = () => {
@@ -1195,9 +1758,11 @@ suite('Homescreen app', () => {
     });
 
     suite('resize', () => {
-      var synchroniseStub, refreshGridSizeStub, snapScrollPositionStub;
+      var synchroniseStub, refreshGridSizeStub, snapScrollPositionStub,
+        oldIconSize;
 
       setup(() => {
+        oldIconSize = app._iconSize = app.iconSize + 100;
         app.icons.synchronise = () => {};
         synchroniseStub = sinon.stub(app.icons, 'synchronise');
         refreshGridSizeStub = sinon.stub(app, 'refreshGridSize');
@@ -1226,7 +1791,7 @@ suite('Homescreen app', () => {
       });
 
       test('should reset icon size', () => {
-        assert.equal(app._iconSize, 0);
+        assert.notEqual(app.iconSize, oldIconSize);
       });
 
       test('should refresh incorrectly sized icons', () => {

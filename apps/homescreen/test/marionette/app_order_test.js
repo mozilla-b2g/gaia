@@ -31,30 +31,15 @@ marionette('Homescreen - App order', function() {
     });
 
     // Wait for the icon order to be saved
+    home.waitForSavedOrder();
     var ids = home.getIconIdentifiers();
     var numIcons = ids.length;
-    client.waitFor(function() {
-      var order = client.executeAsyncScript(function() {
-        window.wrappedJSObject.appWindow.apps.metadata.getAll().then(
-          marionetteScriptFinished);
-      });
-
-      // The order array is stored in order, but also contains non-visible
-      // icons, so just skip unknown entries.
-      var correctlyPlacedIcons = 0;
-      for (var i = 0, iLen = order.length; i < iLen; i++) {
-        if (order[i].id.startsWith(ids[correctlyPlacedIcons])) {
-          ++ correctlyPlacedIcons;
-        }
-      }
-      return correctlyPlacedIcons === numIcons;
-    });
 
     // Test that icon ordering is retained after a restart
     home.restart();
 
     client.waitFor(function() {
-      return home.visibleIcons.length === numIcons;
+      return home.getIconIdentifiers().length === numIcons;
     });
 
     var newIds = home.getIconIdentifiers();
