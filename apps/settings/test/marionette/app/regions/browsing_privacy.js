@@ -20,6 +20,10 @@ BrowsingPrivacyPanel.Selectors = {
     '#browsingPrivacy gaia-switch[name="browser.private.default"]',
   'trackingProtectionEnabledSwitch':
     '#browsingPrivacy gaia-switch[name="privacy.trackingprotection.enabled"]',
+  'blockAttackSitesEnabledSwitch':
+    '#browsingPrivacy gaia-switch[name="browser.safebrowsing.malware.enabled"]',
+  'blockWebForgeriesEnabledSwitch':
+    '#browsingPrivacy gaia-switch[name="browser.safebrowsing.enabled"]',
   'clearHistoryButton':
     '#browsingPrivacy .clear-history-button',
   'clearPrivateDataButton':
@@ -45,6 +49,20 @@ BrowsingPrivacyPanel.prototype = {
 
   get isTrackingProtectionEnabled() {
     return this.findElement('trackingProtectionEnabledSwitch')
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
+  },
+
+  get isBlockAttackSitesEnabled() {
+    return this.findElement('blockAttackSitesEnabledSwitch')
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
+  },
+
+  get isBlockWebForgeriesEnabled() {
+    return this.findElement('blockWebForgeriesEnabledSwitch')
       .scriptWith(function(el) {
         return el.wrappedJSObject.checked;
       });
@@ -81,6 +99,46 @@ BrowsingPrivacyPanel.prototype = {
     this.waitForElement('trackingProtectionEnabledSwitch').click();
     this.client.waitFor(function() {
       return !this.isTrackingProtectionEnabled;
+    }.bind(this));
+  },
+
+  enableBlockAttackSites: function() {
+    if (this.isBlockAttackSitesEnabled) {
+      return;
+    }
+    this.waitForElement('blockAttackSitesEnabledSwitch').click();
+    this.client.waitFor(function() {
+      return this.isBlockAttackSitesEnabled;
+    }.bind(this));
+  },
+
+  disableBlockAttackSites: function() {
+    if (!this.isBlockAttackSitesEnabled) {
+      return;
+    }
+    this.waitForElement('blockAttackSitesEnabledSwitch').click();
+    this.client.waitFor(function() {
+      return !this.isblockAttackSitesEnabled;
+    }.bind(this));
+  },
+
+  enableBlockWebForgeries: function() {
+    if (this.isBlockWebForgeriesEnabled) {
+      return;
+    }
+    this.waitForElement('blockWebForgeriesEnabledSwitch').click();
+    this.client.waitFor(function() {
+      return this.isBlockWebForgeriesEnabled;
+    }.bind(this));
+  },
+
+  disableBlockWebForgeries: function() {
+    if (!this.isBlockWebForgeriesEnabled) {
+      return;
+    }
+    this.waitForElement('blockWebForgeriesEnabledSwitch').click();
+    this.client.waitFor(function() {
+      return !this.isblockWebForgeriesEnabled;
     }.bind(this));
   },
 

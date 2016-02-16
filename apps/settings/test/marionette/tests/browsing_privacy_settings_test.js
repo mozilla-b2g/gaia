@@ -41,6 +41,40 @@ marionette('manipulate browsing privacy settings', function() {
     );
   });
 
+  test('check block attack sites initial state and toggle', function() {
+    assert.ok(
+      browsingPrivacyPanel.isBlockAttackSitesEnabled,
+      'block attack sites enabled by default'
+    );
+    browsingPrivacyPanel.disableBlockAttackSites();
+    assert.ok(
+      !browsingPrivacyPanel.isBlockAttackSitesEnabled,
+      'block attack sites has been disabled'
+    );
+    browsingPrivacyPanel.enableBlockAttackSites();
+    assert.ok(
+      browsingPrivacyPanel.isBlockAttackSitesEnabled,
+      'block attack sites has been enabled'
+    );
+  });
+
+  test('check block web forgeries initial state and toggle', function() {
+    assert.ok(
+      browsingPrivacyPanel.isBlockWebForgeriesEnabled,
+      'block web forgeries enabled by default'
+    );
+    browsingPrivacyPanel.disableBlockWebForgeries();
+    assert.ok(
+      !browsingPrivacyPanel.isBlockWebForgeriesEnabled,
+      'block web forgeries has been disabled'
+    );
+    browsingPrivacyPanel.enableBlockWebForgeries();
+    assert.ok(
+      browsingPrivacyPanel.isBlockWebForgeriesEnabled,
+      'block web forgeries has been enabled'
+    );
+  });
+
   test('check clear history button, confirm dialog will show' +
        'click cancel, and click submit', function() {
     browsingPrivacyPanel.clickClearHistoryButton();
