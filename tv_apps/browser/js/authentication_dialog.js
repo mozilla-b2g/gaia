@@ -132,7 +132,7 @@ var AuthenticationDialog = {
         //'the-username-or-password-is-incorrect');
       //this.httpAuthenticationMessage.classList.add('error');
     } else {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         this.httpAuthenticationMessage,
         'WB_LT_AUTH_MESSAGE',
         {
@@ -141,7 +141,7 @@ var AuthenticationDialog = {
         }
       );
       /*
-      navigator.mozL10n.setAttributes(this.httpAuthenticationMessage,
+      document.l10n.setAttributes(this.httpAuthenticationMessage,
                                       'http-authentication-message',
                                       { host: evt.detail.host });
       */

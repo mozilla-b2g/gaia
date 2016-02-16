@@ -1371,7 +1371,7 @@ var Awesomescreen = {
     var title = this.selectList.childNodes[1].childNodes[0].textContent;
     Settings.setHomepage(url);
 
-    navigator.mozL10n.setAttributes(this.dialogBannerMessage,
+    document.l10n.setAttributes(this.dialogBannerMessage,
        'WB_LT_SET_HOMEPAGE', {value0:title});
     // Animation end event
     var target = ev.currentTarget;
@@ -2755,7 +2755,7 @@ var Awesomescreen = {
       Browser.refreshBookmarkButton();
       this.topsiteHidden();
     }else{
-      navigator.mozL10n.formatValue('LT_BROWSER_CONFIRM_EXIT2').then(result => {
+      document.l10n.formatValue('LT_BROWSER_CONFIRM_EXIT2').then(result => {
         if (window.confirm(result)) {
           window.close();
         }

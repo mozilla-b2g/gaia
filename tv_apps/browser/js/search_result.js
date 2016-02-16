@@ -184,7 +184,7 @@ var SearchResult = {
       var result = this.searchResultTemplate.cloneNode(true);
       var title = result.childNodes[0].childNodes[0];
       // title.innerHTML = 'Search by ' + engine;
-      navigator.mozL10n.setAttributes(title, 'WB_LT_TIPS_S_SEARCH', {
+      document.l10n.setAttributes(title, 'WB_LT_TIPS_S_SEARCH', {
         value0:engine
       });
       var uri = result.childNodes[0].childNodes[1];
