@@ -17,7 +17,7 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('browser/test/unit/mocks/mock_settings.js');
 requireApp('browser/test/unit/sync/mocks/mock_manager_bridge.js');
 
@@ -46,8 +46,8 @@ suite('Sync toolbar >', function() {
   mocksForToolbar.attachTestHelpers();
 
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     loadBodyHTML('sync/fixtures/toolbar.html');
 
@@ -74,7 +74,7 @@ suite('Sync toolbar >', function() {
     settingsShowSpy.restore();
     addListenerStub.restore();
     addEventListenerStub.restore();
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   suite('Initial state', function() {
