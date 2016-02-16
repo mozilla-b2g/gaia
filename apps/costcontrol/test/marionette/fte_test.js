@@ -7,11 +7,6 @@ var CostControl = require('./lib/costcontrol.js');
 
 marionette('First Time Experience View', function() {
   var client = marionette.client({
-    profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      }
-    },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 

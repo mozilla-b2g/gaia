@@ -7,9 +7,6 @@ marionette('Firefox Accounts Launch Tests', function() {
       selectors,
       client = marionette.client({
         profile: {
-          prefs: {
-            'focusmanager.testmode': true
-          },
           settings: {
             'ftu.manifestURL': FxA.FTU_ORIGIN + '/manifest.webapp'
           },

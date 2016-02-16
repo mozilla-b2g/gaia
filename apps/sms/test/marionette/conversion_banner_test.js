@@ -12,10 +12,6 @@ marionette('Message Type Conversion Banner', function() {
 
   var client = marionette.client({
     profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      },
-
       apps: apps
     },
     desiredCapabilities: { raisesAccessibilityExceptions: false }

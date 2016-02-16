@@ -13,7 +13,6 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
       client = marionette.client({
         profile: {
           prefs: {
-            'focusmanager.testmode': true,
             'identity.fxaccounts.auth.uri': 'http://' +
               config.SERVER_HOST + ':' +
               config.SERVER_PORT + '/' +

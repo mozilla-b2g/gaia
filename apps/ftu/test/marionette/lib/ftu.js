@@ -9,9 +9,6 @@ function Ftu(client) {
 }
 
 Ftu.clientOptions = {
-  prefs: {
-    'focusmanager.testmode': true
-  },
   settings: {
     'ftu.manifestURL': 'app://ftu.gaiamobile.org/manifest.webapp'
   }

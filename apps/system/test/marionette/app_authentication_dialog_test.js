@@ -7,11 +7,6 @@ marionette('App Authentication Dialog',
   function() {
 
   var client = marionette.client({
-    profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      }
-    },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 

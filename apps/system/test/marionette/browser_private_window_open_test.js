@@ -6,11 +6,6 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Private Browser - Window.open', function() {
 
   var client = marionette.client({
-    profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      }
-    },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 

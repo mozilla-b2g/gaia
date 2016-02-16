@@ -7,9 +7,6 @@ marionette('Software Home Button - Call screen Appearance', function() {
 
   var client = marionette.client({
     profile: {
-      prefs: {
-        'focusmanager.testmode': true
-      },
       settings: {
         'software-button.enabled': true
       },
