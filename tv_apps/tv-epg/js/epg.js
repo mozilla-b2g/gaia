@@ -47,10 +47,12 @@
     );
 
     this.clock = new Clock();
-    navigator.mozL10n.ready(function() {
+    this.clock.start(this._updateClock.bind(this));
+
+    document.addEventListener('DOMRetranslated', () => {
       this.clock.stop();
       this.clock.start(this._updateClock.bind(this));
-    }.bind(this));
+    }); 
 
     navigator.mozApps.getSelf().onsuccess = function(evt){
       if (evt.target && evt.target.result) {
@@ -260,20 +262,27 @@
   };
 
   proto._timeToString = function epg__timeToString(time) {
+    var formatter = new Intl.DateTimeFormat(navigator.languages, {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: window.navigator.mozHour12
+    });
     var now = new Date(time);
-    var _ = navigator.mozL10n.get;
-    var use12Hour = window.navigator.mozHour12;
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var timeFormat = use12Hour ? _('shortTimeFormat12') :
-                                 _('shortTimeFormat24');
-    timeFormat = timeFormat.replace('%p', '').trim();
-    var formatted = f.localeFormat(now, timeFormat);
 
-    var prefix = use12Hour ? f.localeFormat(now, '%p') : '';
+    var parts = formatter.formatToParts(now);
+
+    var dayperiod = parts.find(part => part.type == 'dayperiod');
+
+    var prefix = dayperiod ? dayperiod.value : '';
+
+    var timeWithoutDayPeriod = parts.map(({type, value}) => {
+      return type === 'dayperiod' ? '' : value;
+    }).join('');
+
     return {
       prefix: prefix,
-      time: formatted,
-      timeWithPrefix: formatted + prefix
+      time: timeWithoutDayPeriod,
+      timeWithPrefix: formatter.format(now)
     };
   };
 
@@ -396,12 +405,13 @@
   };
 
   proto._updateDate = function epg__updateDate(time) {
-    if (navigator.mozL10n.readyState === 'complete') {
-      var now = new Date(time);
-      var timeFormat = navigator.mozL10n.get('EPGDate');
-      var dtf = new navigator.mozL10n.DateTimeFormat();
-      this.dateElement.textContent = dtf.localeFormat(now, timeFormat);
-    }
+    var now = new Date(time);
+
+    return now.toLocaleString(navigator.languages, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   proto._onUnfocus = function epg__onUnfocus(programElement) {
