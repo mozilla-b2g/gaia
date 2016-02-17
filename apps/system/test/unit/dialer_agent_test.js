@@ -427,6 +427,10 @@ suite('system/DialerAgent', function() {
   });
 
   suite('sleep events', function() {
+    setup(function() {
+      MockSettingsListener.mTriggerCallback('dialer.power_hangsup', true);
+    });
+
     test('when alerting stop playing the ringtone', function() {
       var mockAudio = MockAudio.instances[0];
 
@@ -437,7 +441,8 @@ suite('system/DialerAgent', function() {
       sinon.assert.calledOnce(mockAudio.pause);
     });
 
-    test('when not alerting hang up all connected calls', function() {
+    test('when not alerting hang up all connected calls if pref is set',
+    function() {
       var mockCalls = [ new MockCall() , new MockCall() ];
 
       mockCalls.forEach((mockCall) => this.sinon.spy(mockCall, 'hangUp'));
@@ -446,14 +451,30 @@ suite('system/DialerAgent', function() {
       mockCalls.forEach((mockCall) => sinon.assert.calledOnce(mockCall.hangUp));
     });
 
-    test('when not alerting hang up the conference call', function() {
+    test('when not alerting hang up the conference call if pref is set',
+    function() {
       var mockCalls = [ new MockCall() , new MockCall() ];
 
-      MockNavigatorMozTelephony.conferenceGroup.calls = mockCalls;
       this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'hangUp');
-      MockNavigatorMozTelephony.calls = mockCalls;
+      MockNavigatorMozTelephony.conferenceGroup.calls = mockCalls;
       window.dispatchEvent(new CustomEvent('sleep'));
       sinon.assert.calledOnce(MockNavigatorMozTelephony.conferenceGroup.hangUp);
+    });
+
+    test('do not hang up if pref is not set', function() {
+      MockSettingsListener.mTriggerCallback('dialer.power_hangsup', false);
+      var mockCalls = [ new MockCall() , new MockCall() ];
+
+      mockCalls.forEach((mockCall) => this.sinon.spy(mockCall, 'hangUp'));
+      MockNavigatorMozTelephony.calls = mockCalls;
+      window.dispatchEvent(new CustomEvent('sleep'));
+      mockCalls.forEach((mockCall) => sinon.assert.notCalled(mockCall.hangUp));
+
+      MockNavigatorMozTelephony.calls = [];
+      MockNavigatorMozTelephony.conferenceGroup.calls = mockCalls;
+      this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'hangUp');
+      window.dispatchEvent(new CustomEvent('sleep'));
+      sinon.assert.notCalled(MockNavigatorMozTelephony.conferenceGroup.hangUp);
     });
   });
 

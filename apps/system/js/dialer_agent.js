@@ -38,6 +38,7 @@
     this._telephony = telephony;
 
     this._started = false;
+    this._powerHangsUp = false;
     this._shouldVibrate = true;
     this._alerting = false;
     this._vibrateInterval = null;
@@ -85,6 +86,10 @@
       });
     }
 
+    SettingsListener.observe('dialer.power_hangsup', false, function(value) {
+      this._powerHangsUp = !!value;
+    }.bind(this));
+
     SettingsListener.observe('vibration.enabled', true, function(value) {
       this._shouldVibrate = !!value;
     }.bind(this));
@@ -130,7 +135,7 @@
       return;
     }
 
-    if ((evt.type === 'sleep') && this.onCall()) {
+    if ((evt.type === 'sleep') && this._powerHangsUp && this.onCall()) {
       // Hangup all calls
       this._telephony.calls.forEach(call => call.hangUp());
 
