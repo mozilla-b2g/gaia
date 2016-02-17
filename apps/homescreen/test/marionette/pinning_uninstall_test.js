@@ -66,6 +66,7 @@ marionette('Homescreen - Pinned Site Uninstall', function() {
 
     // ensure pinned site is gone upon restart
     home.restart();
+    client.setSearchTimeout(20);
     icon = null;
     try {
       icon = home.getIcon(server.packageManifestURL);

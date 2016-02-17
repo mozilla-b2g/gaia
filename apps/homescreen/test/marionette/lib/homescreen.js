@@ -5,8 +5,7 @@
  * @constructor
  */
 function Homescreen(client) {
-  this.slowClient = client;
-  this.client = client.scope({ searchTimeout: 250 });
+  this.client = client;
   this.system = client.loader.getAppClass('system');
 }
 
@@ -16,9 +15,8 @@ Homescreen.Selectors = {
   appsScrollable: '#apps-panel .scrollable',
   apps: '#apps',
   pages: '#pages',
-  icon: 'gaia-app-icon',
-  group: 'homescreen-group',
-  card: 'gaia-pin-card',
+  icon: '#apps gaia-app-icon',
+  card: '#pages gaia-pin-card',
   bottomBar: '#bottombar',
   remove: '#remove',
   rename: '#rename',
@@ -42,15 +40,6 @@ Homescreen.prototype = {
 
   get icons() {
     return this.client.findElements(Homescreen.Selectors.icon);
-  },
-
-  get groups() {
-    return this.client.findElements(Homescreen.Selectors.group);
-  },
-
-  get iconsAndGroups() {
-    return this.client.findElements(Homescreen.Selectors.icon + ', ' +
-                                    Homescreen.Selectors.group);
   },
 
   get cards() {
@@ -103,7 +92,6 @@ Homescreen.prototype = {
    */
   waitForLaunch: function() {
     var client = this.client;
-    client.switchToFrame();
     client.helper.waitForElement('body');
     client.apps.switchToApp(Homescreen.URL);
 
@@ -127,43 +115,6 @@ Homescreen.prototype = {
     });
   },
 
-  _waitForElements: function(callback) {
-    this.client.waitFor(function() {
-      try {
-        return callback();
-      } catch(e) {
-        if (e.type === 'StaleElementReference') {
-          // As the elements are possibly expected to disappear, we may get
-          // stale element reference exceptions. In this case, just try again.
-          return false;
-        }
-        throw e;
-      }
-    });
-  },
-
-  /**
-   * Waits for the number of visible icons to change to the given amount.
-   *
-   * @param {number} n Number of visible icons
-   */
-  waitForVisibleIcons: function(n) {
-    this._waitForElements(function() {
-      return this.visibleIcons.length === n;
-    }.bind(this));
-  },
-
-  /**
-   * Waits for the number of groups to change to the given amount.
-   *
-   * @param {number} n Number of groups
-   */
-  waitForGroups: function(n) {
-    this._waitForElements(function() {
-      return this.groups.length === n;
-    }.bind(this));
-  },
-
   /**
    * Find and return every id for all the items on the grid... Each element
    * can be used with `.getIcon` to find the element for a given id.
@@ -171,22 +122,9 @@ Homescreen.prototype = {
    * @return {Array[String]}
    */
   getIconIdentifiers: function() {
-    var ids = [];
-    var elements = this.iconsAndGroups;
-    elements.forEach(function(el) {
-      if (el.tagName() === 'homescreen-group') {
-        this.client.switchToShadowRoot(el);
-        ids = ids.concat(this.getIconIdentifiers());
-        this.client.switchToShadowRoot();
-      } else {
-        if (el.scriptWith(function(el) {
-              return el.parentNode.style.display !== 'none';
-            })) {
-          ids.push(this.getIconId(el));
-        }
-      }
+    return this.visibleIcons.map(function(el) {
+      return this.getIconId(el);
     }, this);
-    return ids;
   },
 
   /**
@@ -199,7 +137,7 @@ Homescreen.prototype = {
    * @return {Marionette.Element}
    */
   getIcon: function(identifier) {
-    return this.slowClient.findElement(
+    return this.client.findElement(
       Homescreen.Selectors.apps + ' [data-identifier*="' + identifier + '"]');
   },
 
@@ -210,7 +148,7 @@ Homescreen.prototype = {
    * identifier is the pinned URL.
    */
   getCard: function(identifier) {
-    return this.slowClient.findElement(
+    return this.client.findElement(
       Homescreen.Selectors.pages + ' [data-id="' + identifier + '"]');
   },
 
@@ -334,9 +272,9 @@ Homescreen.prototype = {
    * @param {Marionette.Element} icon A homescreen icon element reference.
    */
   launchIcon: function(icon) {
-    var identifier = this.getIconId(icon);
+    var identifier =
+      icon.scriptWith(function(el) { return el.dataset.identifier; });
     icon.tap();
-    this.client.switchToShadowRoot();
 
     var identifierWithoutEntryPoint = identifier.replace(/\/[^\/]*$/, '');
     var client = this.client.scope({ searchTimeout: 100 });
@@ -369,47 +307,6 @@ Homescreen.prototype = {
   },
 
   /**
-   * Opens a group, waits for it to fully open and switches to the group's
-   * shadow root.
-   *
-   * @param {Marionette.Element} group A homescreen group element reference.
-   */
-  openGroup: function(group) {
-    group.tap();
-    this.client.waitFor(function() {
-      return group.scriptWith(function(el) {
-        return el.wrappedJSObject.state === 2;
-      });
-    });
-    this.client.switchToShadowRoot(group);
-  },
-
-  /**
-   * Waits for the saved icon order to reflect the current icon order.
-   */
-  waitForSavedOrder: function() {
-    var ids = this.getIconIdentifiers(true);
-    var numIcons = ids.length;
-    var client = this.client;
-    client.waitFor(function() {
-      var order = client.executeAsyncScript(function() {
-        window.wrappedJSObject.appWindow.apps.metadata.getAll().then(
-          marionetteScriptFinished);
-      });
-
-      // The order array is stored in order, but also contains non-visible
-      // icons, so just skip unknown entries.
-      var correctlyPlacedIcons = 0;
-      for (var i = 0, iLen = order.length; i < iLen; i++) {
-        if (order[i].id.startsWith(ids[correctlyPlacedIcons])) {
-          ++ correctlyPlacedIcons;
-        }
-      }
-      return correctlyPlacedIcons === numIcons;
-    });
-  },
-
-  /**
    * Scrolls the homescreen so that the given icon is located roughly in
    * the center of the screen, vertically.
    *
@@ -433,9 +330,6 @@ Homescreen.prototype = {
     // initialize our frames again since we killed the iframe
     this.client.switchToFrame();
     this.client.switchToFrame(this.system.getHomescreenIframe());
-
-    // Wait for reload
-    this.waitForLaunch();
   },
 
   /**

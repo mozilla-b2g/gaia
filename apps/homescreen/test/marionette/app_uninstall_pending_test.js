@@ -66,6 +66,7 @@ marionette('Homescreen - App uninstall while pending', function() {
 
     // make sure app has gone after restart
     home.restart();
+    client.setSearchTimeout(20);
     icon = null;
     try {
       icon = home.getIcon(server.packageManifestURL);
