@@ -7,14 +7,13 @@ var APP_URL = 'app://' + APP_HOST;
 var Keys = {
   'enter': '\ue006',
   'right': '\ue014',
-  'esc': '\ue00c'
+  'esc': '\ue00c',
+  'backspace': '\ue003'
 };
 
 var assert = require('chai').assert;
 
-// Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
-// We should investigate the issue and re-enable the test later.
-marionette.skip('Test Context Menu Events', function() {
+marionette('Test Context Menu Events', function() {
 
   var opts = {
     apps: {},
@@ -41,8 +40,10 @@ marionette.skip('Test Context Menu Events', function() {
   ];
 
   setup(function() {
-    actions = client.loader.getActions();
     system = client.loader.getAppClass('smart-system', 'system', 'tv_apps');
+    system.waitForStartup();
+    system.waitForFullyLoaded();
+    actions = client.loader.getActions();
   });
 
   function launchContextMenu() {
@@ -102,7 +103,7 @@ marionette.skip('Test Context Menu Events', function() {
     assert.isFalse(container.displayed());
   });
 
-  test('press esc after menu shown', { 'devices': ['tv'] }, function() {
+  test('press backspace after menu shown', { 'devices': ['tv'] }, function() {
     launchContextMenu();
     client.switchToFrame();
 
@@ -112,7 +113,7 @@ marionette.skip('Test Context Menu Events', function() {
 
     // move focus to second one
     var menu = system.appChromeContextMenu;
-    menu.sendKeys(Keys.esc);
+    menu.sendKeys(Keys.backspace);
 
     system.waitForEvent('appcontextmenu-hidden');
     assert.isFalse(menu.displayed());
