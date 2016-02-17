@@ -5,8 +5,6 @@ var gaiaOriginURL = function(name, scheme, domain, port) {
   return scheme + name + '.' + domain + (port ? port : '');
 };
 
-exports.Q = require('q');
-
 var joinPath = function() {
   var args = Array.prototype.slice.call(arguments);
     return args.join('/');
@@ -38,6 +36,9 @@ exports.setEnv = function() {
 };
 
 exports.getEnvPath = function() {
+};
+
+exports.deleteFile = function() {
 };
 
 exports.processEvents = function() {

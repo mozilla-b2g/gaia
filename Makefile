@@ -70,7 +70,11 @@ endif
 
 RUN_ON_NODE?=0
 
+ifeq ($(RUN_ON_NODE),0)
 BUILD_RUNNER=run-js-command
+else
+BUILD_RUNNER=run-node-command
+endif
 
 -include local.mk
 
@@ -700,7 +704,6 @@ B2G_SDK_TMP := .b2g.tmp
 .INTERMEDIATES: $(B2G_SDK_TMP)
 .PHONY: b2g_sdk
 b2g_sdk:
-	@echo "Test SDK directory: $(XULRUNNER_DIRECTORY)"
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(B2G_SDK_URL),$(shell test -d $(XULRUNNER_DIRECTORY) && cat $(B2G_SDK_URL_FILE) 2> /dev/null))
 	rm -rf $(XULRUNNER_DIRECTORY)
@@ -723,7 +726,7 @@ endif
 	@echo $(B2G_SDK_URL) > $(B2G_SDK_URL_FILE)
 endif # B2G SDK is up to date
 endif # USE_LOCAL_XULRUNNER_SDK
-	test -f $(XPCSHELLSDK)
+	@test -f $(XPCSHELLSDK)
 
 # Generate profile/prefs.js
 preferences: profile-dir b2g_sdk
@@ -1129,7 +1132,7 @@ build-test-unit: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-node-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-integration: b2g_sdk $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-node-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)" NODE_PATH=build/test/integration)
+	@$(call run-node-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) TRY_ENV=$(TRY_ENV) TEST_FILES="$(TEST_FILES)")
 
 build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-coverage,build/test/unit)
