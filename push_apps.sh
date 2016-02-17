@@ -4,10 +4,14 @@
 
 HERE=`pwd`
 
+NOFTU=1 PRODUCTION=1 make profile
+
 if [ ! -d profile/webapps ]; then
   echo "No profile/webapps directory!"
   exit -1
 fi
+
+adb shell stop b2g
 
 mkdir -p profile/apps
 rm -rf profile/apps/*
@@ -36,3 +40,7 @@ do
 done
 
 cd $HERE
+
+adb push profile/defaults/pref/user.js /system/b2g/defaults/pref
+
+adb shell start b2g
