@@ -13,8 +13,7 @@ marionette('Audio channel played in foreground and background', function() {
         'audiochanneltestapp.gaiamobile.org': __dirname +
           '/../apps/audio_channel_test_app'
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: false }
+    }
   });
 
   var sys, testApp, helper;

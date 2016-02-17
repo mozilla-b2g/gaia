@@ -33,21 +33,6 @@
   const AUTOSCROLL_OVERFLOW_DELAY = 500;
 
   /**
-   * Delay before storing app order. Used so that multiple calls to
-   * storeAppOrder coalesce into a single call.
-   */
-  const STORE_APP_ORDER_DELAY = 250;
-
-  /**
-   * The horizontal padding, in px around the icon grid and the horizontal
-   * border size, in px, around individual icons. Used to calculate icon
-   * size.
-   */
-  const GRID_PADDING = 6;
-  const ICON_BORDER = 8;
-  const SMALL_ICON_BORDER = 4;
-
-  /**
    * App roles that will be skipped on the homescreen.
    */
   const HIDDEN_ROLES = [
@@ -113,19 +98,15 @@
     this.appsVisible = false;
 
     // Drag-and-drop
-    this.container = null;
     this.dragging = false;
     this.draggedIndex = -1;
     this.autoScrollInterval = null;
     this.autoScrollOverflowTimeout = null;
     this.hoverIcon = null;
-    this.openGroup = null;
 
     // Edit mode
     this.editMode = false;
     this.shouldEnterEditMode = false;
-    this.shouldCreateGroup = false;
-    this.draggingGroup = false;
     this.selectedIcon = null;
     this.rename.addEventListener('click', e => {
       e.preventDefault();
@@ -146,9 +127,12 @@
     this.lastWindowHeight = window.innerHeight;
 
     // Signal handlers
-    this.attachInputHandlers(this.icons);
-    this.touchSelectedIcon = this.touchSelectedIcon.bind(this);
-    this.icons.addEventListener('touchstart', this);
+    this.icons.addEventListener('activate', this);
+    this.icons.addEventListener('drag-start', this);
+    this.icons.addEventListener('drag-move', this);
+    this.icons.addEventListener('drag-end', this);
+    this.icons.addEventListener('drag-rearrange', this);
+    this.icons.addEventListener('drag-finish', this);
     navigator.mozApps.mgmt.addEventListener('install', this);
     navigator.mozApps.mgmt.addEventListener('uninstall', this);
     window.addEventListener('localized', this);
@@ -160,7 +144,6 @@
     this.settings = new Settings();
     this.icons.classList.toggle('small', this.settings.small);
     this.scrollable.classList.toggle('snapping', this.settings.scrollSnapping);
-    this.storeAppOrderTimeout = null;
 
     // Populate apps and bookmarks asynchronously
     this.metadataLoaded = 0;
@@ -209,9 +192,8 @@
             // Process results in batches as they come in
             var processResult = data => {
               if (this.pendingIcons[data.id]) {
-                var args = this.pendingIcons[data.id];
+                this.addAppIcon.apply(this, this.pendingIcons[data.id]);
                 delete this.pendingIcons[data.id];
-                this.addAppIcon.apply(this, args);
               }
             };
 
@@ -257,12 +239,14 @@
         document.addEventListener('bookmarks_store-set', (e) => {
           var id = e.detail.id;
           this.bookmarks.get(id).then((bookmark) => {
-            this.iterateIcons(icon => {
+            for (var child of this.icons.children) {
+              var icon = child.firstElementChild;
               if (icon.bookmark && icon.bookmark.id === id) {
                 icon.bookmark = bookmark.data;
                 icon.refresh();
+                return;
               }
-            });
+            }
             this.addAppIcon(bookmark.data);
             this.storeAppOrder();
           });
@@ -270,9 +254,10 @@
 
         document.addEventListener('bookmarks_store-removed', (e) => {
           var id = e.detail.id;
-          this.iterateIcons((icon, container, parent) => {
+          for (var child of this.icons.children) {
+            var icon = child.firstElementChild;
             if (icon.bookmark && icon.bookmark.id === id) {
-              parent.removeChild(container, () => {
+              this.icons.removeChild(child, () => {
                 this.storeAppOrder();
                 this.refreshGridSize();
                 this.snapScrollPosition();
@@ -282,16 +267,18 @@
               if (this.selectedIcon === icon) {
                 this.updateSelectedIcon(null);
               }
+              return;
             }
-          });
+          }
         });
 
         document.addEventListener('bookmarks_store-cleared', () => {
-          this.iterateIcons((icon, container, parent) => {
+          for (var child of this.icons.children) {
+            var icon = child.firstElementChild;
             if (icon.bookmark) {
-              parent.removeChild(container);
+              this.icons.removeChild(child);
             }
-          });
+          }
           this.storeAppOrder();
           this.refreshGridSize();
           this.snapScrollPosition();
@@ -338,9 +325,10 @@
 
       // Update icons that we've added from the startup metadata in case their
       // icons have updated or the icon size has changed.
-      this.iterateIcons(icon => {
+      for (var child of this.icons.children) {
+        var icon = child.firstElementChild;
         this.refreshIcon(icon);
-      });
+      }
 
       // Add any applications that aren't in the startup metadata
       var newIcons = false;
@@ -367,36 +355,16 @@
   }
 
   Apps.prototype = {
-    attachInputHandlers: function(container) {
-      if (this.container) {
-        if (this.container === container) {
-          return;
-        }
-
-        this.container.removeEventListener('activate', this);
-        this.container.removeEventListener('drag-start', this);
-        this.container.removeEventListener('drag-move', this);
-        this.container.removeEventListener('drag-end', this);
-        this.container.removeEventListener('drag-rearrange', this);
-        this.container.removeEventListener('drag-finish', this);
-      }
-
-      this.container = container;
-      container.addEventListener('activate', this);
-      container.addEventListener('drag-start', this);
-      container.addEventListener('drag-move', this);
-      container.addEventListener('drag-end', this);
-      container.addEventListener('drag-rearrange', this);
-      container.addEventListener('drag-finish', this);
-    },
-
     get iconSize() {
       // If this._iconSize is 0, let's refresh the value.
       if (!this._iconSize) {
-        var minColumns = 3;
-        this._iconSize = Math.round(
-          (this.icons.clientWidth - 2 * GRID_PADDING) / minColumns -
-          2 * (this.settings.small ? SMALL_ICON_BORDER : ICON_BORDER));
+        var children = this.icons.children;
+        for (var container of children) {
+          if (container.style.display !== 'none') {
+            this._iconSize = container.firstElementChild.size;
+            break;
+          }
+        }
       }
 
       return this._iconSize;
@@ -409,12 +377,6 @@
 
       this.icons.classList.toggle('small', small);
       this.icons.synchronise();
-      for (var container of this.icons.children) {
-        var child = container.firstElementChild;
-        if (child.localName === 'homescreen-group') {
-          child.container.synchronise();
-        }
-      }
       this.refreshGridSize();
       this.snapScrollPosition();
     },
@@ -439,38 +401,6 @@
       window.performance.mark('contentInteractive');
     },
 
-    /**
-     * Iterate over icons in the panel.
-     * @callback: Callback to call, given three parameters;
-     *   icon: The icon element
-     *   container: The top-level container of the icon
-     *   parent: The parent of the container housing the icon
-     */
-    iterateIcons: function(callback) {
-      for (var container of this.icons.children) {
-        var child = container.firstElementChild;
-        if (child.localName === 'homescreen-group') {
-          for (var subContainer of child.container.children) {
-            callback(subContainer.firstElementChild,
-                     subContainer, child.container);
-          }
-        } else {
-          callback(child, container, this.icons);
-        }
-      }
-    },
-
-    addGroup: function(before) {
-      var group = document.createElement('homescreen-group');
-      var container = document.createElement('div');
-      container.classList.add('group-container');
-      container.order = -1;
-      container.appendChild(group);
-      this.icons.insertBefore(container, before);
-
-      return group;
-    },
-
     addApp: function(app) {
       var manifest = app.manifest || app.updateManifest;
       if (!manifest) {
@@ -492,23 +422,22 @@
       }
     },
 
-    addIconContainer: function(icon, entry, parent) {
+    addIconContainer: function(icon, entry) {
       var container = document.createElement('div');
-      container.classList.add((icon.localName === 'homescreen-group') ?
-                              'group-container' : 'icon-container');
+      container.classList.add('icon-container');
       container.order = -1;
       container.appendChild(icon);
 
       // Try to insert the container in the right order
       if (entry !== -1 && this.startupMetadata[entry].order >= 0) {
         container.order = this.startupMetadata[entry].order;
-        var children = parent.children;
+        var children = this.icons.children;
         for (var i = 0, iLen = children.length; i < iLen; i++) {
           var child = children[i];
           if (child.order !== -1 && child.order < container.order) {
             continue;
           }
-          parent.insertBefore(container, child);
+          this.icons.insertBefore(container, child);
           if (this.startupMetadata === null) {
             this.iconAdded(container);
           }
@@ -517,7 +446,7 @@
       }
 
       if (!container.parentNode) {
-        parent.appendChild(container);
+        this.icons.appendChild(container);
         if (this.startupMetadata === null) {
           this.iconAdded(container);
         }
@@ -543,54 +472,8 @@
           return data.id === id;
         });
         if (entry === -1) {
-          this.pendingIcons[id] = [...arguments];
+          this.pendingIcons[id] = Array.slice(arguments);
           return;
-        }
-      }
-
-      // Check if the icon is grouped and create a group, fetch a group or
-      // delay adding as necessary
-      var parent = this.icons;
-      var groupId = (entry !== -1) ? this.startupMetadata[entry].group : '';
-      if (groupId && groupId !== '') {
-        if (groupId === id) {
-          // We need to create a group
-          var group = document.createElement('homescreen-group');
-          this.addIconContainer(group, entry, this.icons);
-          parent = group.container;
-
-          group.addEventListener('activated', e => {
-            this.handleEvent({ type: 'activate',
-                               detail: { target: e.target.parentNode },
-                               preventDefault: () => {}});
-          });
-        } else {
-          // We need to add to an existing group, or delay if one doesn't exist.
-          // In the situation that a group doesn't exist and we've finished
-          // startup, just add the icon without a group. This shouldn't happen,
-          // but we shouldn't fail if it somehow does.
-          var groupFound = false;
-          this.iterateIcons((icon, container, iconParent) => {
-            if (groupFound) {
-              return;
-            }
-            var id = this.getIconId(icon.app ? icon.app : icon.bookmark,
-                                    icon.entryPoint);
-            if (id === groupId) {
-              parent = iconParent;
-              groupFound = true;
-            }
-          });
-
-          if (parent === this.icons && this.startupMetadata !== null) {
-            // We didn't find the group and we're still starting up, so delay
-            // adding this icon.
-            this.pendingIcons[id] = Array.slice(arguments);
-            return;
-          }
-          if (parent === this.icons) {
-            console.warn('Did not find group ' + groupId + ' for icon ' + id);
-          }
         }
       }
 
@@ -598,11 +481,7 @@
       if (entryPoint) {
         icon.entryPoint = entryPoint;
       }
-      if (parent !== this.icons) {
-        icon.showName = false;
-      }
-
-      var container = this.addIconContainer(icon, entry, parent);
+      var container = this.addIconContainer(icon, entry);
 
       if (appOrBookmark.id) {
         icon.bookmark = appOrBookmark;
@@ -619,10 +498,10 @@
         };
 
         icon.app.addEventListener('downloadapplied',
-          function(app, container, parent) {
+          function(app, container) {
             handleRoleChange(app, container);
-            parent.synchronise();
-          }.bind(this, icon.app, container, parent));
+            this.icons.synchronise();
+          }.bind(this, icon.app, container));
 
         handleRoleChange(icon.app, container);
       }
@@ -651,7 +530,7 @@
       }.bind(this, icon, id));
 
       // Refresh icon image and title
-      icon.size = this.iconSize;
+      icon.size = this.iconSize ? this.iconSize : icon.size;
       if (entry !== -1) {
         // Load the cached icon and update name
         icon.icon = this.startupMetadata[entry].icon;
@@ -672,7 +551,7 @@
     },
 
     refreshIcon: function(icon) {
-      icon.size = this.iconSize;
+      icon.size = this.iconSize ? this.iconSize : icon.size;
       if (icon.bookmark) {
         IconsHelper.setElementIcon(icon, this.iconSize).then(() => {},
           e => {
@@ -690,33 +569,19 @@
     },
 
     storeAppOrder: function() {
-      if (this.storeAppOrderTimeout !== null) {
-        clearTimeout(this.storeAppOrderTimeout);
+      var storedOrders = [];
+      var children = this.icons.children;
+      for (var i = 0, iLen = children.length; i < iLen; i++) {
+        var appIcon = children[i].firstElementChild;
+        var id = this.getIconId(appIcon.app ? appIcon.app : appIcon.bookmark,
+                                appIcon.entryPoint);
+        storedOrders.push({ id: id, order: i });
       }
-
-      this.storeAppOrderTimeout = setTimeout(() => {
-        this.storeAppOrderTimeout = null;
-
-        var i = 0;
-        var storedOrders = [];
-        var group = '';
-        this.iterateIcons((icon, container, parent) => {
-          var id = this.getIconId(icon.app ? icon.app : icon.bookmark,
-                                  icon.entryPoint);
-          if (parent === this.icons) {
-            group = '';
-          } else if (group === '') {
-            group = id;
-          }
-          storedOrders.push({ id: id, order: i++, group: group });
+      this.metadata.set(storedOrders).then(
+        () => {},
+        (e) => {
+          console.error('Error storing app order', e);
         });
-
-        this.metadata.set(storedOrders).then(
-          () => {},
-          (e) => {
-            console.error('Error storing app order', e);
-          });
-      }, STORE_APP_ORDER_DELAY);
     },
 
     iconAdded: function(container) {
@@ -791,7 +656,7 @@
       }
       var setGridHeight = () => {
         this.resizeTimeout = null;
-        this.icons.style.height = this.pendingGridHeight + 'px';
+        this.icons.style.height = gridHeight + 'px';
         this.gridHeight = this.pendingGridHeight;
       };
       if (this.pendingGridHeight > this.gridHeight) {
@@ -863,7 +728,7 @@
     getChildIndex: function(child) {
       // XXX Note, we're taking advantage of gaia-container using
       //     Array instead of HTMLCollection here.
-      return this.container.children.indexOf(child);
+      return this.icons.children.indexOf(child);
     },
 
     removeSelectedIcon: function() {
@@ -916,11 +781,6 @@
       return (icon.bookmark || (icon.app && icon.app.removable)) ? true : false;
     },
 
-    touchSelectedIcon: function() {
-      // Activate drag-and-drop immediately for selected icons
-      this.container.dragAndDropTimeout = 0;
-    },
-
     updateSelectedIcon: function(icon) {
       if (this.selectedIcon === icon) {
         return;
@@ -928,8 +788,7 @@
 
       if (this.selectedIcon && (!icon || this.iconIsEditable(icon))) {
         this.selectedIcon.classList.remove('selected');
-        this.selectedIcon.removeEventListener('touchstart',
-                                              this.touchSelectedIcon);
+        this.selectedIcon.removeEventListener('touchstart', this);
         this.selectedIcon = null;
       }
 
@@ -943,7 +802,7 @@
         if (selectedRenameable || selectedRemovable) {
           this.selectedIcon = icon;
           icon.classList.add('selected');
-          icon.addEventListener('touchstart', this.touchSelectedIcon);
+          icon.addEventListener('touchstart', this);
           this.rename.classList.toggle('active', selectedRenameable);
           this.remove.classList.toggle('active', selectedRemovable);
         } else if (!icon.classList.contains('uneditable')) {
@@ -963,7 +822,7 @@
       console.debug('Entering edit mode on ' + (icon ? icon.name : 'no icon'));
       this.updateSelectedIcon(icon);
 
-      if (this.editMode || !this.selectedIcon) {
+      if (this.editMode) {
         return;
       }
 
@@ -985,59 +844,19 @@
       this.updateSelectedIcon(null);
     },
 
-    elementName: function(element) {
-      if (!element || !(element instanceof HTMLElement)) {
-        return 'none';
-      }
-
-      var child = element.firstElementChild;
-      return child.localName === 'homescreen-group' ?
-        'group' : child.name;
-    },
-
-    isGroup: function(element) {
-      return (element && element.firstElementChild &&
-        element.firstElementChild.localName === 'homescreen-group') ?
-        true : false;
-    },
-
-    closeOpenGroup: function() {
-      if (this.openGroup) {
-        this.icons.freeze();
-        this.openGroup.collapse(this.icons, () => {
-          this.icons.thaw();
-          this.openGroup = null;
-          this.attachInputHandlers(this.icons);
-          this.icons.setAttribute('drag-and-drop', '');
-        },
-        this.storeAppOrder.bind(this));
-      }
-    },
-
     handleEvent: function(e) {
-      var icon, id, rect;
+      var icon, child, id;
 
       switch (e.type) {
       // App launching
       case 'activate':
-        if (e.detail.target.parentNode.parentNode !== this.container) {
-          break;
-        }
-
         e.preventDefault();
         icon = e.detail.target.firstElementChild;
-        if (icon.localName === 'homescreen-group') {
-          this.openGroup = icon;
-          icon.expand(this.icons);
-          this.icons.removeAttribute('drag-and-drop');
-          this.attachInputHandlers(icon.container);
-          break;
-        }
 
         // If we're in edit mode, remap taps to selection
         if (this.editMode) {
           this.enterEditMode(icon);
-          break;
+          return;
         }
 
         switch (icon.state) {
@@ -1066,35 +885,19 @@
             icon.launch();
             break;
         }
-
-        this.closeOpenGroup();
         break;
 
-      // Close open group if we touch something in a different container
+      // Activate drag-and-drop immediately for selected icons
       case 'touchstart':
-        if (!this.openGroup || e.target === this.openGroup) {
-          break;
-        }
-
-        var parent = e.target.parentNode;
-        while (parent && parent.localName !== 'gaia-container') {
-          parent = parent.parentNode;
-        }
-
-        if (parent !== this.container) {
-          this.closeOpenGroup();
-          e.preventDefault();
-        }
+        this.icons.dragAndDropTimeout = 0;
         break;
 
       // Disable scrolling during dragging, and display bottom-bar
       case 'drag-start':
-        console.debug('Drag-start on ' + this.elementName(e.detail.target));
+        console.debug('Drag-start on ' +
+                      e.detail.target.firstElementChild.name);
         this.dragging = true;
-        this.draggingGroup = this.isGroup(e.detail.target);
-        this.shouldEnterEditMode = !this.openGroup;
-        this.shouldCreateGroup = false;
-        this.container.classList.add('dragging');
+        this.shouldEnterEditMode = true;
         document.body.classList.add('dragging');
         this.scrollable.style.overflow = 'hidden';
         this.draggedIndex = this.getChildIndex(e.detail.target);
@@ -1103,8 +906,8 @@
       case 'drag-finish':
         console.debug('Drag-finish');
         this.dragging = false;
-        this.container.classList.remove('dragging');
-        document.body.classList.remove('dragging', 'autoscroll');
+        document.body.classList.remove('dragging');
+        document.body.classList.remove('autoscroll');
         this.scrollable.style.overflow = '';
 
         if (this.autoScrollInterval !== null) {
@@ -1118,52 +921,31 @@
         }
 
         if (this.hoverIcon) {
-          this.hoverIcon.classList.remove(
-            'hover-before', 'hover-after', 'hover-over');
+          this.hoverIcon.classList.remove('hover-before', 'hover-after');
           this.hoverIcon = null;
         }
 
-        if (e.detail.target && !this.shouldCreateGroup) {
-          e.detail.target.classList.remove('hover-over-group');
-        }
-
         // Restore normal drag-and-drop after dragging selected icons
-        this.container.dragAndDropTimeout = -1;
+        this.icons.dragAndDropTimeout = -1;
         break;
 
       // Handle app/site editing and dragging to the end of the icon grid.
       case 'drag-end':
-        console.debug('Drag-end, target: ' +
-                      this.elementName(e.detail.dropTarget));
-        if (e.detail.dropTarget === null) {
-          e.preventDefault();
-
-          // If there's an open group, check if we're dropping the icon outside
-          // of the group.
-          if (this.openGroup) {
-            rect = this.openGroup.container.getBoundingClientRect();
-            if (e.detail.clientY < rect.top || e.detail.clientY > rect.bottom) {
-              console.debug('Removing from group');
-              this.openGroup.transferToContainer(e.detail.target, this.icons);
-              if (this.openGroup.container.children.length <= 1) {
-                this.closeOpenGroup();
-              }
-              break;
-            }
-          }
-
+        console.debug('Drag-end, target: ' + (e.detail.dropTarget ?
+          e.detail.dropTarget.firstElementChild.name : 'none'));
+        if (e.detail.dropTarget === null &&
+            e.detail.clientX >= this.iconsLeft &&
+            e.detail.clientX < this.iconsRight) {
           // If the drop target is null, and the client coordinates are
           // within the panel, we must be dropping over the start or end of
           // the container.
-          if (e.detail.clientX >= this.iconsLeft &&
-              e.detail.clientX < this.iconsRight) {
-            var bottom = e.detail.clientY < this.lastWindowHeight / 2;
-            console.debug('Reordering dragged icon to ' +
-                        (bottom ? 'bottom' : 'top'));
-            this.container.reorderChild(e.detail.target,
-              bottom ? this.container.firstChild : null,
-              this.storeAppOrder.bind(this));
-          }
+          e.preventDefault();
+          var bottom = e.detail.clientY < this.lastWindowHeight / 2;
+          console.debug('Reordering dragged icon to ' +
+                      (bottom ? 'bottom' : 'top'));
+          this.icons.reorderChild(e.detail.target,
+                                  bottom ? this.icons.firstChild : null,
+                                  this.storeAppOrder.bind(this));
           break;
         }
 
@@ -1173,31 +955,6 @@
             e.preventDefault();
             this.enterEditMode(icon);
           }
-          break;
-        }
-
-        if (this.shouldCreateGroup) {
-          var group;
-          e.preventDefault();
-
-          var storeOrderAndRemoveStyle = function(container) {
-            this.storeAppOrder();
-            container.classList.remove('hover-over-group');
-          }.bind(this, e.detail.target);
-
-          if (this.isGroup(e.detail.dropTarget)) {
-            group = e.detail.dropTarget.firstElementChild;
-            group.transferFromContainer(e.detail.target, this.icons,
-                                        storeOrderAndRemoveStyle);
-          } else {
-            group = this.addGroup(e.detail.dropTarget);
-            group.transferFromContainer(e.detail.dropTarget, this.icons,
-                                        this.storeAppOrder.bind(this), true);
-            group.transferFromContainer(e.detail.target, this.icons,
-                                        storeOrderAndRemoveStyle);
-          }
-          this.refreshGridSize();
-          this.snapScrollPosition();
         }
         break;
 
@@ -1211,8 +968,7 @@
       case 'drag-move':
         var inAutoscroll = false;
 
-        if (!this.openGroup &&
-            e.detail.clientY > this.lastWindowHeight - AUTOSCROLL_DISTANCE) {
+        if (e.detail.clientY > this.lastWindowHeight - AUTOSCROLL_DISTANCE) {
           // User is dragging in the lower auto-scroll area
           inAutoscroll = true;
           if (this.autoScrollInterval === null) {
@@ -1222,7 +978,7 @@
               return true;
             }, AUTOSCROLL_DELAY);
           }
-        } else if (!this.openGroup && e.detail.clientY < AUTOSCROLL_DISTANCE) {
+        } else if (e.detail.clientY < AUTOSCROLL_DISTANCE) {
           // User is dragging in the upper auto-scroll area
           inAutoscroll = true;
           if (this.autoScrollInterval === null) {
@@ -1234,15 +990,12 @@
           }
         } else {
           // User is dragging in the grid, provide some visual feedback
-          var hoverIcon = this.container.getChildFromPoint(e.detail.clientX,
-                                                           e.detail.clientY);
+          var hoverIcon = this.icons.getChildFromPoint(e.detail.clientX,
+                                                       e.detail.clientY);
           if (this.hoverIcon !== hoverIcon) {
             if (this.hoverIcon) {
               this.shouldEnterEditMode = false;
-              this.shouldCreateGroup = false;
-              this.hoverIcon.classList.remove(
-                'hover-before', 'hover-after', 'hover-over');
-              e.detail.target.classList.remove('hover-over-group');
+              this.hoverIcon.classList.remove('hover-before', 'hover-after');
             }
             this.hoverIcon = (hoverIcon !== e.detail.target) ? hoverIcon : null;
 
@@ -1251,26 +1004,6 @@
                            this.getChildIndex(this.hoverIcon);
               this.hoverIcon.classList.add((offset >= 0) ?
                 'hover-before' : 'hover-after');
-            }
-          }
-
-          if (this.hoverIcon && !this.draggingGroup && !this.openGroup) {
-            // Evaluate whether we should create a group
-            var before = this.hoverIcon.classList.contains('hover-before');
-            rect = this.container.getChildOffsetRect(this.hoverIcon);
-            if ((before && e.detail.clientX > rect.right - (rect.width / 2)) ||
-                (!before && e.detail.clientX < rect.left + (rect.width / 2))) {
-              this.hoverIcon.classList.add('hover-over');
-              if (!this.shouldCreateGroup) {
-                this.shouldCreateGroup = true;
-                e.detail.target.classList.add('hover-over-group');
-              }
-            } else {
-              this.hoverIcon.classList.remove('hover-over');
-              if (this.shouldCreateGroup) {
-                this.shouldCreateGroup = false;
-                e.detail.target.classList.remove('hover-over-group');
-              }
             }
           }
         }
@@ -1286,13 +1019,14 @@
         // Check if the app already exists, and if so, update it.
         // This happens when reinstalling an app via WebIDE.
         var existing = false;
-        this.iterateIcons(icon => {
+        for (child of this.icons.children) {
+          icon = child.firstElementChild;
           if (icon.app && icon.app.manifestURL === e.application.manifestURL) {
             icon.app = e.application;
             icon.refresh();
             existing = true;
           }
-        });
+        }
         if (existing) {
           return;
         }
@@ -1309,7 +1043,8 @@
           this.snapScrollPosition();
         };
 
-        this.iterateIcons((icon, container, parent) => {
+        for (child of this.icons.children) {
+          icon = child.firstElementChild;
           if (icon.app && icon.app.manifestURL === e.application.manifestURL) {
             id = this.getIconId(e.application, icon.entryPoint);
             this.metadata.remove(id).then(() => {},
@@ -1317,7 +1052,7 @@
                 console.error('Error removing uninstalled app', e);
               });
 
-            parent.removeChild(container, callback);
+            this.icons.removeChild(child, callback);
 
             // We only want to store the app order once, so clear the callback
             callback = null;
@@ -1326,27 +1061,28 @@
               this.updateSelectedIcon(null);
             }
           }
-        });
+        }
         break;
 
       case 'localized':
-        this.iterateIcons(icon => {
-          icon.updateName();
-        });
+        for (icon of this.icons.children) {
+          icon.firstElementChild.updateName();
+        }
         this.icons.synchronise();
         break;
 
       case 'online':
-        this.iterateIcons(icon => {
-          id = this.getIconId(icon.app ? icon.app : icon.bookmark,
-                              icon.entryPoint);
-          for (var i = 0, iLen = this.iconsToRetry.length; i < iLen; i++) {
+        for (var i = 0, iLen = this.iconsToRetry.length; i < iLen; i++) {
+          for (child of this.icons.children) {
+            icon = child.firstElementChild;
+            id = this.getIconId(icon.app ? icon.app : icon.bookmark,
+                                icon.entryPoint);
             if (id === this.iconsToRetry[i]) {
               this.refreshIcon(icon);
               break;
             }
           }
-        });
+        }
         break;
 
       case 'resize':
@@ -1364,7 +1100,10 @@
 
         // If the icon size has changed, refresh icons
         if (oldIconSize !== this.iconSize) {
-          this.iterateIcons(this.refreshIcon.bind(this));
+          for (child of this.icons.children) {
+            icon = child.firstElementChild;
+            this.refreshIcon(icon);
+          }
         }
 
         // Re-synchronise icon position

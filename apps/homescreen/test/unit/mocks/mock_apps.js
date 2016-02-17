@@ -8,12 +8,10 @@
     this.scrollable = document.querySelector('#apps-panel .scrollable');
     this.editMode = false;
     this.dialogs = [];
-    this.openGroup = null;
   }
 
   Apps.prototype = {
-    exitEditMode: function() {},
-    closeOpenGroup: function() {}
+    exitEditMode: function() {}
   };
 
   exports.Apps = Apps;

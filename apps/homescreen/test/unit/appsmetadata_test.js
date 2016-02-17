@@ -48,12 +48,11 @@ suite('AppsMetadata', () => {
       names = [];
     });
 
-    test('should create 3 object stores with older versions', () => {
+    test('should create 2 object stores with older versions', () => {
       metadata.upgradeSchema(onUpgradeNeededEvent(0));
-      assert.equal(names.length, 3);
+      assert.equal(names.length, 2);
       assert.isTrue(names.indexOf('order') > -1);
       assert.isTrue(names.indexOf('icon') > -1);
-      assert.isTrue(names.indexOf('group') > -1);
     });
 
     test('should not create object stores with newer versions', () => {
@@ -65,30 +64,6 @@ suite('AppsMetadata', () => {
   suite('indexedDB backed methods', () => {
     var objectStores = {};
     var deletedValues = [];
-    var delayedComplete = {
-      _callback: null,
-      _transactions: 0,
-
-      set callback(cb) {
-        if (this._transactions === 0) {
-          cb();
-        } else {
-          this._callback = cb;
-        }
-      },
-
-      openTransaction: function() {
-        this._transactions++;
-      },
-
-      closeTransaction: function() {
-        this._transactions--;
-        if (this._transactions === 0 && this._callback) {
-          this._callback();
-          this._callback = null;
-        }
-      }
-    };
     var attachDBTransaction = objectStoreName => {
       metadata.db.transaction = (objectStoreNames, IDBTransactionMode) => {
         return {
@@ -103,34 +78,29 @@ suite('AppsMetadata', () => {
               get: id => {
                 return {
                   set onsuccess(cb) {
-                    var result = { id: id };
-                    switch(name) {
-                    case 'icon':
-                      result.icon = id.slice(0, -1);
-                      cb({ target: { result: result } });
-                      break;
+                    if (name === 'icon') {
+                      switch(id) {
+                      case 'abc/':
+                        cb({ target: { result: { id: 'abc/', icon: 'abc' } } });
+                        return;
 
-                    case 'group':
-                      result.group = 'abc/';
-                      cb({ target: { result: result } });
-                      break;
-
-                    default:
-                      console.error('Unrecognised object store: ' + name);
-                      cb({ target: {} });
-                      break;
+                      case 'def/':
+                        cb({ target: { result: { id: 'def/', icon: 'def' } } });
+                        return;
+                      }
                     }
+                    cb({ target: {} });
                   }
                 };
               },
               delete: value => {
-                if (objectStoreName && name !== objectStoreName) {
+                if (name !== objectStoreName) {
                   return;
                 }
                 deletedValues.push(value);
               },
               clear: () => {
-                if (objectStoreName && name !== objectStoreName) {
+                if (name !== objectStoreName) {
                   return;
                 }
               },
@@ -140,35 +110,17 @@ suite('AppsMetadata', () => {
                     if (objectStoreNames.indexOf(name) === -1) {
                       return;
                     }
-                    var value = { id: 'abc/' };
-                    switch (name) {
-                    case 'order':
-                      value.order = 0;
-                      break;
-                    case 'icon':
-                      value.icon = 'abc';
-                      break;
-                    case 'group':
-                      value.group = 'abc/';
-                      break;
-                    }
+                    var value = (name === 'order') ?
+                      { id: 'abc/', order: 0 } :
+                      { id: 'abc/', icon: 'abc' };
                     cb({
                       target: {
                         result: {
                           value: value,
                           continue: () => {
-                            var value = { id: 'def/' };
-                            switch (name) {
-                            case 'order':
-                              value.order = 1;
-                              break;
-                            case 'icon':
-                              value.icon = 'def';
-                              break;
-                            case 'group':
-                              value.group = 'abc/';
-                              break;
-                            }
+                            var value = (name === 'order') ?
+                              { id: 'def/', order: 1 } :
+                              { id: 'def/', icon: 'def' };
                             cb({
                               target: {
                                 result: {
@@ -190,9 +142,9 @@ suite('AppsMetadata', () => {
             };
           },
           set oncomplete(cb) {
-            delayedComplete.callback = cb;
+            cb();
           },
-          set onerror(cb) {
+          onerror: () => {
           }
         };
       };
@@ -205,13 +157,12 @@ suite('AppsMetadata', () => {
     });
 
     suite('AppsMetadata#set()', () => {
-      var setMetadata = (id, order, icon, group) => {
+      var setMetadata = (id, order, icon) => {
         metadata.set(
           [{
             id: id,
             order: order,
-            icon: icon,
-            group: group
+            icon: icon
           }]);
       };
 
@@ -225,7 +176,7 @@ suite('AppsMetadata', () => {
       test('should store apps with order', () => {
         attachDBTransaction('order');
         var id = 'abc/', order = 0;
-        setMetadata(id, order);
+        setMetadata(id, order, undefined);
         assert.equal(Object.keys(objectStores).length, 1);
         assert.equal(objectStores.order.id, id);
         assert.equal(objectStores.order.order, order);
@@ -238,15 +189,6 @@ suite('AppsMetadata', () => {
         assert.equal(Object.keys(objectStores).length, 1);
         assert.equal(objectStores.icon.id, id);
         assert.equal(objectStores.icon.icon, icon);
-      });
-
-      test('should store apps with group', () => {
-        attachDBTransaction('group');
-        var id = 'abc/', group = 'def/';
-        setMetadata(id, undefined, undefined, group);
-        assert.equal(Object.keys(objectStores).length, 1);
-        assert.equal(objectStores.group.id, id);
-        assert.equal(objectStores.group.group, group);
       });
 
       test('updating the order should not change the icon', () => {
@@ -308,34 +250,19 @@ suite('AppsMetadata', () => {
             });
           });
       });
-
-      test('should remove data from group object store', done => {
-        attachDBTransaction('group');
-        metadata.remove(id)
-          .then(() => {
-            done(() => {
-              assert.deepEqual(deletedValues, [id]);
-            });
-          });
-      });
     });
 
     suite('AppsMetadata#getAll()', () => {
-      test('should combine data from all object stores', done => {
-        attachDBTransaction();
-        var nResults = 0;
-        delayedComplete.openTransaction();
-        metadata.getAll(() => {
-          if (++nResults == 2) {
-            delayedComplete.closeTransaction();
-          }
-        }).then(results => {
+      test('should combine data from both object stores', done => {
+        attachDBTransaction('order');
+        metadata.getAll()
+          .then(results => {
             done(() => {
-              console.log(JSON.stringify(results));
+              assert.equal(results.length, 2);
               assert.deepEqual(results[0],
-                { id: 'abc/', order: 0, icon: 'abc', group: 'abc/' });
+                               { id: 'abc/', order: 0, icon: 'abc' });
               assert.deepEqual(results[1],
-                { id: 'def/', order: 1, icon: 'def', group: 'abc/' });
+                               { id: 'def/', order: 1, icon: 'def' });
             });
           });
       });
