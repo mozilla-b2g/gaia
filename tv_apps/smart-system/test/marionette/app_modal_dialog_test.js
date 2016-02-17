@@ -9,12 +9,6 @@ marionette('Test Modal Dialog Events', function() {
   var APP_HOST = APP_NAME + '.gaiamobile.org';
   var APP_URL = 'app://' + APP_HOST;
 
-  var Keys = {
-    'enter': '\ue006',
-    'right': '\ue014',
-    'esc': '\ue00c'
-  };
-
   var opts = {
     apps: {},
     hostOptions: {
@@ -82,7 +76,7 @@ marionette('Test Modal Dialog Events', function() {
       assert.equal(text, options.alert.message);
     });
 
-    appModalDialog.sendKeyToElement(appModalDialog.alertOk, Keys.enter);
+    system.sendKeyToElement(appModalDialog.alertOk, 'enter');
     appModalDialog.waitForDialogClosed(alertDialog);
   });
 
@@ -120,7 +114,7 @@ marionette('Test Modal Dialog Events', function() {
         assert.equal(text, options.prompt.message);
       });
 
-      appModalDialog.sendKeyToElement(appModalDialog.promptOk, Keys.enter);
+      system.sendKeyToElement(appModalDialog.promptOk, 'enter');
       appModalDialog.waitForDialogClosed(promptDialog);
     });
 
@@ -141,7 +135,7 @@ marionette('Test Modal Dialog Events', function() {
         assert.equal(text, options.prompt.message);
       });
 
-      appModalDialog.sendKeyToElement(appModalDialog.promptCancel, Keys.enter);
+      system.sendKeyToElement(appModalDialog.promptCancel, 'enter');
       appModalDialog.waitForDialogClosed(promptDialog);
     });
 
@@ -182,7 +176,7 @@ marionette('Test Modal Dialog Events', function() {
         assert.equal(text, options.confirm.message);
       });
 
-      appModalDialog.sendKeyToElement(appModalDialog.confirmOk, Keys.enter);
+      system.sendKeyToElement(appModalDialog.confirmOk, 'enter');
       appModalDialog.waitForDialogClosed(confirmDialog);
     });
 
@@ -206,7 +200,7 @@ marionette('Test Modal Dialog Events', function() {
         assert.equal(text, options.confirm.message);
       });
 
-      appModalDialog.sendKeyToElement(appModalDialog.confirmCancel, Keys.enter);
+      system.sendKeyToElement(appModalDialog.confirmCancel, 'enter');
       appModalDialog.waitForDialogClosed(confirmDialog);
     });
 
