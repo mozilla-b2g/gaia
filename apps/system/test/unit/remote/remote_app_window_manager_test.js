@@ -1,3 +1,5 @@
+/* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* global MocksHelper, BaseModule */
 'use strict';
 
@@ -16,6 +18,12 @@ suite('system/remote/RemoteAppWindowManager', function() {
 
   var subject;
   var container;
+  var fakeElement;
+  var fakeConfig = {
+    url: 'test.html',
+    requestId: 'test-request-id',
+    manifest: {}
+  };
 
   setup(function() {
     container = document.createElement('div');
@@ -45,10 +53,6 @@ suite('system/remote/RemoteAppWindowManager', function() {
   });
 
   suite('launchApp', function() {
-    var fakeElement;
-    var fakeConfig = {
-      url: 'test.html'
-    };
 
     setup(function() {
       fakeElement = document.createElement('iframe');
@@ -102,6 +106,37 @@ suite('system/remote/RemoteAppWindowManager', function() {
     });
   });
 
+  suite('launchPresentationApp', function() {
+    test('should call launchApp if presentation permission exists',
+      function() {
+        fakeConfig.manifest = {
+          permissions: {
+            presentation: {}
+          }
+        };
+
+        this.sinon.stub(subject, 'launchApp');
+        subject.launchPresentationApp(fakeConfig);
+        assert.ok(subject.launchApp.calledOnce);
+
+        fakeConfig.manifest = {};
+    });
+
+    test('should send premission denied event if presentation ' +
+      'permission not exists', function() {
+
+        this.sinon.stub(subject, '_sendPresentationResult');
+        subject.launchPresentationApp(fakeConfig)
+          .catch(function (reason) {
+            assert.equal(reason, 'no presentation permission');
+            assert.ok(subject._sendPresentationResult.calledWith({
+              type: 'presentation-receiver-permission-denied',
+              id: fakeConfig.requestId,
+            }));
+        });
+      });
+  });
+
   suite('killCurrentApp', function() {
     var fakeElement;
 
@@ -126,17 +161,21 @@ suite('system/remote/RemoteAppWindowManager', function() {
   });
 
   suite('event handlers', function() {
-    var fakeElement;
-
     setup(function() {
+      fakeConfig.manifest = {
+        permissions: {
+          presentation: {}
+        }
+      };
       fakeElement = document.createElement('iframe');
       this.sinon.stub(window, 'BrowserFrame', function(config) {
         this.element = fakeElement;
       });
-      subject.launchApp({});
+      subject.launchPresentationApp(fakeConfig);
     });
 
     teardown(function() {
+      fakeConfig.manifest = {};
       fakeElement = null;
     });
 
@@ -150,6 +189,17 @@ suite('system/remote/RemoteAppWindowManager', function() {
       this.sinon.stub(subject, 'killCurrentApp');
       fakeElement.dispatchEvent(new CustomEvent('mozbrowserclose'));
       assert.isTrue(subject.killCurrentApp.called);
+    });
+
+    test('should send presentation receiver launched ' +
+      'event if shell-remote loaded', function() {
+        this.sinon.stub(subject, '_sendPresentationResult');
+        fakeElement.dispatchEvent(new CustomEvent('mozbrowserloadend'));
+        assert.ok(subject._sendPresentationResult.calledWith({
+          type: 'presentation-receiver-launched',
+          id: fakeConfig.requestId,
+          frame: subject.currentApp.element
+        }));
     });
   });
 });

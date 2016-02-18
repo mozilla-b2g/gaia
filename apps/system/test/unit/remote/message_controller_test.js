@@ -14,7 +14,7 @@ suite('system/remote/MessageController', function() {
   mocksForMultiScreenController.attachTestHelpers();
 
   var subject;
-  var fakeDisplayId = 123;
+  var fakeDisplayId = 'test';
 
   setup(function() {
     this.sinon.stub(Service, 'query', function(state) {
@@ -78,11 +78,9 @@ suite('system/remote/MessageController', function() {
 
     setup(function() {
       broadcastChannel = new BroadcastChannel('multiscreen');
-
-      launchAppSuccess = true;
       this.sinon.stub(Service, 'request', function(service, config) {
-        return (service == 'launchApp' && launchAppSuccess) ?
-          Promise.resolve() : Promise.reject('test');
+        return (service == 'launchPresentationApp' && launchAppSuccess) ?
+          Promise.resolve() : Promise.reject('test-reason');
       });
     });
 
@@ -90,28 +88,33 @@ suite('system/remote/MessageController', function() {
       broadcastChannel.close();
     });
 
-    test('should post "launch-app-success" when resolving from "launchApp"',
-                                                                function(done) {
+    test('should post "launch-app-success" when resolving from ' +
+				 '"launchPresentationApp"', function(done) {
+      launchAppSuccess = true;
       this.sinon.stub(subject, 'postMessage', function(type, detail) {
         done(function() {
           assert.equal(type, 'launch-app-success');
           assert.equal(detail.config.url, fakeConfig.url);
         });
       });
-      broadcastMessage(subject.displayId, 'launch-app', fakeConfig);
+      broadcastMessage(subject.displayId,
+											 'launch-presentation-app',
+											 fakeConfig);
     });
 
-    test('should post "launch-app-error" when rejecting from "launchApp"',
-                                                                function(done) {
+    test('should post "launch-app-success" when rejecting from ' +
+				 '"launchPresentationApp"', function(done) {
       launchAppSuccess = false;
       this.sinon.stub(subject, 'postMessage', function(type, detail) {
         done(function() {
           assert.equal(type, 'launch-app-error');
           assert.equal(detail.config.url, fakeConfig.url);
-          assert.equal(detail.reason, 'test');
+          assert.equal(detail.reason, 'test-reason');
         });
       });
-      broadcastMessage(subject.displayId, 'launch-app', fakeConfig);
+      broadcastMessage(subject.displayId,
+											 'launch-presentation-app',
+											 fakeConfig);
     });
 
     test('should ignore message if data.target isn\'t current displayId',
@@ -121,7 +124,7 @@ suite('system/remote/MessageController', function() {
           assert.isFalse(Service.request.called);
         });
       });
-      broadcastMessage(subject.displayId + 1, 'launch-app', fakeConfig);
+      broadcastMessage('unknow-target', 'launch-presentation-app', fakeConfig);
     });
   });
 });

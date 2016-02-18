@@ -1,4 +1,5 @@
-/* global BaseModule */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global BaseModule, Service */
 'use strict';
 
 (function(exports) {
@@ -24,13 +25,13 @@
     },
 
     _start: function() {
-      // The displayId is assigned by shell_remote.js. It should be unique and
-      // indicates the display which the current instance is associated with in
-      // Gecko.
-      this._displayId = window.location.hash ?
-        parseInt(window.location.hash.substring(1), 10) :
-        -1;
+      // The displayId is assigned by HDMIDisplayProvider. It should be unique
+      // and indicates the display which the current instance is associated
+      // with in Gecko.
+      this._displayId = window.location.hash.substring(1);
       this.debug('displayId: ' + this._displayId);
+
+      Service.request('postMessage', 'remote-system-ready');
     }
   });
 }(window));

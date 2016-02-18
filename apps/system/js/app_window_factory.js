@@ -1,4 +1,6 @@
 'use strict';
+/* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* global applications, BrowserConfigHelper, AppWindow, Service */
 /* jshint nonew: false */
 
@@ -209,20 +211,12 @@
         // Always relaunch background app locally
         this.publish('launchapp', config);
       } else {
-        var launchApp = () => {
-          // homescreenWindowManager already listens webapps-launch and
-          // open-app. We don't need to check if the launched app is homescreen.
-          this.forgetLastLaunchingWindow();
-          this.trackLauchingWindow(config);
+        // homescreenWindowManager already listens webapps-launch and
+        // open-app. We don't need to check if the launched app is homescreen.
+        this.forgetLastLaunchingWindow();
+        this.trackLauchingWindow(config);
 
-          this.publish('launchapp', config);
-        };
-
-        if (Service.query('MultiScreenController.enabled')) {
-          Service.request('chooseDisplay', config).catch(launchApp);
-        } else {
-          launchApp();
-        }
+        this.publish('launchapp', config);
       }
     },
 
