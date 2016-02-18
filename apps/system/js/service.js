@@ -1,7 +1,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   /**
    * Shared some global property.
    * @type {Object}
@@ -62,7 +62,8 @@
               .apply(self._providers.get(serverName), args));
         } else {
           return new Promise(function(resolve, reject) {
-            self.debug('service: ' + service + ' is offline, queue the task.');
+            self.debug('service (1):' + service +
+              ' is offline, queue the task.');
             if (!self._requestsByProvider.has(serverName)) {
               self._requestsByProvider.set(serverName, []);
             }
@@ -81,7 +82,7 @@
           '] provider [' + server.name + '] is online, perform the task.');
         return Promise.resolve(server[service].apply(server, args));
       } else {
-        this.debug('service: ' + service + ' is offline, queue the task.');
+        this.debug('service (2): ' + service + ' is offline, queue the task.');
         var promise = new Promise(function(resolve, reject) {
           self.debug('storing the requests...');
           if (!self._requestsByService.has(service)) {

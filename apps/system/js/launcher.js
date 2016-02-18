@@ -24,7 +24,7 @@
   ];
   BaseModule.create(Launcher, {
     name: 'Launcher',
-    DEBUG: false,
+    DEBUG: true,
     _start: function() {
       this._version = {};
       this.debug('reading configurations...');
@@ -93,6 +93,7 @@
       return isUpgrade;
     },
     launchHomescreenAndStandbyLockscreen: function(homescreenManifestURL) {
+      this.debug('launchHomescreenAndStandbyLockscreen');
       // We don't need to chain these promises in the big startup chain
       // inside app.js; but that means we need to catch the errors on our own.
       return Promise.all([
@@ -113,11 +114,12 @@
       });
     },
     launchLockscreenThenHomescreen: function(homescreenManifestURL) {
+      this.debug('launchLockscreenThenHomescreen');
       // We don't need to chain these promises in the big startup chain
       // inside app.js; but that means we need to catch the errors on our own.
       return Promise.all([
         // We still need to tell FtuLauncher to skip to process some tasks.
-        this.service.request('FtuLauncher:skip'),
+        //this.service.request('FtuLauncher:skip'),
         this.service.request('WallpaperManager:initializeWallpaper',
           this.wallpaper, this.wallpaperValid).then(() => {
             this.debug('launching lockscreen...');
@@ -143,12 +145,16 @@
                 homescreenManifestURL),
               this.scheduler.release()
             ]);
+          }).catch(err => {
+            this.debug(`Something went wrong: ${err}`);
           })
       ]).catch((err) => {
+        this.debug(`Something went wrong: ${err}`);
         console.error(err);
       });
     },
     launchFtuThenHomescreen: function(ftuManifestURL, homescreenManifestURL) {
+      this.debug('launchFtuThenHomescreen');
       // We don't need to chain these promises in the big startup chain
       // inside app.js; but that means we need to catch the errors on our own.
       return Promise.all([

@@ -36,7 +36,7 @@
   FtuLauncher.SUB_MODULES = [];
   BaseModule.create(FtuLauncher, {
     name: 'FtuLauncher',
-    DEBUG: false,
+    DEBUG: true,
     EVENT_PREFIX: 'ftu',
 
     /* The application object of ftu got from Application module */
@@ -65,6 +65,7 @@
     _bypassHomeEvent: false,
 
     _start: function() {
+      this.debug('start');
       this._stepsList = [];
       this._storedStepRequest = [];
       return Promise.all([
@@ -79,6 +80,7 @@
             this._lateCustomization.start();
           }
       }).catch(err => {
+        this.debug(`error: ${err}`);
         console.warn(err);
       });
     },
@@ -247,6 +249,7 @@
     },
 
     skip: function fl_skip() {
+      this.debug('skip');
       window.performance.mark('ftuSkip');
       this._isRunningFirstTime = false;
       this._isUpgrading = false;
@@ -257,6 +260,7 @@
     },
 
     finish: function() {
+      this.debug('finish');
       this.loadWhenIdle(['NewsletterManager']);
       this._isFtuCustomizing = false;
       this._lateCustomization && this._lateCustomization.stop();

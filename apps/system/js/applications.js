@@ -26,7 +26,7 @@
      * @type {boolean}
      * @memberof Applications.prototype
      */
-    ready: false,
+    ready: true,
 
     /**
      * Stop the Applications services,
@@ -36,19 +36,6 @@
     stop: function a_stop() {
       this.ready = false;
       this.installedApps = {};
-      navigator.mozApps.mgmt.getAll().onsuccess = null;
-      navigator.mozApps.mgmt.oninstall = null;
-      navigator.mozApps.mgmt.onuninstall = null;
-    },
-
-    waitForReady: function() {
-      return new Promise((resolve) => {
-        if (this.ready) {
-          resolve();
-        } else {
-          this.waitingResolve = resolve;
-        }
-      });
     },
 
     /**
@@ -57,64 +44,7 @@
      * @memberof Applications.prototype
      */
     start: function a_start() {
-      var self = this;
-      var apps = navigator.mozApps;
-
-      var getAllApps = function getAllApps() {
-        navigator.mozApps.mgmt.getAll().onsuccess = function mozAppGotAll(evt) {
-          var apps = evt.target.result;
-          apps.forEach(function(app) {
-            self.installedApps[app.manifestURL] = app;
-            // TODO Followup for retrieving homescreen & comms app
-          });
-
-          self.ready = true;
-          self.fireApplicationReadyEvent();
-          self.waitingResolve && self.waitingResolve();
-        };
-      };
-
-      // We need to wait for the chrome shell to let us know when it's ok to
-      // launch activities. This prevents race conditions.
-      // The event does not fire again when we reload System app in on
-      // B2G Desktop, so we save the information into sessionStorage.
-      if (window.sessionStorage.getItem('webapps-registry-ready')) {
-        getAllApps();
-      } else {
-        window.addEventListener('mozChromeEvent', function mozAppReady(event) {
-          if (event.detail.type != 'webapps-registry-ready') {
-            return;
-          }
-
-          window.sessionStorage.setItem('webapps-registry-ready', 'yes');
-          window.removeEventListener('mozChromeEvent', mozAppReady);
-
-          getAllApps();
-        });
-      }
-
-      apps.mgmt.oninstall = function a_install(evt) {
-        var newapp = evt.application;
-        self.installedApps[newapp.manifestURL] = newapp;
-
-        self.fireApplicationInstallEvent(newapp);
-      };
-
-      apps.mgmt.onuninstall = function a_uninstall(evt) {
-        var deletedapp = evt.application;
-        delete self.installedApps[deletedapp.manifestURL];
-
-        self.fireApplicationUninstallEvent(deletedapp);
-      };
-
-      apps.mgmt.onenabledstatechange = function a_enabledstatechange(evt) {
-        var app = evt.application;
-        if (app.enabled) {
-          self.fireApplicationEnabledEvent(app);
-        } else {
-          self.fireApplicationDisabledEvent(app);
-        }
-      };
+      // Nothing to do anymore!
     },
 
     /**

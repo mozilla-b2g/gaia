@@ -206,7 +206,7 @@ function setHomescreenURL(settings, config) {
     // no longer to use this settings so remove it.
     delete settings['homescreen.appName'];
   }
-  settings['homescreen.manifestURL'] = utils.gaiaManifestURL(appName,
+  settings['homescreen.manifestURL'] = utils.gaiaOriginURL(appName,
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
 }
 

@@ -11,16 +11,8 @@ if [ ! -d profile/webapps ]; then
   exit -1
 fi
 
-adb shell stop b2g
-
-mkdir -p profile/apps
-rm -rf profile/apps/*
-
-cd profile/webapps
-cp webapps.json $HERE/profile/apps
-
-for app in *
-do
+function push_app {
+  app=$1
   if [ -d $app ]; then
     echo "Installing $app"
     cd $HERE/profile/apps
@@ -37,10 +29,28 @@ do
       adb push $app /system/b2g/apps/$app
     fi
   fi
-done
+}
+
+adb shell stop b2g
+
+mkdir -p profile/apps
+rm -rf profile/apps/*
+
+cd profile/webapps
+cp webapps.json $HERE/profile/apps
+
+if [ $# -eq 1 ]; then
+  push_app $1
+else
+  for app in *
+  do
+    push_app $app
+  done
+fi
 
 cd $HERE
 
 adb push profile/defaults/pref/user.js /system/b2g/defaults/pref
+adb push profile/defaults/settings.json /system/b2g/defaults/
 
 adb shell start b2g
