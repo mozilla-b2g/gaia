@@ -1,0 +1,106 @@
+/* This is a web component, so animation keyframes are defined
+ * in apps-panel.css */
+
+homescreen-group {
+  position: relative;
+}
+
+homescreen-group.expanding,
+homescreen-group.expanded,
+homescreen-group.collapsing {
+  overflow: hidden;
+}
+
+#group-background {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 50%;
+  transition: transform 0.4s;
+}
+
+#group-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  outline: 0;
+
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+
+  transition: opacity 0.2s;
+}
+
+#group-container.expanding,
+#group-container.collapsing {
+  opacity: 0;
+}
+
+#group-container.expanded {
+  border-radius: 0;
+  overflow: auto;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  width: calc(100% - 0.6rem * 2);
+  height: calc(100% - 0.6rem * 2);
+  padding: 0.6rem;
+}
+
+#group-container > .gaia-container-child > * {
+  width: calc(32vw * 0.25);
+  height: calc(32vw * 0.25);
+}
+
+#group-container.expanded > .gaia-container-child > *,
+#group-container.collapsing > .gaia-container-child > * {
+  width: 32vw;
+  height: calc(32vw + 1.7rem);
+  box-sizing: border-box;
+  border: 0.8rem solid transparent;
+  border-bottom: 0.4rem solid transparent;
+}
+
+#group-container.expanded > .gaia-container-child gaia-app-icon,
+#group-container.collapsing > .gaia-container-child gaia-app-icon {
+  outline: 0;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: white;
+  text-shadow: rgba(0, 0, 0, 0.5) 0 0.1rem 0.3rem;
+}
+
+#group-container.expanded >
+  .gaia-container-child:not(.added):not(.dragging),
+#group-container.expanded >
+  .gaia-container-child:not(.added):not(.removed) > * {
+  transition: transform 0.2s;
+}
+
+#group-container > .gaia-container-child.added gaia-app-icon {
+  animation-name: icon-added;
+  animation-duration: 0.4s;
+  z-index: 1;
+}
+
+#group-container > .gaia-container-child.dragging > .icon-container > * {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+#group-container > .gaia-container-child > .hover-before:not(.hover-over) {
+  transform: translateX(3.5rem);
+}
+
+#group-container > .gaia-container-child > .hover-after:not(.hover-over) {
+  transform: translateX(-3.5rem);
+}
