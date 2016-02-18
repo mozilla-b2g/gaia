@@ -302,31 +302,6 @@ function getUUIDMapping(config) {
   return UUID_MAPPING;
 }
 
-function getMD5hash(filePath) {
-  var file = getFile(filePath);
-  var istream = Cc['@mozilla.org/network/file-input-stream;1']
-    .createInstance(Ci.nsIFileInputStream);
-    istream.init(file, 0x01, 0o444, 0);
-  var hasher = Cc['@mozilla.org/security/hash;1']
-    .createInstance(Ci.nsICryptoHash);
-  hasher.init(hasher.MD5);
-
-  const PR_UINT32_MAX = 0xffffffff;
-  hasher.updateFromStream(istream, PR_UINT32_MAX);
-
-  function toHexString(charCode) {
-    return ('0' + charCode.toString(16)).slice(-2);
-  }
-
-  let data = hasher.finish(false);
-  let hash = [];
-  for (let i in data) {
-    hash.push(toHexString(data.charCodeAt(i)));
-  }
-
-  return hash.join('');
-}
-
 /**
  * Get an app's detail in an object. For example:
  * {
@@ -1046,7 +1021,7 @@ function spawnProcess(module, appOptions) {
       .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
   ];
   proc.init(utils.getFile(xpcshell));
-  proc.run(false, args, args.length);
+  proc.runw(false, args, args.length);
   return proc;
 }
 
@@ -1261,54 +1236,6 @@ var scriptLoader = {
   }
 };
 
-/**
- * Run specific build task on Node.js if RUN_ON_NODE is on, otherwise we go back
- * to XPCShell.
- */
-function NodeHelper() {
-  if (getEnv('RUN_ON_NODE') === '1') {
-    var node = new Commander('node');
-    node.initPath(getEnvPath());
-    this.require = function(path, options) {
-      var result = '';
-      var done = false;
-      node.runWithSubprocess(['--harmony', '-e',
-        'require("./build/' + path + '").execute(' +
-        JSON.stringify(options) + ')', 'PATH=' + getEnv('Path')], {
-          environment: [
-            'PATH=' + getEnv('PATH'),
-            'NODE_PATH=' + joinPath(options.GAIA_DIR, 'build')
-          ],
-          stdout: function(data) {
-            result += data;
-            dump(data);
-          },
-          stderr: function(err) {
-            dump(err);
-          },
-          done: function() {
-            done = true;
-          }
-        });
-
-      processEvents(function() {
-        return {
-          wait: !done
-        };
-      });
-
-      // XXX: Workaround rebuild.js to nodejs migration.
-      // We'll remove this once migration is complete.
-      var rebuildDir = /\[rebuild\] rebuildAppDirs: (\[.+\])/.exec(result);
-      return rebuildDir ? JSON.parse(rebuildDir[1]) : undefined;
-    };
-  } else {
-    this.require = function(path, options) {
-      return require(path).execute(options);
-    };
-  }
-}
-
 function relativePath(from, to) {
   return fsPath.relative(from, to);
 }
@@ -1341,15 +1268,44 @@ function exit(exitValue) {
   return quit(exitValue);
 }
 
-function getHash(string) {
-  var converter = Cc['@mozilla.org/intl/scriptableunicodeconverter'].
-    createInstance(Ci.nsIScriptableUnicodeConverter);
-  converter.charset = 'UTF-8';
-  var result = {};
-  var data = converter.convertToByteArray(string, result);
+function getHash(data, encoding, algorithm) {
   var ch = Cc['@mozilla.org/security/hash;1'].createInstance(Ci.nsICryptoHash);
-  ch.init(ch.SHA1);
-  ch.update(data, data.length);
+  encoding = encoding || 'utf8';
+  algorithm = algorithm || 'sha1';
+
+  switch (algorithm) {
+    case 'sha1':
+      algorithm = ch.SHA1;
+      break;
+    case 'md5':
+      algorithm = ch.MD5;
+      break;
+    default:
+      throw 'utils-xpc does not support ' + algorithm + ' hash algorithm';
+  }
+
+  switch (encoding) {
+    case 'utf8':
+      var result;
+      var converter = Cc['@mozilla.org/intl/scriptableunicodeconverter'].
+        createInstance(Ci.nsIScriptableUnicodeConverter);
+      converter.charset = 'UTF-8';
+      result = converter.convertToByteArray(data);
+      ch.init(algorithm);
+      ch.update(result, result.length);
+      break;
+    case 'binary':
+      var file = getFile(data);
+      var istream = Cc['@mozilla.org/network/file-input-stream;1']
+        .createInstance(Ci.nsIFileInputStream);
+      istream.init(file, 0x01, 0o444, 0);
+      ch.init(algorithm);
+      ch.updateFromStream(istream, 0xffffffff);
+      break;
+    default:
+      throw 'utils-xpc does not support ' + encoding + ' hash encoding';
+  }
+
   var hashStr = ch.finish(false);
   var hex = '';
 
@@ -1421,11 +1377,9 @@ exports.getCompression = getCompression;
 exports.existsInAppDirs = existsInAppDirs;
 exports.removeFiles = removeFiles;
 exports.scriptLoader = scriptLoader;
-exports.NodeHelper = NodeHelper;
 exports.relativePath = relativePath;
 exports.normalizePath = normalizePath;
 exports.getUUIDMapping = getUUIDMapping;
-exports.getMD5hash = getMD5hash;
 exports.createSandbox = createSandbox;
 exports.runScriptInSandbox= runScriptInSandbox;
 exports.getHash = getHash;

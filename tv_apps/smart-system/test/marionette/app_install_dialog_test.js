@@ -10,10 +10,7 @@ var assert = require('chai').assert;
 var AppInstaller = require('./lib/app_install');
 var Server = require('../../../../shared/test/integration/server');
 
-// Bug 1207453 - Skip the test due to unknown test enviroment issue for now.
-// We should investigate the issue and re-enable the test later.
-marionette.skip('app install manager tests', function() {
-
+marionette('app install manager tests', function() {
   var opts = {
     apps: {},
     hostOptions: {
@@ -50,10 +47,9 @@ marionette.skip('app install manager tests', function() {
 
   setup(function() {
     system = client.loader.getAppClass('smart-system', 'system', 'tv_apps');
+    system.waitForStartup();
+    system.waitForFullyLoaded();
     appInstaller = new AppInstaller(client);
-    // Once the os-logo is disappeared, the first app is shown and focused. It
-    // implies system is ready to go.
-    client.helper.waitForElementToDisappear('#os-logo');
   });
 
   test('install app', { devices: ['tv'] }, function() {
@@ -70,6 +66,8 @@ marionette.skip('app install manager tests', function() {
   test('install app and cancel it', { devices: ['tv'] }, function() {
     // install app
     appInstaller.install(serverManifestURL);
+    system.waitForEvent('modal-dialog-opened');
+
     // press install button
     var cancelInstallButton = client.helper.waitForElement(
                                        system.Selector.appInstallCancelButton);
@@ -80,10 +78,11 @@ marionette.skip('app install manager tests', function() {
     }), 'cancel button should be focused.');
 
     cancelInstallButton.sendKeys(Keys.enter);
+    system.waitForEvent('modal-dialog-opened');
+
     var cancelConfirmButton = client.helper.waitForElement(
                                  system.Selector.appCancelInstallConfirmButton);
 
-    system.waitForEvent('modal-dialog-opened');
     assert.isTrue(cancelConfirmButton.scriptWith(function(el) {
       return document.activeElement === el;
     }), 'confirm button should be focused.');
@@ -103,6 +102,7 @@ marionette.skip('app install manager tests', function() {
 
     // uninstall app
     appInstaller.uninstall(serverManifestURL);
+    system.waitForEvent('modal-dialog-opened');
 
     // wait for dialog
     var confirmButton = client.helper.waitForElement(

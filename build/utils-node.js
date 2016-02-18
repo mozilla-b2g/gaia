@@ -15,7 +15,6 @@ var path = require('path');
 var childProcess = require('child_process');
 var fs = require('fs-extra');
 var JSZip = require('jszip');
-var Q = require('q');
 var os = require('os');
 var vm = require('vm');
 var http = require('http');
@@ -33,7 +32,6 @@ var crypto = require('crypto');
 mime.define({'audio/ogg': ['opus']});
 
 module.exports = {
-  Q: Q,
 
   scriptParser: esprima.parse,
 
@@ -116,21 +114,26 @@ module.exports = {
       } else {
         cmds = cmd + ' ' + cmds;
       }
-      console.log(cmds);
       // XXX: Most cmds should run synchronously, we should use either promise
       //      pattern inside each script or find a sync module which doesn't
       //      require recompile again since TPBL doesn't support that.
       return new Promise(function(resolve, reject) {
-        childProcess.exec(cmds, { maxBuffer: (4096 * 1024) },
+        var proc = childProcess.exec(cmds, { maxBuffer: (4096 * 1024) },
           function(err, stdout, stderr) {
             if (err) {
               options && options.stderr && options.stderr(stderr);
-              reject(stderr);
+              reject();
             } else {
               options && options.stdout && options.stdout(stdout);
               callback && callback(stdout);
-              resolve(stdout);
+              resolve();
             }
+        });
+        proc.stdout.on('data', (data) => {
+          process.stdout.write(data);
+        });
+        proc.stderr.on('data', (data) => {
+          process.stderr.write(data);
         });
       });
     };
@@ -165,16 +168,26 @@ module.exports = {
 
   spawnProcess: function(module, appOptions) {
     this.exitCode = null;
+
     var args = [
       '--harmony',
-      '-e', 'require("' + module + '").execute("' + JSON.stringify(appOptions)
-        .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
+      '-e', 'require("' + module + '").execute(' +
+        JSON.stringify(appOptions).replace(/\\/g, '\\\\') + ');'
     ];
-    var proc = childProcess.spawn('node', args);
-    proc.on('close', function(code) {
-      this.exitCode = code;
-    }.bind(this));
-    return proc;
+
+    return new Promise((resolve, reject) => {
+      var proc = childProcess.spawn('node', args, { cwd: __dirname });
+      proc.stdout.on('data', (data) => {
+        process.stdout.write(data);
+      });
+      proc.stderr.on('data', (data) => {
+        process.stderr.write(data);
+      });
+      proc.on('exit', (code) => {
+        this.exitCode = code;
+        resolve(code);
+      });
+    });
   },
 
   processIsRunning: function(proc) {
@@ -587,8 +600,6 @@ module.exports = {
       var doc = jsdom.jsdom();
       var win = doc.defaultView;
 
-      exportObj.Promise = Q;
-
       global.addEventListener = win.addEventListener;
       global.dispatchEvent = win.dispatchEvent;
 
@@ -616,11 +627,14 @@ module.exports = {
     return vm.runInNewContext(script, sandbox);
   },
 
-  getHash: function(string) {
-    return crypto.createHash('sha1').update(string).digest('hex');
+  getHash: function(data, encoding, algorithm) {
+    encoding = encoding || 'utf8';
+    algorithm = algorithm || 'sha1';
+    return crypto.createHash(algorithm).update(data, encoding).digest('hex');
   },
 
   exit: function(code) {
     process.exit(code);
   }
+
 };

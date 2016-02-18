@@ -144,7 +144,9 @@ exports.execute = function(options) {
     timestamp: current
   }, null, 2));
 
-  utils.log('rebuild', 'rebuildAppDirs: ' + JSON.stringify(rebuildAppDirs));
+  if (options.VERBOSE === '1') {
+    utils.log('rebuild', 'rebuildAppDirs: ' + JSON.stringify(rebuildAppDirs));
+  }
   return rebuildAppDirs;
 };
 

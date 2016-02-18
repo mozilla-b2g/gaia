@@ -28,6 +28,14 @@ suite('app.js', function() {
       return file;
     };
 
+    mockUtils.spawnProcess = function() {
+      return {};
+    };
+
+    mockUtils.isNode = function() {
+      return true;
+    };
+
     mockUtils.copyToStage = function() {
       copied = true;
     };
@@ -36,12 +44,8 @@ suite('app.js', function() {
       return true;
     };
 
-    mockUtils.NodeHelper = function() {
-      this.require = function() {};
-    };
-
     var stubs = {
-      'utils': mockUtils,
+      './utils': mockUtils,
       './rebuild': {},
       './post-app': { execute: function() {} }
     };

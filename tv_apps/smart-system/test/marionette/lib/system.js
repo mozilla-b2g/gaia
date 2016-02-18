@@ -67,6 +67,10 @@ System.prototype = {
     return iframe;
   },
 
+  waitForStartup: function() {
+    this.client.helper.waitForElementToDisappear('#os-logo');
+  },
+
   waitForEvent: function(evt) {
     this.client.switchToFrame();
     this.client.executeAsyncScript(function(evt) {

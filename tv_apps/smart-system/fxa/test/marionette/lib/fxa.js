@@ -12,16 +12,21 @@ var FxAUser = require('./fxa_user'),
  * @param client
  * @constructor
  */
+
+var system;
+
 function FxA(client) {
     this.config = config;
     this.fxaUser = new FxAUser();
     this.client = client.scope({ searchTimeout: config.MARIONETTE_TIMEOUT});
+    system = this.client.loader.getAppClass('system');
 }
 
-FxA.SETTINGS_ORIGIN = 'app://settings.gaiamobile.org';
+FxA.SETTINGS_ORIGIN = 'app://smart-settings.gaiamobile.org';
 FxA.UITEST_ORIGIN = 'app://uitest.gaiamobile.org';
 FxA.TEST_FXA_CLIENT_ORIGIN = 'app://test-fxa-client.gaiamobile.org';
 FxA.FTU_ORIGIN = 'app://ftu.gaiamobile.org';
+FxA.BROWSER_ORIGIN = 'app://browser.gaiamobile.org';
 FxA.SERVER_PATH = 'http://' +
     config.SERVER_HOST + ':' +
     config.SERVER_PORT + '/' +
@@ -214,6 +219,11 @@ FxA.prototype = {
       this.clickFxaButton();
       this.switchFrameDirect(FxA.Selectors.apiFxaFrame);
       this.clickRequestButton();
+      this.switchFrame(FxA.Selectors.fxaFrame);
+    },
+    runBrowserMenu: function() {
+      var signin = this.client.helper.waitForElement('#fte-sign-in');
+      signin.sendKeys(system.Keys.enter);
       this.switchFrame(FxA.Selectors.fxaFrame);
     },
     runFTUMenu: function() {
