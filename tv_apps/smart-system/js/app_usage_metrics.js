@@ -210,7 +210,7 @@
       }.bind(this);
 
       SettingsListener.observe(AUM.TELEMETRY_ENABLED_KEY,
-                               false, this.metricsEnabledListener);
+                               true, this.metricsEnabledListener);
     });
   };
 
