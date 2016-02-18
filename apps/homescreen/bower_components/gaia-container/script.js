@@ -33,6 +33,7 @@ window.GaiaContainer = (function(exports) {
     shadow.appendChild(this._template);
 
     this._frozen = false;
+    this._immediateLock = 0;
     this._pendingStateChanges = [];
     this._children = [];
     this._dnd = {
@@ -103,9 +104,13 @@ window.GaiaContainer = (function(exports) {
 
   Object.defineProperty(proto, 'children', {
     get: function() {
-      return this._children.map((child) => {
-        return child.element;
+      var children = [];
+      this._children.forEach(child => {
+        if (!child.removed) {
+          children.push(child.element);
+        }
       });
+      return children;
     },
     enumerable: true
   });
@@ -117,10 +122,34 @@ window.GaiaContainer = (function(exports) {
     enumerable: true
   });
 
+  Object.defineProperty(proto, 'firstElementChild', {
+    get: function() {
+      for (var child of this._children) {
+        if (child.element.nodeType === 1) {
+          return child.element;
+        }
+      }
+      return null;
+    },
+    enumerable: true
+  });
+
   Object.defineProperty(proto, 'lastChild', {
     get: function() {
       var length = this._children.length;
       return length ? this._children[length - 1].element : null;
+    },
+    enumerable: true
+  });
+
+  Object.defineProperty(proto, 'lastElementChild', {
+    get: function() {
+      for (var i = this._children.length; i >= 0; i--) {
+        if (this._children[i].element.nodeType === 1) {
+          return this._chidlren[i].element;
+        }
+      }
+      return null;
     },
     enumerable: true
   });
@@ -167,6 +196,7 @@ window.GaiaContainer = (function(exports) {
       throw 'removeChild called on unknown child';
     }
 
+    childToRemove.removed = true;
     this.changeState(childToRemove, 'removed', () => {
       this.realRemoveChild(childToRemove.container);
       this.realRemoveChild(childToRemove.master);
@@ -235,6 +265,10 @@ window.GaiaContainer = (function(exports) {
   proto.reorderChild = function(element, referenceElement, callback) {
     if (!element) {
       throw 'reorderChild called with null element';
+    }
+
+    if (element === referenceElement) {
+      return;
     }
 
     var children = this._children;
@@ -330,6 +364,13 @@ window.GaiaContainer = (function(exports) {
    * next frame.
    */
   proto.changeState = function(child, state, callback) {
+    if (this._immediateLock) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
     // Check that the child is still attached to this parent (can happen if
     // the child is removed while frozen).
     if (child.container.parentNode !== this) {
@@ -355,8 +396,8 @@ window.GaiaContainer = (function(exports) {
 
       child.container.removeEventListener('animationstart', animStart);
 
-      window.clearTimeout(child[state]);
-      delete child[state];
+      window.clearTimeout(child.states[state]);
+      delete child.states[state];
 
       var self = this;
       child.container.addEventListener('animationend', function animEnd() {
@@ -371,14 +412,40 @@ window.GaiaContainer = (function(exports) {
     child.container.addEventListener('animationstart', animStart);
     child.container.classList.add(state);
 
-    child[state] = window.setTimeout(() => {
-      delete child[state];
+    child.states[state] = window.setTimeout(() => {
+      delete child.states[state];
       child.container.removeEventListener('animationstart', animStart);
       child.container.classList.remove(state);
       if (callback) {
         callback();
       }
     }, STATE_CHANGE_TIMEOUT);
+  };
+
+  /**
+   * Any DOM functions executed within callback will occur synchronously and
+   * immediately, without transitions.
+   */
+  proto.immediate = function(callback) {
+    ++this.immediateLock;
+    callback();
+    --this.immediateLock;
+  };
+
+  /**
+   * Controls whether a child element should use transforms or absolute
+   * positioning for layout.
+   */
+  proto.setUseTransform = function(element, useTransform) {
+    var children = this._children;
+    for (var i = 0, iLen = children.length; i < iLen; i++) {
+      if (children[i].element === element) {
+        children[i].useTransform = useTransform;
+        return;
+      }
+    }
+
+    throw 'setUseTransform called on unknown child';
   };
 
   proto.getChildOffsetRect = function(element) {
@@ -407,10 +474,10 @@ window.GaiaContainer = (function(exports) {
 
   proto.getChildFromPoint = function(x, y) {
     var children = this._children;
-    for (var parent = this.parentElement; parent;
-         parent = parent.parentElement) {
-      x += parent.scrollLeft - parent.offsetLeft;
-      y += parent.scrollTop - parent.offsetTop;
+    for (var parent = this.parentNode; parent;
+         parent = parent.parentNode || parent.host) {
+      x += (parent.scrollLeft || 0) - (parent.offsetLeft || 0);
+      y += (parent.scrollTop || 0) - (parent.offsetTop || 0);
     }
     for (var i = 0, iLen = children.length; i < iLen; i++) {
       var child = children[i];
@@ -442,11 +509,13 @@ window.GaiaContainer = (function(exports) {
       this._dnd.child.container.style.top = '0';
       this._dnd.child.container.style.left = '0';
       this._dnd.child.markDirty();
+      var dragChild = this._dnd.child;
       this._dnd.child = null;
       this._dnd.active = false;
       this.synchronise();
       this._dnd.clickCapture = true;
-      this.dispatchEvent(new CustomEvent('drag-finish'));
+      this.dispatchEvent(new CustomEvent('drag-finish',
+        { detail: { target: dragChild.element } }));
     }
   };
 
@@ -740,6 +809,9 @@ window.GaiaContainer = (function(exports) {
 
   function GaiaContainerChild(element) {
     this._element = element;
+    this._useTransform = true;
+    this.states = {};
+    this.removed = false;
     this.markDirty();
   }
 
@@ -781,6 +853,24 @@ window.GaiaContainer = (function(exports) {
       return this._master;
     },
 
+    set useTransform(useTransform) {
+      if (this._useTransform === useTransform) {
+        return;
+      }
+      this._useTransform = useTransform;
+
+      // Guarantee the next call to synchronise works
+      this._lastMasterTop = null;
+      this._lastMasterLeft = null;
+
+      if (this._container) {
+        this._container.style.transform = '';
+        this._container.style.top = '0';
+        this._container.style.left = '0';
+        this.synchroniseContainer();
+      }
+    },
+
     /**
      * Clears any cached style properties. To be used if elements are
      * manipulated outside of the methods of this object.
@@ -802,7 +892,7 @@ window.GaiaContainer = (function(exports) {
       var element = this.element;
 
       var style = window.getComputedStyle(element);
-      var display = style.display;
+      var display = this.removed ? 'none' : style.display;
       var order = style.order;
       var width = element.offsetWidth;
       var height = element.offsetHeight;
@@ -826,6 +916,12 @@ window.GaiaContainer = (function(exports) {
      * Synchronise the container's transform with the position of the master.
      */
     synchroniseContainer() {
+      // Don't synchronise removed children (so they don't move around once
+      // removed).
+      if (this.removed) {
+        return;
+      }
+
       var master = this.master;
       var container = this.container;
 
@@ -837,7 +933,13 @@ window.GaiaContainer = (function(exports) {
         this._lastMasterTop = top;
         this._lastMasterLeft = left;
 
-        container.style.transform = 'translate(' + left + 'px, ' + top + 'px)';
+        if (this._useTransform) {
+          container.style.transform =
+            'translate(' + left + 'px, ' + top + 'px)';
+        } else {
+          container.style.top = top + 'px';
+          container.style.left = left + 'px';
+        }
       }
     }
   };

@@ -83,7 +83,10 @@ body {
 }
 
 .dragging #panels,
-.edit-mode #panels {
+.edit-mode #panels,
+.expanding #panels,
+.expanded #panels,
+.collapsing #panels {
   overflow: hidden;
 }
 
