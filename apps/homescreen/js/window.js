@@ -123,7 +123,7 @@
         }, HASH_CHANGE_DEBOUNCE);
 
         // If a dialog is showing, cancel the dialog
-        for (var dialog of this.apps.dialogs.concat(this.pages.dialogs)) {
+        for (var dialog of this.apps.dialogs) {
           if (!dialog.opened) {
             continue;
           }

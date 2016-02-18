@@ -1,13 +1,13 @@
-/* exported AppsMetadata */
+/* exported PagesMetadata */
 'use strict';
 
 (function(exports) {
 
   let _data = [];
 
-  function AppsMetadata() {}
+  function PagesMetadata() {}
 
-  AppsMetadata.prototype = {
+  PagesMetadata.prototype = {
     db: null,
 
     init: () => {
@@ -36,6 +36,6 @@
     }
   };
 
-  exports.AppsMetadata = AppsMetadata;
+  exports.PagesMetadata = PagesMetadata;
 
 })(window);

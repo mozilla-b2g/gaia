@@ -3,7 +3,9 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
+require('mocks/mock_pagesmetadata.js');
 require('mocks/mock_datastore.js');
+require('mocks/mock_settings.js');
 require('/js/pages.js');
 
 suite('Pages', () => {
@@ -39,16 +41,13 @@ suite('Pages', () => {
     });
 
     test('should mark the pages panel empty if no pages', done => {
-      stub = sinon.stub(PagesStore.prototype, 'getAll', () => {
-        return { then: callback => {
-          callback([]);
-          done(() => {
-            assert.isTrue(document.getElementById('pages-panel').classList.
-                            contains('empty'));
-          });
-        }};
-      });
       new Pages();
+
+      setTimeout(() => {
+        var pagesPanel = document.getElementById('pages-panel');
+        assert.isTrue(pagesPanel.classList.contains('empty'));
+        done();
+      });
     });
   });
 
@@ -84,7 +83,6 @@ suite('Pages', () => {
       pages.addPinnedPage();
       assert.isTrue(createElementStub.calledWith('gaia-pin-card'));
       assert.isTrue(updatePinnedPageStub.calledOnce);
-      assert.isTrue(appendChildStub.calledOnce);
     });
 
     test('should make card accessible', () => {
@@ -108,20 +106,18 @@ suite('Pages', () => {
       }
     };
 
-    var mockCard = {
-      title: null,
-      dataset: { id: null },
-      style: { order: 0 },
-      background: null,
-      meta: null,
-      icon: null
-    };
+    var mockCard = document.createElement('div');
+    mockCard.title = null;
+    mockCard.dataset.id = null;
+    mockCard.style.order = 0;
+    mockCard.background = null;
+    mockCard.meta = null;
+    mockCard.con = null;
 
     var mockIconBlob = 'Mock icon blob';
 
     setup(() => {
       clock = sinon.useFakeTimers();
-
       createObjectURLStub = sinon.stub(URL, 'createObjectURL', blob => blob);
     });
 
@@ -134,8 +130,7 @@ suite('Pages', () => {
       pages.updatePinnedPage(mockCard, mockPinnedPage);
       assert.equal(mockCard.title, mockPinnedPage.title);
       assert.equal(mockCard.dataset.id, mockPinnedPage.url);
-      var pinTime = -Math.round(mockPinnedPage.pinTime / 1000);
-      assert.equal(mockCard.style.order, pinTime);
+      assert.equal(mockCard.style.order, 0);
     });
 
     test('should set screenshot, themeColor and icon after timeout', done => {
@@ -157,6 +152,71 @@ suite('Pages', () => {
       var meta = mockCard.meta;
       assert.equal(meta['theme-color'], mockPinnedPage.meta['theme-color']);
       assert.equal(meta.screenshot, mockPinnedPage.screenshot);
+    });
+
+    test('should insert a pin card in the right order', () => {
+      pages.startupMetadata = [
+        { id: 'abc', order: 1 },
+        { id: 'def', order: 2 },
+        { id: 'ghi', order: 3 }
+      ];
+
+      var pinCard1 = document.createElement('div');
+      var pinCard2 = document.createElement('div');
+      var pinCard3= document.createElement('div');
+      pinCard1.id = 'abc';
+      pinCard2.id = 'def';
+      pinCard3.id = 'ghi';
+
+      var page1 = Object.create(mockPinnedPage);
+      var page2 = Object.create(mockPinnedPage);
+      var page3 = Object.create(mockPinnedPage);
+      page1.id = 'abc';
+      page2.id = 'def';
+      page3.id = 'ghi';
+
+      pages.updatePinnedPage(pinCard1, page1);
+      pages.updatePinnedPage(pinCard3, page3);
+
+      assert.equal(pages.pages.children.length, 2);
+
+      pages.updatePinnedPage(pinCard2, page2);
+
+      assert.equal(pages.pages.children.length, 3);
+      assert.equal(pages.pages.children[0].order, 2);
+      assert.equal(pages.pages.children[0].id, 'def');
+      assert.equal(pages.pages.children[1].order, 3);
+      assert.equal(pages.pages.children[1].id, 'ghi');
+      assert.equal(pages.pages.children[2].order, 1);
+      assert.equal(pages.pages.children[2].id, 'abc');
+    });
+
+    test('should prepend a new pin card to the stack', () => {
+      var pinCard1 = document.createElement('div');
+      var pinCard2 = document.createElement('div');
+      pinCard1.id = 'abc';
+      pinCard2.id = 'def';
+
+      pages.updatePinnedPage(pinCard1, {});
+
+      assert.equal(pages.pages.children.length, 1);
+      assert.equal(pages.pages.children[0].id, 'abc');
+
+      pages.updatePinnedPage(pinCard2, {});
+
+      assert.equal(pages.pages.children.length, 2);
+      assert.equal(pages.pages.children[0].id, 'def');
+      assert.equal(pages.pages.children[1].id, 'abc');
+    });
+  });
+
+  suite('Pages#launchCard()', () => {
+    test('should call window.open', () => {
+      var stub = sinon.stub(window, 'open');
+
+      pages.launchCard({ title: 'abc', dataset: { id: 'http://example.com' } });
+      assert.isTrue(stub.calledOnce);
+      stub.restore();
     });
   });
 
@@ -320,6 +380,130 @@ suite('Pages', () => {
     });
   });
 
+  suite('Pages#storePagesOrder()', () => {
+    setup(() => {
+      pages.metadata.mSetup();
+    });
+
+    test('should persist pages in sorted order', () => {
+      var pinCard1 = document.createElement('div');
+      var pinCard2 = document.createElement('div');
+      var pinCard3 = document.createElement('div');
+      pinCard1.id = 'abc';
+      pinCard2.id = 'def';
+      pinCard3.id = 'ghi';
+
+      pages.pages.appendChild(pinCard1);
+      pages.pages.appendChild(pinCard2);
+      pages.pages.appendChild(pinCard3);
+      pages.storePagesOrder();
+
+      assert.equal(pages.metadata._data.length, 3);
+      assert.equal(pages.metadata._data[0].order, 0);
+      assert.equal(pages.metadata._data[1].order, 1);
+      assert.equal(pages.metadata._data[2].order, 2);
+    });
+  });
+
+  suite('Pages#refreshGridSize()', () => {
+    var realScrollable;
+    setup(() => {
+      realScrollable = pages.scrollable;
+      pages.scrollable = {
+        clientHeight: 200,
+        style: {}
+      };
+    });
+
+    teardown(() => {
+      pages.scrollable = realScrollable;
+    });
+
+    suite('without pinned pages', () => {
+      var realPages;
+      setup(() => {
+        realPages = pages.pages;
+        pages.pages = {
+          children: [],
+          style: {}
+        };
+      });
+
+      teardown(() => {
+        pages.pages = realPages;
+      });
+
+      test('should reset snap points when there are no pinned pages', () => {
+        pages.refreshGridSize();
+        assert.equal(pages.scrollable.style.scrollSnapPointsY, 'repeat(200px)');
+        assert.equal(pages.pages.style.backgroundSize, '100% 400px');
+      });
+    });
+  });
+
+  suite('Pages#snapScrollPosition()', () => {
+    var realScrollable, scrollToSpy;
+    setup(() => {
+      realScrollable = pages.scrollable;
+      pages.scrollable = {
+        clientHeight: 100,
+        scrollTop: 0,
+        style: {},
+        scrollTo: () => {}
+      };
+      scrollToSpy = sinon.spy(pages.scrollable, 'scrollTo');
+      pages.settings.scrollSnapping = true;
+    });
+
+    teardown(() => {
+      pages.settings.scrollSnapping = false;
+      pages.scrollable = realScrollable;
+    });
+
+    test('should do nothing if already aligned', () => {
+      pages.pendingGridHeight = 500;
+      pages.pageHeight = 100;
+
+      pages.scrollable.scrollTop = 0;
+      pages.snapScrollPosition();
+      assert.isFalse(scrollToSpy.called);
+
+      pages.scrollable.scrollTop = 100;
+      pages.snapScrollPosition();
+      assert.isFalse(scrollToSpy.called);
+    });
+
+    test('should do nothing if nearly aligned', () => {
+      pages.pendingGridHeight = 500;
+      pages.pageHeight = 100;
+      pages.scrollable.scrollTop = 101;
+
+      pages.snapScrollPosition();
+      assert.isFalse(scrollToSpy.called);
+    });
+
+    test('should remove overflow and scroll to nearest snap point', () => {
+      pages.pendingGridHeight = 500;
+      pages.pageHeight = 100;
+      pages.scrollable.scrollTop = 10;
+
+      pages.snapScrollPosition();
+      assert.equal(pages.scrollable.style.overflow, '');
+      assert.isTrue(scrollToSpy.calledWith(
+        { left: 0, top: 0, behavior: 'smooth' }));
+    });
+
+    test('should do nothing if snapping disabled', () => {
+      pages.settings.scrollSnapping = false;
+      pages.pendingGridHeight = 500;
+      pages.pageHeight = 100;
+      pages.scrollable.scrollTop = 10;
+
+      pages.snapScrollPosition();
+      assert.isFalse(scrollToSpy.called);
+    });
+  });
+
   suite('Pages#handleEvent()', () => {
     var mockCard = {
       nodeName: 'GAIA-PIN-CARD',
@@ -347,10 +531,9 @@ suite('Pages', () => {
               remote: true
             };
             expectedFeatures = Object.keys(expectedFeatures).
-              map(function eachFeature(key) {
-                return encodeURIComponent(key) + '=' +
-                  encodeURIComponent(expectedFeatures[key]);
-              }).join(',');
+              map((key) => encodeURIComponent(key) + '=' +
+                encodeURIComponent(expectedFeatures[key])
+              ).join(',');
 
             assert.equal(features, expectedFeatures);
           });
@@ -399,6 +582,162 @@ suite('Pages', () => {
       test('long-pressing not on a card does nothing', () => {
         pages.handleEvent({ type: 'contextmenu', target: mockNotCard });
         assert.isFalse(editModeStub.called);
+      });
+    });
+
+    suite('drag-move', () => {
+      var setIntervalStub, clearIntervalStub;
+
+      setup(() => {
+        pages.lastWindowWidth = pages.lastWindowHeight = 500;
+        setIntervalStub = sinon.stub(window, 'setInterval');
+        clearIntervalStub = sinon.stub(window, 'clearInterval');
+
+        pages.draggingRemovable = pages.draggingEditable = true;
+      });
+
+      teardown(() => {
+        setIntervalStub.restore();
+        clearIntervalStub.restore();
+      });
+
+      test('Auto-scroll is activated at the top of the screen', () => {
+        pages.handleEvent(new CustomEvent('drag-move', { detail: {
+          clientX: 0,
+          clientY: 0
+        }}));
+
+        assert.isTrue(setIntervalStub.called);
+      });
+
+      test('Auto-scroll is activated at the bottom of the screen', () => {
+        pages.handleEvent(new CustomEvent('drag-move', { detail: {
+          clientX: 0,
+          clientY: 500
+        }}));
+
+        assert.isTrue(setIntervalStub.called);
+      });
+
+      test('Auto-scroll is cancelled when not at the top or bottom', () => {
+        pages.autoScrollInterval = 'abc';
+        pages.pages.getChildFromPoint = () => { return null; };
+
+        pages.handleEvent(new CustomEvent('drag-move', { detail: {
+          clientX: 0,
+          clientY: 250
+        }}));
+
+        assert.isTrue(clearIntervalStub.calledWith('abc'));
+        delete pages.pages.getChildFromPoint;
+      });
+    });
+
+    suite('drag-finish', () => {
+      test('auto-scroll interval should be cancelled', () => {
+        var clearIntervalStub = sinon.stub(window, 'clearInterval');
+        pages.autoScrollInterval = 'abc';
+        pages.handleEvent(new CustomEvent('drag-finish'));
+        clearIntervalStub.restore();
+
+        assert.isTrue(clearIntervalStub.calledWith('abc'));
+        assert.equal(pages.autoScrollTimeout, null);
+      });
+    });
+
+    suite('drag-end', () => {
+      var realInnerHeight, realInnerWidth, realPages, reorderChildSpy;
+      var mockIconContainer = { firstElementChild: 'icon',
+        dataset: { id: 'abc'} };
+
+      setup(() => {
+        realInnerHeight =
+          Object.getOwnPropertyDescriptor(window, 'innerHeight');
+        realInnerWidth =
+          Object.getOwnPropertyDescriptor(window, 'innerWidth');
+        Object.defineProperty(window, 'innerHeight', {
+          value: 500,
+          configurable: true
+        });
+        Object.defineProperty(window, 'innerWidth', {
+          value: 500,
+          configurable: true
+        });
+
+        realPages = pages.pages;
+        pages.pages = {
+          firstChild: 'abc',
+          getChildOffsetRect: () => {
+            return { left: 0, top: 0, right: 10, bottom: 10 };
+          },
+          reorderChild: () => {}
+        };
+        pages.iconsLeft = 10;
+        pages.iconsRight = 490;
+
+        reorderChildSpy = sinon.spy(pages.pages, 'reorderChild');
+      });
+
+      teardown(() => {
+        pages.pages = realPages;
+        reorderChildSpy.restore();
+        Object.defineProperty(window, 'innerHeight', realInnerHeight);
+        Object.defineProperty(window, 'innerWidth', realInnerWidth);
+      });
+
+      test('icon can be dropped at the beginning of the container', () => {
+        pages.handleEvent(new CustomEvent('drag-end', {
+          detail:
+          { target: 'def', dropTarget: null, clientX: 250, clientY: -100 }
+        }));
+        assert.isTrue(reorderChildSpy.calledWith('def', 'abc'));
+      });
+
+      test('icon can be dropped at the end of the container', () => {
+        pages.handleEvent(new CustomEvent('drag-end', {
+          detail:
+          { target: 'def', dropTarget: null, clientX: 250, clientY: 600 }
+        }));
+        assert.isTrue(reorderChildSpy.calledWith('def', null));
+      });
+
+      test('dropping icon on itself does nothing', () => {
+        pages.handleEvent(new CustomEvent('drag-end', {
+          detail: {
+            target: 'abc',
+            dropTarget: mockIconContainer,
+            clientX: 0,
+            clientY: 0
+          }
+        }));
+        assert.isFalse(reorderChildSpy.called);
+      });
+
+      test('dropping icon to the side does nothing', () => {
+        pages.handleEvent(new CustomEvent('drag-end', {
+          detail:
+          { target: 'def', dropTarget: null, clientX: 5, clientY: 0 }
+        }));
+        pages.handleEvent(new CustomEvent('drag-end', {
+          detail:
+          { target: 'def', dropTarget: null, clientX: 495, clientY: 0 }
+        }));
+        assert.isFalse(reorderChildSpy.called);
+      });
+
+      test('dropping icon without moving activates edit mode', () => {
+        var enterEditModeStub = sinon.stub(pages, 'enterEditMode');
+
+        pages.shouldEnterEditMode = true;
+        pages.handleEvent(new CustomEvent('drag-end', {
+          detail: { target: mockIconContainer,
+            dropTarget: mockIconContainer,
+            clientX: 0, clientY: 0 }
+        }));
+        assert.isTrue(
+          enterEditModeStub.calledWith(mockIconContainer));
+
+        enterEditModeStub.restore();
       });
     });
 
