@@ -142,6 +142,12 @@
           return;
         }
 
+        // If there's a group open, close the group
+        if (this.apps.openGroup) {
+          this.apps.closeOpenGroup();
+          return;
+        }
+
         // If we're on the pages panel and scrolled to the top, show apps
         if (!this.appsVisible && this.pages.scrollable.scrollTop === 0) {
           this.panels.scrollTo({ left: 0, top: 0, behavior: 'smooth' });

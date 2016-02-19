@@ -1,3 +1,5 @@
+/* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* global MocksHelper, BaseModule */
 'use strict';
 
@@ -16,7 +18,7 @@ suite('system/remote/App', function() {
   var subject;
 
   setup(function() {
-    window.location.hash = '#123';
+    window.location.hash = '#test';
     subject = BaseModule.instantiate('App');
     subject.start();
   });
@@ -27,18 +29,11 @@ suite('system/remote/App', function() {
 
   suite('displayId', function() {
     test('should get the displayId from location.hash', function() {
-      assert.equal(subject._displayId, 123);
+      assert.equal(subject._displayId, 'test');
     });
 
     test('should return displayId', function() {
       assert.equal(subject.displayId(), subject._displayId);
-    });
-
-    test('displayId should be -1 if location.hash is omitted', function() {
-      window.location.hash = '';
-      subject.stop();
-      subject.start();
-      assert.equal(subject._displayId, -1);
     });
   });
 });

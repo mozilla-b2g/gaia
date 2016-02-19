@@ -131,6 +131,7 @@ SystemAppBuilder.prototype.inlineDeviceType = function(options) {
 SystemAppBuilder.prototype.enableFirefoxSync = function(options) {
   var fileList = {
     process: [
+      ['index.html'],
       ['js', 'core.js'],
       ['js', 'fx_accounts_client.js']
     ],
@@ -144,8 +145,50 @@ SystemAppBuilder.prototype.enableFirefoxSync = function(options) {
   preprocessor.execute(options, 'FIREFOX_SYNC', fileList);
 };
 
+SystemAppBuilder.prototype.copyTvFolder = function(options) {
+  var tvPath = options.APP_DIR.replace('apps', 'tv_apps');
+  var smartSystemPath = tvPath.replace('system', '/smart-system');
+  var stageSystemPath = options.STAGE_APP_DIR;
+  var tvIndex = smartSystemPath + '/index.html';
+  var tvNetError = smartSystemPath + '/net_error.html';
+  var tvManifest = smartSystemPath + '/manifest.webapp';
+
+  var foldersToCopy = [
+    'js',
+    'style',
+    'fxa',
+    'elements',
+    'bower_components',
+    'locales'
+  ];
+
+  foldersToCopy.forEach(function(current) {
+    var folder = '/' + current;
+    utils.copyDirTo(smartSystemPath + folder, stageSystemPath, current);
+  });
+
+  utils.copyFileTo(tvManifest, stageSystemPath, 'manifest.webapp');
+  utils.copyFileTo(tvIndex, stageSystemPath, 'index.html');
+  utils.copyFileTo(tvNetError, stageSystemPath, 'net_error.html');
+
+  // Copy shared files from the new index.html
+  var WebappShared = require('webapp-shared').WebappShared;
+  var shared = new WebappShared();
+  shared.setOptions({
+    config: options,
+    gaia: utils.gaia.getInstance(options),
+    webapp: utils.getWebapp(options.APP_DIR, options)
+  });
+  shared.filterSharedUsage(utils.getFile(tvIndex));
+  shared.filterSharedUsage(utils.getFile(tvNetError));
+};
+
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
+  // TMP until we merge TV and phone system apps
+  if (options.GAIA_DEVICE_TYPE === 'tv') {
+    this.copyTvFolder(options);
+  }
   this.setOptions(options);
   this.initConfigJsons();
   if (this.distDirPath) {

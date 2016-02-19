@@ -1,4 +1,3 @@
-/* jshint nonew: false */
 /* global AppWindow */
 'use strict';
 
@@ -279,6 +278,15 @@ suite('AppWindow', () => {
         }];
         appWindow.handleEvent(new CustomEvent('hashchange'));
         appWindow.pages.dialogs = realDialogs;
+      });
+
+      test('should close groups', () => {
+        var closeGroupStub = sinon.stub(appWindow.apps, 'closeOpenGroup');
+        appWindow.apps.openGroup = 'abc';
+        appWindow.handleEvent(new CustomEvent('hashchange'));
+        assert.isTrue(closeGroupStub.calledOnce);
+        appWindow.apps.openGroup = null;
+        closeGroupStub.restore();
       });
 
       test('should exit edit mode', () => {

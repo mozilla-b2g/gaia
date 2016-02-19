@@ -1,4 +1,4 @@
-tv_apps/smart-system
+apps/system
 tv_apps/smart-settings
 tv_apps/smart-home
 tv_apps/browser
@@ -15,6 +15,7 @@ tv_apps/remote-control
 tv_apps/remote-control-client
 tv_apps/fling-tutorial
 tv_apps/tv-ftu
+tv_apps/webapps
 apps/sync
 apps/keyboard
 outoftree_apps/*
