@@ -106,6 +106,16 @@ System.prototype = {
     element.sendKeys(this.Keys[key]);
   },
 
+  contextMenu: function(element) {
+    element.scriptWith(function(el) {
+      var contextmenuEvent = new MouseEvent('mouseup', {
+        button: 2,
+        target: el.parentNode
+      });
+      el.dispatchEvent(contextmenuEvent);
+    });
+  },
+
   getAppWindows: function() {
     return this.client.findElements(System.Selector.appWindow);
   },
@@ -386,6 +396,17 @@ System.prototype = {
 
   getAppIframe: function(url) {
     var iframe = this.client.findElement('iframe[src*="' + url + '"]');
+
+    iframe.ariaDisplayed = function() {
+      return this.getAttribute('aria-hidden') !== 'true';
+    };
+
+    return iframe;
+  },
+
+  getAppIframeByOrigin: function(origin) {
+    var selector = 'iframe[data-frame-origin="' + origin + '"]';
+    var iframe = this.client.findElement(selector);
 
     iframe.ariaDisplayed = function() {
       return this.getAttribute('aria-hidden') !== 'true';

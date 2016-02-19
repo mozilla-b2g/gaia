@@ -1612,7 +1612,7 @@ var Awesomescreen = {
       }else{
         Browser.switchCursorMode(true);
         Browser.switchCursorMode(false);
-        Awesomescreen.selectList.focus();
+        Awesomescreen.selectList && Awesomescreen.selectList.focus();
       }
     } else {
       Browser.switchCursorMode(true);
