@@ -31,6 +31,7 @@
   ];
   FtuLauncher.SETTINGS = [
     'ftu.manifestURL',
+    'tour.manifestURL',
     'latecustomization.url'
   ];
   FtuLauncher.SUB_MODULES = [];

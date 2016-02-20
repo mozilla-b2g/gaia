@@ -49,7 +49,7 @@ apps/ftu/style/overlay.css 0 1
 apps/ftu/style/responsive.css 1 0
 apps/ftu/style/status.css 0 1
 apps/ftu/style/style.css 15 10
-apps/ftu/style/tutorial.css 0 1
+apps/tour/style/style.css 0 1
 apps/gallery/style/gallery.css 0 7
 apps/gallery/style/gallery_tablet.css 0 4
 apps/gallery/style/info.css 0 2

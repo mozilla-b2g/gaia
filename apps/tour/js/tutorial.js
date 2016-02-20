@@ -1,12 +1,9 @@
-/* global ScreenLayout, Promise,
-          Utils, FinishScreen, LazyLoader, TutorialUtils */
+/* global Promise,
+          Utils, TutorialUtils */
 /* exported Tutorial */
 
 (function(exports) {
   'use strict';
-
-  // default layout
-  var currentLayout = 'tiny';
 
   // Most used DOM elements
   var dom = {};
@@ -21,13 +18,23 @@
     'tutorial-step-media',
     'tutorial-step-image',
     'tutorial-step-video',
+    'tutorial-finish',
+    'tutorial-finished-btn',
     'forward-tutorial',
-    'back-tutorial'
+    'back-tutorial',
+    'enjoyYourPhone',
+    'enjoyYourPhoneUpdated'
   ];
 
-  var Tutorial = {
+  function Tutorial() {
+    this.config = null;
+    this._stepsConfig = null;
+  }
+  Tutorial.prototype = {
     // A configuration object.
     config: null,
+
+    currentLayout: 'tiny',
 
     // Config for the current tutorial steps
     _stepsConfig: {},
@@ -42,33 +49,38 @@
     _initialized: false,
 
     /**
-     * Initialize the tutorial. This is async as a config file must be loaded.
-     * A Sequence (array of sync or async functions) is used to manage the init
-     * tasks.
-     * When complete, the tutorial is ready to be shown via the 'start' method
-     *
+     * Initialize the tutorial
      * @param {String} stepsKey a key into the tutorial config object, i
      *                          i.e. a version or version delta like 1.3..2.0
-     * @param {Function} onLoaded  optional callback for when init is complete
      * @memberof Tutorial
     */
-    init: function(stepsKey, onLoaded) {
-      // init is async
-      // need to load config, then load the first step and its assets.
-      if (this._initialized || this._initialization) {
+    init: function(launchContext, config) {
+      if (this._initialized) {
         // init already underway
         return;
       }
+      this.launchContext = launchContext || {};
+      console.log('init, got config: ', config);
+      console.log('init, got launchContext: ', JSON.stringify(launchContext));
+      this.config = config;
+      var stepsKey = this.launchContext.stepsKey;
+      if (!stepsKey) {
+        // try to build a config key from previous/current upgrade params
+        // trim back to major.minor
+        var upgradeFrom = (this.launchContext.upgradeFrom || '')
+                          .replace(/(\d+\.\d+).*/, '$1');
+        var upgradeTo = (this.launchContext.upgradeTo || '')
+                          .replace(/(\d+\.\d+).*/, '$1');
+        if (upgradeFrom && upgradeTo) {
+          stepsKey = upgradeFrom + '..' + upgradeTo;
+          console.log('build stepsKey: ' + stepsKey);
+        }
+      }
+      this._stepsKey = stepsKey || 'default';
+      this._stepsConfig = this.config[this._stepsKey] || this.config['default'];
 
-      var initTasks = this._initialization = new TutorialUtils.Sequence(
-        // config should load or already be loaded.
-        // failure should abort
-        this.loadConfig.bind(this),
-        this._initWithConfig.bind(this, stepsKey)
-      );
-      initTasks.onabort = this._onAbortInitialization.bind(this);
-      initTasks.oncomplete =
-        this._onCompleteInitialization.bind(this, onLoaded);
+      // Set the first step
+      this._currentStep = 1;
 
       // first time here: cache DOM elements
       elementIDs.forEach(function(name) {
@@ -78,7 +90,9 @@
         }
       }, this);
 
-      initTasks.next();
+      // Add event listeners
+      dom.forwardTutorial.addEventListener('click', this);
+      dom.backTutorial.addEventListener('click', this);
 
       // watch a ton of video events as context for the tutorial
       // media loading/playing
@@ -118,13 +132,14 @@
         }
       };
       mediaEvents.forEach(name => {
-        dom.tutorialStepVideo.addEventListener(name, this._debugEventHandler);
+        if (0) {
+          dom.tutorialStepVideo.addEventListener(name, this._debugEventHandler);
+        }
       });
     },
 
     /**
      * Show the tutorial and play the first step
-     * May be called during or after the init process
      * We defer rasing the 'tutorialinitialized' event until this point
      * as it signals the tutorial step content is loaded and displayed
      *
@@ -132,73 +147,14 @@
      * @memberof Tutorial
      */
     start: function(onReady) {
-      var sequence;
-      var initInProgress = false;
-      if (this._initialization) {
-        // init still underway, tack steps onto existing sequence
-        sequence = this._initialization;
-        initInProgress = true;
-      } else {
-        // init already complete, create new sequence
-        this._initialization = sequence = new TutorialUtils.Sequence();
-        sequence.onabort = this._onAbortInitialization.bind(this);
-        sequence.oncomplete =
-          this._onCompleteInitialization.bind(this);
-      }
-      sequence.push(function setInitialStep() {
-        // setStep should return promise given by _loadMedia
-        console.log('TUTORIAL: setInitialStep');
-        return this._setStep();
-      }.bind(this));
+      this._setStep();
 
-      sequence.push(function showTutorialAndFinishInit() {
-        // Show the panel
-        dom.tutorial.classList.add('show');
-        // Custom event that can be used to apply (screen reader) visibility
-        // changes.
-        console.log('TUTORIAL: dispatching tutorialinitialized');
-        window.dispatchEvent(new CustomEvent('tutorialinitialized'));
-      });
-
-      if(typeof onReady === 'function') {
-        sequence.push(onReady);
-      }
-
-      if (!initInProgress) {
-        // init done, starting start sequence
-        sequence.next();
-      }
-    },
-
-    /**
-     * Continue initialization once config data is loaded
-     * Called as a part of the init sequence
-     *
-     * @param {String} stepsKey a key into the tutorial config object, i
-     *                          i.e. a version or version delta like 1.3..2.0
-     * @memberof Tutorial
-     */
-    _initWithConfig: function(stepsKey) {
-      stepsKey = stepsKey || 'default';
-      this._stepsKey = stepsKey;
-      this._stepsConfig = this.config[stepsKey] || this.config['default'];
-
-      // Add event listeners
-      dom.forwardTutorial.addEventListener('click', this);
-      dom.backTutorial.addEventListener('click', this);
-
-      // Set the first step
-      this._currentStep = 1;
-    },
-    _onAbortInitialization: function() {
-      this._initialization = null;
-    },
-    _onCompleteInitialization: function(onReady) {
-      this._initialization = null;
-      this._initialized = true;
-      if(typeof onReady === 'function') {
-        onReady();
-      }
+      // Show the panel
+      dom.tutorial.classList.add('show');
+      // Custom event that can be used to apply (screen reader) visibility
+      // changes.
+      console.log('TUTORIAL: dispatching tutorialinitialized');
+      window.dispatchEvent(new CustomEvent('tutorialinitialized'));
     },
 
     /**
@@ -212,8 +168,9 @@
       value = (typeof value === 'number') ? value : this._currentStep;
       var stepIndex = value - 1;
       if (stepIndex >= this._stepsConfig.steps.length) {
-        return Promise.resolve().then(function() {
-          Tutorial.done();
+        return Promise.resolve().then(() => {
+          console.log('Tutorial done');
+          this.done();
         });
       }
 
@@ -261,10 +218,10 @@
       if (evt.type === 'click') {
         switch(evt.target) {
           case dom.forwardTutorial:
-            this.next(evt);
+            this.goNext(evt);
             break;
           case dom.backTutorial:
-            this.back(evt);
+            this.goBack(evt);
             break;
         }
       }
@@ -274,7 +231,8 @@
      * Advance to the next step in the tutorial
      * @memberof Tutorial
      */
-    next: function() {
+    goNext: function() {
+      console.log('next, step is this._currentStep', this._currentStep);
       return this._setStep(++this._currentStep);
     },
 
@@ -282,7 +240,8 @@
      * Go back to the previous step in the tutorial
      * @memberof Tutorial
      */
-    back: function() {
+    goBack: function() {
+      console.log('back, step is this._currentStep', this._currentStep);
       return this._setStep(--this._currentStep);
     },
 
@@ -291,50 +250,23 @@
      * @memberof Tutorial
      */
     done: function() {
-      var isUpgrade = this._stepsKey && this._stepsKey !== 'default';
-      FinishScreen.init(isUpgrade);
+      this.showFinish();
       dom.tutorial.classList.remove('show');
       dom.tutorialStepVideo.removeAttribute('src');
-      dom.tutorialStepImage.removeAttribute('src');
     },
 
-    /**
-     * Load the config with steps and associated resources for the tutorial
-     * We have different config files for each screen category:
-     * phone is 'tiny', tablet is 'large'
-     * and corresponding tiny.json, large.json
-     *
-     * @returns {Promise}
-     * @memberof Tutorial
-     */
-    loadConfig: function() {
-      if (!this._configPromise) {
-        // Update the value of the layout if needed
-        // 'ScreenLayout' give us 4 different values
-        // tiny: '(max-width: 767px)',
-        // small: '(min-width: 768px) and (max-width: 991px)',
-        // medium: '(min-width: 992px) and (max-width: 1200px)',
-        // large: '(min-width: 1201px)',
-        //
-        // Currently we are taking into account only 'tiny', and we are
-        // going to consider 'tablet' as 'large'. If we want to add more
-        // or specific features for 'small' & 'medium', we should add more
-        // logic here.
+    showFinish: function() {
+      var isUpgrade = this._stepsKey && this._stepsKey !== 'default';
+      dom.tutorialFinish.classList.add('show');
 
-        currentLayout = ScreenLayout.getCurrentLayout() === 'tiny' ?
-                              'tiny' : 'large';
-
-        var configUrl = '/config/' + currentLayout + '.json';
-
-        this._configPromise = LazyLoader.getJSON(configUrl)
-                                        .then(function(json) {
-          Tutorial.config = json;
-          return Tutorial.config;
-        }, function() {
-          return new Error('Tutorial config failed to load from: ' + configUrl);
-        });
+      if (isUpgrade) {
+        dom.enjoyYourPhone.hidden = true;
+        dom.enjoyYourPhoneUpdated.hidden = false;
       }
-      return this._configPromise;
+
+      dom.tutorialFinishedBtn.addEventListener('click', function tourEnd() {
+        window.close();
+      });
     },
 
     /**
@@ -366,7 +298,6 @@
         this._initialization.abort();
         this._initialization = null;
       }
-      this._configPromise = null;
       this._currentStep = 1;
       this._stepsConfig = this.config = null;
       if (this._initialized) {

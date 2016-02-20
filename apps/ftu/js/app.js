@@ -1,5 +1,5 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
-          UIManager, WifiManager, ImportIntegration, Tutorial,
+          UIManager, WifiManager, ImportIntegration,
           VersionHelper, LanguageManager, eventSafety */
 /* exported AppManager */
 'use strict';
@@ -8,12 +8,15 @@ var AppManager = {
   EVENT_PREFIX: 'ftu-',
 
   init: function init(versionInfo) {
+    console.log('AppManager init');
     window.performance.mark('initialize');
     this.isInitialized = true;
+    this.versionInfo = versionInfo;
 
     LanguageManager.init();
     UIManager.init();
     Navigation.init();
+    console.log('/components init');
 
     window.performance.mark('navigationLoaded');
     this.publish('setup');
@@ -23,37 +26,40 @@ var AppManager = {
                                             'transitionend',
                                             splashTimeout).then(() => {
       UIManager.container.removeAttribute('aria-hidden');
+      console.log('splashScreenHidden callback');
       window.performance.mark('visuallyLoaded');
     });
 
-    var languageListReady = this.whenEvent(window, 'languagelistready');
+    var isUpgrade = versionInfo && versionInfo.isUpgrade();
+    if (isUpgrade) {
+      // if it's an upgrade we just show the update screen to launch tutorial
+      splashScreenHidden.then(() => {
+        window.performance.mark('fullyLoaded');
+      });
+      UIManager.changeStatusBarColor(UIManager.DARK_THEME);
+      UIManager.splashScreen.classList.remove('show');
+      var updateScreen = UIManager.updateScreen;
+      console.log('Show the upgrade tutorial');
+      // stash the version info
+      updateScreen.dataset.upgradeFrom = versionInfo.previous.toString();
+      updateScreen.dataset.upgradeTo = versionInfo.current.toString();
 
+      UIManager.activationScreen.classList.remove('show');
+      updateScreen.classList.add('show');
+      return;
+    }
+
+    var languageListReady = this.whenEvent(window, 'languagelistready');
     Promise.all([splashScreenHidden, languageListReady]).then(() => {
       window.performance.mark('fullyLoaded');
     });
-
-    // if it's an upgrade we can jump to tutorial directly
-    if (versionInfo && versionInfo.isUpgrade()) {
-      var stepsKey = versionInfo.delta();
-      // Play the FTU Tuto steps directly on update
-      UIManager.changeStatusBarColor(UIManager.DARK_THEME);
-      UIManager.splashScreen.classList.remove('show');
-      UIManager.activationScreen.classList.remove('show');
-      UIManager.updateScreen.classList.add('show');
-
-      // Load and play the what's new tutorial
-      Tutorial.init(stepsKey, function() {
-        Tutorial.start();
-      });
-      return;
-    }
 
     SimManager.init();
     WifiManager.init();
     ImportIntegration.init();
     TimeManager.init();
     DataMobile.init();
-    Tutorial.init();
+    console.log('2ndary components init');
 
     var kSplashTimeout = 700;
     // Retrieve mobile connection if available
@@ -77,15 +83,18 @@ var AppManager = {
 
     // Do we need pin code after splash screen?
     setTimeout(function() {
+      console.log('kSplashTimeout');
       // TODO Include VIVO SIM Card management
       // https://bugzilla.mozilla.org/show_bug.cgi?id=801269#c6
       Navigation.manageStep();
       UIManager.activationScreen.classList.add('show');
       // Remove the splash
       UIManager.splashScreen.classList.remove('show');
+      console.log('kSplashTimeout, removing show class from splashScreen');
       window.performance.mark('navigationInteractive');
       window.performance.mark('contentInteractive');
     }, kSplashTimeout);
+    console.log('/init');
   },
   whenEvent: function (target, name, timeoutMs) {
     return new Promise((resolve, reject) => {

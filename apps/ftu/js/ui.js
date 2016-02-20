@@ -1,7 +1,7 @@
-/* global utils, tzSelect, FinishScreen,
-          Basket, ConfirmDialog, ScreenLayout,
+/* global MozActivity, utils, tzSelect,
+          Basket, ConfirmDialog,
           DataMobile, SimManager, SdManager,
-          Tutorial, TimeManager, WifiManager,
+          TimeManager, WifiManager,
           WifiUI, WifiHelper, FxAccountsIACHelper, SettingsListener */
 /* exported UIManager */
 'use strict';
@@ -238,35 +238,20 @@ var UIManager = {
           this.invalidEmailErrorDialog.classList.remove('visible');
         }.bind(this));
 
-    var skipTutorialAction = function() {
-      // Stop Wifi Manager
-      WifiManager.finish();
-      // For tiny devices
-      if (ScreenLayout.getCurrentLayout() === 'tiny') {
-        window.close();
-      } else {
-        // for large devices
-        FinishScreen.init();
-      }
-    };
+    this.skipTutorialButton.addEventListener('click', () => {
+      this.skipTutorialAndClose();
+    });
 
-    var startTutorialAction = function(evt) {
-      // Stop Wifi Manager
-      WifiManager.finish();
-
-      // Play the tutorial steps as soon as config is done loading
-      Tutorial.start(function onTutorialLoaded() {
-        UIManager.activationScreen.classList.remove('show');
-        UIManager.updateScreen.classList.remove('show');
-        UIManager.finishScreen.classList.remove('show');
-      });
-    };
-
-    this.skipTutorialButton.addEventListener('click', skipTutorialAction);
-    this.updateSkipTutorialButton.addEventListener('click', skipTutorialAction);
-
-    this.letsGoButton.addEventListener('click', startTutorialAction);
-    this.updateLetsGoButton.addEventListener('click', startTutorialAction);
+    this.letsGoButton.addEventListener('click', () => {
+      this.launchTutorialAndClose();
+    });
+    this.updateLetsGoButton.addEventListener('click', () => {
+      var tourParams = {
+        upgradeFrom: this.updateScreen.dataset.upgradeFrom,
+        upgradeTo: this.updateScreen.dataset.upgradeTo
+      };
+      this.launchTutorialAndClose(tourParams);
+    });
 
     // Enable saving metrics level choice to settings.
     this.metricsBasic.addEventListener('change', this);
@@ -278,8 +263,7 @@ var UIManager = {
 
     // Handle activation screen visibility.
     ['confirmdialogshowing',
-     'loadingoverlayshowing',
-     'tutorialinitialized'].forEach(function(event) {
+     'loadingoverlayshowing'].forEach(function(event) {
       window.addEventListener(event,
         this.hideActivationScreenFromScreenReader.bind(this));
     }, this);
@@ -639,6 +623,29 @@ var UIManager = {
   changeStatusBarColor: function ui_csbc(color) {
     var themeMeta = document.head.querySelector('meta[name="theme-color"]');
     themeMeta.setAttribute('content', color);
+  },
+
+  launchTutorialAndClose: function(activityParams={}) {
+    // Stop Wifi Manager
+    WifiManager.finish();
+
+    console.log('launchTutorialAndClose, launching tour activity');
+    var tour = new MozActivity({
+      name: 'tour',
+      // Pass along any particulars to the tour app
+      data: activityParams
+    });
+    tour.onsuccess = tour.onerror = () => {
+      if (tour.error) {
+        console.warn('Error launching tour activity', tour.error);
+      }
+      window.close();
+    };
+  },
+
+  skipTutorialAndClose: function() {
+    WifiManager.finish();
+    window.close();
   }
 
 };
