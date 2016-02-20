@@ -3677,6 +3677,8 @@ var Properties = {
     },
     "border-image-source"           : "<image> | none",
     "border-image-width"            : { multi: "<length> | <percentage> | <number> | auto", max: 4 },
+    "border-inline-start"           : "<border-width> || <border-style> || <color>",
+    "border-inline-end"             : "<border-width> || <border-style> || <color>",
     "border-left"                   : "<border-width> || <border-style> || <color>",
     "border-left-color"             : "<color> | inherit",
     "border-left-style"             : "<border-style>",
@@ -3860,6 +3862,8 @@ var Properties = {
     //M
     "margin"                        : { multi: "<margin-width> | inherit", max: 4 },
     "margin-bottom"                 : "<margin-width> | inherit",
+    "margin-inline-start"           : "<margin-width> | inherit",
+    "margin-inline-end"             : "<margin-width> | inherit",
     "margin-left"                   : "<margin-width> | inherit",
     "margin-right"                  : "<margin-width> | inherit",
     "margin-top"                    : "<margin-width> | inherit",
@@ -3885,6 +3889,8 @@ var Properties = {
     "nav-up"                        : 1,
     
     //O
+    "offset-inline-start"           : "<margin-width> | inherit",
+    "offset-inline-end"             : "<margin-width> | inherit",
     "opacity"                       : "<number> | inherit",
     "orphans"                       : "<integer> | inherit",
     "outline"                       : 1,
@@ -3900,6 +3906,8 @@ var Properties = {
     //P
     "padding"                       : { multi: "<padding-width> | inherit", max: 4 },
     "padding-bottom"                : "<padding-width> | inherit",
+    "padding-inline-start"          : "<padding-width> | inherit",
+    "padding-inline-end"            : "<padding-width> | inherit",
     "padding-left"                  : "<padding-width> | inherit",
     "padding-right"                 : "<padding-width> | inherit",
     "padding-top"                   : "<padding-width> | inherit",
@@ -3951,6 +3959,7 @@ var Properties = {
     "stress"                        : 1,
     "string-set"                    : 1,
     
+    //T
     "table-layout"                  : "auto | fixed | inherit",
     "tab-size"                      : "<integer> | <length>",
     "target"                        : 1,
