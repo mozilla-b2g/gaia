@@ -3,7 +3,8 @@ Keyboards.uk = {
   shortLabel: 'Uk',
   menuLabel: 'Українська',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
+  autoCorrectLanguage: 'uk',
   basicLayoutKey: 'АБВ',
   lang: 'uk',
   pages: [ {    //default page
