@@ -96,6 +96,9 @@ module.exports = {
   },
 
   getFileContent: function(file, type) {
+    if (typeof file === 'string') {
+      file = this.getFile(file);
+    }
     if (file.exists() && file.isFile()) {
       return fs.readFileSync(file.path, { encoding: type || 'utf8' });
     }
