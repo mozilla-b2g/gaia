@@ -42,7 +42,7 @@
     this.iframe.focus();
 
     this.container.element.addEventListener('_closed', this);
-    this.element.addEventListener('_opened', this);
+    this.element.addEventListener('_loaded', this);
     this.element.addEventListener('_willdestroy', this);
   };
 
@@ -118,7 +118,8 @@
     }
   };
 
-  PreviewWindow.prototype._handle__opened = function(evt) {
+  PreviewWindow.prototype._handle__loaded = function(evt) {
+    this.element.removeEventListener('_loaded', this);
     var showPreviewHint = function() {
       window.interactiveNotifications.showNotification(
         window.InteractiveNotifications.TYPE.NORMAL, {
