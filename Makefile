@@ -1016,8 +1016,8 @@ eslint: node_modules/.bin/eslint
 	@./node_modules/.bin/eslint --ignore-path build/eslint/xfail.list.tmp -f compact -c .eslintrc $(JSHINTED_PATH) $(LINTED_FILES)
 	rm build/eslint/xfail.list.tmp
 
-csslint: b2g_sdk
-	@$(call $(BUILD_RUNNER),csslint)
+csslint: b2g_sdk node_modules
+	@$(call run-node-command,csslint)
 
 jsonlint: b2g_sdk
 	@$(call run-node-command,jsonlint)
