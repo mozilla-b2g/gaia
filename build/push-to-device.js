@@ -227,14 +227,13 @@ function execute(options) {
         utils.log(JOB_NAME, 'Restarting B2G...');
         sh.run(['-c', adb + ' shell start b2g']);
       } else {
-        var manifest;
         return Promise.resolve()
           .then(function() {
-          // Some app folder name is different with the process name,
-          // ex. sms -> Messages
-            manifest = utils.readZipManifest(utils.getFile(targetFolder));
-          })
-          .then(function() {
+            // Some app folder name is different with the process name,
+            // ex. sms -> Messages
+            var zip = utils.getZip();
+            zip.load(targetFolder);
+            var manifest = JSON.parse(zip.file('manifest.webapp'));
             utils.log(JOB_NAME, 'Restarting ' + manifest.name + '...');
             utils.killAppByPid(manifest.name, gaiaDir);
           });

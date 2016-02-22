@@ -20,7 +20,8 @@ WebappZip.prototype.setOptions = function(options) {
   var targetAppFolder = utils.getFile(options.webapp.profileDirectoryFilePath);
   utils.ensureFolderExists(targetAppFolder);
   this.zipPath = utils.joinPath(targetAppFolder.path, 'application.zip');
-  this.zipFile = utils.createZip(this.zipPath);
+  this.zipFile = utils.getZip();
+  this.zipFile.load(this.zipPath, 'write');
 };
 
 WebappZip.prototype.getCompression = function(pathInZip) {
@@ -28,14 +29,12 @@ WebappZip.prototype.getCompression = function(pathInZip) {
   if (webapp.metaData && webapp.metaData.external === false &&
     webapp.metaData.zip && webapp.metaData.zip.mmap_files &&
     webapp.metaData.zip.mmap_files.indexOf(pathInZip) !== -1) {
-    return utils.getCompression('none');
+    return 'STORE';
   } else {
     // Don't store some files compressed since that's not giving us any
     // benefit but costs cpu when reading from the zip.
     var ext = pathInZip.split('.').reverse()[0].toLowerCase();
-    return (['jpg', 'jpeg'].indexOf(ext) !== -1) ?
-      utils.getCompression('none') :
-      utils.getCompression('best');
+    return (['jpg', 'jpeg'].indexOf(ext) !== -1) ? 'STORE' : 'DEFLATE';
   }
 };
 
@@ -149,14 +148,14 @@ WebappZip.prototype.addToZip = function(file) {
       var l10nFile = utils.getFile(file.path + '.' +
         this.options.GAIA_DEFAULT_LOCALE);
       if (l10nFile.exists()) {
-        utils.addFileToZip(zip, pathInZip, l10nFile, compression);
+        zip.file(pathInZip, l10nFile, { compression: compression });
         return;
       }
     }
 
     var re = new RegExp('\\.html\\.' + this.options.GAIA_DEFAULT_LOCALE);
-    if (!utils.hasFileInZip(zip, pathInZip) && !re.test(file.leafName)) {
-      utils.addFileToZip(zip, pathInZip, file, compression);
+    if (!zip.file(pathInZip) && !re.test(file.leafName)) {
+      zip.file(pathInZip, file, { compression: compression });
     }
   }
 };
@@ -179,7 +178,7 @@ WebappZip.prototype.execute = function(options) {
   var buildDir = utils.getFile(options.webapp.buildDirectoryFilePath);
   utils.ls(buildDir, true).forEach(this.addToZip.bind(this));
 
-  utils.closeZip(this.zipFile, this.zipPath);
+  this.zipFile.close();
 };
 
 function execute(options) {

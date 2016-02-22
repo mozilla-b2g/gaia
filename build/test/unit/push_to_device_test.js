@@ -131,9 +131,14 @@ suite('push-to-device.js', function() {
           path: options.PROFILE_DIR
         };
       };
-      mockUtils.readZipManifest = function() {
+      mockUtils.getZip = function() {
         return {
-          name: options.BUILD_APP_NAME
+          load: function() {},
+          file: function() {
+            return JSON.stringify({
+              name: options.BUILD_APP_NAME
+            });
+          }
         };
       };
     });
