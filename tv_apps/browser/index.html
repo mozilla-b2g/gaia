@@ -31,7 +31,9 @@
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
 <!--IFDEF_FIREFOX_SYNC
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="shared/locales/firefox_sync/firefox_sync.{locale}.properties">
+    <link rel="stylesheet" type="text/css" href="style/tabList.css">
 ENDIF_FIREFOX_SYNC-->
     <link rel="localization" href="/locales/browser.{locale}.properties">
 
@@ -52,6 +54,7 @@ ENDIF_FIREFOX_SYNC-->
     <script defer src="js/browser_db.js"></script>
 <!--IFDEF_FIREFOX_SYNC
     <script defer src="js/sync/db.js"></script>
+    <script defer src="js/sync/tabNavigation.js"></script>
 ENDIF_FIREFOX_SYNC-->
     <script defer src="js/index.js"></script>
     <script defer src="js/awesomescreen.js"></script>
@@ -541,22 +544,45 @@ ENDIF_FIREFOX_SYNC-->
             </ul>
           </div>
         </section>
-        <section id="top-sites">
-          <div id="top-default-panels">
-            <ul id="top-default-list">
-              <li id="default-top-list-0" class="top-default-item"></li>
-              <li id="default-top-list-1" class="top-default-item"></li>
-              <li id="default-top-list-2" class="top-default-item"></li>
-              <li id="default-top-list-3" class="top-default-item"></li>
-              <li id="default-top-list-4" class="top-default-item"></li>
-              <li id="default-top-list-5" class="top-default-item"></li>
-              <li id="default-top-list-6" class="top-default-item"></li>
-              <li id="default-top-list-7" class="top-default-item"></li>
-              <li id="default-top-list-8" class="top-default-item"></li>
+        <section id="default-content-view">
+          <nav class="tab-navigation">
+            <ul>
+              <li class="tab-option active" data-l10n-id="top-sites-tab" data-content="top-sites" tabindex="0"></li>
+<!--IFDEF_FIREFOX_SYNC
+              <li id="sync-tab-option" class="tab-option" data-l10n-id="fxsync-tab-sync" data-content="tab-sync" tabindex="0" hidden></li>
+ENDIF_FIREFOX_SYNC-->
             </ul>
-          </div>
-          <div id="top-panels">
-            <ul id="top-site-list" role="listbox"></ul>
+          </nav>
+          <div class="tab-content-container">
+            <section id="top-sites" class="tab-content show" data-content="top-sites">
+              <div id="top-default-panels">
+                <ul id="top-default-list">
+                  <li id="default-top-list-0" class="top-default-item"></li>
+                  <li id="default-top-list-1" class="top-default-item"></li>
+                  <li id="default-top-list-2" class="top-default-item"></li>
+                  <li id="default-top-list-3" class="top-default-item"></li>
+                  <li id="default-top-list-4" class="top-default-item"></li>
+                  <li id="default-top-list-5" class="top-default-item"></li>
+                  <li id="default-top-list-6" class="top-default-item"></li>
+                  <li id="default-top-list-7" class="top-default-item"></li>
+                  <li id="default-top-list-8" class="top-default-item"></li>
+                </ul>
+              </div>
+              <div id="top-panels">
+                <ul id="top-site-list" role="listbox"></ul>
+              </div>
+            </section>
+<!--IFDEF_FIREFOX_SYNC
+            <section id="sync-tab-content" class="tab-content" data-content="tab-sync">
+              <div class="tab-list-container" hidden>
+                <ul class="tab-list-view"></ul>
+              </div>
+              <div class="no-tabs-view">
+                <div class="no-tabs-view-icon"></div>
+                <p class="no-tabs-view-text" data-l10n-id="fxsync-tab-sync-no-tabs"></p>
+              </div>
+            </section>
+ENDIF_FIREFOX_SYNC-->
           </div>
         </section>
         <!-- awesomescreen bookamrk,history-->

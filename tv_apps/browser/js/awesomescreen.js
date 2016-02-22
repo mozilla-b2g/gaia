@@ -1,6 +1,9 @@
 /* globals Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
 /* globals SmartList, BookmarkStore, HistoryStore */
-
+//IFDEF_FIREFOX_SYNC
+/* globals FirefoxSyncTabNavigation */
+/* globals FirefoxSyncTabList */
+//ENDIF_FIREFOX_SYNC
 
 /* exported Awesomescreen */
 
@@ -49,6 +52,7 @@ var Awesomescreen = {
   objectURLs: [],
   tabList: null,
   finalDispTabId: null,
+  topSites: null,
   topSiteList: null,
   selectList:null,
   selectMenu:null,
@@ -60,6 +64,7 @@ var Awesomescreen = {
   clickTabActFlg:false,
   bookmarkList: null,
   historyList: null,
+  defaultContentView: null,
   /**
    * Initialise Awesomescreen.
    */
@@ -144,6 +149,10 @@ var Awesomescreen = {
     this.privateBrowsingBlock.addEventListener('mouseup',
         this.handlePrivateBrowsingBlockMouseUp.bind(this));
 
+    // handle tab navigation click
+    this.defaultContentView.querySelector('.tab-navigation')
+      .addEventListener('mouseup', this.handleTabNavigationMouseup.bind(this));
+
     // init BookmarkStore
     BookmarkStore.init();
 
@@ -195,9 +204,21 @@ var Awesomescreen = {
     return this.awesomescreen.classList.contains('awesomescreen-screen-tab');
   },
 
-  isDisplayedTop: function awesomescreen_isDisplayed() {
-    return this.awesomescreen.classList.contains('awesomescreen-screen-top');
+  isDisplayedDefault: function awesomescreen_isDisplayed() {
+    return this.defaultContentView.classList.contains('show');
   },
+
+  isDisplayedTop: function awesomescreen_isDisplayedTop() {
+    return this.isDisplayedDefault() &&
+      this.topSites.classList.contains('show');
+  },
+
+//IFDEF_FIREFOX_SYNC
+  isDisplayedSyncTab: function awesomescreen_isDisplayedSyncTab() {
+    return this.isDisplayedDefault() &&
+      FirefoxSyncTabNavigation.isTabNavigationOptionActive();
+  },
+//ENDIF_FIREFOX_SYNC
 
   isDisplayedDialog: function awesomescreen_isDisplayed() {
     return this.awesomescreen.classList.contains('awesomescreen-screen-dialog');
@@ -252,8 +273,8 @@ var Awesomescreen = {
     if(this.isDisplayedDialog()){
       this.dialogHidden();
     }
-    if(this.isDisplayedTop()){
-      this.topsiteHidden();
+    if(this.isDisplayedDefault()) {
+      this.defaultContentViewHidden();
     }
     if(this.isDisplayedTab()){
       this.tabviewHidden();
@@ -287,7 +308,7 @@ var Awesomescreen = {
     'awesomescreen', 'dialog-banner-message' , 'bmd-dialog',
     'dialog-area', 'tabview-panels', 'top-site-list', 'top-panels',
     'private-browsing-block', 'top-default-list', 'awesome-loading-icon',
-    'remove-bookmark-button', 'text-area'];
+    'remove-bookmark-button', 'text-area', 'default-content-view'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -446,7 +467,6 @@ var Awesomescreen = {
       Settings.getDefaultHomepage(this.defaultTopsite.bind(this));
       return;
     }
-    this.topSites.style.opacity = '0';
     this.topSiteList.innerHTML = '';
 
     //Get the 'container, ul' element
@@ -458,7 +478,7 @@ var Awesomescreen = {
     }, this);
 
     this.topPanels.appendChild(list);
-    this.topsiteShow();
+    this.defaultContentViewShow();
   },
 
   /**
@@ -510,7 +530,7 @@ var Awesomescreen = {
             if(Awesomescreen.isDisplayedTab()) {
               Awesomescreen.tabviewHidden();
             }
-            Awesomescreen.topsiteHidden();
+            Awesomescreen.defaultContentViewHidden();
 
             break;
           case 2:  //right click
@@ -550,44 +570,6 @@ var Awesomescreen = {
     evt.target.childNodes[0]
       .addEventListener('transitionend', click_top_action, false);
     evt.target.classList.add('active');
-  },
-
-  /**
-   * topsite show.
-   */
-  topsiteShow: function awesomescreen_topsiteShow() {
-    if( Browser.currentInfo ) {
-      if( Browser.currentInfo.url ) {
-        Browser.debug('stopped for TopSites display...');
-        this.topsiteHidden(true);
-        Browser.switchCursorMode(true);
-        return;
-      }
-    }
-    this.showAwesomescreen();
-    this.awesomescreen.classList.add('awesomescreen-screen-top');
-    this.topSites.style.display = 'block';
-    this.topSites.style.opacity = '1';
-    if(this.isDisplayedTab() || window.FTE){
-       Browser.switchCursorMode(false);
-    }else{
-       Browser.switchCursorMode(true);
-    }
-  },
-
-  /**
-   * topsite hidden.
-   */
-  topsiteHidden: function awesomescreen_topsiteHidden(type) {
-    if(!this.isDisplayedTab()) {
-      this.hideAwesomescreen();
-    }
-    this.awesomescreen.classList.remove('awesomescreen-screen-top');
-    Awesomescreen.topSites.style.display = 'none';
-    this.topSites.style.opacity = '0';
-    Toolbar.setToolbarMode('normal');
-
-    this.privateBrowsingBlock.classList.remove('visible');
   },
 
   /**
@@ -1590,7 +1572,7 @@ var Awesomescreen = {
       Awesomescreen.dialogArea.style.display = 'none';
     }
     if( (!(Awesomescreen.isDisplayedList())) &&
-      (!Awesomescreen.isDisplayedTop()) ) {
+      !Awesomescreen.isDisplayedDefault() ) {
          this.hideAwesomescreen();
     }
 
@@ -1603,7 +1585,7 @@ var Awesomescreen = {
 
     //And release the focus of active elements
     if( Awesomescreen.isDisplayed() ) {
-      if(Awesomescreen.isDisplayedTop() ){
+      if(Awesomescreen.isDisplayedDefault() ){
         if(Awesomescreen.isDisplayedList() ){
           Browser.switchCursorMode(false);
         }else{
@@ -1744,7 +1726,7 @@ var Awesomescreen = {
       widthScreenshot = this.PTH_THUMBNAIL_WIDTH_FULL;
     }
 
-    if( (this.isDisplayedList()) || (this.isDisplayedTop()) ){
+    if( (this.isDisplayedList()) || (this.isDisplayedDefault()) ){
       title = this.pintohomeTitle;
     }
 
@@ -1986,13 +1968,13 @@ var Awesomescreen = {
    */
   tabviewHidden:function awesomescreen_tabviewHidden() {
     Awesomescreen.hidePointerImg();
-    if(!(Awesomescreen.isDisplayedTop())){
+    if(!(Awesomescreen.isDisplayedDefault())){
       Awesomescreen.hideAwesomescreen();
     }
     Awesomescreen.awesomescreen.classList.remove('awesomescreen-screen-tab');
     document.activeElement.blur();
     if( Awesomescreen.isDisplayed() ) {
-      if(Awesomescreen.isDisplayedTop()){
+      if(Awesomescreen.isDisplayedDefault()){
         Browser.switchCursorMode(true);
       }else{
         Browser.switchCursorMode(false);
@@ -2140,6 +2122,7 @@ var Awesomescreen = {
       if(this.isDisplayedTab()){
         this.tabviewHidden();
       }
+      this.restoreDefaultContentView();
       this.selectTopSites();
   },
 
@@ -2209,8 +2192,8 @@ var Awesomescreen = {
           }
           Browser.switchVisibility(Browser.info[tabIds[i]], true);
           this.finalDispTabId = Browser.info[tabIds[i]].id;
-          if(this.isDisplayedTop()){
-            this.topsiteHidden();
+          if(this.isDisplayedDefault()){
+            this.defaultContentViewHidden();
           }
         }else{
           Browser.switchVisibility(Browser.info[tabIds[i]], true);
@@ -2458,8 +2441,8 @@ var Awesomescreen = {
     if(topsiteViewflg){
       this.selectTopSites();
     }else{
-      if(this.isDisplayedTop()) {
-        this.topsiteHidden();
+      if(this.isDisplayedDefault()) {
+        this.defaultContentViewHidden();
       }
     }
     //Tab I close the tabview if 1
@@ -2625,9 +2608,9 @@ var Awesomescreen = {
             // close tabview
             Awesomescreen.tabviewHidden();
             break;
-          case Awesomescreen.isDisplayedTop() :
+          case Awesomescreen.isDisplayedDefault() :
             // close topsite
-            this.topsiteReturnFunc();
+            this.defaultContentViewReturnFunc();
             break;
           default:
             break;
@@ -2700,6 +2683,12 @@ var Awesomescreen = {
               Awesomescreen.tabviewKeyCont(ev);
             }
             break;
+//IFDEF_FIREFOX_SYNC
+          case Awesomescreen.isDisplayedSyncTab():
+            FirefoxSyncTabList.focusCurrentItem();
+            ev.preventDefault();
+            break;
+//ENDIF_FIREFOX_SYNC
           default:
             break;
         }
@@ -2746,7 +2735,7 @@ var Awesomescreen = {
    * goBack,return key Event.
    * @param {ev} key event.
    */
-  topsiteReturnFunc: function awesomescreen_topsiteReturnFunc() {
+  defaultContentViewReturnFunc: function awesomescreen_topsiteReturnFunc() {
     if((Browser.info[Awesomescreen.finalDispTabId]) &&
       (Browser.info[Awesomescreen.finalDispTabId].url)) {
       var tabCount = Object.keys(Browser.info).length;
@@ -2763,7 +2752,7 @@ var Awesomescreen = {
       Browser.switchVisibility(Browser.info[Awesomescreen.finalDispTabId],true);
       Browser.selectInfo(Awesomescreen.finalDispTabId);
       Browser.refreshBookmarkButton();
-      this.topsiteHidden();
+      this.defaultContentViewHidden();
     }else{
       document.l10n.formatValue('LT_BROWSER_CONFIRM_EXIT2').then(result => {
         if (window.confirm(result)) {
@@ -3155,7 +3144,7 @@ var Awesomescreen = {
     );
 
     el.addEventListener('close', (function(e) {
-      if(!this.isDisplayedTop()) {
+      if(!this.isDisplayedDefault()) {
         this.hideAwesomescreen();
       }
     }).bind(this));
@@ -3214,5 +3203,82 @@ var Awesomescreen = {
         list.addItem.bind(list, detail.listIndex)
       );
     }).bind(this));
+  },
+
+  /**
+   * defaultContentView show.
+   */
+  defaultContentViewShow: function awesomescreen_defaultContentViewShow() {
+    if( Browser.currentInfo ) {
+      if( Browser.currentInfo.url ) {
+        Browser.debug('stopped for TopSites display...');
+        this.defaultContentViewHidden();
+        Browser.switchCursorMode(true);
+        return;
+      }
+    }
+    this.showAwesomescreen();
+    this.defaultContentView.classList.add('show');
+    if(this.isDisplayedTab() || window.FTE){
+       Browser.switchCursorMode(false);
+    }else{
+       Browser.switchCursorMode(true);
+    }
+  },
+
+  /**
+   * defaultContentView hidden.
+   */
+  defaultContentViewHidden: function awesomescreen_defaultContentViewHidden() {
+    if(!this.isDisplayedTab()) {
+      this.hideAwesomescreen();
+    }
+    this.defaultContentView.classList.remove('show');
+    Toolbar.setToolbarMode('normal');
+    this.privateBrowsingBlock.classList.remove('visible');
+  },
+
+  /**
+   * defaultContentView restore.
+   */
+  restoreDefaultContentView:
+    function awesomescreen_restoreDefaultContentView() {
+    var defaultTabOptionEl =
+      this.defaultContentView.querySelector('.tab-option');
+    this.changeTabContent(defaultTabOptionEl);
+
+//IFDEF_FIREFOX_SYNC
+    FirefoxSyncTabList.restoreListView();
+//ENDIF_FIREFOX_SYNC
+  },
+
+  /**
+   * handle tab navigation mouseup.
+   */
+  handleTabNavigationMouseup:
+    function awesomescreen_handleTabNavigationMouseup(e) {
+    var targetEl = e.target;
+    if (targetEl.classList.contains('tab-option')) {
+      this.changeTabContent(targetEl);
+    }
+  },
+
+  /**
+   * change tab content by tabOption.
+   */
+  changeTabContent: function awesomescreen_changeTabContent(tabOptionEl) {
+    if (!tabOptionEl.classList.contains('active')) {
+      let dataContent = tabOptionEl.getAttribute('data-content');
+
+      this.defaultContentView
+        .querySelector('.tab-option.active').classList.remove('active');
+      this.defaultContentView
+        .querySelector('.tab-content.show').classList.remove('show');
+
+      tabOptionEl.classList.add('active');
+      this.defaultContentView
+        .querySelector('.tab-content[data-content="' + dataContent +'"]')
+        .classList.add('show');
+    }
   }
 };
