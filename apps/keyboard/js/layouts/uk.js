@@ -11,14 +11,15 @@ Keyboards.uk = {
     alt: {
       а: '@',
       г: 'ґ',
+      і: 'ї',
       '.': ',?!;:…’'
     },
-    width: 12,
+    width: 11,
     keys: [
       [
         { value: 'й' }, { value: 'ц' }, { value: 'у' }, { value: 'к' },
         { value: 'е' }, { value: 'н' }, { value: 'г' }, { value: 'ш' },
-        { value: 'щ' }, { value: 'з' }, { value: 'х' }, { value: 'ї' }
+        { value: 'щ' }, { value: 'з' }, { value: 'х' }
       ], [
         { value: 'ф' }, { value: 'і' }, { value: 'в' }, { value: 'а' },
         { value: 'п' }, { value: 'р' }, { value: 'о' }, { value: 'л' },
