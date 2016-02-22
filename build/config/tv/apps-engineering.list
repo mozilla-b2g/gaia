@@ -10,6 +10,7 @@ tv_apps/dashboard
 tv_apps/dlna-player
 tv_apps/fling-player
 tv_apps/notification-receiver
+tv_apps/notification-sender
 tv_apps/weather-widget
 tv_apps/remote-control
 tv_apps/remote-control-client
