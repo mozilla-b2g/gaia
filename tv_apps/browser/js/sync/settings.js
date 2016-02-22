@@ -164,6 +164,11 @@
         throw new Error('Missing sync state');
       }
       switch (message.state) {
+        case 'disabling':
+          if (message.error === 'fxsync-error-dialog-closed-by-user') {
+            Settings.hide();
+          }
+          break;
         case 'disabled':
           // We want to show a dialog once Sync is disabled
           // but we only want to do that if it's disabled via user action
