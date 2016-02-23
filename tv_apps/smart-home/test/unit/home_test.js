@@ -1,5 +1,5 @@
 'use strict';
-/* global Folder, navigator, MockL10n, document, MocksHelper,
+/* global Folder, MockL10n, document, MocksHelper,
    XScrollable, MozActivity, SpatialNavigator, CardManager, MessageHandler,
    Home, SearchBar, FilterManager, Edit, Utils, Application, MockMozActivity,
    FTEWizard */
@@ -26,7 +26,7 @@ require('mock_filter_manager.js');
 require('/shared/test/unit/mocks/smart-screen/mock_spatial_navigator.js');
 require('/shared/test/unit/mocks/smart-screen/mock_key_navigation_adapter.js');
 require('/shared/test/unit/mocks/smart-screen/mock_f_t_e_wizard.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/tv_apps/smart-home/js/home.js');
@@ -48,7 +48,7 @@ var mocksHelperForHomeTest = new MocksHelper([
 ]).init();
 
 suite('home', function() {
-  var realL10n = navigator.mozL10n;
+  var realL10n = document.l10n;
   var realMozActivity = window.MozActivity;
   var searchButton, settingsButton, editButton, timeElem;
   var filterTabGroup, filterAllButton;
@@ -58,8 +58,8 @@ suite('home', function() {
   mocksHelperForHomeTest.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     searchButton = document.createElement('button');
     searchButton.id = 'search-button';
@@ -89,7 +89,7 @@ suite('home', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     document.body.removeChild(searchButton);
     document.body.removeChild(settingsButton);
     document.body.removeChild(editButton);
@@ -118,6 +118,16 @@ suite('home', function() {
 
     fakeTimer = this.sinon.useFakeTimers();
     window.MozActivity = MockMozActivity;
+
+    if (!Intl.DateTimeFormat.prototype.formatToParts) {
+      Intl.DateTimeFormat.prototype.formatToParts = function(now) {
+        return [
+          {type: 'hour', value: '12'},
+          {type: 'minute', value: '25'},
+          {type: 'dayperiod', value: 'AM'}
+        ];
+      };
+    }
   });
 
   teardown(function() {
@@ -172,8 +182,8 @@ suite('home', function() {
 
   suite('initClock >', function() {
     test('should set time after time elapsed', function() {
-      subject.initClock();
       var stub = this.sinon.stub(subject, 'updateClock');
+      subject.initClock();
       fakeTimer.tick(1000);
       assert.isTrue(stub.calledOnce);
     });
