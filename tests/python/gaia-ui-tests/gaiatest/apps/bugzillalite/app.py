@@ -8,7 +8,7 @@ class BugzillaLite(Base):
     _given_username = (By.CSS_SELECTOR, "#login input[type='email']")
     _given_password = (By.CSS_SELECTOR, "#login input[type='password']")
     _button_login = (By.CSS_SELECTOR, "#login input[type='submit']")
-    _profile_icon = (By.CSS_SELECTOR, "a[href='/profile/']")
+    _profile_icon = (By.CSS_SELECTOR, "#dashboardActions a[href='/profile/']")
     _button_logout = (By.CSS_SELECTOR, "a[href='/logout/']")
     _dashboard_navigator_locator = (By.ID, 'navigation')
     _login_form_locator = (By.ID, 'login')
