@@ -17,17 +17,54 @@ suite('PromiseStorage', function() {
   var p;
   setup(function() {
     name = 'storage';
+  });
 
-    mockIndexedDB = new MockIDBFactory();
-    this.sinon.spy(mockIndexedDB, 'open');
+  suite('unsupport indexedDB', function() {
+    setup(function() {
+      window.indexedDB.open = null;
+      storage = new PromiseStorage(name);
+      // XXX The operations in PromiseStorage use this flag to determine
+      // on their behavior. Since we could not create an environment without
+      // IndexedDB in testing, we need to change this property directly.
+      storage._supportsIndexedDB = false;
+    });
 
-    MockIDBFactory.attachToWindow(mockIndexedDB);
+    test('start', function(done) {
+      storage.start()
+      .then(function(db) {
+        assert.equal(db, undefined);
+      }, function() {
+        assert.isTrue(false, 'should not resolve');
+      })
+      .then(done, done);
+    });
 
-    storage = new PromiseStorage(name);
-    p = storage.start();
+    ['getItem', 'getItems', 'setItem', 'setItems'].forEach(function(op) {
+      test(op, function(done) {
+        // if indexedDB is unsupported, should resolved undefined 
+        // no matter what arguments are
+        storage[op]() 
+        .then(function(result) {
+          assert.equal(result, undefined);
+        }, function() {
+          assert.isTrue(false, 'should not resolve');
+        })
+        .then(done, done);
+      });
+    });
   });
 
   suite('open database', function() {
+    setup(function() {
+      mockIndexedDB = new MockIDBFactory();
+      this.sinon.spy(mockIndexedDB, 'open');
+
+      MockIDBFactory.attachToWindow(mockIndexedDB);
+
+      storage = new PromiseStorage(name);
+      p = storage.start();
+    });
+
     test('error', function(done) {
       var openReq = mockIndexedDB.open.firstCall.returnValue;
       openReq.error = new Error('Mocked error');
