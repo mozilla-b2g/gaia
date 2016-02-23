@@ -2,7 +2,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 
 require('/shared/js/option_menu.js');
 
@@ -29,16 +29,16 @@ suite('OptionMenu', function() {
         }
       ]
     };
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   setup(function() {
-    this.sinon.spy(navigator.mozL10n, 'setAttributes');
+    this.sinon.spy(document.l10n, 'setAttributes');
 
     menu = new OptionMenu(options);
 
@@ -209,7 +209,7 @@ suite('OptionMenu', function() {
       assert.equal(buttons[0].textContent, options.items[0].name);
     });
     test('Localized button', function() {
-      sinon.assert.calledWith(navigator.mozL10n.setAttributes, buttons[1],
+      sinon.assert.calledWith(document.l10n.setAttributes, buttons[1],
         options.items[1].l10nId, options.items[1].l10nArgs);
     });
     test('classes', function() {

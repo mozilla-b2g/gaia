@@ -123,7 +123,7 @@ var OptionMenu = function(options) {
     var button = document.createElement('button');
     button.type = 'button';
     if (item.l10nId) {
-      navigator.mozL10n.setAttributes(button, item.l10nId, item.l10nArgs);
+      document.l10n.setAttributes(button, item.l10nId, item.l10nArgs);
     } else if (item.name && item.name.length) {
       button.textContent = item.name || '';
     } else {

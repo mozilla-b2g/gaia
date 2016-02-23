@@ -6,7 +6,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -100,8 +100,8 @@ suite('multi SIM action button', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realMozL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
@@ -113,7 +113,7 @@ suite('multi SIM action button', function() {
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozTelephony = realMozTelephony;
-    navigator.mozL10n = realMozL10n;
+    document.l10n = realMozL10n;
     navigator.mozIccManager = realMozIccManager;
     window.TelephonyHelper = realTelephonyHelper;
   });
