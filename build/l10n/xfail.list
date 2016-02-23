@@ -59,7 +59,6 @@ apps/sharedtest/test/unit/l10n/l10n_test.js
 apps/verticalhome/test/marionette/lib/verticalhome.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
-shared/js/l10n_date.js
 tv_apps/smart-system/fxa/js/fxam_errors.js
 tv_apps/smart-system/fxa/js/screens/fxam_enter_email.js
 tv_apps/smart-system/fxa/js/screens/fxam_enter_password.js
