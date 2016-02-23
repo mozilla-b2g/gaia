@@ -563,7 +563,7 @@
   };
 
   proto.onBackKeyUp = function () {
-    navigator.mozL10n.formatValue('want-to-end')
+    document.l10n.formatValue('want-to-end')
       .then((txt) => {
         var end = window.confirm(txt);
         if (end) {

@@ -119,7 +119,7 @@
     },
 
     /**
-     * Change the display date using mozL10n.
+     * Change the display date using Intl.
      * @param  {[Date} date The date to be displayed.
      */
     _changeDate: function (date) {
