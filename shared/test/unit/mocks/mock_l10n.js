@@ -66,26 +66,7 @@
         name: 'Pseudo English',
         translate: stringify
       }
-    },
-
-    DateTimeFormat: function() {
-      // Support navigator.mozL10n.DateTimeFormat() without new the object.
-      if (!this.localeFormat) {
-        var localeFormat = function mockLocaleFormat(time, strFormat) {
-          return '' + time;
-        };
-        return {
-          localeFormat: localeFormat
-        };
-      }
     }
-  };
-
-  // Defining methods on the prototype allows to spy on them in tests
-  exports.MockL10n.DateTimeFormat.prototype = {
-    localeFormat: stringify,
-    fromNow: stringify,
-    relativeParts: stringify
   };
 
   /**
