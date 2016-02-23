@@ -79,6 +79,11 @@
     }
 
     clearTimeout(this._timer);
+
+    if (typeof this.ontransitionend === 'function') {
+      this.ontransitionend();
+    }
+
     this.isRunning = false;
   };
 

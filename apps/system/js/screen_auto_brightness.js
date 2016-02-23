@@ -6,7 +6,7 @@
    * constructor
    */
   var ScreenAutoBrightness = function ScreenAutoBrightness() {
-      // does nothing
+    this.reset();
   };
 
   /*
@@ -23,8 +23,15 @@
   ScreenAutoBrightness.prototype.SYNTHETIC_BRIGHTNESS_DELAY = 250;
 
   ScreenAutoBrightness.prototype._previousBrightnessValues = null;
-  // Start with half of max brightness.
-  ScreenAutoBrightness.prototype._currentBrightness = 0.5;
+
+  ScreenAutoBrightness.prototype._currentBrightness = undefined;
+  ScreenAutoBrightness.prototype.getCurrentBrightness = function() {
+    if (!this._currentBrightness) {
+      this._currentBrightness = navigator.mozPower.screenBrightness;
+    }
+    return this._currentBrightness;
+  };
+
 
   // The interval for stepping up in milliseconds. We use a constant speed for
   // moving the brightness upward.
@@ -64,10 +71,7 @@
   };
 
   ScreenAutoBrightness.prototype.resume = function() {
-    // Screen brightness might be set by another module. Reget the cached
-    // brightness value.
-    this._currentBrightness = navigator.mozPower.screenBrightness;
-    this._state = this.STATE_COOLING_DOWN;
+    this.reset();
   };
 
   // reinitialize to start state
@@ -85,6 +89,7 @@
     this._transitionTimerID = undefined;
 
     this._state = this.STATE_COOLING_DOWN;
+    this._currentBrightness = undefined;
   };
 
   ScreenAutoBrightness.prototype.delayedSynthesizeBrightness = function() {
@@ -111,7 +116,7 @@
     // values. We synthesize the sensed brightness value with a delayed timer
     // and adjust the brightness accordingly.
     if (Math.abs(this._previousBrightnessValues.getLatest() -
-                 this._currentBrightness) >
+                 this.getCurrentBrightness()) >
           this.AUTO_BRIGHTNESS_MIN_DELTA) {
       this._delayTimerID =
           setTimeout(this.delayedSynthesizeBrightness.bind(this),
@@ -157,10 +162,20 @@
    */
   ScreenAutoBrightness.prototype.doAutoAdjustOnCoolingDown = function() {
     var now = Date.now();
+
+    if (now - this._brightnessSetTimestamp <
+          Math.min(this.COOL_DOWN_MS_UP, this.COOL_DOWN_MS_DOWN)) {
+      return;
+    }
+
+    if (!this._previousBrightnessValues.canGetAverage()) {
+      // We haven't sensed enough data for computing an average.
+      return;
+    }
     var targetBrightness = this._previousBrightnessValues.getAverage();
 
     if (targetBrightness >
-        this._currentBrightness + this.AUTO_BRIGHTNESS_MIN_DELTA) {
+        this.getCurrentBrightness() + this.AUTO_BRIGHTNESS_MIN_DELTA) {
       if (now - this._brightnessSetTimestamp < this.COOL_DOWN_MS_UP) {
         return;
       }
@@ -168,7 +183,7 @@
       this._transitionTimerID = setTimeout(this.doAutoAdjust.bind(this),
                                            this.STEP_INTERVAL_MS_UP);
     } else if (targetBrightness <
-               this._currentBrightness - this.AUTO_BRIGHTNESS_MIN_DELTA) {
+               this.getCurrentBrightness() - this.AUTO_BRIGHTNESS_MIN_DELTA) {
       if (now - this._brightnessSetTimestamp < this.COOL_DOWN_MS_DOWN) {
         return;
       }
@@ -181,7 +196,6 @@
 
   ScreenAutoBrightness.prototype.doAutoAdjustOnMovingUp = function() {
     var now = Date.now();
-    var targetBrightness = this._previousBrightnessValues.getAverage();
 
     if (!this._transitionTimerID ||
         now - this._brightnessSetTimestamp < this.STEP_INTERVAL_MS_UP) {
@@ -190,20 +204,25 @@
     }
     this._transitionTimerID = null;
 
-    if (this._currentBrightness >= targetBrightness) {
+    if (!this._previousBrightnessValues.canGetAverage()) {
+      this._state = this.STATE_COOLING_DOWN;
+      return;
+    }
+    var targetBrightness = this._previousBrightnessValues.getAverage();
+
+    if (this.getCurrentBrightness() >= targetBrightness) {
       // Don't use Math.abs(): we may need to brake.
       this._state = this.STATE_COOLING_DOWN;
       return;
     }
 
-    this.setBrightness(this._currentBrightness + this.STEP_DELTA);
+    this.setBrightness(this.getCurrentBrightness() + this.STEP_DELTA);
     // Constant speed for moving up.
     this._transitionTimerID = setTimeout(this.doAutoAdjust.bind(this),
                                          this.STEP_INTERVAL_MS_UP);
   };
 
   ScreenAutoBrightness.prototype.doAutoAdjustOnMovingDown = function() {
-    var targetBrightness = this._previousBrightnessValues.getAverage();
     var now = Date.now();
 
     if (!this._transitionTimerID ||
@@ -213,12 +232,18 @@
     }
     this._transitionTimerID = null;
 
-    if (this._currentBrightness <= targetBrightness) {
+    if (!this._previousBrightnessValues.canGetAverage()) {
+      this._state = this.STATE_COOLING_DOWN;
+      return;
+    }
+    var targetBrightness = this._previousBrightnessValues.getAverage();
+
+    if (this.getCurrentBrightness() <= targetBrightness) {
       this._state = this.STATE_COOLING_DOWN;
       return;
     }
 
-    this.setBrightness(this._currentBrightness - this.STEP_DELTA);
+    this.setBrightness(this.getCurrentBrightness() - this.STEP_DELTA);
 
     // Decelerated speed for moving down.
     var timeout = this.computeStepDownTimeout();
@@ -233,7 +258,7 @@
 
   ScreenAutoBrightness.prototype.computeStepDownTimeout = function() {
     var multiplier =
-      Math.min(1 / (Math.abs(this._currentBrightness -
+      Math.min(1 / (Math.abs(this.getCurrentBrightness() -
                              this._previousBrightnessValues.getAverage())),
                this.MAX_STEP_DOWN_INTERVAL_MULTIPLIER);
     return this.STEP_INTERVAL_MS_DOWN * multiplier;
@@ -241,11 +266,10 @@
 
   // Adjust the screen brightness
   ScreenAutoBrightness.prototype.setBrightness = function(brightness) {
-
     if (typeof this.onbrightnesschange === 'function') {
       this._brightnessSetTimestamp = Date.now();
       this._currentBrightness = Math.min(1.0, Math.max(0.1, brightness));
-      this.onbrightnesschange(this._currentBrightness);
+      this.onbrightnesschange(this.getCurrentBrightness());
     } else {
       console.log('ScreenAutoBrightness: ' +
                   'Brightness should change but no callback attached.');
@@ -347,6 +371,9 @@
     return this._getLatestObject()._value;
   };
 
+  ScreenAutoBrightnessValues.prototype.canGetAverage = function() {
+    return this._data.length === this.KEEP_BRIGHTNESS_VALUES;
+  };
 
   ScreenAutoBrightnessValues.prototype.getAverage = function() {
     if (this._data.length === 0) {

@@ -108,6 +108,6 @@ suite('ScreenBrightnessTransition', function() {
     assert.isTrue(
       navigator.mozPower.screenBrightness - (0.5 + 0.01 * 25) < 1E-15);
     assert.isTrue(transition.ontransitionbegin.calledOnce);
-    assert.isFalse(transition.ontransitionend.calledOnce);
+    assert.isTrue(transition.ontransitionend.calledOnce);
   });
 });
