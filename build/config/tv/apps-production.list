@@ -7,5 +7,6 @@ tv_apps/device-deck
 tv_apps/fling-player
 tv_apps/notification-receiver
 tv_apps/fling-tutorial
+tv_apps/webapps
 apps/sync
 external-apps/*
