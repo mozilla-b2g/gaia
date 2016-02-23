@@ -20,11 +20,13 @@
 }
 
 .fte-logo {
-  margin: 7.5rem 0 1.5rem 0;
+  margin-top: 5rem;
 }
 
 .fte-greeting {
-  margin: 1.5rem 0 8rem 0;
+  height: 7rem;
+  margin-top: 1rem;
+  margin-bottom: 0;
   line-height: 7rem;
   font-weight: lighter;
   font-style: italic;
@@ -32,19 +34,30 @@
 }
 
 .fte-description {
-  width: 110rem;
-  margin: 8rem auto 3.5rem auto;
+  display: flex;
+  flex-direction: column;
+  width: 120rem;
+  margin: 5rem auto 0 auto;
   font-weight: lighter;
   font-style: italic;
   font-size: 3.8rem;
 }
 
+.fte-description .fte-description-link {
+  border-bottom: 0.1rem solid currentColor;
+}
+
+.fte-diagram {
+  margin-top: 3.5rem;
+  width: 52.2rem;
+  height: 27.5rem;
+}
+
 .fte-button-container {
-  position: absolute;
-  bottom: 10.5rem;
   display: flex;
   justify-content: center;
   width: 100%;
+  margin-top: 7rem;
 }
 
 .fte-button-container > smart-button {
@@ -54,5 +67,5 @@
 }
 
 .fte-button-container > smart-button:first-child {
-  margin-right: 1.8rem;
+  margin-right: 4rem;
 }
