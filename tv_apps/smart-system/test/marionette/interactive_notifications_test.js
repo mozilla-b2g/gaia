@@ -113,6 +113,7 @@ marionette('Test Interactive Notifications', function() {
       });
 
       interactiveNotifications.banner.sendKeys(Keys.backspace);
+      console.log('Try waiting...');
       interactiveNotifications.waitForClosed();
     }
   );
