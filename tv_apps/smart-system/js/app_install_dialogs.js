@@ -246,11 +246,11 @@
         'buttonSettings': [
           {
             'textL10nId': 'cancel',
-            'onClick': reject
+            'onClick': reject,
+            'defaultFocus': true
           }, {
             'textL10nId': 'add',
             'onClick': resolve,
-            'defaultFocus': true,
             'class': 'primary'
           }
         ]
