@@ -20,6 +20,7 @@ var clearBrowserStores = function(done) {
       new Promise(SyncBrowserDB.db.clearPlaces),
       new Promise(SyncBrowserDB.db.clearVisits),
       new Promise(SyncBrowserDB.db.clearIcons),
+      new Promise(SyncBrowserDB.db.clearAllDeviceTabs),
       new Promise(SyncBrowserDB.db.clearBookmarks)
     ]).then(() => {
       done();
@@ -73,6 +74,46 @@ var historyGenerator = (amount, done, timeOffset) => {
       var t = item(i);
       list.push(t);
       SyncBrowserDB.db.createRawHistory(t, wrapper);
+      i++;
+    } else {
+      done(list);
+    }
+  }
+
+  wrapper();
+};
+
+var tabGenerator = (amount, done, timeOffset) => {
+  var list = [];
+  function item(i) {
+    return {
+      id: 'FXSYNCID_00' + i,
+      clientName: 'client' + i,
+      tabs: [{
+        title: 'Mozilla Firefox Web Browser — — Mozilla',
+        urlHistory: [
+          'https://www.mozilla.org/en-US/firefox/44.0.2/firstrun/'
+        ],
+        icon: '',
+        lastUsed: timeOffset + i*10
+      },{
+        title: 'More protection. The most privacy. Only from Firefox.',
+        urlHistory: [
+          'https://www.mozilla.org/en-US/firefox/44.0.2/firstrun/learnmore/'
+        ],
+        icon: '',
+        lastUsed: timeOffset + i*10
+      }]
+    };
+  }
+
+  var i = 0;
+
+  function wrapper() {
+    if (i < amount) {
+      var t = item(i);
+      list.push(t);
+      SyncBrowserDB.db.saveDeviceTabs(t, wrapper);
       i++;
     } else {
       done(list);
@@ -386,6 +427,62 @@ suite('SyncBrowserDB', function() {
             assert.equal(bookmarks.length, 0);
             done();
           });
+        });
+      });
+    });
+
+    test('getAllDeviceTabs', function(done) {
+      const RECORD_SIZE = 10;
+      tabGenerator(RECORD_SIZE, records => {
+        SyncBrowserDB.db.getAllDeviceTabs(tabs => {
+          assert.equal(tabs.length, RECORD_SIZE);
+          for (var i = 0; i < RECORD_SIZE; i++) {
+            assert.deepEqual(tabs[i], records[RECORD_SIZE -1 -i]);
+          }
+          done();
+        });
+      });
+    });
+
+    test('updateDeviceTabs & getAllDeviceTabs', function(done) {
+      var example = {
+        id: 'FXSYNCID_003',
+        clientName: 'Mozilla',
+        tabs: []
+      };
+      SyncBrowserDB.updateDeviceTabs(example, () => {
+        SyncBrowserDB.getAllDeviceTabs(tabs => {
+          assert.equal(tabs.length, 1);
+          assert.deepEqual(tabs[0], example);
+          done();
+        });
+      });
+    });
+
+    test('updateDeviceTabs & removeDeviceTabs', function(done) {
+      var example = {
+        id: 'FXSYNCID_003',
+        clientName: 'Mozilla',
+        tabs: []
+      };
+      SyncBrowserDB.updateDeviceTabs(example, () => {
+        SyncBrowserDB.removeDeviceTabs(example.id, tab => {
+          assert.equal(tab, undefined);
+          done();
+        });
+      });
+    });
+
+    test('saveDeviceTabs && getDeviceTabs', function(done) {
+      var example = {
+        id: 'FXSYNCID_001',
+        clientName: 'Mozilla',
+        tabs: []
+      };
+      SyncBrowserDB.db.saveDeviceTabs(example, () => {
+        SyncBrowserDB.db.getDeviceTabs(example.id, tab => {
+          assert.deepEqual(tab, example);
+          done();
         });
       });
     });

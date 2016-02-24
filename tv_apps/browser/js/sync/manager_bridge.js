@@ -25,6 +25,7 @@
 /* global LazyLoader */
 /* global SyncBookmark */
 /* global SyncHistory */
+/* global SyncTabs */
 
 'use strict';
 
@@ -121,13 +122,15 @@
         LazyLoader.load([
           'js/sync/ds_helper.js',
           'js/sync/bookmarks.js',
-          'js/sync/history.js'
+          'js/sync/history.js',
+          'js/sync/tabs.js'
         ]).then(() => {
           var method = message.state == 'enabled' ? 'start'
                                                   : 'stop';
           Promise.all([
             SyncBookmark[method](),
-            SyncHistory[method]()
+            SyncHistory[method](),
+            SyncTabs[method]()
           ]).catch(error => {
             console.warn(error);
           });

@@ -3,7 +3,7 @@
   "homescreen.appName": "smart-home",
   "sync.collections.bookmarks.enabled": true,
   "sync.collections.history.enabled": false,
-  "sync.collections.tabs.enabled": true,
+  "sync.collections.tabs.enabled": false,
   "sync.collections.history.limit": 500,
   "screen.timeout": 0,
   "debug.performance_data.shared": true

@@ -10,6 +10,7 @@ const DBOS_PLACES = 'sync_places';
 const DBOS_VISITS = 'sync_visits';
 const DBOS_ICONS = 'sync_icons';
 const DBOS_BOOKMARKS = 'sync_bookmarks';
+const DBOS_TABS = 'sync_tabs';
 var idb = window.indexedDB;
 
 /**
@@ -24,6 +25,7 @@ var SyncBrowserDB = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
   DEFAULT_TYPE_HISTORY: 'History',
   DEFAULT_TYPE_BOOKMARK: 'Bookmark',
+  DEFAULT_TYPE_TABS: 'Tabs',
   /**
    * Maximum icon file size allowed.
    * Default to 100kB.
@@ -161,6 +163,33 @@ var SyncBrowserDB = {
       }
 
     }).bind(this));
+  },
+
+  /**
+   * Update the tabs record for a device into database.
+   * @param {String} data New tab record
+   * @param {Function} callback Runs on success
+   */
+  updateDeviceTabs: function browserDB_updateDeviceTabs(data, callback) {
+    data.timestamp = data.timestamp || new Date().getTime();
+    this.db.saveDeviceTabs(data, callback);
+  },
+
+  /**
+   * Get all tabs records for all devices.
+   * @param {Function} callback Runs on success with an array of tabs
+   */
+  getAllDeviceTabs: function browserDB_getAllDeviceTabs(callback) {
+    this.db.getAllDeviceTabs(callback);
+  },
+
+  /**
+   * Delete a tabs record for a device by ID
+   * @param {String} id device ID
+   * @param {Function} callback
+   */
+  removeDeviceTabs: function browserDB_removeDeviceTabs(id, callback) {
+    this.db.deleteDeviceTabs(id, callback);
   },
 
   /**
@@ -488,6 +517,16 @@ var SyncBrowserDB = {
     });
   },
 
+  /**
+   * Clear tabs records for all devices.
+   * @param {Function} callback Runs on success
+   */
+  clearAllDeviceTabs: function browserDB_clearAllDeviceTabs() {
+    return new Promise(resolve => {
+      this.db.clearAllDeviceTabs(resolve);
+    });
+  },
+
   clearHistoryDeep: function browserDB_clearHistoryDeep() {
     return Promise.all([
       new Promise(this.db.clearVisits),
@@ -514,7 +553,7 @@ SyncBrowserDB.db = {
    * @param {Function} callback The callback to be run on success
    */
   open: function db_open(callback) {
-    const DB_VERSION = 7;
+    const DB_VERSION = 8;
     const DB_NAME = 'fxsync_browser';
     var request = idb.open(DB_NAME, DB_VERSION);
 
@@ -563,6 +602,9 @@ SyncBrowserDB.db = {
       bookmarkStore.createIndex('timestamp', 'timestamp', { unique: false });
       bookmarkStore.createIndex('bmkUri', 'bmkUri', { unique: false });
       bookmarkStore.createIndex('parentid', 'parentid', { unique: false });
+    }
+    if (upgradeFrom < 8) {
+      db.createObjectStore(DBOS_TABS, { keyPath: 'id' });
     }
   },
 
@@ -1114,6 +1156,96 @@ SyncBrowserDB.db = {
   },
 
   /**
+   * Save a tabs object for a device in database
+   * @param {Object} tab A tabs object for a device
+   * @param {Function} callback Runs on success
+   */
+  saveDeviceTabs: function db_saveDeviceTabs(tab, callback) {
+    var transaction = this._db.transaction([DBOS_TABS], 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.error('Transaction error while trying to save tab record');
+    };
+
+    var objectStore = transaction.objectStore(DBOS_TABS);
+
+    var request = objectStore.put(tab);
+
+    request.onsuccess = function onSuccess(e) {
+      if (callback) {
+        callback();
+      }
+    };
+
+    request.onerror = function onError(e) {
+      console.error('Error while saving tab record');
+    };
+  },
+
+  /**
+   * Get a tabs record for a device by ID from database.
+   * @param {String} id device ID
+   * @param {Function} callback Runs with a tab object on success. Runs
+   *                            without arguments on error.
+   */
+  getDeviceTabs: function db_getDeviceTabs(id, callback) {
+    var request = this._db.transaction(DBOS_TABS).
+      objectStore(DBOS_TABS).get(id);
+
+    request.onsuccess = function onSuccess(event) {
+      callback(event.target.result);
+    };
+
+    request.onerror = function onError(event) {
+      if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR) {
+        callback();
+      }
+    };
+  },
+
+  /**
+   * Get tabs records for all devices.
+   * @param {Function} callback Runs on complete with an array of tabs records.
+   */
+  getAllDeviceTabs: function db_getAllDeviceTabs(callback) {
+    var tabs = [];
+    var db = this._db;
+
+    var transaction = db.transaction([DBOS_TABS]);
+    var tabsStore = transaction.objectStore(DBOS_TABS);
+
+    tabsStore.openCursor(null, 'prev').onsuccess = function onSuccess(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        tabs.push(cursor.value);
+        cursor.continue();
+      }
+    };
+    transaction.oncomplete = function db_bookmarkTransactionComplete() {
+      callback(tabs);
+    };
+  },
+
+  /**
+   * Clear tabs records for all devices.
+   * @param {Function} callback Runs on success
+   */
+  clearAllDeviceTabs: function db_clearAllDeviceTabs(callback) {
+    var db = SyncBrowserDB.db._db;
+    var transaction = db.transaction(DBOS_TABS, 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.error('Transaction error while trying to clear tab record');
+    };
+    var objectStore = transaction.objectStore(DBOS_TABS);
+    var request = objectStore.clear();
+    request.onsuccess = function onSuccess() {
+      callback();
+    };
+    request.onerror = function onError(e) {
+      console.error('Error clearing tab object store');
+    };
+  },
+
+  /**
    * Save a bookmarks object store entry in database
    * @param {Object} bookmark A bookmarks object store entry
    * @param {Function} callback Runs on success
@@ -1353,6 +1485,31 @@ SyncBrowserDB.db = {
 
     request.onerror = function onError(e) {
       console.error('Error while deleting topsite');
+    };
+  },
+
+  /**
+   * Delete a tabs record for a device by ID from database.
+   * @param {String} id device ID
+   * @param {Function} callback Runs on success
+   */
+  deleteDeviceTabs: function db_deleteDeviceTabs(id, callback) {
+    var transaction = this._db.transaction([DBOS_TABS], 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.error('Transaction error while trying to delete tab');
+    };
+
+    var objectStore = transaction.objectStore(DBOS_TABS);
+    var request = objectStore.delete(id);
+
+    request.onsuccess = function onSuccess(event) {
+      if (callback) {
+        callback();
+      }
+    };
+
+    request.onerror = function onError(e) {
+      console.error('Error while deleting tab');
     };
   },
 
