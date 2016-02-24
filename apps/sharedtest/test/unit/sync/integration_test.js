@@ -365,11 +365,11 @@ eference/Global_Objects/Object/proto`,
 
     suite('collection not in meta/global engines', function() {
       setup(function() {
-        SynctoServerFixture.remoteData.meta.payload =
+        SynctoServerFixture.remoteData.meta[0].payload =
           SynctoServerFixture.metaGlobalPayloadWithoutHistoryEngine;
       });
       teardown(function() {
-        SynctoServerFixture.remoteData.meta.payload =
+        SynctoServerFixture.remoteData.meta[0].payload =
           SynctoServerFixture.metaGlobalPayloadWithHistoryEngine;
       });
 

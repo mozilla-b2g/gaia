@@ -222,7 +222,7 @@ ld be a Function`);
     test('encrypts and pushes updated records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('update', [ {
-        id: SynctoServerFixture.remoteData.history.id,
+        id: SynctoServerFixture.remoteData.history[0].id,
         payload: 'foo'
       }]);
 
@@ -241,7 +241,7 @@ ld be a Function`);
     test('only uploads encrypted payload and id', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('update', [ {
-        id: SynctoServerFixture.remoteData.history.id,
+        id: SynctoServerFixture.remoteData.history[0].id,
         payload: 'foo',
         strayField: 'bar'
       }]);
@@ -261,7 +261,7 @@ ld be a Function`);
     test('pushes deletes of records', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('delete', [
-        SynctoServerFixture.remoteData.history.id
+        SynctoServerFixture.remoteData.history[0].id
       ]);
 
       var se = new SyncEngine(credentials);
@@ -288,10 +288,40 @@ ld be a Function`);
       });
     });
 
+    test('repeats as long as fetchToken is returned', function(done) {
+      var credentials = {
+        URL: 'http://localhost:8000/v1/',
+        assertion: 'test-assertion-mock',
+        kB: '85c4f8c1d8e3e2186824c127af786891dd03c6e05b1b45f28f7181211bf2affb',
+        adapters: {
+          bookmarks: {
+            update: function() { },
+            handleConflict: function() { },
+            reset: function() { }
+          }
+        }
+      };
+      var se = new SyncEngine(credentials);
+      for (var i = 0; i < 8; i++) {
+        FxSyncWebCrypto.responses.push({ foo: i });
+      }
+      se.syncNow({ 'bookmarks': {
+        limit: 3
+      } }).then(() => {
+        expect(JSON.stringify(se._collections.bookmarks.args))
+            .to.equal(JSON.stringify([
+            { fetchLimit: 3 },
+            { fetchLimit: 3, fetchToken: '-Z5mm8AxeIkq' },
+            { fetchLimit: 3, fetchToken: '6q8JaloClXcH' }
+          ]));
+        done();
+      });
+    });
+
     test('does not push if nothing changed', function(done) {
       var credentials = cloneObject(SynctoServerFixture.syncEngineOptions);
       credentials.adapters.history = AdapterMock('noop', [ {
-        id: SynctoServerFixture.remoteData.history.id,
+        id: SynctoServerFixture.remoteData.history[0].id,
         foo: 'bar'
       }]);
 

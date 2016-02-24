@@ -57,12 +57,12 @@ var SynctoServerFixture = (function() {
   });
 
   var remoteData = {
-    meta: {
+    meta: [ {
       id: 'global',
       last_modified: 1234567890123,
       payload: metaGlobalPayloadWithHistoryEngine
-    },
-    crypto: {
+    } ],
+    crypto: [ {
       id: 'keys',
       last_modified: 1234567890123,
       payload: JSON.stringify({
@@ -73,8 +73,8 @@ tSkbhL3HLvVm/FJ1Z4F2Z6IKQCxAc5dNnLsBIUUxhOHLbT0x9/jfnqZ8fLtlbkogI3ZlNvbc8iUF1aX\
         IV: 'FmosM+XBNy81/9oEAgI4Uw==',
         hmac: '01a816e4577c6cf3f97b66b4382d0a3e7e9178c75a3d38ed9ac8ad6397c2ecce'
       })
-    },
-    history: {
+    } ],
+    history: [ {
       id: '_9sCUbahs0ay',
       last_modified: 1234567890123,
       payload: JSON.stringify({
@@ -86,23 +86,23 @@ nCLMlxfllEzWvQPWai8e5OKmThdzKdHAmaS+sHBj5FjTe5mxuX4U1c8EJUS3a4fSV5NY0EolUkSuMLw\
         IV: 'pP/NMhj5fwREqes4I9H0tw==',
         hmac: '97d16085c1bf347cb7530342ccf85647609be4a8f55d2b8fe409b1756240c06b'
       })
-    },
-    'wrong-payload-meta': {
+    } ],
+    'wrong-payload-meta': [ {
       id: 'global',
       last_modified: 1234567890123,
       payload: 'whoopsie!'
-    },
-    'wrong-payload-crypto': {
+    } ],
+    'wrong-payload-crypto': [ {
       id: 'keys',
       last_modified: 1234567890123,
       payload: 'whoopsie!'
-    },
-    'wrong-payload-history': {
+    }],
+    'wrong-payload-history': [ {
       id: '_9sCUbahs0ay',
       last_modified: 1234567890123,
       payload: 'whoopsie!'
-    },
-    'wrong-ciphertext': {
+    } ],
+    'wrong-ciphertext': [ {
       id: '_9sCUbahs0ay',
       last_modified: 1234567890123,
       payload: JSON.stringify({
@@ -110,8 +110,8 @@ nCLMlxfllEzWvQPWai8e5OKmThdzKdHAmaS+sHBj5FjTe5mxuX4U1c8EJUS3a4fSV5NY0EolUkSuMLw\
         IV: 'kXL3hb11ltD+Jl0YFk+PlQ==',
         hmac: 'cb727efe7a3f0307921cecbd1a97c03f06a4d75c42026089494d84fcf92dbff9'
       })
-    },
-    'wrong-id': {
+    } ],
+    'wrong-id': [ {
       id: {},
       last_modified: 1234567890123,
       payload: JSON.stringify({
@@ -123,7 +123,7 @@ gh0YOM9L2NC/uiKEb1Ynr2Fos`,
         IV: 'kXL3hb11ltD+Jl0YFk+PlQ==',
         hmac: 'cb727efe7a3f0307921cecbd1a97c03f06a4d75c42026089494d84fcf92dbff9'
       })
-    }
+    } ]
   };
 
   var record = {
@@ -524,9 +524,9 @@ bal_Objects/Object/proto`,
         1444990424710
   };
 
-  var bookmarksRecords = [];
+  remoteData.bookmarks = [];
   for (var i in record) {
-    bookmarksRecords.push(record[i]);
+    remoteData.bookmarks.push(record[i]);
   }
 
   var responses = {};
@@ -562,7 +562,7 @@ bal_Objects/Object/proto`,
     statusText: 'OK',
     headers: { get(header) {} },
     text() {
-      return JSON.stringify({ data: [ remoteData.meta ] });
+      return JSON.stringify({ data: remoteData.meta });
     }
   };
   responses[`https://syncto.dev.mozaws.net/v1/buckets/518fef27c6bbc0220aab0f00b\
@@ -571,7 +571,7 @@ bal_Objects/Object/proto`,
     statusText: 'OK',
     headers: { get(header) {} },
     text() {
-      return JSON.stringify({ data: [ remoteData.crypto ] });
+      return JSON.stringify({ data: remoteData.crypto });
     }
   };
   responses[`https://syncto.dev.mozaws.net/v1/buckets/518fef27c6bbc0220aab0f00b\
@@ -580,7 +580,7 @@ bal_Objects/Object/proto`,
     statusText: 'OK',
     headers: { get(header) {} },
     text() {
-      return JSON.stringify({ data: [ remoteData.history ] });
+      return JSON.stringify({ data: remoteData.history });
     }
   };
   responses[`https://syncto.dev.mozaws.net/v1/buckets/518fef27c6bbc0220aab0f00b\
@@ -589,7 +589,7 @@ bal_Objects/Object/proto`,
     statusText: 'OK',
     headers: { get(header) {} },
     text() {
-      return JSON.stringify({ data: bookmarksRecords });
+      return JSON.stringify({ data: remoteData.bookmarks });
     }
   };
 
