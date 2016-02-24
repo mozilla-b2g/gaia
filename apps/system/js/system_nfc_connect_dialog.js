@@ -45,7 +45,7 @@
 
     this.buttonOK.setAttribute('data-l10n-id', okayId);
     this.buttonCancel.setAttribute('data-l10n-id', cancelId);
-    document.l10n.setAttributes(this.confirmNFCConnectMsg,
+    navigator.mozL10n.setAttributes(this.confirmNFCConnectMsg,
                                     msgId,
                                     l10nArgs);
   };

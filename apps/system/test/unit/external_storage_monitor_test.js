@@ -5,7 +5,7 @@
 
 requireApp('system/js/external_storage_monitor.js');
 
-require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
@@ -38,8 +38,8 @@ suite('system/ExternalStorageMonitor', function() {
   mocksForExternalStorageMonitor.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = document.l10n;
-    document.l10n = MockL10n;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     realMozIntl = window.mozIntl;
     window.mozIntl = MockMozIntl;
@@ -63,7 +63,7 @@ suite('system/ExternalStorageMonitor', function() {
   });
 
   suiteTeardown(function() {
-    document.l10n = realL10n;
+    navigator.mozL10n = realL10n;
     window.mozIntl = realMozIntl;
     window.Notification = realNotification;
     window.NotificationHelper = realNotificationHelper;

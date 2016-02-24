@@ -89,7 +89,7 @@ var BluetoothTransfer = {
         var msg = 'Since cannot get Bluetooth adapter, ' +
                   'resolve with an unknown device.';
         this.debug(msg);
-        document.l10n.formatValue('unknown-device').then(resolve);
+        navigator.mozL10n.formatValue('unknown-device').then(resolve);
         return;
       }
       // Service Class Name: OBEXObjectPush, UUID: 0x1105
@@ -111,13 +111,13 @@ var BluetoothTransfer = {
             }
           }
         } else {
-          document.l10n.formatValue('unknown-device').then(resolve);
+          navigator.mozL10n.formatValue('unknown-device').then(resolve);
         }
       };
       req.onerror = () => {
         var msg = 'Can not check is device connected from adapter.';
         this.debug(msg);
-        document.l10n.formatValue('unknown-device').then(resolve);
+        navigator.mozL10n.formatValue('unknown-device').then(resolve);
       };
     });
   },

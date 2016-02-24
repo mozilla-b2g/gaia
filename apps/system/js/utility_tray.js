@@ -426,7 +426,7 @@ exports.UtilityTray = {
       querySelectorAll('#desktop-notifications-container .notification, ' +
         '.fake-notification.displayed').length;
 
-    document.l10n.setAttributes(this.notificationTitle,
+    navigator.mozL10n.setAttributes(this.notificationTitle,
       count ? 'statusbarNotifications' : 'statusbarNoNotifications', {
         n: count
       });

@@ -410,14 +410,14 @@
         } else {
           this.title.setAttribute('data-l10n-id', 'title-app');
         }
-        document.l10n.setAttributes(
+        navigator.mozL10n.setAttributes(
           this.deviceSelector,
           'perm-camera-selector-appRequest',
           { 'app': new ManifestHelper(app.manifest).name }
         );
       } else { // Web content
         this.title.setAttribute('data-l10n-id', 'title-web');
-        document.l10n.setAttributes(
+        navigator.mozL10n.setAttributes(
           this.deviceSelector,
           'perm-camera-selector-webRequest',
           { 'site': detail.origin }
@@ -599,7 +599,7 @@
       // untrusted app manifests, for example.
       var text = this.getStrings(detail);
       if (typeof(text.message) === 'object') {
-        document.l10n.setAttributes(this.message,
+        navigator.mozL10n.setAttributes(this.message,
           text.message.id, text.message.args);
       } else {
         this.message.setAttribute('data-l10n-id', text.message);

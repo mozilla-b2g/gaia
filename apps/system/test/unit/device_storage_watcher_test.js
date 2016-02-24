@@ -4,7 +4,7 @@
 
 requireApp('system/js/device_storage_watcher.js');
 
-require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_service.js');
@@ -29,8 +29,8 @@ suite('system/DeviceStorageWatcher >', function() {
 
   mocksForStorageWatcher.attachTestHelpers();
   suiteSetup(function(done) {
-    realL10n = document.l10n;
-    document.l10n = MockL10n;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     realMozIntl = window.mozIntl;
     window.mozIntl = MockMozIntl;
 
@@ -41,7 +41,7 @@ suite('system/DeviceStorageWatcher >', function() {
   });
 
   suiteTeardown(function() {
-    document.l10n = realL10n;
+    navigator.mozL10n = realL10n;
     window.mozIntl = realMozIntl;
     navigator.getDeviceStorage = realNavigatorGetDeviceStorage;
   });
@@ -139,7 +139,7 @@ suite('system/DeviceStorageWatcher >', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
       assert.equal(fakeNotif.querySelector('.title-container')
         .getAttribute('data-l10n-id'), 'low-device-storage');
-      var l10nAttrs = document.l10n.getAttributes(
+      var l10nAttrs = navigator.mozL10n.getAttributes(
         fakeNotif.querySelector('.detail'));
       assert.equal(l10nAttrs.id, 'free-space2');
       assert.deepEqual(l10nAttrs.args, {
@@ -214,7 +214,7 @@ suite('system/DeviceStorageWatcher >', function() {
     });
 
     test('should update free space', function() {
-      var l10nAttrs = document.l10n.getAttributes(
+      var l10nAttrs = navigator.mozL10n.getAttributes(
         fakeNotif.querySelector('.detail'));
       assert.equal(l10nAttrs.id, 'free-space2');
       assert.deepEqual(l10nAttrs.args, {

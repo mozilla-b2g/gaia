@@ -174,7 +174,7 @@ var ModalDialog = {
       }
 
       if (payload.id) {
-        document.l10n.setAttributes(node, payload.id, payload.args);
+        navigator.mozL10n.setAttributes(node, payload.id, payload.args);
         return;
       }
     }

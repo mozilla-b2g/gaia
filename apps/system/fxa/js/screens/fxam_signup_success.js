@@ -18,7 +18,7 @@ var FxaModuleSignupSuccess = (function() {
       'fxa-will-send-email'
     );
 
-    document.l10n.setAttributes(this.fxaWillSendEmail,
+    navigator.mozL10n.setAttributes(this.fxaWillSendEmail,
         'fxa-will-send-email2', {
       email: options.email
     });

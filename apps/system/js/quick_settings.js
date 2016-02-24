@@ -445,11 +445,10 @@
     setAccessibilityAttributes: function(button, label, type) {
       label = 'quick-settings-' + label +
         (button.dataset.enabled === undefined ? '-off' : '-on');
-      if (button.dataset.enabled !== undefined &&
-          button.dataset.initializing !== undefined) {
+      if (button.dataset.initializing !== undefined) {
         label += '-initializing';
       }
-      document.l10n.setAttributes(button, label, { type: type || '' });
+      navigator.mozL10n.setAttributes(button, label, { type: type || '' });
       button.setAttribute('aria-pressed', button.dataset.enabled !== undefined);
     },
 

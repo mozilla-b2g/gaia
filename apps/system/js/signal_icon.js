@@ -31,7 +31,7 @@
     var voice = conn.voice;
     var data = conn.data;
 
-    var _ = document.l10n.setAttributes;
+    var _ = navigator.mozL10n.setAttributes;
 
     if (!voice || !this.element) {
       this.debug('No element or no voice');
@@ -89,7 +89,7 @@
     }
 
     this.show();
-    var _ = document.l10n.setAttributes, level;
+    var _ = navigator.mozL10n.setAttributes, level;
     var previousSearching = (this.element.dataset.searching === 'true');
     var previousLevel = parseInt(this.element.dataset.level, 10);
     var searching = true;
@@ -104,7 +104,7 @@
       searching = false;
     }
     this.element.dataset.level = level;
-    document.l10n.setAttributes(this.element,
+    navigator.mozL10n.setAttributes(this.element,
       connInfo.roaming ? 'statusbarSignalRoaming' : 'statusbarSignal',
       {
         level: this.element.dataset.level,

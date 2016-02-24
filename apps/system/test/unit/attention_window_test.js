@@ -11,7 +11,7 @@ requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_context_menu.js');
-require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForAttentionWindow = new MocksHelper([
@@ -45,8 +45,8 @@ suite('system/AttentionWindow', function() {
     MockApplications.mRegisterMockApp(fakeAttentionConfig);
     realApplications = window.applications;
     window.applications = MockApplications;
-    realL10n = document.l10n;
-    document.l10n = MockL10n;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     this.sinon.useFakeTimers();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
@@ -71,7 +71,7 @@ suite('system/AttentionWindow', function() {
 
   teardown(function() {
     window.layoutManager = realLayoutManager;
-    document.l10n = realL10n;
+    navigator.mozL10n = realL10n;
     window.applications = realApplications;
     stubById.restore();
   });
@@ -100,19 +100,18 @@ suite('system/AttentionWindow', function() {
       assert.isTrue(attention._resize.calledOnce, '_resize called.');
     });
 
-    test('show should re-translate the fake notification', function(done) {
+    test('show should re-translate the fake notification', function() {
       var attention = new AttentionWindow(fakeAttentionConfig);
       this.sinon.stub(attention, '_resize');
       MockManifestHelper.prototype.name = 'translated';
-      document.l10n.ready.then(() => {
-        assert.equal(attention.notificationTitle.textContent, 'translated');
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent, 'translated');
 
-        attention.show();
-        MockManifestHelper.prototype.name = 'translated by show';
-      }).then(() => {
-        assert.equal(attention.notificationTitle.textContent,
-                     'translated by show');
-      }).then(done, done);
+      attention.show();
+      MockManifestHelper.prototype.name = 'translated by show';
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent,
+                   'translated by show');
     });
 
     test('clear the fake notification node when removed.', function() {
@@ -128,12 +127,11 @@ suite('system/AttentionWindow', function() {
                     .contains('attention-notification'));
     });
 
-    test('translate the fake notification', function(done) {
+    test('translate the fake notification', function() {
       var attention = new AttentionWindow(fakeAttentionConfig);
       MockManifestHelper.prototype.name = 'translated';
-      document.l10n.ready.then(() => {
-        assert.equal(attention.notificationTitle.textContent, 'translated');
-      }).then(done, done);
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent, 'translated');
     });
 
     test('ready', function() {
@@ -156,18 +154,17 @@ suite('system/AttentionWindow', function() {
     });
 
     test('_languagechange should re-translate the fake notification',
-    function(done) {
+    function() {
       var attention = new AttentionWindow(fakeAttentionConfig);
       MockManifestHelper.prototype.name = 'translated';
-      document.l10n.ready.then(() => {
-        assert.equal(attention.notificationTitle.textContent, 'translated');
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent, 'translated');
 
-        attention.element.dispatchEvent(new CustomEvent('_languagechange'));
-        MockManifestHelper.prototype.name = 'translated by languagechange';
-      }).then(() => {
-        assert.equal(attention.notificationTitle.textContent,
-                     'translated by languagechange');
-      }).then(done, done);
+      attention.element.dispatchEvent(new CustomEvent('_languagechange'));
+      MockManifestHelper.prototype.name = 'translated by languagechange';
+      this.sinon.clock.tick(); // l10n ready
+      assert.equal(attention.notificationTitle.textContent,
+                   'translated by languagechange');
     });
   });
 });

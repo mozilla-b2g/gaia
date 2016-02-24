@@ -59,11 +59,11 @@
 
       var setL10nAttributes = function (element, options){
         if ('string' === typeof options) {
-          document.l10n.setAttributes(element, options);
+          navigator.mozL10n.setAttributes(element, options);
         }
 
         if(options.id) {
-          document.l10n.setAttributes(element, options.id, options.args);
+          navigator.mozL10n.setAttributes(element, options.id, options.args);
         }
       };
 

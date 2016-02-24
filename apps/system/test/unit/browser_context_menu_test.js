@@ -3,7 +3,7 @@
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_icons_helper.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
@@ -32,9 +32,9 @@ suite('system/BrowserContextMenu', function() {
   mocksForAppModalDialog.attachTestHelpers();
 
   suiteSetup(function() {
-    realL10n = document.l10n;
+    realL10n = navigator.mozL10n;
     realMozSettings = navigator.mozSettings;
-    document.l10n = MockL10n;
+    navigator.mozL10n = MockL10n;
     navigator.mozSettings = MockNavigatorSettings;
   });
 
@@ -70,7 +70,7 @@ suite('system/BrowserContextMenu', function() {
   });
 
   suiteTeardown(function() {
-    document.l10n = realL10n;
+    navigator.mozL10n = realL10n;
     navigator.mozSettings = realMozSettings;
   });
 
