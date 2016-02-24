@@ -13,7 +13,7 @@
     }
   </style>
   <script src="../../../test/unit/mocks/mock_navigator_moz_icc_manager.js"></script>
-  <script src="../../../test/unit/mocks/mock_l10n.js"></script>
+  <script src="../../../test/unit/mocks/mock_l20n.js"></script>
   <script src="../../../test/unit/mocks/mock_lazy_loader.js"></script>
   <script src="../../../js/component_utils.js"></script>
   <script>
@@ -22,7 +22,7 @@
     MockNavigatorMozIccManager.addIcc(0);
     MockNavigatorMozIccManager.addIcc(1);
 
-    navigator.mozL10n = MockL10n;
+    document.l10n = MockL10n;
 
     window.LazyLoader = MockLazyLoader;
   </script>

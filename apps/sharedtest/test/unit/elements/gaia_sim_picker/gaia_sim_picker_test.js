@@ -5,7 +5,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/elements/gaia_menu/mock_gaia_menu.js');
 require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
@@ -32,8 +32,8 @@ suite('GaiaSimPicker', function() {
     navigator.mozIccManager = MockNavigatorMozIccManager;
     navigator.mozIccManager.mTeardown();
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     realTelephonyHelper = window.TelephonyHelper;
     window.TelephonyHelper = null;
@@ -41,15 +41,14 @@ suite('GaiaSimPicker', function() {
 
   suiteTeardown(function() {
     navigator.mozIccManager = realMozIccManager;
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
 
     window.TelephonyHelper = realTelephonyHelper;
   });
 
   setup(function() {
     this.sinon.spy(MockGaiaMenu, 'show');
-    this.sinon.stub(MockL10n, 'ready');
-    this.sinon.stub(MockL10n, 'once');
+    this.sinon.stub(MockL10n.ready, 'then');
     this.sinon.useFakeTimers();
 
     this.container = document.createElement('div');
@@ -120,18 +119,21 @@ suite('GaiaSimPicker', function() {
     });
 
     test('should show the menu after l10n is ready', function() {
-      MockL10n.once.yield();
+      MockL10n.ready.then.yield();
       sinon.assert.calledOnce(MockGaiaMenu.show);
     });
 
     test('should focus on self after l10n is ready', function() {
-      MockL10n.once.yield();
+      MockL10n.ready.then.yield();
       sinon.assert.calledOnce(subject.focus);
     });
 
     test('should retranslate after a language change', function() {
       this.sinon.stub(MockL10n, 'translateFragment');
-      MockL10n.ready.yield();
+      document.dispatchEvent(new CustomEvent('DOMRetranslated', {
+        bubbles: false,
+        cancelable: false
+      }));
       sinon.assert.calledWith(MockL10n.translateFragment, subject.shadowRoot);
     });
   });

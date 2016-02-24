@@ -564,18 +564,4 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   window.addEventListener('pagehide', () => client.disconnect());
   window.addEventListener('languagechange', document.l10n);
   document.addEventListener('additionallanguageschange', document.l10n);
-
-  //Bug 1204660 - Temporary proxy for shared code. Will be removed once
-  //              l10n.js migration is completed.
-  navigator.mozL10n = {
-    setAttributes: document.l10n.setAttributes,
-    getAttributes: document.l10n.getAttributes,
-    formatValue: (...args) => document.l10n.formatValue(...args),
-    translateFragment: (...args) => document.l10n.translateFragment(...args),
-    once: cb => document.l10n.ready.then(cb),
-    ready: cb => document.l10n.ready.then(() => {
-      document.addEventListener('DOMRetranslated', cb);
-      cb();
-    })
-  };
 })();
