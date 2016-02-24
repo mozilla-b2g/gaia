@@ -12,6 +12,10 @@
     "settings": { "access": "readonly" }
   },
   "datastores-owned": {
+    "tabs": {
+      "access": "readwrite",
+      "description": "View and modify the tabs from Firefox Sync."
+    },
     "sync_bookmarks_store": {
       "access": "readwrite",
       "description": "View and modify the bookmarks from Firefox Sync."
