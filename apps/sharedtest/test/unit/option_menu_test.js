@@ -24,6 +24,14 @@ suite('OptionMenu', function() {
           params: ['foo']
         },
         {
+          name: 'hideMenuManually test',
+          method: function(param) {
+
+          },
+          params: ['bar'],
+          hideMenuManually: true
+        },
+        {
           l10nId: 'cancel',
           l10nArgs: { test: true }
         }
@@ -203,14 +211,14 @@ suite('OptionMenu', function() {
       Array.forEach(buttons, (button) => {
         assert.equal(button.type, 'button');
       });
-      assert.equal(buttons.length, 2);
+      assert.equal(buttons.length, 3);
     });
     test('Button Text', function() {
       assert.equal(buttons[0].textContent, options.items[0].name);
     });
     test('Localized button', function() {
-      sinon.assert.calledWith(navigator.mozL10n.setAttributes, buttons[1],
-        options.items[1].l10nId, options.items[1].l10nArgs);
+      sinon.assert.calledWith(navigator.mozL10n.setAttributes, buttons[2],
+        options.items[2].l10nId, options.items[2].l10nArgs);
     });
     test('classes', function() {
       assert.ok(menu.form.classList.contains('class1'));
@@ -225,6 +233,15 @@ suite('OptionMenu', function() {
       assert.equal(
         menu.form, document.body.lastElementChild
       );
+    });
+
+    test('Do not hide on item with hideMenuManually = true', function() {
+      menu.show();
+
+      this.sinon.spy(options.items[1], 'method');
+      this.sinon.spy(menu, 'hide');
+      menu.form.querySelectorAll('button')[1].click();
+      sinon.assert.notCalled(menu.hide);
     });
   });
 
