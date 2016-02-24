@@ -1,7 +1,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = true;
+  var DEBUG = false;
   /**
    * Shared some global property.
    * @type {Object}

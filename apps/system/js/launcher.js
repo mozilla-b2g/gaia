@@ -24,7 +24,7 @@
   ];
   BaseModule.create(Launcher, {
     name: 'Launcher',
-    DEBUG: true,
+    DEBUG: false,
     _start: function() {
       this._version = {};
       this.debug('reading configurations...');
@@ -93,7 +93,6 @@
       return isUpgrade;
     },
     launchHomescreenAndStandbyLockscreen: function(homescreenManifestURL) {
-      this.debug('launchHomescreenAndStandbyLockscreen');
       // We don't need to chain these promises in the big startup chain
       // inside app.js; but that means we need to catch the errors on our own.
       return Promise.all([
@@ -114,7 +113,6 @@
       });
     },
     launchLockscreenThenHomescreen: function(homescreenManifestURL) {
-      this.debug('launchLockscreenThenHomescreen');
       // We don't need to chain these promises in the big startup chain
       // inside app.js; but that means we need to catch the errors on our own.
       return Promise.all([
@@ -154,7 +152,6 @@
       });
     },
     launchFtuThenHomescreen: function(ftuManifestURL, homescreenManifestURL) {
-      this.debug('launchFtuThenHomescreen');
       // We don't need to chain these promises in the big startup chain
       // inside app.js; but that means we need to catch the errors on our own.
       return Promise.all([

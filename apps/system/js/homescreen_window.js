@@ -25,7 +25,7 @@
    * A homescreen black-list of homescreens to not display the rocketbar on.
    */
   const ROCKETBAR_BLACKLIST = [
-    'app://verticalhome.gaiamobile.org/manifest.webapp'
+    'http://localhost/verticalhome.gaiamobile.org/manifest.webapp'
   ];
 
   /**
@@ -89,10 +89,11 @@
    */
   HomescreenWindow.prototype.setBrowserConfig =
     function hw_setBrowserConfig(manifestURL) {
-      var app = window.applications.getByManifestURL(manifestURL);
-      this.origin = app.origin;
-      this.manifestURL = app.manifestURL;
-      this.url = app.origin + '/index.html#root';
+      var url = new URL(manifestURL);
+      this.origin = url.origin;
+      this.manifestURL = manifestURL;
+      // FIXME: don't hardcode that.
+      this.url = url.origin + 'homescreen.gaiamobile.org/index.html#root';
 
       this.browser_config =
         new BrowserConfigHelper({
@@ -110,7 +111,7 @@
       this.config = this.browser_config;
       this.isHomescreen = true;
 
-      if (ROCKETBAR_BLACKLIST.indexOf(app.manifestURL) === -1) {
+      if (ROCKETBAR_BLACKLIST.indexOf(manifestURL) === -1) {
         this.config.chrome = {
           maximized: true,
           scrollable: true

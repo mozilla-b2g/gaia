@@ -4,7 +4,7 @@
 
 HERE=`pwd`
 
-NOFTU=1 PRODUCTION=1 make profile
+GAIA_DISTRIBUTION_DIR=distros/pine NOFTU=1 PRODUCTION=1 make profile
 
 if [ ! -d profile/webapps ]; then
   echo "No profile/webapps directory!"

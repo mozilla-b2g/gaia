@@ -31,15 +31,17 @@
       this.instanceID = 'systemAppID';
       this.audioChannels = new Map();
       var audioChannelManager = navigator.mozAudioChannelManager;
-      // There is no mozAudioChannelManager in b2g desktop client.
-      if (audioChannelManager && audioChannelManager.allowedAudioChannels) {
-        audioChannelManager.allowedAudioChannels.forEach((audioChannel) => {
-          this.audioChannels.set(
-            audioChannel.name, new AudioChannelController(this, audioChannel)
-          );
-        });
-        this.publish('audiochannelsregistered');
-      }
+      try {
+        // There is no mozAudioChannelManager in b2g desktop client.
+        if (audioChannelManager && audioChannelManager.allowedAudioChannels) {
+          audioChannelManager.allowedAudioChannels.forEach((audioChannel) => {
+            this.audioChannels.set(
+              audioChannel.name, new AudioChannelController(this, audioChannel)
+            );
+          });
+        }
+      } catch(e) { }
+      this.publish('audiochannelsregistered');
     },
 
     getAudioChannels: function() {

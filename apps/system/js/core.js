@@ -1,8 +1,6 @@
 /* global BaseModule, LazyLoader, RemoteDebugger, DeveloperHud, DevToolsAuth */
 'use strict';
 
-console.log('[Core] loaded core.js !!');
-
 (function(exports) {
   /**
    * This is the bootstrap module of the system app.
@@ -30,7 +28,7 @@ console.log('[Core] loaded core.js !!');
   ];
 
   BaseModule.create(Core, {
-    DEBUG: true,
+    DEBUG: false,
     name: 'Core',
 
     REGISTRY: {

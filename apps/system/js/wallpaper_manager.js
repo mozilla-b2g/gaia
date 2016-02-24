@@ -5,8 +5,6 @@
 
 'use strict';
 
-console.log('XXX wallpaper_manager.js loaded!!');
-
 (function(exports) {
 
   const WALLPAPER_KEY = 'wallpaper.image';
@@ -58,13 +56,11 @@ console.log('XXX wallpaper_manager.js loaded!!');
      * one.
      */
     initializeWallpaper: function(wallpaper, valid) {
-      console.log('initializeWallpaper');
       return new Promise((resolve, reject) => {
         if (this.wallpaperInitialized) {
           reject();
           return;
         }
-        console.log('Wallpaper not initialized yet');
 
         this.wallpaperInitialized = true;
         this._initPromiseResolver = resolve;
@@ -95,7 +91,6 @@ console.log('XXX wallpaper_manager.js loaded!!');
       });
     },
     start: function() {
-      console.log('WallpaperManager start');
       if (this._started) {
         throw 'Instance should not be start()\'ed twice.';
       }
@@ -152,7 +147,6 @@ console.log('XXX wallpaper_manager.js loaded!!');
     // called indirectly by _toBlob() or _checkSize().
     //
     _setWallpaper: function(value, valid) {
-      console.log('_setWallpaper to ' + value);
       if (!this._started) { return; }
 
       // If we are called because we just saved a resized blob back
@@ -401,7 +395,7 @@ console.log('XXX wallpaper_manager.js loaded!!');
       console.log.apply(console, args);
     }
   }
-  WallpaperManager.DEBUG = true; // Set to true to enable debug output
+  WallpaperManager.DEBUG = false; // Set to true to enable debug output
 
   /** @exports WallpaperManager */
   exports.WallpaperManager = WallpaperManager;

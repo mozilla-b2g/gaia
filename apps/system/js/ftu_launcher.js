@@ -36,7 +36,7 @@
   FtuLauncher.SUB_MODULES = [];
   BaseModule.create(FtuLauncher, {
     name: 'FtuLauncher',
-    DEBUG: true,
+    DEBUG: false,
     EVENT_PREFIX: 'ftu',
 
     /* The application object of ftu got from Application module */

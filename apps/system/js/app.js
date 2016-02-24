@@ -48,7 +48,6 @@
       'shared/js/idletimer.js' // XXX: Move into ScreenManager
     ],
     start: function() {
-      console.log('App.start');
       window.performance.mark('loadEnd');
       return LazyLoader.load(this.FILES).then(() => {
         return this.bootstrap();
@@ -65,7 +64,6 @@
       return Promise.all([
         window.launcher.start()
       ]).then(() => {
-        console.log('About to instantiate Core');
         window.core = BaseModule.instantiate('Core');
         return window.core.start();
       }).then(() => {

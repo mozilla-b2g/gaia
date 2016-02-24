@@ -6,7 +6,7 @@
    * Turn of this flag to debug all BaseModule based modules.
    * @type {Boolean}
    */
-  var GLOBAL_DEBUG = true;
+  var GLOBAL_DEBUG = false;
 
   /**
    * `_GAIA_DEVICE_TYPE_` is a placeholder and will be replaced by real
@@ -557,7 +557,7 @@
       }
       i++;
     }
-    return '/js/' + module.path + ch + '.js';
+    return 'js/' + module.path + ch + '.js';
   };
 
   BaseModule.prototype = {
