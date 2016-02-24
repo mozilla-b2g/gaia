@@ -43,7 +43,7 @@
  */
 
 (function(exports) {
-  const DEBUG = true;
+  const DEBUG = false;
   function debug() {
     if (DEBUG) {
       console.log('[FirefoxSyncToolbar] ' + Array.slice(arguments).concat());

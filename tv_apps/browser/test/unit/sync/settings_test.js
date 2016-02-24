@@ -14,6 +14,7 @@
 /* global NavigatorSettings */
 /* global Settings */
 /* global SettingsListener */
+/* global SyncErrors */
 /* global SyncManagerBridge */
 
 'use strict';
@@ -48,6 +49,7 @@ suite('Sync settings >', function() {
   var addListenerStub;
   var addEventListenerStub;
   var getInfoSpy;
+  var settingsHideStub;
   var showScreenSpy;
 
   var observers = {};
@@ -77,7 +79,7 @@ suite('Sync settings >', function() {
                                       (event, listener) => {
       visibilityListener = listener;
     });
-    sinon.stub(Settings, 'hide');
+    settingsHideStub = sinon.stub(Settings, 'hide');
 
     require('/tv_apps/browser/js/sync/settings.js').then(() => {
       subject = FirefoxSyncSettings;
@@ -142,6 +144,27 @@ suite('Sync settings >', function() {
       expect(getInfoSpy.called).to.be.equal(false);
       visibilityListener();
       expect(getInfoSpy.called).to.be.equal(true);
+    });
+  });
+
+  suite('Disabling', function() {
+    suiteTeardown(function() {
+      settingsHideStub.reset();
+    });
+
+    suiteTeardown(function() {
+      showScreenSpy.reset();
+      settingsHideStub.reset();
+    });
+
+    test('should hide settings page when sign-in closed by user', function() {
+      onsyncchange({
+        state: 'disabling',
+        user: null,
+        error: SyncErrors.UI_ERROR
+      });
+
+      expect(settingsHideStub.calledOnce).to.equal(true);
     });
   });
 
