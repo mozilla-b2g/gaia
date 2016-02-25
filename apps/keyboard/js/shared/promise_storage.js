@@ -28,6 +28,11 @@ var PromiseStorage = function(name) {
   }
 
   this._openPromise = null;
+  this._supportsIndexedDB = !!window.indexedDB;
+
+  if (!this._supportsIndexedDB) {
+    console.warn('PromiseStorage: IndexedDB is unsupported');
+  }
 };
 
 // Version and the single object store name is considered internal to
@@ -61,6 +66,10 @@ PromiseStorage.prototype._getDatabase = function() {
     return this._openPromise;
   }
 
+  if (!this._supportsIndexedDB) {
+    return Promise.resolve();
+  }
+
   var p = new Promise(function(resolve, reject) {
     var req = window.indexedDB.open(this.name, this.DB_VERSION);
     req.onerror = function() {
@@ -88,6 +97,13 @@ PromiseStorage.prototype._getDatabase = function() {
 // in the same function loop.
 // callback should return a promise, to be chained on the returned promise.
 PromiseStorage.prototype._getTxn = function(type, callback) {
+  if (!this._supportsIndexedDB) {
+    console.warn(
+      'PromiseStorage: IndexedDB is unsupported, unable to operate');
+
+    return Promise.resolve();
+  }
+
   return this._getDatabase().then(function(db) {
     var txn = db.transaction(this.STORE_NAME, type);
     return callback(txn);
