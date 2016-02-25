@@ -746,7 +746,7 @@
 
       if (entity.attrs) {
         formatted.attrs = Object.create(null);
-        for (const key in entity.attrs) {
+        for (let key in entity.attrs) {
           /* jshint -W089 */
           const [, attrValue] = this._formatTuple(
             lang, args, entity.attrs[key], id, key);
@@ -1622,7 +1622,7 @@
 
     if (entry.attrs) {
       newEntry.attrs = Object.create(null);
-      for (const key in entry.attrs) {
+      for (let key in entry.attrs) {
         newEntry.attrs[key] = walkEntry(entry.attrs[key], fn);
       }
     }
@@ -1850,7 +1850,7 @@
       }
 
       const pseudoentries = Object.create(null);
-      for (const key in entries) {
+      for (let key in entries) {
         pseudoentries[key] = walkEntry(
           entries[key], pseudo[lang.code].process);
       }

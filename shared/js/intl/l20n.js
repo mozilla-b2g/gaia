@@ -790,7 +790,7 @@
 
       if (entity.attrs) {
         formatted.attrs = Object.create(null);
-        for (const key in entity.attrs) {
+        for (let key in entity.attrs) {
           /* jshint -W089 */
           const [, attrValue] = this._formatTuple(
             lang, args, entity.attrs[key], id, key);
@@ -1666,7 +1666,7 @@
 
     if (entry.attrs) {
       newEntry.attrs = Object.create(null);
-      for (const key in entry.attrs) {
+      for (let key in entry.attrs) {
         newEntry.attrs[key] = walkEntry(entry.attrs[key], fn);
       }
     }
@@ -1863,7 +1863,7 @@
       }
 
       const pseudoentries = Object.create(null);
-      for (const key in entries) {
+      for (let key in entries) {
         pseudoentries[key] = walkEntry(
           entries[key], pseudo[lang.code].process);
       }
@@ -2076,7 +2076,7 @@
       'meta[name="availableLanguages"],' +
       'meta[name="defaultLanguage"],' +
       'meta[name="appVersion"]'));
-    for (const meta of metas) {
+    for (let meta of metas) {
       const name = meta.getAttribute('name');
       const content = meta.getAttribute('content').trim();
       switch (name) {
@@ -2160,7 +2160,7 @@
       }
     }
 
-    for (const key in translation.attrs) {
+    for (let key in translation.attrs) {
       const attrName = camelCaseToDashed(key);
       if (isAttrAllowed({ name: attrName }, element)) {
         element.setAttribute(attrName, translation.attrs[key]);
@@ -2343,13 +2343,13 @@
   function translateMutations(view, mutations) {
     const targets = new Set();
 
-    for (const mutation of mutations) {
+    for (let mutation of mutations) {
       switch (mutation.type) {
         case 'attributes':
           targets.add(mutation.target);
           break;
         case 'childList':
-          for (const addedNode of mutation.addedNodes) {
+          for (let addedNode of mutation.addedNodes) {
             if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
               if (addedNode.childElementCount) {
                 getTranslatables(addedNode).forEach(targets.add.bind(targets));
