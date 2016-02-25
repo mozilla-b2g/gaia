@@ -1,4 +1,3 @@
-reruns: 2
 task:
   metadata:
     name: JSMarionette Unit Tests
@@ -21,7 +20,7 @@ task:
 
     command:
       - entrypoint
-      - ./bin/ci run jsmarionette_unit_tests
+      - ./gaia test-unit --suite=jsmarionette
 
   extra:
     treeherder:

@@ -1,7 +1,7 @@
 'use strict';
 
 // Local imports
-var run = require('./lib/runner.js').run;
+var runQueue = require('./lib/runner.js').runQueue;
 
 // Pre-reqs
 var preReqs = [
@@ -19,18 +19,9 @@ var jsmarionette = {
 };
 
 // Complete list of test suites
-var suites = {
-  jsmarionette: jsmarionette
-};
+var suites = [jsmarionette];
 
 // Main command entry-point.
 export function testIntegration(args) {
-
-  // XXXAus: Add support for --device-type.
-
-  // Run all pre-reqs.
-  preReqs.forEach(preReq => run(preReq));
-
-  // Run all suites.
-  Object.keys(suites).forEach(suite => run(suites[suite]));
+  return runQueue(preReqs).then(runQueue(suites));
 }
