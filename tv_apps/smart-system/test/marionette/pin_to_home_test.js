@@ -50,6 +50,8 @@ marionette('Test Pin to homescreen', function() {
     browser.switchFrame();
     browser.skipFte();
     browser.goToUrlAndPin(url);
+    client.switchToFrame();
+    system.waitForUrlLoaded(home.PATH);
     home.switchFrame();
     client.waitFor(function() {
       return home.existCardWithName('Sample page');
