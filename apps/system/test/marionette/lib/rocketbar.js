@@ -173,6 +173,11 @@ Rocketbar.prototype = {
     this.system.waitForUrlLoaded(url);
   },
 
+  backdropDisplayed: function() {
+    var classes = this.backdrop.getAttribute('class');
+    return classes.indexOf('hidden') === -1;
+  },
+
   get rocketbar() {
     return this.client.findElement(this.selectors.rocketbar);
   },
