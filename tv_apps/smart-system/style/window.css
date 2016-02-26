@@ -422,6 +422,10 @@
   z-index: 11;
 }
 
+.appWindow > .splash-screen {
+  z-index: 12;
+}
+
 @keyframes inFromLeft {
   0%   {
     transform: translateX(-20%);
@@ -542,4 +546,9 @@
 #screen #windows .transparent-inline-activity.render > div.browser-container,
 #screen #windows .transparent-inline-activity.render > div.browser-container > iframe.browser {
   background-color: transparent;
+}
+
+/* Hide gaia-progress in preview window */
+.appWindow.previewWindow gaia-progress {
+  visibility: hidden;
 }
