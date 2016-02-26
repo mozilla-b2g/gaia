@@ -15,7 +15,6 @@
  */
  /* exported DownloadManager */
 var DownloadManager = (function() {
-
   var mozDownloadManager = navigator.mozDownloadManager;
 
   if (!mozDownloadManager) {
@@ -33,6 +32,7 @@ var DownloadManager = (function() {
 
   // Define and set our download start handler.
   function onDownloadStart(ev) {
+    console.log('onDownloadStart', ev);
     if (started) {
       createDownloadNotificationAndIcon(ev.download);
     } else {
@@ -42,6 +42,7 @@ var DownloadManager = (function() {
                        'shared/js/download/download_helper.js',
                        'js/download/download_notification.js']).then(
         function() {
+          console.log('started');
           started = true;
           createDownloadNotificationAndIcon(ev.download);
           window.addEventListener('notification-clicked', handleEvent);
@@ -106,6 +107,7 @@ var DownloadManager = (function() {
   Service.register('decDownloads', downloadManager);
 
   function handleEvent(evt) {
+    console.log('handleEvent', evt.type);
     var detail = evt.detail;
 
     if (!detail || !detail.id) {

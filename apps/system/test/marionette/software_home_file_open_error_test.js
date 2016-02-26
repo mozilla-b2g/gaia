@@ -48,20 +48,21 @@ marionette('Software Home Button - File Open Error', function() {
     system.gotoBrowser(url);
 
     // Save the file.
-    actions.longPress(client.helper.waitForElement('a'), 1).perform();
-    client.switchToFrame();
-    system.appContextMenuSaveLink.click();
+    actions.longPress(client.helper.waitForElement('a'), 1).perform(function() {
+      client.switchToFrame();
+      system.appContextMenuSaveLink.click();
 
-    // Tap on the toaster to open the download.
-    // We could also open this from settings or the utility tray if needed.
-    getDownloadCompleteToast().tap();
+      // Tap on the toaster to open the download.
+      // We could also open this from settings or the utility tray if needed.
+      getDownloadCompleteToast().tap();
 
-    var dialogHeight = getDownloadDialogHeight();
+      var dialogHeight = getDownloadDialogHeight();
 
-    var shbRect = system.softwareButtons.scriptWith(rect);
+      var shbRect = system.softwareButtons.scriptWith(rect);
 
-    assert.equal(dialogHeight, expectedDialogHeight());
-    assert.equal(dialogHeight, shbRect.top);
+      assert.equal(dialogHeight, expectedDialogHeight());
+      assert.equal(dialogHeight, shbRect.top);
+    });
   });
 
   function rect(el) {
@@ -101,9 +102,14 @@ marionette('Software Home Button - File Open Error', function() {
   function getDownloadCompleteToast() {
     var toasterTitle;
     client.waitFor(function() {
-      toasterTitle = client.helper.waitForElement(
+      toasterTitle = client.findElement(
         '#notification-toaster.displayed .toaster-title');
-      return toasterTitle.text().indexOf('Download complete') !== -1;
+      if (toasterTitle) {
+        console.log('Toaster found!', toasterTitle.text());
+        return toasterTitle.text().indexOf('Download complete') !== -1;
+      }
+      return false;
+      
     });
     return toasterTitle;
   }
