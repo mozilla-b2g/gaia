@@ -1,4 +1,4 @@
-from taskcluster/tester:0.4.5
+from taskcluster/tester:0.4.8
 maintainer Aus Lacroix <aus@mozilla.com>
 
 # configure git identity
