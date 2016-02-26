@@ -18,6 +18,32 @@
   Actions.prototype = {
 
     /**
+     * Click an element.
+     *
+     * @param {Marionette.Element} element The element to click.
+     * @param {Number} button The button that's clicked (defaults to 0, which is
+     *                 the 'left' or primary mouse button).
+     * @param {Number} count The number of times the element is clicked.
+     * @return {Object} self.
+     */
+    click: function click(element, button, count) {
+      button = button ||
+      this.actionChain.push(['click', element.id, button, count]);
+      return this;
+    },
+
+    /**
+     * Context click an element as to show it's context menu.
+     *
+     * @param {Marionette.Element} element The element to context click.
+     * @return {Object} self.
+     */
+    contextClick: function contextClick(element) {
+      this.actionChain.push(['click', element.id, 2, 1]);
+      return this;
+    },
+
+    /**
      * Send a 'touchstart' event to this element. If no coordinates are given,
      * it will be targeted at the center of the element.
      * If given, it will be targeted at the (x,y) coordinates
