@@ -343,6 +343,23 @@ MarionetteHelper.prototype = {
 
     // executeScript returns "null" by default
     return result || undefined;
+  },
+
+  /**
+   * Context click an element.
+   *
+   * @param {Marionette.Element|String} el element or some css selector for the
+   *                                    element to context click.
+   * @return {Marionette.Actions|undefined} Actions object, or undefined on
+   *                                        failure.
+   */
+  contextMenuClick: function(el) {
+    if (!isElement(el)) {
+      el = this.client.findElement(el);
+    }
+
+    var actions = new Marionette.Actions(this.client);
+    return actions.contextClick(el).perform();
   }
 };
 

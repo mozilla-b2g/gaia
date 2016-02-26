@@ -11,7 +11,10 @@
       }
     </style>
   </head>
-  <body>
+  <menu type="context" id="testcontextmenu">
+    <menuitem label="context menu item"></menuitem>
+  </menu>
+  <body id="fakeapp-body" contextmenu="testcontextmenu">
     <select id="select">
       <option value="option1">option1</option>
       <option value="option2">option2</option>
