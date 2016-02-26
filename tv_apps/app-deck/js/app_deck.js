@@ -228,6 +228,9 @@
           this._appDeckGridViewElem.removeChild(targetElem);
           this._spatialNavigator.remove(targetElem);
           URL.revokeObjectURL(targetElem.dataset.revokableURL);
+          // Unpinning bookmarks are sended in smart-system/bookmark_handler.js
+          // when datastore.onremove is fired. So we don't need to send unpin
+          // for that.
           break;
       }
     },
