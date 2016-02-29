@@ -100,19 +100,6 @@ ModalDialog.prototype = {
   },
 
   /**
-   * Wait for the specified element to show and send key to it
-   * @param {Marionette.Element} element The element to wait for.
-   * @param {String} key The desired key to send to element.
-   */
-  sendKeyToElement: function(element, key) {
-    this.client.waitFor(function() {
-      return element.displayed();
-    }, function() {
-      element.sendKeys(key);
-    });
-  },
-
-  /**
    * Wait for the specified dialog to open.
    * @param {Marionette.Element} element The dialog element to wait for.
    */

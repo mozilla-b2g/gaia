@@ -661,7 +661,7 @@ function embedL10nResources(node, entries) {
 
 function getL10nJSONFileName(htmlFile, buildDirectoryFilePath) {
   var relativePath = utils.relativePath(buildDirectoryFilePath, htmlFile.path);
-  var base = relativePath.replace('.html', '').replace(/\//g, '.');
+  var base = relativePath.replace('.html', '').replace(/[\/\\]/g, '.');
   return base + '.{locale}.json';
 }
 

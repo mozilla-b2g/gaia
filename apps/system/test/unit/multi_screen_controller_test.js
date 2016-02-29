@@ -1,36 +1,47 @@
+/* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* global MocksHelper, ActionMenu, BaseModule, BroadcastChannel */
+/* global MockApplications */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_action_menu.js');
+requireApp('system/test/unit/mock_applications.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
+requireApp('system/js/browser_config_helper.js');
 requireApp('system/js/multi_screen_controller.js');
 
 var mocksForMultiScreenController = new MocksHelper([
   'ActionMenu',
-  'LazyLoader'
+  'LazyLoader',
+  'ManifestHelper'
 ]).init();
 
 suite('system/MultiScreenController', function() {
   mocksForMultiScreenController.attachTestHelpers();
-
   var subject;
-  var settingsKey = 'multiscreen.enabled';
+  var realApplications;
 
   var mockConfig = {
     url: 'test'
   };
-  var mockExternalDisplays = [
-    {
-      id: 1,
-      name: 'External Display 1'
-    },
-    {
-      id: 2,
-      name: 'External Display 2'
-    }
-  ];
+
+	var mockPresentationDevices = [{
+      id:   'test-id',
+      name: 'test-name',
+      type: 'test-type'
+    }];
+
+  var mockDeviceListForActionMenu =
+    mockPresentationDevices.map((device, idx) => {
+      return {
+        name: device.name,
+        deviceId: device.id,
+        id: idx,
+      };
+    });
 
   function triggerMozChromeEvent(detail) {
     window.dispatchEvent(new CustomEvent('mozChromeEvent', {
@@ -39,12 +50,14 @@ suite('system/MultiScreenController', function() {
   }
 
   setup(function() {
+    realApplications = window.applications;
+    window.applications = MockApplications;
     subject = BaseModule.instantiate('MultiScreenController');
     subject.start();
-    subject['_observe_' + settingsKey](true);
   });
 
   teardown(function() {
+    window.applications = realApplications;
     subject.stop();
   });
 
@@ -53,62 +66,46 @@ suite('system/MultiScreenController', function() {
       assert.isNotNull(subject.broadcastChannel);
       assert.equal(subject.broadcastChannel.name, 'multiscreen');
     });
+
   });
 
-  suite('settings', function() {
-    test('toggle "' + settingsKey + '"', function() {
-      subject.stop();
-      subject.start();
-
-      var stubAddEventListener =
-        this.sinon.stub(window, 'addEventListener');
-      var stubRemoveEventListener =
-        this.sinon.stub(window, 'removeEventListener');
-
-      subject['_observe_' + settingsKey](true);
-      assert.isTrue(subject.enabled());
-
-      subject['_observe_' + settingsKey](false);
-      assert.isFalse(subject.enabled());
-
-      stubAddEventListener.restore();
-      stubRemoveEventListener.restore();
-    });
-  });
-
-  suite('queryExternalDisplays', function() {
-    var promise;
+  suite('request config should be stored correctly', function() {
+    var fakeUrl = 'app://test-url/';
+    var fakeManifestURL = 'app://test-url/manifest.webapp';
+    var fakeApp = {
+      origin: fakeUrl,
+      manifestURL: fakeManifestURL,
+      manifest: {}
+    };
 
     setup(function() {
-      promise = subject.queryExternalDisplays();
+      MockApplications.mRegisterMockApp(fakeApp);
     });
 
-    test('should resolve with external displays', function(done) {
-      promise.then(function(displays) {
-        done(function() {
-          assert.equal(displays, mockExternalDisplays);
-        });
-      });
-      triggerMozChromeEvent({
-        type: 'get-display-list-success',
-        display: mockExternalDisplays
-      });
+    teardown(function() {
+      MockApplications.mUnregisterMockApp(fakeApp);
     });
 
-    test('should reject if get-display-list is failed', function(done) {
-      promise.catch(function() {
-        done();
-      });
-      triggerMozChromeEvent({
-        type: 'get-display-list-error',
-        reason: ''
-      });
-    });
+    test('_handle_mozPresentationChromeEvent', function() {
+      var handleMozPresentationChromeEventSpy =
+        this.sinon.spy(subject, '_handle_mozPresentationChromeEvent');
 
-    test('should reject if there\'s a pending query', function(done) {
-      subject.queryExternalDisplays().catch(function() {
-        done();
-      });
+      window.dispatchEvent(new CustomEvent('mozPresentationChromeEvent', {
+        detail: {
+          type: 'presentation-launch-receiver',
+          url: fakeUrl,
+          timestamp: 'test-timestamp',
+          id: 'test-request-id'
+        }
+      }));
+
+      assert.ok(handleMozPresentationChromeEventSpy.calledOnce);
+      assert.equal(subject.requestConfig.url, fakeUrl);
+      assert.equal(subject.requestConfig.manifestURL, fakeManifestURL);
+      assert.equal(subject.requestConfig.timestamp, 'test-timestamp');
+      assert.equal(subject.requestConfig.requestId, 'test-request-id');
+
+      handleMozPresentationChromeEventSpy.restore();
     });
   });
 
@@ -118,17 +115,16 @@ suite('system/MultiScreenController', function() {
         done(function() {
           assert.equal(titleId, 'multiscreen-pick');
           for(var i in items) {
-            assert.equal(items[i].label, mockExternalDisplays[i].name);
-            assert.equal(items[i].value, mockExternalDisplays[i].id);
+            assert.equal(items[i].label, mockDeviceListForActionMenu[i].name);
+            assert.equal(items[i].value, mockDeviceListForActionMenu[i].id);
           }
         });
       });
-      subject.showMenu(mockExternalDisplays);
+      subject.showMenu(mockDeviceListForActionMenu);
     });
 
-    test('should resolve with displayId if user choose a external display',
-                                                                function(done) {
-      subject.showMenu(mockExternalDisplays).then(function(choice) {
+    test('should resolve with ID if user choose a device', function(done) {
+      subject.showMenu(mockDeviceListForActionMenu).then(function(choice) {
         done(function() {
           assert.equal(choice, 1);
         });
@@ -136,8 +132,8 @@ suite('system/MultiScreenController', function() {
       subject.actionMenu.onselected(1);
     });
 
-    test('should resolve without displayId if user cancels', function(done) {
-      subject.showMenu(mockExternalDisplays).then(function(choice) {
+    test('should resolve without ID if user cancels', function(done) {
+      subject.showMenu(mockDeviceListForActionMenu).then(function(choice) {
         done(function() {
           assert.isUndefined(choice);
         });
@@ -145,8 +141,7 @@ suite('system/MultiScreenController', function() {
       subject.actionMenu.oncancel();
     });
 
-    test('should resolve immediately if no external display connected',
-                                                                function(done) {
+    test('should resolve immediately if no available device', function(done) {
       this.sinon.stub(ActionMenu.prototype, 'show');
       subject.showMenu([]).then(function(choice) {
         done(function() {
@@ -157,74 +152,8 @@ suite('system/MultiScreenController', function() {
     });
 
     test('should reject if there\'s already an action menu', function(done) {
-      subject.showMenu(mockExternalDisplays);
-      subject.showMenu(mockExternalDisplays).catch(function() {
-        done();
-      });
-    });
-  });
-
-  suite('chooseDisplay', function() {
-    var broadcastChannel;
-
-    setup(function() {
-      broadcastChannel = new BroadcastChannel('multiscreen');
-
-      this.sinon.stub(subject, 'queryExternalDisplays', function() {
-        return Promise.resolve();
-      });
-    });
-
-    teardown(function() {
-      broadcastChannel.close();
-    });
-
-    test('should post "launch-app" message and resolve if user chooses an ' +
-                                            'external display', function(done) {
-      var chosenDisplayId = 123;
-      this.sinon.stub(subject, 'showMenu', function() {
-        return Promise.resolve(chosenDisplayId);
-      });
-      this.sinon.stub(subject, 'postMessage');
-      subject.chooseDisplay(mockConfig).then(function(displayId) {
-        done(function() {
-          assert.isTrue(subject.postMessage.calledWith(
-            chosenDisplayId,
-            'launch-app',
-            mockConfig
-          ));
-          assert.equal(displayId, chosenDisplayId);
-        });
-      });
-    });
-
-    test('should reject if user cancels the action menu', function(done) {
-      this.sinon.stub(subject, 'showMenu', function() {
-        return Promise.resolve();
-      });
-      subject.chooseDisplay(mockConfig).catch(function() {
-        done();
-      });
-    });
-
-    test('should reject if "isSystemMessage" is set', function(done) {
-      this.sinon.stub(subject, 'showMenu', function() {
-        return Promise.resolve(1);
-      });
-      subject.chooseDisplay({
-        isSystemMessage: true
-      }).catch(function() {
-        done();
-      });
-    });
-
-    test('should reject if "stayBackground" is set', function(done) {
-      this.sinon.stub(subject, 'showMenu', function() {
-        return Promise.resolve(1);
-      });
-      subject.chooseDisplay({
-        stayBackground: true
-      }).catch(function() {
+      subject.showMenu(mockDeviceListForActionMenu);
+      subject.showMenu(mockDeviceListForActionMenu).catch(function() {
         done();
       });
     });
@@ -252,13 +181,15 @@ suite('system/MultiScreenController', function() {
 
   suite('receive messages', function() {
     var broadcastChannel;
-    var fakeDisplayId = 123;
+    var fakeDisplayId = 'test-id';
 
     setup(function() {
+      subject.requestDeviceId = fakeDisplayId;
       broadcastChannel = new BroadcastChannel('multiscreen');
     });
 
     teardown(function() {
+      subject.requestDeviceId = undefined;
       broadcastChannel.close();
     });
 
@@ -309,9 +240,24 @@ suite('system/MultiScreenController', function() {
         }
       });
     });
+
+    test('should post message "launch-presentation-app when receiving ' +
+                                       '"remote-system-ready"', function(done) {
+      this.sinon.stub(subject, 'postMessage', function(target, type, detail) {
+        done(function() {
+          assert.equal(target, 'test-id');
+          assert.equal(type, 'launch-presentation-app');
+          assert.isUndefined(detail);
+        });
+      });
+      broadcastChannel.postMessage({
+        source: subject.requestDeviceId,
+        type: 'remote-system-ready',
+      });
+    });
   });
 
-  suite('presentation device selection', function() {
+  suite('presentation device selection when device available', function() {
     var eventValidator;
 
     function _content_event_handler(evt) {
@@ -322,13 +268,7 @@ suite('system/MultiScreenController', function() {
 
     setup(function() {
       window.navigator.mozPresentationDeviceInfo = {
-        getAll: function() {
-          return Promise.resolve([
-              { name: 'test-name',
-                id: 'test-id',
-                type: 'test-type' }
-          ]);
-        }
+        getAll: () => Promise.resolve(mockPresentationDevices)
       };
       window.addEventListener('mozContentEvent', _content_event_handler);
     });
@@ -338,6 +278,14 @@ suite('system/MultiScreenController', function() {
       window.removeEventListener('mozContentEvent', _content_event_handler);
     });
 
+    test('queryPresentationDevices', function(done) {
+      subject.queryPresentationDevices().then(function(list) {
+        done(function() {
+          assert.equal(list.length, 1);
+        });
+      });
+    });
+
     test('device selected', function(done) {
       eventValidator = function(evt) {
         if (evt.detail.type !== 'presentation-select-result') {
@@ -345,6 +293,7 @@ suite('system/MultiScreenController', function() {
         }
 
         done(function() {
+          assert.equal(subject.requestDeviceId, 'test-id');
           assert.equal(evt.detail.type, 'presentation-select-result');
           assert.equal(evt.detail.deviceId, 'test-id');
           assert.equal(evt.detail.id, 'test-selection-id');
@@ -372,6 +321,7 @@ suite('system/MultiScreenController', function() {
         }
 
         done(function() {
+          assert.isUndefined(subject.requestDeviceId);
           assert.equal(evt.detail.type, 'presentation-select-deny');
           assert.equal(evt.detail.id, 'test-selection-id');
         });
@@ -386,20 +336,45 @@ suite('system/MultiScreenController', function() {
         id: 'test-selection-id',
       });
     });
+  });
+
+  suite('presentation device selection when no available device', function() {
+    var eventValidator;
+
+    function _content_event_handler(evt) {
+      if (eventValidator) {
+        eventValidator(evt);
+      }
+    }
+
+    setup(function() {
+      window.navigator.mozPresentationDeviceInfo = {
+        getAll: () => Promise.resolve([])
+      };
+      window.addEventListener('mozContentEvent', _content_event_handler);
+    });
+
+    teardown(function() {
+      delete window.navigator.mozPresentationDeviceInfo;
+      window.removeEventListener('mozContentEvent', _content_event_handler);
+    });
+
+    test('queryPresentationDevices', function(done) {
+      subject.queryPresentationDevices().then(function(list) {
+        done(function() {
+          assert.equal(list.length, 0);
+        });
+      });
+    });
 
     test('canceled while no available device', function(done) {
-      window.navigator.mozPresentationDeviceInfo = {
-        getAll: function() {
-          return Promise.resolve([]);
-        }
-      };
-
       eventValidator = function(evt) {
         if (evt.detail.type !== 'presentation-select-deny') {
           return;
         }
 
         done(function() {
+          assert.isUndefined(subject.requestDeviceId);
           assert.equal(evt.detail.type, 'presentation-select-deny');
           assert.equal(evt.detail.id, 'test-selection-id');
         });

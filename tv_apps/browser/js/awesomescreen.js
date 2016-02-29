@@ -1371,7 +1371,7 @@ var Awesomescreen = {
     var title = this.selectList.childNodes[1].childNodes[0].textContent;
     Settings.setHomepage(url);
 
-    navigator.mozL10n.setAttributes(this.dialogBannerMessage,
+    document.l10n.setAttributes(this.dialogBannerMessage,
        'WB_LT_SET_HOMEPAGE', {value0:title});
     // Animation end event
     var target = ev.currentTarget;
@@ -1612,7 +1612,7 @@ var Awesomescreen = {
       }else{
         Browser.switchCursorMode(true);
         Browser.switchCursorMode(false);
-        Awesomescreen.selectList.focus();
+        Awesomescreen.selectList && Awesomescreen.selectList.focus();
       }
     } else {
       Browser.switchCursorMode(true);
@@ -2563,6 +2563,14 @@ var Awesomescreen = {
     var state = true;
     // in the input area focus (= display keyboard)
     if(document.activeElement.nodeName == 'INPUT') {
+      switch(ev.keyCode) {
+        case KeyEvent.DOM_VK_ESCAPE:
+        case KeyEvent.DOM_VK_RETURN:
+          ev.preventDefault();
+          Awesomescreen.focusPos = 2;
+          Awesomescreen.focusChange(Awesomescreen.focusPos);
+          break;
+      }
       return;
     }
     var hoverElem =
@@ -2755,7 +2763,7 @@ var Awesomescreen = {
       Browser.refreshBookmarkButton();
       this.topsiteHidden();
     }else{
-      navigator.mozL10n.formatValue('LT_BROWSER_CONFIRM_EXIT2').then(result => {
+      document.l10n.formatValue('LT_BROWSER_CONFIRM_EXIT2').then(result => {
         if (window.confirm(result)) {
           window.close();
         }

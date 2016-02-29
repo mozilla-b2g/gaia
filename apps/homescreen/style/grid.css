@@ -19,7 +19,8 @@ gaia-container {
   background-repeat: repeat-y;
 }
 
-gaia-container:not(.loading) > .gaia-container-child:not(.added):not(.dragging) {
+body:not(.expanding):not(.collapsing) gaia-container:not(.loading) >
+.gaia-container-child:not(.added):not(.dragging) {
   transition: transform 0.2s;
 }
 

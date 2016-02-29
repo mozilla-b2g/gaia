@@ -3,11 +3,11 @@ user_pref('devtools.responsiveUI.customWidth', 1366);
 user_pref('devtools.responsiveUI.customHeight', 768);
 user_pref('devtools.responsiveUI.currentPreset', 'custom');
 user_pref('b2g.system_startup_url',
-          'app://smart-system.gaiamobile.org/index.html');
+          'app://system.gaiamobile.org/index.html');
 user_pref('b2g.system_manifest_url',
-          'app://smart-system.gaiamobile.org/manifest.webapp');
+          'app://system.gaiamobile.org/manifest.webapp');
 user_pref('b2g.neterror.url',
-          'app://smart-system.gaiamobile.org/net_error.html');
+          'app://system.gaiamobile.org/net_error.html');
 
 // Collaborate with meta-viewport to fulfill more complete web experience
 user_pref('apz.allow_zooming', true);
@@ -26,3 +26,6 @@ user_pref('remotecontrol.service.pairing_required', true);
 user_pref('remotecontrol.client_page.prepath',
           'app://remote-control-client.gaiamobile.org');
 user_pref('remotecontrol.client_page.blacklist', '/client.html,/pairing.html');
+
+//network offline error
+user_pref('network.offline-mirrors-connectivity', true);

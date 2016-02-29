@@ -1,7 +1,3 @@
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
 (function () {
   'use strict';
 
@@ -10,52 +6,94 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   const Client = bridge.client;
   const channel = new BroadcastChannel('l20n-channel');
 
-  const observerConfig = {
-    attributes: true,
-    characterData: false,
-    childList: true,
-    subtree: true,
-    attributeFilter: ['data-l10n-id', 'data-l10n-args']
-  };
+  // Polyfill NodeList.prototype[Symbol.iterator] for Chrome.
+  // See https://code.google.com/p/chromium/issues/detail?id=401699
+  if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
+    NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
+  }
 
-  const observers = new WeakMap();
+  // A document.ready shim
+  // https://github.com/whatwg/html/issues/127
+  function documentReady() {
+    if (document.readyState !== 'loading') {
+      return Promise.resolve();
+    }
 
-  function initMutationObserver(view) {
-    observers.set(view, {
-      roots: new Set(),
-      observer: new MutationObserver(mutations => translateMutations(view, mutations))
+    return new Promise(resolve => {
+      document.addEventListener('readystatechange', function onrsc() {
+        document.removeEventListener('readystatechange', onrsc);
+        resolve();
+      });
     });
   }
 
-  function translateRoots(view) {
-    return Promise.all([...observers.get(view).roots].map(root => _translateFragment(view, root)));
+  // Intl.Locale
+  function getDirection(code) {
+    const tag = code.split('-')[0];
+    return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ?
+      'rtl' : 'ltr';
   }
 
-  function observe(view, root) {
-    const obs = observers.get(view);
-    if (obs) {
-      obs.roots.add(root);
-      obs.observer.observe(root, observerConfig);
-    }
+  // Opera and Safari don't support it yet
+  if (navigator.languages === undefined) {
+    navigator.languages = [navigator.language];
   }
 
-  function disconnect(view, root, allRoots) {
-    const obs = observers.get(view);
-    if (obs) {
-      obs.observer.disconnect();
-      if (allRoots) {
-        return;
+  function getResourceLinks(head) {
+    return Array.prototype.map.call(
+      head.querySelectorAll('link[rel="localization"]'),
+      el => el.getAttribute('href'));
+  }
+
+  function getMeta(head) {
+    let availableLangs = Object.create(null);
+    let defaultLang = null;
+    let appVersion = null;
+
+    // XXX take last found instead of first?
+    const metas = Array.from(head.querySelectorAll(
+      'meta[name="availableLanguages"],' +
+      'meta[name="defaultLanguage"],' +
+      'meta[name="appVersion"]'));
+    for (let meta of metas) {
+      const name = meta.getAttribute('name');
+      const content = meta.getAttribute('content').trim();
+      switch (name) {
+        case 'availableLanguages':
+          availableLangs = getLangRevisionMap(
+            availableLangs, content);
+          break;
+        case 'defaultLanguage':
+          const [lang, rev] = getLangRevisionTuple(content);
+          defaultLang = lang;
+          if (!(lang in availableLangs)) {
+            availableLangs[lang] = rev;
+          }
+          break;
+        case 'appVersion':
+          appVersion = content;
       }
-      obs.roots.delete(root);
-      obs.roots.forEach(other => obs.observer.observe(other, observerConfig));
     }
+
+    return {
+      defaultLang,
+      availableLangs,
+      appVersion
+    };
   }
 
-  function reconnect(view) {
-    const obs = observers.get(view);
-    if (obs) {
-      obs.roots.forEach(root => obs.observer.observe(root, observerConfig));
-    }
+  function getLangRevisionMap(seq, str) {
+    return str.split(',').reduce((prevSeq, cur) => {
+      const [lang, rev] = getLangRevisionTuple(cur);
+      prevSeq[lang] = rev;
+      return prevSeq;
+    }, seq);
+  }
+
+  function getLangRevisionTuple(str) {
+    const [lang, rev]  = str.trim().split(':');
+    // if revision is missing, use NaN
+    return [lang, parseInt(rev)];
   }
 
   // match the opening angle bracket (<) in HTML tags, and HTML entities like
@@ -63,7 +101,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   const reOverlay = /<|&#?\w+;/;
 
   const allowed = {
-    elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
+    elements: [
+      'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data',
+      'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u',
+      'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'
+    ],
     attributes: {
       global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
       a: ['download'],
@@ -123,7 +165,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     // the allowed list or try to match it with a corresponding element
     // in the source
     let childElement;
-    while (childElement = translationElement.childNodes[0]) {
+    while ((childElement = translationElement.childNodes[0])) {
       translationElement.removeChild(childElement);
 
       if (childElement.nodeType === childElement.TEXT_NODE) {
@@ -141,14 +183,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
 
       if (isElementAllowed(childElement)) {
-        const sanitizedChild = childElement.ownerDocument.createElement(childElement.nodeName);
+        const sanitizedChild = childElement.ownerDocument.createElement(
+          childElement.nodeName);
         overlay(sanitizedChild, childElement);
         result.appendChild(sanitizedChild);
         continue;
       }
 
       // otherwise just take this child's textContent
-      result.appendChild(translationElement.ownerDocument.createTextNode(childElement.textContent));
+      result.appendChild(
+        translationElement.ownerDocument.createTextNode(
+          childElement.textContent));
     }
 
     // clear `sourceElement` and append `result` which by this time contains
@@ -161,7 +206,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     // XXX attributes previously set here for another language should be
     // cleared if a new language doesn't use them; https://bugzil.la/922577
     if (translationElement.attributes) {
-      for (k = 0, attr; attr = translationElement.attributes[k]; k++) {
+      for (k = 0, attr; (attr = translationElement.attributes[k]); k++) {
         if (isAttrAllowed(attr, sourceElement)) {
           sourceElement.setAttribute(attr.name, attr.value);
         }
@@ -208,7 +253,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /* jshint boss:true */
     let nthOfType = 0;
     for (let i = 0, child; child = context.children[i]; i++) {
-      if (child.nodeType === child.ELEMENT_NODE && child.tagName === element.tagName) {
+      if (child.nodeType === child.ELEMENT_NODE &&
+          child.tagName === element.tagName) {
         if (nthOfType === index) {
           return child;
         }
@@ -222,7 +268,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   function getIndexOfType(element) {
     let index = 0;
     let child;
-    while (child = element.previousElementSibling) {
+    while ((child = element.previousElementSibling)) {
       if (child.tagName === element.tagName) {
         index++;
       }
@@ -236,16 +282,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return 'aria-valuetext';
     }
 
-    return string.replace(/[A-Z]/g, function (match) {
-      return '-' + match.toLowerCase();
-    }).replace(/^-/, '');
+    return string
+      .replace(/[A-Z]/g, match => '-' + match.toLowerCase())
+      .replace(/^-/, '');
   }
 
   const reHtml = /[&<>]/g;
   const htmlEntities = {
     '&': '&amp;',
     '<': '&lt;',
-    '>': '&gt;'
+    '>': '&gt;',
   };
 
   function setAttributes(element, id, args) {
@@ -265,7 +311,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   function getTranslatables(element) {
     const nodes = Array.from(element.querySelectorAll('[data-l10n-id]'));
 
-    if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
+    if (typeof element.hasAttribute === 'function' &&
+        element.hasAttribute('data-l10n-id')) {
       nodes.push(element);
     }
 
@@ -303,7 +350,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     translateElements(view, Array.from(targets));
   }
 
-  function _translateFragment(view, frag) {
+  function translateFragment(view, frag) {
     return translateElements(view, getTranslatables(frag));
   }
 
@@ -311,14 +358,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     const keys = elems.map(elem => {
       const id = elem.getAttribute('data-l10n-id');
       const args = elem.getAttribute('data-l10n-args');
-      return args ? [id, JSON.parse(args.replace(reHtml, match => htmlEntities[match]))] : id;
+      return args ? [
+        id,
+        JSON.parse(args.replace(reHtml, match => htmlEntities[match]))
+      ] : id;
     });
 
     return view.formatEntities(...keys);
   }
 
   function translateElements(view, elements) {
-    return getElementsTranslation(view, elements).then(translations => applyTranslations(view, elements, translations));
+    return getElementsTranslation(view, elements).then(
+      translations => applyTranslations(view, elements, translations));
   }
 
   function applyTranslations(view, elems, translations) {
@@ -329,95 +380,63 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     reconnect(view);
   }
 
-  // Polyfill NodeList.prototype[Symbol.iterator] for Chrome.
-  // See https://code.google.com/p/chromium/issues/detail?id=401699
-  if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
-    NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
-  }
+  const observerConfig = {
+    attributes: true,
+    characterData: false,
+    childList: true,
+    subtree: true,
+    attributeFilter: ['data-l10n-id', 'data-l10n-args']
+  };
 
-  // A document.ready shim
-  // https://github.com/whatwg/html/issues/127
-  function documentReady() {
-    if (document.readyState !== 'loading') {
-      return Promise.resolve();
-    }
+  const observers = new WeakMap();
 
-    return new Promise(resolve => {
-      document.addEventListener('readystatechange', function onrsc() {
-        document.removeEventListener('readystatechange', onrsc);
-        resolve();
-      });
+  function initMutationObserver(view) {
+    observers.set(view, {
+      roots: new Set(),
+      observer: new MutationObserver(
+        mutations => translateMutations(view, mutations)),
     });
   }
 
-  // Intl.Locale
-  function getDirection(code) {
-    const tag = code.split('-')[0];
-    return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ? 'rtl' : 'ltr';
+  function translateRoots(view) {
+    const roots = Array.from(observers.get(view).roots);
+    return Promise.all(roots.map(
+        root => translateFragment(view, root)));
   }
 
-  // Opera and Safari don't support it yet
-  if (navigator.languages === undefined) {
-    navigator.languages = [navigator.language];
-  }
-
-  function getResourceLinks(head) {
-    return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), el => el.getAttribute('href'));
-  }
-
-  function getMeta(head) {
-    let availableLangs = Object.create(null);
-    let defaultLang = null;
-    let appVersion = null;
-
-    // XXX take last found instead of first?
-    const metas = Array.from(head.querySelectorAll('meta[name="availableLanguages"],' + 'meta[name="defaultLanguage"],' + 'meta[name="appVersion"]'));
-    for (let meta of metas) {
-      const name = meta.getAttribute('name');
-      const content = meta.getAttribute('content').trim();
-      switch (name) {
-        case 'availableLanguages':
-          availableLangs = getLangRevisionMap(availableLangs, content);
-          break;
-        case 'defaultLanguage':
-          const [lang, rev] = getLangRevisionTuple(content);
-          defaultLang = lang;
-          if (!(lang in availableLangs)) {
-            availableLangs[lang] = rev;
-          }
-          break;
-        case 'appVersion':
-          appVersion = content;
-      }
+  function observe(view, root) {
+    const obs = observers.get(view);
+    if (obs) {
+      obs.roots.add(root);
+      obs.observer.observe(root, observerConfig);
     }
-
-    return {
-      defaultLang,
-      availableLangs,
-      appVersion
-    };
   }
 
-  function getLangRevisionMap(seq, str) {
-    return str.split(',').reduce((seq, cur) => {
-      const [lang, rev] = getLangRevisionTuple(cur);
-      seq[lang] = rev;
-      return seq;
-    }, seq);
+  function disconnect(view, root, allRoots) {
+    const obs = observers.get(view);
+    if (obs) {
+      obs.observer.disconnect();
+      if (allRoots) {
+        return;
+      }
+      obs.roots.delete(root);
+      obs.roots.forEach(
+        other => obs.observer.observe(other, observerConfig));
+    }
   }
 
-  function getLangRevisionTuple(str) {
-    const [lang, rev] = str.trim().split(':');
-    // if revision is missing, use NaN
-    return [lang, parseInt(rev)];
+  function reconnect(view) {
+    const obs = observers.get(view);
+    if (obs) {
+      obs.roots.forEach(
+        root => obs.observer.observe(root, observerConfig));
+    }
   }
 
   const viewProps = new WeakMap();
 
-  let View = (function () {
-    function View(client, doc) {
-      _classCallCheck(this, View);
-
+  class View {
+    constructor(client, doc) {
       this.pseudo = {
         'fr-x-psaccent': createPseudo(this, 'fr-x-psaccent'),
         'ar-x-psbidi': createPseudo(this, 'ar-x-psbidi')
@@ -433,62 +452,59 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         ready: false
       });
 
-      client.on('languageschangerequest', requestedLangs => this.requestLanguages(requestedLangs));
+      client.on('languageschangerequest',
+        requestedLangs => this.requestLanguages(requestedLangs));
     }
 
-    _createClass(View, [{
-      key: 'requestLanguages',
-      value: function requestLanguages(requestedLangs, isGlobal) {
-        const method = isGlobal ? client => client.method('requestLanguages', requestedLangs) : client => changeLanguages(this, client, requestedLangs);
-        return this._interactive.then(method);
-      }
-    }, {
-      key: 'handleEvent',
-      value: function handleEvent() {
-        return this.requestLanguages(navigator.languages);
-      }
-    }, {
-      key: 'formatEntities',
-      value: function formatEntities(...keys) {
-        return this._interactive.then(client => client.method('formatEntities', client.id, keys));
-      }
-    }, {
-      key: 'formatValue',
-      value: function formatValue(id, args) {
-        return this._interactive.then(client => client.method('formatValues', client.id, [[id, args]])).then(values => values[0]);
-      }
-    }, {
-      key: 'formatValues',
-      value: function formatValues(...keys) {
-        return this._interactive.then(client => client.method('formatValues', client.id, keys));
-      }
-    }, {
-      key: 'translateFragment',
-      value: function translateFragment(frag) {
-        return _translateFragment(this, frag);
-      }
-    }, {
-      key: 'observeRoot',
-      value: function observeRoot(root) {
-        observe(this, root);
-      }
-    }, {
-      key: 'disconnectRoot',
-      value: function disconnectRoot(root) {
-        disconnect(this, root);
-      }
-    }]);
+    requestLanguages(requestedLangs, isGlobal) {
+      const method = isGlobal ?
+        client => client.method('requestLanguages', requestedLangs) :
+        client => changeLanguages(this, client, requestedLangs);
+      return this._interactive.then(method);
+    }
 
-    return View;
-  })();
+    handleEvent() {
+      return this.requestLanguages(navigator.languages);
+    }
+
+    formatEntities(...keys) {
+      return this._interactive.then(
+        client => client.method('formatEntities', client.id, keys));
+    }
+
+    formatValue(id, args) {
+      return this._interactive.then(
+        client => client.method('formatValues', client.id, [[id, args]])).then(
+        values => values[0]);
+    }
+
+    formatValues(...keys) {
+      return this._interactive.then(
+        client => client.method('formatValues', client.id, keys));
+    }
+
+    translateFragment(frag) {
+      return translateFragment(this, frag);
+    }
+
+    observeRoot(root) {
+      observe(this, root);
+    }
+
+    disconnectRoot(root) {
+      disconnect(this, root);
+    }
+  }
 
   View.prototype.setAttributes = setAttributes;
   View.prototype.getAttributes = getAttributes;
 
   function createPseudo(view, code) {
     return {
-      getName: () => view._interactive.then(client => client.method('getName', code)),
-      processString: str => view._interactive.then(client => client.method('processString', code, str))
+      getName: () => view._interactive.then(
+        client => client.method('getName', code)),
+      processString: str => view._interactive.then(
+        client => client.method('processString', code, str)),
     };
   }
 
@@ -497,18 +513,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     const resources = getResourceLinks(doc.head);
     const meta = getMeta(doc.head);
     view.observeRoot(doc.documentElement);
-    return getAdditionalLanguages().then(additionalLangs => client.method('registerView', client.id, resources, meta, additionalLangs, navigator.languages));
+    return getAdditionalLanguages().then(
+      additionalLangs => client.method(
+        'registerView', client.id, resources, meta, additionalLangs,
+        navigator.languages));
   }
 
   function changeLanguages(view, client, requestedLangs) {
     const doc = viewProps.get(view).doc;
     const meta = getMeta(doc.head);
-    return getAdditionalLanguages().then(additionalLangs => client.method('changeLanguages', client.id, meta, additionalLangs, requestedLangs)).then(({ langs, haveChanged }) => haveChanged ? translateView(view, langs) : undefined);
+    return getAdditionalLanguages()
+      .then(additionalLangs => client.method(
+        'changeLanguages', client.id, meta, additionalLangs, requestedLangs
+      ))
+      .then(({langs, haveChanged}) => haveChanged ?
+        translateView(view, langs) : undefined
+      );
   }
 
   function getAdditionalLanguages() {
     if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
-      return navigator.mozApps.getAdditionalLanguages().catch(() => Object.create(null));
+      return navigator.mozApps.getAdditionalLanguages()
+        .catch(() => Object.create(null));
     }
 
     return Promise.resolve(Object.create(null));
@@ -519,12 +545,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     const html = props.doc.documentElement;
 
     if (props.ready) {
-      return translateRoots(view).then(() => setAllAndEmit(html, langs));
+      return translateRoots(view).then(
+        () => setAllAndEmit(html, langs));
     }
 
     const translated =
-    // has the document been already pre-translated?
-    langs[0].code === html.getAttribute('lang') ? Promise.resolve() : translateRoots(view).then(() => setLangDir(html, langs));
+      // has the document been already pre-translated?
+      langs[0].code === html.getAttribute('lang') ?
+        Promise.resolve() :
+        translateRoots(view).then(
+          () => setLangDir(html, langs));
 
     return translated.then(() => {
       setLangs(html, langs);
@@ -548,7 +578,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     setLangs(html, langs);
     html.parentNode.dispatchEvent(new CustomEvent('DOMRetranslated', {
       bubbles: false,
-      cancelable: false
+      cancelable: false,
     }));
   }
 
@@ -576,6 +606,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     ready: cb => document.l10n.ready.then(() => {
       document.addEventListener('DOMRetranslated', cb);
       cb();
-    })
+    }),
   };
-})();
+
+}());

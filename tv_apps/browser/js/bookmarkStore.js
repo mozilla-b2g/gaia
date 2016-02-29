@@ -45,9 +45,9 @@
 //IFDEF_FIREFOX_SYNC
       var l10nPromises = [];
       l10nPromises
-        .push(navigator.mozL10n.formatValue('fxsync-desktop-bookmarks'));
+        .push(document.l10n.formatValue('fxsync-desktop-bookmarks'));
       l10nPromises
-        .push(navigator.mozL10n.formatValue('fxsync-mobile-bookmarks'));
+        .push(document.l10n.formatValue('fxsync-mobile-bookmarks'));
       Promise.all(l10nPromises).then(
         ([l10nFxsyncDesktopBookmarks, l10nFxsyncMobileBookmarks]) => {
           this.syncBookmarkRootFolderCache.title = l10nFxsyncDesktopBookmarks;

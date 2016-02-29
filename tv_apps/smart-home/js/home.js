@@ -230,17 +230,17 @@
     },
 
     initClock: function() {
-      var that = this;
-      navigator.mozL10n.ready(function() {
-        that.clock = new Clock();
-        that.clock.start(that.updateClock.bind(that));
-        // Listen to 'moztimechange'
-        window.addEventListener('moztimechange',
-                                that.restartClock.bind(that));
-        // Listen to 'timeformatchange'
-        window.addEventListener('timeformatchange',
-                                that.restartClock.bind(that));
-      });
+      this.clock = new Clock();
+      this.clock.start(this.updateClock.bind(this));
+      // Listen to 'moztimechange'
+      window.addEventListener('moztimechange',
+                              this.restartClock.bind(this));
+      // Listen to 'timeformatchange'
+      window.addEventListener('timeformatchange',
+                              this.restartClock.bind(this));
+      // Listen to 'DOMRetranslated'
+      document.addEventListener('DOMRetranslated',
+                              this.restartClock.bind(this));
     },
 
     _localizeCardName: function(elem, card) {
@@ -793,28 +793,34 @@
     },
 
     updateClock: function() {
+      var formatter = new Intl.DateTimeFormat(navigator.languages, {
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: window.navigator.mozHour12
+      });
       var now = new Date();
-      var _ = navigator.mozL10n.get;
-      var use12Hour = window.navigator.mozHour12;
 
-      var f = new navigator.mozL10n.DateTimeFormat();
+      var parts = formatter.formatToParts(now);
 
-      var timeFormat = use12Hour ? _('shortTimeFormat12') :
-                                   _('shortTimeFormat24');
-      // remove AM/PM and we use our owned style to show it.
-      timeFormat = timeFormat.replace('%p', '').trim();
-      var formatted = f.localeFormat(now, timeFormat);
+      var dayperiod = '';
 
-      this.timeElem.innerHTML = formatted;
-      this.timeElem.dataset.ampm = use12Hour ? f.localeFormat(now, '%p') : '';
+      var timeWithoutDayPeriod = parts.map(({type, value}) => {
+        if (type === 'dayperiod') {
+          dayperiod = value;
+          return '';
+        }
+        return value;
+      }).join('');
+
+      if (this.timeElem) {
+        this.timeElem.textContent = timeWithoutDayPeriod;
+        this.timeElem.dataset.ampm = dayperiod;
+      }
     },
 
     restartClock: function() {
-      navigator.mozL10n.ready((function() {
-        // restart clcok
-        this.clock.stop();
-        this.clock.start(this.updateClock.bind(this));
-      }).bind(this));
+      this.clock.stop();
+      this.clock.start(this.updateClock.bind(this));
     },
 
     get focusElem() {

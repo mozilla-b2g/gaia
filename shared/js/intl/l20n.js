@@ -1,64 +1,5 @@
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
 (function () {
   'use strict';
-
-  function emit(listeners, ...args) {
-    const type = args.shift();
-
-    if (listeners['*']) {
-      listeners['*'].slice().forEach(listener => listener.apply(this, args));
-    }
-
-    if (listeners[type]) {
-      listeners[type].slice().forEach(listener => listener.apply(this, args));
-    }
-  }
-
-  function addEventListener(listeners, type, listener) {
-    if (!(type in listeners)) {
-      listeners[type] = [];
-    }
-    listeners[type].push(listener);
-  }
-
-  function removeEventListener(listeners, type, listener) {
-    const typeListeners = listeners[type];
-    const pos = typeListeners.indexOf(listener);
-    if (pos === -1) {
-      return;
-    }
-
-    typeListeners.splice(pos, 1);
-  }
-
-  let Client = (function () {
-    function Client(remote) {
-      _classCallCheck(this, Client);
-
-      this.id = this;
-      this.remote = remote;
-
-      const listeners = {};
-      this.on = (...args) => addEventListener(listeners, ...args);
-      this.emit = (...args) => emit(listeners, ...args);
-    }
-
-    _createClass(Client, [{
-      key: 'method',
-      value: function method(name, ...args) {
-        return this.remote[name](...args);
-      }
-    }]);
-
-    return Client;
-  })();
-
-  function broadcast(type, data) {
-    Array.from(this.ctxs.keys()).forEach(client => client.emit(type, data));
-  }
 
   function L10nError(message, id, lang) {
     this.name = 'L10nError';
@@ -69,8 +10,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   L10nError.prototype = Object.create(Error.prototype);
   L10nError.prototype.constructor = L10nError;
 
+  const HTTP_STATUS_CODE_OK = 200;
+
   function load(type, url) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
       if (xhr.overrideMimeType) {
@@ -83,10 +26,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         xhr.responseType = 'json';
       }
 
-      xhr.addEventListener('load', function io_onload(e) {
-        if (e.target.status === 200 || e.target.status === 0) {
-          // Sinon.JS's FakeXHR doesn't have the response property
-          resolve(e.target.response || e.target.responseText);
+      xhr.addEventListener('load', e => {
+        if (e.target.status === HTTP_STATUS_CODE_OK ||
+            e.target.status === 0) {
+          resolve(e.target.response);
         } else {
           reject(new L10nError('Not found: ' + url));
         }
@@ -109,10 +52,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   }
 
   const io = {
-    extra: function (code, ver, path, type) {
-      return navigator.mozApps.getLocalizationResource(code, ver, path, type);
+    extra: function(code, ver, path, type) {
+      return navigator.mozApps.getLocalizationResource(
+        code, ver, path, type);
     },
-    app: function (code, ver, path, type) {
+    app: function(code, ver, path, type) {
       switch (type) {
         case 'text':
           return load('text/plain', path);
@@ -121,7 +65,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         default:
           throw new L10nError('Unknown file type: ' + type);
       }
-    }
+    },
   };
 
   function fetchResource(res, { code, src, ver }) {
@@ -130,12 +74,63 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return io[src](code, ver, url, type);
   }
 
+  function emit(listeners, ...args) {
+    const type = args.shift();
+
+    if (listeners['*']) {
+      listeners['*'].slice().forEach(
+        listener => listener.apply(this, args));
+    }
+
+    if (listeners[type]) {
+      listeners[type].slice().forEach(
+        listener => listener.apply(this, args));
+    }
+  }
+
+  function addEventListener(listeners, type, listener) {
+    if (!(type in listeners)) {
+      listeners[type] = [];
+    }
+    listeners[type].push(listener);
+  }
+
+  function removeEventListener(listeners, type, listener) {
+    const typeListeners = listeners[type];
+    const pos = typeListeners.indexOf(listener);
+    if (pos === -1) {
+      return;
+    }
+
+    typeListeners.splice(pos, 1);
+  }
+
+  class Client {
+    constructor(remote) {
+      this.id = this;
+      this.remote = remote;
+
+      const listeners = {};
+      this.on = (...args) => addEventListener(listeners, ...args);
+      this.emit = (...args) => emit(listeners, ...args);
+    }
+
+    method(name, ...args) {
+      return this.remote[name](...args);
+    }
+  }
+
+  function broadcast(type, data) {
+    Array.from(this.ctxs.keys()).forEach(
+      client => client.emit(type, data));
+  }
+
   const KNOWN_MACROS = ['plural'];
   const MAX_PLACEABLE_LENGTH = 2500;
 
   // Unicode bidi isolation characters
-  const FSI = '⁨';
-  const PDI = '⁩';
+  const FSI = '\u2068';
+  const PDI = '\u2069';
 
   const resolutionChain = new WeakSet();
 
@@ -155,7 +150,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     // resolving process;  however, we still need to remove the entity from the
     // resolution chain
     try {
-      rv = resolveValue({}, ctx, lang, args, entity.value, entity.index);
+      rv = resolveValue(
+        {}, ctx, lang, args, entity.value, entity.index);
     } finally {
       resolutionChain.delete(entity);
     }
@@ -168,7 +164,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     }
 
     if (args && args.hasOwnProperty(id)) {
-      if (typeof args[id] === 'string' || typeof args[id] === 'number' && !isNaN(args[id])) {
+      if (typeof args[id] === 'string' || (typeof args[id] === 'number' &&
+          !isNaN(args[id]))) {
         return [{}, args[id]];
       } else {
         throw new L10nError('Arg must be a string or a number: ' + id);
@@ -207,7 +204,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     if (typeof value === 'string') {
       // prevent Billion Laughs attacks
       if (value.length >= MAX_PLACEABLE_LENGTH) {
-        throw new L10nError('Too many characters in placeable (' + value.length + ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
+        throw new L10nError('Too many characters in placeable (' +
+                            value.length + ', max allowed is ' +
+                            MAX_PLACEABLE_LENGTH + ')');
       }
       return [newLocals, FSI + value + PDI];
     }
@@ -216,7 +215,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   }
 
   function interpolate(locals, ctx, lang, args, arr) {
-    return arr.reduce(function ([localsSeq, valueSeq], cur) {
+    return arr.reduce(([localsSeq, valueSeq], cur) => {
       if (typeof cur === 'string') {
         return [localsSeq, valueSeq + cur];
       } else {
@@ -230,7 +229,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   function resolveSelector(ctx, lang, args, expr, index) {
     //XXX: Dehardcode!!!
     let selectorName;
-    if (index[0].type === 'call' && index[0].expr.type === 'prop' && index[0].expr.expr.name === 'cldr') {
+    if (index[0].type === 'call' && index[0].expr.type === 'prop' &&
+        index[0].expr.expr.name === 'cldr') {
       selectorName = 'plural';
     } else {
       selectorName = index[0].name;
@@ -242,7 +242,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return selector;
     }
 
-    const argValue = index[0].args ? resolveIdentifier(ctx, lang, args, index[0].args[0].name)[1] : undefined;
+    const argValue = index[0].args ?
+      resolveIdentifier(ctx, lang, args, index[0].args[0].name)[1] : undefined;
 
     if (selectorName === 'plural') {
       // special cases for zero, one, two if they are defined on the hash
@@ -265,7 +266,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return [locals, expr];
     }
 
-    if (typeof expr === 'string' || typeof expr === 'boolean' || typeof expr === 'number') {
+    if (typeof expr === 'string' ||
+        typeof expr === 'boolean' ||
+        typeof expr === 'number') {
       return [locals, expr];
     }
 
@@ -291,6 +294,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     throw new L10nError('Unresolvable value');
   }
+
+  /*eslint no-magic-numbers: [0]*/
 
   const locales2rules = {
     'af': 3,
@@ -476,17 +481,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   // list of all plural rules methods:
   // map an integer to the plural form name to use
   const pluralRules = {
-    '0': function () {
+    '0': function() {
       return 'other';
     },
-    '1': function (n) {
-      if (isBetween(n % 100, 3, 10)) {
+    '1': function(n) {
+      if ((isBetween((n % 100), 3, 10))) {
         return 'few';
       }
       if (n === 0) {
         return 'zero';
       }
-      if (isBetween(n % 100, 11, 99)) {
+      if ((isBetween((n % 100), 11, 99))) {
         return 'many';
       }
       if (n === 2) {
@@ -497,8 +502,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '2': function (n) {
-      if (n !== 0 && n % 10 === 0) {
+    '2': function(n) {
+      if (n !== 0 && (n % 10) === 0) {
         return 'many';
       }
       if (n === 2) {
@@ -509,34 +514,34 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '3': function (n) {
+    '3': function(n) {
       if (n === 1) {
         return 'one';
       }
       return 'other';
     },
-    '4': function (n) {
-      if (isBetween(n, 0, 1)) {
+    '4': function(n) {
+      if ((isBetween(n, 0, 1))) {
         return 'one';
       }
       return 'other';
     },
-    '5': function (n) {
-      if (isBetween(n, 0, 2) && n !== 2) {
+    '5': function(n) {
+      if ((isBetween(n, 0, 2)) && n !== 2) {
         return 'one';
       }
       return 'other';
     },
-    '6': function (n) {
+    '6': function(n) {
       if (n === 0) {
         return 'zero';
       }
-      if (n % 10 === 1 && n % 100 !== 11) {
+      if ((n % 10) === 1 && (n % 100) !== 11) {
         return 'one';
       }
       return 'other';
     },
-    '7': function (n) {
+    '7': function(n) {
       if (n === 2) {
         return 'two';
       }
@@ -545,11 +550,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '8': function (n) {
-      if (isBetween(n, 3, 6)) {
+    '8': function(n) {
+      if ((isBetween(n, 3, 6))) {
         return 'few';
       }
-      if (isBetween(n, 7, 10)) {
+      if ((isBetween(n, 7, 10))) {
         return 'many';
       }
       if (n === 2) {
@@ -560,8 +565,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '9': function (n) {
-      if (n === 0 || n !== 1 && isBetween(n % 100, 1, 19)) {
+    '9': function(n) {
+      if (n === 0 || n !== 1 && (isBetween((n % 100), 1, 19))) {
         return 'few';
       }
       if (n === 1) {
@@ -569,29 +574,31 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '10': function (n) {
-      if (isBetween(n % 10, 2, 9) && !isBetween(n % 100, 11, 19)) {
+    '10': function(n) {
+      if ((isBetween((n % 10), 2, 9)) && !(isBetween((n % 100), 11, 19))) {
         return 'few';
       }
-      if (n % 10 === 1 && !isBetween(n % 100, 11, 19)) {
+      if ((n % 10) === 1 && !(isBetween((n % 100), 11, 19))) {
         return 'one';
       }
       return 'other';
     },
-    '11': function (n) {
-      if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
+    '11': function(n) {
+      if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14))) {
         return 'few';
       }
-      if (n % 10 === 0 || isBetween(n % 10, 5, 9) || isBetween(n % 100, 11, 14)) {
+      if ((n % 10) === 0 ||
+          (isBetween((n % 10), 5, 9)) ||
+          (isBetween((n % 100), 11, 14))) {
         return 'many';
       }
-      if (n % 10 === 1 && n % 100 !== 11) {
+      if ((n % 10) === 1 && (n % 100) !== 11) {
         return 'one';
       }
       return 'other';
     },
-    '12': function (n) {
-      if (isBetween(n, 2, 4)) {
+    '12': function(n) {
+      if ((isBetween(n, 2, 4))) {
         return 'few';
       }
       if (n === 1) {
@@ -599,11 +606,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '13': function (n) {
-      if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
+    '13': function(n) {
+      if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14))) {
         return 'few';
       }
-      if (n !== 1 && isBetween(n % 10, 0, 1) || isBetween(n % 10, 5, 9) || isBetween(n % 100, 12, 14)) {
+      if (n !== 1 && (isBetween((n % 10), 0, 1)) ||
+          (isBetween((n % 10), 5, 9)) ||
+          (isBetween((n % 100), 12, 14))) {
         return 'many';
       }
       if (n === 1) {
@@ -611,23 +620,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '14': function (n) {
-      if (isBetween(n % 100, 3, 4)) {
+    '14': function(n) {
+      if ((isBetween((n % 100), 3, 4))) {
         return 'few';
       }
-      if (n % 100 === 2) {
+      if ((n % 100) === 2) {
         return 'two';
       }
-      if (n % 100 === 1) {
+      if ((n % 100) === 1) {
         return 'one';
       }
       return 'other';
     },
-    '15': function (n) {
-      if (n === 0 || isBetween(n % 100, 2, 10)) {
+    '15': function(n) {
+      if (n === 0 || (isBetween((n % 100), 2, 10))) {
         return 'few';
       }
-      if (isBetween(n % 100, 11, 19)) {
+      if ((isBetween((n % 100), 11, 19))) {
         return 'many';
       }
       if (n === 1) {
@@ -635,13 +644,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '16': function (n) {
-      if (n % 10 === 1 && n !== 11) {
+    '16': function(n) {
+      if ((n % 10) === 1 && n !== 11) {
         return 'one';
       }
       return 'other';
     },
-    '17': function (n) {
+    '17': function(n) {
       if (n === 3) {
         return 'few';
       }
@@ -659,40 +668,44 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '18': function (n) {
+    '18': function(n) {
       if (n === 0) {
         return 'zero';
       }
-      if (isBetween(n, 0, 2) && n !== 0 && n !== 2) {
+      if ((isBetween(n, 0, 2)) && n !== 0 && n !== 2) {
         return 'one';
       }
       return 'other';
     },
-    '19': function (n) {
-      if (isBetween(n, 2, 10)) {
+    '19': function(n) {
+      if ((isBetween(n, 2, 10))) {
         return 'few';
       }
-      if (isBetween(n, 0, 1)) {
+      if ((isBetween(n, 0, 1))) {
         return 'one';
       }
       return 'other';
     },
-    '20': function (n) {
-      if ((isBetween(n % 10, 3, 4) || n % 10 === 9) && !(isBetween(n % 100, 10, 19) || isBetween(n % 100, 70, 79) || isBetween(n % 100, 90, 99))) {
+    '20': function(n) {
+      if ((isBetween((n % 10), 3, 4) || ((n % 10) === 9)) && !(
+          isBetween((n % 100), 10, 19) ||
+          isBetween((n % 100), 70, 79) ||
+          isBetween((n % 100), 90, 99)
+          )) {
         return 'few';
       }
-      if (n % 1000000 === 0 && n !== 0) {
+      if ((n % 1000000) === 0 && n !== 0) {
         return 'many';
       }
-      if (n % 10 === 2 && !isIn(n % 100, [12, 72, 92])) {
+      if ((n % 10) === 2 && !isIn((n % 100), [12, 72, 92])) {
         return 'two';
       }
-      if (n % 10 === 1 && !isIn(n % 100, [11, 71, 91])) {
+      if ((n % 10) === 1 && !isIn((n % 100), [11, 71, 91])) {
         return 'one';
       }
       return 'other';
     },
-    '21': function (n) {
+    '21': function(n) {
       if (n === 0) {
         return 'zero';
       }
@@ -701,20 +714,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       return 'other';
     },
-    '22': function (n) {
-      if (isBetween(n, 0, 1) || isBetween(n, 11, 99)) {
+    '22': function(n) {
+      if ((isBetween(n, 0, 1)) || (isBetween(n, 11, 99))) {
         return 'one';
       }
       return 'other';
     },
-    '23': function (n) {
-      if (isBetween(n % 10, 1, 2) || n % 20 === 0) {
+    '23': function(n) {
+      if ((isBetween((n % 10), 1, 2)) || (n % 20) === 0) {
         return 'one';
       }
       return 'other';
     },
-    '24': function (n) {
-      if (isBetween(n, 3, 10) || isBetween(n, 13, 19)) {
+    '24': function(n) {
+      if ((isBetween(n, 3, 10) || isBetween(n, 13, 19))) {
         return 'few';
       }
       if (isIn(n, [2, 12])) {
@@ -731,170 +744,162 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     // return a function that gives the plural form name for a given integer
     const index = locales2rules[code.replace(/-.*$/, '')];
     if (!(index in pluralRules)) {
-      return function () {
-        return 'other';
-      };
+      return () => 'other';
     }
     return pluralRules[index];
   }
 
   // Safari 9 and iOS 9 does not support Intl
-  const L20nIntl = typeof Intl !== 'undefined' ? Intl : {
-    NumberFormat: function () {
-      return {
-        format: function (v) {
-          return v;
-        }
-      };
-    }
-  };
+  const L20nIntl = typeof Intl !== 'undefined' ?
+    Intl : {
+      NumberFormat: function() {
+        return {
+          format: function(v) {
+            return v;
+          }
+        };
+      }
+    };
 
-  let Context = (function () {
-    function Context(env, langs, resIds) {
-      _classCallCheck(this, Context);
-
+  class Context {
+    constructor(env, langs, resIds) {
       this.langs = langs;
       this.resIds = resIds;
       this.env = env;
       this.emit = (type, evt) => env.emit(type, evt, this);
     }
 
-    _createClass(Context, [{
-      key: '_formatTuple',
-      value: function _formatTuple(lang, args, entity, id, key) {
-        try {
-          return format(this, lang, args, entity);
-        } catch (err) {
-          err.id = key ? id + '::' + key : id;
-          err.lang = lang;
-          this.emit('resolveerror', err);
-          return [{ error: err }, err.id];
+    _formatTuple(lang, args, entity, id, key) {
+      try {
+        return format(this, lang, args, entity);
+      } catch (err) {
+        err.id = key ? id + '::' + key : id;
+        err.lang = lang;
+        this.emit('resolveerror', err);
+        return [{ error: err }, err.id];
+      }
+    }
+
+    _formatEntity(lang, args, entity, id) {
+      const [, value] = this._formatTuple(lang, args, entity, id);
+
+      const formatted = {
+        value,
+        attrs: null,
+      };
+
+      if (entity.attrs) {
+        formatted.attrs = Object.create(null);
+        for (let key in entity.attrs) {
+          /* jshint -W089 */
+          const [, attrValue] = this._formatTuple(
+            lang, args, entity.attrs[key], id, key);
+          formatted.attrs[key] = attrValue;
         }
       }
-    }, {
-      key: '_formatEntity',
-      value: function _formatEntity(lang, args, entity, id) {
-        const [, value] = this._formatTuple(lang, args, entity, id);
 
-        const formatted = {
-          value,
-          attrs: null
-        };
+      return formatted;
+    }
 
-        if (entity.attrs) {
-          formatted.attrs = Object.create(null);
-          for (let key in entity.attrs) {
-            /* jshint -W089 */
-            const [, attrValue] = this._formatTuple(lang, args, entity.attrs[key], id, key);
-            formatted.attrs[key] = attrValue;
-          }
+    _formatValue(lang, args, entity, id) {
+      return this._formatTuple(lang, args, entity, id)[1];
+    }
+
+    fetch(langs = this.langs) {
+      if (langs.length === 0) {
+        return Promise.resolve(langs);
+      }
+
+      return Promise.all(
+        this.resIds.map(
+          resId => this.env._getResource(langs[0], resId))
+      ).then(() => langs);
+    }
+
+    _resolve(langs, keys, formatter, prevResolved) {
+      const lang = langs[0];
+
+      if (!lang) {
+        return reportMissing.call(this, keys, formatter, prevResolved);
+      }
+
+      let hasUnresolved = false;
+
+      const resolved = keys.map((key, i) => {
+        if (prevResolved && prevResolved[i] !== undefined) {
+          return prevResolved[i];
+        }
+        const [id, args] = Array.isArray(key) ?
+          key : [key, undefined];
+        const entity = this._getEntity(lang, id);
+
+        if (entity) {
+          return formatter.call(this, lang, args, entity, id);
         }
 
-        return formatted;
+        this.emit('notfounderror',
+          new L10nError('"' + id + '" not found in ' + lang.code, id, lang));
+        hasUnresolved = true;
+      });
+
+      if (!hasUnresolved) {
+        return resolved;
       }
-    }, {
-      key: '_formatValue',
-      value: function _formatValue(lang, args, entity, id) {
-        return this._formatTuple(lang, args, entity, id)[1];
-      }
-    }, {
-      key: 'fetch',
-      value: function fetch(langs = this.langs) {
-        if (langs.length === 0) {
-          return Promise.resolve(langs);
+
+      return this.fetch(langs.slice(1)).then(
+        nextLangs => this._resolve(nextLangs, keys, formatter, resolved));
+    }
+
+    formatEntities(...keys) {
+      return this.fetch().then(
+        langs => this._resolve(langs, keys, this._formatEntity));
+    }
+
+    formatValues(...keys) {
+      return this.fetch().then(
+        langs => this._resolve(langs, keys, this._formatValue));
+    }
+
+    _getEntity(lang, id) {
+      const cache = this.env.resCache;
+
+      // Look for `id` in every resource in order.
+      for (let i = 0, resId; resId = this.resIds[i]; i++) {
+        const resource = cache.get(resId + lang.code + lang.src);
+        if (resource instanceof L10nError) {
+          continue;
         }
-
-        return Promise.all(this.resIds.map(resId => this.env._getResource(langs[0], resId))).then(() => langs);
-      }
-    }, {
-      key: '_resolve',
-      value: function _resolve(langs, keys, formatter, prevResolved) {
-        const lang = langs[0];
-
-        if (!lang) {
-          return reportMissing.call(this, keys, formatter, prevResolved);
-        }
-
-        let hasUnresolved = false;
-
-        const resolved = keys.map((key, i) => {
-          if (prevResolved && prevResolved[i] !== undefined) {
-            return prevResolved[i];
-          }
-          const [id, args] = Array.isArray(key) ? key : [key, undefined];
-          const entity = this._getEntity(lang, id);
-
-          if (entity) {
-            return formatter.call(this, lang, args, entity, id);
-          }
-
-          this.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang));
-          hasUnresolved = true;
-        });
-
-        if (!hasUnresolved) {
-          return resolved;
-        }
-
-        return this.fetch(langs.slice(1)).then(nextLangs => this._resolve(nextLangs, keys, formatter, resolved));
-      }
-    }, {
-      key: 'formatEntities',
-      value: function formatEntities(...keys) {
-        return this.fetch().then(langs => this._resolve(langs, keys, this._formatEntity));
-      }
-    }, {
-      key: 'formatValues',
-      value: function formatValues(...keys) {
-        return this.fetch().then(langs => this._resolve(langs, keys, this._formatValue));
-      }
-    }, {
-      key: '_getEntity',
-      value: function _getEntity(lang, id) {
-        const cache = this.env.resCache;
-
-        // Look for `id` in every resource in order.
-        for (let i = 0, resId; resId = this.resIds[i]; i++) {
-          const resource = cache.get(resId + lang.code + lang.src);
-          if (resource instanceof L10nError) {
-            continue;
-          }
-          if (id in resource) {
-            return resource[id];
-          }
-        }
-        return undefined;
-      }
-    }, {
-      key: '_getNumberFormatter',
-      value: function _getNumberFormatter(lang) {
-        if (!this.env.numberFormatters) {
-          this.env.numberFormatters = new Map();
-        }
-        if (!this.env.numberFormatters.has(lang)) {
-          const formatter = L20nIntl.NumberFormat(lang);
-          this.env.numberFormatters.set(lang, formatter);
-          return formatter;
-        }
-        return this.env.numberFormatters.get(lang);
-      }
-    }, {
-      key: '_getMacro',
-
-      // XXX in the future macros will be stored in localization resources together
-      // with regular entities and this method will not be needed anymore
-      value: function _getMacro(lang, id) {
-        switch (id) {
-          case 'plural':
-            return getPluralRule(lang.code);
-          default:
-            return undefined;
+        if (id in resource) {
+          return resource[id];
         }
       }
-    }]);
+      return undefined;
+    }
 
-    return Context;
-  })();
+    _getNumberFormatter(lang) {
+      if (!this.env.numberFormatters) {
+        this.env.numberFormatters = new Map();
+      }
+      if (!this.env.numberFormatters.has(lang)) {
+        const formatter = L20nIntl.NumberFormat(lang);
+        this.env.numberFormatters.set(lang, formatter);
+        return formatter;
+      }
+      return this.env.numberFormatters.get(lang);
+    }
+
+    // XXX in the future macros will be stored in localization resources together 
+    // with regular entities and this method will not be needed anymore
+    _getMacro(lang, id) {
+      switch(id) {
+        case 'plural':
+          return getPluralRule(lang.code);
+        default:
+          return undefined;
+      }
+    }
+
+  }
 
   function reportMissing(keys, formatter, resolved) {
     const missingIds = new Set();
@@ -905,22 +910,25 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
       const id = Array.isArray(key) ? key[0] : key;
       missingIds.add(id);
-      resolved[i] = formatter === this._formatValue ? id : { value: id, attrs: null };
+      resolved[i] = formatter === this._formatValue ?
+        id : {value: id, attrs: null};
     });
 
-    this.emit('notfounderror', new L10nError('"' + Array.from(missingIds).join(', ') + '"' + ' not found in any language', missingIds));
+    this.emit('notfounderror', new L10nError(
+      '"' + Array.from(missingIds).join(', ') + '"' +
+      ' not found in any language', missingIds));
 
     return resolved;
   }
 
-  var MAX_PLACEABLES = 100;
+  const MAX_PLACEABLES = 100;
 
   var PropertiesParser = {
     patterns: null,
     entryIds: null,
     emit: null,
 
-    init: function () {
+    init: function() {
       this.patterns = {
         comment: /^\s*#|^\s*$/,
         entity: /^([^=\s]+)\s*=\s*(.*)$/,
@@ -929,24 +937,24 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         unicode: /\\u([0-9a-fA-F]{1,4})/g,
         entries: /[^\r\n]+/g,
         controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g,
-        placeables: /\{\{\s*([^\s]*?)\s*\}\}/
+        placeables: /\{\{\s*([^\s]*?)\s*\}\}/,
       };
     },
 
-    parse: function (emit, source) {
+    parse: function(emit, source) {
       if (!this.patterns) {
         this.init();
       }
       this.emit = emit;
 
-      var entries = {};
+      const entries = {};
 
-      var lines = source.match(this.patterns.entries);
+      const lines = source.match(this.patterns.entries);
       if (!lines) {
         return entries;
       }
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i];
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
 
         if (this.patterns.comment.test(line)) {
           continue;
@@ -956,7 +964,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           line = line.slice(0, -1) + lines[++i].trim();
         }
 
-        var entityMatch = line.match(this.patterns.entity);
+        const entityMatch = line.match(this.patterns.entity);
         if (entityMatch) {
           try {
             this.parseEntity(entityMatch[1], entityMatch[2], entries);
@@ -970,10 +978,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return entries;
     },
 
-    parseEntity: function (id, value, entries) {
-      var name, key;
+    parseEntity: function(id, value, entries) {
+      let name, key;
 
-      var pos = id.indexOf('[');
+      const pos = id.indexOf('[');
       if (pos !== -1) {
         name = id.substr(0, pos);
         key = id.substring(pos + 1, id.length - 1);
@@ -982,13 +990,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         key = null;
       }
 
-      var nameElements = name.split('.');
+      const nameElements = name.split('.');
 
       if (nameElements.length > 2) {
-        throw this.error('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
+        throw this.error('Error in ID: "' + name + '".' +
+            ' Nested attributes are not supported.');
       }
 
-      var attr;
+      let attr;
       if (nameElements.length > 1) {
         name = nameElements[0];
         attr = nameElements[1];
@@ -1003,13 +1012,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       this.setEntityValue(name, attr, key, this.unescapeString(value), entries);
     },
 
-    setEntityValue: function (id, attr, key, rawValue, entries) {
-      var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
+    setEntityValue: function(id, attr, key, rawValue, entries) {
+      const value = rawValue.indexOf('{{') > -1 ?
+        this.parseString(rawValue) : rawValue;
 
-      var isSimpleValue = typeof value === 'string';
-      var root = entries;
+      let isSimpleValue = typeof value === 'string';
+      let root = entries;
 
-      var isSimpleNode = typeof entries[id] === 'string';
+      let isSimpleNode = typeof entries[id] === 'string';
 
       if (!entries[id] && (attr || key || !isSimpleValue)) {
         entries[id] = Object.create(null);
@@ -1058,23 +1068,24 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
     },
 
-    parseString: function (str) {
-      var chunks = str.split(this.patterns.placeables);
-      var complexStr = [];
+    parseString: function(str) {
+      const chunks = str.split(this.patterns.placeables);
+      const complexStr = [];
 
-      var len = chunks.length;
-      var placeablesCount = (len - 1) / 2;
+      const len = chunks.length;
+      const placeablesCount = (len - 1) / 2;
 
       if (placeablesCount >= MAX_PLACEABLES) {
-        throw this.error('Too many placeables (' + placeablesCount + ', max allowed is ' + MAX_PLACEABLES + ')');
+        throw this.error('Too many placeables (' + placeablesCount +
+                            ', max allowed is ' + MAX_PLACEABLES + ')');
       }
 
-      for (var i = 0; i < chunks.length; i++) {
+      for (let i = 0; i < chunks.length; i++) {
         if (chunks[i].length === 0) {
           continue;
         }
         if (i % 2 === 1) {
-          complexStr.push({ type: 'idOrVar', name: chunks[i] });
+          complexStr.push({type: 'idOrVar', name: chunks[i]});
         } else {
           complexStr.push(chunks[i]);
         }
@@ -1082,17 +1093,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return complexStr;
     },
 
-    unescapeString: function (str) {
+    unescapeString: function(str) {
       if (str.lastIndexOf('\\') !== -1) {
         str = str.replace(this.patterns.controlChars, '$1');
       }
-      return str.replace(this.patterns.unicode, function (match, token) {
-        return String.fromCodePoint(parseInt(token, 16));
-      });
+      return str.replace(this.patterns.unicode,
+        (match, token) => String.fromCodePoint(parseInt(token, 16))
+      );
     },
 
-    parseIndex: function (str) {
-      var match = str.match(this.patterns.index);
+    parseIndex: function(str) {
+      const match = str.match(this.patterns.index);
       if (!match) {
         throw new L10nError('Malformed index');
       }
@@ -1113,11 +1124,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           }]
         }];
       } else {
-        return [{ type: 'idOrVar', name: match[1] }];
+        return [{type: 'idOrVar', name: match[1]}];
       }
     },
 
-    error: function (msg, type = 'parsererror') {
+    error: function(msg, type = 'parsererror') {
       const err = new L10nError(msg);
       if (this.emit) {
         this.emit(type, err);
@@ -1129,7 +1140,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   const MAX_PLACEABLES$1 = 100;
 
   var L20nParser = {
-    parse: function (emit, string) {
+    parse: function(emit, string) {
       this._source = string;
       this._index = 0;
       this._length = string.length;
@@ -1139,7 +1150,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return this.getResource();
     },
 
-    getResource: function () {
+    getResource: function() {
       this.getWS();
       while (this._index < this._length) {
         try {
@@ -1164,7 +1175,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return this.entries;
     },
 
-    getEntry: function () {
+    getEntry: function() {
       if (this._source[this._index] === '<') {
         ++this._index;
         const id = this.getIdentifier();
@@ -1182,7 +1193,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       throw this.error('Invalid entry');
     },
 
-    getEntity: function (id, index) {
+    getEntity: function(id, index) {
       if (!this.getRequiredWS()) {
         throw this.error('Expected white space');
       }
@@ -1224,7 +1235,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
     },
 
-    getValue: function (ch = this._source[this._index], index = false, required = true) {
+    getValue: function(
+      ch = this._source[this._index], index = false, required = true) {
       switch (ch) {
         case '\'':
         case '"':
@@ -1237,10 +1249,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         throw this.error('Unknown value type');
       }
 
-      return;
+      return undefined;
     },
 
-    getWS: function () {
+    getWS: function() {
       let cc = this._source.charCodeAt(this._index);
       // space, \n, \t, \r
       while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
@@ -1248,7 +1260,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
     },
 
-    getRequiredWS: function () {
+    getRequiredWS: function() {
       const pos = this._index;
       let cc = this._source.charCodeAt(pos);
       // space, \n, \t, \r
@@ -1258,42 +1270,45 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return this._index !== pos;
     },
 
-    getIdentifier: function () {
+    getIdentifier: function() {
       const start = this._index;
       let cc = this._source.charCodeAt(this._index);
 
-      if (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || // A-Z
-      cc === 95) {
-        // _
+      if ((cc >= 97 && cc <= 122) || // a-z
+          (cc >= 65 && cc <= 90) ||  // A-Z
+          cc === 95) {               // _
         cc = this._source.charCodeAt(++this._index);
       } else {
         throw this.error('Identifier has to start with [a-zA-Z_]');
       }
 
-      while (cc >= 97 && cc <= 122 || cc >= 65 && cc <= 90 || cc >= 48 && cc <= 57 || // 0-9
-      cc === 95) {
-        // _
+      while ((cc >= 97 && cc <= 122) || // a-z
+             (cc >= 65 && cc <= 90) ||  // A-Z
+             (cc >= 48 && cc <= 57) ||  // 0-9
+             cc === 95) {               // _
         cc = this._source.charCodeAt(++this._index);
       }
 
       return this._source.slice(start, this._index);
     },
 
-    getUnicodeChar: function () {
+    getUnicodeChar: function() {
       for (let i = 0; i < 4; i++) {
-        let cc = this._source.charCodeAt(++this._index);
-        if (cc > 96 && cc < 103 || cc > 64 && cc < 71 || cc > 47 && cc < 58) {
-          // 0-9
+        const cc = this._source.charCodeAt(++this._index);
+        if ((cc > 96 && cc < 103) || // a-f
+            (cc > 64 && cc < 71) ||  // A-F
+            (cc > 47 && cc < 58)) {  // 0-9
           continue;
         }
         throw this.error('Illegal unicode escape sequence');
       }
       this._index++;
-      return String.fromCharCode(parseInt(this._source.slice(this._index - 4, this._index), 16));
+      return String.fromCharCode(
+        parseInt(this._source.slice(this._index - 4, this._index), 16));
     },
 
     stringRe: /"|'|{{|\\/g,
-    getString: function (opchar, opcharLen) {
+    getString: function(opchar, opcharLen) {
       const body = [];
       let placeables = 0;
 
@@ -1322,7 +1337,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         if (match[0] === '{{') {
           if (placeables > MAX_PLACEABLES$1 - 1) {
-            throw this.error('Too many placeables, maximum allowed is ' + MAX_PLACEABLES$1);
+            throw this.error('Too many placeables, maximum allowed is ' +
+                MAX_PLACEABLES$1);
           }
           placeables++;
           if (match.index > bufStart || buf.length > 0) {
@@ -1342,7 +1358,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           this._index = match.index + 1;
           const ch2 = this._source[this._index];
           if (ch2 === 'u') {
-            buf += this._source.slice(bufStart, match.index) + this.getUnicodeChar();
+            buf += this._source.slice(bufStart, match.index) +
+              this.getUnicodeChar();
           } else if (ch2 === opchar || ch2 === '\\') {
             buf += this._source.slice(bufStart, match.index) + ch2;
             this._index++;
@@ -1367,7 +1384,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return body;
     },
 
-    getAttributes: function () {
+    getAttributes: function() {
       const attrs = Object.create(null);
 
       while (true) {
@@ -1383,11 +1400,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return attrs;
     },
 
-    getAttribute: function (attrs) {
+    getAttribute: function(attrs) {
       const key = this.getIdentifier();
       let index;
 
-      if (this._source[this._index] === '[') {
+      if (this._source[this._index]=== '[') {
         ++this._index;
         this.getWS();
         index = this.getItemList(this.getExpression, ']');
@@ -1415,7 +1432,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
     },
 
-    getHash: function (index) {
+    getHash: function(index) {
       const items = Object.create(null);
 
       ++this._index;
@@ -1458,7 +1475,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return items;
     },
 
-    getHashItem: function () {
+    getHashItem: function() {
       let defItem = false;
       if (this._source[this._index] === '*') {
         ++this._index;
@@ -1476,7 +1493,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return [key, this.getValue(), defItem];
     },
 
-    getComment: function () {
+    getComment: function() {
       this._index += 2;
       const start = this._index;
       const end = this._source.indexOf('*/', start);
@@ -1492,7 +1509,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       let exp = this.getPrimaryExpression();
 
       while (true) {
-        let ch = this._source[this._index];
+        const ch = this._source[this._index];
         if (ch === '.' || ch === '[') {
           ++this._index;
           exp = this.getPropertyExpression(exp, ch === '[');
@@ -1507,7 +1524,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return exp;
     },
 
-    getPropertyExpression: function (idref, computed) {
+    getPropertyExpression: function(idref, computed) {
       let exp;
 
       if (computed) {
@@ -1530,7 +1547,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       };
     },
 
-    getCallExpression: function (callee) {
+    getCallExpression: function(callee) {
       this.getWS();
 
       return {
@@ -1540,7 +1557,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       };
     },
 
-    getPrimaryExpression: function () {
+    getPrimaryExpression: function() {
       const ch = this._source[this._index];
 
       switch (ch) {
@@ -1564,7 +1581,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
     },
 
-    getItemList: function (callback, closeChar) {
+    getItemList: function(callback, closeChar) {
       const items = [];
       let closed = false;
 
@@ -1578,7 +1595,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       while (!closed) {
         items.push(callback.call(this));
         this.getWS();
-        let ch = this._source.charAt(this._index);
+        const ch = this._source.charAt(this._index);
         switch (ch) {
           case ',':
             ++this._index;
@@ -1596,7 +1613,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return items;
     },
 
-    getJunkEntry: function () {
+
+    getJunkEntry: function() {
       const pos = this._index;
       let nextEntity = this._source.indexOf('<', pos);
       let nextComment = this._source.indexOf('/*', pos);
@@ -1608,12 +1626,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         nextComment = this._length;
       }
 
-      let nextEntry = Math.min(nextEntity, nextComment);
+      const nextEntry = Math.min(nextEntity, nextComment);
 
       this._index = nextEntry;
     },
 
-    error: function (message, type = 'parsererror') {
+    error: function(message, type = 'parsererror') {
       const pos = this._index;
 
       let start = this._source.lastIndexOf('<', pos - 1);
@@ -1627,7 +1645,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         this.emit(type, err);
       }
       return err;
-    }
+    },
   };
 
   // Walk an entry node searching for content leaves
@@ -1669,7 +1687,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     const newValue = Array.isArray(value) ? [] : Object.create(null);
     const keys = Object.keys(value);
 
-    for (let i = 0, key; key = keys[i]; i++) {
+    for (let i = 0, key; (key = keys[i]); i++) {
       newValue[key] = walkValue(value[key], fn);
     }
 
@@ -1725,26 +1743,33 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       const reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
 
       const charMaps = {
-        'fr-x-psaccent': 'ȦƁƇḒḖƑƓĦĪĴĶĿḾȠǾƤɊŘŞŦŬṼẆẊẎẐ[\\]^_`ȧƀƈḓḗƒɠħīĵķŀḿƞǿƥɋřşŧŭṽẇẋẏẑ',
+        'fr-x-psaccent':
+          'ȦƁƇḒḖƑƓĦĪĴĶĿḾȠǾƤɊŘŞŦŬṼẆẊẎẐ[\\]^_`ȧƀƈḓḗƒɠħīĵķŀḿƞǿƥɋřşŧŭṽẇẋẏẑ',
         'ar-x-psbidi':
-        // XXX Use pɟפ˥ʎ as replacements for ᗡℲ⅁⅂⅄. https://bugzil.la/1007340
-        '∀ԐↃpƎɟפHIſӼ˥WNOԀÒᴚS⊥∩ɅＭXʎZ[\\]ᵥ_,ɐqɔpǝɟƃɥıɾʞʅɯuodbɹsʇnʌʍxʎz'
+          // XXX Use pɟפ˥ʎ as replacements for ᗡℲ⅁⅂⅄. https://bugzil.la/1007340
+          '∀ԐↃpƎɟפHIſӼ˥WNOԀÒᴚS⊥∩ɅＭXʎZ[\\]ᵥ_,ɐqɔpǝɟƃɥıɾʞʅɯuodbɹsʇnʌʍxʎz',
       };
 
       const mods = {
-        'fr-x-psaccent': val => val.replace(reVowels, match => match + match.toLowerCase()),
+        'fr-x-psaccent': val =>
+          val.replace(reVowels, match => match + match.toLowerCase()),
 
         // Surround each word with Unicode formatting codes, RLO and PDF:
         //   U+202E:   RIGHT-TO-LEFT OVERRIDE (RLO)
         //   U+202C:   POP DIRECTIONAL FORMATTING (PDF)
         // See http://www.w3.org/International/questions/qa-bidi-controls
-        'ar-x-psbidi': val => val.replace(reWords, match => '‮' + match + '‬')
+        'ar-x-psbidi': val =>
+          val.replace(reWords, match => '\u202e' + match + '\u202c'),
       };
 
       // Replace each Latin letter with a Unicode character from map
-      const replaceChars = (map, val) => val.replace(reAlphas, match => map.charAt(match.charCodeAt(0) - 65));
+      const ASCII_LETTER_A = 65;
+      const replaceChars =
+        (map, val) => val.replace(
+          reAlphas, match => map.charAt(match.charCodeAt(0) - ASCII_LETTER_A));
 
-      const transform = val => replaceChars(charMaps[id], mods[id](val));
+      const transform =
+        val => replaceChars(charMaps[id], mods[id](val));
 
       // apply fn to translatable parts of val
       const apply = (fn, val) => {
@@ -1753,7 +1778,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }
 
         const parts = val.split(reExcluded);
-        const modified = parts.map(function (part) {
+        const modified = parts.map((part) => {
           if (reExcluded.test(part)) {
             return part;
           }
@@ -1780,10 +1805,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     }
   });
 
-  let Env = (function () {
-    function Env(fetchResource) {
-      _classCallCheck(this, Env);
-
+  class Env {
+    constructor(fetchResource) {
       this.fetchResource = fetchResource;
 
       this.resCache = new Map();
@@ -1791,7 +1814,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       this.numberFormatters = null;
       this.parsers = {
         properties: PropertiesParser,
-        l20n: L20nParser
+        l20n: L20nParser,
       };
 
       const listeners = {};
@@ -1800,90 +1823,86 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       this.removeEventListener = removeEventListener.bind(this, listeners);
     }
 
-    _createClass(Env, [{
-      key: 'createContext',
-      value: function createContext(langs, resIds) {
-        const ctx = new Context(this, langs, resIds);
-        resIds.forEach(resId => {
-          const usedBy = this.resRefs.get(resId) || 0;
-          this.resRefs.set(resId, usedBy + 1);
-        });
+    createContext(langs, resIds) {
+      const ctx = new Context(this, langs, resIds);
+      resIds.forEach(resId => {
+        const usedBy = this.resRefs.get(resId) || 0;
+        this.resRefs.set(resId, usedBy + 1);
+      });
 
-        return ctx;
-      }
-    }, {
-      key: 'destroyContext',
-      value: function destroyContext(ctx) {
-        ctx.resIds.forEach(resId => {
-          const usedBy = this.resRefs.get(resId) || 0;
+      return ctx;
+    }
 
-          if (usedBy > 1) {
-            return this.resRefs.set(resId, usedBy - 1);
-          }
+    destroyContext(ctx) {
+      ctx.resIds.forEach(resId => {
+        const usedBy = this.resRefs.get(resId) || 0;
 
-          this.resRefs.delete(resId);
-          this.resCache.forEach((val, key) => key.startsWith(resId) ? this.resCache.delete(key) : null);
-        });
-      }
-    }, {
-      key: '_parse',
-      value: function _parse(syntax, lang, data) {
-        const parser = this.parsers[syntax];
-        if (!parser) {
-          return data;
+        if (usedBy > 1) {
+          return this.resRefs.set(resId, usedBy - 1);
         }
 
-        const emit = (type, err) => this.emit(type, amendError(lang, err));
-        return parser.parse.call(parser, emit, data);
+        this.resRefs.delete(resId);
+        this.resCache.forEach((val, key) =>
+          key.startsWith(resId) ? this.resCache.delete(key) : null);
+      });
+    }
+
+    _parse(syntax, lang, data) {
+      const parser = this.parsers[syntax];
+      if (!parser) {
+        return data;
       }
-    }, {
-      key: '_create',
-      value: function _create(lang, entries) {
-        if (lang.src !== 'pseudo') {
-          return entries;
-        }
 
-        const pseudoentries = Object.create(null);
-        for (let key in entries) {
-          pseudoentries[key] = walkEntry(entries[key], pseudo[lang.code].process);
-        }
-        return pseudoentries;
+      const emitAndAmend = (type, err) => this.emit(type, amendError(lang, err));
+      return parser.parse(emitAndAmend, data);
+    }
+
+    _create(lang, entries) {
+      if (lang.src !== 'pseudo') {
+        return entries;
       }
-    }, {
-      key: '_getResource',
-      value: function _getResource(lang, res) {
-        const cache = this.resCache;
-        const id = res + lang.code + lang.src;
 
-        if (cache.has(id)) {
-          return cache.get(id);
-        }
-
-        const syntax = res.substr(res.lastIndexOf('.') + 1);
-
-        const saveEntries = data => {
-          const entries = this._parse(syntax, lang, data);
-          cache.set(id, this._create(lang, entries));
-        };
-
-        const recover = err => {
-          err.lang = lang;
-          this.emit('fetcherror', err);
-          cache.set(id, err);
-        };
-
-        const langToFetch = lang.src === 'pseudo' ? { code: 'en-US', src: 'app', ver: lang.ver } : lang;
-
-        const resource = this.fetchResource(res, langToFetch).then(saveEntries, recover);
-
-        cache.set(id, resource);
-
-        return resource;
+      const pseudoentries = Object.create(null);
+      for (let key in entries) {
+        pseudoentries[key] = walkEntry(
+          entries[key], pseudo[lang.code].process);
       }
-    }]);
+      return pseudoentries;
+    }
 
-    return Env;
-  })();
+    _getResource(lang, res) {
+      const cache = this.resCache;
+      const id = res + lang.code + lang.src;
+
+      if (cache.has(id)) {
+        return cache.get(id);
+      }
+
+      const syntax = res.substr(res.lastIndexOf('.') + 1);
+
+      const saveEntries = data => {
+        const entries = this._parse(syntax, lang, data);
+        cache.set(id, this._create(lang, entries));
+      };
+
+      const recover = err => {
+        err.lang = lang;
+        this.emit('fetcherror', err);
+        cache.set(id, err);
+      };
+
+      const langToFetch = lang.src === 'pseudo' ?
+        { code: 'en-US', src: 'app', ver: lang.ver } :
+        lang;
+
+      const resource = this.fetchResource(res, langToFetch)
+        .then(saveEntries, recover);
+
+      cache.set(id, resource);
+
+      return resource;
+    }
+  }
 
   function amendError(lang, err) {
     err.lang = lang;
@@ -1900,33 +1919,40 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         break;
       }
     }
-    if (!supportedLocale || supportedLocale === def) {
+    if (!supportedLocale ||
+        supportedLocale === def) {
       return [def];
     }
 
     return [supportedLocale, def];
   }
 
-  function negotiateLanguages({ appVersion, defaultLang, availableLangs }, additionalLangs, prevLangs, requestedLangs) {
+  function negotiateLanguages(
+    { appVersion, defaultLang, availableLangs }, additionalLangs, prevLangs,
+    requestedLangs) {
 
-    const allAvailableLangs = Object.keys(availableLangs).concat(Object.keys(additionalLangs)).concat(Object.keys(pseudo));
-    const newLangs = prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
+    const allAvailableLangs = Object.keys(availableLangs)
+      .concat(Object.keys(additionalLangs))
+      .concat(Object.keys(pseudo));
+    const newLangs = prioritizeLocales(
+      defaultLang, allAvailableLangs, requestedLangs);
 
     const langs = newLangs.map(code => ({
       code: code,
       src: getLangSource(appVersion, availableLangs, additionalLangs, code),
-      ver: appVersion
+      ver: appVersion,
     }));
 
     return { langs, haveChanged: !arrEqual(prevLangs, newLangs) };
   }
 
   function arrEqual(arr1, arr2) {
-    return arr1.length === arr2.length && arr1.every((elem, i) => elem === arr2[i]);
+    return arr1.length === arr2.length &&
+      arr1.every((elem, i) => elem === arr2[i]);
   }
 
   function getMatchingLangpack(appVersion, langpacks) {
-    for (let i = 0, langpack; langpack = langpacks[i]; i++) {
+    for (let i = 0, langpack; (langpack = langpacks[i]); i++) {
       if (langpack.target === appVersion) {
         return langpack;
       }
@@ -1937,125 +1963,158 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   function getLangSource(appVersion, availableLangs, additionalLangs, code) {
     if (additionalLangs && additionalLangs[code]) {
       const lp = getMatchingLangpack(appVersion, additionalLangs[code]);
-      if (lp && (!(code in availableLangs) || parseInt(lp.revision) > availableLangs[code])) {
+      if (lp &&
+          (!(code in availableLangs) ||
+           parseInt(lp.revision) > availableLangs[code])) {
         return 'extra';
       }
     }
 
-    if (code in pseudo && !(code in availableLangs)) {
+    if ((code in pseudo) && !(code in availableLangs)) {
       return 'pseudo';
     }
 
     return 'app';
   }
 
-  let Remote = (function () {
-    function Remote(fetchResource, broadcast) {
-      _classCallCheck(this, Remote);
-
+  class Remote {
+    constructor(fetchResource, broadcast) {
       this.broadcast = broadcast;
       this.env = new Env(fetchResource);
       this.ctxs = new Map();
     }
 
-    _createClass(Remote, [{
-      key: 'registerView',
-      value: function registerView(view, resources, meta, additionalLangs, requestedLangs) {
-        const { langs } = negotiateLanguages(meta, additionalLangs, [], requestedLangs);
-        this.ctxs.set(view, this.env.createContext(langs, resources));
-        return langs;
-      }
-    }, {
-      key: 'unregisterView',
-      value: function unregisterView(view) {
-        this.ctxs.delete(view);
-        return true;
-      }
-    }, {
-      key: 'formatEntities',
-      value: function formatEntities(view, keys) {
-        return this.ctxs.get(view).formatEntities(...keys);
-      }
-    }, {
-      key: 'formatValues',
-      value: function formatValues(view, keys) {
-        return this.ctxs.get(view).formatValues(...keys);
-      }
-    }, {
-      key: 'changeLanguages',
-      value: function changeLanguages(view, meta, additionalLangs, requestedLangs) {
-        const oldCtx = this.ctxs.get(view);
-        const prevLangs = oldCtx.langs;
-        const newLangs = negotiateLanguages(meta, additionalLangs, prevLangs, requestedLangs);
-        this.ctxs.set(view, this.env.createContext(newLangs.langs, oldCtx.resIds));
-        return newLangs;
-      }
-    }, {
-      key: 'requestLanguages',
-      value: function requestLanguages(requestedLangs) {
-        this.broadcast('languageschangerequest', requestedLangs);
-      }
-    }, {
-      key: 'getName',
-      value: function getName(code) {
-        return pseudo[code].name;
-      }
-    }, {
-      key: 'processString',
-      value: function processString(code, str) {
-        return pseudo[code].process(str);
-      }
-    }]);
+    registerView(view, resources, meta, additionalLangs, requestedLangs) {
+      const { langs } = negotiateLanguages(
+        meta, additionalLangs, [], requestedLangs);
+      this.ctxs.set(view, this.env.createContext(langs, resources));
+      return langs;
+    }
 
-    return Remote;
-  })();
+    unregisterView(view) {
+      this.ctxs.delete(view);
+      return true;
+    }
 
-  const observerConfig = {
-    attributes: true,
-    characterData: false,
-    childList: true,
-    subtree: true,
-    attributeFilter: ['data-l10n-id', 'data-l10n-args']
-  };
+    formatEntities(view, keys) {
+      return this.ctxs.get(view).formatEntities(...keys);
+    }
 
-  const observers = new WeakMap();
+    formatValues(view, keys) {
+      return this.ctxs.get(view).formatValues(...keys);
+    }
 
-  function initMutationObserver(view) {
-    observers.set(view, {
-      roots: new Set(),
-      observer: new MutationObserver(mutations => translateMutations(view, mutations))
+    changeLanguages(view, meta, additionalLangs, requestedLangs) {
+      const oldCtx = this.ctxs.get(view);
+      const prevLangs = oldCtx.langs;
+      const newLangs = negotiateLanguages(
+        meta, additionalLangs, prevLangs, requestedLangs);
+      this.ctxs.set(view, this.env.createContext(
+        newLangs.langs, oldCtx.resIds));
+      return newLangs;
+    }
+
+    requestLanguages(requestedLangs) {
+      this.broadcast('languageschangerequest', requestedLangs);
+    }
+
+    getName(code) {
+      return pseudo[code].name;
+    }
+
+    processString(code, str) {
+      return pseudo[code].process(str);
+    }
+  }
+
+  // Polyfill NodeList.prototype[Symbol.iterator] for Chrome.
+  // See https://code.google.com/p/chromium/issues/detail?id=401699
+  if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
+    NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
+  }
+
+  // A document.ready shim
+  // https://github.com/whatwg/html/issues/127
+  function documentReady() {
+    if (document.readyState !== 'loading') {
+      return Promise.resolve();
+    }
+
+    return new Promise(resolve => {
+      document.addEventListener('readystatechange', function onrsc() {
+        document.removeEventListener('readystatechange', onrsc);
+        resolve();
+      });
     });
   }
 
-  function translateRoots(view) {
-    return Promise.all([...observers.get(view).roots].map(root => _translateFragment(view, root)));
+  // Intl.Locale
+  function getDirection(code) {
+    const tag = code.split('-')[0];
+    return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ?
+      'rtl' : 'ltr';
   }
 
-  function observe(view, root) {
-    const obs = observers.get(view);
-    if (obs) {
-      obs.roots.add(root);
-      obs.observer.observe(root, observerConfig);
-    }
+  // Opera and Safari don't support it yet
+  if (navigator.languages === undefined) {
+    navigator.languages = [navigator.language];
   }
 
-  function disconnect(view, root, allRoots) {
-    const obs = observers.get(view);
-    if (obs) {
-      obs.observer.disconnect();
-      if (allRoots) {
-        return;
+  function getResourceLinks(head) {
+    return Array.prototype.map.call(
+      head.querySelectorAll('link[rel="localization"]'),
+      el => el.getAttribute('href'));
+  }
+
+  function getMeta(head) {
+    let availableLangs = Object.create(null);
+    let defaultLang = null;
+    let appVersion = null;
+
+    // XXX take last found instead of first?
+    const metas = Array.from(head.querySelectorAll(
+      'meta[name="availableLanguages"],' +
+      'meta[name="defaultLanguage"],' +
+      'meta[name="appVersion"]'));
+    for (let meta of metas) {
+      const name = meta.getAttribute('name');
+      const content = meta.getAttribute('content').trim();
+      switch (name) {
+        case 'availableLanguages':
+          availableLangs = getLangRevisionMap(
+            availableLangs, content);
+          break;
+        case 'defaultLanguage':
+          const [lang, rev] = getLangRevisionTuple(content);
+          defaultLang = lang;
+          if (!(lang in availableLangs)) {
+            availableLangs[lang] = rev;
+          }
+          break;
+        case 'appVersion':
+          appVersion = content;
       }
-      obs.roots.delete(root);
-      obs.roots.forEach(other => obs.observer.observe(other, observerConfig));
     }
+
+    return {
+      defaultLang,
+      availableLangs,
+      appVersion
+    };
   }
 
-  function reconnect(view) {
-    const obs = observers.get(view);
-    if (obs) {
-      obs.roots.forEach(root => obs.observer.observe(root, observerConfig));
-    }
+  function getLangRevisionMap(seq, str) {
+    return str.split(',').reduce((prevSeq, cur) => {
+      const [lang, rev] = getLangRevisionTuple(cur);
+      prevSeq[lang] = rev;
+      return prevSeq;
+    }, seq);
+  }
+
+  function getLangRevisionTuple(str) {
+    const [lang, rev]  = str.trim().split(':');
+    // if revision is missing, use NaN
+    return [lang, parseInt(rev)];
   }
 
   // match the opening angle bracket (<) in HTML tags, and HTML entities like
@@ -2063,7 +2122,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   const reOverlay = /<|&#?\w+;/;
 
   const allowed = {
-    elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
+    elements: [
+      'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data',
+      'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u',
+      'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'
+    ],
     attributes: {
       global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
       a: ['download'],
@@ -2123,7 +2186,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     // the allowed list or try to match it with a corresponding element
     // in the source
     let childElement;
-    while (childElement = translationElement.childNodes[0]) {
+    while ((childElement = translationElement.childNodes[0])) {
       translationElement.removeChild(childElement);
 
       if (childElement.nodeType === childElement.TEXT_NODE) {
@@ -2141,14 +2204,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
 
       if (isElementAllowed(childElement)) {
-        const sanitizedChild = childElement.ownerDocument.createElement(childElement.nodeName);
+        const sanitizedChild = childElement.ownerDocument.createElement(
+          childElement.nodeName);
         overlay(sanitizedChild, childElement);
         result.appendChild(sanitizedChild);
         continue;
       }
 
       // otherwise just take this child's textContent
-      result.appendChild(translationElement.ownerDocument.createTextNode(childElement.textContent));
+      result.appendChild(
+        translationElement.ownerDocument.createTextNode(
+          childElement.textContent));
     }
 
     // clear `sourceElement` and append `result` which by this time contains
@@ -2161,7 +2227,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     // XXX attributes previously set here for another language should be
     // cleared if a new language doesn't use them; https://bugzil.la/922577
     if (translationElement.attributes) {
-      for (k = 0, attr; attr = translationElement.attributes[k]; k++) {
+      for (k = 0, attr; (attr = translationElement.attributes[k]); k++) {
         if (isAttrAllowed(attr, sourceElement)) {
           sourceElement.setAttribute(attr.name, attr.value);
         }
@@ -2208,7 +2274,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /* jshint boss:true */
     let nthOfType = 0;
     for (let i = 0, child; child = context.children[i]; i++) {
-      if (child.nodeType === child.ELEMENT_NODE && child.tagName === element.tagName) {
+      if (child.nodeType === child.ELEMENT_NODE &&
+          child.tagName === element.tagName) {
         if (nthOfType === index) {
           return child;
         }
@@ -2222,7 +2289,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   function getIndexOfType(element) {
     let index = 0;
     let child;
-    while (child = element.previousElementSibling) {
+    while ((child = element.previousElementSibling)) {
       if (child.tagName === element.tagName) {
         index++;
       }
@@ -2236,16 +2303,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       return 'aria-valuetext';
     }
 
-    return string.replace(/[A-Z]/g, function (match) {
-      return '-' + match.toLowerCase();
-    }).replace(/^-/, '');
+    return string
+      .replace(/[A-Z]/g, match => '-' + match.toLowerCase())
+      .replace(/^-/, '');
   }
 
   const reHtml = /[&<>]/g;
   const htmlEntities = {
     '&': '&amp;',
     '<': '&lt;',
-    '>': '&gt;'
+    '>': '&gt;',
   };
 
   function setAttributes(element, id, args) {
@@ -2265,7 +2332,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   function getTranslatables(element) {
     const nodes = Array.from(element.querySelectorAll('[data-l10n-id]'));
 
-    if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
+    if (typeof element.hasAttribute === 'function' &&
+        element.hasAttribute('data-l10n-id')) {
       nodes.push(element);
     }
 
@@ -2303,7 +2371,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     translateElements(view, Array.from(targets));
   }
 
-  function _translateFragment(view, frag) {
+  function translateFragment(view, frag) {
     return translateElements(view, getTranslatables(frag));
   }
 
@@ -2311,14 +2379,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     const keys = elems.map(elem => {
       const id = elem.getAttribute('data-l10n-id');
       const args = elem.getAttribute('data-l10n-args');
-      return args ? [id, JSON.parse(args.replace(reHtml, match => htmlEntities[match]))] : id;
+      return args ? [
+        id,
+        JSON.parse(args.replace(reHtml, match => htmlEntities[match]))
+      ] : id;
     });
 
     return view.formatEntities(...keys);
   }
 
   function translateElements(view, elements) {
-    return getElementsTranslation(view, elements).then(translations => applyTranslations(view, elements, translations));
+    return getElementsTranslation(view, elements).then(
+      translations => applyTranslations(view, elements, translations));
   }
 
   function applyTranslations(view, elems, translations) {
@@ -2329,95 +2401,63 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     reconnect(view);
   }
 
-  // Polyfill NodeList.prototype[Symbol.iterator] for Chrome.
-  // See https://code.google.com/p/chromium/issues/detail?id=401699
-  if (typeof NodeList === 'function' && !NodeList.prototype[Symbol.iterator]) {
-    NodeList.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
-  }
+  const observerConfig = {
+    attributes: true,
+    characterData: false,
+    childList: true,
+    subtree: true,
+    attributeFilter: ['data-l10n-id', 'data-l10n-args']
+  };
 
-  // A document.ready shim
-  // https://github.com/whatwg/html/issues/127
-  function documentReady() {
-    if (document.readyState !== 'loading') {
-      return Promise.resolve();
-    }
+  const observers = new WeakMap();
 
-    return new Promise(resolve => {
-      document.addEventListener('readystatechange', function onrsc() {
-        document.removeEventListener('readystatechange', onrsc);
-        resolve();
-      });
+  function initMutationObserver(view) {
+    observers.set(view, {
+      roots: new Set(),
+      observer: new MutationObserver(
+        mutations => translateMutations(view, mutations)),
     });
   }
 
-  // Intl.Locale
-  function getDirection(code) {
-    const tag = code.split('-')[0];
-    return ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(tag) >= 0 ? 'rtl' : 'ltr';
+  function translateRoots(view) {
+    const roots = Array.from(observers.get(view).roots);
+    return Promise.all(roots.map(
+        root => translateFragment(view, root)));
   }
 
-  // Opera and Safari don't support it yet
-  if (navigator.languages === undefined) {
-    navigator.languages = [navigator.language];
-  }
-
-  function getResourceLinks(head) {
-    return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), el => el.getAttribute('href'));
-  }
-
-  function getMeta(head) {
-    let availableLangs = Object.create(null);
-    let defaultLang = null;
-    let appVersion = null;
-
-    // XXX take last found instead of first?
-    const metas = Array.from(head.querySelectorAll('meta[name="availableLanguages"],' + 'meta[name="defaultLanguage"],' + 'meta[name="appVersion"]'));
-    for (let meta of metas) {
-      const name = meta.getAttribute('name');
-      const content = meta.getAttribute('content').trim();
-      switch (name) {
-        case 'availableLanguages':
-          availableLangs = getLangRevisionMap(availableLangs, content);
-          break;
-        case 'defaultLanguage':
-          const [lang, rev] = getLangRevisionTuple(content);
-          defaultLang = lang;
-          if (!(lang in availableLangs)) {
-            availableLangs[lang] = rev;
-          }
-          break;
-        case 'appVersion':
-          appVersion = content;
-      }
+  function observe(view, root) {
+    const obs = observers.get(view);
+    if (obs) {
+      obs.roots.add(root);
+      obs.observer.observe(root, observerConfig);
     }
-
-    return {
-      defaultLang,
-      availableLangs,
-      appVersion
-    };
   }
 
-  function getLangRevisionMap(seq, str) {
-    return str.split(',').reduce((seq, cur) => {
-      const [lang, rev] = getLangRevisionTuple(cur);
-      seq[lang] = rev;
-      return seq;
-    }, seq);
+  function disconnect(view, root, allRoots) {
+    const obs = observers.get(view);
+    if (obs) {
+      obs.observer.disconnect();
+      if (allRoots) {
+        return;
+      }
+      obs.roots.delete(root);
+      obs.roots.forEach(
+        other => obs.observer.observe(other, observerConfig));
+    }
   }
 
-  function getLangRevisionTuple(str) {
-    const [lang, rev] = str.trim().split(':');
-    // if revision is missing, use NaN
-    return [lang, parseInt(rev)];
+  function reconnect(view) {
+    const obs = observers.get(view);
+    if (obs) {
+      obs.roots.forEach(
+        root => obs.observer.observe(root, observerConfig));
+    }
   }
 
   const viewProps = new WeakMap();
 
-  let View = (function () {
-    function View(client, doc) {
-      _classCallCheck(this, View);
-
+  class View {
+    constructor(client, doc) {
       this.pseudo = {
         'fr-x-psaccent': createPseudo(this, 'fr-x-psaccent'),
         'ar-x-psbidi': createPseudo(this, 'ar-x-psbidi')
@@ -2433,62 +2473,59 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         ready: false
       });
 
-      client.on('languageschangerequest', requestedLangs => this.requestLanguages(requestedLangs));
+      client.on('languageschangerequest',
+        requestedLangs => this.requestLanguages(requestedLangs));
     }
 
-    _createClass(View, [{
-      key: 'requestLanguages',
-      value: function requestLanguages(requestedLangs, isGlobal) {
-        const method = isGlobal ? client => client.method('requestLanguages', requestedLangs) : client => changeLanguages(this, client, requestedLangs);
-        return this._interactive.then(method);
-      }
-    }, {
-      key: 'handleEvent',
-      value: function handleEvent() {
-        return this.requestLanguages(navigator.languages);
-      }
-    }, {
-      key: 'formatEntities',
-      value: function formatEntities(...keys) {
-        return this._interactive.then(client => client.method('formatEntities', client.id, keys));
-      }
-    }, {
-      key: 'formatValue',
-      value: function formatValue(id, args) {
-        return this._interactive.then(client => client.method('formatValues', client.id, [[id, args]])).then(values => values[0]);
-      }
-    }, {
-      key: 'formatValues',
-      value: function formatValues(...keys) {
-        return this._interactive.then(client => client.method('formatValues', client.id, keys));
-      }
-    }, {
-      key: 'translateFragment',
-      value: function translateFragment(frag) {
-        return _translateFragment(this, frag);
-      }
-    }, {
-      key: 'observeRoot',
-      value: function observeRoot(root) {
-        observe(this, root);
-      }
-    }, {
-      key: 'disconnectRoot',
-      value: function disconnectRoot(root) {
-        disconnect(this, root);
-      }
-    }]);
+    requestLanguages(requestedLangs, isGlobal) {
+      const method = isGlobal ?
+        client => client.method('requestLanguages', requestedLangs) :
+        client => changeLanguages(this, client, requestedLangs);
+      return this._interactive.then(method);
+    }
 
-    return View;
-  })();
+    handleEvent() {
+      return this.requestLanguages(navigator.languages);
+    }
+
+    formatEntities(...keys) {
+      return this._interactive.then(
+        client => client.method('formatEntities', client.id, keys));
+    }
+
+    formatValue(id, args) {
+      return this._interactive.then(
+        client => client.method('formatValues', client.id, [[id, args]])).then(
+        values => values[0]);
+    }
+
+    formatValues(...keys) {
+      return this._interactive.then(
+        client => client.method('formatValues', client.id, keys));
+    }
+
+    translateFragment(frag) {
+      return translateFragment(this, frag);
+    }
+
+    observeRoot(root) {
+      observe(this, root);
+    }
+
+    disconnectRoot(root) {
+      disconnect(this, root);
+    }
+  }
 
   View.prototype.setAttributes = setAttributes;
   View.prototype.getAttributes = getAttributes;
 
   function createPseudo(view, code) {
     return {
-      getName: () => view._interactive.then(client => client.method('getName', code)),
-      processString: str => view._interactive.then(client => client.method('processString', code, str))
+      getName: () => view._interactive.then(
+        client => client.method('getName', code)),
+      processString: str => view._interactive.then(
+        client => client.method('processString', code, str)),
     };
   }
 
@@ -2497,18 +2534,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     const resources = getResourceLinks(doc.head);
     const meta = getMeta(doc.head);
     view.observeRoot(doc.documentElement);
-    return getAdditionalLanguages().then(additionalLangs => client.method('registerView', client.id, resources, meta, additionalLangs, navigator.languages));
+    return getAdditionalLanguages().then(
+      additionalLangs => client.method(
+        'registerView', client.id, resources, meta, additionalLangs,
+        navigator.languages));
   }
 
   function changeLanguages(view, client, requestedLangs) {
     const doc = viewProps.get(view).doc;
     const meta = getMeta(doc.head);
-    return getAdditionalLanguages().then(additionalLangs => client.method('changeLanguages', client.id, meta, additionalLangs, requestedLangs)).then(({ langs, haveChanged }) => haveChanged ? translateView(view, langs) : undefined);
+    return getAdditionalLanguages()
+      .then(additionalLangs => client.method(
+        'changeLanguages', client.id, meta, additionalLangs, requestedLangs
+      ))
+      .then(({langs, haveChanged}) => haveChanged ?
+        translateView(view, langs) : undefined
+      );
   }
 
   function getAdditionalLanguages() {
     if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
-      return navigator.mozApps.getAdditionalLanguages().catch(() => Object.create(null));
+      return navigator.mozApps.getAdditionalLanguages()
+        .catch(() => Object.create(null));
     }
 
     return Promise.resolve(Object.create(null));
@@ -2519,12 +2566,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     const html = props.doc.documentElement;
 
     if (props.ready) {
-      return translateRoots(view).then(() => setAllAndEmit(html, langs));
+      return translateRoots(view).then(
+        () => setAllAndEmit(html, langs));
     }
 
     const translated =
-    // has the document been already pre-translated?
-    langs[0].code === html.getAttribute('lang') ? Promise.resolve() : translateRoots(view).then(() => setLangDir(html, langs));
+      // has the document been already pre-translated?
+      langs[0].code === html.getAttribute('lang') ?
+        Promise.resolve() :
+        translateRoots(view).then(
+          () => setLangDir(html, langs));
 
     return translated.then(() => {
       setLangs(html, langs);
@@ -2548,7 +2599,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     setLangs(html, langs);
     html.parentNode.dispatchEvent(new CustomEvent('DOMRetranslated', {
       bubbles: false,
-      cancelable: false
+      cancelable: false,
     }));
   }
 
@@ -2559,22 +2610,4 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   window.addEventListener('languagechange', document.l10n);
   document.addEventListener('additionallanguageschange', document.l10n);
 
-  //Bug 1204660 - Temporary proxy for shared code. Will be removed once
-  //              l10n.js migration is completed.
-  navigator.mozL10n = {
-    setAttributes: document.l10n.setAttributes,
-    getAttributes: document.l10n.getAttributes,
-    formatValue: (...args) => document.l10n.formatValue(...args),
-    translateFragment: (...args) => document.l10n.translateFragment(...args),
-    once: cb => document.l10n.ready.then(cb),
-    ready: cb => document.l10n.ready.then(() => {
-      document.addEventListener('DOMRetranslated', cb);
-      cb();
-    })
-  };
-})();
-// a-z
-// a-z
-// A-Z
-// a-f
-// A-F
+}());

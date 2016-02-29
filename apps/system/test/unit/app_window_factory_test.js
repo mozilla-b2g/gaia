@@ -408,22 +408,6 @@ suite('system/AppWindowFactory', function() {
         fakeLaunchConfig3.url);
     });
 
-    test('app launch with multiscreen.enabled', function() {
-      this.sinon.stub(MockService, 'query', function(key) {
-        return key == 'MultiScreenController.enabled';
-      });
-      this.sinon.stub(MockService, 'request', function() {
-        return Promise.resolve(1);
-      });
-      appWindowFactory.handleEvent({
-        type: 'webapps-launch',
-        detail: fakeLaunchConfig1
-      });
-      assert.isTrue(MockService.request.calledWith('chooseDisplay'));
-      assert.equal(MockService.request.getCall(0).args[1].url,
-        fakeLaunchConfig1.url);
-    });
-
     test('opening a first activity', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       appWindowFactory.handleEvent({

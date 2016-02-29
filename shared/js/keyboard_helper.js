@@ -11,7 +11,7 @@
 /* jshint validthis: true */
 
 /**
- * The set of "basic keyboard" types
+ * The set of 'basic keyboard' types
  */
 var BASE_TYPES = new Set([
   'text', 'url', 'email', 'password', 'number', 'option'
@@ -122,8 +122,102 @@ function map2dClone(obj) {
 // callbacks when something changes
 var watchQueries = [];
 
-// holds the result of keyboard_layouts.json
-var defaultLayoutConfig;
+// Hold the mapping between locale -> layout
+var defaultLayoutConfig = {
+  locales: {
+    'af': [ 'af', 'en' ],
+    'am': [ 'en' ],
+    'ar': [ 'ar', 'en' ],
+    'as': [ 'en' ],
+    'bg': [ 'bg-BDS', 'en' ],
+    'bm': [ 'en' ],
+    'bn-BD': [ 'bn-Avro', 'bn-Probhat', 'en' ],
+    'bn-IN': [ 'bn-Avro', 'bn-Probhat', 'en' ],
+    'bs': [ 'bs' ],
+    'ca': [ 'ca' ],
+    'cs': [ 'cs' ],
+    'cy': [ 'cy' ],
+    'da': [ 'da' ],
+    'de': [ 'de' ],
+    'dsb': [ 'en' ],
+    'ee': [ 'en-Africa' ],
+    'el': [ 'el', 'en' ],
+    'en-GB': [ 'en-GB' ],
+    'en-US': [ 'en' ],
+    'eo': [ 'eo' ],
+    'es': [ 'es' ],
+    'et': [ 'en' ],
+    'eu': [ 'eu', 'es', 'fr', 'en' ],
+    'fa': [ 'en' ],
+    'ff': [ 'ff', 'fr', 'en' ],
+    'fi': [ 'en' ],
+    'fr': [ 'fr' ],
+    'fy-NL': [ 'fy' ],
+    'ga-IE': [ 'ga' ],
+    'gd': [ 'gd' ],
+    'gl': [ 'es' ],
+    'ha': [ 'en-Africa' ],
+    'he': [ 'he', 'en' ],
+    'hi-IN': [ 'hi', 'en' ],
+    'hr': [ 'hr' ],
+    'hsb': [ 'en' ],
+    'ht': [ 'en' ],
+    'hu': [ 'hu' ],
+    'hy-AM': [ 'en' ],
+    'id': [ 'en' ],
+    'ig': [ 'en-Africa' ],
+    'it': [ 'it' ],
+    'ja': [ 'jp-kanji', 'en' ],
+    'ko': [ 'ko', 'en' ],
+    'lg': [ 'en-Africa' ],
+    'lij': [ 'en' ],
+    'ln': [ 'en-Africa' ],
+    'lv': [ 'lv' ],
+    'mk': [ 'mk' ],
+    'ml': [ 'en' ],
+    'mg': [ 'en' ],
+    'mr': [ 'en' ],
+    'my': [ 'my' ],
+    'nb': [ 'nb' ],
+    'nl': [ 'nl' ],
+    'or': [ 'en' ],
+    'pa': [ 'en' ],
+    'pl': [ 'pl' ],
+    'pt-BR': [ 'pt-BR' ],
+    'pt-PT': [ 'pt-PT' ],
+    'fr-x-psaccent': [ 'en' ],
+    'ar-x-psbidi': [ 'en' ],
+    'ro': [ 'ro' ],
+    'ru': [ 'ru', 'en' ],
+    'sk': [ 'sk' ],
+    'sl': [ 'en' ],
+    'son': [ 'en' ],
+    'sq': [ 'sq' ],
+    'sr': [ 'sr-Cyrl', 'sr-Latn' ],
+    'sr-Cyrl': [ 'sr-Cyrl' ],
+    'sr-Latn': [ 'sr-Latn' ],
+    'sv-SE': [ 'sv' ],
+    'sw': [ 'en-Africa' ],
+    'ta': [ 'ta', 'en' ],
+    'te': [ 'en' ],
+    'th': [ 'th' ],
+    'tn': [ 'en-Africa' ],
+    'tl': [ 'en' ],
+    'tr': [ 'tr-Q', 'tr-F' ],
+    'uk': [ 'uk' ],
+    'ur': [ 'en' ],
+    'vi': [ 'vi-Typewriter', 'fr' ],
+    'wo': [ 'wo' ],
+    'xh': [ 'en-Africa' ],
+    'yo': [ 'en-Africa' ],
+    'zam': [ 'es-Americas', 'es' ],
+    'zh-CN': [ 'zh-Hans-Pinyin', 'en' ],
+    'zh-TW': [ 'zh-Hant-Zhuyin', 'en' ],
+    'zu': [ 'en-Africa' ]
+  },
+  langIndependentLayouts: [ 'number' ],
+  fallbackLayouts: [ 'en' ]
+};
 
 /**
  * Sends any watchers the result of their query.
@@ -297,25 +391,6 @@ function kh_migrateDeprecatedSettings(deprecatedSettings) {
   window.navigator.mozSettings.createLock().set(deprecatedSettingsQuery);
 
   KeyboardHelper.saveToSettings();
-}
-
-/**
- * JSON loader
- */
-function kh_loadJSON(href, callback) {
-  if (!callback) {
-    return;
-  }
-  var xhr = new XMLHttpRequest();
-  xhr.onerror = function() {
-    console.error('Failed to fetch file: ' + href, xhr.statusText);
-  };
-  xhr.onload = function() {
-    callback(xhr.response);
-  };
-  xhr.open('GET', href, true); // async
-  xhr.responseType = 'json';
-  xhr.send();
 }
 
 //
@@ -759,57 +834,60 @@ var KeyboardHelper = exports.KeyboardHelper = {
     });
   },
 
-  // Read keyboard_layouts for language -> layouts mapping
-  getDefaultLayoutConfig: function kh_getDefaultLayoutConfig(callback) {
-    if (!callback) {
-      return;
-    }
-
-    if (defaultLayoutConfig) {
-      callback(defaultLayoutConfig);
-    } else {
-      var KEYBOARDS = '/shared/resources/keyboard_layouts.json';
-      kh_loadJSON(KEYBOARDS, function loadKeyboardLayouts(data) {
-        if (data) {
-          defaultLayoutConfig = data;
-          callback(defaultLayoutConfig);
-        }
-      });
-    }
-  },
-
   // Change the default layouts set according to the language
-  // language: the current system language, used to look up the mapping table
+  // locale: the current system language, used to look up the mapping table
   // reset: if set as true, will reset the current enabled layouts
-  changeDefaultLayouts: function kh_changeDefaultLayouts(language, reset) {
-    this.getDefaultLayoutConfig(function gotDefaultLayouts(keyboards) {
-      var newKbLayouts = keyboards.layout[language];
+  changeDefaultLayouts: function kh_changeDefaultLayouts(locale, reset) {
+    this.getApps(function(inputApps) {
+      var defaultInputApp = inputApps.find(function(inputApp) {
+        return inputApp.domApp.manifestURL === defaultKeyboardManifestURL;
+      });
 
-      // XXX: change this so that it could support multiple built-in
-      // keyboard apps
-      var kbManifestURL = defaultKeyboardManifestURL;
+      if (!defaultInputApp) {
+        console.error('KeyboardHelper: Built-in Keyboard app not installed!');
+        return;
+      }
 
       // reset the set of default layouts
       currentSettings.defaultLayouts = {};
 
       // set the language-independent default layouts
-      var langIndependentLayouts = keyboards.langIndependentLayouts;
+      var langIndependentLayouts = defaultLayoutConfig.langIndependentLayouts;
       for (var i = langIndependentLayouts.length - 1; i >= 0; i--) {
-        this.setLayoutIsDefault(kbManifestURL,
-                                langIndependentLayouts[i].layoutId,
-                                true);
+        this.setLayoutIsDefault(
+          defaultKeyboardManifestURL, langIndependentLayouts[i], true);
       }
 
       if (reset) {
-        // reset the set of default layouts
+        // reset the set of enabled layouts
         currentSettings.enabledLayouts =
           map2dClone(currentSettings.defaultLayouts);
       }
 
-      // Enable the language specific keyboard layout group
-      for (i = newKbLayouts.length - 1; i >= 0; i--) {
-        this.setLayoutIsDefault(kbManifestURL, newKbLayouts[i].layoutId, true);
-        this.setLayoutEnabled(kbManifestURL, newKbLayouts[i].layoutId, true);
+      var layoutsToAdd;
+      if (defaultLayoutConfig.locales[locale]) {
+        layoutsToAdd = defaultLayoutConfig.locales[locale];
+      } else {
+        console.warn('KeyboardHelper: Unknown locale; use fallback layouts.');
+        layoutsToAdd = [];
+      }
+
+      // Check if the layouts are available first
+      layoutsToAdd = layoutsToAdd.filter(function(inputId) {
+        return !!defaultInputApp.getInputs()[inputId];
+      });
+
+      if (layoutsToAdd.length === 0) {
+        layoutsToAdd = defaultLayoutConfig.fallbackLayouts;
+      }
+
+      // Enable the language specific keyboard layout group,
+      // or the fallback layouts.
+      for (i = layoutsToAdd.length - 1; i >= 0; i--) {
+        this.setLayoutIsDefault(
+          defaultKeyboardManifestURL, layoutsToAdd[i], true);
+        this.setLayoutEnabled(
+          defaultKeyboardManifestURL, layoutsToAdd[i], true);
       }
 
       this.saveToSettings(); // save changes to settings

@@ -172,7 +172,7 @@ suite('system/ScreenAutoBrightness', function() {
     });
 
     test('auto adjust brightness to brightness 1', function() {
-      // Push 5 lux values. Note that this doesn't necessary trigger
+      // Push 5 lux values. Note that this doesn't necessarily trigger
       // autoAdjuster.onbrightnesschange().
       for (let i = 0; i < 5; i++) {
         autoAdjuster.autoAdjust(10000);
@@ -197,7 +197,10 @@ suite('system/ScreenAutoBrightness', function() {
 
       timestamp1 = Date.now();
 
-      autoAdjuster.autoAdjust(10000);
+      for (let i = 0; i < 5; i++) {
+        autoAdjuster.autoAdjust(10000);
+        fakeTimer.tick(10);
+      }
       while (!screenBrightness) {
         fakeTimer.tick(100);
       }
@@ -217,7 +220,10 @@ suite('system/ScreenAutoBrightness', function() {
 
       timestamp1 = Date.now();
 
-      autoAdjuster.autoAdjust(0.1);
+      for (let i = 0; i < 5; i++) {
+        autoAdjuster.autoAdjust(0.1);
+        fakeTimer.tick(10);
+      }
       while (!screenBrightness) {
         fakeTimer.tick(100);
       }
@@ -231,9 +237,11 @@ suite('system/ScreenAutoBrightness', function() {
     });
 
     test('test synthetic brightness value', function() {
-      // Just push one value and check if we will eventually adjust to the
+      // Just push 5 value and check if we will eventually adjust to the
       // desired brightness.
-      autoAdjuster.autoAdjust(0.1);
+      for (let i = 0; i < 5; i++) {
+        autoAdjuster.autoAdjust(0.1);
+      }
 
       while (!screenBrightness || screenBrightness > 0.1) {
         fakeTimer.tick(100);
@@ -266,7 +274,9 @@ suite('system/ScreenAutoBrightness', function() {
     });
 
     test('test pausing and resuming the auto adjuster', function() {
-      autoAdjuster.autoAdjust(0.1);
+      for (let i = 0; i < 5; i++) {
+        autoAdjuster.autoAdjust(0.1);
+      }
 
       while (!screenBrightness) {
         fakeTimer.tick(100);
@@ -294,11 +304,29 @@ suite('system/ScreenAutoBrightness', function() {
       assert.isTrue(screenBrightness === undefined);
 
       // Resume the auto adjuster.
+      // Make sure resume() doesn't take 0.1 as the current brightness.
+      screenBrightness = 0.1;
       autoAdjuster.resume();
+      screenBrightness = 0.6;
+
       assert.equal(autoAdjuster._state,
                    ScreenAutoBrightness.prototype.STATE_COOLING_DOWN);
-      // After resuming, get the current brightness from mozPower.
-      assert.equal(autoAdjuster._currentBrightness, 0.7);
+      // Update mozPower.screenBrightness. Assert that autoAdjuster is not
+      // active right after resume().
+      assert.isTrue(autoAdjuster._currentBrightness === undefined);
+
+      // After resume, we need to gather enough brightness data for the auto
+      // adjuster to act accordingly.
+      for (let i = 0; i < 5; i++) {
+        autoAdjuster.autoAdjust(10000);
+        fakeTimer.tick(10);
+      }
+
+      while (!screenBrightness || screenBrightness < 0.7) {
+        fakeTimer.tick(100);
+      }
+
+      assert.isTrue(screenBrightness >= 0.7);
     });
   });
 

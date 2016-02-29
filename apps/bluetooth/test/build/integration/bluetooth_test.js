@@ -1,7 +1,6 @@
 'use strict';
 
 /* jshint node: true, mocha: true */
-/* global suiteSetup */
 
 var helper = require('helper');
 

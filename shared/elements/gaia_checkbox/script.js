@@ -22,6 +22,7 @@ window.GaiaCheckbox = (function(win) {
 
     this._wrapper = this._template.getElementById('checkbox');
     this._wrapper.addEventListener('click', this.handleClick.bind(this));
+    this.addEventListener('keyup', this.handleKeyUp.bind(this));
 
     this.configureClass();
 
@@ -34,7 +35,17 @@ window.GaiaCheckbox = (function(win) {
     ComponentUtils.style.call(this, baseurl);
   };
 
-
+  /**
+   * Handles a key event on the shadow dom.
+   * handleClick will be invoked only when pressing Enter key.
+   */
+  proto.handleKeyUp = function(e) {
+    switch(e.keyCode){
+      case 13: // Enter key
+        this.handleClick(e);
+        break;
+    }
+  };
 
   /**
    * Handles a click event on the shadow dom.

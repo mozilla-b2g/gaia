@@ -64,7 +64,7 @@
   const SYNC_REQUEST_IAC_KEYWORD = 'gaia::sync::request';
   const SYNC_MANAGEMENT_API_IAC_KEYWORD = 'gaia-sync-management';
 
-  const COLLECTIONS = ['history', 'passwords', 'bookmarks'];
+  const COLLECTIONS = ['history', 'passwords', 'bookmarks', 'tabs'];
 
   // Keys of asyncStorage persisted data.
   const SYNC_STATE = 'sync.state';
@@ -86,6 +86,7 @@
     'sync.collections.history.enabled',
     'sync.collections.passwords.enabled',
     'sync.collections.bookmarks.enabled',
+    'sync.collections.tabs.enabled',
 
     // Setting any of these two settings to true will make the synchronization
     // of the collection readonly. That means that we will only be retrieving
@@ -94,6 +95,7 @@
     'sync.collections.history.readonly',
     'sync.collections.passwords.readonly',
     'sync.collections.bookmarks.readonly',
+    'sync.collections.tabs.readonly',
 
     // Limit the number of records fetched from the server in a single request.
     // Once the sync engine supports pagination, the limit will be the page
@@ -101,6 +103,7 @@
     'sync.collections.history.limit',
     'sync.collections.passwords.limit',
     'sync.collections.bookmarks.limit',
+    'sync.collections.tabs.limit',
 
     'sync.server.url',
     'sync.scheduler.interval',

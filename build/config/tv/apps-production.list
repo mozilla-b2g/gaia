@@ -1,4 +1,4 @@
-tv_apps/smart-system
+apps/system
 tv_apps/smart-home
 tv_apps/browser
 tv_apps/tv-deck
@@ -8,5 +8,6 @@ tv_apps/notification-receiver
 tv_apps/fling-tutorial
 tv_apps/remote-control
 tv_apps/remote-control-client
+tv_apps/webapps
 outoftree_apps/*
 apps/sync

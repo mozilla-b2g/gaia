@@ -103,50 +103,6 @@ function setNotification(settings, config) {
           notification_l10nID);
 }
 
-/* Setup the default keyboard layouts according to the current language */
-function setDefaultKeyboardLayouts(lang, settings, config) {
-  let layoutConfigFile = utils.resolve(
-    utils.joinPath('shared', 'resources', 'keyboard_layouts.json'),
-    config.GAIA_DIR);
-
-  let layoutConfig = utils.getJSON(layoutConfigFile);
-  let keyboardLayouts = layoutConfig.layout;
-
-  if (!keyboardLayouts) {
-    utils.log('default keyboard layouts are not defined: ' +
-              layoutConfigFile.path + '\n');
-    return;
-  }
-
-  // Get the default layouts for the specified language
-  let defaultLayoutList = keyboardLayouts[lang];
-  if (!defaultLayoutList) {
-    utils.log('Cannot find default layout list for language: ' + lang + '\n');
-    defaultLayoutList = keyboardLayouts['en-US'];
-  }
-
-  let keyboardSettings = {};
-
-  function addLayoutEntry(layout) {
-    let manifestURL = layout.appManifestURL;
-
-    if (!keyboardSettings[manifestURL]) {
-      keyboardSettings[manifestURL] = {};
-    }
-
-    keyboardSettings[manifestURL][layout.layoutId] = true;
-  }
-
-  defaultLayoutList.forEach(addLayoutEntry);
-
-  // Also add language-independent layouts into the sets
-  let langIndependentLayoutList = layoutConfig.langIndependentLayouts;
-  langIndependentLayoutList.forEach(addLayoutEntry);
-
-  settings['keyboard.enabled-layouts'] = keyboardSettings;
-  settings['keyboard.default-layouts'] = keyboardSettings;
-}
-
 function deviceTypeSettings(settings, config) {
   // See if any override file exists and eventually override settings
   let override = utils.getFile(config.GAIA_DIR,
@@ -306,41 +262,19 @@ function execute(config) {
     settings['screen.timeout'] = screenTimeout;
   }
 
-  setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
+  setWallpaper(settings, config);
+  setMediatone(settings, config);
+  setAlarmtone(settings, config);
+  setRingtone(settings, config);
+  setNotification(settings, config);
+  deviceTypeSettings(settings, config);
+  overrideSettings(settings, config);
+  setHomescreenURL(settings, config);
+  writeSettings(settings, config);
 
-  var queue = utils.Q.defer();
-  queue.resolve();
-  var wait = true;
-  var result = queue.promise.then(function() {
-    setWallpaper(settings, config);
-  }).then(function() {
-    setMediatone(settings, config);
-  }).then(function() {
-    setAlarmtone(settings, config);
-  }).then(function() {
-    setRingtone(settings, config);
-  }).then(function() {
-    setNotification(settings, config);
-  }).then(function() {
-    deviceTypeSettings(settings, config);
-  }).then(function() {
-    overrideSettings(settings, config);
-  }).then(function() {
-    setHomescreenURL(settings, config);
-  }).then(function() {
-    writeSettings(settings, config);
-    wait = false;
-    return settings;
-  });
-  // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){
-    return {
-      wait : wait
-    };
-  });
-
-  return result;
+  return settings;
 }
+
 exports.execute = execute;
 exports.setWallpaper = setWallpaper;
 exports.setMediatone = setMediatone;
@@ -350,6 +284,4 @@ exports.setNotification = setNotification;
 exports.deviceTypeSettings = deviceTypeSettings;
 exports.overrideSettings = overrideSettings;
 exports.writeSettings = writeSettings;
-exports.setDefaultKeyboardLayouts = setDefaultKeyboardLayouts;
 exports.setHomescreenURL = setHomescreenURL;
-

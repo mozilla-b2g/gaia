@@ -166,7 +166,7 @@ var Toolbar = {
     engineName = engineName.charAt(0).toUpperCase() + engineName.slice(1);
     this.searchInput.placeholder = engineName;
     // tooltip
-    navigator.mozL10n.formatValue('WB_LT_TIPS_SEARCH_BAR2', {
+    document.l10n.formatValue('WB_LT_TIPS_SEARCH_BAR2', {
       engine: engineName
     }).then(val => {
       this.searchInput.dataset.tips = val;
@@ -330,7 +330,7 @@ var Toolbar = {
       if(!ev.target.result){
         // dialog
         // XXX: refactor this and the same code in awesomescreen.js
-        navigator.mozL10n.formatValue('LT_BROWSER_CONFIRM_EXIT2')
+        document.l10n.formatValue('LT_BROWSER_CONFIRM_EXIT2')
         .then(result => {
           if (window.confirm(result)) {
             window.close();

@@ -15,7 +15,6 @@ Cu.import('resource://gre/modules/reflect.jsm');
 var utils = require('./utils');
 var subprocess = require('sdk/system/child_process/subprocess');
 var fsPath = require('sdk/fs/path');
-var downloadMgr = require('./download-manager').getDownloadManager();
 
 const UUID_FILENAME = 'uuid.json';
 
@@ -236,49 +235,109 @@ function getFileAsDataURI(file) {
   return 'data:' + contentType + ';base64,' + encoded;
 }
 
-/**
- * Read the `manifest.webapp` from an app's `application.zip` file.
- * The `appDir` file object must be `profile/webapps/someapp.gaiamobile.org`,
- * which contains the `application.zip` file.
- *
- * The read out manifest would be an object.
- *
- * @param appDir {nsIFile}
- * @return {object} - parsed from the JSON file: manifest.webapp
- */
-function readZipManifest(appDir) {
-  let zipFile = appDir.clone();
-  zipFile.append('application.zip');
+function getZip() {
+  var zipReader = Cc['@mozilla.org/libjar/zip-reader;1']
+                  .createInstance(Ci.nsIZipReader);
+  var zipWriter = Cc['@mozilla.org/zipwriter;1']
+                  .createInstance(Ci.nsIZipWriter);
+  var mode;
 
-  if (!zipFile.exists()) {
-    return null;
-  }
+  return {
+    load: function(zipFile, readWriteMode) {
+      zipFile = getFile(zipFile);
+      mode = readWriteMode;
 
-  var zipReader =
-    Cc['@mozilla.org/libjar/zip-reader;1'].createInstance(Ci.nsIZipReader);
-  zipReader.open(zipFile);
-  zipReader.test(null);
-  if (zipReader.hasEntry('manifest.webapp')) {
-    let zipStream = zipReader.getInputStream('manifest.webapp');
+      if (zipFile.exists() && mode === 'read') {
+        zipReader.open(zipFile);
+      } else if (mode === 'write') {
+        zipWriter.open(zipFile, 0x04 | 0x08 | 0x20);
+      } else if (!mode) {
+        throw 'Please specify a read / write mode';
+      }
+    },
 
-    let converterStream = Cc['@mozilla.org/intl/converter-input-stream;1']
-                             .createInstance(Ci.nsIConverterInputStream);
-    converterStream.init(zipStream, 'utf-8', zipStream.available(),
-        Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+    file: function(path, data, options) {
+      // Read a file in zip
+      if (!data) {
+        if (zipReader.hasEntry(path)) {
+          let zipStream = zipReader.getInputStream(path);
+          let converterStream = Cc['@mozilla.org/intl/converter-input-stream;1']
+                                .createInstance(Ci.nsIConverterInputStream);
+          converterStream.init(zipStream, 'utf-8', zipStream.available(),
+              Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+          let out = {};
+          let count = zipStream.available();
+          converterStream.readString(count, out);
+          converterStream.close();
+          zipStream.close();
+          return out.value;
+        } else {
+          return null;
+        }
+      }
+      // Update a file in zip
+      else {
+        let input;
+        let compression = options.compression || 'DEFLATE';
 
-    let out = {};
-    let count = zipStream.available();
-    converterStream.readString(count, out);
+        switch(compression) {
+          case 'STORE':
+            compression = Ci.nsIZipWriter.COMPRESSION_NONE;
+            break;
+          case 'DEFLATE':
+            compression = Ci.nsIZipWriter.COMPRESSION_BEST;
+            break;
+        }
 
-    let manifest = JSON.parse(out.value);
-    converterStream.close();
-    zipStream.close();
+        if (typeof data === 'string') {
+          let converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
+                          .createInstance(Ci.nsIScriptableUnicodeConverter);
+          converter.charset = 'UTF-8';
+          input = converter.convertToInputStream(data);
+        } else if (typeof data === 'object' && data.isFile()) {
+          input = Cc['@mozilla.org/network/file-input-stream;1']
+                  .createInstance(Ci.nsIFileInputStream);
+          input.init(data, -1, -1, 0);
+        }
 
-    return manifest;
-  }
+        zipWriter.addEntryStream(path, Date.now() * 1000, compression,
+                                 input, false);
+        input.close();
+        return this;
+      }
+    },
 
-  throw new Error(' -*- build/utils.js: missing manifest.webapp for packaged' +
-                  ' app (' + appDir.leafName + ')\n');
+    entries: function() {
+      let entries = [];
+      let entryEnumerator = zipReader.findEntries('*');
+      while (entryEnumerator.hasMore()) {
+        entries.push(entryEnumerator.getNext());
+      }
+      return entries;
+    },
+
+    extract: function(entryName, dest) {
+      let targetFile = utils.getFile(dest);
+      let entry = zipReader.getEntry(entryName);
+      if (!targetFile.exists()) {
+        let targetFileType = entry.isDirectory ?
+            Ci.nsIFile.DIRECTORY_TYPE : Ci.nsIFile.NORMAL_FILE_TYPE;
+        targetFile.create(targetFileType, parseInt('0644', 8));
+        zipReader.extract(entryName, targetFile);
+      }
+    },
+
+    close: function() {
+      if (mode === 'read') {
+        zipReader.close();
+      } else if (mode === 'write') {
+        if (zipWriter.alignStoredFiles) {
+          zipWriter.alignStoredFiles(4096);
+        }
+        zipWriter.close();
+      }
+    }
+  };
 }
 
 let UUID_MAPPING;
@@ -300,31 +359,6 @@ function getUUIDMapping(config) {
     // ignore exception if GAIA_DISTRIBUTION_DIR does not exist.
   }
   return UUID_MAPPING;
-}
-
-function getMD5hash(filePath) {
-  var file = getFile(filePath);
-  var istream = Cc['@mozilla.org/network/file-input-stream;1']
-    .createInstance(Ci.nsIFileInputStream);
-    istream.init(file, 0x01, 0o444, 0);
-  var hasher = Cc['@mozilla.org/security/hash;1']
-    .createInstance(Ci.nsICryptoHash);
-  hasher.init(hasher.MD5);
-
-  const PR_UINT32_MAX = 0xffffffff;
-  hasher.updateFromStream(istream, PR_UINT32_MAX);
-
-  function toHexString(charCode) {
-    return ('0' + charCode.toString(16)).slice(-2);
-  }
-
-  let data = hasher.finish(false);
-  let hash = [];
-  for (let i in data) {
-    hash.push(toHexString(data.charCodeAt(i)));
-  }
-
-  return hash.join('');
 }
 
 /**
@@ -382,14 +416,17 @@ function getWebapp(app, config) {
   let metaData = manifestFile.parent.clone();
   metaData.append('metadata.json');
   if (metaData.exists()) {
-    webapp.pckManifest = readZipManifest(
-      getFile(webapp.sourceDirectoryFilePath));
+    let zip = getZip();
+    zip.load(joinPath(webapp.sourceDirectoryFilePath, 'application.zip'),
+             'read');
+    webapp.pckManifest = JSON.parse(zip.file('manifest.webapp'));
     webapp.metaData = getJSON(metaData);
     webapp.appStatus = utils.getAppStatus(
       webapp.metaData.type ||
       (webapp.pckManifest && webapp.pckManifest.type) ||
       'web'
     );
+    zip.close();
   } else {
     webapp.appStatus = utils.getAppStatus(webapp.manifest.type);
   }
@@ -657,8 +694,66 @@ function createXMLHttpRequest() {
   return ret;
 }
 
-function download(url, dest, callback, errorCallback) {
-  downloadMgr.download(url, dest, callback, errorCallback);
+function download(url, dest, doneCallback, errorCallback) {
+  var tmpFile;
+  var isHttps = url.substring(0, 5) === 'https';
+
+  function downloadFinished() {
+    doneCallback && doneCallback(url, tmpFile.path);
+  }
+
+  function downloadError() {
+    if (isHttps) {
+      // If we failed with https protocol, it may be self-signed
+      // certificate. We fallback to use http protocol to download it.
+      // XXX find a way to bypass the self-signed certificate error.
+      var httpUrl = 'http' + url.substring(5);
+      download(httpUrl, dest, doneCallback, errorCallback);
+    } else {
+      errorCallback && errorCallback(url, tmpFile.path);
+    }
+  }
+  // Normalize file for saving.
+  if (dest) {
+    ensureFolderExists(utils.getFile(dirname(dest)));
+    tmpFile = utils.getFile(dest);
+  } else {
+    tmpFile = getTempFolder('gaia');
+    tmpFile.append((new Date()).getTime() + '.tmp');
+    tmpFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt('0644', 8));
+  }
+
+  var listener = {
+    QueryInterface: function(iid) {
+     if (!iid.equals(Ci.nsIDownloadObserver) &&
+         !iid.equals(Ci.nsISupports)) {
+        throw Cr.NS_ERROR_NO_INTERFACE;
+      }
+      return this;
+    },
+
+    onDownloadComplete: function(downloader, request, ctxt, status, file) {
+      if (!file || status !== 0) {
+        downloadError();
+      } else {
+        downloadFinished();
+      }
+    }
+  };
+
+  var downloader = Cc['@mozilla.org/network/downloader;1']
+                 .createInstance(Ci.nsIDownloader);
+  downloader.init(listener, tmpFile);
+  var principal = Services.scriptSecurityManager.getSystemPrincipal();
+  let channel = Services.io.newChannel2(url,
+                                        null,
+                                        null,
+                                        null,  // aLoadingNode
+                                        principal,
+                                        null,  // aTriggeringPrincipal
+                                        Ci.nsILoadInfo.SEC_NORMAL,
+                                        Ci.nsIContentPolicy.TYPE_OTHER);
+  channel.asyncOpen(downloader, null);
 }
 
 /**
@@ -1046,7 +1141,7 @@ function spawnProcess(module, appOptions) {
       .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
   ];
   proc.init(utils.getFile(xpcshell));
-  proc.run(false, args, args.length);
+  proc.runw(false, args, args.length);
   return proc;
 }
 
@@ -1093,69 +1188,6 @@ function getDocument(content) {
 }
 
 /**
- * To add a new file with the data into the ZIP file. If the file exists,
- * it would be overwritten.
- *
- * The 'compression' is an enum of 'interfacensIZipWriter', which indicates
- * the level of compression:
- *
- *  COMPRESSION_NONE = 0
- *  COMPRESSION_FASTEST = 1
- *  COMPRESSION_DEFAULT = 6
- *  COMPRESSION_BEST = 9  (default one in this function)
- *
- * @see http://mdn.beonex.com/en/nsIZipWriter.html
- *
- * The 'pathInZip' can be initial with '/' or no '/'.
- *
- * @param zip {nsIZipWriter} - the zip file
- * @param pathInZip {string} - the relative path to the new file
- * @param data {string} - the content of the file
- * @param compression {number} - the enum shows above
- */
-function addFileToZip(zip, pathInZip, data, compression) {
-  if (!data) {
-    return;
-  }
-
-  if (compression === undefined) {
-    compression = Ci.nsIZipWriter.COMPRESSION_BEST;
-  }
-
-  var input;
-  if (typeof data === 'string') {
-    let converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
-                      .createInstance(Ci.nsIScriptableUnicodeConverter);
-    converter.charset = 'UTF-8';
-    input = converter.convertToInputStream(data);
-  } else if (typeof data === 'object' && data.isFile()) {
-    input = Cc['@mozilla.org/network/file-input-stream;1'].
-                createInstance(Ci.nsIFileInputStream);
-    input.init(data, -1, -1, 0);
-  }
-
-  zip.addEntryStream(pathInZip, Date.now() * 1000, compression, input, false);
-  input.close();
-}
-
-/**
- * Convert the 'none' to nsIZipWriter.COMPRESSION_NONE and
- * 'best' to nsIZipWriter.COMPRESSION_BEST.
- */
-function getCompression(type) {
-  switch(type) {
-    case 'none':
-      return Ci.nsIZipWriter.COMPRESSION_NONE;
-    case 'best':
-      return Ci.nsIZipWriter.COMPRESSION_BEST;
-  }
-}
-
-function hasFileInZip(zip, pathInZip) {
-  return zip.hasEntry(pathInZip);
-}
-
-/**
  * Generate UUID. It's just a wrapper of 'nsIUUIDGenerator'
  * See the 'nsIUUIDGenerator' page on MDN.
  */
@@ -1187,25 +1219,6 @@ function copyRec(source, target) {
       file.copyTo(target, file.leafName);
     }
   }
-}
-
-/**
- * Create an empty ZIP file.
- *
- * @return {nsIZipWriter}
- */
-function createZip(zipPath) {
-  var zip = Cc['@mozilla.org/zipwriter;1'].createInstance(Ci.nsIZipWriter);
-  // PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE
-  zip.open(getFile(zipPath), 0x04 | 0x08 | 0x20);
-  return zip;
-}
-
-function closeZip(zip) {
-  if (zip.alignStoredFiles) {
-    zip.alignStoredFiles(4096);
-  }
-  zip.close();
 }
 
 /**
@@ -1261,54 +1274,6 @@ var scriptLoader = {
   }
 };
 
-/**
- * Run specific build task on Node.js if RUN_ON_NODE is on, otherwise we go back
- * to XPCShell.
- */
-function NodeHelper() {
-  if (getEnv('RUN_ON_NODE') === '1') {
-    var node = new Commander('node');
-    node.initPath(getEnvPath());
-    this.require = function(path, options) {
-      var result = '';
-      var done = false;
-      node.runWithSubprocess(['--harmony', '-e',
-        'require("./build/' + path + '").execute(' +
-        JSON.stringify(options) + ')', 'PATH=' + getEnv('Path')], {
-          environment: [
-            'PATH=' + getEnv('PATH'),
-            'NODE_PATH=' + joinPath(options.GAIA_DIR, 'build')
-          ],
-          stdout: function(data) {
-            result += data;
-            dump(data);
-          },
-          stderr: function(err) {
-            dump(err);
-          },
-          done: function() {
-            done = true;
-          }
-        });
-
-      processEvents(function() {
-        return {
-          wait: !done
-        };
-      });
-
-      // XXX: Workaround rebuild.js to nodejs migration.
-      // We'll remove this once migration is complete.
-      var rebuildDir = /\[rebuild\] rebuildAppDirs: (\[.+\])/.exec(result);
-      return rebuildDir ? JSON.parse(rebuildDir[1]) : undefined;
-    };
-  } else {
-    this.require = function(path, options) {
-      return require(path).execute(options);
-    };
-  }
-}
-
 function relativePath(from, to) {
   return fsPath.relative(from, to);
 }
@@ -1341,15 +1306,44 @@ function exit(exitValue) {
   return quit(exitValue);
 }
 
-function getHash(string) {
-  var converter = Cc['@mozilla.org/intl/scriptableunicodeconverter'].
-    createInstance(Ci.nsIScriptableUnicodeConverter);
-  converter.charset = 'UTF-8';
-  var result = {};
-  var data = converter.convertToByteArray(string, result);
+function getHash(data, encoding, algorithm) {
   var ch = Cc['@mozilla.org/security/hash;1'].createInstance(Ci.nsICryptoHash);
-  ch.init(ch.SHA1);
-  ch.update(data, data.length);
+  encoding = encoding || 'utf8';
+  algorithm = algorithm || 'sha1';
+
+  switch (algorithm) {
+    case 'sha1':
+      algorithm = ch.SHA1;
+      break;
+    case 'md5':
+      algorithm = ch.MD5;
+      break;
+    default:
+      throw 'utils-xpc does not support ' + algorithm + ' hash algorithm';
+  }
+
+  switch (encoding) {
+    case 'utf8':
+      var result;
+      var converter = Cc['@mozilla.org/intl/scriptableunicodeconverter'].
+        createInstance(Ci.nsIScriptableUnicodeConverter);
+      converter.charset = 'UTF-8';
+      result = converter.convertToByteArray(data);
+      ch.init(algorithm);
+      ch.update(result, result.length);
+      break;
+    case 'binary':
+      var file = getFile(data);
+      var istream = Cc['@mozilla.org/network/file-input-stream;1']
+        .createInstance(Ci.nsIFileInputStream);
+      istream.init(file, 0x01, 0o444, 0);
+      ch.init(algorithm);
+      ch.updateFromStream(istream, 0xffffffff);
+      break;
+    default:
+      throw 'utils-xpc does not support ' + encoding + ' hash encoding';
+  }
+
   var hashStr = ch.finish(false);
   var hex = '';
 
@@ -1384,9 +1378,6 @@ exports.getNewURI = getNewURI;
 exports.getOsType = getOsType;
 exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
-exports.createZip = createZip;
-exports.closeZip = closeZip;
-exports.hasFileInZip = hasFileInZip;
 exports.scriptParser = Reflect.parse;
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
@@ -1401,7 +1392,7 @@ exports.download = download;
 exports.downloadJSON = downloadJSON;
 exports.readJSONFromPath = readJSONFromPath;
 exports.processEvents = processEvents;
-exports.readZipManifest = readZipManifest;
+exports.getZip = getZip;
 exports.log = log;
 exports.killAppByPid = killAppByPid;
 exports.getEnv = getEnv;
@@ -1416,16 +1407,12 @@ exports.Services = Services;
 exports.concatenatedScripts = concatenatedScripts;
 exports.dirname = dirname;
 exports.basename = basename;
-exports.addFileToZip = addFileToZip;
-exports.getCompression = getCompression;
 exports.existsInAppDirs = existsInAppDirs;
 exports.removeFiles = removeFiles;
 exports.scriptLoader = scriptLoader;
-exports.NodeHelper = NodeHelper;
 exports.relativePath = relativePath;
 exports.normalizePath = normalizePath;
 exports.getUUIDMapping = getUUIDMapping;
-exports.getMD5hash = getMD5hash;
 exports.createSandbox = createSandbox;
 exports.runScriptInSandbox= runScriptInSandbox;
 exports.getHash = getHash;

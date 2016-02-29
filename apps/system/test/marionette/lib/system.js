@@ -9,7 +9,11 @@ function System(client) {
 module.exports = System;
 
 System.URL = 'app://system.gaiamobile.org/manifest.webapp';
-
+System.Keys = {
+  'enter': '\ue006',
+  'right': '\ue014',
+  'esc': '\ue00c'
+};
 System.Selector = Object.freeze({
   screen: '#screen',
   activeHomescreenFrame: '#homescreen.appWindow.active',
@@ -90,9 +94,27 @@ System.prototype = {
   client: null,
 
   URL: System.URL,
+  Keys: System.Keys,
   origin: System.URL.substring(0, System.URL.indexOf('/manifest.webapp')),
 
   Selector: System.Selector,
+
+  sendKeyToElement: function(element, key) {
+    this.client.waitFor(function() {
+      return element.displayed();
+    });
+    element.sendKeys(this.Keys[key]);
+  },
+
+  contextMenu: function(element) {
+    element.scriptWith(function(el) {
+      var contextmenuEvent = new MouseEvent('mouseup', {
+        button: 2,
+        target: el.parentNode
+      });
+      el.dispatchEvent(contextmenuEvent);
+    });
+  },
 
   getAppWindows: function() {
     return this.client.findElements(System.Selector.appWindow);
@@ -374,6 +396,17 @@ System.prototype = {
 
   getAppIframe: function(url) {
     var iframe = this.client.findElement('iframe[src*="' + url + '"]');
+
+    iframe.ariaDisplayed = function() {
+      return this.getAttribute('aria-hidden') !== 'true';
+    };
+
+    return iframe;
+  },
+
+  getAppIframeByOrigin: function(origin) {
+    var selector = 'iframe[data-frame-origin="' + origin + '"]';
+    var iframe = this.client.findElement(selector);
 
     iframe.ariaDisplayed = function() {
       return this.getAttribute('aria-hidden') !== 'true';

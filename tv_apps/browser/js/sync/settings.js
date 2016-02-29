@@ -164,6 +164,11 @@
         throw new Error('Missing sync state');
       }
       switch (message.state) {
+        case 'disabling':
+          if (message.error === 'fxsync-error-dialog-closed-by-user') {
+            Settings.hide();
+          }
+          break;
         case 'disabled':
           // We want to show a dialog once Sync is disabled
           // but we only want to do that if it's disabled via user action
@@ -172,7 +177,7 @@
           if (this.state === 'disabling' &&
              (this.previousState === 'enabled' ||
               this.previousState === 'syncing')) {
-            navigator.mozL10n.formatValue('fxsync-disabled').then(result => {
+            document.l10n.formatValue('fxsync-disabled').then(result => {
               window.alert(result);
             });
           }
@@ -187,7 +192,7 @@
           // but we only want to do that if its enabled via user action
           // (and not because it is already enabled from a previous run).
           if (this.state === 'enabling') {
-            navigator.mozL10n.formatValue('fxsync-enabled').then(result => {
+            document.l10n.formatValue('fxsync-enabled').then(result => {
               window.alert(result);
             });
           }
@@ -228,7 +233,7 @@
               errorIds[1] = message.error + '-explanation';
             }
 
-            var l10n = navigator.mozL10n;
+            var l10n = document.l10n;
             Promise.all(
               errorIds.map(l10n.formatValue.bind(l10n))
             ).then(result => {
@@ -422,7 +427,7 @@
     },
 
     showUser(user) {
-      navigator.mozL10n.setAttributes(this.elements.signedInAs,
+      document.l10n.setAttributes(this.elements.signedInAs,
                                       'fxsync-signed-in-as', {
         email: user
       });

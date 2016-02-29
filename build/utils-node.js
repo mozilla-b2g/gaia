@@ -15,7 +15,6 @@ var path = require('path');
 var childProcess = require('child_process');
 var fs = require('fs-extra');
 var JSZip = require('jszip');
-var Q = require('q');
 var os = require('os');
 var vm = require('vm');
 var http = require('http');
@@ -28,12 +27,12 @@ var esprima = require('esprima');
 var procRunning = require('is-running');
 var mime = require('mime');
 var crypto = require('crypto');
+var request = require('request');
 
 // Our gecko will transfer .opus file to audio/ogg datauri type.
 mime.define({'audio/ogg': ['opus']});
 
 module.exports = {
-  Q: Q,
 
   scriptParser: esprima.parse,
 
@@ -98,6 +97,9 @@ module.exports = {
   },
 
   getFileContent: function(file, type) {
+    if (typeof file === 'string') {
+      file = this.getFile(file);
+    }
     if (file.exists() && file.isFile()) {
       return fs.readFileSync(file.path, { encoding: type || 'utf8' });
     }
@@ -116,21 +118,26 @@ module.exports = {
       } else {
         cmds = cmd + ' ' + cmds;
       }
-      console.log(cmds);
       // XXX: Most cmds should run synchronously, we should use either promise
       //      pattern inside each script or find a sync module which doesn't
       //      require recompile again since TPBL doesn't support that.
       return new Promise(function(resolve, reject) {
-        childProcess.exec(cmds, { maxBuffer: (4096 * 1024) },
+        var proc = childProcess.exec(cmds, { maxBuffer: (4096 * 1024) },
           function(err, stdout, stderr) {
             if (err) {
               options && options.stderr && options.stderr(stderr);
-              reject(stderr);
+              reject();
             } else {
               options && options.stdout && options.stdout(stdout);
               callback && callback(stdout);
-              resolve(stdout);
+              resolve();
             }
+        });
+        proc.stdout.on('data', (data) => {
+          process.stdout.write(data);
+        });
+        proc.stderr.on('data', (data) => {
+          process.stderr.write(data);
         });
       });
     };
@@ -138,18 +145,6 @@ module.exports = {
     this.runWithSubprocess = function(args, options) {
       this.run(args, null, options);
     };
-  },
-
-  readZipManifest: function(file) {
-    var zipPath = this.joinPath(file.path, 'application.zip');
-    if (!this.fileExists(zipPath)) {
-      return;
-    }
-    var manifest = new JSZip(fs.readFileSync(zipPath)).file('manifest.webapp');
-    if (!manifest) {
-      throw new Error('manifest.webapp not found in ' + zipPath);
-    }
-    return JSON.parse(manifest.asText());
   },
 
   killAppByPid: function(appName) {
@@ -165,16 +160,26 @@ module.exports = {
 
   spawnProcess: function(module, appOptions) {
     this.exitCode = null;
+
     var args = [
       '--harmony',
-      '-e', 'require("' + module + '").execute("' + JSON.stringify(appOptions)
-        .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
+      '-e', 'require("' + module + '").execute(' +
+        JSON.stringify(appOptions).replace(/\\/g, '\\\\') + ');'
     ];
-    var proc = childProcess.spawn('node', args);
-    proc.on('close', function(code) {
-      this.exitCode = code;
-    }.bind(this));
-    return proc;
+
+    return new Promise((resolve, reject) => {
+      var proc = childProcess.spawn('node', args, { cwd: __dirname });
+      proc.stdout.on('data', (data) => {
+        process.stdout.write(data);
+      });
+      proc.stderr.on('data', (data) => {
+        process.stderr.write(data);
+      });
+      proc.on('exit', (code) => {
+        this.exitCode = code;
+        resolve(code);
+      });
+    });
   },
 
   processIsRunning: function(proc) {
@@ -200,14 +205,69 @@ module.exports = {
     return 'data:' + mime.lookup(file.path) + ';base64,' + data;
   },
 
+  getZip: function() {
+    var zip = new JSZip();
+    var zipPath;
+    var self = this;
+
+    return {
+      load: function(zipFile) {
+        zipPath = zipFile;
+        if (self.fileExists(zipFile)) {
+          try {
+            zip.load(fs.readFileSync(zipFile));
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      },
+
+      file: function(name, file, options) {
+        try {
+          if (!file) {
+            let output = zip.file(name);
+            return output && output.asText();
+          } else {
+            return zip.file(name, fs.readFileSync(file.path), options);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      entries: function() {
+        return Object.keys(zip.files);
+      },
+
+      extract: function(entry, dest) {
+        try {
+          var zipFile = zip.file(entry);
+          if (zipFile && !zipFile.dir) {
+            fs.outputFileSync(dest, zipFile.asNodeBuffer());
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      close: function() {
+        try {
+          fs.outputFileSync(zipPath, zip.generate({ type: 'nodebuffer' }));
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    };
+  },
+
   getJSON: function(file) {
     var content = this.getFileContent(file);
     try {
       return JSON.parse(content);
     } catch (error) {
-      console.log('Invalid JSON file : ' + file.path + '\n');
+      console.error('Invalid JSON file : ' + file.path);
       if (content) {
-        console.log('Content of JSON file:\n' + content + '\n');
+        console.error('Content of JSON file:\n' + content);
       }
       throw error;
     }
@@ -262,21 +322,22 @@ module.exports = {
     return files;
   },
 
-  download: function(fileUrl, dest, callback, errorCallback) {
-    var protocol = url.parse(fileUrl).protocol;
-    var request = (protocol === 'http:') ? http : https;
+  download: function(fileUrl, dest, doneCallback, errorCallback) {
+    dest = dest || this.joinPath(this.getTempFolder('gaia').path,
+                                 (new Date()).getTime() + '.tmp');
+
     var file = fs.createWriteStream(dest);
-    request.get(fileUrl, function(response) {
-      response.pipe(file);
-      file.on('finish', function() {
-        file.close(callback);
-      });
-    }).on('error', function(err) {
-      fs.unlinkSync(dest);
-      if (errorCallback) {
-        errorCallback();
-      }
+    file.on('finish', function() {
+      doneCallback && doneCallback(fileUrl, dest);
     });
+
+    request
+      .get(fileUrl, function(error, response) {
+        if (error && response.statusCode !== 200) {
+          errorCallback && errorCallback(fileUrl, dest);
+        }
+      })
+      .pipe(file);
   },
 
   downloadJSON: function(fileUrl, callback) {
@@ -346,8 +407,8 @@ module.exports = {
       throw new Error(' -*- build/utils.js: file not found (' + app + ')\n');
     }
 
-    let manifestFile = appDir.path + '/manifest.webapp';
-    let updateFile = appDir.path + '/update.webapp';
+    let manifestFile = this.joinPath(appDir.path, 'manifest.webapp');
+    let updateFile = this.joinPath(appDir.path, 'update.webapp');
 
     // Ignore directories without manifest
     if (!this.fileExists(manifestFile) && !this.fileExists(updateFile)) {
@@ -379,7 +440,10 @@ module.exports = {
     let metaData = this.getFile(webapp.sourceDirectoryFilePath,
       'metadata.json');
     if (metaData.exists()) {
-      webapp.pckManifest = this.readZipManifest(appDir);
+      let zip = this.getZip();
+      zip.load(this.joinPath(webapp.sourceDirectoryFilePath,
+                             'application.zip'));
+      webapp.pckManifest = JSON.parse(zip.file('manifest.webapp'));
       webapp.metaData = this.getJSON(metaData);
       webapp.appStatus = utils.getAppStatus(
         webapp.metaData.type ||
@@ -465,40 +529,6 @@ module.exports = {
 
   writeContent :function(file, content) {
     fs.writeFileSync(file.path, content);
-  },
-
-  createZip: function() {
-    return new JSZip();
-  },
-
-  getCompression: function(type) {
-    switch(type) {
-      case 'none':
-        return 'STORE';
-      case 'best':
-        return 'DEFLATE';
-    }
-  },
-
-  addFileToZip: function(zip, pathInZip, file, compression) {
-    if (!file.exists()) {
-      return;
-    }
-
-    zip.file(pathInZip, fs.readFileSync(file.path), {
-      compression: compression || 'DEFLATE'
-    });
-  },
-
-  hasFileInZip: function(zip, pathInZip) {
-    return zip.file(pathInZip);
-  },
-
-  closeZip: function(zip, zipPath) {
-    fs.writeFileSync(zipPath, zip.generate({
-      type: 'nodebuffer',
-      platform: process.platform
-    }));
   },
 
   getLocaleBasedir: function(src) {
@@ -587,8 +617,6 @@ module.exports = {
       var doc = jsdom.jsdom();
       var win = doc.defaultView;
 
-      exportObj.Promise = Q;
-
       global.addEventListener = win.addEventListener;
       global.dispatchEvent = win.dispatchEvent;
 
@@ -616,11 +644,14 @@ module.exports = {
     return vm.runInNewContext(script, sandbox);
   },
 
-  getHash: function(string) {
-    return crypto.createHash('sha1').update(string).digest('hex');
+  getHash: function(data, encoding, algorithm) {
+    encoding = encoding || 'utf8';
+    algorithm = algorithm || 'sha1';
+    return crypto.createHash(algorithm).update(data, encoding).digest('hex');
   },
 
   exit: function(code) {
     process.exit(code);
   }
+
 };

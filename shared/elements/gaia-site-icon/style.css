@@ -1,12 +1,14 @@
 gaia-app-icon {
   display: flex;
   flex-direction: column;
-  font-size: 0;
+  justify-content: space-between;
 }
 
 #image-container {
   position: relative;
   transition: visibility 0.2s, opacity 0.2s;
+  font-size: 0;
+  line-height: 0;
 }
 
 #image-container.initial-load {
@@ -40,7 +42,6 @@ gaia-app-icon {
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
-  margin-top: 0.3rem;
 }
 
 #title-container {

@@ -61,18 +61,21 @@
   const SYNC_REQUEST_IAC_KEYWORD = 'gaia::sync::request';
   const SYNC_MANAGEMENT_API_IAC_KEYWORD = 'gaia-sync-management';
 
-  const COLLECTIONS = ['history', 'passwords', 'bookmarks'];
+  const COLLECTIONS = ['history', 'passwords', 'bookmarks', 'tabs'];
 
   const SETTINGS = [
     'sync.collections.bookmarks.enabled',
     'sync.collections.history.enabled',
     'sync.collections.passwords.enabled',
+    'sync.collections.tabs.enabled',
     'sync.collections.bookmarks.limit',
     'sync.collections.history.limit',
     'sync.collections.passwords.limit',
+    'sync.collections.tabs.limit',
     'sync.collections.bookmarks.readonly',
     'sync.collections.history.readonly',
     'sync.collections.passwords.readonly',
+    'sync.collections.tabs.readonly',
     'sync.fxa.audience',
     'sync.scheduler.interval',
     'sync.scheduler.wifionly',

@@ -387,18 +387,24 @@
       var card = this.cardManager.findCardFromCardList({
         cardId: scrollable.getItemFromNode(nodeElem).dataset.cardId
       });
-      var _ = navigator.mozL10n.get;
 
       var lang = document.documentElement.lang;
       var oldName = this.cardManager.resolveCardName(card, lang);
-      oldName = oldName.raw ? oldName.raw : _(oldName.id);
+      oldName = oldName.raw ?
+        oldName.raw :
+        document.l10n.formatValue(oldName.id);
 
-      var result = prompt(_('enter-new-name'), oldName);
-      if (!result) {
-        return;
-      }
-      card.name = {raw: result};
-      this.cardManager.updateCard(card);
+      Promise.all([
+        oldName,
+        document.l10n.formatValue('enter-new-name')
+      ]).then(([oldName, val]) => {
+        var result = prompt(val, oldName);
+        if (!result) {
+          return;
+        }
+        card.name = {raw: result};
+        this.cardManager.updateCard(card);
+      });
     },
 
     openDeleteCardDialog: function(scrollable, nodeElem) {

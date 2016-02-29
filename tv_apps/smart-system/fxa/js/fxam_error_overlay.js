@@ -30,7 +30,7 @@ var FxaModuleErrorOverlay = {
       'fxa-error-ok'
     );
 
-    this.fxaErrorOk.addEventListener('mouseup', this.hide.bind(this));
+    this.fxaErrorOverlay.addEventListener('mouseup', this.hide.bind(this));
     this.fxaErrorOk.addEventListener('keydown', e => {
       if (e.keyCode && e.keyCode === KeyEvent.DOM_VK_RETURN) {
         this.fxaErrorOk.classList.add('active');

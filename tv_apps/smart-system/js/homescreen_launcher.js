@@ -1,17 +1,18 @@
 'use strict';
-/* global applications, SettingsCache, HomescreenWindow, TrustedUIManager */
+/* global applications, SettingsCache, HomescreenWindow, TrustedUIManager,
+  BaseModule */
 (function(exports) {
   /**
    * HomescreenLauncher is responsible for launching the homescreen window
    * instance and make sure it's a singleton.
    *
    * Every extermal modules should use
-   * <code>window.homescreenLauncher.getHomescreen()</code>
+   * <code>window.Service.query('getHomescreen')</code>
    * to access the homescreen window instance. Since window.homescreenLauncher
    * should be instantiated and started in bootstrap.js
    *
    * @example
-   * var home = HomescreenLauncher.getHomescreen();
+   * var home = Service.query('getHomescreen');
    * home.open(); // Do the open animation.
    *
    * @class HomescreenLauncher
@@ -24,6 +25,16 @@
   var HomescreenLauncher = function() {
   };
 
+  HomescreenLauncher.EVENTS = [
+    'trusteduishow',
+    'trusteduihide',
+    'appopening',
+    'appopened',
+    'keyboardchange',
+    'software-button-enabled',
+    'software-button-disabled'
+  ];
+
   /**
    * Fired when homescreen launcher detect 'homescreen.manifestURL' changed
    * @event HomescreenLauncher#homescreen-changed
@@ -33,55 +44,18 @@
    * @event HomescreenLauncher#homescreen-ready
    */
 
-  HomescreenLauncher.prototype = {
+  BaseModule.create(HomescreenLauncher, {
     _currentManifestURL: '',
+
+    name: 'HomescreenLauncher',
+
+    EVENT_PREFIX: 'homescreen-',
 
     _instance: undefined,
 
     _started: false,
 
     _ready: false,
-
-    /**
-     * Homescreen launcher is ready or not. Homescreen launcher is ready
-     * only when it is done retrieving 'homescreen.manifestURL'
-     * from settings DB.
-     *
-     * @access public
-     * @memberOf HomescreenLauncher.prototype
-     * @type {boolean}
-     */
-    get ready() {
-      return this._ready;
-    },
-
-    /**
-     * Origin of homescreen.
-     *
-     * @access public
-     * @memberOf HomescreenLauncher.prototype
-     * @type {string}
-     */
-    get origin() {
-      // We don't really care the origin of homescreen,
-      // and it may change when we swap the homescreen app.
-      // So we use a fixed string here.
-      // XXX: We shall change WindowManager to use manifestURL
-      // to identify an app.
-      // See http://bugzil.la/913323
-      return 'homescreen';
-    },
-
-    /**
-     * manifest URL of homescreen.
-     *
-     * @access public
-     * @memberOf HomescreenLauncher.prototype
-     * @type {string}
-     */
-    get manifestURL() {
-      return this._currentManifestURL;
-    },
 
     _fetchSettings: function hl_fetchSettings() {
       var that = this;
@@ -98,13 +72,13 @@
               that._instance.kill();
               that._instance = new HomescreenWindow(value);
               // Dispatch 'homescreen is changed' event.
-              window.dispatchEvent(new CustomEvent('homescreen-changed'));
+              that.publish('changed');
             } else {
               that._instance.ensure();
             }
           }
           that._ready = true;
-          window.dispatchEvent(new CustomEvent('homescreen-ready'));
+          that.publish('ready');
         });
     },
 
@@ -119,7 +93,7 @@
      *
      * @memberOf HomescreenLauncher.prototype
      */
-    start: function hl_start() {
+    _start: function hl_start() {
       if (this._started) {
         return;
       }
@@ -130,13 +104,6 @@
         window.addEventListener('applicationready',
           this._onAppReady.bind(this));
       }
-      window.addEventListener('trusteduishow', this);
-      window.addEventListener('trusteduihide', this);
-      window.addEventListener('appopening', this);
-      window.addEventListener('appopened', this);
-      window.addEventListener('keyboardchange', this);
-      window.addEventListener('software-button-enabled', this);
-      window.addEventListener('software-button-disabled', this);
     },
 
     /**
@@ -144,7 +111,7 @@
      *
      * @memberOf HomescreenLauncher.prototype
      */
-    stop: function hl_stop() {
+    _stop: function hl_stop() {
       if (typeof(this._instance) !== 'undefined') {
         // XXX: After landing of bug 976986, we should move action of
         // cleaing _instance into a deregister function of
@@ -154,12 +121,6 @@
         this._instance = undefined;
       }
       this._currentManifestURL = '';
-      window.removeEventListener('appopening', this);
-      window.removeEventListener('trusteduihide', this);
-      window.removeEventListener('trusteduishow', this);
-      window.removeEventListener('applicationready', this._onAppReady);
-      window.removeEventListener('software-button-enabled', this);
-      window.removeEventListener('software-button-disabled', this);
       this._started = false;
     },
 
@@ -232,7 +193,57 @@
         return this._instance;
       }
     }
-  };
+  }, {
+     /**
+     * Homescreen launcher is ready or not. Homescreen launcher is ready
+     * only when it is done retrieving 'homescreen.manifestURL'
+     * from settings DB.
+     *
+     * @access public
+     * @memberOf HomescreenLauncher.prototype
+     * @type {boolean}
+     */
+    ready: {
+      enumerable: true,
+      get: function ready() {
+        return this._ready;
+      }
+    },
+
+    /**
+     * Origin of homescreen.
+     *
+     * @access public
+     * @memberOf HomescreenLauncher.prototype
+     * @type {string}
+     */
+    origin: {
+      enumerable: true,
+      get: function origin() {
+        // We don't really care the origin of homescreen,
+        // and it may change when we swap the homescreen app.
+        // So we use a fixed string here.
+        // XXX: We shall change WindowManager to use manifestURL
+        // to identify an app.
+        // See http://bugzil.la/913323
+        return 'homescreen';
+      }
+    },
+
+    /**
+     * manifest URL of homescreen.
+     *
+     * @access public
+     * @memberOf HomescreenLauncher.prototype
+     * @type {string}
+     */
+    manifestURL: {
+      enumerable: true,
+      get: function manifestURL() {
+        return this._currentManifestURL;
+      }
+    },
+  });
 
   exports.HomescreenLauncher = HomescreenLauncher;
 }(window));

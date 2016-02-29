@@ -1,5 +1,5 @@
 /* global AppWindowManager, SettingsCache, Service, Animations,
-          homescreenWindowManager, focusManager */
+          focusManager */
 'use strict';
 
 (function(exports) {
@@ -189,9 +189,9 @@
             // XXX: show the homescreen's fadeoverlay so we will not see the
             // system background during fast-fade-in transition. We may create
             // another overlay instead of reusing this overlay in the future
-            homescreenWindowManager.getHomescreen().fadeOut();
-            homescreenWindowManager.getHomescreen().showFadeOverlay(color);
-            this.app.element.classList.add('fast-fade-in');
+            Service.query('getHomescreen').fadeOut();
+            Service.query('getHomescreen').showFadeOverlay(color);
+            this.app && this.app.element.classList.add('fast-fade-in');
           }.bind(this));
       } else {
         this.app.element.classList.add('transition-opening');

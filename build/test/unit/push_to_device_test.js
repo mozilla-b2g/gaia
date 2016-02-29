@@ -36,7 +36,7 @@ suite('push-to-device.js', function() {
         };
       };
       var queue = app.pushToDevice(profileFolder, remotePath, 'adb');
-      queue.done(function() {
+      queue.then(function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
           { sh: [
@@ -68,7 +68,7 @@ suite('push-to-device.js', function() {
         };
       };
       var queue = app.pushToDevice(profileFolder, remotePath, 'adb');
-      queue.done(function() {
+      queue.then(function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
           { sh: [
@@ -88,7 +88,7 @@ suite('push-to-device.js', function() {
 
     test('installSvoperapps', function(done) {
       var queue = app.installSvoperapps(profileFolder, 'adb');
-      queue.done(function() {
+      queue.then(function() {
         assert.deepEqual(mockUtils.hasRunCommands, {
           sh: [
             '-c adb shell rm -r //data/local/svoperapps',
@@ -131,9 +131,14 @@ suite('push-to-device.js', function() {
           path: options.PROFILE_DIR
         };
       };
-      mockUtils.readZipManifest = function() {
+      mockUtils.getZip = function() {
         return {
-          name: options.BUILD_APP_NAME
+          load: function() {},
+          file: function() {
+            return JSON.stringify({
+              name: options.BUILD_APP_NAME
+            });
+          }
         };
       };
     });
@@ -141,7 +146,7 @@ suite('push-to-device.js', function() {
     test('execute, test it without assigning app name', function(done) {
       options.BUILD_APP_NAME = '*';
       var queue = app.execute(options);
-      queue.done(function() {
+      queue.then(function() {
         assert.deepEqual(mockUtils.hasRunCommands, {
           sh: [
             '-c adb start-server',
@@ -175,7 +180,7 @@ suite('push-to-device.js', function() {
         return pidMap;
       };
       var queue = app.execute(options);
-      queue.done(function() {
+      queue.then(function() {
         assert.deepEqual(mockUtils.hasRunCommands, {
           sh: [
             '-c adb start-server',

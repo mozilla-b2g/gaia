@@ -1,4 +1,7 @@
+/* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* global ActionMenu, BaseModule, LazyLoader, BroadcastChannel */
+/* global BrowserConfigHelper */
 'use strict';
 
 (function() {
@@ -6,52 +9,20 @@
   MultiScreenController.SERVICES = [
     'chooseDisplay'
   ];
+
   MultiScreenController.EVENTS = [
-    'mozChromeEvent'
+    'mozChromeEvent',
+    'mozPresentationChromeEvent'
   ];
-  MultiScreenController.SETTINGS = [
-    'multiscreen.enabled'
-  ];
-  MultiScreenController.STATES = [
-    'enabled'
-  ];
+
   BaseModule.create(MultiScreenController, {
     name: 'MultiScreenController',
 
     EVENT_PREFIX: 'remote-',
     DEBUG: false,
 
-    enabled: function() {
-      return this._enabled;
-    },
-    chooseDisplay: function(config) {
-      this.debug('chooseDisplay is invoked');
-
-      if (!this._enabled) {
-        this.debug('multi-screen is disabled');
-        return Promise.reject();
-      }
-
-      if (config.isSystemMessage || config.stayBackground) {
-        this.debug('unsupported config: ' + JSON.stringify(config));
-        return Promise.reject();
-      }
-
-      return this.queryExternalDisplays()
-        .then(this.showMenu.bind(this))
-        .then((displayId) => {
-          this.debug('chosen display id: ' + displayId);
-
-          if (!displayId) {
-            return Promise.reject();
-          }
-
-          this.postMessage(displayId, 'launch-app', config);
-          return Promise.resolve(displayId);
-        });
-    },
     choosePresentationDevice: function() {
-      this.debug('chooseDisplay for presentation device selection');
+      this.debug('choose device for presentation');
 
       var deviceList = [];
       return this.queryPresentationDevices()
@@ -77,6 +48,7 @@
           }).deviceId);
         });
     },
+
     showMenu: function(displays) {
       this.debug('showMenu is invoked');
 
@@ -112,34 +84,13 @@
         });
       });
     },
-    queryExternalDisplays: function() {
-      this.debug('queryExternalDisplays is invoked');
 
-      if (this.queryPromiseCallback) {
-        this.debug('there\'s a pending query');
-        return Promise.reject();
-      }
-
-      return new Promise((resolve, reject) => {
-        this.debug('sending mozContentEvent');
-
-        this.queryPromiseCallback = {
-          resolve: resolve,
-          reject: reject
-        };
-
-        window.dispatchEvent(new CustomEvent('mozContentEvent', {
-          detail: {
-            type: 'get-display-list'
-          }
-        }));
-      });
-    },
     queryPresentationDevices: function() {
       this.debug('queryPresentationDevices is invoked');
 
       return navigator.mozPresentationDeviceInfo.getAll();
     },
+
     postMessage: function(target, type, detail) {
       this.debug('broadcast message to #' + target + ': ' +
         type + ', ' + JSON.stringify(detail));
@@ -150,24 +101,18 @@
         detail: detail
       });
     },
+
     _start: function() {
-      this._enabled = false;
       this.actionMenu = null;
-      this.queryPromiseCallback = null;
 
       this.broadcastChannel = new BroadcastChannel('multiscreen');
       this.broadcastChannel.addEventListener('message', this);
     },
-    _stop: function() {
-      this._enabled = false;
 
+    _stop: function() {
       this.broadcastChannel.close();
       this.broadcastChannel = null;
 
-      if (this.queryPromiseCallback) {
-        this.queryPromiseCallback.reject('module has been stoped');
-        this.queryPromiseCallback = null;
-      }
       if (this.actionMenu) {
         this.actionMenu.hide();
         if (this.actionMenu.oncancel) {
@@ -176,25 +121,27 @@
         this.actionMenu = null;
       }
     },
+
     _handle_mozChromeEvent: function(evt) {
       var detail = evt.detail;
+      this.debug('got mozChromeEvent: ' + JSON.stringify(detail));
 
       switch (detail.type) {
         case 'presentation-select-device':
           this._presentationDeviceSelectionHandler(detail);
           break;
-
-        case 'get-display-list-success':
-        case 'get-display-list-error':
-          this._displayListResultHandler(detail);
-          break;
       }
     },
+
     _presentationDeviceSelectionHandler: function(detail) {
       this.debug('handle presentation-select-device event');
 
       this.choosePresentationDevice(null)
       .then((deviceId) => {
+        // store request info
+        this.requestDeviceId = deviceId;
+        this.debug('target device: ' + this.requestDeviceId);
+
         window.dispatchEvent(new CustomEvent('mozContentEvent', {
           detail: {
             'type': 'presentation-select-result',
@@ -211,25 +158,31 @@
         }));
       });
     },
-    _displayListResultHandler: function(detail) {
-      if (!this.queryPromiseCallback) {
-        return;
-      }
 
-      switch (detail.type) {
-        case 'get-display-list-success':
-          this.queryPromiseCallback.resolve(detail.display);
-          break;
-        case 'get-display-list-error':
-          this.queryPromiseCallback.reject(detail.error);
-          break;
-        default:
-          return;
-      }
+    _handle_mozPresentationChromeEvent: function(evt) {
+      this.debug('got mozPresentationChromeEvent event');
 
-      this.queryPromiseCallback = null;
-      this.debug('got mozChromeEvent: ' + JSON.stringify(detail));
+      var detail = evt.detail;
+      switch(detail.type) {
+        case 'presentation-launch-receiver':
+          var url = new URL(detail.url);
+          var manifestURL = null;
+          if (url.protocol.toLowerCase() == 'app:') {
+            manifestURL = new URL('/manifest.webapp', url);
+          }
+
+          var config = new BrowserConfigHelper({
+            url: url.toString(),
+            manifestURL: manifestURL.toString()
+          });
+          config.timestamp = detail.timestamp;
+          config.requestId = detail.id;
+
+          this.requestConfig = config;
+          break;
+      }
     },
+
     _handle_message: function(evt) {
       var data = evt.data;
       if (data.target !== undefined) {
@@ -239,6 +192,11 @@
         data.type + ', ' + JSON.stringify(data.detail));
 
       switch(data.type) {
+        case 'remote-system-ready':
+          this.postMessage(this.requestDeviceId,
+                           'launch-presentation-app',
+                           this.requestConfig);
+          break;
         case 'launch-app-success':
         case 'launch-app-error':
           this.publish(data.type, {
@@ -248,13 +206,6 @@
           });
           break;
       }
-    },
-    '_observe_multiscreen.enabled': function(value) {
-      if (value == this._enabled) {
-        return;
-      }
-
-      this._enabled = value;
     }
   });
 }());

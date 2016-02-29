@@ -135,16 +135,7 @@ fi
 css_changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- apps shared/ | grep '\.css$' | tr '\n' ' '`
 if [ -n "$css_changed_files" ]
 then
-  XULRUNNER_SDK=$(make xulrunner_sdk)
-  XPCSHELL_SDK=$(make xpcshell_sdk)
-
-  # $XULRUNNER_SDK is an environment variable assignment on some platforms, for
-  # example: LD_LIBRARY_PATH=/xxx/xxx/xxx
-  # so we need to use "env" to properly execute this command expanding this
-  # variable assignment as intended.
-  env GAIA_DIR=$(pwd) $XULRUNNER_SDK $XPCSHELL_SDK \
-    -f build/xpcshell-commonjs.js \
-    -e "quit(require('csslint').lint('$(pwd)', '$css_changed_files'));"
+  $(pwd)/node_modules/.bin/csslint $css_changed_files
 
   if [ $? -ne 0 ]
   then

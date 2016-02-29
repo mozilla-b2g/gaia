@@ -14,13 +14,14 @@
 /* global NavigatorSettings */
 /* global Settings */
 /* global SettingsListener */
+/* global SyncErrors */
 /* global SyncManagerBridge */
 
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/sync/errors.js');
@@ -48,6 +49,7 @@ suite('Sync settings >', function() {
   var addListenerStub;
   var addEventListenerStub;
   var getInfoSpy;
+  var settingsHideStub;
   var showScreenSpy;
 
   var observers = {};
@@ -57,8 +59,8 @@ suite('Sync settings >', function() {
   mocksForSettings.attachTestHelpers();
 
   suiteSetup(function(done) {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = NavigatorSettings;
 
@@ -77,7 +79,7 @@ suite('Sync settings >', function() {
                                       (event, listener) => {
       visibilityListener = listener;
     });
-    sinon.stub(Settings, 'hide');
+    settingsHideStub = sinon.stub(Settings, 'hide');
 
     require('/tv_apps/browser/js/sync/settings.js').then(() => {
       subject = FirefoxSyncSettings;
@@ -87,7 +89,7 @@ suite('Sync settings >', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
     navigator.mozSettings = realMozSettings;
     observeStub.restore();
     addListenerStub.restore();
@@ -145,6 +147,27 @@ suite('Sync settings >', function() {
     });
   });
 
+  suite('Disabling', function() {
+    suiteTeardown(function() {
+      settingsHideStub.reset();
+    });
+
+    suiteTeardown(function() {
+      showScreenSpy.reset();
+      settingsHideStub.reset();
+    });
+
+    test('should hide settings page when sign-in closed by user', function() {
+      onsyncchange({
+        state: 'disabling',
+        user: null,
+        error: SyncErrors.UI_ERROR
+      });
+
+      expect(settingsHideStub.calledOnce).to.equal(true);
+    });
+  });
+
   suite('Disabled', function() {
     suiteSetup(function() {
       onsyncchange({
@@ -176,7 +199,7 @@ suite('Sync settings >', function() {
     var alertStub;
     var formatValueStub;
     suiteSetup(function() {
-      formatValueStub = sinon.stub(navigator.mozL10n, 'formatValue', key => {
+      formatValueStub = sinon.stub(document.l10n, 'formatValue', key => {
         return Promise.resolve(key);
       });
 
@@ -260,7 +283,7 @@ suite('Sync settings >', function() {
     var alertStub;
     var formatValueStub;
     suiteSetup(function() {
-      formatValueStub = sinon.stub(navigator.mozL10n, 'formatValue', key => {
+      formatValueStub = sinon.stub(document.l10n, 'formatValue', key => {
         return Promise.resolve(key);
       });
 
@@ -338,7 +361,7 @@ suite('Sync settings >', function() {
 
     suiteSetup(function() {
       alertStub = sinon.stub(window, 'alert');
-      formatValueStub = sinon.stub(navigator.mozL10n, 'formatValue', key => {
+      formatValueStub = sinon.stub(document.l10n, 'formatValue', key => {
         return Promise.resolve(key);
       });
     });

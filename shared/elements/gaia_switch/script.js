@@ -21,6 +21,7 @@ window.GaiaSwitch = (function(win) {
 
     var wrapper = this._template.getElementById('switch');
     wrapper.addEventListener('click', this.handleClick.bind(this));
+    this.addEventListener('keyup', this.handleKeyUp.bind(this));
 
     shadow.appendChild(this._template);
 
@@ -41,6 +42,18 @@ window.GaiaSwitch = (function(win) {
       internal.setAttribute('dir', 'rtl');
     } else {
       internal.removeAttribute('dir');
+    }
+  };
+
+  /**
+   * Handles a key event on the shadow dom.
+   * handleClick will be invoked only when pressing Enter key.
+   */
+  proto.handleKeyUp = function(e) {
+    switch(e.keyCode){
+      case 13: // Enter key
+        this.handleClick(e);
+        break;
     }
   };
 

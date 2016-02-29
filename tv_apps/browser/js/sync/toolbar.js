@@ -43,7 +43,7 @@
  */
 
 (function(exports) {
-  const DEBUG = true;
+  const DEBUG = false;
   function debug() {
     if (DEBUG) {
       console.log('[FirefoxSyncToolbar] ' + Array.slice(arguments).concat());
@@ -95,7 +95,7 @@
           this.syncBlock.addEventListener('mouseup', this.showListener);
           this.syncBlock.removeEventListener('mouseup',
                                              SyncManagerBridge.enable);
-          navigator.mozL10n.setAttributes(this.syncTab, 'fxsync-signed-in-as', {
+          document.l10n.setAttributes(this.syncTab, 'fxsync-signed-in-as', {
             email: message.user
           });
           break;

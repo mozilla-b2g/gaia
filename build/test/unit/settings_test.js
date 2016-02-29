@@ -257,9 +257,8 @@ suite('settings.js', function() {
       };
     });
 
-    test('TARGET_BUILD_VARIANT != user', function(done) {
+    test('TARGET_BUILD_VARIANT != user', function() {
       config.TARGET_BUILD_VARIANT = 'notuser';
-      var queue = app.execute(config);
       var expected = {
           'debug.console.enabled': true,
           'metrics.selectedMetrics.level': 'Basic',
@@ -287,286 +286,203 @@ suite('settings.js', function() {
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL
       };
-      queue.done(function(result) {
-        assert.deepEqual(expected, result,
-          'these two objects should be the same: \n' +
-          'expected: \n' + JSON.stringify(expected, null, 2)  + '\n' +
-          'actually: \n' + JSON.stringify(result, null, 2) + '\n');
-        done();
-      });
+      var result = app.execute(config);
+      assert.deepEqual(expected, result,
+        'these two objects should be the same: \n' +
+        'expected: \n' + JSON.stringify(expected, null, 2)  + '\n' +
+        'actually: \n' + JSON.stringify(result, null, 2) + '\n');
     });
 
-    test('NOFTU === 0', function(done) {
+    test('NOFTU === 0', function() {
       config.NOFTU = '0';
       config.TARGET_BUILD_VARIANT = 'user';
-      var queue = app.execute(config);
-      queue.done(function(result) {
-        assert.deepEqual({
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'language.current': config.GAIA_DEFAULT_LOCALE,
-          'debugger.remote-mode': 'adb-only',
-          'ftu.manifestURL': config.GAIA_SCHEME +
-            'ftu.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'wallpaper.image': undefined,
-          'media.ringtone': undefined,
-          'alarm.ringtone': undefined,
-          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
-          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
-          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
-          'dialer.ringtone': undefined,
-          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
-          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
-          'notification.ringtone.default.id':
-            'builtin:alerttone/notifier_firefox',
-          'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL,
-          'metrics.selectedMetrics.level': 'Basic' },
-          result);
-        done();
-      });
+      var result = app.execute(config);
+      assert.deepEqual({
+        'homescreen.manifestURL': config.GAIA_SCHEME +
+          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+          '/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                    config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'language.current': config.GAIA_DEFAULT_LOCALE,
+        'debugger.remote-mode': 'adb-only',
+        'ftu.manifestURL': config.GAIA_SCHEME +
+          'ftu.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+          '/manifest.webapp',
+        'wallpaper.image': undefined,
+        'media.ringtone': undefined,
+        'alarm.ringtone': undefined,
+        'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+        'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone': undefined,
+        'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+        'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+        'notification.ringtone.default.id':
+          'builtin:alerttone/notifier_firefox',
+        'notification.ringtone': undefined,
+        'ftu.pingURL': config.FTU_PING_URL,
+        'metrics.selectedMetrics.level': 'Basic' },
+        result);
     });
 
-    test('PRODUCTION === 1', function(done) {
+    test('PRODUCTION === 1', function() {
       config.PRODUCTION = '1';
       config.TARGET_BUILD_VARIANT = 'user';
-      var queue = app.execute(config);
-      queue.done(function(result) {
-        assert.equal(Object.keys(result)
-          .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
-        assert.deepEqual({
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
-          'gaia.system.checkForUpdates': true,
-          'language.current': config.GAIA_DEFAULT_LOCALE,
-          'debugger.remote-mode': 'disabled',
-          'wallpaper.image': undefined,
-          'media.ringtone': undefined,
-          'alarm.ringtone': undefined,
-          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
-          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
-          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
-          'dialer.ringtone': undefined,
-          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
-          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
-          'notification.ringtone.default.id':
-            'builtin:alerttone/notifier_firefox',
-          'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL,
-          'metrics.selectedMetrics.level': 'Basic' },
-          result);
-        done();
-      });
+      var result = app.execute(config);
+      assert.equal(Object.keys(result)
+        .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
+      assert.deepEqual({
+        'homescreen.manifestURL': config.GAIA_SCHEME +
+          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+          '/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                    config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
+        'gaia.system.checkForUpdates': true,
+        'language.current': config.GAIA_DEFAULT_LOCALE,
+        'debugger.remote-mode': 'disabled',
+        'wallpaper.image': undefined,
+        'media.ringtone': undefined,
+        'alarm.ringtone': undefined,
+        'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+        'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone': undefined,
+        'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+        'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+        'notification.ringtone.default.id':
+          'builtin:alerttone/notifier_firefox',
+        'notification.ringtone': undefined,
+        'ftu.pingURL': config.FTU_PING_URL,
+        'metrics.selectedMetrics.level': 'Basic' },
+        result);
     });
 
-    test('PRODUCTION === 0', function(done) {
+    test('PRODUCTION === 0', function() {
       config.PRODUCTION = '0';
       config.TARGET_BUILD_VARIANT = 'user';
       var settingName = 'dom.mozApps.signed_apps_installable_from';
       var marketplaceProd = 'https://marketplace.firefox.com';
       var marketplaceStage = 'https://marketplace.allizom.org';
-      var queue = app.execute(config);
-      queue.done(function(result) {
-        var originsSetting = Object.keys(result);
-        assert.ok(originsSetting.indexOf(settingName) >= 0);
-        var origins = result[settingName].split(',');
-        assert.equal(origins.length, 2);
-        assert.ok(origins.indexOf(marketplaceProd) >= 0);
-        assert.ok(origins.indexOf(marketplaceStage) >= 0);
-        done();
-      });
+      var result = app.execute(config);
+      var originsSetting = Object.keys(result);
+      assert.ok(originsSetting.indexOf(settingName) >= 0);
+      var origins = result[settingName].split(',');
+      assert.equal(origins.length, 2);
+      assert.ok(origins.indexOf(marketplaceProd) >= 0);
+      assert.ok(origins.indexOf(marketplaceStage) >= 0);
     });
 
-    test('DOGFOOD === 1', function(done) {
+    test('DOGFOOD === 1', function() {
       config.DOGFOOD = '1';
       config.TARGET_BUILD_VARIANT = 'user';
-      var queue = app.execute(config);
-      queue.done(function(result) {
-        assert.equal(Object.keys(result)
-          .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
-        assert.deepEqual({
-            'homescreen.manifestURL': config.GAIA_SCHEME +
-              'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-              '/manifest.webapp',
-            'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-              config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-            'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-              config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-            'language.current': config.GAIA_DEFAULT_LOCALE,
-            'debugger.remote-mode': 'adb-only',
-            'wallpaper.image': undefined,
-            'media.ringtone': undefined,
-            'alarm.ringtone': undefined,
-            'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
-            'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
-            'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
-            'dialer.ringtone': undefined,
-            'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
-            'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
-            'notification.ringtone.default.id':
-              'builtin:alerttone/notifier_firefox',
-            'notification.ringtone': undefined,
-            'ftu.pingURL': config.FTU_PING_URL,
-            'debug.performance_data.dogfooding': true,
-            'devtools.overlay': true,
-            'hud.hide': true,
-            'metrics.appusage.reportInterval': 86400000,
-            'metrics.selectedMetrics.level': 'Enhanced' },
-          result);
-        done();
-      });
+      var result = app.execute(config);
+      assert.equal(Object.keys(result)
+        .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
+      assert.deepEqual({
+        'homescreen.manifestURL': config.GAIA_SCHEME +
+          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+          '/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'language.current': config.GAIA_DEFAULT_LOCALE,
+        'debugger.remote-mode': 'adb-only',
+        'wallpaper.image': undefined,
+        'media.ringtone': undefined,
+        'alarm.ringtone': undefined,
+        'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+        'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone': undefined,
+        'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+        'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+        'notification.ringtone.default.id':
+          'builtin:alerttone/notifier_firefox',
+        'notification.ringtone': undefined,
+        'ftu.pingURL': config.FTU_PING_URL,
+        'debug.performance_data.dogfooding': true,
+        'devtools.overlay': true,
+        'hud.hide': true,
+        'metrics.appusage.reportInterval': 86400000,
+        'metrics.selectedMetrics.level': 'Enhanced' },
+        result);
     });
 
-    test('DEVICE_DEBUG === 1', function(done) {
+    test('DEVICE_DEBUG === 1', function() {
       config.DEVICE_DEBUG = '1';
       config.NO_LOCK_SCREEN = '1';
       config.TARGET_BUILD_VARIANT = 'user';
-      var queue = app.execute(config);
-      queue.done(function(result) {
-        assert.deepEqual({
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'language.current': config.GAIA_DEFAULT_LOCALE,
-          'debugger.remote-mode': 'adb-devtools',
-          'lockscreen.enabled': false,
-          'lockscreen.locked': false,
-          'wallpaper.image': undefined,
-          'media.ringtone': undefined,
-          'alarm.ringtone': undefined,
-          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
-          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
-          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
-          'dialer.ringtone': undefined,
-          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
-          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
-          'notification.ringtone.default.id':
-            'builtin:alerttone/notifier_firefox',
-          'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL,
-          'metrics.selectedMetrics.level': 'Basic' },
-          result);
-        done();
-      });
+      var result = app.execute(config);
+      assert.deepEqual({
+        'homescreen.manifestURL': config.GAIA_SCHEME +
+          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+          '/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                    config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'language.current': config.GAIA_DEFAULT_LOCALE,
+        'debugger.remote-mode': 'adb-devtools',
+        'lockscreen.enabled': false,
+        'lockscreen.locked': false,
+        'wallpaper.image': undefined,
+        'media.ringtone': undefined,
+        'alarm.ringtone': undefined,
+        'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+        'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone': undefined,
+        'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+        'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+        'notification.ringtone.default.id':
+          'builtin:alerttone/notifier_firefox',
+        'notification.ringtone': undefined,
+        'ftu.pingURL': config.FTU_PING_URL,
+        'metrics.selectedMetrics.level': 'Basic' },
+        result);
     });
 
-    test('SCREEN_TIMEOUT === 600', function(done) {
+    test('SCREEN_TIMEOUT === 600', function() {
       config.DEVICE_DEBUG = '1';
       config.SCREEN_TIMEOUT = '600';
       config.TARGET_BUILD_VARIANT = 'user';
-      var queue = app.execute(config);
-      queue.done(function(result) {
-        assert.deepEqual({
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'language.current': config.GAIA_DEFAULT_LOCALE,
-          'debugger.remote-mode': 'adb-devtools',
-          'wallpaper.image': undefined,
-          'media.ringtone': undefined,
-          'alarm.ringtone': undefined,
-          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
-          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
-          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
-          'dialer.ringtone': undefined,
-          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
-          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
-          'notification.ringtone.default.id':
-            'builtin:alerttone/notifier_firefox',
-          'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL,
-          'screen.timeout': 600,
-          'metrics.selectedMetrics.level': 'Basic' },
-          result);
-        done();
-      });
+      var result = app.execute(config);
+      assert.deepEqual({
+        'homescreen.manifestURL': config.GAIA_SCHEME +
+          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+          '/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                    config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+        'language.current': config.GAIA_DEFAULT_LOCALE,
+        'debugger.remote-mode': 'adb-devtools',
+        'wallpaper.image': undefined,
+        'media.ringtone': undefined,
+        'alarm.ringtone': undefined,
+        'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+        'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
+        'dialer.ringtone': undefined,
+        'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+        'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+        'notification.ringtone.default.id':
+          'builtin:alerttone/notifier_firefox',
+        'notification.ringtone': undefined,
+        'ftu.pingURL': config.FTU_PING_URL,
+        'screen.timeout': 600,
+        'metrics.selectedMetrics.level': 'Basic' },
+        result);
     });
 
     teardown(function() {
       config = {};
-    });
-  });
-
-  suite('setDefaultKeyboardLayouts', function() {
-    var config;
-    var settings = {};
-    var defaultManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
-    var expectedLayouts = {};
-    expectedLayouts[defaultManifestURL] = {en: true, number: true};
-
-    setup(function() {
-      config = {
-        GAIA_DISTRIBUTION_DIR: 'testDistributionDir',
-        GAIA_DIR: 'testGaia',
-        SETTINGS_PATH: 'testSettingsPath'
-      };
-      mockUtils.resolve = function(file, baseLink) {
-        return {
-          exists: function() {
-            return true;
-          },
-          path: baseLink + '/' + file
-        };
-      };
-
-      mockUtils.getJSON = function() {
-        return {
-          'layout': {
-            'en-US': [
-              {'layoutId': 'en', 'appManifestURL': defaultManifestURL}
-            ],
-            'zh-TW': [
-              {'layoutId': 'zhuyin', 'appManifestURL': defaultManifestURL},
-              {'layoutId': 'en', 'appManifestURL': defaultManifestURL}
-            ]
-          },
-          'langIndependentLayouts':
-            [{'layoutId': 'number', 'appManifestURL': defaultManifestURL}]
-        };
-
-      };
-    });
-
-    test('Set default keyboard layouts, lang = en-US', function() {
-      app.setDefaultKeyboardLayouts('en-US', settings, config);
-      assert.deepEqual(settings['keyboard.enabled-layouts'],
-                       expectedLayouts);
-    });
-
-    test('Set default keyboard layouts, lang = zh-TW', function() {
-      app.setDefaultKeyboardLayouts('zh-TW', settings, config);
-
-      var expectedLayoutsChinese = {};
-      expectedLayoutsChinese[defaultManifestURL] = {zhuyin: true, en: true,
-        number: true};
-        assert.deepEqual(settings['keyboard.enabled-layouts'],
-                         expectedLayoutsChinese);
-    });
-
-    test('Fall back to default keyboard layouts as en, lang = de', function() {
-      app.setDefaultKeyboardLayouts('de', settings, config);
-      assert.deepEqual(settings['keyboard.enabled-layouts'],
-                       expectedLayouts);
     });
   });
 });
