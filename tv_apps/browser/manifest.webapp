@@ -56,6 +56,10 @@
       "readonly": false,
       "description": "Read synced browsing history."
     },
+    "tabs": {
+      "readonly": false,
+      "description": "Read synced browsing tabs."
+    },
     "bookmarks_store": {
       "readonly": false,
       "description": "Read synced browser bookmarks."
