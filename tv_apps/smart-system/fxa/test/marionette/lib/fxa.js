@@ -18,7 +18,9 @@ var system;
 function FxA(client) {
     this.config = config;
     this.fxaUser = new FxAUser();
-    this.client = client.scope({ searchTimeout: config.MARIONETTE_TIMEOUT});
+    this.client = client.scope({
+      searchTimeout: 60000
+    });
     system = this.client.loader.getAppClass('system');
 }
 
@@ -44,7 +46,7 @@ FxA.Selectors = {
     bodyReady: 'body .view-body',
     // dev_apps/uitest
     apiFxaFrame: '#test-iframe',
-    fxaFrame:  '#fxa-iframe',
+    fxaFrame: '#fxa-iframe',
     tabAPI: '#API',
     fxaButton: '#mozId-fxa',
     requestButton: '#request',
@@ -186,7 +188,15 @@ FxA.prototype = {
     },
     switchFrame:  function(frameId) {
       this.client.switchToFrame();
-      var frame = this.client.findElement(frameId);
+      var frame;
+      this.client.waitFor(function() {
+        try {
+          frame = this.client.findElement(frameId);
+        } catch (exception) {
+          return false;
+        }
+        return frame;
+      }.bind(this));
       this.client.switchToFrame(frame);
     },
     switchFrameDirect:  function(frameId) {
@@ -222,7 +232,11 @@ FxA.prototype = {
       this.switchFrame(FxA.Selectors.fxaFrame);
     },
     runBrowserMenu: function() {
-      var signin = this.client.helper.waitForElement('#fte-sign-in');
+      var signin;
+      this.client.waitFor(function() {
+        signin = this.client.findElement('#fte-sign-in');
+        return signin && signin.displayed();
+      }.bind(this));
       signin.sendKeys(system.Keys.enter);
       this.switchFrame(FxA.Selectors.fxaFrame);
     },
