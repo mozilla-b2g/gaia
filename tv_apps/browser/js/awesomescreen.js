@@ -2563,14 +2563,6 @@ var Awesomescreen = {
     var state = true;
     // in the input area focus (= display keyboard)
     if(document.activeElement.nodeName == 'INPUT') {
-      switch(ev.keyCode) {
-        case KeyEvent.DOM_VK_ESCAPE:
-        case KeyEvent.DOM_VK_RETURN:
-          ev.preventDefault();
-          Awesomescreen.focusPos = 2;
-          Awesomescreen.focusChange(Awesomescreen.focusPos);
-          break;
-      }
       return;
     }
     var hoverElem =
