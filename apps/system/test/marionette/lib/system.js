@@ -107,13 +107,7 @@ System.prototype = {
   },
 
   contextMenu: function(element) {
-    element.scriptWith(function(el) {
-      var contextmenuEvent = new MouseEvent('mouseup', {
-        button: 2,
-        target: el.parentNode
-      });
-      el.dispatchEvent(contextmenuEvent);
-    });
+    this.client.helper.contextMenuClick(element);
   },
 
   getAppWindows: function() {

@@ -102,15 +102,14 @@ Browser.prototype = {
     return this.frame;
   },
 
-  pin: function() {
-    this.pinButton.click();
-  },
-
   goToUrlAndPin: function(url) {
     this.goTo(url);
     this.goToHistory();
+    this.client.waitFor(function() {
+      return this.historyItems && this.historyItems[0].displayed();
+    }.bind(this));
     system.contextMenu(this.historyItems[0]);
-    this.pin();
+    this.pinButton.click();
   },
 
   sendEnter: function(element) {

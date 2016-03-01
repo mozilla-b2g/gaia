@@ -23,6 +23,7 @@ Home.Selectors = {
 Home.prototype = {
 
   URL: Home.URL,
+  PATH: Home.URL + '/index.html',
   Selectors: Home.Selectors,
   frame: null,
 
