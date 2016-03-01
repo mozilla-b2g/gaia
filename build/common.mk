@@ -26,3 +26,7 @@ endef
 define run-node-command
   @$(2) NODE_PATH=build$(SEP)test$(SEP)integration:$(APP_DIR)$(SEP)build node --harmony -e 'require("./build/$(strip $1).js").execute($(BUILD_CONFIG))'
 endef
+
+define run-node-command-without-config
+  $(2) NODE_PATH=build$(SEP)test$(SEP)integration:$(APP_DIR)$(SEP)build node --harmony -e 'require("./build/$(strip $1).js").execute()'
+endef
