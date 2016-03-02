@@ -11,7 +11,7 @@ marionette('Test Permission Manager', function() {
     'left': '\ue012',
     'right': '\ue014',
     'esc': '\ue00c',
-    'backspace': '\ue003',
+    'backspace': '\ue003'
   };
 
   var testOptions = { devices: ['tv'] };
@@ -35,35 +35,33 @@ marionette('Test Permission Manager', function() {
   });
 
   var system;
-  var appFrame;
   var permissionManager;
 
   setup(function() {
     system = client.loader.getAppClass('system');
     system.waitForStartup();
     system.waitForFullyLoaded();
+    system.waitForLaunch(PermissionManager.APP_URL);
     permissionManager = new PermissionManager(client);
-    appFrame = system.waitForLaunch(PermissionManager.APP_URL);
     client.switchToFrame();
   });
 
-  test('Should open', testOptions,
-    function () {
-      permissionManager.waitForPermissionDialogOpened();
-      permissionManager.noBtn.sendKeys(Keys.enter);
-      permissionManager.waitForPermissionDialogClosed();
+  test('Should open', testOptions, function () {
+    permissionManager.waitForPermissionDialogOpened();
+    permissionManager.noBtn.sendKeys(Keys.enter);
+    permissionManager.waitForPermissionDialogClosed();
   });
 
   test('Should focus on yes button', testOptions, function () {
-      permissionManager.waitForPermissionDialogOpened();
-      permissionManager.noBtn.sendKeys(Keys.right);
-      permissionManager.yesBtn.scriptWith(function(yesBtn) {
-        return document.activeElement === yesBtn;
-      }, function (err, focused) {
-        assert.ok(focused, 'Not focus on yes button');
-      });
-      permissionManager.yesBtn.sendKeys(Keys.enter);
-      permissionManager.waitForPermissionDialogClosed();
+    permissionManager.waitForPermissionDialogOpened();
+    permissionManager.noBtn.sendKeys(Keys.right);
+    permissionManager.yesBtn.scriptWith(function(yesBtn) {
+      return document.activeElement === yesBtn;
+    }, function (err, focused) {
+      assert.ok(focused, 'Not focus on yes button');
+    });
+    permissionManager.yesBtn.sendKeys(Keys.enter);
+    permissionManager.waitForPermissionDialogClosed();
   });
 
   test('Should display more info', testOptions, function () {

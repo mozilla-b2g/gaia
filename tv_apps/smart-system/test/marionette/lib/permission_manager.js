@@ -73,7 +73,7 @@ PermissionManager.prototype = {
       return document.activeElement.id == 'permission-no' &&
         document.activeElement.tagName.toLowerCase() == 'smart-button';
     }, function (err, focusOnNoBtn) {
-      assert.ok(focusOnNoBtn, 'Not focus on no buttom after opened');
+      assert.ok(focusOnNoBtn, 'Not focus on no button after opened');
     });
   },
 
