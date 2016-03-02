@@ -760,10 +760,6 @@ input::-moz-focus-inner {
   height: 9.2rem;
   font-size: 3.8rem;
 }
-#menu-block li:hover a#pocket-tab:before {
-  background-size: 120% 120%;
-  background-position: center 80%;
-}
 #menu-block li:active a {
   color: #00caf2;
   padding-left: 2rem;
@@ -788,19 +784,6 @@ input::-moz-focus-inner {
               color 0.16s cubic-bezier(0.25, 0, 0, 1.0),
               font-size 0.42s cubic-bezier(0.25, 0, 0, 1.0);
   transform: scale(1.0);
-}
-
-#menu-block li > a#pocket-tab:before {
-  content: '';
-  display: inline-block;
-  width: 3.6rem;
-  height: 3.6rem;
-  margin-right: 2rem;
-  background-size: 110% 110%;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  background-image: url('../style/images/pocket_icon.png');
-  transition: background-size 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 /* ----- mode button ----- */
