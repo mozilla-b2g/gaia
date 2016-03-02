@@ -33,12 +33,10 @@
      */
     initUI: function() {
       var dummy = document.createElement('div');
-      var _ = navigator.mozL10n ? navigator.mozL10n.get : function(){};
 
       dummy.innerHTML = Template('ime-menu-template').interpolate({
         title: this.titleL10nId,
-        cancelLabel: 'cancel',
-        settingsLabel: _('ime-settings')
+        cancelLabel: 'cancel'
       });
       this.container = dummy.firstElementChild;
 

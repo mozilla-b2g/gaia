@@ -1,5 +1,5 @@
 'use strict';
-/* global MozActivity, NotificationHelper */
+/* global MozActivity, mozIntl, NotificationHelper */
 
 (function(exports) {
 
@@ -383,34 +383,30 @@
       var titleL10n, bodyL10n;
       switch (action) {
         case 'detected-recognised':
-          this.getTotalSpace(function(totalSpace) {
+          return this.getTotalSpace().then(totalSpace => {
             titleL10n = 'sdcard-detected-title';
             bodyL10n = {
-              'id': 'sdcard-total-size-body',
+              'id': 'sdcard-total-size-body2',
               'args': {
-                size: totalSpace.size,
-                unit: totalSpace.unit
+                size: totalSpace
               }
             };
-            this.fireNotification(titleL10n, bodyL10n, true);
-          }.bind(this));
-          break;
+            return this.fireNotification(titleL10n, bodyL10n, true);
+          });
         case 'detected-unrecognised':
           titleL10n = 'sdcard-detected-title';
           bodyL10n = 'sdcard-unknown-size-then-tap-to-format-body';
-          this.fireNotification(titleL10n, bodyL10n, true);
-          break;
+          return this.fireNotification(titleL10n, bodyL10n, true);
         case 'normally-removed':
           titleL10n = 'sdcard-removed-title';
           bodyL10n = 'sdcard-removed-ejected-successfully';
-          this.fireNotification(titleL10n, bodyL10n);
-          break;
+          return this.fireNotification(titleL10n, bodyL10n);
         case 'unexpectedly-removed':
           titleL10n = 'sdcard-removed-title';
           bodyL10n = 'sdcard-removed-not-ejected-properly';
-          this.fireNotification(titleL10n, bodyL10n);
-          break;
+          return this.fireNotification(titleL10n, bodyL10n);
       }
+      return Promise.resolve();
     },
 
     /**
@@ -431,7 +427,7 @@
         'tag': notificationId
       };
 
-      NotificationHelper.send(title, options).then(function(notification) {
+      return NotificationHelper.send(title, options).then(notification => {
         // set onclick handler for the notification
         notification.addEventListener( 'click', function() {
           this.notificationHandler.bind(this, notification, openSettings);
@@ -503,19 +499,13 @@
      * @memberof ExternalStorageMonitor.prototype
      * @param {callback} function The callback will be run while get total space
      */
-    getTotalSpace: function(callback) {
-      var usedSpace, freeSpace;
-      var self = this;
-      this._storage.usedSpace().onsuccess = function(e) {
-        usedSpace = e.target.result;
-        self._storage.freeSpace().onsuccess = function(e) {
-          freeSpace = e.target.result;
-          var totalSpace = self.formatSize(usedSpace + freeSpace);
-          if (callback) {
-            callback(totalSpace);
-          }
-        };
-      };
+    getTotalSpace: function() {
+      return Promise.all([
+        this._storage.usedSpace(),
+        this._storage.freeSpace()
+      ]).then(([usedSpace, freeSpace]) => {
+        return this.formatSize(usedSpace + freeSpace);
+      });
     },
 
     /**
@@ -525,24 +515,7 @@
      * @param {size} bytes The size of specific storage space
      */
     formatSize: function(size) {
-      if (size === undefined || isNaN(size)) {
-        return;
-      }
-
-      var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-      var i = 0;
-      while (size >= 1024 && i < (units.length) - 1) {
-        size /= 1024;
-        ++i;
-      }
-
-      var sizeDecimal = i < 2 ? Math.round(size) : Math.round(size * 10) / 10;
-      var _ = navigator.mozL10n.get;
-
-      return {
-        size: sizeDecimal,
-        unit: _('byteUnit-' + units[i])
-      };
+      return mozIntl._gaia.getFormattedUnit('digital', 'short', size);
     },
 
     /**

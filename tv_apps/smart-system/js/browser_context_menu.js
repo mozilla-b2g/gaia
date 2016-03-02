@@ -216,6 +216,20 @@
     this.modalDialog.open({ 'buttonSettings': menus,
       'onButtonRendered': function buttonRendered(button, item) {
         if (item.menuIcon) {
+          //XXX: Bug 1252579
+          // smart-button should always keep the l10n content on the child node
+          // but for now, we'll just reassign it here when the icon is being
+          // added.
+          var span = document.createElement('span');
+          if (button.hasAttribute('data-l10n-id')) {
+            span.setAttribute('data-l10n-id',
+              button.getAttribute('data-l10n-id'));
+            button.removeAttribute('data-l10n-id');
+          } else if (button.textContent) {
+            span.textContent = button.textContent;
+          }
+          button.textContent = '';
+          button.appendChild(span);
           var icon = document.createElement('div');
           icon.classList.add('icon');
           icon.style.backgroundImage = 'url(' + item.menuIcon + ')';
@@ -299,11 +313,10 @@
 
   BrowserContextMenu.prototype._listAddAppToAppsItem = function(manifestURL) {
     return new Promise((resolve, reject) => {
-      var _ = navigator.mozL10n.get;
       if (!AppInstallManager.getAppAddedState(manifestURL)) {
         resolve({
           type: BUTTON_TYPE,
-          textRaw: _('add-to-apps'),
+          textL10nId: 'add-to-apps',
           menuIcon: ADD_TO_APPS_ICON_PATH,
           onClick: () => {
             if (this.app instanceof PreviewWindow) {
@@ -315,7 +328,7 @@
       } else {
         resolve({
           type: BUTTON_TYPE,
-          textRaw: _('delete-from-apps'),
+          textL10nId: 'delete-from-apps',
           menuIcon: DELETE_FROM_APPS_ICON_PATH,
           onClick: () => {
             var app = applications.getByManifestURL(manifestURL);
@@ -343,11 +356,10 @@
 
     return new Promise((resolve, reject) => {
       BookmarkManager.get(url).then((bookmark) => {
-        var _ = navigator.mozL10n.get;
         if (!bookmark) {
           resolve({
             type: BUTTON_TYPE,
-            textRaw: _('add-to-apps'),
+            textL10nId: 'add-to-apps',
             menuIcon: ADD_TO_APPS_ICON_PATH,
             onClick: () => {
               BookmarkManager.add({
@@ -374,7 +386,7 @@
           // to check these 3 places.
           resolve({
             type: BUTTON_TYPE,
-            textRaw: _('delete-from-apps'),
+            textL10nId: 'delete-from-apps',
             menuIcon: DELETE_FROM_APPS_ICON_PATH,
             onClick: () => {
               AppInstallManager.appInstallDialogs.show(

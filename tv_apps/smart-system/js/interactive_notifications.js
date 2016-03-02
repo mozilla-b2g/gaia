@@ -191,8 +191,16 @@
             buttonImg.src = msg.buttons[i].icon;
             buttons[i].appendChild(buttonImg);
           }
-          if (msg.buttons[i].label) {
-            buttons[i].textContent = msg.buttons[i].label;
+          if (msg.buttons[i].label && msg.buttons[i].label.id) {
+            navigator.mozL10n.setAttributes(
+              buttons[i],
+              msg.buttons[i].label.id,
+              msg.buttons[i].label.args
+            );
+          } else {
+            buttons[i].removeAttribute('data-l10n-id');
+            buttons[i].removeAttribute('data-l10n-args');
+            buttons[i].textContent = msg.buttons[i].label || '';
           }
           buttons[i].classList.remove('hidden');
         } else {
