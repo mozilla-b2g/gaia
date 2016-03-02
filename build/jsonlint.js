@@ -3,13 +3,14 @@
 var utils = require('./utils');
 var RE_JSON = /\.json$/;
 
-exports.execute = function(options) {
+exports.execute = function() {
+  var GAIA_DIR = utils.getEnv('GAIA_DIR');
   var jsons = [];
   var dirs = ['apps', 'dev_apps', 'build', 'customization', 'dev_apps',
     'locales', 'shared'];
 
   dirs.forEach(function(dir) {
-    var dirFile = utils.getFile(options.GAIA_DIR, dir);
+    var dirFile = utils.getFile(GAIA_DIR, dir);
     var files = utils.ls(dirFile, true).filter(function(f) {
       return RE_JSON.test(f.leafName);
     });

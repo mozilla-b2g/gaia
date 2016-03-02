@@ -45,6 +45,10 @@ module.exports = {
     console.log('[' + args[0] + '] ' + args.slice(1).join(' '));
   },
 
+  stdout: function(output) {
+    console.log(output);
+  },
+
   normalizePath: function(string) {
     return path.normalize(string);
   },
@@ -307,12 +311,12 @@ module.exports = {
     return appname.replace(' ', '-').toLowerCase().replace(/\W/g, '');
   },
 
-  ls: function(dir, recursive) {
+  ls: function(dir, recursive, includeDir) {
     var files = [];
     if (!dir || !dir.exists()) {
       return [];
     }
-    dive(dir.path, { recursive: recursive }, function(err, filePath) {
+    dive(dir.path, { recursive: recursive, directories: includeDir }, function(err, filePath) {
       if (err) {
         // Skip error
         return;

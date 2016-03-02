@@ -444,7 +444,7 @@ endif
 
 GAIA_ALLAPPDIRS=$(shell find -L $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps $(GAIA_DIR)$(SEP)tv_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
 
-GAIA_APPDIRS?=$(shell $(call run-js-command,scan-appdir, \
+GAIA_APPDIRS?=$(shell $(call run-node-command-without-config,scan-appdir, \
 		GAIA_APP_CONFIG="$(GAIA_APP_CONFIG)" \
 		GAIA_DIR="$(GAIA_DIR)" \
 		GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)" \
@@ -1020,7 +1020,7 @@ csslint: b2g_sdk node_modules
 	@$(call run-node-command,csslint)
 
 jsonlint: b2g_sdk
-	@$(call run-node-command,jsonlint)
+	@$(call run-node-command,jsonlint,GAIA_DIR=$(GAIA_DIR))
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:

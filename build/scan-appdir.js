@@ -1,6 +1,5 @@
 'use strict';
 
-/* global require, exports, dump */
 const utils = require('./utils');
 
 var ScanAppdir = function() {
@@ -27,23 +26,12 @@ ScanAppdir.prototype.scanAppAndDistributionFolder = function(src, recursive) {
   }
   var srcAppFolder;
   if (recursive) {
-    utils.ls(distributionAppFolder, false).forEach(function(subFolder) {
+    utils.ls(distributionAppFolder, false, true).forEach(function(subFolder) {
       this.pushPathSrc(subFolder);
     }, this);
-    utils.ls(gaiaAppFolder, false).forEach(function(subFolder) {
+    utils.ls(gaiaAppFolder, false, true).forEach(function(subFolder) {
       this.pushPathSrc(subFolder);
     }, this);
-    try {
-      srcAppFolder = utils.getFile(src);
-      utils.ls(srcAppFolder, false).forEach(function(subFolder) {
-        this.pushPathSrc(subFolder);
-      }, this);
-    } catch (e) {
-      // Calling getFile with no existing filepath or dump message will affect
-      // the output of GAIA_APPDIRS, so we simply catch the error without doing
-      // anything.
-    }
-    
   } else {
     if (!this.pushPathSrc(distributionAppFolder)) {
       if (!this.pushPathSrc(gaiaAppFolder)) {
@@ -89,9 +77,9 @@ function execute() {
   var scanAppDir = new ScanAppdir();
   scanAppDir.execute();
   if (utils.getOsType().indexOf('WIN') !== -1) {
-    dump(scanAppDir.allAppList.join(' ').replace(/\\/g, '\\\\'));
+    utils.stdout(scanAppDir.allAppList.join(' ').replace(/\\/g, '\\\\'));
   } else {
-    dump(scanAppDir.allAppList.join(' '));
+    utils.stdout(scanAppDir.allAppList.join(' '));
   }
 }
 
