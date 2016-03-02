@@ -21,18 +21,17 @@ require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_base_icon.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_sanitizer.js');
 
 var mocksForStatusbar = new MocksHelper([
   'UtilityTray',
   'AppWindow',
-  'LazyLoader'
+  'LazyLoader',
+  'Sanitizer'
 ]).init();
 
 suite('system/Statusbar', function() {
-  var fakeStatusbarNode, fakeTopPanel, fakeStatusbarIconsMax,
-      fakeStatusbarIcons, fakeStatusbarIconsMaxWrapper,
-      fakeStatusbarIconsMinWrapper, fakeStatusbarIconsMin;
-  var realMozL10n, realService, clientWidth, icons;
+  var screen, realMozL10n, realService, clientWidth, icons;
 
   var ICONS_LIMIT = 7;
 
@@ -80,33 +79,15 @@ suite('system/Statusbar', function() {
   }
 
   function prepareDOM() {
-    fakeStatusbarNode = document.createElement('div');
-    fakeStatusbarNode.id = 'statusbar';
-    document.body.appendChild(fakeStatusbarNode);
-
-    fakeTopPanel = document.createElement('div');
+    screen = document.createElement('div');
+    screen.id = 'screen';
+    var windows = document.createElement('div');
+    windows.id = 'windows';
+    var fakeTopPanel = document.createElement('div');
     fakeTopPanel.id = 'top-panel';
-    document.body.appendChild(fakeTopPanel);
-
-    fakeStatusbarIcons = document.createElement('div');
-    fakeStatusbarIcons.id = 'statusbar-icons';
-    document.body.appendChild(fakeStatusbarIcons);
-
-    fakeStatusbarIconsMaxWrapper = document.createElement('div');
-    fakeStatusbarIconsMaxWrapper.id = 'statusbar-maximized-wrapper';
-    fakeStatusbarIcons.appendChild(fakeStatusbarIconsMaxWrapper);
-
-    fakeStatusbarIconsMinWrapper = document.createElement('div');
-    fakeStatusbarIconsMinWrapper.id = 'statusbar-minimized-wrapper';
-    fakeStatusbarIcons.appendChild(fakeStatusbarIconsMinWrapper);
-
-    fakeStatusbarIconsMax = document.createElement('div');
-    fakeStatusbarIconsMax.id = 'statusbar-maximized';
-    fakeStatusbarIconsMaxWrapper.appendChild(fakeStatusbarIconsMax);
-
-    fakeStatusbarIconsMin = document.createElement('div');
-    fakeStatusbarIconsMin.id = 'statusbar-minimized';
-    fakeStatusbarIconsMinWrapper.appendChild(fakeStatusbarIconsMin);
+    screen.appendChild(fakeTopPanel);
+    screen.appendChild(windows);
+    document.body.appendChild(screen);
   }
 
   mocksForStatusbar.attachTestHelpers();
@@ -138,7 +119,7 @@ suite('system/Statusbar', function() {
   });
 
   teardown(function() {
-    fakeStatusbarNode.parentNode.removeChild(fakeStatusbarNode);
+    document.body.removeChild(screen);
     document.l10n = realMozL10n;
     window.Service = realService;
   });
