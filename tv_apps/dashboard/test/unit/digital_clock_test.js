@@ -2,13 +2,13 @@
 
 /* global DigitalClock, MockL10n */
 
-// XXX: The mocked formatValue method in mock_l10n.js returns Promise.resolve
+// XXX: The mocked formatValue method in mock_l20n.js returns Promise.resolve
 //      instead of a Promise, making it difficult to use the mock_promise.js
 //      to test. So here the test code is commented out
-//      until the mock_l10n.js is changed.
+//      until the mock_l20n.js is changed.
 //
 // require('/shared/test/unit/mocks/mock_promise.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/js/digital_clock.js');
 
 suite('DigitalClock', function() {
@@ -36,8 +36,8 @@ suite('DigitalClock', function() {
   };
 
   suiteSetup(function() {
-    realL10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
 
     for (var prop in elements) {
       document.body.appendChild(elements[prop]);
@@ -49,7 +49,7 @@ suite('DigitalClock', function() {
     for (var i=0; i < elements.length; i++) {
       document.body.removeChild(elements[i]);
     }
-    window.navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
 
   setup(function() {

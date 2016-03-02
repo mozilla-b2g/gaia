@@ -53,8 +53,8 @@
   proto._setL10n = function(element, l10n) {
     if ((typeof l10n) === 'string') {
       element.setAttribute('data-l10n-id', l10n);
-    } else if (navigator.mozL10n) {
-      navigator.mozL10n.setAttributes(element, l10n.id, l10n.args);
+    } else if (document.l10n) {
+      document.l10n.setAttributes(element, l10n.id, l10n.args);
     }
   };
 

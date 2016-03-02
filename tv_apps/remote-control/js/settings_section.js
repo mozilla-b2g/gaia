@@ -50,7 +50,7 @@
         this.checkRadio(elem.id);
         break;
       case 'clear-authorized-devices':
-        navigator.mozL10n.formatValue('clear-authorized-devices-message')
+        document.l10n.formatValue('clear-authorized-devices-message')
           .then((string) => {
             if (confirm(string)) {
               this.clearAuthorizedDevices();
