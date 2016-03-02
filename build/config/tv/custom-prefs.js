@@ -12,3 +12,6 @@ user_pref('dom.meta-viewport.enabled', false);
 user_pref('dom.presentation.enabled', true);
 user_pref('devtools.useragent.device_type', 'TV');
 user_pref('dom.apps.customization.enabled', false);
+
+//network offline error
+user_pref('network.offline-mirrors-connectivity', true);
