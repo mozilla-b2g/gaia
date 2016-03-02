@@ -1,5 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader, applications */
-/* global BookmarksDatabase, focusManager, SmartModalDialog */
+/* global BookmarksDatabase, focusManager, SmartModalDialog, ModalDialog */
 /* global AppInstallManager, AppInstallDialogs */
 /* global PreviewWindow, SystemBanner, ManifestHelper, BookmarkManager */
 
@@ -13,6 +13,7 @@
   // now.
   var ADD_TO_APPS_ICON_PATH = '/style/icons/add_to_apps.png';
   var DELETE_FROM_APPS_ICON_PATH = '/style/icons/delete_from_apps.png';
+  var LINK_ICON_PATH = '/style/icons/link.png';
 
   var _id = 0;
   /**
@@ -114,8 +115,8 @@
         listItemTask = this._listAddAppToAppsItem(this.app.manifestURL);
       }
 
-      listItemTask.then((item) => {
-        this.showMenu([item]);
+      listItemTask.then((items) => {
+        this.showMenu(items);
       });
 
       return;
@@ -136,8 +137,8 @@
         evt.preventDefault();
         evt.stopPropagation();
 
-        this._listAddToAppsItem(addToAppsChoice).then((item) => {
-          this.showMenu([item]);
+        this._listAddToAppsItem(addToAppsChoice).then((items) => {
+          this.showMenu(items);
         });
 
         return;
@@ -259,8 +260,10 @@
   BrowserContextMenu.prototype._listAddAppToAppsItem = function(manifestURL) {
     return new Promise((resolve, reject) => {
       var _ = navigator.mozL10n.get;
+      var menuData = [];
+
       if (!AppInstallManager.getAppAddedState(manifestURL)) {
-        resolve({
+        menuData.push({
           type: BUTTON_TYPE,
           textRaw: _('add-to-apps'),
           menuIcon: ADD_TO_APPS_ICON_PATH,
@@ -272,7 +275,7 @@
           }
         });
       } else {
-        resolve({
+        menuData.push({
           type: BUTTON_TYPE,
           textRaw: _('delete-from-apps'),
           menuIcon: DELETE_FROM_APPS_ICON_PATH,
@@ -294,6 +297,22 @@
           }
         });
       }
+
+      menuData.push({
+        type: BUTTON_TYPE,
+        textRaw: _('url'),
+        menuIcon: LINK_ICON_PATH,
+        onClick: () => {
+          ModalDialog.alert(null, {
+            'id': 'show-url',
+            'args': {
+              'url': manifestURL
+            }
+          }, {});
+        }
+      });
+
+      resolve(menuData);
     });
   };
 
@@ -303,8 +322,10 @@
     return new Promise((resolve, reject) => {
       BookmarkManager.get(url).then((bookmark) => {
         var _ = navigator.mozL10n.get;
+        var menuData = [];
+
         if (!bookmark) {
-          resolve({
+          menuData.push({
             type: BUTTON_TYPE,
             textRaw: _('add-to-apps'),
             menuIcon: ADD_TO_APPS_ICON_PATH,
@@ -331,7 +352,7 @@
           // 3. here.
           // If we need further changes on the behavior of confirmation, be sure
           // to check these 3 places.
-          resolve({
+          menuData.push({
             type: BUTTON_TYPE,
             textRaw: _('delete-from-apps'),
             menuIcon: DELETE_FROM_APPS_ICON_PATH,
@@ -359,6 +380,22 @@
             }
           });
         }
+
+        menuData.push({
+          type: BUTTON_TYPE,
+          textRaw: _('url'),
+          menuIcon: LINK_ICON_PATH,
+          onClick: () => {
+            ModalDialog.alert(null, {
+              'id': 'show-url',
+              'args': {
+                'url': url
+              }
+            }, {});
+          }
+        });
+
+        resolve(menuData);
       }).catch(reject);
     });
   };
