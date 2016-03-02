@@ -12,7 +12,7 @@
  *        state when user release the button. After transitionend, we goes back
  *        to focused state.
 **/
-smart-button {
+fxos-tv-button {
   font-family: "Fira Sans";
   display: inline-block;
   width: 8rem;
@@ -36,32 +36,32 @@ smart-button {
   transition-duration: 0.42s;
 }
 
-smart-button.focused {
+fxos-tv-button.focused {
   outline: 0;
   background-color: #ffffff;
   transform: scale(1.2);
   transition-duration: 0.42s;
 }
 
-smart-button.released {
+fxos-tv-button.released {
   transition-duration: 0.16s;
 }
 
-smart-button.toggled {
+fxos-tv-button.toggled {
   background-color: #00caf2;
 }
 
-smart-button.pressed {
+fxos-tv-button.pressed {
   background-color: #00caf2;
   transform: scale(0.8);
   transition-duration: 0.06s;
 }
 
-smart-button.disabled {
+fxos-tv-button.disabled {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-smart-button[data-icon]:before {
+fxos-tv-button[data-icon]:before {
   width: 5.4rem;
   left: 1.3rem;
   font-size: 5.4rem;
@@ -73,19 +73,19 @@ smart-button[data-icon]:before {
   position: absolute;
 }
 
-smart-button[data-icon].focused:before {
+fxos-tv-button[data-icon].focused:before {
   color: #2d2d2d;
 }
 
-smart-button[data-icon].toggled:before {
+fxos-tv-button[data-icon].toggled:before {
   color: #00caf2;
 }
 
-smart-button[data-icon].pressed:before {
+fxos-tv-button[data-icon].pressed:before {
   color: #ffffff;
 }
 
-smart-button[data-icon].disabled:before {
+fxos-tv-button[data-icon].disabled:before {
   color: #ffffff;
   opacity: 0.3;
 }
@@ -93,7 +93,7 @@ smart-button[data-icon].disabled:before {
 /**
  * Simple Text Button
 **/
-smart-button[type="simple-text"] {
+fxos-tv-button[type="simple-text"] {
   color: #dddddd;
   background: none;
   border: none;
@@ -109,16 +109,16 @@ smart-button[type="simple-text"] {
   padding-right: 2.6rem;
 }
 
-smart-button[type="simple-text"].focused {
+fxos-tv-button[type="simple-text"].focused {
   color: #ffffff;
   background: none;
 }
 
-smart-button[type="simple-text"].toggled {
+fxos-tv-button[type="simple-text"].toggled {
   color: #00caf2;
 }
 
-smart-button[type="simple-text"].pressed {
+fxos-tv-button[type="simple-text"].pressed {
   color: #00caf2;
   background: none;
 }
@@ -132,7 +132,7 @@ smart-button[type="simple-text"].pressed {
 /**
  * underlined text button
  */
-smart-button[type="underlined-text"] {
+fxos-tv-button[type="underlined-text"] {
   position: relative;
   color: white;
   font-size: 2.4rem;
@@ -145,7 +145,7 @@ smart-button[type="underlined-text"] {
   overflow: hidden;
 }
 
-smart-button[type="underlined-text"]:after {
+fxos-tv-button[type="underlined-text"]:after {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -155,12 +155,12 @@ smart-button[type="underlined-text"]:after {
   box-sizing: border-box;
 }
 
-smart-button[type="underlined-text"].focused {
+fxos-tv-button[type="underlined-text"].focused {
   transform: scale(1.2);
   color: #2d2d2d;
 }
 
-smart-button[type="underlined-text"].pressed {
+fxos-tv-button[type="underlined-text"].pressed {
   transform: scale(1);
   color: white;
   background-color: #00caf2;
@@ -173,7 +173,7 @@ smart-button[type="underlined-text"].pressed {
 /**
  * App Icons
 **/
-smart-button[type="app-button"] {
+fxos-tv-button[type="app-button"] {
   /* To use 33.4rem instead of to use 33.6rem is to work around the anti-alias
      pixel. So, the circle is filled by the background almost totally. */
   width: 33.4rem;
@@ -183,14 +183,14 @@ smart-button[type="app-button"] {
   background-color: transparent;
 }
 
-smart-button[type="app-button"].focused {
+fxos-tv-button[type="app-button"].focused {
   transform: scale(1.4);
   /* To use outline will not change the size of button and make the whole button
      thrilling. */
   outline: 0.8rem solid #ffffff;
 }
 
-smart-button[type="app-button"].pressed {
+fxos-tv-button[type="app-button"].pressed {
   /* While scaling, we may have a gap between outline and icon which may be
      anti-alias pixel. So, we use scale(1.22) to prevent such kind of case */
   transform: scale(1.22);
@@ -199,16 +199,16 @@ smart-button[type="app-button"].pressed {
   outline: 1.0rem solid #ffffff;
 }
 
-smart-button[type="app-button"].fullsized {
+fxos-tv-button[type="app-button"].fullsized {
   background-size: 33.6rem auto;
 }
 
-smart-button[type="app-button"].fitted {
+fxos-tv-button[type="app-button"].fitted {
   background-size: 22rem auto;
 }
 
 /** we use :after as label */
-smart-button[type="app-button"]:after {
+fxos-tv-button[type="app-button"]:after {
   content: attr(label);
 
   position: absolute;
@@ -232,34 +232,35 @@ smart-button[type="app-button"]:after {
 /**
  * text backgorund color
 **/
-smart-button[type="app-button"][app-type="deck"]:after {
+fxos-tv-button[type="app-button"][app-type="deck"]:after {
   background-color: transparent;
 }
 
-smart-button[type="app-button"][app-type="tv"]:after {
+fxos-tv-button[type="app-button"][app-type="tv"]:after {
   background-color: #d90c83;
 }
 
-smart-button[type="app-button"][app-type="app"]:after {
+fxos-tv-button[type="app-button"][app-type="app"]:after,
+fxos-tv-button[type="app-button"][app-type="bookmark"]:after {
   background-color: rgba(0, 0, 0, 0.4);
 }
 
-smart-button[type="app-button"][app-type="device"]:after {
+fxos-tv-button[type="app-button"][app-type="device"]:after {
   background-color: #4a82ea;
 }
 
-smart-button[type="app-button"][app-type="folder"] {
+fxos-tv-button[type="app-button"][app-type="folder"] {
   background-color: #595959;
 }
 
-smart-button[type="app-button"]:before {
+fxos-tv-button[type="app-button"]:before {
   left: 0;
   line-height: 30rem;
   font-size: 16rem;
   width: 100%;
 }
 
-smart-button[type="app-button"][app-type="folder"]:before {
+fxos-tv-button[type="app-button"][app-type="folder"]:before {
   color: #CCCCCC;
 }
 
@@ -270,7 +271,7 @@ smart-button[type="app-button"][app-type="folder"]:before {
 /**
  * text and icon button
  */
-smart-button[type="text-and-icon"] {
+fxos-tv-button[type="text-and-icon"] {
   position: relative;
   color: white;
   font-size: 2.4rem;
@@ -283,20 +284,20 @@ smart-button[type="text-and-icon"] {
   overflow: hidden;
 }
 
-smart-button[type="text-and-icon"][data-icon] {
+fxos-tv-button[type="text-and-icon"][data-icon] {
   padding-left: 9.6rem;
 }
 
-smart-button[type="text-and-icon"][data-icon]:before {
+fxos-tv-button[type="text-and-icon"][data-icon]:before {
   left: 3.8rem;
 }
 
-smart-button[type="text-and-icon"].focused {
+fxos-tv-button[type="text-and-icon"].focused {
   transform: scale(1.2);
   color: #2d2d2d;
 }
 
-smart-button[type="text-and-icon"].pressed {
+fxos-tv-button[type="text-and-icon"].pressed {
   transform: scale(1);
   color: white;
   background-color: #00caf2;
@@ -309,7 +310,7 @@ smart-button[type="text-and-icon"].pressed {
 /**
  * banner button
 **/
-smart-button[type="banner-button"] {
+fxos-tv-button[type="banner-button"] {
   position: relative;
 
   color: #ffffff;
@@ -333,7 +334,7 @@ smart-button[type="banner-button"] {
   transition-duration: 0.1s;
 }
 
-smart-button[type="banner-button"][label]:before {
+fxos-tv-button[type="banner-button"][label]:before {
   content: attr(label);
 
   position: absolute;
@@ -348,7 +349,7 @@ smart-button[type="banner-button"][label]:before {
   background-color: rgba(0, 0, 0, 0.4);
 }
 
-smart-button[type="banner-button"]:after {
+fxos-tv-button[type="banner-button"]:after {
   content: " ";
   position: absolute;
   bottom: 0;
@@ -361,18 +362,18 @@ smart-button[type="banner-button"]:after {
   background-color: rgba(255, 255, 255, 0);
 }
 
-smart-button[type="banner-button"].focused {
+fxos-tv-button[type="banner-button"].focused {
   transform: none;
   border-width: 1.2rem;
   background-size: 100%;
   transition-duration: 0.24s;
 }
 
-smart-button[type="banner-button"].pressed {
+fxos-tv-button[type="banner-button"].pressed {
   transform: scale(0.945, 0.9);
 }
 
-smart-button[type="banner-button"].pressed:after {
+fxos-tv-button[type="banner-button"].pressed:after {
   background-color: rgba(255, 255, 255, 0.5);
 }
 
@@ -383,7 +384,7 @@ smart-button[type="banner-button"].pressed:after {
 /**
  * circle text button
  */
-smart-button[type="circle-text"] {
+fxos-tv-button[type="circle-text"] {
   width: 21rem;
   height: 21rem;
   color: white;
@@ -397,48 +398,48 @@ smart-button[type="circle-text"] {
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="circle-text"].focused {
+fxos-tv-button[type="circle-text"].focused {
   transform: scale(1.2);
   color: #2d2d2d;
   background-color: white;
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="circle-text"].pressed {
+fxos-tv-button[type="circle-text"].pressed {
   transform: scale(1);
   color: white;
   background-color: #00caf2;
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="circle-text"].primary {
+fxos-tv-button[type="circle-text"].primary {
   background-color: #00caf2;
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="circle-text"].primary.focused {
+fxos-tv-button[type="circle-text"].primary.focused {
   color: #ffffff;
   background-color: #00caf2;
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="circle-text"].primary.pressed {
+fxos-tv-button[type="circle-text"].primary.pressed {
   background-color: #0097b5;
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="circle-text"].danger {
+fxos-tv-button[type="circle-text"].danger {
   background-color: #e63d2f;
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="circle-text"].danger.focused {
+fxos-tv-button[type="circle-text"].danger.focused {
   color: #ffffff;
   background-color: #e63d2f;
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="circle-text"].danger.pressed {
+fxos-tv-button[type="circle-text"].danger.pressed {
   background-color: #ac2e23;
   transition-property: transform, color, background-color;
 }
@@ -450,7 +451,7 @@ smart-button[type="circle-text"].danger.pressed {
 /**
  * rounded-corner text button
  */
-smart-button[type="rounded-corner-text"] {
+fxos-tv-button[type="rounded-corner-text"] {
   -moz-user-select: none;
   width: auto;
   height: 8rem;
@@ -465,30 +466,30 @@ smart-button[type="rounded-corner-text"] {
   transition-property: transform, color, background-color;
 }
 
-smart-button[type="rounded-corner-text"].focused,
-smart-button[type="rounded-corner-text"]:hover {
+fxos-tv-button[type="rounded-corner-text"].focused,
+fxos-tv-button[type="rounded-corner-text"]:hover {
   transform: scale(1.2);
   color: #2d2d2d;
   background-color: white;
 }
 
-smart-button[type="rounded-corner-text"].pressed {
+fxos-tv-button[type="rounded-corner-text"].pressed {
   transform: scale(1);
   /*color: white;*/
   background-color: #00caf2;
 }
 
-smart-button[type="rounded-corner-text"].primary {
+fxos-tv-button[type="rounded-corner-text"].primary {
   background-color: #00caf2;
 }
 
-smart-button[type="rounded-corner-text"].primary:hover,
-smart-button[type="rounded-corner-text"].primary.focused {
+fxos-tv-button[type="rounded-corner-text"].primary:hover,
+fxos-tv-button[type="rounded-corner-text"].primary.focused {
   color: #ffffff;
   background-color: #00caf2;
 }
 
-smart-button[type="rounded-corner-text"].primary.pressed {
+fxos-tv-button[type="rounded-corner-text"].primary.pressed {
   background-color: #0097b5;
 }
 

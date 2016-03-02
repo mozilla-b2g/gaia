@@ -6,8 +6,8 @@
     <title>web browser</title>
 
     <!-- building blocks -->
-    <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
-    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/fxos-tv-button/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/fxos-tv-icons/fxos-tv-icons.css">
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/components.css">
@@ -37,7 +37,7 @@ ENDIF_FIREFOX_SYNC-->
 
     <!-- building blocks -->
     <script defer src="bower_components/evt/index.js"></script>
-    <script defer src="bower_components/smart-button/script.js"></script>
+    <script defer src="bower_components/fxos-tv-button/script.js"></script>
 
     <!-- Shared code -->
     <script defer src="shared/js/url_helper.js"></script>
@@ -727,14 +727,14 @@ ENDIF_FIREFOX_SYNC-->
               <p data-l10n-id="fxsync">Firefox Sync</p>
             </div>
             <div id="fxsync-disabled">
-              <smart-button id="fxsync-sign-in-button" type="rounded-corner-text" data-l10n-id="fxsync-sign-in"></smart-button>
+              <fxos-tv-button id="fxsync-sign-in-button" type="rounded-corner-text" data-l10n-id="fxsync-sign-in"></fxos-tv-button>
               <p data-l10n-id="fxsync-sign-in-to-sync-description"></p>
               <p data-l10n-id="fxsync-sign-in-to-sync-description-plus"></p>
             </div>
             <div id="fxsync-enabled" hidden>
               <span id="fxsync-signed-in-as" data-l10n-id="fxsync-signed-in-as"></span>
-              <smart-button id="fxsync-sync-now-button" type="rounded-corner-text" data-l10n-id="fxsync-sync-now"></smart-button>
-              <smart-button id="fxsync-sign-out-button" type="rounded-corner-text" data-l10n-id="fxsync-sign-out"></smart-button>
+              <fxos-tv-button id="fxsync-sync-now-button" type="rounded-corner-text" data-l10n-id="fxsync-sync-now"></fxos-tv-button>
+              <fxos-tv-button id="fxsync-sign-out-button" type="rounded-corner-text" data-l10n-id="fxsync-sign-out"></fxos-tv-button>
               <ul class="settings-horizontal-list">
                 <li class="settings-horizontal-list-item">
                   <input type="checkbox" id="fxsync-collection-bookmarks" class="settings-list-checkbox"></input>

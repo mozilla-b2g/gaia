@@ -1,15 +1,15 @@
-/* XXX: smart-button uses box-sizing: content-box, but it's overidden in toolbar.css */
-smart-button {
+/* XXX: fxos-tv-button uses box-sizing: content-box, but it's overidden in toolbar.css */
+fxos-tv-button {
   box-sizing: content-box;
 }
 
-smart-button[type=simple-text] {
+fxos-tv-button[type=simple-text] {
   background-color: #5f6368;
   border-radius: 4rem;
   text-align: center;
 }
 
-smart-button[type=simple-text].disabled {
+fxos-tv-button[type=simple-text].disabled {
   background-color: rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
@@ -215,7 +215,7 @@ p.fine-print {
 /* Firefox Sync */
 
 /*IFDEF_FIREFOX_SYNC*/
-#fxsync-sign-in > smart-button {
+#fxsync-sign-in > fxos-tv-button {
   background-color: #4d4d4d;
   line-height: 4rem;
   height: 4rem;
@@ -256,7 +256,7 @@ p.fine-print {
   display: none;
 }
 
-#fxsync-enabled > smart-button {
+#fxsync-enabled > fxos-tv-button {
   margin-left: 1.8rem;
 }
 
