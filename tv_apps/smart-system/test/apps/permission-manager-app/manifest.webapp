@@ -1,0 +1,16 @@
+{
+  "name": ">>> Permission Manager Dialog <<<",
+  "description": "App used to test permission manager dialogs",
+  "type": "privileged",
+  "launch_path": "/index.html",
+  "fullscreen": true,
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "geolocation":{
+      "description":"Ask for geo location permission"
+    }
+  }
+}
