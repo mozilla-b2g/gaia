@@ -352,6 +352,11 @@ p.fine-print {
   outline:none;
 }
 
+#settings-dialog-homepage-input.invalid,
+#settings-dialog-homepage-input.input.invalid {
+  border-bottom-color: #b90000;
+}
+
 #settings-dialog-homepage-input.input #settings-dialog-homepage-input-area {
   font-style: normal;
   transition: font-style 0.06s cubic-bezier(0.25, 0, 0, 1.0);
@@ -375,10 +380,19 @@ p.fine-print {
   display: table-cell;
 }
 
+#settings-dialog-homepage-input-area:invalid {
+  box-shadow: none;
+}
+
 #settings-dialog-homepage-input .input-line {
   width: 100%;
   bottom: 0px;
 }
+
+#settings-dialog-homepage-input.invalid .input-line {
+  background-color: #b90000;
+}
+
 #settings-dialog-homepage-input:hover .input-line,
 #settings-dialog-homepage-input.exfocus .input-line {
   transform: scaleX(1);
@@ -509,6 +523,12 @@ p.fine-print {
   transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.16s cubic-bezier(0.25, 0, 0, 1.0);
+}
+
+#settings-dialog-homepage-ok.disable {
+  color: rgba(255,255,255,0.5);
+  background-color: #5f6368;
+  pointer-events: none;
 }
 
 /*
@@ -695,6 +715,11 @@ p.fine-print {
                    background-color 0.42s cubic-bezier(0.25, 0, 0, 1.0);
   background-color: #0097b6;
   transform: scale(1.2);
+}
+
+#settings-dialog-homepage-ok.disable:focus,
+#settings-dialog-homepage-ok.disable:hover {
+  background-color: #5f6368;
 }
 
 #settings-dialog-homepage-cancel.active,
