@@ -1,4 +1,4 @@
-/* global BaseModule, LazyLoader, applications */
+/* global BaseModule, LazyLoader */
 'use strict';
 
 (function(exports) {
@@ -62,12 +62,6 @@
       window.settingsCore.start();
       window.launcher = BaseModule.instantiate('Launcher');
       return Promise.all([
-        // XXX:
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=1161489
-        // Consider to move applications.start() into Core or AppCore
-        // but it may miss the mozChromeEvent to tell us application
-        // is ready to query.
-        applications.waitForReady(),
         window.launcher.start()
       ]).then(() => {
         window.core = BaseModule.instantiate('Core');
@@ -76,7 +70,7 @@
         // To let integration test know we are ready to test.
         document.body.setAttribute('ready-state', 'fullyLoaded');
         window.performance.mark('fullyLoaded');
-      });
+      }).catch(err => { console.log('Error: ' + err); });
     }
   };
 

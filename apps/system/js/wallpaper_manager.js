@@ -61,6 +61,7 @@
           reject();
           return;
         }
+
         this.wallpaperInitialized = true;
         this._initPromiseResolver = resolve;
         if (!wallpaper) {

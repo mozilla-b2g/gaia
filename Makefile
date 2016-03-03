@@ -180,7 +180,8 @@ LOCAL_DOMAINS?=1
 
 ADB?=adb
 
-SCHEME=app://
+# Yep, this is a gross hack.
+SCHEME=http://localhost/
 
 SYSTEM?=$(SCHEME)system.$(GAIA_DOMAIN)
 
