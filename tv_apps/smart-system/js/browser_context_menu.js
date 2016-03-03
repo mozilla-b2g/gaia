@@ -251,7 +251,10 @@
         .map((value) => {
           return decodeURIComponent(value);
         });
-      return this._listAddWebsiteToAppsItem(data[0], data[1], data[2]);
+
+      // Normalize the URL string.
+      var url = new URL(data[0]).toString();
+      return this._listAddWebsiteToAppsItem(url, data[1], data[2]);
     }
 
     return Promise.reject();
