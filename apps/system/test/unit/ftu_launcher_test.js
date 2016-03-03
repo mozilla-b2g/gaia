@@ -1,6 +1,5 @@
   /* global BaseModule, MocksHelper, SettingsMigrator,
-          MockasyncStorage, MockNavigatorSettings, MockPromise,
-          FtuLateCustomization */
+          MockasyncStorage, MockNavigatorSettings, MockPromise */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -39,11 +38,6 @@ suite('launch ftu >', function() {
     window.FtuPing = function() {
       this.ensurePingCalled = false;
       this.ensurePing = function() { this.ensurePingCalled = true; };
-    };
-    window.FtuLateCustomization = function() {
-      this.start = sinon.stub();
-      this.stop = sinon.stub();
-      FtuLateCustomization.instance = this;
     };
   });
 
@@ -146,28 +140,4 @@ suite('launch ftu >', function() {
     });
   });
 
-  suite('Late Customization', function() {
-    var customizationUrl = 'http://foo.com/api/operator/';
-    setup(function() {
-      startAllPromise.mFulfillToValue([customizationUrl]);
-    });
-
-    test('start', function() {
-      assert.ok(subject.isFtuCustomizing());
-      assert.ok(FtuLateCustomization.instance &&
-                FtuLateCustomization.instance.start.calledOnce);
-    });
-
-    test('skip', function() {
-      subject.skip();
-      assert.ok(FtuLateCustomization.instance.stop.calledOnce);
-      assert.isFalse(subject.isFtuCustomizing());
-    });
-
-    test('done', function() {
-      subject.skip();
-      assert.ok(FtuLateCustomization.instance.stop.calledOnce);
-      assert.isFalse(subject.isFtuCustomizing());
-    });
-  });
 });

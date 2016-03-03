@@ -170,26 +170,7 @@
     handleMozChromeEvent: function ai_handleMozChromeEvent(e) {
       switch (e.detail.type) {
         case 'webapps-ask-install':
-          var manifestURL = e.detail.app && e.detail.app.manifestURL;
-          var isCustomizing = Service.query('ftuCustomizationContains',
-                                            manifestURL);
-          this.debug('handling webapps-ask-install, ' +
-            'manifestURL: ' + manifestURL + ', ' +
-            'isCustomizing: ' + isCustomizing);
-
-          if (manifestURL && isCustomizing) {
-            var grantedEvent = new CustomEvent('mozContentEvent', {
-              bubbles: true,
-              cancelable: true,
-              detail: {
-                id: e.detail.id,
-                type: 'webapps-install-granted'
-              }
-            });
-            window.dispatchEvent(grantedEvent);
-          } else {
-            this.handleAppInstallPrompt(e.detail);
-          }
+          this.handleAppInstallPrompt(e.detail);
           break;
         case 'webapps-ask-uninstall':
           this.handleAppUninstallPrompt(e.detail);
