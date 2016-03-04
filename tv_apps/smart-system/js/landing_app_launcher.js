@@ -14,24 +14,21 @@
   };
 
   LandingAppLauncher.prototype = Object.create(HomescreenLauncher.prototype);
-  LandingAppLauncher.prototype.contructor = LandingAppLauncher;
-  LandingAppLauncher.prototype.name = 'LandingAppLauncher';
-  LandingAppLauncher.prototype.EVENT_PREFIX = 'landing-app-';
 
-  LandingAppLauncher.prototype._settingsKey = 'landing_app.manifestURL';
+  var proto = LandingAppLauncher.prototype;
 
-  Object.defineProperty(LandingAppLauncher, 'hasLandingApp', {
-    get: function lal_hasLandingApp() {
-      return !!this._checkManifestURL();
-    }
+  proto._settingsKey = 'landing_app.manifestURL';
+
+  proto.__defineGetter__('hasLandingApp', function lal_hasLandingApp() {
+    return !!this._checkManifestURL();
   });
 
-  LandingAppLauncher.prototype._checkManifestURL = function(manifestURL) {
+  proto._checkManifestURL = function lal_checkManifestURL(manifestURL) {
     return !!applications.getByManifestURL(manifestURL ||
                                            this._currentManifestURL);
   };
 
-  LandingAppLauncher.prototype._fetchSettings = function lal_fetchSettings() {
+  proto._fetchSettings = function lal_fetchSettings() {
     var that = this;
     SettingsCache.observe(this._settingsKey, '',
       // XXX: After landing of bug 976986, we should write a deregister
@@ -49,7 +46,7 @@
             // Dispatch 'homescreen is changed' event.
             // Landing app is a kind of homescreen, we use homescreen-changed
             // event to notify app_window_manager to reload homescreen.
-            that.publish('changed');
+            window.dispatchEvent(new CustomEvent('landing-app-changed'));
           } else {
             that._instance.ensure();
           }
@@ -58,7 +55,7 @@
           console.warn('We enable landing app but without defining it?');
         }
         that._ready = true;
-        that.publish('ready');
+        window.dispatchEvent(new CustomEvent('landing-app-ready'));
       });
   };
 
@@ -70,7 +67,7 @@
    * @returns {LandingAppWindow} Instance of homescreen window singleton, or
    *                             null if LandingAppLauncher is not ready
    */
-  LandingAppLauncher.prototype.getHomescreen = function(ensure) {
+  proto.getHomescreen = function hl_getAppWindow(ensure) {
     if (!this.hasLandingApp) {
       console.warn('LandingAppLauncher: do not have a landing app.');
       return null;
