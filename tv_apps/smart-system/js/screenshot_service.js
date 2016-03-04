@@ -1,9 +1,9 @@
 'use strict';
-/* global AppWindowManager, IACHandler */
+/* global Service, IACHandler */
 (function(exports) {
   window.addEventListener('iac-screenshot', function(evt) {
     var data = evt.detail.data;
-    var app = AppWindowManager.getAppByURL(data.url);
+    var app = Service.query('getAppByURL', data.url);
     var screenshotRequest = app.iframe.getScreenshot(
                                               data.maxWidth, data.maxHeight);
     screenshotRequest.onsuccess = function(evt) {
