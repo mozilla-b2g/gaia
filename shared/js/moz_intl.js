@@ -19,6 +19,35 @@ global.mozIntl = {
     );
   },
 
+  ListFormat: function(locales, options) {
+    const resolvedOptions = Object.assign({
+      locale: locales[0],
+      style: 'regular',
+    }, options);
+
+    return {
+      resolvedOptions: function() { return resolvedOptions; },
+      format: function(x) {
+        const length = x.length;
+
+        if (length === 0) {
+          return '';
+        }
+
+        if (length === 1) {
+          return x[0];
+        }
+
+        if (length === 2) {
+          
+        }
+        return document.l10n.formatValue('listSeparator_middle').then(
+          sep => x.join(sep)
+        );
+      },
+    };
+  },
+
   /**
    * Overload of Intl.DateTimeFormat that extends with future features.
    *
