@@ -72,6 +72,7 @@
     "distros/raptor/apps/test-startup-limit/test/marionette/counter_test.js": "Bug 1171918 - Intermittent counter_test.js | counter + should increment count",
     "tests/jsmarionette/client/marionette-client/test/integration/scope-test.js": "Bug 1181423 - Intermittent tests/jsmarionette/client/marionette-client/test/integration/scope-test.js",
     "tests/jsmarionette/plugins/marionette-apps/test/app_test.js": "Bug 1189882 - Intermittent tests/jsmarionette/plugins/marionette-apps/test/app_test.js",
-    "tv_apps/smart-system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - TEST-UNEXPECTED-FAIL | /builds/slave/test/gaia/apps/system/fxa/test/marionette/fxa_screen_flow_test.js | Firefox Accounts Screen Flow Test (UITest app) should walk screen flow for existing user"
+    "tv_apps/smart-system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - TEST-UNEXPECTED-FAIL | /builds/slave/test/gaia/apps/system/fxa/test/marionette/fxa_screen_flow_test.js | Firefox Accounts Screen Flow Test (UITest app) should walk screen flow for existing user",
+    "apps/system/test/marionette/audio_channel_played_in_foreground_and_background_test.js": "Bug 1239574 - Intermittent apps/system/test/marionette/audio_channel_played_in_foreground_and_background_test.js | Audio channel played in foreground and background telephony audio channel telephony audio channel can be played in foreground"
   }
 }
