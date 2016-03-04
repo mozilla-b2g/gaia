@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, HomescreenWindowManager,
+/*global ActivityWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, ScreenManager, Activities, AppUsageMetrics, RemoteControl,
          DeveloperHUD, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage,
@@ -55,7 +55,7 @@ window.addEventListener('load', function startup() {
       // We may have application.ready = true while reloading at firefox nightly
       // browser. In this case, the window.homescreenLauncher haven't been
       // created. We should create it and start it in this case.
-      window.homescreenLauncher = BaseModule.instantiate('HomescreenLauncher');
+      window.homescreenLauncher = new HomescreenLauncher();
     }
     window.homescreenLauncher.start();
   }
@@ -113,7 +113,7 @@ window.addEventListener('load', function startup() {
     // If application.ready is true, we already create homescreenLauncher in
     // safelyLaunchFTU(). We should use it. If it is false, we should create it
     // here.
-    window.homescreenLauncher = BaseModule.instantiate('HomescreenLauncher');
+    window.homescreenLauncher = new HomescreenLauncher();
   }
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();

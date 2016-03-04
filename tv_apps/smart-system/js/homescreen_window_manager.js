@@ -30,8 +30,8 @@
      * @type {boolean}
      */
     get ready() {
-      return homescreenLauncher && homescreenLauncher.ready &&
-             this.landingAppLauncher && this.landingAppLauncher.ready;
+      return homescreenLauncher.ready && this.landingAppLauncher &&
+             this.landingAppLauncher.ready;
     },
 
     debug: function hwm_debug() {
@@ -357,7 +357,7 @@
         this._activeHome = homescreenLauncher;
       }
 
-      var home = this._activeHome.getHomescreen(true);
+      var home  = this._activeHome.getHomescreen(true);
       if (isHomeEvent) {
         home.ensure(true);
       }
