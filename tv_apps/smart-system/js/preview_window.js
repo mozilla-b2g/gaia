@@ -51,12 +51,20 @@
    * @memberof PreviewWindow
    */
   PreviewWindow.prototype = Object.create(AppWindow.prototype);
+  PreviewWindow.prototype.constructor = PreviewWindow;
 
   PreviewWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsericonchange'];
+     'mozbrowsermetachange', 'mozbrowsericonchange',
+     '_localized', '_swipein', '_swipeout', '_kill_suspended',
+     '_orientationchange', '_focus', '_hidewindow', '_sheetsgesturebegin',
+     '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
+     '_closed'];
+
+  PreviewWindow.REGISTERED_GLOBAL_EVENTS =
+    ['back'];
 
   PreviewWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -64,6 +72,7 @@
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
+    'splashScreen': window.SplashScreen,
     'childWindowFactory': window.ChildWindowFactory
   };
 
