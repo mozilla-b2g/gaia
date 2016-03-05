@@ -93,7 +93,7 @@
       this.origin = url.origin;
       this.manifestURL = manifestURL;
       // FIXME: don't hardcode that.
-      this.url = url.origin + 'homescreen.gaiamobile.org/index.html#root';
+      this.url = 'http://localhost/homescreen.gaiamobile.org/index.html#root';
 
       this.browser_config =
         new BrowserConfigHelper({
@@ -105,7 +105,7 @@
       this.name = this.browser_config.name;
 
       this.manifest = this.browser_config.manifest;
-      // XXX: Remove this hardcode
+      // FIXME: Remove this hardcode
       this.browser_config.url = this.url;
       this.browser_config.isHomescreen = true;
       this.config = this.browser_config;
