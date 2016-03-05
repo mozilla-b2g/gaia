@@ -532,11 +532,6 @@
   }
 
   function getAdditionalLanguages() {
-    if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
-      return navigator.mozApps.getAdditionalLanguages()
-        .catch(() => Object.create(null));
-    }
-
     return Promise.resolve(Object.create(null));
   }
 

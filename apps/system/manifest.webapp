@@ -55,7 +55,8 @@
     "before-after-keyboard-event": {},
     "moz-extremely-unstable-and-will-change-webcomponents":{},
     "moz-firefox-accounts": {},
-    "presentation-device-manage": {}
+    "presentation-device-manage": {},
+    "previously-certified-app": {}
   },
   "locales": {
     "ar": {
