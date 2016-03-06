@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('./utils');
+var scanAppdir = require('./scan-appdir');
 
 function getAppRegExp(options) {
   var appRegExp;
@@ -94,7 +95,7 @@ function buildApps(options) {
 exports.execute = function(options) {
   var stageDir = utils.getFile(options.STAGE_DIR);
   utils.ensureFolderExists(stageDir);
-
+  options.GAIA_APPDIRS = options.GAIA_APPDIRS || scanAppdir.execute(options);
   if (options.BUILD_APP_NAME === '*') {
     options.rebuildAppDirs = require('./rebuild').execute(options);
   } else {
