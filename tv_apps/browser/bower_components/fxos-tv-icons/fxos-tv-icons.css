@@ -3,8 +3,8 @@
 
 
 @font-face {
-  font-family: "smart-icons";
-  src: url("fonts/smart-icons.ttf") format("truetype");
+  font-family: "fxos-tv-icons";
+  src: url("fonts/fxos-tv-icons.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
 }
@@ -12,7 +12,7 @@
 
 [data-icon]:before,
 .ligature-icons {
-  font-family: "smart-icons";
+  font-family: "fxos-tv-icons";
   content: attr(data-icon);
   display: inline-block;
   font-weight: 500;

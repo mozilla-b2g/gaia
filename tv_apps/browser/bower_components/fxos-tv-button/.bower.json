@@ -1,0 +1,26 @@
+{
+  "name": "fxos-tv-button",
+  "version": "1.0.0",
+  "homepage": "https://github.com/fxos-components/fxos-tv-button",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "_release": "1.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.0",
+    "commit": "ab07b25e4a2bbb184b967e0aa9408822200ae80a"
+  },
+  "_source": "git://github.com/fxos-components/fxos-tv-button.git",
+  "_target": "*",
+  "_originalSource": "fxos-components/fxos-tv-button"
+}
