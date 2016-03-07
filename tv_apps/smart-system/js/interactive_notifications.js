@@ -154,7 +154,7 @@
     title.textContent = msg.title ? msg.title : '';
 
     if (msg.title && msg.title.id) {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         title,
         msg.title.id,
         msg.title.args
@@ -166,7 +166,7 @@
     }
 
     if (msg.text && msg.text.id) {
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         text,
         msg.text.id,
         msg.text.args
@@ -192,7 +192,7 @@
             buttons[i].appendChild(buttonImg);
           }
           if (msg.buttons[i].label && msg.buttons[i].label.id) {
-            navigator.mozL10n.setAttributes(
+            document.l10n.setAttributes(
               buttons[i],
               msg.buttons[i].label.id,
               msg.buttons[i].label.args

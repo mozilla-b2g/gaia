@@ -129,7 +129,7 @@ window.ValuePicker = (function() {
     } else if (l10n.hasOwnProperty('raw')) {
       unit.textContent = l10n.raw;
     } else {
-      navigator.mozL10n.setAttributes(unit, l10n.id, l10n.args);
+      document.l10n.setAttributes(unit, l10n.id, l10n.args);
     }
     this.element.appendChild(unit);
   };

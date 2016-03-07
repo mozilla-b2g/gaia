@@ -333,7 +333,7 @@
         if (this.isCamSelector) {
           this.title.setAttribute('data-l10n-id', 'title-cam');
         }
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           this.deviceSelector,
           'perm-camera-selector-appRequest',
           { 'app': new ManifestHelper(app.manifest).name }
@@ -345,7 +345,7 @@
         };
 
         this.title.setAttribute('data-l10n-id', 'title-web');
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           this.deviceSelector,
           'perm-camera-selector-webRequest',
           { 'site': detail.origin }
@@ -550,7 +550,7 @@
           id, msg, moreInfoText, yescallback, nocallback) {
       // Note plain text since this may include text from
       // untrusted app manifests, for example.
-      navigator.mozL10n.setAttributes(this.message, msg.id, msg.args);
+      document.l10n.setAttributes(this.message, msg.id, msg.args);
       if (moreInfoText) {
         // Show the "More info… " link.
         this.moreInfo.classList.remove('hidden');
@@ -558,7 +558,7 @@
         this.hideInfoHandler = this.clickHandler.bind(this);
         this.moreInfoLink.addEventListener('click', this.moreInfoHandler);
         this.hideInfoLink.addEventListener('click', this.hideInfoHandler);
-        navigator.mozL10n.setAttributes(
+        document.l10n.setAttributes(
           this.moreInfoBox,
           moreInfoText.id,
           moreInfoText.args

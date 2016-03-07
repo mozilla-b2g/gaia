@@ -58,15 +58,3 @@ apps/sharedtest/test/unit/l10n/l10n_test.js
 apps/verticalhome/test/marionette/lib/verticalhome.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
-tv_apps/smart-system/fxa/js/fxam_errors.js
-tv_apps/smart-system/fxa/js/screens/fxam_enter_email.js
-tv_apps/smart-system/fxa/js/screens/fxam_enter_password.js
-tv_apps/smart-system/js/accessibility.js
-tv_apps/smart-system/js/app_install_manager.js
-tv_apps/smart-system/js/app_modal_dialog.js
-tv_apps/smart-system/js/bluetooth_transfer.js
-tv_apps/smart-system/js/browser_context_menu.js
-tv_apps/smart-system/js/external_storage_monitor.js
-tv_apps/smart-system/js/ime_menu.js
-tv_apps/smart-system/js/remote_control.js
-tv_apps/smart-system/js/update_manager.js
