@@ -6,7 +6,8 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
 
   var DEFAULT_CONNECTION_STRING = 'fxa-mgmt';
   var default_rules = {
-    'manifestURLs': ['app://system.gaiamobile.org/manifest.webapp']
+    'manifestURLs': ['app://system.gaiamobile.org/manifest.webapp',
+                     'app://smart-system.gaiamobile.org/manifest.webapp']
   };
 
   var CONNECTION_STRING = DEFAULT_CONNECTION_STRING;
