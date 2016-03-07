@@ -1,9 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, VisibilityManager, UsbStorage,
+/*global ActivityWindowManager, HomescreenWindowManager,
          FtuLauncher, ScreenManager, Activities, AppUsageMetrics, RemoteControl,
          DeveloperHUD, RemoteDebugger, HomeGesture,
+         VisibilityManager, UsbStorage,
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, LayoutManager, PermissionManager, Accessibility,
@@ -90,8 +91,7 @@ window.addEventListener('load', function startup() {
 
   // To make sure homescreen window manager can intercept webapps-launch event,
   // we need to move the code here.
-  window.homescreenWindowManager =
-    BaseModule.instantiate('HomescreenWindowManager');
+  window.homescreenWindowManager = new HomescreenWindowManager();
   window.homescreenWindowManager.start();
 
   // Please sort it alphabetically

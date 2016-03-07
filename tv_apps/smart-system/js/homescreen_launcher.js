@@ -7,12 +7,12 @@
    * instance and make sure it's a singleton.
    *
    * Every extermal modules should use
-   * <code>window.Service.query('getHomescreen')</code>
+   * <code>window.homescreenLauncher.getHomescreen()</code>
    * to access the homescreen window instance. Since window.homescreenLauncher
    * should be instantiated and started in bootstrap.js
    *
    * @example
-   * var home = Service.query('getHomescreen');
+   * var home = HomescreenLauncher.getHomescreen();
    * home.open(); // Do the open animation.
    *
    * @class HomescreenLauncher
