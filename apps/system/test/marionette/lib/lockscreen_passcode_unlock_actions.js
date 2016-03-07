@@ -59,7 +59,8 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
     return new Promise((function(resolve, reject) {
       this.client.waitFor((function() {
         var frame = this.client.findElement('#lockscreen-frame');
-        return !frame.displayed();
+        var hidden = frame.getAttribute('aria-hidden') === 'true';
+        return hidden;
       }).bind(this));
       if (this.client.executeScript(function() {
         return window.wrappedJSObject.Service.query('locked');
