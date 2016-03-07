@@ -68,7 +68,6 @@
       }, true);
 
       return this.loadWhenIdle([
-        'Statusbar',
         'HardwareButtons',
         'CameraTrigger',
         'NotificationScreen',
@@ -111,11 +110,12 @@
         'MultiScreenController',
         'PinsManager',
         //IFDEF_FIREFOX_SYNC
-        'SyncManager'
+        'SyncManager',
         //ENDIF_FIREFOX_SYNC
         // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
         // but integration tests running on desktop without mobileConnection
         // is testing this.
+        'CustomModules'
       ]).then(() => {
         return Promise.all([
           this.startAPIHandlers(),

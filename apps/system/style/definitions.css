@@ -2,7 +2,7 @@
 /* See bug 1053721 */
 :root {
   --software-home-button-height: 5rem;
-  --statusbar-height: 3rem;
+  --statusbar-height: 0rem;
 
   /* The scale factor for the shrinking rocketbar */
   /* 0.682 = --statusbar-height (3rem) / rocketbar height (4.4rem) */
