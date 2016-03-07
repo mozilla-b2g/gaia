@@ -42,7 +42,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
   });
 
   test('Hides after a mozRequestFullscreen request', function() {
-    assert.ok(system.softwareHomeFullscreenLayout.displayed());
+    assert.ok(system.shbFullscreenLayoutDisplayed());
 
     var frame = system.waitForLaunch(appUrl);
     client.switchToFrame(frame);
@@ -51,7 +51,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     client.switchToFrame();
 
     client.waitFor(function() {
-      return !system.softwareHomeFullscreenLayout.displayed();
+      return !system.shbFullscreenLayoutDisplayed();
     });
 
     client.executeScript(function() {
@@ -71,7 +71,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     system.stopDevtools();
     system.stopClock();
 
-    assert.ok(system.softwareHomeFullscreenLayout.displayed());
+    assert.ok(system.shbFullscreenLayoutDisplayed());
 
     var frame = system.waitForLaunch(appUrl);
     client.switchToFrame(frame);
@@ -82,7 +82,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     reflowHelper.startTracking(system.URL);
 
     client.waitFor(function() {
-      return !system.softwareHomeFullscreenLayout.displayed();
+      return !system.shbFullscreenLayoutDisplayed();
     });
 
     // Tap to toggle
@@ -90,12 +90,12 @@ marionette('Software Home Button - Fullscreen Layout', function() {
 
     actions.tap(fullScreenElement).perform();
     client.waitFor(function() {
-      return system.softwareHomeFullscreenLayout.displayed();
+      return system.shbFullscreenLayoutDisplayed();
     });
 
     actions.tap(fullScreenElement).perform();
     client.waitFor(function() {
-      return !system.softwareHomeFullscreenLayout.displayed();
+      return !system.shbFullscreenLayoutDisplayed();
     });
 
     // Then exit fullscreen
@@ -103,7 +103,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
       window.wrappedJSObject.document.mozCancelFullScreen();
     });
     client.waitFor(function() {
-      return system.softwareHomeFullscreenLayout.displayed();
+      return system.shbFullscreenLayoutDisplayed();
     });
 
     var count = reflowHelper.getCount();
