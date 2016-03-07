@@ -870,6 +870,10 @@ function log(/*tag, ...*/) {
   dump(msg + '\n');
 }
 
+function stdout(output) {
+  dump(output + '\n');
+}
+
 /**
  * To retrive all 'apps-*.list' in the build directory.
  * Will turn them into POD object. For example:
@@ -1417,3 +1421,4 @@ exports.createSandbox = createSandbox;
 exports.runScriptInSandbox= runScriptInSandbox;
 exports.getHash = getHash;
 exports.exit = exit;
+exports.stdout = stdout;
