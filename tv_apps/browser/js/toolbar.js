@@ -117,8 +117,6 @@ var Toolbar = {
         this.clickMenuButtonBlock.bind(this));
     this.historyBlock.addEventListener('mouseup',
         Awesomescreen.selectHistoryTab.bind(Awesomescreen));
-    this.pocketBlock.addEventListener('mouseup',
-      this.clickPocketListBlock.bind(this));
     this.privateWindowBlock.addEventListener('mouseup',
         Browser.handlePrivateBrowsing.bind(Browser));
     this.settingsBlock.addEventListener('mouseup',
@@ -213,8 +211,7 @@ var Toolbar = {
       'zoom-banner-message-block', 'zoom-banner-message',
       'loading-icon',
       //'tooltip-block',
-      'bookmark-button-anime', 'show-bookmarks-button-anime',
-      'pocket-block', 'pocket-tab'
+      'bookmark-button-anime', 'show-bookmarks-button-anime'
     ];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
@@ -723,25 +720,6 @@ var Toolbar = {
   },
   getToolbarMode: function toolbar_getToolbarMode() {
     return this.toolbarPanel.dataset.mode;
-  },
-
-  /**
-   * Open Pocket List
-   */
-  clickPocketListBlock: function toolbar_clickPocketListBlock() {
-    var pocketHomePageUri = 'https://getpocket.com/fxostv';
-    if (Browser.currentInfo.url &&
-      UrlHelper.isURL(Browser.currentInfo.url)) {
-      var ev = {
-        detail: {
-          url: pocketHomePageUri,
-          frameElement: null
-        }
-      };
-      Awesomescreen.openNewTab(ev);
-    } else {
-      Browser.navigate(pocketHomePageUri);
-    }
   }
 
 };
