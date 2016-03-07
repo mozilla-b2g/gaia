@@ -48,7 +48,6 @@ apps/email/js/model_init.js
 apps/email/js/toaster.js
 apps/fl/js/utils.js
 apps/homescreen/test/marionette/lib/homescreen.js
-apps/keyboard/js/settings/layout_item_view.js
 apps/pdfjs/content/web/viewer.js
 apps/ringtones/js/built_in_ringtones.js
 apps/ringtones/js/null_ringtone.js

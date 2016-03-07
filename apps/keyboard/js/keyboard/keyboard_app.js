@@ -59,7 +59,7 @@ KeyboardApp.prototype._startComponents = function() {
   this.layoutManager = new LayoutManager(this);
   this.layoutManager.start();
 
-  // L10nLoader loads l10n.js. We call it's one and only load() method
+  // L10nLoader loads l20n.js. We call it's one and only load() method
   // only after we have run everything in the critical cold launch path.
   this.l10nLoader = new L10nLoader();
 

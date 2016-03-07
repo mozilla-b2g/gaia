@@ -1,6 +1,6 @@
 'use strict';
 
-/* global BaseView */
+/* global BaseView, mozIntl */
 
 (function(exports) {
 
@@ -53,34 +53,32 @@ LayoutItemView.prototype.start = function() {
 };
 
 LayoutItemView.prototype._updateProgress = function() {
-  var loadedSizeData = this._getHumanFileSize(this._model.downloadLoadedSize);
-  var totalSizeData = this._getHumanFileSize(this._model.downloadTotalSize);
   this._progressEl.value = this._model.downloadLoadedSize;
   this._progressEl.max = this._model.downloadTotalSize;
-  this._statusEl.dataset.l10nArgs =
-    JSON.stringify({
-      loadedSize: loadedSizeData.size,
-      loadedSizeUnit: loadedSizeData.localizedUnit,
-      totalSize: totalSizeData.size,
-      totalSizeUnit: totalSizeData.localizedUnit
-    });
+
+  Promise.all([
+    this._getHumanFileSize(this._model.downloadLoadedSize),
+    this._getHumanFileSize(this._model.downloadTotalSize)
+  ]).then((values) => {
+    this._statusEl.dataset.l10nArgs =
+      JSON.stringify({
+        loadedSize: values[0],
+        totalSize: values[1],
+      });
+  });
 };
 
 LayoutItemView.prototype._updateUI = function() {
-  var fileSizeData;
-  var loadedSizeData;
-  var totalSizeData;
-
   var item = this._model;
 
   switch (item.state) {
     case item.STATE_PRELOADED:
       this.container.dataset.enabledAction = 'none';
-      this._statusEl.dataset.l10nId = 'preInstalledStatus';
-      fileSizeData = this._getHumanFileSize(item.fileSize);
-      this._statusEl.dataset.l10nArgs = JSON.stringify({
-        size: fileSizeData.size,
-        sizeUnit: fileSizeData.localizedUnit
+      this._statusEl.dataset.l10nId = 'preInstalledStatus2';
+      this._getHumanFileSize(item.fileSize).then(fileSizeData => {
+        this._statusEl.dataset.l10nArgs = JSON.stringify({
+          size: fileSizeData,
+        });
       });
       this._progressEl.classList.add('hide');
       this._updateList(this.IN_LIST_INSTALLED);
@@ -89,11 +87,11 @@ LayoutItemView.prototype._updateUI = function() {
 
     case item.STATE_INSTALLABLE:
       this.container.dataset.enabledAction = 'download';
-      this._statusEl.dataset.l10nId = 'installableStatus';
-      fileSizeData = this._getHumanFileSize(item.fileSize);
-      this._statusEl.dataset.l10nArgs = JSON.stringify({
-        size: fileSizeData.size,
-        sizeUnit: fileSizeData.localizedUnit
+      this._statusEl.dataset.l10nId = 'installableStatus2';
+      this._getHumanFileSize(item.fileSize).then(fileSizeData => {
+        this._statusEl.dataset.l10nArgs = JSON.stringify({
+          size: fileSizeData,
+        });
       });
       this._progressEl.classList.add('hide');
       this._updateList(this.IN_LIST_INSTALLABLE);
@@ -102,16 +100,17 @@ LayoutItemView.prototype._updateUI = function() {
 
     case item.STATE_INSTALLING_CANCELLABLE:
       this.container.dataset.enabledAction = 'cancel-download';
-      this._statusEl.dataset.l10nId = 'downloadingStatus';
-      loadedSizeData = this._getHumanFileSize(item.downloadLoadedSize);
-      totalSizeData = this._getHumanFileSize(item.downloadTotalSize);
-      this._statusEl.dataset.l10nArgs =
-        JSON.stringify({
-          loadedSize: loadedSizeData.size,
-          loadedSizeUnit: loadedSizeData.localizedUnit,
-          totalSize: totalSizeData.size,
-          totalSizeUnit: totalSizeData.localizedUnit
-        });
+      this._statusEl.dataset.l10nId = 'downloadingStatus2';
+      Promise.all([
+        this._getHumanFileSize(item.downloadLoadedSize),
+        this._getHumanFileSize(item.downloadTotalSize)
+      ]).then((values) => {
+        this._statusEl.dataset.l10nArgs =
+          JSON.stringify({
+            loadedSize: values[0],
+            totalSize: values[1],
+          });
+      });
       this._progressEl.classList.remove('hide');
       this._progressEl.value = item.downloadLoadedSize;
       this._progressEl.max = item.downloadTotalSize;
@@ -121,15 +120,14 @@ LayoutItemView.prototype._updateUI = function() {
 
     case item.STATE_INSTALLING:
       this.container.dataset.enabledAction = 'none';
-      this._statusEl.dataset.l10nId = 'downloadingStatus';
-      fileSizeData = this._getHumanFileSize(item.fileSize);
-      this._statusEl.dataset.l10nArgs =
-        JSON.stringify({
-          loadedSize: fileSizeData.size,
-          loadedSizeUnit: fileSizeData.localizedUnit,
-          totalSize: fileSizeData.size,
-          totalSizeUnit: fileSizeData.localizedUnit
-        });
+      this._statusEl.dataset.l10nId = 'downloadingStatus2';
+      this._getHumanFileSize(item.fileSize).then(fileSizeData => {
+        this._statusEl.dataset.l10nArgs =
+          JSON.stringify({
+            loadedSize: fileSizeData,
+            totalSize: fileSizeData,
+          });
+      });
       this._progressEl.classList.remove('hide');
       this._progressEl.value = this._progressEl.max = item.fileSize;
       this._updateList(this.IN_LIST_INSTALLABLE);
@@ -138,11 +136,11 @@ LayoutItemView.prototype._updateUI = function() {
 
     case item.STATE_INSTALLED:
       this.container.dataset.enabledAction = 'remove';
-      this._statusEl.dataset.l10nId = 'installedStatus';
-      fileSizeData = this._getHumanFileSize(item.fileSize);
-      this._statusEl.dataset.l10nArgs = JSON.stringify({
-        size: fileSizeData.size,
-        sizeUnit: fileSizeData.localizedUnit
+      this._statusEl.dataset.l10nId = 'installedStatus2';
+      this._getHumanFileSize(item.fileSize).then(fileSizeData => {
+        this._statusEl.dataset.l10nArgs = JSON.stringify({
+          size: fileSizeData,
+        });
       });
       this._progressEl.classList.add('hide');
       this._updateList(this.IN_LIST_INSTALLED);
@@ -264,33 +262,7 @@ LayoutItemView.prototype._updateList = function(newListState) {
 };
 
 LayoutItemView.prototype._getHumanFileSize = function(sizeInNumber) {
-  // XXX I actually don't know how not to use get() here.
-  var _ = navigator.mozL10n.get;
-  var sizeString = '';
-  var localizedUnit = '';
-
-  if (sizeInNumber > (1 << 30)) {
-    sizeString = (sizeInNumber / (1 << 30)).toFixed(2);
-    localizedUnit = _('byteUnit-GB');
-  } else if (sizeInNumber > (1 << 20)) {
-    sizeString = (sizeInNumber / (1 << 20)).toFixed(2);
-    localizedUnit = _('byteUnit-MB');
-  } else if (sizeInNumber > (1 << 10)) {
-    sizeString = (sizeInNumber / (1 << 10)).toFixed(2);
-    localizedUnit = _('byteUnit-KB');
-  } else {
-    sizeString = sizeInNumber.toFixed(2);
-    localizedUnit = _('byteUnit-B');
-  }
-
-  // Remove the zeros after decimal point,
-  // and the decimal point too if there isn't any thing left on the right side.
-  sizeString = sizeString.replace(/\.?0*$/, '');
-
-  return {
-    size: sizeString,
-    localizedUnit: localizedUnit
-  };
+  return mozIntl._gaia.getFormattedUnit('digital', 'short', sizeInNumber);
 };
 
 exports.LayoutItemView = LayoutItemView;
