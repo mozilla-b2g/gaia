@@ -59,13 +59,13 @@ LayoutItemView.prototype._updateProgress = function() {
   Promise.all([
     this._getHumanFileSize(this._model.downloadLoadedSize),
     this._getHumanFileSize(this._model.downloadTotalSize)
-  ]).then((values) => {
+  ]).then(function(values) {
     this._statusEl.dataset.l10nArgs =
       JSON.stringify({
         loadedSize: values[0],
         totalSize: values[1],
       });
-  });
+  }.bind(this));
 };
 
 LayoutItemView.prototype._updateUI = function() {
@@ -75,11 +75,11 @@ LayoutItemView.prototype._updateUI = function() {
     case item.STATE_PRELOADED:
       this.container.dataset.enabledAction = 'none';
       this._statusEl.dataset.l10nId = 'preInstalledStatus2';
-      this._getHumanFileSize(item.fileSize).then(fileSizeData => {
+      this._getHumanFileSize(item.fileSize).then(function(fileSizeData) {
         this._statusEl.dataset.l10nArgs = JSON.stringify({
           size: fileSizeData,
         });
-      });
+      }.bind(this));
       this._progressEl.classList.add('hide');
       this._updateList(this.IN_LIST_INSTALLED);
 
@@ -88,11 +88,11 @@ LayoutItemView.prototype._updateUI = function() {
     case item.STATE_INSTALLABLE:
       this.container.dataset.enabledAction = 'download';
       this._statusEl.dataset.l10nId = 'installableStatus2';
-      this._getHumanFileSize(item.fileSize).then(fileSizeData => {
+      this._getHumanFileSize(item.fileSize).then(function(fileSizeData) {
         this._statusEl.dataset.l10nArgs = JSON.stringify({
           size: fileSizeData,
         });
-      });
+      }.bind(this));
       this._progressEl.classList.add('hide');
       this._updateList(this.IN_LIST_INSTALLABLE);
 
@@ -104,13 +104,13 @@ LayoutItemView.prototype._updateUI = function() {
       Promise.all([
         this._getHumanFileSize(item.downloadLoadedSize),
         this._getHumanFileSize(item.downloadTotalSize)
-      ]).then((values) => {
+      ]).then(function(values) {
         this._statusEl.dataset.l10nArgs =
           JSON.stringify({
             loadedSize: values[0],
             totalSize: values[1],
           });
-      });
+      }.bind(this));
       this._progressEl.classList.remove('hide');
       this._progressEl.value = item.downloadLoadedSize;
       this._progressEl.max = item.downloadTotalSize;
@@ -121,13 +121,13 @@ LayoutItemView.prototype._updateUI = function() {
     case item.STATE_INSTALLING:
       this.container.dataset.enabledAction = 'none';
       this._statusEl.dataset.l10nId = 'downloadingStatus2';
-      this._getHumanFileSize(item.fileSize).then(fileSizeData => {
+      this._getHumanFileSize(item.fileSize).then(function(fileSizeData) {
         this._statusEl.dataset.l10nArgs =
           JSON.stringify({
             loadedSize: fileSizeData,
             totalSize: fileSizeData,
           });
-      });
+      }.bind(this));
       this._progressEl.classList.remove('hide');
       this._progressEl.value = this._progressEl.max = item.fileSize;
       this._updateList(this.IN_LIST_INSTALLABLE);
@@ -137,11 +137,11 @@ LayoutItemView.prototype._updateUI = function() {
     case item.STATE_INSTALLED:
       this.container.dataset.enabledAction = 'remove';
       this._statusEl.dataset.l10nId = 'installedStatus2';
-      this._getHumanFileSize(item.fileSize).then(fileSizeData => {
+      this._getHumanFileSize(item.fileSize).then(function(fileSizeData) {
         this._statusEl.dataset.l10nArgs = JSON.stringify({
           size: fileSizeData,
         });
-      });
+      }.bind(this));
       this._progressEl.classList.add('hide');
       this._updateList(this.IN_LIST_INSTALLED);
 
