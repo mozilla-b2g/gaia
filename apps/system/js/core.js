@@ -20,7 +20,8 @@
     'LayoutManager',
     'SoftwareButtonManager',
     'AppCore',
-    'ScreenManager'
+    'ScreenManager',
+    'CustomModules'
   ];
 
   Core.SERVICES = [
@@ -115,7 +116,6 @@
         // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
         // but integration tests running on desktop without mobileConnection
         // is testing this.
-        'CustomModules'
       ]).then(() => {
         return Promise.all([
           this.startAPIHandlers(),

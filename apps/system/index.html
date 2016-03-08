@@ -139,7 +139,6 @@
     <link rel="stylesheet" type="text/css" href="style/devtools/devtools_auth.css">
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
     <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
-    <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
     <link rel="stylesheet" type="text/css" href="style/pin_page_system_dialog.css">
     <link rel="stylesheet" type="text/css" href="style/simcard.css">
     <link rel="stylesheet" type="text/css" href="style/nfcconnect.css">
@@ -218,22 +217,6 @@
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
       </div>
-
-      <!-- Rocketbar-->
-      <div id="rocketbar" data-z-index-level="statusbar">
-        <form id="rocketbar-form" class="hidden">
-          <input id="rocketbar-input" type="search" x-inputmode="verbatim"
-            placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" />
-          <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
-          <button type="button" id="rocketbar-cancel" data-l10n-id="close"></button>
-        </form>
-      </div>
-
-      <!-- Rocketbar Results -->
-      <div id="rocketbar-backdrop" class="hidden"
-           data-z-index-level="rocketbar-backdrop">
-      </div>
-      <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
       <div id="utility-tray-motion" data-z-index-level="utility-tray" class="tray utility-tray-loading">
         <div class="tray-content" aria-hidden="true" id="utility-tray">

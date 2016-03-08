@@ -1,3 +1,7 @@
+:root {
+  --rocketbar-urlbar-height: 4.4rem;
+}
+
 #rocketbar {
   position: fixed;
   width: 100%;

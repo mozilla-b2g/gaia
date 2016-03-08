@@ -56,7 +56,6 @@
           'SecureWindowManager',
           'ActivityWindowManager',
           'PermissionManager',
-          'Rocketbar',
           'ActivityHandler'
         ])
       ]);
