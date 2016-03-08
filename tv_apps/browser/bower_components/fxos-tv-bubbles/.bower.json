@@ -1,0 +1,30 @@
+{
+  "name": "fxos-tv-bubbles",
+  "homepage": "https://github.com/fxos-components/fxos-tv-bubbles",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md",
+    "gulpfile.js",
+    "package.json"
+  ],
+  "devDependencies": {
+    "fxos-tv-button": "fxos-components/fxos-tv-button"
+  },
+  "_release": "cd56162743",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "cd56162743bd610815a481ca202b0b31ac6f675a"
+  },
+  "_source": "git://github.com/fxos-components/fxos-tv-bubbles.git",
+  "_target": "*",
+  "_originalSource": "fxos-components/fxos-tv-bubbles"
+}

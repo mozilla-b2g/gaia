@@ -1,0 +1,26 @@
+*[fxos-tv-bubbles="true"] .fxos-tv-bubble-playing {
+  transition-property: none;
+  transform: none;
+  animation: bubble-animation 0.5s cubic-bezier(0.25, 0, 0, 1) both;
+}
+
+*[fxos-tv-bubbles="true"][fxos-tv-bubbles-direction="down"] .fxos-tv-bubble-playing {
+  animation: sinking-animation 0.5s cubic-bezier(0.25, 0, 0, 1) both;
+}
+
+*[fxos-tv-bubbles="true"] .fxos-tv-bubble-stopped {
+  transition-property: none;
+  transform: none;
+  animation: none;
+}
+
+@keyframes bubble-animation {
+  0%   {opacity: 0; transform: translateY(8rem);}
+  50%  {opacity: 1;}
+  100% {transform: translateY(0);}
+}
+
+@keyframes sinking-animation {
+  0%   {opacity: 1; transform: translateY(0);}
+  100% {opacity: 0; transform: translateY(8rem);}
+}

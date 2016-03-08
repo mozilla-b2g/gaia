@@ -16,10 +16,12 @@ require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('browser/js/browser_dialog.js');
 requireApp('browser/test/unit/mocks/mock_browser.js');
 requireApp('browser/test/unit/mocks/mock_awesomescreen.js');
+requireApp('browser/test/unit/mocks/mock_fxos_tv_modal_dialog.js');
 
 var mocksForBrowserDialog = new MocksHelper([
   'Awesomescreen',
-  'Browser'
+  'Browser',
+  'FxosTvModalDialog'
 ]).init();
 
 suite('Browser Dialog >', function() {
@@ -44,84 +46,34 @@ suite('Browser Dialog >', function() {
 
   suite('Initial state', function() {
     test('should init DOM elements', function() {
-      [
-        'browserDialogBase',
-        'browserDialog',
-        'browserDialogTitle',
-        'browserDialogMsg',
-        'browserDialogInput',
-        'browserDialogInputArea',
-        'browserDialogInputClear',
-        'browserDialogButton',
-        'browserDialogButton1',
-        'browserDialogButton2'].forEach(element => {
+      ['browserDialogBase'].forEach(element => {
         expect(subject[element]).to.be.an('object');
       });
-    });
-
-    test('should not have pending deferred actions', function() {
-      expect(subject.deferredActions.size).to.equals(0);
     });
   });
 
   suite('Sign out dialog', function() {
-    var promise;
+    var openDialogSpy;
 
     setup(function() {
       this.sinon.stub(subject, 'cancelDialog');
+      openDialogSpy = this.sinon.spy(subject, 'openDialog');
     });
 
-    test('signout_confirm dialog should add a deferred action',
-         function(done) {
-      promise = subject.createDialog('signout_confirm');
-      expect(subject.browserDialogTitle.getAttribute('data-l10n-id'))
-        .to.equals('fxsync-confirm-sign-out-title');
-      expect(subject.browserDialogMsg.getAttribute('data-l10n-id'))
-        .to.equals('fxsync-confirm-sign-out-detail');
-      expect(subject.browserDialogButton1.getAttribute('data-l10n-id'))
-        .to.equals('LT_CANCEL');
-      expect(subject.browserDialogButton1.dataset.type)
-        .to.equals('signout_confirm');
-      expect(subject.browserDialogButton1.classList.contains('visible'))
-        .to.equals(true);
-      expect(subject.browserDialogButton2.getAttribute('data-l10n-id'))
-        .to.equals('fxsync-sign-out');
-      expect(subject.browserDialogButton2.dataset.type)
-        .to.equals('signout_confirm');
-      expect(subject.browserDialogButton2.classList.contains('visible'))
-        .to.equals(true);
-      expect(subject.deferredActions.size).to.equals(1);
-      done();
+    teardown(function() {
+      openDialogSpy.restore();
     });
 
-    test('click on signout_confirm button 2 should resolve deferred action',
-         function(done) {
-      promise.then(() => {
-        expect(subject.deferredActions.size).to.equals(0);
-        done();
+    test('signout_confirm dialog should be opened', function() {
+      var promise = subject.createDialog('signout_confirm');
+      sinon.assert.calledOnce(openDialogSpy);
+      sinon.assert.calledWithMatch(openDialogSpy, {
+        titleL10nId: 'fxsync-confirm-sign-out-title',
+        messageL10nId: 'fxsync-confirm-sign-out-detail',
+        buttonL10nId: 'fxsync-sign-out',
+        buttonClass: 'danger'
       });
-      subject.dialogButton2({
-        preventDefault() {},
-        currentTarget: {
-          addEventListener() {},
-          removeEventListener() {}
-        }
-      });
-    });
-
-    test('click on signout_confirm button 1 should reject deferred action',
-         function(done) {
-      subject.createDialog('signout_confirm').catch(() => {
-        expect(subject.deferredActions.size).to.equals(0);
-        done();
-      });
-      subject.dialogButton1({
-        preventDefault() {},
-        currentTarget: {
-          addEventListener() {},
-          removeEventListener() {}
-        }
-      });
+      expect(promise instanceof Promise).to.be.true;
     });
   });
 });

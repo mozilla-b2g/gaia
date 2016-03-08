@@ -1,0 +1,60 @@
+.multiple-value-selector .selector-list-container {
+  display: inline-block;
+  margin-left: 23.8rem;
+  margin-right: 15rem;
+  max-height: 70.8rem;
+  overflow-y: hidden;
+  /* 67.2rem - 23.8rem - 15rem */
+  width: calc(100% - 106rem);
+  padding: 0;
+  vertical-align: middle;
+  scroll-behavior: smooth;
+  outline: none;
+}
+
+.multiple-value-selector .modal-dialog-button-group {
+  margin-right: 20.8rem;
+  width: 46.4rem;
+  vertical-align: middle;
+}
+
+.multiple-value-selector .selector-list-item {
+  display: block;
+  /* substract 9.4rem for tick icon */
+  width: calc(100% - 9.4rem);
+  height: 13.6rem;
+  font-family: "Fira Sans";
+  font-size: 4.4rem;
+  font-style: italic;
+  color: #ffffff;
+  text-align: center;
+  line-height: 13.6rem;
+  transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  position: relative;
+  /* refer https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight */
+  font-weight: 100;
+}
+
+.multiple-value-selector .selector-list-item.checked:after {
+  position: absolute;
+  right: 0;
+  font-family: 'fxos-tv-icons';
+  content: 'check';
+  display: inline-block;
+  font-weight: 500;
+  font-style: normal;
+  text-decoration: inherit;
+  text-transform: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.multiple-value-selector .selector-list-item.focused {
+  color: #00caf2;
+  transform: scale(1.2);
+}
+
+.multiple-value-selector .selector-list-item.focused.checked:after {
+  color: #00caf2;
+  transform: scale(1);
+}
