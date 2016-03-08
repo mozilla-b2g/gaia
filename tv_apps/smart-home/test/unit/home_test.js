@@ -15,7 +15,6 @@ require('/shared/js/smart-screen/clock.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('mock_card_manager.js');
 require('mock_search_bar.js');
-require('mock_menu_group.js');
 require('mock_message_handler.js');
 require('mock_x_scrollable.js');
 require('mock_card_filter.js');
@@ -51,7 +50,6 @@ suite('home', function() {
   var realL10n = document.l10n;
   var realMozActivity = window.MozActivity;
   var searchButton, settingsButton, editButton, timeElem;
-  var filterTabGroup, filterAllButton;
   var subject;
   var fakeTimer;
 
@@ -76,16 +74,6 @@ suite('home', function() {
     timeElem = document.createElement('div');
     timeElem.id = 'time';
     document.body.appendChild(timeElem);
-
-    filterTabGroup = document.createElement('menu-group');
-    filterTabGroup.once = function() {};
-    filterTabGroup.open = function() {};
-    filterTabGroup.close = function() {};
-    filterTabGroup.id = 'filter-tab-group';
-    filterAllButton = document.createElement('smart-button');
-    filterAllButton.id = 'filter-all-button';
-    filterTabGroup.appendChild(filterAllButton);
-    document.body.appendChild(filterTabGroup);
   });
 
   suiteTeardown(function() {
@@ -94,8 +82,6 @@ suite('home', function() {
     document.body.removeChild(settingsButton);
     document.body.removeChild(editButton);
     document.body.removeChild(timeElem);
-    document.body.removeChild(filterTabGroup);
-
   });
 
   setup(function() {
@@ -330,12 +316,6 @@ suite('home', function() {
       assert.isTrue(spy.calledOnce);
     });
 
-    test('should open menu for menu group target', function() {
-      var stub = this.sinon.stub(subject, 'handleFocusMenuGroup');
-      subject.handleFocus(filterTabGroup);
-      assert.isTrue(stub.calledOnce);
-    });
-
     test('should call checkFocusedGroup for non-menu elements', function() {
       var stub = this.sinon.stub(subject, 'checkFocusedGroup');
       subject.handleFocus(settingsButton);
@@ -343,19 +323,7 @@ suite('home', function() {
     });
   });
 
-  suite('checkFocusedGroup >', function() {
-    test('should close group menu when blur', function() {
-      subject.handleFocusMenuGroup(filterTabGroup);
-      var stub = this.sinon.stub(filterTabGroup, 'close');
-      subject.checkFocusedGroup();
-      assert.isTrue(stub.calledOnce);
-    });
-  });
-
   // TODO: Test items:
-  //   handleFocusMenuGroup >
-  //     should switch navigable target to child elements of menu on open
-  //     should switch navigable target back to menu iteslf on close
   //   handleScrollableItemFocus >
   //     should focus specified item of scrollable
   //   handleScrollableItemUnfocus >
