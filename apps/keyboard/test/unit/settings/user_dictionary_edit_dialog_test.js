@@ -177,8 +177,8 @@ suite('UserDictionary Edit Dialog', function() {
     test('delete button -> show dialog', function() {
       dialog._oldWord = 'oldstar';
 
-      var oldMozL10n = navigator.mozL10n;
-      navigator.mozL10n = {
+      var oldMozL10n = document.l10n;
+      document.l10n = {
         setAttributes: this.sinon.spy()
       };
 
@@ -190,7 +190,7 @@ suite('UserDictionary Edit Dialog', function() {
         target: {id: 'ud-editword-delete-btn'}
       });
 
-      assert.isTrue(navigator.mozL10n.setAttributes.calledWith(
+      assert.isTrue(document.l10n.setAttributes.calledWith(
         'dummy-delete',
         'userDictionaryDeletePrompt',
         {word: 'oldstar'}
@@ -198,7 +198,7 @@ suite('UserDictionary Edit Dialog', function() {
 
       assert.isTrue(stubDeleteDialog.removeAttribute.calledWith('hidden'));
 
-      navigator.mozL10n = oldMozL10n;
+      document.l10n = oldMozL10n;
     });
 
     test('dialog delete button -> delete & hide dialog', function() {

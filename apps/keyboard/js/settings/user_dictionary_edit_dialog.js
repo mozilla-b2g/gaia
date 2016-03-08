@@ -107,7 +107,7 @@ UserDictionaryEditDialog.prototype.handleEvent = function(evt) {
           break;
 
         case 'ud-editword-delete-btn':
-          navigator.mozL10n.setAttributes(
+          document.l10n.setAttributes(
             this.container.querySelector('#ud-editword-delete-prompt'),
             'userDictionaryDeletePrompt', {word: this._oldWord});
           this.container.querySelector('#ud-editword-delete-dialog')

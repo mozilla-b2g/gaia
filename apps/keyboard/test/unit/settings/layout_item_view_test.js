@@ -1,7 +1,10 @@
 'use strict';
 
-/* global LayoutItemListView, LayoutItemView, LayoutItem, LayoutItemErrorInfo */
+/* global LayoutItemListView, LayoutItemView, LayoutItem, LayoutItemErrorInfo,
+  MockMozIntl, MockL10n */
 
+require('/shared/test/unit/mocks/mock_moz_intl.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/js/settings/base_view.js');
 
 require('/js/settings/layout_item.js');
@@ -31,10 +34,15 @@ suite('LayoutItemView', function() {
   var disableLayoutDeferred;
   var enableLayoutDeferred;
 
+  var realMozIntl;
+  var realMozL10n;
+
   setup(function() {
-    navigator.mozL10n = {
-      get: this.sinon.spy(function(id) { return 'l10n_get_' + id; })
-    };
+    realMozIntl = window.mozIntl;
+    realMozL10n = document.l10n;
+
+    window.mozIntl = MockMozIntl;
+    document.l10n = MockL10n;
 
     itemStub = this.sinon.stub(LayoutItem.prototype);
     itemStub.id = 'foo';
@@ -80,33 +88,44 @@ suite('LayoutItemView', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = null;
+    document.l10n = realMozL10n;
+    window.mozIntl = realMozIntl;
   });
 
-  test('STATE_PRELOADED', function() {
+  test('STATE_PRELOADED', function(done) {
     assert.equal(view.inList, view.IN_LIST_INSTALLED);
     assert.equal(view.oninlistchange.callCount, 0);
     assert.equal(view.container.dataset.enabledAction, 'none');
-    assert.equal(statusEl.dataset.l10nId, 'preInstalledStatus');
-    assert.equal(statusEl.dataset.l10nArgs,
-      '{"size":"24.02","sizeUnit":"l10n_get_byteUnit-KB"}');
+    assert.equal(statusEl.dataset.l10nId, 'preInstalledStatus2');
     assert.isTrue(progressEl.classList.contains('hide'));
+    Promise.resolve().then(() => {
+      assert.equal(statusEl.dataset.l10nArgs, MockL10n._stringify({
+        size: MockL10n._stringify('digital-selected-short', {
+          value: 24601
+        })
+      }));
+    }).then(done, done);
   });
 
-  test('STATE_INSTALLABLE', function() {
+  test('STATE_INSTALLABLE', function(done) {
     itemStub.state = itemStub.STATE_INSTALLABLE;
     itemStub.onstatechange();
 
     assert.equal(view.inList, view.IN_LIST_INSTALLABLE);
     assert.equal(view.oninlistchange.callCount, 1);
     assert.equal(view.container.dataset.enabledAction, 'download');
-    assert.equal(statusEl.dataset.l10nId, 'installableStatus');
-    assert.equal(statusEl.dataset.l10nArgs,
-      '{"size":"24.02","sizeUnit":"l10n_get_byteUnit-KB"}');
+    assert.equal(statusEl.dataset.l10nId, 'installableStatus2');
     assert.isTrue(progressEl.classList.contains('hide'));
+    Promise.resolve().then(() => {
+      assert.equal(statusEl.dataset.l10nArgs, MockL10n._stringify({
+        size: MockL10n._stringify('digital-selected-short', {
+          value: 24601
+        })
+      }));
+    }).then(done, done);
   });
 
-  test('STATE_INSTALLING_CANCELLABLE', function() {
+  test('STATE_INSTALLING_CANCELLABLE', function(done) {
     itemStub.state = itemStub.STATE_INSTALLING_CANCELLABLE;
     itemStub.downloadLoadedSize = 1234;
     itemStub.downloadTotalSize = 24601;
@@ -116,30 +135,48 @@ suite('LayoutItemView', function() {
     assert.equal(view.inList, view.IN_LIST_INSTALLABLE);
     assert.equal(view.oninlistchange.callCount, 1);
     assert.equal(view.container.dataset.enabledAction, 'cancel-download');
-    assert.equal(statusEl.dataset.l10nId, 'downloadingStatus');
-    assert.equal(statusEl.dataset.l10nArgs,
-      '{"loadedSize":"1.21","loadedSizeUnit":"l10n_get_byteUnit-KB",' +
-      '"totalSize":"24.02","totalSizeUnit":"l10n_get_byteUnit-KB"}');
+    assert.equal(statusEl.dataset.l10nId, 'downloadingStatus2');
     assert.isFalse(progressEl.classList.contains('hide'));
     assert.equal(progressEl.value, '1234');
     assert.equal(progressEl.max, '24601');
 
-    itemStub.downloadLoadedSize = 2345;
+    Promise.resolve().then(Promise.resolve()).then(() => {
+      assert.equal(statusEl.dataset.l10nArgs, MockL10n._stringify({
+        loadedSize: MockL10n._stringify('digital-selected-short', {
+          value: 1234
+        }),
+        totalSize: MockL10n._stringify('digital-selected-short', {
+          value: 24601
+        })
+      }));
 
-    itemStub.onprogress();
+      itemStub.downloadLoadedSize = 2345;
+      itemStub.onprogress();
+      return Promise.all([
+        Promise.resolve(),
+        Promise.resolve()
+      ]);
+    }).then(() => {
+      assert.equal(view.oninlistchange.callCount, 1);
+      assert.equal(view.container.dataset.enabledAction, 'cancel-download');
+      assert.equal(statusEl.dataset.l10nId, 'downloadingStatus2');
 
-    assert.equal(view.oninlistchange.callCount, 1);
-    assert.equal(view.container.dataset.enabledAction, 'cancel-download');
-    assert.equal(statusEl.dataset.l10nId, 'downloadingStatus');
-    assert.equal(statusEl.dataset.l10nArgs,
-      '{"loadedSize":"2.29","loadedSizeUnit":"l10n_get_byteUnit-KB",' +
-      '"totalSize":"24.02","totalSizeUnit":"l10n_get_byteUnit-KB"}');
-    assert.isFalse(progressEl.classList.contains('hide'));
-    assert.equal(progressEl.value, '2345');
-    assert.equal(progressEl.max, '24601');
+      assert.equal(statusEl.dataset.l10nArgs, MockL10n._stringify({
+        loadedSize: MockL10n._stringify('digital-selected-short', {
+          value: 2345
+        }),
+        totalSize: MockL10n._stringify('digital-selected-short', {
+          value: 24601
+        })
+      }));
+
+      assert.isFalse(progressEl.classList.contains('hide'));
+      assert.equal(progressEl.value, '2345');
+      assert.equal(progressEl.max, '24601');
+    }).then(done, done);
   });
 
-  test('STATE_INSTALLING', function() {
+  test('STATE_INSTALLING', function(done) {
     itemStub.state = itemStub.STATE_INSTALLING;
 
     itemStub.onstatechange();
@@ -147,26 +184,39 @@ suite('LayoutItemView', function() {
     assert.equal(view.inList, view.IN_LIST_INSTALLABLE);
     assert.equal(view.oninlistchange.callCount, 1);
     assert.equal(view.container.dataset.enabledAction, 'none');
-    assert.equal(statusEl.dataset.l10nId, 'downloadingStatus');
-    assert.equal(statusEl.dataset.l10nArgs,
-      '{"loadedSize":"24.02","loadedSizeUnit":"l10n_get_byteUnit-KB",' +
-      '"totalSize":"24.02","totalSizeUnit":"l10n_get_byteUnit-KB"}');
-    assert.isFalse(progressEl.classList.contains('hide'));
+    assert.equal(statusEl.dataset.l10nId, 'downloadingStatus2');
     assert.equal(progressEl.value, '24601');
     assert.equal(progressEl.max, '24601');
+    assert.isFalse(progressEl.classList.contains('hide'));
+
+    Promise.resolve().then(() => {
+      assert.equal(statusEl.dataset.l10nArgs, MockL10n._stringify({
+        loadedSize: MockL10n._stringify('digital-selected-short', {
+          value: 24601
+        }),
+        totalSize: MockL10n._stringify('digital-selected-short', {
+          value: 24601
+        })
+      }));
+    }).then(done, done);
   });
 
-  test('STATE_INSTALLED', function() {
+  test('STATE_INSTALLED', function(done) {
     itemStub.state = itemStub.STATE_INSTALLED;
     itemStub.onstatechange();
 
     assert.equal(view.inList, view.IN_LIST_INSTALLED);
     assert.equal(view.oninlistchange.callCount, 0);
     assert.equal(view.container.dataset.enabledAction, 'remove');
-    assert.equal(statusEl.dataset.l10nId, 'installedStatus');
-    assert.equal(statusEl.dataset.l10nArgs,
-      '{"size":"24.02","sizeUnit":"l10n_get_byteUnit-KB"}');
+    assert.equal(statusEl.dataset.l10nId, 'installedStatus2');
     assert.isTrue(progressEl.classList.contains('hide'));
+    Promise.resolve().then(() => {
+      assert.equal(statusEl.dataset.l10nArgs, MockL10n._stringify({
+        size: MockL10n._stringify('digital-selected-short', {
+          value: 24601
+        })
+      }));
+    }).then(done, done);
   });
 
   test('STATE_REMOVING', function() {

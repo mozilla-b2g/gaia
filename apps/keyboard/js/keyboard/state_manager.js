@@ -38,7 +38,7 @@ StateManager.prototype.start = function() {
 
   // If the app was started inactive, we should start the loading process of
   // what we would need.
-  // l10n.js gets loaded here too, eventually, since there is nothing left
+  // l20n.js gets loaded here too, eventually, since there is nothing left
   // in the critical path.
   if (!active) {
     this._queue.run([
@@ -129,7 +129,7 @@ StateManager.prototype._updateActiveState = function(active) {
       // ... load the layout rendering,
       this.app.layoutRenderingManager.updateLayoutRendering
         .bind(this.app.layoutRenderingManager),
-      // ... load l10n.js (if it's not loaded yet.)
+      // ... load l20n.js (if it's not loaded yet.)
       this.app.l10nLoader.load.bind(this.app.l10nLoader)
     ]);
   } else {
