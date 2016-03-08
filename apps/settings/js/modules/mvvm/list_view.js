@@ -1,3 +1,4 @@
+/* global SpatialNavigationHelper */
 'use strict';
 
 define(function(require) {
@@ -75,6 +76,7 @@ define(function(require) {
         default:
           break;
       }
+      SpatialNavigationHelper.makeFocusable();
     };
 
     var _insert = function(index, items) {

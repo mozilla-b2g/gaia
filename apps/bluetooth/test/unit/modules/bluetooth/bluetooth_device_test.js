@@ -133,6 +133,26 @@ suite('BluetoothDevice', function() {
             expectedDescriptionText);
         });
       });
+
+      suite('"descriptionText" should be "input" for input device > ',
+        function() {
+        var newProfiles, expectedDescriptionText;
+        setup(function() {
+          newProfiles = {
+            'hid': true
+          };
+          expectedDescriptionText = 'connectedWithDeviceInput';
+          bluetoothDeviceCreated.paired = true;
+          bluetoothDeviceCreated.connectionStatus = 'connected';
+          bluetoothDeviceCreated.profiles = newProfiles;
+        });
+
+        test('"descriptionText" property should be "connectedWithDeviceInput" ',
+        function() {
+          assert.equal(bluetoothDeviceCreated.descriptionText,
+            expectedDescriptionText);
+        });
+      });
     });
 
     suite('event > name ', function() {

@@ -123,6 +123,11 @@ define(function() {
         li.setAttribute('aria-disabled', true);
         element.setAttribute('data-l10n-id', 'device-status-connecting');
         break;
+      case 'connectedWithDeviceInput':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected-device-input');
+        break;
       case 'connectedWithDeviceMedia':
         li.removeAttribute('aria-disabled');
         element.setAttribute('data-l10n-id',
