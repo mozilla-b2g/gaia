@@ -1,6 +1,6 @@
 'use strict';
 
-/* global LayoutManager, InputMethodManager, L10nLoader, CandidatePanelManager,
+/* global LayoutManager, InputMethodManager, CandidatePanelManager,
           ActiveTargetsManager, UpperCaseStateManager, SettingsPromiseManager,
           LayoutRenderingManager, KeyboardConsole, LayoutLoader,
           InputMethodLoader, FeedbackManager, StateManager,
@@ -52,7 +52,6 @@ suite('StateManager', function() {
     app = {
       layoutManager: this.sinon.stub(LayoutManager.prototype),
       inputMethodManager: this.sinon.stub(InputMethodManager.prototype),
-      l10nLoader: this.sinon.stub(L10nLoader.prototype),
       candidatePanelManager: this.sinon.stub(CandidatePanelManager.prototype),
       feedbackManager: this.sinon.stub(FeedbackManager.prototype),
       targetHandlersManager: {
@@ -119,7 +118,6 @@ suite('StateManager', function() {
       assert.isFalse(
         app.inputMethodManager.loader.getInputMethodAsync.calledOnce,
         'Should not try to preload IMEngine.');
-      assert.isFalse(app.l10nLoader.load.calledOnce);
 
       // Run the queue
       assert.isTrue(stubAbortablePromiseQueue.start.calledOnce);
@@ -150,8 +148,6 @@ suite('StateManager', function() {
       assert.isTrue(
         app.layoutRenderingManager.updateLayoutRendering.calledOnce);
 
-      assert.isTrue(app.l10nLoader.load.calledOnce);
-      assert.isTrue(app.l10nLoader.load.calledOn(app.l10nLoader));
     });
 
     test('hashchange', function() {
@@ -191,8 +187,6 @@ suite('StateManager', function() {
       assert.isTrue(
         app.layoutRenderingManager.updateLayoutRendering.calledTwice);
 
-      assert.isTrue(app.l10nLoader.load.calledTwice);
-      assert.isTrue(app.l10nLoader.load.calledOn(app.l10nLoader));
     });
 
     suite('deactivate', function() {
@@ -270,8 +264,6 @@ suite('StateManager', function() {
       assert.isTrue(
         app.inputMethodManager.loader.getInputMethodAsync.calledWith('bar'));
 
-      assert.isTrue(app.l10nLoader.load.calledOnce);
-      assert.isTrue(app.l10nLoader.load.calledOn(app.l10nLoader));
     });
 
     test('hashchange', function() {
@@ -329,7 +321,6 @@ suite('StateManager', function() {
         assert.isFalse(
           app.inputMethodManager.loader.getInputMethodAsync.calledTwice,
           'Should not try to preload IMEngine again.');
-        assert.isFalse(app.l10nLoader.load.calledTwice);
       });
 
       test('finishing activation', function() {
@@ -361,8 +352,6 @@ suite('StateManager', function() {
         assert.isTrue(
           app.layoutRenderingManager.updateLayoutRendering.calledOnce);
 
-        assert.isTrue(app.l10nLoader.load.calledTwice);
-        assert.isTrue(app.l10nLoader.load.getCall(1).calledOn(app.l10nLoader));
       });
     });
   });
