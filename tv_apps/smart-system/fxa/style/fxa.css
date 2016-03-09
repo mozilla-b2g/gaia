@@ -289,18 +289,22 @@ gaia-header {
   position: relative;
 }
 
-#fxa-email-input {
-  width: 110.8rem;
+#fxa-email-input,
+#fxa-pw-input,
+#fxa-pw-input-refresh {
+  width: 100.8rem;
   margin-top: 19.2rem;
   margin-left: 4.5rem;
   margin-bottom: 4.5rem;
+  padding-right: 5rem;
+  padding-left: 5rem;
 }
 
 #fxa-email-clean-btn,
 #fxa-pw-clean-btn {
   position: absolute;
   top: 1.4rem;
-  right: 0;
+  right: 5rem;
   display: none;
   width: 3rem;
   height: 3rem;
@@ -399,14 +403,6 @@ ul.fxa-verification-wrapper li {
 #fxa-enter-password,
 #fxa-refresh-auth {
   height: 80rem;
-}
-
-#fxa-pw-input,
-#fxa-pw-input-refresh {
-  width: 110.8rem;
-  margin-top: 19.2rem;
-  margin-left: 4.5rem;
-  margin-bottom: 4.5rem;
 }
 
 #fxa-pw-option-container {
@@ -555,8 +551,18 @@ form[role=dialog].show {
   display: none;
 }
 
+#fxa-error-overlay > section {
+  position: relative;
+  display: block;
+  height: 42.8rem;
+}
+
 #fxa-error-overlay .fxa-error-msg-container {
-  margin-top: 35rem;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 96rem;
+  margin-left: -48rem;
   padding: 0;
   text-align: center;
   border-top: none;
@@ -569,7 +575,7 @@ form[role=dialog].show {
 #fxa-error-overlay .fxa-error-msg-container #fxa-error-msg {
   display: block;
   font-size: 3.8rem;
-  line-height: normal;
+  line-height: 5rem;
   color: #f9f9f9;
 }
 

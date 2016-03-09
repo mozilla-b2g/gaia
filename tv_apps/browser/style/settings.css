@@ -78,6 +78,11 @@ p.fine-print {
 #fxsync-header {
   margin-bottom: 5rem;
 }
+
+#fxsync-sign-in-button {
+  width: 23.7rem;
+  margin-bottom: 4.5rem;
+}
 /*ENDIF_FIREFOX_SYNC*/
 
 #settings-header-title {
@@ -235,6 +240,8 @@ p.fine-print {
 }
 
 #fxsync-disabled > p {
+  margin: 0;
+  line-height: 3.6rem;
   font-size: 2.8rem;
   font-style: italic;
   font-weight: lighter;
@@ -243,13 +250,18 @@ p.fine-print {
 #fxsync-enabled {
   display: flex;
   align-items: center;
-  margin-top: -5.1rem;
+  margin-top: -4.65rem;
   flex-wrap: wrap;
   justify-content: space-between;
 }
 
 #fxsync-enabled > p {
   width: 100%;
+  margin-bottom: 6rem;
+  margin-top:0;
+  margin-left: 4.5rem;
+  text-decoration: underline;
+  color: #4d4d4d;
 }
 
 #fxsync-enabled[hidden] {
@@ -257,7 +269,8 @@ p.fine-print {
 }
 
 #fxsync-enabled > fxos-tv-button {
-  margin-left: 1.8rem;
+  width: 23.7rem;
+  margin-left: 4rem;
 }
 
 #fxsync-area.hidden,
@@ -271,9 +284,9 @@ p.fine-print {
 .settings-horizontal-list {
   display: flex;
   width: 100%;
-  margin-top: 2rem;
-  margin-left: 1rem;
-  margin-bottom: 2rem;
+  margin-top: 6.45rem;
+  margin-left: 4.5rem;
+  margin-bottom: 9rem;
 }
 
 .settings-horizontal-list-item {

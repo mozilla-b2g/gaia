@@ -748,9 +748,6 @@ input::-moz-focus-inner {
   transition: height 0.42s cubic-bezier(0.25, 0, 0, 1.0),
               border-bottom 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
-#menu-block li:last-child {
-  /* border-bottom: 0px; */
-}
 
 #menu-block li:hover {
   height: 9.2rem;
@@ -760,6 +757,16 @@ input::-moz-focus-inner {
   height: 9.2rem;
   font-size: 3.8rem;
 }
+
+#menu-block li:hover a#pocket-tab:before {
+  background-size: 120% 120%;
+  background-position: center 80%;
+}
+
+#menu-block li:last-child {
+   border-bottom: 0px;
+}
+
 #menu-block li:active a {
   color: #00caf2;
   padding-left: 2rem;
@@ -1100,4 +1107,3 @@ input::-moz-focus-inner {
   animation-fill-mode: forwards;
   animation-delay: 0s;
 }
-
