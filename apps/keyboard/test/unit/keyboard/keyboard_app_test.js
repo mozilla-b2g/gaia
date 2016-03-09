@@ -2,7 +2,7 @@
 
 /* global KeyboardApp, KeyboardConsole, InputMethodManager,
           InputMethodDatabaseLoader, LayoutManager, SettingsPromiseManager,
-          L10nLoader, TargetHandlersManager, FeedbackManager,
+          TargetHandlersManager, FeedbackManager,
           VisualHighlightManager, CandidatePanelManager, UpperCaseStateManager,
           LayoutRenderingManager, StateManager,
           MockInputMethodManager, HandwritingPadsManager, ViewManager */
@@ -12,7 +12,6 @@ require('/js/keyboard/input_method_manager.js');
 require('/js/keyboard/input_method_database_loader.js');
 require('/js/keyboard/layout_manager.js');
 require('/js/keyboard/settings.js');
-require('/js/keyboard/l10n_loader.js');
 require('/js/keyboard/target_handlers_manager.js');
 require('/js/keyboard/handwriting_pads_manager.js');
 require('/js/keyboard/feedback_manager.js');
@@ -34,7 +33,6 @@ suite('KeyboardApp', function() {
   var inputMethodDatabaseLoaderStub;
   var layoutManagerStub;
   var settingsPromiseManagerStub;
-  var l10nLoaderStub;
   var targetHandlersManagerStub;
   var handwritingPadsManagerStub;
   var feedbackManagerStub;
@@ -73,9 +71,6 @@ suite('KeyboardApp', function() {
       this.sinon.stub(SettingsPromiseManager.prototype);
     this.sinon.stub(window, 'SettingsPromiseManager')
       .returns(settingsPromiseManagerStub);
-
-    l10nLoaderStub = this.sinon.stub(L10nLoader.prototype);
-    this.sinon.stub(window, 'L10nLoader').returns(l10nLoaderStub);
 
     targetHandlersManagerStub =
       this.sinon.stub(TargetHandlersManager.prototype);
@@ -130,7 +125,6 @@ suite('KeyboardApp', function() {
     assert.isTrue(window.InputMethodDatabaseLoader.calledWithNew());
     assert.isTrue(window.LayoutManager.calledWithNew());
     assert.isTrue(window.SettingsPromiseManager.calledWithNew());
-    assert.isTrue(window.L10nLoader.calledWithNew());
     assert.isTrue(window.TargetHandlersManager.calledWithNew());
     assert.isTrue(window.FeedbackManager.calledWithNew());
     assert.isTrue(window.VisualHighlightManager.calledWithNew());

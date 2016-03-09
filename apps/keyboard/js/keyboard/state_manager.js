@@ -38,13 +38,10 @@ StateManager.prototype.start = function() {
 
   // If the app was started inactive, we should start the loading process of
   // what we would need.
-  // l20n.js gets loaded here too, eventually, since there is nothing left
-  // in the critical path.
   if (!active) {
     this._queue.run([
       this._preloadLayout.bind(this),
-      this._preloadInputMethod.bind(this),
-      this.app.l10nLoader.load.bind(this.app.l10nLoader)
+      this._preloadInputMethod.bind(this)
     ]);
   }
 
@@ -128,9 +125,7 @@ StateManager.prototype._updateActiveState = function(active) {
       this._activateIMEngineForCurrentPage.bind(this),
       // ... load the layout rendering,
       this.app.layoutRenderingManager.updateLayoutRendering
-        .bind(this.app.layoutRenderingManager),
-      // ... load l20n.js (if it's not loaded yet.)
-      this.app.l10nLoader.load.bind(this.app.l10nLoader)
+        .bind(this.app.layoutRenderingManager)
     ]);
   } else {
     // Do nothing if we are already hidden.
