@@ -124,6 +124,11 @@ System.prototype = {
     return elements;
   },
 
+  shbFullscreenLayoutDisplayed: function() {
+    var classes = this.softwareHomeFullscreenLayout.getAttribute('class');
+    return classes.indexOf('hidden') === -1;
+  },
+
   get activeHomescreenFrame() {
     var homescreen = System.Selector.activeHomescreenFrame;
     return this.client.helper.waitForElement(homescreen);
