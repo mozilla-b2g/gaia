@@ -7,7 +7,7 @@ var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
 var viewMode = null;
 
-IntlHelper.define('date-long', 'mozdatetime', {
+IntlHelper.define('date-long', 'datetime', {
   weekday: 'long',
   month: 'long',
   day: 'numeric'
@@ -107,7 +107,7 @@ var ClockView = {
     IntlHelper.observe('date-long', this.updateDayDate.bind(this));
 
     // Those two will get fired on language and timeformat changes
-    IntlHelper.observe('time-html', this.updateDigitalClock.bind(this));
+    IntlHelper.observe('time-text', this.updateDigitalClock.bind(this));
     IntlHelper.observe('time-text', this.updateAnalogClock.bind(this));
 
     // If the attempt to request and set the viewMode
@@ -136,9 +136,12 @@ var ClockView = {
 
     // If the date of the month is part of the locale format as a
     // number, insert bold tags to accentuate the number itself.
-    var dateString = f.format(d, {
-      day: '<b>$&</b>'
-    });
+    var dateString = f.formatToParts(d).map(({type, value}) => {
+      switch(type) {
+        case 'day': return `<b>${value}</b>`;
+        default: return value;
+      }
+    }).reduce((string, part) => string + part, '');
 
     this.dayDate.innerHTML = dateString;
 

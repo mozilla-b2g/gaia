@@ -1,5 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager,
-           LockScreenSlide, MozActivity, SettingsListener, Utils, mozIntl */
+           LockScreenSlide, MozActivity, SettingsListener, Utils */
 /* jshint nonew: false */
 
 'use strict';
@@ -385,14 +385,25 @@ var CallScreen = {
   },
 
   showClock: function cs_showClock(now) {
-    var formatter = mozIntl.DateTimeFormat(navigator.languages, {
+    var formatter = new Intl.DateTimeFormat(navigator.languages, {
       hour12: navigator.mozHour12,
-      dayperiod: false,
       hour: 'numeric',
       minute: 'numeric'
     });
 
-    var timeText = formatter.format(now);
+    var timeText;
+
+    if (formatter.resolvedOptions().hour12 === true) {
+      timeText = formatter.formatToParts(now).map(({type, value}) => {
+        switch (type) {
+          case 'dayperiod': return '';
+          default: return value;
+        }
+      }).reduce((string, part) => string + part, '');
+    } else {
+      timeText = formatter.format(now);
+    }
+
     var dateText = now.toLocaleString(navigator.languages, {
       weekday: 'long',
       month: 'long',

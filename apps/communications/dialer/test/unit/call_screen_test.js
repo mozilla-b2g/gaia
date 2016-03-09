@@ -1,12 +1,11 @@
 /* globals CallScreen, FontSizeManager, l10nAssert, MockCallsHandler,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
            MockNavigatorSettings, MockL10n, MocksHelper, MockSettingsListener,
-           Utils, MockMozIntl */
+           Utils */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_moz_intl.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -39,7 +38,6 @@ suite('call screen', function() {
   var realMozSettings;
   var realMozTelephony;
   var realMozL10n;
-  var realMozIntl;
   var realSettingsListener;
 
   var body;
@@ -77,8 +75,6 @@ suite('call screen', function() {
     window.SettingsListener = MockSettingsListener;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    realMozIntl = window.mozIntl;
-    window.mozIntl = MockMozIntl;
   });
 
   suiteTeardown(function() {
@@ -87,7 +83,6 @@ suite('call screen', function() {
     navigator.mozTelephony = realMozTelephony;
     window.SettingsListener = realSettingsListener;
     navigator.mozL10n = realMozL10n;
-    window.mozIntl = realMozIntl;
   });
 
   setup(function(done) {
@@ -906,17 +901,21 @@ suite('call screen', function() {
     test('clock should display current 12 hour time info', function() {
       var currentDate = new Date();
       window.navigator.mozHour12 = true;
+
+      function stubFormatToParts(d) {
+        return [{type: 'dayperiod', value: 'AM'}];
+      }
+      if (!Intl.DateTimeFormat.prototype.formatToParts) {
+        Intl.DateTimeFormat.prototype.formatToParts = stubFormatToParts;
+      } else {
+        this.sinon.stub(
+          Intl.DateTimeFormat.prototype, 'formatToParts', stubFormatToParts);
+      }
+
       CallScreen.showClock(currentDate);
-      var clockStr = CallScreen.lockedClockTime.textContent;
-      var amPm = currentDate.toLocaleFormat('%p');
 
-      var refStr = currentDate.toLocaleString(navigator.languages, {
-        hour12: navigator.mozHour12,
-        hour: 'numeric',
-        minute: 'numeric'
-      }).replace(amPm, '').trim();
-
-      assert.isTrue(clockStr.indexOf(refStr) !== -1);
+      assert.isTrue(
+        CallScreen.lockedClockTime.textContent.indexOf('AM') === -1);
     });
   });
 

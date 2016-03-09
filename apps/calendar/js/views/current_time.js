@@ -8,10 +8,9 @@ var timeObserver = require('time_observer');
 
 var activeClass = View.ACTIVE;
 
-IntlHelper.define('current-time', 'mozdatetime', {
+IntlHelper.define('current-time', 'datetime', {
   hour: 'numeric',
   minute: 'numeric',
-  dayperiod: false,
 });
 
 function CurrentTime(options) {
@@ -110,7 +109,14 @@ CurrentTime.prototype = {
     var now = new Date();
 
     var formatter = IntlHelper.get('current-time');
-    this.element.textContent = formatter.format(now);
+    this.element.textContent = formatter.formatToParts(now).map(
+      ({type, value}) => {
+        switch(type) {
+          case 'dayperiod': return '';
+          default: return value;
+        }
+      }
+    ).reduce((string, part) => string + part, '');
 
     this.element.dataset.date = now;
     this.element.dataset.l10nDateFormat = 'current-time';
