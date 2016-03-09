@@ -1,3 +1,4 @@
+/* global SpatialNavigationHelper */
 define(function(require) {
   'use strict';
 
@@ -39,6 +40,17 @@ define(function(require) {
   };
 
   return function ctor_promptDialog(panelDOM, options) {
-    return new PromptDialog(panelDOM, options);
+    var dialog = new PromptDialog(panelDOM, options);
+    const SN_ROOT = 'body.spatial-navigation .current.' + dialog.DIALOG_CLASS;
+    // Support keyboard navigation in PromptDialog
+    SpatialNavigationHelper.add({
+      id: 'prompt-dialog',
+      selector: SN_ROOT + ' button,' +
+                SN_ROOT + ' input',
+      restrict: 'self-only',
+      enterTo: 'last-focused'
+    });
+    dialog.spatialNavigationId = dialog.DIALOG_CLASS;
+    return dialog;
   };
 });

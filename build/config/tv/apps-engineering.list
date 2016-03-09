@@ -18,6 +18,7 @@ tv_apps/tv-ftu
 tv_apps/webapps
 apps/sync
 apps/keyboard
+apps/settings
 outoftree_apps/*
 dev_apps/test-agent
 dev_apps/uitest

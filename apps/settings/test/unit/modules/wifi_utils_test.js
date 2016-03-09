@@ -13,10 +13,12 @@ suite('WifiUtils', function() {
   var realSettings;
   var wifiUtils;
   var settingsUtils;
+  var mockSpatialNavigationHelper, realSpatialNavigationHelper;
   var map = {
     '*': {
       'modules/settings_utils': 'unit/mock_settings_utils',
-      'shared/wifi_helper': 'shared_mocks/mock_wifi_helper'
+      'shared/wifi_helper': 'shared_mocks/mock_wifi_helper',
+      'spatial_navigation_helper': 'unit/mock_spatial_navigation_helper'
     }
   };
 
@@ -37,9 +39,12 @@ suite('WifiUtils', function() {
     testRequire([
       'modules/wifi_utils',
       'unit/mock_settings_utils',
-    ], map, function(WifiUtils, MockSettingsUtils) {
+      'spatial_navigation_helper'
+    ], map, function(WifiUtils, MockSettingsUtils,
+      MockSpatialNavigationHelper) {
       wifiUtils = WifiUtils;
       settingsUtils = MockSettingsUtils;
+      mockSpatialNavigationHelper = MockSpatialNavigationHelper;
 
       MockNavigatorSettings.mSetup();
       MockNavigatorMozWifiManager.mSetup();
@@ -72,6 +77,13 @@ suite('WifiUtils', function() {
       fakeActiveItemDOM.appendChild(document.createElement('aside'));
 
       fakeListItems[fakeNetworkKey] = fakeListItemDOM;
+
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
+    });
+
+    teardown(function() {
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
     });
 
     suite('with no needed parameters', function() {
@@ -255,6 +267,18 @@ suite('WifiUtils', function() {
   });
 
   suite('newListItem', function() {
+    var spySNHIsEnabled;
+    setup(function() {
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
+      spySNHIsEnabled =
+        this.sinon.spy(window.SpatialNavigationHelper, 'isEnabled');
+    });
+
+    teardown(function() {
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
+    });
+
     test('WPA-PSK network - not configured, in range', function() {
       var testNetwork = {
         ssid: 'Dummy network',
@@ -267,6 +291,8 @@ suite('WifiUtils', function() {
       var listItem = wifiUtils.newListItem({
         network: testNetwork
       });
+
+      assert.isTrue(spySNHIsEnabled.calledOnce);
 
       var icon = listItem.querySelector('aside');
       assert.ok(icon.classList.contains('secured'));
@@ -404,6 +430,8 @@ suite('WifiUtils', function() {
 
     setup(function() {
       loadBodyHTML('./_wifi_utils.html');
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
       testNetwork = {
         ssid: 'Dummy network',
         security: ['WPA-PSK'],
@@ -421,6 +449,7 @@ suite('WifiUtils', function() {
 
     teardown(function() {
       document.body.innerHTML = '';
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
     });
 
     test('Signal Strength changes', function() {
