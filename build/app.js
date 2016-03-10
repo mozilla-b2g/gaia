@@ -20,6 +20,8 @@ function buildApps(options) {
 
   var webapps = gaia.rebuildWebapps;
 
+  utils.copyDirTo(gaia.sharedFolder.path, gaia.stageDir.path, 'shared');
+
   webapps.forEach(function(app) {
     let appDir = app.appDirPath;
     let appDirFile = utils.getFile(appDir);
@@ -113,6 +115,11 @@ exports.execute = function(options) {
   });
 
   buildApps(options);
+
+  var gaia = utils.gaia.getInstance(options);
+  var webappsDir = utils.joinPath(options.PROFILE_DIR, 'webapps');
+  var stageShared = utils.joinPath(gaia.stageDir.path, 'shared');
+  utils.copyDirTo(stageShared, webappsDir, 'shared');
 };
 
 exports.buildApps = buildApps;

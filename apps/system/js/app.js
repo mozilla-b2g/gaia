@@ -37,15 +37,15 @@
       'js/launcher.js',
       'js/settings_core.js',
       'js/modal_dialog.js', // XXX: Wrap with ModalDialogService later
-      'shared/js/event_safety.js',
-      'shared/js/mobile_operator.js',
-      'shared/js/screen_layout.js',
-      'shared/js/settings_listener.js',
-      'shared/js/async_storage.js',
-      'shared/js/manifest_helper.js',
-      'shared/js/notification_helper.js',
-      'shared/js/sanitizer.js',
-      'shared/js/idletimer.js' // XXX: Move into ScreenManager
+      '../shared/js/event_safety.js',
+      '../shared/js/mobile_operator.js',
+      '../shared/js/screen_layout.js',
+      '../shared/js/settings_listener.js',
+      '../shared/js/async_storage.js',
+      '../shared/js/manifest_helper.js',
+      '../shared/js/notification_helper.js',
+      '../shared/js/sanitizer.js',
+      '../shared/js/idletimer.js' // XXX: Move into ScreenManager
     ],
     start: function() {
       window.performance.mark('loadEnd');

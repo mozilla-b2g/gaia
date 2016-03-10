@@ -13,7 +13,7 @@ window.GaiaConfirm = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaConfirmBaseurl ||
-    '/shared/elements/gaia_confirm/';
+    '../shared/elements/gaia_confirm/';
 
   /**
   preventDefault and prevent other listeners from hearing abut changes to a

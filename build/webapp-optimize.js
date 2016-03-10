@@ -577,7 +577,7 @@ WebappOptimize.prototype.execute = function(config) {
   // remove excluded condition /^(shared|tests?)$/)
   var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
   var buildDirectoryPath = buildDirectoryFile.path.replace(/\\/g, '/');
-  var excluded = new RegExp(buildDirectoryPath + '.*\/(shared|tests?)');
+  var excluded = new RegExp(buildDirectoryPath + '.*\/(tests?)');
   var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
     return !(excluded.test(file.path.replace(/\\/g, '/')));
   });

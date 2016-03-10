@@ -347,7 +347,7 @@
   };
 
   SystemDialogManager.prototype._includeTrackingNotice = function() {
-    LazyLoader.load('/js/tracking_notice.js').then(()  => {
+    LazyLoader.load('js/tracking_notice.js').then(()  => {
       this.trackingNotice = new TrackingNotice(SystemDialogManager);
     });
   };

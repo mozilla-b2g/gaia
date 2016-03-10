@@ -34,7 +34,7 @@
     start: function() {
       var lazyLoadScripts = [
         'js/system_banner.js',
-        'shared/js/addons/match_pattern.js'
+        '../shared/js/addons/match_pattern.js'
       ];
       LazyLoader.load(lazyLoadScripts).then(() => {
         this.systemBanner = new SystemBanner();
@@ -98,7 +98,7 @@
                                this.handleSetupConfirmAction.bind(this);
       this.imeCancelButton.onclick = this.hideIMEList.bind(this);
       this.imeConfirmButton.onclick = this.handleImeConfirmAction.bind(this);
-      LazyLoader.load(['shared/js/homescreens/confirm_dialog_helper.js']);
+      LazyLoader.load(['../shared/js/homescreens/confirm_dialog_helper.js']);
 
       window.addEventListener('applicationready', this);
 

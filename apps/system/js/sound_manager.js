@@ -246,7 +246,7 @@
    * @returns {SoundManager}
    */
   SoundManager.prototype.start = function sm_start() {
-    LazyLoader.load(['shared/js/async_semaphore.js']).then(() => {
+    LazyLoader.load(['../shared/js/async_semaphore.js']).then(() => {
       this.pendingRequest = new AsyncSemaphore();
     }).catch((err) => {
       console.error(err);

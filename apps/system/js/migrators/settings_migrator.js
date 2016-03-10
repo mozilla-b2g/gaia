@@ -31,7 +31,7 @@
     keyMigration: function km_keyMigration(result) {
       if ((result[this._oldPasscode] !== undefined) &&
           (result[this._hashedPasscode] === undefined)) {
-        LazyLoader.load(['/shared/js/passcode_helper.js']).then(() => {
+        LazyLoader.load(['../shared/js/passcode_helper.js']).then(() => {
           var set = {};
           var passcode = result[this._oldPasscode];
           set[this._oldPasscode] = '0000'; // this is a pre-defined default

@@ -3,7 +3,7 @@
   overflow: hidden;
   width: 100%;
   height: 100%;
-  background: #000 url('/shared/resources/branding/initlogo.png') no-repeat center / cover;
+  background: #000 url('chrome://gaia/content/shared/resources/branding/initlogo.png') no-repeat center / cover;
   z-index: 65538;
   opacity: 1;
   transition: opacity 1s ease 2s;
@@ -49,6 +49,6 @@
 
 @media (min-width: 1200px) and (orientation: landscape) {
   #os-logo {
-    background: #000 url('/shared/resources/branding/initlogo_large.png') no-repeat center / cover;
+    background: #000 url('chrome/gaia/content/shared/resources/branding/initlogo_large.png') no-repeat center / cover;
   }
 }

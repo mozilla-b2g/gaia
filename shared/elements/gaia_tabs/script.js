@@ -8,7 +8,7 @@ window.GaiaTabs = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaTabsBaseurl ||
-    '/shared/elements/gaia_tabs/';
+    '../shared/elements/gaia_tabs/';
 
   /**
    * Runs when an instance of `GaiaTabs`

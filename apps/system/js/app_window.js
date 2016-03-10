@@ -1291,7 +1291,7 @@
 
   AppWindow.prototype._updateManifest =
     function aw_updateManifest(manifestURL) {
-    return LazyLoader.load('/shared/js/web_manifest_helper.js').then(() => {
+    return LazyLoader.load('../shared/js/web_manifest_helper.js').then(() => {
       return WebManifestHelper.getManifest(manifestURL);
     }).then((webManifest) => {
       this.webManifest = webManifest;
@@ -2613,7 +2613,7 @@
     placeObj = {}, siteObj = {}) {
 
     return new Promise((resolve, reject) => {
-      LazyLoader.load('/shared/js/icons_helper.js').then(() => {
+      LazyLoader.load('../shared/js/icons_helper.js').then(() => {
         IconsHelper.getIconBlob(origin, iconSize, placeObj, siteObj)
           .then(iconObject => {
             resolve({

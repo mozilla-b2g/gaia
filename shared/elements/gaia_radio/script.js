@@ -7,7 +7,7 @@ window.GaiaRadio = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaRadioBaseurl ||
-    '/shared/elements/gaia_radio/';
+    '../shared/elements/gaia_radio/';
 
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();

@@ -32,7 +32,7 @@
     app.element.addEventListener('_inputfocus', this);
     app.element.addEventListener('_inputblur', this);
     app.element.addEventListener('_localized', this);
-    LazyLoader.load(['shared/js/input_parser.js']);
+    LazyLoader.load(['../shared/js/input_parser.js']);
     window.addEventListener('timeformatchange', this);
   };
 
