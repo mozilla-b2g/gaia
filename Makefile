@@ -1,9 +1,6 @@
 ###############################################################################
 # Global configurations.  Protip: set your own overrides in a local.mk file.  #
 #                                                                             #
-# GAIA_DOMAIN : change that if you plan to use a different domain to update   #
-#               your applications or want to use a local domain               #
-#                                                                             #
 # SYSTEM      : url of the SYSTEM to start on                                 #
 #                                                                             #
 # ADB         : if you use a device and plan to send update it with your work #
@@ -82,7 +79,6 @@ endif
 # and it can cause crashes in bot.io option is here so
 # -nv can be passed and turn off verbose output.
 WGET_OPTS?=-c -nv
-GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
 DEVICE_DEBUG?=0
@@ -176,14 +172,11 @@ PROFILE_FOLDER?=profile
 STAGE_DIR?=$(GAIA_DIR)$(SEP)build_stage
 export STAGE_DIR
 
-LOCAL_DOMAINS?=1
-
 ADB?=adb
 
-# Yep, this is a gross hack.
-SCHEME=http://localhost/
+SCHEME=chrome://
 
-SYSTEM?=$(SCHEME)system.$(GAIA_DOMAIN)
+SYSTEM?=$(SCHEME)system
 
 BUILD_APP_NAME?=*
 ifneq ($(APP),)
@@ -206,7 +199,6 @@ MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=$(shell pwd)/shared/test/integration/local-manifest.json
 
 ifeq ($(MAKECMDGOALS), demo)
-GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_TARGET=demo
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
@@ -534,9 +526,7 @@ define BUILD_CONFIG
   "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
   "COREWEBAPPS_DIR" : "$(COREWEBAPPS_DIR)", \
   "GAIA_SCHEME" : "$(SCHEME)", \
-  "GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
   "DEBUG" : "$(DEBUG)", \
-  "LOCAL_DOMAINS" : "$(LOCAL_DOMAINS)", \
   "DESKTOP" : "$(DESKTOP)", \
   "DEVICE_DEBUG" : "$(DEVICE_DEBUG)", \
   "NO_LOCK_SCREEN" : "$(NO_LOCK_SCREEN)", \

@@ -63,8 +63,7 @@ function installSvoperapps(profileFolder, adb) {
 }
 
 function installOneApp(targetFolder, buildAppName,
-                       remotePath, gaiaDomain,
-                       adb) {
+                       remotePath, adb) {
   // Instead of push to remote path directly, we push to temp folder and then
   // cat to overwrite the file. This way the original file will not be deleted
   // and reading from the already opened fd will get updated content. So even we
@@ -75,32 +74,30 @@ function installOneApp(targetFolder, buildAppName,
       // /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/manifest.webapp"
       return sh.run(['-c',
         adb + ' push "' + utils.joinPath(targetFolder, 'manifest.webapp') +
-        '" //data/local/tmp/pushgaia/' + buildAppName + '.' + gaiaDomain +
-        '/manifest.webapp']);
+        '" //data/local/tmp/pushgaia/' + buildAppName + '/manifest.webapp']);
     })
     .then(function() {
       // "adb push /gaia/profile/webapps/SOME_APP.gaiamobile.org/application.zip
       //  /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/application.zip"
       return sh.run(['-c',
         adb + ' push "' + utils.joinPath(targetFolder, 'application.zip') +
-        '" //data/local/tmp/pushgaia/' + buildAppName + '.' + gaiaDomain +
-        '/application.zip']);
+        '" //data/local/tmp/pushgaia/' + buildAppName + '/application.zip']);
     })
     .then(function() {
       // "adb shell cat /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/manifes
       // t.webapp > /system/b2g/webapps/SOME_APP.gaiamobile.org/manifest.webapp"
       return sh.run(['-c',
         adb + ' shell "cat /data/local/tmp/pushgaia/' + buildAppName +
-        '.' + gaiaDomain + '/manifest.webapp > ' + remotePath + '/webapps/' +
-        buildAppName + '.' + gaiaDomain + '/manifest.webapp"']);
+        + '/manifest.webapp > ' + remotePath + '/webapps/' +
+        buildAppName + '/manifest.webapp"']);
     })
     .then(function() {
       // "adb shell cat /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/applica
       // tion.zip > /system/b2g/webapps/SOME_APP.gaiamobile.org/application.zip"
       return sh.run(['-c',
         adb + ' shell "cat /data/local/tmp/pushgaia/' + buildAppName +
-        '.' + gaiaDomain + '/application.zip > ' + remotePath + '/webapps/' +
-        buildAppName + '.' + gaiaDomain + '/application.zip"']);
+        + '/application.zip > ' + remotePath + '/webapps/' +
+        buildAppName + '/application.zip"']);
     })
     .then(function() {
       // "adb shell rm -rf /data/local/tmp/pushgaia"
@@ -145,7 +142,6 @@ function execute(options) {
   const buildAppName = options.BUILD_APP_NAME;
   const gaiaDir = options.GAIA_DIR;
   const profileFolder = options.PROFILE_DIR;
-  const gaiaDomain = options.GAIA_DOMAIN;
   var remotePath = options.GAIA_INSTALL_PARENT;
   var targetFolder;
   var adb = options.ADB;
@@ -197,10 +193,9 @@ function execute(options) {
         return pushToDevice(profileFolder, remotePath, adb);
       } else {
         targetFolder = utils.joinPath(
-            profileFolder, 'webapps',
-            buildAppName + '.' + gaiaDomain);
+            profileFolder, 'webapps', buildAppName);
         return installOneApp(targetFolder, buildAppName,
-                             remotePath, gaiaDomain, adb);
+                             remotePath, adb);
       }
     })
     .then(function() {

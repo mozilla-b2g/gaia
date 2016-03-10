@@ -419,7 +419,7 @@ module.exports = {
     let manifestJSON = this.getJSON(this.getFile(manifest));
 
     // Use the folder name as the the domain name
-    let appDomain = appDir.leafName + '.' + config.GAIA_DOMAIN;
+    let appDomain = appDir.leafName;
     if (manifestJSON.origin) {
       appDomain = this.getNewURI(manifestJSON.origin).host;
     }
@@ -494,6 +494,7 @@ module.exports = {
   },
 
   getNewURI: function(uri) {
+  dump("node: getNewURI(" + uri + ")\n");
     return {
       host: /[a-z]+:\/\/[@]?([^\/:]+)/.exec(uri)[1],
       prePath: /[a-z]+:\/\/[^\/]+/.exec(uri)[0],

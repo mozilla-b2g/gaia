@@ -200,8 +200,7 @@ HTMLOptimizer.prototype.embededGlobals = function() {
   // add the system manifest url to our global object for net_error
   // see: https://bugzilla.mozilla.org/show_bug.cgi?id=959800#c8
   var globals = {
-    SYSTEM_MANIFEST: 'app://system.' + this.config.GAIA_DOMAIN +
-                     '/manifest.webapp'
+    SYSTEM_MANIFEST: this.config.SYSTEM + '/manifest.webapp'
   };
   var content = '';
   for (var key in globals) {
