@@ -64,44 +64,23 @@ function installSvoperapps(profileFolder, adb) {
 
 function installOneApp(targetFolder, buildAppName,
                        remotePath, adb) {
-  // Instead of push to remote path directly, we push to temp folder and then
-  // cat to overwrite the file. This way the original file will not be deleted
-  // and reading from the already opened fd will get updated content. So even we
-  // can't clear the zip cache, will still have updated app launched next time.
+  let devicePath = remotePath + '/webapps/' + buildAppName + '/';
+  // kill all of the previous app file and push new ones.
   return Promise.resolve()
     .then(function() {
-      // "adb push /gaia/profile/webapps/SOME_APP.gaiamobile.org/manifest.webapp
-      // /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/manifest.webapp"
+      // "adb shell rm -r /system/b2g/webapps/SOME_APP.gaiamobile.org/"
+      utils.log(JOB_NAME, 'removing previous files of ' + buildAppName
+                          + ' from ' + devicePath + '.');
       return sh.run(['-c',
-        adb + ' push "' + utils.joinPath(targetFolder, 'manifest.webapp') +
-        '" //data/local/tmp/pushgaia/' + buildAppName + '/manifest.webapp']);
+        adb + ' shell "rm -r ' + devicePath + '"']);
     })
     .then(function() {
       // "adb push /gaia/profile/webapps/SOME_APP.gaiamobile.org/application.zip
       //  /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/application.zip"
+      utils.log(JOB_NAME, 'installing new files of ' + buildAppName
+                          + ' to ' + devicePath + '.');
       return sh.run(['-c',
-        adb + ' push "' + utils.joinPath(targetFolder, 'application.zip') +
-        '" //data/local/tmp/pushgaia/' + buildAppName + '/application.zip']);
-    })
-    .then(function() {
-      // "adb shell cat /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/manifes
-      // t.webapp > /system/b2g/webapps/SOME_APP.gaiamobile.org/manifest.webapp"
-      return sh.run(['-c',
-        adb + ' shell "cat /data/local/tmp/pushgaia/' + buildAppName +
-        + '/manifest.webapp > ' + remotePath + '/webapps/' +
-        buildAppName + '/manifest.webapp"']);
-    })
-    .then(function() {
-      // "adb shell cat /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/applica
-      // tion.zip > /system/b2g/webapps/SOME_APP.gaiamobile.org/application.zip"
-      return sh.run(['-c',
-        adb + ' shell "cat /data/local/tmp/pushgaia/' + buildAppName +
-        + '/application.zip > ' + remotePath + '/webapps/' +
-        buildAppName + '/application.zip"']);
-    })
-    .then(function() {
-      // "adb shell rm -rf /data/local/tmp/pushgaia"
-      return sh.run(['-c', adb + ' shell rm -rf //data/local/tmp/pushgaia']);
+        adb + ' push "' + targetFolder + '" "' + devicePath + '"']);
     });
 }
 
@@ -226,9 +205,8 @@ function execute(options) {
           .then(function() {
             // Some app folder name is different with the process name,
             // ex. sms -> Messages
-            var zip = utils.getZip();
-            zip.load(targetFolder);
-            var manifest = JSON.parse(zip.file('manifest.webapp'));
+            var manifest = utils.readJSONFromPath(
+                             utils.joinPath(targetFolder, 'manifest.webapp'));
             utils.log(JOB_NAME, 'Restarting ' + manifest.name + '...');
             utils.killAppByPid(manifest.name, gaiaDir);
           });
