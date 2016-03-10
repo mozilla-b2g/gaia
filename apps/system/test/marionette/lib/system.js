@@ -665,5 +665,12 @@ System.prototype = {
     var banner = this.systemBanner;
     banner.tap();
     this.client.helper.waitForElementToDisappear(banner);
+  },
+
+  toasterDisplayed: function() {
+    var element = this.toaster;
+    var classes = element.getAttribute('class');
+    console.log('toaster displayed?', classes);
+    return classes.indexOf('displayed') > -1;
   }
 };

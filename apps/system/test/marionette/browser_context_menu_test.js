@@ -57,11 +57,11 @@ marionette('Browser Context Menu', function() {
 
       client.switchToFrame();
       client.waitFor(function() {
-        return system.toaster.displayed();
+        return system.toasterDisplayed();
       });
 
       client.waitFor(function() {
-        return !system.toaster.displayed();
+        return !system.toasterDisplayed();
       });
 
       // This does not work on desktop. See:
