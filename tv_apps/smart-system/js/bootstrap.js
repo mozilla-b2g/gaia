@@ -128,13 +128,9 @@ window.addEventListener('load', function startup() {
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
 
-  // unit tests call start() manually
-  if (navigator.mozL10n) {
-    navigator.mozL10n.once(function l10n_ready() {
-      window.mediaRecording = new MediaRecording();
-      window.mediaRecording.start();
-    });
-  }
+  window.mediaRecording = new MediaRecording();
+  window.mediaRecording.start();
+
   window.interactiveNotifications = new InteractiveNotifications();
   window.interactiveNotifications.start();
 

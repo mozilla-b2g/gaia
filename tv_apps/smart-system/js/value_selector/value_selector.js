@@ -571,7 +571,7 @@
     },
 
     setTimePickerStyle: function tp_setTimePickerStyle() {
-      navigator.mozL10n.formatValue('timePickerOrder').then(tpOrder => {
+      document.l10n.formatValue('timePickerOrder').then(tpOrder => {
         var style = 'format24h';
         if (this.is12hFormat) {
           // handle revert appearance

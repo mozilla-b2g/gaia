@@ -978,10 +978,6 @@
   // XXX: we shoud move the code to bootstrap but it is so buggy to put there.
   // So, we put here temporary.
   exports.soundManager = new SoundManager();
-  if (navigator.mozL10n) {
-    // unit tests call start() manually
-    navigator.mozL10n.once(function() {
-      exports.soundManager.start();
-    });
-  }
+
+  exports.soundManager.start();
 })(window);

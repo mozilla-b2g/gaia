@@ -65,7 +65,7 @@
      */
     show: function(message, buttonParams) {
       var banner = this.banner;
-      navigator.mozL10n.setAttributes(
+      document.l10n.setAttributes(
         banner.firstElementChild.firstElementChild,
         message.id,
         message.args

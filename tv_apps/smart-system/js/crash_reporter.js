@@ -35,7 +35,7 @@ window.CrashReporter = (function() {
       args: { name: crashedAppName }
     };
     var crashDialogTitle = document.getElementById('crash-dialog-title');
-    navigator.mozL10n.setAttributes(crashDialogTitle, title.id, title.args);
+    document.l10n.setAttributes(crashDialogTitle, title.id, title.args);
 
     // "Don't Send Report" button in dialog
     var noButton = document.getElementById('dont-send-report');

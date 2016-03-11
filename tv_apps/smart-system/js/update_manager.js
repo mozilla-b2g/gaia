@@ -158,7 +158,7 @@ var UpdateManager = {
   },
 
   showDownloadPrompt: function um_showDownloadPrompt() {
-    var _localize = navigator.mozL10n.setAttributes;
+    var _localize = document.l10n.setAttributes;
 
     this._systemUpdateDisplayed = false;
     _localize(this.downloadDialogTitle, 'numberOfUpdates', {
@@ -294,7 +294,7 @@ var UpdateManager = {
   },
 
   render: function um_render() {
-    var _localize = navigator.mozL10n.setAttributes;
+    var _localize = document.l10n.setAttributes;
 
     _localize(this.toasterMessage, 'updateAvailableInfo', {
       n: this.updatesQueue.length - this.lastUpdatesAvailable
@@ -545,7 +545,4 @@ var UpdateManager = {
   }
 };
 
-// unit tests call init() manually
-if (navigator.mozL10n) {
-  navigator.mozL10n.once(UpdateManager.init.bind(UpdateManager));
-}
+UpdateManager.init();

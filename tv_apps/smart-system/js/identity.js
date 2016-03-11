@@ -99,7 +99,4 @@ var Identity = (function() {
   };
 })();
 
-// unit tests call init() manually
-if (navigator.mozL10n) {
-  navigator.mozL10n.once(Identity.init.bind(Identity));
-}
+Identity.init();

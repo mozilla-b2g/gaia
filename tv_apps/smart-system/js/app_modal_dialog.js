@@ -226,7 +226,7 @@
         if (evt.yesText) {
           option.buttonSettings[0].textRaw = evt.yesText;
         } else {
-          textRawPromises.push(navigator.mozL10n.formatValue('ok')
+          textRawPromises.push(document.l10n.formatValue('ok')
             .then(text => option.buttonSettings[0].textRaw = text));
         }
 
@@ -250,14 +250,14 @@
         if (evt.yesText) {
           option.buttonSettings[1].textRaw = evt.yesText;
         } else {
-          textRawPromises.push(navigator.mozL10n.formatValue('ok')
+          textRawPromises.push(document.l10n.formatValue('ok')
             .then(text => option.buttonSettings[1].textRaw = text));
         }
 
         if (evt.noText) {
           option.buttonSettings[0].textRaw = evt.noText;
         } else {
-          textRawPromises.push(navigator.mozL10n.formatValue('cancel')
+          textRawPromises.push(document.l10n.formatValue('cancel')
             .then(text => option.buttonSettings[0].textRaw = text));
         }
 
@@ -283,14 +283,14 @@
         if (evt.yesText) {
           option.buttonSettings[1].textRaw = evt.yesText;
         } else {
-          textRawPromises.push(navigator.mozL10n.formatValue('ok')
+          textRawPromises.push(document.l10n.formatValue('ok')
             .then(text => option.buttonSettings[1].textRaw = text));
         }
 
         if (evt.noText) {
           option.buttonSettings[0].textRaw = evt.noText;
         } else {
-          textRawPromises.push(navigator.mozL10n.formatValue('cancel')
+          textRawPromises.push(document.l10n.formatValue('cancel')
             .then(text => option.buttonSettings[0].textRaw = text));
         }
 

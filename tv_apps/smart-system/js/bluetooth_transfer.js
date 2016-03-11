@@ -52,7 +52,7 @@ var BluetoothTransfer = {
         return Promise.resolve(this.pairList.index[i].name);
       }
     }
-    return navigator.mozL10n.formatValue('unknown-device');
+    return document.l10n.formatValue('unknown-device');
   },
 
   getPairedDevice: function bt_getPairedDevice(callback) {

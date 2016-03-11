@@ -194,7 +194,7 @@
       var message = document.createElement('div');
       var lines = [ document.createElement('h1'),
                     document.createElement('p')];
-      navigator.mozL10n.setAttributes(lines[0], 'app-install-success',
+      document.l10n.setAttributes(lines[0], 'app-install-success',
                                       { 'appName': options.manifest.name });
       lines[1].textContent = options.manifest.description;
       lines.forEach(message.appendChild.bind(message));
