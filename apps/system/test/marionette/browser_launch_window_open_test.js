@@ -74,8 +74,20 @@ marionette('Browser - Launch the same origin after navigating away',
     client.switchToFrame();
 
     client.waitFor(function() {
-      return client.findElement(
-        '.appWindow .modal-dialog-alert-message')
+      console.log('Waiting for element .appWindow .modal-dialog-alert-message');
+      var element;
+      try {
+        element = client.findElement('.appWindow .modal-dialog-alert-message');
+      } catch (error) {
+        console.log('ERROR!');
+        return false;
+      }
+      if (!element) {
+        console.log('Not found');
+        return false;
+      }
+      console.log('FOUND!');
+      return element
         .text()
         .indexOf('caller received') !== -1;
     });
