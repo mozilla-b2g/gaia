@@ -30,7 +30,7 @@ function AlarmListPanel(element) {
   });
 
   // This will be fired on language and timeformat changes
-  IntlHelper.observe('time-html', this.refreshDisplay.bind(this));
+  IntlHelper.observe('time-text', this.refreshDisplay.bind(this));
 
   window.addEventListener('alarm-changed', (evt) => {
     var alarm = evt.detail.alarm;

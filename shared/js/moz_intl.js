@@ -20,114 +20,6 @@ global.mozIntl = {
   },
 
   /**
-   * Overload of Intl.DateTimeFormat that extends with future features.
-   *
-   * 1) dayperiod token
-   *
-   * `dayperiod` token allows to decide whether the formatted time should
-   * contain dayperiod token. The value may be true or false.
-   *
-   * Example:
-   *
-   * mozIntl.DateTimeFormat(navigator.languages, {
-   *   dayperiod: true,
-   *   hour12: navigator.mozHour12,
-   *   hour: 'numeric',
-   *   minute: 'numeric'
-   * });
-   *
-   * 2) Token formatting
-   *
-   * This feature allows for formatting of tokens in the result string.
-   *
-   * Example:
-   *
-   * var f = mozIntl.DateTimeFormat(navigator.languages, {
-   *   weekday: 'long',
-   *   day: 'numeric',
-   *   month: 'long'
-   * });
-   *
-   * f.format(date, {
-   *  day: '<strong>$&</strong>',
-   * });
-   *
-   * Warning: Current implementation is very fragile. Be very careful when
-   * choosing tokens to be formatted. The formatter will replace the
-   * first occurrence of the returned string, so if you try to format
-   * dayperiod ('am') in a string that also contains weekday that has this
-   * string, you may end up with bad formatting. Example:
-   *
-   * French for Saturday is "samedi". So formatting weekday in the same string
-   * as dayperiod will result in "s<strong>am</strong>edi, 8:53 am".
-   *
-   * It's best to make sure that your formatted token is the only number or
-   * the only string. Examples:
-   *
-   * * dayperiod in Hour:Minute am/pm
-   * * day in "Saturday, July 23"
-   *
-   */
-  DateTimeFormat: function(locales, options) {
-    const resolvedOptions = Object.assign({}, options);
-
-    if (resolvedOptions.dayperiod) {
-      if (resolvedOptions.hour === undefined) {
-        resolvedOptions.hour = 'numeric';
-      }
-    }
-
-    if (resolvedOptions.hour !== undefined &&
-        resolvedOptions.hour12 === undefined) {
-      resolvedOptions.hour12 = navigator.mozHour12;
-    }
-
-    if (resolvedOptions.dayperiod === undefined &&
-        resolvedOptions.hour12 === true) {
-      resolvedOptions.dayperiod = true;
-    }
-
-    var intlFormat = new Intl.DateTimeFormat(locales, resolvedOptions);
-
-    resolvedOptions.locale = intlFormat.resolvedOptions().locale;
-    resolvedOptions.hour12 = intlFormat.resolvedOptions().hour12;
-
-    return {
-      resolvedOptions() { return resolvedOptions; },
-      format: function(date, tokenFormats) {
-        var dayPeriod;
-
-        var string = intlFormat.format(date);
-
-        if (resolvedOptions.dayperiod === false &&
-            resolvedOptions.hour12 === true) {
-          dayPeriod = getDayPeriodTokenForDate(date, intlFormat);
-          string = string.replace(dayPeriod, '').trim();
-        } else if (resolvedOptions.dayperiod === true &&
-           options.hour === undefined) {
-          string = getDayPeriodTokenForDate(date, intlFormat);
-        }
-
-        for (var token in tokenFormats) {
-          if (token === 'dayperiod' &&
-            resolvedOptions.hour12 === false) {
-            continue;
-          }
-          const localOptions = {
-            [token]: resolvedOptions[token],
-          };
-
-          var formatter = global.mozIntl.DateTimeFormat(
-            locales, localOptions);
-          var tokenString = formatter.format(date);
-          string = string.replace(tokenString, tokenFormats[token]);
-        }
-        return string;
-      },
-    };
-  },
-
-  /**
    * Return locale specific infromation about calendar system.
    *
    * Currently supports:
@@ -479,16 +371,6 @@ function trimDurationPattern(string, maxUnit, minUnit) {
     string.indexOf(maxToken),
     string.indexOf(minToken) + minToken.length);
   return string;
-}
-
-/**
- * This helper function is used by mozIntl.DateTimeFormat
- */
-function getDayPeriodTokenForDate(date, hourFormatter) {
-  const hourParts = hourFormatter.formatToParts(date);
-  const dayPeriodToken = hourParts.find(part => part.type === 'dayperiod');
-
-  return dayPeriodToken ? dayPeriodToken.value : '';
 }
 
 /*

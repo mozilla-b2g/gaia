@@ -41,6 +41,20 @@ suite('LockScreenClockWidget > ', function() {
           date: { firstChild: { data: 'dummy-data' }}
       }}
     };
+
+    function stubFormatToParts(d) {
+      /* jshint validthis: true */
+      return [
+        {type: 'time', value: this.format(d)}
+      ];
+    }
+    if (!Intl.DateTimeFormat.prototype.formatToParts) {
+      Intl.DateTimeFormat.prototype.formatToParts = stubFormatToParts;
+    } else {
+      this.sinon.stub(
+        Intl.DateTimeFormat.prototype, 'formatToParts', stubFormatToParts);
+    }
+
     var method = LockScreenClockWidget.prototype.updateClock;
     var now = new Date();
     method.call(mockThis);

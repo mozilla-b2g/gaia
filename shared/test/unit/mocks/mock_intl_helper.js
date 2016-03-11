@@ -18,8 +18,6 @@ global.MockIntlHelper = {
         return Intl.NumberFormat(navigator.languages, formatter.options);
       case 'datetime':
         return Intl.DateTimeFormat(navigator.languages, formatter.options);
-      case 'mozdatetime':
-        return mozIntl.DateTimeFormat(navigator.languages, formatter.options);
       case 'mozduration':
         return mozIntl.DurationFormat(navigator.languages, formatter.options);
     }

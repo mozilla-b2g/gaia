@@ -43,27 +43,6 @@
         return false;
       }
     },
-    mozdatetime: {
-      create: function(options) {
-        const customOptions = Object.assign({}, options);
-        if (options.hour) {
-          customOptions.hour12 = navigator.mozHour12;
-        }
-        return mozIntl.DateTimeFormat(
-          navigator.languages,
-          customOptions
-        );
-      },
-      isAffected: function(obj, reason) {
-        if (['languagechange', 'moztimechange'].includes(reason)) {
-          return true;
-        }
-        if (reason === 'timeformatchange') {
-          return 'hour' in obj.options;
-        }
-        return false;
-      }
-    },
     mozduration: {
       create: function(options) {
         return mozIntl.DurationFormat(
