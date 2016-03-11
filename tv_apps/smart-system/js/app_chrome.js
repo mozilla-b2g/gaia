@@ -44,7 +44,6 @@
     var chrome = this.app.config.chrome;
     if (!this.app.isBrowser() && chrome && !chrome.scrollable) {
       this._fixedTitle = true;
-      this.title.dataset.l10nId = 'search-the-web';
     } else if (!this.app.isBrowser() && this.app.name) {
       this._gotName = true;
       this.setFreshTitle(this.app.name);
