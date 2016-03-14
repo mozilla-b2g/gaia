@@ -44,6 +44,8 @@ suite('sync/adapters/tabs >', function() {
 
   function verifyTabs(remoteItem, localItem) {
     assert.deepEqual(remoteItem.payload, localItem);
+    assert.isNumber(localItem.timestamp);
+    assert.equal(remoteItem.last_modified, localItem.timestamp);
   }
 
   function testDataGenerator(initIndex, initDate, count) {
