@@ -6,12 +6,12 @@ requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/remote/message_controller.js');
 
-var mocksForMultiScreenController = new MocksHelper([
+var mocksForMultiScreenHelper = new MocksHelper([
   'LazyLoader'
 ]).init();
 
 suite('system/remote/MessageController', function() {
-  mocksForMultiScreenController.attachTestHelpers();
+  mocksForMultiScreenHelper.attachTestHelpers();
 
   var subject;
   var fakeDisplayId = 'test';
@@ -63,7 +63,6 @@ suite('system/remote/MessageController', function() {
 
   suite('receive messages', function() {
     var broadcastChannel;
-    var launchAppSuccess;
     var fakeConfig = {
       url: 'test.html'
     };
@@ -78,53 +77,34 @@ suite('system/remote/MessageController', function() {
 
     setup(function() {
       broadcastChannel = new BroadcastChannel('multiscreen');
-      this.sinon.stub(Service, 'request', function(service, config) {
-        return (service == 'launchPresentationApp' && launchAppSuccess) ?
-          Promise.resolve() : Promise.reject('test-reason');
-      });
     });
 
     teardown(function() {
       broadcastChannel.close();
     });
 
-    test('should post "launch-app-success" when resolving from ' +
-				 '"launchPresentationApp"', function(done) {
-      launchAppSuccess = true;
-      this.sinon.stub(subject, 'postMessage', function(type, detail) {
+    test('should call "launchPresentationApp" when receiving ' +
+                                          '"app-config-ready"', function(done) {
+      this.sinon.stub(Service, 'request', function(service, config) {
         done(function() {
-          assert.equal(type, 'launch-app-success');
-          assert.equal(detail.config.url, fakeConfig.url);
+          assert.equal(service, 'launchPresentationApp');
+          assert.equal(config.url, fakeConfig.url);
         });
       });
-      broadcastMessage(subject.displayId,
-											 'launch-presentation-app',
-											 fakeConfig);
-    });
 
-    test('should post "launch-app-success" when rejecting from ' +
-				 '"launchPresentationApp"', function(done) {
-      launchAppSuccess = false;
-      this.sinon.stub(subject, 'postMessage', function(type, detail) {
-        done(function() {
-          assert.equal(type, 'launch-app-error');
-          assert.equal(detail.config.url, fakeConfig.url);
-          assert.equal(detail.reason, 'test-reason');
-        });
-      });
-      broadcastMessage(subject.displayId,
-											 'launch-presentation-app',
-											 fakeConfig);
+      broadcastMessage(subject.displayId, 'app-config-ready', fakeConfig);
     });
 
     test('should ignore message if data.target isn\'t current displayId',
                                                                 function(done) {
+      this.sinon.stub(Service, 'request');
       this.sinon.stub(subject, '_post_handleEvent', function() {
         done(function() {
           assert.isFalse(Service.request.called);
         });
       });
-      broadcastMessage('unknow-target', 'launch-presentation-app', fakeConfig);
+
+      broadcastMessage('unknow-target', 'app-config-ready', fakeConfig);
     });
   });
 });

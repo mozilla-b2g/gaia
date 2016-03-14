@@ -11,21 +11,27 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/browser_config_helper.js');
-requireApp('system/js/multi_screen_controller.js');
+requireApp('system/js/multi_screen_helper.js');
 
-var mocksForMultiScreenController = new MocksHelper([
+var mocksForMultiScreenHelper = new MocksHelper([
   'ActionMenu',
   'LazyLoader',
   'ManifestHelper'
 ]).init();
 
-suite('system/MultiScreenController', function() {
-  mocksForMultiScreenController.attachTestHelpers();
+suite('system/MultiScreenHelper', function() {
+  mocksForMultiScreenHelper.attachTestHelpers();
   var subject;
   var realApplications;
 
-  var mockConfig = {
-    url: 'test'
+  var fakeAppConfig = {
+    'isActivity': false,
+    'url': 'app://test-presentation-app/index.html',
+    'name': 'Fake Presentation App',
+    'manifestURL': 'app://test-presentation-app/manifest.webapp',
+    'origin': 'app://test-presentation-app',
+    'manifest': {},
+    target: {}
   };
 
 	var mockPresentationDevices = [{
@@ -52,11 +58,13 @@ suite('system/MultiScreenController', function() {
   setup(function() {
     realApplications = window.applications;
     window.applications = MockApplications;
-    subject = BaseModule.instantiate('MultiScreenController');
+    window.applications.mRegisterMockApp(fakeAppConfig);
+    subject = BaseModule.instantiate('MultiScreenHelper');
     subject.start();
   });
 
   teardown(function() {
+    window.applications.mUnregisterMockApp(fakeAppConfig);
     window.applications = realApplications;
     subject.stop();
   });
@@ -67,46 +75,6 @@ suite('system/MultiScreenController', function() {
       assert.equal(subject.broadcastChannel.name, 'multiscreen');
     });
 
-  });
-
-  suite('request config should be stored correctly', function() {
-    var fakeUrl = 'app://test-url/';
-    var fakeManifestURL = 'app://test-url/manifest.webapp';
-    var fakeApp = {
-      origin: fakeUrl,
-      manifestURL: fakeManifestURL,
-      manifest: {}
-    };
-
-    setup(function() {
-      MockApplications.mRegisterMockApp(fakeApp);
-    });
-
-    teardown(function() {
-      MockApplications.mUnregisterMockApp(fakeApp);
-    });
-
-    test('_handle_mozPresentationChromeEvent', function() {
-      var handleMozPresentationChromeEventSpy =
-        this.sinon.spy(subject, '_handle_mozPresentationChromeEvent');
-
-      window.dispatchEvent(new CustomEvent('mozPresentationChromeEvent', {
-        detail: {
-          type: 'presentation-launch-receiver',
-          url: fakeUrl,
-          timestamp: 'test-timestamp',
-          id: 'test-request-id'
-        }
-      }));
-
-      assert.ok(handleMozPresentationChromeEventSpy.calledOnce);
-      assert.equal(subject.requestConfig.url, fakeUrl);
-      assert.equal(subject.requestConfig.manifestURL, fakeManifestURL);
-      assert.equal(subject.requestConfig.timestamp, 'test-timestamp');
-      assert.equal(subject.requestConfig.requestId, 'test-request-id');
-
-      handleMozPresentationChromeEventSpy.restore();
-    });
   });
 
   suite('showMenu', function() {
@@ -181,7 +149,9 @@ suite('system/MultiScreenController', function() {
 
   suite('receive messages', function() {
     var broadcastChannel;
-    var fakeDisplayId = 'test-id';
+    var fakeDisplayId = 'test-display-id';
+    var fakeRequestId = 'test-request-id';
+    var fakeTimestamp = 'test-timestamp';
 
     setup(function() {
       subject.requestDeviceId = fakeDisplayId;
@@ -201,58 +171,29 @@ suite('system/MultiScreenController', function() {
       broadcastChannel.postMessage({});
     });
 
-    test('should publish event when receiving "launch-app-success"',
-                                                                function(done) {
-      this.sinon.stub(subject, 'publish', function(event, detail) {
-        console.log(event);
-        if (event == 'launch-app-success') {
-          done(function() {
-            assert.equal(detail.displayId, fakeDisplayId);
-            assert.equal(detail.config.url, mockConfig.url);
-          });
-        }
-      });
-      broadcastChannel.postMessage({
-        source: fakeDisplayId,
-        type: 'launch-app-success',
-        detail: {
-          config: mockConfig
-        }
-      });
-    });
+    test('should post "app-config-ready" message when receiving' +
+                                      '"request-app-config"', function(done) {
 
-    test('should publish event when receiving "launch-app-error"',
-                                                                function(done) {
-      this.sinon.stub(subject, 'publish', function(event, detail) {
-        console.log(event);
-        if (event == 'launch-app-error') {
-          done(function() {
-            assert.equal(detail.displayId, fakeDisplayId);
-            assert.equal(detail.reason, 'reason');
-          });
-        }
-      });
-      broadcastChannel.postMessage({
-        source: fakeDisplayId,
-        type: 'launch-app-error',
-        detail: {
-          reason: 'reason'
-        }
-      });
-    });
-
-    test('should post message "launch-presentation-app when receiving ' +
-                                       '"remote-system-ready"', function(done) {
       this.sinon.stub(subject, 'postMessage', function(target, type, detail) {
         done(function() {
-          assert.equal(target, 'test-id');
-          assert.equal(type, 'launch-presentation-app');
-          assert.isUndefined(detail);
+          assert.equal(type, 'app-config-ready');
+          assert.equal(target, fakeDisplayId);
+          assert.equal(detail.url, fakeAppConfig.url);
+          assert.equal(detail.manifestURL, fakeAppConfig.manifestURL);
+          assert.equal(detail.timestamp, fakeTimestamp);
+          assert.equal(detail.requestId, fakeRequestId);
         });
       });
+
       broadcastChannel.postMessage({
         source: subject.requestDeviceId,
-        type: 'remote-system-ready',
+        type: 'request-app-config',
+        detail: {
+          url: fakeAppConfig.url,
+          manifestURL: fakeAppConfig.manifestURL,
+          timestamp: fakeTimestamp,
+          requestId: fakeRequestId
+        }
       });
     });
   });

@@ -8,12 +8,21 @@ requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/remote/app.js');
 
-var mocksForMultiScreenController = new MocksHelper([
+var mocksForMultiScreenHelper = new MocksHelper([
   'LazyLoader'
 ]).init();
 
 suite('system/remote/App', function() {
-  mocksForMultiScreenController.attachTestHelpers();
+  mocksForMultiScreenHelper.attachTestHelpers();
+  var fakeAppConfig = {
+    'isActivity': false,
+    'url': 'app://test-presentation-app/index.html',
+    'name': 'Fake Presentation App',
+    'manifestURL': 'app://test-presentation-app/manifest.webapp',
+    'origin': 'app://test-presentation-app',
+    'manifest': {},
+    target: {}
+  };
 
   var subject;
 
@@ -34,6 +43,44 @@ suite('system/remote/App', function() {
 
     test('should return displayId', function() {
       assert.equal(subject.displayId(), subject._displayId);
+    });
+  });
+
+  suite('receive messages', function() {
+    var broadcastChannel;
+    var fakeUrl = 'app://test-presentation-app/index.html';
+    var fakeRequestId = 'test-request-id';
+    var fakeTimestamp = 'test-timestamp';
+
+    setup(function() {
+      broadcastChannel = new BroadcastChannel('multiscreen');
+    });
+
+    teardown(function() {
+      broadcastChannel.close();
+    });
+
+    test('should post "requst-app-config" message when receiving' +
+                              '"presentation-launch-receiver"', function(done) {
+      this.sinon.stub(Service, 'request', function(method, type, detail) {
+        done(function() {
+          assert.equal(method, 'postMessage');
+          assert.equal(type, 'request-app-config');
+          assert.equal(detail.url, fakeAppConfig.url);
+          assert.equal(detail.manifestURL, fakeAppConfig.manifestURL);
+          assert.equal(detail.timestamp, fakeTimestamp);
+          assert.equal(detail.requestId, fakeRequestId);
+        });
+      });
+
+      window.dispatchEvent(new CustomEvent('mozPresentationChromeEvent', {
+        detail: {
+          type:      'presentation-launch-receiver',
+          url:       fakeAppConfig.url,
+          timestamp: fakeTimestamp,
+          id:        fakeRequestId
+        }
+      }));
     });
   });
 });

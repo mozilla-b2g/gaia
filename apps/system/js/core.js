@@ -107,7 +107,7 @@
         'CustomDialogService',
         'CarrierInfoNotifier',
         'AboutServiceWorkersProxy',
-        'MultiScreenController',
+        'MultiScreenHelper',
         'PinsManager',
         //IFDEF_FIREFOX_SYNC
         'SyncManager'

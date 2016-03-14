@@ -1,5 +1,6 @@
+/* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global BaseModule, Service */
+/* global BaseModule */
 'use strict';
 
 (function(exports) {
@@ -14,6 +15,9 @@
 
   App.STATES = [
     'displayId'
+  ];
+  App.EVENTS = [
+    'mozPresentationChromeEvent'
   ];
 
   BaseModule.create(App, {
@@ -31,7 +35,35 @@
       this._displayId = window.location.hash.substring(1);
       this.debug('displayId: ' + this._displayId);
 
-      Service.request('postMessage', 'remote-system-ready');
-    }
+      window.dispatchEvent(
+        new CustomEvent('mozContentEvent',
+                        { bubbles: true,
+                          cancelable: false,
+                          detail: { type: 'system-message-listener-ready' }
+                        }));
+    },
+
+    _handle_mozPresentationChromeEvent: function(evt) {
+      this.debug('got mozPresentationChromeEvent event');
+
+      let detail = evt.detail;
+      switch(detail.type) {
+        case 'presentation-launch-receiver':
+          let url = new URL(detail.url);
+          let manifestURL = null;
+          if (url.protocol.toLowerCase() == 'app:') {
+            manifestURL = new URL('/manifest.webapp', url);
+          }
+
+          Service.request('postMessage',
+                          'request-app-config',
+                          { url: url.toString(),
+                            manifestURL: manifestURL.toString(),
+                            timestamp: detail.timestamp,
+                            requestId: detail.id
+                          });
+          break;
+      }
+    },
   });
 }(window));

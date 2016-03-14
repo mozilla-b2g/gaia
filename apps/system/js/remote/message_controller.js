@@ -54,19 +54,8 @@
         ', ' + JSON.stringify(data.detail));
 
       switch(data.type) {
-        case 'launch-presentation-app':
-          this.debug('request to launchPresentationApp');
-          Service.request('launchPresentationApp', data.detail)
-            .then(() => {
-              this.postMessage('launch-app-success', {
-                config: data.detail
-              });
-            }).catch((reason) => {
-              this.postMessage('launch-app-error', {
-                config: data.detail,
-                reason: reason
-              });
-            });
+        case 'app-config-ready':
+          Service.request('launchPresentationApp', data.detail);
           break;
       }
     }

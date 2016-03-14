@@ -5,18 +5,16 @@
 'use strict';
 
 (function() {
-  var MultiScreenController = function() {};
-  MultiScreenController.SERVICES = [
-    'chooseDisplay'
+  var MultiScreenHelper = function() {};
+  MultiScreenHelper.SERVICES = [
   ];
 
-  MultiScreenController.EVENTS = [
-    'mozChromeEvent',
-    'mozPresentationChromeEvent'
+  MultiScreenHelper.EVENTS = [
+    'mozChromeEvent'
   ];
 
-  BaseModule.create(MultiScreenController, {
-    name: 'MultiScreenController',
+  BaseModule.create(MultiScreenHelper, {
+    name: 'MultiScreenHelper',
 
     EVENT_PREFIX: 'remote-',
     DEBUG: false,
@@ -159,30 +157,6 @@
       });
     },
 
-    _handle_mozPresentationChromeEvent: function(evt) {
-      this.debug('got mozPresentationChromeEvent event');
-
-      var detail = evt.detail;
-      switch(detail.type) {
-        case 'presentation-launch-receiver':
-          var url = new URL(detail.url);
-          var manifestURL = null;
-          if (url.protocol.toLowerCase() == 'app:') {
-            manifestURL = new URL('/manifest.webapp', url);
-          }
-
-          var config = new BrowserConfigHelper({
-            url: url.toString(),
-            manifestURL: manifestURL.toString()
-          });
-          config.timestamp = detail.timestamp;
-          config.requestId = detail.id;
-
-          this.requestConfig = config;
-          break;
-      }
-    },
-
     _handle_message: function(evt) {
       var data = evt.data;
       if (data.target !== undefined) {
@@ -192,18 +166,16 @@
         data.type + ', ' + JSON.stringify(data.detail));
 
       switch(data.type) {
-        case 'remote-system-ready':
-          this.postMessage(this.requestDeviceId,
-                           'launch-presentation-app',
-                           this.requestConfig);
-          break;
-        case 'launch-app-success':
-        case 'launch-app-error':
-          this.publish(data.type, {
-            displayId: data.source,
-            config: data.detail.config,
-            reason: data.detail.reason
+        case 'request-app-config':
+          let config = new BrowserConfigHelper({
+            url: data.detail.url,
+            manifestURL: data.detail.manifestURL
           });
+          config.timestamp = data.detail.timestamp;
+          config.requestId = data.detail.requestId;
+          this.postMessage(data.source,
+                           'app-config-ready',
+                           config);
           break;
       }
     }
