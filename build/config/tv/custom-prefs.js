@@ -29,3 +29,6 @@ user_pref('remotecontrol.client_page.blacklist', '/client.html,/pairing.html');
 
 //network offline error
 user_pref('network.offline-mirrors-connectivity', true);
+
+user_pref('devtools.debugger.remote-enabled', true);
+user_pref('devtools.chrome.enabled', true);
