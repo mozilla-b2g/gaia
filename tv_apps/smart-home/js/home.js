@@ -22,7 +22,8 @@
   Home.prototype = {
     navigableIds:
         ['search-button', 'search-input', 'edit-button', 'settings-button',
-            'filter-tab-group'],
+            'filter-all-button', 'filter-tv-button', 'filter-app-button',
+            'filter-device-button', 'filter-website-button'],
 
     topElementIds: ['search-button', 'search-input', 'edit-button',
             'settings-button'],
@@ -600,17 +601,10 @@
           this._focus.blur();
         }
 
-        switch(elem.nodeName.toLowerCase()) {
-          case 'menu-group':
-            this.handleFocusMenuGroup(elem);
-            break;
-          default:
-            elem.focus();
-            this._focus = elem;
-            this._focusScrollable = undefined;
-            this.checkFocusedGroup(elem);
-            break;
-        }
+        elem.focus();
+        this._focus = elem;
+        this._focusScrollable = undefined;
+        this.checkFocusedGroup(elem);
       } else {
         this._focusScrollable = undefined;
       }
@@ -633,49 +627,6 @@
         this._focusedGroup.close();
         this._focusedGroup = null;
       }
-    },
-
-    handleFocusMenuGroup: function(menuGroup) {
-      var self = this;
-      menuGroup.once('opened', function() {
-        self.spatialNavigator.remove(menuGroup);
-        var childElement = menuGroup.firstElementChild;
-        var firstFocusable = null;
-        while(childElement) {
-          switch(childElement.nodeName.toLowerCase()) {
-            case 'style':
-            case 'script':
-              break;
-            default:
-              firstFocusable = firstFocusable || childElement;
-              self.spatialNavigator.add(childElement);
-          }
-          childElement = childElement.nextElementSibling;
-        }
-        if (firstFocusable) {
-          self.spatialNavigator.focus(firstFocusable);
-        }
-      });
-      menuGroup.once('will-close', function() {
-        // Clear all opened event listener because we won't have it if opened is
-        // not fired and the group is trying to close it self.
-        menuGroup.off('opened');
-        self.spatialNavigator.add(menuGroup);
-        var childElement = menuGroup.firstElementChild;
-        while(childElement) {
-          switch(childElement.nodeName.toLowerCase()) {
-            case 'style':
-            case 'script':
-              break;
-            default:
-              self.spatialNavigator.remove(childElement);
-          }
-          childElement = childElement.nextElementSibling;
-        }
-      });
-      this.checkFocusedGroup(menuGroup);
-      this._focusedGroup = menuGroup;
-      menuGroup.open();
     },
 
     handleCardFocus: function(scrollable, itemElem, nodeElem) {
