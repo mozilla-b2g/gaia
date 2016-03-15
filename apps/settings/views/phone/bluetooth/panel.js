@@ -3,6 +3,7 @@
  *
  * Bluetooth v2 panel.
  */
+ /* global SpatialNavigationHelper */
 define(function(require) {
   'use strict';
 
@@ -444,6 +445,7 @@ define(function(require) {
         switch (deviceItem.type) {
           case 'audio-card':
           case 'audio-input-microphone':
+          case 'input-keyboard':
             // We only support 'audio-card', 'audio-input-microphone' device
             // to connect. Before pop out a dialog for operation, we should
             // check the paired device is connected or not.
@@ -458,18 +460,52 @@ define(function(require) {
       },
 
       _showActionMenu: function(deviceItem) {
+        var actionMenuDialog = elements.actionMenu.actionMenuDialog;
+
+        function handleCloseButton(evt) {
+          // Arrow Left (keyCode = 37) as the key to leave the menu.
+          if (evt.keyCode === 37) {
+            actionMenuDialog.hide();
+            disableSpatialNavigation();
+          }
+        }
+
+        function enableSpatialNavigation() {
+          const SN_ROOT = 'body.spatial-navigation .current' +
+            ' .paired-device-option';
+          // Support keyboard navigation in AlertDialog
+          SpatialNavigationHelper.add({
+            id: 'sn-id-paired-device-menu',
+            selector: SN_ROOT + ' button',
+            restrict: 'self-only',
+            enterTo: 'last-focused'
+          });
+          actionMenuDialog.addEventListener('keyup', handleCloseButton);
+          SpatialNavigationHelper.makeFocusable();
+          SpatialNavigationHelper.focus('sn-id-paired-device-menu');
+        }
+
+        function disableSpatialNavigation() {
+          SpatialNavigationHelper.remove('sn-id-paired-device-menu');
+          actionMenuDialog.removeEventListener('keyup', handleCloseButton);
+          SpatialNavigationHelper.makeFocusable();
+          SpatialNavigationHelper.focus();
+        }
+
         if (deviceItem.connectionStatus === 'connected') {
           elements.actionMenu.connectOption.style.display = 'none';
           elements.actionMenu.disconnectOption.style.display = 'block';
           elements.actionMenu.disconnectOption.onclick = () => {
             BtConnectionManager.disconnect(deviceItem.data);
             elements.actionMenu.actionMenuDialog.hide();
+            disableSpatialNavigation();
           };
           elements.actionMenu.unpairOption.onclick = () => {
             // Show a confirmation dialog while a user wants to unpair
             // the connected device. Because the device is connected to use now.
             this._confirmUserWantToUnpairDeviceWhileItisConnected(deviceItem);
             elements.actionMenu.actionMenuDialog.hide();
+            disableSpatialNavigation();
           };
         } else if (deviceItem.connectionStatus === 'disconnected') {
           elements.actionMenu.connectOption.style.display = 'block';
@@ -477,15 +513,18 @@ define(function(require) {
           elements.actionMenu.unpairOption.onclick = () => {
             this._confirmToUnpair(deviceItem);
             elements.actionMenu.actionMenuDialog.hide();
+            disableSpatialNavigation();
           };
           elements.actionMenu.connectOption.onclick = () => {
-            this._connectHeadsetDevice(deviceItem);
+            this._connectDevice(deviceItem);
             elements.actionMenu.actionMenuDialog.hide();
+            disableSpatialNavigation();
           };
         }
 
         // Show the action menu.
         elements.actionMenu.actionMenuDialog.show();
+        enableSpatialNavigation();
       },
 
       _confirmUserWantToUnpairDeviceWhileItisConnected: function(deviceItem) {
@@ -553,7 +592,7 @@ define(function(require) {
         BtContext.pair(deviceItem.address).then(() => {
           debug('_onFoundDeviceItemClick(): pair successfully');
           // Connect the device which is just paired.
-          this._connectHeadsetDevice(deviceItem);
+          this._connectDevice(deviceItem);
         }, (reason) => {
           debug('_onFoundDeviceItemClick(): pair failed, ' +
                 'reason = ' + reason);
@@ -565,16 +604,17 @@ define(function(require) {
         });
       },
 
-      _connectHeadsetDevice: function(deviceItem) {
+      _connectDevice: function(deviceItem) {
         if (!((deviceItem.type === 'audio-card') ||
+              (deviceItem.type === 'input-keyboard') ||
               (deviceItem.type === 'audio-input-microphone'))) {
           return;
         }
 
         BtConnectionManager.connect(deviceItem.data).then(() => {
-          debug('_connectHeadsetDevice(): connect device successfully');
+          debug('_connectDevice(): connect device successfully');
         }, (reason) => {
-          debug('_connectHeadsetDevice(): connect device failed, ' +
+          debug('_connectDevice(): connect device failed, ' +
                 'reason = ' + reason);
           // Show alert message while connect device failed.
           this._alertConnectErrorMessage();

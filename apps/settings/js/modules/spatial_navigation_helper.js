@@ -35,6 +35,8 @@ window.SpatialNavigationHelper = {
               SN_ROOT + ' li button,' +
               SN_ROOT + ' li input,' +
               SN_ROOT + ' ul.wifi-availableNetworks li:not([data-state]),' +
+              SN_ROOT + ' ul.bluetooth-paired-devices li:not([data-state]),' +
+              SN_ROOT + ' ul.bluetooth-devices li:not([data-state]),' +
               SN_ROOT + ' li gaia-radio,' +
               SN_ROOT + ' li gaia-checkbox,' +
               SN_ROOT + ' li gaia-switch',

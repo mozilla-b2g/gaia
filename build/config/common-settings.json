@@ -1,4 +1,5 @@
 {
+  "settings-app.spatial-navigation.enabled": true,
    "accessibility.invert": false,
    "accessibility.screenreader": false,
    "accessibility.screenreader-ftu-timeout-seconds": 15,

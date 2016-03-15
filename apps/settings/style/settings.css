@@ -295,6 +295,11 @@ gaia-switch[disabled] {
   pointer-events: none;
 }
 
+body.spatial-navigation gaia-menu button:focus {
+  background-color: #b2f2ff !important;
+  color: #222;
+}
+
 body.spatial-navigation section#root ul li > gaia-radio,
 body.spatial-navigation section#root ul li > gaia-checkbox,
 body.spatial-navigation section#root ul li > gaia-switch {
@@ -319,6 +324,8 @@ body.spatial-navigation .current li .button:focus,
 body.spatial-navigation .current li button:focus,
 body.spatial-navigation .current li input:focus,
 body.spatial-navigation .current ul.wifi-availableNetworks li:not([data-state]):focus,
+body.spatial-navigation .current ul.bluetooth-paired-devices li:not([data-state]):focus,
+body.spatial-navigation .current ul.bluetooth-devices li:not([data-state]):focus,
 body.spatial-navigation .current li gaia-radio:focus,
 body.spatial-navigation .current li gaia-checkbox:focus,
 body.spatial-navigation .current li gaia-switch:focus {

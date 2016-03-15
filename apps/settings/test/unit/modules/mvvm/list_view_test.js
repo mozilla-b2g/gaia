@@ -7,6 +7,8 @@ suite('ListView', function() {
   // Define a shim for ObservableArray that is to be loaded in ListView.
   // Then we are able to creat a stub on it.
 
+  var mockSpatialNavigationHelper, realSpatialNavigationHelper;
+
   suiteSetup(function(done) {
     // Use the shim in ListView.
     var ObservableArrayShimName = 'observable_array_shim' + Date.now();
@@ -35,8 +37,10 @@ suite('ListView', function() {
       'modules/mvvm/observable',
       'modules/mvvm/observable_array',
       'modules/mvvm/list_view',
+      'unit/mock_spatial_navigation_helper',
       ObservableArrayShimName
-    ], (function(Observable, ObservableArray, ListView, ObservableArrayShim) {
+    ], (function(Observable, ObservableArray, ListView,
+      MockSpatialNavigationHelper, ObservableArrayShim) {
       this.Observable = Observable;
       this.ListView = ListView;
       this.ObservableArrayShim = ObservableArrayShim;
@@ -49,12 +53,14 @@ suite('ListView', function() {
           sinon.spy(result, 'removeEventListener');
           return result;
       });
+      mockSpatialNavigationHelper = MockSpatialNavigationHelper;
       done();
     }).bind(this));
   });
 
   teardown(function() {
     this.ObservableArray.reset();
+    window.SpatialNavigationHelper = realSpatialNavigationHelper;
   });
 
   suiteTeardown(function() {
@@ -64,6 +70,8 @@ suite('ListView', function() {
   setup(function() {
     this.array = [];
     this.observableArray = this.ObservableArray(this.array);
+    realSpatialNavigationHelper = window.SpatialNavigationHelper;
+    window.SpatialNavigationHelper = mockSpatialNavigationHelper;
   });
 
   suite('ListView(<ul>, ObservableArray, function)', function() {
@@ -339,7 +347,7 @@ suite('ListView', function() {
             });
             test('does not change elements', function() {
               for (var i = 0; i < this.container.children.length; i++) {
-                assert.equal(this.container.children[i], 
+                assert.equal(this.container.children[i],
                   this.originalElements[i]);
               }
             });
