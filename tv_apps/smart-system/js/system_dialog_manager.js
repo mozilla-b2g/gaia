@@ -61,7 +61,9 @@
                 'system-resize',
                 'home',
                 'holdhome',
-                'mozChromeEvent']
+                'mozChromeEvent',
+                'mozPresentationContentEvent',
+                'appwillopen']
     }
   };
 
@@ -99,6 +101,7 @@
         break;
       case 'home':
       case 'holdhome':
+      case 'appwillopen':
         // Automatically hide the dialog on home button press
         if (this.states.activeDialog) {
           // Deactivate the dialog and pass the event type in the two cases
@@ -119,6 +122,14 @@
         evt.stopImmediatePropagation();
         this.states.activeDialog.broadcast('inputmethod-contextchange',
           evt.detail);
+        break;
+      case 'mozPresentationContentEvent':
+        var type = evt.detail.type;
+        if (this.states.activeDialog &&
+            type === 'presentation-receiver-launched') {
+          // Deactivate the dialog and pass the event type in the two cases
+          this.deactivateDialog(this.states.activeDialog, evt.type);
+        }
         break;
     }
   };
