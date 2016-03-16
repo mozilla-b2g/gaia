@@ -1,5 +1,4 @@
 {
-  "settings-app.spatial-navigation.enabled": true,
    "accessibility.invert": false,
    "accessibility.screenreader": false,
    "accessibility.screenreader-ftu-timeout-seconds": 15,
@@ -294,5 +293,6 @@
    "wifi.disabled_by_wakelock": false,
    "wifi.notification": false,
    "wifi.connect_via_settings": false,
+   "settings-app.spatial-navigation.enabled": false,
    "wap.push.enabled": true
 }
