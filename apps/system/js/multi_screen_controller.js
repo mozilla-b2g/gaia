@@ -179,6 +179,17 @@
           config.requestId = detail.id;
 
           this.requestConfig = config;
+
+          if (detail.simulator) {
+            // When calling simulator, use multiscreen window as receiver.
+            this.requestFrame = Service.query('getTopMostWindow').element;
+            dump('[MultiScreenController]target device: ' + this.requestDeviceId + ',frame[' + this.requestFrame + "]\n");
+
+            this.postMessage(this.requestDeviceId,
+                             'launch-presentation-app',
+                             this.requestConfig);
+          }
+
           break;
       }
     },
@@ -188,14 +199,25 @@
       if (data.target !== undefined) {
         return;
       }
-      this.debug('got message from #' + data.source + ': ' +
-        data.type + ', ' + JSON.stringify(data.detail));
+      dump('[MultiScreenController]got message from #' + data.source + ': ' +
+        data.type + ', ' + JSON.stringify(data.detail) + "\n");
 
       switch(data.type) {
         case 'remote-system-ready':
+/*
           this.postMessage(this.requestDeviceId,
                            'launch-presentation-app',
                            this.requestConfig);
+*/
+          dump("[MultiScreenController] broadcast multiscreen message[" + this.requestConfig + "]\n");
+
+          let broadcast = new BroadcastChannel("multiscreen");
+          broadcast.postMessage({
+            target: "PresentationSimulator-receiver",
+            type:'launch-presentation-app',
+            detail:this.requestConfig
+          });
+
           break;
         case 'launch-app-success':
         case 'launch-app-error':
@@ -204,6 +226,17 @@
             config: data.detail.config,
             reason: data.detail.reason
           });
+          break;
+        case 'presentation-receiver-launched':
+          let frame = Service.query('getTopMostWindow').iframe;
+          dump("[MultiScreenController] send presentation-receiver-launched[" + frame + "][" + this.requestFrame + "]\n");
+          window.dispatchEvent(new CustomEvent('mozPresentationContentEvent', {
+            detail: {
+              'type':'presentation-receiver-launched',
+              'id':this.requestConfig.requestId,
+              'frame': frame
+            }
+          }));
           break;
       }
     }
