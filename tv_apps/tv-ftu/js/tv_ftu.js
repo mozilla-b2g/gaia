@@ -15,7 +15,8 @@ window.addEventListener('load', function() {
       this._currentPage = null;
       this._currentContentSection = null;
       this._currentContent = null;
-      this._currentArrowIcon = null;
+      this._currentButtonSection = null;
+      this._currentArrowIconSection = null;
       this._currentFocused = null;
       this._currentNavigationType = null;
 
@@ -24,6 +25,13 @@ window.addEventListener('load', function() {
       this.keyNavAdapter.on('move', this.onKeyMove.bind(this));
       this.keyNavAdapter.on('back-keyup', this.onBackKeyUp.bind(this));
       this.keyNavAdapter.on('enter-keyup', this.onEnterKeyUp.bind(this));
+      this.keyNavAdapter.on('move-keyup', (key) => {
+        if (key === 'down' &&
+          this.getContentUnscrolledHeight() <= 0 &&
+          this._currentNavigationType == 'unscrolled_content') {
+          this.changeNavigationType('buttons');
+        }
+      });
 
       this.keyNav = new SimpleKeyNavigation();
       this.keyNav.start([], SimpleKeyNavigation.DIRECTION.HORIZONTAL);
@@ -46,7 +54,10 @@ window.addEventListener('load', function() {
         this._currentPage.classList.add('hidden');
       }
       this._currentPage = document.getElementById(id);
-      this._currentArrowIcon = this._currentPage.querySelector('.arrow-icon');
+      this._currentArrowIconSection =
+        this._currentPage.querySelector('.arrow-icon-section');
+      this._currentButtonSection =
+        this._currentPage.querySelector('.button-section');
       this._currentContent = this._currentPage.querySelector('.page-content');
       this._currentContentSection =
         this._currentPage.querySelector('.content-section');
@@ -66,17 +77,18 @@ window.addEventListener('load', function() {
       return unscrolledHeight;
     },
 
-    changeNavigationType: function (target) {
-      if (this._currentNavigationType !== target) {
+    changeNavigationType: function (type) {
+      if (this._currentNavigationType !== type) {
 
-        this._currentNavigationType = target;
-        this._currentArrowIcon.classList.add('hidden');
+        this._currentNavigationType = type;
+        this._currentArrowIconSection.classList.add('hidden');
         this.keyNav.pause();
 
-        switch (target) {
+        switch (type) {
           case 'unscrolled_content':
+            this._currentArrowIconSection.classList.remove('hidden');
+            this._currentButtonSection.classList.add('hidden');
             this._currentContentSection.focus();
-            this._currentArrowIcon.classList.remove('hidden');
             this.fire('focus', this._currentContentSection);
           break;
 
@@ -87,6 +99,7 @@ window.addEventListener('load', function() {
           break;
 
           case 'buttons':
+            this._currentButtonSection.classList.remove('hidden');
             this.keyNav.resume();
             this.keyNav.updateList(Array.prototype.slice.call(
               this._currentPage.querySelectorAll('.page-button')));
