@@ -373,11 +373,9 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
       this.downloading = false;
       UpdateManager.downloaded(this);
       UpdateManager.removeFromDownloadsQueue(this);
-      this.showApplyPrompt(detail.isOSUpdate);
-      break;
+      return this.showApplyPrompt(detail.isOSUpdate);
     case 'update-prompt-apply':
-      this.showApplyPrompt(detail.isOSUpdate);
-      break;
+      return this.showApplyPrompt(detail.isOSUpdate);
   }
 };
 
@@ -450,23 +448,25 @@ SystemUpdatable.prototype.showUpdateErrorDetails = function(updateError) {
 // in recovery mode (FOTA). We want to show the battery warning only in this
 // case as described in bug 959195
 SystemUpdatable.prototype.showApplyPrompt = function(isOsUpdate) {
-  var batteryLevel = window.navigator.battery.level * 100;
-  this.getBatteryPercentageThreshold().then(function(threshold) {
-    this.showingApplyPrompt = true;
-    if (isOsUpdate && batteryLevel < threshold) {
-      this.showApplyPromptBatteryNok(threshold);
-    } else {
-      this.showApplyPromptBatteryOk();
-    }
-  }.bind(this));
+  return window.navigator.getBattery().then((battery) => {
+    return this.getBatteryPercentageThreshold(battery).then(threshold => {
+      var batteryLevel = battery.level * 100;
+      this.showingApplyPrompt = true;
+      if (isOsUpdate && batteryLevel < threshold) {
+        this.showApplyPromptBatteryNok(threshold);
+      } else {
+        this.showApplyPromptBatteryOk();
+      }
+    });
+  });
 };
 
 SystemUpdatable.prototype.BATTERY_FALLBACK_THRESHOLD = 25;
 
-SystemUpdatable.prototype.getBatteryPercentageThreshold = function() {
+SystemUpdatable.prototype.getBatteryPercentageThreshold = function(battery) {
   var fallbackThreshold = this.BATTERY_FALLBACK_THRESHOLD;
 
-  var isCharging = window.navigator.battery.charging;
+  var isCharging = battery.charging;
   var batteryThresholdKey =
     'app.update.battery-threshold.' + (isCharging ? 'plugged' : 'unplugged');
 

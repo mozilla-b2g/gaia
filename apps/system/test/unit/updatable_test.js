@@ -8,7 +8,7 @@
    MockAppsMgmt,
    MockChromeEvent,
    MockCustomDialog,
-   MockNavigatorBattery,
+   MockBattery,
    MockNavigatorSettings,
    MockNotificationHelper,
    MockService,
@@ -25,13 +25,13 @@ requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_utility_tray.js');
-requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_navigator_getbattery.js');
 
 var mocksHelperForUpdatable = new MocksHelper([
   'CustomDialog',
@@ -52,6 +52,7 @@ suite('system/Updatable', function() {
   var realDispatchEvent;
   var realMozApps;
   var realMozSettings;
+  var realGetBattery;
 
   var lastDispatchedEvent = null;
   var fakeDispatchEvent;
@@ -66,6 +67,9 @@ suite('system/Updatable', function() {
     realMozSettings = window.navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
+    realGetBattery = window.navigator.getBattery;
+    window.navigator.getBattery = MockBattery.getBattery;
+
     // we used to set subject._mgmt in setup
     // but now, this seems to work and feels cleaner
     realMozApps = navigator.mozApps;
@@ -75,6 +79,7 @@ suite('system/Updatable', function() {
   suiteTeardown(function() {
     navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
+    navigator.getBattery = realGetBattery;
   });
 
   setup(function() {
@@ -547,12 +552,14 @@ suite('system/Updatable', function() {
       });
 
       suite('update-downloaded', function() {
-        setup(function() {
+        setup(function(done) {
           asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
           var event = new MockChromeEvent({
             type: 'update-downloaded'
           });
           subject.handleEvent(event);
+
+          Promise.resolve().then(done);
         });
 
         test('should reset the downloading flag', function() {
@@ -578,13 +585,15 @@ suite('system/Updatable', function() {
       });
 
       suite('update-prompt-apply', function() {
-        setup(function() {
+        setup(function(done) {
           asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
           MockUtilityTray.show();
           var event = new MockChromeEvent({
             type: 'update-prompt-apply'
           });
           subject.handleEvent(event);
+
+          Promise.resolve().then(done);
         });
 
         test('should reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
@@ -592,7 +601,7 @@ suite('system/Updatable', function() {
             asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
         });
 
-        testSystemApplyPrompt();
+        //testSystemApplyPrompt();
       });
 
       suite('update-error', function() {
@@ -865,23 +874,6 @@ suite('system/Updatable', function() {
     });
 
     suite('battery level', function() {
-      var realNavigatorBattery;
-
-      setup(function() {
-        realNavigatorBattery = window.navigator.battery;
-        Object.defineProperty(window.navigator, 'battery', {
-          configurable: true,
-          value: MockNavigatorBattery
-        });
-      });
-
-      teardown(function() {
-        Object.defineProperty(window.navigator, 'battery', {
-          configurable: true,
-          value: realNavigatorBattery
-        });
-      });
-
       suite('get threshold depending on charging state', function() {
         setup(function() {
           subject.getBatteryPercentageThreshold =
@@ -889,8 +881,8 @@ suite('system/Updatable', function() {
         });
 
         test('threshold while charging', function(done) {
-          MockNavigatorBattery.charging = true;
-          subject.getBatteryPercentageThreshold().then(
+          MockBattery._battery.charging = true;
+          subject.getBatteryPercentageThreshold(MockBattery._battery).then(
             function(threshold) {
               assert.equal(
                 threshold,
@@ -906,8 +898,8 @@ suite('system/Updatable', function() {
         });
 
         test('threshold while not charging', function(done) {
-          MockNavigatorBattery.charging = false;
-          subject.getBatteryPercentageThreshold().then(
+          MockBattery._battery.charging = false;
+          subject.getBatteryPercentageThreshold(MockBattery._battery).then(
             function(threshold) {
               assert.equal(
                 threshold,
@@ -925,7 +917,7 @@ suite('system/Updatable', function() {
         test('threshold has a default value if not defined', function(done) {
           delete MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED];
           delete MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_UNPLUGGED];
-          subject.getBatteryPercentageThreshold().then(
+          subject.getBatteryPercentageThreshold(MockBattery._battery).then(
             function(threshold) {
               assert.equal(
                 threshold,
@@ -944,7 +936,7 @@ suite('system/Updatable', function() {
           function(done) {
             MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED] = 105;
             MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_UNPLUGGED] = 105;
-            subject.getBatteryPercentageThreshold().then(
+            subject.getBatteryPercentageThreshold(MockBattery._battery).then(
               function(threshold) {
                 assert.equal(
                   threshold,
@@ -964,7 +956,7 @@ suite('system/Updatable', function() {
           function(done) {
             MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED] = -10;
             MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_UNPLUGGED] = -10;
-            subject.getBatteryPercentageThreshold().then(
+            subject.getBatteryPercentageThreshold(MockBattery._battery).then(
               function(threshold) {
                 assert.equal(
                   threshold,
@@ -996,7 +988,7 @@ suite('system/Updatable', function() {
               };
             }
           };
-          subject.getBatteryPercentageThreshold().then(
+          subject.getBatteryPercentageThreshold(MockBattery._battery).then(
             function(threshold) {
               assert.equal(
                 threshold,
@@ -1018,25 +1010,25 @@ suite('system/Updatable', function() {
         setup(function() {
           asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
           MockUtilityTray.show();
-          MockNavigatorBattery.level = 0.1;
+          MockBattery._battery.level = 0.1;
           event = new MockChromeEvent({
             type: 'update-prompt-apply'
           });
         });
 
-        suite('ota update package', function() {
+        suite('ota update package', function(done) {
           setup(function() {
             event.detail.isOSUpdate = false;
-            subject.handleEvent(event);
+            subject.handleEvent(event).then(done, done);
           });
 
           testSystemApplyPromptBatteryOk();
         });
 
         suite('fota update package', function() {
-          setup(function() {
+          setup(function(done) {
             event.detail.isOSUpdate = true;
-            subject.handleEvent(event);
+            subject.handleEvent(event).then(done, done);
           });
 
           testSystemApplyPromptBatteryNok(MID_CHARGE);
@@ -1048,7 +1040,7 @@ suite('system/Updatable', function() {
         setup(function() {
           asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
           MockUtilityTray.show();
-          MockNavigatorBattery.level = 0.9;
+          MockBattery._battery.level = 0.9;
           event = new MockChromeEvent({
             type: 'update-prompt-apply'
           });

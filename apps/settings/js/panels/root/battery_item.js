@@ -64,7 +64,7 @@ define(function(require) {
       if (this._enabled) {
         Battery.observe('level', this._boundRefreshText);
         Battery.observe('state', this._boundRefreshText);
-        this._boundRefreshText();
+        Battery._ready.then(this._boundRefreshText);
       } else {
         Battery.unobserve('level', this._boundRefreshText);
         Battery.unobserve('state', this._boundRefreshText);

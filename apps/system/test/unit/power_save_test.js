@@ -1,7 +1,7 @@
 'use strict';
 /* global MockBatteryOverlay,
           NotificationHelper,
-          MockNavigatorBattery,
+          MockBattery,
           MockNavigatorSettings,
           MockSettingsListener,
           MocksHelper,
@@ -9,12 +9,12 @@
           MockL10n
 */
 
-requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_navigator_getbattery.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
@@ -37,7 +37,7 @@ suite('power save >', function() {
     realL10n = window.document.l10n;
     window.document.l10n = MockL10n;
 
-    MockBatteryOverlay._battery = MockNavigatorBattery;
+    MockBatteryOverlay._battery = MockBattery._battery;
     subject = new PowerSave(MockBatteryOverlay);
   });
 
@@ -127,19 +127,19 @@ suite('power save >', function() {
       });
 
       test('no checkThreshold call when charging', function() {
-        MockNavigatorBattery.charging = true;
+        MockBattery._battery.charging = true;
         subject.onBatteryChange();
         sinon.assert.notCalled(checkSpy);
       });
 
       test('checkThreshold called when not charging', function() {
-        MockNavigatorBattery.charging = false;
+        MockBattery._battery.charging = false;
         subject.onBatteryChange();
         sinon.assert.calledOnce(checkSpy);
       });
 
       test('charging with powersave enabled sets setting to false', function() {
-        MockNavigatorBattery.charging = true;
+        MockBattery._battery.charging = true;
         subject._powerSaveEnabled = true;
         subject.onBatteryChange();
         sinon.assert.calledOnce(setSpy);
@@ -147,7 +147,7 @@ suite('power save >', function() {
       });
 
       test('charging with powersave disables does nothing', function() {
-        MockNavigatorBattery.charging = true;
+        MockBattery._battery.charging = true;
         subject._powerSaveEnabled = false;
         subject.onBatteryChange();
         sinon.assert.notCalled(setSpy);
@@ -170,7 +170,7 @@ suite('power save >', function() {
         MockNavigatorSettings.mSetup();
         MockNavigatorSettings.mSyncRepliesOnly = true;
         setSpy = this.sinon.spy(subject, 'setMozSettings');
-        MockNavigatorBattery.level = 0.15;
+        MockBattery._battery.level = 0.15;
       });
 
       teardown(function() {

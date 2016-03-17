@@ -25,13 +25,17 @@ LockScreenChargingStatus.listenEvents = [
 LockScreenChargingStatus.prototype.start = function cs_start() {
   this.refresh();
 
-  LockScreenChargingStatus.listenEvents.forEach(
-    ename => navigator.battery.addEventListener(ename, this));
+  navigator.getBattery().then((battery) => {
+    LockScreenChargingStatus.listenEvents.forEach(
+      ename => battery.addEventListener(ename, this));
+  });
 };
 
 LockScreenChargingStatus.prototype.stop = function cs_stop() {
-  LockScreenChargingStatus.listenEvents.forEach(
-    ename => navigator.battery.removeEventListener(ename, this));
+  navigator.getBattery().then((battery) => {
+    LockScreenChargingStatus.listenEvents.forEach(
+      ename => battery.removeEventListener(ename, this));
+  });
 };
 
 LockScreenChargingStatus.prototype.handleEvent = function cs_handleEvent(evt) {
@@ -39,47 +43,48 @@ LockScreenChargingStatus.prototype.handleEvent = function cs_handleEvent(evt) {
 };
 
 LockScreenChargingStatus.prototype.refresh = function cs_refresh() {
-
-  if (!navigator.battery.charging) {
-    if (!this.elements.charging.hasAttribute('hidden')) {
-      this.elements.charging.setAttribute('hidden', '');
+  navigator.getBattery().then(battery => {
+    if (!battery.charging) {
+      if (!this.elements.charging.hasAttribute('hidden')) {
+        this.elements.charging.setAttribute('hidden', '');
+      }
+      return;
     }
-    return;
-  }
 
-  var l10nAttrs = {
-    id: null,
-    args: {
-      level: parseInt(navigator.battery.level * 100)
-    }
-  };
+    var l10nAttrs = {
+      id: null,
+      args: {
+        level: parseInt(battery.level * 100)
+      }
+    };
 
-  var chargingTime = navigator.battery.chargingTime;
+    var chargingTime = battery.chargingTime;
 
-  if (chargingTime === Infinity ||
-      chargingTime < 60) { // less than a minute remaining
-    l10nAttrs.id = 'charging-no-time';
-  } else {
-    var timeLeft = new Date(0, 0, 0, 0, 0, chargingTime);
-    l10nAttrs.args.hours = timeLeft.getHours();
-    l10nAttrs.args.minutes = timeLeft.getMinutes();
-
-    if (l10nAttrs.args.hours > 0) {
-      l10nAttrs.id = 'charging-hours';
+    if (chargingTime === Infinity ||
+        chargingTime < 60) { // less than a minute remaining
+      l10nAttrs.id = 'charging-no-time';
     } else {
-      l10nAttrs.id = 'charging-minutes';
+      var timeLeft = new Date(0, 0, 0, 0, 0, chargingTime);
+      l10nAttrs.args.hours = timeLeft.getHours();
+      l10nAttrs.args.minutes = timeLeft.getMinutes();
+
+      if (l10nAttrs.args.hours > 0) {
+        l10nAttrs.id = 'charging-hours';
+      } else {
+        l10nAttrs.id = 'charging-minutes';
+      }
     }
-  }
 
-  // Update data here since changing textContent will replace the text node and
-  // could cause flickering while transitioning docshell.isActive to true.
-  document.l10n.formatValue(l10nAttrs.id, l10nAttrs.args).then((value) => {
-    this.elements.charging.firstChild.data = value;
+    // Update data here since changing textContent will replace the text node 
+    // and could cause flickering while transitioning docshell.isActive to true.
+    document.l10n.formatValue(l10nAttrs.id, l10nAttrs.args).then((value) => {
+      this.elements.charging.firstChild.data = value;
+    });
+
+    if (this.elements.charging.hasAttribute('hidden')) {
+      this.elements.charging.removeAttribute('hidden');
+    }
   });
-
-  if (this.elements.charging.hasAttribute('hidden')) {
-    this.elements.charging.removeAttribute('hidden');
-  }
 };
 
 /** @exports LockScreenChargingStatus */

@@ -7,7 +7,8 @@
 define(function(require) {
   'use strict';
 
-  var NavigatorBattery = require('modules/navigator/battery');
+  var BatteryPromise = require('modules/navigator/battery');
+
   var Module = require('modules/base/module');
   var Observable = require('modules/mvvm/observable');
 
@@ -21,23 +22,27 @@ define(function(require) {
   var Battery = Module.create(function Battery() {
     this.super(Observable).call(this);
 
-    this._level = this._getLevel();
-    this._state = this._getState();
-    this._chargingTime = this._getChargingTime();
-    this._dischargingTime = this._getDischargingTime();
-    NavigatorBattery.addEventListener('levelchange', () => {
+
+    this._ready = BatteryPromise.then(battery => {
+      this._battery = battery;
       this._level = this._getLevel();
-    });
-    NavigatorBattery.addEventListener('chargingchange', () => {
       this._state = this._getState();
       this._chargingTime = this._getChargingTime();
       this._dischargingTime = this._getDischargingTime();
-    });
-    NavigatorBattery.addEventListener('chargingtimechange', () => {
-      this._chargingTime = this._getChargingTime();
-    });
-    NavigatorBattery.addEventListener('dischargingtimechange', () => {
-      this._dischargingTime = this._getDischargingTime();
+      battery.addEventListener('levelchange', () => {
+        this._level = this._getLevel();
+      });
+      battery.addEventListener('chargingchange', () => {
+        this._state = this._getState();
+        this._chargingTime = this._getChargingTime();
+        this._dischargingTime = this._getDischargingTime();
+      });
+      battery.addEventListener('chargingtimechange', () => {
+        this._chargingTime = this._getChargingTime();
+      });
+      battery.addEventListener('dischargingtimechange', () => {
+        this._dischargingTime = this._getDischargingTime();
+      });
     });
   }).extend(Observable);
 
@@ -98,11 +103,11 @@ define(function(require) {
   });
 
   Battery.prototype._getLevel = function() {
-    return Math.min(100, Math.round(NavigatorBattery.level * 100));
+    return Math.min(100, Math.round(this._battery.level * 100));
   };
 
   Battery.prototype._getState = function() {
-    if (NavigatorBattery.charging) {
+    if (this._battery.charging) {
       return (this._getLevel() == 100) ? 'charged' : 'charging';
     } else {
       return 'unplugged';
@@ -110,12 +115,13 @@ define(function(require) {
   };
 
   Battery.prototype._getChargingTime = function() {
-    return NavigatorBattery.chargingTime;
+    return this._battery.chargingTime;
   };
 
   Battery.prototype._getDischargingTime = function() {
-    return NavigatorBattery.dischargingTime;
+    return this._battery.dischargingTime;
   };
+
 
   return Battery();
 });

@@ -26,7 +26,7 @@
     AUTO_SHUTDOWN_LEVEL: 0.00,
     EMPTY_BATTERY_LEVEL: 0.1,
 
-    _battery: window.navigator.battery,
+    _battery: null,
     _notification: null,
 
     getAllElements: function bm_getAllElements() {
@@ -48,21 +48,22 @@
 
     _start: function bm_init() {
       this.getAllElements();
-      var battery = this._battery;
-      if (battery) {
+      return navigator.getBattery().then((battery) => {
+        this._battery = battery;
+
         // When the device is booted, check if the battery is drained. If so,
         // batteryshutdown would be triggered to inform sleepMenu shutdown.
-        this.checkBatteryDrainage.bind(this);
+        this.checkBatteryDrainage();
 
         battery.addEventListener('levelchange', this);
         battery.addEventListener('chargingchange', this);
-      }
-      window.addEventListener('screenchange', this);
+        window.addEventListener('screenchange', this);
 
-      this._screenOn = true;
-      this._wasEmptyBatteryNotificationDisplayed = false;
+        this._screenOn = true;
+        this._wasEmptyBatteryNotificationDisplayed = false;
 
-      this.displayIfNecessary();
+        this.displayIfNecessary();
+      });
     },
 
     handleEvent: function bm_handleEvent(evt) {
