@@ -11,7 +11,7 @@ define(function(require) {
 
   function ThemesItem(element) {
     this._enabled = false;
-    this._element = element; 
+    this._element = element;
     this._themeCount = 0;
     this._boundUpdateThemes = this._updateThemes.bind(this);
     this.init();

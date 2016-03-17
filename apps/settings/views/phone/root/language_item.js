@@ -1,7 +1,7 @@
 /**
  * The moudle supports displaying language information on an element.
  *
- * @module panels/root/language_item
+ * @module views/phone/root/language_item
  */
 define(function(require) {
   'use strict';
@@ -9,7 +9,7 @@ define(function(require) {
   var LanguageList = require('shared/language_list');
 
   /**
-   * @alias module:panels/root/language_item
+   * @alias module:views/phone/root/language_item
    * @class LanguageItem
    * @param {HTMLElement} element
                           The element displaying the language information
@@ -52,7 +52,7 @@ define(function(require) {
       if (this._enabled === value || !document.l10n) {
         return;
       }
-      
+
       this._enabled = value;
       if (this._enabled) {
         document.addEventListener('DOMRetranslated', this._boundRefreshText);

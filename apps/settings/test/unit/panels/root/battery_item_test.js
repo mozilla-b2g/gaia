@@ -4,7 +4,7 @@ suite('BatteryItem', function() {
   var realL10n;
   var modules = [
     'shared_mocks/mock_l20n',
-    'panels/root/battery_item',
+    'views/phone/root/battery_item',
   ];
   var map = {
     '*': {

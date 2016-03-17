@@ -10,6 +10,7 @@ requireApp('settings/js/vendor/alameda.js', (function() {
     paths: {
       'modules': 'modules',
       'panels': 'panels',
+      'views': '../views',
       'shared': '../shared/js',
       'unit': '../test/unit',
       'shared_mocks': '../shared/test/unit/mocks'

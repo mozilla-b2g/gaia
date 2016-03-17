@@ -10,7 +10,7 @@ suite('NFCItem', function() {
   };
 
   var modules = [
-    'panels/root/nfc_item',
+    'views/phone/root/nfc_item',
     'shared_mocks/mock_settings_listener',
   ];
 

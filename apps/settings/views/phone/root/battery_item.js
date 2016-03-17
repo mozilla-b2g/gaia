@@ -1,7 +1,7 @@
 /**
  * The moudle supports displaying battery information on an element.
  *
- * @module panels/root/battery_item
+ * @module views/phone/root/battery_item
  */
 define(function(require) {
   'use strict';
@@ -9,7 +9,7 @@ define(function(require) {
   var Battery = require('modules/battery');
 
   /**
-   * @alias module:panels/root/battery_item
+   * @alias module:views/phone/root/battery_item
    * @class BatteryItem
    * @requires module:modules/battery
    * @param {HTMLElement} element

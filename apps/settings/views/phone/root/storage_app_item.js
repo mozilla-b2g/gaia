@@ -8,7 +8,7 @@ define(function(require) {
   var StorageHelper = require('modules/storage_helper');
 
   /**
-   * @alias module:panels/root/storage_app_item
+   * @alias module:views/phone/root/storage_app_item
    * @class AppStorageItem
    * @requires module:modules/app_storage
    * @param {HTMLElement} element

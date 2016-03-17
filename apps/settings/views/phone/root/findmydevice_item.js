@@ -4,13 +4,13 @@
  * This module display Find My Device's enabled/disabled state on an
  * element.
  *
- * @module panels/root/findmydevice_item
+ * @module views/phone/root/findmydevice_item
  */
 define(function(require) {
   'use strict';
 
   /**
-   * @alias module:panels/root/findmydevice_item
+   * @alias module:views/phone/root/findmydevice_item
    * @class FindMyDeviceItem
    * @param {HTMLElement} element
                           The element displaying Find My Device's enabled state

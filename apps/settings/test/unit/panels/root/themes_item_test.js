@@ -3,7 +3,7 @@
 suite('ThemesItem', function() {
 
   var modules = [
-    'panels/root/themes_item',
+    'views/phone/root/themes_item',
     'unit/mock_apps_cache'
   ];
 
@@ -105,7 +105,7 @@ suite('ThemesItem', function() {
       });
 
       test('add themeCount and update visibility', function() {
-        assert.isTrue(themesItem._updateThemeSectionVisibility.called); 
+        assert.isTrue(themesItem._updateThemeSectionVisibility.called);
         assert.equal(themesItem._themeCount, 2);
       });
     });
@@ -116,7 +116,7 @@ suite('ThemesItem', function() {
       });
 
       test('add themeCount and update visibility', function() {
-        assert.isTrue(themesItem._updateThemeSectionVisibility.called); 
+        assert.isTrue(themesItem._updateThemeSectionVisibility.called);
         assert.equal(themesItem._themeCount, 0);
       });
     });

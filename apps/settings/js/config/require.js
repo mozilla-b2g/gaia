@@ -337,17 +337,17 @@ require.config({
       ]
     },
     {
-      name: 'panels/root/panel',
+      name: 'views/phone/root/panel',
       exclude: [
         'main',
-        'panels/root/low_priority_items',
+        'views/phone/root/low_priority_items',
         'modules/apps_cache',
         'modules/addon_manager',
         'modules/storage_helper'
       ]
     },
     {
-      name: 'panels/root/low_priority_items',
+      name: 'views/phone/root/low_priority_items',
       exclude: [
         'main',
         'modules/app_storage',

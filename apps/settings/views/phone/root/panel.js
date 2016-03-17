@@ -3,12 +3,12 @@ define(function(require) {
 
   var SettingsService = require('modules/settings_service');
   var SettingsPanel = require('modules/settings_panel');
-  var Root = require('panels/root/root');
+  var Root = require('views/phone/root/root');
 
-  var AirplaneModeItem = require('panels/root/airplane_mode_item');
-  var ThemesItem = require('panels/root/themes_item');
-  var AddonsItem = require('panels/root/addons_item');
-  var STKItem = require('panels/root/stk_item');
+  var AirplaneModeItem = require('views/phone/root/airplane_mode_item');
+  var ThemesItem = require('views/phone/root/themes_item');
+  var AddonsItem = require('views/phone/root/addons_item');
+  var STKItem = require('views/phone/root/stk_item');
 
   var queryRootForLowPriorityItems = function(panel) {
     // This is a map from the module name to the object taken by the constructor
@@ -49,7 +49,7 @@ define(function(require) {
     var initLowPriorityItems = function(rootElements) {
       if (!initLowPriorityItemsPromise) {
         initLowPriorityItemsPromise = new Promise(function(resolve) {
-          require(['panels/root/low_priority_items'], resolve);
+          require(['views/phone/root/low_priority_items'], resolve);
         }).then(function(itemCtors) {
           var result = {};
           Object.keys(rootElements).forEach(function(name) {
