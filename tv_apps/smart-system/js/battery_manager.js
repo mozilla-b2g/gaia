@@ -155,7 +155,7 @@ var BatteryManager = {
   AUTO_SHUTDOWN_LEVEL: 0.00,
   EMPTY_BATTERY_LEVEL: 0.1,
 
-  _battery: window.navigator.battery,
+  _battery: null,
   _notification: null,
 
   getAllElements: function bm_getAllElements() {
@@ -177,22 +177,26 @@ var BatteryManager = {
 
   init: function bm_init() {
     this.getAllElements();
-    var battery = this._battery;
-    if (battery) {
-      // When the device is booted, check if the battery is drained.
-      // If so, batteryshutdown would be triggered to inform sleepMenu shutdown.
-      window.addEventListener('homescreenwindowmanager-ready',
-                              this.checkBatteryDrainage.bind(this));
+    return window.navigator.getBattery().then(battery => {
+      this._battery = battery;
 
-      battery.addEventListener('levelchange', this);
-      battery.addEventListener('chargingchange', this);
-    }
-    window.addEventListener('screenchange', this);
+      if (battery) {
+        // When the device is booted, check if the battery is drained.
+        // If so, batteryshutdown would be triggered to
+        // inform sleepMenu shutdown.
+        window.addEventListener('homescreenwindowmanager-ready',
+                                this.checkBatteryDrainage.bind(this));
 
-    this._screenOn = true;
-    this._wasEmptyBatteryNotificationDisplayed = false;
+        battery.addEventListener('levelchange', this);
+        battery.addEventListener('chargingchange', this);
+      }
+      window.addEventListener('screenchange', this);
 
-    this.displayIfNecessary();
+      this._screenOn = true;
+      this._wasEmptyBatteryNotificationDisplayed = false;
+
+      this.displayIfNecessary();
+    });
   },
 
   handleEvent: function bm_handleEvent(evt) {
