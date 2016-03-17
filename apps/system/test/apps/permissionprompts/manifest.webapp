@@ -5,7 +5,7 @@
   "launch_path": "/index.html",
   "permissions": {
     "contacts": {
-      "access": "readcreate"
+      "access": "createonly"
     },
     "device-storage:sdcard": {
       "access": "readonly"
