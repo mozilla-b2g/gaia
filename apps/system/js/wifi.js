@@ -32,6 +32,7 @@
     kScanInterval: 20 * 1000,
 
     _scanTimer: null,
+    _battery: null,
 
     // Sync with the hardware (mozWifiManager) state by listening to the
     // two events.
@@ -72,8 +73,10 @@
 
       window.addEventListener('screenchange', this);
 
-      var battery = window.navigator.battery;
-      battery.addEventListener('chargingchange', this);
+      window.navigator.getBattery().then((battery) => {
+        this._battery = battery;
+        battery.addEventListener('chargingchange', this);
+      });
 
 
       // If wifi is turned off by us and phone got rebooted,
@@ -265,9 +268,9 @@
         return;
       }
 
-      var battery = window.navigator.battery;
       var wifiManager = window.navigator.mozWifiManager;
-      if (!battery || !wifiManager ||
+
+      if (!this._battery || !wifiManager ||
           // We don't need to do anything if wifi is not disabled by system app.
           (!this.wifiEnabled && !this.wifiDisabledByWakelock)) {
         releaseCpuLock();
@@ -277,7 +280,7 @@
       var lock = SettingsListener.getSettingsLock();
       // Let's quietly turn off wifi if there is no wake lock and
       // the screen is off and we are not on a power source.
-      if (!Service.query('screenEnabled') && !battery.charging &&
+      if (!Service.query('screenEnabled') && !this._battery.charging &&
           !this._wakeLockManager.isHeld) {
         // We still need to turn of wifi even if there is no Alarm API
         if (!navigator.mozAlarms) {
@@ -424,9 +427,8 @@
         // Wifi shall not sleep if the condition to turn this off has changed.
         // (Alarm should have been removed when condition changes, but for
         // reason unknown to us it still triggers.)
-        var battery = window.navigator.battery;
         if (Service.query('screenEnabled') ||
-            battery.charging ||
+            this._battery.charging ||
             this._wakeLockManager.isHeld) {
           console.error(
             'Wifi: mozAlarms should be cancelled but still triggers.');
