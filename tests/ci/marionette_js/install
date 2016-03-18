@@ -1,7 +1,4 @@
-#! /bin/bash -ve
+#! /bin/bash -vex
 
 echo "Downloading Mulet"
 make mulet
-
-# Install virtualenv and radicale on Travis.
-make caldav-server-install
