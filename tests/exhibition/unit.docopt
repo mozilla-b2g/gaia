@@ -1,0 +1,11 @@
+JS Unit Tests
+
+Usage:
+  test-unit [-h | --help]
+
+Options:
+  --suite       The test suite to run (all, gaia, jsmarionette) [default: all].
+  -h, --help    Show this help message.
+
+Commands:
+  test-unit    Run all unit-tests.

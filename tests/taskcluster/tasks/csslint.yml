@@ -19,7 +19,7 @@ task:
 
     command:
       - entrypoint
-      - ./bin/ci run csslint
+      - ./gaia lint --with=csslint
 
   extra:
     treeherder:

@@ -764,8 +764,10 @@ endif
 endif
 
 
-# this lists the programs we need in the Makefile and that are installed by npm
+# XXXAus: Remove this when taskcluster gaia-taskenv runs as a normal user!
+NPM_UNSAFE_PERM = $(shell test "$(whoami)" == "root" && echo "--unsafe-perm")
 
+# this lists the programs we need in the Makefile and that are installed by npm
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha node_modules/.bin/eslint
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
@@ -804,7 +806,7 @@ git-gaia-node-modules: gaia_node_modules.revision
 #
 npm-cache:
 	@echo "Using pre-deployed cache."
-	$(NPM) install
+	$(NPM) install $(NPM_UNSAFE_PERM)
 	touch -c node_modules
 
 node_modules: package.json
@@ -822,7 +824,7 @@ ifneq ($(NPM_VERSION),$(shell $(NPM) --version | cut -d. -f1))
 endif
 endif
 	# TODO: Get rid of references to gaia-node-modules stuff.
-	$(NPM) install
+	$(NPM) install $(NPM_UNSAFE_PERM)
 	$(NPM) run refresh
 
 ###############################################################################
@@ -870,17 +872,15 @@ jsmarionette-unit-tests: mulet node_modules $(PROFILE_FOLDER) tests/jsmarionette
 
 tests/jsmarionette/runner/marionette-js-runner/venv:
 	# Install virtualenv
-	cd tests/jsmarionette/runner/marionette-js-runner && $(NPM) install
+	cd tests/jsmarionette/runner/marionette-js-runner && $(NPM) install $(NPM_UNSAFE_PERM)
 	# Still want to use $GAIA/node_modules
 	rm -rf tests/jsmarionette/runner/marionette-js-runner/node_modules
 
 
 .PHONY: caldav-server-install
 caldav-server-install:
-	source tests/ci/venv.sh; \
-				export LC_ALL=en_US.UTF-8; \
-				export LANG=en_US.UTF-8; \
-				pip install radicale;
+	export LANG=en_US.UTF-8; \
+	pip install radicale;
 
 .PHONY: raptor
 raptor: node_modules

@@ -1,0 +1,4 @@
+--ui tdd
+--reporter spec
+--compilers js:babel/register
+--timeout 1min

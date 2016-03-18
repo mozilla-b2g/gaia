@@ -22,7 +22,7 @@ task:
 
     command:
       - entrypoint
-      - ./bin/ci run build_unit
+      - ./gaia test-build --suite=unit
 
   extra:
     treeherder:

@@ -172,6 +172,15 @@ echo -e "------- Will run the following test files:\n$PRETTY_TEST_FILES\n-------
 # diagnose in the case where we told it to run tests but it ran none.
 export _RETRY_TEST_FILES=$TEST_FILES
 
+# XXXAus -- DEBUG
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "Running commands in following working directory: "
+echo `pwd`
+echo ""
+echo "With following environment: "
+echo `set`
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
 $TARGET \

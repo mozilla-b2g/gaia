@@ -1,0 +1,11 @@
+JS Marionette Integration Tests (Gij)
+
+Usage:
+  test-integration [--device-type=<value>] [-h | --help]
+
+Options:
+  --device-type=<value> Device target: desktop, phone, tv [default: desktop].
+  -h, --help            Show this help message [default: false].
+
+Commands:
+  test-integration    Run JS Marionette Integration Tests.

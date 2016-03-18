@@ -17,7 +17,7 @@ task:
       gaia-misc-caches: /home/worker/caches/
     command:
       - entrypoint
-      - ./bin/ci run jsonlint
+      - ./gaia lint --with=jsonlint
 
   extra:
     treeherder:

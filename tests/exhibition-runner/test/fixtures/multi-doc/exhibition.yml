@@ -1,0 +1,11 @@
+groups:
+  "Examples":
+    description: |
+      These are some amazing examples I put together for you...
+    paths:
+    - docopt: first/exhibition.docopt
+      cli: first/cli.js
+    - docopt: second/exhibition.docopt
+      cli: second/cli.js
+    - docopt: third/exhibition.docopt
+      cli: third/cli.js

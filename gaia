@@ -1,0 +1,123 @@
+#!/bin/bash -vx
+
+#####
+# GLOBAL CONFIGURATION
+#####
+NODEJS_VERSION="v4.2.4"
+NPM_VERSION="2.14.12"
+ENVY_URL="https://raw.githubusercontent.com/gaye/envy/master/envy"
+
+#####
+# GLOBAL VARIABLES
+#####
+ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+EXHIBITION_ROOT=$ROOT/.exhibition
+EXHIBITION_BIN_DIR=$EXHIBITION_ROOT/lib/node_modules/.bin
+EXHIBITION_BIN_FILE=exhibition
+NPM_RC_FILE=$ROOT/.npmrc
+ENVY_BIN_FILE=$EXHIBITION_BIN_DIR/envy
+ENVY_RC_FILE=$ROOT/.envyrc
+
+NPM_HASH_FILE=$ROOT/node_modules/.exhibition.md5
+NPM_UNSAFE=$(test "$(whoami)" == "root" && echo "--unsafe-perm")
+
+#####
+# Exhibition Configuration Helper, sets up required folders.
+#####
+configure_exhibition() {
+  mkdir -p $EXHIBITION_ROOT
+  mkdir -p $EXHIBITION_BIN_DIR
+}
+
+#####
+# Exhibition Installation Helper
+#####
+install_exhibition() {
+  local is_installed=`envy which $EXHIBITION_BIN_FILE > /dev/null; echo $?`
+  if [ $is_installed -ne 0 ]; then
+    envy npm install -g babel@^5 $NPM_UNSAFE
+    # XXXAus: Replace this with |exhibition-runner@[VERSION]| when ready.
+    envy npm install -g $ROOT/tests/exhibition-runner $NPM_UNSAFE
+  fi
+}
+
+#####
+# NPM Configuration Helper, writes out the appropriate .npmrc for the project
+#   that tells npm to install global modules in $ROOT/.exhibition.
+#####
+configure_npm() {
+  printf "prefix = %s\n" $EXHIBITION_ROOT > $NPM_RC_FILE
+}
+
+#####
+# Envy Configuration Helper, writes out the appropriate .envyrc for the project
+#   and adds envy's binary to PATH.
+#####
+install_envy() {
+  printf "NODEJS_VERSION=%s\nNPM_VERSION=%s\n" \
+    $NODEJS_VERSION \
+    $NPM_VERSION > $ENVY_RC_FILE
+
+  if [ ! -x $ENVY_BIN_FILE ]; then
+    curl $ENVY_URL > $ENVY_BIN_FILE
+  fi
+
+  if [ ! -x $ENVY_BIN_FILE ]; then
+    chmod +x $ENVY_BIN_FILE
+  fi
+
+  PATH=$EXHIBITION_BIN_DIR:$PATH
+}
+
+#####
+# Hack to generate md5 in cross platform way (using node which we
+#   install via envy)
+#####
+md5() {
+  local path=$1
+  # WTF? This super long js string will read a file and output a md5... This
+  # looks terrible but saves the need of dealing with md5/md5sum utils which
+  # vary in output..
+  local cmd="\"var crypto = require('crypto');var fs = require('fs');console.log(crypto.createHash('md5').update(fs.readFileSync('$path', 'utf8')).digest('hex'));\""
+  envy node -e "$cmd"
+}
+
+#####
+# Take care of installing the project's actual node module dependencies
+#####
+npm_install() {
+  local package_hash=$(md5 $ROOT/package.json)
+  local install_hash=""
+
+  # Wrapped in this if statement to suppress any unwanted output...
+  if [ -f $NPM_HASH_FILE ];
+  then
+    install_hash=$(cat $NPM_HASH_FILE)
+  fi
+
+  if [ "$install_hash" == "$package_hash" ];
+  then
+    return
+  fi
+
+  cd $ROOT
+  envy npm install $NPM_UNSAFE
+  cd -
+  echo $package_hash > $NPM_HASH_FILE
+}
+
+#####
+# Configure exhibition, npm, and envy
+#####
+configure_exhibition
+configure_npm
+install_envy
+install_exhibition
+
+#####
+# Install project nodejs modules
+#####
+npm_install
+
+##### Your Command stuff with the clean node environment...
+exec envy $EXHIBITION_BIN_FILE $ROOT $@
