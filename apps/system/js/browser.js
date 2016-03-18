@@ -42,7 +42,7 @@
       var data = e.detail.source.data;
       switch (data.type) {
         case 'url':
-          LazyLoader.load(['shared/js/url_helper.js']).then(function() {
+          LazyLoader.load(['../shared/js/url_helper.js']).then(function() {
             var url = UrlHelper.getUrlFromInput(data.url);
             var isPrivate = data.hasOwnProperty('isPrivate') ?
               data.isPrivate : Browser.privateByDefault;

@@ -237,7 +237,7 @@
       // Note that this utility funtion can determine the size of an image
       // without decoding it and if the image is already the right size
       // it will not modify it.
-      LazyLoader.load('shared/js/image_utils.js', function() {
+      LazyLoader.load('../shared/js/image_utils.js', function() {
         ImageUtils
           .resizeAndCropToCover(blob, screenWidth, screenHeight, ImageUtils.PNG)
           .then(

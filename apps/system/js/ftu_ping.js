@@ -239,7 +239,7 @@
 
     ensurePing: function fp_ensurePing() {
       var self = this;
-      LazyLoader.load('shared/js/telemetry.js').then(function() {
+      LazyLoader.load('../shared/js/telemetry.js').then(function() {
         return Promise.all([self.initSettings(), self.initPreinstalledApps()])
                       .then(self.startPing.bind(self));
       });

@@ -143,8 +143,8 @@ function FMDInit() {
 window.FindmydeviceLauncher = function() {};
 window.FindmydeviceLauncher.prototype.start = function() {
   return LazyLoader.load([
-    'shared/js/findmydevice_iac_api.js',
-    'shared/js/settings_helper.js'
+    '../shared/js/findmydevice_iac_api.js',
+    '../shared/js/settings_helper.js'
   ]).then(function() {
       FMDInit();
     });

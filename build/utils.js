@@ -112,12 +112,11 @@ function psParser(psresult) {
  *
  * @param name {string} - the app name
  * @param scheme {string} - the scheme, like 'app://' or 'http://'
- * @param domain {string} - the domain for Gaia, like 'gaiamobile.org'
  * @param port {string} - the port, but we don't use it
  * @return {string}
  */
-function gaiaOriginURL(name, scheme, domain, port) {
-  return scheme + name + '.' + domain;
+function gaiaOriginURL(name, scheme, port) {
+  return scheme + name;
 }
 
 /**
@@ -129,12 +128,11 @@ function gaiaOriginURL(name, scheme, domain, port) {
  *
  * @param name {string} - the app name
  * @param scheme {string} - the scheme, like 'app://' or 'http://'
- * @param domain {string} - the domain for Gaia, like 'gaiamobile.org'
  * @param port {string} - the port, like 8080 or '8080'
  * @return {string}
  */
-function gaiaManifestURL(name, scheme, domain, port) {
-  return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
+function gaiaManifestURL(name, scheme, port) {
+  return gaiaOriginURL(name, scheme, port) + '/manifest.webapp';
 }
 
 /**

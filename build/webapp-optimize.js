@@ -200,8 +200,7 @@ HTMLOptimizer.prototype.embededGlobals = function() {
   // add the system manifest url to our global object for net_error
   // see: https://bugzilla.mozilla.org/show_bug.cgi?id=959800#c8
   var globals = {
-    SYSTEM_MANIFEST: 'app://system.' + this.config.GAIA_DOMAIN +
-                     '/manifest.webapp'
+    SYSTEM_MANIFEST: this.config.SYSTEM + '/manifest.webapp'
   };
   var content = '';
   for (var key in globals) {
@@ -578,7 +577,7 @@ WebappOptimize.prototype.execute = function(config) {
   // remove excluded condition /^(shared|tests?)$/)
   var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
   var buildDirectoryPath = buildDirectoryFile.path.replace(/\\/g, '/');
-  var excluded = new RegExp(buildDirectoryPath + '.*\/(shared|tests?)');
+  var excluded = new RegExp(buildDirectoryPath + '.*\/(tests?)');
   var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
     return !(excluded.test(file.path.replace(/\\/g, '/')));
   });

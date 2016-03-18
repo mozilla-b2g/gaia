@@ -31,8 +31,8 @@
 
     _start: function() {
       return LazyLoader.load([
-        'shared/js/default_activity_helper.js',
-        'shared/js/settings_helper.js'
+        '../shared/js/default_activity_helper.js',
+        '../shared/js/settings_helper.js'
       ]);
     },
 

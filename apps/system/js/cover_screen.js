@@ -2,14 +2,15 @@
 'use strict';
 
 (function(exports) {
+  const prefix = 'chrome://gaia/content/system';
   const DEFAULT_RESOURCES = {
     poweron: {
-      video: '/resources/power/carrier_power_on.mp4',
-      image: '/resources/power/carrier_power_on.png'
+      video: prefix + '/resources/power/carrier_power_on.mp4',
+      image: prefix + '/resources/power/carrier_power_on.png'
     },
     poweroff: {
-      video: '/resources/power/carrier_power_off.mp4',
-      image: '/resources/power/carrier_power_off.png'
+      video: prefix + '/resources/power/carrier_power_off.mp4',
+      image: prefix + '/resources/power/carrier_power_off.png'
     }
   };
 

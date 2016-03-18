@@ -7,7 +7,7 @@ window.GaiaSubheader = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaSubheaderBaseurl ||
-    '/shared/elements/gaia_subheader/';
+    '../shared/elements/gaia_subheader/';
 
   proto.createdCallback = function() {
     ComponentUtils.style.call(this, baseurl);

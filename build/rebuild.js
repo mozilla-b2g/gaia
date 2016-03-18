@@ -97,12 +97,12 @@ exports.execute = function(options) {
       dirChanged(previous[sharedPath] || {}, current[sharedPath], sharedPath);
     let configChanged =
       buildConfigChanged(record.build_config, options);
-    let webappDir = utils.joinPath(options.PROFILE_DIR, 'webapps');
-    let webappsExist = utils.fileExists(webappDir);
+    let appsDir = utils.joinPath(options.PROFILE_DIR, 'apps');
+    let appsExist = utils.fileExists(appsDir);
 
     // Rebuild everything if any BUILD_CONFIG attribute / shared file changed or
-    // PROFILE_DIR/webapps does not exist
-    if (configChanged || sharedChanged || !webappsExist) {
+    // PROFILE_DIR/apps does not exist
+    if (configChanged || sharedChanged || !appsExist) {
       rebuildAppDirs = scanningDirs;
     }
     // Rebuild any app that has any of its source file modified or external app

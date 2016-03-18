@@ -8,7 +8,7 @@ window.GaiaToolbar = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaToolbarBaseurl ||
-    '/shared/elements/gaia_toolbar/';
+    '../shared/elements/gaia_toolbar/';
 
   /**
    * Runs when an instance of the

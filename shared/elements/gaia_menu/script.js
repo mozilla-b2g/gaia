@@ -7,7 +7,7 @@ window.GaiaMenu = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaMenuBaseurl ||
-    '/shared/elements/gaia_menu/';
+    '../shared/elements/gaia_menu/';
 
   proto.createdCallback = function () {
     var shadow = this.createShadowRoot();

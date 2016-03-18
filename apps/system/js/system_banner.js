@@ -50,9 +50,10 @@
         return Promise.resolve(this._banner);
       }
 
-      return LazyLoader.load('shared/elements/gaia-component/gaia-component.js')
+      return LazyLoader
+        .load('../shared/elements/gaia-component/gaia-component.js')
         .then(() => {
-          return LazyLoader.load('shared/elements/gaia-toast/gaia-toast.js');
+          return LazyLoader.load('../shared/elements/gaia-toast/gaia-toast.js');
         })
         .then(() => {
           this._banner = document.createElement('gaia-toast');

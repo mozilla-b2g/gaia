@@ -1,8 +1,7 @@
 'use strict';
 
 /**
- * Generate $(PROFILE_FOLDER)/webapps/APP/application.zip from build_stage
- * to profile.
+ * Generate $(PROFILE_FOLDER)/apps/APP/content from build_stage to profile.
  * Additionally, it will also filter images by resolution and some excluded
  * conditions, which should move to other task, bug 1010095.
  */
@@ -11,17 +10,13 @@ var utils = require('./utils');
 
 var WebappZip = function() {
   this.options = null;
-  this.zipFile = null;
 };
 
 WebappZip.prototype.setOptions = function(options) {
   this.options = options;
 
-  var targetAppFolder = utils.getFile(options.webapp.profileDirectoryFilePath);
-  utils.ensureFolderExists(targetAppFolder);
-  this.zipPath = utils.joinPath(targetAppFolder.path, 'application.zip');
-  this.zipFile = utils.getZip();
-  this.zipFile.load(this.zipPath, 'write');
+  this.targetAppFolder = utils.getFile(options.webapp.profileDirectoryFilePath);
+  utils.ensureFolderExists(this.targetAppFolder);
 };
 
 WebappZip.prototype.getCompression = function(pathInZip) {
@@ -129,7 +124,7 @@ WebappZip.prototype.addToZip = function(file) {
 
   var pathInZip = file.path.substr(
     this.options.webapp.buildDirectoryFilePath.length + 1);
-  var compression = this.getCompression(pathInZip);
+  // var compression = this.getCompression(pathInZip);
   pathInZip = pathInZip.replace(/\\/g, '/');
 
   if (!pathInZip) {
@@ -139,7 +134,6 @@ WebappZip.prototype.addToZip = function(file) {
   // nsIZipWriter should not receive any path starting with `/`,
   // it would put files in a folder with empty name...
   pathInZip = pathInZip.replace(/^\/+/, '');
-  var zip = this.zipFile;
 
   // Regular file
   if (file.isFile()) {
@@ -148,14 +142,14 @@ WebappZip.prototype.addToZip = function(file) {
       var l10nFile = utils.getFile(file.path + '.' +
         this.options.GAIA_DEFAULT_LOCALE);
       if (l10nFile.exists()) {
-        zip.file(pathInZip, l10nFile, { compression: compression });
+	file.copyTo(this.targetAppFolder, pathInZip);
         return;
       }
     }
 
     var re = new RegExp('\\.html\\.' + this.options.GAIA_DEFAULT_LOCALE);
-    if (!zip.file(pathInZip) && !re.test(file.leafName)) {
-      zip.file(pathInZip, file, { compression: compression });
+    if (!this.targetAppFolder.isFile(pathInZip) && !re.test(file.leafName)) {
+      file.copyTo(this.targetAppFolder, pathInZip);
     }
   }
 };
@@ -177,15 +171,13 @@ WebappZip.prototype.execute = function(options) {
 
   var buildDir = utils.getFile(options.webapp.buildDirectoryFilePath);
   utils.ls(buildDir, true).forEach(this.addToZip.bind(this));
-
-  this.zipFile.close();
 };
 
 function execute(options) {
   var profileDir = utils.getFile(options.PROFILE_DIR);
   utils.ensureFolderExists(profileDir);
-  var webappsDir = utils.getFile(options.COREWEBAPPS_DIR, 'webapps');
-  utils.ensureFolderExists(webappsDir);
+  var appsDir = utils.getFile(options.COREWEBAPPS_DIR, 'apps');
+  utils.ensureFolderExists(appsDir);
 
   (new WebappZip()).execute(options);
 }

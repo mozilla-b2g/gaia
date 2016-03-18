@@ -44,6 +44,7 @@ function ls(dir, recursive) {
 }
 
 function getNewURI(uriString, uriCharset, baseURI) {
+  dump("xpc: getNewURI(" + uriString + ", " + uriCharset + ", " + baseURI + ")\n");
   return Services.io.newURI(uriString, uriCharset, baseURI);
 }
 
@@ -396,7 +397,7 @@ function getWebapp(app, config) {
   let manifestJSON = getJSON(manifest);
 
   // Use the folder name as the the domain name
-  let appDomain = appDir.leafName + '.' + config.GAIA_DOMAIN;
+  let appDomain = appDir.leafName;
   if (manifestJSON.origin) {
     appDomain = utils.getNewURI(manifestJSON.origin).host;
   }
@@ -464,7 +465,7 @@ function getWebapp(app, config) {
   } else {
     webappTargetDirName = webapp.domain;
   }
-  webapp.profileDirectoryFilePath = joinPath(config.COREWEBAPPS_DIR, 'webapps',
+  webapp.profileDirectoryFilePath = joinPath(config.COREWEBAPPS_DIR, 'apps',
                                               webappTargetDirName);
 
   return webapp;

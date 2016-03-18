@@ -692,12 +692,12 @@
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
     if (this.useCombinedChrome()) {
-      LazyLoader.load('shared/js/bookmarks_database.js').then(() => {
+      LazyLoader.load('../shared/js/bookmarks_database.js').then(() => {
         this.updateAddToHomeButton();
       }).catch((err) => {
         console.error(err);
       });
-      LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
+      LazyLoader.load('../shared/elements/gaia_overflow_menu/script.js');
 
       window.addEventListener('pins-scopechange', this);
       window.addEventListener('rocketbar-activating', this);
@@ -1136,7 +1136,7 @@
     }
     var url = this._currentURL;
 
-    LazyLoader.load('shared/js/icons_helper.js').then(() => {
+    LazyLoader.load('../shared/js/icons_helper.js').then(() => {
       IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
         var activity = new MozActivity({
           name: 'save-bookmark',
