@@ -21,7 +21,7 @@ function needsB2gRestart(appName) {
 function pushToDevice(profileFolder, remotePath, adb) {
   // MingGW on Windows takes '/remote/src' as 'c:\remote\src' which is
   // not right, so we use two slash before the remote path to prevent it.
-  var webapps_path = '/' + remotePath + '/webapps';
+  var webapps_path = '/' + remotePath + '/apps';
   return Promise.resolve()
     .then(function() {
       return sh.run(['-c', adb + ' shell rm -r ' + webapps_path]);
@@ -30,9 +30,9 @@ function pushToDevice(profileFolder, remotePath, adb) {
       return sh.run(['-c', adb + ' shell rm //data/local/user.js']);
     })
     .then(function() {
-      // adb push /gaia/profile/webapps /system/b2g/webapps
+      // adb push /gaia/profile/apps /system/b2g/apps
       return sh.run(['-c', adb + ' push "' + utils.joinPath(profileFolder,
-                    'webapps') + '" ' + webapps_path]);
+                    'apps') + '" ' + webapps_path]);
     })
     .then(function() {
       // adb push /gaia/profile/user.js /data/local/user.js
@@ -64,18 +64,18 @@ function installSvoperapps(profileFolder, adb) {
 
 function installOneApp(targetFolder, buildAppName,
                        remotePath, adb) {
-  let devicePath = remotePath + '/webapps/' + buildAppName + '/';
+  let devicePath = remotePath + '/apps/' + buildAppName + '/';
   // kill all of the previous app file and push new ones.
   return Promise.resolve()
     .then(function() {
-      // "adb shell rm -r /system/b2g/webapps/SOME_APP.gaiamobile.org/"
+      // "adb shell rm -r /system/b2g/apps/SOME_APP.gaiamobile.org/"
       utils.log(JOB_NAME, 'removing previous files of ' + buildAppName
                           + ' from ' + devicePath + '.');
       return sh.run(['-c',
         adb + ' shell "rm -r ' + devicePath + '"']);
     })
     .then(function() {
-      // "adb push /gaia/profile/webapps/SOME_APP.gaiamobile.org/application.zip
+      // "adb push /gaia/profile/apps/SOME_APP.gaiamobile.org/application.zip
       //  /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/application.zip"
       utils.log(JOB_NAME, 'installing new files of ' + buildAppName
                           + ' to ' + devicePath + '.');
@@ -110,7 +110,7 @@ function getRemoteInstallPath(adb) {
   // If any of the preload Gaia app was installed at /system/b2g,
   // we should overwrite them in /system/b2g
   for (var app in content) {
-    if (content[app].basePath === '/system/b2g/webapps') {
+    if (content[app].basePath === '/system/b2g/apps') {
       return '/system/b2g';
     }
   }
@@ -172,7 +172,7 @@ function execute(options) {
         return pushToDevice(profileFolder, remotePath, adb);
       } else {
         targetFolder = utils.joinPath(
-            profileFolder, 'webapps', buildAppName);
+            profileFolder, 'apps', buildAppName);
         return installOneApp(targetFolder, buildAppName,
                              remotePath, adb);
       }

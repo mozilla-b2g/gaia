@@ -117,9 +117,9 @@ exports.execute = function(options) {
   buildApps(options);
 
   var gaia = utils.gaia.getInstance(options);
-  var webappsDir = utils.joinPath(options.PROFILE_DIR, 'webapps');
+  var appsDir = utils.joinPath(options.PROFILE_DIR, 'apps');
   var stageShared = utils.joinPath(gaia.stageDir.path, 'shared');
-  utils.copyDirTo(stageShared, webappsDir, 'shared');
+  utils.copyDirTo(stageShared, appsDir, 'shared');
 };
 
 exports.buildApps = buildApps;

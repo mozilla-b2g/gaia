@@ -465,7 +465,7 @@ function getWebapp(app, config) {
   } else {
     webappTargetDirName = webapp.domain;
   }
-  webapp.profileDirectoryFilePath = joinPath(config.COREWEBAPPS_DIR, 'webapps',
+  webapp.profileDirectoryFilePath = joinPath(config.COREWEBAPPS_DIR, 'apps',
                                               webappTargetDirName);
 
   return webapp;

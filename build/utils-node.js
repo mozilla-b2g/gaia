@@ -487,7 +487,7 @@ module.exports = {
       webappTargetDirName = webapp.domain;
     }
     webapp.profileDirectoryFilePath = this.joinPath(config.COREWEBAPPS_DIR,
-                                                    'webapps',
+                                                    'apps',
                                                     webappTargetDirName);
 
     return webapp;

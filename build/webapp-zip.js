@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Generate $(PROFILE_FOLDER)/webapps/APP/content from build_stage to profile.
+ * Generate $(PROFILE_FOLDER)/apps/APP/content from build_stage to profile.
  * Additionally, it will also filter images by resolution and some excluded
  * conditions, which should move to other task, bug 1010095.
  */
@@ -176,8 +176,8 @@ WebappZip.prototype.execute = function(options) {
 function execute(options) {
   var profileDir = utils.getFile(options.PROFILE_DIR);
   utils.ensureFolderExists(profileDir);
-  var webappsDir = utils.getFile(options.COREWEBAPPS_DIR, 'webapps');
-  utils.ensureFolderExists(webappsDir);
+  var appsDir = utils.getFile(options.COREWEBAPPS_DIR, 'apps');
+  utils.ensureFolderExists(appsDir);
 
   (new WebappZip()).execute(options);
 }
