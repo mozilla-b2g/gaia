@@ -11,7 +11,6 @@
     <link rel="stylesheet" type="text/css" href="bower_components/smart-dialog/style.css">
     <link rel="stylesheet" type="text/css" href="bower_components/smart-bubbles/style.css">
     <link rel="stylesheet" type="text/css" href="bower_components/smart-modal-dialog/style.css">
-    <link rel="stylesheet" type="text/css" href="bower_components/menu-group/style.css">
     <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/animations.css">
 
     <!-- home -->
@@ -57,8 +56,6 @@
     <script defer src="bower_components/smart-dialog/script.js"></script>
     <script defer src="bower_components/smart-bubbles/script.js"></script>
     <script defer src="bower_components/smart-modal-dialog/script.js"></script>
-    <!-- menu group depends on evt, it should be added after evt.js -->
-    <script defer src="bower_components/menu-group/script.js"></script>
 
     <!-- Shared TV library for keyboard-based navigating -->
     <script defer src="shared/js/smart-screen/scrollable.js"></script>
@@ -141,7 +138,7 @@
         </div>
       </section>
       <section id="filter-tab-container" class="filter-tab-container">
-        <menu-group data-icon="filter" id="filter-tab-group" class="filter-tab-group">
+        <div data-icon="filter" id="filter-tab-group" class="filter-tab-group">
           <smart-button type="simple-text" id="filter-all-button" data-icon-type="filter">
             <span data-l10n-id="all"></span>
           </smart-button>
@@ -157,7 +154,7 @@
           <smart-button type="simple-text" id="filter-website-button" data-icon-type="web">
             <span data-l10n-id="website"></span>
           </smart-button>
-        </menu-group>
+        </div>
       </section>
       <section id="search-bar" class="search-bar hidden">
         <smart-button data-icon="mic" class="search-mic-button fade-out"></smart-button>

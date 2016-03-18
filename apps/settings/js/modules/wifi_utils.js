@@ -3,6 +3,7 @@
  *
  * @module WifiUtils
  */
+ /* global SpatialNavigationHelper */
 define(function(require) {
   'use strict';
 
@@ -112,6 +113,14 @@ define(function(require) {
       li.onclick = function() {
         onClick(network);
       };
+      if (SpatialNavigationHelper.isEnabled()) {
+        li.onkeyup = function(evt) {
+          // Enter (keyCode = 13) as the key to trigger click event on an item.
+          if (evt.keyCode === 13) {
+            onClick(network);
+          }
+        };
+      }
       return li;
     },
 

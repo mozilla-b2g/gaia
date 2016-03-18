@@ -7,6 +7,6 @@ var battery = {
   addEventListener: function() {}
 };
 
-win.wrappedJSObject.navigator.__defineGetter__('battery', function() {
-  return battery;
-});
+win.wrappedJSObject.navigator.getBattery = function() {
+  return Promise.resolve(battery);
+};

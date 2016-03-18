@@ -68,7 +68,7 @@ window.SpinDatePicker = (function() {
 
     for (var i = GLOBAL_MIN_YEAR; i <= GLOBAL_MAX_YEAR; i++) {
       var date = new Date(i, 0, 1);
-      yearText.push(dateTimeFormat.format(date));
+      yearText.push({ raw: dateTimeFormat.format(date) });
     }
 
     return yearText;
@@ -84,7 +84,7 @@ window.SpinDatePicker = (function() {
 
     for (var i = 0; i < 12; i++) {
       date.setMonth(i);
-      monthText.push(dateTimeFormat.format(date));
+      monthText.push({ raw: dateTimeFormat.format(date) });
     }
 
     return monthText;
@@ -99,7 +99,7 @@ window.SpinDatePicker = (function() {
 
     for (var i = 1; i <= 31; i++) {
       date.setDate(i);
-      dateText.push(dateTimeFormat.format(date));
+      dateText.push({ raw: dateTimeFormat.format(date) });
     }
 
     return dateText;
@@ -113,10 +113,10 @@ window.SpinDatePicker = (function() {
   /**
    * Get the order of date components.
    *
-   * @param {String} date format.
+   * @param {Promise<String>} date format.
    */
   function getDateComponentOrder() {
-    return  navigator.mozL10n.get('datePickerOrder');
+    return  document.l10n.formatValue('datePickerOrder');
   }
 
   /**
@@ -151,7 +151,11 @@ window.SpinDatePicker = (function() {
       var selectedMonth = this.monthPicker.getSelectedIndex();
       var selectedDate = this.datePicker.getSelectedIndex() + 1;
 
-      this._value = new Date(selectedYear, selectedMonth, selectedDate);
+      var newDate = new Date();
+      newDate.setYear(selectedYear);
+      newDate.setMonth(selectedMonth);
+      newDate.setDate(selectedDate);
+      this._value = newDate;
     }).bind(this);
 
     var updatePickersRange =
@@ -217,7 +221,7 @@ window.SpinDatePicker = (function() {
 
     // year value picker
     var yearUnitStyle = {
-      valueDisplayedText: getYearText(),
+      optionsL10n: getYearText(),
       className: unitClassName
     };
     if (this.yearPicker) {
@@ -228,7 +232,7 @@ window.SpinDatePicker = (function() {
 
     // month value picker
     var monthUnitStyle = {
-      valueDisplayedText: getMonthText(),
+      optionsL10n: getMonthText(),
       className: unitClassName
     };
     if (this.monthPicker) {
@@ -240,7 +244,7 @@ window.SpinDatePicker = (function() {
 
     // date value picker
     var dateUnitStyle = {
-      valueDisplayedText: getDateText(),
+      optionsL10n: getDateText(),
       className: unitClassName
     };
     if (this.datePicker) {
@@ -251,12 +255,14 @@ window.SpinDatePicker = (function() {
       onSelectedDateChanged.bind(this);
 
     // set component order
-    var dateComponentOrder = getDateComponentOrder();
-    var pickerClassList = pickerContainer.classList;
-    pickerClassList.remove('YMD');
-    pickerClassList.remove('DMY');
-    pickerClassList.remove('MDY');
-    pickerClassList.add(dateComponentOrder);
+    getDateComponentOrder().then(dcOrder => {
+      var pickerClassList = pickerContainer.classList;
+      pickerClassList.remove('YMD');
+      pickerClassList.remove('DMY');
+      pickerClassList.remove('MDY');
+      pickerClassList.add(dcOrder);
+
+    });
 
     // Prevent focus being taken away by us for time picker.
     // The event listener on outer box will not be triggered cause

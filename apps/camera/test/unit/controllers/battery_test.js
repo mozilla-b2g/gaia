@@ -38,12 +38,14 @@ suite('controllers/battery', function() {
     this.app.views = {
       notification: sinon.createStubInstance(this.NotificationView)
     };
-
-    // Fake battery
     this.app.battery = {
       addEventListener: sinon.stub(),
       level: 1,
       charging: false
+    };
+
+    navigator.getBattery = function() {
+      return Promise.resolve();
     };
 
     // Shortcuts

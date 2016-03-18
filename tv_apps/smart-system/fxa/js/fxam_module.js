@@ -13,8 +13,8 @@ var FxaModule = (function() {
     initialized: false,
     init: function fxam_init() {
       // override this to do initialization
-      // l10n note: this method is called after mozL10n.once has fired. It is
-      // safe to assume strings have loaded and mozL10n.readyState is 'complete'
+      // l10n note: this method is called after l10n.ready Promise
+      // been resolved. It is safe to assume strings have loaded
       // inside this function and other Module functions.
     },
 

@@ -3,16 +3,21 @@ suite('sendFeedback > ', function() {
   var SendFeedback;
   var MockAsyncStorage, RealAsyncStorage;
   var MockXMLHttpRequest, RealXMLHttpRequest;
+  var MockSpatialNavigationHelper, RealSpatialNavigationHelper;
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();
     testRequire([
         'unit/mock_async_storage',
         'unit/mock_xml_http_request',
+        'unit/mock_spatial_navigation_helper',
         'panels/feedback_send/feedback_send'
       ],
-      function(mockAsyncStorage, mockXMLHttpRequest, module) {
+      function(mockAsyncStorage, mockXMLHttpRequest,
+        mockSpatialNavigationHelper,
+        module) {
         MockAsyncStorage = mockAsyncStorage;
         MockXMLHttpRequest = mockXMLHttpRequest;
+        MockSpatialNavigationHelper = mockSpatialNavigationHelper;
         SendFeedback = module;
         done();
     });
@@ -73,6 +78,8 @@ suite('sendFeedback > ', function() {
       window.asyncStorage = MockAsyncStorage;
       RealXMLHttpRequest = window.XMLHttpRequest;
       window.XMLHttpRequest = MockXMLHttpRequest;
+      RealSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = MockSpatialNavigationHelper;
       sendFeedback._sendData = {};
       window.asyncStorage.setItem('feedback', test_data);
       sendFeedback._SettingsCache = {
@@ -91,6 +98,7 @@ suite('sendFeedback > ', function() {
       sendFeedback._sendData = {};
       window.asyncStorage = RealAsyncStorage;
       window.XMLHttpRequest = RealXMLHttpRequest;
+      window.SpatialNavigationHelper = RealSpatialNavigationHelper;
     });
 
     test('update title and get previous inputs', function() {

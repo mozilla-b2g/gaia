@@ -4,11 +4,13 @@ suite('DialogManager > ', function() {
   var mockLazyLoader;
   var mockPanelCache;
   var dialogManager;
-  
+  var mockSpatialNavigationHelper, realSpatialNavigationHelper;
+
   var map = {
     '*': {
       'modules/panel_cache': 'PanelCache',
       'shared/lazy_loader': 'shared_mocks/mock_lazy_loader',
+      'spatial_navigation_helper': 'unit/mock_spatial_navigation_helper',
     }
   };
 
@@ -19,15 +21,18 @@ suite('DialogManager > ', function() {
         get: function() {}
       };
     });
-    
+
     testRequire([
       'PanelCache',
       'shared_mocks/mock_lazy_loader',
-      'modules/dialog_manager'
-    ], map, function(MockPanelCache, MockLazyLoader, DialogManager) {
+      'modules/dialog_manager',
+      'spatial_navigation_helper'
+    ], map, function(MockPanelCache, MockLazyLoader, DialogManager,
+      MockSpatialNavigationHelper) {
       mockPanelCache = MockPanelCache;
       mockLazyLoader = MockLazyLoader;
       dialogManager = DialogManager;
+      mockSpatialNavigationHelper = MockSpatialNavigationHelper;
       done();
     });
   });
@@ -75,7 +80,15 @@ suite('DialogManager > ', function() {
   suite('_open', function() {
     var dialog;
     var panel;
+    var spySNHMakeFocusable, spySNHFocus;
     setup(function() {
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
+      spySNHMakeFocusable =
+        this.sinon.spy(window.SpatialNavigationHelper, 'makeFocusable');
+      spySNHFocus =
+        this.sinon.spy(window.SpatialNavigationHelper, 'focus');
+
       panel = {
         beforeShow: function() {
           return Promise.resolve();
@@ -89,6 +102,7 @@ suite('DialogManager > ', function() {
         init: this.sinon.stub(),
         initUI: this.sinon.stub(),
         bindEvents: this.sinon.stub(),
+        spatialNavigationId: 'SN_ID',
         panel: panel
       };
 
@@ -105,10 +119,16 @@ suite('DialogManager > ', function() {
       });
     });
 
+    teardown(function() {
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
+    });
+
     test('we would follow the calling sequence', function(done) {
       dialogManager._open(dialog).then(function() {
         assert.isTrue(dialog.initUI.called);
         assert.isTrue(dialog.bindEvents.called);
+        assert.isTrue(spySNHMakeFocusable.calledOnce);
+        assert.isTrue(spySNHFocus.calledOnce);
       }).then(done, done);
     });
   });
@@ -118,8 +138,18 @@ suite('DialogManager > ', function() {
     var panel;
     var options;
     var result;
+    var spySNHMakeFocusable, spySNHFocus, spySNHRemove;
 
     setup(function() {
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
+      spySNHMakeFocusable =
+        this.sinon.spy(window.SpatialNavigationHelper, 'makeFocusable');
+      spySNHFocus =
+        this.sinon.spy(window.SpatialNavigationHelper, 'focus');
+      spySNHRemove =
+        this.sinon.spy(window.SpatialNavigationHelper, 'remove');
+
       options = {
         _type: 'submit'
       };
@@ -142,6 +172,7 @@ suite('DialogManager > ', function() {
       dialog = {
         panel: panel,
         cleanup: this.sinon.stub(),
+        spatialNavigationId: 'SN_ID',
         getResult: function() {
           return result;
         },
@@ -160,9 +191,16 @@ suite('DialogManager > ', function() {
       });
     });
 
+    teardown(function() {
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
+    });
+
     test('we would follow the calling sequence', function(done) {
       dialogManager._close(dialog, options).then(function() {
         assert.isTrue(dialog.cleanup.called);
+        assert.isTrue(spySNHMakeFocusable.calledOnce);
+        assert.isTrue(spySNHFocus.calledOnce);
+        assert.isTrue(spySNHRemove.calledOnce);
       }).then(done, done);
     });
 

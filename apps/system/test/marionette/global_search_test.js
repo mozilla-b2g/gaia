@@ -51,7 +51,7 @@ marionette('Global search >', function() {
     var top = sys.topPanel;
     actions.tap(top, 10, 0, 10).perform();
     client.waitFor(function() {
-      return rocketbar.backdrop.displayed();
+      return rocketbar.backdropDisplayed();
     });
 
     assert(true, 'search was triggered');
@@ -70,8 +70,7 @@ marionette('Global search >', function() {
     });
 
     // No permission prompt, no focused rocketbar either
-    assert(!rocketbar.backdrop.displayed());
-
-    assert(true, 'search was not triggered');
+    assert(!rocketbar.backdropDisplayed(), 'search was not triggered');
   });
+
 });

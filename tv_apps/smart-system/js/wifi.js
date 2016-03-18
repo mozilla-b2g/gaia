@@ -20,6 +20,7 @@ var Wifi = {
   kScanInterval: 20 * 1000,
 
   _scanTimer: null,
+  _battery: null,
 
   init: function wf_init() {
     if (!window.navigator.mozSettings) {
@@ -32,8 +33,10 @@ var Wifi = {
 
     window.addEventListener('screenchange', this);
 
-    var battery = window.navigator.battery;
-    battery.addEventListener('chargingchange', this);
+    window.navigator.getBattery().then(battery => {
+      this._battery = battery;
+      battery.addEventListener('chargingchange', this);
+    });
 
 
     // If wifi is turned off by us and phone got rebooted,
@@ -161,9 +164,8 @@ var Wifi = {
       return;
     }
 
-    var battery = window.navigator.battery;
     var wifiManager = window.navigator.mozWifiManager;
-    if (!battery || !wifiManager ||
+    if (!this._battery || !wifiManager ||
         // We don't need to do anything if wifi is not disabled by system app.
         (!this.wifiEnabled && !this.wifiDisabledByWakelock)) {
       releaseCpuLock();
@@ -175,7 +177,7 @@ var Wifi = {
     // the screen is off and we are not on a power source.
     // But if wifi wake lock is held, turn wifi into power save mode instead of
     // turning wifi off.
-    if (!ScreenManager.screenEnabled && !battery.charging) {
+    if (!ScreenManager.screenEnabled && !this._battery.charging) {
       // Wifi wake lock is held while screen and wifi are off, turn on wifi and
       // get into power save mode.
       if (!this.wifiEnabled && this.wifiWakeLocked) {

@@ -83,6 +83,7 @@ define(function() {
     Peripheral: {
       1: 'input-gaming',         // Joystick
       2: 'input-gaming',         // Gamepad
+      3: 'input-keyboard',       // Remote Control
       16: 'input-keyboard',      // Keyboard
       17: 'input-keyboard',      // Keyboard
       18: 'input-keyboard',      // Keyboard

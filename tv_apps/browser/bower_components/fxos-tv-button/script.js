@@ -1,7 +1,7 @@
 'use strict';
 /* global KeyEvent */
 
-window.SmartButton = (function(win) {
+window.FxosTvButton = (function(win) {
   // Extend from the HTMLButtonElement prototype
   var proto = Object.create(HTMLButtonElement.prototype);
 
@@ -58,5 +58,5 @@ window.SmartButton = (function(win) {
   };
 
   // Register and return the constructor
-  return document.registerElement('smart-button', { prototype: proto });
+  return document.registerElement('fxos-tv-button', { prototype: proto });
 })(window);

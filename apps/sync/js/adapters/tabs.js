@@ -316,7 +316,7 @@ DataAdapters.tabs = {
   }
 **/
 
-  _updateTab(payload, userid) {
+  _updateDeviceTabsList(payload, last_modified, userid) {
     if (!payload.clientName || typeof payload.clientName !== 'string' ||
         !payload.id || typeof payload.id !== 'string' ||
         !payload.tabs || !Array.isArray(payload.tabs)) {
@@ -324,7 +324,10 @@ DataAdapters.tabs = {
       return Promise.resolve();
     }
 
-    return TabsHelper.addTab(payload, userid);
+    var record = payload;
+    record.timestamp = last_modified;
+
+    return TabsHelper.addTab(record, userid);
   },
 
   _next(remoteRecords, lastModifiedTime, userid, cursor) {
@@ -339,8 +342,8 @@ DataAdapters.tabs = {
       return Promise.resolve();
     }
 
-    return this._updateTab(remoteRecords[cursor].payload, userid)
-        .then(() => {
+    return this._updateDeviceTabsList(remoteRecords[cursor].payload,
+        remoteRecords[cursor].last_modified, userid).then(() => {
       return this._next(remoteRecords, lastModifiedTime, userid, cursor + 1);
     });
   },

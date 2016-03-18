@@ -1,8 +1,9 @@
 /* global MockCanvas, MockCanvasRenderingContext2D, MockImage,
-          MockService, PasscodeHelper */
+          MockService, PasscodeHelper, MockBattery */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_navigator_getbattery.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_canvas.js');
 require('/shared/test/unit/mocks/mock_canvas_rendering_context_2d.js');
@@ -34,6 +35,7 @@ suite('system/LockScreen >', function() {
   var realMozTelephony;
   var realClock;
   var realSettingsListener;
+  var realGetBattery;
   var realMozSettings;
   var domPasscodePad;
   var domEmergencyCallBtn;
@@ -89,6 +91,9 @@ suite('system/LockScreen >', function() {
 
     realL10n = document.l10n;
     document.l10n = window.MockL10n;
+
+    realGetBattery = navigator.getBattery;
+    navigator.getBattery = MockBattery.getBattery;
 
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = window.MockNavigatorMozTelephony;
@@ -423,9 +428,7 @@ suite('system/LockScreen >', function() {
       // navigator.battery is read only. See bug 1115921
       subject.chargingStatus.start();
       var spy = this.sinon.spy(subject.chargingStatus, 'refresh');
-      navigator.battery.dispatchEvent(new CustomEvent('chargingchange', {
-        charging: true
-      }));
+      MockBattery._battery.dispatchEvent('chargingchange');
 
       assert.isTrue(spy.called);
       subject.chargingStatus.refresh.restore();
@@ -435,9 +438,7 @@ suite('system/LockScreen >', function() {
     test('When charging stops, refresh charging status', function() {
       subject.chargingStatus.start();
       var spy = this.sinon.spy(subject.chargingStatus, 'refresh');
-      navigator.battery.dispatchEvent(new CustomEvent('chargingchange', {
-        charging: false
-      }));
+      MockBattery._battery.dispatchEvent('chargingchange');
 
       assert.isTrue(spy.called);
       subject.chargingStatus.refresh.restore();
@@ -447,9 +448,7 @@ suite('system/LockScreen >', function() {
     test('When charging level changes, refresh charging status', function() {
       subject.chargingStatus.start();
       var spy = this.sinon.spy(subject.chargingStatus, 'refresh');
-      navigator.battery.dispatchEvent(new CustomEvent('levelchange', {
-        level: 0.5
-      }));
+      MockBattery._battery.dispatchEvent('levelchange');
 
       assert.isTrue(spy.called);
       subject.chargingStatus.refresh.restore();
@@ -459,9 +458,7 @@ suite('system/LockScreen >', function() {
     test('When charging time changes, refresh charging status', function() {
       subject.chargingStatus.start();
       var spy = this.sinon.spy(subject.chargingStatus, 'refresh');
-      navigator.battery.dispatchEvent(new CustomEvent('chargingtimechange', {
-        chargeTime: 1200
-      }));
+      MockBattery._battery.dispatchEvent('chargingtimechange');
 
       assert.isTrue(spy.called);
       subject.chargingStatus.refresh.restore();
@@ -941,6 +938,7 @@ suite('system/LockScreen >', function() {
 
   teardown(function() {
     document.l10n = realL10n;
+    navigator.getBattery = realGetBattery;
     navigator.mozTelephony = realMozTelephony;
     window.Audio = realAudio;
     window.Clock = realClock;

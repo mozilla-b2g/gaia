@@ -155,8 +155,8 @@
           messageL10nId = this.error.d;
       }
 
-      navigator.mozL10n.setAttributes(this.titleEl, titleL10nId);
-      navigator.mozL10n.setAttributes(this.messageEl, messageL10nId,
+      document.l10n.setAttributes(this.titleEl, titleL10nId);
+      document.l10n.setAttributes(this.messageEl, messageL10nId,
         messageL10nOption);
     },
 
@@ -234,7 +234,9 @@
     }
   };
 
-  navigator.mozL10n.ready(NetError.create);
+  NetError.create();
+
+  document.addEventListener('DOMRetranslated', NetError.create);
 
   exports.NetError = NetError;
 })(window);

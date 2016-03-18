@@ -1,11 +1,11 @@
-/* global BatteryIcon, MockNavigatorBattery, MockL10n */
+/* global BatteryIcon, MockBattery, MockL10n */
 'use strict';
 
 requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 requireApp('system/js/battery_icon.js');
-requireApp('system/test/unit/mock_navigator_battery.js');
+require('/shared/test/unit/mocks/mock_navigator_getbattery.js');
 require('/shared/test/unit/mocks/mock_l20n.js');
 
 suite('system/BatteryIcon', function() {
@@ -14,10 +14,10 @@ suite('system/BatteryIcon', function() {
   setup(function() {
     realMozL10n = document.l10n;
     document.l10n = MockL10n;
-    MockNavigatorBattery.level = 0.95;
-    MockNavigatorBattery.charging = false;
+    MockBattery._battery.level = 0.95;
+    MockBattery._battery.charging = false;
     subject = new BatteryIcon({
-      _battery: MockNavigatorBattery
+      _battery: MockBattery._battery 
     });
     subject.start();
     subject.element = document.createElement('div');
@@ -38,7 +38,7 @@ suite('system/BatteryIcon', function() {
   test('should not publish iconchange when computed level does not change',
     function() {
       subject.update();
-      MockNavigatorBattery.level = 0.95;
+      MockBattery._battery.level = 0.95;
       this.sinon.stub(subject, 'publish');
       subject.update();
 
@@ -47,7 +47,7 @@ suite('system/BatteryIcon', function() {
 
   test('should publish iconchange when battery changes', function() {
     subject.update();
-    MockNavigatorBattery.level = 0.5;
+    MockBattery._battery.level = 0.5;
     this.sinon.stub(subject, 'publish');
     subject.update();
 
@@ -56,7 +56,7 @@ suite('system/BatteryIcon', function() {
 
   test('should publish iconchange when charging state changes', function() {
     subject.update();
-    MockNavigatorBattery.charging = true;
+    MockBattery._battery.charging = true;
     this.sinon.stub(subject, 'publish');
     subject.update();
 

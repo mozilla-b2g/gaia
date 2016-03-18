@@ -131,7 +131,6 @@ SystemAppBuilder.prototype.inlineDeviceType = function(options) {
 SystemAppBuilder.prototype.enableFirefoxSync = function(options) {
   var fileList = {
     process: [
-      ['index.html'],
       ['js', 'core.js'],
       ['js', 'fx_accounts_client.js']
     ],
@@ -168,6 +167,7 @@ SystemAppBuilder.prototype.getCustomModules = function(options) {
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.getCustomModules(options);
+
   this.setOptions(options);
   this.initConfigJsons();
   if (this.distDirPath) {

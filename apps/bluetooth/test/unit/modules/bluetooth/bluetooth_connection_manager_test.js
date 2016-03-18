@@ -214,6 +214,7 @@ suite('BluetoothContext', function() {
     setup(function() {
       mockConnectedDevices = {
         'hfp': [{address: 'AA:BB:CC:00:11:22'}],
+        'hid': [{address: 'AA:BB:CC:00:11:22'}],
         'a2dp': [{address: 'AA:BB:CC:00:11:22'}]
       };
 

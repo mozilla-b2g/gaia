@@ -4,6 +4,7 @@
  *
  * @module bluetooth/bt_template_factory
  */
+ /* global SpatialNavigationHelper */
 define(function() {
   'use strict';
 
@@ -47,6 +48,14 @@ define(function() {
       li.onclick = function() {
         onItemClick(observableItem);
       };
+      if (SpatialNavigationHelper.isEnabled()) {
+        li.onkeyup = function(evt) {
+          // Enter (keyCode = 13) as the key to trigger click event on an item.
+          if (evt.keyCode === 13) {
+            onItemClick(observableItem);
+          }
+        };
+      }
     }
 
     // Observe name property for update device name
@@ -91,6 +100,11 @@ define(function() {
       case 'connecting':
         li.setAttribute('aria-disabled', true);
         element.setAttribute('data-l10n-id', 'device-status-connecting');
+        break;
+      case 'connectedWithDeviceInput':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected-device-input');
         break;
       case 'connectedWithDeviceMedia':
         li.removeAttribute('aria-disabled');

@@ -1,15 +1,15 @@
-/* XXX: smart-button uses box-sizing: content-box, but it's overidden in toolbar.css */
-smart-button {
+/* XXX: fxos-tv-button uses box-sizing: content-box, but it's overidden in toolbar.css */
+fxos-tv-button {
   box-sizing: content-box;
 }
 
-smart-button[type=simple-text] {
+fxos-tv-button[type=simple-text] {
   background-color: #5f6368;
   border-radius: 4rem;
   text-align: center;
 }
 
-smart-button[type=simple-text].disabled {
+fxos-tv-button[type=simple-text].disabled {
   background-color: rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
@@ -77,6 +77,11 @@ p.fine-print {
 /*IFDEF_FIREFOX_SYNC*/
 #fxsync-header {
   margin-bottom: 5rem;
+}
+
+#fxsync-sign-in-button {
+  width: 23.7rem;
+  margin-bottom: 4.5rem;
 }
 /*ENDIF_FIREFOX_SYNC*/
 
@@ -215,7 +220,7 @@ p.fine-print {
 /* Firefox Sync */
 
 /*IFDEF_FIREFOX_SYNC*/
-#fxsync-sign-in > smart-button {
+#fxsync-sign-in > fxos-tv-button {
   background-color: #4d4d4d;
   line-height: 4rem;
   height: 4rem;
@@ -235,6 +240,8 @@ p.fine-print {
 }
 
 #fxsync-disabled > p {
+  margin: 0;
+  line-height: 3.6rem;
   font-size: 2.8rem;
   font-style: italic;
   font-weight: lighter;
@@ -243,21 +250,27 @@ p.fine-print {
 #fxsync-enabled {
   display: flex;
   align-items: center;
-  margin-top: -5.1rem;
+  margin-top: -4.65rem;
   flex-wrap: wrap;
   justify-content: space-between;
 }
 
 #fxsync-enabled > p {
   width: 100%;
+  margin-bottom: 6rem;
+  margin-top:0;
+  margin-left: 4.5rem;
+  text-decoration: underline;
+  color: #4d4d4d;
 }
 
 #fxsync-enabled[hidden] {
   display: none;
 }
 
-#fxsync-enabled > smart-button {
-  margin-left: 1.8rem;
+#fxsync-enabled > fxos-tv-button {
+  width: 23.7rem;
+  margin-left: 4rem;
 }
 
 #fxsync-area.hidden,
@@ -271,9 +284,9 @@ p.fine-print {
 .settings-horizontal-list {
   display: flex;
   width: 100%;
-  margin-top: 2rem;
-  margin-left: 1rem;
-  margin-bottom: 2rem;
+  margin-top: 6.45rem;
+  margin-left: 4.5rem;
+  margin-bottom: 9rem;
 }
 
 .settings-horizontal-list-item {

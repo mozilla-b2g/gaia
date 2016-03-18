@@ -1,5 +1,5 @@
 /* global ScreenManager, Service, SettingsListener,
-          Wifi, WifiIcon, WifiWakeLockManager,
+          Wifi, WifiIcon, WifiWakeLockManager, MockBattery,
           MockFtuLauncher, MocksHelper, MockLazyLoader, MockLock, MockMozPower,
           MockNavigatorSettings, MockSettingsListener, MockWifiManager */
 
@@ -9,6 +9,7 @@ require('/test/unit/mock_wifi_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_power.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_navigator_getbattery.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/js/service.js');
@@ -80,7 +81,7 @@ suite('WiFi > ', function() {
   var realSettingsListener;
   var realScreenManager;
   var realMozSetMessageHandler;
-  var realBattery;
+  var realGetBattery;
   var realMozPower;
   var realMozSettings;
   var realWifiManager;
@@ -113,11 +114,8 @@ suite('WiFi > ', function() {
     realWifiManager = navigator.mozWifiManager;
     navigator.mozWifiManager = MockWifiManager;
 
-    realBattery = navigator.battery;
-    Object.defineProperty(navigator, 'battery', {
-      writable: true
-    });
-    navigator.battery = realBattery;
+    realGetBattery = navigator.getBattery;
+    navigator.getBattery = MockBattery.getBattery;
 
     realMozPower = navigator.mozPower;
     Object.defineProperty(navigator, 'mozPower', {
@@ -157,7 +155,7 @@ suite('WiFi > ', function() {
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozPower = realMozPower;
     navigator.mozWifiManager = realWifiManager;
-    navigator.battery = realBattery;
+    navigator.getBattery = realGetBattery;
   });
 
   test('Should lazy load icon', function(done) {
@@ -192,10 +190,7 @@ suite('WiFi > ', function() {
 
       isMaybeToggleWifiCalled = false;
 
-      evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('chargingchange',
-        /* canBubble */ true, /* cancelable */ false, null);
-      window.navigator.battery.dispatchEvent(evt);
+      MockBattery._battery.dispatchEvent('chargingchange');
       assert.equal(isMaybeToggleWifiCalled, true);
 
       stubWifiMaybeToggleWifi.restore();
@@ -268,6 +263,7 @@ suite('WiFi > ', function() {
 
       MockLock.clear();
 
+      Wifi._battery = MockBattery._battery;
       Wifi.maybeToggleWifi();
 
       assert.equal(Wifi.wifiDisabledByWakelock, false);
@@ -328,13 +324,12 @@ suite('WiFi > ', function() {
 
       var stubMozAlarms = this.sinon.stub(navigator,
         'mozAlarms', null);
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       Wifi.maybeToggleWifi();
 
       assert.equal(isSleepCalled, true);
 
-      navigator.battery = realBattery;
       stubMozAlarms.restore();
       stubSleep.restore();
     });
@@ -356,7 +351,7 @@ suite('WiFi > ', function() {
           isSetSystemMessageHandlerCalled = true;
         });
 
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       Wifi.maybeToggleWifi();
       if (Wifi.wifiSleepMode === true) {
@@ -365,7 +360,6 @@ suite('WiFi > ', function() {
         assert.equal(MockMozAlarms._func, 'wifi-off');
       }
 
-      navigator.battery = realBattery;
       stubMozAlarms.restore();
       stubSetSystemMessageHandler.restore();
     });
@@ -391,7 +385,7 @@ suite('WiFi > ', function() {
           isSetSystemMessageHandlerCalled = true;
       });
 
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       Wifi.maybeToggleWifi();
       if (Wifi.wifiSleepMode === true) {
@@ -400,7 +394,6 @@ suite('WiFi > ', function() {
         assert.equal(MockMozAlarms._func, 'wifi-off');
       }
 
-      navigator.battery = realBattery;
       stubMozAlarms.restore();
       stubSetSystemMessageHandler.restore();
     });
@@ -426,7 +419,7 @@ suite('WiFi > ', function() {
           isSetSystemMessageHandlerCalled = true;
         });
 
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       Wifi.maybeToggleWifi();
       assert.isTrue(MockMozAlarms.add.calledOnce);
@@ -434,7 +427,6 @@ suite('WiFi > ', function() {
       Wifi.maybeToggleWifi();
       assert.isFalse(MockMozAlarms.add.calledTwice);
 
-      navigator.battery = realBattery;
       MockMozAlarms.add.restore();
       stubMozAlarms.restore();
       stubSetSystemMessageHandler.restore();
@@ -498,7 +490,7 @@ suite('WiFi > ', function() {
       Wifi.wifiSleepMode = true;
       Wifi._hasAlarm = true;
       Wifi._alarmId = 1;
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       this.sinon.stub(Wifi, 'sleep');
 
@@ -506,7 +498,6 @@ suite('WiFi > ', function() {
 
       assert.isTrue(Wifi.sleep.calledOnce);
 
-      navigator.battery = realBattery;
     });
 
     test('should not call sleep if screen is on', function() {
@@ -517,7 +508,7 @@ suite('WiFi > ', function() {
       Wifi.wifiSleepMode = true;
       Wifi._hasAlarm = true;
       Wifi._alarmId = 1;
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       this.sinon.stub(Wifi, 'sleep');
 
@@ -538,7 +529,7 @@ suite('WiFi > ', function() {
       MockScreenManager.screenEnabled = false;
       Wifi.wifiDisabledByWakelock = true;
       Wifi.wifiEnabled = true;
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       Wifi.maybeToggleWifi();
 
@@ -559,7 +550,7 @@ suite('WiFi > ', function() {
       Wifi.wifiDisabledByWakelock = true;
       stubWifiWakeLockManager.isHeld = true;
       Wifi.wifiEnabled = false;
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       MockLock.clear();
       stubWifiWakeLockManager.onwakelockchange(true);
@@ -592,7 +583,7 @@ suite('WiFi > ', function() {
       Wifi.wifiDisabledByWakelock = false;
       stubWifiWakeLockManager.isHeld = true;
       Wifi.wifiEnabled = false;
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       stubWifiWakeLockManager.onwakelockchange(true);
 
@@ -619,7 +610,7 @@ suite('WiFi > ', function() {
       Wifi.wifiDisabledByWakelock = true;
       stubWifiWakeLockManager.isHeld = true;
       Wifi.wifiEnabled = false;
-      navigator.battery = { charging: false };
+      MockBattery._battery.charging = false;
 
       MockLock.clear();
       stubWifiWakeLockManager.onwakelockchange(false);

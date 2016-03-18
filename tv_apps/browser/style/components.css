@@ -28,10 +28,10 @@ input[type="checkbox"].settings-list-checkbox:disabled ~ span {
 }
 
 input[type="checkbox"].settings-list-checkbox:checked + label::after {
-  font-family: "smart-icons";
+  font-family: "fxos-tv-icons";
   font-style: normal;
   font-weight: 500;
-  font-size: 3rem;
+  font-size: 5rem;
   text-rendering: optimizelegibility;
   content: "check";
   color: #00caf2;

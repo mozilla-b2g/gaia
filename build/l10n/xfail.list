@@ -48,7 +48,6 @@ apps/email/js/model_init.js
 apps/email/js/toaster.js
 apps/fl/js/utils.js
 apps/homescreen/test/marionette/lib/homescreen.js
-apps/keyboard/js/settings/layout_item_view.js
 apps/pdfjs/content/web/viewer.js
 apps/ringtones/js/built_in_ringtones.js
 apps/ringtones/js/null_ringtone.js
@@ -59,17 +58,3 @@ apps/sharedtest/test/unit/l10n/l10n_test.js
 apps/verticalhome/test/marionette/lib/verticalhome.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
-tv_apps/smart-system/fxa/js/fxam_errors.js
-tv_apps/smart-system/fxa/js/screens/fxam_enter_email.js
-tv_apps/smart-system/fxa/js/screens/fxam_enter_password.js
-tv_apps/smart-system/js/accessibility.js
-tv_apps/smart-system/js/app_install_manager.js
-tv_apps/smart-system/js/app_modal_dialog.js
-tv_apps/smart-system/js/bluetooth_transfer.js
-tv_apps/smart-system/js/browser_context_menu.js
-tv_apps/smart-system/js/external_storage_monitor.js
-tv_apps/smart-system/js/ime_menu.js
-tv_apps/smart-system/js/remote_control.js
-tv_apps/smart-system/js/update_manager.js
-tv_apps/smart-system/js/value_selector/spin_date_picker.js
-tv_apps/smart-system/js/value_selector/value_selector.js

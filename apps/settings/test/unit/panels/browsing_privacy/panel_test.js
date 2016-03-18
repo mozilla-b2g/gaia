@@ -9,16 +9,19 @@ suite('Browsing Privacy >', function() {
     clearPrivateData: sinon.spy(),
     clearHistory: sinon.spy()
   };
+  var mockSpatialNavigationHelper, realSpatialNavigationHelper;
 
   suiteSetup(function(done) {
     var map = {
       '*': {
+        'spatial_navigation_helper': 'unit/mock_spatial_navigation_helper',
         'panels/browsing_privacy/browsing_privacy': 'MockBrowsingPrivacy',
         'modules/dialog_service': 'MockDialogService'
       }
     };
 
     var modules = [
+      'spatial_navigation_helper',
       'panels/browsing_privacy/panel',
       'MockBrowsingPrivacy',
       'MockDialogService'
@@ -42,15 +45,31 @@ suite('Browsing Privacy >', function() {
 
     loadBodyHTML('_browsing_privacy.html');
 
-    requireCtx(modules, function(BrowsingPrivacyPanel) {
+    requireCtx(modules, function(MockSpatialNavigationHelper,
+      BrowsingPrivacyPanel) {
+      mockSpatialNavigationHelper = MockSpatialNavigationHelper;
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
+
       browsingPrivacyPanel = BrowsingPrivacyPanel();
       browsingPrivacyPanel.init(document.body);
+
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
 
       done();
     });
   });
 
   suite('confirmation dialogs >', function() {
+    setup(function() {
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
+    });
+
+    teardown(function() {
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
+    });
+
     test(
       'clear history dialog sets setting after confirm',
       makeClickButtonTest(

@@ -35,7 +35,8 @@ define(function(require) {
      */
     Profiles: {
       'hfp': 0x111E,  // Handsfree
-      'a2dp': 0x110D  // Advanced Audio Distribution Devices
+      'a2dp': 0x110D,  // Advanced Audio Distribution Devices
+      'hid': 0x1124  // Human Interface Device
     },
 
     /**

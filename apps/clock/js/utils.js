@@ -19,12 +19,6 @@ IntlHelper.define('weekday-short', 'datetime', {
   weekday: 'short'
 });
 
-IntlHelper.define('time-html', 'mozdatetime', {
-  dayperiod: true,
-  hour: 'numeric',
-  minute: 'numeric',
-});
-
 IntlHelper.define('time-text', 'datetime', {
   hour: 'numeric',
   minute: 'numeric',
@@ -207,10 +201,13 @@ Utils.escapeHTML = function(str, escapeQuotes) {
 };
 
 Utils.getLocalizedTimeHtml = function(date) {
-  var f = IntlHelper.get('time-html');
-  return f.format(date, {
-    dayperiod: '<small>$&</small>'
-  });
+  var f = IntlHelper.get('time-text');
+  return f.formatToParts(date).map(({type, value}) => {
+    switch(type) {
+      case 'dayperiod': return `<small>${value}</small>`;
+      default: return value;
+    }
+  }).reduce((string, part) => string + part, '');
 };
 
 Utils.getLocalizedTimeText = function(date) {

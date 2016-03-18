@@ -1,4 +1,4 @@
-/* global LockScreenBasicComponent, LockScreenClockWidgetSetup, mozIntl */
+/* global LockScreenBasicComponent, LockScreenClockWidgetSetup */
 'use strict';
 
 /**
@@ -31,10 +31,8 @@
       day: 'numeric'
     });
 
-    // we're using mozIntl.DateTimeFormat to remove dayperiod
-    this.timeFormatter = mozIntl.DateTimeFormat(navigator.languages, {
+    this.timeFormatter = Intl.DateTimeFormat(navigator.languages, {
       hour12: navigator.mozHour12,
-      dayperiod: false,
       hour: 'numeric',
       minute: 'numeric'
     });
@@ -44,7 +42,14 @@
   function() {
     var now = new Date();
 
-    var timeText = this.timeFormatter.format(now);
+    var timeText =
+      this.timeFormatter.formatToParts(now).map(({type, value}) => {
+        switch (type) {
+          case 'dayperiod': return '';
+          default: return value;
+        }
+      }
+    ).reduce((string, part) => string + part, '');
     var dateText = this.dateFormatter.format(now);
 
     this.resources.elements.time.firstChild.data = timeText;

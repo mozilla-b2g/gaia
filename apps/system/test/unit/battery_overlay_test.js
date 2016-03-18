@@ -2,17 +2,17 @@
 /* global BaseModule */
 /* global MocksHelper */
 /* global MockL10n */
-/* global MockNavigatorBattery */
+/* global MockBattery */
 /* global MockNavigatorSettings */
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l20n.js');
+require('/shared/test/unit/mocks/mock_navigator_getbattery.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/base_ui.js');
@@ -45,10 +45,13 @@ suite('battery manager >', function() {
     // for PowerSave
     realL10n = document.l10n;
     document.l10n = MockL10n;
+
+    realBattery = navigator.getBattery;
+    navigator.getBattery = MockBattery.getBattery;
   });
 
   suiteTeardown(function() {
-    subject._battery = realBattery;
+    navigator.getBattery = realBattery;
     realBattery = null;
     navigator.mozSettings = realMozSettings;
 
@@ -57,8 +60,6 @@ suite('battery manager >', function() {
 
   setup(function() {
     subject = BaseModule.instantiate('BatteryOverlay');
-    realBattery = subject._battery;
-    subject._battery = MockNavigatorBattery;
     // must be big enough, otherwise the BatteryOverlay timeout occurs
     // before the different suites execute.
     subject.TOASTER_TIMEOUT = tinyTimeout;
@@ -85,7 +86,7 @@ suite('battery manager >', function() {
     overlayNode = document.getElementById('system-overlay');
     notifNode = document.getElementById('battery');
 
-    MockNavigatorBattery.level = 1;
+    MockBattery._battery.level = 1;
   });
 
   teardown(function() {
@@ -100,17 +101,13 @@ suite('battery manager >', function() {
   }
 
   function sendLevelChange(level) {
-    MockNavigatorBattery.level = level;
-
-    var evt = new CustomEvent('levelchange');
-    MockNavigatorBattery.mTriggerEvent(evt);
+    MockBattery._battery.level = level;
+    MockBattery._battery.dispatchEvent('levelchange');
   }
 
   function sendChargingChange(val) {
-    MockNavigatorBattery.charging = val;
-
-    var evt = new CustomEvent('chargingchange');
-    MockNavigatorBattery.mTriggerEvent(evt);
+    MockBattery._battery.charging = val;
+    MockBattery._battery.dispatchEvent('chargingchange');
   }
 
   suite('"level is near empty" notification >', function() {
@@ -128,9 +125,12 @@ suite('battery manager >', function() {
     });
 
     suite('init >', function() {
-      setup(function() {
-        MockNavigatorBattery.level = 0.02;
-        subject.start();
+      setup(function(done) {
+        MockBattery._battery.charging = false;
+        MockBattery._battery.level = 0.02;
+        subject.start().then(() => {
+          done();
+        });
       });
 
       test('display notification', function() {
@@ -147,9 +147,11 @@ suite('battery manager >', function() {
     });
 
     suite('battery goes empty >', function() {
-      setup(function() {
-        sendLevelChange(0.05);
-        subject.start();
+      setup(function(done) {
+        subject.start().then(() => {
+          sendLevelChange(0.05);
+          done();
+        });
       });
 
       test('display notification', function() {
@@ -210,10 +212,12 @@ suite('battery manager >', function() {
     });
 
     suite('screen goes off > battery goes empty >', function() {
-      setup(function() {
-        subject.start();
-        sendScreenChange(false);
-        sendLevelChange(0.05);
+      setup(function(done) {
+        subject.start().then(() => {
+          sendScreenChange(false);
+          sendLevelChange(0.05);
+          done();
+        });
       });
 
       test('no notification', function() {

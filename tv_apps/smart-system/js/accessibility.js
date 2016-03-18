@@ -463,7 +463,7 @@
           return aData;
         }, data);
       }
-      return navigator.mozL10n.formatValue(string, data);
+      return document.l10n.formatValue(string, data);
     },
 
     /**

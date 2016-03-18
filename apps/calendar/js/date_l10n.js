@@ -51,9 +51,13 @@ exports._localizeElement = function(element) {
   var text;
 
   if (format === 'week-hour-format') {
-    text = formatter.format(new Date(date), {
-      dayperiod: '<span class="ampm" aria-hidden="true">$&</span>',
-    });
+    text = formatter.formatToParts(new Date(date)).map(({type, value}) => {
+      switch(type) {
+        case 'dayperiod':
+          return `<span class="ampm" aria-hidden="true">${value}</span>`;
+        default: return value;
+      }
+    }).reduce((string, part) => string + part, '');
   } else {
     text = formatter.format(new Date(date));
   }

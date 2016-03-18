@@ -41,8 +41,13 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     shbSize = client.findElement(shbSelector).size();
   });
 
+  function isDisplayed(element) {
+    var classes = element.getAttribute('class');
+    return classes.indexOf('hidden') === -1;
+  }
+
   test('Hides after a mozRequestFullscreen request', function() {
-    assert.ok(system.softwareHomeFullscreenLayout.displayed());
+    assert.ok(isDisplayed(system.softwareHomeFullscreenLayout));
 
     var frame = system.waitForLaunch(appUrl);
     client.switchToFrame(frame);
@@ -51,7 +56,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     client.switchToFrame();
 
     client.waitFor(function() {
-      return !system.softwareHomeFullscreenLayout.displayed();
+      return !isDisplayed(system.softwareHomeFullscreenLayout);
     });
 
     client.executeScript(function() {
@@ -71,7 +76,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     system.stopDevtools();
     system.stopClock();
 
-    assert.ok(system.softwareHomeFullscreenLayout.displayed());
+    assert.ok(isDisplayed(system.softwareHomeFullscreenLayout));
 
     var frame = system.waitForLaunch(appUrl);
     client.switchToFrame(frame);
@@ -82,7 +87,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     reflowHelper.startTracking(system.URL);
 
     client.waitFor(function() {
-      return !system.softwareHomeFullscreenLayout.displayed();
+      return !isDisplayed(system.softwareHomeFullscreenLayout);
     });
 
     // Tap to toggle
@@ -90,12 +95,12 @@ marionette('Software Home Button - Fullscreen Layout', function() {
 
     actions.tap(fullScreenElement).perform();
     client.waitFor(function() {
-      return system.softwareHomeFullscreenLayout.displayed();
+      return isDisplayed(system.softwareHomeFullscreenLayout);
     });
 
     actions.tap(fullScreenElement).perform();
     client.waitFor(function() {
-      return !system.softwareHomeFullscreenLayout.displayed();
+      return !isDisplayed(system.softwareHomeFullscreenLayout);
     });
 
     // Then exit fullscreen
@@ -103,7 +108,7 @@ marionette('Software Home Button - Fullscreen Layout', function() {
       window.wrappedJSObject.document.mozCancelFullScreen();
     });
     client.waitFor(function() {
-      return system.softwareHomeFullscreenLayout.displayed();
+      return isDisplayed(system.softwareHomeFullscreenLayout);
     });
 
     var count = reflowHelper.getCount();

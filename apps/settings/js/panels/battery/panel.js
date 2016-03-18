@@ -63,7 +63,7 @@ define(function(require) {
         Battery.observe('state', _refreshText);
         Battery.observe('chargingTime', _refreshText);
         Battery.observe('dischargingTime', _refreshText);
-        _refreshText();
+        Battery._ready.then(_refreshText());
       },
       onBeforeHide: function bp_onBeforeHide() {
         Battery.unobserve(_refreshText);

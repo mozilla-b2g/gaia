@@ -1,7 +1,7 @@
 'use strict';
 
 /* global KeyboardConsole, InputMethodManager, InputMethodDatabaseLoader,
-          LayoutManager, SettingsPromiseManager, L10nLoader,
+          LayoutManager, SettingsPromiseManager,
           TargetHandlersManager, FeedbackManager, VisualHighlightManager,
           CandidatePanelManager, UpperCaseStateManager, LayoutRenderingManager,
           StateManager, HandwritingPadsManager, ViewManager */
@@ -14,7 +14,6 @@ var KeyboardApp = function() {
   this.inputMethodDatabaseLoader = null;
   this.layoutManager = null;
   this.settingsPromiseManager = null;
-  this.l10nLoader = null;
   this.targetHandlersManager = null;
   this.handwritingPadsManager = null;
   this.feedbackManager = null;
@@ -58,10 +57,6 @@ KeyboardApp.prototype._startComponents = function() {
   // It also help us ensure there is only one current layout at the time.
   this.layoutManager = new LayoutManager(this);
   this.layoutManager.start();
-
-  // L10nLoader loads l10n.js. We call it's one and only load() method
-  // only after we have run everything in the critical cold launch path.
-  this.l10nLoader = new L10nLoader();
 
   // targetHandlersManager handles key targets when they are being interacted.
   this.targetHandlersManager = new TargetHandlersManager(this);
@@ -120,8 +115,6 @@ KeyboardApp.prototype._stopComponents = function() {
   this.layoutManager = null;
 
   this.settingsPromiseManager = null;
-
-  this.l10nLoader = null;
 
   this.targetHandlersManager.stop();
   this.targetHandlersManager = null;

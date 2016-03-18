@@ -1,4 +1,4 @@
-/* global BaseIcon, Clock, Service, mozIntl */
+/* global BaseIcon, Clock, Service */
 'use strict';
 
 (function(exports) {
@@ -11,20 +11,11 @@
     if (!this.clock) {
       this.clock = new Clock();
     }
-    if (this.manager._ampm) {
-      this.timeFormatter = new mozIntl.DateTimeFormat(navigator.languages, {
-        hour12: navigator.mozHour12,
-        hour: 'numeric',
-        minute: 'numeric'
-      });
-    } else {
-      this.timeFormatter = new mozIntl.DateTimeFormat(navigator.languages, {
-        hour12: navigator.mozHour12,
-        dayperiod: false,
-        hour: 'numeric',
-        minute: 'numeric'
-      });
-    }
+    this.timeFormatter = new Intl.DateTimeFormat(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric',
+      minute: 'numeric'
+    });
 
     this.clock.start(this.update.bind(this));
   };
@@ -47,11 +38,18 @@
 
     var timeText;
 
-    if (this.manager._ampm &&
-        this.timeFormatter.resolvedOptions().hour12 === true) {
-      timeText = this.timeFormatter.format(now, {
-        dayperiod: '<span>$&</span>'
-      });
+    if (this.timeFormatter.resolvedOptions().hour12 === true) {
+      var timeParts = this.timeFormatter.formatToParts(now);
+      timeText = timeParts.map(({type, value}) => {
+        switch (type) {
+          case 'dayperiod':
+            if (this.manager._ampm) {
+              return `<span>${value}</span>`;
+            }
+            return '';
+          default: return value;
+        }
+      }).reduce((string, part) => string + part, '');
     } else {
       timeText = this.timeFormatter.format(now);
     }

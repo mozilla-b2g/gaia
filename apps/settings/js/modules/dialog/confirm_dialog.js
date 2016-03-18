@@ -1,3 +1,4 @@
+/* global SpatialNavigationHelper */
 define(function(require) {
   'use strict';
 
@@ -25,6 +26,16 @@ define(function(require) {
   };
 
   return function ctor_confirmDialog(panelDOM, options) {
-    return new ConfirmDialog(panelDOM, options);
+    var dialog = new ConfirmDialog(panelDOM, options);
+    const SN_ROOT = 'body.spatial-navigation .current.' + dialog.DIALOG_CLASS;
+    // Support keyboard navigation in ConfirmDialog
+    SpatialNavigationHelper.add({
+      id: 'confirm-dialog',
+      selector: SN_ROOT + ' button',
+      restrict: 'self-only',
+      enterTo: 'last-focused'
+    });
+    dialog.spatialNavigationId = dialog.DIALOG_CLASS;
+    return dialog;
   };
 });

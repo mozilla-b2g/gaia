@@ -105,6 +105,26 @@ suite('BluetoothClassOfDeviceMapper > ', function() {
     });
   });
 
+  suite('getDeviceType > major device class: remote controller > ',
+        function() {
+    var mockCodInput, expectedType;
+    suite('mapping remote controller device as keyboard-input ', function() {
+      setup(function() {
+        mockCodInput = {
+          majorDeviceClass: 5,
+          majorServiceClass: 0,
+          minorDeviceClass: 3
+        };
+        expectedType = 'input-keyboard';
+      });
+
+      test('should return device type = "input-keyboard" ', function() {
+        assert.equal(this.BtClassOfDeviceMapper.getDeviceType(mockCodInput),
+                     expectedType);
+      });
+    });
+  });
+
   suite('getDeviceType > not mapping in any class ', function() {
     var mockCodInput, expectedType;
     suite('not mapping in any class ', function() {

@@ -15,7 +15,7 @@
   ],
   "dependencies": {
     "evt": "fxos-components/evt#~0.4.0",
-    "smart-button": "fxos-components/smart-button",
-    "smart-icons": "smart-components/smart-icons#~0.0.3"
+    "fxos-tv-button": "fxos-components/fxos-tv-button",
+    "fxos-tv-icons": "fxos-components/fxos-tv-icons"
   }
 }

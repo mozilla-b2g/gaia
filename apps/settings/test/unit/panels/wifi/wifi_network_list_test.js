@@ -10,6 +10,7 @@ suite('WiFi Network List >', function() {
 
   var wifiNetworkList;
   var mockWifiHelper;
+  var mockSpatialNavigationHelper, realSpatialNavigationHelper;
   var elements = {
     wifiAvailableNetworks: wifiAvailableNetworksDiv,
     infoItem: {},
@@ -23,18 +24,22 @@ suite('WiFi Network List >', function() {
         'modules/dialog_service': 'unit/mock_dialog_service',
         'modules/wifi_utils': 'unit/mock_wifi_utils',
         'shared/wifi_helper': 'shared_mocks/mock_wifi_helper',
+        'spatial_navigation_helper': 'unit/mock_spatial_navigation_helper',
         'modules/wifi_context': 'unit/mock_wifi_context'
       }
     };
 
     var modules = [
       'panels/wifi/wifi_network_list',
-      'shared/wifi_helper'
+      'shared/wifi_helper',
+      'spatial_navigation_helper'
     ];
 
-    testRequire(modules, map, function(WifiNetworkList, MockWifiHelper) {
+    testRequire(modules, map, function(WifiNetworkList, MockWifiHelper,
+      MockSpatialNavigationHelper) {
       wifiNetworkList = WifiNetworkList(elements);
       mockWifiHelper = MockWifiHelper;
+      mockSpatialNavigationHelper = MockSpatialNavigationHelper;
 
       sinon.stub(window.performance);
       done();
@@ -42,6 +47,18 @@ suite('WiFi Network List >', function() {
   });
 
   suite('scan >', function() {
+    var spySNHMakeFocusable;
+    setup(function() {
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
+      spySNHMakeFocusable =
+        this.sinon.spy(window.SpatialNavigationHelper, 'makeFocusable');
+    });
+
+    teardown(function() {
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
+    });
+
     test('should sort network by signal levels and ssid names', function() {
       sinon.stub(wifiNetworkList, 'clear');
       sinon.stub(mockWifiHelper, 'getAvailableAndKnownNetworks', function() {
@@ -65,6 +82,7 @@ suite('WiFi Network List >', function() {
       wifiNetworkList.scan();
       mockWifiHelper._cb.onsuccess.forEach((cb) => {
         cb();
+        assert.isTrue(spySNHMakeFocusable.calledOnce);
       });
       assert.deepEqual(
         Object.getOwnPropertyNames(wifiNetworkList._index),

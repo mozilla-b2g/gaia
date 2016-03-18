@@ -203,11 +203,9 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
     case 'update-downloaded':
       this.downloading = false;
       UpdateManager.downloaded(this);
-      this.showApplyPrompt();
-      break;
+      return this.showApplyPrompt();
     case 'update-prompt-apply':
-      this.showApplyPrompt();
-      break;
+      return this.showApplyPrompt();
   }
 };
 
@@ -218,22 +216,24 @@ SystemUpdatable.prototype.errorCallBack = function() {
 };
 
 SystemUpdatable.prototype.showApplyPrompt = function() {
-  var batteryLevel = window.navigator.battery.level * 100;
-  this.getBatteryPercentageThreshold().then(function(threshold) {
-    if (batteryLevel < threshold) {
-      this.showApplyPromptBatteryNok(threshold);
-    } else {
-      this.showApplyPromptBatteryOk();
-    }
-  }.bind(this));
+  return window.navigator.getBattery().then((battery) => {
+    this.getBatteryPercentageThreshold(battery).then(function(threshold) {
+      var batteryLevel = battery.level * 100;
+      if (batteryLevel < threshold) {
+        this.showApplyPromptBatteryNok(threshold);
+      } else {
+        this.showApplyPromptBatteryOk();
+      }
+    }.bind(this));
+  });
 };
 
 SystemUpdatable.prototype.BATTERY_FALLBACK_THRESHOLD = 25;
 
-SystemUpdatable.prototype.getBatteryPercentageThreshold = function() {
+SystemUpdatable.prototype.getBatteryPercentageThreshold = function(battery) {
   var fallbackThreshold = this.BATTERY_FALLBACK_THRESHOLD;
 
-  var isCharging = window.navigator.battery.charging;
+  var isCharging = battery.charging;
   var batteryThresholdKey =
     'app.update.battery-threshold.' + (isCharging ? 'plugged' : 'unplugged');
 

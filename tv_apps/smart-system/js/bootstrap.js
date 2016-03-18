@@ -1,9 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, VisibilityManager, UsbStorage,
+/*global ActivityWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, ScreenManager, Activities, AppUsageMetrics, RemoteControl,
          DeveloperHUD, RemoteDebugger, HomeGesture,
+         VisibilityManager, UsbStorage,
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, LayoutManager, PermissionManager, Accessibility,
@@ -54,7 +55,7 @@ window.addEventListener('load', function startup() {
       // We may have application.ready = true while reloading at firefox nightly
       // browser. In this case, the window.homescreenLauncher haven't been
       // created. We should create it and start it in this case.
-      window.homescreenLauncher = BaseModule.instantiate('HomescreenLauncher');
+      window.homescreenLauncher = new HomescreenLauncher();
     }
     window.homescreenLauncher.start();
   }
@@ -90,8 +91,7 @@ window.addEventListener('load', function startup() {
 
   // To make sure homescreen window manager can intercept webapps-launch event,
   // we need to move the code here.
-  window.homescreenWindowManager =
-    BaseModule.instantiate('HomescreenWindowManager');
+  window.homescreenWindowManager = new HomescreenWindowManager();
   window.homescreenWindowManager.start();
 
   // Please sort it alphabetically
@@ -113,7 +113,7 @@ window.addEventListener('load', function startup() {
     // If application.ready is true, we already create homescreenLauncher in
     // safelyLaunchFTU(). We should use it. If it is false, we should create it
     // here.
-    window.homescreenLauncher = BaseModule.instantiate('HomescreenLauncher');
+    window.homescreenLauncher = new HomescreenLauncher();
   }
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
@@ -128,13 +128,9 @@ window.addEventListener('load', function startup() {
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
 
-  // unit tests call start() manually
-  if (navigator.mozL10n) {
-    navigator.mozL10n.once(function l10n_ready() {
-      window.mediaRecording = new MediaRecording();
-      window.mediaRecording.start();
-    });
-  }
+  window.mediaRecording = new MediaRecording();
+  window.mediaRecording.start();
+
   window.interactiveNotifications = new InteractiveNotifications();
   window.interactiveNotifications.start();
 

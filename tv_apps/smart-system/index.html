@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
     <!-- Shared code -->
-    <script src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/intl/l20n.js"></script>
     <script src="shared/js/idletimer.js"></script>
     <script src="shared/js/dump.js"></script>
     <script src="shared/js/sanitizer.js"></script>
@@ -284,10 +284,12 @@
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
     <link rel="stylesheet" type="text/css" href="style/browser_context_menu/browser_context_menu.css">
+    <link rel="stylesheet" type="text/css" href="style/splash_screen/splash_screen.css">
     <link rel="stylesheet" type="text/css" href="style/fte/fte.css">
     <script defer src="js/base_ui.js"></script>
     <script defer src="shared/js/smart-screen/scrollable.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
+    <script defer src="js/splash_screen.js"></script>
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
     <script defer src="js/app_chrome.js"></script>
@@ -300,7 +302,9 @@
     <script defer src="js/browser_mixin.js"></script>
     <script defer src="js/wrapper_factory.js"></script>
     <script defer src="js/homescreen_window.js"></script>
+    <script defer src="js/homescreen_launcher.js"></script>
     <script defer src="js/landing_app_window.js"></script>
+    <script defer src="js/landing_app_launcher.js"></script>
     <script defer src="js/homescreen_window_manager.js"></script>
     <script defer src="js/activity_window.js"></script>
     <script defer src="js/activity_window_manager.js"></script>
@@ -474,7 +478,7 @@
               </menu>
             </form>
             <div class="value-selector-time-picker-popup" role="dialog" data-type="time-selector" hidden>
-              <h1 data-l10n-id="select-time">Select time</h1>
+              <h1 data-l10n-id="select-time"></h1>
               <div class="value-selector-time-picker">
                 <div class="value-selector-time-picker-container picker-container">
                   <div class="picker-bar-background"></div>

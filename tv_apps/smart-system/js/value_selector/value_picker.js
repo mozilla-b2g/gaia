@@ -10,12 +10,12 @@ window.ValuePicker = (function() {
   function VP(e, unitStyle) {
     this.element = e;
     this.container = e.parentNode;
-    this._valueDisplayedText = unitStyle.valueDisplayedText;
+    this._optionsL10n = unitStyle.optionsL10n;
     this._unitClassName = unitStyle.className;
     this._top = 0;
     this._lower = 0;
-    this._upper = unitStyle.valueDisplayedText.length - 1;
-    this._range = unitStyle.valueDisplayedText.length;
+    this._upper = unitStyle.optionsL10n.length - 1;
+    this._range = unitStyle.optionsL10n.length;
     this._unitStyle = unitStyle;
     this._currentIndex = 0;
     this.init();
@@ -29,9 +29,8 @@ window.ValuePicker = (function() {
     return selectedIndex;
   };
 
-  VP.prototype.getSelectedDisplayedText = function() {
-    var displayedText = this._valueDisplayedText[this._currentIndex];
-    return displayedText;
+  VP.prototype.getSelectedOptionL10n = function() {
+    return this._optionsL10n[this._currentIndex];
   };
 
   VP.prototype.setSelectedIndex = function(tunedIndex, ignorePicker) {
@@ -63,15 +62,6 @@ window.ValuePicker = (function() {
     return tunedIndex;
   };
 
-  VP.prototype.setSelectedIndexByDisplayedText = function(displayedText) {
-    var newIndex = this._valueDisplayedText.indexOf(displayedText);
-    if (newIndex != -1) {
-      if (this._currentIndex != newIndex) {
-        this.setSelectedIndex(newIndex);
-      }
-    }
-  };
-
   VP.prototype.setRange = function(lower, upper) {
     if (lower !== null) {
       this._lower = lower;
@@ -82,7 +72,7 @@ window.ValuePicker = (function() {
     if (upper !== null) {
       this._upper = upper;
     } else {
-      this._upper = this._unitStyle.valueDisplayedText.length - 1;
+      this._upper = this._unitStyle.optionsL10n.length - 1;
     }
 
     var unitElement = this.element.firstElementChild;
@@ -118,7 +108,7 @@ window.ValuePicker = (function() {
     this.container.setAttribute('role', 'spinbutton');
     this.container.setAttribute('aria-valuemin', this._lower);
     this.container.setAttribute('aria-valuemax', this._upper);
-    var unitCount = this._valueDisplayedText.length;
+    var unitCount = this._optionsL10n.length;
     for (var i = 0; i < unitCount; ++i) {
       this.addPickerUnit(i);
     }
@@ -131,10 +121,16 @@ window.ValuePicker = (function() {
   };
 
   VP.prototype.addPickerUnit = function(index) {
-    var html = this._valueDisplayedText[index];
+    var l10n = this._optionsL10n[index];
     var unit = document.createElement('div');
     unit.className = this._unitClassName;
-    unit.textContent = html;
+    if (typeof l10n === 'string') {
+      unit.setAttribute('data-l10n-id', l10n);
+    } else if (l10n.hasOwnProperty('raw')) {
+      unit.textContent = l10n.raw;
+    } else {
+      document.l10n.setAttributes(unit, l10n.id, l10n.args);
+    }
     this.element.appendChild(unit);
   };
 
@@ -143,8 +139,11 @@ window.ValuePicker = (function() {
       this._top = -index * this._space;
       this.element.style.transform = 'translateY(' + this._top + 'px)';
       this.container.setAttribute('aria-valuenow', index);
-      this.container.setAttribute('aria-valuetext',
-                                  this._valueDisplayedText[index]);
+      if (this._optionsL10n[index] &&
+          this._optionsL10n[index].hasOwnProperty('raw')) {
+        this.container.setAttribute('aria-valuetext',
+                                    this._optionsL10n[index].raw);
+      }
     }
   };
 

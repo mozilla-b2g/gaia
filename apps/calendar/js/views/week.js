@@ -7,9 +7,9 @@ var MultiDay = require('./multi_day');
 
 require('dom!week-view');
 
-IntlHelper.define('week-hour-format', 'mozdatetime', {
-  hour: 'numeric',
-  dayperiod: true,
+IntlHelper.define('week-hour-format', 'datetime', {
+  hour12: true,
+  hour: 'numeric'
 });
 
 function WeekView(opts) {

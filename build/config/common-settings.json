@@ -52,6 +52,8 @@
    "bluetooth.suspended": false,
    "bluetooth.device.connected": null,
    "browser.private.default": false,
+   "browser.safebrowsing.enabled": true,
+   "browser.safebrowsing.malware.enabled": true,
    "camera.sound.enabled": true,
    "camera.recording.preferredSizes": [],
    "cdn.url": "https://fxos.cdn.mozilla.net",
@@ -291,5 +293,6 @@
    "wifi.disabled_by_wakelock": false,
    "wifi.notification": false,
    "wifi.connect_via_settings": false,
+   "settings-app.spatial-navigation.enabled": false,
    "wap.push.enabled": true
 }

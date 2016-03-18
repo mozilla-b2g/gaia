@@ -16,7 +16,9 @@ window.Settings = {
   },
 
   isTabletAndLandscape: function is_tablet_and_landscape() {
-    return this.ScreenLayout.getCurrentLayout('tabletAndLandscaped');
+    // XXX: force to use phone layout.
+    //return this.ScreenLayout.getCurrentLayout('tabletAndLandscaped');
+    return false;
   },
 
   _isTabletAndLandscapeLastTime: null,

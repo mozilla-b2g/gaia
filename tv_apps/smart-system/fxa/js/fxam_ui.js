@@ -125,18 +125,16 @@ var FxaModuleUI = {
         }
         this.setProgressBar(params.count);
 
-        navigator.mozL10n.once(function() {
-          // fire module's init method
-          params.onload && params.onload();
+        // fire module's init method
+        params.onload && params.onload();
 
-          // animate it into view - TODO unclear how nextScreen could be falsy
-          if (nextScreen) {
-            this._animate(currentScreen,
-                          nextScreen,
-                          params.back,
-                          params.onanimate);
-          }
-        }.bind(this));
+        // animate it into view - TODO unclear how nextScreen could be falsy
+        if (nextScreen) {
+          this._animate(currentScreen,
+                        nextScreen,
+                        params.back,
+                        params.onanimate);
+        }
       }.bind(this));
     }.bind(this));
   },

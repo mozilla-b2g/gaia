@@ -58,7 +58,8 @@
     <!-- Components -->
     <script defer src="../shared/elements/config.js"></script>
     <link rel="stylesheet" type="text/css" href="../shared/elements/gaia-icons/gaia-icons.css">
-    <link rel="stylesheet" type="text/css" href="../shared/elements/gaia-theme/gaia-theme.css">
+    <link rel="stylesheet" type="text/css" href="../shared/elements/gaia-theme/gaia-theme.css" data-device-type="phone">
+    <link rel="stylesheet" type="text/css" href="../shared/elements/gaia-theme/gaia-theme.css" data-device-type="tv">
     <script defer src="../shared/elements/gaia-header/dist/gaia-header.js"></script>
     <script defer src="../shared/js/component_utils.js"></script>
     <script defer src="../shared/elements/gaia_checkbox/script.js"></script>
@@ -91,6 +92,8 @@
 
     <!-- Screen layout watcher -->
     <script defer="" src="../shared/js/screen_layout.js"></script>
+
+    <script defer src="js/modules/spatial_navigation_helper.js"></script>
 
     <!-- shared helper library -->
     <!--<script defer src="../shared/js/addons/match_pattern.js"></script>-->
@@ -130,6 +133,7 @@
     <!--<script defer src="../shared/js/uuid.js"></script>-->
     <!--<script defer src="../shared/js/passcode_helper.js"></script>-->
     <!--<script defer src="../shared/js/sync/errors.js"></script>-->
+    <!--<script defer src="../shared/js/spatial_navigation.js"></script>-->
     <!--<script defer src="../shared/js/findmydevice_iac_api.js"></script>-->
 
     <!-- all non-#root panels will lazy-load their own scripts -->

@@ -5,11 +5,13 @@ require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
 suite('KeyboardAddLayoutsPanel', function() {
+  var mockSpatialNavigationHelper, realSpatialNavigationHelper;
   var map = {
     '*': {
       'shared/manifest_helper': 'shared_mocks/mock_manifest_helper',
       'shared/keyboard_helper': 'shared_mocks/mock_keyboard_helper',
       'modules/settings_panel': 'unit/mock_settings_panel',
+      'spatial_navigation_helper': 'unit/mock_spatial_navigation_helper',
       'modules/settings_service': 'unit/mock_settings_service'
     }
   };
@@ -24,12 +26,15 @@ suite('KeyboardAddLayoutsPanel', function() {
     testRequire([
       'modules/keyboard_context',
       'panels/keyboard_add_layouts/panel',
+      'spatial_navigation_helper',
       'unit/mock_settings_panel'
     ], map,
-    (function(KeyboardContext, KeyboardAddLayoutsPanel, MockSettingsPanel) {
+    (function(KeyboardContext, KeyboardAddLayoutsPanel,
+      MockSpatialNavigationHelper, MockSettingsPanel) {
       this.KeyboardContext = KeyboardContext;
       this.KeyboardAddLayoutsPanel = KeyboardAddLayoutsPanel;
       this.MockSettingsPanel = MockSettingsPanel;
+      mockSpatialNavigationHelper = MockSpatialNavigationHelper;
       this.MockSettingsPanel.mInnerFunction = function(options) {
         return {
           init: options.onInit,
@@ -50,6 +55,8 @@ suite('KeyboardAddLayoutsPanel', function() {
     var keyboards;
 
     setup(function(done) {
+      realSpatialNavigationHelper = window.SpatialNavigationHelper;
+      window.SpatialNavigationHelper = mockSpatialNavigationHelper;
       this.root = document.createElement('div');
       this.root.id = 'keyboard-selection-addMore';
       this.container = document.createElement('div');
@@ -64,6 +71,7 @@ suite('KeyboardAddLayoutsPanel', function() {
     });
 
     teardown(function() {
+      window.SpatialNavigationHelper = realSpatialNavigationHelper;
       document.body.removeChild(this.root);
     });
 
