@@ -31,10 +31,11 @@ body.finish {
 a {
   display: inline-block;
   text-decoration: underline;
+  text-align: center;
 }
 
 a:focus {
-  font-weight: 400;
+  font-weight: 600;
   outline: 0;
 }
 
@@ -93,7 +94,7 @@ smart-button[type=rounded-corner-text].focused {
   height: 50rem;
   padding: 0 3rem;
   top: 33rem;
-  overflow: scroll;
+  overflow-x: hidden;
   text-align: justify;
 }
 
@@ -111,7 +112,7 @@ smart-button[type=rounded-corner-text].focused {
 
 .page-description {
   margin: 0;
-  margin-bottom: 6rem;
+  margin-bottom: 4rem;
 }
 
 .page-description:last-child {
@@ -155,10 +156,9 @@ smart-button[type=rounded-corner-text].focused {
 }
 
 a#fxos-privacy-notice-link {
-  width: 37rem;
-  text-align: center;
+  width: 40rem;
 }
 
 a#moz-privacy-policy-link {
-  width: 31rem;
+  width: 34rem;
 }
