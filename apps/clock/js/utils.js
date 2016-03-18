@@ -551,7 +551,12 @@ Utils.summarizeDaysOfWeek = function(repeat) {
       
     }
 
-    return mozIntl.formatList(repeatStrings).then(listString => {
+    var listFormatter = new mozIntl.ListFormat(navigator.languages, {
+      type: 'duration',
+      style: 'short'
+    });
+
+    return listFormatter.format(repeatStrings).then(listString => {
       return { raw: listString };
     });
   }

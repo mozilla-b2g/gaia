@@ -2,7 +2,7 @@
 
 /* global mozIntl, MockL10n */
 
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l20n.js');
 require('/shared/js/moz_intl.js');
 
 suite('MozIntl', function() {
@@ -21,14 +21,14 @@ suite('MozIntl', function() {
 
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realL10n = document.l10n;
+    document.l10n = MockL10n;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
+    document.l10n = realL10n;
   });
-
+/*
   suite('listFormatter', function() {
     setup(function() {
       this.sinon.stub(navigator.mozL10n, 'formatValue', function(...args) {
@@ -46,10 +46,10 @@ suite('MozIntl', function() {
       }).then(done, done);
     });
   });
-
+*/
   suite('calendarInfo', function() {
     setup(function() {
-      this.sinon.stub(navigator.mozL10n, 'formatValue', function(...args) {
+      this.sinon.stub(document.l10n, 'formatValue', function(...args) {
         if (args[0] === 'firstDayOfTheWeek') {
           // formatValue returns a string
           return Promise.resolve('0');
@@ -59,7 +59,7 @@ suite('MozIntl', function() {
     });
 
     test('get first day of the week as Sunday', function(done) {
-      mozIntl.calendarInfo('firstDayOfTheWeek').then(day => {
+      mozIntl.getCalendarInfo('firstDayOfTheWeek').then(day => {
         // make sure that returned value is an integer
         assert.strictEqual(day, 0);
       }).then(done, done);
@@ -68,33 +68,33 @@ suite('MozIntl', function() {
 
   suite('DurationFormat', function() {
     setup(function() {
-      this.sinon.stub(navigator.mozL10n, 'formatValue', function(...args) {
-        if (args[0] === 'durationPattern') {
-          return Promise.resolve('hh:mm:ss.SS');
+      this.sinon.stub(document.l10n, 'formatValue', function(...args) {
+        if (args[0] === 'durationformat-pattern') {
+          return Promise.resolve('{hh}:{mm}:{ss}.{SS}');
         }
         return MockL10n.formatValue(...args);
       });
     });
 
-    test('with no arguments use defaults', function(done) {
-      mozIntl.DurationFormat().then(formatter => {
-        const options = formatter.resolvedOptions();
-        assert.equal(options.maxUnit, 'hour');
-        assert.equal(options.minUnit, 'second');
-        assert.equal(options.locale, navigator.language);
-      }).then(done, done);
+    test('with no arguments use defaults', function() {
+      let f = new mozIntl.DurationFormat();
+      
+      const options = f.resolvedOptions();
+      assert.equal(options.maxUnit, 'hour');
+      assert.equal(options.minUnit, 'second');
+      assert.equal(options.locale, navigator.language);
     });
 
     test('hh:mm', function(done) {
       // 2 min, 1 sec
       var ms = (2 * 1000 * 60) + (1 * 1000);
 
-      mozIntl.DurationFormat(navigator.languages, {
+      let f = new mozIntl.DurationFormat(navigator.languages, {
         maxUnit: 'hour',
         minUnit: 'minute',
-      }).then(formatter => {
-        var string = formatter.format(ms);
-
+      });
+      
+      f.format(ms).then(string => {
         assert.strictEqual(string, '00:02');
       }).then(done, done);
     });
@@ -103,12 +103,12 @@ suite('MozIntl', function() {
       // 0 min, 1 sec
       var ms = (1 * 1000);
 
-      mozIntl.DurationFormat(navigator.languages, {
+      let f = new mozIntl.DurationFormat(navigator.languages, {
         maxUnit: 'minute',
         minUnit: 'second',
-      }).then(formatter => {
-        var string = formatter.format(ms);
-
+      });
+      
+      f.format(ms).then(string => {
         assert.strictEqual(string, '00:01');
       }).then(done, done);
     });
@@ -117,12 +117,12 @@ suite('MozIntl', function() {
       // 0 min, 1 sec
       var ms = (1 * 1000);
 
-      mozIntl.DurationFormat(navigator.languages, {
+      let f = new mozIntl.DurationFormat(navigator.languages, {
         maxUnit: 'hour',
         minUnit: 'second',
-      }).then(formatter => {
-        var string = formatter.format(ms);
-
+      });
+      
+      f.format(ms).then(string => {
         assert.strictEqual(string, '00:00:01');
       }).then(done, done);
     });
@@ -131,12 +131,12 @@ suite('MozIntl', function() {
       // 0 min, 1 sec
       var ms = (1 * 1000);
 
-      mozIntl.DurationFormat(navigator.languages, {
+      let f = new mozIntl.DurationFormat(navigator.languages, {
         maxUnit: 'hour',
         minUnit: 'millisecond',
-      }).then(formatter => {
-        var string = formatter.format(ms);
-
+      });
+      
+      f.format(ms).then(string => {
         assert.strictEqual(string, '00:00:01.00');
       }).then(done, done);
     });
@@ -146,12 +146,12 @@ suite('MozIntl', function() {
         // 2 min, 1 sec
         var ms = (2 * 1000 * 60) + (1 * 1000);
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'hour',
           minUnit: 'second',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '00:02:01');
         }).then(done, done);
       });
@@ -160,12 +160,12 @@ suite('MozIntl', function() {
         // 13h, 10 min, 21 sec
         var ms = (13 * 1000 * 60 * 60) + (10 * 1000 * 60) + (21 * 1000);
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'hour',
           minUnit: 'second',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '13:10:21');
         }).then(done, done);
       });
@@ -174,12 +174,12 @@ suite('MozIntl', function() {
         // 13h, 10 min, 21 sec, 400ms
         var ms = (13 * 1000 * 60 * 60) + (10 * 1000 * 60) + (21 * 1000) + 400;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'hour',
           minUnit: 'second',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '13:10:21');
         }).then(done, done);
       });
@@ -188,12 +188,12 @@ suite('MozIntl', function() {
         // 13h, 10 min, 21 sec, 600ms
         var ms = (13 * 1000 * 60 * 60) + (10 * 1000 * 60) + (21 * 1000) + 600;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'hour',
           minUnit: 'second',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '13:10:22');
         }).then(done, done);
       });
@@ -202,12 +202,12 @@ suite('MozIntl', function() {
         // - 13h, 10 min, 21 sec
         var ms = ((13 * 1000 * 60 * 60) + (10 * 1000 * 60) + (21 * 1000)) * -1;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'hour',
           minUnit: 'second',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '-13:10:21');
         }).then(done, done);
       });
@@ -216,12 +216,12 @@ suite('MozIntl', function() {
         // 1 min
         var ms = 1 * 1000 * 60 - 20;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'hour',
           minUnit: 'second',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '00:01:00');
         }).then(done, done);
       });
@@ -230,12 +230,12 @@ suite('MozIntl', function() {
         // 1 hour
         var ms = 1 * 60 * 60 * 1000 - 20;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'hour',
           minUnit: 'second',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '01:00:00');
         }).then(done, done);
       });
@@ -246,12 +246,12 @@ suite('MozIntl', function() {
         // 5 sec, 200ms
         var ms = (5 * 1000) + 200;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'minute',
           minUnit: 'millisecond',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '00:05.20');
         }).then(done, done);
       });
@@ -260,12 +260,12 @@ suite('MozIntl', function() {
         // 10 min, 21 sec, 150ms
         var ms = (10 * 1000 * 60) + (21 * 1000) + 150;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'minute',
           minUnit: 'millisecond',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '10:21.15');
         }).then(done, done);
       });
@@ -274,12 +274,12 @@ suite('MozIntl', function() {
         // 10 min, 21 sec, 154ms
         var ms = (10 * 1000 * 60) + (21 * 1000) + 154;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'minute',
           minUnit: 'millisecond',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '10:21.15');
         }).then(done, done);
       });
@@ -288,12 +288,12 @@ suite('MozIntl', function() {
         // 10 min, 21 sec, 156ms
         var ms = (10 * 1000 * 60) + (21 * 1000) + 156;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'minute',
           minUnit: 'millisecond',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '10:21.16');
         }).then(done, done);
       });
@@ -302,12 +302,12 @@ suite('MozIntl', function() {
         // 10 min, 21 sec, 156ms
         var ms = (10 * 1000 * 60) + (21 * 1000) + 4;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'minute',
           minUnit: 'millisecond',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '10:21.00');
         }).then(done, done);
       });
@@ -316,12 +316,12 @@ suite('MozIntl', function() {
         // 10 min, 21 sec, 156ms
         var ms = ((10 * 1000 * 60) + (21 * 1000)) * -1;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'minute',
           minUnit: 'millisecond',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        
+        f.format(ms).then(string => {
           assert.strictEqual(string, '-10:21.00');
         }).then(done, done);
       });
@@ -330,12 +330,11 @@ suite('MozIntl', function() {
         // 1 hour
         var ms = 1 * 1000 - 2;
 
-        mozIntl.DurationFormat(navigator.languages, {
+        let f = new mozIntl.DurationFormat(navigator.languages, {
           maxUnit: 'minute',
           minUnit: 'millisecond',
-        }).then(formatter => {
-          var string = formatter.format(ms);
-
+        });
+        f.format(ms).then(string => {
           assert.strictEqual(string, '00:01.00');
         }).then(done, done);
       });
@@ -344,11 +343,8 @@ suite('MozIntl', function() {
 
   suite('RelativeTimeFormat', function() {
     setup(function() {
-      this.sinon.stub(navigator.mozL10n, 'formatValue', function(id, args) {
-        return Promise.resolve({
-          id: id,
-          args: args
-        });
+      this.sinon.stub(document.l10n, 'formatValue', function(id, args) {
+        return Promise.resolve('');
       });
     });
 
@@ -358,13 +354,10 @@ suite('MozIntl', function() {
           unit: 'minute',
         });
         
-        f.format(Date.now() - 1 * min).then(string => {
-          assert.deepEqual(string, {
-            id: 'minutes-ago-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() - 1 * min).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'minutes-ago-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -373,13 +366,10 @@ suite('MozIntl', function() {
           unit: 'minute',
         });
         
-        f.format(Date.now() - 5 * min).then(string => {
-          assert.deepEqual(string, {
-            id: 'minutes-ago-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() - 5 * min).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'minutes-ago-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -388,13 +378,10 @@ suite('MozIntl', function() {
           unit: 'minute',
         });
         
-        f.format(Date.now() - 80 * min).then(string => {
-          assert.deepEqual(string, {
-            id: 'minutes-ago-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() - 80 * min).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'minutes-ago-long', { value: 80 }));
         }).then(done, done);
       });
 
@@ -403,13 +390,10 @@ suite('MozIntl', function() {
           unit: 'minute',
         });
         
-        f.format(Date.now() + 1 * min).then(string => {
-          assert.deepEqual(string, {
-            id: 'minutes-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * min).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'minutes-until-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -418,13 +402,10 @@ suite('MozIntl', function() {
           unit: 'minute',
         });
         
-        f.format(Date.now() + 5 * min).then(string => {
-          assert.deepEqual(string, {
-            id: 'minutes-until-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() + 5 * min).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'minutes-until-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -433,13 +414,10 @@ suite('MozIntl', function() {
           unit: 'minute',
         });
         
-        f.format(Date.now() + 80 * min).then(string => {
-          assert.deepEqual(string, {
-            id: 'minutes-until-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() + 80 * min).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'minutes-until-long', { value: 80 }));
         }).then(done, done);
       });
     });
@@ -450,13 +428,10 @@ suite('MozIntl', function() {
           unit: 'hour',
         });
         
-        f.format(Date.now() - 1 * hour).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-ago-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() - 1 * hour).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-ago-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -465,13 +440,10 @@ suite('MozIntl', function() {
           unit: 'hour',
         });
         
-        f.format(Date.now() - 5 * hour).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-ago-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() - 5 * hour).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-ago-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -480,13 +452,10 @@ suite('MozIntl', function() {
           unit: 'hour',
         });
         
-        f.format(Date.now() - 80 * hour).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-ago-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() - 80 * hour).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-ago-long', { value: 80 }));
         }).then(done, done);
       });
 
@@ -495,13 +464,10 @@ suite('MozIntl', function() {
           unit: 'hour',
         });
         
-        f.format(Date.now() + 1 * hour).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * hour).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-until-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -510,13 +476,10 @@ suite('MozIntl', function() {
           unit: 'hour',
         });
         
-        f.format(Date.now() + 5 * hour).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-until-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() + 5 * hour).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-until-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -525,13 +488,10 @@ suite('MozIntl', function() {
           unit: 'hour',
         });
         
-        f.format(Date.now() + 80 * hour).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-until-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() + 80 * hour).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-until-long', { value: 80 }));
         }).then(done, done);
       });
     });
@@ -542,13 +502,10 @@ suite('MozIntl', function() {
           unit: 'day',
         });
         
-        f.format(Date.now() - 1 * day).then(string => {
-          assert.deepEqual(string, {
-            id: 'days-ago-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() - 1 * day).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'days-ago-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -557,13 +514,10 @@ suite('MozIntl', function() {
           unit: 'day',
         });
         
-        f.format(Date.now() - 5 * day).then(string => {
-          assert.deepEqual(string, {
-            id: 'days-ago-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() - 5 * day).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'days-ago-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -572,13 +526,10 @@ suite('MozIntl', function() {
           unit: 'day',
         });
         
-        f.format(Date.now() - 80 * day).then(string => {
-          assert.deepEqual(string, {
-            id: 'days-ago-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() - 80 * day).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'days-ago-long', { value: 80 }));
         }).then(done, done);
       });
 
@@ -587,13 +538,10 @@ suite('MozIntl', function() {
           unit: 'day',
         });
         
-        f.format(Date.now() + 1 * day).then(string => {
-          assert.deepEqual(string, {
-            id: 'days-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * day).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'days-until-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -602,13 +550,10 @@ suite('MozIntl', function() {
           unit: 'day',
         });
         
-        f.format(Date.now() + 5 * day).then(string => {
-          assert.deepEqual(string, {
-            id: 'days-until-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() + 5 * day).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'days-until-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -617,13 +562,10 @@ suite('MozIntl', function() {
           unit: 'day',
         });
         
-        f.format(Date.now() + 80 * day).then(string => {
-          assert.deepEqual(string, {
-            id: 'days-until-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() + 80 * day).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'days-until-long', { value: 80 }));
         }).then(done, done);
       });
     });
@@ -634,13 +576,10 @@ suite('MozIntl', function() {
           unit: 'week',
         });
         
-        f.format(Date.now() - 1 * week).then(string => {
-          assert.deepEqual(string, {
-            id: 'weeks-ago-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() - 1 * week).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'weeks-ago-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -649,13 +588,10 @@ suite('MozIntl', function() {
           unit: 'week',
         });
         
-        f.format(Date.now() - 5 * week).then(string => {
-          assert.deepEqual(string, {
-            id: 'weeks-ago-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() - 5 * week).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'weeks-ago-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -664,13 +600,10 @@ suite('MozIntl', function() {
           unit: 'week',
         });
         
-        f.format(Date.now() - 80 * week).then(string => {
-          assert.deepEqual(string, {
-            id: 'weeks-ago-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() - 80 * week).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'weeks-ago-long', { value: 80 }));
         }).then(done, done);
       });
 
@@ -679,13 +612,10 @@ suite('MozIntl', function() {
           unit: 'week',
         });
         
-        f.format(Date.now() + 1 * week).then(string => {
-          assert.deepEqual(string, {
-            id: 'weeks-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * week).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'weeks-until-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -694,13 +624,10 @@ suite('MozIntl', function() {
           unit: 'week',
         });
         
-        f.format(Date.now() + 5 * week).then(string => {
-          assert.deepEqual(string, {
-            id: 'weeks-until-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() + 5 * week).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'weeks-until-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -709,13 +636,10 @@ suite('MozIntl', function() {
           unit: 'week',
         });
         
-        f.format(Date.now() + 80 * week).then(string => {
-          assert.deepEqual(string, {
-            id: 'weeks-until-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() + 80 * week).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'weeks-until-long', { value: 80 }));
         }).then(done, done);
       });
     });
@@ -726,13 +650,10 @@ suite('MozIntl', function() {
           unit: 'month',
         });
         
-        f.format(Date.now() - 1 * month).then(string => {
-          assert.deepEqual(string, {
-            id: 'months-ago-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() - 1 * month).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'months-ago-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -741,13 +662,10 @@ suite('MozIntl', function() {
           unit: 'month',
         });
         
-        f.format(Date.now() - 5 * month).then(string => {
-          assert.deepEqual(string, {
-            id: 'months-ago-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() - 5 * month).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'months-ago-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -756,13 +674,10 @@ suite('MozIntl', function() {
           unit: 'month',
         });
         
-        f.format(Date.now() - 80 * month).then(string => {
-          assert.deepEqual(string, {
-            id: 'months-ago-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() - 80 * month).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'months-ago-long', { value: 80 }));
         }).then(done, done);
       });
 
@@ -771,13 +686,10 @@ suite('MozIntl', function() {
           unit: 'month',
         });
         
-        f.format(Date.now() + 1 * month).then(string => {
-          assert.deepEqual(string, {
-            id: 'months-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * month).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'months-until-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -786,13 +698,10 @@ suite('MozIntl', function() {
           unit: 'month',
         });
         
-        f.format(Date.now() + 5 * month).then(string => {
-          assert.deepEqual(string, {
-            id: 'months-until-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() + 5 * month).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'months-until-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -801,13 +710,10 @@ suite('MozIntl', function() {
           unit: 'month',
         });
         
-        f.format(Date.now() + 80 * month).then(string => {
-          assert.deepEqual(string, {
-            id: 'months-until-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() + 80 * month).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'months-until-long', { value: 80 }));
         }).then(done, done);
       });
     });
@@ -818,13 +724,10 @@ suite('MozIntl', function() {
           unit: 'year',
         });
         
-        f.format(Date.now() - 1 * year).then(string => {
-          assert.deepEqual(string, {
-            id: 'years-ago-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() - 1 * year).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'years-ago-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -833,13 +736,10 @@ suite('MozIntl', function() {
           unit: 'year',
         });
         
-        f.format(Date.now() - 5 * year).then(string => {
-          assert.deepEqual(string, {
-            id: 'years-ago-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() - 5 * year).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'years-ago-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -848,13 +748,10 @@ suite('MozIntl', function() {
           unit: 'year',
         });
         
-        f.format(Date.now() - 80 * year).then(string => {
-          assert.deepEqual(string, {
-            id: 'years-ago-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() - 80 * year).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'years-ago-long', { value: 80 }));
         }).then(done, done);
       });
 
@@ -863,13 +760,10 @@ suite('MozIntl', function() {
           unit: 'year',
         });
         
-        f.format(Date.now() + 1 * year).then(string => {
-          assert.deepEqual(string, {
-            id: 'years-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * year).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'years-until-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -878,13 +772,10 @@ suite('MozIntl', function() {
           unit: 'year',
         });
         
-        f.format(Date.now() + 5 * year).then(string => {
-          assert.deepEqual(string, {
-            id: 'years-until-long',
-            args: {
-              value: 5
-            }
-          });
+        f.format(Date.now() + 5 * year).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'years-until-long', { value: 5 }));
         }).then(done, done);
       });
 
@@ -893,13 +784,10 @@ suite('MozIntl', function() {
           unit: 'year',
         });
         
-        f.format(Date.now() + 80 * year).then(string => {
-          assert.deepEqual(string, {
-            id: 'years-until-long',
-            args: {
-              value: 80
-            }
-          });
+        f.format(Date.now() + 80 * year).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'years-until-long', { value: 80 }));
         }).then(done, done);
       });
     });
@@ -910,13 +798,10 @@ suite('MozIntl', function() {
           unit: 'bestFit',
         });
         
-        f.format(Date.now() - 1 * hour).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-ago-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() - 1 * hour).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-ago-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -925,13 +810,10 @@ suite('MozIntl', function() {
           unit: 'bestFit',
         });
         
-        f.format(Date.now() + 1 * hour).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * hour).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-until-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -941,13 +823,10 @@ suite('MozIntl', function() {
         });
         
         // mozIntl does not support seconds, Intl API will
-        f.format(Date.now() + 0).then(string => {
-          assert.deepEqual(string, {
-            id: 'minutes-until-long',
-            args: {
-              value: 0
-            }
-          });
+        f.format(Date.now() + 0).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'minutes-until-long', { value: 0 }));
         }).then(done, done);
       });
 
@@ -956,13 +835,10 @@ suite('MozIntl', function() {
           unit: 'bestFit',
         });
         
-        f.format(Date.now() + 500 * year).then(string => {
-          assert.deepEqual(string, {
-            id: 'years-until-long',
-            args: {
-              value: 500
-            }
-          });
+        f.format(Date.now() + 500 * year).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'years-until-long', { value: 500 }));
         }).then(done, done);
       });
     });
@@ -976,13 +852,10 @@ suite('MozIntl', function() {
         // 1h59m59s300ms
         var ms = 1 * hour + 59 * min + 59 * sec + 300;
 
-        f.format(Date.now() + ms).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-until-long',
-            args: {
-              value: 2
-            }
-          });
+        f.format(Date.now() + ms).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-until-long', { value: 2 }));
         }).then(done, done);
       });
 
@@ -994,13 +867,10 @@ suite('MozIntl', function() {
         // 1h59m59s300ms
         var ms = 1 * hour + 59 * min + 59 * sec + 300;
 
-        f.format(Date.now() + ms).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-until-long',
-            args: {
-              value: 2
-            }
-          });
+        f.format(Date.now() + ms).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-until-long', { value: 2 }));
         }).then(done, done);
       });
 
@@ -1009,13 +879,10 @@ suite('MozIntl', function() {
           unit: 'bestFit'
         });
 
-        f.format(Date.now() + 2 * min - 500).then(string => {
-          assert.deepEqual(string, {
-            id: 'minutes-until-long',
-            args: {
-              value: 2
-            }
-          });
+        f.format(Date.now() + 2 * min - 500).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'minutes-until-long', { value: 2 }));
         }).then(done, done);
       });
 
@@ -1024,13 +891,10 @@ suite('MozIntl', function() {
           unit: 'bestFit'
         });
 
-        f.format(Date.now() + 2 * hour - 500).then(string => {
-          assert.deepEqual(string, {
-            id: 'hours-until-long',
-            args: {
-              value: 2
-            }
-          });
+        f.format(Date.now() + 2 * hour - 500).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'hours-until-long', { value: 2 }));
         }).then(done, done);
       });
 
@@ -1039,13 +903,10 @@ suite('MozIntl', function() {
           unit: 'bestFit'
         });
 
-        f.format(Date.now() + 1 * week - 500).then(string => {
-          assert.deepEqual(string, {
-            id: 'weeks-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * week - 500).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'weeks-until-long', { value: 1 }));
         }).then(done, done);
       });
 
@@ -1054,13 +915,10 @@ suite('MozIntl', function() {
           unit: 'bestFit'
         });
 
-        f.format(Date.now() + 1 * year - 500).then(string => {
-          assert.deepEqual(string, {
-            id: 'years-until-long',
-            args: {
-              value: 1
-            }
-          });
+        f.format(Date.now() + 1 * year - 500).then(() => {
+          assert.isTrue(document.l10n.formatValue.calledOnce);
+          assert.isTrue(document.l10n.formatValue.calledWith(
+           'years-until-long', { value: 1 }));
         }).then(done, done);
       });
     });
@@ -1089,7 +947,7 @@ suite('MozIntl', function() {
 
     suite('relativeDate', function() {
       setup(function() {
-        this.sinon.stub(navigator.mozL10n, 'formatValue', function(id, args) {
+        this.sinon.stub(document.l10n, 'formatValue', function(id, args) {
           return Promise.resolve({
             id: id,
             args: args
@@ -1099,7 +957,7 @@ suite('MozIntl', function() {
 
       test('maxDiff is null', function(done) {
         var time = Date.now() - 86400 * 20 * 1000;
-        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        var formatter = new mozIntl._gaia.RelativeDate(navigator.languages);
         formatter.format(time).then(result => {
           assert.ok(result.indexOf('/') !== -1);
         }).then(done, done);
@@ -1107,7 +965,7 @@ suite('MozIntl', function() {
 
       test('maxDiff is specified', function(done) {
         var time = Date.now() - 86400 * 20 * 1000;
-        var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+        var formatter = new mozIntl._gaia.RelativeDate(navigator.languages, {
           style: 'long'
         });
         formatter.format(time, (86400 * 21)).then(result => {
@@ -1122,7 +980,7 @@ suite('MozIntl', function() {
 
       test('default style', function(done) {
         var time = Date.now() - 86400 * 5 * 1000;
-        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        var formatter = new mozIntl._gaia.RelativeDate(navigator.languages);
         formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'days-ago-long',
@@ -1135,7 +993,7 @@ suite('MozIntl', function() {
 
       test('style is short', function(done) {
         var time = Date.now() - 86400 * 5 * 1000;
-        var formatter = mozIntl._gaia.RelativeDate(navigator.languages, {
+        var formatter = new mozIntl._gaia.RelativeDate(navigator.languages, {
           style: 'short'
         });
         formatter.format(time).then(result => {
@@ -1150,7 +1008,7 @@ suite('MozIntl', function() {
 
       test('now', function(done) {
         var time = Date.now() - 29 * 1000;
-        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        var formatter = new mozIntl._gaia.RelativeDate(navigator.languages);
         formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'minutes-until-long',
@@ -1164,7 +1022,7 @@ suite('MozIntl', function() {
       test('in a minute', function(done) {
         // pretty date used 35
         var time = Date.now() + 45 * 1000;
-        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        var formatter = new mozIntl._gaia.RelativeDate(navigator.languages);
         formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'minutes-until-long',
@@ -1177,7 +1035,7 @@ suite('MozIntl', function() {
 
       test('in two minutes', function(done) {
         var time = Date.now() + 1.8 * 60 * 1000;
-        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        var formatter = new mozIntl._gaia.RelativeDate(navigator.languages);
         formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'minutes-until-long',
@@ -1190,7 +1048,7 @@ suite('MozIntl', function() {
 
       test('should discard ms if diff is over 1 minute', function(done) {
         var time = Date.now() + 2 * 60 * 1000 - 500;
-        var formatter = mozIntl._gaia.RelativeDate(navigator.languages);
+        var formatter = new mozIntl._gaia.RelativeDate(navigator.languages);
         formatter.format(time).then(result => {
           assert.deepEqual(result, {
             id: 'minutes-until-long',
@@ -1205,17 +1063,17 @@ suite('MozIntl', function() {
 
   suite('UnitFormat', function() {
     setup(function() {
-      this.sinon.stub(navigator.mozL10n, 'formatValue',
+      this.sinon.stub(document.l10n, 'formatValue',
         arg => Promise.resolve(arg));
     });
 
     function testUnit(group, unit, style) {
-      var formatter = mozIntl.UnitFormat(navigator.languages, {
+      var formatter = new mozIntl.UnitFormat(navigator.languages, {
         unit:  unit,
         style: style
       });
       return formatter.format(0).then(result => {
-        assert.equal(result, `${group}-${unit}-${style}`);
+        assert.equal(result, `unitformat-${group}-${unit}-${style}`);
       });
     }
 
@@ -1227,7 +1085,7 @@ suite('MozIntl', function() {
       Promise.all(tests).then(() => done(), done);
     });
 
-    test('uses correct unit group for durations', function(done) {
+    test('uses correct unit group for digital', function(done) {
       var units = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte'];
 
       var tests = [];
@@ -1241,7 +1099,8 @@ suite('MozIntl', function() {
 
     test('throws range error for invalid unit', function() {
       assert.throws(() => {
-        mozIntl.UnitFormat(navigator.languages, {
+        /*jshint unused:false*/
+        let f = new mozIntl.UnitFormat(navigator.languages, {
           unit: 'foo'
         });
       }, RangeError);
@@ -1249,126 +1108,177 @@ suite('MozIntl', function() {
 
     test('throws range error for invalid style', function() {
       assert.throws(() => {
-        mozIntl.UnitFormat(navigator.languages, {
+        /*jshint unused:false*/
+        let f = new mozIntl.UnitFormat(navigator.languages, {
           unit: 'second',
           style: 'foo'
         });
       }, RangeError);
     });
-  });
 
-
-  /* _gaia suite */
-
-  suite('mozIntl._gaia methods', function() {
-    suite('getFormattedUnit', function() {
+    suite('bestFit', function() {
       suite('digital type', function() {
-        test('should handle undefined', function(done) {
-          mozIntl._gaia.getFormattedUnit('digital', 'short').then(val => {
-            assert.isUndefined(val);
-          }).then(done, done);
-        });
-
-        test('should handle NaN', function(done) {
-          mozIntl._gaia.getFormattedUnit('digital', 'short', 'NaN').then(
-            val => { assert.isUndefined(val); }).then(done, done);
-        });
-
         test('should handle 0 bytes', function(done) {
-          mozIntl._gaia.getFormattedUnit('digital', 'short', 0).then(val => {
-            assert.equal(val, MockL10n._stringify('digital-byte-short', {
-              value: 0
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'digital',
+            style: 'short'
+          });
+
+          f.format(0).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-digital-byte-short'));
           }).then(done, done);
         });
 
         test('should handle bytes', function(done) {
-          mozIntl._gaia.getFormattedUnit('digital', 'short', 42).then(val => {
-            assert.equal(val, MockL10n._stringify('digital-byte-short', {
-              value: 42
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'digital',
+            style: 'short'
+          });
+
+          f.format(42).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-digital-byte-short'));
           }).then(done, done);
         });
 
         test('should handle kilobytes', function(done) {
-          mozIntl._gaia.getFormattedUnit('digital', 'short', 1024).then(val => {
-            assert.equal(val, MockL10n._stringify('digital-kilobyte-short', {
-              value: 1
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'digital',
+            style: 'short'
+          });
+
+          f.format(1024).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-digital-kilobyte-short'));
           }).then(done, done);
         });
 
         test('should handle megabytes', function(done) {
           var v = 4901024;
-          mozIntl._gaia.getFormattedUnit('digital', 'short', v).then(val => {
-            assert.equal(val, MockL10n._stringify('digital-megabyte-short', {
-              value: 4.67
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'digital',
+            style: 'short'
+          });
+
+          f.format(v).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-digital-megabyte-short'));
           }).then(done, done);
         });
 
         test('should handle gigabytes', function(done) {
           var v = 4000901024;
-          mozIntl._gaia.getFormattedUnit('digital', 'short', v).then(val => {
-            assert.equal(val, MockL10n._stringify('digital-gigabyte-short', {
-              value: 3.73
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'digital',
+            style: 'short'
+          });
+
+          f.format(v).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-digital-gigabyte-short'));
           }).then(done, done);
         });
       });
 
       suite('duration type', function() {
-        test('should handle 0 seconds', function(done) {
-          mozIntl._gaia.getFormattedUnit('duration', 'narrow', 0).then(val => {
-            assert.equal(val, MockL10n._stringify('duration-second-narrow', {
-              value: 0
-            }));
-          }).then(done, done);
-        });
-
         test('should handle seconds', function(done) {
-          mozIntl._gaia.getFormattedUnit('duration', 'narrow', 42).then(val => {
-            assert.equal(val, MockL10n._stringify('duration-second-narrow', {
-              value: 42
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'duration',
+            style: 'narrow'
+          });
+
+          f.format(0).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-duration-second-narrow'));
           }).then(done, done);
         });
 
         test('should handle minutes', function(done) {
-          mozIntl._gaia.getFormattedUnit('duration', 'narrow', 60).then(val => {
-            assert.equal(val, MockL10n._stringify('duration-minute-narrow', {
-              value: 1
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'duration',
+            style: 'narrow'
+          });
+
+          f.format(60).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-duration-minute-narrow'));
           }).then(done, done);
         });
 
         test('should handle hours', function(done) {
           var v = 60 * 60 * 4;
-          mozIntl._gaia.getFormattedUnit('duration', 'narrow', v).then(val => {
-            assert.equal(val, MockL10n._stringify('duration-hour-narrow', {
-              value: 4
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'duration',
+            style: 'narrow'
+          });
+
+          f.format(v).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-duration-hour-narrow'));
           }).then(done, done);
         });
 
         test('should handle days', function(done) {
           var v = 60 * 60 * 24 * 3;
-          mozIntl._gaia.getFormattedUnit('duration', 'narrow', v).then(val => {
-            assert.equal(val, MockL10n._stringify('duration-day-narrow', {
-              value: 3
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'duration',
+            style: 'narrow'
+          });
+
+          f.format(v).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-duration-day-narrow'));
           }).then(done, done);
         });
 
         test('should handle months', function(done) {
           var v = 60 * 60 * 24 * 30 * 2;
-          mozIntl._gaia.getFormattedUnit('duration', 'narrow', v).then(val => {
-            assert.equal(val, MockL10n._stringify('duration-month-narrow', {
-              value: 2
-            }));
+          var f = new mozIntl.UnitFormat(navigator.languages, {
+            unit:  'bestFit',
+            type: 'duration',
+            style: 'narrow'
+          });
+
+          f.format(v).then(val => {
+            assert.equal(val,
+              MockL10n._stringify('unitformat-duration-month-narrow'));
           }).then(done, done);
         });
       });
+    });
+
+    test('should handle undefined', function(done) {
+      var f = new mozIntl.UnitFormat(navigator.languages, {
+        unit:  'bestFit',
+        type: 'duration',
+        style: 'narrow'
+      });
+
+      f.format().then(val => {
+        assert.isUndefined(val);
+      }).then(done, done);
+    });
+
+    test('should handle NaN', function(done) {
+      var f = new mozIntl.UnitFormat(navigator.languages, {
+        unit:  'bestFit',
+        type: 'duration',
+        style: 'narrow'
+      });
+
+      f.format('NaN').then(val => {
+        assert.isUndefined(val);
+      }).then(done, done);
     });
   });
 });

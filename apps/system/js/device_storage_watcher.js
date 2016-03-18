@@ -118,7 +118,11 @@
      * nsIDOMDeviceStorage.freeSpace call in a more readable way.
      */
     formatSize: function dsw_formatSize(size) {
-      return mozIntl._gaia.getFormattedUnit('digital', 'short', size);
+      var formatter = new mozIntl.UnitFormat(navigator.languages, {
+        type: 'digital',
+        style: 'short'
+      });
+      return formatter.format(size);
     },
 
     handleEvent: function dsw_handleEvent(evt) {

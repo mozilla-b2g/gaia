@@ -571,7 +571,7 @@ exports.isAllDay = function(baseDate, startDate, endDate) {
 
 if (typeof(window) !== 'undefined') {
   window.addEventListener('localized', co.wrap(function *() {
-    exports.startDay = yield mozIntl.calendarInfo('firstDayOfTheWeek');
+    exports.startDay = yield mozIntl.getCalendarInfo('firstDayOfTheWeek');
   }));
 }
 

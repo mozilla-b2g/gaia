@@ -238,11 +238,13 @@ Object.defineProperty(proto, 'remainingTime', {
 
       this.els.seekBarIndicator.style.transform = 'translateX(' + x + 'px)';
 
-      IntlHelper.get('duration').then((duration) => {
-        this.els.remainingTime.textContent =
-          duration.format(-this._remainingTime * 1000);
-        this.els.elapsedTime.textContent =
-          duration.format(this._elapsedTime * 1000);
+      var formatter = IntlHelper.get('duration');
+      
+      formatter.format(-this._remainingTime * 1000).then(string => {
+        this.els.remainingTime.textContent = string;
+      });
+      formatter.format(this._elapsedTime * 1000).then(string => {
+        this.els.elapsedTime.textContent = string;
       });
     });
   }
