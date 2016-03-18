@@ -117,9 +117,16 @@
     },
 
     _handle_mozbrowserloadend: function() {
+      dump("[RemoteAppWindowManager] mozBrowserloadend called[" + this.currentApp + "]\n");
       this._sendPresentationResult({ type: 'presentation-receiver-launched',
                                      id: this.requestId,
                                      frame: this.currentApp.element });
+      let broadcast = new window.BroadcastChannel("multiscreen");
+      broadcast.postMessage({
+        type: 'presentation-receiver-launched',
+        id: this.requestId,
+        frame: undefined
+      });
     },
 
     _sendPresentationResult: function(detail) {
