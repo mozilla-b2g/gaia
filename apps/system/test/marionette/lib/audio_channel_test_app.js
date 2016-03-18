@@ -30,70 +30,82 @@ AudioChannelTestApp.prototype = {
   client: null,
 
   get normalPlay() {
-    return this.client.findElement(AudioChannelTestApp.Selector.normalPlay);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.normalPlay);
   },
 
   get normalPause() {
-    return this.client.findElement(AudioChannelTestApp.Selector.normalPause);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.normalPause);
   },
 
   get contentPlay() {
-    return this.client.findElement(AudioChannelTestApp.Selector.contentPlay);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.contentPlay);
   },
 
   get contentPause() {
-    return this.client.findElement(AudioChannelTestApp.Selector.contentPause);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.contentPause);
   },
 
   get alarmPlay() {
-    return this.client.findElement(AudioChannelTestApp.Selector.alarmPlay);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.alarmPlay);
   },
 
   get alarmPause() {
-    return this.client.findElement(AudioChannelTestApp.Selector.alarmPause);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.alarmPause);
   },
 
   get systemPlay() {
-    return this.client.findElement(AudioChannelTestApp.Selector.systemPlay);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.systemPlay);
   },
 
   get systemPause() {
-    return this.client.findElement(AudioChannelTestApp.Selector.systemPause);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.systemPause);
   },
 
   get ringerPlay() {
-    return this.client.findElement(AudioChannelTestApp.Selector.ringerPlay);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.ringerPlay);
   },
 
   get ringerPause() {
-    return this.client.findElement(AudioChannelTestApp.Selector.ringerPause);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.ringerPause);
   },
 
   get telephonyPlay() {
-    return this.client.findElement(AudioChannelTestApp.Selector.telephonyPlay);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.telephonyPlay);
   },
 
   get telephonyPause() {
-    return this.client.findElement(AudioChannelTestApp.Selector.telephonyPause);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.telephonyPause);
   },
 
   get notificationPlay() {
     return this.client
-      .findElement(AudioChannelTestApp.Selector.notificationPlay);
+      .helper.waitForElement(AudioChannelTestApp.Selector.notificationPlay);
   },
 
   get notificationPause() {
     return this.client
-      .findElement(AudioChannelTestApp.Selector.notificationPause);
+      .helper.waitForElement(AudioChannelTestApp.Selector.notificationPause);
   },
 
   get publicnotificationPlay() {
-    return this.client
-      .findElement(AudioChannelTestApp.Selector.publicnotificationPlay);
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.publicnotificationPlay);
   },
 
   get publicnotificationPause() {
-    return this.client
-      .findElement(AudioChannelTestApp.Selector.publicnotificationPause);
-  },
+    return this.client.helper
+      .waitForElement(AudioChannelTestApp.Selector.publicnotificationPause);
+  }
 };
