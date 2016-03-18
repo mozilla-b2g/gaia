@@ -24,12 +24,14 @@ module.exports.BatteryController = BatteryController;
 function BatteryController(app) {
   bindAll(this);
   this.app = app;
-  this.battery = app.battery || navigator.battery || navigator.mozBattery;
-  this.levels = app.settings.battery.get('levels');
-  this.notification = app.views.notification;
-  this.bindEvents();
-  this.updateStatus();
-  debug('initialized');
+  navigator.getBattery().then((battery) => {
+    this.battery = app.battery || battery;
+    this.levels = app.settings.battery.get('levels');
+    this.notification = app.views.notification;
+    this.bindEvents();
+    this.updateStatus();
+    debug('initialized');
+  });
 }
 
 /**

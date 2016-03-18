@@ -1,42 +1,41 @@
-/* global define */
+/* global MockBattery */
 'use strict';
 
+require('/shared/test/unit/mocks/mock_navigator_getbattery.js');
+
 suite('Battery', function() {
-  var sandbox = sinon.sandbox.create();
-  var MockPlatformBattery;
+  var realGetBattery;
   var map = {
     'modules/battery': {
-      'modules/navigator/battery': 'MockPlatformBattery'
+      'modules/navigator/battery': 'MockBattery'
     }
   };
 
-  // Load a new Batery instance
+  // Load a new Battery instance
   var loadBattery = function(callback) {
     var requireCtx = testRequire([], map, function() {});
-    define('MockPlatformBattery', function() {
-      return MockPlatformBattery;
+    define('MockBattery', function() {
+      return MockBattery.getBattery();
     });
     requireCtx(['modules/battery'], callback);
   };
 
   setup(function() {
-    MockPlatformBattery = {
-      charging: null,
-      level: null,
-      addEventListener: function() {}
-    };
+    realGetBattery = navigator.getBattery;
+
+    navigator.getBattery = MockBattery.getBattery;
   });
 
   teardown(function() {
-    sandbox.restore();
+    navigator.getBattery = realGetBattery;
   });
 
   suite('return correct values when initialized', function() {
     test('charging', function(done) {
-      MockPlatformBattery.charging = true;
-      MockPlatformBattery.level = 0.5;
-      MockPlatformBattery.chargingTime = 13337;
-      MockPlatformBattery.dischargingTime = Infinity;
+      MockBattery._battery.charging = true;
+      MockBattery._battery.level = 0.5;
+      MockBattery._battery.chargingTime = 13337;
+      MockBattery._battery.dischargingTime = Infinity;
 
       loadBattery(function(Battery) {
         assert.equal(Battery.level, 50);
@@ -48,8 +47,8 @@ suite('Battery', function() {
     });
 
     test('charged', function(done) {
-      MockPlatformBattery.charging = true;
-      MockPlatformBattery.level = 1;
+      MockBattery._battery.charging = true;
+      MockBattery._battery.level = 1;
 
       loadBattery(function(Battery) {
         assert.equal(Battery.level, 100);
@@ -59,8 +58,8 @@ suite('Battery', function() {
     });
 
     test('unplugged', function(done) {
-      MockPlatformBattery.charging = false;
-      MockPlatformBattery.level = 1;
+      MockBattery._battery.charging = false;
+      MockBattery._battery.level = 1;
 
       loadBattery(function(Battery) {
         assert.equal(Battery.level, 100);
@@ -72,57 +71,59 @@ suite('Battery', function() {
 
   suite('status changes', function() {
     test('should reflect level changes', function(done) {
-      sandbox.spy(MockPlatformBattery, 'addEventListener');
-      MockPlatformBattery.level = 0.5;
+      this.sinon.spy(MockBattery._battery, 'addEventListener');
+      MockBattery._battery.level = 0.5;
 
       loadBattery(function(Battery) {
         assert.equal(Battery.level, 50);
         // change the level
-        MockPlatformBattery.level = 0.51;
+        MockBattery._battery.level = 0.51;
         // emit the event
-        MockPlatformBattery.addEventListener.args.some(function(arg) {
+        MockBattery._battery.addEventListener.args.some(function(arg) {
           if (arg[0] === 'levelchange') {
             arg[1].call();
             return true;
           }
         });
         assert.equal(Battery.level, 51);
+        MockBattery._battery.addEventListener.restore();
         done();
       });
     });
 
     test('should reflect state changes', function(done) {
-      sandbox.spy(MockPlatformBattery, 'addEventListener');
-      MockPlatformBattery.charging = false;
-      MockPlatformBattery.level = 1;
+      this.sinon.spy(MockBattery._battery, 'addEventListener');
+      MockBattery._battery.charging = false;
+      MockBattery._battery.level = 1;
 
       loadBattery(function(Battery) {
         assert.equal(Battery.state, 'unplugged');
         // change the state
-        MockPlatformBattery.charging = true;
+        MockBattery._battery.charging = true;
         // emit the event
-        MockPlatformBattery.addEventListener.args.some(function(arg) {
+        MockBattery._battery.addEventListener.args.some(function(arg) {
           if (arg[0] === 'chargingchange') {
             arg[1].call();
             return true;
           }
         });
         assert.equal(Battery.state, 'charged');
+        MockBattery._battery.addEventListener.restore();
         done();
       });
     });
 
     test('should reflect chargingTime changes', function(done) {
-      sandbox.spy(MockPlatformBattery, 'addEventListener');
-      MockPlatformBattery.charging = true;
-      MockPlatformBattery.level = 10;
-      MockPlatformBattery.chargingTime = 13337;
+      this.sinon.spy(MockBattery._battery, 'addEventListener');
+      MockBattery._battery.charging = true;
+      MockBattery._battery.level = 10;
+      MockBattery._battery.chargingTime = 13337;
 
       loadBattery(function(Battery) {
         // change the state
-        MockPlatformBattery.chargingTime = 13337 - 1337;
+        MockBattery._battery.chargingTime = 13337 - 1337;
         // emit the event
-        MockPlatformBattery.addEventListener.args.some(function(arg) {
+        MockBattery._battery.addEventListener.args.some(function(arg) {
           if (arg[0] === 'chargingtimechange') {
             arg[1].call();
             return true;
@@ -134,16 +135,16 @@ suite('Battery', function() {
     });
 
     test('should reflect dischargingTime changes', function(done) {
-      sandbox.spy(MockPlatformBattery, 'addEventListener');
-      MockPlatformBattery.charging = false;
-      MockPlatformBattery.level = 9;
-      MockPlatformBattery.dischargingTime = 13337;
+      this.sinon.spy(MockBattery._battery, 'addEventListener');
+      MockBattery._battery.charging = false;
+      MockBattery._battery.level = 9;
+      MockBattery._battery.dischargingTime = 13337;
 
       loadBattery(function(Battery) {
         // change the state
-        MockPlatformBattery.dischargingTime = 13337 - 1337;
+        MockBattery._battery.dischargingTime = 13337 - 1337;
         // emit the event
-        MockPlatformBattery.addEventListener.args.some(function(arg) {
+        MockBattery._battery.addEventListener.args.some(function(arg) {
           if (arg[0] === 'dischargingtimechange') {
             arg[1].call();
             return true;

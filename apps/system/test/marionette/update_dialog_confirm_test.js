@@ -56,8 +56,10 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
 
   test('Update confirm screen without battery', function() {
     client.executeScript(function() {
-      window.wrappedJSObject.navigator.battery.level = 0;
-      window.wrappedJSObject.navigator.battery.charging = false;
+      window.wrappedJSObject.navigator.getBattery().then((battery) => {
+        battery.level = 0;
+        battery.charging = false;
+      });
     });
 
     triggerUpdateDownload();
