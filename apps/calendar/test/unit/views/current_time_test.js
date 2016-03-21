@@ -15,6 +15,19 @@ suite('Views.CurrentTime', function() {
   suiteSetup(function() {
     realMozIntl = window.mozIntl;
     window.mozIntl = MockMozIntl;
+
+    function stubFormatToParts(d) {
+      /* jshint validthis: true */
+      return [
+        {type: 'time', value: this.format(d)}
+      ];
+    }
+    if (!Intl.DateTimeFormat.prototype.formatToParts) {
+      Intl.DateTimeFormat.prototype.formatToParts = stubFormatToParts;
+    } else {
+      this.sinon.stub(
+        Intl.DateTimeFormat.prototype, 'formatToParts', stubFormatToParts);
+    }
   });
 
   setup(function() {
