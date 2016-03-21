@@ -119,6 +119,8 @@ var Settings = {
 
     this.settingsDialogHomepageInputArea.addEventListener('blur',
       this.handleDialogHomepageInputBlur.bind(this));
+    this.settingsDialogHomepageInputArea.addEventListener('input',
+      this.handleDialogHomepageInputInput.bind(this));
     this.settingsDialogHomepageClear.addEventListener('keyup',
       this.handleDialogHomepageClear.bind(this));
     this.settingsDialogHomepageDefault.addEventListener('keyup',
@@ -259,6 +261,7 @@ var Settings = {
         this.settingsHomepageName.textContent;
       this.settingsDialogHomepageInputArea.tabIndex = '0';
       this.settingsDialogHomepageClear.tabIndex = '0';
+      this.resetActiveElement();
 
       this.focusList.push(this.settingsDialogHomepageInputArea);
       this.focusList.push(this.settingsDialogHomepageClear);
@@ -277,6 +280,7 @@ var Settings = {
       this.settingsDialogHomepageInput.classList.remove('exfocus');
       this.settingsDialogHomepage.classList.add('hidden');
       this.settingsDialog.classList.add('hidden');
+      this.hideInputInvalidState();
       Browser.switchCursorMode(true);
     }
   },
@@ -341,6 +345,15 @@ var Settings = {
     Awesomescreen.pointerImg.style.display = 'block';
   },
 
+  handleDialogHomepageInputInput:
+    function settings_handleDialogHomepageInputInput(evt) {
+    if (Settings.settingsDialogHomepageInputArea.validity.valid) {
+      this.hideInputInvalidState();
+    } else {
+      this.showInputInvalidState();
+    }
+  },
+
   handleDialogHomepageClear:
     function settings_handleDialogHomepageClear(evt) {
     if( evt ) {
@@ -356,6 +369,7 @@ var Settings = {
     }
     document.activeElement.classList.remove('active');
     this.settingsDialogHomepageInputArea.value = '';
+    this.showInputInvalidState();
   },
 
   handleDialogHomepageDefault:
@@ -374,6 +388,7 @@ var Settings = {
     document.activeElement.classList.remove('active');
     this.getDefaultHomepage((function(result) {
       this.settingsDialogHomepageInputArea.value = result;
+      this.hideInputInvalidState();
     }).bind(this));
   },
 
@@ -404,6 +419,9 @@ var Settings = {
     if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
       return;
     }
+    if (!Settings.settingsDialogHomepageInputArea.validity.valid) {
+      return;
+    }
     // animation end event handler
     var end_event = (function() {
       Settings.settingsDialogHomepageOk.removeEventListener('transitionend',
@@ -428,6 +446,7 @@ var Settings = {
       Browser.switchCursorMode(false);
       this.settingsDialog.classList.remove('hidden');
       this.settingsDialogSearch.classList.remove('hidden');
+      this.resetActiveElement();
 
       this.selectSearchEngine = this.currentSearchEngine;
       this.searchEngineList = SearchUtil.getEngineList();
@@ -694,8 +713,10 @@ var Settings = {
               Awesomescreen.pointerImg.style.display = 'none';
             }
           }else{
-            document.activeElement.classList.remove('active');
-            document.activeElement.classList.add('active');
+            if (!document.activeElement.classList.contains('disable')) {
+              document.activeElement.classList.remove('active');
+              document.activeElement.classList.add('active');
+            }
            }
         break;
 
@@ -715,5 +736,22 @@ var Settings = {
         return false;
     }
     return true;
+  },
+
+  showInputInvalidState: function settings_showInputInvalidState() {
+    this.settingsDialogHomepageInput.classList.add('invalid');
+    this.settingsDialogHomepageOk.classList.add('disable');
+  },
+
+  hideInputInvalidState: function settings_hideInputInvalidState() {
+    this.settingsDialogHomepageInput.classList.remove('invalid');
+    this.settingsDialogHomepageOk.classList.remove('disable');
+  },
+
+  resetActiveElement: function settings_resetActiveElement() {
+    var activeElement = this.settingsDialog.querySelector('.active');
+    if (activeElement) {
+      activeElement.classList.remove('active');
+    }
   }
 };
