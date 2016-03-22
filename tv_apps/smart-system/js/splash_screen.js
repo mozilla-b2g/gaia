@@ -1,3 +1,5 @@
+/* global applications */
+
 (function(exports) {
   'use strict';
 
@@ -6,6 +8,8 @@
   var SplashScreen = function SplashScreen(app) {
     this.app = app;
     this.containerElement = app.element;
+
+    this.iconUrl = this.getIconUrl(app);
 
     this.instanceID = _id++;
     this.render();
@@ -18,7 +22,10 @@
 
   SplashScreen.prototype.view = function ss_view() {
     return `<div id="${this.CLASS_NAME + this.instanceID}"
-                 class="splash-screen hidden"></div>`;
+                 class="splash-screen hidden">
+                <span class="icon"
+                      style="background-image: url('${this.iconUrl}');"></span>
+            </div>`;
   };
 
   SplashScreen.prototype._fetchElements = function ss__fetchElements() {
@@ -54,6 +61,42 @@
 
   SplashScreen.prototype.hide = function ss_hide() {
     this.element.classList.add('hidden');
+  };
+
+  SplashScreen.prototype.getIconUrl = function ss_getIconUrl(app) {
+    if (app.manifestURL) {
+      return this.getIconFromManifestURL(app.manifestURL);
+    } else if (app.features.iconUrl) {
+      return app.features.iconUrl;
+    }
+  };
+
+  SplashScreen.prototype.getIconFromManifestURL = function(manifestURL) {
+    var app = applications.getByManifestURL(manifestURL);
+    var icons = app.manifest.icons;
+
+    var iconUrl = icons[Math.max.apply(null, Object.keys(icons))];
+
+    if (!iconUrl) {
+      return;
+    }
+
+    if (iconUrl.startsWith('data:') ||
+        iconUrl.startsWith('app://') ||
+        iconUrl.startsWith('http://') ||
+        iconUrl.startsWith('https://')) {
+      return iconUrl;
+    }
+
+    if (!iconUrl.startsWith('/')) {
+      return;
+    }
+
+    if (app.origin.endsWith('/')) {
+      return app.origin.slice(0, -1) + iconUrl;
+    }
+
+    return app.origin + iconUrl;
   };
 
   exports.SplashScreen = SplashScreen;
