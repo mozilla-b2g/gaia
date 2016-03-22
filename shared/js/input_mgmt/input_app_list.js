@@ -1,3 +1,4 @@
+/*global WebManifestHelper */
 'use strict';
 
 /**
@@ -35,7 +36,7 @@ InputApp.prototype.getInputs = function() {
   }
 
   // Special case: we'll need to localize the one and only layout label
-  // "Emoji"; all other layouts are named in their native scripts so require
+  // 'Emoji'; all other layouts are named in their native scripts so require
   // no localization.
   if (this.domApp.manifest.type === 'certified') {
     if ('emoji' in dict) {
@@ -268,32 +269,29 @@ InputAppList.prototype.stop = function() {
 
 InputAppList.prototype._getAllApps = function() {
   // FIXME: Don't hardcode the default keyboard app.
-  var app = {
-    'manifestURL': 'http://localhost/keyboard.gaiamobile.org/manifest.webapp',
-    'manifest': {
-      'type': 'certified',
-      'role': 'input',
-      'inputs': {
-        'number': {
-          'launch_path': '/index.html#numberLayout',
-          'name': 'Number',
-          'description': 'Numeric layout',
-          'types': ['number'],
-          'locales': {
-            'en-US': {
-              'name': 'Number',
-              'description': 'Numeric layout'
-            }
-          }
-        }
-      },
-      permissions: {
-        'input': {}
-      }
-    }
-  };
+  var manifestURL = 'chrome://gaia/content/keyboard/manifest.webapp';
+  return LazyLoader.load('../shared/js/web_manifest_helper.js').then(() => {
+    return WebManifestHelper.getManifest(manifestURL);
+  }).then((webManifest) => {
+    var app = {
+      downloadAvaliable: false,
+      downloadError: false,
+      downloadSize: 0,
+      downloading: false,
+      enabled: true,
+      installOrigin: 'chrome://gaia/content/keyboard',
+      installState: 'installed',
+      lastUpdateCheck: 0,
+      origin: 'chrome://gaia/content/keyboard',
+      manifestURL: manifestURL,
+      manifest: webManifest
+    };
+    return Promise.resolve([app]);
+  });
+};
 
-  return Promise.resolve([app]);
+InputAppList.prototype.getDefaultApp = function() {
+  return this._inputApps[0].domApp;
 };
 
 InputAppList.prototype._setInputApps = function(values) {
