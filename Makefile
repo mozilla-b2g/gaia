@@ -174,7 +174,7 @@ export STAGE_DIR
 
 ADB?=adb
 
-SCHEME=chrome://
+SCHEME=chrome://gaia/content/
 
 SYSTEM?=$(SCHEME)system
 
