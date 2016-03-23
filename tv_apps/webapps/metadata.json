@@ -1,1 +1,7 @@
-{"origin": "https://marketplace.firefox.com", "manifestURL": "https://marketplace.firefox.com/tv/manifest.webapp", "installOrigin": "https://marketplace.firefox.com", "etag": "\"6c1f58ec39e3f383b1d7556d59d71f23\"", "external": true}
+{
+  "origin": "https://marketplace.firefox.com",
+  "manifestURL": "https://marketplace.firefox.com/tv/manifest.webapp",
+  "installOrigin": "https://marketplace.firefox.com",
+  "etag": "\"788e0c63b4c788377a67a3163a30fdf0\"",
+  "external": true
+}
