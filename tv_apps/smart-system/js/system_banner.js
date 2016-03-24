@@ -7,7 +7,7 @@
    * SystemBanner displays a type of notification to the user in certain cases.
    * It is a type of temporary notification that does not live in the
    * notifications tray. Examples of the SystemBanner implementation include
-   * application installation, crash reporter, and low storage notices.
+   * application installation and low storage notices.
    * @class SystemBanner
    */
   function SystemBanner() {}
