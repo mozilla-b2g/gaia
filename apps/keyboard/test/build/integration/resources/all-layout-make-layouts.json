@@ -408,6 +408,21 @@
     "preloaded": true
   },
   {
+    "id": "fi",
+    "name": "Suomi",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 2186667,
+    "preloaded": false,
+    "dictFilename": "fi.dict",
+    "dictFilePath": "dictionaries/fi.dict"
+  },
+  {
     "id": "ff",
     "name": "Pulaar-Fulfulde",
     "imEngineId": "latin",
