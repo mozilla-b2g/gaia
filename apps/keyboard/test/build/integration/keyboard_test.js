@@ -54,6 +54,7 @@ suite('Keyboard layouts building tests', function() {
                        'es',
                        'es-Americas',
                        'fa',
+                       'fi',
                        'fr',
                        'fr-CA',
                        'fr-CH',
@@ -182,6 +183,7 @@ suite('Keyboard layouts building tests', function() {
         'js/imes/latin/dictionaries/en_us.dict',
         'js/imes/latin/dictionaries/es.dict',
         'js/imes/latin/dictionaries/eu.dict',
+        'js/imes/latin/dictionaries/fi.dict',
         'js/imes/latin/dictionaries/fr.dict',
         'js/imes/latin/dictionaries/ga.dict',
         'js/imes/latin/dictionaries/gd.dict',
@@ -281,11 +283,11 @@ suite('Keyboard layouts building tests', function() {
   // Build default layouts with only en dictionary, and extra IMEs
   test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=en ' +
     'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=' +
-    'en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make',
+    'en,pt-BR,es,de,fi,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make',
   function(done) {
     var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=en ' +
       'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=' +
-      'en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make';
+      'en,pt-BR,es,de,fi,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -319,6 +321,7 @@ suite('Keyboard layouts building tests', function() {
 
       var dicts = [
         'js/imes/latin/dictionaries/es.dict',
+        'js/imes/latin/dictionaries/fi.dict',
         'js/imes/latin/dictionaries/fr.dict',
         'js/imes/latin/dictionaries/pl.dict',
         'js/imes/latin/dictionaries/pt_br.dict'
