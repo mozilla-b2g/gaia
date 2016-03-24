@@ -28,12 +28,10 @@
 (function(exports) {
   'use strict';
 
-  var DEFAULT_MARGIN = 44;
-  var INPUT_GROUP_INDEX = 0;
-  var BUTTON_GROUP_INDEX = 1;
-
   function FxosTvInputDialog(container, options) {
     FxosTvModalDialog.call(this, container, options);
+
+    this.element.id = 'fxos-tv-input-dialog-' + this.dialogCounter;
   }
 
   var proto = Object.create(FxosTvModalDialog.prototype);
@@ -41,13 +39,27 @@
   proto._render = function() {
     FxosTvModalDialog.prototype._render.call(this);
     this.textInput = document.createElement('input');
-    this.textInput.addEventListener('keydown', function(e) {
-      if (e.keyCode === KeyEvent.DOM_VK_RIGHT) {
-        if (this.selectionEnd < this.value.length) {
+    this.textInput.addEventListener('keydown', (e) => {
+      switch (e.keyCode) {
+        case KeyEvent.DOM_VK_RIGHT:
           // We are going to move cursor in the text input, calling
-          // stopPropagation to prevent focus being transfer to clear button.
+          // stopPropagation to prevent focus from being transfer to clear
+          // button.
+          if (this.textInput.selectionEnd < this.textInput.value.length) {
+            e.stopPropagation();
+          }
+          break;
+        case KeyEvent.DOM_VK_LEFT:
+          // We are going to move cursor in the text input, calling
+          // stopPropagation to prevent focus from being transfer out of the
+          // input.
+          if (this.textInput.selectionStart > 0) {
+            e.stopPropagation();
+          }
+          break;
+        case KeyEvent.DOM_VK_BACK_SPACE:
           e.stopPropagation();
-        }
+          break;
       }
     });
 
@@ -69,11 +81,6 @@
     this.fxosTvInputGroup.appendChild(this.focusBar);
 
     this.messageContainer.appendChild(this.fxosTvInputGroup);
-  };
-
-  proto._init = function() {
-    this.defaultFocusIndex = [-1, -1];
-    FxosTvModalDialog.prototype._init.call(this);
   };
 
   proto._createMessageGroup = function(options) {
@@ -133,9 +140,8 @@
     this.onCancel = options.onCancel || function() {};
     this.buttonElements = [];
     this.buttonSettings = options.buttonSettings || [];
-
+    // XXX: Clear buttonGroup innerHTML with removeChild
     this.buttonGroup.innerHTML = '';
-    this._focusedIndex[BUTTON_GROUP_INDEX] = 0;
 
     // Set up every button
     this.buttonSettings.forEach(function buildButton(buttonSetting, index) {
@@ -146,6 +152,9 @@
       }
       button.textContent = buttonSetting.textRaw || 'OK';
       button.classList.add(buttonSetting.class || 'confirm');
+      if (buttonSetting.class === 'primary') {
+        button.classList.add('confirm');
+      }
       if (buttonSetting.icon) {
         button.style.backgroundImage = 'url(' + buttonSetting.icon + ')';
       } else if (buttonSetting.iconFont) {
@@ -154,15 +163,17 @@
       button.addEventListener('click', function() {
         // Click action will be handled in closed event
         this._clickedIndex = index;
-        this.element.close();
-        this.element.focus();
+        if (!button.classList.contains('disabled')) {
+          this.close();
+        }
       }.bind(this));
       this.buttonElements.push(button);
       this.buttonGroup.appendChild(button);
 
       var customFocus = this.customSettings && this.customSettings.defaultFocus;
-      if (buttonSetting.defaultFocus && !customFocus) {
-        this._focusedIndex[BUTTON_GROUP_INDEX] = index;
+      if ((!this.defaultFocusElement && !customFocus) ||
+          buttonSetting.defaultFocus) {
+        this.defaultFocusElement = button;
       }
 
       var renderedCallback = options.onButtonRendered;
@@ -175,99 +186,11 @@
   };
 
   proto._open = function(options) {
-    this._focusedIndex = this.defaultFocusIndex;
     this._createMessageGroup(options);
     this._createCustomGroup(options);
     this._createInputGroup(options);
     this._createButtonGroup(options);
-
-    this._focusedGroupIndex = 0;
-    this._focusedIndex[INPUT_GROUP_INDEX] = 0;
-    // Put focusable element groups into verticalGroup,
-    // so we can simply navigate up/down among these groups.
-    this.verticalGroup = [this.inputElements, this.buttonElements];
-
-    this.element.classList.add('visible');
-    this.element.open();
-    this.element.focus();
-  };
-
-  proto.startKeyNavigation = function() {
-    this.element.addEventListener('keydown', this);
-    if (this._focusedIndex[0] === -1) {
-      this._focusedIndex[0] = 0;
-    }
-    this.focus();
-  };
-
-  proto._getFocusedElement = function() {
-    return this.verticalGroup[this._focusedGroupIndex]
-            [this._focusedIndex[this._focusedGroupIndex]];
-  };
-
-  proto.moveUp = function(e) {
-    if (this._focusedGroupIndex < 1) {
-      return;
-    }
-
-    this._focusedGroupIndex--;
-    this.focus();
-  };
-
-  proto.moveDown = function(e) {
-    if (this._focusedGroupIndex > this.verticalGroup.length - 1) {
-      return;
-    }
-
-    // Move input-group's focus back to input box when focus on button-group
-    this._focusedIndex[INPUT_GROUP_INDEX] = 0;
-    this._focusedGroupIndex++;
-    this.focus();
-  };
-
-  proto.movePrevious = function(e) {
-    if (this._focusedIndex[this._focusedGroupIndex] < 1) {
-      // Do nothing when focus index is at the first element.
-      return;
-    }
-
-    this._focusedIndex[this._focusedGroupIndex]--;
-    if (this._focusedGroupIndex === INPUT_GROUP_INDEX) {
-      // Moving from clean button to input text will move input caret position
-      // back one character, preventDefault so we don't change the position.
-      e.preventDefault();
-    }
-    this.focus();
-  };
-
-  proto.moveNext = function(e) {
-    if (this._focusedIndex[this._focusedGroupIndex] >
-        this.verticalGroup[this._focusedGroupIndex].length - 2) {
-      // Do nothing when focus index is at the last element
-      return;
-    }
-
-    this._focusedIndex[this._focusedGroupIndex]++;
-    this.focus();
-  };
-
-  proto._handleKeyEvent = function(e) {
-    if (e.keyCode === KeyEvent.DOM_VK_UP) {
-      this.moveUp(e);
-    } else if (e.keyCode === KeyEvent.DOM_VK_DOWN) {
-      this.moveDown(e);
-    } else if (e.keyCode === KeyEvent.DOM_VK_LEFT) {
-      this.movePrevious(e);
-    } else if (e.keyCode === KeyEvent.DOM_VK_RIGHT) {
-      this.moveNext(e);
-    } else if (e.keyCode == KeyEvent.DOM_VK_TAB) {
-      e.preventDefault();
-      if (this._focusedGroupIndex === INPUT_GROUP_INDEX) {
-        this.moveDown(e);
-      } else {
-        this.moveUp(e);
-      }
-    }
+    BaseModalDialog.prototype._open.call(this, options);
   };
 
   FxosTvInputDialog.prototype = proto;

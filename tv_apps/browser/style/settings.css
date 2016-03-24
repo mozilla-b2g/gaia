@@ -276,7 +276,6 @@ p.fine-print {
 #fxsync-area.hidden,
 /*ENDIF_FIREFOX_SYNC*/
 #settings-dialog.hidden,
-#settings-dialog-homepage.hidden,
 #settings-dialog-search.hidden {
   display: none;
 }
@@ -308,151 +307,10 @@ p.fine-print {
   font-size: 38px;
 }
 
-/*
- * Homepage setting dialog
- */
-#settings-dialog-homepage {
-  position: relative;
-  top: 50%;
-  width: 700px;
-  height: 640px;
-  margin: 0 auto;
-  transform: translateY(-50%);
-}
-
-#settings-dialog-homepage-header {
-  position: relative;
-  width: 100%;
-  height: 38px;
-  margin: 0 auto 34px;
-  text-align: center;
-}
-
-#settings-dialog-homepage-header-title {
-  display: inline;
-  top: 0;
-  left: 0;
-  font-size: 38px;
-  font-family: Fira Sans;
-  font-style: Italic; /* TODO: Light Italic */
-  color: #f9f9f9;
-}
-
-#settings-dialog-homepage-input {
-  position: relative;
-  height: 70px;
-  width: 700px;
-  text-align: center;
-  display: table;
-  vertical-align: middle;
-  margin: 24px auto 20px;
-  border-bottom: 2px solid #E7E7E7;
-  transform: scale(1);
-  transition: all 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
-}
-
-#settings-dialog-homepage-input:hover,
-#settings-dialog-homepage-input.exfocus {
-  transform: scale(1.2);
-  outline:none;
-}
-
-#settings-dialog-homepage-input.input {
-  transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0) ,
-                   border-bottom 0.06s cubic-bezier(0.25, 0, 0, 1.0);
-  border-bottom: solid 3px #00caf2;
-  transform: scale(1.0);
-  outline:none;
-}
-
-#settings-dialog-homepage-input.invalid,
-#settings-dialog-homepage-input.input.invalid {
-  border-bottom-color: #b90000;
-}
-
-#settings-dialog-homepage-input.input #settings-dialog-homepage-input-area {
-  font-style: normal;
-  transition: font-style 0.06s cubic-bezier(0.25, 0, 0, 1.0);
-}
-
-#settings-dialog-homepage-input-area {
+.settings-dialog-homepage-default {
   position: absolute;
-  top: 0px;
-  bottom: 0px;
-  width: 600px;
-  height: 100%;
-  background: none repeat scroll 0% 0% transparent;
-  border: medium none;
-  vertical-align: middle;
-  margin: auto 50px;
-  text-align: center;
-  font-family: "Fira Sans";
-  font-style: italic;
-  font-size: 38px;
-  color: #FFF;
-  display: table-cell;
-}
-
-#settings-dialog-homepage-input-area:invalid {
-  box-shadow: none;
-}
-
-#settings-dialog-homepage-input .input-line {
-  width: 100%;
-  bottom: 0px;
-}
-
-#settings-dialog-homepage-input.invalid .input-line {
-  background-color: #b90000;
-}
-
-#settings-dialog-homepage-input:hover .input-line,
-#settings-dialog-homepage-input.exfocus .input-line {
-  transform: scaleX(1);
-}
-
-#settings-dialog-homepage-clear {
-  width: 30px;
-  height: 30px;
-  background: url('../style/images/ic_close.png') no-repeat scroll center center / contain #5F6368;
-  border-radius: 50%;
-  display: table-cell;
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  margin: auto;
-  right: calc(50px / 2 - 15px);
-  transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1) 0s,
-              background-color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s,
-              color 0.16s cubic-bezier(0.25, 0, 0, 1) 0s;
-}
-
-#settings-dialog-homepage-clear:focus,
-#settings-dialog-homepage-clear:hover {
-  transition : transform  0.42s  cubic-bezier(0.25, 0, 0, 1.0) ,
-                    background 0.42s  cubic-bezier(0.25, 0, 0, 1.0) ,
-                    border 0.42s  cubic-bezier(0.25, 0, 0, 1.0);
-  transform: scale(1.2);
-  outline:none;
-  border : 1px solid #fff;
-  background: url("../style/images/ic_close_black.png") no-repeat center/contain #fff;
-
-}
-
-#settings-dialog-homepage-clear.active,
-#settings-dialog-homepage-clear:active {
-  transition : transform  0.06s  cubic-bezier(0.25, 0, 0, 1.0) ,
-                    background 0.06s  cubic-bezier(0.25, 0, 0, 1.0) ,
-                    border 0.06s cubic-bezier(0.25, 0, 0, 1.0);
-  transform: scale(1.0);
-  border : 1px solid #00caf2;
-  background: url("../style/images/ic_close.png") no-repeat center/contain #00caf2;
-}
-
-#settings-dialog-homepage-default {
-  position: relative;
-  top: 40px;
-  left: 400px;
+  top: 18rem;
+  left: 53rem;
   height: 80px;
   min-width: 250px;
   margin-bottom: 40px;
@@ -470,8 +328,8 @@ p.fine-print {
   border: 1px solid #ffffff;
 }
 
-#settings-dialog-homepage-default:focus,
-#settings-dialog-homepage-default:hover {
+.settings-dialog-homepage-default:focus,
+.settings-dialog-homepage-default:hover {
   transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.42s cubic-bezier(0.25, 0, 0, 1.0);
@@ -481,8 +339,8 @@ p.fine-print {
   transform: scale(1.2);
 }
 
-#settings-dialog-homepage-default.active,
-#settings-dialog-homepage-default:active {
+.settings-dialog-homepage-default.active,
+.settings-dialog-homepage-default:active {
   transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0);
@@ -492,13 +350,6 @@ p.fine-print {
   transform: scale(1.0);
 }
 
-#settings-dialog-homepage-button {
-  position: relative;
-  margin: 130px auto;
-  height: 210px;
-}
-
-#settings-dialog-homepage-cancel,
 #settings-dialog-search-cancel {
   position: absolute;
   top: 0;
@@ -518,7 +369,6 @@ p.fine-print {
                    color 0.16s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
-#settings-dialog-homepage-ok,
 #settings-dialog-search-ok {
   position: absolute;
   top: 0;
@@ -536,12 +386,6 @@ p.fine-print {
   transition: transform 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.16s cubic-bezier(0.25, 0, 0, 1.0),
                    color 0.16s cubic-bezier(0.25, 0, 0, 1.0);
-}
-
-#settings-dialog-homepage-ok.disable {
-  color: rgba(255,255,255,0.5);
-  background-color: #5f6368;
-  pointer-events: none;
 }
 
 /*
@@ -709,9 +553,7 @@ p.fine-print {
   color: #00caf2;
 }
 
-#settings-dialog-homepage-cancel:focus,
 #settings-dialog-search-cancel:focus,
-#settings-dialog-homepage-cancel:hover,
 #settings-dialog-search-cancel:hover {
   transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.42s cubic-bezier(0.25, 0, 0, 1.0),
@@ -720,9 +562,8 @@ p.fine-print {
   color: #2d2d2d;
   transform: scale(1.2);
 }
-#settings-dialog-homepage-ok:focus,
+
 #settings-dialog-search-ok:focus,
-#settings-dialog-homepage-ok:hover,
 #settings-dialog-search-ok:hover {
   transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.42s cubic-bezier(0.25, 0, 0, 1.0);
@@ -730,14 +571,7 @@ p.fine-print {
   transform: scale(1.2);
 }
 
-#settings-dialog-homepage-ok.disable:focus,
-#settings-dialog-homepage-ok.disable:hover {
-  background-color: #5f6368;
-}
-
-#settings-dialog-homepage-cancel.active,
 #settings-dialog-search-cancel.active,
-#settings-dialog-homepage-cancel:active,
 #settings-dialog-search-cancel:active {
   transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0),
@@ -747,9 +581,7 @@ p.fine-print {
   transform: scale(1.0);
 }
 
-#settings-dialog-homepage-ok.active,
 #settings-dialog-search-ok.active ,
-#settings-dialog-homepage-ok:active,
 #settings-dialog-search-ok:active {
   transition: transform 0.06s cubic-bezier(0.25, 0, 0, 1.0),
                    background-color 0.06s cubic-bezier(0.25, 0, 0, 1.0),

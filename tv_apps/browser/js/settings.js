@@ -41,14 +41,6 @@ var Settings = {
 
       'settings-dialog',
 
-      'settings-dialog-homepage',
-      'settings-dialog-homepage-input',
-      'settings-dialog-homepage-input-area',
-      'settings-dialog-homepage-clear',
-      'settings-dialog-homepage-default',
-      'settings-dialog-homepage-cancel',
-      'settings-dialog-homepage-ok',
-
       'settings-dialog-search',
       'settings-dialog-search-select',
       'settings-dialog-search-select-list',
@@ -96,39 +88,10 @@ var Settings = {
     this.settingsClearCookie.addEventListener('mouseup',
       this.handleClearCookieClick.bind(this));
 
-    this.settingsDialogHomepageInput.addEventListener('submit',
-      this.handleDialogHomepageInputSubmit.bind(this));
-    this.settingsDialogHomepageClear.addEventListener('mouseup',
-      this.handleDialogHomepageClear.bind(this));
-    this.settingsDialogHomepageDefault.addEventListener('mouseup',
-      this.handleDialogHomepageDefault.bind(this));
-    this.settingsDialogHomepageCancel.addEventListener('mouseup',
-      this.handleDialogHomepageCancel.bind(this));
-    this.settingsDialogHomepageOk.addEventListener('mouseup',
-      this.handleDialogHomepageOk.bind(this));
-
     this.settingsDialogSearchCancel.addEventListener('mouseup',
       this.handleDialogSearchCancel.bind(this));
     this.settingsDialogSearchOk.addEventListener('mouseup',
       this.handleDialogSearchOk.bind(this));
-
-    this.settingsDialogHomepageInputArea.addEventListener('focus',
-      this.handleDialogHomepageInputAreaFocus.bind(this));
-    this.settingsDialogHomepageInputArea.addEventListener('mousedown',
-      this.handleDialogHomepageInputAreaClick.bind(this));
-
-    this.settingsDialogHomepageInputArea.addEventListener('blur',
-      this.handleDialogHomepageInputBlur.bind(this));
-    this.settingsDialogHomepageInputArea.addEventListener('input',
-      this.handleDialogHomepageInputInput.bind(this));
-    this.settingsDialogHomepageClear.addEventListener('keyup',
-      this.handleDialogHomepageClear.bind(this));
-    this.settingsDialogHomepageDefault.addEventListener('keyup',
-      this.handleDialogHomepageDefault.bind(this));
-    this.settingsDialogHomepageCancel.addEventListener('keyup',
-      this.handleDialogHomepageCancel.bind(this));
-    this.settingsDialogHomepageOk.addEventListener('keyup',
-      this.handleDialogHomepageOk.bind(this));
 
     this.settingsDialogSearchCancel.addEventListener('keyup',
       this.handleDialogSearchCancel.bind(this));
@@ -221,24 +184,7 @@ var Settings = {
     }
     for( var i = 0 ; i < Settings.focusList.length ; i ++ ) {
       if( i == pos ) {
-        if(Settings.focusList[i].nodeName == 'INPUT') {
-          if( !Settings.settingsDialogHomepageInput
-                                            .classList.contains('exfocus') ) {
-            Settings.settingsDialogHomepageInput.classList.add('exfocus');
-          }
-        } else if(Settings.focusList[i].id == 'settings-dialog-homepage-clear'){
-          Settings.focusList[i].focus();
-          if( !Settings.settingsDialogHomepageInput
-                                            .classList.contains('exfocus') ) {
-            Settings.settingsDialogHomepageInput.classList.add('exfocus');
-          }
-          if( flg ) {
-            opt = Awesomescreen.DEFAULT_EXCLEAR;
-          }
-        } else {
-          Settings.focusList[i].focus();
-          Settings.settingsDialogHomepageInput.classList.remove('exfocus');
-        }
+        Settings.focusList[i].focus();
         Awesomescreen.focusImgFunc(Settings.focusList[i], opt);
       } else {
         Settings.focusList[i].blur();
@@ -250,191 +196,28 @@ var Settings = {
    * Handle homepage click.
    */
   handleHomepageClick: function settings_handleHomepageClick() {
-    if( !this.isDialogHomepageDisplayed() ) {
-      this.focusList = [];
-      Browser.switchCursorMode(false);
-      this.settingsDialog.classList.remove('hidden');
-      this.settingsDialogHomepage.classList.remove('hidden');
-      this.settingsDialogHomepageInput.classList.remove('input');
-      this.settingsDialogHomepageInput.classList.remove('exfocus');
-      this.settingsDialogHomepageInputArea.value =
-        this.settingsHomepageName.textContent;
-      this.settingsDialogHomepageInputArea.tabIndex = '0';
-      this.settingsDialogHomepageClear.tabIndex = '0';
-      this.resetActiveElement();
+    var homepage = this.settingsHomepageName.textContent;
 
-      this.focusList.push(this.settingsDialogHomepageInputArea);
-      this.focusList.push(this.settingsDialogHomepageClear);
-      this.focusList.push(this.settingsDialogHomepageDefault);
-      this.focusList.push(this.settingsDialogHomepageOk);
-      this.focusList.push(this.settingsDialogHomepageCancel);
-      this.focusPos = this.focusList.length - 1;
-      this.focusChange(this.focusPos);
-    }
+    this.getDefaultHomepage((defaultHomepage) => {
+      BrowserDialog.createDialog('edit_homepage', {
+        currentHomepage: homepage,
+        defaultHomepage: defaultHomepage
+      }).then((value) => {
+        // No scheme, prepend basic protocol and return
+        if (!UrlHelper.hasScheme(value)) {
+          value = 'http://' + value;
+        }
+        this.setHomepage(value);
+        this.settingsHomepageName.textContent = value;
+        this.hideDialogHomepage();
+      }, () => {
+        this.hideDialogHomepage();
+      });
+    });
   },
 
   hideDialogHomepage: function settings_hideDialogHomepage() {
-    if( this.isDialogHomepageDisplayed() ) {
-      Awesomescreen.pointerImg.style.display = 'none';
-      this.settingsDialogHomepageInput.classList.remove('input');
-      this.settingsDialogHomepageInput.classList.remove('exfocus');
-      this.settingsDialogHomepage.classList.add('hidden');
-      this.settingsDialog.classList.add('hidden');
-      this.hideInputInvalidState();
-      Browser.switchCursorMode(true);
-    }
-  },
-
-  isDialogHomepageDisplayed: function settings_isDialogHomepageDisplayed() {
-    return !this.settingsDialogHomepage.classList.contains('hidden');
-  },
-
-  handleDialogHomepageInputSubmit:
-    function settings_handleDialogHomepageInputSubmit(ev) {
-    if (ev) {
-      // Can be canceled
-      ev.preventDefault();
-    }
-
-    var hasScheme =
-      UrlHelper.hasScheme(this.settingsDialogHomepageInputArea.value);
-    // No scheme, prepend basic protocol and return
-    if (!hasScheme) {
-      this.settingsDialogHomepageInputArea.value =
-          'http://' + this.settingsDialogHomepageInputArea.value;
-    }
-
-    this.settingsDialogHomepageInputArea.blur();
-  },
-
-  handleDialogHomepageInputAreaFocus:
-    function settings_handleDialogHomepageInputAreaFocus(evt) {
-    if( evt ) {
-      evt.preventDefault();
-    }
-    Settings.settingsDialogHomepageInput.classList.add('input');
-    Settings.settingsDialogHomepageInput.classList.remove('exfocus');
-  },
-
-  handleDialogHomepageInputAreaClick:
-    function settings_handleDialogHomepageInputAreaClick(evt) {
-    Browser.switchCursorMode(true);
-    Browser.switchCursorMode(false);
-
-    Settings.settingsDialogHomepageInput.classList.add('input');
-    Settings.settingsDialogHomepageInput.classList.remove('exfocus');
-
-    Settings.focusPos = 0;
-    Settings.focusList[Settings.focusPos].focus();
     Awesomescreen.pointerImg.style.display = 'none';
-  },
-
-  handleDialogHomepageInputBlur:
-    function settings_handleDialogHomepageInputBlur(evt) {
-    if( evt ) {
-      evt.preventDefault();
-    }
-    if( Awesomescreen.pointerImg.style.display == 'none' ) {
-      Browser.switchCursorMode(true);
-      Browser.switchCursorMode(false);
-    }
-    // Pointer image to the input area(fucusPos=0)
-    Settings.focusPos = 0;
-    Settings.settingsDialogHomepageInput.classList.remove('input');
-    Settings.focusChange(Settings.focusPos);
-    Awesomescreen.pointerImg.style.display = 'block';
-  },
-
-  handleDialogHomepageInputInput:
-    function settings_handleDialogHomepageInputInput(evt) {
-    if (Settings.settingsDialogHomepageInputArea.validity.valid) {
-      this.hideInputInvalidState();
-    } else {
-      this.showInputInvalidState();
-    }
-  },
-
-  handleDialogHomepageClear:
-    function settings_handleDialogHomepageClear(evt) {
-    if( evt ) {
-      evt.preventDefault();
-    }
-    if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
-      return;
-    }
-    if( evt.keyCode != KeyEvent.DOM_VK_RETURN ) {
-      Awesomescreen.pointerImg.style.display = 'none';
-      document.activeElement.blur();
-      document.activeElement.classList.remove('exfocus');
-    }
-    document.activeElement.classList.remove('active');
-    this.settingsDialogHomepageInputArea.value = '';
-    this.showInputInvalidState();
-  },
-
-  handleDialogHomepageDefault:
-    function settings_handleDialogHomepageDefault(evt) {
-    if( evt ) {
-      evt.preventDefault();
-    }
-    if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
-      return;
-    }
-    if( evt.keyCode != KeyEvent.DOM_VK_RETURN ) {
-      Awesomescreen.pointerImg.style.display = 'none';
-      document.activeElement.blur();
-      document.activeElement.classList.remove('exfocus');
-    }
-    document.activeElement.classList.remove('active');
-    this.getDefaultHomepage((function(result) {
-      this.settingsDialogHomepageInputArea.value = result;
-      this.hideInputInvalidState();
-    }).bind(this));
-  },
-
-  handleDialogHomepageCancel:
-    function settings_handleDialogHomepageCancel(evt) {
-    if( evt ) {
-      evt.preventDefault();
-    }
-    if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
-      return;
-    }
-    // animation end event handler
-    var end_event = (function() {
-      Settings.settingsDialogHomepageCancel.removeEventListener('transitionend',
-          end_event, false);
-      Settings.hideDialogHomepage();
-    });
-    // end animantion event
-    Settings.settingsDialogHomepageCancel.addEventListener('transitionend',
-      end_event, false);
-    document.activeElement.classList.remove('active');
-  },
-
-  handleDialogHomepageOk: function settings_handleDialogHomepageOk(evt) {
-    if( evt ) {
-      evt.preventDefault();
-    }
-    if(( evt.type == 'keyup' ) && ( evt.keyCode != KeyEvent.DOM_VK_RETURN )) {
-      return;
-    }
-    if (!Settings.settingsDialogHomepageInputArea.validity.valid) {
-      return;
-    }
-    // animation end event handler
-    var end_event = (function() {
-      Settings.settingsDialogHomepageOk.removeEventListener('transitionend',
-          end_event, false);
-      Settings.hideDialogHomepage();
-    });
-    // end animantion event
-    Settings.settingsDialogHomepageOk.addEventListener('transitionend',
-        end_event, false);
-    document.activeElement.classList.remove('active');
-    this.setHomepage(this.settingsDialogHomepageInputArea.value);
-    this.settingsHomepageName.textContent =
-      this.settingsDialogHomepageInputArea.value;
   },
 
   /**
@@ -625,13 +408,6 @@ var Settings = {
     switch( ev.keyCode ) {
       case KeyEvent.DOM_VK_LEFT :
         ev.preventDefault();
-        if( Settings.isDialogHomepageDisplayed() ) {
-          if(( Settings.focusPos == 1 ) || ( Settings.focusPos == 4 )) {
-            Settings.focusPos --;
-            Settings.focusChange(Settings.focusPos);
-          }
-          return true;
-        }
         if( Settings.isDialogSearchDisplayed() ) {
           if( Settings.focusPos == Settings.focusList.length - 1 ) {
             Settings.focusPos --;
@@ -643,13 +419,6 @@ var Settings = {
 
       case KeyEvent.DOM_VK_RIGHT :
         ev.preventDefault();
-        if( Settings.isDialogHomepageDisplayed() ) {
-          if(( Settings.focusPos === 0 ) || ( Settings.focusPos === 3 )) {
-            Settings.focusPos ++;
-            Settings.focusChange(Settings.focusPos);
-          }
-          return true;
-        }
         if( Settings.isDialogSearchDisplayed() ) {
           if( Settings.focusPos == Settings.focusList.length - 2 ) {
             Settings.focusPos ++;
@@ -661,16 +430,6 @@ var Settings = {
 
       case KeyEvent.DOM_VK_UP :
         ev.preventDefault();
-        if( Settings.isDialogHomepageDisplayed() ) {
-          if(( Settings.focusPos === 2 ) || ( Settings.focusPos === 4 )) {
-            Settings.focusPos -= 2;
-            Settings.focusChange(Settings.focusPos);
-          } else if( Settings.focusPos === 3 ) {
-            Settings.focusPos --;
-            Settings.focusChange(Settings.focusPos);
-          }
-          return true;
-        }
         if( Settings.isDialogSearchDisplayed() ) {
           if( Settings.focusPos > 0 ) {
             if( Settings.focusPos >= Settings.focusList.length - 1 ) {
@@ -686,16 +445,6 @@ var Settings = {
 
       case KeyEvent.DOM_VK_DOWN :
         ev.preventDefault();
-        if( Settings.isDialogHomepageDisplayed() ) {
-          if(( Settings.focusPos == 1 ) || ( Settings.focusPos === 2 )) {
-            Settings.focusPos ++;
-            Settings.focusChange(Settings.focusPos);
-          } else if( Settings.focusPos === 0 ) {
-            Settings.focusPos += 2;
-            Settings.focusChange(Settings.focusPos);
-          }
-          return true;
-        }
         if( Settings.isDialogSearchDisplayed() ) {
           if( Settings.focusPos < Settings.focusList.length - 2 ) {
             Settings.focusPos ++;
@@ -707,24 +456,19 @@ var Settings = {
 
       case KeyEvent.DOM_VK_RETURN :
         ev.preventDefault();
+        if (Settings.isDialogSearchDisplayed()) {
           if( Settings.focusPos === 0 ) {
             Settings.focusList[Settings.focusPos].focus();
-            if( Settings.isDialogHomepageDisplayed() ) {
-              Awesomescreen.pointerImg.style.display = 'none';
-            }
           }else{
             if (!document.activeElement.classList.contains('disable')) {
               document.activeElement.classList.remove('active');
               document.activeElement.classList.add('active');
             }
            }
+        }
         break;
 
       case KeyEvent.DOM_VK_BACK_SPACE :
-        if( Settings.isDialogHomepageDisplayed() ) {
-          Settings.hideDialogHomepage();
-          return true;
-        }
         if( Settings.isDialogSearchDisplayed() ) {
           Settings.hideDialogSearch();
           return true;

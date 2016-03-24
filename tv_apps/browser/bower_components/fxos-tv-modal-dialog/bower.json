@@ -18,6 +18,7 @@
     "fxos-tv-dialog": "fxos-components/fxos-tv-dialog",
     "fxos-tv-bubbles": "fxos-components/fxos-tv-bubbles",
     "fxos-tv-button": "fxos-components/fxos-tv-button",
-    "fxos-tv-icons": "fxos-components/fxos-tv-icons"
+    "fxos-tv-icons": "fxos-components/fxos-tv-icons",
+    "js-spatial-navigation": "luke-chang/js-spatial-navigation"
   }
 }

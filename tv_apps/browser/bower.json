@@ -17,6 +17,7 @@
     "evt": "fxos-components/evt#~0.4.0",
     "fxos-tv-button": "fxos-components/fxos-tv-button",
     "fxos-tv-icons": "fxos-components/fxos-tv-icons",
-    "fxos-tv-modal-dialog": "fxos-components/fxos-tv-modal-dialog"
+    "fxos-tv-modal-dialog": "fxos-components/fxos-tv-modal-dialog",
+    "js-spatial-navigation": "luke-chang/js-spatial-navigation"
   }
 }
