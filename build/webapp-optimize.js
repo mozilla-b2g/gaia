@@ -251,7 +251,7 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
     var jsonName = getL10nJSONFileName(
       this.htmlFile, this.webapp.buildDirectoryFilePath);
     var jsonLink = doc.createElement('link');
-    jsonLink.href = '/locales-obj/' + jsonName;
+    jsonLink.href = 'locales-obj/' + jsonName;
     jsonLink.rel = 'localization';
     parentNode.insertBefore(jsonLink, links[0]);
 
@@ -519,12 +519,10 @@ HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
 };
 
 HTMLOptimizer.prototype.writeAST = function() {
-  var localeObjDir =
-    utils.getFile(this.webapp.buildDirectoryFilePath, 'locales-obj');
-  utils.ensureFolderExists(localeObjDir);
-
   // create all JSON entries in /locales-obj
   for (var lang in this.entries) {
+    var localeObjDir = utils.getFile(this.htmlFile.parent.path, 'locales-obj');
+    utils.ensureFolderExists(localeObjDir);
     var fileName = getL10nJSONFileName(
       this.htmlFile, this.webapp.buildDirectoryFilePath);
     var file =
