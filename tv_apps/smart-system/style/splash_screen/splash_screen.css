@@ -22,6 +22,21 @@
               opacity 0.6s cubic-bezier(0.25, 0.0, 0.0, 1.0);
 }
 
+.splash-screen .icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 22.8rem;
+  height: 22.8rem;
+  border-radius: 50%;
+  opacity: 0.2;
+
+  background-color: #F1F1F1;
+  background-size: cover;
+}
+
 .splash-screen::after {
   content: '';
 
