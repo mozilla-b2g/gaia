@@ -462,7 +462,8 @@
             itemEl.setAttribute('data-folder', '');
             iconImgLeftEl.style.backgroundImage = '';
             iconImgLeftEl.setAttribute('data-icon', 'arrow-left');
-            titleEl.textContent = data.title;
+            navigator.mozL10n.setAttributes(titleEl, 'back-to',
+                                            {parentFolder: data.title});
             uriEl.textContent = '';
             iconImgRightEl.setAttribute('data-icon', '');
             break;
@@ -706,7 +707,7 @@
     generateBackButtonData: function(title) {
       return {
         type: 'button',
-        title: 'Back to ' + title
+        title: title
       };
     },
 
