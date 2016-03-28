@@ -930,4 +930,24 @@ suite('sync/adapters/bookmarks >', function() {
     assert.deepEqual(result, expectedBookmark);
     done();
   });
+
+  test('BookmarksHelper - Ignore a deleting operation for non-existing record',
+      function(done) {
+    var bookmarksAdapter = DataAdapters.bookmarks;
+    var warnSpy = sinon.spy(console, 'warn');
+    testCollectionData = testDataGenerator(1, 1440000000, 5);
+    bookmarksAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
+        .then(getBookmarksStore).then(bookmarksStore => {
+      delete bookmarksStore._records['http://example5.com/'];
+      assert.equal(asyncStorage.mItems['foo' + BOOKMARKS_COLLECTION_MTIME],
+          testCollectionData[0].last_modified);
+
+      const ID_5 = 'UNIQUE_ID_5';
+      BookmarksHelper.deleteBookmark(ID_5, 'foo').then(() => {
+        assert(warnSpy.withArgs('Try to delete a non-existing record:',
+                                ID_5, 'http://example5.com/').calledOnce);
+        done();
+      });
+    });
+  });
 });
