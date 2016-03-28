@@ -200,7 +200,8 @@ var ModalDialog = {
             textL10nId: evt.yesText || 'ok',
             defaultFocus: true,
             onClick: this.confirmHandler.bind(this)
-          }]
+          }],
+          onCancel: this.cancelHandler.bind(this)
         });
         this.setTitle('alert', title);
         break;
@@ -507,4 +508,3 @@ var ModalDialog = {
 };
 
 ModalDialog.init();
-
