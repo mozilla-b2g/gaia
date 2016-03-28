@@ -68,11 +68,16 @@ smart-button[type=rounded-corner-text].focused {
   color: #fff;
   background: rgba(0, 0, 0, 0.3);
   position: fixed;
+}
+
+.page,
+.page-section {
   opacity: 1;
   transition: opacity 1s ease;
 }
 
-.page.hidden {
+.page.hidden,
+.page-section.hidden {
   opacity: 0;
   visibility: hidden;
   transition: none;
@@ -96,6 +101,11 @@ smart-button[type=rounded-corner-text].focused {
   top: 33rem;
   overflow-x: hidden;
   text-align: justify;
+}
+
+.page-section.arrow-icon-section {
+  height: 20rem;
+  bottom: 0rem;
 }
 
 .page-section.content-section:focus {
@@ -131,15 +141,57 @@ smart-button[type=rounded-corner-text].focused {
   height: 6rem;
   position: absolute;
   margin-right: -50%;
-  bottom: 12rem;
   left: 50%;
-  transform: translate(-50%, 0px);
+  transform: translate(-50%, 0px) scale(1.5);
   opacity: 1;
   transition: opacity 0.3s ease;
+  animation-duration: 1.4s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
 }
 
-.arrow-icon.hidden {
-  opacity: 0;
+.arrow-1 {
+  bottom: 16.5rem;
+  animation-name: arrow-1-anim;
+}
+
+@keyframes arrow-1-anim {
+  0% {
+    opacity: 0;
+    bottom: 16.5rem;
+  }
+  30% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    bottom: 12.5rem;
+  }
+}
+
+.arrow-2 {
+  bottom: 14rem;
+  animation-name: arrow-2-anim;
+}
+
+@keyframes arrow-2-anim {
+  0% {
+    opacity: 0;
+    bottom: 14rem;
+  }
+  20% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    bottom: 10rem;
+  }
 }
 
 .arrow-icon[data-icon]::before {
