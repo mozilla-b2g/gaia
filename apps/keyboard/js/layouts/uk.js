@@ -25,12 +25,12 @@ Keyboards.uk = {
         { value: 'п' }, { value: 'р' }, { value: 'о' }, { value: 'л' },
         { value: 'д' }, { value: 'ж' }, { value: 'є' }
       ], [
-        { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
+        { value: '⇪', keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
         { value: 'я' }, { value: 'ч' }, { value: 'с' }, { value: 'м' },
         { value: 'и' }, { value: 'т' }, { value: 'ь' }, { value: 'б' },
-        { value: 'ю' }, { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+        { value: 'ю' }, { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: '&nbsp', ratio: 10, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],

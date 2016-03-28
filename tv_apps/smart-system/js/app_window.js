@@ -888,7 +888,6 @@
       if (evt.detail.type !== 'fatal') {
         return;
       }
-      // Send event instead of call crash reporter directly.
       this.publish('crashed');
 
       if (this.constructor.SUSPENDING_ENABLED && !this.isActive()) {

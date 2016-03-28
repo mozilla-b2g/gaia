@@ -865,14 +865,6 @@ tests/jsmarionette/runner/marionette-js-runner/venv:
 	# Still want to use $GAIA/node_modules
 	rm -rf tests/jsmarionette/runner/marionette-js-runner/node_modules
 
-
-.PHONY: caldav-server-install
-caldav-server-install:
-	source tests/ci/venv.sh; \
-				export LC_ALL=en_US.UTF-8; \
-				export LANG=en_US.UTF-8; \
-				pip install radicale;
-
 .PHONY: raptor
 raptor: node_modules
 ifneq ($(APP),)

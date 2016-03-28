@@ -234,8 +234,7 @@
     }
   };
 
-  NetError.create();
-
+  document.l10n.ready.then(() => {NetError.create();});
   document.addEventListener('DOMRetranslated', NetError.create);
 
   exports.NetError = NetError;

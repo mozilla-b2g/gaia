@@ -446,6 +446,7 @@ define(function(require) {
           case 'audio-card':
           case 'audio-input-microphone':
           case 'input-keyboard':
+          case 'input-mouse':
             // We only support 'audio-card', 'audio-input-microphone' device
             // to connect. Before pop out a dialog for operation, we should
             // check the paired device is connected or not.
@@ -607,6 +608,7 @@ define(function(require) {
       _connectDevice: function(deviceItem) {
         if (!((deviceItem.type === 'audio-card') ||
               (deviceItem.type === 'input-keyboard') ||
+              (deviceItem.type === 'input-mouse') ||
               (deviceItem.type === 'audio-input-microphone'))) {
           return;
         }
