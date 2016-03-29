@@ -4,7 +4,6 @@
           SpatialNavigator, URL, XScrollable, Animations,
           Utils, FTEWizard */
 /* jshint nonew: false */
-
 (function(exports) {
   const CARDLIST_LEFT_MARGIN = 8.4;
   const FOLDER_CAPACITY = 9;
@@ -16,13 +15,14 @@
   function Home() {}
 
   Home.prototype = {
+
     navigableIds:
-        ['search-button', 'search-input', 'edit-button', 'settings-button',
+        ['search-button', 'search-input', 'settings-button',
             'filter-all-button', 'filter-tv-button', 'filter-app-button',
             'filter-device-button', 'filter-website-button',
             'add-folder-button'],
 
-    topElementIds: ['search-button', 'search-input', 'edit-button',
+    topElementIds: ['search-button', 'search-input',
             'settings-button', 'add-folder-button'],
 
     bottomElementIds: ['filter-tab-group', 'filter-all-button',
@@ -42,23 +42,27 @@
         'filter-device-button', 'filter-app-button', 'filter-website-button'],
 
     filterManager: undefined,
+    mainSection: document.getElementById('main-section'),
     cardListElem: document.getElementById('card-list'),
     folderListElem: document.getElementById('folder-list'),
     cardManager: undefined,
-    editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
     addFolderButton: document.getElementById('add-folder-button'),
     searchButton: document.getElementById('search-button'),
     timeElem: document.getElementById('time'),
     fteElem: document.getElementById('fte'),
-    editFolderElem: document.getElementById('edit-folder'),
-    removeCardElem: document.getElementById('remove-card'),
+    contextmenuElem: document.getElementById('card-menu'),
+    moveMenuItem: document.getElementById('move-menuitem'),
+    renameMenuItem: document.getElementById('rename-menuitem'),
+    unpinMenuItem: document.getElementById('unpin-menuitem'),
+    editFolderMenuItem: document.getElementById('edit-folder-menuitem'),
 
 
     init: function() {
       var that = this;
 
       this.initClock();
+      this.initContextMenu();
 
       this.cardManager = new CardManager();
       this.cardManager.init();
@@ -130,7 +134,7 @@
 
         that.edit = new Edit();
         that.edit.init(that.spatialNavigator, that.cardManager,
-                       that.cardScrollable, that.folderScrollable);
+                       that.cardScrollable, that.folderScrollable, that);
         that.edit.on('arrange', that.onArrangeMode.bind(that));
 
         that.filterManager = new FilterManager();
@@ -140,6 +144,8 @@
           home: that,
           cardManager: that.cardManager,
         });
+        that.filterManager.on('filter-changed',
+          that.onFilterChanged.bind(that));
 
         // In some case, we can do action at keydown which is translated as
         // onEnter in home.js. But in button click case, we need to listen
@@ -187,10 +193,81 @@
           cardManager: that.cardManager
         });
         that._cardPicker.on('hide', that.onCardPickerHide.bind(that));
-
-        that.editFolderElem.addEventListener(
-                                        'click', that.onEditFolder.bind(that));
+        that._cardPicker.on('show', that.onCardPickerShow.bind(that));
       });
+    },
+
+    initContextMenu: function () {
+      this.moveMenuItem.addEventListener('click',
+        this.onMoveMenuItemClick.bind(this));
+
+      this.renameMenuItem.addEventListener('click',
+        this.onRenameMenuItemClick.bind(this));
+
+      this.unpinMenuItem.addEventListener('click',
+        this.onUnpinMenuItemClick.bind(this));
+
+      this.editFolderMenuItem.addEventListener('click',
+        this.onEditFolderMenuItemClick.bind(this));
+    },
+
+    onMoveMenuItemClick: function () {
+      this.edit.toggleEditMode();
+      this.edit.toggleArrangeMode();
+    },
+
+    onRenameMenuItemClick: function () {
+      this.edit.renameCard(this.focusScrollable,
+        this.focusScrollable.getNodeFromItem(this.focusScrollable.currentItem));
+    },
+
+    onUnpinMenuItemClick: function () {
+      this.edit.openDeleteCardDialog(this.focusScrollable,
+        this.focusScrollable.getNodeFromItem(this.focusScrollable.currentItem));
+    },
+
+    onEditFolderMenuItemClick: function () {
+      this._cardPicker.show(this.cardScrollable.currentItem);
+    },
+
+    enableContextMenu: function () {
+      var focus = this.spatialNavigator.getFocusedElement();
+      if (this.mode === '' &&
+        (focus === this.cardScrollable || focus === this.folderScrollable)) {
+        this.mainSection.setAttribute('contextmenu', this.contextmenuElem.id);
+      }
+    },
+
+    disableContextMenu: function () {
+      this.mainSection.setAttribute('contextmenu', '');
+    },
+
+    updateContextMenu: function (itemElem) {
+      var type = itemElem.getAttribute('app-type');
+      if (this.contextmenuElem.dataset.currentAppType == type) {
+        return;
+      }
+      this.contextmenuElem.dataset.currentAppType = type;
+
+      // Clean up first
+      for (var i = this.contextmenuElem.childNodes.length - 1; i >= 0; --i) {
+        this.contextmenuElem.removeChild(this.contextmenuElem.childNodes[i]);
+      }
+
+      this.contextmenuElem.appendChild(this.moveMenuItem);
+
+      switch (type) {
+        case 'folder':
+          this.contextmenuElem.appendChild(this.editFolderMenuItem);
+          break;
+
+        case 'tv':
+        case 'app':
+        case 'appbookmark':
+          this.contextmenuElem.appendChild(this.renameMenuItem);
+          this.contextmenuElem.appendChild(this.unpinMenuItem);
+          break;
+      }
     },
 
     onVisibilityChange: function() {
@@ -436,11 +513,6 @@
         this.openSettings();
       } else if (focusElem === this.addFolderButton) {
         this.showAddFolderDialog();
-      } else if (focusElem === this.editButton) {
-        this.cleanFolderScrollable();
-        this.edit.toggleEditMode();
-        // XXX: Reset card filter when entering edit mode
-        this.filterManager.resetFilter();
       } else if (focusElem &&
           this.filterElementIds.indexOf(focusElem.id) > -1) {
         this.cleanFolderScrollable();
@@ -549,6 +621,8 @@
                         !this.cardScrollable.isHovering) {
         this.cleanFolderScrollable();
       }
+      this.updateContextMenu(itemElem);
+      this.enableContextMenu();
     },
 
     cleanFolderScrollable: function(doNotChangeFocus) {
@@ -568,6 +642,7 @@
       if (nodeElem) {
         nodeElem.classList.remove('focused');
       }
+      this.disableContextMenu();
     },
 
     handleCardUnhover: function(scrollable, itemElem, nodeElem) {
@@ -578,7 +653,6 @@
       // Folder expansion is performed on only when user moves cursor onto a
       // folder or hover a folder in edit mode and it finished its focus
       // transition.
-
       if (this.focusScrollable === this.cardScrollable &&
         evt.originalTarget.classList.contains('app-button') &&
         (!this._folderCard ||
@@ -590,7 +664,7 @@
           // outline-width doesn't raise when inserting a new folder since it's
           // focused from the start.
            evt.propertyName === 'outline-width') &&
-          document.getElementById('main-section').dataset.mode !== 'arrange' ||
+          this.mode !== 'arrange' ||
           // Folder needs to be expanded when hovered as well.
           evt.originalTarget.classList.contains('hovered'))) {
         this.buildFolderList(evt.originalTarget);
@@ -657,12 +731,25 @@
       this._cardPicker.show();
     },
 
+    onFilterChanged: function (filterName) {
+      if (filterName === FilterManager.FILTERS.ALL.name) {
+        this.mode = '';
+      } else {
+        this.mode = 'filter';
+      }
+    },
+
+    onCardPickerShow: function () {
+      this.mode = 'card-picker';
+    },
+
     onCardPickerHide: function() {
       if (this._cardPicker.mode === 'add') {
         this._cardPicker.saveToNewFolder(this.cardScrollable.currentIndex);
       } else if (this._cardPicker.mode === 'update') {
         this._cardPicker.updateFolder();
       }
+      this.mode = '';
     },
 
     updateClock: function() {
@@ -696,16 +783,25 @@
       this.clock.start(this.updateClock.bind(this));
     },
 
-    onEditFolder: function() {
-      this._cardPicker.show(this.cardScrollable.currentItem);
-    },
-
     get focusElem() {
       return this._focus;
     },
 
     get focusScrollable() {
       return this._focusScrollable;
+    },
+
+    get mode() {
+      return this.mainSection.dataset.mode;
+    },
+
+    set mode(newMode) {
+      this.mainSection.dataset.mode = newMode;
+      if (newMode === '') {
+        this.enableContextMenu();
+      } else {
+        this.disableContextMenu();
+      }
     }
   };
 

@@ -14,11 +14,9 @@
   function Edit() {}
 
   Edit.prototype = evt({
-    mainSection: document.getElementById('main-section'),
     doneButton: document.getElementById('done-button'),
     searchButton: document.getElementById('search-button'),
     addNewFolderButton: document.getElementById('add-new-folder-button'),
-    editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
 
     regularNavElements: undefined,
@@ -26,7 +24,7 @@
     currentNode: undefined,
 
     init: function(spatialNavigator, cardManager,
-                   cardScrollable, folderScrollable) {
+                   cardScrollable, folderScrollable, home) {
       var that = this;
       this.modalDialog = SharedUtils.createSmartDialog('modal');
 
@@ -34,9 +32,9 @@
       this.cardManager = cardManager;
       this.cardScrollable = cardScrollable;
       this.folderScrollable = folderScrollable;
+      this._home = home;
 
-      this.regularNavElements =
-              [this.searchButton, this.settingsButton, this.editButton];
+      this.regularNavElements = [this.searchButton, this.settingsButton];
       this.editNavElements = [this.doneButton, this.addNewFolderButton];
 
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
@@ -65,7 +63,7 @@
       this.isFolderReady = false;
       // The hovering card
       this._hoveringCard = null;
-      this.mainSection.dataset.mode = '';
+      this.mode = '';
     },
     /**
      * State of home app looks like this:
@@ -73,8 +71,10 @@
      * (Only adjacant states are switchable)
      */
     toggleEditMode: function() {
-      if (this.mainSection.dataset.mode === 'edit') {
-        this.mainSection.dataset.mode = '';
+      var originalItem = null;
+      if (this.mode === 'edit') {
+        originalItem = this.currentScrollable.getItemFromNode(this.currentNode);
+        this.mode = '';
         this.spatialNavigator.multiAdd(this.regularNavElements);
         this.spatialNavigator.multiRemove(this.editNavElements);
         this.cardScrollable.setScale();
@@ -82,34 +82,42 @@
         this.cardScrollable.listElem.classList.add('exiting-edit-mode');
         this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true})
           .then(function() {
-            // Since writeCardlistInCardStore triggers card-removed event that
-            // causes re-focus on other elements in card list, we need to wait
-            // until those actions to be done before focusing editButton.
-            this.spatialNavigator.focus(this.editButton);
-            this.currentNode.classList.remove('focused');
+            this.spatialNavigator.focus(this.currentScrollable);
+            this.currentScrollable.realignToReferenceElement();
+            this.currentScrollable.focus(originalItem);
           }.bind(this));
         this._concealPanel(this.currentScrollable, this.currentNode);
         this.fire('exit-edit-mode');
       } else {
-        this.mainSection.dataset.mode = 'edit';
+        this.mode = 'edit';
         this.spatialNavigator.multiRemove(this.regularNavElements);
         this.spatialNavigator.multiAdd(this.editNavElements);
 
-        this._setCurrentScrollable(this.cardScrollable);
-        this.currentNode =
-          this.cardScrollable.getNodeFromItem(this.cardScrollable.currentItem);
+        if (this.spatialNavigator.getFocusedElement() ===
+          this.folderScrollable) {
+          this._setCurrentScrollable(this.folderScrollable);
+        } else {
+          this._setCurrentScrollable(this.cardScrollable);
+          this.folderScrollable.clean();
+        }
+
+        this.currentNode = this.currentScrollable
+          .getNodeFromItem(this.currentScrollable.currentItem);
         this._revealPanel(this.currentScrollable, this.currentNode);
 
-        this.spatialNavigator.focus(this.cardScrollable);
         this.cardScrollable.setScale(EDIT_MODE_SCALE);
         this.folderScrollable.setScale(EDIT_MODE_SCALE);
+        this.spatialNavigator.focus(this.currentScrollable);
+        this.currentScrollable.realignToReferenceElement();
+        originalItem = this.currentScrollable.getItemFromNode(this.currentNode);
+        this.currentScrollable.focus(originalItem);
         this.fire('enter-edit-mode');
       }
     },
 
     toggleArrangeMode: function() {
-      if (this.mainSection.dataset.mode === 'edit') {
-        this.mainSection.dataset.mode = 'arrange';
+      if (this.mode === 'edit') {
+        this.mode = 'arrange';
         this._concealPanel(this.currentScrollable, this.currentNode);
         this.currentScrollable.focus(this.currentScrollable.currentItem);
         this._setHintArrow();
@@ -117,8 +125,8 @@
           this.cardScrollable.setColspanOnFocus(1);
         }
         this.fire('arrange');
-      } else if (this.mainSection.dataset.mode == 'arrange') {
-        this.mainSection.dataset.mode = 'edit';
+      } else if (this.mode == 'arrange') {
+        this.mode = 'edit';
 
         this.currentNode = this.currentScrollable.getNodeFromItem(
                                             this.currentScrollable.currentItem);
@@ -126,6 +134,7 @@
         this._clearHintArrow();
         this.cardScrollable.setColspanOnFocus(0);
         this.folderScrollable.realignToReferenceElement();
+        this.toggleEditMode();
       }
     },
 
@@ -354,12 +363,12 @@
     },
 
     onEnter: function() {
-      if (this.mode !== 'edit' && this.mode !== 'arrange') {
-        return false;
-      }
-
       if (this.modalDialog.isOpened) {
         return true;
+      }
+
+      if (this.mode !== 'edit' && this.mode !== 'arrange') {
+        return false;
       }
 
       var focus = this.spatialNavigator.getFocusedElement();
@@ -454,6 +463,7 @@
 
             if (folder.isEmpty()) {
               this.spatialNavigator.focus(this.cardScrollable);
+              this.cardManager.removeCard(folder);
             }
           }
         }
@@ -480,6 +490,9 @@
 
     _getPanel: function(nodeElem) {
       var cardPanel = nodeElem.getElementsByClassName('card-panel')[0];
+      if (!cardPanel) {
+        return null;
+      }
       return {
         panel: cardPanel,
         renameBtn: cardPanel.getElementsByClassName('rename-btn')[0],
@@ -489,9 +502,10 @@
 
     _revealPanel: function(scrollable, nodeElem) {
       var panel = this._getPanel(nodeElem);
-      if(scrollable.getItemFromNode(nodeElem).getAttribute('app-type') ===
-                                                                  'deck') {
+      if(!panel ||
         // Decks can't be renamed or deleted.
+        scrollable.getItemFromNode(nodeElem).getAttribute('app-type') ===
+                                                                  'deck') {
         return;
       }
       scrollable.spatialNavigator.add(panel.renameBtn);
@@ -500,6 +514,9 @@
 
     _concealPanel: function(scrollable, nodeElem) {
       var panel = this._getPanel(nodeElem);
+      if (!panel) {
+        return;
+      }
       scrollable.spatialNavigator.remove(panel.renameBtn);
       scrollable.spatialNavigator.remove(panel.deleteBtn);
     },
@@ -557,7 +574,11 @@
     },
 
     get mode() {
-      return this.mainSection.dataset.mode;
+      return this._home.mode;
+    },
+
+    set mode(newMode) {
+      this._home.mode = newMode;
     }
   });
 
