@@ -13,6 +13,7 @@ MockDatastoreObj.prototype = {
 
   _nextId: 1,
   _inError: false,
+  _raceCondition: null,
   _cb: null,
 
   _clone: function(obj) {
@@ -24,10 +25,11 @@ MockDatastoreObj.prototype = {
     return out;
   },
 
-  _reject: function(errorName) {
+  _reject: function(errorName, errorMessage) {
     return new window.Promise(function(resolve, reject) {
       reject({
-        name: errorName || 'UnknownError'
+        name: errorName || 'UnknownError',
+        message: errorMessage
       });
     });
   },
@@ -66,9 +68,13 @@ MockDatastoreObj.prototype = {
     });
   },
 
-  put: function(obj, dsId) {
+  put: function(obj, dsId, revisionId) {
     if (this._inError === true) {
       return this._reject();
+    }
+
+    if (revisionId && this._raceCondition) {
+      return this._reject('ConstraintError', 'RevisionId is not up-to-date');
     }
 
     if (dsId === this._nextId) {
@@ -86,9 +92,13 @@ MockDatastoreObj.prototype = {
     });
   },
 
-  add: function(obj, dsId) {
+  add: function(obj, dsId, revisionId) {
     if (this._inError === true) {
       return this._reject();
+    }
+
+    if (revisionId && this._raceCondition) {
+      return this._reject('ConstraintError', 'RevisionId is not up-to-date');
     }
 
     var newId = dsId || this._nextId;
@@ -107,9 +117,13 @@ MockDatastoreObj.prototype = {
     });
   },
 
-  remove: function(dsId) {
+  remove: function(dsId, revisionId) {
     if (this._inError === true) {
       return this._reject();
+    }
+
+    if (revisionId && this._raceCondition) {
+      return this._reject('ConstraintError', 'RevisionId is not up-to-date');
     }
 
     delete this._records[dsId];
@@ -156,9 +170,13 @@ MockDatastoreObj.prototype = {
     });
   },
 
-  clear: function() {
+  clear: function(revisionId) {
     if (this._inError === true) {
       return this._reject();
+    }
+
+    if (revisionId && this._raceCondition) {
+      return this._reject('ConstraintError', 'RevisionId is not up-to-date');
     }
 
     this._records = {};

@@ -668,4 +668,24 @@ suite('sync/adapters/history >', function() {
     });
     done();
   });
+
+  test('HistoryHelper - Ignore a deleting operation for non-existing record',
+      function(done) {
+    var historyAdapter = DataAdapters.history;
+    var warnSpy = sinon.spy(console, 'warn');
+    testCollectionData = testDataGenerator(1, 1440000000, 5);
+    historyAdapter.update(kintoCollection, { readonly: true, userid: 'foo' })
+        .then(getPlacesStore).then(placesStore => {
+      delete placesStore._records['http://example5.com/'];
+      assert.equal(asyncStorage.mItems['foo' + HISTORY_COLLECTION_MTIME],
+          testCollectionData[0].last_modified);
+
+      const ID_5 = 'UNIQUE_ID_5';
+      HistoryHelper.deletePlace(ID_5, 'foo').then(() => {
+        assert(warnSpy.withArgs('Try to delete a non-existing record:',
+                                'http://example5.com/').calledOnce);
+        done();
+      });
+    });
+  });
 });

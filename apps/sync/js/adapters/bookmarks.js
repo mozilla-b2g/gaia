@@ -189,6 +189,10 @@ var BookmarksHelper = (() => {
       return _ensureStore().then(store => {
         var revisionId = store.revisionId;
         return store.get(url).then(localRecord => {
+          if (!localRecord) {
+            console.warn('Try to delete a non-existing record:', fxsyncId, url);
+            return Promise.resolve();
+          }
           localRecord.fxsyncRecords[fxsyncId] = {
             deleted: true,
             id: fxsyncId

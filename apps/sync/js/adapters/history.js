@@ -203,6 +203,10 @@ var HistoryHelper = (() => {
     return _ensureStore().then(store => {
       var revisionId = store.revisionId;
       return store.get(id).then(record => {
+        if (!record) {
+          console.warn('Try to delete a non-existing record:', id);
+          return Promise.resolve();
+        }
         // Do not delete records that were originally created locally, even if
         // they are deleted remotely. This applies only for readonly sync, and
         // will be removed in the future when we switch to two-way sync.
