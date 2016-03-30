@@ -40,6 +40,10 @@
   font-size: 1.6rem;
 }
 
+#card-picker smart-button[type="app-button"].selected {
+  outline: 0.6rem solid #0097b5;
+}
+
 .card-picker-panel {
   top: 80%;
   position: absolute;
