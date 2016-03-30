@@ -50,6 +50,8 @@
     searchButton: document.getElementById('search-button'),
     timeElem: document.getElementById('time'),
     fteElem: document.getElementById('fte'),
+    editFolderElem: document.getElementById('edit-folder'),
+    removeCardElem: document.getElementById('remove-card'),
 
 
     init: function() {
@@ -180,6 +182,9 @@
           cardManager: that.cardManager
         });
         that._cardPicker.on('hide', that.onCardPickerHide.bind(that));
+
+        that.editFolderElem.addEventListener(
+                                        'click', that.onEditFolder.bind(that));
       });
     },
 
@@ -251,7 +256,13 @@
                               this.restartClock.bind(this));
     },
 
-    onCardInserted: function(scrollable, card, idx, overFolder) {
+    onCardInserted: function(scrollable, card, idx, overFolder, silent) {
+      if (!this._folderCard && scrollable === this.folderScrollable) {
+        // If we inserted a card into a folder that's not shown in
+        // folderScrollable yet, there's nothing to do here.
+        // This happens on creating a new folder from a cardPicker.
+        return;
+      }
       if (card instanceof Folder) {
         card.on('card-inserted',
                 this.onCardInserted.bind(this, this.folderScrollable));
@@ -261,26 +272,30 @@
 
       var newCardElem = this.createCardNode(card);
       var newCardButtonElem = newCardElem.firstElementChild;
-      // Initial transition for new card
-      newCardButtonElem.classList.add('new-card');
-      newCardButtonElem.classList.add('new-card-transition');
-      newCardButtonElem.addEventListener('transitionend', function onPinned() {
-        newCardButtonElem.classList.remove('new-card-transition');
-        newCardButtonElem.classList.remove('last-card');
-        newCardButtonElem.removeEventListener('transitionend', onPinned);
-      });
-      // insert new card into cardScrollable
-      this.isNavigable = false;
-      scrollable.on('slideEnd', function() {
-        newCardButtonElem.classList.remove('new-card');
-        if (scrollable.nodes.indexOf(newCardElem) ===
-            scrollable.nodes.length - 1) {
-          newCardButtonElem.classList.add('last-card');
-        }
-        this.isNavigable = true;
-      }.bind(this));
+      if (!silent) {
+        // Initial transition for new card
+        newCardButtonElem.classList.add('new-card');
+        newCardButtonElem.classList.add('new-card-transition');
+        newCardButtonElem.addEventListener('transitionend',
+        function onPinned() {
+          newCardButtonElem.classList.remove('new-card-transition');
+          newCardButtonElem.classList.remove('last-card');
+          newCardButtonElem.removeEventListener('transitionend', onPinned);
+        });
+        // insert new card into cardScrollable
+        this.isNavigable = false;
+        scrollable.on('slideEnd', function() {
+          newCardButtonElem.classList.remove('new-card');
+          if (scrollable.nodes.indexOf(newCardElem) ===
+              scrollable.nodes.length - 1) {
+            newCardButtonElem.classList.add('last-card');
+          }
+          this.isNavigable = true;
+        }.bind(this));
+      }
+
       if (!overFolder) {
-        scrollable.insertNodeBefore(newCardElem, idx);
+        scrollable.insertNodeBefore(newCardElem, idx, {silent: silent});
       } else {
         scrollable.insertNodeOver(newCardElem, idx);
       }
@@ -300,6 +315,13 @@
         }
       }, this);
       scrollable.removeNodes(indices);
+
+      if (scrollable === this.cardScrollable) {
+        // When editing folder by card picker, it's possible that cards prior to
+        // the folder is moved into it, changing folder's position. We should
+        // refresh the position of folderScrollable in this.
+        this.folderScrollable.realignToReferenceElement();
+      }
     },
 
     onArrangeMode: function() {
@@ -520,10 +542,12 @@
         (!this._folderCard ||
           this._folderCard.cardId !== evt.originalTarget.dataset.cardId) &&
         (evt.originalTarget.classList.contains('focused') &&
-          // Listen to 'outline-width' rather than 'transform' here since it
-          // also applies to edit mode when user moves from panel button back
-          // to card.
-          evt.propertyName === 'outline-width' &&
+          (evt.propertyName === 'transform' ||
+          // Also listen to 'outline-width' for edit mode when user moves
+          // from panel button back to card.
+          // outline-width doesn't raise when inserting a new folder since it's
+          // focused from the start.
+           evt.propertyName === 'outline-width') &&
           document.getElementById('main-section').dataset.mode !== 'arrange' ||
           // Folder needs to be expanded when hovered as well.
           evt.originalTarget.classList.contains('hovered'))) {
@@ -592,7 +616,11 @@
     },
 
     onCardPickerHide: function() {
-      this.spatialNavigator.focus();
+      if (this._cardPicker.mode === 'add') {
+        this._cardPicker.saveToNewFolder(this.cardScrollable.currentIndex);
+      } else if (this._cardPicker.mode === 'update') {
+        this._cardPicker.updateFolder();
+      }
     },
 
     updateClock: function() {
@@ -624,6 +652,10 @@
     restartClock: function() {
       this.clock.stop();
       this.clock.start(this.updateClock.bind(this));
+    },
+
+    onEditFolder: function() {
+      this._cardPicker.show(this.cardScrollable.currentItem);
     },
 
     get focusElem() {

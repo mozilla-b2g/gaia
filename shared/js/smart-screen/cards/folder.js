@@ -171,7 +171,7 @@
     this.fire('folder-changed', this);
   };
 
-  Folder.prototype.addCard = function folder_addCard(card, index) {
+  Folder.prototype.addCard = function folder_addCard(card, index, options) {
     // We don't support folder in folder
     if (!this._isInFolder(card) && !(card instanceof Folder)) {
       if (typeof index !== 'number') {
@@ -179,7 +179,7 @@
       }
       this._cardsInFolder.splice(index, 0, card);
       this._setDirty();
-      this.fire('card-inserted', card, index);
+      this.fire('card-inserted', card, index, null, options && options.silent);
     }
   };
 

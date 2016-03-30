@@ -47,6 +47,7 @@
           }
         });
       });
+      this.cardManager.on('card-inserted', this.onCardInserted.bind(this));
 
       this.cardScrollable.on('listTransformEnd',
                                   this.handleListTransformEnd.bind(this));
@@ -64,6 +65,7 @@
       this.isFolderReady = false;
       // The hovering card
       this._hoveringCard = null;
+      this.mainSection.dataset.mode = '';
     },
     /**
      * State of home app looks like this:
@@ -288,10 +290,8 @@
     },
 
     addNewFolder: function() {
-      var folder = this.cardManager.insertNewFolder({id: 'new-folder'},
-        this.cardScrollable.currentIndex);
-      folder.on('card-swapped', this.onCardSwapped.bind(this));
-      this.spatialNavigator.focus(this.cardScrollable);
+      this.cardManager.insertNewFolder(
+                       {id: 'new-folder'}, this.cardScrollable.currentIndex);
     },
 
     moveToFolder: function() {
@@ -545,6 +545,13 @@
     handleListTransformEnd: function() {
       if (this.mode === '') {
         this.cardScrollable.listElem.classList.remove('exiting-edit-mode');
+      }
+    },
+
+    onCardInserted: function(card) {
+      if (card instanceof Folder) {
+        card.on('card-swapped', this.onCardSwapped.bind(this));
+        this.spatialNavigator.focus(this.cardScrollable);
       }
     },
 
