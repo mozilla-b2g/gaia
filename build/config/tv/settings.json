@@ -6,6 +6,7 @@
   "sync.collections.tabs.enabled": false,
   "sync.collections.history.limit": 500,
   "screen.timeout": 0,
+  "layers.draw-gonk-cursor": true,
   "settings-app.spatial-navigation.enabled": true,
   "debug.performance_data.shared": true
 }
