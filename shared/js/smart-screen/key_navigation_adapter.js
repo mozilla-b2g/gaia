@@ -34,6 +34,7 @@
       this._evtNames.forEach(
                       name => this._targetElement.addEventListener(name, this));
 
+      this.propagateKeyEvent = options.propagateKeyEvent || false;
     },
     uninit: function kna_uninit() {
       this._evtNames.foreach(
@@ -43,6 +44,23 @@
     handleEvent: function kna_handleEvent(evt) {
       if(this._evtNames.indexOf(evt.type) !== -1) {
         this.handleKeyEvent(this.convertKeyToString(evt.keyCode), evt.type);
+      }
+
+      switch(evt.type) {
+        case 'keyup':
+        case 'keydown':
+        case 'keypress':
+          // By default we stop propagating keyevent. This is useful when we
+          // apply KeyNavigationAdapter to a blocked sub-component such as a
+          // modal-dialog-like UI. It prevents underlying UI act to the same
+          // key.
+          !this.propagateKeyEvent && evt.stopPropagation();
+          break;
+        case 'click':
+          // Do forced focus again on mouse click to prevent focus lost problem
+          // when running on devices like PC and phone.
+          this.focus();
+          break;
       }
     },
 

@@ -22,6 +22,7 @@
     <link rel="stylesheet" type="text/css" href="style/info-bar.css">
     <link rel="stylesheet" type="text/css" href="style/search-bar.css">
     <link rel="stylesheet" type="text/css" href="style/fte.css">
+    <link rel="stylesheet" type="text/css" href="style/card-picker.css">
 
     <!-- default cards for first time launch -->
     <link rel="resource" type="application/json" href="shared/resources/default-cards.json">
@@ -69,6 +70,8 @@
     <script defer src="js/message_handler.js"></script>
     <script defer src="js/edit.js"></script>
     <script defer src="js/search_bar.js"></script>
+    <script defer src="js/card_picker.js"></script>
+    <script defer src="js/card_util.js"></script>
 
     <script defer src="js/home.js"></script>
     <script defer src="js/bootstrap.js"></script>
@@ -93,6 +96,9 @@
           </smart-button>
           <smart-button type="text-and-icon" id="settings-button" class="settings-button">
             <span data-l10n-id="settings">settings</span>
+          </smart-button>
+          <smart-button type="text-and-icon" id="add-folder-button" class="add-folder-button">
+            <span data-l10n-id="add-folder">add folder</span>
           </smart-button>
         </section>
         <section id="information-bar" class="information-bar">
@@ -186,6 +192,16 @@
           <section class="fte-panel">
             <smart-button data-behavior="finish" type="rounded-corner-text" class="fte-button primary" data-l10n-id="ok"></smart-button>
           </section>
+        </section>
+      </section>
+
+      <section id="card-picker" class="hidden">
+        <div id="card-picker-grid-view">
+        </div>
+        <section class="card-picker-panel">
+          <smart-button type="text-and-icon" id="hide-cardpicker-button" class="hide-cardpicker-button">
+            <span data-l10n-id="hide-cardpicker">Hide cardpicker</span>
+          </smart-button>
         </section>
       </section>
     </article>
