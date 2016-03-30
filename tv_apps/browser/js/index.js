@@ -859,8 +859,8 @@ var Browser = {
   },
 
   navigate: function browser_navigate(url) {
-    if(Awesomescreen.isDisplayedTop()) {
-      Awesomescreen.topsiteHidden();
+    if(Awesomescreen.isDisplayedDefault()) {
+      Awesomescreen.defaultContentViewHidden();
     }
     this.currentInfo.title = null;
     this.currentInfo.url = url;
@@ -1112,7 +1112,7 @@ var Browser = {
     switch (ev.keyCode) {
     case KeyEvent.DOM_VK_F9:
     case this.colorBar[0].KEY_CODE:
-      if(Awesomescreen.isDisplayedTop()) return;
+      if(Awesomescreen.isDisplayedDefault()) return;
       Toolbar.clickModeButtonBlock();
       break;
 

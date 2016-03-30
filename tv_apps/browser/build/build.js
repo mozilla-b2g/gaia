@@ -67,6 +67,8 @@ BrowserAppBuilder.prototype.enableFirefoxSync = function(options) {
       ['js', 'sync', 'manager_bridge.js'],
       ['js', 'sync', 'settings.js'],
       ['js', 'sync', 'toolbar.js'],
+      ['js', 'sync', 'tabList.js'],
+      ['js', 'sync', 'tabNavigation.js'],
       ['test', 'unit', 'sync', 'manager_bridge_test.js'],
       ['test', 'unit', 'sync', 'settings_test.js'],
       ['test', 'unit', 'sync', 'toolbar_test.js']
