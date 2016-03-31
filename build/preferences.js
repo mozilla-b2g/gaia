@@ -125,14 +125,8 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.system = this.config.SYSTEM;
 
   this.userPrefs['b2g.system_manifest_url'] = this.system + '/manifest.webapp';
-
   this.userPrefs['b2g.neterror.url'] = this.system + '/net_error.html';
-  if (this.system.substring(0, 6) == 'app://') { // B2G bug 773884
-      this.system += '/index.html';
-  }
-
-  this.userPrefs['b2g.system_startup_url'] = this.system;
-
+  this.userPrefs['b2g.system_startup_url'] = this.system + '/index.html';
   this.userPrefs['network.http.max-connections-per-server'] = 15;
   this.userPrefs['dom.mozInputMethod.enabled'] = true;
   this.userPrefs['layout.css.scroll-behavior.enabled'] = true;
