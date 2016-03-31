@@ -902,31 +902,23 @@
         return;
       }
 
-      if (this.manifest) {
-        var that = this;
-        that.element.addEventListener('_opened', function onOpened() {
-          that.element.removeEventListener('_opened', onOpened);
-          that.appChrome = new AppChrome(that);
+      this.appChrome = new AppChrome(this);
 
-          // Some signals that chrome needs to respond to can occur before
-          // chrome has loaded - in those cases, manually call the handlers.
-          if (that.inError) {
-            that.appChrome.handleEvent({type: 'mozbrowsererror'});
-          }
-          if (that.loading) {
-            that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
-            that.appChrome.handleEvent({type: '_loading'});
-          }
-          if (that.metachangeDetails && that.metachangeDetails.length) {
-            that.metachangeDetails.forEach(function(detail) {
-              that.appChrome.handleEvent({type: 'mozbrowsermetachange',
-                                          detail: detail});
-            });
-            that.metachangeDetails = [];
-          }
+      // Some signals that chrome needs to respond to can occur before
+      // chrome has loaded - in those cases, manually call the handlers.
+      if (this.inError) {
+        this.appChrome.handleEvent({type: 'mozbrowsererror'});
+      }
+      if (this.loading) {
+        this.appChrome.handleEvent({type: 'mozbrowserloadstart'});
+        this.appChrome.handleEvent({type: '_loading'});
+      }
+      if (this.metachangeDetails && this.metachangeDetails.length) {
+        this.metachangeDetails.forEach(function(detail) {
+          this.appChrome.handleEvent({type: 'mozbrowsermetachange',
+                                      detail: detail});
         });
-      } else {
-        this.appChrome = new AppChrome(this);
+        this.metachangeDetails = [];
       }
     };
 

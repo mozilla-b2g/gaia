@@ -88,13 +88,11 @@
    * @param {String} manifestURL The manifestURL of homescreen.
    */
   HomescreenWindow.prototype.setBrowserConfig =
-    function hw_setBrowserConfig(_manifestURL) {
-      // FIXME: don't hardcode that.
-      var manifestURL = 'chrome://gaia/content/homescreen/manifest.webapp';
-      this.url = 'chrome://gaia/content/homescreen/index.html#root';
-      var url = new URL(manifestURL);
-      this.origin = url.origin;
-      this.manifestURL = manifestURL;
+    function hw_setBrowserConfig(manifestURL) {
+      var app = window.applications.getByManifestURL(manifestURL);
+      this.origin = app.origin;
+      this.manifestURL = app.manifestURL;
+      this.url = app.origin + '/index.html#root';
 
       this.browser_config =
         new BrowserConfigHelper({
@@ -106,13 +104,13 @@
       this.name = this.browser_config.name;
 
       this.manifest = this.browser_config.manifest;
-      // FIXME: Remove this hardcode
+      // XXX: Remove this hardcode
       this.browser_config.url = this.url;
       this.browser_config.isHomescreen = true;
       this.config = this.browser_config;
       this.isHomescreen = true;
 
-      if (ROCKETBAR_BLACKLIST.indexOf(manifestURL) === -1) {
+      if (ROCKETBAR_BLACKLIST.indexOf(app.manifestURL) === -1) {
         this.config.chrome = {
           maximized: true,
           scrollable: true
