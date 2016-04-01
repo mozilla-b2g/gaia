@@ -61,8 +61,7 @@
                 'system-resize',
                 'home',
                 'holdhome',
-                'mozChromeEvent',
-                'mozPresentationContentEvent']
+                'mozChromeEvent']
     }
   };
 
@@ -120,14 +119,6 @@
         evt.stopImmediatePropagation();
         this.states.activeDialog.broadcast('inputmethod-contextchange',
           evt.detail);
-        break;
-      case 'mozPresentationContentEvent':
-        var type = evt.detail.type;
-        if (this.states.activeDialog &&
-            type === 'presentation-receiver-launched') {
-          // Deactivate the dialog and pass the event type in the two cases
-          this.deactivateDialog(this.states.activeDialog, evt.type);
-        }
         break;
     }
   };
