@@ -499,7 +499,7 @@ module.exports = {
   },
 
   getNewURI: function(uri) {
-  dump("node: getNewURI(" + uri + ")\n");
+  console.log('node: getNewURI(', uri, ')\n');
     return {
       host: /[a-z]+:\/\/[@]?([^\/:]+)/.exec(uri)[1],
       prePath: /[a-z]+:\/\/[^\/]+/.exec(uri)[0],
