@@ -120,8 +120,8 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
 
 ManifestBuilder.prototype.checkOrigin = function(origin) {
   try {
-    dump("origin=" + origin + "\n");
-    dump("prePath=" + utils.getNewURI(origin).prePath  + "\n")
+    console.log('origin =', origin);
+    console.log('prePath =', utils.getNewURI(origin).prePath);
     return (utils.getNewURI(origin).prePath === origin);
   } catch (e) {
     return false;

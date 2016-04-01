@@ -44,7 +44,8 @@ function ls(dir, recursive) {
 }
 
 function getNewURI(uriString, uriCharset, baseURI) {
-  dump("xpc: getNewURI(" + uriString + ", " + uriCharset + ", " + baseURI + ")\n");
+  console.log('xpc: getNewURI(',
+              uriString, ', ', uriCharset, ', ', baseURI, ')\n');
   return Services.io.newURI(uriString, uriCharset, baseURI);
 }
 

@@ -69,16 +69,16 @@ function installOneApp(targetFolder, buildAppName,
   return Promise.resolve()
     .then(function() {
       // "adb shell rm -r /system/b2g/apps/SOME_APP.gaiamobile.org/"
-      utils.log(JOB_NAME, 'removing previous files of ' + buildAppName
-                          + ' from ' + devicePath + '.');
+      utils.log(JOB_NAME, 'removing previous files of ' +
+                          buildAppName + ' from ' + devicePath + '.');
       return sh.run(['-c',
         adb + ' shell "rm -r ' + devicePath + '"']);
     })
     .then(function() {
       // "adb push /gaia/profile/apps/SOME_APP.gaiamobile.org/application.zip
       //  /data/local/tmp/pushgaia/SOME_APP.gaiamobile.org/application.zip"
-      utils.log(JOB_NAME, 'installing new files of ' + buildAppName
-                          + ' to ' + devicePath + '.');
+      utils.log(JOB_NAME, 'installing new files of ' +
+                          buildAppName + ' to ' + devicePath + '.');
       return sh.run(['-c',
         adb + ' push "' + targetFolder + '" "' + devicePath + '"']);
     });
