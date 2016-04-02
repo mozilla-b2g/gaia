@@ -12,9 +12,6 @@
 
     <link rel="resource" type="image/png" href="../shared/resources/branding/browser_84.png"/>
     <link rel="resource" type="image/png" href="../shared/resources/branding/browser_126.png"/>
-    <!-- applications.js must not be deferred
-         in order to catch webapps-registry-ready mozChromeEvent -->
-    <script src="js/applications.js"></script>
     <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
 
     <link rel="stylesheet" type="text/css" href="style/battery_overlay/battery_overlay.css">
@@ -819,6 +816,7 @@
 
     </div> <!-- end of #screen -->
     <script defer src="../shared/js/lazy_loader.js"></script>
+    <script defer src="js/applications.js"></script>
     <script defer src="js/logo_loader.js"></script>
     <script defer src="js/service.js"></script>
     <script defer src="js/base_module.js"></script>

@@ -44,7 +44,23 @@
      * @memberof Applications.prototype
      */
     start: function a_start() {
-      // Nothing to do anymore!
+      LazyLoader.load('../shared/js/web_manifest_helper.js')
+      .then(() => {
+        var appListPath = 'chrome://gaia/content/webapps.json';
+        LazyLoader.getJSON(appListPath, true)
+        .then((appList) => {
+          for (app in appList) {
+            ((app) => {
+              var manifestURL = appList[app].manifestURL;
+              WebManifestHelper.getManifest(manifestURL)
+              .then((manifest) => {
+                appList[app].manifest = manifest;
+                this.installedApps[manifestURL] = appList[app];
+              });
+            })(app);
+          }
+        });
+      });
     },
 
     /**
