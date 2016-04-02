@@ -188,30 +188,79 @@ li {
   opacity : 0;
 }
 
-/* --- topste view --- */
-#top-sites {
+/* --- default content view ---*/
+#default-content-view {
   position: absolute;
   top : 10rem;
   width : 100%;
   height : 99.5rem;
   z-index : 300;
   display : none;
+  flex-flow: column;
+  align-items: center;
   opacity : 0;
   background-color : #e0e2e4;
- transition: opacity  1.0s  cubic-bezier(0.25, 0, 0, 1.0);
+  transition: opacity  1.0s  cubic-bezier(0.25, 0, 0, 1.0);
+}
+
+#default-content-view.show {
+  display: flex;
+  opacity: 1;
+}
+
+#default-content-view .tab-navigation {
+  width : 118.5rem;
+  height: 8rem;
+  margin-top: 6.5rem;
+  border-bottom: 0.1rem solid #b3b5b6;
+}
+
+#default-content-view .tab-navigation ul {
+  display: flex;
+  height: calc(100% + 0.1rem);
+}
+
+#default-content-view .tab-navigation .tab-option {
+  width: 25rem;
+  height: 100%;
+  color: #4d4d4d;
+  font-size: 3.8rem;
+  font-weight: 100;
+  text-align: center;
+}
+
+#default-content-view .tab-navigation .tab-option.active {
+  outline:none;
+  border-bottom: 0.6rem solid #00cfff;
+}
+
+#default-content-view .tab-content-container {
+  width : 123rem;
+}
+
+#default-content-view .tab-content-container .tab-content {
+  display: none;
+  opacity : 0;
+  transition: opacity  1.0s  cubic-bezier(0.25, 0, 0, 1.0);
+}
+
+#default-content-view .tab-content-container .tab-content.show {
+  display: block;
+  opacity : 1;
+}
+
+/* --- topste view --- */
+#top-sites {
+  height : 76.8rem;
+  margin-top: 6rem;
 }
 
 
 /*---- default topsite border  ---*/
 #top-default-panels {
   position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
   width : 123rem;
   height : 76.8rem;
-  margin: 0 auto;
-  transform: translateY(-50%);
 }
 
 .top-default-item {
@@ -230,13 +279,8 @@ li {
 /*---- default topsite border  ---*/
 #top-panels {
   position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
   width : 123rem;
   height : 76.8rem;
-  margin: 0 auto;
-  transform: translateY(-50%);
 }
 
 .top-site-item {

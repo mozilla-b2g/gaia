@@ -31,6 +31,7 @@
 
   const BOOKMARKS_SETTING = 'sync.collections.bookmarks.enabled';
   const HISTORY_SETTING = 'sync.collections.history.enabled';
+  const TABS_SETTING = 'sync.collections.tabs.enabled';
 
   const ELEMENTS = [{
     screen: DISABLED,
@@ -62,6 +63,12 @@
     event: 'click',
     listener: 'onhistorychecked',
     init: 'onhistorychange'
+  }, {
+    screen: ENABLED,
+    selector: '#fxsync-collection-tabs',
+    event: 'click',
+    listener: 'ontabschecked',
+    init: 'ontabschange'
   }, {
     screen: ENABLED,
     selector: '#fxsync-tos',
@@ -102,6 +109,9 @@
         }, {
           name: HISTORY_SETTING,
           onchange: 'onhistorychange'
+        }, {
+          name: TABS_SETTING,
+          onchange: 'ontabschange'
         }].forEach(setting => {
           SettingsListener.observe(setting.name, true, enabled => {
             debug(setting.name + ' changed to ' + enabled);
@@ -304,6 +314,34 @@
                               HISTORY_SETTING);
     },
 
+    ontabschange() {
+      debug('ontabschange');
+      var needsCleanup;
+      if (!this.elements.collectionTabs) {
+        // We may observe a setting change once we already disabled Sync
+        // because the Sync Manager is reverting user preference changes to
+        // the default ones. In that case, we need to create the object
+        // briefly, so we can update the DOM accordingly.
+        this.elements.collectionTabs = this.area.querySelector(
+          '#fxsync-collection-tabs'
+        );
+        needsCleanup = true;
+      }
+
+      this.elements.collectionTabs.checked =
+        this.collections.has(TABS_SETTING);
+
+      if (needsCleanup) {
+        this.elements.collectionTabs = null;
+      }
+    },
+
+    ontabschecked() {
+      debug('ontabschecked');
+      this.oncollectionchecked(this.elements.collectionTabs,
+                               TABS_SETTING);
+    },
+
     oncollectionchecked(element, setting) {
       if (!element || !setting) {
         return;
@@ -444,7 +482,8 @@
 
     disableSyncNowAndCollections(disabled) {
       ['collectionBookmarks',
-       'collectionHistory'].forEach(name => {
+       'collectionHistory',
+       'collectionTabs'].forEach(name => {
         if (!this.elements[name]) {
           return;
         }

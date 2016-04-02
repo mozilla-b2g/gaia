@@ -40,6 +40,7 @@ suite('Sync settings >', function() {
 
   const BOOKMARKS_SETTING = 'sync.collections.bookmarks.enabled';
   const HISTORY_SETTING = 'sync.collections.history.enabled';
+  const TABS_SETTING = 'sync.collections.tabs.enabled';
 
   var subject;
   var realL10n;
@@ -113,9 +114,10 @@ suite('Sync settings >', function() {
     });
 
     test('should observe settings', function() {
-      expect(observeStub.calledTwice).to.be.equal(true);
+      expect(observeStub.calledThrice).to.be.equal(true);
       expect(observers[HISTORY_SETTING]).to.be.a('function');
       expect(observers[BOOKMARKS_SETTING]).to.be.a('function');
+      expect(observers[TABS_SETTING]).to.be.a('function');
     });
 
     test('DOM initial state', function() {
@@ -123,7 +125,7 @@ suite('Sync settings >', function() {
       expect(subject.elements.enabled).to.be.an('object');
       expect(subject.elements.disabled).to.be.an('object');
       expect(subject.listeners).to.be.an('object');
-      expect(subject.listeners.size).to.be.equals(8);
+      expect(subject.listeners.size).to.be.equals(9);
       expect(subject.collections).to.be.an('object');
       expect(subject.collections.size).to.be.equals(0);
       expect(subject.screen).to.be.equals('disabled');
@@ -276,6 +278,7 @@ suite('Sync settings >', function() {
     test('should show collection switches', function() {
       expect(subject.elements.collectionBookmarks).to.be.an('object');
       expect(subject.elements.collectionHistory).to.be.an('object');
+      expect(subject.elements.collectionTabs).to.be.an('object');
     });
   });
 
@@ -352,6 +355,7 @@ suite('Sync settings >', function() {
         .to.equals(true);
       expect(subject.elements.collectionBookmarks.disabled).to.equal(true);
       expect(subject.elements.collectionHistory.disabled).to.equal(true);
+      expect(subject.elements.collectionTabs.disabled).to.equal(true);
     });
   });
 
@@ -456,6 +460,16 @@ suite('Sync settings >', function() {
       collection: 'collectionHistory',
       setting: HISTORY_SETTING,
       enabled: false
+    }, {
+      test: 'should check tabs on setting enabled',
+      collection: 'collectionTabs',
+      setting: TABS_SETTING,
+      enabled: true
+    }, {
+      test: 'should uncheck tabs on setting disabled',
+      collection: 'collectionTabs',
+      setting: TABS_SETTING,
+      enabled: false
     }].forEach(config => {
       test(config.test, function() {
         expect(subject.elements[config.collection].checked)
@@ -490,6 +504,18 @@ suite('Sync settings >', function() {
       checked: false,
       collection: 'collectionHistory',
       oncheckedFunction: 'onhistorychecked'
+    }, {
+      test: 'tabs checked',
+      setting: TABS_SETTING,
+      checked: true,
+      collection: 'collectionTabs',
+      oncheckedFunction: 'ontabschecked'
+    }, {
+      test: 'tabs unchecked',
+      setting: TABS_SETTING,
+      checked: false,
+      collection: 'collectionTabs',
+      oncheckedFunction: 'ontabschecked'
     }].forEach(config => {
       test('should enable setting on ' + config.test, function() {
         expect(subject.collections.has(config.setting))
@@ -515,6 +541,12 @@ suite('Sync settings >', function() {
       }, {
         setting: BOOKMARKS_SETTING,
         enabled: false
+      }, {
+        setting: TABS_SETTING,
+        enabled: true
+      }, {
+        setting: TABS_SETTING,
+        enabled: false
       }].forEach(config => {
         observers[config.setting](config.enabled);
         expect(subject.elements.syncNowButton.classList.contains('disabled'))
@@ -532,6 +564,10 @@ suite('Sync settings >', function() {
         setting: BOOKMARKS_SETTING,
         element: 'collectionBookmarks',
         onchecked: 'onbookmarkschecked'
+      }, {
+        setting: TABS_SETTING,
+        element: 'collectionTabs',
+        onchecked: 'ontabschecked'
       }].forEach(config => {
         mozIdError = true;
         expect(subject.collections.has(config.setting))

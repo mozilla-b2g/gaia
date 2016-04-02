@@ -314,8 +314,8 @@ var Toolbar = {
    */
   goBack: function toolbar_goBack() {
 
-    if (Awesomescreen.isDisplayedTop()){
-      Awesomescreen.topsiteReturnFunc();
+    if (Awesomescreen.isDisplayedDefault()){
+      Awesomescreen.defaultContentViewReturnFunc();
       return;
     }
 

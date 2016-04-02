@@ -1,0 +1,149 @@
+.tab-list-container {
+  --list-item-width: 110.8rem;
+  --list-item-arrow-icon-width: 8rem;
+  --list-item-favor-icon-width: 11.5rem;
+
+  width: var(--list-item-width);
+  height: 77rem;
+  margin-top: 7rem;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+  font-family: "Fira Sans";
+  font-weight: 100;
+}
+
+.tab-list-view {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.tab-list-view > .tab-list-item {
+  max-height: 13.4rem;
+  overflow: hidden;
+  transition: max-height 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+}
+
+.tab-list-view > .tab-list-item.expand {
+  max-height: 1200rem;
+}
+
+.tab-list-view .list-item {
+  display: flex;
+  height: 11.2rem;
+  width: 100%;
+  border-bottom: 0.1rem solid rgba(77, 77, 77, 0.3);
+  pointer-events: auto;
+  transition: height 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+              border-bottom 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+}
+
+.tab-list-view .list-item:hover,
+.tab-list-view .list-item:focus {
+  height: 13.4rem;
+  outline: none;
+  border-bottom: 0.6rem solid rgba(77, 77, 77, 0.3);
+}
+
+.tab-list-view .list-item .text-box {
+  display: inline-flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  justify-content: center;
+}
+
+.tab-list-view .list-item .text-box .title {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 1rem;
+  font-size: 3.2rem;
+  color: #4d4d4d;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tab-list-view .list-item .text-box .text {
+  display: inline-block;
+  width: 100%;
+  font-size: 2.4rem;
+  font-weight: lighter;
+  color: #4d4d4d;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tab-list-view .list-item[data-type="folder"] .text-box {
+  width: calc(var(--list-item-width) - var(--list-item-arrow-icon-width));
+  height: 100%;
+  padding-left: 2rem;
+}
+
+.tab-list-view .list-item[data-type="folder"] .arrow-icon {
+  display: inline-flex;
+  align-items: center;
+  width: 8rem;
+  height: 100%;
+  opacity: 0.3;
+  transition: opacity 0.42s cubic-bezier(0.25, 0, 0, 1.0),
+              transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
+}
+
+.tab-list-view .list-item[data-type="folder"] .arrow-icon:before {
+  font-size: 8rem;
+  line-height: 8rem;
+}
+
+.tab-list-view .list-item[data-type="folder"].active .arrow-icon {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.tab-list-view .list-item[data-type="link"] .favor-icon {
+  display: inline-flex;
+  width: 11.5rem;
+  height: 100%;
+  align-items: center;
+}
+
+.tab-list-view .list-item[data-type="link"] .favor-icon:before {
+  color: #4d4d4d;
+  font-size: 11.5rem;
+}
+
+.tab-list-view .list-item[data-type="link"] .favor-icon.icon-image {
+  background-size: 7.5rem 7.5rem;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.tab-list-view .list-item[data-type="link"] .text-box {
+  width: calc(var(--list-item-width) - var(--list-item-favor-icon-width));
+  height: 100%;
+}
+
+.no-tabs-view {
+  margin-top: 25.5rem;
+  text-align: center;
+}
+
+.no-tabs-view .no-tabs-view-icon {
+  width: 18rem;
+  height: 12rem;
+  margin: 0 auto;
+  background: url('images/no_tabs.png') no-repeat center;
+  background-size: cover;
+  font-family: "Fira Sans";
+}
+
+.no-tabs-view .no-tabs-view-text {
+  font-family: "Fira Sans";
+  font-size: 3.8rem;
+  font-weight: 100;
+  font-style: italic;
+  color: #4d4d4d;
+  margin-top: 5.5rem;
+}

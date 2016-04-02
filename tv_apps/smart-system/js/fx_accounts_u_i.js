@@ -66,8 +66,7 @@ var FxAccountsUI = {
   reset: function fxa_ui_reset(reason) {
     this.panel.removeChild(this.iframe);
     this.dialog.browser = null;
-    if (reason == 'home' || reason == 'holdhome' ||
-        reason == 'mozPresentationContentEvent') {
+    if (reason == 'home' || reason == 'holdhome') {
       this.onerrorCb && this.onerrorCb('DIALOG_CLOSED_BY_USER');
     }
     this.onerrorCb = null;
