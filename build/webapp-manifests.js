@@ -1,5 +1,7 @@
 'use strict';
 
+/* global dump */
+
 /**
  * Generate webapps_shared.json in stage folder and uuid.json for external apps
  */
@@ -120,8 +122,8 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
 
 ManifestBuilder.prototype.checkOrigin = function(origin) {
   try {
-    console.log('origin =', origin);
-    console.log('prePath =', utils.getNewURI(origin).prePath);
+    dump('origin =' + origin);
+    dump('prePath =' + utils.getNewURI(origin).prePath);
     return (utils.getNewURI(origin).prePath === origin);
   } catch (e) {
     return false;

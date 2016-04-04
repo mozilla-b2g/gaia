@@ -836,7 +836,7 @@ endif
 mulet: node_modules
 	DEBUG=* ./node_modules/.bin/mozilla-download \
 	--product mulet \
-	--branch mozilla-central \
+	--branch pine \
 	$(shell pwd)
 	touch -c $@
 
