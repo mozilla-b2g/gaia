@@ -1,3 +1,4 @@
+/* global applications */
 'use strict';
 
 /**
@@ -268,32 +269,11 @@ InputAppList.prototype.stop = function() {
 
 InputAppList.prototype._getAllApps = function() {
   // FIXME: Don't hardcode the default keyboard app.
-  var app = {
-    'manifestURL': 'http://localhost/keyboard.gaiamobile.org/manifest.webapp',
-    'manifest': {
-      'type': 'certified',
-      'role': 'input',
-      'inputs': {
-        'number': {
-          'launch_path': '/index.html#numberLayout',
-          'name': 'Number',
-          'description': 'Numeric layout',
-          'types': ['number'],
-          'locales': {
-            'en-US': {
-              'name': 'Number',
-              'description': 'Numeric layout'
-            }
-          }
-        }
-      },
-      permissions: {
-        'input': {}
-      }
-    }
-  };
+  var apps = Object.keys(applications.installedApps).map((index) => {
+    return applications.installedApps[index];
+  });
 
-  return Promise.resolve([app]);
+  return Promise.resolve(apps);
 };
 
 InputAppList.prototype._setInputApps = function(values) {
