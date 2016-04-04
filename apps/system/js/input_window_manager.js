@@ -1,7 +1,7 @@
 'use strict';
 
 /* global applications, InputWindow, SettingsListener, KeyboardManager,
-   Service, Promise */
+   Service, Promise, KeyboardHelper */
 
 (function(exports) {
 
@@ -368,7 +368,7 @@
       hash = path.substring(path.indexOf('#'));
     }
 
-    var app = applications.getByManifestURL(manifestURL);
+    var app = KeyboardHelper.inputAppList.getDefaultApp();
 
     return {
       manifest: app.manifest,
