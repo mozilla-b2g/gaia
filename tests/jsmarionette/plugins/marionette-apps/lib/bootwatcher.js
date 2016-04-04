@@ -63,17 +63,22 @@ BootWatcher.prototype = {
    * an error may be thrown while we're executing. In that case, retry.
    */
   start: function() {
-    var client = this._client;
+    var client = this._client.scope({ scriptTimeout: 120000,
+                                      searchTimeout: 120000 });
+
+    var body = client.findElement('body');
     client.waitFor(function() {
-      return client.executeScript(function() {
-        try {
-          var sessionStorage = window.wrappedJSObject.sessionStorage;
-          var item = sessionStorage.getItem('webapps-registry-ready');
-          return item === 'yes';
-        } catch (error) {
+      try {
+        return body.displayed.call(body) &&
+               body.getAttribute('ready-state') === 'fullyLoaded';
+      } catch (err) {
+        if (err && err.type === 'ElementNotAccessibleError') {
+          // the element is not yet accessible
           return false;
         }
-      });
-    }, { timeout: 30000 });
+        // the client threw an unexpected error, rethrow it
+        throw err;
+      }
+    }, { timeout: 120000 });
   }
 };
