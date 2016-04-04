@@ -114,9 +114,9 @@ GAIA_APP_TARGET?=engineering
 # Enable compatibility to run in Firefox Desktop
 DESKTOP?=$(DEBUG)
 # Disable first time experience screen
-NOFTU?=0
+NOFTU?=1
 # Disable first time ping
-NOFTUPING?=0
+NOFTUPING?=1
 # Automatically enable remote debugger
 REMOTE_DEBUGGER?=0
 # Debug mode for build process
