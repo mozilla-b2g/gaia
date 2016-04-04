@@ -836,9 +836,9 @@ endif
 mulet: node_modules
 	DEBUG=* ./node_modules/.bin/mozilla-download \
 	--product mulet \
-	--branch mozilla-central \
-	$(shell pwd)
-	touch -c $@
+	--branch pine \
+	$(shell pwd)/firefox
+	touch -c firefox
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
