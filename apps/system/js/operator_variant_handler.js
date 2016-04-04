@@ -177,7 +177,7 @@
         // Get the type of the data network
         var networkType = self.manager.mobileConnections[self._iccCardIndex]
                                 .data.type;
-        LazyLoader.load(['shared/js/apn_helper.js']).then(function() {
+        LazyLoader.load(['../shared/js/apn_helper.js']).then(function() {
           callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
         }).catch((err) => {
           console.error(err);

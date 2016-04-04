@@ -206,7 +206,7 @@
       // XXX:
       // We should use observe/read/write functionality in baseModule
       // and remove the usage here.
-      LazyLoader.load(['shared/js/settings_helper.js']).then(() => {
+      LazyLoader.load(['../shared/js/settings_helper.js']).then(() => {
         this._callForwardingHelper =
           SettingsHelper('ril.cf.enabled',
             this._defaultCallForwardingIconStates);

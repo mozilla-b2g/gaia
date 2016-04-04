@@ -7,7 +7,7 @@ window.GaiaSwitch = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaSwitchBaseurl ||
-    '/shared/elements/gaia_switch/';
+    '../shared/elements/gaia_switch/';
 
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();

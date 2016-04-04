@@ -888,7 +888,7 @@
       return this.env.numberFormatters.get(lang);
     }
 
-    // XXX in the future macros will be stored in localization resources together 
+    // XXX in the future macros will be stored in localization resources together
     // with regular entities and this method will not be needed anymore
     _getMacro(lang, id) {
       switch(id) {
@@ -2553,11 +2553,6 @@
   }
 
   function getAdditionalLanguages() {
-    if (navigator.mozApps && navigator.mozApps.getAdditionalLanguages) {
-      return navigator.mozApps.getAdditionalLanguages()
-        .catch(() => Object.create(null));
-    }
-
     return Promise.resolve(Object.create(null));
   }
 

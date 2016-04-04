@@ -198,7 +198,7 @@
         data.manifestURL = this.app.webManifestURL;
       }
 
-      LazyLoader.load('shared/js/icons_helper.js', (() => {
+      LazyLoader.load('../shared/js/icons_helper.js', (() => {
         IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
           if (icon) {
             data.icon = icon;

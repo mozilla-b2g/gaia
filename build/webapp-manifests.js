@@ -1,5 +1,7 @@
 'use strict';
 
+/* global dump */
+
 /**
  * Generate webapps_shared.json in stage folder and uuid.json for external apps
  */
@@ -51,10 +53,10 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
   var profileDirectoryFile = utils.getFile(webapp.profileDirectoryFilePath);
   var webappTargetDirName = profileDirectoryFile.leafName;
 
-  var origin = isPackaged ? 'app://' + webappTargetDirName :
+  var origin = isPackaged ? this.config.SCHEME + webappTargetDirName :
                webapp.metaData.origin;
   if (!origin) {
-    origin = 'app://' + webappTargetDirName;
+    origin = this.config.SCHEME + webappTargetDirName;
   }
 
   if (!this.checkOrigin(origin)) {
@@ -120,6 +122,8 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
 
 ManifestBuilder.prototype.checkOrigin = function(origin) {
   try {
+    dump('origin =' + origin);
+    dump('prePath =' + utils.getNewURI(origin).prePath);
     return (utils.getNewURI(origin).prePath === origin);
   } catch (e) {
     return false;

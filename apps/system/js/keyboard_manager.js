@@ -68,8 +68,8 @@ window.KeyboardManager = {
       'js/input_window_manager.js',
       'js/input_layouts.js',
       'js/dynamic_input_registry.js',
-      'shared/js/input_mgmt/input_app_list.js',
-      'shared/js/keyboard_helper.js'
+      '../shared/js/input_mgmt/input_app_list.js',
+      '../shared/js/keyboard_helper.js'
     ]).then(() => {
       window.inputWindowManager = new InputWindowManager();
       window.inputWindowManager.start();

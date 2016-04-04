@@ -6,7 +6,8 @@ window.GaiaProgress = (function(win) {
   var proto = Object.create(HTMLElement.prototype);
 
   // Allow baseurl to be overridden (used for demo page)
-  var baseurl = window.GaiaProgressBaseurl || '/shared/elements/gaia_progress/';
+  var baseurl =
+    window.GaiaProgressBaseurl || '../shared/elements/gaia_progress/';
 
   proto.createdCallback = function() {
     //set Accessibility attributes on creation

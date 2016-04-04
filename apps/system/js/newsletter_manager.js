@@ -5,7 +5,7 @@
 var NewsletterManager = {
   start: function() {
     return new Promise(function (resolve, reject) {
-      LazyLoader.load('/shared/js/basket_client.js', function basketLoaded() {
+      LazyLoader.load('../shared/js/basket_client.js', function basketLoaded() {
         Basket.getDataStore().then(function gotDS(store) {
           store.get(1).then(function(itemRetrieved) {
             if (typeof itemRetrieved === 'undefined' ||
@@ -34,7 +34,7 @@ var NewsletterManager = {
 
   sendNewsletter: function(emailAddress) {
     return new Promise(function (resolve, reject) {
-      LazyLoader.load('/shared/js/basket_client.js', function basketLoaded() {
+      LazyLoader.load('../shared/js/basket_client.js', function basketLoaded() {
         Basket.send(emailAddress, function itemSent(err, data) {
           if (err) {
             var errMsg = 'Error sending data: ' + err;
