@@ -105,21 +105,21 @@ suite('system/AppChrome', function() {
   };
 
   var fakeSearchApp = {
-    url: 'app://search.gaiamobile.org/newtab.html',
+    url: 'chrome://gaia/content/search/newtab.html',
     name: 'Browser',
     manifest: {
       name: 'Browser',
       role: 'search'
     },
-    manifestURL: 'app://search.gaiamobile.org/manifest.webapp',
-    origin: 'app://search.gaiamobile.org',
+    manifestURL: 'chrome://gaia/content/search/manifest.webapp',
+    origin: 'chrome://gaia/content/search',
     chrome: {
         navigation: true
     }
   };
 
   var fakePrivateLandingPage = {
-    url: 'app://search.gaiamobile.org/',
+    url: 'chrome://gaia/content/search/',
     origin: 'app://www.fake',
     isPrivate: true
   };
@@ -132,7 +132,7 @@ suite('system/AppChrome', function() {
   };
 
   var fakeAppMaximized = {
-    url: 'app://search.gaiamobile.org/newtab.html',
+    url: 'chrome://gaia/content/search/newtab.html',
     chrome: {
       maximized: true
     }

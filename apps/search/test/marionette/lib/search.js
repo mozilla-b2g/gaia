@@ -15,7 +15,7 @@ function Search(client) {
 /**
  * @type String Origin of search app
  */
-Search.URL = 'app://search.gaiamobile.org';
+Search.URL = 'chrome://gaia/content/search';
 
 Search.Selectors = {
   allGridResults: 'gaia-grid .icon',
@@ -44,8 +44,8 @@ Search.prototype = {
   NEW_TAB_URL: Search.URL + '/newtab.html',
   Selectors: Search.Selectors,
 
-  privateBrowserUrl: 'app://search.gaiamobile.org/newtab.html?private=1',
-  nonPrivateBrowserUrl: 'app://search.gaiamobile.org/newtab.html?private=0',
+  privateBrowserUrl: 'chrome://gaia/content/search/newtab.html?private=1',
+  nonPrivateBrowserUrl: 'chrome://gaia/content/search/newtab.html?private=0',
 
   /**
    * Navigates to the search results frame.

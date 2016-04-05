@@ -646,32 +646,11 @@
      * @memberof Rocketbar.prototype
      */
     initSearchConnection: function() {
-      if (this.pendingInitConnection) {
-        return this.pendingInitConnection;
-      }
-
-      this.pendingInitConnection = new Promise((resolve, reject) => {
-        navigator.mozApps.getSelf().onsuccess = (event) => {
-          var app = event.target.result;
-          if (!app) {
-            reject();
-            return;
-          }
-
-          app.connect('search').then(ports => {
-              ports.forEach(port => {
-                this._port = port;
-              });
-              if (this._pendingMessage) {
-                this.handleSearchMessage(this._pendingMessage);
-                delete this._pendingMessage;
-              }
-              delete this.pendingInitConnection;
-              resolve();
-            }, reject);
-        };
+      // We need to find an alternative to IAC here
+      // Bug 1257828
+      return new Promise((resolve) =>  {
+        resolve();
       });
-      return this.pendingInitConnection;
     },
 
     /**

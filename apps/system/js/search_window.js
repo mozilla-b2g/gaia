@@ -95,7 +95,7 @@
    * @param {String} url The settings url of the search app.
    */
   SearchWindow.prototype.setBrowserConfig = function(url) {
-    var manifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
+    var manifestURL = url ? url.match(/(^.*?:\/\/.*\/*?\/)/)[1] +
       'manifest.webapp' : '';
     this.manifestURL = manifestURL;
     this.searchAppURL = url;
