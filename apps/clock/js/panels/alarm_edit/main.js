@@ -138,7 +138,7 @@ Utils.extend(AlarmEdit.prototype, {
 
   updateL10n: function() {
     // Move the weekdays around to properly account for the firstDay.
-    mozIntl.calendarInfo('firstDayOfTheWeek').then(firstDay => {
+    mozIntl.getCalendarInfo('firstDayOfTheWeek').then(firstDay => {
       var formatter = IntlHelper.get('weekday-long');
 
       var options = [...this.repeatSelect.querySelectorAll('option')];

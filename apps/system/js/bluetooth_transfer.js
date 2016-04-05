@@ -199,7 +199,11 @@ var BluetoothTransfer = {
     };
 
     this.getDeviceName(address).then(function(deviceName) {
-      mozIntl._gaia.getFormattedUnit('digital', 'short', evt.fileLength).then(
+      var formatter = new mozIntl.UnitFormat(navigator.languages, {
+        type: 'digital',
+        style: 'short'
+      });
+      formatter.format(evt.fileLength).then(
         size => {
           Service.request('showCustomDialog', 'acceptFileTransfer',
             {

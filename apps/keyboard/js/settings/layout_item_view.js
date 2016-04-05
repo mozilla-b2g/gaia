@@ -262,7 +262,11 @@ LayoutItemView.prototype._updateList = function(newListState) {
 };
 
 LayoutItemView.prototype._getHumanFileSize = function(sizeInNumber) {
-  return mozIntl._gaia.getFormattedUnit('digital', 'short', sizeInNumber);
+  var formatter = new mozIntl.UnitFormat(navigator.languages, {
+    type: 'digital',
+    style: 'short'
+  });
+  return formatter.format(sizeInNumber);
 };
 
 exports.LayoutItemView = LayoutItemView;

@@ -81,11 +81,12 @@ define(function(require) {
   Stopwatch.Panel.prototype = Object.create(Panel.prototype);
 
   Stopwatch.Panel.prototype.updateTimeStrings = function() {
-    IntlHelper.get('timer-msS').then(formatter => {
-      var stopwatch = priv.get(this).stopwatch;
-      var e = stopwatch.getElapsedTime();
+    var formatter = IntlHelper.get('timer-msS');
+    
+    var stopwatch = priv.get(this).stopwatch;
+    var e = stopwatch.getElapsedTime();
 
-      var time = formatter.format(e);
+    formatter.format(e).then(time => {
       this.nodes.time.textContent = time;
 
       var node = this.nodes.laps;
@@ -109,8 +110,8 @@ define(function(require) {
     var swp = priv.get(this);
     var e = swp.stopwatch.getElapsedTime();
     
-    return IntlHelper.get('timer-msS').then(formatter => {
-      var time = formatter.format(e);
+    var formatter = IntlHelper.get('timer-msS');
+    return formatter.format(e).then(time => {
       this.nodes.time.textContent = time;
       this.nodes.time.classList.toggle(
         'over-100-minutes', e >= 1000 * 60 * 100);
@@ -254,8 +255,9 @@ define(function(require) {
     var li = document.createElement('li');
     li.setAttribute('class', 'lap-cell');
     li.innerHTML = this.lapTemplate.interpolate();
-    IntlHelper.get('timer-msS').then(formatter => {
-      li.querySelector('.lap-duration').textContent = formatter.format(time);
+    var formatter = IntlHelper.get('timer-msS');
+    formatter.format(time).then(string => {
+      li.querySelector('.lap-duration').textContent = string;
     });
     var lapFormatter = IntlHelper.get('lap-number');
     document.l10n.setAttributes(
@@ -267,8 +269,9 @@ define(function(require) {
   }
 
   function updateLapDom(num, time, li) {
-    IntlHelper.get('timer-msS').then(formatter => {
-      li.querySelector('.lap-duration').textContent = formatter.format(time);
+    var formatter = IntlHelper.get('timer-msS');
+    formatter.format(time).then(string => {
+      li.querySelector('.lap-duration').textContent = string;
     });
     var lapFormatter = IntlHelper.get('lap-number');
     document.l10n.setAttributes(

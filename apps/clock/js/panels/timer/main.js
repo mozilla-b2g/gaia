@@ -235,9 +235,10 @@ Timer.Panel.prototype.onTimerEvent = function(event) {
  * countdown.
  */
 Timer.Panel.prototype.update = function() {
-  return IntlHelper.get('timer-hms').then(formatter => {
-    var remaining = this.timer.remaining;
-    var newText = formatter.format(remaining);
+  var formatter = IntlHelper.get('timer-hms');
+  var remaining = this.timer.remaining;
+
+  return formatter.format(remaining).then(newText => {
     // Use localized caching here to prevent unnecessary DOM repaints.
     if (this._cachedTimerText !== newText) {
       this.nodes.time.textContent = this._cachedTimerText = newText;
