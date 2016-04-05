@@ -59,7 +59,7 @@
      * Opens a new browser window.
      */
     newWindow: function(e) {
-      var basePath = 'app://search.gaiamobile.org';
+      var basePath = 'chrome://gaia/content/search';
       var isPrivate = e && e.type === 'new-private-window';
       var privateFlag = isPrivate ? '1' : '0';
       var config = new BrowserConfigHelper({

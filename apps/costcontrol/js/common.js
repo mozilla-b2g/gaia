@@ -68,7 +68,7 @@ var Common = {
   //XXX: Group of apps, whose traffic will be added to the system app.
   // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079609
   specialApps: [
-    'app://search.gaiamobile.org/manifest.webapp'
+    'chrome://gaia/content/search/manifest.webapp'
   ],
 
   SYSTEM_MANIFEST: 'app://system.gaiamobile.org/manifest.webapp',

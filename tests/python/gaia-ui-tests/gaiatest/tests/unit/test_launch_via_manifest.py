@@ -9,7 +9,7 @@ from marionette_driver import Wait
 class TestLaunchViaManifest(GaiaTestCase):
 
     def test_launch_manifest(self):
-        browser_manifest_url = 'app://search.gaiamobile.org/manifest.webapp'
+        browser_manifest_url = 'chrome://gaia/content/search/manifest.webapp'
 
         app = self.apps.launch('Browser', manifest_url=browser_manifest_url)
         self.assertTrue(app.frame)

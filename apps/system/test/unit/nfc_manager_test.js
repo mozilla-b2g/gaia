@@ -53,7 +53,7 @@ suite('Nfc Manager Functions', function() {
   };
 
   var fakePrivateLandingPage = {
-    url: 'app://search.gaiamobile.org/',
+    url: 'chrome://gaia/content/search/',
     manifest: {},
     origin: 'http://www.private',
     isPrivate: true
