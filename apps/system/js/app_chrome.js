@@ -7,6 +7,7 @@
 /* global SettingsListener */
 /* global Service */
 /* global SystemBanner */
+/* global BaseModule */
 
 'use strict';
 
@@ -977,7 +978,8 @@
   };
 
   AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
-    return this.app.config.chrome && !this.app.config.chrome.bar;
+    var combined = this.app.config.chrome && !this.app.config.chrome.bar;
+    return combined && BaseModule.defined('Rocketbar');
   };
 
   AppChrome.prototype.updateAddToHomeButton =
