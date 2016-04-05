@@ -18,7 +18,7 @@
   var SEARCH_PROVIDER_KEY = 'search.provider';
 
   // File containing the provider configurations for all partners
-  var DEFAULT_PROVIDERS_URL = '/shared/js/search_providers.json';
+  var DEFAULT_PROVIDERS_URL = '../shared/js/search_providers.json';
 
   // Store the users current provider selection
   var provider = null;

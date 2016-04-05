@@ -10,6 +10,7 @@
   /* global SearchProvider */
   /* global MetricsHelper */
   /* global MozActivity */
+  /* global BroadcastChannel */
 
   // timeout before notifying providers
   var SEARCH_DELAY = 500;
@@ -53,30 +54,9 @@
 
       // Initialize the parent port connection
       var self = this;
-      navigator.mozApps.getSelf().onsuccess = function() {
-        var app = this.result;
-        app.connect('search-results').then(function onConnAccepted(ports) {
-          ports.forEach(function(port) {
-            self._port = port;
-          });
-          setConnectionHandler();
-        }, function onConnectionRejected(reason) {
-          console.log('Error connecting: ' + reason + '\n');
-        });
-      };
-
-      function setConnectionHandler() {
-        navigator.mozSetMessageHandler('connection',
-          function(connectionRequest) {
-            var keyword = connectionRequest.keyword;
-            var port = connectionRequest.port;
-            if (keyword === 'search') {
-              port.onmessage = self.dispatchMessage.bind(self);
-              port.start();
-            }
-          });
-        initializeProviders();
-      }
+      this.searchChannel = new BroadcastChannel('search');
+      this.searchChannel.onmessage = this.dispatchMessage.bind(this);
+      initializeProviders();
 
       function initializeProviders() {
         for (var i in self.providers) {
@@ -217,7 +197,7 @@
       this.toShowNotice = false;
       asyncStorage.setItem(this.NOTICE_KEY, true);
       if (focus) {
-        this._port.postMessage({'action': 'focus'});
+        this.searchChannel.postMessage({'action': 'focus'});
       }
     },
 
@@ -334,7 +314,7 @@
      */
     close: function() {
       this.abort();
-      this._port.postMessage({'action': 'hide'});
+      this.searchChannel.postMessage({'action': 'hide'});
     },
 
     /**
@@ -349,7 +329,7 @@
      * Sends a message to the system app to update the input value
      */
     setInput: function(input) {
-      this._port.postMessage({
+      this.searchChannel.postMessage({
         'action': 'input',
         'input': input
       });
