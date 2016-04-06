@@ -157,12 +157,6 @@ suite('home', function() {
         subject.onVisibilityChange();
         assert.isTrue(spy.calledOnce);
       });
-
-      test('should reset filter', function() {
-        var spy = this.sinon.spy(subject.filterManager, 'resetFilter');
-        subject.onVisibilityChange();
-        assert.isTrue(spy.calledOnce);
-      });
     });
   });
 
