@@ -414,7 +414,7 @@
 
         if (typeof options.index === 'number') {
           position = options.index;
-        } else if (!newCard.group) {
+        } else if (!newCard.group || options.position === 'end') {
           position = this._cardList.length;
         } else {
           // If the given card belongs to a deck (has type), we assume the deck
@@ -443,7 +443,8 @@
 
         this._cardList.splice(position, 0, newCard);
         this.writeCardlistInCardStore().then(function() {
-          that.fire('card-inserted', newCard, position, options.overFolder);
+          that.fire('card-inserted',
+                         newCard, position, options.overFolder, options.silent);
         });
       }, this);
     },
