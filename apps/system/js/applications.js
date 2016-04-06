@@ -54,7 +54,14 @@
               var manifestURL = appList[app].manifestURL;
               WebManifestHelper.getManifest(manifestURL)
               .then((manifest) => {
+                var launch_url = (manifest.origin + manifest.launch_path) || '';
                 appList[app].manifest = manifest;
+                appList[app].url = appList[app].url || launch_url;
+                appList[app].launch = () => {
+                  window.dispatchEvent(new CustomEvent('webapps-launch', {
+                    detail: appList[app]
+                  }));
+                };
                 this.installedApps[manifestURL] = appList[app];
               });
             })(app);
