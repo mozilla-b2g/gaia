@@ -1,9 +1,8 @@
-/* global MockSmartButton, MockMenuGroup, CardFilter */
+/* global MockSmartButton, CardFilter */
 'use strict';
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/bower_components/evt/index.js');
 requireApp('smart-home/test/unit/mock_smart_button.js');
-requireApp('smart-home/test/unit/mock_menu_group.js');
 requireApp('smart-home/js/card_filter.js');
 
 suite('smart-home/CardFilter', function() {
@@ -28,7 +27,7 @@ suite('smart-home/CardFilter', function() {
         sinon.spy(button, 'addEventListener');
       });
 
-      mockMenuGroup = new MockMenuGroup();
+      mockMenuGroup = document.createElement('div');
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
@@ -42,22 +41,14 @@ suite('smart-home/CardFilter', function() {
       mockSmartButtons = undefined;
     });
 
-    test('start() should register "click" event listeners on smart-button',
+    test('start() should register "focus" event listeners on smart-button',
       function() {
         cardFilter.start(mockMenuGroup);
         assert.isTrue(mockMenuGroup.querySelectorAll.calledOnce);
         mockSmartButtons.forEach(function(button) {
-          assert.isTrue(button.addEventListener.calledOnce);
+          assert.isTrue(button.addEventListener.calledWith('focus'));
         });
       });
-
-    test('start() should listen to "opened" event on menu group', function() {
-        cardFilter.start(mockMenuGroup);
-        assert.isTrue(mockMenuGroup.addEventListener.calledOnce);
-        var call = mockMenuGroup.addEventListener.firstCall;
-        assert.equal(call.args[0], 'opened');
-        assert.isTrue(typeof call.args[1] === 'function');
-    });
   });
 
   suite('> stop', function() {
@@ -67,7 +58,7 @@ suite('smart-home/CardFilter', function() {
         sinon.spy(button, 'removeEventListener');
       });
 
-      mockMenuGroup = new MockMenuGroup();
+      mockMenuGroup = document.createElement('div');
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
@@ -81,11 +72,11 @@ suite('smart-home/CardFilter', function() {
       mockSmartButtons = undefined;
     });
 
-    test('stop() should remove "click" event listeners on smart-button',
+    test('stop() should remove "focus" event listeners on smart-button',
       function() {
         cardFilter.stop();
         mockSmartButtons.forEach(function(button) {
-          assert.isTrue(button.removeEventListener.calledOnce);
+          assert.isTrue(button.removeEventListener.calledWith('focus'));
         });
       });
   });
@@ -94,7 +85,7 @@ suite('smart-home/CardFilter', function() {
     setup(function() {
       mockSmartButtons = generateSmartButtons();
 
-      mockMenuGroup = new MockMenuGroup();
+      mockMenuGroup = document.createElement('div');
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
@@ -111,10 +102,10 @@ suite('smart-home/CardFilter', function() {
 
     test('handleEvent() should be called with event argument', function() {
       mockSmartButtons[0].dispatchEvent({
-        type: 'click'
+        type: 'focus'
       });
       assert.isTrue(cardFilter.handleEvent.calledOnce);
-      assert.equal(cardFilter.handleEvent.getCall(0).args[0].type, 'click');
+      assert.equal(cardFilter.handleEvent.getCall(0).args[0].type, 'focus');
     });
   });
 
@@ -122,7 +113,7 @@ suite('smart-home/CardFilter', function() {
     setup(function() {
       mockSmartButtons = generateSmartButtons();
 
-      mockMenuGroup = new MockMenuGroup();
+      mockMenuGroup = document.createElement('div');
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
@@ -150,7 +141,7 @@ suite('smart-home/CardFilter', function() {
     setup(function() {
       mockSmartButtons = generateSmartButtons();
 
-      mockMenuGroup = new MockMenuGroup();
+      mockMenuGroup = document.createElement('div');
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });

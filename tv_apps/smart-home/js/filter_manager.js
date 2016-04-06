@@ -313,6 +313,16 @@
      */
     getCurrentFilter: function fm_getCurrentFilter() {
       return this._cardFilter.filter;
+    },
+
+    /**
+     * Check if it is during filter changing.
+     *
+     * @public
+     * @method  FilterManager#isFilterChanging
+     */
+    isFilterChanging: function fm_isFilterChanging() {
+      return this._isFilterChanging;
     }
   };
 

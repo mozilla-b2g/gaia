@@ -18,7 +18,8 @@
       return this._selectedFilter;
     },
     set: function cf_setFilter(icon) {
-      if (this.menuGroup && this._buttons[icon]) {
+      if (this.menuGroup && this._buttons[icon] &&
+          this._selectedFilter != icon) {
         if (this._buttons[this._selectedFilter]) {
           this._buttons[this._selectedFilter].classList.remove('toggled');
         }
@@ -40,7 +41,7 @@
     this._buttons = {};
     for (var i = 0; i < buttons.length; i++) {
       this._buttons[buttons[i].dataset.iconType] = buttons[i];
-      buttons[i].addEventListener('click', this);
+      buttons[i].addEventListener('focus', this);
     }
   };
 
@@ -48,7 +49,7 @@
     var that = this;
     var buttonKeys = Object.keys(this._buttons);
     buttonKeys.forEach(function(key) {
-      that._buttons[key].removeEventListener('click', that);
+      that._buttons[key].removeEventListener('focus', that);
     });
   };
 
