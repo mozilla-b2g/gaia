@@ -381,6 +381,13 @@
         return;
       }
 
+      // Avoid leaving "filter-tab-group" during filter changing
+      if (key == 'up' && focus.matches &&
+          focus.matches('#filter-tab-group smart-button') &&
+          this.filterManager.isFilterChanging()) {
+        return;
+      }
+
       if (key == 'down') {
         var dest = this.spatialNavigator.navigate(focus, key);
         if (dest && dest.matches &&
