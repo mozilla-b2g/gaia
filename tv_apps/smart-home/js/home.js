@@ -238,7 +238,6 @@
         if (this.cardScrollable.isSliding) {
           this.cardScrollable.endSlide();
         }
-        this.filterManager.resetFilter();
       }
     },
 
@@ -378,9 +377,25 @@
 
       var focus = this.spatialNavigator.getFocusedElement();
 
-      if (!(focus.CLASS_NAME == 'XScrollable' && focus.move(key))) {
-        this.spatialNavigator.move(key);
+      if (focus.CLASS_NAME == 'XScrollable' && focus.move(key)) {
+        return;
       }
+
+      if (key == 'down') {
+        var dest = this.spatialNavigator.navigate(focus, key);
+        if (dest && dest.matches &&
+            dest.matches('#filter-tab-group smart-button')) {
+          var currentFilterElement = document.querySelector(
+            '#filter-tab-group smart-button[data-icon-type="' +
+            this.filterManager.getCurrentFilter() + '"]');
+          if (currentFilterElement) {
+            this.spatialNavigator.focus(currentFilterElement);
+            return;
+          }
+        }
+      }
+
+      this.spatialNavigator.move(key);
     },
 
     onEnter: function() {
