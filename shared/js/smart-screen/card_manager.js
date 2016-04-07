@@ -195,6 +195,7 @@
           this.writeCardlistInCardStore();
         }
       }
+      this.fire('folder-changed', folder);
     },
 
     _initCardStoreIfNeeded: function cm_initCardStore() {
@@ -722,7 +723,7 @@
     // TODO: need to be protected by semaphore
     // TODO: some comparison are based on card type. We may move these part to
     //       card class themselves.
-    // There are three types of query:
+    // There are four types of query:
     // 1. query by cardId
     // 2. query by manifestURL and optionally launchURL
     // 3. query by bookmark url

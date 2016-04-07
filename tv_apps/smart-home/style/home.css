@@ -379,3 +379,21 @@ smart-button[type="app-button"][app-type="device"] > span.name {
   background-color: #4a82ea;
 }
 
+.folder-content-container {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 5rem 7rem 9rem 6.4rem;
+  text-align: left;
+}
+
+.folder-content-container > div {
+  width: 30%;
+  padding-bottom: 30%;
+  background-repeat: no-repeat;
+  background-size: contain;
+  display: inline-block;
+  margin-left: 0.6rem;
+  margin-bottom: 0.3rem;
+  overflow: hidden;
+}
