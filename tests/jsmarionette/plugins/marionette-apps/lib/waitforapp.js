@@ -82,4 +82,5 @@ function waitForAppSync(client, sourceSelector, callback) {
 }
 
 module.exports.waitForApp = waitForApp;
+module.exports.waitForAppSync = waitForAppSync;
 module.exports.waitForActivity = waitForActivity;

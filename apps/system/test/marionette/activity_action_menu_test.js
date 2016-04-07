@@ -1,7 +1,8 @@
 'use strict';
 
 (function() {
-  var Messages = require('../../../sms/test/marionette/lib/messages');
+  var Messages =
+    require('../../../../dead_apps/sms/test/marionette/lib/messages');
   var UtilityTray = require('./lib/utility_tray');
   var assert = require('assert');
 

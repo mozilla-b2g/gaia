@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-/* global Applications, applications*/
+/* global Applications, applications, LazyLoader, WebManifestHelper */
 /** Application module handles the information of apps on behalf of other
  *  modules
  *  @class Applications
@@ -49,7 +49,7 @@
         var appListPath = 'chrome://gaia/content/webapps.json';
         LazyLoader.getJSON(appListPath, true)
         .then((appList) => {
-          for (app in appList) {
+          for (var app in appList) {
             ((app) => {
               var manifestURL = appList[app].manifestURL;
               WebManifestHelper.getManifest(manifestURL)
