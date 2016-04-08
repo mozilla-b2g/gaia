@@ -1,5 +1,5 @@
 /* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, Deck,
-          CardUtil */
+          CardUtil, FOLDER_CAPACITY, Utils */
 
 (function(exports) {
   'use strict';
@@ -52,6 +52,12 @@
     onEnter: function() {
       var elem = this._spatialNavigator.getFocusedElement();
       if (elem.classList.contains('app-button')) {
+        if (this.selected.length >= FOLDER_CAPACITY &&
+            !elem.classList.contains('selected')) {
+          Utils.showCapacityWarning();
+          return;
+        }
+
         elem.classList.toggle('selected');
       }
     },
