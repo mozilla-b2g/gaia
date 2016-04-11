@@ -459,7 +459,7 @@
       }
     },
 
-    insertNodeBefore: function(newNode, startNode) {
+    insertNodeBefore: function(newNode, startNode, options) {
       if (typeof startNode === 'number') {
         startNode = this.nodes[startNode];
       }
@@ -480,8 +480,11 @@
         this.realignToReferenceElement();
         this._shiftNodesPosition(1, newIdx);
       }
-      this._slide(this.getItemFromNode(newNode), newIdx);
+      if (options && options.silent) {
+        return true;
+      }
 
+      this._slide(this.getItemFromNode(newNode), newIdx);
       return true;
     },
 

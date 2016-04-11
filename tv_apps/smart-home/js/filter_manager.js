@@ -303,6 +303,26 @@
       if (this._cardFilter.filter !== FilterManager.FILTERS.ALL.iconName) {
         this._cardFilter.filter = FilterManager.FILTERS.ALL.iconName;
       }
+    },
+
+    /**
+     * Get the currently selected filter.
+     *
+     * @public
+     * @method  FilterManager#getCurrentFilter
+     */
+    getCurrentFilter: function fm_getCurrentFilter() {
+      return this._cardFilter.filter;
+    },
+
+    /**
+     * Check if it is during filter changing.
+     *
+     * @public
+     * @method  FilterManager#isFilterChanging
+     */
+    isFilterChanging: function fm_isFilterChanging() {
+      return this._isFilterChanging;
     }
   };
 

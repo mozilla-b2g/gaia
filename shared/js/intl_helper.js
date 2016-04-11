@@ -28,7 +28,7 @@
         if (options.hour) {
           customOptions.hour12 = navigator.mozHour12;
         }
-        return Intl.DateTimeFormat(
+        return new Intl.DateTimeFormat(
           navigator.languages,
           customOptions
         );
@@ -45,7 +45,7 @@
     },
     mozduration: {
       create: function(options) {
-        return mozIntl.DurationFormat(
+        return new mozIntl.DurationFormat(
           navigator.languages,
           options
         );
@@ -56,7 +56,7 @@
     },
     number: {
       create: function(options) {
-        return Intl.NumberFormat(
+        return new Intl.NumberFormat(
           navigator.languages,
           options
         );
@@ -67,7 +67,7 @@
     },
     collator: {
       create: function(options) {
-        return Intl.Collator(
+        return new Intl.Collator(
           navigator.languages,
           options
         );

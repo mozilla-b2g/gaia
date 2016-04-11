@@ -603,7 +603,7 @@ suite('Time functions', function() {
       Utils.summarizeDaysOfWeek({
         '1': true, '3': true, '5': true
       }).then(result => {
-        assert.deepEqual(result, {raw: 'Mon, Wed, Fri'});
+        assert.deepEqual(result.raw, 'Mon, Wed, Fri');
       }).then(done, done);
     });
   });

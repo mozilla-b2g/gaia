@@ -206,13 +206,13 @@ suite('calendar/calc', function() {
     var firstDayOfTheWeek = 0;
 
     suiteSetup(function() {
-      sinon.stub(window.mozIntl, 'calendarInfo', function(token) {
+      sinon.stub(window.mozIntl, 'getCalendarInfo', function(token) {
         return Promise.resolve(firstDayOfTheWeek);
       });
     });
 
     suiteTeardown(function() {
-      window.mozIntl.calendarInfo.restore();
+      window.mozIntl.getCalendarInfo.restore();
     });
 
     test('firstDayOfTheWeek = 1', function(done) {

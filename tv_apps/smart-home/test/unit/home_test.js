@@ -2,6 +2,7 @@
 /* global Folder, MockL10n, document, MocksHelper,
    XScrollable, MozActivity, SpatialNavigator, CardManager, MessageHandler,
    Home, SearchBar, FilterManager, Edit, Utils, Application, MockMozActivity,
+   CardPicker,
    FTEWizard */
 
 require('/bower_components/evt/index.js');
@@ -22,6 +23,8 @@ require('mock_edit.js');
 require('mock_animations.js');
 require('mock_utils.js');
 require('mock_filter_manager.js');
+require('mock_card_picker.js');
+require('mock_card_util.js');
 require('/shared/test/unit/mocks/smart-screen/mock_spatial_navigator.js');
 require('/shared/test/unit/mocks/smart-screen/mock_key_navigation_adapter.js');
 require('/shared/test/unit/mocks/smart-screen/mock_f_t_e_wizard.js');
@@ -43,7 +46,9 @@ var mocksHelperForHomeTest = new MocksHelper([
   'MozActivity',
   'Utils',
   'FilterManager',
-  'FTEWizard'
+  'FTEWizard',
+  'CardPicker',
+  'CardUtil'
 ]).init();
 
 suite('home', function() {
@@ -95,6 +100,7 @@ suite('home', function() {
     subject.filterManager = new FilterManager();
     subject._fteWizard = new FTEWizard();
     subject.edit = new Edit();
+    subject._cardPicker = new CardPicker();
     subject.cardListElem = document.createElement('div');
     subject.spatialNavigator.m_focusedElement = document.createElement('div');
     subject.isNavigable = true;
@@ -154,12 +160,6 @@ suite('home', function() {
 
       test('should stop activity when invisible', function() {
         var spy = this.sinon.spy(subject.messageHandler, 'stopActivity');
-        subject.onVisibilityChange();
-        assert.isTrue(spy.calledOnce);
-      });
-
-      test('should reset filter', function() {
-        var spy = this.sinon.spy(subject.filterManager, 'resetFilter');
         subject.onVisibilityChange();
         assert.isTrue(spy.calledOnce);
       });

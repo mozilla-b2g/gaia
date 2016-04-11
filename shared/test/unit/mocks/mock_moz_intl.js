@@ -3,30 +3,54 @@
 
 
 global.MockMozIntl = {
-  formatList: function(list) {
-    return Promise.resolve(list.join(', '));
+  ListFormat: function(locales, options) {
+    return {
+      format: function(input) {
+        return Promise.resolve(
+          input.join(', ')
+        );
+      },
+      formatToParts: function(input) {
+        return Promise.resolve([]);
+      }
+    };
   },
-  calendarInfo: function(token) {
+  getCalendarInfo: function(token) {
     return Promise.resolve(0);
   },
   DurationFormat: function(locales, options) {
-    return Promise.resolve({
+    return {
       format: function(input) {
-        return JSON.stringify({ value: input, options: options });
+        return Promise.resolve(
+          JSON.stringify({ value: input, options: options })
+        );
+      },
+      formatToParts: function(input) {
+        return Promise.resolve([]);
       }
-    });
+    };
   },
   RelativeTimeFormat: function(locales, options) {
     return {
-      format: function(value) {
-        return Promise.resolve();
+      format: function(input) {
+        return Promise.resolve(
+          JSON.stringify({ value: input, options: options })
+        );
+      },
+      formatToParts: function(input) {
+        return Promise.resolve([]);
       }
     };
   },
   UnitFormat: function(locales, options) {
     return {
-      format: function(value) {
-        return Promise.resolve();
+      format: function(input) {
+        return Promise.resolve(
+          JSON.stringify({ value: input, options: options })
+        );
+      },
+      formatToParts: function(input) {
+        return Promise.resolve([]);
       }
     };
   },
@@ -44,10 +68,6 @@ global.MockMozIntl = {
         },
         formatElement: function(element, time, maxDiff) {}
       };
-    },
-    getFormattedUnit(type, style, v) {
-      var returnVal = global.MockMozIntl._gaia._stringifyUnit(type, style, v);
-      return Promise.resolve(returnVal);
     },
     _stringifyUnit(type, style, v) {
       var args = JSON.stringify({value: parseInt(v)});

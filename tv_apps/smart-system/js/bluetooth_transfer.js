@@ -156,9 +156,13 @@ var BluetoothTransfer = {
 
     var screen = document.getElementById('screen');
     this.getPairedDevice(function getPairedDeviceComplete() {
+      var formatter = new mozIntl.UnitFormat(navigator.languages, {
+        type: 'digital',
+        style: 'short'
+      });
       Promise.all([
         this.getDeviceName(address),
-        mozIntl._gaia.getFormattedUnit('digital', 'short', evt.fileLength)
+        formatter.format(evt.fileLength)
       ]).then(([deviceName, fileSize]) => {
         this.customDialog = CustomDialog.show(
           'acceptFileTransfer',

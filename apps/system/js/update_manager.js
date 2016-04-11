@@ -928,7 +928,11 @@
     },
 
     _humanizeSize: function um_humanizeSize(bytes) {
-      return mozIntl._gaia.getFormattedUnit('digital', 'short', bytes);
+      var formatter = new mozIntl.UnitFormat(navigator.languages, {
+        type: 'digital',
+        style: 'short'
+      });
+      return formatter.format(bytes);
     },
 
     _closeDownloadDialog: function um_closeDownloadDialog() {

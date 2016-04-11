@@ -1,4 +1,4 @@
-/* global evt, Folder, SmartModalDialog, Utils */
+/* global evt, Folder, SmartModalDialog, Utils, FOLDER_CAPACITY */
 
 'use strict';
 
@@ -47,6 +47,7 @@
           }
         });
       });
+      this.cardManager.on('card-inserted', this.onCardInserted.bind(this));
 
       this.cardScrollable.on('listTransformEnd',
                                   this.handleListTransformEnd.bind(this));
@@ -64,6 +65,7 @@
       this.isFolderReady = false;
       // The hovering card
       this._hoveringCard = null;
+      this.mainSection.dataset.mode = '';
     },
     /**
      * State of home app looks like this:
@@ -207,7 +209,9 @@
 
           break;
         case 'down':
-          if (focus.isHovering && this.isFolderReady) {
+          if (this.folderScrollable.length >= FOLDER_CAPACITY) {
+            Utils.showCapacityWarning();
+          } else if (focus.isHovering && this.isFolderReady) {
             this.moveToFolder();
             this._moveTimer =
               window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
@@ -288,10 +292,8 @@
     },
 
     addNewFolder: function() {
-      var folder = this.cardManager.insertNewFolder({id: 'new-folder'},
-        this.cardScrollable.currentIndex);
-      folder.on('card-swapped', this.onCardSwapped.bind(this));
-      this.spatialNavigator.focus(this.cardScrollable);
+      this.cardManager.insertNewFolder(
+                       {id: 'new-folder'}, this.cardScrollable.currentIndex);
     },
 
     moveToFolder: function() {
@@ -545,6 +547,13 @@
     handleListTransformEnd: function() {
       if (this.mode === '') {
         this.cardScrollable.listElem.classList.remove('exiting-edit-mode');
+      }
+    },
+
+    onCardInserted: function(card) {
+      if (card instanceof Folder) {
+        card.on('card-swapped', this.onCardSwapped.bind(this));
+        this.spatialNavigator.focus(this.cardScrollable);
       }
     },
 

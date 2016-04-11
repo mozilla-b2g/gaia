@@ -488,7 +488,11 @@
      * @param {size} bytes The size of specific storage space
      */
     formatSize: function(size) {
-      return mozIntl._gaia.getFormattedUnit('digital', 'short', size);
+      var formatter = new mozIntl.UnitFormat(navigator.languages, {
+        type: 'digital',
+        style: 'short'
+      });
+      return formatter.format(size);
     },
 
     /**
