@@ -1,3 +1,4 @@
+/* globals Banner */
 'use strict';
 
 (function(exports) {
@@ -8,6 +9,12 @@
       // it makes smart-home without focus. In this case, other apps can
       // request focus from smart-home which makes focus lost, bug 1161940.
       document.getElementById('main-section').focus();
+    },
+
+    showCapacityWarning: function() {
+      Banner.show({
+        id: 'at-most-9-cards-in-folder'
+      });
     }
   };
 })(window);

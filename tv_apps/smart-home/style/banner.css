@@ -1,0 +1,70 @@
+.generic-dialog.banner {
+  position: absolute;
+  height: 16rem;
+  text-align: center;
+  border: none;
+  width: auto;
+  margin: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.generic-dialog.banner div {
+  height: 7rem;
+  padding: 2rem 4.4rem;
+  border-radius: 5.5rem;
+  background: RGBA(0, 0, 0, 0.7);
+  display: inline-block;
+}
+
+.generic-dialog.banner div:after {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 0.1rem;
+  height: 100%;
+}
+
+.generic-dialog.banner div p {
+  display: inline-block;
+  vertical-align: middle;
+  white-space: normal;
+  font-size: 2.8rem;
+  font-weight: 200;
+  line-height: 7rem;
+  color: white;
+  font-style: italic;
+  margin: 0;
+}
+
+.generic-dialog.banner div p strong {
+  text-transform: uppercase;
+  color: #0995b0;
+  font-weight: normal;
+}
+
+
+@keyframes banner-bounce {
+  from, to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  12.5%, 87.5% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.generic-dialog.banner {
+  z-index: 0;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+.generic-dialog.banner.visible {
+  animation: banner-bounce 4s;
+  visibility: visible;
+}
+
