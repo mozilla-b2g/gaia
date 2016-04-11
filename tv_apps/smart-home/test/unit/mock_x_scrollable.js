@@ -20,8 +20,7 @@
     setColspanOnFocus: function(colspan) {
       this.m_colspan = colspan;
     },
-    focus: function() {},
-    realignToReferenceElement: function() {}
+    focus: function() {}
   });
 
   exports.MockXScrollable = MockXScrollable;

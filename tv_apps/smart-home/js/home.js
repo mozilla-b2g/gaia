@@ -7,7 +7,6 @@
 
 (function(exports) {
   const CARDLIST_LEFT_MARGIN = 8.4;
-  const FOLDER_CAPACITY = 9;
 
   /**
    * Main class of smart-home
@@ -691,6 +690,5 @@
   };
 
   exports.Home = Home;
-  exports.FOLDER_CAPACITY = FOLDER_CAPACITY;
 }(window));
 
