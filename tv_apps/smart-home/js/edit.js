@@ -1,4 +1,4 @@
-/* global evt, Folder, SmartModalDialog, Utils */
+/* global evt, Folder, SmartModalDialog, Utils, FOLDER_CAPACITY */
 
 'use strict';
 
@@ -209,7 +209,9 @@
 
           break;
         case 'down':
-          if (focus.isHovering && this.isFolderReady) {
+          if (this.folderScrollable.length >= FOLDER_CAPACITY) {
+            Utils.showCapacityWarning();
+          } else if (focus.isHovering && this.isFolderReady) {
             this.moveToFolder();
             this._moveTimer =
               window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
