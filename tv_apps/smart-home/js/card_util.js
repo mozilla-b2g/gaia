@@ -133,6 +133,20 @@
       }
     },
 
+    revokeFolderCardIcons: function(cardButton) {
+      var folderContentContainer =
+        cardButton.querySelector('.folder-content-container');
+
+      if (folderContentContainer) {
+        var subCardElems = folderContentContainer.getElementsByTagName('div');
+        Array.from(subCardElems).forEach((subCardElem) => {
+          if (subCardElem.dataset.revokableURL) {
+            URL.revokeObjectURL(subCardElem.dataset.revokableURL);
+          }
+        });
+      }
+    },
+
     createCardButton: function(card) {
       var cardButton = document.createElement('smart-button');
       cardButton.setAttribute('type', 'app-button');
@@ -162,7 +176,7 @@
         this._fillCardIcon(cardButton, card);
       } else if (card instanceof Folder) {
         cardButton.setAttribute('app-type', 'folder');
-        cardButton.dataset.icon = 'folder';
+        this.updateFolderCardIcons(cardButton, card);
       }
 
       // For smart-button, we put card name in pseudo-element :after. However,
@@ -183,10 +197,46 @@
            SharedUtils.nodeListToArray(cardButton.getElementsByTagName('span'));
       spans.forEach(span => {
         if (span.classList.contains('name')) {
-          this.updateCardName(cardButton, card);
           this._localizeCardName(span, card);
         }
       });
+    },
+
+    updateFolderCardIcons: function(cardButton, card) {
+      var subCardElemCache = {};
+
+      var folderContentContainer =
+        cardButton.querySelector('.folder-content-container');
+      if (folderContentContainer) {
+        var subCardElems = folderContentContainer.getElementsByTagName('div');
+        Array.from(subCardElems).forEach((subCardElem) => {
+          subCardElemCache[subCardElem.dataset.id] = subCardElem;
+        });
+        cardButton.removeChild(folderContentContainer);
+      }
+
+      folderContentContainer = document.createElement('div');
+      folderContentContainer.classList.add('folder-content-container');
+
+      card.getCardList().forEach((subCard) => {
+        var subCardElem = subCardElemCache[subCard.cardId];
+        if (!subCardElem) {
+          subCardElem = document.createElement('div');
+          subCardElem.dataset.id = subCard.cardId;
+          this._fillCardIcon(subCardElem, subCard);
+        }
+        folderContentContainer.appendChild(subCardElem);
+        delete subCardElemCache[subCard.cardId];
+      });
+
+      for (var id in subCardElemCache) {
+        if (subCardElemCache[id].dataset.revokableURL) {
+          URL.revokeObjectURL(subCardElemCache[id].dataset.revokableURL);
+        }
+        delete subCardElemCache[id];
+      }
+
+      cardButton.appendChild(folderContentContainer);
     }
   };
   exports.CardUtil = CardUtil;

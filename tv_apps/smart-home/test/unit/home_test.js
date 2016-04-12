@@ -1,9 +1,8 @@
 'use strict';
 /* global Folder, MockL10n, document, MocksHelper,
    XScrollable, MozActivity, SpatialNavigator, CardManager, MessageHandler,
-   Home, SearchBar, FilterManager, Edit, Utils, Application, MockMozActivity,
-   CardPicker,
-   FTEWizard */
+   Home, SearchBar, FilterManager, Edit, Application, MockMozActivity,
+   CardPicker, FTEWizard */
 
 require('/bower_components/evt/index.js');
 require('/shared/js/uuid.js');
@@ -134,13 +133,6 @@ suite('home', function() {
           writeable: true,
           configurable: true
         });
-      });
-
-      test('should set focus back on current focused element',
-      function(done) {
-        subject.spatialNavigator.focus = done;
-        subject.onVisibilityChange();
-        assert.isTrue(Utils.holdFocusForAnimation.calledOnce);
       });
 
       test('should start activity', function(done) {

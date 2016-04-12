@@ -113,7 +113,7 @@
   // XXX: this method shares almost the same logic as
   // findCardFromCardList in CardManager. We should consolidate them. See
   // http://bugzil.la/1156726
-  // There are three types of query:
+  // There are four types of query:
   // 1. query by cardId
   // 2. query by manifestURL and optionally launchURL
   // 3. query by bookmark url
