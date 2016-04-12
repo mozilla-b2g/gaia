@@ -63,6 +63,10 @@
     this.element.classList.add('hidden');
   };
 
+  SplashScreen.prototype.isVisible = function ss_isVisible() {
+    return !this.element.classList.contains('hidden');
+  };
+
   SplashScreen.prototype.getIconUrl = function ss_getIconUrl(app) {
     if (app.manifestURL) {
       return this.getIconFromManifestURL(app.manifestURL);
