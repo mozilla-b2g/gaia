@@ -492,6 +492,17 @@
           this.writeCardlistInCardStore().then(function() {
             that.fire('card-updated', that._cardList[index], index);
           });
+        } else {
+          var folder = this.findContainingFolder({ cardId: item.cardId });
+          if (folder) { // The card is under a folder not in _cardList
+            var list = folder.getCardList();
+            var idx = list.findIndex(function(elem) {
+              return elem.cardId === item.cardId;
+            });
+            if (idx >= 0) {
+              folder.updateCard(list[idx], idx);
+            }
+          }
         }
       }, this);
     },
