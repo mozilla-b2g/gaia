@@ -276,16 +276,20 @@
      */
     _getInitialPanelId: function as_getInitialPanelId() {
       return new Promise(function(resolve) {
-        if (navigator.mozHasPendingMessage('activity')) {
-          // Load activity handler only when we need to handle it.
-          LazyLoader.load(['js/activity_handler.js'], function ah_loaded() {
-            window.ActivityHandler.ready().then(function ah_ready() {
-              resolve(window.ActivityHandler.targetPanelId);
-            });
-          });
-        } else {
-          resolve('root');
-        }
+        // Bug 1263632
+        // We need to find an alternative to thsese activities
+
+        // if (navigator.mozHasPendingMessage('activity')) {
+        //   // Load activity handler only when we need to handle it.
+        //   LazyLoader.load(['js/activity_handler.js'], function ah_loaded() {
+        //     window.ActivityHandler.ready().then(function ah_ready() {
+        //       resolve(window.ActivityHandler.targetPanelId);
+        //     });
+        //   });
+        // } else {
+        //   resolve('root');
+        // }
+        resolve('root');
       });
     },
 
