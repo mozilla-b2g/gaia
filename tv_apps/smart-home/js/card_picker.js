@@ -1,4 +1,4 @@
-/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, Deck,
+/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder,
           CardUtil, FOLDER_CAPACITY, Utils */
 
 (function(exports) {
@@ -109,11 +109,11 @@
 
       var that = this;
       function createButtonHelper(card) {
-        if(card instanceof Folder || card instanceof Deck) {
+        if(card instanceof Folder) {
           return;
         }
 
-        var appButton = CardUtil.createCardButton(card);
+        var appButton = CardUtil.createCardButton(card, true);
         that.gridView.appendChild(appButton);
         that.appButtons.push(appButton);
         return appButton;

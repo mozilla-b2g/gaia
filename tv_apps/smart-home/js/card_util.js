@@ -147,7 +147,7 @@
       }
     },
 
-    createCardButton: function(card) {
+    createCardButton: function(card, disableWave) {
       var cardButton = document.createElement('smart-button');
       cardButton.setAttribute('type', 'app-button');
       cardButton.className = 'app-button';
@@ -166,7 +166,7 @@
         }
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
-        if (card.group === 'website') {
+        if (card.group === 'website' || disableWave) {
           this._fillCardIcon(cardButton, card);
         } else {
           this._createWave(cardButton, card);
