@@ -20,12 +20,12 @@ define(function(require) {
         return;
       }
 
-      LazyLoader.load(['shared/style/action_menu.css',
-                       'shared/style/confirm.css',
-                       'shared/style/progress_activity.css',
-                       'shared/elements/gaia-icons/bidi-helper.css',
-                       'shared/elements/gaia_buttons/script.js',
-                       'shared/elements/gaia_confirm/script.js',
+      LazyLoader.load(['../shared/style/action_menu.css',
+                       '../shared/style/confirm.css',
+                       '../shared/style/progress_activity.css',
+                       '../shared/elements/gaia-icons/bidi-helper.css',
+                       '../shared/elements/gaia_buttons/script.js',
+                       '../shared/elements/gaia_confirm/script.js',
                        'style/homescreens.css',
                        // Bug 1210284 - disabling achievements until they are on
                        // the roadmap again or completely removed.
