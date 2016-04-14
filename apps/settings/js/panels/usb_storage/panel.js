@@ -22,7 +22,7 @@ define(function(require) {
 
         // decide if possible to hot switch Usb Transfer Protocol according to
         // device-features.json
-        LazyLoader.getJSON('/resources/device-features.json')
+        LazyLoader.getJSON('resources/device-features.json')
         .then(({usbHotProtocolSwitch}) => usbTransfer.init(elements, {
           usbHotProtocolSwitch: usbHotProtocolSwitch
         }));

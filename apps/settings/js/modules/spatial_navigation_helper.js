@@ -19,7 +19,7 @@ window.SpatialNavigationHelper = {
     }).then(enabledSpatialNavigation => {
       if (enabledSpatialNavigation) {
         LazyLoader.load([
-          '/shared/js/spatial_navigation.js'
+          '../shared/js/spatial_navigation.js'
         ], () => {
           document.getElementsByTagName('body')[0]
             .classList.add('spatial-navigation');

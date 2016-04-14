@@ -40,7 +40,7 @@ define(function(require) {
       // shrink it. Bug 1087441
       SettingsUtils.runHeaderFontFit(this._elements.header);
 
-      LazyLoader.getJSON('/resources/findmydevice.json').then((data) => {
+      LazyLoader.getJSON('resources/findmydevice.json').then((data) => {
         SettingsListener.observe('findmydevice.logged-in', false,
           this._togglePanel.bind(this));
 

@@ -13,7 +13,7 @@ define(function(require) {
 
   var INTERVAL = 500;
   var DELAY = 800;
-  var BASESHAREURL = '/shared/resources/media/';
+  var BASESHAREURL = '../shared/resources/media/';
   var TONEURLS = {
     'content': BASESHAREURL + 'notifications/notifier_firefox.opus',
     'notification': BASESHAREURL + 'ringtones/ringer_firefox.opus',
