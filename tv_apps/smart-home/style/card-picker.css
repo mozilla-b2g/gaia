@@ -16,6 +16,13 @@
   overflow: scroll;
 }
 
+#card-picker-grid-view > div {
+  position: relative;
+  width: 24rem;
+  height: 30rem;
+  float: left;
+}
+
 #card-picker.hidden {
   display: none;
 }
@@ -30,21 +37,29 @@
   height: 18rem;
   background-color: transparent;
   background-repeat: no-repeat;
-  margin: 5.8rem 2.6rem 2.9rem 2.6rem;
+  margin: 4rem 3rem;
   background-size: 100% auto;
 }
 
-#card-picker smart-button[type="app-button"] > .name {
+#card-picker smart-button[type="app-button"] ~ .name {
   width: 18rem;
   height: 5rem;
   font-size: 1.6rem;
+  margin: 0 3rem;
+  bottom: 0px;
 }
 
 #card-picker smart-button[type="app-button"].selected {
   outline: 0.6rem solid #0097b5;
 }
 
+#card-picker smart-button[type="app-button"].focused {
+  transform: scale(1.2);
+}
+
 .card-picker-panel {
   top: 80%;
   position: absolute;
 }
+
+card-picker-grid-view

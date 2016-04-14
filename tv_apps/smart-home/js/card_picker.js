@@ -13,7 +13,7 @@
     hideCardPickerButton: document.getElementById('hide-cardpicker-button'),
 
     init: function(options) {
-      this.appButtons = [];
+      this.appCardElems = [];
 
       this._cardManager = options.cardManager;
       this._folder = null;
@@ -37,7 +37,8 @@
       });
       this._keyNavigationAdapter.on('enter-keyup', this.onEnter.bind(this));
 
-      this._selectedElements = this.gridView.getElementsByClassName('selected');
+      this._selectedButtons = this.gridView.getElementsByClassName('selected');
+      this._appButtons = this.gridView.getElementsByTagName('smart-button');
 
       this.refresh();
     },
@@ -86,10 +87,10 @@
 
       this._cardManager.getCardList()
         .then(cardList => {
-          this._refreshCardButtons(folderList, cardList);
+          this._refreshCardElements(folderList, cardList);
           this._spatialNavigator.setCollection(
-                            this.appButtons.concat(this.navigableElements));
-          this._spatialNavigator.focus(this.appButtons[0]);
+                      this.navigableElements.concat(Array.from(this.allItems)));
+          this._spatialNavigator.focus(this.allItems[0]);
         });
     },
 
@@ -103,34 +104,36 @@
       this.gridView.scrollTo(0, scrollY);
     },
 
-    _refreshCardButtons: function(folderList, cardList, options) {
-      this.appButtons = [];
+    _refreshCardElements: function(folderList, cardList, options) {
+      this.appCardElems = [];
       this.gridView.innerHTML = '';
 
       var that = this;
-      function createButtonHelper(card) {
+      function createCardElemHelper(card) {
         if(card instanceof Folder || card instanceof Deck) {
           return;
         }
 
-        var appButton = CardUtil.createCardButton(card);
-        that.gridView.appendChild(appButton);
-        that.appButtons.push(appButton);
-        return appButton;
+        var nodeElem = document.createElement('div');
+        nodeElem.appendChild(CardUtil.createCardFragment(card));
+        that.gridView.appendChild(nodeElem);
+        return nodeElem;
       }
 
       folderList && folderList.forEach(card => {
-        var appButton = createButtonHelper(card);
-        if (appButton) {
-          appButton.dataset.parentType = 'folder';
-          appButton.classList.add('selected');
+        var appCardElem = createCardElemHelper(card);
+        if (appCardElem) {
+          var cardButton = appCardElem.firstElementChild;
+          cardButton.dataset.parentType = 'folder';
+          cardButton.classList.add('selected');
         }
       });
 
       cardList && cardList.forEach(card => {
-        var appButton = createButtonHelper(card);
-        if (appButton) {
-          appButton.dataset.parentType = 'empty';
+        var appCardElem = createCardElemHelper(card);
+        if (appCardElem) {
+          var cardButton = appCardElem.firstElementChild;
+          cardButton.dataset.parentType = 'empty';
         }
       });
     },
@@ -155,12 +158,14 @@
       if (!this._folder) {
         return;
       }
+      var buttons = this.allItems;
       // Moves cards previously inside the folder back to cardList
-      this.appButtons.every(elem => {
+      for (var i = 0; i < buttons.length; i++) {
+        var elem = buttons[i];
         // Buttons previously inside the folder are in the start of the array
         // and we want to process them only.
         if (elem.dataset.parentType !== 'folder') {
-          return false;
+          break;
         }
         if (!elem.classList.contains('selected')) {
           var card = this._folder.findCard({
@@ -173,9 +178,7 @@
             silent: true
           });
         }
-        return true;
-      });
-
+      }
       // Then save newly added ones
       this._saveToFolderHelper();
     },
@@ -207,7 +210,11 @@
     },
 
     get selected() {
-      return this._selectedElements;
+      return this._selectedButtons;
+    },
+
+    get allItems() {
+      return this._appButtons;
     },
 
     get mode() {
