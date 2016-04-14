@@ -56,6 +56,13 @@
   scroll-behavior: smooth;
 }
 
+#card-picker-grid-view > div {
+  position: relative;
+  width: 24rem;
+  height: 31.5rem;
+  float: left;
+}
+
 #card-picker.hidden {
   display: none;
 }
@@ -66,18 +73,21 @@
 }
 
 #card-picker smart-button[type="app-button"] {
-  width: 19rem;
-  height: 19rem;
+  width: 19.2rem;
+  height: 19.2rem;
   background-color: transparent;
   background-repeat: no-repeat;
   margin: 7rem 2.5rem 3.5rem 2.5rem;
   background-size: 100% auto;
 }
 
-#card-picker smart-button[type="app-button"] > .name {
-  width: 19rem;
-  height: 5rem;
-  font-size: 1.6rem;
+#card-picker smart-button[type="app-button"] ~ .name {
+  width: 24.2rem;
+  height: 1.8rem;
+  font-size: 1.8rem;
+  line-height: 1.8rem;
+  bottom: 0;
+  transform-origin: 50% -2.5rem;
 }
 
 #card-picker-grid-view:after {
@@ -116,6 +126,10 @@
 #card-picker smart-button[type="app-button"].tv-channel:before {
   color: white;
   line-height: 15.4rem;
+}
+
+#card-picker smart-button[type="app-button"].focused {
+  transform: scale(1.2);
 }
 
 .card-picker-panel {
