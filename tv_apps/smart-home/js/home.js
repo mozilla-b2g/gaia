@@ -305,7 +305,8 @@
     onCardUpdated: function(card, idx) {
       var cardButton = this.cardScrollable.getItemFromNode(
                                               this.cardScrollable.getNode(idx));
-      CardUtil.updateCardName(cardButton, card);
+      // nextElementSibling of cardButton is the name span.
+      CardUtil.updateCardName(cardButton.nextElementSibling, card);
     },
 
     onFolderChanged: function(folder) {
@@ -349,6 +350,7 @@
       // card element would be created like this:
       // <div class="card">
       //   <smart-button>/* Card button */</smart-button>
+      //   <span>/* Card name */
       //   <section class="card-panel">
       //     <smart-button>/* Rename button */</smart-button>
       //     <smart-button>/* Delete button */</smart-button>
@@ -358,7 +360,7 @@
       var cardNode = document.createElement('div');
       cardNode.classList.add('card');
 
-      var cardButton = CardUtil.createCardButton(card);
+      var cardFragment = CardUtil.createCardFragment(card);
 
       var cardPanel = document.createElement('section');
       cardPanel.className = 'card-panel';
@@ -374,7 +376,7 @@
       cardPanel.appendChild(renameButton);
       cardPanel.appendChild(deleteButton);
 
-      cardNode.appendChild(cardButton);
+      cardNode.appendChild(cardFragment);
       cardNode.appendChild(cardPanel);
 
       return cardNode;
