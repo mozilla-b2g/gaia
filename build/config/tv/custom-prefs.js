@@ -13,7 +13,7 @@ user_pref('b2g.neterror.url',
 user_pref('apz.allow_zooming', true);
 // Larger value to provide better experience for apps/pages which targets on
 // TV but uses embed tag with hard-coded width/height
-user_pref('browser.viewport.desktopWidth', 1920);
+user_pref('browser.viewport.desktopWidth', 1280);
 
 user_pref('dom.presentation.enabled', true);
 user_pref('devtools.useragent.device_type', 'TV');
