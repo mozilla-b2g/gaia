@@ -8,7 +8,8 @@
       on: function() {},
       off: function() {}
     },
-    createCardNode: function() {}
+    createCardNode: function() {},
+    cleanFolderScrollable: function() {}
   };
 
   exports.MockHome = MockHome;

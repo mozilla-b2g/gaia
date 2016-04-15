@@ -1,4 +1,4 @@
-/* global CardFilter, Folder */
+/* global CardFilter */
 
 (function(exports) {
   'use strict';
@@ -110,9 +110,6 @@
       this._cardFilter.filter = FilterManager.FILTERS.ALL.iconName;
       this._filterChangedHandler = this.onFilterChanged.bind(this);
       this._cardFilter.on('filterchanged', this._filterChangedHandler);
-      this._cardFilter.on('opened', function() {
-        this._home.cleanFolderScrollable(true);
-      }.bind(this));
 
       this._hideFilter = this.hide.bind(this);
       this._showFilter = this.show.bind(this);
@@ -212,18 +209,7 @@
 
       var that = this;
       var filter = this.getFilterByIconName(this._cardFilter.filter);
-      var gotCardLists = function(results) {
-        // results[0] is the main card list which has been filtered.
-        // results[1] is the main card list.
-        var filteredList = results[0];
-        var cardList = results[1];
-
-        // Get filtered card list for each folder.
-        cardList.filter(elem => elem instanceof Folder).forEach(elem => {
-          filteredList = filteredList.concat(
-                                        elem.getFilteredCardList(filter.name));
-        });
-
+      var gotCardLists = function(filteredList) {
         filteredList.forEach(function(card) {
           that._cardScrollable.addNode(that._home.createCardNode(card));
         });
@@ -234,15 +220,13 @@
         window.requestAnimationFrame(that._performBubbleUp.bind(that));
       };
 
-      if (this._isBubbleSinking()) {
-        this._cardScrollable.clean();
-        Promise.all([
-            this._cardManager.getFilteredCardList(filter.name),
-            this._cardManager.getCardList()
-          ]).then(gotCardLists);
-      } else {
+      if (!this._isBubbleSinking()) {
         this._isFilterChanging = false;
+        return;
       }
+
+      this._cardScrollable.clean();
+      this._cardManager.getFilteredCardList(filter.name).then(gotCardLists);
     },
 
     /**
@@ -270,6 +254,8 @@
       // order of all items, we just use them directly to play animation.
       // See http://bugzil.la/1169538
       this._smartBubblesElem.play(this._cardScrollable.allItems);
+
+      this._home.cleanFolderScrollable(true);
     },
 
     /**

@@ -715,6 +715,11 @@
               filteredCards.push(card);
             }
           });
+          // Get filtered card list for each folder.
+          allCards.filter(card => card instanceof Folder).forEach(card => {
+            filteredCards = filteredCards.concat(
+                                          card.getFilteredCardList(filterName));
+          });
         }
         return Promise.resolve(filteredCards);
       });
