@@ -220,11 +220,42 @@
 
       card.getCardList().forEach((subCard) => {
         var subCardElem = subCardElemCache[subCard.cardId];
+
         if (!subCardElem) {
           subCardElem = document.createElement('div');
           subCardElem.dataset.id = subCard.cardId;
-          this._fillCardIcon(subCardElem, subCard);
+
+          var needNameSpan = false;
+          var needCardName = false;
+          var needFillCardIcon = true;
+
+          if (subCard instanceof Application) {
+            switch (subCard.group) {
+              case 'tv':
+                subCardElem.dataset.icon = 'tv';
+                subCardElem.classList.add('tv-channel');
+                needCardName = true;
+                needFillCardIcon = false;
+                break;
+              case 'website':
+                needNameSpan = true;
+                break;
+            }
+          }
+
+          if (needCardName || needNameSpan) {
+            var nameSpan = document.createElement('span');
+            if (needCardName) {
+              this._localizeCardName(nameSpan, subCard);
+            }
+            subCardElem.appendChild(nameSpan);
+          }
+
+          if (needFillCardIcon) {
+            this._fillCardIcon(subCardElem, subCard);
+          }
         }
+
         folderContentContainer.appendChild(subCardElem);
         delete subCardElemCache[subCard.cardId];
       });

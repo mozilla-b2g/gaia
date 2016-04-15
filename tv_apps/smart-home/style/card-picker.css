@@ -44,6 +44,15 @@
   outline: 0.6rem solid #0097b5;
 }
 
+#card-picker smart-button[type="app-button"].tv-channel {
+  background-color: #272727;
+}
+
+#card-picker smart-button[type="app-button"].tv-channel:before {
+  color: white;
+  line-height: 15.4rem;
+}
+
 .card-picker-panel {
   top: 80%;
   position: absolute;
