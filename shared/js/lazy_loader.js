@@ -44,7 +44,7 @@ var LazyLoader = (function() {
 
       // The next few lines are for loading html imports in DEBUG mode
       if (domNode.getAttribute('is')) {
-        this.load(['/shared/js/html_imports.js'], function() {
+        this.load(['../shared/js/html_imports.js'], function() {
           HtmlImports.populate(callback);
         }.bind(this));
         return;
