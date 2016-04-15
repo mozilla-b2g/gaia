@@ -117,7 +117,7 @@
       // inside app.js; but that means we need to catch the errors on our own.
       return Promise.all([
         // We still need to tell FtuLauncher to skip to process some tasks.
-        //this.service.request('FtuLauncher:skip'),
+        this.service.request('FtuLauncher:skip'),
         this.service.request('WallpaperManager:initializeWallpaper',
           this.wallpaper, this.wallpaperValid).then(() => {
             this.debug('launching lockscreen...');
