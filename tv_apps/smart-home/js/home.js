@@ -109,7 +109,9 @@
                           that.onCardInserted.bind(that, that.cardScrollable));
         that.cardManager.on('card-removed',
                           that.onCardRemoved.bind(that, that.cardScrollable));
-        that.cardManager.on('card-updated', that.onCardUpdated.bind(that));
+        that.cardManager.on('card-updated',
+                          that.onCardUpdated.bind(that, that.cardScrollable));
+        that.cardManager.on('folder-changed', that.onFolderChanged.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
         that.spatialNavigator.on('unfocus', that.handleUnfocus.bind(that));
@@ -167,6 +169,8 @@
                         that.onCardInserted.bind(that, that.folderScrollable));
             card.on('card-removed',
                         that.onCardRemoved.bind(that, that.folderScrollable));
+            card.on('card-updated',
+                        that.onCardUpdated.bind(that, that.folderScrollable));
           }
         });
         that._fteWizard = new FTEWizard('homeFTE');
@@ -268,6 +272,8 @@
                 this.onCardInserted.bind(this, this.folderScrollable));
         card.on('card-removed',
                 this.onCardRemoved.bind(this, this.folderScrollable));
+        card.on('card-updated',
+                this.onCardUpdated.bind(this, this.folderScrollable));
       }
 
       var newCardElem = this.createCardNode(card);
@@ -301,17 +307,30 @@
       }
     },
 
-    onCardUpdated: function(card, idx) {
-      var cardButton = this.cardScrollable.getItemFromNode(
-                                              this.cardScrollable.getNode(idx));
+    onCardUpdated: function(scrollable, card, idx) {
+      var cardButton = scrollable.getItemFromNode(scrollable.getNode(idx));
       CardUtil.updateCardName(cardButton, card);
+    },
+
+    onFolderChanged: function(folder) {
+      var folderButtons = document.querySelectorAll(
+        '.app-button[data-card-id="' + folder.cardId + '"]');
+      Array.from(folderButtons).forEach(function(folderButton) {
+        CardUtil.updateFolderCardIcons(folderButton, folder);
+      });
     },
 
     onCardRemoved: function(scrollable, indices) {
       indices.forEach(function(idx) {
         var elm = scrollable.getNode(idx);
-        if (elm && elm.dataset.revokableURL) {
-          URL.revokeObjectURL(elm.dataset.revokableURL);
+        var cardButton = (elm && elm.querySelector('smart-button'));
+        if (cardButton) {
+          if (cardButton.dataset.revokableURL) {
+            URL.revokeObjectURL(cardButton.dataset.revokableURL);
+          }
+          if (cardButton.getAttribute('app-type') == 'folder') {
+            CardUtil.revokeFolderCardIcons(cardButton);
+          }
         }
       }, this);
       scrollable.removeNodes(indices);

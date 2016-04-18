@@ -7,6 +7,7 @@
 /* global AppInstallDialogs */
 /* global BookmarkManager */
 /* global SystemBanner */
+/* global focusManager */
 
 (function(exports) {
   const ADD_TO_APPS_ICON_PATH = '/style/icons/add_to_apps.png';
@@ -39,7 +40,7 @@
       this.name = this.features.name;
     }
 
-    this.iframe.focus();
+    focusManager.focus();
 
     this.container.element.addEventListener('_closed', this);
     this.element.addEventListener('_loaded', this);
@@ -107,10 +108,12 @@
   };
 
   PreviewWindow.prototype._handle_back = function(evt) {
-    if (document.activeElement !== this.iframe) {
+    if (document.activeElement !== this.iframe &&
+        document.activeElement !== document.body) {
       return;
     }
-    if (this.config.url.startsWith('app://')) {
+    if (this.config.url.startsWith('app://') ||
+        this.splashScreen.isVisible()) {
       this.kill();
     } else {
       var goBackReq = this.iframe.getCanGoBack();
@@ -127,19 +130,21 @@
     }
   };
 
-  PreviewWindow.prototype._handle__loaded = function(evt) {
+  PreviewWindow.prototype._handle__loaded = function() {
     this.element.removeEventListener('_loaded', this);
-    var showPreviewHint = function() {
-      window.interactiveNotifications.showNotification(
-        window.InteractiveNotifications.TYPE.NORMAL, {
-          title: {
-            id: 'preview-app-hint'
-          },
-          text: {
-            id: 'add-to-apps'
-          },
-          icon: ADD_TO_APPS_ICON_PATH
-        });
+    var showPreviewHint = () => {
+      if (!this.isDead()) {
+        window.interactiveNotifications.showNotification(
+          window.InteractiveNotifications.TYPE.NORMAL, {
+            title: {
+              id: 'preview-app-hint'
+            },
+            text: {
+              id: 'add-to-apps'
+            },
+            icon: ADD_TO_APPS_ICON_PATH
+          });
+      }
     };
 
     if (this.isAppLike) {

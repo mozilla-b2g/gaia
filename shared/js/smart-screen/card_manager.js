@@ -195,6 +195,7 @@
           this.writeCardlistInCardStore();
         }
       }
+      this.fire('folder-changed', folder);
     },
 
     _initCardStoreIfNeeded: function cm_initCardStore() {
@@ -491,6 +492,17 @@
           this.writeCardlistInCardStore().then(function() {
             that.fire('card-updated', that._cardList[index], index);
           });
+        } else {
+          var folder = this.findContainingFolder({ cardId: item.cardId });
+          if (folder) { // The card is under a folder not in _cardList
+            var list = folder.getCardList();
+            var idx = list.findIndex(function(elem) {
+              return elem.cardId === item.cardId;
+            });
+            if (idx >= 0) {
+              folder.updateCard(list[idx], idx);
+            }
+          }
         }
       }, this);
     },
@@ -722,7 +734,7 @@
     // TODO: need to be protected by semaphore
     // TODO: some comparison are based on card type. We may move these part to
     //       card class themselves.
-    // There are three types of query:
+    // There are four types of query:
     // 1. query by cardId
     // 2. query by manifestURL and optionally launchURL
     // 3. query by bookmark url
