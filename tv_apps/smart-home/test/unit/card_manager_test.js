@@ -377,7 +377,8 @@ suite('smart-home/CardManager', function() {
     test('should get only apps if filter="application"', function(done) {
       var filter = 'application';
       cardManager.getFilteredCardList(filter).then(function(cards) {
-        assert.isTrue(cards.length === 1);
+        // two in folder and one in main list
+        assert.isTrue(cards.length === 3);
       }).then(done, done);
     });
 
