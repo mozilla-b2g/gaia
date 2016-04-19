@@ -1,4 +1,4 @@
-/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder,
+/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, KeyEvent,
           CardUtil, FOLDER_CAPACITY, Utils, Deck */
 
 (function(exports) {
@@ -39,6 +39,7 @@
         this._spatialNavigator.move(direction);
       });
       this._keyNavigationAdapter.on('enter-keyup', this.onEnter.bind(this));
+      this.container.addEventListener('keyup', this.onKeyUp.bind(this), true);
 
       this._selectedElements = this.gridView.getElementsByClassName('selected');
     },
@@ -63,6 +64,18 @@
         if (this.mode == 'update') {
           this._showButton(this.selected.length ? 'done' : 'remove');
         }
+      }
+    },
+
+    onKeyUp: function(evt) {
+      if (evt.keyCode == KeyEvent.DOM_VK_BACK_SPACE &&
+          this.mode == 'add' && this.isShown) {
+        document.l10n.formatValue('cancel-add-folder').then(message => {
+          if (confirm(message)) {
+            this._mode = null;
+            this.hide();
+          }
+        });
       }
     },
 
