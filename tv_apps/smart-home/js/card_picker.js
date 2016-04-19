@@ -11,6 +11,7 @@
     gridView: document.getElementById('card-picker-grid-view'),
 
     hideCardPickerButton: document.getElementById('hide-cardpicker-button'),
+    removeFolderButton: document.getElementById('remove-folder-button'),
 
     init: function(options) {
       this.appButtons = [];
@@ -19,7 +20,8 @@
       this._folder = null;
 
       this.navigableElements = [
-        CardPicker.prototype.hideCardPickerButton
+        this.hideCardPickerButton,
+        this.removeFolderButton
       ];
 
       this.container.addEventListener('click', this.focus.bind(this));
@@ -29,6 +31,7 @@
       this._spatialNavigator.focus();
 
       this.hideCardPickerButton.addEventListener('click', this.hide.bind(this));
+      this.removeFolderButton.addEventListener('click', this.hide.bind(this));
 
       this._keyNavigationAdapter = new KeyNavigationAdapter();
       this._keyNavigationAdapter.init(this.container);
@@ -57,12 +60,16 @@
         }
 
         elem.classList.toggle('selected');
+        if (this.mode == 'update') {
+          this._showButton(this.selected.length ? 'done' : 'remove');
+        }
       }
     },
 
     show: function(folderElem) {
       this._mode = folderElem ? 'update' : 'add';
       this._folder = null;
+      this._showButton('done');
       this.refresh(folderElem);
       this.container.classList.remove('hidden');
       this.focus();
@@ -175,6 +182,19 @@
       }
     },
 
+    _showButton: function(id) {
+      switch (id) {
+        case 'done':
+          this.hideCardPickerButton.classList.remove('hidden');
+          this.removeFolderButton.classList.add('hidden');
+          break;
+        case 'remove':
+          this.hideCardPickerButton.classList.add('hidden');
+          this.removeFolderButton.classList.remove('hidden');
+          break;
+      }
+    },
+
     /**
      * Functions for adding and updating to databases
      */
@@ -236,6 +256,10 @@
         });
         this._cardManager.removeCard(card);
         this._folder.addCard(card, {silent: true});
+      }
+
+      if (this._folder.isEmpty()) {
+        this._cardManager.removeCard(this._folder);
       }
     },
 

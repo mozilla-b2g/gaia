@@ -54,6 +54,21 @@
 }
 
 .card-picker-panel {
+  width: 100%;
   top: 80%;
   position: absolute;
+  text-align: center;
+}
+
+.card-picker-panel smart-button.hidden {
+  display: none;
+}
+
+.card-picker-panel smart-button.danger,
+.card-picker-panel smart-button.danger.focused {
+  background-color: #e63d2f;
+}
+
+.card-picker-panel smart-button.danger.pressed {
+  background-color: #ac2e23;
 }
