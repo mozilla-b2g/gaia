@@ -765,7 +765,7 @@
 
           // if we specify launchURL in query, then we must compare
           // launchURL first
-          if (query.launchURL) {
+          if (query.hasOwnProperty('launchURL')) {
             if (card.launchURL === query.launchURL) {
               found = card;
               return true;
