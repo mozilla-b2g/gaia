@@ -1,5 +1,5 @@
 'use strict';
-/* globals Promise, asyncStorage, Service, BaseModule */
+/* globals Promise, asyncStorage, Service, BaseModule, indexedDB */
 /* exported Places */
 
 (function() {
@@ -9,18 +9,20 @@
   const SCREENSHOT_TIMEOUT = 5000;
 
   /**
-   * Places is the browser history, bookmark and icon management system for
-   * B2G. Places monitors app events and syncs information with the Places
-   * datastore for consumption by apps like Search.
+   * The Places database stores pinned sites, pinned pages,
+   * browsing history and icons.
+   *
    * @requires BaseModule
    * @class Places
    */
   function Places() {}
+
   Places.SUB_MODULES = [
     'BrowserSettings'
   ];
+
   Places.SERVICES = [
-    'clearHistory'
+    'clearHistory', 'pinSite', 'getPinnedSites'
   ];
 
   BaseModule.create(Places, {
@@ -31,14 +33,17 @@
      * @memberof Places.prototype
      * @type {String}
      */
-    STORE_NAME: 'places',
+    DB_NAME: 'places',
+    DB_VERSION: 1,
+    SITES_STORE: 'sites',
+    PAGES_STORE: 'pages',
 
     /**
      * A reference to the places datastore.
      * @memberof Places.prototype
      * @type {Object}
      */
-    dataStore: null,
+    db: null,
 
     /**
      * Set when we are editing a place record in the datastore.
@@ -79,10 +84,12 @@
     _timeouts: {},
 
     /**
-     * Starts places.
-     * Adds necessary event listeners and gets the datastore.
-     * @param {Function} callback
+     * Start places.
+     * 
+     * Adds event listeners and opens the database.
+     * 
      * @memberof Places.prototype
+     * @returns {Promise} Promise which resolves when everything started up.
      */
     _start: function() {
       return new Promise(resolve => {
@@ -92,11 +99,74 @@
         window.addEventListener('appmetachange', this);
         window.addEventListener('apploaded', this);
 
-        asyncStorage.getItem('top-sites', results => {
-          this.topSites = this._removeDupes(results || []);
-          resolve();
+        this.openDb().then((function() {
+          // Get top sites cache from async storage
+          asyncStorage.getItem('top-sites', results => {
+            this.topSites = this._removeDupes(results || []);
+            resolve();
+          });
+        }).bind(this), function(e) {
+          console.error('Error starting Places database ' + e); 
         });
       });
+    },
+
+    /**
+     * Open the database.
+     *
+     * @returns Promise which resolves upon successful database opening.
+     */
+    openDb: function() {
+      return new Promise((function(resolve, reject) {
+        var request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+        request.onsuccess = (function(event) {
+          this.db = event.target.result;
+          resolve();
+        }).bind(this);
+
+        request.onerror = function() {
+          reject(request.errorCode);
+        };
+
+        request.onupgradeneeded = this.upgrade.bind(this);
+      }).bind(this));
+     },
+
+    /**
+     * Upgrade database to new version.
+     *
+     * @param {Event} upgradeneeded event.
+     */
+    upgrade: function(event) {
+      console.log('Upgrading Places database...');
+      this.db = event.target.result;
+
+      // Create sites store if it doesn't exist
+      if(!this.db.objectStoreNames.contains(this.SITES_STORE)) {
+        var sitesStore = this.db.createObjectStore(this.SITES_STORE,
+          { keyPath: 'id', autoIncrement: false});
+        sitesStore.createIndex('frecency', 'frecency', { unique: false });
+        sitesStore.transaction.oncomplete = function() {
+          console.log('Sites store created successfully');
+        };
+        sitesStore.transaction.onerror = function() {
+          console.error('Error creating Sites store');
+        };
+      }
+  
+      // Create pages store if it doesn't exist
+      if(!this.db.objectStoreNames.contains(this.PAGES_STORE)) {
+        var pagesStore = this.db.createObjectStore(this.PAGES_STORE,
+          { keyPath: 'id', autoIncrement: false});
+        pagesStore.createIndex('frecency', 'frecency', { unique: false });
+        pagesStore.transaction.oncomplete = function() {
+          console.log('Pages store created successfully');
+        };
+        pagesStore.transaction.onerror = function() {
+          console.error('Error creating Pages store');
+        };
+      }
+
     },
 
     /**
@@ -120,14 +190,19 @@
       return copy;
     },
 
-    getStore: function() {
+    /**
+     * Get the database object.
+     *
+     * Opens the database if not already open.
+     * @returns {Promise} Promise which resolves with dabase object.
+     */
+    getDb: function() {
       return new Promise(resolve => {
-        if (this.dataStore) {
-          return resolve(this.dataStore);
+        if (this.db) {
+          return resolve(this.db);
         }
-        navigator.getDataStores(this.STORE_NAME).then(stores => {
-          this.dataStore = stores[0];
-          return resolve(this.dataStore);
+        this.openDb().then(() => {
+          return resolve(this.db);
         });
       });
     },
@@ -165,9 +240,10 @@
           this.onMetaChange(app.config.url, app.meta);
           break;
         case 'apploaded':
-          if (app.config.url in this.screenshotQueue) {
-            this.takeScreenshot(app.config.url);
-          }
+          // TODO: Re-enable once screenshots working 
+          //if (app.config.url in this.screenshotQueue) {
+          //  this.takeScreenshot(app.config.url);
+          //}
           this.debouncePlaceChanges(app.config.url);
           break;
       }
@@ -236,21 +312,27 @@
      */
     editPlace: function(url, fun) {
       return new Promise(resolve => {
-        this.getStore().then(store => {
-          var rev = store.revisionId;
-          store.get(url).then(place => {
+        this.getDb().then(db => {
+          var transaction = db.transaction(this.PAGES_STORE, 'readwrite');
+          var objectStore = transaction.objectStore(this.PAGES_STORE);
+          var request = objectStore.get(url);
+          request.onsuccess = () => {
+            var place = request.result;
             place = place || this.defaultPlace(url);
             fun(place, newPlace => {
-              if (this.writeInProgress || store.revisionId !== rev) {
+              if (this.writeInProgress) {
                 return this.editPlace(url, fun);
               }
               this.writeInProgress = true;
-              store.put(newPlace, url).then(() => {
+              newPlace.id = newPlace.url;
+
+              var requestUpdate = objectStore.put(newPlace);
+              requestUpdate.onsuccess = () => {
                 this.writeInProgress = false;
                 resolve();
-              });
+              };
             });
-          });
+          };
         });
       });
     },
@@ -295,18 +377,71 @@
      */
     isPinned: function(url) {
       return new Promise((resolve, reject) => {
-        return this.getStore()
-          .then(store => {
-            return store.get(url);
-          })
-          .then(place => {
+        return this.getDb().then(db => {
+          var transaction = db.transaction(this.PAGES_STORE, 'readonly');
+          var objectStore = transaction.objectStore(this.PAGES_STORE);
+          var request = objectStore.get(url);
+          request.onsuccess = function() {
+            var place = request.result;
             return resolve(!!place.pinned);
-          })
-          .catch(e => {
+          };
+          request.onerror = function(e) {
             console.error(`Error getting the page details: ${e}`);
             return reject(e);
-          });
+          };
+        });
       });
+    },
+
+    /**
+     * Pin a site.
+     *
+     * @param {String} id Site ID.
+     * @param {Object} siteObject Site object.
+     */
+    pinSite: function(id, siteObject) {
+      return new Promise((function(resolve, reject) {
+        this.getDb().then((function(db) {
+          var transaction = db.transaction(this.SITES_STORE, 'readwrite');
+          var objectStore = transaction.objectStore(this.SITES_STORE);
+          var writeRequest = objectStore.put(siteObject);
+        
+          writeRequest.onsuccess = function() {
+            console.log('Successfully pinned site ' + ' with id ' +
+              siteObject.id);
+            resolve();
+          };
+    
+          writeRequest.onerror = function() {
+            console.error('Error updating site with id ' + siteObject.id);
+            reject();
+          };
+        }).bind(this));
+      }).bind(this));
+    },
+
+    /**
+     * Get all pinned sites.
+     *.
+     * @returns {Promise} A promise which resolves with the full set of results.
+     */
+    getPinnedSites: function() {
+      var results = [];
+      var transaction = this.db.transaction(this.SITES_STORE);
+      var objectStore = transaction.objectStore(this.SITES_STORE);
+      return new Promise((function(resolve, reject) {
+        objectStore.openCursor().onsuccess = function(event) {
+          var cursor = event.target.result;
+          if (cursor) {
+            if (cursor.value.pinned) {
+              results.push(cursor.value);
+            }
+            cursor.continue();
+          } else {
+            resolve(results);
+          }
+        };
+      }).bind(this));
     },
 
     /*
@@ -360,7 +495,7 @@
         });
         this.topSites = newTopSites;
         this.topSites.push(place);
-        this.screenshotRequested(place.url);
+        // this.screenshotRequested(place.url);
         this.topSites.sort(function(a, b) {
           return b.frecency - a.frecency;
         });
@@ -396,10 +531,12 @@
      *
      * @return Promise
      */
+    // TODO: Make this work again.
     clearHistory: function() {
-      return new Promise((resolve, reject) => {
-        return this.getStore().then(store => {
-          store.getLength().then((storeLength) => {
+      return Promise.resolve(true);
+      /*return new Promise((resolve, reject) => {
+        return this.getDb().then(db => {
+          db.getLength().then((storeLength) => {
             if (!storeLength) {
               return resolve();
             }
@@ -460,7 +597,7 @@
               });
           });
         });
-      });
+      });*/
     },
 
     /**

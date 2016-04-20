@@ -480,7 +480,7 @@
     IconsHelper.getIcon(siteObject.url, null,
       {icons: this.app.favicons}, siteObject).then(icon => {
         siteObject.icon = icon;
-        BookmarksDatabase.put(siteObject, siteObject.id)
+        Service && Service.request('Places:pinSite', siteObject.id, siteObject)
           .then(() => {
             this.app.debug('pinSite: ' + siteObject.id);
             this.systemBanner.show('site-pinned-to-home-screen');
