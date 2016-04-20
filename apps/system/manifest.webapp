@@ -169,11 +169,6 @@
       "access": "readwrite",
       "description": "Stores successful downloads"
     },
-    "places": {
-      "access": "readwrite",
-      "certified-only": false,
-      "description": "Stores data about browsing history."
-    },
     "icons": {
       "access": "readwrite",
       "certified-only": false,
