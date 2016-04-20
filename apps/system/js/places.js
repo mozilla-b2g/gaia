@@ -31,14 +31,16 @@
      * @memberof Places.prototype
      * @type {String}
      */
-    STORE_NAME: 'places',
+    DB_NAME: 'places',
+    DB_VERSION: 1,
+    SITES_STORE: 'sites',
 
     /**
      * A reference to the places datastore.
      * @memberof Places.prototype
      * @type {Object}
      */
-    dataStore: null,
+    db: null,
 
     /**
      * Set when we are editing a place record in the datastore.
@@ -92,11 +94,57 @@
         window.addEventListener('appmetachange', this);
         window.addEventListener('apploaded', this);
 
+        this.openDb();
+
         asyncStorage.getItem('top-sites', results => {
           this.topSites = this._removeDupes(results || []);
           resolve();
         });
       });
+    },
+
+    openDb: function() {
+      return new Promise((function(resolve, reject) {
+        var request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+        request.onsuccess = (function(event) {
+          this.db = event.target.result;
+          resolve();
+        }).bind(this);
+
+        request.onerror = function() {
+          reject(request.errorCode);
+        };
+
+        request.onupgradeneeded = this.upgrade.bind(this);
+      }).bind(this));
+     },
+
+         /**
+     * Upgrade database to new version.
+     *
+     * @param {Event} upgradeneeded event.
+     */
+    upgrade: function(event) {
+      console.log('Upgrading Places database...');
+      this.db = event.target.result;
+
+      if(this.db.objectStoreNames.contains(this.SITES_STORE)) {
+        console.log('Sites store already exists');
+        return;
+      }
+
+      var objectStore = this.db.createObjectStore(this.SITES_STORE,
+        { keyPath: 'id', autoIncrement: false});
+      objectStore.createIndex('frecency', 'frecency', { unique: false });
+      objectStore.createIndex('pinned', 'pinned', { unique: false });
+      objectStore.transaction.oncomplete = function() {
+        console.log('Sites store created successfully');
+      };
+
+      objectStore.transaction.onerror = function() {
+        console.error('Error creating Sites store');
+      };
+
     },
 
     /**
@@ -122,12 +170,11 @@
 
     getStore: function() {
       return new Promise(resolve => {
-        if (this.dataStore) {
-          return resolve(this.dataStore);
+        if (this.db) {
+          return resolve(this.db);
         }
-        navigator.getDataStores(this.STORE_NAME).then(stores => {
-          this.dataStore = stores[0];
-          return resolve(this.dataStore);
+        this.openDb().then(() => {
+          return resolve(this.db);
         });
       });
     },
@@ -165,9 +212,9 @@
           this.onMetaChange(app.config.url, app.meta);
           break;
         case 'apploaded':
-          if (app.config.url in this.screenshotQueue) {
-            this.takeScreenshot(app.config.url);
-          }
+          // if (app.config.url in this.screenshotQueue) {
+          //   this.takeScreenshot(app.config.url);
+          // }
           this.debouncePlaceChanges(app.config.url);
           break;
       }
@@ -237,20 +284,26 @@
     editPlace: function(url, fun) {
       return new Promise(resolve => {
         this.getStore().then(store => {
-          var rev = store.revisionId;
-          store.get(url).then(place => {
+          var transaction = store.transaction(this.SITES_STORE, 'readwrite');
+          var objectStore = transaction.objectStore(this.SITES_STORE);
+          var request = objectStore.get(url);
+          request.onsuccess = () => {
+            var place = request.result;
             place = place || this.defaultPlace(url);
             fun(place, newPlace => {
-              if (this.writeInProgress || store.revisionId !== rev) {
+              if (this.writeInProgress) {
                 return this.editPlace(url, fun);
               }
               this.writeInProgress = true;
-              store.put(newPlace, url).then(() => {
+              newPlace.id = newPlace.url;
+
+              var requestUpdate = objectStore.put(newPlace);
+              requestUpdate.onsuccess = () => {
                 this.writeInProgress = false;
                 resolve();
-              });
+              };
             });
-          });
+          };
         });
       });
     },
@@ -297,14 +350,17 @@
       return new Promise((resolve, reject) => {
         return this.getStore()
           .then(store => {
-            return store.get(url);
-          })
-          .then(place => {
-            return resolve(!!place.pinned);
-          })
-          .catch(e => {
-            console.error(`Error getting the page details: ${e}`);
-            return reject(e);
+            var transaction = store.transaction(this.SITES_STORE, 'readonly');
+            var objectStore = transaction.objectStore(this.SITES_STORE);
+            var request = objectStore.get(url);
+            request.onsuccess = function() {
+              var place = request.result;
+              return resolve(!!place.pinned);
+            };
+            request.onerror = function(e) {
+              console.error(`Error getting the page details: ${e}`);
+              return reject(e);
+            };
           });
       });
     },
@@ -360,7 +416,7 @@
         });
         this.topSites = newTopSites;
         this.topSites.push(place);
-        this.screenshotRequested(place.url);
+        // this.screenshotRequested(place.url);
         this.topSites.sort(function(a, b) {
           return b.frecency - a.frecency;
         });
