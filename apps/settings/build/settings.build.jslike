@@ -11,6 +11,7 @@
   // remove the path of the object from the following list.
   // organized in alphabet order
   paths: {
+    'shared': '../../../shared/js',
     'modules/defer': 'empty:',
     'modules/dialog_panel': 'empty:',
     'modules/navigator/mozApps': 'empty:',
