@@ -1,5 +1,5 @@
 /* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, SharedUtils,
-          CardUtil, FOLDER_CAPACITY, Utils, Deck */
+          CardUtil, FOLDER_CAPACITY, Utils, Deck, Sanitizer */
 
 (function(exports) {
   'use strict';
@@ -11,7 +11,7 @@
     gridView: document.getElementById('card-picker-grid-view'),
 
     hideCardPickerButton: document.getElementById('hide-cardpicker-button'),
-    removeFolderButton: document.getElementById('remove-folder-button'),
+    counterLabel: document.getElementById('picker-selection-counter'),
 
     init: function(options) {
       this.appButtons = [];
@@ -20,8 +20,7 @@
       this._folder = null;
 
       this.navigableElements = [
-        this.hideCardPickerButton,
-        this.removeFolderButton
+        this.hideCardPickerButton
       ];
 
       this.container.addEventListener('click', this.focus.bind(this));
@@ -31,13 +30,10 @@
       this._spatialNavigator.focus();
 
       this.hideCardPickerButton.addEventListener('click', this.hide.bind(this));
-      this.removeFolderButton.addEventListener('click', this.hide.bind(this));
 
       this._keyNavigationAdapter = new KeyNavigationAdapter();
       this._keyNavigationAdapter.init(this.container);
-      this._keyNavigationAdapter.on('move', direction => {
-        this._spatialNavigator.move(direction);
-      });
+      this._keyNavigationAdapter.on('move', this.onMove.bind(this));
       this._keyNavigationAdapter.on('enter-keyup', this.onEnter.bind(this));
       this.container.addEventListener('keyup', this.onKeyUp.bind(this), true);
 
@@ -51,6 +47,13 @@
       }
     },
 
+    onMove: function(direction) {
+      var result = this._spatialNavigator.move(direction);
+      if (result === false && direction === 'down') {
+        this._spatialNavigator.focus(this.hideCardPickerButton);
+      }
+    },
+
     onEnter: function() {
       var elem = this._spatialNavigator.getFocusedElement();
       if (elem.classList.contains('app-button')) {
@@ -61,6 +64,7 @@
         }
 
         elem.classList.toggle('selected');
+        this.updateCapacityCount();
         if (this.mode == 'update') {
           this._showButton(this.selected.length ? 'done' : 'remove');
         }
@@ -71,7 +75,7 @@
       if (SharedUtils.isBackKey(evt) && this.mode == 'add' && this.isShown) {
         document.l10n.formatValue('cancel-add-folder').then(message => {
           if (confirm(message)) {
-            this._mode = null;
+            this.mode = null;
             this.hide();
           }
         });
@@ -79,7 +83,7 @@
     },
 
     show: function(folderElem) {
-      this._mode = folderElem ? 'update' : 'add';
+      this.mode = folderElem ? 'update' : 'add';
       this._folder = null;
       this._showButton('done');
       this.refresh(folderElem);
@@ -105,6 +109,7 @@
       this._cardManager.getCardList()
         .then(cardList => {
           this._refreshCardButtons(folderList, cardList);
+          this.updateCapacityCount();
           this._spatialNavigator.setCollection(
                             this.appButtons.concat(this.navigableElements));
           this._spatialNavigator.focus(this.appButtons[0]);
@@ -115,8 +120,18 @@
       this._spatialNavigator.focus();
     },
 
+    updateCapacityCount: function() {
+      document.l10n.formatValue('selection-count',{
+        number: this.selected.length,
+        limit: FOLDER_CAPACITY
+      }).then(message => {
+        var htmlmessage = Sanitizer.createSafeHTML(message);
+        this.counterLabel.innerHTML = Sanitizer.unwrapSafeHTML(htmlmessage);
+      });
+    },
+
     _scrollTo: function(elem) {
-      var scrollY = (elem.offsetTop - this.gridView.offsetTop) -
+      var scrollY = elem.offsetTop -
               (this.gridView.offsetHeight - elem.offsetHeight) / 2;
       this.gridView.scrollTo(0, scrollY);
     },
@@ -198,12 +213,12 @@
     _showButton: function(id) {
       switch (id) {
         case 'done':
-          this.hideCardPickerButton.classList.remove('hidden');
-          this.removeFolderButton.classList.add('hidden');
+          this.hideCardPickerButton.classList.remove('danger');
+          this.hideCardPickerButton.classList.add('primary');
           break;
         case 'remove':
-          this.hideCardPickerButton.classList.add('hidden');
-          this.removeFolderButton.classList.remove('hidden');
+          this.hideCardPickerButton.classList.add('danger');
+          this.hideCardPickerButton.classList.remove('primary');
           break;
       }
     },
@@ -211,7 +226,6 @@
     /**
      * Functions for adding and updating to databases
      */
-
     saveToNewFolder: function(position) {
       if (this.selected.length <= 0) {
         return;
@@ -302,6 +316,11 @@
 
     get mode() {
       return this._mode;
+    },
+
+    set mode(param) {
+      this.container.setAttribute('mode', param);
+      this._mode = param;
     }
   });
   exports.CardPicker = CardPicker;
