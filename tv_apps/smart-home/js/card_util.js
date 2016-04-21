@@ -176,9 +176,14 @@
         this._fillCardIcon(cardButton, card);
       } else if (card instanceof Folder) {
         cardButton.setAttribute('app-type', 'folder');
+
+        var folderName = document.createElement('span');
+        folderName.classList.add('folder-name');
+        this._localizeCardName(folderName, card);
+
+        cardButton.appendChild(folderName);
         this.updateFolderCardIcons(cardButton, card);
       }
-
 
       // For smart-button, we put card name in pseudo-element :after. However,
       // we need to localize card name and l10n library do not support
@@ -197,8 +202,8 @@
     },
 
     updateCardName: function(nodeElement, card) {
-      var labels = Array.from(nodeElement.getElementsByClassName('name'));
-      labels.forEach(label => this._localizeCardName(label, card));
+      var labels = nodeElement.querySelectorAll('.name, .folder-name');
+      Array.from(labels).forEach(label => this._localizeCardName(label, card));
     },
 
     updateFolderCardIcons: function(cardButton, card) {
@@ -233,11 +238,7 @@
               case 'tv':
                 subCardElem.dataset.icon = 'tv';
                 subCardElem.classList.add('tv-channel');
-                needCardName = true;
                 needFillCardIcon = false;
-                break;
-              case 'website':
-                needNameSpan = true;
                 break;
             }
           }
@@ -245,6 +246,7 @@
           if (needCardName || needNameSpan) {
             var nameSpan = document.createElement('span');
             if (needCardName) {
+              nameSpan.classList.add('name');
               this._localizeCardName(nameSpan, subCard);
             }
             subCardElem.appendChild(nameSpan);

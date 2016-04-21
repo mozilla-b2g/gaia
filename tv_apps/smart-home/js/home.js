@@ -588,6 +588,11 @@
       } else {
         this._focusScrollable = undefined;
       }
+
+      document.getElementById('main-section').classList.toggle(
+        'folder-scrollable-focused',
+        this._focusScrollable === this.folderScrollable
+      );
     },
 
     handleUnfocus: function(elem, nodeElem) {
@@ -633,7 +638,16 @@
       }
       this.spatialNavigator.remove(this.folderScrollable);
       this.folderScrollable.clean();
-      this._folderCard = undefined;
+
+      if (this._folderCard) {
+        var folderButton = document.querySelector(
+          '.app-button[data-card-id="' + this._folderCard.cardId + '"]');
+        if (folderButton) {
+          folderButton.classList.remove('opened');
+        }
+        this._folderCard = undefined;
+      }
+
       this.edit.isFolderReady = false;
       this.cardScrollable.setColspanOnFocus(0);
     },
@@ -710,6 +724,8 @@
               this.edit.isFolderReady = true;
               this.skipFolderBubble = undefined;
             }.bind(this));
+
+          target.classList.add('opened');
 
           window.requestAnimationFrame(initFolderAnimation);
         } else {
