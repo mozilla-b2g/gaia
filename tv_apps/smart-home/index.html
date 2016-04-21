@@ -36,6 +36,7 @@
     <script defer src="shared/js/async_semaphore.js"></script>
     <script defer src="shared/js/uuid.js"></script>
     <script defer src="shared/js/iac_handler.js"></script>
+    <script defer src="shared/js/sanitizer.js"></script>
 
     <!-- Helper libraries -->
     <script defer src="bower_components/evt/index.js"></script>
@@ -201,14 +202,19 @@
       </section>
 
       <section id="card-picker" class="hidden">
-        <div id="card-picker-grid-view">
-        </div>
+        <header class="title">
+           <h1 id="card-picker-title-create" data-l10n-id="create-new-folder">Create New Folder</h1>
+           <h1 id="card-picker-title-edit" data-l10n-id="edit-folder">Edit Folder</h1>
+        </header>
+        <section class="card-picker-prompt">
+           <span data-l10n-id="select-card-into-folder">Select the card into the folder.</span>
+           <span id="picker-selection-counter"><span>0/9</span> selected</span>
+        </section>
+        <div id="card-picker-grid-view"></div>
         <section class="card-picker-panel">
           <smart-button type="rounded-corner-text" id="hide-cardpicker-button">
-            <span data-l10n-id="done">Done</span>
-          </smart-button>
-          <smart-button type="rounded-corner-text" id="remove-folder-button" class="danger">
-            <span data-l10n-id="remove-this-folder">Remove this folder</span>
+            <span data-l10n-id="done" id="done-label">Done</span>
+            <span data-l10n-id="remove-this-folder" id="remove-this-folder-label">Remove this folder</span>
           </smart-button>
         </section>
       </section>

@@ -4,16 +4,56 @@
   position: absolute;
   left: 0;
   top: 0;
-  background-color: RGBA(0, 0, 0, 0.8);
+  background-color: black;
+  color: white;
+}
+
+#card-picker .title {
+  top: 5.1%;
+  left: 3rem;
+  position: absolute;
+}
+
+#card-picker .title h1 {
+  font-weight: 100;
+  font-style: italic;
+  font-size: 5.5rem;
+  font-weight: 200;
+  margin: 0;
+}
+
+#card-picker[mode='add'] #card-picker-title-edit {
+  display: none;
+}
+
+#card-picker[mode='update'] #card-picker-title-create {
+  display: none;
+}
+
+.card-picker-prompt {
+  text-align: center;
+  font-weight: 100;
+  font-style: italic;
+  font-size: 3.8rem;
+  width: 100%;
+  top: 16.2%;
+  position: absolute;
+}
+
+.card-picker-prompt > span > span {
+  font-size: 5.2rem;
+  font-weight: 500;
 }
 
 #card-picker-grid-view {
-  width: 100%;
-  height: 70%;
-  position: relative;
+  position: absolute;
   left: 0;
-  top: 10%;
-  overflow: scroll;
+  right: 0;
+  bottom: 0;
+  top: 27.28%;
+  padding: 0 12rem 0 12rem;
+  overflow: hidden;
+  scroll-behavior: smooth;
 }
 
 #card-picker.hidden {
@@ -26,22 +66,47 @@
 }
 
 #card-picker smart-button[type="app-button"] {
-  width: 18rem;
-  height: 18rem;
+  width: 19rem;
+  height: 19rem;
   background-color: transparent;
   background-repeat: no-repeat;
-  margin: 5.8rem 2.6rem 2.9rem 2.6rem;
+  margin: 7rem 2.5rem 3.5rem 2.5rem;
   background-size: 100% auto;
 }
 
 #card-picker smart-button[type="app-button"] > .name {
-  width: 18rem;
+  width: 19rem;
   height: 5rem;
   font-size: 1.6rem;
 }
 
-#card-picker smart-button[type="app-button"].selected {
-  outline: 0.6rem solid #0097b5;
+#card-picker-grid-view:after {
+  /* Create some space on bottom such that scrolling the last row to center of
+     grid view becomes possible */
+  content: ' ';
+  display: block;
+  width: 30rem;
+  height: 30rem;
+}
+
+/* Currently the :after tag is not used as text label (a span child element is
+   used instead) so we use this for the "checked" style instead. */
+#card-picker smart-button[type="app-button"]:after {
+  background-color: transparent;
+  transition: background-color 0.1s linear;
+}
+
+#card-picker smart-button[type="app-button"].selected:after {
+  background-color: RGBA(255, 255, 255, 0.8);
+  font-family: "smart-icons";
+  content: 'check';
+  color: #61acd7;
+  font-size: 8.8rem;
+  font-style: normal;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  line-height: 19rem;
 }
 
 #card-picker smart-button[type="app-button"].tv-channel {
@@ -54,9 +119,13 @@
 }
 
 .card-picker-panel {
-  width: 100%;
-  top: 80%;
   position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 10.6rem;
+  padding-top: 2.6rem;
+  background: RGBA(0, 0, 0, 0.9);
   text-align: center;
 }
 
@@ -67,8 +136,21 @@
 .card-picker-panel smart-button.danger,
 .card-picker-panel smart-button.danger.focused {
   background-color: #e63d2f;
+  color: #ffffff;
 }
 
 .card-picker-panel smart-button.danger.pressed {
   background-color: #ac2e23;
+}
+
+#hide-cardpicker-button {
+  min-width: 23.7rem;
+}
+
+#hide-cardpicker-button.danger > #done-label {
+  display: none;
+}
+
+#hide-cardpicker-button:not(.danger) > #remove-this-folder-label {
+  display: none;
 }
