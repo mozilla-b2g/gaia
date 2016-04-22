@@ -1,4 +1,4 @@
-/* global KeyEvent, evt */
+/* global KeyEvent, SharedUtils, evt */
 (function(exports) {
   'use strict';
   // KeyNavigationAdapter files event with '-keyup' as postfix. All behaviors
@@ -43,7 +43,7 @@
 
     handleEvent: function kna_handleEvent(evt) {
       if(this._evtNames.indexOf(evt.type) !== -1) {
-        this.handleKeyEvent(this.convertKeyToString(evt.keyCode), evt.type);
+        this.handleKeyEvent(this.convertKeyToString(evt), evt.type);
       }
 
       switch(evt.type) {
@@ -93,8 +93,11 @@
       }
     },
 
-    convertKeyToString: function kna_convertKeyToString(keyCode) {
-      switch (keyCode) {
+    convertKeyToString: function kna_convertKeyToString(evt) {
+      if (SharedUtils && SharedUtils.isBackKey(evt)) {
+        return 'back';
+      }
+      switch (evt.keyCode) {
         case KeyEvent.DOM_VK_UP:
           return 'up';
         case KeyEvent.DOM_VK_RIGHT:
@@ -105,10 +108,6 @@
           return 'left';
         case KeyEvent.DOM_VK_RETURN:
           return 'enter';
-        case KeyEvent.DOM_VK_ESCAPE:
-          return 'esc';
-        case KeyEvent.DOM_VK_BACK_SPACE:
-          return 'back';
         default:// we don't consume other keys.
           return null;
       }

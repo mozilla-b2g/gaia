@@ -1064,7 +1064,7 @@ var Browser = {
   keyHook: function browser_keyHook(ev) {
     this.debug('kc = ' + ev.keyCode);
 
-    if(ev.keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
+    if(SharedUtils.isBackKey(ev)) {
       if(Toolbar.toolbarPanel.dataset.menu == 'show') {
         Toolbar.toolbarPanel.dataset.menu = 'hide';
         return;
@@ -1126,14 +1126,12 @@ var Browser = {
       Awesomescreen.pinToHome();
       break;
 
-    case KeyEvent.DOM_VK_BACK_SPACE:
-      // clear drag mode
-      Toolbar.clearDragMode();
-
-      Toolbar.goBack();
-      break;
-
     default:
+      if(SharedUtils.isBackKey(ev)) {
+        // clear drag mode
+        Toolbar.clearDragMode();
+        Toolbar.goBack();
+      }
       break;
     }
   },

@@ -8,6 +8,7 @@
 
   var MockFxosTvModalDialog = function (container, options) {
     this.isOpened = false;
+    this.element = document.createElement('div');
   };
 
   MockFxosTvModalDialog.prototype = {
@@ -24,4 +25,5 @@
   };
 
   exports.MockFxosTvModalDialog = MockFxosTvModalDialog;
+  exports.MockFxosTvInputDialog = MockFxosTvModalDialog;
 }(window));

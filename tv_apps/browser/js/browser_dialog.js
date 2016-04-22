@@ -1,10 +1,8 @@
 /* global Awesomescreen */
 /* global Browser */
 /* global BrowserDB */
-/* global FxosTvInputDialog */
-/* global FxosTvModalDialog */
-/* global KeyEvent */
 /* global Settings */
+/* global SharedUtils */
 
 /* exported BrowserDialog */
 
@@ -43,16 +41,12 @@ var BrowserDialog = {
     // Get all elements initially.
     this.getAllElements();
 
-    this.browserDialogBase.addEventListener('keydown', (e) => {
-      if (this.isDisplayed && e.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-        this.cancelDialog();
-      }
-    });
-
-    this.modalDialog = new FxosTvModalDialog(this.browserDialogBase);
+    this.modalDialog =
+      SharedUtils.createSmartDialog('modal', this.browserDialogBase);
     this.modalDialog.element.addEventListener('closed',
       this.handleClosedEvent.bind(this));
-    this.inputDialog = new FxosTvInputDialog(this.browserDialogBase);
+    this.inputDialog =
+      SharedUtils.createSmartDialog('input', this.browserDialogBase);
     this.inputDialog.element.addEventListener('closed',
       this.handleClosedEvent.bind(this));
   },

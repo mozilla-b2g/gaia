@@ -8,6 +8,7 @@
 /* global SearchUtil */
 /* global Toolbar */
 /* global UrlHelper */
+/* global SharedUtils */
 
 'use strict';
 
@@ -405,6 +406,16 @@ var Settings = {
     if(document.activeElement.nodeName == 'INPUT') {
       return true;
     }
+
+    if(SharedUtils.isBackKey(ev)) {
+      if( Settings.isDialogSearchDisplayed() ) {
+        Settings.hideDialogSearch();
+        return true;
+      }
+      Settings.hide();
+      return true;
+    }
+
     switch( ev.keyCode ) {
       case KeyEvent.DOM_VK_LEFT :
         ev.preventDefault();
@@ -467,14 +478,6 @@ var Settings = {
            }
         }
         break;
-
-      case KeyEvent.DOM_VK_BACK_SPACE :
-        if( Settings.isDialogSearchDisplayed() ) {
-          Settings.hideDialogSearch();
-          return true;
-        }
-        Settings.hide();
-        return true;
 
       default :
         return false;

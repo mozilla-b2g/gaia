@@ -11,6 +11,7 @@
 
 'use strict';
 
+require('/shared/js/smart-screen/shared_utils.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l20n.js');
 requireApp('browser/js/browser_dialog.js');
@@ -21,7 +22,8 @@ requireApp('browser/test/unit/mocks/mock_fxos_tv_modal_dialog.js');
 var mocksForBrowserDialog = new MocksHelper([
   'Awesomescreen',
   'Browser',
-  'FxosTvModalDialog'
+  'FxosTvModalDialog',
+  'FxosTvInputDialog'
 ]).init();
 
 suite('Browser Dialog >', function() {

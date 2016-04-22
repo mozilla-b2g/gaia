@@ -1,4 +1,4 @@
-/* global IACHandler, SimpleKeyNavigation, KeyEvent, focusManager */
+/* global IACHandler, SimpleKeyNavigation, focusManager, SharedUtils */
 
 (function(exports) {
   'use strict';
@@ -129,12 +129,8 @@
   };
 
   proto._handleKeyEvent = function in_handleKeyEvent(e) {
-    switch(e.keyCode) {
-      case KeyEvent.DOM_VK_BACK_SPACE:
-        if (this._activeMessage) {
-          this.hideNotification(this._activeType, this._activeMessage);
-        }
-        break;
+    if (SharedUtils.isBackKey(e) && this._activeMessage) {
+      this.hideNotification(this._activeType, this._activeMessage);
     }
   },
 

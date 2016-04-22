@@ -1,4 +1,4 @@
-/* global evt, Folder, SmartModalDialog, Utils, FOLDER_CAPACITY */
+/* global evt, Folder, Utils, SharedUtils, FOLDER_CAPACITY */
 
 'use strict';
 
@@ -28,7 +28,7 @@
     init: function(spatialNavigator, cardManager,
                    cardScrollable, folderScrollable) {
       var that = this;
-      this.modalDialog = new SmartModalDialog();
+      this.modalDialog = SharedUtils.createSmartDialog('modal');
 
       this.spatialNavigator = spatialNavigator;
       this.cardManager = cardManager;

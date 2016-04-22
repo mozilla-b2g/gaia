@@ -1,8 +1,16 @@
-/*
- * global asyncStorage
- */
 (function(exports) {
   'use strict';
+
+  var BACK_KEY_CODE = [
+    window.KeyEvent.DOM_VK_BACK_SPACE,
+    window.KeyEvent.DOM_VK_ESCAPE
+  ];
+
+  var BACK_KEY_NAME = [
+    'Backspace',
+    'Escape'
+  ];
+
   exports.SharedUtils = {
     nodeListToArray: function su_nodeListToArray(obj) {
       return [].map.call(obj, function(element) {
@@ -130,6 +138,62 @@
           return;
         }
       }
+    },
+
+    /**
+     * A global definition to determine which key is the BACK key.
+     *
+     * @param {Object} event The key event object.
+     * @memberof SharedUtils
+     */
+    isBackKey: function su_isBackKey(event) {
+      return BACK_KEY_CODE.includes(event.keyCode) ||
+             BACK_KEY_NAME.includes(event.key);
+    },
+
+    /**
+     * A wrapper of SmartModalDialog (FxosTvModalDialog) and SmartInputDialog
+     * (FxosTvInputDialog) to disable the default key event handler and inject
+     * the close-by-back-key behavior based on the "isBackKey" method defined
+     * above.
+     *
+     * @param {String} type Should be 'modal' or 'input'.
+     * @param {HTMLElement} [container] Will pass to the first argument of the
+     *                                  original constructor.
+     * @param {Object} [options] Will pass to the second argument of the
+     *                           original constructor.
+     * @memberof SharedUtils
+     */
+    createSmartDialog: function su_createSmartDialog(type, container, options) {
+      var Constructor;
+
+      switch(type) {
+        case 'modal':
+          Constructor = window.FxosTvModalDialog || window.SmartModalDialog;
+          break;
+        case 'input':
+          Constructor = window.FxosTvInputDialog || window.SmartInputDialog;
+          break;
+        default:
+          return null;
+      }
+
+      if (!Constructor) {
+        return null;
+      }
+
+      var smartDialog = new Constructor(container, options);
+      var dialogElement = smartDialog.element;
+      dialogElement.setAttribute('esc-close', 'false');
+      dialogElement.addEventListener('keyup', (evt) => {
+        if (this.isBackKey(evt) && dialogElement.classList.contains('opened')) {
+          evt.preventDefault();
+          evt.stopPropagation();
+          dialogElement.close();
+        }
+      });
+
+      return smartDialog;
     }
   };
 

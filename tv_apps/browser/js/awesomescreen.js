@@ -1,5 +1,5 @@
 /* globals Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
-/* globals SmartList, BookmarkStore, HistoryStore */
+/* globals SmartList, BookmarkStore, HistoryStore, SharedUtils */
 //IFDEF_FIREFOX_SYNC
 /* globals FirefoxSyncTabNavigation */
 /* globals FirefoxSyncTabList */
@@ -2581,43 +2581,31 @@ var Awesomescreen = {
         break;
     }
 
+    if(SharedUtils.isBackKey(ev)) {
+      switch(true){
+        case Awesomescreen.isDisplayedDialog() :
+          // close bookmark.history to dialog
+          Awesomescreen.hidePointerImg();
+          Awesomescreen.dialogHidden();
+          break;
+        case Awesomescreen.isDisplayedList():
+          break;
+        case Awesomescreen.isDisplayedTab() :
+          // close tabview
+          Awesomescreen.tabviewHidden();
+          break;
+        case Awesomescreen.isDisplayedDefault() :
+          // close topsite
+          this.defaultContentViewReturnFunc();
+          break;
+        default:
+          break;
+      }
+      state = false;
+      return state;
+    }
+
     switch( ev.keyCode ) {
-      case KeyEvent.DOM_VK_ESCAPE:
-        switch(true){
-          case Awesomescreen.isDisplayedDialog() :
-            // close bookmark.history to dialog
-            Awesomescreen.hidePointerImg();
-            Awesomescreen.dialogHidden();
-            break;
-          default:
-            break;
-        }
-        state = false;
-        break;
-
-      case KeyEvent.DOM_VK_BACK_SPACE:
-        switch(true){
-          case Awesomescreen.isDisplayedDialog() :
-            // close bookmark.history to dialog
-            Awesomescreen.hidePointerImg();
-            Awesomescreen.dialogHidden();
-            break;
-          case Awesomescreen.isDisplayedList():
-            break;
-          case Awesomescreen.isDisplayedTab() :
-            // close tabview
-            Awesomescreen.tabviewHidden();
-            break;
-          case Awesomescreen.isDisplayedDefault() :
-            // close topsite
-            this.defaultContentViewReturnFunc();
-            break;
-          default:
-            break;
-        }
-        state = false;
-        break;
-
       case KeyEvent.DOM_VK_SUBMENU:
         switch(true){
           case this.isDisplayedDialog() :

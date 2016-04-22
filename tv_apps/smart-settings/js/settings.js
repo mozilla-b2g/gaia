@@ -1,5 +1,5 @@
 'use strict';
-/* global Applications, Base, KeyEvent, Settings,
+/* global Applications, Base, KeyEvent, Settings, SharedUtils,
           SettingsGroup, SetupGroupList, SettingsList */
 
 (function(exports) {
@@ -164,7 +164,7 @@
     // "ArrowLeft", "ArrowRight" for switching after Gecko synced with W3C
     // KeyboardEvent.Key standard. Here we still use KeyCode and customized
     // string of "up", "down", "left", "right" for the moment.
-    var key = this.convertKeyToString(evt.keyCode);
+    var key = this.convertKeyToString(evt);
     switch (key) {
       case 'up':
       case 'down':
@@ -174,15 +174,19 @@
       case 'right':
         this.confirmSelection(key);
         break;
-      case 'esc':
+      case 'back':
       case 'left':
         this.exitPanel(key);
         break;
     }
   };
 
-  proto.convertKeyToString = function st_convertKeyToString(keyCode) {
-    switch (keyCode) {
+  proto.convertKeyToString = function st_convertKeyToString(evt) {
+    if (SharedUtils.isBackKey(evt)) {
+      return 'back';
+    }
+
+    switch (evt.keyCode) {
       case KeyEvent.DOM_VK_UP:
         return 'up';
       case KeyEvent.DOM_VK_RIGHT:
@@ -193,8 +197,6 @@
         return 'left';
       case KeyEvent.DOM_VK_RETURN:
         return 'enter';
-      case KeyEvent.DOM_VK_BACK_SPACE:
-        return 'esc';
       default:// we don't consume other keys.
         return null;
     }
