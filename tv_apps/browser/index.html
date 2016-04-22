@@ -31,7 +31,7 @@
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
 <!--IFDEF_FIREFOX_SYNC
-    <link rel="localization" href="shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="shared/locales/intl/relativetimeformat.{locale}.properties">
     <link rel="localization" href="shared/locales/firefox_sync/firefox_sync.{locale}.properties">
     <link rel="stylesheet" type="text/css" href="style/tabList.css">
 ENDIF_FIREFOX_SYNC-->
@@ -48,6 +48,9 @@ ENDIF_FIREFOX_SYNC-->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
     <script defer src="shared/js/smart-screen/f_t_e_wizard.js"></script>
+<!--IFDEF_FIREFOX_SYNC
+    <script defer src="shared/js/moz_intl.js"></script>
+ENDIF_FIREFOX_SYNC-->
 
     <!-- Specific code -->
     <script defer src="js/resource_loader.js"></script>
