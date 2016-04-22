@@ -398,16 +398,19 @@
     },
 
     openFolderItem(el) {
-      var clientId = el.dataset.client,
-          tabData = this.listData.get(clientId),
-          tabViewEl = document.createElement('ul');
+      if (!el.parentNode.querySelector('ul')) {
+        let clientId = el.dataset.client,
+            tabData = this.listData.get(clientId),
+            tabViewEl = document.createElement('ul');
 
-      tabData.tabs.forEach(function(data){
-        let itemEl = this.createListLinkItem(data);
-        tabViewEl.appendChild(itemEl);
-      }, this);
+        tabData.tabs.forEach(function(data){
+          let itemEl = this.createListLinkItem(data);
+          tabViewEl.appendChild(itemEl);
+        }, this);
 
-      el.parentNode.appendChild(tabViewEl);
+        el.parentNode.appendChild(tabViewEl);
+      }
+
       el.parentNode.classList.add('expand');
       el.classList.add('active');
     },
