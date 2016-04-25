@@ -8,6 +8,9 @@
     <!-- building blocks -->
     <link rel="stylesheet" type="text/css" href="bower_components/fxos-tv-button/style.css">
     <link rel="stylesheet" type="text/css" href="bower_components/fxos-tv-icons/fxos-tv-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/fxos-tv-bubbles/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/fxos-tv-dialog/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/fxos-tv-modal-dialog/style.css">
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/components.css">
@@ -40,6 +43,10 @@ ENDIF_FIREFOX_SYNC-->
     <!-- building blocks -->
     <script defer src="bower_components/evt/index.js"></script>
     <script defer src="bower_components/fxos-tv-button/script.js"></script>
+    <script defer src="bower_components/fxos-tv-dialog/script.js"></script>
+    <script defer src="bower_components/fxos-tv-bubbles/script.js"></script>
+    <script defer src="bower_components/fxos-tv-modal-dialog/base-modal-dialog.js"></script>
+    <script defer src="bower_components/fxos-tv-modal-dialog/fxos-tv-modal-dialog.js"></script>
 
     <!-- Shared code -->
     <script defer src="shared/js/url_helper.js"></script>
@@ -701,26 +708,7 @@ ENDIF_FIREFOX_SYNC-->
       </section>
 
       <!-- dialog -->
-      <div id="browser-dialog-base" class="hide">
-        <div id="browser-dialog">
-          <div id="browser-dialog-title">
-            <p id="browser-dialog-title-text"></p>
-          </div>
-          <div id="browser-dialog-msg">
-            <p id="browser-dialog-msg-text"></p>
-          </div>
-          <form id="browser-dialog-input">
-            <input id="browser-dialog-input-area">
-            <div class="input-line"></div>
-            <div id="browser-dialog-input-clear"></div>
-          </form>
-          <div id="browser-dialog-margin"></div>
-          <div id="browser-dialog-button">
-            <button class="browser-dialog-button" id="browser-dialog-button2"></button>
-            <button class="browser-dialog-button" id="browser-dialog-button1"></button>
-          </div>
-        </div>
-      </div>
+      <div id="browser-dialog-base" class="hide"></div>
 
       <!-- settings -->
       <div role="region" id="settings-list" class="skin-organic">

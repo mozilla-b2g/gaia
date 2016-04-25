@@ -1,0 +1,22 @@
+{
+  "name": "fxos-tv-bubbles",
+  "version": "1.0.0",
+  "homepage": "https://github.com/fxos-components/fxos-tv-bubbles",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md",
+    "gulpfile.js",
+    "package.json"
+  ],
+  "devDependencies": {
+    "fxos-tv-button": "fxos-components/fxos-tv-button"
+  }
+}

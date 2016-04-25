@@ -205,9 +205,6 @@ var Browser = {
       if(document.activeElement.nodeName != 'INPUT') {
         document.activeElement.blur();
       }
-      if( BrowserDialog.browserDialogInput.classList.contains('exfocus') ) {
-        BrowserDialog.browserDialogInput.classList.remove('exfocus');
-      }
     }
     if( AuthenticationDialog.isDisplayed() ) {
       Awesomescreen.pointerImg.style.display = 'none';
@@ -1084,7 +1081,6 @@ var Browser = {
     }
 
     if(BrowserDialog.isDisplayed()) {
-      BrowserDialog.handleKeyEvent(ev);
       return;
     }
     if(AuthenticationDialog.isDisplayed()) {
@@ -1221,4 +1217,3 @@ window.addEventListener('load', function browserOnLoad(evt) {
     Browser.init();
   });
 });
-
