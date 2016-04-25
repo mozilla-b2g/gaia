@@ -42,6 +42,11 @@
   position: relative;
   margin: 0 auto;
   width: 70rem;
+  border-bottom: solid white 0.4rem;
+}
+
+.modal-dialog-input-group.invalid {
+  border-bottom: solid #e63d2f 0.4rem;
 }
 
 .modal-dialog-input-group input {
@@ -53,13 +58,19 @@
   border: none;
 }
 
+.modal-dialog-input-group input:invalid {
+  box-shadow: none;
+}
+
 .modal-dialog-input-group .focus {
-  bottom: 0px;
-  width: 100%;
+  position: relative;
+  top: 0.4rem;
+  width: 0px;
   height: 0.4rem;
   margin: 0.4rem auto 0 auto;
   visibility: hidden;
   background: #00caf2;
+  transition: width 0.42s;
 }
 
 .modal-dialog-input-group .clear:before {
@@ -69,6 +80,7 @@
 
 .modal-dialog-input-group .clear {
   position: absolute;
+  top: 0.9rem;
   left: calc(100% - 4rem);
   border: 0;
   margin: 0;
@@ -80,14 +92,24 @@
   color: #ffffff;
   cursor: pointer;
   background: #999999;
+  transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1),
+              background-color 0.2s cubic-bezier(0.25, 0, 0, 1),
+              color 0.2s cubic-bezier(0.25, 0, 0, 1);
 }
 
 .modal-dialog-input-group :focus ~ .focus {
   visibility: visible;
+  width: 100%;
 }
 
-.modal-dialog-input-group :focus ~ .clear,
+.modal-dialog-input-group :focus ~ .clear {
+  opacity: 1;
+}
+
 .modal-dialog-input-group :focus.clear {
+  transform: scale(1.2);
+  background-color: #fff;
+  color: black;
   opacity: 1;
 }
 

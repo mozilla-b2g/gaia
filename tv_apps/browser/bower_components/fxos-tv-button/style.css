@@ -444,6 +444,19 @@ fxos-tv-button[type="circle-text"].danger.pressed {
   transition-property: transform, color, background-color;
 }
 
+fxos-tv-button[type="circle-text"].disabled.focused {
+  color: white;
+  background-color: #5f6368;
+  transition-property: transform, color, background-color;
+}
+
+fxos-tv-button[type="circle-text"].disabled.pressed {
+  transform: scale(1.2);
+  color: white;
+  background-color: #5f6368;
+  transition-property: transform, color, background-color;
+}
+
 /**
  * End of circle text button
  */

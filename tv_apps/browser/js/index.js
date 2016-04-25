@@ -218,15 +218,6 @@ var Browser = {
         AuthenticationDialog.httpAuthenticationPassword.classList.remove('exfocus');
       }
     }
-    if( Settings.isDialogHomepageDisplayed() ) {
-      Awesomescreen.pointerImg.style.display = 'none';
-      if(document.activeElement.nodeName != 'INPUT') {
-        document.activeElement.blur();
-      }
-      if( Settings.settingsDialogHomepageInput.classList.contains('exfocus') ) {
-        Settings.settingsDialogHomepageInput.classList.remove('exfocus');
-      }
-    }
     if( Settings.isDialogSearchDisplayed() ) {
       Awesomescreen.pointerImg.style.display = 'none';
       document.activeElement.blur();

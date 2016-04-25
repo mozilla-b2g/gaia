@@ -41,12 +41,14 @@ ENDIF_FIREFOX_SYNC-->
     <link rel="localization" href="/locales/browser.{locale}.properties">
 
     <!-- building blocks -->
+    <script defer src="bower_components/js-spatial-navigation/spatial_navigation.js"></script>
     <script defer src="bower_components/evt/index.js"></script>
     <script defer src="bower_components/fxos-tv-button/script.js"></script>
     <script defer src="bower_components/fxos-tv-dialog/script.js"></script>
     <script defer src="bower_components/fxos-tv-bubbles/script.js"></script>
     <script defer src="bower_components/fxos-tv-modal-dialog/base-modal-dialog.js"></script>
     <script defer src="bower_components/fxos-tv-modal-dialog/fxos-tv-modal-dialog.js"></script>
+    <script defer src="bower_components/fxos-tv-modal-dialog/fxos-tv-input-dialog.js"></script>
 
     <!-- Shared code -->
     <script defer src="shared/js/url_helper.js"></script>
@@ -773,21 +775,6 @@ ENDIF_FIREFOX_SYNC-->
 ENDIF_FIREFOX_SYNC-->
 
         <div id="settings-dialog" class="hidden">
-          <div id="settings-dialog-homepage" class="hidden">
-            <div id="settings-dialog-homepage-header">
-              <p id="settings-dialog-homepage-header-title" data-l10n-id="WB_LT_SET_AS_HOMEPAGE">Set as Homepage</p>
-            </div>
-            <form id="settings-dialog-homepage-input">
-              <input id="settings-dialog-homepage-input-area" value="" type="url" required>
-              <div class="input-line"></div>
-              <div id="settings-dialog-homepage-clear"></div>
-            </form>
-            <button id="settings-dialog-homepage-default" data-l10n-id="WB_LT_RESTORE_TO_DEFAULT">Restore to default</button>
-            <div id="settings-dialog-homepage-button">
-              <button id="settings-dialog-homepage-cancel" data-l10n-id="LT_CANCEL">Cancel</button>
-              <button id="settings-dialog-homepage-ok" data-l10n-id="LT_WB_OK">OK</button>
-            </div>
-          </div>
           <div id="settings-dialog-search" class="hidden">
             <div id="settings-dialog-search-header">
               <p id="settings-dialog-search-header-title" data-l10n-id="WB_LT_SETTINGS_SEARCH_ENGINE">Search Engine</p>
