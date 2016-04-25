@@ -87,7 +87,6 @@ input::-moz-focus-inner {
 #main-block[data-mode="pan"] > #toolbar-panel .home-button-path,
 #main-block[data-mode="pan"] > #toolbar-panel .zoom-button-path,
 #main-block[data-mode="pan"] > #toolbar-panel .tabs-button-path,
-#main-block[data-mode="pan"] > #toolbar-panel .new-tab-button-path,
 #main-block[data-mode="pan"] > #toolbar-panel .menu-button-path {
   fill: #adb5bc;
 }
@@ -579,29 +578,25 @@ input::-moz-focus-inner {
 
 #zoom-button-block[data-colorbar=red],
 #pan-cursor-button-block[data-colorbar=red],
-#tabs-button-block[data-colorbar=red],
-#new-tab-button-block[data-colorbar=red] {
+#tabs-button-block[data-colorbar=red] {
   border-bottom-color: #fa6648;
 }
 
 #zoom-button-block[data-colorbar=green],
 #pan-cursor-button-block[data-colorbar=green],
-#tabs-button-block[data-colorbar=green],
-#new-tab-button-block[data-colorbar=green] {
+#tabs-button-block[data-colorbar=green] {
   border-bottom-color: #39ba92;
 }
 
 #zoom-button-block[data-colorbar=blue],
 #pan-cursor-button-block[data-colorbar=blue],
-#tabs-button-block[data-colorbar=blue],
-#new-tab-button-block[data-colorbar=blue] {
+#tabs-button-block[data-colorbar=blue] {
   border-bottom-color: #3e89e6;
 }
 
 #zoom-button-block[data-colorbar=yellow],
 #pan-cursor-button-block[data-colorbar=yellow],
-#tabs-button-block[data-colorbar=yellow],
-#new-tab-button-block[data-colorbar=yellow] {
+#tabs-button-block[data-colorbar=yellow] {
   border-bottom-color: #ffd600;
 }
 
@@ -646,7 +641,6 @@ input::-moz-focus-inner {
 .home-button-path,
 .zoom-button-path,
 .tabs-button-path,
-.new-tab-button-path,
 .menu-button-path {
   fill: #5f6368;
 }
@@ -654,7 +648,6 @@ input::-moz-focus-inner {
 #home-button-block:hover .home-button-path,
 #zoom-button-block:hover .zoom-button-path,
 #tabs-button-block:hover .tabs-button-path,
-#new-tab-button-block:hover .new-tab-button-path,
 #menu-button-block:hover .menu-button-path {
   fill: #000000;
 }
@@ -662,7 +655,6 @@ input::-moz-focus-inner {
 #home-button-block:active .home-button-path,
 #zoom-button-block:active .zoom-button-path,
 #tabs-button-block:active .tabs-button-path,
-#new-tab-button-block:active .new-tab-button-path,
 #menu-button-block:active .menu-button-path {
   fill: #00caf2;
 }
@@ -690,12 +682,6 @@ input::-moz-focus-inner {
 #tabs-button-block[data-tabs="tab11"] #tabs-11-svg,
 #tabs-button-block[data-tabs="tab12"] #tabs-12-svg {
   visibility: visible;
-}
-
-/* new tab button */
-#new-tab-button-svg {
-  width: 100%;
-  height: 100%;
 }
 
 /* menu button */

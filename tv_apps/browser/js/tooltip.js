@@ -33,7 +33,6 @@ var Tooltip = {
       {target: Toolbar.homeButtonBlock},
       {target: Toolbar.zoomButtonBlock},
       {target: Toolbar.tabsButtonBlock},
-      {target: Toolbar.newTabButtonBlock},
       {target: Toolbar.menuButtonBlock},
       {target: Toolbar.modeButtonBlock},
     ];
