@@ -1,0 +1,24 @@
+{
+  "name": "fxos-tv-modal-dialog",
+  "version": "1.0.0",
+  "homepage": "https://github.com/fxos-components/fxos-tv-modal-dialog",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "fxos-tv-dialog": "fxos-components/fxos-tv-dialog",
+    "fxos-tv-bubbles": "fxos-components/fxos-tv-bubbles",
+    "fxos-tv-button": "fxos-components/fxos-tv-button",
+    "fxos-tv-icons": "fxos-components/fxos-tv-icons",
+    "js-spatial-navigation": "luke-chang/js-spatial-navigation"
+  }
+}

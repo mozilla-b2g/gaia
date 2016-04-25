@@ -205,9 +205,6 @@ var Browser = {
       if(document.activeElement.nodeName != 'INPUT') {
         document.activeElement.blur();
       }
-      if( BrowserDialog.browserDialogInput.classList.contains('exfocus') ) {
-        BrowserDialog.browserDialogInput.classList.remove('exfocus');
-      }
     }
     if( AuthenticationDialog.isDisplayed() ) {
       Awesomescreen.pointerImg.style.display = 'none';
@@ -219,15 +216,6 @@ var Browser = {
       }
       if( AuthenticationDialog.httpAuthenticationPassword.classList.contains('exfocus') ) {
         AuthenticationDialog.httpAuthenticationPassword.classList.remove('exfocus');
-      }
-    }
-    if( Settings.isDialogHomepageDisplayed() ) {
-      Awesomescreen.pointerImg.style.display = 'none';
-      if(document.activeElement.nodeName != 'INPUT') {
-        document.activeElement.blur();
-      }
-      if( Settings.settingsDialogHomepageInput.classList.contains('exfocus') ) {
-        Settings.settingsDialogHomepageInput.classList.remove('exfocus');
       }
     }
     if( Settings.isDialogSearchDisplayed() ) {
@@ -1084,7 +1072,6 @@ var Browser = {
     }
 
     if(BrowserDialog.isDisplayed()) {
-      BrowserDialog.handleKeyEvent(ev);
       return;
     }
     if(AuthenticationDialog.isDisplayed()) {
@@ -1221,4 +1208,3 @@ window.addEventListener('load', function browserOnLoad(evt) {
     Browser.init();
   });
 });
-

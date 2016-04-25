@@ -1,0 +1,25 @@
+{
+  "name": "js-spatial-navigation",
+  "homepage": "https://github.com/luke-chang/js-spatial-navigation",
+  "authors": [
+    "Luke Chang"
+  ],
+  "description": "A javascript-based implementation of Spatial Navigation.",
+  "main": "spatial_navigation.js",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "spatial",
+    "navigation"
+  ],
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "demo"
+  ]
+}

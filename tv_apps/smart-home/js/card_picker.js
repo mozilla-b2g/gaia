@@ -1,5 +1,5 @@
-/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder,
-          CardUtil, FOLDER_CAPACITY, Utils */
+/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, KeyEvent,
+          CardUtil, FOLDER_CAPACITY, Utils, Deck */
 
 (function(exports) {
   'use strict';
@@ -11,6 +11,7 @@
     gridView: document.getElementById('card-picker-grid-view'),
 
     hideCardPickerButton: document.getElementById('hide-cardpicker-button'),
+    removeFolderButton: document.getElementById('remove-folder-button'),
 
     init: function(options) {
       this.appButtons = [];
@@ -19,7 +20,8 @@
       this._folder = null;
 
       this.navigableElements = [
-        CardPicker.prototype.hideCardPickerButton
+        this.hideCardPickerButton,
+        this.removeFolderButton
       ];
 
       this.container.addEventListener('click', this.focus.bind(this));
@@ -29,6 +31,7 @@
       this._spatialNavigator.focus();
 
       this.hideCardPickerButton.addEventListener('click', this.hide.bind(this));
+      this.removeFolderButton.addEventListener('click', this.hide.bind(this));
 
       this._keyNavigationAdapter = new KeyNavigationAdapter();
       this._keyNavigationAdapter.init(this.container);
@@ -36,10 +39,9 @@
         this._spatialNavigator.move(direction);
       });
       this._keyNavigationAdapter.on('enter-keyup', this.onEnter.bind(this));
+      this.container.addEventListener('keyup', this.onKeyUp.bind(this), true);
 
       this._selectedElements = this.gridView.getElementsByClassName('selected');
-
-      this.refresh();
     },
 
     onFocus: function(elem) {
@@ -59,12 +61,28 @@
         }
 
         elem.classList.toggle('selected');
+        if (this.mode == 'update') {
+          this._showButton(this.selected.length ? 'done' : 'remove');
+        }
+      }
+    },
+
+    onKeyUp: function(evt) {
+      if (evt.keyCode == KeyEvent.DOM_VK_BACK_SPACE &&
+          this.mode == 'add' && this.isShown) {
+        document.l10n.formatValue('cancel-add-folder').then(message => {
+          if (confirm(message)) {
+            this._mode = null;
+            this.hide();
+          }
+        });
       }
     },
 
     show: function(folderElem) {
       this._mode = folderElem ? 'update' : 'add';
       this._folder = null;
+      this._showButton('done');
       this.refresh(folderElem);
       this.container.classList.remove('hidden');
       this.focus();
@@ -103,19 +121,53 @@
       this.gridView.scrollTo(0, scrollY);
     },
 
+    _getSortKey: function(card) {
+      var defaultOrder = {
+        tv: 1,
+        application: 2,
+        device: 3,
+        website: 4
+      };
+
+      var key = String(defaultOrder[card.group] || 5);
+      if (!(card instanceof Deck)) {
+        var lang = document.documentElement.lang;
+        var name = this._cardManager.resolveCardName(card, lang);
+        if (name.raw) {
+          key += name.raw;
+        } else if (name.id == 'channel-name' &&
+                   name.args && name.args.number !== undefined) {
+          // For tv channels only. We sort them by channel numbers.
+          key += '0'.repeat(10 - name.args.number.length) + name.args.number;
+        } else if (name.id) {
+          // As a fallback, we sort cards by l10n-id.
+          key += name.id;
+        } else {
+          // If nothing can be sorted, append the last printable character to
+          // the key to make it be sorted follow other well-sorted cards.
+          key += '~';
+        }
+      }
+
+      return key.toUpperCase();
+    },
+
     _refreshCardButtons: function(folderList, cardList, options) {
+      var candidates = {};
+
       this.appButtons = [];
       this.gridView.innerHTML = '';
 
       var that = this;
-      function createButtonHelper(card) {
+      function appendToGridView(appButton) {
+        that.gridView.appendChild(appButton);
+        that.appButtons.push(appButton);
+      }
+      function createButtonHelper(card, parentType) {
         if(card instanceof Folder) {
           return;
         }
-
         var appButton = CardUtil.createCardButton(card, true);
-        that.gridView.appendChild(appButton);
-        that.appButtons.push(appButton);
         return appButton;
       }
 
@@ -124,6 +176,7 @@
         if (appButton) {
           appButton.dataset.parentType = 'folder';
           appButton.classList.add('selected');
+          appendToGridView(appButton);
         }
       });
 
@@ -131,8 +184,28 @@
         var appButton = createButtonHelper(card);
         if (appButton) {
           appButton.dataset.parentType = 'empty';
+          candidates[this._getSortKey(card)] = appButton;
         }
       });
+
+      var keys = Object.keys(candidates);
+      if (keys.length) {
+        keys.sort();
+        keys.forEach(key => appendToGridView(candidates[key]));
+      }
+    },
+
+    _showButton: function(id) {
+      switch (id) {
+        case 'done':
+          this.hideCardPickerButton.classList.remove('hidden');
+          this.removeFolderButton.classList.add('hidden');
+          break;
+        case 'remove':
+          this.hideCardPickerButton.classList.add('hidden');
+          this.removeFolderButton.classList.remove('hidden');
+          break;
+      }
     },
 
     /**
@@ -196,6 +269,10 @@
         });
         this._cardManager.removeCard(card);
         this._folder.addCard(card, {silent: true});
+      }
+
+      if (this._folder.isEmpty()) {
+        this._cardManager.removeCard(this._folder);
       }
     },
 

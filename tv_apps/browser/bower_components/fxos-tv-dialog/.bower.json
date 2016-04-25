@@ -1,0 +1,25 @@
+{
+  "name": "fxos-tv-dialog",
+  "homepage": "https://github.com/fxos-components/fxos-tv-dialog",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "_release": "eced851a06",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "eced851a06c7a210e6f78de0f0e58678b1f4913b"
+  },
+  "_source": "git://github.com/fxos-components/fxos-tv-dialog.git",
+  "_target": "*",
+  "_originalSource": "fxos-components/fxos-tv-dialog"
+}
