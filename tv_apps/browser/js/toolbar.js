@@ -108,9 +108,6 @@ var Toolbar = {
     this.tabsButtonBlock.addEventListener('click',
         Awesomescreen.handleNewTab.bind(Awesomescreen));
 
-    this.newTabButtonBlock.addEventListener('click',
-        Awesomescreen.createAddNewTab.bind(Awesomescreen));
-
     this.menuButtonBlock.addEventListener('mouseup',
         this.clickMenuButtonBlock.bind(this));
     this.historyBlock.addEventListener('mouseup',
@@ -131,7 +128,6 @@ var Toolbar = {
     this.panCursorButtonBlock.dataset.colorbar = colorBar[0].COLOR;
     this.zoomButtonBlock.dataset.colorbar = colorBar[1].COLOR;
     this.tabsButtonBlock.dataset.colorbar = colorBar[2].COLOR;
-    this.newTabButtonBlock.dataset.colorbar = colorBar[3].COLOR;
 
     // li = 73px * 3(list) + 20px(hover) + 10px(padding)
     this.menuBlock.style.height = 73 * 3 + 20 + 10 + 'px';
@@ -200,7 +196,6 @@ var Toolbar = {
       'home-button-block', 'home-button',
       'zoom-button-block', 'zoom-button',
       'tabs-button-block', 'tabs-button',
-      'new-tab-button-block', 'new-tab-button',
       'menu-button-block', 'menu-button',
       'menu-block',
       'history-block', 'private-window-block',
@@ -247,7 +242,6 @@ var Toolbar = {
             case this.homeButtonBlock:
             case this.zoomButtonBlock:
             case this.tabsButtonBlock:
-            case this.newTabButtonBlock:
             case this.menuButtonBlock:
               Settings.hide();
               break;
