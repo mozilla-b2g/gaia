@@ -10,7 +10,7 @@
   // This json file should always be accessed from the root instead of the
   // current working base URL so that it can work in unit-tests as well
   // as during normal run time.
-  var OPERATOR_VARIANT_FILE = '/shared/resources/apn.json';
+  var OPERATOR_VARIANT_FILE = '../shared/resources/apn.json';
 
   var APN_TYPES = ['default', 'mms', 'supl', 'dun', 'ims', 'fota'];
   var AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
