@@ -1,5 +1,6 @@
 /* global Browser */
 /* global KeyEvent */
+/* global mozIntl */
 
 'use strict';
 
@@ -185,8 +186,7 @@
           textBoxEl = document.createElement('div'),
           titleEl = document.createElement('span'),
           textEl = document.createElement('span'),
-          iconEl = document.createElement('div'),
-          lastUpdateTimeAgo = this.convertMS(Date.now() - data.timestamp);
+          iconEl = document.createElement('div');
 
       itemEl.classList.add('tab-list-item');
 
@@ -200,32 +200,14 @@
       textEl.classList.add('text');
       titleEl.textContent = `${data.clientName} (${data.tabs.length})`;
 
-      if (lastUpdateTimeAgo.year) {
-        textEl.dataset.l10nId = 'fxsync-last-updated-more-than-a-year';
-        textEl.dataset.l10nArgs = JSON.stringify({
-          value: lastUpdateTimeAgo.year
-        });
-      } else if (lastUpdateTimeAgo.day) {
-        textEl.dataset.l10nId = 'fxsync-last-updated-more-than-a-day';
-        textEl.dataset.l10nArgs = JSON.stringify({
-          value: lastUpdateTimeAgo.day
-        });
-      } else if (lastUpdateTimeAgo.hour) {
-        textEl.dataset.l10nId = 'fxsync-last-updated-more-than-an-hour';
-        textEl.dataset.l10nArgs = JSON.stringify({
-          value: lastUpdateTimeAgo.hour
-        });
-      } else if (lastUpdateTimeAgo.minute) {
-        textEl.dataset.l10nId = 'fxsync-last-updated-more-than-a-minute';
-        textEl.dataset.l10nArgs = JSON.stringify({
-          value: lastUpdateTimeAgo.minute
-        });
-      } else if (lastUpdateTimeAgo.second) {
-        textEl.dataset.l10nId = 'fxsync-last-updated-more-than-a-second';
-        textEl.dataset.l10nArgs = JSON.stringify({
-          value: lastUpdateTimeAgo.second
-        });
-      }
+      let rtf = new mozIntl.RelativeTimeFormat(navigator.languages, {
+        unit: 'bestFit'
+      });
+      rtf.format(data.timestamp).then(val => {
+        document.l10n.setAttributes(textEl,
+                                    'fxsync-last-updated-in-time-ago',
+                                    {'time-ago' : val});
+      });
 
       iconEl.classList.add('arrow-icon');
       iconEl.dataset.icon = 'arrow-right';
@@ -551,15 +533,6 @@
     handleListItemMouseOut(e) {
       var targetEl = e.currentTarget;
       targetEl.blur();
-    },
-
-    convertMS(timestamp) {
-      var second = Math.floor(timestamp / 1000),
-          minute = second ? Math.floor(second / 60) : 0,
-          hour = minute ? Math.floor(minute / 60) : 0,
-          day = hour ? Math.floor(hour / 24) : 0,
-          year = day ? Math.floor(day / 365) : 0;
-      return { year, day, hour, minute, second };
     },
 
     isNoTabInListData() {
