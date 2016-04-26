@@ -1,3 +1,4 @@
+/* global asyncStorage */
 'use strict';
 
 (function(exports) {
@@ -82,30 +83,24 @@
     }
 
     // Restore existing settings
-    var settingsString = localStorage.getItem('settings');
-    if (!settingsString) {
-      this.firstRun = true;
-      return;
-    }
+    asyncStorage.getItem('settings', settingsString => {
+      if (!settingsString) {
+        this.firstRun = true;
+      } else {
+        var settings = JSON.parse(settingsString);
+        if (settings.version === SETTINGS_VERSION) {
+          this.small = settings.small || false;
+          this.scrollSnapping = settings.scrollSnapping || false;
+        }
+      }
 
-    var settings = JSON.parse(settingsString);
-    if (settings.version !== SETTINGS_VERSION) {
-      return;
-    }
-
-    this.small = settings.small || false;
-    this.scrollSnapping = settings.scrollSnapping || false;
-
-    // Monitor global homescreen settings
-    if (!navigator.getDataStores) {
-      console.error('Datastore API unavailable');
-      return;
-    }
+      window.dispatchEvent(new CustomEvent('settings-ready'));
+    });
   }
 
   Settings.prototype = {
     save: function() {
-      localStorage.setItem('settings', JSON.stringify({
+      asyncStorage.setItem('settings', JSON.stringify({
         version: SETTINGS_VERSION,
         small: this.small,
         scrollSnapping: this.scrollSnapping
