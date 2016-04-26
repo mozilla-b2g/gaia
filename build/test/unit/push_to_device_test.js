@@ -122,7 +122,6 @@ suite('push-to-device.js', function() {
         GAIA_DIR: 'testGaia',
         PROFILE_DIR: 'testProfileFolder',
         GAIA_INSTALL_PARENT: '/system/b2g',
-        GAIA_DOMAIN: 'testDomain',
         DEFAULT_KEYBOAD_SYMBOLS_FONT:
           'shared/style/keyboard_symbols/Keyboard-Symbols.ttf',
         DEFAULT_GAIA_ICONS_FONT:
@@ -188,6 +187,9 @@ suite('push-to-device.js', function() {
 
     test('execute, test it with testApp as an app name', function(done) {
       options.BUILD_APP_NAME = 'testApp';
+      mockUtils.readJSONFromPath = function(p) {
+        return { name: 'testApp' };
+      };
       mockUtils.psParser = function() {
         var pidMap = {};
         pidMap[options.BUILD_APP_NAME] = {
