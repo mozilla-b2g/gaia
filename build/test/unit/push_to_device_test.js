@@ -233,14 +233,14 @@ suite('push-to-device.js', function() {
         var realGetJSON = mockUtils.getJSON;
         mockUtils.getJSON = function(file) {
           return {
-            'app1.gaiamobile.org': {
-              'basePath': '/data/local/webapps'
+            'app1': {
+              'basePath': '/data/local/apps'
             },
-            'app2.gaiamobile.org': {
-              'basePath': '/data/local/webapps'
+            'app2': {
+              'basePath': '/data/local/apps'
             },
-            'app3.gaiamobile.org': {
-              'basePath': '/data/local/webapps'
+            'app3': {
+              'basePath': '/data/local/apps'
             }
           };
         };
@@ -253,14 +253,14 @@ suite('push-to-device.js', function() {
       var realGetJSON = mockUtils.getJSON;
       mockUtils.getJSON = function(file) {
         return {
-          'app1.gaiamobile.org': {
-            'basePath': '/data/local/webapps'
+          'app1': {
+            'basePath': '/data/local/apps'
           },
-          'app2.gaiamobile.org': {
-            'basePath': '/system/b2g/webapps'
+          'app2': {
+            'basePath': '/system/b2g/apps'
           },
-          'app3.gaiamobile.org': {
-            'basePath': '/system/b2g/webapps'
+          'app3': {
+            'basePath': '/system/b2g/apps'
           }
         };
       };
