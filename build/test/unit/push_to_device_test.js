@@ -205,27 +205,11 @@ suite('push-to-device.js', function() {
             '-c adb wait-for-device',
             '-c adb shell rm -r //cache/*',
             '-c adb remount',
+            '-c adb shell "rm -r ' + options.GAIA_INSTALL_PARENT + '/apps/' +
+                options.BUILD_APP_NAME + '/"',
             '-c adb push "' + options.PROFILE_DIR + '/apps/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/manifest.webapp" //data/local/tmp/pushgaia/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/manifest.webapp',
-            '-c adb push "' + options.PROFILE_DIR + '/apps/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/application.zip" //data/local/tmp/pushgaia/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/application.zip',
-            '-c adb shell "cat /data/local/tmp/pushgaia/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/manifest.webapp > ' + options.GAIA_INSTALL_PARENT +
-                '/apps/' + options.BUILD_APP_NAME + '.' +
-                options.GAIA_DOMAIN + '/manifest.webapp"',
-            '-c adb shell "cat /data/local/tmp/pushgaia/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/application.zip > ' + options.GAIA_INSTALL_PARENT +
-                '/apps/' + options.BUILD_APP_NAME + '.' +
-                options.GAIA_DOMAIN + '/application.zip"',
-            '-c adb shell rm -rf //data/local/tmp/pushgaia',
+                options.BUILD_APP_NAME + '" "' + options.GAIA_INSTALL_PARENT +
+                '/apps/' + options.BUILD_APP_NAME + '/"',
             '-c adb shell kill testApp']});
         done();
       }).catch(ex => {
