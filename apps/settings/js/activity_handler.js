@@ -163,12 +163,15 @@
     ready: function ah_ready() {
       if (!this._readyPromise) {
         this._readyPromise = new Promise((resolve) => {
-          navigator.mozSetMessageHandler('activity', (activity) => {
-            this._currentActivity = activity;
-            this._handleActivity(this._currentActivity.source);
-            this._registerListener();
-            resolve();
-          });
+          // We need to replace activities with an alternative.
+
+          // navigator.mozSetMessageHandler('activity', (activity) => {
+          //   this._currentActivity = activity;
+          //   this._handleActivity(this._currentActivity.source);
+          //   this._registerListener();
+          //   resolve();
+          // });
+          resolve();
         });
       }
       return this._readyPromise;
