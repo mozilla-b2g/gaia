@@ -1,3 +1,4 @@
+/* global asyncStorage */
 'use strict';
 
 (function(exports) {
@@ -44,42 +45,43 @@
     },
 
     init: function() {
-      var revisionString = localStorage.getItem(this.revisionName);
-      if (revisionString) {
-        this.lastRevision = JSON.parse(revisionString);
-      }
-
       return new Promise((resolve, reject) => {
-        var req = window.indexedDB.open(this.idbName, this.DB_VERSION);
-        req.onupgradeneeded = this.upgradeSchema.bind(this);
-        req.onsuccess = (e) => {
-          this.db = e.target.result;
-          resolve();
-
-          // Open up the shared datastore
-          if (!navigator.getDataStores) {
-            console.error('DataStore API is unavailable');
-            return;
+        asyncStorage.getItem(this.revisionName, revisionString => {
+          if (revisionString) {
+            this.lastRevision = JSON.parse(revisionString);
           }
 
-          navigator.getDataStores(this.name).then((stores) => {
-            if (stores.length < 1) {
-              console.error(this.name + ' inaccessible');
+          var req = window.indexedDB.open(this.idbName, this.DB_VERSION);
+          req.onupgradeneeded = this.upgradeSchema.bind(this);
+          req.onsuccess = (e) => {
+            this.db = e.target.result;
+            resolve();
+
+            // Open up the shared datastore
+            if (!navigator.getDataStores) {
+              console.error('DataStore API is unavailable');
               return;
             }
 
-            this.datastore = stores[0];
-            this.datastore.addEventListener('change',
-                                            this.onChange.bind(this));
-            this.synchronise();
-          }, (e) => {
-            console.error('Error getting datastore', e);
-          });
-        };
-        req.onerror = (e) => {
-          console.error('Error opening datastore mirror database', e);
-          reject(e);
-        };
+            navigator.getDataStores(this.name).then((stores) => {
+              if (stores.length < 1) {
+                console.error(this.name + ' inaccessible');
+                return;
+              }
+
+              this.datastore = stores[0];
+              this.datastore.addEventListener('change',
+                                              this.onChange.bind(this));
+              this.synchronise();
+            }, (e) => {
+              console.error('Error getting datastore', e);
+            });
+          };
+          req.onerror = (e) => {
+            console.error('Error opening datastore mirror database', e);
+            reject(e);
+          };
+        });
       });
     },
 
@@ -180,7 +182,7 @@
 
     updateRevision: function() {
       this.lastRevision = this.datastore.revisionId;
-      localStorage.setItem(this.revisionName,
+      asyncStorage.setItem(this.revisionName,
                            JSON.stringify(this.lastRevision));
     },
 
