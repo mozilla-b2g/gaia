@@ -1,6 +1,6 @@
 'use strict';
 
-/* global MozActivity, Applications, BookmarkManager, SmartModalDialog */
+/* global MozActivity, Applications, BookmarkManager, SharedUtils */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -43,7 +43,7 @@
 
       this._bookmarkManager = BookmarkManager;
 
-      this._modalDialog = new SmartModalDialog();
+      this._modalDialog = SharedUtils.createSmartDialog('modal');
 
       this.pinToHomeElem.addEventListener('click', this.pinOrUnpin.bind(this));
       this.unpinFromHomeElem.addEventListener(

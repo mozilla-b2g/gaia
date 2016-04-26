@@ -1,4 +1,4 @@
-/* globals KeyEvent */
+/* globals KeyEvent, SharedUtils */
 
 'use strict';
 
@@ -790,13 +790,8 @@
     },
 
     handleListKeyUp: function(e) {
-      switch(e.keyCode){
-        case KeyEvent.DOM_VK_ESCAPE:
-        case KeyEvent.DOM_VK_BACK_SPACE:
-          this.goBack();
-          break;
-        default:
-          return;
+      if (SharedUtils.isBackKey(e)) {
+        this.goBack();
       }
     },
 

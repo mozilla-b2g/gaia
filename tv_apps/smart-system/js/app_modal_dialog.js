@@ -1,5 +1,4 @@
-/* global AppModalDialog, SimpleKeyNavigation,
-          SmartModalDialog, SmartInputDialog, focusManager */
+/* global AppModalDialog, SimpleKeyNavigation, focusManager, SharedUtils */
 'use strict';
 
 (function(exports) {
@@ -78,8 +77,10 @@
     // bug 1168252 landed.
     this.container = document.getElementById(
       this.CLASS_NAME + 'Container' + this.instanceID);
-    this.smartModalDialog = new SmartModalDialog(this.container);
-    this.smartInputDialog = new SmartInputDialog(this.container);
+    this.smartModalDialog =
+      SharedUtils.createSmartDialog('modal', this.container);
+    this.smartInputDialog =
+      SharedUtils.createSmartDialog('input', this.container);
     this.container.addEventListener('modal-dialog-will-open', this);
     this.container.addEventListener('modal-dialog-closed', this);
     this.isSmartModalDialog = false;

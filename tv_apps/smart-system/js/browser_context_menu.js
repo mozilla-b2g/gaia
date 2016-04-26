@@ -1,5 +1,5 @@
 /* global MozActivity, IconsHelper, LazyLoader, applications */
-/* global BookmarksDatabase, focusManager, SmartModalDialog, ModalDialog */
+/* global BookmarksDatabase, focusManager, ModalDialog, SharedUtils */
 /* global FTEWizard, Template, AppInstallManager, AppInstallDialogs */
 /* global PreviewWindow, SystemBanner, ManifestHelper, BookmarkManager */
 
@@ -80,7 +80,7 @@
   BrowserContextMenu.prototype._fetchElements = function bcm__fetchElements() {
     var id = this.CLASS_NAME + this.instanceID;
     this.element = document.getElementById(id);
-    this.modalDialog = new SmartModalDialog(this.element);
+    this.modalDialog = SharedUtils.createSmartDialog('modal', this.element);
     this.fteWizard = new FTEWizard('systemContextMenuFTE');
   };
 

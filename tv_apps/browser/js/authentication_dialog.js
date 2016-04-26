@@ -3,6 +3,7 @@
 
 'use strict';
 
+/* global SharedUtils */
 /* exported AuthenticationDialog */
 
 /**
@@ -26,7 +27,7 @@ var AuthenticationDialog = {
     };
 
     var elementIDs = [
-      'http-authentication-dialog', 
+      'http-authentication-dialog',
       'http-authentication-username', 'http-authentication-username-clear',
       'http-authentication-password', 'http-authentication-password-clear',
       'http-authentication-username-area', 'http-authentication-password-area',
@@ -365,6 +366,10 @@ var AuthenticationDialog = {
     if( document.activeElement.nodeName == 'INPUT' ) {
       return true;
     }
+    if (SharedUtils.isBackKey(evt)) {
+      this.cancelHandler();
+      return true;
+    }
     switch( evt.keyCode ) {
       case KeyEvent.DOM_VK_LEFT :
         evt.preventDefault();
@@ -401,9 +406,6 @@ var AuthenticationDialog = {
           document.activeElement.classList.add('active');
         }
         break;
-      case KeyEvent.DOM_VK_BACK_SPACE :
-        this.cancelHandler();
-        return true;
       default :
         return false;
     }

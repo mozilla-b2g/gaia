@@ -1,5 +1,6 @@
 /* global KeyEvent */
 /* global SimpleKeyNavigation */
+/* global SharedUtils */
 
 (function(exports) {
   'use strict';
@@ -183,8 +184,7 @@
     },
 
     handleKeydown: function ew_handleKeydown(e) {
-      if (e.keyCode === KeyEvent.DOM_VK_ESCAPE ||
-        e.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
+      if (SharedUtils.isBackKey(e)) {
         this.close();
       }
     },

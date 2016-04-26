@@ -1,4 +1,4 @@
-/* global SmartModalDialog, Promise, focusManager */
+/* global Promise, focusManager, SharedUtils */
 (function(exports) {
   'use strict';
 
@@ -51,7 +51,8 @@
     if (this._installDialog) {
       return;
     }
-    this._installDialog = new SmartModalDialog(this.containerElement);
+    this._installDialog =
+      SharedUtils.createSmartDialog('modal', this.containerElement);
     this._installDialog.element.classList.add('app-install-dialog');
     this._dialogs.push(this._installDialog);
   };
@@ -89,7 +90,8 @@
     if (this._installCancelDialog) {
       return;
     }
-    this._installCancelDialog = new SmartModalDialog(this.containerElement);
+    this._installCancelDialog =
+      SharedUtils.createSmartDialog('modal', this.containerElement);
     this._installCancelDialog.element.classList.add(
       'app-install-cancel-dialog');
     this._dialogs.push(this._installCancelDialog);
@@ -132,7 +134,8 @@
     if (this._uninstallDialog) {
       return;
     }
-    this._uninstallDialog = new SmartModalDialog(this.containerElement);
+    this._uninstallDialog =
+      SharedUtils.createSmartDialog('modal', this.containerElement);
     this._uninstallDialog.element.classList.add('app-uninstall-dialog');
     this._dialogs.push(this._uninstallDialog);
   };
@@ -182,7 +185,8 @@
     if (this._setupAppDialog) {
       return;
     }
-    this._setupAppDialog = new SmartModalDialog(this.containerElement);
+    this._setupAppDialog =
+      SharedUtils.createSmartDialog('modal', this.containerElement);
     this._setupAppDialog.element.classList.add('setup-app-dialog');
     this._dialogs.push(this._setupAppDialog);
   };
@@ -224,7 +228,8 @@
     if (this._addAppDialog) {
       return;
     }
-    this._addAppDialog = new SmartModalDialog(this.containerElement);
+    this._addAppDialog =
+      SharedUtils.createSmartDialog('modal', this.containerElement);
     this._addAppDialog.element.classList.add('add-app-dialog');
     this._dialogs.push(this._addAppDialog);
   };

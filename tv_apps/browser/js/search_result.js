@@ -1,4 +1,4 @@
-/* global _, Browser, BrowserDB, MozActivity */
+/* global _, Browser, BrowserDB, MozActivity, SharedUtils */
 
 'use strict';
 
@@ -245,10 +245,8 @@ var SearchResult = {
     if(document.activeElement.nodeName == 'INPUT') {
       return;
     }
-    switch( ev.keyCode ) {
-      case KeyEvent.DOM_VK_BACK_SPACE :
-        this.hide();
-        break;
+    if(SharedUtils.isBackKey(ev)) {
+      this.hide();
     }
   }
 };

@@ -3,8 +3,7 @@
 
 'use strict';
 
-/* global KeyboardManager, focusManager, Sanitizer, SmartModalDialog,
-          SmartInputDialog */
+/* global KeyboardManager, focusManager, Sanitizer, SharedUtils */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -77,8 +76,8 @@ var ModalDialog = {
         elements[id].addEventListener('click', this);
       }
     }
-    this.smartModalDialog = new SmartModalDialog(this.dialog);
-    this.smartInputDialog = new SmartInputDialog(this.dialog);
+    this.smartModalDialog = SharedUtils.createSmartDialog('modal', this.dialog);
+    this.smartInputDialog = SharedUtils.createSmartDialog('input', this.dialog);
     // XXX: we just hide the clear button to screen reader.
     this.smartInputDialog.clearButton.setAttribute('aria-hidden', true);
     this.dialog.addEventListener('modal-dialog-will-open', this);
