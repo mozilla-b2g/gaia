@@ -204,24 +204,22 @@ suite('settings.js', function() {
     });
 
     test('setHomescreenURL with default homescreen', function() {
-      config.GAIA_SCHEME = 'app://';
-      config.GAIA_DOMAIN = 'gaiamobile.com';
+      config.GAIA_SCHEME = 'chrome://gaia/content/';
       config.GAIA_PORT = ':8080';
       var settings = {};
       var testResult = mockUtils.gaiaManifestURL('homescreen',
-                    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+                    config.GAIA_SCHEME, config.GAIA_PORT);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
     });
 
     test('setHomescreenURL with customizable', function() {
       config.GAIA_APPDIRS = 'homescreen system sms';
-      config.GAIA_SCHEME = 'app://';
-      config.GAIA_DOMAIN = 'gaiamobile.com';
+      config.GAIA_SCHEME = 'chrome://gaia/content/';
       config.GAIA_PORT = ':8080';
       var settings = { 'homescreen.appName': 'homescreen' };
       var testResult = mockUtils.gaiaManifestURL('homescreen',
-                    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+                    config.GAIA_SCHEME, config.GAIA_PORT);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
     });
@@ -264,12 +262,9 @@ suite('settings.js', function() {
           'metrics.selectedMetrics.level': 'Basic',
           'developer.menu.enabled': true,
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+            'homescreen/manifest.webapp',
+          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search/index.html',
+          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search/index.html',
           'debugger.remote-mode': 'adb-only',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'wallpaper.image': undefined,
@@ -299,17 +294,12 @@ suite('settings.js', function() {
       var result = app.execute(config);
       assert.deepEqual({
         'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                    config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search/index.html',
         'language.current': config.GAIA_DEFAULT_LOCALE,
         'debugger.remote-mode': 'adb-only',
-        'ftu.manifestURL': config.GAIA_SCHEME +
-          'ftu.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
+        'ftu.manifestURL': config.GAIA_SCHEME + 'ftu/manifest.webapp',
         'wallpaper.image': undefined,
         'media.ringtone': undefined,
         'alarm.ringtone': undefined,
@@ -335,12 +325,9 @@ suite('settings.js', function() {
         .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
       assert.deepEqual({
         'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                    config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search/index.html',
         'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
         'gaia.system.checkForUpdates': true,
         'language.current': config.GAIA_DEFAULT_LOCALE,
@@ -385,12 +372,9 @@ suite('settings.js', function() {
         .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
       assert.deepEqual({
         'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search/index.html',
         'language.current': config.GAIA_DEFAULT_LOCALE,
         'debugger.remote-mode': 'adb-only',
         'wallpaper.image': undefined,
@@ -421,12 +405,9 @@ suite('settings.js', function() {
       var result = app.execute(config);
       assert.deepEqual({
         'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                    config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search/index.html',
         'language.current': config.GAIA_DEFAULT_LOCALE,
         'debugger.remote-mode': 'adb-devtools',
         'lockscreen.enabled': false,
@@ -455,12 +436,9 @@ suite('settings.js', function() {
       var result = app.execute(config);
       assert.deepEqual({
         'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
-                    config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen/manifest.webapp',
+        'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search/index.html',
+        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search/index.html',
         'language.current': config.GAIA_DEFAULT_LOCALE,
         'debugger.remote-mode': 'adb-devtools',
         'wallpaper.image': undefined,
