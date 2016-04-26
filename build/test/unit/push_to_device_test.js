@@ -40,15 +40,19 @@ suite('push-to-device.js', function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
           { sh: [
-              '-c adb shell rm -r /' + remotePath + '/webapps',
+              '-c adb shell rm -r /' + remotePath + '/apps',
               '-c adb shell rm //data/local/user.js',
-              '-c adb push "' + profileFolder + '/webapps" /' + remotePath +
-                '/webapps',
+              '-c adb push "' + profileFolder + '/apps" /' + remotePath +
+                '/apps',
               '-c adb push "' + profileFolder +
                 '/user.js" //data/local/user.js']
           }
         );
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
 
@@ -72,10 +76,10 @@ suite('push-to-device.js', function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
           { sh: [
-              '-c adb shell rm -r /' + remotePath + '/webapps',
+              '-c adb shell rm -r /' + remotePath + '/apps',
               '-c adb shell rm //data/local/user.js',
-              '-c adb push "' + profileFolder + '/webapps" /' + remotePath +
-                '/webapps',
+              '-c adb push "' + profileFolder + '/apps" /' + remotePath +
+                '/apps',
               '-c adb push "' + profileFolder +
                 '/user.js" //data/local/user.js',
               '-c adb push "' + profileFolder +
@@ -83,6 +87,10 @@ suite('push-to-device.js', function() {
           }
         );
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
 
@@ -97,6 +105,10 @@ suite('push-to-device.js', function() {
           ]
         });
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
   });
@@ -110,7 +122,6 @@ suite('push-to-device.js', function() {
         GAIA_DIR: 'testGaia',
         PROFILE_DIR: 'testProfileFolder',
         GAIA_INSTALL_PARENT: '/system/b2g',
-        GAIA_DOMAIN: 'testDomain',
         DEFAULT_KEYBOAD_SYMBOLS_FONT:
           'shared/style/keyboard_symbols/Keyboard-Symbols.ttf',
         DEFAULT_GAIA_ICONS_FONT:
@@ -155,10 +166,10 @@ suite('push-to-device.js', function() {
             '-c adb shell rm -r //cache/*',
             '-c adb remount',
             '-c adb shell rm -r /' + options.GAIA_INSTALL_PARENT +
-                '/webapps',
+                '/apps',
             '-c adb shell rm //data/local/user.js',
-            '-c adb push "' + options.PROFILE_DIR + '/webapps"' +
-                ' //system/b2g/webapps',
+            '-c adb push "' + options.PROFILE_DIR + '/apps"' +
+                ' //system/b2g/apps',
             '-c adb push "' + options.PROFILE_DIR + '/user.js"' +
               ' //data/local/user.js',
             '-c adb push "shared/elements/gaia-icons/fonts/gaia-icons.ttf"' +
@@ -167,11 +178,18 @@ suite('push-to-device.js', function() {
               ' //system/fonts/hidden/Keyboard-Symbols.ttf',
             '-c adb shell start b2g']});
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
 
     test('execute, test it with testApp as an app name', function(done) {
       options.BUILD_APP_NAME = 'testApp';
+      mockUtils.readJSONFromPath = function(p) {
+        return { name: 'testApp' };
+      };
       mockUtils.psParser = function() {
         var pidMap = {};
         pidMap[options.BUILD_APP_NAME] = {
@@ -187,29 +205,17 @@ suite('push-to-device.js', function() {
             '-c adb wait-for-device',
             '-c adb shell rm -r //cache/*',
             '-c adb remount',
-            '-c adb push "' + options.PROFILE_DIR + '/webapps/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/manifest.webapp" //data/local/tmp/pushgaia/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/manifest.webapp',
-            '-c adb push "' + options.PROFILE_DIR + '/webapps/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/application.zip" //data/local/tmp/pushgaia/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/application.zip',
-            '-c adb shell "cat /data/local/tmp/pushgaia/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/manifest.webapp > ' + options.GAIA_INSTALL_PARENT +
-                '/webapps/' + options.BUILD_APP_NAME + '.' +
-                options.GAIA_DOMAIN + '/manifest.webapp"',
-            '-c adb shell "cat /data/local/tmp/pushgaia/' +
-                options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
-                '/application.zip > ' + options.GAIA_INSTALL_PARENT +
-                '/webapps/' + options.BUILD_APP_NAME + '.' +
-                options.GAIA_DOMAIN + '/application.zip"',
-            '-c adb shell rm -rf //data/local/tmp/pushgaia',
+            '-c adb shell "rm -r ' + options.GAIA_INSTALL_PARENT + '/apps/' +
+                options.BUILD_APP_NAME + '/"',
+            '-c adb push "' + options.PROFILE_DIR + '/apps/' +
+                options.BUILD_APP_NAME + '" "' + options.GAIA_INSTALL_PARENT +
+                '/apps/' + options.BUILD_APP_NAME + '/"',
             '-c adb shell kill testApp']});
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
   });
@@ -233,14 +239,14 @@ suite('push-to-device.js', function() {
         var realGetJSON = mockUtils.getJSON;
         mockUtils.getJSON = function(file) {
           return {
-            'app1.gaiamobile.org': {
-              'basePath': '/data/local/webapps'
+            'app1': {
+              'basePath': '/data/local/apps'
             },
-            'app2.gaiamobile.org': {
-              'basePath': '/data/local/webapps'
+            'app2': {
+              'basePath': '/data/local/apps'
             },
-            'app3.gaiamobile.org': {
-              'basePath': '/data/local/webapps'
+            'app3': {
+              'basePath': '/data/local/apps'
             }
           };
         };
@@ -253,14 +259,14 @@ suite('push-to-device.js', function() {
       var realGetJSON = mockUtils.getJSON;
       mockUtils.getJSON = function(file) {
         return {
-          'app1.gaiamobile.org': {
-            'basePath': '/data/local/webapps'
+          'app1': {
+            'basePath': '/data/local/apps'
           },
-          'app2.gaiamobile.org': {
-            'basePath': '/system/b2g/webapps'
+          'app2': {
+            'basePath': '/system/b2g/apps'
           },
-          'app3.gaiamobile.org': {
-            'basePath': '/system/b2g/webapps'
+          'app3': {
+            'basePath': '/system/b2g/apps'
           }
         };
       };

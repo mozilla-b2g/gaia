@@ -29,8 +29,7 @@ suite('utils.js', function() {
     var appName, path, origin;
 
     var config = {
-      GAIA_DOMAIN: 'gaiamobile.org',
-      GAIA_SCHEME: 'app://',
+      GAIA_SCHEME: 'chrome://gaia/content/',
       STAGE_DIR: 'stage_dir',
       COREWEBAPPS_DIR: '/system'
     };
@@ -94,8 +93,8 @@ suite('utils.js', function() {
         appStatus: 2,
         manifest: { name: appName },
         manifestFilePath: path + '/manifest.webapp',
-        url: config.GAIA_SCHEME + appName + '.' + config.GAIA_DOMAIN,
-        domain: appName + '.' + config.GAIA_DOMAIN,
+        url: config.GAIA_SCHEME + appName,
+        domain: appName,
         sourceDirectoryFilePath: path,
         sourceDirectoryName: appName,
         sourceAppDirectoryName: '',
@@ -109,7 +108,7 @@ suite('utils.js', function() {
         buildManifestFilePath:
           config.STAGE_DIR + '/' + appName + '/manifest.webapp',
         profileDirectoryFilePath:
-          config.COREWEBAPPS_DIR + '/webapps/' + directory
+          config.COREWEBAPPS_DIR + '/apps/' + directory
       };
 
       assert.deepEqual(webapp, expected);
