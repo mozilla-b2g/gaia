@@ -40,15 +40,19 @@ suite('push-to-device.js', function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
           { sh: [
-              '-c adb shell rm -r /' + remotePath + '/webapps',
+              '-c adb shell rm -r /' + remotePath + '/apps',
               '-c adb shell rm //data/local/user.js',
-              '-c adb push "' + profileFolder + '/webapps" /' + remotePath +
-                '/webapps',
+              '-c adb push "' + profileFolder + '/apps" /' + remotePath +
+                '/apps',
               '-c adb push "' + profileFolder +
                 '/user.js" //data/local/user.js']
           }
         );
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
 
@@ -72,10 +76,10 @@ suite('push-to-device.js', function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
           { sh: [
-              '-c adb shell rm -r /' + remotePath + '/webapps',
+              '-c adb shell rm -r /' + remotePath + '/apps',
               '-c adb shell rm //data/local/user.js',
-              '-c adb push "' + profileFolder + '/webapps" /' + remotePath +
-                '/webapps',
+              '-c adb push "' + profileFolder + '/apps" /' + remotePath +
+                '/apps',
               '-c adb push "' + profileFolder +
                 '/user.js" //data/local/user.js',
               '-c adb push "' + profileFolder +
@@ -83,6 +87,10 @@ suite('push-to-device.js', function() {
           }
         );
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
 
@@ -97,6 +105,10 @@ suite('push-to-device.js', function() {
           ]
         });
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
   });
@@ -155,10 +167,10 @@ suite('push-to-device.js', function() {
             '-c adb shell rm -r //cache/*',
             '-c adb remount',
             '-c adb shell rm -r /' + options.GAIA_INSTALL_PARENT +
-                '/webapps',
+                '/apps',
             '-c adb shell rm //data/local/user.js',
-            '-c adb push "' + options.PROFILE_DIR + '/webapps"' +
-                ' //system/b2g/webapps',
+            '-c adb push "' + options.PROFILE_DIR + '/apps"' +
+                ' //system/b2g/apps',
             '-c adb push "' + options.PROFILE_DIR + '/user.js"' +
               ' //data/local/user.js',
             '-c adb push "shared/elements/gaia-icons/fonts/gaia-icons.ttf"' +
@@ -167,6 +179,10 @@ suite('push-to-device.js', function() {
               ' //system/fonts/hidden/Keyboard-Symbols.ttf',
             '-c adb shell start b2g']});
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
 
@@ -187,12 +203,12 @@ suite('push-to-device.js', function() {
             '-c adb wait-for-device',
             '-c adb shell rm -r //cache/*',
             '-c adb remount',
-            '-c adb push "' + options.PROFILE_DIR + '/webapps/' +
+            '-c adb push "' + options.PROFILE_DIR + '/apps/' +
                 options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
                 '/manifest.webapp" //data/local/tmp/pushgaia/' +
                 options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
                 '/manifest.webapp',
-            '-c adb push "' + options.PROFILE_DIR + '/webapps/' +
+            '-c adb push "' + options.PROFILE_DIR + '/apps/' +
                 options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
                 '/application.zip" //data/local/tmp/pushgaia/' +
                 options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
@@ -200,16 +216,20 @@ suite('push-to-device.js', function() {
             '-c adb shell "cat /data/local/tmp/pushgaia/' +
                 options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
                 '/manifest.webapp > ' + options.GAIA_INSTALL_PARENT +
-                '/webapps/' + options.BUILD_APP_NAME + '.' +
+                '/apps/' + options.BUILD_APP_NAME + '.' +
                 options.GAIA_DOMAIN + '/manifest.webapp"',
             '-c adb shell "cat /data/local/tmp/pushgaia/' +
                 options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
                 '/application.zip > ' + options.GAIA_INSTALL_PARENT +
-                '/webapps/' + options.BUILD_APP_NAME + '.' +
+                '/apps/' + options.BUILD_APP_NAME + '.' +
                 options.GAIA_DOMAIN + '/application.zip"',
             '-c adb shell rm -rf //data/local/tmp/pushgaia',
             '-c adb shell kill testApp']});
         done();
+      }).catch(ex => {
+	console.log('failing with: ' + ex);
+	assert.ok(false);
+	done();
       });
     });
   });
