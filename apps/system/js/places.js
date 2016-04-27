@@ -34,9 +34,10 @@
      * @type {String}
      */
     DB_NAME: 'places',
-    DB_VERSION: 1,
+    DB_VERSION: 3,
     SITES_STORE: 'sites',
     PAGES_STORE: 'pages',
+    VISITS_STORE: 'visits',
 
     /**
      * A reference to the places datastore.
@@ -137,36 +138,32 @@
      *
      * @param {Event} upgradeneeded event.
      */
-    upgrade: function(event) {
-      console.log('Upgrading Places database...');
-      this.db = event.target.result;
 
-      // Create sites store if it doesn't exist
-      if(!this.db.objectStoreNames.contains(this.SITES_STORE)) {
-        var sitesStore = this.db.createObjectStore(this.SITES_STORE,
-          { keyPath: 'id', autoIncrement: false});
+    upgrade: function(e) {
+      this.db = e.target.result;
+      var fromVersion = e.oldVersion;
+
+      if (fromVersion < 1) {
+        var pages = this.db.createObjectStore(this.PAGES_STORE, {
+          keyPath: 'url'
+        });
+        pages.createIndex('frecency', 'frecency', { unique: false });
+        pages.createIndex('visited', 'visited', { unique: false });
+
+        var sitesStore = this.db.createObjectStore(this.SITES_STORE, {
+          keyPath: 'url'
+        });
         sitesStore.createIndex('frecency', 'frecency', { unique: false });
-        sitesStore.transaction.oncomplete = function() {
-          console.log('Sites store created successfully');
-        };
-        sitesStore.transaction.onerror = function() {
-          console.error('Error creating Sites store');
-        };
-      }
-  
-      // Create pages store if it doesn't exist
-      if(!this.db.objectStoreNames.contains(this.PAGES_STORE)) {
-        var pagesStore = this.db.createObjectStore(this.PAGES_STORE,
-          { keyPath: 'id', autoIncrement: false});
-        pagesStore.createIndex('frecency', 'frecency', { unique: false });
-        pagesStore.transaction.oncomplete = function() {
-          console.log('Pages store created successfully');
-        };
-        pagesStore.transaction.onerror = function() {
-          console.error('Error creating Pages store');
-        };
       }
 
+      if (fromVersion < 2) {
+        asyncStorage.removeItem('latest-revision');
+        var visits = this.db.createObjectStore(this.VISITS_STORE, {
+          keyPath: 'date'
+        });
+        visits.createIndex('date', 'date', { unique: true });
+        visits.createIndex('url', 'url', { unique: false });
+      }
     },
 
     /**
@@ -240,10 +237,9 @@
           this.onMetaChange(app.config.url, app.meta);
           break;
         case 'apploaded':
-          // TODO: Re-enable once screenshots working 
-          //if (app.config.url in this.screenshotQueue) {
-          //  this.takeScreenshot(app.config.url);
-          //}
+          if (app.config.url in this.screenshotQueue) {
+           this.takeScreenshot(app.config.url);
+          }
           this.debouncePlaceChanges(app.config.url);
           break;
       }
@@ -324,7 +320,6 @@
                 return this.editPlace(url, fun);
               }
               this.writeInProgress = true;
-              newPlace.id = newPlace.url;
 
               var requestUpdate = objectStore.put(newPlace);
               requestUpdate.onsuccess = () => {
@@ -396,24 +391,24 @@
     /**
      * Pin a site.
      *
-     * @param {String} id Site ID.
+     * @param {String} url Site url.
      * @param {Object} siteObject Site object.
      */
-    pinSite: function(id, siteObject) {
+    pinSite: function(url, siteObject) {
       return new Promise((function(resolve, reject) {
         this.getDb().then((function(db) {
           var transaction = db.transaction(this.SITES_STORE, 'readwrite');
           var objectStore = transaction.objectStore(this.SITES_STORE);
           var writeRequest = objectStore.put(siteObject);
-        
+
           writeRequest.onsuccess = function() {
-            console.log('Successfully pinned site ' + ' with id ' +
-              siteObject.id);
+            console.log('Successfully pinned site ' + ' with url ' +
+              siteObject.url);
             resolve();
           };
-    
+
           writeRequest.onerror = function() {
-            console.error('Error updating site with id ' + siteObject.id);
+            console.error('Error updating site with url ' + siteObject.url);
             reject();
           };
         }).bind(this));
@@ -495,7 +490,7 @@
         });
         this.topSites = newTopSites;
         this.topSites.push(place);
-        // this.screenshotRequested(place.url);
+        this.screenshotRequested(place.url);
         this.topSites.sort(function(a, b) {
           return b.frecency - a.frecency;
         });
