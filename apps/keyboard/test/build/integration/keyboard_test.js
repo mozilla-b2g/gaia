@@ -7,13 +7,11 @@ var assert = require('chai').assert;
 var path = require('path');
 var fs = require('fs');
 var helper = require('helper');
-var AdmZip = require('adm-zip');
 var jsdom = require('jsdom').jsdom;
 
-function checkLayoutsJSON(zipPath, expectedArr) {
-  var zip = new AdmZip(zipPath);
-  var entry = zip.getEntry('js/settings/layouts.json');
-  var actualArr = JSON.parse(zip.readAsText(entry));
+function checkLayoutsJSON(folderPath, expectedArr) {
+  var entry = path.join(folderPath, 'js/settings/layouts.json');
+  var actualArr = JSON.parse(fs.readFileSync(entry, { encoding: 'utf-8' }));
 
   actualArr.forEach(function(layout) {
     assert.isTrue(
@@ -74,8 +72,7 @@ suite('Keyboard layouts building tests', function() {
                        'vi-Typewriter',
                        'wo',
                        'zh-Hans-Pinyin'];
-      var zipPath = path.join(process.cwd(), 'profile',
-        'webapps', 'keyboard.gaiamobile.org', 'application.zip');
+      var folderPath = path.join(process.cwd(), 'profile', 'apps', 'keyboard');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
 
       var layouts = layoutIds.map(function(layout) {
@@ -107,13 +104,12 @@ suite('Keyboard layouts building tests', function() {
 
       var checkList = [].concat(layouts, imes, dicts);
       checkList.forEach(function(path) {
-        helper.checkFileInZip(zipPath, path, appDirPath + '/' + path);
+        helper.checkFileInFolder(folderPath, path, appDirPath + '/' + path);
       });
 
       // Verify inputs entry in manifest
-      var zip = new AdmZip(zipPath);
-      var entry = zip.getEntry('manifest.webapp');
-      var manifest = JSON.parse(zip.readAsText(entry));
+      var entry = path.join(folderPath, 'manifest.webapp');
+      var manifest = JSON.parse(fs.readFileSync(entry, { encoding: 'utf-8' }));
       var inputKeysInManifest = Object.keys(manifest.inputs);
 
       assert.deepEqual(inputKeysInManifest.sort(),
@@ -125,7 +121,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'default-make-layouts.json'));
 
-      checkLayoutsJSON(zipPath, dictJSON);
+      checkLayoutsJSON(folderPath, dictJSON);
 
       done();
     });
@@ -138,8 +134,7 @@ suite('Keyboard layouts building tests', function() {
       helper.checkError(error, stdout, stderr);
 
       var config = JSON.parse(process.env.BUILD_CONFIG);
-      var zipPath = path.join(process.cwd(), 'profile',
-        'webapps', 'keyboard.gaiamobile.org', 'application.zip');
+      var folderPath = path.join(process.cwd(), 'profile', 'apps', 'keyboard');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
       var layoutIds =
         fs.readdirSync(appDirPath + '/js/layouts').filter(function(filename) {
@@ -210,13 +205,12 @@ suite('Keyboard layouts building tests', function() {
 
       var checkList = [].concat(layouts, imes, dicts);
       checkList.forEach(function(path) {
-        helper.checkFileInZip(zipPath, path, appDirPath + '/' + path);
+        helper.checkFileInFolder(folderPath, path, appDirPath + '/' + path);
       });
 
       // Verify inputs entry in manifest
-      var zip = new AdmZip(zipPath);
-      var entry = zip.getEntry('manifest.webapp');
-      var manifest = JSON.parse(zip.readAsText(entry));
+      var entry = path.join(folderPath, 'manifest.webapp');
+      var manifest = JSON.parse(fs.readFileSync(entry, { encoding: 'utf-8' }));
       var inputKeysInManifest = Object.keys(manifest.inputs);
 
       assert.deepEqual(inputKeysInManifest.sort(),
@@ -228,7 +222,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'all-layout-make-layouts.json'));
 
-      checkLayoutsJSON(zipPath, dictJSON);
+      checkLayoutsJSON(folderPath, dictJSON);
 
       done();
     });
@@ -245,24 +239,22 @@ suite('Keyboard layouts building tests', function() {
       helper.checkError(error, stdout, stderr);
 
       var config = JSON.parse(process.env.BUILD_CONFIG);
-      var zipPath = path.join(process.cwd(), 'profile',
-        'webapps', 'keyboard.gaiamobile.org', 'application.zip');
+      var folderPath = path.join(process.cwd(), 'profile', 'apps', 'keyboard');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
 
       // For this test, we verify there isn't any dictionary
       // in the zip.
-      var zip = new AdmZip(zipPath);
-      var entries = zip.getEntries();
+      var entries = helper.readdirSyncRecursive(folderPath);
       var imePath = 'js/imes';
       var sizeLimit = (1 << 10) * 100; // 100K
       entries.forEach(function(entry) {
-        if (entry.entryName.substr(0, imePath.length) !== imePath) {
+        if (entry.substr(0, imePath.length) !== imePath) {
           return;
         }
 
-        var fileSize = entry.getData().length;
+        var fileSize = fs.statSync(path.join(folderPath, entry)).size;
         assert.isTrue(fileSize < sizeLimit,
-          'IME file is larger than non-dictionary limit: ' + entry.entryName +
+          'IME file is larger than non-dictionary limit: ' + entry +
           ', size: ' + fileSize + ' bytes.');
       });
 
@@ -272,7 +264,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'no-preload-dict-required-make-layouts.json'));
 
-      checkLayoutsJSON(zipPath, dictJSON);
+      checkLayoutsJSON(folderPath, dictJSON);
 
       done();
     });
@@ -290,8 +282,7 @@ suite('Keyboard layouts building tests', function() {
       helper.checkError(error, stdout, stderr);
 
       var config = JSON.parse(process.env.BUILD_CONFIG);
-      var zipPath = path.join(process.cwd(), 'profile',
-        'webapps', 'keyboard.gaiamobile.org', 'application.zip');
+      var folderPath = path.join(process.cwd(), 'profile', 'apps', 'keyboard');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
       var layoutIds = config.GAIA_KEYBOARD_LAYOUTS.split(',').sort()
         .filter(function(layoutId) {
@@ -326,13 +317,12 @@ suite('Keyboard layouts building tests', function() {
 
       var checkList = [].concat(layouts, imes);
       checkList.forEach(function(path) {
-        helper.checkFileInZip(zipPath, path, appDirPath + '/' + path);
+        helper.checkFileInFolder(folderPath, path, appDirPath + '/' + path);
       });
 
       // Verify inputs entry in manifest
-      var zip = new AdmZip(zipPath);
-      var entry = zip.getEntry('manifest.webapp');
-      var manifest = JSON.parse(zip.readAsText(entry));
+      var entry = path.join(folderPath, 'manifest.webapp');
+      var manifest = JSON.parse(fs.readFileSync(entry, { encoding: 'utf-8' }));
       var inputKeysInManifest = Object.keys(manifest.inputs);
 
       // Only layouts with dictionaries should be declaried.
@@ -343,8 +333,13 @@ suite('Keyboard layouts building tests', function() {
 
       // Verify dictionaries are not built (except en_us.dict)
       dicts.forEach(function(dict) {
-        var entry = zip.getEntry(dict);
-        assert.equal(entry, null, 'Dictionary should not be built: ' + dict);
+        try {
+          fs.statSync(path.join(folderPath, dict));
+          assert.ok(false, 'Dictionary should not be built: ' + dict);
+	} catch (ex) {
+          assert.equal(ex.code, 'ENOENT',
+                       'Dictionary should not be built: ' + dict);
+	}
       });
 
       // Verify dictionary config
@@ -353,7 +348,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'default-make-en-dict-layouts.json'));
 
-      checkLayoutsJSON(zipPath, dictJSON);
+      checkLayoutsJSON(folderPath, dictJSON);
 
       done();
     });
@@ -366,13 +361,11 @@ suite('Keyboard settings building tests', function() {
 
   // parse settings.html and return domDoc.
   var getSettingsDomDoc = function() {
-    var zipPath = path.join(process.cwd(), 'profile',
-      'webapps', 'keyboard.gaiamobile.org', 'application.zip');
+    var folderPath = path.join(process.cwd(), 'profile', 'apps', 'keyboard');
 
     // Verify settings.html content in manifest
-    var zip = new AdmZip(zipPath);
-    var entry = zip.getEntry('settings.html');
-    return jsdom(zip.readAsText(entry));
+    var entry = path.join(folderPath, 'settings.html');
+    return jsdom(fs.readFileSync(entry, { encoding: 'utf-8' }));
   };
 
   // return an array of <scripts> tag in <head>
