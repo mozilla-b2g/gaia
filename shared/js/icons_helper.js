@@ -92,6 +92,27 @@
     });
   }
 
+  function processIconBlob(iconBlob, iconUrl, uri, iconTargetSize) {
+    return new Promise((resolve, reject) => {
+      var img = document.createElement('img');
+      var icon = new Icon(img, uri);
+      icon.renderBlob(iconBlob, {
+        size: iconTargetSize,
+        onLoad: function(blob) {
+          var iconObj = {
+            blob: blob,
+            originalUrl: iconUrl.toString(),
+            timestamp: Date.now()
+          };
+          resolve(iconObj);
+        },
+        onerror: function(e) {
+          reject(`Failed to fetch icon ${iconUrl}`);
+        }
+      });
+    });
+  }
+
   /**
    * Same as above except the promise resolves as an object containing the blob
    * of the icon and its size in pixels.
@@ -113,41 +134,38 @@
                 Date.now() - iconObj.timestamp >= ICON_CACHE_PERIOD) {
                 return fetchIconBlob(iconUrl)
                   .then(iconBlob => {
-                    var img = document.createElement('img');
-                    var icon = new Icon(img, uri);
-                    icon.renderBlob(iconBlob, {
-                      size: iconTargetSize,
-                      onLoad: function(blob) {
-                        var iconObj = {
-                          blob: blob,
-                          originalUrl: iconUrl.toString(),
-                          timestamp: Date.now()
-                        };
-                        // We resolve here to avoid I/O blocking on
-                        // dataStore and quicker display.
-                        // Persisting to the dataStore takes place subsequently.
-                        resolve(iconObj);
+                    processIconBlob(iconBlob, iconUrl, uri, iconTargetSize)
+                      .then(
+                        iconObj => {
+                          // We resolve here to avoid I/O blocking on
+                          // dataStore and quicker display.
+                          // Persisting to the dataStore takes place after.
+                          resolve(iconObj);
 
-                        iconStore.add(iconObj, iconUrl);
-                      },
-                      onerror: function(e) {
-                        reject(`Failed to fetch icon ${iconUrl}`);
-                      }
-                    });
-                  })
-                  .catch(err => {
+                          iconStore.add(iconObj, iconUrl);
+                        });
+                  }).catch(err => {
                     reject(`Failed to fetch icon ${iconUrl}: ${err}`);
                   });
               }
 
               return resolve(iconObj);
             }).catch(err => {
-              // We should fetch the icon and resolve the promise here, anyhow.
               reject(`Failed to get icon from dataStore: ${err}`);
             });
           }).catch(err => {
+            console.error(`Error opening the dataStore: ${err}`);
+
             // We should fetch the icon and resolve the promise here, anyhow.
-            reject(`Error opening the dataStore: ${err}`);
+            fetchIconBlob(iconUrl).then(iconBlob => {
+              processIconBlob(iconBlob, iconUrl, uri, iconTargetSize)
+                .then(iconObj => {
+                  console.log('Successfully fetched icon');
+                  resolve(iconObj);
+                });
+            }).catch(err => {
+              reject(`Failed to fetch icon ${iconUrl}: ${err}`);
+            });
           });
         });
     });
