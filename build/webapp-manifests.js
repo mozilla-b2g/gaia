@@ -1,7 +1,5 @@
 'use strict';
 
-/* global dump */
-
 /**
  * Generate webapps_shared.json in stage folder and uuid.json for external apps
  */
