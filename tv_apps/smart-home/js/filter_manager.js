@@ -1,4 +1,4 @@
-/* global CardFilter */
+/* global evt, CardFilter */
 
 (function(exports) {
   'use strict';
@@ -86,7 +86,7 @@
     }
   });
 
-  FilterManager.prototype = {
+  FilterManager.prototype = evt({
     /**
      * Initialize FilterManager
      *
@@ -256,6 +256,7 @@
       this._smartBubblesElem.play(this._cardScrollable.allItems);
 
       this._home.cleanFolderScrollable(true);
+      this.fire('filter-changed', this.getFilterByIconName(iconName).name);
     },
 
     /**
@@ -310,7 +311,7 @@
     isFilterChanging: function fm_isFilterChanging() {
       return this._isFilterChanging;
     }
-  };
+  });
 
   exports.FilterManager = FilterManager;
 }(window));

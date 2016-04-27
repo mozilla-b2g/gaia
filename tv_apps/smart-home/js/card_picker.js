@@ -85,6 +85,7 @@
       this.refresh(folderElem);
       this.container.classList.remove('hidden');
       this.focus();
+      this.fire('show');
     },
 
     hide: function() {
