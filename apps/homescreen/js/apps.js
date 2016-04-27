@@ -164,7 +164,8 @@
   Apps.prototype = {
     init: function() {
       this.icons.classList.toggle('small', this.settings.small);
-      this.scrollable.classList.toggle('snapping', this.settings.scrollSnapping);
+      this.scrollable.classList.toggle('snapping',
+                                       this.settings.scrollSnapping);
       this.storeAppOrderTimeout = null;
 
       // Populate apps and bookmarks asynchronously
