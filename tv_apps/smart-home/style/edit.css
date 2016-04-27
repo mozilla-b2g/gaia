@@ -40,7 +40,7 @@
   transition-delay: 0.1s;
 }
 
-#main-section[data-mode="edit"] .card.delete > smart-button {
+#main-section .card.delete > smart-button {
   transform: scale(1.4) translateY(20rem);
   opacity: 0;
 }
