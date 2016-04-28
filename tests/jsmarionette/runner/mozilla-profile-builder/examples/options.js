@@ -9,7 +9,7 @@ if (fs.existsSync(PROFILE_DIR))
   remove.removeSync(PROFILE_DIR);
 
 fs.mkdirSync(PROFILE_DIR);
-fs.mkdirSync(PROFILE_DIR + '/webapps');
+fs.mkdirSync(PROFILE_DIR + '/apps');
 
 // launch about:config in firefox for more pref names.
 var options = {

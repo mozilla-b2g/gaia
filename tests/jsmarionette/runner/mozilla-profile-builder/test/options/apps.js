@@ -24,7 +24,7 @@ suite('apps', function() {
     });
 
     test('both apps are in primary manifest', function() {
-      var installedApps = require(profile + '/webapps/webapps.json');
+      var installedApps = require(profile + '/apps/webapps.json');
 
       assert.ok(installedApps['testa.com'], 'testa.com');
       assert.ok(installedApps['testb.com'], 'testb.com');
