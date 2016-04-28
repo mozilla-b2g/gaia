@@ -117,6 +117,7 @@ function getAppWithCheckOnOriginOnly(state, origin, callback) {
     }
 
     for (var i = 0, len = apps.length; i < len; i++) {
+      console.log('~_~_~_~~_~_~_~_~_~_~\n\n\n', apps[i], '\n\n\n\n\n\n');
       if (apps[i].origin === origin) {
         originApp = apps[i];
         break;

@@ -34,6 +34,7 @@ BootWatcher.setup = function(client, options, cb) {
     try {
       bootwatcher.start();
     } catch (error) {
+      console.log(error);
       console.error('Never saw webapps-registry-ready yes');
     } finally {
       bootwatcher.emit('boot');

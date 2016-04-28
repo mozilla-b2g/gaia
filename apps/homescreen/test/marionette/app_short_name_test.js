@@ -4,8 +4,10 @@
 var assert = require('assert');
 
 marionette('Homescreen - App manifest', function() {
-  var manifestName = 'shortnameapp.gaiamobile.org';
-  var manifestUrl = 'app://' + manifestName + '/manifest.webapp';
+  var manifestName = 'shortnameapp';
+  var manifestUrl = 'chrome://gaia/content/' +
+                    manifestName +
+                    '/manifest.webapp';
 
   var clientOptions = require(__dirname + '/client_options.js');
   clientOptions.apps = {};
@@ -18,7 +20,6 @@ marionette('Homescreen - App manifest', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-
     client.apps.launch(home.URL);
     home.waitForLaunch();
   });

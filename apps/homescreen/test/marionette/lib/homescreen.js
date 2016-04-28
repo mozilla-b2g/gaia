@@ -10,7 +10,7 @@ function Homescreen(client) {
   this.system = client.loader.getAppClass('system');
 }
 
-Homescreen.URL = 'app://homescreen.gaiamobile.org';
+Homescreen.URL = 'chrome://gaia/content/homescreen';
 
 Homescreen.Selectors = {
   appsScrollable: '#apps-panel .scrollable',
