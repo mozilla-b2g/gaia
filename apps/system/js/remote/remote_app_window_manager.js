@@ -8,7 +8,6 @@
   }
 
   RemoteAppWindowManager.SERVICES = [
-    'launchApp',
     'launchPresentationApp',
     'killCurrentApp'
   ];
