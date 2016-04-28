@@ -27,15 +27,13 @@ suite('Make with desktop custom core apps location', function() {
       vm.runInNewContext(userjs, sandbox);
 
       helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
-      var oldAppPath = path.join(process.cwd(), 'profile', 'webapps');
+      var oldAppPath = path.join(process.cwd(), 'profile', 'apps');
       // Make sure we have no webapps directory in the profile, this
       // will now be created by gecko on start.
-      assert(!fs.existsSync(oldAppPath));
-      var manifestPath = path.join(coreAppPath, 'webapps',
-                              'webapps.json');
+      assert.deepEqual(fs.readdirSync(oldAppPath), ['shared']);
+      var manifestPath = path.join(coreAppPath, 'apps', 'webapps.json');
       assert(fs.existsSync(manifestPath));
-      var appPath = path.join(coreAppPath, 'webapps',
-                              'system.gaiamobile.org', 'application.zip');
+      var appPath = path.join(coreAppPath, 'apps', 'system', 'index.html');
       assert(fs.existsSync(appPath));
       rmrf(coreAppPath);
       done();
