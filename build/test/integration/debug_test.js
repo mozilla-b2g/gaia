@@ -24,7 +24,7 @@ suite('Make with DEBUG=1', function() {
         'downloaded.json');
       var expectedSettings = {
         'homescreen.manifestURL':
-          'app://homescreen.gaiamobile.org/manifest.webapp',
+          'chrome://gaia/content/homescreen/manifest.webapp',
         'rocketbar.searchAppURL': 'chrome://gaia/content/search/index.html'
       };
       var expectedUserPrefs = {
@@ -40,7 +40,6 @@ suite('Make with DEBUG=1', function() {
         'webgl.verbose': true,
         'toolkit.identity.debug': true,
         'extensions.gaia.dir': process.cwd(),
-        'extensions.gaia.domain': 'gaiamobile.org',
         'extensions.gaia.port': 8080,
         'extensions.gaia.locales_debug_path': 'locales',
         'extensions.gaia.official': false,
@@ -71,9 +70,6 @@ suite('Make with DEBUG=1', function() {
       assert.ok(fs.existsSync(installedExtsPath));
       helper.checkSettings(settings, expectedSettings);
       helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
-      // expect one zip file for each "external" app.
-      assert.equal(zipCount, 6, 'we should have six zip files in ' +
-        'profile-debug directory');
 
       restoreFunc();
       done();
