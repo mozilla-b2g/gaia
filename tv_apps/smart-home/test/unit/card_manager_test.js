@@ -430,7 +430,7 @@ suite('smart-home/CardManager', function() {
       function() {
         var newFolder = cardManager.insertNewFolder('an empty folder');
 
-        assert.ok(newFolder.folderId);
+        assert.ok(newFolder.cardId);
         assert.equal(newFolder.state, Folder.STATES.DETACHED);
       });
 
@@ -471,6 +471,8 @@ suite('smart-home/CardManager', function() {
     });
 
     test('should not be able to insert the same card twice', function() {
+      CardManager.ENABLE_MULTI_PIN = false;
+
       var expectedCardListLength = cardManager._cardList.length;
       cardManager.insertCard({
         cardEntry: {
@@ -484,6 +486,8 @@ suite('smart-home/CardManager', function() {
 
     test('should be able to insert same app twice with different launchURL',
       function() {
+        CardManager.ENABLE_MULTI_PIN = false;
+
         var expectedCardListLength = cardManager._cardList.length + 1;
         cardManager.insertCard({
           cardEntry: {
@@ -496,6 +500,20 @@ suite('smart-home/CardManager', function() {
         assert.equal(cardManager._cardList.length, expectedCardListLength);
       });
 
+    test('should be able to insert the same card twice if multi-pin is enabled',
+      function() {
+        CardManager.ENABLE_MULTI_PIN = true;
+
+        var expectedCardListLength = cardManager._cardList.length + 1;
+        cardManager.insertCard({
+          cardEntry: {
+            'type': 'Application',
+            'group': 'app',
+            'manifestURL': 'app://music.gaiamobile.org/manifest.webapp'
+          }
+        });
+        assert.equal(cardManager._cardList.length, expectedCardListLength);
+      });
   });
 
   suite('removeCard()', function() {

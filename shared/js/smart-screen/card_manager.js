@@ -12,6 +12,8 @@
     'SYNCING': 'SYNCING'
   });
 
+  CardManager.ENABLE_MULTI_PIN = true;
+
   CardManager.prototype = evt({
     HIDDEN_ROLES: ['system', 'homescreen', 'addon', 'langpack'],
     TABLE_NAME: 'home_cards',
@@ -75,7 +77,7 @@
           that._asyncSemaphore.v();
           var cardEntriesInFolder =
             folder.getCardList().map(that._serializeCard.bind(that));
-          that._cardStore.saveData(folder.folderId,
+          that._cardStore.saveData(folder.cardId,
             cardEntriesInFolder).then(function() {
               folder.state = Folder.STATES.NORMAL;
             }).then(function() {
@@ -101,7 +103,7 @@
         var newCardList;
         that._asyncSemaphore.v();
         // The cards inside of folder are not saved nested in cardList
-        // but we explicit save them under key of folderId.
+        // but we explicit save them under key of cardId.
         // Here we save content of each folder one by one
         newCardList = that._cardList.filter(function(card, index) {
           if (card instanceof Folder) {
@@ -214,12 +216,12 @@
       function cm_loadCardListFromCardStore(cardListFromCardStore) {
         var that = this;
         cardListFromCardStore.forEach(function(cardEntry) {
-          var found = that.findCardFromCardList({cardEntry: cardEntry});
+          var found = that.findCardFromCardList({cardId: cardEntry.id});
           if (!found) {
             var card = that._deserializeCardEntry(cardEntry);
             // The cards inside of folder are not saved nested in
             // datastore 'cardList'. But we explicit save them under key
-            // of folderId. So we need to retrieve them by their folderId
+            // of cardId. So we need to retrieve them by their cardId
             // and put them back to folders where they belong.
             if (card instanceof Folder && card.isDeserializing()) {
               card.loadCardsInFolder({
@@ -404,7 +406,7 @@
         }
 
         // prevent same card from being inserted twice
-        if (newCard && newCard.nativeApp) {
+        if (!CardManager.ENABLE_MULTI_PIN && newCard && newCard.nativeApp) {
           var sameCardExisting = that.findCardFromCardList({
             manifestURL: newCard.nativeApp.manifestURL,
             launchURL: newCard.launchURL
@@ -806,6 +808,10 @@
     },
 
     isPinned: function cm_isPinned(options) {
+      if (CardManager.ENABLE_MULTI_PIN) {
+        return Promise.resolve(false);
+      }
+
       var that = this;
       return this._getPipedPromise('isPinned', function(resolve, reject) {
         that._asyncSemaphore.wait(function() {

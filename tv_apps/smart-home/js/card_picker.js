@@ -250,7 +250,7 @@
     },
 
     _refreshCardButtons: function(folderList, cardList, options) {
-      var candidates = {};
+      var candidates = [];
 
       this.appButtons = [];
       this.gridView.innerHTML = '';
@@ -277,18 +277,27 @@
         }
       });
 
-      cardList && cardList.forEach(card => {
+      cardList && cardList.forEach((card, index) => {
         var appButton = createButtonHelper(card);
         if (appButton) {
           appButton.dataset.parentType = 'empty';
-          candidates[this._getSortKey(card)] = appButton;
+          candidates.push({
+            index: index,
+            key: this._getSortKey(card),
+            button: appButton
+          });
         }
       });
 
-      var keys = Object.keys(candidates);
-      if (keys.length) {
-        keys.sort();
-        keys.forEach(key => appendToGridView(candidates[key]));
+      if (candidates.length) {
+        candidates.sort((a, b) => {
+          var compare = a.key.localeCompare(b.key);
+          if (!compare) {
+            return a.index - b.index;
+          }
+          return compare;
+        });
+        candidates.forEach(candidate => appendToGridView(candidate.button));
       }
     },
 

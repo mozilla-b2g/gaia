@@ -25,6 +25,9 @@
    */
   proto.updatePinnedChannels = function pc_updatePinnedChannels() {
     this.pinnedChannels = {};
+    if (CardManager.ENABLE_MULTI_PIN) {
+      return;
+    }
     this.cardManager.getCardList().then(function(cardList) {
       cardList.forEach(function(card) {
         var url = card.launchURL;
