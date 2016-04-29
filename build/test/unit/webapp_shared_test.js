@@ -174,9 +174,9 @@ suite('webapp-shared.js', function() {
     test('filterSharedUsage', function() {
       var csslink = 'link.css';
       var jslink = 'link.js';
-      var content =
-        'test \n <link rel="stylesheet" type="text/css" href="shared/style/' +
-        csslink + '"> \n <script defer src="/shared/js/' +
+      var content = 'test \n ' +
+        '<link rel="stylesheet" type="text/css" href="../shared/style/' +
+        csslink + '"> \n <script defer src="../shared/js/' +
         jslink + '"></script> testttt \n';
       var result = [];
       webappShared.pushFileByType = function(kind, path) {
@@ -190,7 +190,7 @@ suite('webapp-shared.js', function() {
 
     test('filterSharedCSSImport', function() {
       var csslink = 'test.css';
-      var content = '@import "shared/style/' + csslink + '";\n';
+      var content = '@import "../shared/style/' + csslink + '";\n';
       var result = [];
       webappShared.pushFileByType = function(kind, path) {
         result.push({kind: kind, path: path});
@@ -353,7 +353,7 @@ suite('webapp-shared.js', function() {
         {path: webappShared.config.GAIA_DIR + '/' + lsContentFilePath}
       ];
       webappShared.pushLocale(localePath);
-      assert.equal(result[0].path, 'shared/locales/' + localePath);
+      assert.equal(result[0].path, '../shared/locales/' + localePath);
       assert.equal(result[0].file.path, sharedFilePath + '/locales/' +
         localePath);
       assert.equal(result[1].path, lsContentFilePath);
@@ -363,7 +363,7 @@ suite('webapp-shared.js', function() {
       var languagesPath = 'languages.json';
       webappShared.localesFile = 'testlocales';
       webappShared.pushResource(languagesPath);
-      assert.equal(result[0].path, 'shared/resources/languages.json');
+      assert.equal(result[0].path, '../shared/resources/languages.json');
       assert.equal(result[0].file, webappShared.localesFile);
 
       result.length = 0;
@@ -374,7 +374,7 @@ suite('webapp-shared.js', function() {
         '@2x.png'
       }];
       webappShared.pushResource(brandingPath  + '.png');
-      assert.equal(result[0].path, 'shared/resources/' + brandingPath +
+      assert.equal(result[0].path, '../shared/resources/' + brandingPath +
         '@2x.png');
 
       result.length = 0;
@@ -401,7 +401,7 @@ suite('webapp-shared.js', function() {
         sharedFolder: mockUtils.getFile(jsFile)
       };
       webappShared.pushJS(jsFile);
-      assert.equal(result[0].path, 'shared/js/' + jsFile);
+      assert.equal(result[0].path, '../shared/js/' + jsFile);
     });
 
     test('pushElements', function() {
@@ -410,7 +410,7 @@ suite('webapp-shared.js', function() {
         sharedFolder: mockUtils.getFile(elementFile)
       };
       webappShared.pushElements(elementFile);
-      assert.equal(result[0].path, 'shared/elements/' + elementFile);
+      assert.equal(result[0].path, '../shared/elements/' + elementFile);
       assert.equal(result.length, 1);
 
       // Test for various supported installs of component files
@@ -429,11 +429,11 @@ suite('webapp-shared.js', function() {
           sharedFolder: mockUtils.getFile('')
         };
         webappShared.pushElements(elementFile);
-        assert.equal(result[0].path, 'shared/elements/' + elementFile);
-        assert.equal(result[1].path, 'shared/' + testFiles[0]);
-        assert.equal(result[2].path, 'shared/' + testFiles[1]);
-        assert.equal(result[3].path, 'shared/' + testFiles[2]);
-        assert.equal(result[4].path, 'shared/' + testFiles[3]);
+        assert.equal(result[0].path, '../shared/elements/' + elementFile);
+        assert.equal(result[1].path, '../shared/' + testFiles[0]);
+        assert.equal(result[2].path, '../shared/' + testFiles[1]);
+        assert.equal(result[3].path, '../shared/' + testFiles[2]);
+        assert.equal(result[4].path, '../shared/' + testFiles[3]);
     });
 
     test('copyBuildingBlock', function() {
@@ -441,7 +441,7 @@ suite('webapp-shared.js', function() {
       var dirName = 'test_dir';
       lsFiles = [];
       webappShared.copyBuildingBlock(blockName, dirName);
-      assert.equal(result[0].path, 'shared/' + dirName + '/' +
+      assert.equal(result[0].path, '../shared/' + dirName + '/' +
         blockName + '.css');
 
       result.length = 0;
@@ -457,7 +457,7 @@ suite('webapp-shared.js', function() {
       ];
       mRelativePath = blockName + '2.css';
       webappShared.copyBuildingBlock(blockName, dirName);
-      assert.equal(result[1].path, 'shared/' + dirName + '/' +
+      assert.equal(result[1].path, '../shared/' + dirName + '/' +
         blockName + '2.css');
       mRelativePath = null;
     });
@@ -465,7 +465,7 @@ suite('webapp-shared.js', function() {
     test('copySharedPage', function() {
       var path = 'import/test_page.html';
       webappShared.copyPage(path);
-      assert.equal(result[0].path, 'shared/pages' + '/' + path);
+      assert.equal(result[0].path, '../shared/pages' + '/' + path);
     });
 
     teardown(function() {
