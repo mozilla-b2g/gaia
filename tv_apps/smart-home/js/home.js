@@ -190,7 +190,8 @@
 
         that._cardPicker = new CardPicker();
         that._cardPicker.init({
-          cardManager: that.cardManager
+          cardManager: that.cardManager,
+          cardScrollable: that.cardScrollable
         });
         that._cardPicker.on('hide', that.onCardPickerHide.bind(that));
         that._cardPicker.on('show', that.onCardPickerShow.bind(that));
@@ -749,6 +750,7 @@
       } else if (this._cardPicker.mode === 'update') {
         this._cardPicker.updateFolder();
       }
+      this.spatialNavigator.focus();
       this.mode = '';
     },
 
