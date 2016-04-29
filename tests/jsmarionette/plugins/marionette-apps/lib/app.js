@@ -82,6 +82,7 @@ App.prototype = {
    * @param {String} entrypoint for app.
    */
   launch: function(entrypoint) {
+    // XXXAus: FIX THIS. We should no longer rely on ObjectCache.
     var client = this._client.scope({ context: 'content' });
     client.executeAsyncScript(function(id, entrypoint) {
       var ObjectCache = window.wrappedJSObject.ObjectCache;
