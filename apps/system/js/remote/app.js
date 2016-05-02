@@ -1,6 +1,6 @@
 /* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global BaseModule */
+/* global BaseModule, Service */
 'use strict';
 
 (function(exports) {
