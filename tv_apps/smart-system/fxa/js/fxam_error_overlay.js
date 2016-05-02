@@ -5,6 +5,7 @@
 /* global FxaModuleUI */
 /* global HtmlHelper */
 /* global KeyEvent */
+/* global SharedUtils */
 /* exported FxaModuleErrorOverlay */
 
 'use strict';
@@ -39,8 +40,7 @@ var FxaModuleErrorOverlay = {
     });
     this.fxaErrorOk.addEventListener('keyup', e => {
       if (e.keyCode &&
-          (e.keyCode === KeyEvent.DOM_VK_RETURN ||
-          e.keyCode === KeyEvent.DOM_VK_BACK_SPACE)) {
+          (e.keyCode === KeyEvent.DOM_VK_RETURN || SharedUtils.isBackKey(e))) {
         this.fxaErrorOk.classList.remove('active');
         this.hide();
       }

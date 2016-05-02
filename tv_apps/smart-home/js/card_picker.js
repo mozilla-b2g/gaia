@@ -1,4 +1,4 @@
-/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, KeyEvent,
+/* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, SharedUtils,
           CardUtil, FOLDER_CAPACITY, Utils, Deck */
 
 (function(exports) {
@@ -68,8 +68,7 @@
     },
 
     onKeyUp: function(evt) {
-      if (evt.keyCode == KeyEvent.DOM_VK_BACK_SPACE &&
-          this.mode == 'add' && this.isShown) {
+      if (SharedUtils.isBackKey(evt) && this.mode == 'add' && this.isShown) {
         document.l10n.formatValue('cancel-add-folder').then(message => {
           if (confirm(message)) {
             this._mode = null;
@@ -86,6 +85,7 @@
       this.refresh(folderElem);
       this.container.classList.remove('hidden');
       this.focus();
+      this.fire('show');
     },
 
     hide: function() {

@@ -9,12 +9,12 @@ requireApp('system/js/base_module.js');
 requireApp('system/js/browser_frame.js');
 requireApp('system/js/remote/remote_app_window_manager.js');
 
-var mocksForMultiScreenController = new MocksHelper([
+var mocksForMultiScreenHelper = new MocksHelper([
   'LazyLoader'
 ]).init();
 
 suite('system/remote/RemoteAppWindowManager', function() {
-  mocksForMultiScreenController.attachTestHelpers();
+  mocksForMultiScreenHelper.attachTestHelpers();
 
   var subject;
   var container;

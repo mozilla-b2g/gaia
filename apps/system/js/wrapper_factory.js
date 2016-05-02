@@ -161,12 +161,7 @@
         browser_config.title = url;
       }
 
-      if (Service.query('MultiScreenController.enabled')) {
-        Service.request('chooseDisplay', browser_config)
-          .catch(this.launchWrapper.bind(this, browser_config));
-      } else {
-        this.launchWrapper(browser_config);
-      }
+			this.launchWrapper(browser_config);
     },
 
     launchWrapper: function wf_launchWrapper(config) {

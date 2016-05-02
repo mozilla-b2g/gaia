@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global HtmlHelper, FxaModule, FxaModuleManager, FxaModuleNavigation,
-   LazyLoader, KeyEvent */
+   LazyLoader, KeyEvent, SharedUtils */
 /* exported FxaModuleUI */
 
 'use strict';
@@ -198,7 +198,7 @@ var FxaModuleUI = {
     var inputElementTypes = ['INPUT', 'TEXTAREA'];
     var active = document.activeElement;
     var isInputElementType = inputElementTypes.indexOf(active.nodeName) !== -1;
-    if (e.keyCode === KeyEvent.DOM_VK_BACK_SPACE &&
+    if (SharedUtils.isBackKey(e) &&
         (!isInputElementType || (isInputElementType && !active.value))) {
       FxaModuleNavigation.back();
     }

@@ -126,7 +126,8 @@
         return that._cardStore.saveData('cardList', cardEntries);
       }).then(function() {
         that._asyncSemaphore.p();
-        if (options && options.cleanEmptyFolder) {
+        if (options && options.cleanEmptyFolder &&
+          emptyFolderIndices.length > 0) {
           that.fire('card-removed', emptyFolderIndices);
         }
       }).catch(function() {

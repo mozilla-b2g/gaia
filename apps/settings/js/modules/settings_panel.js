@@ -7,7 +7,7 @@
  *
  * @module SettingsPanel
  */
- /* global SpatialNavigationHelper */
+ /* global SpatialNavigationHelper, SharedUtils */
 define(function(require) {
     'use strict';
 
@@ -83,8 +83,7 @@ define(function(require) {
       options.onBeforeHide = options.onBeforeHide || _emptyFunc;
 
       var _goBackHandler = function panel_goBackHandler(evt) {
-        // Backspace (keyCode = 8) as the key to go back the previous panel.
-        if (evt.keyCode === 8) {
+        if (SharedUtils && SharedUtils.isBackKey(evt)) {
           PanelUtils.goBack(_panel);
         }
       };

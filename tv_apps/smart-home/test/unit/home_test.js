@@ -53,7 +53,7 @@ var mocksHelperForHomeTest = new MocksHelper([
 suite('home', function() {
   var realL10n = document.l10n;
   var realMozActivity = window.MozActivity;
-  var searchButton, settingsButton, editButton, timeElem;
+  var searchButton, settingsButton, timeElem;
   var subject;
   var fakeTimer;
 
@@ -71,10 +71,6 @@ suite('home', function() {
     settingsButton.id = 'settings-button';
     document.body.appendChild(settingsButton);
 
-    editButton = document.createElement('button');
-    editButton.id = 'edit-button';
-    document.body.appendChild(editButton);
-
     timeElem = document.createElement('div');
     timeElem.id = 'time';
     document.body.appendChild(timeElem);
@@ -84,7 +80,6 @@ suite('home', function() {
     document.l10n = realL10n;
     document.body.removeChild(searchButton);
     document.body.removeChild(settingsButton);
-    document.body.removeChild(editButton);
     document.body.removeChild(timeElem);
   });
 
@@ -104,7 +99,6 @@ suite('home', function() {
     subject.spatialNavigator.m_focusedElement = document.createElement('div');
     subject.isNavigable = true;
     subject.settingsButton = settingsButton;
-    subject.editButton = editButton;
     subject.searchButton = searchButton;
 
     fakeTimer = this.sinon.useFakeTimers();
@@ -240,14 +234,6 @@ suite('home', function() {
       assert.equal(MozActivity.calls[0].name, 'configure');
     });
 
-    test('should toggle edit mode on edit button', function() {
-      subject.handleFocus(editButton);
-
-      subject.edit.toggleEditMode = this.sinon.stub();
-      subject.onEnter();
-      assert.isTrue(subject.edit.toggleEditMode.calledOnce);
-    });
-
     test('should launch application on card ', function() {
       var testCard = document.createElement('div');
       testCard.dataset.cardId = '123';
@@ -299,12 +285,6 @@ suite('home', function() {
     test('should switch focus to scrollable target', function() {
       var spy = this.sinon.spy(subject.cardScrollable, 'focus');
       subject.handleFocus(subject.cardScrollable);
-      assert.isTrue(spy.calledOnce);
-    });
-
-    test('should switch focus to next focus for normal target', function() {
-      var spy = this.sinon.spy(editButton, 'focus');
-      subject.handleFocus(subject.editButton);
       assert.isTrue(spy.calledOnce);
     });
 
