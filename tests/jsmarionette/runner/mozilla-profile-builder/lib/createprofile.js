@@ -37,8 +37,8 @@ var Profiles = {
         var leaf = source.replace(path, '');
 
         // the / here is really important otherwise we will end up symlinking
-        // the entire webapps directory is not what we want.
-        if (leaf.indexOf('webapps/') !== -1) {
+        // the entire apps directory is not what we want.
+        if (leaf.indexOf('apps/') !== -1) {
           next(traverseDir.symlinkdir, source, target);
           return;
         }

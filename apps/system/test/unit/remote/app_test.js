@@ -1,6 +1,6 @@
 /* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global MocksHelper, BaseModule */
+/* global MocksHelper, BaseModule, BroadcastChannel, Service */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -48,7 +48,6 @@ suite('system/remote/App', function() {
 
   suite('receive messages', function() {
     var broadcastChannel;
-    var fakeUrl = 'app://test-presentation-app/index.html';
     var fakeRequestId = 'test-request-id';
     var fakeTimestamp = 'test-timestamp';
 

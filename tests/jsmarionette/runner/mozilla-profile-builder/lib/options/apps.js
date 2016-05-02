@@ -1,5 +1,5 @@
 'use strict';
-var installApps = require('packaged-webapp').installApps;
+var installApps = require('mozilla-packaged-webapp').installApps;
 
 function apps(profile, options, callback) {
   // abort if no apps are given

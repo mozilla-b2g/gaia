@@ -34,7 +34,7 @@ BootWatcher.setup = function(client, options, cb) {
     try {
       bootwatcher.start();
     } catch (error) {
-      console.error('Never saw webapps-registry-ready yes');
+      console.error('FATAL ERROR: Did NOT boot successfully.', '\n', error);
     } finally {
       bootwatcher.emit('boot');
       if (cb) {
