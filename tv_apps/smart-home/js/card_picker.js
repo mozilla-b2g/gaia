@@ -15,7 +15,7 @@
 
     init: function(options) {
       this.appButtons = [];
-
+      this._cardScrollable = options.cardScrollable;
       this._cardManager = options.cardManager;
       this._folder = null;
 
@@ -217,10 +217,23 @@
         return;
       }
 
+      // The slideEnd event happens when slide animation of
+      // inserting new folder ends. Due to different slide distance, slide
+      // animation duration is different.
+      // So this event could happen before or after this._folder is returned
+      // from this._cardManager.insertNewFolder call below.
+      // Hence we wrap it with a Promise to make sure what we plan to do
+      // is not executed before this._folder is returned.
+      var slideEndPromise = new Promise(resolve => {
+        this._cardScrollable.once('slideEnd', () => resolve());
+      });
+
       this._folder = this._cardManager.insertNewFolder(
           {id: 'new-folder'}, position);
 
-      this._saveToFolderHelper();
+      // We should do works after the slideEnd event so as to make sure
+      // the focus index is correct.
+      slideEndPromise.then(() => this._saveToFolderHelper());
       return this._folder;
     },
 
