@@ -23,7 +23,6 @@
    */
   function Newtab() {
     this.searchChannel = new BroadcastChannel('search');
-    this.init();
     this.togglePrivacyMode();
   }
 
@@ -171,6 +170,7 @@
   exports.Search = {
     provider: function(provider) {
       exports.newtab.provider = provider;
+      exports.newtab.init();
     },
 
     /**

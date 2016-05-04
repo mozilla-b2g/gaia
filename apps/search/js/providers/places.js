@@ -1,4 +1,4 @@
-/* globals Provider, SyncDataStore, Promise, IconsHelper */
+/* globals Provider, Promise, IconsHelper */
 /* globals Search, PlacesIdbStore */
 /* globals DateHelper */
 /* globals asyncStorage */
@@ -13,9 +13,6 @@
   var MAX_AWESOME_RESULTS = 4;
   var MAX_HISTORY_RESULTS = 20;
   var MAX_TOPSITES_RESULTS = 6;
-
-  // Name of the datastore we pick up places from
-  var STORE_NAME = 'places';
 
   var topSitesWrapper = document.getElementById('top-sites');
   var historyWrapper = document.getElementById('history');
@@ -249,6 +246,9 @@
       });
       topSitesWrapper.innerHTML = '';
       topSitesWrapper.appendChild(docFragment);
+    }, function(place) {
+      return !place.url.startsWith('chrome://') &&
+        place.url !== 'about:blank';
     });
   }
 
@@ -318,39 +318,24 @@
       this.persistStore = new PlacesIdbStore();
 
       this.persistStore.init().then(() => {
-
-        this.syncStore =
-          new SyncDataStore(STORE_NAME, this.persistStore, 'url');
-
-        this.syncStore.filter = function(place) {
-          return place.url.startsWith('app://') ||
-            place.url === 'about:blank';
-        };
-        this.syncStore.onChange = function() {
-          showStartPage();
-        };
         // Make init return a promise, so we know when
         // we did the sync. Used right now for testing
         // porpoises.
-        var rev = this.persistStore.latestRevision || 0;
-        return this.syncStore.sync(rev).then(() => {
-          return new Promise(resolve => {
+        return new Promise(resolve => {
+          function done() {
+            showStartPage();
+            resolve();
+          }
 
-            function done() {
-              showStartPage();
-              resolve();
-            }
-
-            asyncStorage.getItem('have-preloaded-sites', (havePreloaded) => {
-              if (!havePreloaded) {
-                this.preloadTopSites().then(() => {
-                  asyncStorage.setItem('have-preloaded-sites', true);
-                  done();
-                });
-              } else {
+          asyncStorage.getItem('have-preloaded-sites', (havePreloaded) => {
+            if (!havePreloaded) {
+              this.preloadTopSites().then(() => {
+                asyncStorage.setItem('have-preloaded-sites', true);
                 done();
-              }
-            });
+              });
+            } else {
+              done();
+            }
           });
         });
       });
@@ -365,7 +350,7 @@
 
     preloadTopSites: function() {
       // load default build top sites
-      return LazyLoader.getJSON('/js/inittopsites.json').then(sites => {
+      return LazyLoader.getJSON('js/inittopsites.json').then(sites => {
         return this.saveSites(sites);
       });
     },
