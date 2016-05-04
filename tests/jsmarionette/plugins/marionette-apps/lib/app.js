@@ -82,14 +82,13 @@ App.prototype = {
    * @param {String} entrypoint for app.
    */
   launch: function(entrypoint) {
-    // XXXAus: FIX THIS. We should no longer rely on ObjectCache.
     var client = this._client.scope({ context: 'content' });
-    client.executeAsyncScript(function(id, entrypoint) {
-      var ObjectCache = window.wrappedJSObject.ObjectCache;
-      var app = ObjectCache._inst.get(id);
-      app.launch(entrypoint || null);
+    var app = this;
+    app.url = app.origin;
+    client.executeAsyncScript(function(app) {
+      window.dispatchEvent(new CustomEvent('webapps-launch', { detail: app }));
       marionetteScriptFinished();
-    }, [this._id, entrypoint], function(err) {
+    }, [this], function(err) {
       if (err) {
         throw err;
       }

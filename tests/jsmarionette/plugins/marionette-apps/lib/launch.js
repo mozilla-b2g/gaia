@@ -40,7 +40,7 @@ function launch(apps, origin, entrypoint, callback) {
     app.launch(entrypoint);
 
     // wait for this app to be visible
-    return waitForApp(apps, app.source, function(err, element) {
+    return waitForApp(apps, app.origin, function(err, element) {
       return callback(err, app, element);
     });
   });
