@@ -9,7 +9,7 @@
 }
 
 #card-picker .title {
-  top: 5.1%;
+  top: 5.5rem;
   left: 3rem;
   position: absolute;
 }
@@ -129,6 +129,10 @@
   text-align: center;
 }
 
+.card-picker-panel.hidden {
+  display: none;
+}
+
 .card-picker-panel smart-button.hidden {
   display: none;
 }
@@ -153,4 +157,23 @@
 
 #hide-cardpicker-button:not(.danger) > #remove-this-folder-label {
   display: none;
+}
+
+#card-picker-input {
+  font-size: 3.8rem;
+  text-align: center;
+  width: 40rem;
+  height: 5rem;
+  padding: 2.4rem 5rem 1rem;
+  border: none;
+  border-bottom: 0.2rem #fff solid;
+  background: transparent;
+  color: #fff;
+  position: absolute;
+  top: 3.6rem;
+  right: 3rem;
+}
+
+#card-picker-input:focus {
+  border-bottom: 0.4rem #00caf2 solid;
 }

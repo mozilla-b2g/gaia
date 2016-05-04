@@ -301,7 +301,7 @@
 
     addNewFolder: function() {
       this.cardManager.insertNewFolder(
-                       {id: 'new-folder'}, this.cardScrollable.currentIndex);
+                       {id: 'my-folder'}, this.cardScrollable.currentIndex);
     },
 
     moveToFolder: function() {

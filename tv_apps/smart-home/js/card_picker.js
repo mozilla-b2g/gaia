@@ -13,6 +13,9 @@
     hideCardPickerButton: document.getElementById('hide-cardpicker-button'),
     counterLabel: document.getElementById('picker-selection-counter'),
 
+    panel: document.querySelector('section.card-picker-panel'),
+    input: document.getElementById('card-picker-input'),
+
     init: function(options) {
       this.appButtons = [];
       this._cardScrollable = options.cardScrollable;
@@ -20,7 +23,7 @@
       this._folder = null;
 
       this.navigableElements = [
-        this.hideCardPickerButton
+        this.hideCardPickerButton, this.input
       ];
 
       this.container.addEventListener('click', this.focus.bind(this));
@@ -38,16 +41,65 @@
       this.container.addEventListener('keyup', this.onKeyUp.bind(this), true);
 
       this._selectedElements = this.gridView.getElementsByClassName('selected');
+
+      this.input.addEventListener('focus', () => {
+        setTimeout(() => {
+          this.input.setSelectionRange(
+            this.input.value.length, this.input.value.length);
+        }, 0);
+      });
+    },
+
+    openKeyboard: function () {
+      this.panel.classList.add('hidden');
+      // Set readOnly to false and blur then focus input
+      // to trigger keyboard opening
+      this.input.readOnly = false;
+      this.input.blur();
+      this.input.focus();
+      // In case the kyeboard dismissed by other reasons, we have to
+      // call this.closeKeyboard to update the keyboard state is closed.
+      var handleBlur = () => {
+        this.input.removeEventListener('blur', handleBlur);
+        this.closeKeyboard();
+      };
+      this.input.addEventListener('blur', handleBlur);
+    },
+
+    closeKeyboard: function () {
+      this.panel.classList.remove('hidden');
+      // Set readOnly to true and blur then focus input
+      // to trigger keyboard closing
+      this.input.readOnly = true;
+      this.input.blur();
+      this.input.focus();
+      if (this.input.value) {
+        this.input.dataset.folderName = this.input.value;
+      } else {
+        // Recover from empty name input
+        this.input.value = this.input.dataset.folderName;
+      }
     },
 
     onFocus: function(elem) {
       elem.focus();
       if (elem.classList.contains('app-button')) {
         this._scrollTo(elem);
+        this._lastFocusedAppButton = elem;
       }
     },
 
     onMove: function(direction) {
+      if (this.isKeyboardOpened) {
+        return;
+      }
+
+      var focus = this._spatialNavigator.getFocusedElement();
+      if (focus === this.input || focus === this.hideCardPickerButton) {
+        this._spatialNavigator.focus(this._lastFocusedAppButton);
+        return;
+      }
+
       var result = this._spatialNavigator.move(direction);
       if (result === false && direction === 'down') {
         this._spatialNavigator.focus(this.hideCardPickerButton);
@@ -68,11 +120,18 @@
         if (this.mode == 'update') {
           this._showButton(this.selected.length ? 'done' : 'remove');
         }
+      } else if (elem === this.input) {
+        if (this.isKeyboardOpened) {
+          this.closeKeyboard();
+        } else {
+          this.openKeyboard();
+        }
       }
     },
 
     onKeyUp: function(evt) {
-      if (SharedUtils.isBackKey(evt) && this.mode == 'add' && this.isShown) {
+      if (SharedUtils.isBackKey(evt) && this.mode == 'add' &&
+          this.isShown && !this.isKeyboardOpened) {
         document.l10n.formatValue('cancel-add-folder').then(message => {
           if (confirm(message)) {
             this.mode = null;
@@ -83,6 +142,29 @@
     },
 
     show: function(folderElem) {
+      var nameResolvingPromise = null;
+      if (folderElem) {
+        var card = this._cardManager.findCardFromCardList({
+          cardId: folderElem.dataset.cardId
+        });
+        var name = this._cardManager
+          .resolveCardName(card, document.documentElement.lang);
+        nameResolvingPromise = name.raw ?
+          Promise.resolve(name.raw) : document.l10n.formatValue(name.id);
+      } else {
+        nameResolvingPromise = document.l10n.formatValue('my-folder');
+      }
+      nameResolvingPromise.then(name => {
+        this.input.value = name;
+        // This dataset.folderName attribute is for saving current folder name
+        // so we can use it to recover from empty or invalid folder name input.
+        this.input.dataset.folderName = name;
+        // If not set the caret in advance, the caret will not appear
+        // for the 1st time of focusing
+        this.input.setSelectionRange(
+          this.input.value.length, this.input.value.length);
+      });
+
       this.mode = folderElem ? 'update' : 'add';
       this._folder = null;
       this._showButton('done');
@@ -243,7 +325,7 @@
       });
 
       this._folder = this._cardManager.insertNewFolder(
-          {id: 'new-folder'}, position);
+          {id: 'my-folder'}, position);
 
       // We should do works after the slideEnd event so as to make sure
       // the focus index is correct.
@@ -300,12 +382,19 @@
 
       if (this._folder.isEmpty()) {
         this._cardManager.removeCard(this._folder);
+      } else {
+        this._folder.name = { raw: this.input.value };
+        this._cardManager.updateCard(this._folder);
       }
     },
 
     /**
      * Properties
      */
+    get isKeyboardOpened() {
+      return !this.input.readOnly;
+    },
+
     get isShown() {
       return !this.container.classList.contains('hidden');
     },
