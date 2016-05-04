@@ -33,6 +33,11 @@
 
     _asyncSemaphore: undefined,
 
+    // XXX: This counter is just a workaround to avoid unwanted reload of
+    // cardList causing by its "change" event breaks the sync status during a
+    // series of writing process.
+    _writingCounter: 0,
+
     _isHiddenApp: function cm_isHiddenApp(role) {
       if (!role) {
         return false;
@@ -75,15 +80,23 @@
       return new Promise(function(resolve, reject) {
         if (folder instanceof Folder) {
           that._asyncSemaphore.v();
+          that._setWritingStatus(true);
+
           var cardEntriesInFolder =
             folder.getCardList().map(that._serializeCard.bind(that));
-          that._cardStore.saveData(folder.cardId,
-            cardEntriesInFolder).then(function() {
+
+          that._cardStore.saveData(folder.folderId, cardEntriesInFolder)
+            .then(function() {
               folder.state = Folder.STATES.NORMAL;
-            }).then(function() {
+              that._setWritingStatus(false);
               that._asyncSemaphore.p();
               resolve();
-            }, reject);
+            })
+            .catch(function() {
+              that._setWritingStatus(false);
+              that._asyncSemaphore.p();
+              reject();
+            });
         } else {
           reject();
         }
@@ -102,6 +115,7 @@
         var saveDataPromises = [];
         var newCardList;
         that._asyncSemaphore.v();
+        that._setWritingStatus(true);
         // The cards inside of folder are not saved nested in cardList
         // but we explicit save them under key of cardId.
         // Here we save content of each folder one by one
@@ -127,14 +141,33 @@
            that._cardList.map(that._serializeCard.bind(that));
         return that._cardStore.saveData('cardList', cardEntries);
       }).then(function() {
+        that._setWritingStatus(false);
         that._asyncSemaphore.p();
         if (options && options.cleanEmptyFolder &&
           emptyFolderIndices.length > 0) {
           that.fire('card-removed', emptyFolderIndices);
         }
       }).catch(function() {
+        that._setWritingStatus(false);
         that._asyncSemaphore.p();
       });
+    },
+
+    _setWritingStatus: function cm_setWritingStatus(status) {
+      if (status) {
+        this._writingCounter++;
+      } else {
+        this._writingCounter--;
+        if (this._writingCounter < 0) {
+          this._writingCounter = 0;
+        }
+      }
+      if (!this._writingCounter) {
+        // Since the "change" events of DataStores are blocked during writing
+        // processes, it's better to sync the cardList with DataStores manually
+        // after all writing processes are done.
+        setTimeout(this.getCardList.bind(this));
+      }
     },
 
     _loadDefaultCardList: function cm_loadDefaultCardList() {
@@ -236,6 +269,11 @@
       },
 
     _reloadCardList: function cm_loadCardList() {
+      // Should cancel reloading CardList during any writing process.
+      if (this._writingCounter) {
+        return Promise.resolve();
+      }
+
       var that = this;
       return this._getPipedPromise('_reloadCardList',
         function(resolve, reject) {
