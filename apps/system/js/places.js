@@ -447,6 +447,15 @@
     TRUNCATE_VISITS: 10,
 
     addToVisited: function(place) {
+      var transaction = this.db.transaction(this.VISITS_STORE, 'readwrite');
+      var visitsStore = transaction.objectStore(this.VISITS_STORE);
+      visitsStore.put({
+        date: place.visited,
+        url: place.url,
+        title: place.title,
+        icons: place.icons
+      });
+
       place.visits = place.visits || [];
 
       if (!place.visits.length) {
