@@ -47,7 +47,7 @@
     DEBUG: false,
     _start: function() {
       return Promise.all([
-        LazyLoader.load(['shared/js/iac_handler.js']),
+        LazyLoader.load(['../shared/js/iac_handler.js']),
         this.loadWhenIdle([
           'GlobalOverlayWindowManager',
           'AttentionWindowManager',

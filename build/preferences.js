@@ -125,20 +125,8 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.system = this.config.SYSTEM;
 
   this.userPrefs['b2g.system_manifest_url'] = this.system + '/manifest.webapp';
-
   this.userPrefs['b2g.neterror.url'] = this.system + '/net_error.html';
-  if (this.system.substring(0, 6) == 'app://') { // B2G bug 773884
-      this.system += '/index.html';
-  }
-
-  this.userPrefs['b2g.system_startup_url'] = this.system;
-
-  this.domains = [this.config.GAIA_DOMAIN, 'theme.' + this.config.GAIA_DOMAIN];
-  this.config.GAIA_ALLAPPDIRS.split(' ').forEach(function(appdir) {
-    this.domains.push(utils.getFile(appdir).leafName + '.' +
-      this.config.GAIA_DOMAIN);
-  }, this);
-
+  this.userPrefs['b2g.system_startup_url'] = this.system + '/index.html';
   this.userPrefs['network.http.max-connections-per-server'] = 15;
   this.userPrefs['dom.mozInputMethod.enabled'] = true;
   this.userPrefs['layout.css.scroll-behavior.enabled'] = true;
@@ -161,9 +149,6 @@ PreferencesBuilder.prototype.preparePref = function() {
   // @see Bug 790056 - Enable WPA Enterprise
   this.userPrefs['b2g.wifi.allow_unsafe_wpa_eap'] = true;
 
-  if (this.config.LOCAL_DOMAINS === '1') {
-    this.setLocalDomainPref();
-  }
   if (this.config.DESKTOP === '1') {
     this.setDesktopPref();
   }
@@ -188,10 +173,6 @@ PreferencesBuilder.prototype.preparePref = function() {
     this.userPrefs['b2g.coreappsdir'] =
         this.config.COREWEBAPPS_DIR;
   }
-};
-
-PreferencesBuilder.prototype.setLocalDomainPref = function() {
-  this.userPrefs['network.dns.localDomains'] = this.domains.join(',');
 };
 
 PreferencesBuilder.prototype.setDesktopPref = function() {
@@ -225,7 +206,6 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   // Preferences for httpd
   // (Use JSON.stringify in order to avoid taking care of `\` escaping)
   this.userPrefs['extensions.gaia.dir'] = this.config.GAIA_DIR;
-  this.userPrefs['extensions.gaia.domain'] = this.config.GAIA_DOMAIN;
   this.userPrefs['extensions.gaia.port'] =
     parseInt(this.config.GAIA_PORT.replace(/:/g, ''), 10);
   this.userPrefs['extensions.gaia.appdirs'] = this.config.GAIA_APPDIRS;

@@ -14,7 +14,7 @@
     'appopened'
   ];
   FtuLauncher.IMPORTS = [
-    'shared/js/uuid.js',
+    '../shared/js/uuid.js',
     'js/ftu_ping.js'
   ];
   FtuLauncher.STATES = [
@@ -65,6 +65,7 @@
     _bypassHomeEvent: false,
 
     _start: function() {
+      this.debug('start');
       this._stepsList = [];
       this._storedStepRequest = [];
       return Promise.all([
@@ -79,6 +80,7 @@
             this._lateCustomization.start();
           }
       }).catch(err => {
+        this.debug(`error: ${err}`);
         console.warn(err);
       });
     },
@@ -236,7 +238,7 @@
       window.asyncStorage.setItem('ftu.enabled', false);
       // update the previous_os setting (asyn)
       // so we dont try and handle upgrade again
-      LazyLoader.load(['shared/js/version_helper.js']).then(function() {
+      LazyLoader.load(['../shared/js/version_helper.js']).then(function() {
         VersionHelper.updatePrevious();
       }).catch((err) => {
         console.error(err);
@@ -247,6 +249,7 @@
     },
 
     skip: function fl_skip() {
+      this.debug('skip');
       window.performance.mark('ftuSkip');
       this._isRunningFirstTime = false;
       this._isUpgrading = false;
@@ -257,6 +260,7 @@
     },
 
     finish: function() {
+      this.debug('finish');
       this.loadWhenIdle(['NewsletterManager']);
       this._isFtuCustomizing = false;
       this._lateCustomization && this._lateCustomization.stop();

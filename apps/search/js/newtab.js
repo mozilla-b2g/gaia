@@ -1,5 +1,5 @@
 'use strict';
-/* global asyncStorage, MozActivity, SettingsListener */
+/* global asyncStorage, MozActivity, SettingsListener, BroadcastChannel */
 
 (function(exports) {
 
@@ -22,20 +22,8 @@
    * Instantiates places to populate history and top sites.
    */
   function Newtab() {
-    // Initialize the parent port connection
-    var self = this;
-    navigator.mozApps.getSelf().onsuccess = function() {
-      var app = this.result;
-      app.connect('search-results').then(function onConnAccepted(ports) {
-        ports.forEach(function(port) {
-          self._port = port;
-        });
-        self.init();
-      }, function onConnectionRejected(reason) {
-        console.log('Error connecting: ' + reason + '\n');
-      });
-    };
-
+    this.searchChannel = new BroadcastChannel('search');
+    this.init();
     this.togglePrivacyMode();
   }
 
@@ -58,7 +46,7 @@
      * Requests a screenshot of the page from the system app.
      */
     requestScreenshot: function(url) {
-      this._port.postMessage({
+      this.searchChannel.postMessage({
         'action': 'request-screenshot',
         'url': url
       });
@@ -68,7 +56,7 @@
      * Requests that the system app opens a new private window.
      */
     requestPrivateWindow: function() {
-      this._port.postMessage({
+      this.searchChannel.postMessage({
         'action': 'private-window'
       });
     },

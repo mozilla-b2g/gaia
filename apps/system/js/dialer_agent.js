@@ -67,7 +67,7 @@
     }.bind(this));
 
     SettingsListener.observe('dialer.ringtone', '', function(value) {
-      LazyLoader.load(['shared/js/settings_url.js']).then(function() {
+      LazyLoader.load(['../shared/js/settings_url.js']).then(function() {
         var phoneSoundURL = new SettingsURL();
 
         this._player.pause();

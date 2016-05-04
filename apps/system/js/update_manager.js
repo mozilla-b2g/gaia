@@ -17,7 +17,6 @@
 
 (function(exports) {
   var UpdateManager = {
-    _mgmt: null,
     _downloading: false,
     _uncompressing: false,
     _downloadedBytes: 0,
@@ -61,18 +60,6 @@
     downloadsQueue: [],
 
     start: function() {
-      if (!this._mgmt) {
-        this._mgmt = navigator.mozApps.mgmt;
-      }
-
-      this._mgmt.getAll().onsuccess = (function gotAll(evt) {
-        var apps = evt.target.result;
-        apps.forEach(function appIterator(app) {
-          /* jshint nonew: false */
-          new AppUpdatable(app);
-        });
-      }).bind(this);
-
       this._settings = navigator.mozSettings;
 
       this.systemUpdatable = new SystemUpdatable();

@@ -1,13 +1,13 @@
 {
   "name": "mozilla-profile-builder",
-  "version": "0.4.0",
-  "author": "James Lal [:lightsofapollo]",
+  "version": "0.4.1",
+  "author": "Aus Lacroix [:nullaus]",
   "description": "Create profiles for firefox/b2g desktop",
   "main": "index.js",
 
   "dependencies" : {
     "fs-extra": "~0.8.1",
-    "packaged-webapp": "~0.1.1",
+    "mozilla-packaged-webapp": "~0.2.0",
     "remove": "~0.1",
     "tmp": "~0.0.21",
     "traverse-directory": "~0.1.0"

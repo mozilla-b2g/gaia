@@ -134,7 +134,7 @@
 
     _buttonRect: null,
     _updateButtonRect: function() {
-      var isFullscreen = !!document.mozFullScreenElement;
+      var isFullscreen = !!document.fullscreenElement;
       var activeApp = Service.query('getTopMostWindow');
       var isFullscreenLayout =  activeApp && activeApp.isFullScreenLayout();
 

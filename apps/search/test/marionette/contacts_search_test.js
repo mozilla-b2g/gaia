@@ -2,7 +2,7 @@
 
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 var Contacts = require(
-  '../../../communications/contacts/test/marionette/lib/contacts');
+  '../../../../dead_apps/communications/contacts/test/marionette/lib/contacts');
 var assert = require('assert');
 
 marionette('Search - Contact search', function() {

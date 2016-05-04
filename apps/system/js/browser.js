@@ -42,7 +42,7 @@
       var data = e.detail.source.data;
       switch (data.type) {
         case 'url':
-          LazyLoader.load(['shared/js/url_helper.js']).then(function() {
+          LazyLoader.load(['../shared/js/url_helper.js']).then(function() {
             var url = UrlHelper.getUrlFromInput(data.url);
             var isPrivate = data.hasOwnProperty('isPrivate') ?
               data.isPrivate : Browser.privateByDefault;
@@ -59,7 +59,7 @@
      * Opens a new browser window.
      */
     newWindow: function(e) {
-      var basePath = 'app://search.gaiamobile.org';
+      var basePath = 'chrome://gaia/content/search';
       var isPrivate = e && e.type === 'new-private-window';
       var privateFlag = isPrivate ? '1' : '0';
       var config = new BrowserConfigHelper({

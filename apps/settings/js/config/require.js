@@ -1,9 +1,9 @@
 require.config({
-  baseUrl: '/js',
+  baseUrl: 'js',
   paths: {
     'modules': 'modules',
     'panels': 'panels',
-    'shared': '../shared/js',
+    'shared': '../../shared/js',
     'views': '../views'
   },
   // This is the default value of the loading timeout, we will disable the

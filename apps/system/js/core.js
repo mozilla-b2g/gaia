@@ -11,6 +11,7 @@
   };
 
   Core.SUB_MODULES = [
+    'SystemMessages',
     'SleepMenu',
     'OrientationManager',
     'HierarchyManager',
@@ -51,6 +52,7 @@
     },
 
     _start: function() {
+      this.debug('start');
       // We need to be sure to get the focus in order to wake up the screen
       // if the phone goes to sleep before any user interaction.
       // Apparently it works because no other window
@@ -67,7 +69,6 @@
       }, true);
 
       return this.loadWhenIdle([
-        'Statusbar',
         'HardwareButtons',
         'CameraTrigger',
         'NotificationScreen',
@@ -110,11 +111,12 @@
         'MultiScreenHelper',
         'PinsManager',
         //IFDEF_FIREFOX_SYNC
-        'SyncManager'
+        'SyncManager',
         //ENDIF_FIREFOX_SYNC
         // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
         // but integration tests running on desktop without mobileConnection
         // is testing this.
+        'CustomModules'
       ]).then(() => {
         return Promise.all([
           this.startAPIHandlers(),

@@ -3,8 +3,8 @@
 'use strict';
 
 function tzSelect(regionSelector, citySelector, onchange, onload) {
-  const TIMEZONE_FILE = '/shared/resources/tz.json';
-  const APN_TZ_FILE = '/shared/resources/apn_tz.json';
+  const TIMEZONE_FILE = '../shared/resources/tz.json';
+  const APN_TZ_FILE = '../shared/resources/apn_tz.json';
 
   const TIMEZONE_NONE = 'NONE';
   const TIMEZONE_NETWORK = 'NETWORK';

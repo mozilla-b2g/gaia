@@ -16,7 +16,7 @@
   BaseModule.create(CustomDialogService, {
     name: 'CustomDialogService',
     showCustomDialog: function(title, msg, cancel, confirm) {
-      return LazyLoader.load(['shared/js/custom_dialog.js']).then(() => {
+      return LazyLoader.load(['../shared/js/custom_dialog.js']).then(() => {
         CustomDialog.show(title, msg, cancel, confirm,
           document.getElementById('screen'))
                     .setAttribute('data-z-index-level', 'system-dialog');

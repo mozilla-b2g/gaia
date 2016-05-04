@@ -210,13 +210,13 @@ marionette('Task Manager', function() {
     test('should open a new sheet', function() {
       taskManager.newSheetButton.tap();
       system.waitForBrowser(
-        'app://search.gaiamobile.org/newtab.html?private=0');
+        'chrome://gaia/content/search/newtab.html?private=0');
     });
 
     test('should open a new private sheet', function() {
       taskManager.newPrivateSheetButton.tap();
       system.waitForBrowser(
-        'app://search.gaiamobile.org/newtab.html?private=1');
+        'chrome://gaia/content/search/newtab.html?private=1');
     });
   });
 

@@ -14,7 +14,7 @@ window.GaiaGrid = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaGridBaseurl ||
-    '/shared/elements/gaia_grid/';
+    '../shared/elements/gaia_grid/';
 
   /* Configuration from the grid is picked up by attributes on the element.
    * The following attributes are valid:

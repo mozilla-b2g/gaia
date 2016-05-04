@@ -14,7 +14,7 @@ window.GaiaPinCard = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaPinCardBaseurl ||
-    '/shared/elements/gaia_pin_card/';
+    '../shared/elements/gaia_pin_card/';
 
   proto.createdCallback = function(test) {
     var shadow = this.createShadowRoot();

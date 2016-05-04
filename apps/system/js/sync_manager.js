@@ -142,7 +142,7 @@
 
     _start: function() {
       return new Promise((resolve, reject) => {
-        LazyLoader.load('/shared/js/sync/errors.js', () => {
+        LazyLoader.load('../shared/js/sync/errors.js', () => {
           navigator.mozSetMessageHandler('request-sync', event => {
             this.debug('Sync request');
             if (event.task != SYNC_TASK) {
@@ -224,7 +224,7 @@
         case 'sync':
           try {
             Service.request('SyncStateMachine:' + request.name).then(() => {
-              return LazyLoader.load('/shared/js/sync/telemetry.js');
+              return LazyLoader.load('../shared/js/sync/telemetry.js');
             }).then(() => {
               Telemetry.logUserAction(request.name);
             }).catch(e => {
@@ -661,7 +661,7 @@
     iacRequest: function(request) {
       return new Promise((resolve, reject) => {
         this.connect().then(port => {
-          LazyLoader.load('/shared/js/uuid.js', () => {
+          LazyLoader.load('../shared/js/uuid.js', () => {
             var id = uuid();
             request.id = id;
             port.postMessage(request);

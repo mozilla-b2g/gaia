@@ -143,8 +143,11 @@
                 homescreenManifestURL),
               this.scheduler.release()
             ]);
+          }).catch(err => {
+            this.debug(`Something went wrong: ${err}`);
           })
       ]).catch((err) => {
+        this.debug(`Something went wrong: ${err}`);
         console.error(err);
       });
     },

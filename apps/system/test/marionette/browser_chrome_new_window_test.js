@@ -4,7 +4,7 @@ var assert = require('assert');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 var CLOCK_APP = 'app://clock.gaiamobile.org';
-var NEW_WINDOW = 'app://search.gaiamobile.org/newtab.html?private=0';
+var NEW_WINDOW = 'chrome://gaia/content/search/newtab.html?private=0';
 
 marionette('Browser Chrome - Open New Window', function() {
 

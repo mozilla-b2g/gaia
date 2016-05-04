@@ -15,7 +15,7 @@ window.GaiaSimPicker = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaSimPickerBaseurl ||
-    '/shared/elements/gaia_sim_picker/';
+    '../shared/elements/gaia_sim_picker/';
 
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();
@@ -35,7 +35,7 @@ window.GaiaSimPicker = (function(win) {
     updateDir();
     window.addEventListener('localized', updateDir);
 
-    LazyLoader.load(['/shared/js/component_utils.js'], function() {
+    LazyLoader.load(['../shared/js/component_utils.js'], function() {
       ComponentUtils.style.call(this, baseurl);
     }.bind(this));
 
@@ -113,7 +113,7 @@ window.GaiaSimPicker = (function(win) {
     }
 
     // we want to wait for l10n to happen before we display the UI
-    LazyLoader.load(['/shared/elements/gaia_menu/script.js'], function() {
+    LazyLoader.load(['../shared/elements/gaia_menu/script.js'], function() {
       document.l10n.ready.then(function() {
         this._menu.show();
         this.focus();

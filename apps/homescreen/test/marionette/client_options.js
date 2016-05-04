@@ -5,6 +5,6 @@ module.exports = {
   settings: {
     'devtools.pseudolocalization.enabled': false,
     'language.current': 'en-US',
-    'homescreen.manifestURL': 'app://homescreen.gaiamobile.org/manifest.webapp'
+    'homescreen.manifestURL': 'chrome://gaia/content/homescreen/manifest.webapp'
   }
 };

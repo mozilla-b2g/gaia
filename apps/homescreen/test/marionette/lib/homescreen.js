@@ -10,7 +10,7 @@ function Homescreen(client) {
   this.system = client.loader.getAppClass('system');
 }
 
-Homescreen.URL = 'app://homescreen.gaiamobile.org';
+Homescreen.URL = 'chrome://gaia/content/homescreen';
 
 Homescreen.Selectors = {
   appsScrollable: '#apps-panel .scrollable',
@@ -96,23 +96,6 @@ Homescreen.prototype = {
 
   get resumeDownloadDialog() {
     return this.client.findElement(Homescreen.Selectors.resumeDownload);
-  },
-
-  /**
-   * Waits for the homescreen to launch and switches to the frame.
-   */
-  waitForLaunch: function() {
-    var client = this.client;
-    client.switchToFrame();
-    client.helper.waitForElement('body');
-    client.apps.switchToApp(Homescreen.URL);
-
-    // Wait for startup to complete
-    client.waitFor(function() {
-      return client.executeScript(function() {
-        return window.wrappedJSObject.appWindow.apps.startupMetadata === null;
-      });
-    });
   },
 
   /**

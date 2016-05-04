@@ -553,7 +553,7 @@
         return;
       }
       if (!window.ShrinkingUI) {
-        LazyLoader.load(['shared/js/shrinking_ui.js']).then(() => {
+        LazyLoader.load(['../shared/js/shrinking_ui.js']).then(() => {
           this.launchShrinkingUI();
         }).catch((err) => {
           console.error(err);

@@ -13,12 +13,11 @@ suite('Settings tests', function() {
     helper.exec('APP=settings make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      var zipPath = process.cwd() +
-        '/profile/webapps/settings.gaiamobile.org/application.zip';
-      var checkList = ['manifest.webapp'];
+      var folderPath = process.cwd() + '/profile/apps/settings/';
+      var checkList = ['manifest.webapp', 'index.html'];
 
       checkList.forEach(function(filePath) {
-        helper.checkFilePathInZip(zipPath, filePath);
+        helper.checkFilePathInFolder(folderPath, filePath);
       });
 
       done();

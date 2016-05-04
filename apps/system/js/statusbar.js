@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/*global Service, UtilityTray, LazyLoader */
+/*global Service, UtilityTray, LazyLoader, Sanitizer */
 
 'use strict';
 
@@ -51,6 +51,8 @@
       'operator'
     ],
 
+    IMPORTS: ['style/statusbar/statusbar.css'],
+
     /* Whether or not status bar is actively updating or not */
     active: true,
 
@@ -74,6 +76,8 @@
     },
 
     start: function() {
+      LazyLoader.load(this.IMPORTS);
+      this.render();
       this.getAllElements();
 
       // cache height.
@@ -325,6 +329,22 @@
 
       var app = Service.query('getTopMostWindow');
       app && app.handleStatusbarTouch(evt, this._cacheHeight);
+    },
+
+    render: function sb_render() {
+      var windows = document.getElementById('windows');
+      windows.insertAdjacentHTML('beforebegin', Sanitizer.escapeHTML`
+        <!-- Statusbar -->
+        <div id="statusbar" data-z-index-level="statusbar">
+          <div id="statusbar-wrapper">
+            <!-- Statusbar icons -->
+            <div id="statusbar-icons" class="statusbar" role="group"
+              data-l10n-id="statusbar"
+              aria-describedby="ambient-indicator">
+            </div>
+          </div>
+        </div>
+      `);
     },
 
     getAllElements: function sb_getAllElements() {
