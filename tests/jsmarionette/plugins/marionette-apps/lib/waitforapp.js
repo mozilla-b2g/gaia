@@ -22,7 +22,7 @@ function waitForApp(apps, source, callback) {
 
   assertDriverIsSync(client);
   waitForAppSync(
-    client, '#windows iframe[src*="' + source + '"]', callback
+    client, '#windows iframe[mozapp*="' + source + '"]', callback
   );
 }
 

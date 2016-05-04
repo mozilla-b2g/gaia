@@ -9,7 +9,7 @@ marionette('Search - Suggestions Test', function() {
     profile: require(__dirname + '/client_options.js'),
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
-  var home, search, rocketbar, system, server;
+  var search, rocketbar, system, server;
 
   var providers;
 
@@ -21,7 +21,6 @@ marionette('Search - Suggestions Test', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -45,7 +44,6 @@ marionette('Search - Suggestions Test', function() {
 
   test('Test suggestions', function() {
 
-    home.waitForLaunch();
     rocketbar.homescreenFocus();
 
     search.triggerFirstRun(rocketbar);

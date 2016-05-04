@@ -26,7 +26,6 @@ marionette('Homescreen - Packaged App Pending', function() {
     appInstall = new AppInstall(client);
 
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   teardown(function(done) {

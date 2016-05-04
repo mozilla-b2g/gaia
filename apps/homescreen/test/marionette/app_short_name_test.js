@@ -21,7 +21,6 @@ marionette('Homescreen - App manifest', function() {
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
     client.apps.launch(home.URL);
-    home.waitForLaunch();
   });
 
   test('short_name', function() {

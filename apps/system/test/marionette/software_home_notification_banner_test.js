@@ -16,7 +16,7 @@ marionette('Software Home Button - Notification Banner Test', function() {
       }
     }
   });
-  var appInstall, home, server, system;
+  var appInstall, server, system;
 
   suiteSetup(function(done) {
     // Any app that we can test the download success banner.
@@ -33,10 +33,8 @@ marionette('Software Home Button - Notification Banner Test', function() {
 
   setup(function() {
     appInstall = new AppInstall(client);
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
     client.switchToFrame();
   });
 

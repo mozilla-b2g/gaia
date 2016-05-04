@@ -15,7 +15,7 @@ marionette('App Authentication Dialog',
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
-  var home, rocketbar, search, server, system;
+  var rocketbar, search, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -29,12 +29,10 @@ marionette('App Authentication Dialog',
   });
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('cancel button works', function() {

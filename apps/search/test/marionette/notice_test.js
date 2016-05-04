@@ -47,7 +47,6 @@ marionette('Search - Notice Test', function() {
 
   test('Search Notice', function() {
 
-    home.waitForLaunch();
     rocketbar.homescreenFocus();
 
     var confirmSelector = search.Selectors.firstRunConfirm;

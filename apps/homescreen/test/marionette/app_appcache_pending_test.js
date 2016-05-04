@@ -26,7 +26,6 @@ marionette('Homescreen - Appcache installed download', function() {
     appInstall = new AppInstall(client);
 
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   teardown(function(done) {

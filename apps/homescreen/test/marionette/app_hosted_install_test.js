@@ -26,7 +26,6 @@ marionette('Homescreen - Hosted App Install', function() {
     appInstall = new AppInstall(client);
 
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   teardown(function(done) {

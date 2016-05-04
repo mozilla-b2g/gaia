@@ -25,7 +25,6 @@ marionette('Homescreen - Hosted app cached icon fetch', function() {
     appInstall = new AppInstall(client);
 
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   teardown(function(done) {

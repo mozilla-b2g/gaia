@@ -14,7 +14,6 @@ marionette('Homescreen - App Blacklist', function() {
     system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
-    home.waitForLaunch();
 
     // Fail finding elements quickly.
     client.setSearchTimeout(20);

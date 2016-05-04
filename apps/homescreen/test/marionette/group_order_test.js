@@ -17,7 +17,6 @@ marionette('Homescreen - Group ordering', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Reordering an icon in a group', function() {

@@ -37,7 +37,6 @@ marionette('Homescreen - App uninstall while pending', function() {
     // wait for the system app to be running
     system.waitForFullyLoaded();
     client.apps.launch(home.URL);
-    home.waitForLaunch();
 
     // install the app
     client.switchToFrame();

@@ -24,7 +24,7 @@ marionette('Places tests', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
@@ -37,7 +37,6 @@ marionette('Places tests', function() {
     var url2 = server.url('favicon.html');
 
     // Lauch the rocketbar and trigger its first run notice
-    home.waitForLaunch();
     home.focusRocketBar();
     search.triggerFirstRun(rocketbar);
 

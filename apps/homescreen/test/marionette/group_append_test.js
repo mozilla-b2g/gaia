@@ -14,7 +14,6 @@ marionette('Homescreen - Group appending', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Appending to a group', function() {

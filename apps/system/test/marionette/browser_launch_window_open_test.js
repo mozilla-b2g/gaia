@@ -11,7 +11,7 @@ marionette('Browser - Launch the same origin after navigating away',
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
   client.scope({ searchTimeout: 20000 });
-  var home, rocketbar, search, server, system;
+  var rocketbar, search, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -25,12 +25,10 @@ marionette('Browser - Launch the same origin after navigating away',
   });
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('opens a new sheet with window.open()', function() {

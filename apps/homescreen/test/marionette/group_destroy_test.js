@@ -12,7 +12,6 @@ marionette('Homescreen - Group destruction', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Removing the penultimate icon in a group', function() {

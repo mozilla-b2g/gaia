@@ -29,7 +29,6 @@ marionette('Homescreen - Packaged App Resume Update', function() {
 
     // wait for the system app to be running
     system.waitForFullyLoaded();
-    home.waitForLaunch();
 
     // install the app
     client.switchToFrame();

@@ -12,10 +12,9 @@ marionette('Search - App search', function() {
     profile: profile,
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
-  var home, search, rocketbar, system;
+  var search, rocketbar, system;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -23,7 +22,6 @@ marionette('Search - App search', function() {
   });
 
   test('Search apps from Rocketbar', function() {
-    home.waitForLaunch();
     rocketbar.homescreenFocus();
     rocketbar.enterText('calendar');
     search.goToResults();
@@ -34,7 +32,6 @@ marionette('Search - App search', function() {
   });
 
   test('Search for app with entry point', function() {
-    home.waitForLaunch();
     rocketbar.homescreenFocus();
     rocketbar.enterText('Phone');
     search.goToResults();

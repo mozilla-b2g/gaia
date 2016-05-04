@@ -15,7 +15,6 @@ marionette('Homescreen - Group launching', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Launching an icon in a group', function() {

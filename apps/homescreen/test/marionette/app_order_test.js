@@ -14,7 +14,6 @@ marionette('Homescreen - App order', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('App order is retained after restart', function() {

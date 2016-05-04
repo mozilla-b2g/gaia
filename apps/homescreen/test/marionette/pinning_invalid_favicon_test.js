@@ -32,7 +32,6 @@ marionette('Homescreen - Pinning Favicon Failure', function() {
     system = client.loader.getAppClass('system');
     pinning = new Pinning(client, server);
     system.waitForFullyLoaded();
-    home.waitForLaunch();
 
     url = server.url('sample.html');
     client.switchToFrame();

@@ -24,7 +24,7 @@ marionette('Browser - Site loading background', function() {
   });
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
+    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
@@ -34,7 +34,6 @@ marionette('Browser - Site loading background', function() {
     // screenshot. Without the homescreen, we may take a screenshot of the
     // system boot screen.
     client.apps.launch(home.URL);
-    home.waitForLaunch();
     client.switchToFrame();
   });
 

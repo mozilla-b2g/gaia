@@ -27,7 +27,6 @@ marionette('Homescreen - Packaged App Failed Download', function() {
     appInstall = new AppInstall(client);
 
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   teardown(function(done) {
