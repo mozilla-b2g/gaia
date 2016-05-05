@@ -1,4 +1,4 @@
-/* global evt, CardFilter */
+/* global evt, CardFilter, CardUtil */
 
 (function(exports) {
   'use strict';
@@ -206,27 +206,66 @@
       if (!this._isFilterChanging) {
         return;
       }
-
-      var that = this;
       var filter = this.getFilterByIconName(this._cardFilter.filter);
-      var gotCardLists = function(filteredList) {
-        filteredList.forEach(function(card) {
-          that._cardScrollable.addNode(that._home.createCardNode(card));
-        });
-
-        that._filteredCardList =
-          (filter.name !== 'all') ? filteredList : undefined;
-        that._cardListElem.style.opacity = 0;
-        window.requestAnimationFrame(that._performBubbleUp.bind(that));
-      };
 
       if (!this._isBubbleSinking()) {
         this._isFilterChanging = false;
         return;
       }
 
+      this._filteredCardList = undefined;
+
+      var display = list => {
+        list.forEach(card => {
+          this._cardScrollable.addNode(this._home.createCardNode(card));
+        });
+        this._cardListElem.style.opacity = 0;
+        window.requestAnimationFrame(this._performBubbleUp.bind(this));
+      };
+
       this._cardScrollable.clean();
-      this._cardManager.getFilteredCardList(filter.name).then(gotCardLists);
+      if (filter.name === 'all') {
+        // If filtering condition is all cards, just display all cards.
+        // Don't need extra card sorting.
+        this._cardManager.getFilteredCardList(filter.name).then(display);
+      } else {
+        this._cardManager.getFilteredCardList(filter.name).then(list => {
+          var allItems = list.map(card => {
+            return {
+              card: card,
+              // Get key based on card name
+              key: CardUtil.getSortKey(card),
+              // Get url to which card is launched
+              url: CardUtil.getLaunchingURL(card)
+            };
+          });
+
+          allItems.sort((a, b) => {
+            var result = a.key.localeCompare(b.key);
+            if (result === 0) {
+              result = a.url.localeCompare(b.url);
+            }
+            return result;
+          });
+
+          var last = null;
+          var uniqueItems = [];
+          allItems.forEach(item => {
+            if (!last ||
+                // The same card appearing before will not be picked up.
+                // By the same card, we mean card has the same url and name.
+                // (the same name would generate the same key so we use key
+                // for checking here)
+                (last.key != item.key || last.url != item.url)) {
+              uniqueItems.push(item);
+              last = item;
+            }
+          });
+
+          this._filteredCardList = uniqueItems.map(item => item.card);
+          display(this._filteredCardList);
+        });
+      }
     },
 
     /**

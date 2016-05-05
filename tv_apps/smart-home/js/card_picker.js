@@ -1,5 +1,5 @@
 /* global evt, KeyNavigationAdapter, SpatialNavigator, Folder, SharedUtils,
-          CardUtil, FOLDER_CAPACITY, Utils, Deck, Sanitizer */
+          CardUtil, FOLDER_CAPACITY, Utils, Sanitizer */
 
 (function(exports) {
   'use strict';
@@ -222,37 +222,6 @@
       this.gridView.scrollTo(0, scrollY);
     },
 
-    _getSortKey: function(card) {
-      var defaultOrder = {
-        tv: 1,
-        application: 2,
-        device: 3,
-        website: 4
-      };
-
-      var key = String(defaultOrder[card.group] || 5);
-      if (!(card instanceof Deck)) {
-        var lang = document.documentElement.lang;
-        var name = this._cardManager.resolveCardName(card, lang);
-        if (name.raw) {
-          key += name.raw;
-        } else if (name.id == 'channel-name' &&
-                   name.args && name.args.number !== undefined) {
-          // For tv channels only. We sort them by channel numbers.
-          key += '0'.repeat(10 - name.args.number.length) + name.args.number;
-        } else if (name.id) {
-          // As a fallback, we sort cards by l10n-id.
-          key += name.id;
-        } else {
-          // If nothing can be sorted, append the last printable character to
-          // the key to make it be sorted follow other well-sorted cards.
-          key += '~';
-        }
-      }
-
-      return key.toUpperCase();
-    },
-
     _refreshCardElements: function(folderList, cardList) {
       var candidates = [];
 
@@ -290,7 +259,7 @@
           cardButton.dataset.parentType = 'empty';
           candidates.push({
             index: index,
-            key: this._getSortKey(card),
+            key: CardUtil.getSortKey(card),
             element: appCardElem
           });
         }
