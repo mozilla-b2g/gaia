@@ -14,14 +14,12 @@ marionette('Software Home Button - Stealing input focus', function() {
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
-  var home, rocketbar, system;
+  var rocketbar, system;
 
   setup(function() {
-    home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
     client.switchToFrame();
   });
 

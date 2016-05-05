@@ -42,7 +42,6 @@ marionette('Search - Rocketbar Test', function() {
       }
     };
     mockSearch();
-    home.waitForLaunch();
     rocketbar.homescreenFocus();
   });
 
@@ -116,7 +115,6 @@ marionette('Search - Rocketbar Test', function() {
   });
 
   test('Browser search', function() {
-    home.waitForLaunch();
     rocketbar.homescreenFocus();
     var textToSearch = 'a test';
     rocketbar.performSearchInBrowser(textToSearch);

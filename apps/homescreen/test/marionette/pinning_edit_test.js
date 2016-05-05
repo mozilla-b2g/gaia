@@ -31,7 +31,6 @@ marionette('Homescreen - Pinned Site Edit', function() {
     pinning = new Pinning(client);
     bookmark = new Bookmark(client, server);
     system.waitForFullyLoaded();
-    home.waitForLaunch();
 
     url = server.url('sample.html');
     client.switchToFrame();
@@ -39,7 +38,6 @@ marionette('Homescreen - Pinned Site Edit', function() {
     system.dismissBanner();
 
     system.tapHome();
-    home.waitForLaunch();
   });
 
   test('pressing enter after renaming the pinned site', function() {

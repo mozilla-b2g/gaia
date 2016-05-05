@@ -99,23 +99,6 @@ Homescreen.prototype = {
   },
 
   /**
-   * Waits for the homescreen to launch and switches to the frame.
-   */
-  waitForLaunch: function() {
-    var client = this.client;
-    client.switchToFrame();
-    client.helper.waitForElement('body');
-    client.apps.switchToApp(Homescreen.URL);
-
-    // Wait for startup to complete
-    client.waitFor(function() {
-      return client.executeScript(function() {
-        return window.wrappedJSObject.appWindow.apps.startupMetadata === null;
-      });
-    });
-  },
-
-  /**
    * Waits for the edit bar to fully appear.
    */
   waitForEditBar: function() {

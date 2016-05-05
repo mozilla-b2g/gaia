@@ -14,7 +14,6 @@ marionette('Homescreen - Group creation', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Creating a group', function() {

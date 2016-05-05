@@ -27,7 +27,6 @@ marionette('Homescreen - App unrecoverable error', function() {
     appInstall = new AppInstall(client);
 
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   teardown(function(done) {

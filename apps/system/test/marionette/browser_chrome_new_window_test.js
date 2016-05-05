@@ -32,7 +32,6 @@ marionette('Browser Chrome - Open New Window', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('open new window', function() {

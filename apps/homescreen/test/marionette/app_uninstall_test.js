@@ -33,7 +33,6 @@ marionette('Homescreen - App Uninstall', function() {
     system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
-    home.waitForLaunch();
   });
 
   function test_app_uninstall(manifestURL) {

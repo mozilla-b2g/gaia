@@ -8,10 +8,9 @@ marionette('Search - Home Button Press', function() {
     profile: require(__dirname + '/client_options.js'),
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
-  var home, search, rocketbar, system;
+  var search, rocketbar, system;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
@@ -19,7 +18,6 @@ marionette('Search - Home Button Press', function() {
   });
 
   test('Home button returns to home screen', function() {
-    home.waitForLaunch();
     rocketbar.homescreenFocus();
     rocketbar.enterText('calendar');
 

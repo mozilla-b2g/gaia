@@ -34,7 +34,6 @@ marionette('Homescreen - Pinned Site Uninstall', function() {
     pinning = new Pinning(client);
     bookmark = new Bookmark(client);
     system.waitForFullyLoaded();
-    home.waitForLaunch();
 
     url = server.url('sample.html');
     client.switchToFrame();
@@ -42,7 +41,6 @@ marionette('Homescreen - Pinned Site Uninstall', function() {
     system.dismissBanner();
 
     system.tapHome();
-    home.waitForLaunch();
   });
 
   test('removal of pinned site', function() {

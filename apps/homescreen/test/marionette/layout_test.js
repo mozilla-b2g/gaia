@@ -13,7 +13,6 @@ marionette('Homescreen - Layout', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('apps grid is LTR in LTR language', function() {

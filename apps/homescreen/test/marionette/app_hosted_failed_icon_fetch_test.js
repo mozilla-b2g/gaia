@@ -26,7 +26,6 @@ marionette('Homescreen - Hosted app failed icon fetch', function() {
     appInstall = new AppInstall(client);
 
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   teardown(function(done) {

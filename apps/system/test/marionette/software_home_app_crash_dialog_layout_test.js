@@ -11,13 +11,11 @@ marionette('Software Home Button - App Crash Report Layout', function() {
       }
     }
   });
-  var home, system;
+  var system;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Proper layout for crash report dialog', function() {

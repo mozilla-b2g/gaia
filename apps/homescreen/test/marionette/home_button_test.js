@@ -32,7 +32,6 @@ marionette('Homescreen - Home button', function() {
     pinning = new Pinning(client);
     bookmark = new Bookmark(client, server);
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('scroll to the top of the screen', function() {
@@ -55,7 +54,6 @@ marionette('Homescreen - Home button', function() {
     system.dismissBanner();
 
     system.tapHome();
-    home.waitForLaunch();
 
     var icon = home.getIcon(url);
 
@@ -63,7 +61,6 @@ marionette('Homescreen - Home button', function() {
     actions.longPress(icon, 1).perform();
 
     system.tapHome();
-    home.waitForLaunch();
 
     assert.equal(client.executeScript(function() {
       return document.body.classList.contains('edit-mode');

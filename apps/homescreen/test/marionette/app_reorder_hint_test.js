@@ -12,7 +12,6 @@ marionette('Homescreen - App reordering', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('App reordering has a visual hint', function() {

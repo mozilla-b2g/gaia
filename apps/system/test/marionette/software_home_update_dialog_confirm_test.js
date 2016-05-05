@@ -17,12 +17,10 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
     }
   });
 
-  var home, system;
+  var system;
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
     client.switchToFrame();
   });
 

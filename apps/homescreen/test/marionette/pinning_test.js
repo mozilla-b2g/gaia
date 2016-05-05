@@ -27,7 +27,6 @@ marionette('Homescreen - Pinned Sites', function() {
     pinning = new Pinning(client);
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Pinning a site adds pin to homescreen', function() {

@@ -29,7 +29,6 @@ marionette('Homescreen - Pin order', function() {
     home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('Pin order is retained after restart', function() {

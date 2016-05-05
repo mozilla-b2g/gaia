@@ -17,7 +17,7 @@ marionette('Browser - Chrome on browser navigation',
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
 
-  var home, rocketbar, search, server, system, pinTheWeb;
+  var rocketbar, search, server, system, pinTheWeb;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -31,13 +31,11 @@ marionette('Browser - Chrome on browser navigation',
   });
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     rocketbar = new Rocketbar(client);
     pinTheWeb = new PinTheWeb(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   test('should show the progressbar', function() {

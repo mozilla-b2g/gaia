@@ -23,7 +23,6 @@ marionette('Homescreen - Packaged App Resuming Downloads', function() {
       appInstall = new AppInstall(client);
 
       system.waitForFullyLoaded();
-      home.waitForLaunch();
 
       done(err);
     });

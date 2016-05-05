@@ -31,7 +31,6 @@ marionette('Homescreen - Packaged App Update', function() {
 
     // Launch the homescreen first, then go to the system app.
     // Make sure we do this before installing an application.
-    home.waitForLaunch();
     client.switchToFrame();
 
     // install the app with a broken icon

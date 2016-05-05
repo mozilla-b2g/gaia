@@ -16,7 +16,7 @@ marionette('Software Home Button - App Install Dialog', function() {
       }
     }
   });
-  var appInstall, home, server, serverManifestURL, serverRootURL, system;
+  var appInstall, server, serverManifestURL, serverRootURL, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -36,10 +36,8 @@ marionette('Software Home Button - App Install Dialog', function() {
 
   setup(function() {
     appInstall = new AppInstall(client);
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
     client.switchToFrame();
   });
 

@@ -24,14 +24,12 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
-  var home, system, actions, screenSize, shbSize;
+  var system, actions, screenSize, shbSize;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
     system.waitForFullyLoaded();
-    home.waitForLaunch();
     client.switchToFrame();
     client.apps.launch(appUrl);
     client.apps.switchToApp(appUrl);

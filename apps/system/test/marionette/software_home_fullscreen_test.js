@@ -19,13 +19,11 @@ marionette('Software Home Button - Fullscreen Request', function() {
     },
     desiredCapabilities: { raisesAccessibilityExceptions: false }
   });
-  var home, system;
+  var system;
 
   setup(function() {
-    home = client.loader.getAppClass('homescreen');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
-    home.waitForLaunch();
     client.switchToFrame();
   });
 

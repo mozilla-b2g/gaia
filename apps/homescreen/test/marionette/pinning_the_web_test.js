@@ -30,7 +30,6 @@ marionette('Homescreen - Pin the web', function() {
     system = client.loader.getAppClass('system');
     pinning = new Rocketbar(client);
     system.waitForFullyLoaded();
-    home.waitForLaunch();
   });
 
   // Skip test since we are disabling pinning door hanger in 2.5
