@@ -40,7 +40,6 @@ marionette('Homescreen - Home button', function() {
     }, [home.appsScrollable]);
 
     system.tapHome();
-    home.waitForLaunch();
 
     assert.equal(client.executeScript(function(scrollable) {
       return scrollable.scrollTop;

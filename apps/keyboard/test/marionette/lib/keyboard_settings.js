@@ -6,12 +6,15 @@ var Base = require('./base.js');
 function KeyboardSettings(client) {
   this.client = client.scope({ searchTimeout: 500 });
 
-  Base.call(this, client, KeyboardSettings.ORIGIN);
+  Base.call(this,
+            client,
+            KeyboardSettings.ORIGIN,
+            KeyboardSettings.ENTRYPOINT);
 }
 
 module.exports = KeyboardSettings;
 
-KeyboardSettings.ORIGIN =  'app://keyboard.gaiamobile.org';
+KeyboardSettings.ORIGIN =  'chrome://gaia/content/keyboard';
 
 KeyboardSettings.Selectors = Object.freeze({
   autoCorrectCheckBox: '#cb-autoCorrect'

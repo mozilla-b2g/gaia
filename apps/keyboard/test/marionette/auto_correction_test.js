@@ -4,7 +4,7 @@
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
     Keyboard = require('./lib/keyboard'),
-    KeyboardSettings = require('./lib/keyboard_settings.js'),
+    KeyboardSettings = require('./lib/keyboard_settings'),
     assert = require('assert');
 
 

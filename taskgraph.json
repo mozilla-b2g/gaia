@@ -19,7 +19,8 @@
         "scopes": [
           "docker-worker:cache:gaia-tc-vcs",
           "docker-worker:cache:gaia-linux-cache",
-          "docker-worker:cache:gaia-misc-caches"
+          "docker-worker:cache:gaia-misc-caches",
+          "scheduler:extend-task-graph:*"
         ],
         "payload": {
           "cache": {

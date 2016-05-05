@@ -25,12 +25,15 @@ marionette('Search - App search', function() {
     rocketbar.homescreenFocus();
     rocketbar.enterText('calendar');
     search.goToResults();
-    var calendarIdentifier = 'app://calendar.gaiamobile.org/manifest.webapp';
-    var result = search.checkResult(calendarIdentifier, 'Calendar');
+    var settingsIdentifier = 'chrome://gaia/content/settings/manifest.webapp';
+    var result = search.checkResult(settingsIdentifier, 'Settings');
     result.tap();
-    search.goToApp('app://calendar.gaiamobile.org');
+    search.goToApp('chrome://gaia/content/settings');
   });
 
+  /*
+   * XXXAus: Enable this test when Dialer (or other app with entry point) is
+   *         updated.
   test('Search for app with entry point', function() {
     rocketbar.homescreenFocus();
     rocketbar.enterText('Phone');
@@ -41,5 +44,6 @@ marionette('Search - App search', function() {
     result.tap();
     search.goToApp('app://communications.gaiamobile.org', 'dialer');
   });
+  */
 
 });

@@ -84,7 +84,9 @@ App.prototype = {
   launch: function(entrypoint) {
     var client = this._client.scope({ context: 'content' });
     var app = this;
-    app.url = app.origin;
+    if (app && !app.url) {
+      app.url = app.origin + app.manifest.launch_path;
+    }
     client.executeAsyncScript(function(app) {
       window.dispatchEvent(new CustomEvent('webapps-launch', { detail: app }));
       marionetteScriptFinished();

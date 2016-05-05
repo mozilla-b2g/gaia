@@ -16,6 +16,8 @@ const PROFILE_DIR = 'profile-test/';
 const APPS_DIR = 'apps/';
 const FULL_APPS_DIR_PATH = DEPTH + PROFILE_DIR + APPS_DIR;
 
+const BASE_URL = 'chrome://gaia/content/';
+
 Mgmt.prototype = {
   /**
    * @type {Marionette.Client}
@@ -53,7 +55,12 @@ Mgmt.prototype = {
             var manifestStats = fs.statSync(manifestFile);
             if (manifestStats && manifestStats.isFile(manifestFile)) {
               var contents = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
-              apps.push(format(contents));
+              var app = {
+                manifest: contents,
+                manifestURL: BASE_URL + dir + '/' + 'manifest.webapp',
+                origin: BASE_URL + dir
+              };
+              apps.push(format(app));
             }
           }
           catch(e) {
@@ -98,19 +105,5 @@ Mgmt.prototype = {
       // success format the app
       return callback(null, operation.result ? format(operation.result) : null);
     });
-  },
-
-
-  /**
-   * Inject utility functions into gecko through the marionette client.
-   * @param {Function} cb Optional callback function.
-   */
-  prepareClient: function(cb) {
-    var script = fs.readFileSync(
-      __dirname + '/scripts/objectcache.js',
-      'utf8'
-    );
-
-    this._client.importScript(script, cb);
   }
 };

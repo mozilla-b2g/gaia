@@ -27,7 +27,7 @@ Apps.setup = function(client, options) {
   client.addHook('startSession', function(done) {
     BootWatcher.setup(client, function(err) {
       if (err) return done && done(err);
-      apps.mgmt.prepareClient(done);
+      done();
     });
   });
 
