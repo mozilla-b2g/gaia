@@ -1,5 +1,6 @@
 'use strict';
-/* globals Promise, asyncStorage, Service, BaseModule, indexedDB */
+/* globals Promise, asyncStorage, Service, BaseModule, indexedDB,
+   BroadcastChannel */
 /* exported Places */
 
 (function() {
@@ -85,10 +86,17 @@
     _timeouts: {},
 
     /**
+     * {BoradcastChannel} to emit messages for changes in the places database.
+     * @memberof Places.prototype
+     * @type {BroadcastChannel}
+     */
+    _broadcastChannel: null,
+
+    /**
      * Start places.
-     * 
+     *
      * Adds event listeners and opens the database.
-     * 
+     *
      * @memberof Places.prototype
      * @returns {Promise} Promise which resolves when everything started up.
      */
@@ -100,6 +108,8 @@
         window.addEventListener('appmetachange', this);
         window.addEventListener('apploaded', this);
 
+        this._broadcastChannel = new BroadcastChannel('places');
+
         this.openDb().then((function() {
           // Get top sites cache from async storage
           asyncStorage.getItem('top-sites', results => {
@@ -107,7 +117,7 @@
             resolve();
           });
         }).bind(this), function(e) {
-          console.error('Error starting Places database ' + e); 
+          console.error('Error starting Places database ' + e);
         });
       });
     },
@@ -360,6 +370,13 @@
         if (value) {
           place.pinTime = Date.now();
         }
+
+        this._broadcastChannel.postMessage({
+          type: 'pagePinned',
+          url: url,
+          page: place,
+        });
+
         callback(place);
       });
     },
@@ -395,24 +412,26 @@
      * @param {Object} siteObject Site object.
      */
     pinSite: function(url, siteObject) {
-      return new Promise((function(resolve, reject) {
-        this.getDb().then((function(db) {
-          var transaction = db.transaction(this.SITES_STORE, 'readwrite');
-          var objectStore = transaction.objectStore(this.SITES_STORE);
-          var writeRequest = objectStore.put(siteObject);
+      return this.getDb().then((db) => {
+        var transaction = db.transaction(this.SITES_STORE, 'readwrite');
+        var objectStore = transaction.objectStore(this.SITES_STORE);
+        var writeRequest = objectStore.put(siteObject);
 
-          writeRequest.onsuccess = function() {
-            console.log('Successfully pinned site ' + ' with url ' +
-              siteObject.url);
-            resolve();
-          };
+        return new Promise((resolve, reject) => {
+          writeRequest.onsuccess = resolve;
+          writeRequest.onerror = reject;
+        });
+      }).then(() => {
+        console.log('Successfully pinned site with url ', siteObject.url);
 
-          writeRequest.onerror = function() {
-            console.error('Error updating site with url ' + siteObject.url);
-            reject();
-          };
-        }).bind(this));
-      }).bind(this));
+        this._broadcastChannel.postMessage({
+          type: 'sitePinned',
+          url: url,
+          siteObject: siteObject,
+        });
+      }).catch(() => {
+        console.error('Error updating site with url ', siteObject.url);
+      });
     },
 
     /**
