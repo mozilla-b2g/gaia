@@ -8,13 +8,14 @@
     this.name = options.name;
     this.deckClass = options.deckClass;
     this.group = options.group;
-    Card.prototype.constructor.call(this);
+    Card.prototype.constructor.call(this, options);
   };
 
   Deck.deserialize = function deck_deserialize(cardEntry, installedApps) {
     var cardInstance;
     if (cardEntry && installedApps && cardEntry.type === 'Deck') {
       cardInstance = new Deck({
+        id: cardEntry.id,
         name: cardEntry.name,
         nativeApp: cardEntry.manifestURL &&
           installedApps[cardEntry.manifestURL],
@@ -49,6 +50,7 @@
     // A deck doesn't need background color because it is always full-sized
     // icon. If not, it is an issue from visual's image.
     return {
+      id: this.cardId,
       name: this.name,
       deckClass: this.deckClass,
       manifestURL: this.nativeApp && this.nativeApp.manifestURL,

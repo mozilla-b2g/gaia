@@ -1,13 +1,15 @@
-/* global evt */
+/* global evt, uuid */
 
 (function(exports) {
   'use strict';
 
-  var _counter = 0;
-
-  // Card is the base class for Application, Deck, and Folder
-  var Card = function Card() {
-    this.generateCardId();
+  // Card is the base class for Application, Deck, AppBookmark, and Folder
+  var Card = function Card(options) {
+    if (options && options.id) {
+      this._id = options.id;
+    } else {
+      this._id = uuid.v4();
+    }
   };
 
   Card.deserialize = function c_deserialize(cardEntry) {
@@ -16,16 +18,6 @@
 
   Card.prototype = evt({
     get cardId() {
-      return this._id;
-    },
-    generateCardId: function c_generateCardId() {
-      // XXX: use constructor.name + name + incremental counter
-      // as cardId for now. Notice that cardId is only meaningful for
-      // Smart-Home app. Because only Smart-Home app has 'write' privilege.
-      var name = (this.nativeApp && this.nativeApp.manifest) ?
-        this.nativeApp.manifest.name : 'card';
-      this._id = this.constructor.name + '-' + name + '-' + (_counter);
-      _counter += 1;
       return this._id;
     },
     serialize: function c_serialize() {

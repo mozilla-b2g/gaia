@@ -10,13 +10,14 @@
     this.thumbnail = options.thumbnail;
     this.launchURL = options.launchURL;
     this.group = options.group;
-    Card.prototype.constructor.call(this);
+    Card.prototype.constructor.call(this, options);
   };
 
   Application.deserialize = function app_deserialize(cardEntry, installedApps) {
     var cardInstance;
     if (cardEntry && installedApps && cardEntry.type === 'Application') {
       cardInstance = new Application({
+        id: cardEntry.id,
         nativeApp: installedApps[cardEntry.manifestURL],
         name: cardEntry.name,
         thumbnail: cardEntry.thumbnail,
@@ -43,6 +44,7 @@
 
   Application.prototype.serialize = function app_serialize() {
     return {
+      id: this.cardId,
       manifestURL: this.nativeApp.manifestURL,
       name: this.name,
       type: 'Application',

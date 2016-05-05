@@ -8,13 +8,14 @@
     this.name = options.name;
     this.group = options.group;
     this.thumbnail = options.thumbnail;
-    Card.prototype.constructor.call(this);
+    Card.prototype.constructor.call(this, options);
   }
 
   AppBookmark.deserialize = function ab_deserialize(cardEntry) {
     var cardInstance;
     if (cardEntry && cardEntry.type === 'AppBookmark') {
       cardInstance = new AppBookmark({
+        id: cardEntry.id,
         name: cardEntry.name,
         url: cardEntry.url,
         group: cardEntry.group,
@@ -34,6 +35,7 @@
 
   AppBookmark.prototype.serialize = function ab_serialize() {
     return {
+      id: this.cardId,
       type: 'AppBookmark',
       name: this.name,
       url: this.url,

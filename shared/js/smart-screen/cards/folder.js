@@ -1,4 +1,4 @@
-/* global Card, uuid */
+/* global Card */
 
 (function(exports) {
   'use strict';
@@ -6,10 +6,8 @@
   var Folder = function Folder(options) {
     this._cardsInFolder = options._cardsInFolder || [];
     this.name = options.name;
-    // folderId is used in cardStore as key
-    this.folderId = options.folderId || uuid.v4();
     this._state = options.state || Folder.STATES.NORMAL;
-    Card.prototype.constructor.call(this);
+    Card.prototype.constructor.call(this, options);
   };
 
   Folder.STATES = Object.freeze({
@@ -28,9 +26,9 @@
     var cardInstance;
     if (cardEntry && cardEntry.type === 'Folder') {
       cardInstance = new Folder({
+        id: cardEntry.id,
         name: cardEntry.name,
-        folderId: cardEntry.folderId,
-        // The content of folder is saved in datastore under key of folderId
+        // The content of folder is saved in datastore under key of cardId
         // thus we are not complete deserialize it yet, mark its state
         // as 'DESERIALIZING'. Caller needs to put content of the folder
         // back to its structure. Please refer to CardManager#_reloadCardList().
@@ -96,7 +94,7 @@
       this.state = Folder.STATES.NORMAL;
     } else if (opts.from === 'datastore') {
       // load content of folder from data store
-      opts.datastore.getData(this.folderId).then(function(innerCardList) {
+      opts.datastore.getData(this.cardId).then(function(innerCardList) {
         innerCardList.forEach(function(innerCardEntry) {
           that._cardsInFolder.push(opts.deserializer(innerCardEntry));
         });
@@ -221,8 +219,8 @@
 
   Folder.prototype.serialize = function folder_serialize() {
     return {
+      id: this.cardId,
       name: this.name,
-      folderId: this.folderId,
       type: 'Folder'
     };
   };
