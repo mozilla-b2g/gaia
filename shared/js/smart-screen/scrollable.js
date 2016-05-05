@@ -74,7 +74,8 @@
 
     this._setNodesPosition();
 
-    this.setScale(param.scale || 1);
+    this._defaultScale = param.scale || 1;
+    this.setScale();
 
     this.isSliding = false;
     this.isHovering = false;
@@ -174,7 +175,7 @@
     },
 
     setScale: function(scale) {
-      scale = scale ? scale : 1;
+      scale = scale || this._defaultScale;
       this.scale = scale;
       // We need to reset translateX and let getScrollOffset detect the
       // scroll amont again against new scale to focused element.
