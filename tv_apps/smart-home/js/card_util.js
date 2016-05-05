@@ -147,7 +147,7 @@
       }
     },
 
-    createCardButton: function(card, disableWave) {
+    createCardFragment: function(card, disableWave) {
       var cardButton = document.createElement('smart-button');
       cardButton.setAttribute('type', 'app-button');
       cardButton.className = 'app-button';
@@ -179,6 +179,7 @@
         this.updateFolderCardIcons(cardButton, card);
       }
 
+
       // For smart-button, we put card name in pseudo-element :after. However,
       // we need to localize card name and l10n library do not support
       // localizing element with children elements.
@@ -187,19 +188,17 @@
       var nameSpan = document.createElement('span');
       nameSpan.classList.add('name');
       this._localizeCardName(nameSpan, card);
-      cardButton.appendChild(nameSpan);
 
-      return cardButton;
+      var fragment = document.createDocumentFragment();
+      fragment.appendChild(cardButton);
+      fragment.appendChild(nameSpan);
+
+      return fragment;
     },
 
-    updateCardName: function(cardButton, card) {
-      var spans =
-           SharedUtils.nodeListToArray(cardButton.getElementsByTagName('span'));
-      spans.forEach(span => {
-        if (span.classList.contains('name')) {
-          this._localizeCardName(span, card);
-        }
-      });
+    updateCardName: function(nodeElement, card) {
+      var labels = Array.from(nodeElement.getElementsByClassName('name'));
+      labels.forEach(label => this._localizeCardName(label, card));
     },
 
     updateFolderCardIcons: function(cardButton, card) {

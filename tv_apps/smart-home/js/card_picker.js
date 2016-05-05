@@ -17,8 +17,9 @@
     input: document.getElementById('card-picker-input'),
 
     init: function(options) {
-      this.appButtons = [];
+      this.appCardElems = [];
       this._cardScrollable = options.cardScrollable;
+
       this._cardManager = options.cardManager;
       this._folder = null;
 
@@ -40,13 +41,16 @@
       this._keyNavigationAdapter.on('enter-keyup', this.onEnter.bind(this));
       this.container.addEventListener('keyup', this.onKeyUp.bind(this), true);
 
-      this._selectedElements = this.gridView.getElementsByClassName('selected');
+      this._selectedButtons = this.gridView.getElementsByClassName('selected');
+      this._appButtons = this.gridView.getElementsByTagName('smart-button');
 
       this.input.addEventListener('focus', () => {
+        // XXX: it seems we need a setTimeout for input element to make
+        // setSelectionRange works after focusing.
         setTimeout(() => {
           this.input.setSelectionRange(
             this.input.value.length, this.input.value.length);
-        }, 0);
+        });
       });
     },
 
@@ -57,7 +61,7 @@
       this.input.readOnly = false;
       this.input.blur();
       this.input.focus();
-      // In case the kyeboard dismissed by other reasons, we have to
+      // In case the keyboard dismissed by other reasons, we have to
       // call this.closeKeyboard to update the keyboard state is closed.
       var handleBlur = () => {
         this.input.removeEventListener('blur', handleBlur);
@@ -190,11 +194,11 @@
 
       this._cardManager.getCardList()
         .then(cardList => {
-          this._refreshCardButtons(folderList, cardList);
+          this._refreshCardElements(folderList, cardList);
           this.updateCapacityCount();
           this._spatialNavigator.setCollection(
-                            this.appButtons.concat(this.navigableElements));
-          this._spatialNavigator.focus(this.appButtons[0]);
+                      Array.from(this.allItems).concat(this.navigableElements));
+          this._spatialNavigator.focus();
         });
     },
 
@@ -249,42 +253,45 @@
       return key.toUpperCase();
     },
 
-    _refreshCardButtons: function(folderList, cardList, options) {
+    _refreshCardElements: function(folderList, cardList) {
       var candidates = [];
 
-      this.appButtons = [];
+      this.appCardElems = [];
       this.gridView.innerHTML = '';
 
       var that = this;
-      function appendToGridView(appButton) {
-        that.gridView.appendChild(appButton);
-        that.appButtons.push(appButton);
+      function appendToGridView(appCardElem) {
+        that.gridView.appendChild(appCardElem);
+        that.appCardElems.push(appCardElem);
       }
-      function createButtonHelper(card, parentType) {
+      function createCardElemHelper(card, parentType) {
         if(card instanceof Folder) {
           return;
         }
-        var appButton = CardUtil.createCardButton(card, true);
-        return appButton;
+        var nodeElem = document.createElement('div');
+        nodeElem.appendChild(CardUtil.createCardFragment(card, true));
+        return nodeElem;
       }
 
       folderList && folderList.forEach(card => {
-        var appButton = createButtonHelper(card);
-        if (appButton) {
-          appButton.dataset.parentType = 'folder';
-          appButton.classList.add('selected');
-          appendToGridView(appButton);
+        var appCardElem = createCardElemHelper(card);
+        if (appCardElem) {
+          var cardButton = appCardElem.firstElementChild;
+          cardButton.dataset.parentType = 'folder';
+          cardButton.classList.add('selected');
+          appendToGridView(appCardElem);
         }
       });
 
       cardList && cardList.forEach((card, index) => {
-        var appButton = createButtonHelper(card);
-        if (appButton) {
-          appButton.dataset.parentType = 'empty';
+        var appCardElem = createCardElemHelper(card);
+        if (appCardElem) {
+          var cardButton = appCardElem.firstElementChild;
+          cardButton.dataset.parentType = 'empty';
           candidates.push({
             index: index,
             key: this._getSortKey(card),
-            button: appButton
+            element: appCardElem
           });
         }
       });
@@ -297,7 +304,7 @@
           }
           return compare;
         });
-        candidates.forEach(candidate => appendToGridView(candidate.button));
+        candidates.forEach(candidate => appendToGridView(candidate.element));
       }
     },
 
@@ -346,12 +353,14 @@
       if (!this._folder) {
         return;
       }
+      var buttons = this.allItems;
       // Moves cards previously inside the folder back to cardList
-      this.appButtons.every(elem => {
+      for (var i = 0; i < buttons.length; i++) {
+        var elem = buttons[i];
         // Buttons previously inside the folder are in the start of the array
         // and we want to process them only.
         if (elem.dataset.parentType !== 'folder') {
-          return false;
+          break;
         }
         if (!elem.classList.contains('selected')) {
           var card = this._folder.findCard({
@@ -364,9 +373,7 @@
             silent: true
           });
         }
-        return true;
-      });
-
+      }
       // Then save newly added ones
       this._saveToFolderHelper();
     },
@@ -409,7 +416,11 @@
     },
 
     get selected() {
-      return this._selectedElements;
+      return this._selectedButtons;
+    },
+
+    get allItems() {
+      return this._appButtons;
     },
 
     get mode() {
