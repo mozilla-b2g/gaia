@@ -17,7 +17,7 @@ suite('Multilocale integration tests', function() {
       'settings');
     var cnPathInFolder = 'locales-obj/index.zh-CN.json';
     var cnSettingsProperties = 'locales/settings.zh-CN.properties';
-    var langPathInFolder = 'shared/resources/languages.json';
+    var langPathInFolder = '../../../shared/resources/languages.json';
 
     var command = 'LOCALES_FILE=' + localesFilePath +
       ' LOCALE_BASEDIR=' + localesDir +
