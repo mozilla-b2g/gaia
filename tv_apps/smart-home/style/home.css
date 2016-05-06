@@ -50,6 +50,7 @@ section {
   height: 33.6rem;
   top: 32.41%;
   overflow: visible;
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 #card-list {
@@ -179,6 +180,7 @@ section {
   height: 33.6rem;
   top: calc(32.41% + 32.3rem);
   overflow: visible;
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 #folder-list {
@@ -379,8 +381,13 @@ smart-button[type="app-button"].focused ~ span.name {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  padding: 5rem 7rem 9rem 6.4rem;
+  padding: 6.2rem;
   text-align: left;
+  line-height: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: opacity 0.2s;
 }
 
 .folder-content-container > div {
@@ -390,8 +397,7 @@ smart-button[type="app-button"].focused ~ span.name {
   background-size: contain;
   background-position: center center;
   display: inline-block;
-  margin-left: 0.6rem;
-  margin-bottom: 0.3rem;
+  margin: 0.5rem;
   overflow: hidden;
   border-radius: 50%;
   position: relative;
@@ -421,4 +427,44 @@ smart-button[type="app-button"].focused ~ span.name {
 
 .folder-content-container > div.tv-channel > span {
   background-color: #d90c83;
+}
+
+smart-button[type="app-button"].opened ~ span.name {
+  display: none;
+}
+
+.opened .folder-content-container {
+  opacity: 0;
+}
+
+.opened .folder-name {
+  opacity: 1;
+}
+
+.folder-name {
+  display: block;
+  position: absolute;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  color: #ffffff;
+  font-size: 2.6rem;
+  opacity: 0;
+  padding-top: 24rem;
+  background-image: url('images/folder.png');
+  background-position: center 7.4rem;
+  background-repeat: no-repeat;
+  background-size: 17rem;
+  transition: opacity 0.2s;
+}
+
+#main-section[data-mode=""].folder-scrollable-focused #card-list-frame smart-button {
+  filter: brightness(0.7);
+}
+
+#main-section[data-mode=""].folder-scrollable-focused #card-list-frame,
+#main-section[data-mode=""].folder-scrollable-focused #folder-list-frame {
+  transform: translateY(-15rem);
 }
