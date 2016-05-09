@@ -269,6 +269,50 @@
       }
 
       cardButton.appendChild(folderContentContainer);
+    },
+
+    getSortKey: function(card) {
+      var defaultOrder = {
+        tv: 1,
+        application: 2,
+        device: 3,
+        website: 4
+      };
+
+      var key = String(defaultOrder[card.group] || 5);
+      if (!(card instanceof Deck)) {
+        var lang = document.documentElement.lang;
+        var name = this.cardManager.resolveCardName(card, lang);
+        if (name.raw) {
+          key += name.raw;
+        } else if (name.id == 'channel-name' &&
+                   name.args && name.args.number !== undefined) {
+          // For tv channels only. We sort them by channel numbers.
+          key += '0'.repeat(10 - name.args.number.length) + name.args.number;
+        } else if (name.id) {
+          // As a fallback, we sort cards by l10n-id.
+          key += name.id;
+        } else {
+          // If nothing can be sorted, append the last printable character to
+          // the key to make it be sorted follow other well-sorted cards.
+          key += '~';
+        }
+      }
+
+      return key.toUpperCase();
+    },
+
+    getLaunchingURL: function (card) {
+      if (card.url) {
+        return card.url;
+      }
+      if (card.launchURL) {
+        return card.launchURL;
+      }
+      var manifest = card.nativeApp.manifest;
+      var origin = manifest.origin || card.nativeApp.origin;
+      var path = manifest.launch_path || '';
+      return origin + path;
     }
   };
   exports.CardUtil = CardUtil;
