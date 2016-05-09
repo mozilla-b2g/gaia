@@ -1,9 +1,7 @@
-/* global SettingsListener, KeyboardManager, InteractiveNotifications */
+/* global KeyboardManager, InteractiveNotifications */
 'use strict';
 
 (function(exports) {
-  var SETTINGS = 'remote-control.enabled';
-
   var WATCHED_EVENTS = [
     'mozChromeRemoteControlEvent',
     'focuschanged'
@@ -14,17 +12,12 @@
   ];
 
   function RemoteControl() {
-    this._enabled = false;
     this._activePIN = null;
     this._isCursorMode = null;
-    this._settingsObserver = null;
   }
 
   RemoteControl.prototype = {
     start: function() {
-      this._settingsObserver = this._setEnable.bind(this);
-      SettingsListener.observe(SETTINGS, false, this._settingsObserver);
-
       WATCHED_EVENTS.forEach((event) => {
         window.addEventListener(event, this);
       });
@@ -35,10 +28,6 @@
         window.removeEventListener(event, this);
       });
 
-      SettingsListener.unobserve(SETTINGS, this._settingsObserver);
-      this._settingsObserver = null;
-
-      this._setEnable(false);
       this._isCursorMode = null;
     },
 
@@ -55,15 +44,9 @@
           this._fireControlModeChanged(isCursorMode);
           break;
         case 'mozChromeRemoteControlEvent':
-          if (this._enabled) {
-            this._handleRemoteControlEvent(evt.detail);
-          }
+          this._handleRemoteControlEvent(evt.detail);
           break;
       }
-    },
-
-    _setEnable: function(enabled) {
-      this._enabled = enabled;
     },
 
     _handleRemoteControlEvent: function(detail) {
