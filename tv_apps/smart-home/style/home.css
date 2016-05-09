@@ -89,6 +89,10 @@ section {
   color: white;
 }
 
+.card smart-button[type="app-button"].website {
+  background-color: #000;
+}
+
 .card smart-button[type="app-button"].new-card {
   opacity: 0;
   transform: scale(0.5, 0.5);
@@ -407,6 +411,10 @@ smart-button[type="app-button"].focused ~ span.name {
 
 .folder-content-container > div.tv-channel {
   background-color: #272727;
+}
+
+.folder-content-container > div.website {
+  background-color: #000;
 }
 
 .folder-content-container > div[data-icon]::before {
