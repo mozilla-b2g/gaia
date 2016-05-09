@@ -151,7 +151,9 @@
             URL.revokeObjectURL(elem.dataset.revokableURL);
           }
           elem.dataset.revokableURL = blob ? iconURL : undefined;
-          elem.style.backgroundImage = 'url("' + iconURL + '")';
+
+          var iconElem = elem.getElementsByClassName('icon')[0];
+          iconElem.style.backgroundImage = 'url("' + iconURL + '")';
         });
     },
 
@@ -167,6 +169,9 @@
      */
     _createAppGridElement: function ad_createAppGridElement(app) {
       var appButton = document.createElement('smart-button');
+      var appIcon = document.createElement('div');
+      var appName = document.createElement('span');
+
       appButton.dataset.manifestURL = app.manifestURL;
       appButton.dataset.entryPoint = app.entryPoint;
       appButton.dataset.name = app.name;
@@ -176,12 +181,25 @@
       appButton.classList.add('app-button');
       appButton.classList.add('navigable');
       appButton.setAttribute('label', app.name);
+
+      appIcon.classList.add('icon');
+
+      appName.classList.add('name');
+      appName.textContent = app.name;
+
+      appButton.appendChild(appIcon);
+      appButton.appendChild(appName);
+
       this._fillAppButtonIcon(app, appButton);
+
       return appButton;
     },
 
     _createBookmarkGridElement: function ad_createBookmarkElement(bookmark) {
       var bookmarkButton = document.createElement('smart-button');
+      var bookmarkIcon = document.createElement('div');
+      var bookmarkName = document.createElement('span');
+
       bookmarkButton.dataset.url = bookmark.url;
       bookmarkButton.dataset.name = bookmark.name;
       bookmarkButton.dataset.removable = true;
@@ -191,11 +209,20 @@
       bookmarkButton.classList.add('navigable');
       bookmarkButton.setAttribute('label', bookmark.name);
 
-      if(bookmark.icon) {
+      bookmarkIcon.classList.add('icon');
+
+      bookmarkName.classList.add('name');
+      bookmarkName.textContent = bookmark.name;
+
+      bookmarkButton.appendChild(bookmarkIcon);
+      bookmarkButton.appendChild(bookmarkName);
+
+      if (bookmark.icon) {
         var iconURL = URL.createObjectURL(bookmark.icon);
         bookmarkButton.dataset.revokableURL = iconURL;
-        bookmarkButton.style.backgroundImage = 'url("' + iconURL + '")';
+        bookmarkIcon.style.backgroundImage = 'url("' + iconURL + '")';
       }
+
       return bookmarkButton;
     },
 
