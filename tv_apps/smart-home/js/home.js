@@ -18,9 +18,7 @@
 
     navigableIds:
         ['search-button', 'search-input', 'settings-button',
-            'filter-all-button', 'filter-tv-button', 'filter-app-button',
-            'filter-device-button', 'filter-website-button',
-            'add-folder-button'],
+            'filter-tab-group', 'add-folder-button'],
 
     topElementIds: ['search-button', 'search-input',
             'settings-button', 'add-folder-button'],
@@ -486,20 +484,6 @@
         return;
       }
 
-      if (key == 'down') {
-        var dest = this.spatialNavigator.navigate(focus, key);
-        if (dest && dest.matches &&
-            dest.matches('#filter-tab-group smart-button')) {
-          var currentFilterElement = document.querySelector(
-            '#filter-tab-group smart-button[data-icon-type="' +
-            this.filterManager.getCurrentFilter() + '"]');
-          if (currentFilterElement) {
-            this.spatialNavigator.focus(currentFilterElement);
-            return;
-          }
-        }
-      }
-
       this.spatialNavigator.move(key);
     },
 
@@ -581,10 +565,18 @@
           this._focus.blur();
         }
 
-        elem.focus();
-        this._focus = elem;
         this._focusScrollable = undefined;
-        this.checkFocusedGroup(elem);
+
+        switch(elem.nodeName.toLowerCase()) {
+          case 'menu-group':
+            this.handleFocusMenuGroup(elem);
+            break;
+          default:
+            elem.focus();
+            this._focus = elem;
+            this.checkFocusedGroup(elem);
+            break;
+        }
       } else {
         this._focusScrollable = undefined;
       }
@@ -612,6 +604,31 @@
         this._focusedGroup.close();
         this._focusedGroup = null;
       }
+    },
+
+    handleFocusMenuGroup: function(menuGroup) {
+      var self = this;
+      menuGroup.once('opened', function() {
+        self.spatialNavigator.remove(menuGroup);
+
+        var buttons = menuGroup.getElementsByTagName('smart-button');
+        var currentFilterElement = menuGroup.querySelector(
+          '[data-icon-type="' + self.filterManager.getCurrentFilter() + '"]');
+
+        self.spatialNavigator.multiAdd(buttons);
+        self.spatialNavigator.focus(currentFilterElement || buttons[0]);
+      });
+      menuGroup.once('will-close', function() {
+        // Clear all opened event listener because we won't have it if opened is
+        // not fired and the group is trying to close it self.
+        menuGroup.off('opened');
+        self.spatialNavigator.add(menuGroup);
+        self.spatialNavigator.multiRemove(
+          menuGroup.getElementsByTagName('smart-button'));
+      });
+      this.checkFocusedGroup(menuGroup);
+      this._focusedGroup = menuGroup;
+      menuGroup.open();
     },
 
     handleCardFocus: function(scrollable, itemElem, nodeElem) {
