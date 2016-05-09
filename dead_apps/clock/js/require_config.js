@@ -5,21 +5,24 @@ requirejs.config({
   // device is under super-low-memory stress, as it may take a while
   // for the device to get around to loading things like Clock's alarm
   // ringing screen, and we absolutely do not want that to time out.
-  waitSeconds: 7,
+  waitSeconds: 0,
   paths: {
-    shared: '../shared'
+    shared: '../../shared'
   },
   shim: {
-    'shared/js/template': {
+    '../../../shared/js/template': {
       exports: 'Template'
     },
-    'shared/js/gesture_detector': {
+    'picker/../../../../shared/js/gesture_detector': {
       exports: 'GestureDetector'
     },
-    'shared/js/async_storage': {
+    '../../../shared/js/async_storage': {
       exports: 'asyncStorage'
     },
-    'shared/js/accessibility_helper': {
+    'panels/../../../../shared/js/async_storage': {
+      exports: 'asyncStorage'
+    },
+    '../../../shared/js/accessibility_helper': {
       exports: 'AccessibilityHelper'
     }
   }

@@ -1,5 +1,5 @@
-@import url('../shared/style/input_areas.css');
-@import url('../shared/style/buttons.css');
+@import url('../../../shared/style/input_areas.css');
+@import url('../../../shared/style/buttons.css');
 
 html, body {
   width: 100%;

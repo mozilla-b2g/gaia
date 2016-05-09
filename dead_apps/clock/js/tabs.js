@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var AccessibilityHelper = require('shared/js/accessibility_helper');
+var AccessibilityHelper = require('../../../shared/js/accessibility_helper');
 
 /**
  * Abstraction for handling the Tabs links at the bottom of the UI.

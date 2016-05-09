@@ -15,48 +15,36 @@
     <link rel="stylesheet" type="text/css" href="style/picker/picker.css">
 
     <!-- Shared styles -->
-    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/tabs.css">
+    <link rel="stylesheet" type="text/css" href="../../shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="../../shared/style/tabs.css">
 
     <link rel="stylesheet" type="text/css" href="style/hacks.css">
 
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
-    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
-    <link rel="localization" href="/shared/locales/intl/listformat.{locale}.properties">
-    <link rel="localization" href="/shared/locales/intl/mozintl.{locale}.properties">
-    <link rel="localization" href="locales/clock.{locale}.properties">
-    <link rel="localization" href="locales/alarms.{locale}.properties">
-    <script defer src="/shared/js/intl/l20n.js"></script>
-    <script defer src="/shared/js/date_time_helper.js"></script>
-    <script defer src="/shared/js/moz_intl.js"></script>
-    <script defer src="/shared/js/intl_helper.js"></script>
+    <link rel="localization" href="../../shared/locales/date/date.en-US.properties">
+    <link rel="localization" href="../../shared/locales/intl/listformat.en-US.properties">
+    <link rel="localization" href="../../shared/locales/intl/mozintl.en-US.properties">
+    <link rel="localization" href="locales/clock.en-US.properties">
+    <link rel="localization" href="locales/alarms.en-US.properties">
+    <script defer src="../../shared/js/intl/l20n.js"></script>
+    <script defer src="../../shared/js/moz_intl.js"></script>
+    <script defer src="../../shared/js/intl_helper.js"></script>
 
-    <!-- These are lazy loaded. Need to be included here so the build picks them up
-    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" >
-    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" >
-    -->
-
-    <!--
-      The following scripts are lazy loaded but left here to ensure
-      they get copied over from shared during the build
-    -->
-    <!-- <script defer src="/shared/js/async_storage.js"></script> -->
-    <!-- <script defer src="/shared/js/gesture_detector.js"></script> -->
-    <!-- <script defer src="/shared/js/accessibility_helper.js"></script> -->
-    <!-- <script defer src="/shared/js/template.js"></script> -->
+    <link rel="stylesheet" type="text/css" href="../../shared/style/input_areas.css" >
+    <link rel="stylesheet" type="text/css" href="../../shared/style/buttons.css" >
 
     <!-- Web Components -->
-    <script defer src="/shared/elements/config.js"></script>
-    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
-    <link rel="stylesheet" type="text/css" href="../shared/elements/gaia-theme/gaia-theme.css" />
-    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" /> -->
-    <script defer src="/shared/js/component_utils.js"></script>
-    <script defer src="/shared/elements/gaia_switch/script.js"></script>
+    <script defer src="../../shared/elements/gaia-component/gaia-component.js"></script>
+    <script defer src="../../shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../shared/elements/gaia-theme/gaia-theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../shared/elements/gaia-icons/gaia-icons.css" />
+    <script defer src="../../shared/js/component_utils.js"></script>
+    <script defer src="../../shared/elements/gaia_switch/script.js"></script>
 
     <!-- Shared sounds -->
-    <link rel="resources" type="directory" href="shared/resources/media/alarms/">
+    <link rel="resources" type="directory" href="../../shared/resources/media/alarms/">
   </head>
 
   <body class="theme-media">

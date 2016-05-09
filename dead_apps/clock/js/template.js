@@ -1,6 +1,6 @@
 define(function(require) {
 'use strict';
-var Template = require('shared/js/template');
+var Template = require('../../../shared/js/template');
 
 function ClockTemplate(text) {
   var srcNode = document.createElement('div');

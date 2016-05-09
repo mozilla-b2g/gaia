@@ -21,7 +21,7 @@ define(function(require) {
       window.location.origin + '/onring.html');
 
     // Handle the system's alarm event.
-    navigator.mozSetMessageHandler('alarm', this.onMozAlarm.bind(this));
+    // navigator.mozSetMessageHandler('alarm', this.onMozAlarm.bind(this));
     window.addEventListener('test-alarm', this.onMozAlarm.bind(this));
 
     // Handle events transparently from the child window.
@@ -47,24 +47,24 @@ define(function(require) {
       console.log('[Clock] -------------------------------------\n');
     });
 
-    var request = navigator.mozAlarms.getAll();
-    request.onsuccess = function() {
-      console.log('[Clock] ======= Remaining mozAlarms: ========\n');
+    // var request = navigator.mozAlarms.getAll();
+    // request.onsuccess = function() {
+    //   console.log('[Clock] ======= Remaining mozAlarms: ========\n');
 
-      if (!request.result) {
-        console.log('[Clock] mozAlarm API invariant failure?');
-      } else {
-        request.result.forEach(function(alarm) {
-          console.log('[Clock]   ', JSON.stringify(alarm));
-        });
-      }
+    //   if (!request.result) {
+    //     console.log('[Clock] mozAlarm API invariant failure?');
+    //   } else {
+    //     request.result.forEach(function(alarm) {
+    //       console.log('[Clock]   ', JSON.stringify(alarm));
+    //     });
+    //   }
 
-      console.log('[Clock] -------------------------------------\n');
-    };
+    //   console.log('[Clock] -------------------------------------\n');
+    // };
 
-    request.onerror = function() {
-      console.error('[Clock] Failed to get list of mozAlarms:', this.error);
-    };
+    // request.onerror = function() {
+    //   console.error('[Clock] Failed to get list of mozAlarms:', this.error);
+    // };
   }
 
   // Log at startup.
