@@ -161,6 +161,10 @@
           cardButton.dataset.icon = 'tv';
           cardButton.setAttribute('app-type', 'tv');
         } else {
+          if (card.group === 'website') {
+            cardButton.classList.add('website');
+          }
+
           cardButton.setAttribute('app-type', 'app');
           this._fillCardIcon(cardButton, card);
         }
@@ -239,6 +243,9 @@
                 subCardElem.dataset.icon = 'tv';
                 subCardElem.classList.add('tv-channel');
                 needFillCardIcon = false;
+                break;
+              case 'website':
+                subCardElem.classList.add('website');
                 break;
             }
           }
