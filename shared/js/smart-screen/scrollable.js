@@ -46,6 +46,7 @@
   var DEFAULT_SPACING = 2;
   var DEFAULT_LEFT_MARGIN = 2;
   var REVERSE_LIST_BOUNDARY = 0.5;
+  var AUTOREVERSE = false;
   function XScrollable(param) {
     this.translateX = 0;
     this._colspanOnFocus = 0;
@@ -198,8 +199,8 @@
 
       // If the reference element locates at right of the screen without enough
       // space, we need to show the list reversedly toward left of the screen.
-      this._isReversed = refRect.left >
-                       this.frameElem.offsetWidth * REVERSE_LIST_BOUNDARY;
+      this._isReversed = AUTOREVERSE &&
+              refRect.left > this.frameElem.offsetWidth * REVERSE_LIST_BOUNDARY;
       this.listElem.classList.toggle('reversed', this._isReversed);
       // Determine initial focus (depends on reversed or not)
       var initNode = this.getItemFromNode(
