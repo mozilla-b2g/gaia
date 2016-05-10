@@ -1,4 +1,4 @@
-reruns: 2
+reruns: 1
 task:
   metadata:
     name: Gaia unit tests in Mulet chunk {{chunk}}
