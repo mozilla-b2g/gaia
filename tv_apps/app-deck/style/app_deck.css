@@ -53,24 +53,58 @@ section {
 #app-deck-grid-view:after {
   content: "";
   display: block;
-  /* app-deck-grid-view has padding-top 0.2rem, and the buttons in the first row
-     have margin-top 5.8rem, so app-deck-grid-view bottom should have height
-     5.8 + 0.2 - 2.9(button margin-bottom) = 3.1rem */
-  height: 3.1rem;
+  height: 7rem;
 }
 
 smart-button[type="app-button"] {
   width: 18rem;
   height: 18rem;
+  margin: 7rem 2.6rem 5.5rem;
+  border-radius: 0;
+  overflow: visible;
+
   background-color: transparent;
   background-repeat: no-repeat;
-  margin: 5.8rem 2.6rem 2.9rem 2.6rem;
   background-size: 100% auto;
 }
 
 /** we use :after as label */
 smart-button[type="app-button"]:after {
+  display: none;
+}
+
+smart-button[type="app-button"] .icon {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  -moz-outline-radius: 60%;
+  outline: 0 solid transparent;
+
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0);
+  transition-duration: 0.42s;
+}
+
+smart-button[type="app-button"] .name {
+  position: absolute;
+  bottom: -5.5rem;
+
   width: 18rem;
-  height: 5rem;
-  font-size: 1.6rem;
+
+  font-size: 1.8rem;
+  line-height: 2rem;
+  text-align: center;
+
+  color: #4D4D4D;
+}
+
+smart-button[type="app-button"].focused {
+  outline: 0;
+}
+
+smart-button[type="app-button"].focused .icon {
+  outline: 0.8rem solid #FFF;
 }
