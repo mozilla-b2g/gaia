@@ -102,21 +102,28 @@
 /* Currently the :after tag is not used as text label (a span child element is
    used instead) so we use this for the "checked" style instead. */
 #card-picker smart-button[type="app-button"]:after {
-  background-color: transparent;
-  transition: background-color 0.1s linear;
+  content: '';
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  opacity: 0;
+
+  background-color: rgba(255, 255, 255, 0.8);
+  background-image: url('images/tick_s.png');
+  background-size: 9rem 9rem;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  transition: opacity 0.1s linear;
 }
 
 #card-picker smart-button[type="app-button"].selected:after {
-  background-color: RGBA(255, 255, 255, 0.8);
-  font-family: "smart-icons";
-  content: 'check';
-  color: #61acd7;
-  font-size: 8.8rem;
-  font-style: normal;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  line-height: 19rem;
+  opacity: 1;
 }
 
 #card-picker smart-button[type="app-button"].tv-channel {
