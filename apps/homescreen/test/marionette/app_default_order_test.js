@@ -17,27 +17,7 @@ marionette('Homescreen - Default app order', function() {
 
   test('Default app order is respected', function() {
     var expectedOrder = [
-      'Phone',
-      'Messages',
-      'Contacts',
-      'E-Mail',
-      'Browser',
-      'Camera',
-      'Gallery',
-      'Music',
-      'Video',
-      'Marketplace',
-      'Calendar',
-      'Clock',
-      'Settings',
-      'FM Radio',
-      'BuddyUp',
-      'Bugzilla Lite',
-      'Facebook',
-      'Twitter',
-      'Notes',
-      'Calculator',
-      'Usage'
+      // No icons expected at this time.
     ];
     var length = expectedOrder.length;
 

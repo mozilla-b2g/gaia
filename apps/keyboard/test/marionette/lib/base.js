@@ -10,7 +10,6 @@ function Base(client, origin) {
 Base.prototype = {
   launch: function() {
     this.client.apps.launch(this.origin);
-
     this.switchTo();
   },
 
