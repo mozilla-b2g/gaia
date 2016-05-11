@@ -1,5 +1,5 @@
 /* global BaseUI, LazyLoader, InputParser, ValueSelector, SpinDatePicker,
-          ValuePicker, Template */
+          ValuePicker, Template, focusManager */
 
 'use strict';
 
@@ -229,9 +229,7 @@
     }
     this.element.blur();
     this.element.hidden = true;
-    if (this.app) {
-      this.app.focus();
-    }
+    focusManager.focus();
     this.publish('hidden');
   };
 
