@@ -1,1 +1,1 @@
-window.GaiaAppIconBaseurl = 'shared/elements/gaia-site-icon/';
+window.GaiaAppIconBaseurl = '../shared/elements/gaia-site-icon/';
