@@ -1,5 +1,5 @@
-/* global MozActivity, AppsMetadata, Datastore, LazyLoader, FirstRun,
-          IconsHelper, Settings */
+/* global MozActivity, AppsMetadata, LazyLoader, FirstRun,
+          IconsHelper, Settings, PinnedPlaces */
 'use strict';
 
 (function(exports) {
@@ -66,7 +66,6 @@
 
     // Element references
     this.panel = document.getElementById('apps-panel');
-    this.meta = document.head.querySelector('meta[name="theme-color"]');
     this.scrollable = document.querySelector('#apps-panel > .scrollable');
     this.icons = document.getElementById('apps');
     this.remove = document.getElementById('remove');
@@ -74,31 +73,9 @@
     this.done = document.getElementById('done');
     this.cancelDownload = document.getElementById('cancel-download');
     this.resumeDownload = document.getElementById('resume-download');
-    this.dialogs = [this.cancelDownload, this.resumeDownload];
-
-    // XXX Working around gaia-components issue #8
-    var dialog;
-    for (dialog of this.dialogs) {
-      dialog.hide();
-    }
-
-    // Change the colour of the statusbar when showing dialogs
-    var dialogVisibilityCallback = () => {
-      for (var dialog of this.dialogs) {
-        if (dialog.opened) {
-          this.meta.content = 'white';
-          document.body.classList.add('dialog-active');
-          return;
-        }
-      }
-      this.meta.content = 'transparent';
-      document.body.classList.remove('dialog-active');
-    };
-    for (dialog of this.dialogs) {
-      var observer = new MutationObserver(dialogVisibilityCallback);
-      observer.observe(dialog,
-        { attributes: true, attributeFilter: ['style'] });
-    }
+    this.confirmUnpin = document.getElementById('confirm-unpin-site');
+    this.dialogs =
+      [this.cancelDownload, this.resumeDownload, this.confirmUnpin];
 
     // Paging
     this.resizeTimeout = null;
@@ -149,8 +126,6 @@
     this.attachInputHandlers(this.icons);
     this.touchSelectedIcon = this.touchSelectedIcon.bind(this);
     this.icons.addEventListener('touchstart', this);
-    navigator.mozApps.mgmt.addEventListener('install', this);
-    navigator.mozApps.mgmt.addEventListener('uninstall', this);
     window.addEventListener('localized', this);
     window.addEventListener('online', this);
     window.addEventListener('resize', this);
@@ -174,7 +149,7 @@
       this.iconsToRetry = [];
       this.pendingIcons = {};
       this.metadata = new AppsMetadata();
-      this.bookmarks = new Datastore('bookmarks_store');
+      this.places = new PinnedPlaces();
 
       // Make sure icons isn't doing lots of unnecessary work while we're
       // loading the first screen of apps.
@@ -243,47 +218,32 @@
             return Promise.resolve();
           }),
 
-        // Populate apps
-        new Promise((resolve, reject) => {
-          var request = navigator.mozApps.mgmt.getAll();
-          request.onsuccess = (e) => {
-            for (var app of request.result) {
-              this.addApp(app);
-            }
-            resolve();
-          };
-          request.onerror = (e) => {
-            console.error('Error calling getAll: ' + request.error.name);
-            resolve();
-          };
-        }),
-
-        // Initialise and populate bookmarks
-        this.bookmarks.init().then(() => {
-          document.addEventListener('bookmarks_store-set', (e) => {
-            var id = e.detail.id;
-            this.bookmarks.get(id).then((bookmark) => {
+        // Initialise and populate pinned sites
+        this.places.init('sites').then(() => {
+          document.addEventListener('sites-pinned', (e) => {
+            var url = e.detail.url;
+            this.places.get(url).then((bookmark) => {
               this.iterateIcons(icon => {
-                if (icon.bookmark && icon.bookmark.id === id) {
-                  icon.bookmark = bookmark.data;
+                if (icon.bookmark && icon.bookmark.id === url) {
+                  icon.bookmark = bookmark;
                   icon.refresh();
                 }
               });
-              this.addAppIcon(bookmark.data);
+              this.addAppIcon(bookmark);
               this.storeAppOrder();
             });
           });
 
-          document.addEventListener('bookmarks_store-removed', (e) => {
-            var id = e.detail.id;
+          document.addEventListener('sites-unpinned', (e) => {
+            var url = e.detail.url;
             this.iterateIcons((icon, container, parent) => {
-              if (icon.bookmark && icon.bookmark.id === id) {
+              if (icon.bookmark && icon.bookmark.id === url) {
                 parent.removeChild(container, () => {
                   this.storeAppOrder();
                   this.refreshGridSize();
                   this.snapScrollPosition();
                 });
-                this.metadata.remove(id);
+                this.metadata.remove(url);
 
                 if (this.selectedIcon === icon) {
                   this.updateSelectedIcon(null);
@@ -292,26 +252,12 @@
             });
           });
 
-          document.addEventListener('bookmarks_store-cleared', () => {
-            this.iterateIcons((icon, container, parent) => {
-              if (icon.bookmark) {
-                parent.removeChild(container);
-              }
-            });
-            this.storeAppOrder();
-            this.refreshGridSize();
-            this.snapScrollPosition();
-          });
-        }, (e) => {
-          console.error('Error initialising bookmarks', e);
-          return Promise.resolve();
-        }).then(() => {
-          return this.bookmarks.getAll().then((bookmarks) => {
-            for (var bookmark of bookmarks) {
-              this.addAppIcon(bookmark.data);
+          return this.places.getAll().then(sites => {
+            for (var site of sites) {
+              this.addAppIcon(site);
             }
-          }, (e) => {
-            console.error('Error getting bookmarks', e);
+          }, e => {
+            console.error('Error initialising sites DB', e);
             return Promise.resolve();
           });
         })
@@ -876,26 +822,14 @@
         return;
       }
 
-      if (this.selectedIcon.app) {
-        if (!this.selectedIcon.app.removable) {
-          return;
-        }
-        navigator.mozApps.mgmt.uninstall(this.selectedIcon.app);
-      } else if (this.selectedIcon.bookmark) {
-        var remove = new MozActivity({
-          name: 'remove-bookmark',
-          data: { type: 'url', url: this.selectedIcon.bookmark.id }
-        });
-
-        // Re-enter edit mode because the activity will hide the document,
-        // which exits edit mode
-        var icon = this.selectedIcon;
-        remove.onsuccess = () => {
-          this.enterEditMode(null);
-        };
-        remove.onerror = () => {
-          this.enterEditMode(icon);
-        };
+      if (this.selectedIcon.bookmark) {
+        this.showActionDialog(this.confirmUnpin,
+          JSON.stringify({ name: this.selectedIcon.name }),
+          [() => {
+             this.places.unpin(this.selectedIcon.bookmark.id).then(() => {
+               this.enterEditMode(null);
+             });
+           }]);
       }
     },
 
@@ -1045,9 +979,11 @@
           break;
         }
 
+        // TODO: I think we can remove this entire switch block, as this is
+        //       all specific to mozApps. Leaving in case we recover some of
+        //       this functionality with pinned sites.
         switch (icon.state) {
           case 'unrecoverable':
-            navigator.mozApps.mgmt.uninstall(icon.app);
             break;
 
           case 'installing':

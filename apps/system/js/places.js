@@ -1,6 +1,6 @@
 'use strict';
 /* globals Promise, asyncStorage, Service, BaseModule, indexedDB,
-   BroadcastChannel */
+   BroadcastChannel, PlacesHelper */
 /* exported Places */
 
 (function() {
@@ -28,17 +28,6 @@
 
   BaseModule.create(Places, {
     name: 'Places',
-
-    /**
-     * The places store name.
-     * @memberof Places.prototype
-     * @type {String}
-     */
-    DB_NAME: 'places',
-    DB_VERSION: 3,
-    SITES_STORE: 'sites',
-    PAGES_STORE: 'pages',
-    VISITS_STORE: 'visits',
 
     /**
      * A reference to the places datastore.
@@ -86,7 +75,7 @@
     _timeouts: {},
 
     /**
-     * {BoradcastChannel} to emit messages for changes in the places database.
+     * {BroadcastChannel} to emit messages for changes in the places database.
      * @memberof Places.prototype
      * @type {BroadcastChannel}
      */
@@ -129,7 +118,8 @@
      */
     openDb: function() {
       return new Promise((function(resolve, reject) {
-        var request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+        var request =
+          indexedDB.open(PlacesHelper.DB_NAME, PlacesHelper.DB_VERSION);
         request.onsuccess = (function(event) {
           this.db = event.target.result;
           resolve();
@@ -139,42 +129,9 @@
           reject(request.errorCode);
         };
 
-        request.onupgradeneeded = this.upgrade.bind(this);
+        request.onupgradeneeded = PlacesHelper.upgradeDb;
       }).bind(this));
      },
-
-    /**
-     * Upgrade database to new version.
-     *
-     * @param {Event} upgradeneeded event.
-     */
-
-    upgrade: function(e) {
-      this.db = e.target.result;
-      var fromVersion = e.oldVersion;
-
-      if (fromVersion < 1) {
-        var pages = this.db.createObjectStore(this.PAGES_STORE, {
-          keyPath: 'url'
-        });
-        pages.createIndex('frecency', 'frecency', { unique: false });
-        pages.createIndex('visited', 'visited', { unique: false });
-
-        var sitesStore = this.db.createObjectStore(this.SITES_STORE, {
-          keyPath: 'url'
-        });
-        sitesStore.createIndex('frecency', 'frecency', { unique: false });
-      }
-
-      if (fromVersion < 2) {
-        asyncStorage.removeItem('latest-revision');
-        var visits = this.db.createObjectStore(this.VISITS_STORE, {
-          keyPath: 'date'
-        });
-        visits.createIndex('date', 'date', { unique: true });
-        visits.createIndex('url', 'url', { unique: false });
-      }
-    },
 
     /**
      * Remove duplicated entries.
@@ -316,23 +273,37 @@
      * @param {Function} fun Handles place updates.
      * @memberof Places.prototype
      */
-    editPlace: function(url, fun) {
+    editPlace: function(url, fun, warned) {
       return new Promise(resolve => {
         this.getDb().then(db => {
-          var transaction = db.transaction(this.PAGES_STORE, 'readwrite');
-          var objectStore = transaction.objectStore(this.PAGES_STORE);
+          var transaction =
+            db.transaction(PlacesHelper.PAGES_STORE, 'readwrite');
+          var objectStore = transaction.objectStore(PlacesHelper.PAGES_STORE);
           var request = objectStore.get(url);
           request.onsuccess = () => {
             var place = request.result;
             place = place || this.defaultPlace(url);
-            fun(place, newPlace => {
-              if (this.writeInProgress) {
-                return this.editPlace(url, fun);
-              }
-              this.writeInProgress = true;
 
+            if (this.writeInProgress) {
+              if (!warned) {
+                console.info('Can\'t edit ' + url + ', waiting for write');
+              }
+              return this.editPlace(url, fun, true);
+            }
+
+            if (warned) {
+              console.info('Write finished, editing ' + url);
+            }
+
+            this.writeInProgress = true;
+            fun(place, newPlace => {
               var requestUpdate = objectStore.put(newPlace);
               requestUpdate.onsuccess = () => {
+                this.writeInProgress = false;
+                resolve();
+              };
+              requestUpdate.onerror = e => {
+                console.error('Error editing place', e, newPlace);
                 this.writeInProgress = false;
                 resolve();
               };
@@ -390,12 +361,13 @@
     isPinned: function(url) {
       return new Promise((resolve, reject) => {
         return this.getDb().then(db => {
-          var transaction = db.transaction(this.PAGES_STORE, 'readonly');
-          var objectStore = transaction.objectStore(this.PAGES_STORE);
+          var transaction =
+            db.transaction(PlacesHelper.PAGES_STORE, 'readonly');
+          var objectStore = transaction.objectStore(PlacesHelper.PAGES_STORE);
           var request = objectStore.get(url);
           request.onsuccess = function() {
             var place = request.result;
-            return resolve(!!place.pinned);
+            return resolve(place && !!place.pinned);
           };
           request.onerror = function(e) {
             console.error(`Error getting the page details: ${e}`);
@@ -413,8 +385,8 @@
      */
     pinSite: function(url, siteObject) {
       return this.getDb().then((db) => {
-        var transaction = db.transaction(this.SITES_STORE, 'readwrite');
-        var objectStore = transaction.objectStore(this.SITES_STORE);
+        var transaction = db.transaction(PlacesHelper.SITES_STORE, 'readwrite');
+        var objectStore = transaction.objectStore(PlacesHelper.SITES_STORE);
         var writeRequest = objectStore.put(siteObject);
 
         return new Promise((resolve, reject) => {
@@ -422,8 +394,6 @@
           writeRequest.onerror = reject;
         });
       }).then(() => {
-        console.log('Successfully pinned site with url ', siteObject.url);
-
         this._broadcastChannel.postMessage({
           type: 'sitePinned',
           url: url,
@@ -441,8 +411,8 @@
      */
     getPinnedSites: function() {
       var results = [];
-      var transaction = this.db.transaction(this.SITES_STORE);
-      var objectStore = transaction.objectStore(this.SITES_STORE);
+      var transaction = this.db.transaction(PlacesHelper.SITES_STORE);
+      var objectStore = transaction.objectStore(PlacesHelper.SITES_STORE);
       return new Promise((function(resolve, reject) {
         objectStore.openCursor().onsuccess = function(event) {
           var cursor = event.target.result;
@@ -466,8 +436,9 @@
     TRUNCATE_VISITS: 10,
 
     addToVisited: function(place) {
-      var transaction = this.db.transaction(this.VISITS_STORE, 'readwrite');
-      var visitsStore = transaction.objectStore(this.VISITS_STORE);
+      var transaction =
+        this.db.transaction(PlacesHelper.VISITS_STORE, 'readwrite');
+      var visitsStore = transaction.objectStore(PlacesHelper.VISITS_STORE);
       visitsStore.put({
         date: place.visited,
         url: place.url,
@@ -707,6 +678,7 @@
       this.editPlace(url, (place, cb) => {
         var edits = this._placeChanges[url];
         if (!edits) {
+          cb(place);
           return;
         }
 
