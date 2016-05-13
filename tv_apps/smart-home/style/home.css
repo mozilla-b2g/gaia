@@ -277,6 +277,15 @@ smart-button.hidden {
   display: none;
 }
 
+#add-folder-button {
+  transition: all 0.4s;
+}
+
+#add-folder-button.hidden {
+  display: inline-block;
+  opacity: 0;
+  visibility: hidden;
+}
 
 /* For smart-button, we put card name in pseudo-element :after. However, we need
  * to localize card name and l10n library do not support localizing element with
