@@ -7,6 +7,7 @@
 /* global Settings */
 /* global Tooltip*/
 /* global UrlHelper */
+/* global BrowserDialog */
 
 'use strict';
 
@@ -319,13 +320,8 @@ var Toolbar = {
 
     Browser.currentInfo.dom.getCanGoBack().onsuccess = (function(ev) {
       if(!ev.target.result){
-        // dialog
-        // XXX: refactor this and the same code in awesomescreen.js
-        document.l10n.formatValue('LT_BROWSER_CONFIRM_EXIT2')
-        .then(result => {
-          if (window.confirm(result)) {
-            window.close();
-          }
+        BrowserDialog.createDialog('exit_browser', null).then(() => {
+          window.close();
         });
         return;
       }
