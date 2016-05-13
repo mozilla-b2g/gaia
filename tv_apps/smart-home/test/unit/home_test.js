@@ -54,8 +54,8 @@ var mocksHelperForHomeTest = new MocksHelper([
 suite('home', function() {
   var realL10n = document.l10n;
   var realMozActivity = window.MozActivity;
-  var searchButton, settingsButton, timeElem;
-  var filterTabGroup, filterAllButton;
+  var mainSection, filterTabGroup;
+  var searchButton, settingsButton;
   var subject;
   var fakeTimer;
 
@@ -65,36 +65,37 @@ suite('home', function() {
     realL10n = document.l10n;
     document.l10n = MockL10n;
 
+    mainSection = document.createElement('div');
+    mainSection.id = 'main-section';
+
     searchButton = document.createElement('button');
     searchButton.id = 'search-button';
-    document.body.appendChild(searchButton);
+    mainSection.appendChild(searchButton);
 
     settingsButton = document.createElement('button');
     settingsButton.id = 'settings-button';
-    document.body.appendChild(settingsButton);
+    mainSection.appendChild(settingsButton);
 
-    timeElem = document.createElement('div');
+    var timeElem = document.createElement('div');
     timeElem.id = 'time';
-    document.body.appendChild(timeElem);
+    mainSection.appendChild(timeElem);
 
     filterTabGroup = document.createElement('menu-group');
     filterTabGroup.once = function() {};
     filterTabGroup.open = function() {};
     filterTabGroup.close = function() {};
     filterTabGroup.id = 'filter-tab-group';
-    filterAllButton = document.createElement('smart-button');
+    var filterAllButton = document.createElement('smart-button');
     filterAllButton.id = 'filter-all-button';
     filterTabGroup.appendChild(filterAllButton);
-    document.body.appendChild(filterTabGroup);
+    mainSection.appendChild(filterTabGroup);
+
+    document.body.appendChild(mainSection);
   });
 
   suiteTeardown(function() {
     document.l10n = realL10n;
-    document.body.removeChild(searchButton);
-    document.body.removeChild(settingsButton);
-    document.body.removeChild(timeElem);
-    document.body.removeChild(filterTabGroup);
-
+    document.body.removeChild(mainSection);
   });
 
   setup(function() {
