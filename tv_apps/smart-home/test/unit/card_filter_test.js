@@ -1,7 +1,8 @@
-/* global MockSmartButton, CardFilter */
+/* global MockMenuGroup, MockSmartButton, CardFilter */
 'use strict';
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/bower_components/evt/index.js');
+requireApp('smart-home/test/unit/mock_menu_group.js');
 requireApp('smart-home/test/unit/mock_smart_button.js');
 requireApp('smart-home/js/card_filter.js');
 
@@ -27,7 +28,7 @@ suite('smart-home/CardFilter', function() {
         sinon.spy(button, 'addEventListener');
       });
 
-      mockMenuGroup = document.createElement('div');
+      mockMenuGroup = new MockMenuGroup();
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
@@ -58,7 +59,7 @@ suite('smart-home/CardFilter', function() {
         sinon.spy(button, 'removeEventListener');
       });
 
-      mockMenuGroup = document.createElement('div');
+      mockMenuGroup = new MockMenuGroup();
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
@@ -85,7 +86,7 @@ suite('smart-home/CardFilter', function() {
     setup(function() {
       mockSmartButtons = generateSmartButtons();
 
-      mockMenuGroup = document.createElement('div');
+      mockMenuGroup = new MockMenuGroup();
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
@@ -113,7 +114,7 @@ suite('smart-home/CardFilter', function() {
     setup(function() {
       mockSmartButtons = generateSmartButtons();
 
-      mockMenuGroup = document.createElement('div');
+      mockMenuGroup = new MockMenuGroup();
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
@@ -141,7 +142,7 @@ suite('smart-home/CardFilter', function() {
     setup(function() {
       mockSmartButtons = generateSmartButtons();
 
-      mockMenuGroup = document.createElement('div');
+      mockMenuGroup = new MockMenuGroup();
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
