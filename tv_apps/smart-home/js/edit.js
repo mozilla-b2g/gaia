@@ -384,7 +384,16 @@
         } else if (currentItem.classList.contains('delete-btn')) {
           this.openDeleteCardDialog(focus, focus.getNodeFromItem(currentItem));
         } else if (currentItem.classList.contains('hover')) {
-          // When a card is hovering over a folder, do nothing here.
+          // When a card is hovering over a folder, pressing Enter is to move
+          // card into folder and then toggle off arrange mode
+          if (!this._moveTimer) {
+            this.moveToFolder();
+            this._moveTimer = window.setTimeout(() => {
+              this._moveQueue.clearQueue();
+              this.onCardMoveAnimationEnd();
+              this.toggleArrangeMode();
+            }, CARD_TRANSFORM_LATENCY);
+          }
         } else {
           // Current focus is on a card
           this.toggleArrangeMode();
