@@ -1,5 +1,5 @@
 /* globals Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
-/* globals SmartList, BookmarkStore, HistoryStore, SharedUtils */
+/* globals SmartList, BookmarkStore, HistoryStore, SharedUtils, BrowserDialog */
 //IFDEF_FIREFOX_SYNC
 /* globals FirefoxSyncTabNavigation */
 /* globals FirefoxSyncTabList */
@@ -2742,10 +2742,8 @@ var Awesomescreen = {
       Browser.refreshBookmarkButton();
       this.defaultContentViewHidden();
     }else{
-      document.l10n.formatValue('LT_BROWSER_CONFIRM_EXIT2').then(result => {
-        if (window.confirm(result)) {
-          window.close();
-        }
+      BrowserDialog.createDialog('exit_browser', null).then(() => {
+        window.close();
       });
     }
   },
