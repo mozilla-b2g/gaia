@@ -115,6 +115,14 @@
       return this.frameElem.getBoundingClientRect();
     },
 
+    hasAttribute: function(attName) {
+      return this.frameElem.hasAttribute(attName);
+    },
+
+    getAttribute: function(attName) {
+      return this.frameElem.getAttribute(attName);
+    },
+
     endSlide: function() {
       // remove transition we added
       this.listElem.classList.add('no-transition');
