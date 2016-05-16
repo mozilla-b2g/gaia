@@ -29,7 +29,8 @@
 
       this.container.addEventListener('click', this.focus.bind(this));
 
-      this._spatialNavigator = new SpatialNavigator(this.navigableElements);
+      this._spatialNavigator = new SpatialNavigator(
+        this.navigableElements, { ignoreHiddenElement: true });
       this._spatialNavigator.on('focus', this.onFocus.bind(this));
       this._spatialNavigator.focus();
 
@@ -55,7 +56,7 @@
     },
 
     openKeyboard: function () {
-      this.panel.classList.add('hidden');
+      this._hidePanel();
       // Set readOnly to false and blur then focus input
       // to trigger keyboard opening
       this.input.readOnly = false;
@@ -71,7 +72,7 @@
     },
 
     closeKeyboard: function () {
-      this.panel.classList.remove('hidden');
+      this._showPanel();
       // Set readOnly to true and blur then focus input
       // to trigger keyboard closing
       this.input.readOnly = true;
@@ -123,6 +124,12 @@
         this.updateCapacityCount();
         if (this.mode == 'update') {
           this._showButton(this.selected.length ? 'done' : 'remove');
+        } else if (this.mode == 'add') {
+          if (this.selected.length) {
+            this._showPanel();
+          } else {
+            this._hidePanel();
+          }
         }
       } else if (elem === this.input) {
         if (this.isKeyboardOpened) {
@@ -177,6 +184,10 @@
       this.mode = folderElem ? 'update' : 'add';
       this._folder = null;
       this._showButton('done');
+      if (this.mode == 'add') {
+        // Hide the panel first since no card is selected
+        this._hidePanel();
+      }
       this.refresh(folderElem);
       this.container.classList.remove('hidden');
       this.focus();
@@ -293,6 +304,17 @@
           this.hideCardPickerButton.classList.remove('primary');
           break;
       }
+    },
+
+    _showPanel: function () {
+      if (this.mode == 'add' && this.selected.length <= 0) {
+        return;
+      }
+      this.panel.classList.remove('hidden');
+    },
+
+    _hidePanel: function () {
+      this.panel.classList.add('hidden');
     },
 
     /**

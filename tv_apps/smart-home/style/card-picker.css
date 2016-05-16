@@ -148,10 +148,14 @@
   padding-top: 2.6rem;
   background: RGBA(0, 0, 0, 0.9);
   text-align: center;
+  opacity: 1;
+  visibility: visible;
+  transition: all 0.5s ease;
 }
 
 .card-picker-panel.hidden {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .card-picker-panel smart-button.hidden {
