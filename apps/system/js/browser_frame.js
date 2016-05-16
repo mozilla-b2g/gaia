@@ -111,12 +111,15 @@
        * we add this frame to the document, we can't change its app type.
        */
       iframe.setAttribute('mozapptype', 'homescreen');
+      iframe.setAttribute('transparent', 'true');
     } else if (config.isSearch) {
       /* If this frame corresponds to search, set mozapptype=search
        */
       iframe.setAttribute('mozapptype', 'search');
+      iframe.setAttribute('transparent', 'true');
     } else if (config.isInputMethod) {
       iframe.setAttribute('mozapptype', 'inputmethod');
+      iframe.setAttribute('transparent', 'true');
     }
   }
 
