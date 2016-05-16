@@ -640,6 +640,11 @@
      * direction. This is equivalent to {@link SpatialNavigator#navigate} with
      * focused element passed as target.
      *
+     * If "data-nav-<direction>" attribute is set on the currently-focused
+     * element, SpatialNavigator will use "querySelector" to get the element and
+     * treat it as the target instead. This function will go nowhere and return
+     * false if the value of the attribute is omitted.
+     *
      * @param {String} direction
      *        It should be "left", "right", "up" or "down".
      *
@@ -659,7 +664,18 @@
         this._previous = null;
         this.focus();
       } else {
-        var elem = this.navigate(this._focus, direction);
+        var elem;
+        if (this._focus.hasAttribute && this._focus.getAttribute &&
+            this._focus.hasAttribute('data-nav-' + direction)) {
+          var selector = this._focus.getAttribute('data-nav-' + direction);
+          if (!selector) {
+            return false;
+          }
+          elem = document.querySelector(selector);
+        }
+        if (!elem || !this._isNavigable(elem)) {
+          elem = this.navigate(this._focus, direction);
+        }
         if (!elem) {
           return false;
         }
