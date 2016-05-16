@@ -136,12 +136,17 @@
     onKeyUp: function(evt) {
       if (SharedUtils.isBackKey(evt) && this.mode == 'add' &&
           this.isShown && !this.isKeyboardOpened) {
-        document.l10n.formatValue('cancel-add-folder').then(message => {
-          if (confirm(message)) {
-            this.mode = null;
-            this.hide();
-          }
-        });
+        if (this.selected.length > 0) {
+          document.l10n.formatValue('cancel-add-folder').then(message => {
+            if (confirm(message)) {
+              this.mode = null;
+              this.hide();
+            }
+          });
+        } else {
+          this.mode = null;
+          this.hide();
+        }
       }
     },
 
