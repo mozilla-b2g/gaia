@@ -29,6 +29,7 @@
 
   const SENT_TAB_TO_TV_ORIGIN =
                 'app://notification-receiver.gaiamobile.org/manifest.webapp';
+  const PRESENTATION_PROTOCOLS = ['HTTP:', 'HTTPS:', 'APP:'];
 
   AppWindowFactory.prototype = {
     /**
@@ -113,7 +114,7 @@
       var requestId = detail.id;
 
       // Check the protocol type
-      if (protocol !== 'APP:') {
+      if (!PRESENTATION_PROTOCOLS.includes(protocol)) {
         this._sendPresentationDenied(requestId);
         return;
       }
@@ -127,7 +128,8 @@
       // XXX: We put send to TV prompt message here because
       // notification-receiver has no way to show a toast-like message.
       // We should re-check the spec again on the next release.
-      if (manifestURL === SENT_TAB_TO_TV_ORIGIN) {
+      if (manifestURL === SENT_TAB_TO_TV_ORIGIN ||
+          protocol.startsWith('HTTP')) {
         var systemBanner = new SystemBanner();
         systemBanner.show({
           id: 'opening-webpage'
@@ -140,8 +142,8 @@
       });
       config.timestamp = detail.timestamp;
 
-      if (!config.manifest.permissions ||
-          !config.manifest.permissions.presentation) {
+      if (protocol === 'APP:' && (!config.manifest.permissions ||
+          !config.manifest.permissions.presentation)) {
         this._sendPresentationDenied(requestId);
         return;
       }
