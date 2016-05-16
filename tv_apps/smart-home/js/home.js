@@ -581,6 +581,10 @@
         this._focusScrollable = undefined;
       }
 
+      if (!this._focusScrollable) {
+        this.cleanFolderScrollable();
+      }
+
       document.getElementById('main-section').classList.toggle(
         'folder-scrollable-focused',
         this._focusScrollable === this.folderScrollable
