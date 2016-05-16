@@ -59,7 +59,8 @@ menu-group[rotate]:before {
   transition-duration: 0.42s;
 }
 
-menu-group[data-icon]:before {
+menu-group[data-icon]:before,
+menu-group[data-icon]:after {
   width: 5.4rem;
   left: 1.3rem;
   font-size: 5.4rem;
@@ -70,11 +71,33 @@ menu-group[data-icon]:before {
   top: 0;
 }
 
+menu-group[data-icon]:before {
+  opacity: 0;
+
+  transition-timing-function: linear;
+  transition-duration: 0.2s;
+}
+
+menu-group[data-icon]:after {
+  font-family: "smart-icons";
+  content: attr(data-icon-after);
+  position: absolute;
+
+  transition-property: top, opacity;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1.0), linear;
+  transition-duration: 0.42s;
+}
+
 menu-group[data-icon].switching-icon:before {
   font-size: 5.4rem;
   line-height: 8rem;
   text-align: center;
   color: #ffffff;
+  opacity: 1;
+  transition: none;
+}
+
+menu-group[data-icon].switching-icon:after {
   /**
    * According to visual spec, we have falling down transition while icon
    * change.
@@ -85,6 +108,7 @@ menu-group[data-icon].switching-icon:before {
    *      transition.
   **/
   top: -8rem;
+  opacity: 0;
   transition: none;
 }
 

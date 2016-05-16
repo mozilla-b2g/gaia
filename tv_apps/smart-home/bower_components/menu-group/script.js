@@ -102,16 +102,17 @@ window.MenuGroup = (function(win) {
   };
 
   proto.changeIcon = function(icon) {
-    if (!this.dataset.icon) {
-      this.dataset.icon = icon;
+    if (!this.dataset.iconAfter) {
+      this.dataset.iconAfter = icon;
       return;
     }
-    var current = this.dataset.icon.split(' ')[0];
+    var current = this.dataset.iconAfter;
     if (current === icon) {
       return;
     }
     this.classList.add('switching-icon');
-    this.dataset.icon = icon + ' ' + current;
+    this.dataset.icon = current;
+    this.dataset.iconAfter = icon;
 
     // Let gecko to recalculate the value and remove it.
     // We shouldn't put any value at the setTimeout, but it doesn't work in some
