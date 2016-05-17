@@ -642,8 +642,13 @@
       if (this.edit.mode === 'edit') {
         this.edit.handleCardFocus(scrollable, itemElem, nodeElem);
       }
+
       itemElem.focus();
       nodeElem.classList.add('focused');
+      if (itemElem.getAttribute('app-type') === 'folder') {
+        itemElem.classList.add('opened');
+      }
+
       if(scrollable === this.cardScrollable && this._folderCard &&
                         itemElem.dataset.cardId !== this._folderCard.cardId &&
                         !this.cardScrollable.isHovering) {
@@ -746,8 +751,6 @@
               this.edit.isFolderReady = true;
               this.skipFolderBubble = undefined;
             }.bind(this));
-
-          target.classList.add('opened');
 
           window.requestAnimationFrame(initFolderAnimation);
         } else {
