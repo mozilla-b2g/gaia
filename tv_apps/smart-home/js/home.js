@@ -382,6 +382,8 @@
       } else {
         scrollable.insertNodeOver(newCardElem, idx);
       }
+
+      this.checkAddFolderButton();
     },
 
     onCardUpdated: function(scrollable, card, idx) {
@@ -417,6 +419,8 @@
         // refresh the position of folderScrollable in this.
         this.folderScrollable.realignToReferenceElement();
       }
+
+      this.checkAddFolderButton();
     },
 
     onArrangeMode: function() {
@@ -776,7 +780,13 @@
       } else {
         this.mode = 'filter';
       }
-      this.addFolderButton.classList.toggle('hidden', !!this.mode);
+
+      this.checkAddFolderButton();
+    },
+
+    checkAddFolderButton: function() {
+      this.addFolderButton.classList.toggle('hidden',
+        !!this.mode || !this.cardManager.hasCardInCardList());
     },
 
     onCardPickerShow: function () {

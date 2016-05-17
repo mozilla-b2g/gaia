@@ -777,6 +777,11 @@
       });
     },
 
+    hasCardInCardList: function cm_hasCardInCardList() {
+      return this._cardList.filter(
+        card => !(card instanceof Folder)).length > 0;
+    },
+
     // TODO: need to be protected by semaphore
     // TODO: some comparison are based on card type. We may move these part to
     //       card class themselves.
