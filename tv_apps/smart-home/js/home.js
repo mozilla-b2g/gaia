@@ -95,6 +95,7 @@
         var collection = that._getNavigateElements();
 
         that.spatialNavigator = new SpatialNavigator(collection);
+        that.spatialNavigator.ignoreHiddenElement = true;
         that.spatialNavigator.straightOnly = true;
 
         that.keyNavigatorAdapter = new KeyNavigationAdapter();
@@ -775,6 +776,7 @@
       } else {
         this.mode = 'filter';
       }
+      this.addFolderButton.classList.toggle('hidden', !!this.mode);
     },
 
     onCardPickerShow: function () {
