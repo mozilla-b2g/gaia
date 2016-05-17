@@ -67,6 +67,20 @@ section {
   opacity: 0;
 }
 
+#card-list smart-button[type="app-button"] ~ span.name {
+  opacity: 1;
+  visibility: visible;
+  transition-property: opacity, visibility;
+  transition-duration: 0.6s;
+  transition-timing-function: ease;
+}
+
+#card-list.folder-opened smart-button[type="app-button"] ~ span.name {
+  opacity: 0;
+  visibility: hidden;
+  transition-duration: 0.2s;
+}
+
 #card-list.no-transition,
 #folder-list.no-transition {
   transition-property: none;
@@ -377,10 +391,6 @@ smart-button[type="app-button"].focused ~ span.name {
 
 .folder-content-container > div.tv-channel > span {
   background-color: #d90c83;
-}
-
-smart-button[type="app-button"].opened ~ span.name {
-  display: none;
 }
 
 .opened .folder-content-container {

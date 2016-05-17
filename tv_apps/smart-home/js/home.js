@@ -669,7 +669,7 @@
         }
         this._folderCard = undefined;
       }
-
+      this.cardListElem.classList.remove('folder-opened');
       this.edit.isFolderReady = false;
       this.cardScrollable.setColspanOnFocus(0);
     },
@@ -753,6 +753,7 @@
         } else {
           // 2nd frame, recover original transition.
           this.folderListElem.style.transition = '';
+          this.cardListElem.classList.add('folder-opened');
         }
       }.bind(this);
       window.requestAnimationFrame(initFolderAnimation);
