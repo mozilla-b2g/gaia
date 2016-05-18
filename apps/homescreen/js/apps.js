@@ -554,28 +554,18 @@
       }
 
       var container = this.addIconContainer(icon, entry, parent);
+      // Hide/show the icon if the role changes to/from a hidden role
+      var handleRoleChange = function(app, container) {
+        var manifest = app.manifest || app.updateManifest;
+        var hidden = (manifest && manifest.role &&
+          HIDDEN_ROLES.includes(manifest.role));
+        container.style.display = hidden ? 'none' : '';
+      };
 
       if (appOrBookmark.id) {
         icon.bookmark = appOrBookmark;
         this.refreshIcon(icon);
-      } else {
-        icon.app = appOrBookmark;
-
-        // Hide/show the icon if the role changes to/from a hidden role
-        var handleRoleChange = function(app, container) {
-          var manifest = app.manifest || app.updateManifest;
-          var hidden = (manifest && manifest.role &&
-            HIDDEN_ROLES.includes(manifest.role));
-          container.style.display = hidden ? 'none' : '';
-        };
-
-        icon.app.addEventListener('downloadapplied',
-          function(app, container, parent) {
-            handleRoleChange(app, container);
-            parent.synchronise();
-          }.bind(this, icon.app, container, parent));
-
-        handleRoleChange(icon.app, container);
+        handleRoleChange(appOrBookmark, container);
       }
 
       // Save the new icon if it gets refreshed.
