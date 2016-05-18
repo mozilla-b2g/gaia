@@ -784,13 +784,14 @@
     },
 
     onCardPickerHide: function() {
+      this.mode = '';
+
       if (this._cardPicker.mode === 'add') {
         this._cardPicker.saveToNewFolder(this.cardScrollable.currentIndex + 1);
       } else if (this._cardPicker.mode === 'update') {
         this._cardPicker.updateFolder();
       }
       this.spatialNavigator.focus();
-      this.mode = '';
     },
 
     updateClock: function() {
