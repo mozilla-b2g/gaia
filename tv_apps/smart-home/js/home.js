@@ -674,7 +674,7 @@
         }
         this._folderCard = undefined;
       }
-      this.cardListElem.classList.remove('folder-opened');
+      this.cardListElem.classList.remove('hide-card-name');
       this.edit.isFolderReady = false;
       this.cardScrollable.setColspanOnFocus(0);
     },
@@ -756,7 +756,7 @@
         } else {
           // 2nd frame, recover original transition.
           this.folderListElem.style.transition = '';
-          this.cardListElem.classList.add('folder-opened');
+          this.cardListElem.classList.add('hide-card-name');
         }
       }.bind(this);
       window.requestAnimationFrame(initFolderAnimation);

@@ -67,15 +67,7 @@ section {
   opacity: 0;
 }
 
-#card-list smart-button[type="app-button"] ~ span.name {
-  opacity: 1;
-  visibility: visible;
-  transition-property: opacity, visibility;
-  transition-duration: 0.6s;
-  transition-timing-function: ease;
-}
-
-#card-list.folder-opened smart-button[type="app-button"] ~ span.name {
+#card-list.hide-card-name smart-button[type="app-button"] ~ span.name {
   opacity: 0;
   visibility: hidden;
   transition-duration: 0.2s;
@@ -328,7 +320,10 @@ smart-button[type="app-button"] ~ span.name {
   font-style: italic;
   color: #ffffff;
 
-  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1.0), opacity 0.4s linear;
+  opacity: 1;
+  visibility: visible;
+
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1.0), opacity 0.4s linear, visibility 0.4s linear;
   transform-origin: 50% -13.2rem;
   transform: scale(1);
 }
