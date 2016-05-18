@@ -290,7 +290,18 @@
           // pinning would catch the focus for us.
           if (that._fteWizard.running) {
             that._fteWizard.focus();
-          } else if (!that.messageHandler.resumeActivity()) {
+          } else if (that.messageHandler.hasPendingActivity()) {
+            that.spatialNavigator.focus(that.cardScrollable);
+            if (that.mode == 'filter') {
+              that.filterManager.once('filter-animation-end', () => {
+                that.messageHandler.resumeActivity();
+              });
+              that.filterManager.resetFilter();
+            } else {
+              that.messageHandler.resumeActivity();
+            }
+          } else {
+            that.messageHandler.resumeActivity();
             that.spatialNavigator.focus();
           }
 

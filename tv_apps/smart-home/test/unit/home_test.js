@@ -110,6 +110,7 @@ suite('home', function() {
     subject.spatialNavigator.m_focusedElement = document.createElement('div');
     subject.isNavigable = true;
     subject.searchButton = searchButton;
+    subject.mainSection = mainSection;
 
     fakeTimer = this.sinon.useFakeTimers();
     window.MozActivity = MockMozActivity;

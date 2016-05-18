@@ -7,5 +7,6 @@ var MockMessageHandler = function() {
 MockMessageHandler.prototype = {
   init: function() {},
   stopActivity: function() {},
-  resumeActivity: function() { return false; }
+  resumeActivity: function() { return false; },
+  hasPendingActivity: function() { return false; }
 };
