@@ -55,7 +55,7 @@ suite('home', function() {
   var realL10n = document.l10n;
   var realMozActivity = window.MozActivity;
   var mainSection, filterTabGroup;
-  var searchButton, settingsButton;
+  var searchButton;
   var subject;
   var fakeTimer;
 
@@ -71,10 +71,6 @@ suite('home', function() {
     searchButton = document.createElement('button');
     searchButton.id = 'search-button';
     mainSection.appendChild(searchButton);
-
-    settingsButton = document.createElement('button');
-    settingsButton.id = 'settings-button';
-    mainSection.appendChild(settingsButton);
 
     var timeElem = document.createElement('div');
     timeElem.id = 'time';
@@ -113,7 +109,6 @@ suite('home', function() {
     subject.cardListElem = document.createElement('div');
     subject.spatialNavigator.m_focusedElement = document.createElement('div');
     subject.isNavigable = true;
-    subject.settingsButton = settingsButton;
     subject.searchButton = searchButton;
 
     fakeTimer = this.sinon.useFakeTimers();
@@ -241,14 +236,6 @@ suite('home', function() {
   });
 
   suite('onEnter >', function() {
-    test('should open settings on settings button', function() {
-      subject.handleFocus(settingsButton);
-
-      assert.equal(MozActivity.calls.length, 0);
-      subject.onEnter();
-      assert.equal(MozActivity.calls[0].name, 'configure');
-    });
-
     test('should launch application on card ', function() {
       var testCard = document.createElement('div');
       testCard.dataset.cardId = '123';
@@ -307,12 +294,6 @@ suite('home', function() {
       var stub = this.sinon.stub(subject, 'handleFocusMenuGroup');
       subject.handleFocus(filterTabGroup);
       assert.isTrue(stub.calledOnce);
-    });
-
-    test('should call checkFocusedGroup for non-menu elements', function() {
-      var stub = this.sinon.stub(subject, 'checkFocusedGroup');
-      subject.handleFocus(settingsButton);
-      assert.isTrue(stub.withArgs(settingsButton).calledOnce);
     });
   });
 
