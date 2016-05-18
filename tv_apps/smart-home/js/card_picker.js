@@ -187,6 +187,8 @@
       if (this.mode == 'add') {
         // Hide the panel first since no card is selected
         this._hidePanel();
+      } else {
+        this._showPanel();
       }
       this.refresh(folderElem);
       this.container.classList.remove('hidden');
