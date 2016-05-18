@@ -395,10 +395,12 @@ smart-button[type="app-button"].focused ~ span.name {
 
 .opened .folder-content-container {
   opacity: 0;
+  transition: none;
 }
 
 .opened .folder-name {
   opacity: 1;
+  transition: opacity 0.2s;
 }
 
 .folder-name {
@@ -417,7 +419,7 @@ smart-button[type="app-button"].focused ~ span.name {
   background-position: center 7.4rem;
   background-repeat: no-repeat;
   background-size: 17rem;
-  transition: opacity 0.2s;
+  transition: none;
 }
 
 #main-section[data-mode=""].folder-scrollable-focused #card-list-frame smart-button {
