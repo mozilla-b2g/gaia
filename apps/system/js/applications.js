@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-/* global Applications, applications, LazyLoader, WebManifestHelper */
+/* global Applications, applications, LazyLoader, WebManifestHelper, Service */
 /** Application module handles the information of apps on behalf of other
  *  modules
  *  @class Applications
@@ -63,10 +63,31 @@
                   }));
                 };
                 this.installedApps[manifestURL] = appList[app];
+                this.pinSite(appList[app]);
               });
             })(app);
           }
         });
+      });
+    },
+
+    /**
+     * Pins the site to the homescreen if is not pinned already
+     * @memberof Applications.prototype
+     */
+    pinSite: function a_pinSite(site) {
+      Service.request('Places:isPinned', site.url, true)
+      .then((isPinned) => {
+        if (!isPinned) {
+          Service && Service.request('Places:pinSite', site.url, {
+            id: site.url,
+            url: site.url,
+            manifest: site.manifest,
+            manifestURL: site.manifestURL,
+            name: site.manifest.name,
+            pinned: true
+          });
+        }
       });
     },
 

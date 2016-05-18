@@ -1,23 +1,8 @@
 {
   "homescreens": [
     [
-      ["apps", "communications", "dialer"],
-      ["apps", "sms"],
-      ["apps", "communications", "contacts"],
-      ["apps", "email"],
-      ["apps", "search"]
-    ], [
-      ["apps", "camera"],
-      ["apps", "gallery"],
-      ["apps", "music"],
-      ["apps", "video"]
-    ], [
-      ["apps", "calendar"],
-      ["apps", "clock"],
-      ["apps", "settings"],
-      ["apps", "fm"]
-    ], [
-      ["apps", "costcontrol"]
+      ["apps", "search"],
+      ["apps", "settings"]
     ]
   ],
   "preferences": {

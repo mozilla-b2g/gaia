@@ -353,17 +353,19 @@
     },
 
     /**
-     * Is a page currently pinned?
+     * Is a page or site currently pinned?
      *
      * @param {String} url The URL of the page to check.
+     * @param {Boolean} site Indicates if we are trying to find a page or a site
      * @returns {Promise} Promise of a response.
      */
-    isPinned: function(url) {
+    isPinned: function(url, site) {
+      var store = !!(site) ? 'SITES_STORE' : 'PAGES_STORE';
       return new Promise((resolve, reject) => {
         return this.getDb().then(db => {
           var transaction =
-            db.transaction(PlacesHelper.PAGES_STORE, 'readonly');
-          var objectStore = transaction.objectStore(PlacesHelper.PAGES_STORE);
+            db.transaction(PlacesHelper[store], 'readonly');
+          var objectStore = transaction.objectStore(PlacesHelper[store]);
           var request = objectStore.get(url);
           request.onsuccess = function() {
             var place = request.result;
