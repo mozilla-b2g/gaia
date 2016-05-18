@@ -33,7 +33,8 @@
 
       banner.addEventListener('animationend', function animationend() {
         banner.removeEventListener('animationend', animationend);
-        banner.classList.remove('visible');
+        banner.parentNode.removeChild(banner);
+        this._banner = undefined;
       }.bind(this));
       banner.classList.add('visible');
     }
