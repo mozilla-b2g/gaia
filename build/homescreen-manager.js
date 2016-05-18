@@ -38,6 +38,8 @@ function bestMatchingIcon(config, manifest, origin) {
   }
 
   var url = icons[preferredIconSize];
+  url = url.src ? url.src : url;
+
   if (!url) {
     return undefined;
   }

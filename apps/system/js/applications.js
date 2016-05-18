@@ -84,8 +84,11 @@
             url: site.url,
             manifest: site.manifest,
             manifestURL: site.manifestURL,
+            webManifest: site.manifest,
+            webManifestUrl: site.manifestURL,
             name: site.manifest.name,
-            pinned: true
+            pinned: true,
+            icons: site.manifest.icons
           });
         }
       });
