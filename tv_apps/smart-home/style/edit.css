@@ -136,6 +136,11 @@
               url(images/animated_arrows_up.png) no-repeat top center / 13rem;
 }
 
+#main-section[data-mode="arrange"] .card.focused > span.name {
+  bottom: -11rem;
+  transform: scale(1.72);
+}
+
 #main-section[data-mode="edit"] .background,
 #main-section[data-mode="arrange"] .background {
   background-color: rgba(0, 0, 0, 0.8);
