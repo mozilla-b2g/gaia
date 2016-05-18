@@ -91,7 +91,7 @@
     onFocus: function(elem) {
       elem.focus();
       if (elem.classList.contains('app-button')) {
-        this._scrollTo(elem);
+        this._scrollTo(elem.parentNode);
         this.input.dataset.navDown =
           this.hideCardPickerButton.dataset.navUp =
           '#card-picker-grid-view [data-card-id="' + elem.dataset.cardId + '"]';
