@@ -96,12 +96,27 @@
     }
   },
   "default_locale": "en-US",
-  "icons": {
-    "84": "/style/icons/settings_84.png",
-    "126": "/style/icons/settings_126.png",
-    "142": "/style/icons/settings_142.png",
-    "189": "/style/icons/settings_189.png",
-    "284": "/style/icons/settings_284.png"
-  },
+  "icons": [
+    {
+      "src": "style/icons/settings_84.png",
+      "sizes": "84x84"
+    },
+    {
+      "src": "style/icons/settings_126.png",
+      "sizes": "126x126"
+    },
+    {
+      "src": "style/icons/settings_142.png",
+      "sizes": "142x142"
+    },
+    {
+      "src": "style/icons/settings_189.png",
+      "sizes": "189x189"
+    },
+    {
+      "src": "style/icons/settings_284.png",
+      "sizes": "284x284"
+    }
+  ],
   "orientation": "default"
 }
