@@ -127,8 +127,9 @@ var Toolbar = {
 
     var colorBar = Browser.getColorBarData();
     this.panCursorButtonBlock.dataset.colorbar = colorBar[0].COLOR;
-    this.zoomButtonBlock.dataset.colorbar = colorBar[1].COLOR;
-    this.tabsButtonBlock.dataset.colorbar = colorBar[2].COLOR;
+    this.showBookmarksButtonBlock.dataset.colorbar = colorBar[1].COLOR;
+    this.zoomButtonBlock.dataset.colorbar = colorBar[2].COLOR;
+    this.tabsButtonBlock.dataset.colorbar = colorBar[3].COLOR;
 
     // li = 73px * 3(list) + 20px(hover) + 10px(padding)
     this.menuBlock.style.height = 73 * 3 + 20 + 10 + 'px';
