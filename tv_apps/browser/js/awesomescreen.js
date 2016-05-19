@@ -1,5 +1,6 @@
 /* globals Browser, BrowserDB, Toolbar, Settings, KeyEvent, MozActivity */
 /* globals SmartList, BookmarkStore, HistoryStore, SharedUtils, BrowserDialog */
+/* globals SpatialNavigation */
 //IFDEF_FIREFOX_SYNC
 /* globals FirefoxSyncTabNavigation */
 /* globals FirefoxSyncTabList */
@@ -65,6 +66,7 @@ var Awesomescreen = {
   bookmarkList: null,
   historyList: null,
   defaultContentView: null,
+  isSpatialNavigationEnable: false,
   /**
    * Initialise Awesomescreen.
    */
@@ -153,6 +155,10 @@ var Awesomescreen = {
     this.defaultContentView.querySelector('.tab-navigation')
       .addEventListener('mouseup', this.handleTabNavigationMouseup.bind(this));
 
+    this.defaultContentView.querySelector('.tab-navigation')
+      .addEventListener('sn:willfocus',
+                        this.handleTabNavigationWillfocus.bind(this));
+
     // init BookmarkStore
     BookmarkStore.init();
 
@@ -167,6 +173,9 @@ var Awesomescreen = {
     this.handleSmartListEvent(
       this.history, this.historyList, HistoryStore, this.DEFAULT_HISTORY
     );
+
+    // init SpatialNavigation
+    this.initSpatialNavigation();
 
     //And setting various button events
     this.setEventListener();
@@ -572,6 +581,49 @@ var Awesomescreen = {
     evt.target.classList.add('active');
   },
 
+  handleTopListKeydown: function awesomescreen_handleTopListKeydown(ev) {
+    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
+      this.clickTopAction(ev);
+    }
+  },
+
+  handleTopListKeyup: function awesomescreen_handleTopListKeyup(ev) {
+    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
+      if(ev) {
+        ev.stopPropagation();
+      }
+      this.clickTopListFlg = true;
+      if(this.clickTopActFlg){
+        this.clickTopActFlg = false;
+        this.clickTopListFlg = false;
+        var fade_top_action = (function() {
+          var uri = ev.target.childNodes[0].childNodes[1].textContent;
+          Toolbar.urlInput.blur();
+          Browser.navigate(uri);
+          Browser.selectInfo(Browser.currentInfo.id);
+          Browser.switchVisibility(Browser.currentInfo, true);
+          //To the tab you are currently viewing the final display tab
+          Awesomescreen.finalDispTabId = Browser.currentInfo.id;
+          if(Awesomescreen.isDisplayedTab()) {
+            Awesomescreen.tabviewHidden();
+          }
+          Awesomescreen.defaultContentViewHidden();
+
+          //undo the outer frame of the thumbnail
+          document
+            .getElementById('default-' + ev.target.id).style.opacity = '1';
+          ev.target.childNodes[0]
+            .removeEventListener('transitionend', fade_top_action, false);
+        });
+
+        // Add fade animantion event
+        ev.target.childNodes[0]
+          .addEventListener('transitionend', fade_top_action, false);
+        ev.target.classList.remove('active');
+      }
+    }
+  },
+
   /**
    * Select History tab.
    */
@@ -738,6 +790,7 @@ var Awesomescreen = {
     var thumbnailArea =  topListArea.cloneNode(true);
 
     template.classList.add('top-site-item');
+    template.setAttribute('tabindex', '-1');
     topListArea.classList.add('topList-area');
     thumbnailArea.classList.add('thumbnail-area');
 
@@ -844,6 +897,10 @@ var Awesomescreen = {
       .addEventListener('mouseover',this.mouseOverTopsiteFunc.bind(this));
     listItem
       .addEventListener('mouseout', this.mouseOutTopsiteFunc.bind(this));
+    listItem
+      .addEventListener('keydown', this.handleTopListKeydown.bind(this));
+    listItem
+      .addEventListener('keyup', this.handleTopListKeyup.bind(this));
     return listItem;
   },
 
@@ -1586,11 +1643,7 @@ var Awesomescreen = {
     //And release the focus of active elements
     if( Awesomescreen.isDisplayed() ) {
       if(Awesomescreen.isDisplayedDefault() ){
-        if(Awesomescreen.isDisplayedList() ){
-          Browser.switchCursorMode(false);
-        }else{
-          Browser.switchCursorMode(true);
-        }
+        Browser.switchCursorMode(false);
       }else{
         Browser.switchCursorMode(true);
         Browser.switchCursorMode(false);
@@ -1974,11 +2027,8 @@ var Awesomescreen = {
     Awesomescreen.awesomescreen.classList.remove('awesomescreen-screen-tab');
     document.activeElement.blur();
     if( Awesomescreen.isDisplayed() ) {
-      if(Awesomescreen.isDisplayedDefault()){
-        Browser.switchCursorMode(true);
-      }else{
-        Browser.switchCursorMode(false);
-      }
+      Toolbar.tabsButtonBlock.focus();
+      Browser.switchCursorMode(false);
     } else {
       Browser.switchCursorMode(true);
     }
@@ -2124,6 +2174,9 @@ var Awesomescreen = {
       }
       this.restoreDefaultContentView();
       this.selectTopSites();
+      this.enableSpatialNavigation();
+      Toolbar.searchForm.focus();
+      Browser.switchCursorMode(false);
   },
 
   openNewTab: function awesomescreen_openNewTab(evt) {
@@ -2205,6 +2258,15 @@ var Awesomescreen = {
     Browser.refreshBrowserParts();
     if(this.isDisplayedTab()){
       this.tabviewHidden();
+    }
+
+    if (this.isDisplayedDefault()) {
+      this.enableSpatialNavigation();
+      Browser.switchCursorMode(false);
+      Toolbar.searchForm.focus();
+    } else {
+      this.disableSpatialNavigation();
+      Browser.switchCursorMode(true);
     }
   },
 
@@ -2671,12 +2733,6 @@ var Awesomescreen = {
               Awesomescreen.tabviewKeyCont(ev);
             }
             break;
-//IFDEF_FIREFOX_SYNC
-          case Awesomescreen.isDisplayedSyncTab():
-            FirefoxSyncTabList.focusCurrentItem();
-            ev.preventDefault();
-            break;
-//ENDIF_FIREFOX_SYNC
           default:
             break;
         }
@@ -3130,8 +3186,12 @@ var Awesomescreen = {
     );
 
     el.addEventListener('close', (function(e) {
-      if(!this.isDisplayedDefault()) {
+      if (!this.isDisplayedDefault()) {
         this.hideAwesomescreen();
+      } else if (type === this.DEFAULT_BOOKMARK) {
+        Toolbar.showBookmarksButtonBlock.focus();
+      } else if (type === this.DEFAULT_HISTORY) {
+        Toolbar.menuButtonBlock.focus();
       }
     }).bind(this));
 
@@ -3168,7 +3228,6 @@ var Awesomescreen = {
     el.addEventListener('displayWebsite', (function(e){
       var uri = e.detail;
       Browser.navigate(uri);
-      Browser.switchCursorMode(true);
     }).bind(this));
 
     el.addEventListener('loadDataByRange', (function(e){
@@ -3250,6 +3309,17 @@ var Awesomescreen = {
   },
 
   /**
+   * handle tab navigation sn:willfocus.
+   */
+  handleTabNavigationWillfocus:
+    function awesomescreen_handleTabNavigationWillfocus(e) {
+    var targetEl = e.target;
+    if (targetEl.classList.contains('tab-option')) {
+      this.changeTabContent(targetEl);
+    }
+  },
+
+  /**
    * change tab content by tabOption.
    */
   changeTabContent: function awesomescreen_changeTabContent(tabOptionEl) {
@@ -3266,5 +3336,219 @@ var Awesomescreen = {
         .querySelector('.tab-content[data-content="' + dataContent +'"]')
         .classList.add('show');
     }
+  },
+
+  initSpatialNavigation: function awesomescreen_initSpatialNavigation() {
+    SpatialNavigation.init();
+
+    this.enableSpatialNavigation();
+
+    SpatialNavigation.makeFocusable();
+
+    SpatialNavigation.focus('tool-bar');
+
+    document.querySelector('.tab-navigation').addEventListener('sn:willmove',
+      function(e){
+        let target = e.target;
+        if (!target.classList.contains('tab-option')) {
+          return;
+        }
+
+        let detail = e.detail;
+        if (detail.direction === 'left' && !target.previousElementSibling) {
+          e.preventDefault();
+        }
+        if (detail.direction === 'right' && !target.nextElementSibling) {
+          e.preventDefault();
+        }
+      });
+
+    document.querySelector('#sync-tab-content .tab-list-view')
+      .addEventListener('keydown', function(e){
+        let firsListItem =
+          document
+            .querySelector(`#sync-tab-content
+              .tab-list-item:first-child .list-item`);
+
+        if (firsListItem !== e.target || e.keyCode !== KeyEvent.DOM_VK_UP) {
+          e.stopPropagation();
+        }
+      });
+  },
+
+  enableSpatialNavigation: function awesomescreen_disableSpatialNavigation() {
+    if (this.isSpatialNavigationEnable) {
+      return;
+    }
+
+    function getSearchBarStyle() {
+      if (Toolbar.toolbarPanel) {
+       return (Toolbar.getSearchBarStyle() == 'true');
+      } else {
+       let toolbarPanel = document.getElementById('toolbar-panel');
+       return (toolbarPanel.dataset.search == 'true');
+      }
+    }
+
+    let toolbarSelector = [
+      '#sidebar-button-block',
+      '#back-button-block',
+      '#address-form',
+      '#url-input',
+      '#search-form',
+      '#search-input',
+      '#search-button',
+      '#search-clear-button',
+      '#search-close-button',
+      '#show-bookmarks-button-block',
+      '#home-button-block',
+      '#tabs-button-block',
+      '#menu-button-block'
+    ];
+
+    SpatialNavigation.add({
+      id: 'tool-bar',
+      selector: toolbarSelector.join(','),
+      defaultElement: '#search-form',
+      enterTo: 'last-focused',
+      navigableFilter: function(el) {
+        let id = el.id;
+
+        if (id === 'address-form') {
+          // If current focus element is #url-input, next focus element should
+          // be out of #address-form
+          if (document.activeElement.id === 'url-input') {
+            return false;
+          }
+
+          // If the input is not empty, the address-form shouldn't
+          // be navigable.
+          let inputEl = document.getElementById('url-input');
+          if (inputEl.value) {
+            return false;
+          }
+        } else if (id === 'url-input') {
+          // If current focus element is #address-form, only click enter
+          // button can focus on #url-input
+          if(document.activeElement.id === 'address-form') {
+            return false;
+          }
+
+          // If the input is empty, the url-input shouldn't be navigable.
+          let inputEl = document.getElementById('url-input');
+          if (!inputEl.value) {
+            return false;
+          }
+        } else if (id === 'search-form') {
+          let isSearch = getSearchBarStyle();
+          if (isSearch) {
+            return false;
+          }
+
+          // If the input is not empty, the search-form shouldn't
+          // be navigable.
+          let inputEl = document.getElementById('search-input');
+          if (inputEl.value) {
+            return false;
+          }
+        } else if (id === 'search-input' || id === 'search-button') {
+          // If current focus element is #search-form, we shouldn't be
+          // navigable.
+          if(document.activeElement.id === 'search-form') {
+            return false;
+          }
+
+          // If the input is empty, the search-input and search-button
+          // shouldn't be navigable.
+          let inputEl = document.getElementById('search-input');
+          if (!inputEl.value) {
+            return false;
+          }
+        } else if (id === 'search-clear-button' ||
+          id === 'search-close-button') {
+          // If current focus element is #search-form, we shouldn't be
+          // navigable.
+          if(document.activeElement.id === 'search-form') {
+            return false;
+          }
+        }
+      }
+    });
+
+    SpatialNavigation.add({
+      id: 'menu-block',
+      selector: '#menu-block li',
+      straightOnly: true,
+      restrict: 'self-only',
+      leaveFor: {
+        'up': '#menu-button-block',
+      }
+    });
+
+    SpatialNavigation.add({
+      id: 'search-result',
+      selector: '#search-result li',
+      straightOnly: true,
+      restrict: 'self-only',
+      leaveFor: {
+        'up': '#search-input'
+      }
+    });
+
+    let defaultContentViewSelector = [
+      '#top-site-option',
+      '#top-sites .top-site-item',
+      '#sync-tab-option',
+      '#sync-tab-content .tab-list-item:first-child .list-item'
+    ];
+
+    SpatialNavigation.add({
+      id: 'default-content-view',
+      selector: defaultContentViewSelector.join(','),
+      restrict: 'self-only',
+      defaultElement: '#top-panels .top-site-item',
+      enterTo: 'last-focused',
+      leaveFor: {
+        'up': '@tool-bar'
+      },
+      navigableFilter: function(el){
+        if (el.classList.contains('tab-option')) {
+          // If there is only one tap-option exist, we should ignore the
+          // tab-option
+          if (document.querySelectorAll('.tab-option:not([hidden])').length ===
+            1) {
+            SpatialNavigation.set('default-content-view', {
+              defaultElement: '#top-panels .top-site-item'
+            });
+            return false;
+          } else {
+            SpatialNavigation.set('default-content-view', {
+              defaultElement: '.tab-option.active'
+            });
+          }
+
+          // If the previous focus element is not tab-option, we could only
+          // focus the element with active class.
+          if (!document.activeElement.classList.contains('tab-option') &&
+            !el.classList.contains('active') ) {
+            return false;
+          }
+        }
+      }
+    });
+
+    this.isSpatialNavigationEnable = true;
+  },
+
+  disableSpatialNavigation: function awesomescreen_disableSpatialNavigation() {
+    if (!this.isSpatialNavigationEnable) {
+      return;
+    }
+
+    SpatialNavigation.remove('tool-bar');
+    SpatialNavigation.remove('menu-block');
+    SpatialNavigation.remove('search-result');
+    SpatialNavigation.remove('default-content-view');
+    this.isSpatialNavigationEnable = false;
   }
 };
