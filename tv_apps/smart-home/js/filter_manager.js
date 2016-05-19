@@ -165,6 +165,7 @@
       } else {
         this._cardListElem.style.opacity = 1;
         this._cardListElem.style.transition = '';
+        this._cardListElem.classList.remove('hide-card-name');
         this._cardListElem.removeAttribute('smart-bubbles-direction');
         this._smartBubblesElem.play(
           document.querySelectorAll('#card-list > .card > .app-button'));
@@ -220,6 +221,7 @@
           this._cardScrollable.addNode(this._home.createCardNode(card));
         });
         this._cardListElem.style.opacity = 0;
+        this._cardListElem.classList.add('hide-card-name');
         window.requestAnimationFrame(this._performBubbleUp.bind(this));
       };
 
