@@ -684,6 +684,12 @@
     },
 
     handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
+      if (itemElem.getAttribute('app-type') === 'folder' &&
+          (!this._folderCard ||
+           this._folderCard.cardId != itemElem.dataset.cardId)) {
+        itemElem.classList.remove('opened');
+      }
+
       // Fix null error when the last card in a folder is removed.
       if (nodeElem) {
         nodeElem.classList.remove('focused');
