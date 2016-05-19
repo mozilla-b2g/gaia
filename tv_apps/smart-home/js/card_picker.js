@@ -15,6 +15,7 @@
 
     panel: document.querySelector('section.card-picker-panel'),
     input: document.getElementById('card-picker-input'),
+    inputCleanButton: document.getElementById('card-picker-input-clean-btn'),
 
     init: function(options) {
       this.appCardElems = [];
@@ -24,7 +25,7 @@
       this._folder = null;
 
       this.navigableElements = [
-        this.hideCardPickerButton, this.input
+        this.hideCardPickerButton, this.input, this.inputCleanButton
       ];
 
       this.container.addEventListener('click', this.focus.bind(this));
@@ -93,16 +94,37 @@
       if (elem.classList.contains('app-button')) {
         this._scrollTo(elem.parentNode);
         this.input.dataset.navDown =
+          this.inputCleanButton.dataset.navDown =
           this.hideCardPickerButton.dataset.navUp =
           '#card-picker-grid-view [data-card-id="' + elem.dataset.cardId + '"]';
       }
     },
 
     onMove: function(direction) {
+      var elem = this._spatialNavigator.getFocusedElement();
+
       if (this.isKeyboardOpened) {
-        return;
+        // Check if the input caret is at the end of the input value,
+        // If yes, proceed to the below code to
+        // navigate to the inputCleanButton in the right side.
+        // Else, let's return to let user keeps moving the caret on the input.
+        if (direction === 'right' &&
+           (this.input.selectionEnd === this.input.value.length &&
+            this.input.selectionStart === this.input.value.length)) {
+        } else {
+          return;
+        }
       }
+
       this._spatialNavigator.move(direction);
+
+      if (direction === 'left' && elem === this.inputCleanButton) {
+        // Moving left would focus back to the input so let's open the keyboard
+        this.openKeyboard();
+      } else if (direction === 'down' && elem === this.inputCleanButton) {
+        // Moving down would focus card so let's hide the inputCleanButton
+        this.inputCleanButton.classList.add('hidden');
+      }
     },
 
     onEnter: function() {
@@ -128,9 +150,15 @@
       } else if (elem === this.input) {
         if (this.isKeyboardOpened) {
           this.closeKeyboard();
+          this.inputCleanButton.classList.add('hidden');
         } else {
           this.openKeyboard();
+          this.inputCleanButton.classList.remove('hidden');
         }
+      } else if (elem === this.inputCleanButton) {
+        this.input.value = '';
+        this._spatialNavigator.focus(this.input);
+        this.openKeyboard();
       }
     },
 
@@ -188,6 +216,7 @@
         this._showPanel();
       }
       this.refresh(folderElem);
+      this.inputCleanButton.classList.add('hidden');
       this.container.classList.remove('hidden');
       this.focus();
       this.fire('show');
