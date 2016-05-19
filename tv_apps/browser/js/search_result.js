@@ -1,4 +1,4 @@
-/* global _, Browser, BrowserDB, MozActivity, SharedUtils */
+/* global _, Browser, BrowserDB, MozActivity, SharedUtils, KeyEvent */
 
 'use strict';
 
@@ -99,6 +99,7 @@ var SearchResult = {
   createSearchTemplate: function result_createSearchTemplate() {
     var template = document.createElement('li');
     template.classList.add('result-item');
+    template.setAttribute('tabindex', '-1');
     var link = document.createElement('div');
     link.classList.add('result-base');
     var title = document.createElement('div');
@@ -192,6 +193,8 @@ var SearchResult = {
       list.appendChild(result);
       result.addEventListener('mouseup',
         this.handleResultSelect.bind(this));
+      result.addEventListener('keydown',
+        this.handleResultKeydown.bind(this));
     }
 
     for( var i = 0 ; i < this.allResult.length ; i ++ ) {
@@ -203,6 +206,8 @@ var SearchResult = {
       list.appendChild(result);
       result.addEventListener('mouseup',
         this.handleResultSelect.bind(this));
+      result.addEventListener('keydown',
+        this.handleResultKeydown.bind(this));
     }
     var oldList = this.searchResultList.firstElementChild;
 
@@ -234,6 +239,12 @@ var SearchResult = {
       var url = ev.target.lastChild.lastChild.textContent;
       Browser.navigate(url);
       this.hide();
+    }
+  },
+
+  handleResultKeydown: function result_handleResultKeydown(ev) {
+    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
+      this.handleResultSelect(ev);
     }
   },
 
