@@ -144,6 +144,7 @@
    "layers.draw-borders": false,
    "layers.dump": false,
    "layers.enable-tiles": true,
+   "layers.draw-gonk-cursor": false,
    "layout.display-list.dump": false,
    "locale.hour12": null,
    "lockscreen.passcode-lock.code": "0000",
