@@ -78,7 +78,9 @@
       this.input.readOnly = true;
       this.input.blur();
       this.input.focus();
-      if (this.input.value) {
+      if (this.input.value &&
+          this.input.value != this.input.dataset.folderName) {
+        this.input.dataset.dirty = '1';
         this.input.dataset.folderName = this.input.value;
       } else {
         // Recover from empty name input
@@ -143,7 +145,7 @@
     onKeyUp: function(evt) {
       if (SharedUtils.isBackKey(evt) && this.mode == 'add' &&
           this.isShown && !this.isKeyboardOpened) {
-        if (this.selected.length > 0) {
+        if (this.selected.length > 0 || this.input.dataset.dirty === '1') {
           document.l10n.formatValue('cancel-add-folder').then(message => {
             if (confirm(message)) {
               this.mode = null;
@@ -158,6 +160,9 @@
     },
 
     show: function(folderElem) {
+      // We will set dataset.dirty to '1' if input has been changed
+      this.input.dataset.dirty = '0';
+
       var nameResolvingPromise = null;
       if (folderElem) {
         var card = this._cardManager.findCardFromCardList({
