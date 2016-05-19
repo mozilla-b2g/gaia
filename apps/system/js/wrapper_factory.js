@@ -76,11 +76,6 @@
         var manifestURL = callerIframe.getAttribute('mozapp');
 
         var callerApp = applications.getByManifestURL(manifestURL);
-        if (!this.hasPermission(callerApp, 'open-remote-window') &&
-            !this.hasPermission(callerApp, 'homescreen-webapps-manage')) {
-          return;
-        }
-
         callerOrigin = callerApp.origin;
       } else {
         callerOrigin = location.origin;
@@ -92,6 +87,12 @@
       var name = detail.name;
       var url = detail.url;
       var app;
+
+      if (features.webManifestUrl) {
+        app = applications.getByManifestURL(features.webManifestUrl);
+        app && app.launch();
+        return;
+      }
 
       // Use fake origin for named windows in order to be able to reuse them,
       // otherwise always open a new window for '_blank'.

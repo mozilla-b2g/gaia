@@ -290,26 +290,24 @@ window.GaiaAppIcon = (function(exports) {
 
     this.classList.add('launching');
     setTimeout(() => { this.classList.remove('launching'); }, LAUNCH_TIMEOUT);
+    var features = {
+      name: this.bookmark.name,
+      remote: true
+    };
 
-    if (this.app) {
-      window.performance.mark('appLaunch@' + this.app.origin);
-      this.app.launch(this.entryPoint);
-    } else {
-      var features = {
-        name: this.bookmark.name,
-        remote: true
-      };
-
-      if (this.bookmark.scope) {
-        features.scope = this.bookmark.scope;
-      }
-
-      window.open(this.bookmark.url, '_samescope', Object.keys(features)
-        .map(function eachFeature(key) {
-          return encodeURIComponent(key) + '=' +
-            encodeURIComponent(features[key]);
-        }).join(','));
+    if (this.bookmark.scope) {
+      features.scope = this.bookmark.scope;
     }
+
+    if (this.bookmark.webManifestUrl) {
+      features.webManifestUrl = this.bookmark.webManifestUrl;
+    }
+
+    window.open(this.bookmark.url, '_samescope', Object.keys(features)
+      .map(function eachFeature(key) {
+        return encodeURIComponent(key) + '=' +
+          encodeURIComponent(features[key]);
+      }).join(','));
   };
 
   proto._prepareIconLoader = function() {
