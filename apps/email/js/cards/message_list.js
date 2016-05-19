@@ -599,7 +599,7 @@ MessageListCard.prototype = {
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
-    this._onScroll(null);
+    this.onScroll(null);
   },
 
   onNewMail: function(newEmailCount) {
@@ -743,6 +743,17 @@ MessageListCard.prototype = {
     this._snippetRequestPending = false;
   },
 
+  // the distance between items. It is expected to remain fairly constant
+  // throughout the list so we only need to calculate it once.
+  _getDistance: function() {
+    var items = this.messagesSlice.items;
+    if (!this._distanceBetweenMessages && items.length) {
+      this._distanceBetweenMessages =
+        items[0].element.getBoundingClientRect().height;
+    }
+    return this._distanceBetweenMessages;
+  },
+
   _requestSnippets: function() {
     var items = this.messagesSlice.items;
     var len = items.length;
@@ -758,40 +769,19 @@ MessageListCard.prototype = {
 
     if (len < MINIMUM_ITEMS_FOR_SCROLL_CALC) {
       this._pendingSnippetRequest();
-      this.messagesSlice.maybeRequestBodies(0, 9, options, clearSnippets);
+      this.messagesSlice.maybeRequestBodies(0,
+          MINIMUM_ITEMS_FOR_SCROLL_CALC - 1, options, clearSnippets);
       return;
     }
 
-    // get the scrollable offset
-    if (!this._scrollContainerOffset) {
-      this._scrollContainerRect =
-        this.scrollContainer.getBoundingClientRect();
-    }
-
-    var constOffset = this._scrollContainerRect.top;
-
-    // determine where we are in the list;
-    var topOffset = (
-      items[0].element.getBoundingClientRect().top - constOffset
-    );
-
-    // the distance between items. It is expected to remain fairly constant
-    // throughout the list so we only need to calculate it once.
-
-    var distance = this._distanceBetweenMessages;
-    if (!distance) {
-      this._distanceBetweenMessages = distance = Math.abs(
-        topOffset -
-        (items[1].element.getBoundingClientRect().top - constOffset)
-      );
-    }
+    var distance = this._getDistance();
 
     // starting offset to begin fetching snippets
-    var startOffset = Math.floor(Math.abs(topOffset / distance));
+    var startOffset = ~~(this.scrollContainer.scrollTop / distance);
 
     this._snippetsPerScrollTick = (
       this._snippetsPerScrollTick ||
-      Math.ceil(this._scrollContainerRect.height / distance)
+      ~~((this.scrollContainer.getBoundingClientRect() / distance) + 1)
     );
 
 
@@ -901,6 +891,10 @@ MessageListCard.prototype = {
     if (index === 0 && howMany === 0 && !addedItems.length)
       return;
 
+    var prevScrollTop = this.scrollContainer.scrollTop;
+    var scrollTop = prevScrollTop;
+    var distance = this._getDistance();
+
     var prevHeight;
     // - removed messages
     if (howMany) {
@@ -913,7 +907,7 @@ MessageListCard.prototype = {
         // start offset because it is as big as the occluding header bar.)
         prevHeight = null;
         if (this.messagesSlice.items[index].element.offsetTop <
-            this.scrollContainer.scrollTop + this.messagesContainer.offsetTop) {
+            scrollTop + this.messagesContainer.offsetTop) {
           prevHeight = this.messagesContainer.clientHeight;
         }
 
@@ -924,8 +918,10 @@ MessageListCard.prototype = {
 
         // If fixup is requred, adjust.
         if (prevHeight !== null) {
-          this.scrollContainer.scrollTop -=
-            (prevHeight - this.messagesContainer.clientHeight);
+          var delta = (howMany * distance) ||
+                      (prevHeight - this.messagesContainer.clientHeight);
+          prevHeight -= delta;
+          scrollTop -= delta;
         }
 
         // Check the message count after deletion:
@@ -945,8 +941,8 @@ MessageListCard.prototype = {
       insertBuddy = this.messagesContainer.children[index];
     if (insertBuddy &&
         (insertBuddy.offsetTop <
-         this.scrollContainer.scrollTop + this.messagesContainer.offsetTop))
-      prevHeight = this.messagesContainer.clientHeight;
+         scrollTop + this.messagesContainer.offsetTop))
+      prevHeight = prevHeight || this.messagesContainer.clientHeight;
     else
       prevHeight = null;
 
@@ -972,8 +968,14 @@ MessageListCard.prototype = {
     });
 
     if (prevHeight) {
-      this.scrollContainer.scrollTop +=
-        (this.messagesContainer.clientHeight - prevHeight);
+      var delta = (addedItems.length * distance) ||
+                  (this.messagesContainer.clientHeight - prevHeight);
+      scrollTop += delta;
+      prevHeight += delta;
+    }
+
+    if (prevScrollTop !== scrollTop) {
+      this.scrollContainer.scrollTop = scrollTop;
     }
 
     // Only cache if it is an add or remove of items
