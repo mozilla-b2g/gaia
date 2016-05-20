@@ -17,11 +17,10 @@
   Home.prototype = {
 
     navigableIds:
-        ['search-button', 'search-input', 'settings-button',
-            'filter-tab-group', 'add-folder-button'],
+        ['search-button', 'search-input', 'filter-tab-group',
+            'add-folder-button'],
 
-    topElementIds: ['search-button', 'search-input',
-            'settings-button', 'add-folder-button'],
+    topElementIds: ['search-button', 'search-input', 'add-folder-button'],
 
     bottomElementIds: ['filter-tab-group', 'filter-all-button',
         'filter-tv-button', 'filter-device-button', 'filter-app-button',
@@ -44,7 +43,6 @@
     cardListElem: document.getElementById('card-list'),
     folderListElem: document.getElementById('folder-list'),
     cardManager: undefined,
-    settingsButton: document.getElementById('settings-button'),
     addFolderButton: document.getElementById('add-folder-button'),
     searchButton: document.getElementById('search-button'),
     timeElem: document.getElementById('time'),
@@ -501,9 +499,7 @@
 
       var focusElem = this.focusElem;
 
-      if (focusElem === this.settingsButton) {
-        this.openSettings();
-      } else if (focusElem === this.addFolderButton) {
+      if (focusElem === this.addFolderButton) {
         this.showAddFolderDialog();
       } else if (focusElem &&
           this.filterElementIds.indexOf(focusElem.id) > -1) {
@@ -865,4 +861,3 @@
   exports.Home = Home;
   exports.FOLDER_CAPACITY = FOLDER_CAPACITY;
 }(window));
-

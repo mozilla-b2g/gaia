@@ -17,7 +17,6 @@
     doneButton: document.getElementById('done-button'),
     searchButton: document.getElementById('search-button'),
     addNewFolderButton: document.getElementById('add-new-folder-button'),
-    settingsButton: document.getElementById('settings-button'),
 
     regularNavElements: undefined,
     editNavElements: undefined,
@@ -34,7 +33,7 @@
       this.folderScrollable = folderScrollable;
       this._home = home;
 
-      this.regularNavElements = [this.searchButton, this.settingsButton];
+      this.regularNavElements = [this.searchButton];
       this.editNavElements = [this.doneButton, this.addNewFolderButton];
 
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
