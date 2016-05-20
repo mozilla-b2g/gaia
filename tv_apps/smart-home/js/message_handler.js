@@ -127,6 +127,10 @@
         this._digestActivity(activity);
       }
       return true;
+    },
+
+    hasPendingActivity: function mh_hasPendingActivity() {
+      return !!this.activityQueue.length;
     }
   };
 

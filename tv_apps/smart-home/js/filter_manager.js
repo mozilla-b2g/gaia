@@ -211,6 +211,7 @@
 
       if (!this._isBubbleSinking()) {
         this._isFilterChanging = false;
+        this.fire('filter-animation-end');
         return;
       }
 
