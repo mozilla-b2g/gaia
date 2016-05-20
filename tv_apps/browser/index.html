@@ -115,7 +115,7 @@ ENDIF_FIREFOX_SYNC-->
     <!-- main -->
     <div id="main-block" data-mode="cursor" class="main-window">
       <!-- toolbar -->
-      <ul id="toolbar-panel" data-pvt="false">
+      <ul id="toolbar-panel" data-pvt="false" data-forward="false">
         <div id="private-bar"></div>
         <li id="sidebar-button-block" data-tips="WB_LT_TIPS_CHANGE_SCREEN" data-fade="false">
           <div id="sidebar-button" data-sidebar="true">
@@ -216,7 +216,7 @@ ENDIF_FIREFOX_SYNC-->
             </div>
             <div id="search-clear-button"></div>
           </form>
-          <button id="search-close-button" data-l10n-id="LT_NETWORK_STATUS_BTN_CLOSE">close</button>
+          <button id="search-close-button" data-l10n-id="cancel">cancel</button>
         </li>
 
         <li id="iconbutton-block">
@@ -248,7 +248,7 @@ ENDIF_FIREFOX_SYNC-->
             <li id="show-bookmarks-button-block" data-tips="WB_LT_TIPS_SHOW_YOUR_BOOKMARK" data-colorbar="green">
               <div id="show-bookmarks-button">
               <!-- XXX: Replace the SVG to icon font -->
-                <svg id="show-bookmarks-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                <svg id="show-bookmarks-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="4.5 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
                   <path class="show-bookmarks-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M38.551,18.436h-4.794l-5.571-5.406l-5.581,5.406h-5.156
                   c-1.205,0-2.181,0.977-2.181,2.181v18.172c0,1.204,0.976,2.181,2.181,2.181h21.102c1.204,0,2.181-0.977,2.181-2.181V20.617
                   C40.731,19.413,39.755,18.436,38.551,18.436z M21.83,38.06h-4.363v-4.363h4.363V38.06z M21.833,31.521h-4.361v-4.361h4.361
@@ -260,7 +260,7 @@ ENDIF_FIREFOX_SYNC-->
             <li id="home-button-block" data-tips="WB_LT_TIPS_HOMEPAGE">
               <div id="home-button">
               <!-- XXX: Replace the SVG to icon font -->
-                <svg id="home-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                <svg id="home-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="4.5 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
                   <path class="home-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M27.557,19.535l-9.028,8.469
                   c-0.001,0.026-0.007,0.05-0.007,0.076v10.34c0,1.119,0.935,2.071,2.088,2.071h4.028c-0.188-0.238-0.305-0.534-0.305-0.86v-7.936
                   c0-0.769,0.623-1.393,1.392-1.393h3.756c0.769,0,1.392,0.624,1.392,1.393v7.936c0,0.326-0.117,0.623-0.305,0.86h4.044
@@ -274,7 +274,7 @@ ENDIF_FIREFOX_SYNC-->
             <li id="zoom-button-block" data-tips="WB_LT_TIPS_ZOOM_IN" data-colorbar="yellow">
               <div id="zoom-button">
               <!-- XXX: Replace the SVG to icon font -->
-                <svg id="zoom-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="3 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
+                <svg id="zoom-button-svg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="4.5 3 47 47" x="0" y="0" preserveAspectRatio="xMidyMid meet">
                   <path class="zoom-button-path" fill-rule="evenodd" clip-rule="evenodd" fill="#1D1D1B" d="M39.982,36.892l-6.505-6.505
                   c1.148-1.698,1.818-3.746,1.818-5.95c0-5.876-4.764-10.64-10.64-10.64c-5.876,0-10.639,4.764-10.639,10.64
                   c0,5.876,4.763,10.64,10.639,10.64c2.074,0,4.003-0.603,5.639-1.629l6.063,6.063c0.005,0.203,0.06,0.379,0.184,0.502
