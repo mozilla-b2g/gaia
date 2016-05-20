@@ -292,8 +292,6 @@
           // pinning would catch the focus for us.
           if (that._fteWizard.running) {
             that._fteWizard.focus();
-          } else if (that._cardPicker.isShown) {
-            that._cardPicker.focus();
           } else if (!that.messageHandler.resumeActivity()) {
             that.spatialNavigator.focus();
           }
@@ -319,6 +317,10 @@
         }
         if (this.cardScrollable.isSliding) {
           this.cardScrollable.endSlide();
+        }
+        if (this._cardPicker.isShown) {
+          this._cardPicker.mode = '';
+          this._cardPicker.hide();
         }
       }
     },
