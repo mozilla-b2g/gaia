@@ -290,6 +290,29 @@
         });
         candidates.forEach(candidate => appendToGridView(candidate.element));
       }
+
+      var cardsPerRow = 0;
+      var firstRowTop;
+
+      this.appCardElems.some(elem => {
+        var rect = elem.getBoundingClientRect();
+        if (firstRowTop && rect.top != firstRowTop) {
+          return true;
+        }
+        firstRowTop = rect.top;
+        cardsPerRow++;
+      });
+
+      var length = this.appCardElems.length;
+      for(var i = 0; i < length; i += cardsPerRow) {
+        var left = this.appCardElems[i].firstChild;
+        var right =
+          this.appCardElems[Math.min(i + cardsPerRow, length) - 1].firstChild;
+        left.dataset.navLeft =
+         '#card-picker-grid-view [data-card-id="' + right.dataset.cardId + '"]';
+        right.dataset.navRight =
+          '#card-picker-grid-view [data-card-id="' + left.dataset.cardId + '"]';
+      }
     },
 
     _showButton: function(id) {
