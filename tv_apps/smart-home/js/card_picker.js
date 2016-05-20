@@ -313,6 +313,23 @@
         right.dataset.navRight =
           '#card-picker-grid-view [data-card-id="' + left.dataset.cardId + '"]';
       }
+
+      // If the residual > 0, that means the number of cards at the last row
+      // isn't enough to fill up one row. So some cards at the last 2nd row
+      // wouldn't have card below them. Let's make these cards at the 2nd row
+      // navigate to the last card when moving down.
+      var residual = length % cardsPerRow;
+      if (residual) {
+        var startIdx = length - cardsPerRow;
+        var endIdx = length - residual - 1;
+        var lastCardSelector = '#card-picker-grid-view [data-card-id="' +
+          this.appCardElems[length - 1].firstChild.dataset.cardId + '"]';
+        while (startIdx <= endIdx) {
+          this.appCardElems[startIdx].firstChild.dataset
+                                                .navDown = lastCardSelector;
+          ++startIdx;
+        }
+      }
     },
 
     _showButton: function(id) {
