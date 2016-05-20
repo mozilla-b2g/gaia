@@ -1052,7 +1052,7 @@
         this.containerElement.classList.remove('scrollable');
         this.scrollable.scrollTop = 0;
 
-        Service.request('PinsManager:isPinned', this._currentURL)
+        Service.request('Places:isPinned', this._currentURL, true)
           .then((isPinned) => {
             isPinned ? this.pin() : this.unpin();
           });
