@@ -60,7 +60,7 @@
   position: relative;
   width: 24rem;
   height: 31.5rem;
-  float: left;
+  display: inline-block;
 }
 
 #card-picker.hidden {
@@ -96,7 +96,7 @@
   content: ' ';
   display: block;
   width: 30rem;
-  height: 30rem;
+  height: 16rem;
 }
 
 /* Currently the :after tag is not used as text label (a span child element is
