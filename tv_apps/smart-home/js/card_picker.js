@@ -90,7 +90,9 @@
       elem.focus();
       if (elem.classList.contains('app-button')) {
         this._scrollTo(elem);
-        this._lastFocusedAppButton = elem;
+        this.input.dataset.navDown =
+          this.hideCardPickerButton.dataset.navUp =
+          '#card-picker-grid-view [data-card-id="' + elem.dataset.cardId + '"]';
       }
     },
 
@@ -98,17 +100,7 @@
       if (this.isKeyboardOpened) {
         return;
       }
-
-      var focus = this._spatialNavigator.getFocusedElement();
-      if (focus === this.input || focus === this.hideCardPickerButton) {
-        this._spatialNavigator.focus(this._lastFocusedAppButton);
-        return;
-      }
-
-      var result = this._spatialNavigator.move(direction);
-      if (result === false && direction === 'down') {
-        this._spatialNavigator.focus(this.hideCardPickerButton);
-      }
+      this._spatialNavigator.move(direction);
     },
 
     onEnter: function() {
