@@ -425,10 +425,3 @@ smart-button[type="app-button"].focused ~ span.name {
 #main-section[data-mode=""].folder-scrollable-focused #folder-list-frame {
   transform: translateY(-15rem);
 }
-
-#main-section[data-mode="card-picker"] #nav-regular,
-#main-section[data-mode="card-picker"] #card-viewer,
-#main-section[data-mode="card-picker"] #folder-viewer,
-#main-section[data-mode="card-picker"] #filter-tab-container {
-  display: none;
-}
