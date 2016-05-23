@@ -212,6 +212,15 @@ var BrowserDialog = {
         });
         break;
 
+      case 'exit_browser':
+        this.openDialog({
+          titleL10nId: 'LT_BROWSER_CONFIRM_EXIT2',
+          buttonL10nId: 'ok',
+          buttonClass: 'primary',
+          onConfirm: deferred.resolve
+        });
+        break;
+
       default:
         break;
     }
