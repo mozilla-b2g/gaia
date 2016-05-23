@@ -576,24 +576,28 @@ input::-moz-focus-inner {
   -moz-user-select: none;
 }
 
+#show-bookmarks-button-block[data-colorbar=red],
 #zoom-button-block[data-colorbar=red],
 #pan-cursor-button-block[data-colorbar=red],
 #tabs-button-block[data-colorbar=red] {
   border-bottom-color: #fa6648;
 }
 
+#show-bookmarks-button-block[data-colorbar=green],
 #zoom-button-block[data-colorbar=green],
 #pan-cursor-button-block[data-colorbar=green],
 #tabs-button-block[data-colorbar=green] {
   border-bottom-color: #39ba92;
 }
 
+#show-bookmarks-button-block[data-colorbar=blue],
 #zoom-button-block[data-colorbar=blue],
 #pan-cursor-button-block[data-colorbar=blue],
 #tabs-button-block[data-colorbar=blue] {
   border-bottom-color: #3e89e6;
 }
 
+#show-bookmarks-button-block[data-colorbar=yellow],
 #zoom-button-block[data-colorbar=yellow],
 #pan-cursor-button-block[data-colorbar=yellow],
 #tabs-button-block[data-colorbar=yellow] {
