@@ -248,7 +248,7 @@
    "sync.fxa.audience": "https://token.services.mozilla.com/",
    "sync.scheduler.interval": 3600,
    "sync.scheduler.wifionly": false,
-   "sync.server.url": "https://syncto.dev.mozaws.net/v1/",
+   "sync.server.url": "https://syncto.services.mozilla.com/v1/",
    "telephony.speaker.enabled": false,
    "tethering.usb.enabled": false,
    "tethering.usb.ip": "192.168.0.1",
