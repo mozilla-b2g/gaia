@@ -1,5 +1,6 @@
 # Trying out the Sync app
 
+
 ## From master
 
 You can use the latest B2G Desktop build from [here](https://www.dropbox.com/sh/wlw1kcbida471qw/AADqlITy328M8QMPxKokVflha?dl=0).
