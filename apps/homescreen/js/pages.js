@@ -183,6 +183,10 @@
     },
 
     exitEditMode: function() {
+      if (!this.editMode) {
+        return;
+      }
+
       this.editMode = false;
       document.body.classList.remove('edit-mode');
       this.remove.classList.remove('active');
@@ -198,9 +202,7 @@
       }
       this.pages.removeChild(card, () => {
         if (!this.empty && this.pages.children.length === 0) {
-          if (this.editMode) {
-            this.exitEditMode();
-          }
+          this.exitEditMode();
           this.empty = true;
           this.panel.classList.add('empty');
         }
