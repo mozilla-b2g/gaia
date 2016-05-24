@@ -302,7 +302,14 @@
             }
           } else {
             that.messageHandler.resumeActivity();
-            that.spatialNavigator.focus();
+
+            var focusedElement = that.spatialNavigator.getFocusedElement();
+            if (focusedElement &&
+                that.topElementIds.includes(focusedElement.id)) {
+              that.spatialNavigator.focus(that.cardScrollable);
+            } else {
+              that.spatialNavigator.focus();
+            }
           }
 
           that.isNavigable = true;
