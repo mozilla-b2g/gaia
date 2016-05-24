@@ -202,3 +202,40 @@
 #card-picker-input:focus {
   border-bottom: 0.4rem #00caf2 solid;
 }
+
+#card-picker-input-clean-btn {
+  position: absolute;
+  top: 7.2rem;
+  right: 4rem;
+  width: 3rem;
+  height: 3rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #5f6368;
+  opacity: 1;
+  visibility: visible;
+  transition-property: transform, background, color, opacity, visibility;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1);
+}
+
+#card-picker-input-clean-btn.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#card-picker-input-clean-btn:hover,
+#card-picker-input-clean-btn:focus {
+  transform: scale(1.2);
+  background: #fff;
+  color: #2d2d2d;
+}
+
+#card-picker-input-clean-btn::before {
+  width: 3rem;
+  height: 3rem;
+  line-height: 2.8rem;
+}

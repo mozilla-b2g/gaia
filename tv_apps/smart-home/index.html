@@ -204,7 +204,10 @@
            <h1 id="card-picker-title-create" data-l10n-id="create-new-folder">Create New Folder</h1>
            <h1 id="card-picker-title-edit" data-l10n-id="edit-folder">Edit Folder</h1>
         </header>
-        <input id="card-picker-input" readonly data-nav-left=""></input>
+        <section id="card-picker-input-section">
+          <input id="card-picker-input" data-nav-left="" readonly></input>
+          <button id="card-picker-input-clean-btn" data-icon="close" class="hidden" tabindex="-1"></button>
+        </section>
         <section class="card-picker-prompt">
            <span data-l10n-id="select-card-into-folder">Select the card into the folder.</span>
            <span id="picker-selection-counter"><span>0/9</span> selected</span>
