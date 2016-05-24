@@ -135,6 +135,13 @@ ThumbnailDateGroup.formatter = new Intl.DateTimeFormat(navigator.languages, {
   year: 'numeric',
 });
 
+ThumbnailDateGroup.resetFormatter = () => {
+  ThumbnailDateGroup.formatter = new Intl.DateTimeFormat(navigator.languages, {
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
 ThumbnailDateGroup.prototype.localize = function() {
   var date = new Date(this.date);
 

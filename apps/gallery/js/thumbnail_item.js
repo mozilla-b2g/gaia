@@ -44,6 +44,16 @@ ThumbnailItem.formatter = new Intl.DateTimeFormat(navigator.languages, {
   year: 'numeric',
 });
 
+ThumbnailItem.resetFormatter = () => {
+  ThumbnailItem.formatter = new Intl.DateTimeFormat(navigator.languages, {
+    hour: 'numeric',
+    minute: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 ThumbnailItem.prototype.localize = function() {
   var date = new Date(this.data.date);
 
