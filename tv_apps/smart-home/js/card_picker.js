@@ -43,6 +43,7 @@
       this._keyNavigationAdapter.on('enter-keyup', this.onEnter.bind(this));
       this.container.addEventListener('keyup', this.onKeyUp.bind(this), true);
 
+      this._initialSelectedIds = null;
       this._selectedButtons = this.gridView.getElementsByClassName('selected');
       this._appButtons = this.gridView.getElementsByTagName('smart-button');
 
@@ -163,9 +164,12 @@
     },
 
     onKeyUp: function(evt) {
-      if (SharedUtils.isBackKey(evt) && this.mode == 'add' &&
+      if (SharedUtils.isBackKey(evt) &&
           this.isShown && !this.isKeyboardOpened) {
-        if (this.selected.length > 0 || this.input.dataset.dirty === '1') {
+        var Ids = JSON.stringify(
+          Array.from(this.selected).map(elem => elem.dataset.cardId));
+        if (Ids != this._initialSelectedIds ||
+            this.input.dataset.dirty === '1') {
           document.l10n.formatValue('cancel-add-folder').then(message => {
             if (confirm(message)) {
               this.mode = null;
@@ -243,6 +247,8 @@
           this._spatialNavigator.setCollection(
                       Array.from(this.allItems).concat(this.navigableElements));
           this._spatialNavigator.focus();
+          this._initialSelectedIds = JSON.stringify(
+            Array.from(this.selected).map(elem => elem.dataset.cardId));
         });
     },
 
