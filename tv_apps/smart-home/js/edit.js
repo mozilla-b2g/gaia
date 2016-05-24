@@ -383,9 +383,11 @@
         } else if (currentItem.classList.contains('delete-btn')) {
           this.openDeleteCardDialog(focus, focus.getNodeFromItem(currentItem));
         } else if (currentItem.classList.contains('hover')) {
-          // When a card is hovering over a folder, pressing Enter is to move
-          // card into folder and then toggle off arrange mode
-          if (!this._moveTimer) {
+          if (this.folderScrollable.length >= FOLDER_CAPACITY) {
+            Utils.showCapacityWarning();
+          } else if (!this._moveTimer) {
+            // When a card is hovering over a folder, pressing Enter is to move
+            // card into folder and then toggle off arrange mode
             this.moveToFolder();
             this._moveTimer = window.setTimeout(() => {
               this._moveQueue.clearQueue();
