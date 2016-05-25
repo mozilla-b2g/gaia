@@ -62,6 +62,10 @@
       }
     }
 
+    if (config.presentationURL) {
+      browser.setAttribute('mozpresentation', config.presentationURL);
+    }
+
     if (config.parentApp) {
       browser.setAttribute('parentapp', config.parentApp);
     }
