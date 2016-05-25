@@ -1,4 +1,5 @@
 apps/*
+webapps/*
 dev_apps/in_app_pay_test
 dev_apps/mochitest
 dev_apps/ds-test

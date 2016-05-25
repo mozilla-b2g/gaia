@@ -50,22 +50,18 @@
         LazyLoader.getJSON(appListPath, true)
         .then((appList) => {
           for (var app in appList) {
-            ((app) => {
-              var manifestURL = appList[app].manifestURL;
+            ((currentApp) => {
+              var manifestURL = currentApp.manifestURL;
               WebManifestHelper.getManifest(manifestURL)
               .then((manifest) => {
-                var launch_url = (manifest.origin + manifest.launch_path) || '';
-                appList[app].manifest = manifest;
-                appList[app].url = appList[app].url || launch_url;
-                appList[app].launch = () => {
-                  window.dispatchEvent(new CustomEvent('webapps-launch', {
-                    detail: appList[app]
-                  }));
-                };
-                this.installedApps[manifestURL] = appList[app];
-                this.pinSite(appList[app]);
+                currentApp.manifest = manifest;
+                this.pinSite(currentApp);
+              })
+              .catch((error) => {
+                currentApp.manifest = currentApp.originalManifest;
+                this.pinSite(currentApp);
               });
-            })(app);
+            })(appList[app]);
           }
         });
       });
@@ -76,6 +72,15 @@
      * @memberof Applications.prototype
      */
     pinSite: function a_pinSite(site) {
+      var origin = site.origin || site.manifest.origin;
+      var launch_url = (origin + site.manifest.launch_path) || '';
+      site.url = site.url || site.manifest.start_url || launch_url;
+      site.launch = () => {
+        window.dispatchEvent(new CustomEvent('webapps-launch', {
+          detail: site
+        }));
+      };
+      this.installedApps[site.manifestURL] = site;
       Service.request('Places:isPinned', site.url, true)
       .then((isPinned) => {
         if (!isPinned) {

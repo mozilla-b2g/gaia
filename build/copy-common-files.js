@@ -23,7 +23,7 @@ function cleanProfile(webappsDir) {
 function genWebappJSON(config) {
   var configItems = ['origin', 'installOrigin', 'receipt', 'installTime',
                      'updateTime', 'manifestURL', 'removable', 'localId',
-                     'etag', 'packageEtag', 'appStatus'];
+                     'etag', 'packageEtag', 'appStatus', 'originalManifest'];
   var resultJSON = {};
 
   configItems.forEach(function(key) {
