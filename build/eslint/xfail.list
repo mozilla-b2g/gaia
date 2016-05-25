@@ -132,7 +132,6 @@ apps/music/components/gaia-theme/lib/gaia-theme-selector.js # line 12, col 3, Er
 apps/music/components/gaia-toolbar/gaia-toolbar.js # line 26, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/music/components/poplar/poplar.js # line 260, col 3, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/pdfjs/content/build/pdf.worker.js # line 0, col 0, Error - Maximum call stack size exceeded
-apps/ringtones/js/tone_list.js # line 51, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/modules/messaging.js # line 196, col 13, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/panels/frame/panel.js # line 67, col 9, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/settings/js/panels/languages/languages.js # line 21, col 11, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)

@@ -3,7 +3,7 @@
 /* exported Templates */
 var Templates = {
   soundList: function({l10nID}) {
-    return Sanitizer.escapeHTML `
+    return Sanitizer.createSafeHTML `
       <section hidden>
         <gaia-subheader skin="organic">
           <span data-l10n-id="${l10nID}"></span>
@@ -15,7 +15,7 @@ var Templates = {
   },
 
   soundItem: function({l10nID, name}) {
-    return Sanitizer.escapeHTML `
+    return Sanitizer.createSafeHTML `
       <li>
         <gaia-radio name="sounds" class="truncate">
           <label class="name">
