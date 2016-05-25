@@ -11,11 +11,9 @@
   background-color: #e0e2e4;
   z-index: 310;
 }
- 
 #search-result.visible {
   display: block;
 }
- 
 #search-result-list {
   -moz-box-sizing: border-box;
   position: absolute;
@@ -104,17 +102,21 @@
   pointer-events: none;
 }
 
-.result-item:hover {
+.result-item:hover,
+.result-item:focus {
   height: 132px;
   border-bottom: solid 6px #b4b5b6;
+  outline: none;
 }
 
-.result-item:hover > .result-base > .result-title {
+.result-item:hover > .result-base > .result-title,
+.result-item:focus > .result-base > .result-title {
   height: 50px;
   font-size: 38px;
 }
 
-.result-item:hover > .result-base > .result-url {
+.result-item:hover > .result-base > .result-url,
+.result-item:focus > .result-base > .result-url {
   height: 36px;
   font-size: 28px;
 }
