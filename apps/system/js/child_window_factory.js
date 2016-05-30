@@ -206,7 +206,7 @@
   };
 
   ChildWindowFactory.prototype.createAttentionWindow = function(evt) {
-    if (!this.app || !this.app.hasPermission('attention')) {
+    if (!this.app) {
       console.error('Cannot create attention window. ' +
                     'Invalid of underprivileged app');
       return false;

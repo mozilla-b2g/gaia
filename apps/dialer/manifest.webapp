@@ -1,0 +1,51 @@
+{
+  "name": "Phone",
+  "description": "Gaia Communications",
+  "type": "certified",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "launch_path": "/index.html#keyboard-view",
+  "icons": [
+    {
+      "src": "style/icons/dialer_84.png",
+      "sizes": "84x84"
+    },
+    {
+      "src": "style/icons/dialer_126.png",
+      "sizes": "126x126"
+    },
+    {
+      "src": "style/icons/dialer_142.png",
+      "sizes": "142x142"
+    },
+    {
+      "src": "style/icons/dialer_189.png",
+      "sizes": "189x189"
+    },
+    {
+      "src": "style/icons/dialer_284.png",
+      "sizes": "284x284"
+    }
+  ],
+  "locales": {
+    "ar": {
+      "name": "هاتف",
+      "description": "Gaia هاتف"
+    },
+    "en-US": {
+      "name": "Phone",
+      "description": "Gaia Phone"
+    },
+    "fr": {
+      "name": "téléphone",
+      "description": "téléphone Gaia"
+    },
+    "zh-TW": {
+      "name": "電話",
+      "description": "Gaia 電話"
+    }
+  },
+  "default_locale": "en-US"
+}
