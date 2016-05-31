@@ -138,7 +138,8 @@
 
       var config = new BrowserConfigHelper({
         url: detail.url,
-        manifestURL: manifestURL
+        manifestURL: manifestURL,
+        presentationURL: detail.url
       });
       config.timestamp = detail.timestamp;
 
