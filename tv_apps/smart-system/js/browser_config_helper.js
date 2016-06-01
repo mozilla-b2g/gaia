@@ -117,5 +117,9 @@
       this.manifestURL = '';
       this.manifest = null;
     }
+
+    if (config.presentationURL) {
+      this.presentationURL = config.presentationURL;
+    }
   };
 })(window);
