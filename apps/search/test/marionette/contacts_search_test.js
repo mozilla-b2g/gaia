@@ -1,8 +1,10 @@
 'use strict';
+var D_APPS = '../../../';
+var DD_APPS = '../../../../disabled_apps/';
 
-var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
-var Contacts = require(
-  '../../../../dead_apps/communications/contacts/test/marionette/lib/contacts');
+var Rocketbar = require(D_APPS + '/system/test/marionette/lib/rocketbar.js');
+var Contacts = 
+  require(DD_APPS + 'communications/contacts/test/marionette/lib/contacts');
 var assert = require('assert');
 
 marionette('Search - Contact search', function() {

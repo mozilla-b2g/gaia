@@ -2,7 +2,7 @@
 
 var Server = require('../../../../shared/test/integration/server');
 var Messages =
-  require('../../../../dead_apps/sms/test/marionette/lib/messages');
+  require('../../../../disabled_apps/sms/test/marionette/lib/messages');
 var Rocketbar = require('./lib/rocketbar');
 var assert = require('assert');
 
