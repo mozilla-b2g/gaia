@@ -4,3 +4,4 @@ apps/keyboard
 apps/settings
 apps/system
 apps/search
+webapps/*
