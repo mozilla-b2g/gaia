@@ -1,7 +1,7 @@
 'use strict';
 
 var Messages =
-  require('../../../../dead_apps/sms/test/marionette/lib/messages.js');
+  require('../../../../disabled_apps/sms/test/marionette/lib/messages.js');
 
 var assert = require('assert');
 

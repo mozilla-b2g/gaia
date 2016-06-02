@@ -2,7 +2,7 @@
 
 (function() {
   var Messages =
-    require('../../../../dead_apps/sms/test/marionette/lib/messages');
+    require('../../../../disabled_apps/sms/test/marionette/lib/messages');
   var UtilityTray = require('./lib/utility_tray');
   var assert = require('assert');
 
