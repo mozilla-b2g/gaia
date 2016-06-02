@@ -4,7 +4,6 @@ define(function(require) {
 
 var Tabs = require('tabs');
 var View = require('view');
-var connectionHandler = require('connection/handler');
 
 
 
@@ -16,7 +15,6 @@ var App = {
    * Load the Tabs and Panels, attach events and navigate to the default view.
    */
   init: function() {
-    connectionHandler.init();
     IntlHelper.define('digit-nopadding', 'number', {
       style: 'decimal',
       useGrouping: false

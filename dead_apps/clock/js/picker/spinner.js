@@ -3,7 +3,7 @@ define(function(require) {
   /* global IntlHelper */
 
   var Template = require('template');
-  var GestureDetector = require('shared/js/gesture_detector');
+  var GestureDetector = require('../../../../shared/js/gesture_detector');
   var spinnerHtml = require('text!picker/spinner.html');
 
   // units covered per millisecond threshold to kick off inertia

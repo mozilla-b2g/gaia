@@ -12,7 +12,7 @@ var Sounds = require('sounds');
 var FormButton = require('form_button');
 var html = require('text!panels/timer/panel.html');
 var AudioManager = require('audio_manager');
-var asyncStorage = require('shared/js/async_storage');
+var asyncStorage = require('../../../../../shared/js/async_storage');
 
 var priv = new WeakMap();
 

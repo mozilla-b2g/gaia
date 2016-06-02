@@ -2,7 +2,7 @@ define(function(require) {
 'use strict';
  /* global IntlHelper */
 
-var asyncStorage = require('shared/js/async_storage');
+var asyncStorage = require('../../../../../shared/js/async_storage');
 var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
 var viewMode = null;
@@ -136,13 +136,7 @@ var ClockView = {
 
     // If the date of the month is part of the locale format as a
     // number, insert bold tags to accentuate the number itself.
-    var dateString = f.formatToParts(d).map(({type, value}) => {
-      switch(type) {
-        case 'day': return `<b>${value}</b>`;
-        default: return value;
-      }
-    }).reduce((string, part) => string + part, '');
-
+    var dateString = f.format();
     this.dayDate.innerHTML = dateString;
 
     this.timeouts.dayDate = setTimeout(
