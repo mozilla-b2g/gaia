@@ -19,8 +19,8 @@
       'exit'
     ]),
     APP_CANCELLED_KEYS: Object.freeze([
-      'volumeup',
-      'volumedown',
+      'audiovolumeup',
+      'audiovolumedown',
       'camera'
     ]),
     // Home key has different .key values on different devices.
