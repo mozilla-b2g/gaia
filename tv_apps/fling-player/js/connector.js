@@ -41,15 +41,16 @@
 
     this._isInit = true;
 
-    this._presentation.receiver.getConnection().then(
-      this._initConnection.bind(this)
+    this._presentation.receiver.connectionList.then(
+      (list) => {
+        this._initConnection(list.connections[0]);
+
+        list.onconnectionavailable = (e) => {
+          this._initConnection(e.connection);
+        };
+      }
     );
 
-    this._presentation.receiver.onconnectionavailable = (e) => {
-      this._presentation.receiver.getConnection().then(
-        this._initConnection.bind(this)
-      );
-    };
   };
 
   proto._initConnection = function (connection) {
@@ -69,7 +70,9 @@
 
     this._connection = connection;
     this._connection.onmessage = this.onConnectionMessage.bind(this);
-    this._connection.onstatechange = this.onConnectionStateChange.bind(this);
+    this._connection.onconnect = this._connection.onclose
+                               = this._connection.onterminate
+                               = this.onConnectionStateChange.bind(this);
   };
 
   proto.sendMsg = function (msg) {

@@ -21,11 +21,13 @@
       this._onStateChange = this._handleStateChange.bind(this);
 
       navigator.presentation &&
-                          navigator.presentation.receiver.getConnection().then(
-      function addConnection(connection) {
-        this._connection = connection;
+                          navigator.presentation.receiver.connectionList.then(
+      function addConnection(list) {
+        this._connection = list.connections[0];
         this._connection.addEventListener('message', this._onMessage);
-        this._connection.addEventListener('statechange', this._onStateChange);
+        this._connection.addEventListener('connect', this._onStateChange);
+        this._connection.addEventListener('close', this._onStateChange);
+        this._connection.addEventListener('terminate', this._onStateChange);
         this._sequence = 0;
       }.bind(this),
       function connectionError() {
