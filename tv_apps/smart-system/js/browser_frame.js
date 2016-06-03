@@ -64,6 +64,10 @@
 
     if (config.presentationURL) {
       browser.setAttribute('mozpresentation', config.presentationURL);
+      // Always launch non-app receiver page in sandbox.
+      if (!config.manifestURL) {
+        browser.setAttribute('mozprivatebrowsing', 'true');
+      }
     }
 
     if (config.parentApp) {
