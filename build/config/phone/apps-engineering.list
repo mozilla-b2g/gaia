@@ -35,3 +35,4 @@ apps/settings/test/fixtures/addon2
 apps/settings/test/fixtures/addon3
 
 distros/raptor/apps/test-startup-limit
+
