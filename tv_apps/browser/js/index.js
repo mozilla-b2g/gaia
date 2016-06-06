@@ -856,8 +856,6 @@ var Browser = {
     Toolbar.setZoomScale(this.currentInfo.zoom);
     this.currentInfo.dom.zoom(Toolbar.getZoomScale());
     Toolbar.setUrlBar(url);
-    Awesomescreen.disableSpatialNavigation();
-    this.switchCursorMode(true);
   },
 
   // Get search form input

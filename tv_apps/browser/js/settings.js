@@ -140,7 +140,7 @@ var Settings = {
       SearchUtil.getCurrentEngineName();
     this.currentSearchEngine = this.settingsSearchEngineName.textContent;
     this.selectSearchEngine = this.currentSearchEngine;
-    Browser.switchCursorMode(true);
+
     // XXX: Get Firefox Account sign in status and display it
   },
 
@@ -160,7 +160,6 @@ var Settings = {
     this.hideDialogHomepage();
     this.hideDialogSearch();
     document.body.classList.remove('settings-screen');
-    Browser.switchCursorMode(false);
   },
 
   handleListClick: function settings_handleListClick(evt) {
@@ -414,9 +413,6 @@ var Settings = {
         return true;
       }
       Settings.hide();
-      if (Awesomescreen.isDisplayedDefault()) {
-        Toolbar.menuButtonBlock.focus();
-      }
       return true;
     }
 
