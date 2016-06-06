@@ -61,7 +61,7 @@ suite('tv-epg/epg', function() {
         return [
           {type: 'hour', value: '12'},
           {type: 'minute', value: '25'},
-          {type: 'dayperiod', value: 'AM'}
+          {type: 'dayPeriod', value: 'AM'}
         ];
       };
     }

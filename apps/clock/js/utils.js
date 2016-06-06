@@ -204,7 +204,7 @@ Utils.getLocalizedTimeHtml = function(date) {
   var f = IntlHelper.get('time-text');
   return f.formatToParts(date).map(({type, value}) => {
     switch(type) {
-      case 'dayperiod': return `<small>${value}</small>`;
+      case 'dayPeriod': return `<small>${value}</small>`;
       default: return value;
     }
   }).reduce((string, part) => string + part, '');

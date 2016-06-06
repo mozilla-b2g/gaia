@@ -396,7 +396,7 @@ var CallScreen = {
     if (formatter.resolvedOptions().hour12 === true) {
       timeText = formatter.formatToParts(now).map(({type, value}) => {
         switch (type) {
-          case 'dayperiod': return '';
+          case 'dayPeriod': return '';
           default: return value;
         }
       }).reduce((string, part) => string + part, '');

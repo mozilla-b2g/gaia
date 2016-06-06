@@ -33,7 +33,7 @@ suite('system/TimeIcon', function() {
     setup(function() {
       function stubFormatToParts(d) {
         return [
-          {type: 'dayperiod', value: 'AM'}
+          {type: 'dayPeriod', value: 'AM'}
         ];
       }
       if (!Intl.DateTimeFormat.prototype.formatToParts) {

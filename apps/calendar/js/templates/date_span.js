@@ -29,9 +29,14 @@ module.exports = create({
     var formatter = IntlHelper.get(format);
 
     if (this.arg('addAmPmClass')) {
-      displayHour = formatter.format(date, {
-        dayperiod: '<span class="ampm" aria-hidden="true">$&</span>',
-      });
+      displayHour = formatter.formatToParts(date).map(({type, value}) => {
+        switch (type) {
+          case 'dayPeriod':
+            return `<span class="ampm" aria-hidden="true">${value}</span>`;
+          default:
+            return value;
+        }
+      }).reduce((string, part) => string + part, '');
     } else {
       displayHour = formatter.format(date);
     }

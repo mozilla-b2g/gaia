@@ -765,7 +765,7 @@
       var dayperiod = '';
 
       var timeWithoutDayPeriod = parts.map(({type, value}) => {
-        if (type === 'dayperiod') {
+        if (type === 'dayPeriod') {
           dayperiod = value;
           return '';
         }
