@@ -227,11 +227,16 @@ li {
   font-size: 3.8rem;
   font-weight: 100;
   text-align: center;
+  transition: transform 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
 #default-content-view .tab-navigation .tab-option.active {
   outline:none;
   border-bottom: 0.6rem solid #00cfff;
+}
+
+#default-content-view .tab-navigation .tab-option:focus {
+  transform: scale(1.1);
 }
 
 #default-content-view .tab-content-container {
@@ -295,6 +300,10 @@ li {
   text-align: center;
 }
 
+.top-site-item:focus {
+  outline: none;
+}
+
 .thumbnail-area {
   height: 20rem;
   border-width: 0.1rem;
@@ -351,14 +360,16 @@ li {
   display : none;
 }
 
-.top-site-item:hover > .thumbnail-area {
+.top-site-item:hover > .thumbnail-area,
+.top-site-item:focus > .thumbnail-area {
   outline: none;
   border-width: 1.2rem;
   border-color: #fff;
   background-size: 108% 114%;
 }
 
-.top-site-item:hover > .site-title-area{
+.top-site-item:hover > .site-title-area,
+.top-site-item:focus > .site-title-area {
   width: 33.5rem;
   transform: translateY(-1rem);
 }
