@@ -160,7 +160,7 @@ var Tooltip = {
     if (typeof disp.text === 'string') {
       this.tooltipBlock.setAttribute('data-l10n-id', disp.text);
     } else if (disp.text.hasOwnProperty('raw')) {
-      this.tooltipBlock.innerHTML = disp.text.replace(/\\n/g, '<br>');
+      this.tooltipBlock.innerHTML = disp.text.raw.replace(/\\n/g, '<br>');
     }
 
     // pos x adjustment
