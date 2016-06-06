@@ -397,9 +397,15 @@ var Toolbar = {
 
     Browser.currentInfo.dom.getCanGoBack().onsuccess = (function(ev) {
       if(!ev.target.result){
-        BrowserDialog.createDialog('exit_browser', null).then(() => {
-          window.close();
-        });
+        BrowserDialog.createDialog('exit_browser', null).then(
+          () => {
+            window.close();
+          },
+          () => {
+            if (Awesomescreen.isDisplayedDefault()) {
+              Toolbar.backButtonBlock.focus();
+            }
+          });
         return;
       }
     }).bind(this);

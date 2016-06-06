@@ -217,7 +217,8 @@ var BrowserDialog = {
           titleL10nId: 'LT_BROWSER_CONFIRM_EXIT2',
           buttonL10nId: 'ok',
           buttonClass: 'primary',
-          onConfirm: deferred.resolve
+          onConfirm: deferred.resolve,
+          onCancel: deferred.reject
         });
         break;
 

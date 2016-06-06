@@ -2769,9 +2769,16 @@ var Awesomescreen = {
       Browser.refreshBookmarkButton();
       this.defaultContentViewHidden();
     }else{
-      BrowserDialog.createDialog('exit_browser', null).then(() => {
-        window.close();
-      });
+      BrowserDialog.createDialog('exit_browser', null).then(
+        () => {
+          window.close();
+        },
+        () => {
+          if (Awesomescreen.isDisplayedDefault()) {
+            Toolbar.backButtonBlock.focus();
+          }
+        }
+      );
     }
   },
 
