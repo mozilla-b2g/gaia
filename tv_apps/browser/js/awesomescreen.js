@@ -68,6 +68,7 @@ var Awesomescreen = {
   historyList: null,
   defaultContentView: null,
   isSpatialNavigationEnable: false,
+  SNSectionSelector: new Map(),
   /**
    * Initialise Awesomescreen.
    */
@@ -3341,13 +3342,37 @@ var Awesomescreen = {
   },
 
   initSpatialNavigation: function awesomescreen_initSpatialNavigation() {
+    // set up spatial navigation section and selection map
+    this.SNSectionSelector.set('tool-bar', [
+      '#sidebar-button-block',
+      '#back-button-block',
+      '#address-form',
+      '#url-input',
+      '#search-form',
+      '#search-input',
+      '#search-button',
+      '#search-clear-button',
+      '#search-close-button',
+      '#show-bookmarks-button-block',
+      '#home-button-block',
+      '#tabs-button-block',
+      '#menu-button-block'
+    ]);
+
+    this.SNSectionSelector.set('menu-block', ['#menu-block li']);
+
+    this.SNSectionSelector.set('search-result', ['#search-result li']);
+
+    this.SNSectionSelector.set('default-content-view', [
+      '#top-site-option',
+      '#top-sites .top-site-item',
+      '#sync-tab-option',
+      '#sync-tab-content .tab-list-item:first-child .list-item'
+    ]);
+
     SpatialNavigation.init();
 
     this.enableSpatialNavigation();
-
-    SpatialNavigation.makeFocusable();
-
-    SpatialNavigation.focus('tool-bar');
 
     let tabNavigationEl = document.querySelector('.tab-navigation');
     tabNavigationEl.addEventListener('sn:willmove', function(e){
@@ -3382,25 +3407,9 @@ var Awesomescreen = {
       return;
     }
 
-    let toolbarSelector = [
-      '#sidebar-button-block',
-      '#back-button-block',
-      '#address-form',
-      '#url-input',
-      '#search-form',
-      '#search-input',
-      '#search-button',
-      '#search-clear-button',
-      '#search-close-button',
-      '#show-bookmarks-button-block',
-      '#home-button-block',
-      '#tabs-button-block',
-      '#menu-button-block'
-    ];
-
     SpatialNavigation.add({
       id: 'tool-bar',
-      selector: toolbarSelector.join(','),
+      selector: this.SNSectionSelector.get('tool-bar').join(','),
       defaultElement: '#search-form',
       enterTo: 'last-focused',
       navigableFilter: function(el) {
@@ -3481,7 +3490,7 @@ var Awesomescreen = {
 
     SpatialNavigation.add({
       id: 'menu-block',
-      selector: '#menu-block li',
+      selector: this.SNSectionSelector.get('menu-block').join(','),
       straightOnly: true,
       restrict: 'self-only',
       leaveFor: {
@@ -3491,7 +3500,7 @@ var Awesomescreen = {
 
     SpatialNavigation.add({
       id: 'search-result',
-      selector: '#search-result li',
+      selector: this.SNSectionSelector.get('search-result').join(','),
       straightOnly: true,
       restrict: 'self-only',
       leaveFor: {
@@ -3499,16 +3508,9 @@ var Awesomescreen = {
       }
     });
 
-    let defaultContentViewSelector = [
-      '#top-site-option',
-      '#top-sites .top-site-item',
-      '#sync-tab-option',
-      '#sync-tab-content .tab-list-item:first-child .list-item'
-    ];
-
     SpatialNavigation.add({
       id: 'default-content-view',
-      selector: defaultContentViewSelector.join(','),
+      selector: this.SNSectionSelector.get('default-content-view').join(','),
       restrict: 'self-only',
       enterTo: 'last-focused',
       leaveFor: {
@@ -3533,6 +3535,10 @@ var Awesomescreen = {
         }
       }
     });
+
+    SpatialNavigation.makeFocusable();
+
+    SpatialNavigation.focus('tool-bar');
 
     function updateDefaultElementSelector() {
       let tapOptionNotHiddenEl =
@@ -3571,10 +3577,17 @@ var Awesomescreen = {
       return;
     }
 
-    SpatialNavigation.remove('tool-bar');
-    SpatialNavigation.remove('menu-block');
-    SpatialNavigation.remove('search-result');
-    SpatialNavigation.remove('default-content-view');
+    for (var [id, selector] of this.SNSectionSelector.entries()) {
+      let tabInndexEls = document.querySelectorAll(selector.join(','));
+      let tabIndexList = Array.from(tabInndexEls);
+
+      tabIndexList.forEach((el) => {
+        if (el.getAttribute('tabindex')) {
+          el.removeAttribute('tabindex');
+        }
+      });
+      SpatialNavigation.remove(id);
+    }
 
 //IFDEF_FIREFOX_SYNC
     this.syncTabOptionObserver.disconnect();
