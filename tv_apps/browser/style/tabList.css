@@ -29,6 +29,7 @@
 }
 
 .tab-list-view .list-item {
+  position: relative;
   display: flex;
   height: 11.2rem;
   width: 100%;
@@ -38,11 +39,27 @@
               border-bottom 0.42s cubic-bezier(0.25, 0, 0, 1.0);
 }
 
-.tab-list-view .list-item:hover,
-.tab-list-view .list-item:focus {
+.tab-list-view .list-item:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0.6rem solid transparent;
+  border-radius: 0.3rem;
+  box-sizing: border-box;
+  transition: border-color 0.16s cubic-bezier(0.25, 0, 0, 1.0);
+}
+
+.tab-list-view .list-item:hover {
   height: 13.4rem;
   outline: none;
   border-bottom: 0.6rem solid rgba(77, 77, 77, 0.3);
+}
+
+.tab-list-view .list-item:focus:after {
+  border-color: var(--highlight-color);
 }
 
 .tab-list-view .list-item .text-box {
