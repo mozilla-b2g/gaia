@@ -8,8 +8,6 @@
 /* global Tooltip*/
 /* global UrlHelper */
 /* global BrowserDialog */
-/* global KeyEvent */
-/* global SharedUtils */
 
 'use strict';
 
@@ -45,8 +43,6 @@ var Toolbar = {
 
   initStart: true,
 
-  isKeyboardDisplayed: false,
-
   /**
    * Intialise toolbar.
    */
@@ -60,14 +56,8 @@ var Toolbar = {
     this.sidebarButtonBlock.addEventListener('mouseup',
         this.showHideSidebar.bind(this));
 
-    this.sidebarButtonBlock.addEventListener('keydown',
-        this.handleSidebarButtonKeydown.bind(this));
-
     this.backButtonBlock.addEventListener('mouseup',
         this.goBack.bind(this));
-
-    this.backButtonBlock.addEventListener('keydown',
-        this.handleBackButtonKeydown.bind(this));
 
     this.forwardButtonBlock.addEventListener('mouseup',
         this.goForward.bind(this));
@@ -75,26 +65,8 @@ var Toolbar = {
     this.addressForm.addEventListener('submit',
         this.handleUrlFormSubmit.bind(this));
 
-    this.addressForm.addEventListener('keydown',
-        this.handleUrlFormKeydown.bind(this));
-
-    this.addressForm.addEventListener('focus',
-        this.handleUrlFormFocus.bind(this));
-
-    this.addressForm.addEventListener('blur',
-        this.handleUrlFormBlur.bind(this));
-
     this.urlInput.addEventListener('input',
         this.handleUrlInputKeypress.bind(this));
-
-    this.urlInput.addEventListener('keydown',
-        this.handleUrlInputKeydown.bind(this));
-
-    this.urlInput.addEventListener('click',
-        this.handleUrlInputClick.bind(this));
-
-    this.urlInput.addEventListener('blur',
-        this.handleUrlInputBlur.bind(this));
 
     this.addressButton.addEventListener('mouseup',
         this.clickAddressButton.bind(this));
@@ -102,8 +74,8 @@ var Toolbar = {
     this.searchForm.addEventListener('submit',
         this.handleSearchFormSubmit.bind(this));
 
-    this.searchForm.addEventListener('keydown',
-        this.handleSearchFormKeydown.bind(this));
+    this.searchInput.addEventListener('focus',
+        this.handleSearchInputFocus.bind(this));
 
     // this.searchInput.addEventListener('keyup',
     //     this.handleSearchInputKeypress.bind(this));
@@ -111,44 +83,14 @@ var Toolbar = {
     this.searchInput.addEventListener('input',
         this.handleSearchInputInput.bind(this));
 
-    this.searchInput.addEventListener('keydown',
-        this.handleSearchInputKeydown.bind(this));
-
-    this.searchInput.addEventListener('sn:willmove',
-        this.handleSearchInputWillmove.bind(this));
-
-    this.searchInput.addEventListener('click',
-        this.handleSearchInputClick.bind(this));
-
-    this.searchInput.addEventListener('blur',
-        this.handleSearchInputBlur.bind(this));
-
     this.searchButton.addEventListener('mouseup',
         this.clickSearchButton.bind(this));
-
-    this.searchButton.addEventListener('keydown',
-        this.handleSearchButtonKeydown.bind(this));
 
     this.searchClearButton.addEventListener('mouseup',
         this.clickSearchClearButton.bind(this));
 
-    this.searchClearButton.addEventListener('keydown',
-        this.handleSearchClearButtonKeydown.bind(this));
-
-    this.searchClearButton.addEventListener('keyup',
-        this.handleSearchClearButtonKeyup.bind(this));
-
-    this.searchClearButton.addEventListener('sn:willmove',
-        this.handleSearchClearButtonWillmove.bind(this));
-
     this.searchCloseButton.addEventListener('mouseup',
         this.clickSearchCloseButton.bind(this));
-
-    this.searchCloseButton.addEventListener('keydown',
-        this.handleSearchCloseButtonKeydown.bind(this));
-
-    this.iconbuttonBlock.addEventListener('keyup',
-        this.handleIconbuttonBlockKeyup.bind(this));
 
     this.bookmarkButtonBlock.addEventListener('mouseup',
         Browser.addBookmark.bind(Browser));
@@ -166,19 +108,9 @@ var Toolbar = {
 
     this.tabsButtonBlock.addEventListener('click',
         Awesomescreen.handleNewTab.bind(Awesomescreen));
-    this.tabsButtonBlock.addEventListener('sn:willmove',
-        this.handleTabButtonBlockWillmove.bind(this));
 
     this.menuButtonBlock.addEventListener('mouseup',
         this.clickMenuButtonBlock.bind(this));
-    this.menuButtonBlock.addEventListener('sn:willmove',
-        this.handleMenuButtonBlockWillmove.bind(this));
-
-    this.menuBlock.addEventListener('keydown',
-        this.handleMenuBlockKeydown.bind(this));
-    this.menuBlock.addEventListener('keyup',
-        this.handleMenuBlockKeyup.bind(this));
-
     this.historyBlock.addEventListener('mouseup',
         Awesomescreen.selectHistoryTab.bind(Awesomescreen));
     this.privateWindowBlock.addEventListener('mouseup',
@@ -373,14 +305,6 @@ var Toolbar = {
     this.sidebarButtonBlock.dataset.fade='true';
   },
 
-  handleSidebarButtonKeydown: function toolbar_handleSidebarButtonKeydown(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
-      this.showHideSidebar();
-      this.sidebarButtonBlock.dataset.fade='false';
-      this.sidebarButtonBlock.focus();
-    }
-  },
-
   /**
    * Go back to the previous page
    */
@@ -405,12 +329,6 @@ var Toolbar = {
     }).bind(this);
 
     Browser.currentInfo.dom.goBack();
-  },
-
-  handleBackButtonKeydown: function toolbar_handleBackButtonKeydown(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
-      this.goBack();
-    }
   },
 
   /**
@@ -460,25 +378,10 @@ var Toolbar = {
     Browser.navigate(url);
   },
 
-  handleUrlFormKeydown: function toolbar_handleUrlFormKeydown(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN && !this.isKeyboardDisplayed) {
-      this.showKeyboardOnInput(this.urlInput);
-      ev.preventDefault();
-    }
-  },
-
-  handleUrlFormFocus: function toolbar_handleUrlFormFocus(ev) {
-    this.spaceBlock .classList.add('highlight');
-  },
-
-  handleUrlFormBlur: function toolbar_handleUrlFormBlur(ev) {
-    this.spaceBlock .classList.remove('highlight');
-  },
-
   /**
     * Input Url
     */
-  handleUrlInputKeypress: function toolbar_handleUrlInputKeypress(ev) {
+  handleUrlInputKeypress: function toolbar_handleUrlInputKeypress(evt) {
     var input = this.urlInput.value;
     if (input === '') {
       this.setUrlButtonMode(null);
@@ -490,38 +393,6 @@ var Toolbar = {
     this.setUrlButtonMode(
       UrlHelper.isNotURL(input) ? this.SEARCH : this.GO
     );
-  },
-
-  handleUrlInputKeydown: function toolbar_handleUrlInputKeydown(ev) {
-    let inputEl = ev.target;
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN && inputEl.readOnly) {
-      this.showKeyboardOnInput(inputEl);
-      ev.stopPropagation();
-      ev.preventDefault();
-      return;
-    }
-
-    if(SharedUtils.isBackKey(ev)) {
-      this.hideKeyboardOnInput(inputEl);
-      return;
-    }
-
-    if (this.isKeyboardDisplayed) {
-      ev.stopPropagation();
-      return;
-    }
-  },
-
-  handleUrlInputClick: function toolbar_handleUrlInputClick(ev) {
-    let inputEl = ev.target;
-    this.showKeyboardOnInput(inputEl);
-  },
-
-  handleUrlInputBlur: function toolbar_handleUrlInputBlur(ev) {
-    let inputEl = ev.target;
-    if (inputEl.readOnly === false && this.isKeyboardDisplayed) {
-      this.hideKeyboardOnInput(inputEl);
-    }
   },
 
   /**
@@ -588,24 +459,11 @@ var Toolbar = {
     Browser.navigate(url);
   },
 
-  handleSearchFormKeydown: function toolbar_handleSearchFormKeydown(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN && !this.isKeyboardDisplayed) {
-      this.showKeyboardOnInput(this.searchInput);
-      ev.preventDefault();
-    }
-  },
-
   /**
    * Click search button
    */
   clickSearchButton: function toolbar_clickSearchButton(ev) {
     this.handleSearchFormSubmit(ev);
-  },
-
-  handleSearchButtonKeydown: function toolbar_handleSearchButtonKeydown(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
-      this.handleSearchFormSubmit(ev);
-    }
   },
 
   clickSearchClearButton: function toolbar_clickSearchClearButton(ev) {
@@ -616,70 +474,11 @@ var Toolbar = {
     SearchResult.resultUpdate(this.searchInput.value);
   },
 
-  handleSearchClearButtonKeydown:
-    function toolbar_handleSearchClearButtonKeydown(ev) {
-    ev.target.classList.add('active');
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
-      this.clickSearchClearButton(ev);
-      ev.stopPropagation();
-    }
-  },
-
-  handleSearchClearButtonKeyup:
-    function toolbar_handleSearchClearButtonKeyup(ev) {
-    ev.target.classList.remove('active');
-  },
-
-  handleSearchClearButtonWillmove:
-    function toolbar_handleSearchClearButtonWillmove(ev) {
-    if (ev.detail.direction === 'left') {
-      this.searchInput.focus();
-      ev.preventDefault();
-    }
-  },
-
   clickSearchCloseButton: function toolbar_clickSearchCloseButton(ev) {
     if( ev ) {
       ev.preventDefault();
     }
     SearchResult.hide();
-  },
-
-  handleSearchCloseButtonKeydown:
-    function toolbar_handleSearchCloseButtonKeydown(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
-      this.clickSearchCloseButton(ev);
-      if (this.searchInput.value) {
-        this.searchInput.focus();
-      } else {
-        this.searchForm.focus();
-      }
-    }
-  },
-
-  handleIconbuttonBlockKeyup: function toolbar_handleIconbuttonBlockKeyup(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
-      switch (ev.target.id) {
-        case 'show-bookmarks-button-block':
-          Awesomescreen.selectBookmarksTab.apply(Awesomescreen);
-          break;
-        case 'home-button-block':
-          this.clickHomeButtonBlock(ev);
-          break;
-        case 'tabs-button-block':
-          Awesomescreen.handleNewTab.apply(Awesomescreen);
-          break;
-        case 'menu-button-block':
-          if (this.toolbarPanel.dataset.menu === 'show') {
-            this.toolbarPanel.dataset.menu = 'hide';
-          } else {
-            this.toolbarPanel.dataset.menu = 'show';
-          }
-          break;
-        default:
-          break;
-      }
-    }
   },
 
   /**
@@ -693,58 +492,18 @@ var Toolbar = {
     this.toolbarPanel.dataset.search = value;
   },
 
-  handleSearchInputInput: function toolbar_handleSearchInputInput(ev) {
-    this.handleSearchInputKeypress(ev);
+  handleSearchInputFocus: function toolbar_handleSearchInputFocus(evt) {
+    this.handleSearchInputKeypress(evt);
   },
 
-  handleSearchInputKeydown: function toolbar_handleSearchInputKeydown(ev) {
-    let inputEl = ev.target;
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN && inputEl.readOnly) {
-      this.showKeyboardOnInput(inputEl);
-      ev.stopPropagation();
-      ev.preventDefault();
-      return;
-    }
-
-    if (SharedUtils.isBackKey(ev)) {
-      this.hideKeyboardOnInput(inputEl);
-      return;
-    }
-
-    if (this.isKeyboardDisplayed) {
-      ev.stopPropagation();
-      return;
-    }
+  handleSearchInputInput: function toolbar_handleSearchInputInput(evt) {
+    this.handleSearchInputKeypress(evt);
   },
 
-  handleSearchInputWillmove: function toolbar_handleSearchInputWillmove(ev) {
-    if (ev.detail.direction === 'down') {
-      let searchResultItem =
-        SearchResult.searchResultList.querySelector('.result-item');
-      if (searchResultItem) {
-        ev.preventDefault();
-        searchResultItem.focus();
-      }
-    }
-  },
-
-  handleSearchInputClick: function toolbar_handleSearchInputClick(ev) {
-    let inputEl = ev.target;
-    this.showKeyboardOnInput(inputEl);
-    ev.stopPropagation();
-  },
-
-  handleSearchInputBlur: function toolbar_handleSearchInputBlur(ev) {
-    let inputEl = ev.target;
-    if (inputEl.readOnly === false && this.isKeyboardDisplayed) {
-      this.hideKeyboardOnInput(inputEl);
-    }
-  },
-
-  handleSearchInputKeypress: function toolbar_handleSearchInputKeypress(ev) {
+  handleSearchInputKeypress: function toolbar_handleSearchInputKeypress(evt) {
     if( this.getSearchBarStyle() == 'false' ) {
-      if( ev ) {
-        ev.preventDefault();
+      if( evt ) {
+        evt.preventDefault();
       }
       if(Toolbar.searchInput.value) {
         Tooltip.hide();
@@ -752,7 +511,7 @@ var Toolbar = {
         SearchResult.show();
       }
     } else {
-      SearchResult.handleSearchResultFormInput(ev);
+      SearchResult.handleSearchResultFormInput(evt);
     }
   },
 
@@ -836,15 +595,6 @@ var Toolbar = {
     }, 1500);
   },
 
-  handleTabButtonBlockWillmove:
-    function toolbar_handleTabButtonBlockWillmove(ev) {
-      // Close menu list when focus leave menu-button to
-      // the left
-      if (ev.detail.direction === 'right' ) {
-        this.clickMenuButtonBlock(ev);
-      }
-  },
-
   /**
    * Click menu button
    */
@@ -868,57 +618,6 @@ var Toolbar = {
         this.menuBlock.style.minWidth =
           (Math.max.apply(null, ar) * 1.25) + 'px';
       }
-    }
-  },
-
-  handleMenuButtonBlockWillfocus:
-    function toolbar_handleMenuButtonBlockWillfocus(ev) {
-    let activeEl = document.activeElement;
-    if (activeEl.id === 'tabs-button-block') {
-      this.clickMenuButtonBlock(ev);
-    }
-  },
-
-  handleMenuButtonBlockWillmove:
-    function toolbar_handleMenuButtonBlockWillmove(ev) {
-      // Close menu list when focus leave menu-button to
-      // the left
-      if (ev.detail.direction === 'left' &&
-        this.toolbarPanel.dataset.menu == 'show') {
-        this.toolbarPanel.dataset.menu = 'hide';
-      }
-  },
-
-  handleMenuBlockKeydown: function toolbar_handleMenuBlockKeydown(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_LEFT) {
-      ev.stopPropagation();
-      return;
-    }
-  },
-
-  handleMenuBlockKeyup: function toolbar_handleMenuBlockKeyup(ev) {
-    if (ev.keyCode === KeyEvent.DOM_VK_LEFT) {
-      ev.stopPropagation();
-      ev.preventDefault();
-      return;
-    }
-
-    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
-      switch (ev.target.id) {
-        case 'history-block':
-          Awesomescreen.selectHistoryTab.apply(Awesomescreen);
-          break;
-        case 'private-window-block':
-          Browser.handlePrivateBrowsing.apply(Browser);
-          break;
-        case 'settings-block':
-          Settings.show.apply(Settings);
-          break;
-        default:
-          break;
-      }
-
-      this.toolbarPanel.dataset.menu = 'hide';
     }
   },
 
@@ -1021,21 +720,8 @@ var Toolbar = {
   },
   getToolbarMode: function toolbar_getToolbarMode() {
     return this.toolbarPanel.dataset.mode;
-  },
-
-  showKeyboardOnInput(el) {
-    el.readOnly = false;
-    el.blur();
-    el.focus();
-    this.isKeyboardDisplayed = true;
-  },
-
-  hideKeyboardOnInput(el) {
-    el.readOnly = true;
-    el.blur();
-    el.focus();
-    this.isKeyboardDisplayed = false;
   }
+
 };
 
 

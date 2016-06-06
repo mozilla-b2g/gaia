@@ -7,7 +7,6 @@
 /* global LazyLoader */
 /* global Settings */
 /* global SyncManagerBridge */
-/* global KeyEvent */
 
 'use strict';
 
@@ -82,18 +81,7 @@
             this.syncBlock.removeEventListener('mouseup', this.showListener);
             this.showListener = null;
           }
-          if (this.showListenerOnKeyup) {
-            this.syncBlock.removeEventListener('keyup',
-                                               this.showListenerOnKeyup);
-            this.showListenerOnKeyup = null;
-          }
-          this.enableListener = (e) => {
-            if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-              SyncManagerBridge.enable();
-            }
-          };
           this.syncBlock.addEventListener('mouseup', SyncManagerBridge.enable);
-          this.syncBlock.addEventListener('keyup', this.enableListener);
           this.syncTab.setAttribute('data-l10n-id', 'fxsync-sign-in-to-sync');
           this.syncTab.removeAttribute('data-l10n-args');
           break;
@@ -104,20 +92,9 @@
         case 'syncing':
         case 'enabled':
           this.showListener = Settings.show.bind(Settings);
-          this.showListenerOnKeyup = (e) => {
-            if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-              this.showListener();
-            }
-          };
           this.syncBlock.addEventListener('mouseup', this.showListener);
-          this.syncBlock.addEventListener('keyup',
-                                          this.showListenerOnKeyup);
           this.syncBlock.removeEventListener('mouseup',
                                              SyncManagerBridge.enable);
-          if (this.enableListener) {
-            this.syncBlock.removeEventListener('keyup',
-                                               this.enableListener);
-          }
           document.l10n.setAttributes(this.syncTab, 'fxsync-signed-in-as', {
             email: message.user
           });
