@@ -206,11 +206,3 @@ smart-button[type=rounded-corner-text].focused {
   top: 10rem;
   height: 70rem;
 }
-
-a#fxos-privacy-notice-link {
-  width: 40rem;
-}
-
-a#moz-privacy-policy-link {
-  width: 34rem;
-}
