@@ -422,8 +422,10 @@ var Browser = {
 
     this.currentInfo.dom.getCanGoForward().onsuccess = (function(ev) {
       Toolbar.forwardButtonBlock.classList.remove('disable');
+      Toolbar.toolbarPanel.dataset.forward = true;
       if(!ev.target.result){
         Toolbar.forwardButtonBlock.classList.add('disable');
+        Toolbar.toolbarPanel.dataset.forward = false;
       }
     }).bind(this);
   },

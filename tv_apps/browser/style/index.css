@@ -1,3 +1,7 @@
+:root {
+  --toolbar-panel-height: 12rem;
+  --highlight-color: #00cbf4;
+}
 html, body {
   width: 1920px;
   height: 100%;
@@ -61,9 +65,9 @@ a {
 #web-block {
   position: absolute;
   width: 100%;
-  height: -moz-calc(100% - 100px);
+  height: calc(100% - var(--toolbar-panel-height));
   cursor: default;
-  top: 100px;
+  top: var(--toolbar-panel-height);
   z-index: 100;
 }
 

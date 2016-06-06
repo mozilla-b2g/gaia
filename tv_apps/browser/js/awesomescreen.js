@@ -157,6 +157,10 @@ var Awesomescreen = {
       this.defaultContentView.querySelector('.tab-navigation');
     tabNavigationEl.addEventListener('mouseup',
       this.handleTabNavigationMouseup.bind(this));
+    tabNavigationEl.addEventListener('keydown',
+      this.handleTabNavigationKeydown.bind(this));
+    tabNavigationEl.addEventListener('keyup',
+      this.handleTabNavigationKeyup.bind(this));
     tabNavigationEl.addEventListener('sn:willfocus',
       this.handleTabNavigationWillfocus.bind(this));
 
@@ -3280,6 +3284,26 @@ var Awesomescreen = {
   },
 
   /**
+   * handle tab navigation keydown.
+   */
+  handleTabNavigationKeydown:
+    function awesomescreen_handleTabNavigationKeydown(e) {
+    if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
+      e.target.classList.add('tapped');
+    }
+  },
+
+  /**
+   * handle tab navigation keyup.
+   */
+  handleTabNavigationKeyup:
+    function awesomescreen_handleTabNavigationKeyup(e) {
+    if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
+      e.target.classList.remove('tapped');
+    }
+  },
+
+  /**
    * handle tab navigation sn:willfocus.
    */
   handleTabNavigationWillfocus:
@@ -3550,6 +3574,7 @@ var Awesomescreen = {
     this.syncTabOptionObserver = null;
 //ENDIF_FIREFOX_SYNC
 
+    document.activeElement.blur();
     this.isSpatialNavigationEnable = false;
   }
 };

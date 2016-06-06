@@ -63,6 +63,9 @@ var Toolbar = {
     this.sidebarButtonBlock.addEventListener('keydown',
         this.handleSidebarButtonKeydown.bind(this));
 
+    this.sidebarButtonBlock.addEventListener('keyup',
+        this.handleSidebarButtonKeyup.bind(this));
+
     this.backButtonBlock.addEventListener('mouseup',
         this.goBack.bind(this));
 
@@ -84,6 +87,12 @@ var Toolbar = {
     this.addressForm.addEventListener('blur',
         this.handleUrlFormBlur.bind(this));
 
+    this.addressForm.addEventListener('mouseenter',
+        this.showSpaceBlockFocusStyle.bind(this));
+
+    this.addressForm.addEventListener('mouseleave',
+        this.handleUrlFormMouseLeave.bind(this));
+
     this.urlInput.addEventListener('input',
         this.handleUrlInputKeypress.bind(this));
 
@@ -92,6 +101,9 @@ var Toolbar = {
 
     this.urlInput.addEventListener('click',
         this.handleUrlInputClick.bind(this));
+
+    this.urlInput.addEventListener('focus',
+        this.showSpaceBlockFocusStyle.bind(this));
 
     this.urlInput.addEventListener('blur',
         this.handleUrlInputBlur.bind(this));
@@ -146,6 +158,9 @@ var Toolbar = {
 
     this.searchCloseButton.addEventListener('keydown',
         this.handleSearchCloseButtonKeydown.bind(this));
+
+    this.iconbuttonBlock.addEventListener('keydown',
+        this.handleIconbuttonBlockKeydown.bind(this));
 
     this.iconbuttonBlock.addEventListener('keyup',
         this.handleIconbuttonBlockKeyup.bind(this));
@@ -375,9 +390,16 @@ var Toolbar = {
 
   handleSidebarButtonKeydown: function toolbar_handleSidebarButtonKeydown(ev) {
     if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
+      ev.target.classList.add('tapped');
       this.showHideSidebar();
       this.sidebarButtonBlock.dataset.fade='false';
       this.sidebarButtonBlock.focus();
+    }
+  },
+
+  handleSidebarButtonKeyup: function toolbar_handleSidebarButtonKeyup(ev) {
+    if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
+      ev.target.classList.remove('tapped');
     }
   },
 
@@ -475,6 +497,13 @@ var Toolbar = {
     this.spaceBlock .classList.remove('highlight');
   },
 
+  handleUrlFormMouseLeave: function toolbar_handleUrlFormMouseLeave(ev) {
+    // hide the urlInput style when urlInput is focused
+    if (document.activeElement !== this.urlInput) {
+      this.hideSpaceBlockFocusStyle();
+    }
+  },
+
   /**
     * Input Url
     */
@@ -522,6 +551,7 @@ var Toolbar = {
     if (inputEl.readOnly === false && this.isKeyboardDisplayed) {
       this.hideKeyboardOnInput(inputEl);
     }
+    this.hideSpaceBlockFocusStyle();
   },
 
   /**
@@ -618,8 +648,8 @@ var Toolbar = {
 
   handleSearchClearButtonKeydown:
     function toolbar_handleSearchClearButtonKeydown(ev) {
-    ev.target.classList.add('active');
     if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
+      ev.target.classList.add('active');
       this.clickSearchClearButton(ev);
       ev.stopPropagation();
     }
@@ -657,17 +687,35 @@ var Toolbar = {
     }
   },
 
+  handleIconbuttonBlockKeydown:
+    function toolbar_handleIconbuttonBlockKeydown(ev) {
+    let enableIconButtonIds = [
+      'show-bookmarks-button-block',
+      'home-button-block',
+      'tabs-button-block',
+      'menu-button-block'
+    ];
+
+    if (ev.keyCode === KeyEvent.DOM_VK_RETURN &&
+      enableIconButtonIds.indexOf(ev.target.id) !== -1) {
+      ev.target.classList.add('tapped');
+    }
+  },
+
   handleIconbuttonBlockKeyup: function toolbar_handleIconbuttonBlockKeyup(ev) {
     if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
       switch (ev.target.id) {
         case 'show-bookmarks-button-block':
           Awesomescreen.selectBookmarksTab.apply(Awesomescreen);
+          ev.target.classList.remove('tapped');
           break;
         case 'home-button-block':
           this.clickHomeButtonBlock(ev);
+          ev.target.classList.remove('tapped');
           break;
         case 'tabs-button-block':
           Awesomescreen.handleNewTab.apply(Awesomescreen);
+          ev.target.classList.remove('tapped');
           break;
         case 'menu-button-block':
           if (this.toolbarPanel.dataset.menu === 'show') {
@@ -675,6 +723,7 @@ var Toolbar = {
           } else {
             this.toolbarPanel.dataset.menu = 'show';
           }
+          ev.target.classList.remove('tapped');
           break;
         default:
           break;
@@ -1035,7 +1084,15 @@ var Toolbar = {
     el.blur();
     el.focus();
     this.isKeyboardDisplayed = false;
-  }
+  },
+
+  showSpaceBlockFocusStyle() {
+    this.spaceBlock.classList.add('url-input-focus');
+  },
+
+  hideSpaceBlockFocusStyle() {
+    this.spaceBlock.classList.remove('url-input-focus');
+  },
 };
 
 
