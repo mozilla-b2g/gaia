@@ -3374,10 +3374,6 @@ var Awesomescreen = {
 
     this.enableSpatialNavigation();
 
-    SpatialNavigation.makeFocusable();
-
-    SpatialNavigation.focus('tool-bar');
-
     let tabNavigationEl = document.querySelector('.tab-navigation');
     tabNavigationEl.addEventListener('sn:willmove', function(e){
       let target = e.target;
@@ -3539,6 +3535,10 @@ var Awesomescreen = {
         }
       }
     });
+
+    SpatialNavigation.makeFocusable();
+
+    SpatialNavigation.focus('tool-bar');
 
     function updateDefaultElementSelector() {
       let tapOptionNotHiddenEl =
