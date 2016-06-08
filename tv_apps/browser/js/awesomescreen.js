@@ -3577,10 +3577,17 @@ var Awesomescreen = {
       return;
     }
 
-    SpatialNavigation.remove('tool-bar');
-    SpatialNavigation.remove('menu-block');
-    SpatialNavigation.remove('search-result');
-    SpatialNavigation.remove('default-content-view');
+    for (var [id, selector] of this.SNSectionSelector.entries()) {
+      let tabInndexEls = document.querySelectorAll(selector.join(','));
+      let tabIndexList = Array.from(tabInndexEls);
+
+      tabIndexList.forEach((el) => {
+        if (el.getAttribute('tabindex')) {
+          el.removeAttribute('tabindex');
+        }
+      });
+      SpatialNavigation.remove(id);
+    }
 
 //IFDEF_FIREFOX_SYNC
     this.syncTabOptionObserver.disconnect();
