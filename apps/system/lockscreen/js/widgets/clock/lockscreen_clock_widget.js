@@ -45,7 +45,7 @@
     var timeText =
       this.timeFormatter.formatToParts(now).map(({type, value}) => {
         switch (type) {
-          case 'dayperiod': return '';
+          case 'dayPeriod': return '';
           default: return value;
         }
       }

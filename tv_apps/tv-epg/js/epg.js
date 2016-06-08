@@ -271,12 +271,12 @@
 
     var parts = formatter.formatToParts(now);
 
-    var dayperiod = parts.find(part => part.type == 'dayperiod');
+    var dayperiod = parts.find(part => part.type == 'dayPeriod');
 
     var prefix = dayperiod ? dayperiod.value : '';
 
     var timeWithoutDayPeriod = parts.map(({type, value}) => {
-      return type === 'dayperiod' ? '' : value;
+      return type === 'dayPeriod' ? '' : value;
     }).join('');
 
     return {

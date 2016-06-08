@@ -53,7 +53,7 @@ exports._localizeElement = function(element) {
   if (format === 'week-hour-format') {
     text = formatter.formatToParts(new Date(date)).map(({type, value}) => {
       switch(type) {
-        case 'dayperiod':
+        case 'dayPeriod':
           return `<span class="ampm" aria-hidden="true">${value}</span>`;
         default: return value;
       }

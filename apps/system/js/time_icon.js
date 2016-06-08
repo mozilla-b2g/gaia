@@ -42,7 +42,7 @@
       var timeParts = this.timeFormatter.formatToParts(now);
       timeText = timeParts.map(({type, value}) => {
         switch (type) {
-          case 'dayperiod':
+          case 'dayPeriod':
             if (this.manager._ampm) {
               return `<span>${value}</span>`;
             }

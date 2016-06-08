@@ -112,7 +112,7 @@ CurrentTime.prototype = {
     this.element.textContent = formatter.formatToParts(now).map(
       ({type, value}) => {
         switch(type) {
-          case 'dayperiod': return '';
+          case 'dayPeriod': return '';
           default: return value;
         }
       }
