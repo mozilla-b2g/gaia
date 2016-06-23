@@ -1,9 +1,9 @@
 'use strict';
 
-/* global CallLog, CallLogDBManager, Contacts, KeypadManager, LazyLoader,
-          MmiManager, Notification, NotificationHelper, SettingsListener,
-          SimSettingsHelper, SuggestionBar, TelephonyHelper, Utils, Voicemail,
-          MozActivity, Navigation */
+/* global BroadcastChannel, CallLog, CallLogDBManager, Contacts, KeypadManager,
+          LazyLoader, MmiManager, Notification, NotificationHelper,
+          SettingsListener, SimSettingsHelper, SuggestionBar, TelephonyHelper,
+          Utils, Voicemail, Navigation */
 
 var NavbarManager = {
   init: function nm_init() {
@@ -262,7 +262,8 @@ var CallHandler = (function callHandler() {
       CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
         function(result) {
           if (result && (typeof result === 'object') && result.number) {
-            LazyLoader.load(['../shared/js/sim_settings_helper.js'], function() {
+            LazyLoader.load(['../shared/js/sim_settings_helper.js'],
+            function() {
               SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
                 // If the default outgoing call SIM is set to "Always ask", or
                 // is unset, we place this call on the SIM that was used the
@@ -316,7 +317,8 @@ var CallHandler = (function callHandler() {
           position, 'lastEntryDate', true, 'dialing',
         function(result) {
           if (result && (typeof result === 'object') && result.number) {
-            LazyLoader.load(['../shared/js/sim_settings_helper.js'], function() {
+            LazyLoader.load(['../shared/js/sim_settings_helper.js'],
+            function() {
               SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
                 // If the default outgoing call SIM is set to "Always ask", or
                 // is unset, we place this call on the SIM that was used the
@@ -450,8 +452,6 @@ var CallHandler = (function callHandler() {
     }
 
     openingWindow = true;
-    var host = document.location.host;
-    var protocol = document.location.protocol;
     var urlBase = 'chrome://gaia/content/dialer/oncall.html';
 
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
