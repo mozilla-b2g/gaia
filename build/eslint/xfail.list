@@ -88,6 +88,7 @@ apps/communications/contacts/test/unit/views/ice_test.js # line 76, col 7, Error
 apps/communications/contacts/test/unit/views/multiple_select_test.js # line 22, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/test/unit/views/settings_test.js # line 134, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/test/unit/views/settings_test.js # line 475, col 7, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/dialer/js/dialer.js # line 376, col 5, Error - Using postMessage() with wildcard targets is not allowed. (no-wildcard-postmessage/no-wildcard-postmessage)
 apps/costcontrol/js/settings/settings.js # line 170, col 7, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/costcontrol/test/unit/formatting_test.js # line 274, col 7, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/costcontrol/test/unit/formatting_test.js # line 46, col 5, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
