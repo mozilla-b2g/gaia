@@ -9,7 +9,7 @@
   "tags": {},
   "tasks": [
     {
-      "reruns": 2,
+      "reruns": 1,
       "task": {
         "metadata": {
           "name": "Gaia Taskcluster Decision Task"
