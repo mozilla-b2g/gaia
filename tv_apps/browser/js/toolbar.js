@@ -762,7 +762,12 @@ var Toolbar = {
     }
 
     if (SharedUtils.isBackKey(ev)) {
-      this.hideKeyboardOnInput(inputEl);
+      if (this.isKeyboardDisplayed)  {
+        this.hideKeyboardOnInput(inputEl);
+      } else {
+        this.clickSearchCloseButton(ev);
+        this.searchInput.focus();
+      }
       return;
     }
 
