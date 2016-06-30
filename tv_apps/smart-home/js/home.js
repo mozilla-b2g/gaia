@@ -220,8 +220,10 @@
     },
 
     onUnpinMenuItemClick: function () {
-      this.edit.openDeleteCardDialog(this.focusScrollable,
-        this.focusScrollable.getNodeFromItem(this.focusScrollable.currentItem));
+      this.edit.deleteCard(
+        this.focusScrollable,
+        this.focusScrollable.getNodeFromItem(this.focusScrollable.currentItem)
+      );
     },
 
     onEditFolderMenuItemClick: function () {
@@ -700,7 +702,7 @@
     },
 
     handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
-      if (itemElem.getAttribute('app-type') === 'folder' &&
+      if (itemElem && itemElem.getAttribute('app-type') === 'folder' &&
           (!this._folderCard ||
            this._folderCard.cardId != itemElem.dataset.cardId)) {
         itemElem.classList.remove('opened');
