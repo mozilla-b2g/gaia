@@ -166,10 +166,14 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
     });
 
     this.client.switchToFrame();
-    this.client.executeScript(function() {
-      window.wrappedJSObject.Service.request('lock', {
-        forcibly: true
-      });
+    this.client.executeAsyncScript(function() {
+      window.wrappedJSObject.Service.request('lock')
+	.then(function() {
+          marionetteScriptFinished();
+	})
+	.catch(function(e) {
+	  marionetteScriptFinished(e);
+	});
     });
     this.ensure()
       .must((function() {
@@ -180,7 +184,7 @@ var Promise = require('es6-promise').Promise;   // jshint ignore:line
         } catch (e) {
           return false;
         }
-      }).bind(this))
+      }).bind(this), 'Must see lockScreenFrame after locking it')
       .frame(this.lockScreenFrameOrigin);
     return this;
   };
