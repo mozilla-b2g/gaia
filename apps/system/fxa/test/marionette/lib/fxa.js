@@ -47,8 +47,10 @@ FxA.Selectors = {
     tabOpenFlow: '#openFlow',
     // apps/settings
     menuItemFxa: '#menuItem-fxa',
+    menuItemSync: '#menuItem-fxsync',
     menuItemFmd: '#menuItem-findmydevice',
     fxaLogin: '#fxa-login',
+    fxsyncLogin: '#get-started',
     fmdLogin: '#findmydevice-login',
     fxaCancelAccountConfirmation: '#fxa-cancel-confirmation',
     // apps/ftu
@@ -155,8 +157,20 @@ FxA.prototype = {
           .waitForElement(element)
           .tap();
     },
+    clickFxsyncLogin: function() {
+      var element = this.client.findElement(FxA.Selectors.fxsyncLogin);
+      this.client.helper
+          .waitForElement(element)
+          .tap();
+    },
     clickMenuItemFxa: function() {
       var element = this.client.findElement(FxA.Selectors.menuItemFxa);
+      this.client.helper
+          .waitForElement(element)
+          .tap();
+    },
+    clickMenuItemSync: function() {
+      var element = this.client.findElement(FxA.Selectors.menuItemSync);
       this.client.helper
           .waitForElement(element)
           .tap();
@@ -207,6 +221,11 @@ FxA.prototype = {
     runSettingsMenu: function() {
       this.clickMenuItemFxa();
       this.clickFxaLogin();
+      this.switchFrame(FxA.Selectors.fxaFrame);
+    },
+    runSyncSettingsMenu: function() {
+      this.clickMenuItemSync();
+      this.clickFxsyncLogin();
       this.switchFrame(FxA.Selectors.fxaFrame);
     },
     runUITestMenu: function() {
