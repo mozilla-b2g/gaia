@@ -44,6 +44,12 @@ marionette('Audio channel played in foreground and background', function() {
     });
   });
 
+  test('Video cannot be played in background', function() {
+    playVideo();
+    sys.goHome();
+    assert.ok(!helper.isPlaying(testApp.origin, 'content'));
+  });
+
   function playAudioChannelInBackground(audioChannel) {
     playAudioChannel(audioChannel);
     sys.goHome();
@@ -54,5 +60,12 @@ marionette('Audio channel played in foreground and background', function() {
     var testAppFrame = sys.waitForLaunch(testApp.origin);
     client.switchToFrame(testAppFrame);
     testApp[audioChannel + 'Play'].click();
+  }
+
+  function playVideo() {
+    client.switchToFrame();
+    var testAppFrame = sys.waitForLaunch(testApp.origin);
+    client.switchToFrame(testAppFrame);
+    testApp.videoPlay.click();
   }
 });

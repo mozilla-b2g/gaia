@@ -18,4 +18,19 @@
       audio.pause();
     });
   });
+
+  var video = document.querySelector('#video video');
+  var playVideo = document.querySelector('#video .play');
+  var pauseVideo = document.querySelector('#video .play');
+
+  video.src = 'video/elephants-dream.webm';
+  video.mozAudioChannelType = 'content';
+
+  playVideo.addEventListener('click', function() {
+    video.play();
+  });
+
+  pauseVideo.addEventListener('click', function() {
+    video.pause();
+  });
 }());

@@ -24,6 +24,8 @@ AudioChannelTestApp.Selector = Object.freeze({
   notificationPause: '#notification .pause',
   publicnotificationPlay: '#publicnotification .play',
   publicnotificationPause: '#publicnotification .pause',
+  videoPlay: '#video .play',
+  videoPause: '#video .pause',
 });
 
 AudioChannelTestApp.prototype = {
@@ -96,4 +98,14 @@ AudioChannelTestApp.prototype = {
     return this.client
       .findElement(AudioChannelTestApp.Selector.publicnotificationPause);
   },
+
+  get videoPlay() {
+    return this.client
+      .findElement(AudioChannelTestApp.Selector.videoPlay);
+  },
+
+  get videoPause() {
+    return this.client
+      .findElement(AudioChannelTestApp.Selector.videoPause);
+  }
 };
