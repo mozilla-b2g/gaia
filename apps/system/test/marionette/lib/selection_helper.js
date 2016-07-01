@@ -47,7 +47,7 @@ SelectionHelper.prototype = {
 
   /**
    * Move caret by absolute position.
-   *       
+   *
    * @param {Object} data
    *                {caretA: {
    *                   offset: {
@@ -69,7 +69,7 @@ SelectionHelper.prototype = {
         caretPositions.caretA.y + 15,
         caretPositions.caretA.x + data.caretA.offset.x,
         caretPositions.caretA.y + 15 + data.caretA.offset.y).perform();
-      this.client.wait(500);
+      this.client.helper.wait(500);
     }
     if (data.caretB) {
       this.action.flick(this.element, caretPositions.caretB.x,
@@ -81,7 +81,7 @@ SelectionHelper.prototype = {
 
   /**
    * Move caret by word's position.
-   *       
+   *
    * @param {Object} data
    *                {caretA: {offset: //integer}, caretB: {offset //integer}}
    *
@@ -93,21 +93,20 @@ SelectionHelper.prototype = {
     }
     var caretA = data.caretA;
     var caretB = data.caretB;
-    var caretPositions = this.selectionLocationHelper();
     var content = this.content;
     var contentLength = content.length;
-    
+
+    // Get original selection range and new selection range
+    var caretPositions = this.selectionLocationHelper();
     this.client.executeScript('arguments[0].setSelectionRange(' +
       (caretA ? caretA.offset : 0) + ',' +
       (contentLength + (caretB ? caretB.offset : 0)) + ' )',
     [this.element]);
-    
     var newCaretPositions = this.selectionLocationHelper();
 
-    var eltSize = this.element.size();
-    this.action.tap(this.element, eltSize.width / 2, eltSize.height / 2)
-      .wait(2).press(this.element, eltSize.width / 2, eltSize.height / 2).
-      moveByOffset(0, 0).wait(2).release().perform();
+    // Long press to re-select this element to make sure the selection
+    // dialogue is displayed.
+    this.action.longPress(this.element, 2).perform();
 
     var flickPosition = {};
 
