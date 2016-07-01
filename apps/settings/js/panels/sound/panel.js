@@ -10,6 +10,8 @@ define(function(require) {
   var LazyLoader = require('shared/lazy_loader');
   var NetworkInfo = require('modules/mobile/supported_network_info');
 
+  LazyLoader.load(['shared/js/iac_handler.js']);
+
   return function ctor_sound_panel() {
     var volumeManager = VolumeManager();
     var toneManager = ToneManager();
