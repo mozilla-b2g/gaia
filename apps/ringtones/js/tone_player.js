@@ -147,12 +147,6 @@ TonePlayer.prototype = {
         this._source = this._context.createMediaElementSource(this._player);
         this._source.connect(this._context.destination);
       }
-    } else {
-      if (this._source) {
-        this._source.disconnect();
-        this._context = null;
-        this._source = null;
-      }
     }
   }
 };
